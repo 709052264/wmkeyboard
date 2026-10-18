@@ -36,6 +36,24 @@ class CustomDictionariesTest {
     }
 
     @Test
+    fun listsAreCompiledOnceAndRebuiltWhenOneChanges() {
+        // #693: a big list packed afresh at every keyboard start ran the heap out.
+        val file = list("fr", "mine.txt", "chat 50\n")
+        assertTrue(CustomDictionaries.trie(temp.root, "fr").contains("chat"))
+        val again = CustomDictionaries.trie(temp.root, "fr")
+        assertTrue(again is MappedTrie)
+        assertTrue(again.contains("chat"))
+
+        file.writeText("chien 50\nloup 3\n")
+        val rebuilt = CustomDictionaries.trie(temp.root, "fr")
+        assertTrue(rebuilt.contains("chien"))
+        assertFalse(rebuilt.contains("chat"))
+
+        assertTrue(file.delete())
+        assertFalse(CustomDictionaries.trie(temp.root, "fr").contains("chien"))
+    }
+
+    @Test
     fun removeWordMatchesTheLoaderNotTheWholeLine() {
         // A multi-word entry keeps "bon jour" as its word; the frequency is the
         // last token only, so "bon" alone is not it and "bon jour" is.

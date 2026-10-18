@@ -53,6 +53,10 @@ object CustomDictionaries {
     private const val HEADER_SUFFIX = ".header"
     private const val BODY_SUFFIX = ".body"
 
+    /** Bumped when what [trie] compiles from a list changes, so old compiled copies are rebuilt. */
+    private const val PACKED_VERSION = "packed-1"
+    private const val INITIAL_WORDS = 1024
+
     /** What a list holds in place of words when only its pairs or shortcuts were imported. */
     private const val NO_WORDS_LINE = "# Only word pairs or shortcuts were imported with this list.\n"
 
@@ -162,8 +166,113 @@ object CustomDictionaries {
             .getOrDefault(emptyList())
     }
 
-    fun trie(filesDir: File, langId: String): WordSource =
-        PackedTrie.of(entries(filesDir, langId))
+    /**
+     * One language's switched-on lists as a single word source.
+     *
+     * Compiled once into a `.wmdict` and memory-mapped after that, the way a
+     * downloaded list is, so a keyboard start costs one `mmap` and no heap.
+     * It used to read every list into pairs and pack them at each start: a
+     * list of some 800,000 words was then a hundred megabytes of short-lived
+     * objects every time the keyboard came up, and on a 256 MB heap that ran
+     * out of memory at every start (#693).
+     *
+     * The compiled copy is rebuilt when the lists change, which is when any
+     * list's name, size or modification time does. It lives outside [root],
+     * so backups, the lists screen and the import never see it.
+     */
+    fun trie(filesDir: File, langId: String): WordSource {
+        val lists = lists(filesDir, langId)
+        val packed = packedFile(filesDir, langId)
+        val signatureFile = signatureFile(filesDir, langId)
+        if (lists.isEmpty()) {
+            dropPacked(filesDir, langId)
+            return PackedTrie.EMPTY
+        }
+        val signature = signatureOf(lists)
+        if (runCatching { signatureFile.readText() }.getOrNull() == signature) {
+            MappedTrie.open(packed)?.let { return it }
+        }
+        val trie = build(lists, langId)
+        // A cache that cannot be written leaves the built trie to serve this
+        // start; the next one tries again.
+        runCatching {
+            packed.parentFile?.mkdirs()
+            signatureFile.delete()
+            // Renamed into place, never written over: the keyboard may still
+            // have the old file mapped, and a mapped file cut short under its
+            // reader faults. Named per call, so two builds never share a part.
+            val part = File(packed.parentFile, "${packed.name}.${System.nanoTime()}.part")
+            try {
+                part.outputStream().buffered().use { PackedTrieCodec.write(trie, it) }
+                if (!part.renameTo(packed)) return@runCatching
+            } finally {
+                part.delete()
+            }
+            signatureFile.writeText(signature)
+        }
+        // The mapped copy, when there is one, so the arrays just built can go.
+        return MappedTrie.open(packed)?.takeIf { signatureFile.isFile } ?: trie
+    }
+
+    /**
+     * Forgets [langId]'s compiled lists, for an edit that might leave a list
+     * the same size within the same second as before it.
+     */
+    fun dropPacked(filesDir: File, langId: String) {
+        signatureFile(filesDir, langId).delete()
+        packedFile(filesDir, langId).delete()
+    }
+
+    private fun packedDir(filesDir: File): File = File(filesDir, "dictionary_cache")
+
+    private fun packedFile(filesDir: File, langId: String): File = File(packedDir(filesDir), "$langId.wmdict")
+
+    private fun signatureFile(filesDir: File, langId: String): File = File(packedDir(filesDir), "$langId.sig")
+
+    private fun signatureOf(lists: List<File>): String =
+        lists.joinToString("\n", prefix = "$PACKED_VERSION\n") { "${it.name}\t${it.length()}\t${it.lastModified()}" }
+
+    /**
+     * [lists] packed straight from their lines into two parallel arrays,
+     * which is what [PackedTrie.of] takes for big lists. No pair per word.
+     */
+    private fun build(lists: List<File>, langId: String): PackedTrie {
+        val respell = RomanianSpelling.appliesTo(langId)
+        val words = WordArrays()
+        for (list in lists) {
+            val head = head(list) ?: continue
+            if (!readsAsList(head)) continue
+            try {
+                list.inputStream().use { input ->
+                    DictionaryLoader.forEachEntry(input) { word, frequency ->
+                        words.add(if (respell) RomanianSpelling.canonical(word) else word, frequency)
+                    }
+                }
+            } catch (_: java.io.IOException) {
+                // What was read of it stays. An out-of-memory error is not
+                // caught here: the keyboard skips the language over it.
+            }
+        }
+        return PackedTrie.of(words.words, words.frequencies, words.count)
+    }
+
+    /** Growable `word`, `frequency` arrays for [build]. */
+    private class WordArrays {
+        var words = arrayOfNulls<String>(INITIAL_WORDS)
+        var frequencies = IntArray(INITIAL_WORDS)
+        var count = 0
+
+        fun add(word: String, frequency: Int) {
+            if (count == words.size) {
+                val size = words.size * 2
+                words = words.copyOf(size)
+                frequencies = frequencies.copyOf(size)
+            }
+            words[count] = word
+            frequencies[count] = frequency
+            count++
+        }
+    }
 
     /**
      * Imports everything in [stream] as a list named after [displayName], and
@@ -658,6 +767,7 @@ object CustomDictionaries {
         for (file in allLists(filesDir, langId)) {
             if (removeWordFrom(file, key)) changed = true
         }
+        if (changed) dropPacked(filesDir, langId)
         return changed
     }
 
