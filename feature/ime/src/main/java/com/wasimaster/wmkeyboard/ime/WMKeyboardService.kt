@@ -23825,8 +23825,18 @@ open class WMKeyboardService : InputMethodService() {
         if (state.composer.isTransliterating || state.composer.isConversion) return false
         if (state.layouts.ambiguousKeys) return false
         val gesture = state.settings.gesture
-        return gesture.twoThumbGlide || (gesture.swipeContinuesTyped && composing.isNotEmpty())
+        return gesture.twoThumbGlide || (gesture.swipeContinuesTyped && composingIsTyped())
     }
+
+    /**
+     * Whether [composing] holds letters typed into it, rather than a word the
+     * caret only landed on that nobody has touched since — the same line
+     * [onSpace] draws. A swipe continues the first and never the second: tap
+     * at the end of "Hello" and swipe "world", and the swipe is a new word,
+     * not "Hello" read as five more taps of it (#742). A letter typed or
+     * deleted there first is a deliberate edit, and the swipe joins it.
+     */
+    private fun composingIsTyped(): Boolean = composing.isNotEmpty() && composing.toString() != resumedWord
 
     /**
      * A lifted swipe that joins the word in progress: added to its gestures and
@@ -23842,7 +23852,7 @@ open class WMKeyboardService : InputMethodService() {
     ): Boolean {
         if (!swipeJoinsWord(state)) return false
         if (!duetWord.active) {
-            if (composing.isNotEmpty()) {
+            if (composingIsTyped()) {
                 if (!duetWord.seed(composing, composingTouchFrame(), keys, keyWidthPx)) return false
                 // The typed letters already carry the word's case.
                 duetShift = when {
@@ -23852,6 +23862,11 @@ open class WMKeyboardService : InputMethodService() {
                     else -> ShiftState.OFF
                 }
             } else {
+                // A word the caret only landed on goes in as it stands: it is
+                // the field's own text, with nothing to correct (#742).
+                if (composing.isNotEmpty()) {
+                    currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+                }
                 // A new word. What Backspace or the strip would still take back
                 // belongs to the word before it, and goes as after a typed
                 // letter: left armed, a Backspace before this word's first
@@ -24186,7 +24201,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!swipeJoinsWord(state)) return null
         val word = when {
             duetWord.active -> duetWord.copy()
-            composing.isNotEmpty() ->
+            composingIsTyped() ->
                 DuetWord().takeIf { it.seed(composing, composingTouchFrame(), keys, keyWidthPx) } ?: return null
             else -> return null
         }
