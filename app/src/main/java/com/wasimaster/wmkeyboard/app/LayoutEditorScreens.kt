@@ -268,7 +268,6 @@ import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
-import com.wasimaster.wmkeyboard.core.ui.railSection
 import com.wasimaster.wmkeyboard.core.input.imported.Conversion
 import com.wasimaster.wmkeyboard.core.input.imported.ConvertedMethod
 import com.wasimaster.wmkeyboard.core.input.imported.ImportRefusal
@@ -6685,40 +6684,28 @@ internal fun KeyActionPickerDialog(
     /** Narrowed by the popup-alternates picker, which cannot use them all. */
     options: List<KeyActionOption> = KeyActionCatalog,
 ) {
-    val rail = rememberScrollRailState()
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.layout_editor_action_picker_title)) },
-        text = {
-            ScrollRail(state = rail, modifier = Modifier.heightIn(max = 380.dp)) {
-                var lastGroup: Int? = null
-                for (option in options) {
-                    if (option.groupRes != lastGroup) {
-                        val group = stringResource(option.groupRes)
-                        // The heading is what the rail measures a segment from,
-                        // so the strip beside the list reads as its groups.
-                        Box(modifier = Modifier.fillMaxWidth().railSection(rail, group)) {
-                            SectionHeaderPublic(group)
-                        }
-                        lastGroup = option.groupRes
-                    }
-                    WmRow(
-                        title = stringResource(option.titleRes),
-                        subtitle = stringResource(option.detailRes),
-                        leading = {
-                            RadioButton(
-                                selected = option.matches(current),
-                                onClick = { onPick(option.build()) },
-                            )
-                        },
-                        onClick = { onPick(option.build()) },
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
-        },
+    // A page of its own now (#665): the groups fold, a field searches every
+    // action's name and description, and the page reopens the way it was left.
+    val groups = options.groupBy { it.groupRes }.map { (groupRes, inGroup) ->
+        PickerGroup(
+            key = "group-$groupRes",
+            title = stringResource(groupRes),
+            rows = inGroup.map { option ->
+                PickerRow(
+                    key = "${option.titleRes}",
+                    title = stringResource(option.titleRes),
+                    subtitle = stringResource(option.detailRes),
+                    selected = option.matches(current),
+                    onPick = { onPick(option.build()) },
+                )
+            },
+        )
+    }
+    ActionPickerPage(
+        memoryKey = if (options === KeyActionCatalog) "key-actions" else "key-actions-${options.size}",
+        title = stringResource(R.string.layout_editor_action_picker_title),
+        groups = groups,
+        onDismiss = onDismiss,
     )
 }
 

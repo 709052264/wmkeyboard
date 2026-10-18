@@ -216,5 +216,12 @@
     <string name="clipboard_copy_rules_system_title">Change the system clipboard too</string>
     <string name="clipboard_copy_rules_system_subtitle">So a paste from any app\'s own menu gets the tidied text</string>
     <string name="clipboard_copy_rules_system_info">With this setting off, the rules change only what the clipboard history keeps, and what the keyboard pastes from it. Turn it on and a copy a rule changed is put back on the system clipboard as changed, so the paste menu of every app gets it too. A clip its app marked as a password is never changed. This setting is off by default.</string>
+    <string name="clipboard_clean_links_title">Remove trackers from copied links</string>
+    <string name="clipboard_clean_links_subtitle">utm_source, fbclid and the like come off every link you copy, so every paste is clean</string>
+    <string name="clipboard_clean_links_info">Each link in a copy loses the query parameters that only track where it was shared, the same ones the selection bar\'s Remove trackers takes off, and your own names below. The rest of the link, and the rest of the text, stays as it was. The clean link is put back on the system clipboard, so the paste menu of every app gets it too. A clip its app marked as a password is never changed. This setting is off by default.</string>
+    <string name="clipboard_extra_trackers_title">Your own tracking parameters</string>
+    <string name="clipboard_extra_trackers_none">None. Only the built-in list is removed</string>
+    <string name="clipboard_extra_trackers_body">Query parameter names to remove from links, on top of the built-in list, one on each line. End a name with * to remove every parameter that starts with it, such as abc_*. Used by Remove trackers on the selection bar and by Remove trackers from copied links.</string>
+    <string name="clipboard_extra_trackers_label">Parameter names</string>
 
 </resources>

@@ -43,6 +43,18 @@
     <string name="ime_clock_format_relative">Relative</string>
     <string name="ime_clock_format_discord">Discord</string>
     <string name="ime_clock_format_unix">Unix time</string>
+    <string name="ime_clock_when_now">Now</string>
+    <string name="ime_clock_when_pick">Another time</string>
+    <string name="ime_clock_discord_header">Discord shows these in each reader\'s own time zone</string>
+    <string name="ime_clock_discord_short_time">Short time</string>
+    <string name="ime_clock_discord_long_time">Long time</string>
+    <string name="ime_clock_discord_short_date">Short date</string>
+    <string name="ime_clock_discord_long_date">Long date</string>
+    <string name="ime_clock_discord_short_date_time">Date and time</string>
+    <string name="ime_clock_discord_long_date_time">Full date and time</string>
+    <string name="ime_clock_discord_relative">Relative</string>
+    <string name="ime_clock_discord_numeric">Numeric</string>
+    <string name="ime_clock_discord_numeric_seconds">Numeric with seconds</string>
 
     <!-- Alarms -->
     <string name="ime_clock_exact_banner">Android can hold alarms back by some minutes while the phone sleeps.</string>

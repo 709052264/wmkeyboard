@@ -124,6 +124,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.InsertDriveFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
@@ -8518,6 +8519,9 @@ private class ToolDragController {
     /** The show-keys button (#642). On the controller because the bar already takes it. */
     var onHardwareKeysToggle: () -> Unit = {}
 
+    /** The incognito badge tapped: says who switched incognito on (#665). */
+    var onIncognitoBadge: () -> Unit = {}
+
     // Toolbox geometry and data, registered by ToolboxPanel while it is
     // open (a drag can only happen with the toolbox open). The viewport is
     // the visible panel box; content coords are the scrolling grid column,
@@ -10675,11 +10679,14 @@ private fun RowScope.ToolbarRow(
         }
     }
     if (state.incognitoOn) {
+        // Tappable: a field can switch incognito on by itself, and a badge
+        // that shows up with no reason given reads as a bug (#665).
         SlotIcon(
             IconSlots.CHROME_INCOGNITO,
             contentDescription = stringResource(R.string.ime_incognito_on_desc),
             modifier = Modifier
-                .padding(end = 6.dp)
+                .clickable { drag.onIncognitoBadge() }
+                .padding(start = 4.dp, top = 4.dp, end = 6.dp, bottom = 4.dp)
                 .size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -12635,7 +12642,8 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
         // text never offers to undo into the last one.
         val undo = state.captureUndo
         if (undo != null && undo.key == state.captureKey() && undo.text == state.captureBuffer()) {
-            CaptureUndoButton { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+            if (undo.canUndo) CaptureUndoButton(redo = false) { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+            if (undo.canRedo) CaptureUndoButton(redo = true) { capture.onSelectionAction(CaptureSelectionAction.REDO) }
         }
         if (dictation) {
             FieldVoiceMic(state.voice, mine = state.voice.field == state.captureKey()) {
@@ -12645,11 +12653,11 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
     }
 }
 
-/** The undo button at the end of a keyboard-owned field's strip (#665). */
+/** The undo button at the end of a keyboard-owned field's strip (#665), or the redo one beside it. */
 @Composable
-private fun CaptureUndoButton(onUndo: () -> Unit) {
+private fun CaptureUndoButton(redo: Boolean, onUndo: () -> Unit) {
     val kb = LocalKbTheme.current
-    val description = stringResource(R.string.ime_capture_undo_desc)
+    val description = stringResource(if (redo) R.string.ime_capture_redo_desc else R.string.ime_capture_undo_desc)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -12662,7 +12670,7 @@ private fun CaptureUndoButton(onUndo: () -> Unit) {
             .clickable(onClickLabel = description) { onUndo() },
     ) {
         Icon(
-            Icons.AutoMirrored.Outlined.Undo,
+            if (redo) Icons.AutoMirrored.Outlined.Redo else Icons.AutoMirrored.Outlined.Undo,
             contentDescription = description,
             tint = kb.chipText,
             modifier = Modifier.size(16.dp),
@@ -12873,6 +12881,7 @@ private fun KeyboardBody(
     drag.onTrackpadHold = toolHold.onTrackpadHold
     drag.onVoiceModePick = toolHold.onVoiceModePick
     drag.onHardwareKeysToggle = toolHold.onHardwareKeysToggle
+    drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.toolbox = toolHold.toolbox
     // A remapped hold runs the bound tool through the service's own dispatcher
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
@@ -12949,6 +12958,15 @@ private fun KeyboardBody(
             // close it.
             val placement = state.settings.toolbarBehavior.placement
             var toolsRowOpen by remember(placement) { mutableStateOf(false) }
+            // A keyboard-owned field under an open panel brings its own
+            // suggestion strip over the keys (#161). With the tools on a row of
+            // their own, the strip up here never flips to the toolbar when a
+            // panel opens, so it stayed as a second, empty strip for the app
+            // behind the panel (#688). It gives its row up instead, and the
+            // tools row stands open in its place: that row is now the way back
+            // out of the panel, and on demand it already holds its height.
+            val stripGivenToCapture = placement.isOwnRow && state.panel != PanelMode.NONE &&
+                keyRowsUnderPanel(state) && captureStripShown(state)
             // Whether the row has a place on screen at all, as distinct from
             // whether the chevron has it open. The first is a hard cut, like
             // every other row under a full-bleed panel; only the second animates.
@@ -13025,6 +13043,7 @@ private fun KeyboardBody(
                             // Compact dictation still takes it: that bar is the
                             // session's only status and its only way out.
                             state.settings.toolbarBehavior.stripHidden && !state.voice.strip -> {}
+                            stripGivenToCapture && !state.voice.strip -> {}
                             else -> {
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
@@ -13137,7 +13156,8 @@ private fun KeyboardBody(
                         BarRow.TOOLS -> if (toolsRowHost) {
                             val motion = !state.settings.reduceMotion
                             RevealingBarRow(
-                                visible = placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen,
+                                visible = placement == ToolbarPlacement.ALWAYS_ROW || toolsRowOpen ||
+                                    stripGivenToCapture,
                                 // On demand, the frame holds the row's height
                                 // even while it is closed, so the chevron
                                 // resizes the IME window neither way (#217):
@@ -28500,6 +28520,12 @@ data class ToolHoldCallbacks(
      * hold; it rides here for the reason [dictionaryBar] does.
      */
     val onHardwareKeysToggle: () -> Unit = {},
+    /**
+     * The toolbar's incognito badge tapped (#665): a toast naming the app
+     * whose field asked for it, or the switch that did. Not a hold; it rides
+     * here for the reason [onHardwareKeysToggle] does.
+     */
+    val onIncognitoBadge: () -> Unit = {},
     /**
      * The dictionary bar's two callbacks (issue #51). Not a hold at all; they
      * ride this bundle because it is the nearest one already on the call and

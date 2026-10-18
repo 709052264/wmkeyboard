@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
@@ -294,13 +295,17 @@ internal fun OfflineLinksDialog(links: List<OfflineLink>, onDismiss: () -> Unit)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text(link.label, style = MaterialTheme.typography.bodyLarge)
-                            Text(
-                                link.url.substringAfterLast('/'),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                            // The whole address, selectable, so it can be read
+                            // off or copied in part as well as by the button (#665).
+                            SelectionContainer {
+                                Text(
+                                    link.url,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                         IconButton(onClick = { copyLink(context, link.url) }) {
                             Icon(Icons.Outlined.ContentCopy, stringResource(R.string.offline_import_copy_link_desc))

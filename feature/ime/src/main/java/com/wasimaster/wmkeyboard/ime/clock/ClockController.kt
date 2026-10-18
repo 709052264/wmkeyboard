@@ -200,12 +200,21 @@ internal class ClockController(
                 startText(ClockTextEntry(ClockTextField.ZONE_LABEL, current, action.zoneId))
             }
             is ClockAction.InsertSheet -> _state.update {
-                it.copy(insertZone = if (it.insertZone == action.zoneId) null else action.zoneId)
+                it.copy(insertZone = if (it.insertZone == action.zoneId) null else action.zoneId, insertWhen = null)
             }
             is ClockAction.Insert -> {
-                insertText(formatFor(action.zoneId, action.format, action.at ?: now))
-                _state.update { it.copy(insertZone = null) }
+                insertText(formatFor(action.zoneId, action.format, action.at ?: insertAt(action.zoneId, now)))
+                _state.update { it.copy(insertZone = null, insertWhen = null) }
             }
+            is ClockAction.InsertDiscord -> {
+                insertText(ClockFormats.discord(insertAt(action.zoneId, now), action.style))
+                _state.update { it.copy(insertZone = null, insertWhen = null) }
+            }
+            is ClockAction.SetDefaultDiscord -> {
+                haptic()
+                ClockPrefs.update(app) { it.copy(insertFormat = InsertFormat.DISCORD.id, discordStyle = action.style.code.toString()) }
+            }
+            is ClockAction.SetInsertWhen -> _state.update { it.copy(insertWhen = action.at) }
             is ClockAction.InsertDefault -> insertText(formatFor(action.zoneId, _state.value.insertFormat, now))
             is ClockAction.SetDefaultFormat -> {
                 haptic()
@@ -334,6 +343,11 @@ internal class ClockController(
                 val slot = _state.value.planner.slot
                 val at = slot?.let { day.slots.getOrNull(it) } ?: now
                 insertText(conversionLine(at))
+            }
+            ClockAction.PlannerDiscord -> {
+                val day = plannerDay(now)
+                val at = _state.value.planner.slot?.let { day.slots.getOrNull(it) } ?: now
+                insertText(ClockFormats.discord(at, _state.value.discordStyle))
             }
 
             is ClockAction.DatesModeSet -> {
@@ -485,7 +499,12 @@ internal class ClockController(
             relative = { t ->
                 DateUtils.getRelativeTimeSpanString(t, System.currentTimeMillis(), DateUtils.MINUTE_IN_MILLIS).toString()
             },
+            discordStyle = _state.value.discordStyle,
         )
+
+    /** The moment the insert sheet picked on [zoneId]'s clock, or [now]. */
+    private fun insertAt(zoneId: String, now: Long): Long =
+        _state.value.insertWhen?.let { w -> ClockFormats.atLocal(now, zoneFor(zoneId), w.dayOffset, w.hour, w.minute) } ?: now
 
     /** Home first, then every clock on the list. */
     private fun conversionLine(at: Long): String {

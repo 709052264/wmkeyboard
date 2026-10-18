@@ -260,6 +260,15 @@ object SelectionMacros {
      */
     private const val MAX_ENTITY_LENGTH = 320
 
+    /**
+     * Longest selection that can still be one link. Links carrying trackers
+     * routinely run past [MAX_ENTITY_LENGTH] (a shop's or a newsletter's,
+     * with a dozen campaign parameters), and those are the ones Remove
+     * trackers is for (#665). Only a selection with no space in it is read
+     * this far.
+     */
+    private const val MAX_URL_LENGTH = 8192
+
     /** Below this a selection is too short to be worth acting on at all. */
     private const val MIN_LENGTH = 1
 
@@ -441,7 +450,12 @@ object SelectionMacros {
      */
     fun detect(selection: String, phoneFormats: List<String> = emptyList()): SelectionKind {
         val trimmed = selection.trim()
-        if (trimmed.length < MIN_LENGTH || trimmed.length > MAX_ENTITY_LENGTH) return SelectionKind.TEXT
+        if (trimmed.length < MIN_LENGTH) return SelectionKind.TEXT
+        if (trimmed.length > MAX_ENTITY_LENGTH) {
+            // Too long for an address or a number, but not for a link.
+            val oneLink = trimmed.length <= MAX_URL_LENGTH && trimmed.none { it.isWhitespace() } && isUrl(trimmed)
+            return if (oneLink) SelectionKind.URL else SelectionKind.TEXT
+        }
         // A line break means the user swept up more than one thing, whatever
         // the pieces look like on their own.
         if (trimmed.any { it == '\n' || it == '\r' }) return SelectionKind.TEXT
@@ -501,7 +515,9 @@ object SelectionMacros {
     private fun eligible(macro: SelectionMacro, kind: SelectionKind): Boolean = when (macro) {
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP -> kind == SelectionKind.PHONE
         SelectionMacro.EMAIL -> kind == SelectionKind.EMAIL
-        SelectionMacro.QR, SelectionMacro.STRIP_TRACKERS -> kind == SelectionKind.URL
+        SelectionMacro.QR -> kind == SelectionKind.URL
+        // Text too: a link inside a sentence is cleaned where it stands (#665).
+        SelectionMacro.STRIP_TRACKERS -> kind == SelectionKind.URL || kind == SelectionKind.TEXT
         SelectionMacro.OPEN -> kind == SelectionKind.URL || kind == SelectionKind.EMAIL
         SelectionMacro.ADD_CONTACT -> kind == SelectionKind.PHONE || kind == SelectionKind.EMAIL
         SelectionMacro.URL_DECODE -> kind == SelectionKind.URL || kind == SelectionKind.TEXT
@@ -630,7 +646,7 @@ object SelectionMacros {
      * are the part that is provably not about where the page is. Nor is a
      * scheme added: the link keeps the shape it was written in.
      */
-    fun stripTrackers(url: String): String? {
+    fun stripTrackers(url: String, extra: Collection<String> = emptyList()): String? {
         val trimmed = url.trim()
         val queryStart = trimmed.indexOf('?')
         if (queryStart < 0) return null
@@ -644,7 +660,7 @@ object SelectionMacros {
         val parts = query.split('&')
         val kept = parts.filter { part ->
             val name = part.substringBefore('=').lowercase()
-            name.isNotEmpty() && TRACKING_PREFIXES.none { name.startsWith(it) } && name !in TRACKING_PARAMS
+            name.isNotEmpty() && !isTracker(name, extra)
         }
         // Empty pieces (`a=1&&b=2`, a trailing `?`) go too, but on their own
         // they are not trackers and do not make a link worth offering to clean.
@@ -652,6 +668,53 @@ object SelectionMacros {
         val base = trimmed.substring(0, queryStart)
         return if (kept.isEmpty()) base + fragment else "$base?${kept.joinToString("&")}$fragment"
     }
+
+    /**
+     * Whether the query parameter [name] (lower case) is a tracker: one of the
+     * built-in names or families, or one of the user's own [extra] names
+     * (#665). An extra name ending in `*` is a family: `abc_*` takes every
+     * parameter starting `abc_`.
+     */
+    private fun isTracker(name: String, extra: Collection<String>): Boolean {
+        if (TRACKING_PREFIXES.any { name.startsWith(it) } || name in TRACKING_PARAMS) return true
+        for (raw in extra) {
+            val entry = raw.trim().lowercase()
+            if (entry.isEmpty()) continue
+            if (entry.endsWith('*')) {
+                if (entry.length > 1 && name.startsWith(entry.dropLast(1))) return true
+            } else if (name == entry) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * [text] with the trackers taken off every link in it, or null when no
+     * link carried any (#665). A link is a run without spaces that reads as
+     * one ([isUrl]); punctuation a sentence closes it with stays outside it.
+     * Everything else in the text is left exactly as it was.
+     */
+    fun stripTrackersInText(text: String, extra: Collection<String> = emptyList()): String? {
+        if (!text.contains('?')) return null
+        var changed = false
+        val out = NON_SPACE_RUN.replace(text) { match ->
+            val run = match.value
+            if (!run.contains('?')) return@replace run
+            val core = run.trimEnd { it in LINK_TRAILING_PUNCTUATION }
+            val tail = run.substring(core.length)
+            if (core.length > MAX_URL_LENGTH || !isUrl(core)) return@replace run
+            val clean = stripTrackers(core, extra) ?: return@replace run
+            changed = true
+            clean + tail
+        }
+        return out.takeIf { changed }
+    }
+
+    private val NON_SPACE_RUN = Regex("""\S+""")
+
+    /** What a sentence ends a link with, which is not part of the link. */
+    private const val LINK_TRAILING_PUNCTUATION = ".,;:!)]}'\"»”’>"
 
     /**
      * [selection] in the case [macro] names, or null when it is already there.
@@ -799,7 +862,7 @@ object SelectionMacros {
         val jsonShape = if (JsonReformat.looksStructured(trimmed)) JsonReformat.shape(trimmed) else JsonReformat.Shape.NONE
         val base64 = single && trimmed.length >= 8 && TextCodecs.looksBase64(trimmed)
         val urlEncoded = TextCodecs.isUrlEncoded(trimmed)
-        val hasTrackers = single && trimmed.contains('?') && stripTrackers(trimmed) != null
+        val hasTrackers = trimmed.contains('?') && stripTrackersInText(trimmed, options.extraTrackers) != null
         val couldBeMoment = single && trimmed.length <= DateTimes.MAX_LENGTH &&
             (hasDigit || trimmed.firstOrNull()?.isLetter() == true)
         val dateTime = if (options.dateTime && couldBeMoment) {

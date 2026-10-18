@@ -21,6 +21,8 @@ The theme editor is where a single custom theme gets built: every color, the key
 
 A custom theme's card opens the editor from its pencil, and the card's miniature grows into the editor's own preview on the way. The editor is headed with the theme's name rather than with the words "Edit theme", so the card you tapped and the page it opened read as one thing. Rename the theme and the heading follows.
 
+Every change saves as you make it. Once you have changed something, an undo arrow appears beside the pencil in the preview's corner, and after an undo a redo arrow joins it. They cover everything on the page, the theme's looks included: adding or deleting a variant is a step too. Changes made within about a second of each other undo together, so a slider's drag or a name typed out is one step rather than dozens. The history holds 30 steps and lasts until you leave the editor. A photo is the one thing an undo can't always bring back, because picking a new background deletes the old picture's file.
+
 **Create theme** on the gallery screen makes a new custom theme called "My theme". It's seeded from a blue swatch and generated light or dark to match whatever the phone is set to right now. The new theme becomes the active keyboard theme, then the editor opens on it.
 
 Built-in themes can't be edited in place. Their card shows a pencil instead, which copies the built-in into a new custom theme named "*(theme) copy*", makes the copy active, and opens the editor on the copy. The original built-in is untouched. The **Default (system)** card has no pencil at all. It's generated live from your device's Material You color scheme rather than stored anywhere, so there's nothing for this editor to open. See [Theming overview](/themes/overview/) for the gallery itself and how Default, Material You, and the built-in set fit together.
@@ -333,7 +335,7 @@ Only three built-in themes ship with animation turned on: Sunset drift and Cyber
 
 ## Live preview while you edit
 
-The keyboard itself is pinned at the top of the editor, drawn small enough to leave room for the controls but at the proportions it has on screen. It is the real keyboard, not a picture of one: press a key and it flashes, the popup rises, the key effect fires, the strip shows the word, and a Flow or Hue cycle animation moves. Every change you make below redraws it at once, and switching looks or themes crossfades the way the keyboard does.
+The keyboard itself is pinned at the top of the editor, drawn small enough to leave room for the controls but at the proportions it has on screen. It is the real keyboard, not a picture of one: press a key and it flashes, the popup rises, the key effect fires, the strip shows the word, and a Flow or Hue cycle animation moves. Every change you make below redraws it at once, and switching looks or themes crossfades the way the keyboard does. The preview always draws the theme you are editing, panels included: a layout or panel that names a theme of its own keeps that pairing on the keyboard, but here the Numpad, the emoji panel and the rest show your draft.
 
 Typing goes into the preview alone. Nothing you type there reaches an app, is learned, or is saved. The keys work the way they do when you type: shift and caps lock, the `?123` and `ABC` keys, the globe key cycling your enabled languages, and the emoji key and the toolbar tools opening their panels in the theme. Tools that need something the editor does not have, a microphone or your clipboard history for example, open their panel and stop there.
 

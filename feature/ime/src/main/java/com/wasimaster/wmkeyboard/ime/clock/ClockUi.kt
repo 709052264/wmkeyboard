@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.clock.ClockConfig
 import com.wasimaster.wmkeyboard.core.clock.ClockData
 import com.wasimaster.wmkeyboard.core.clock.ClockTab
 import com.wasimaster.wmkeyboard.core.clock.DateMath
+import com.wasimaster.wmkeyboard.core.clock.DiscordStyle
 import com.wasimaster.wmkeyboard.core.clock.HistoryEntry
 import com.wasimaster.wmkeyboard.core.clock.HistoryKind
 import com.wasimaster.wmkeyboard.core.clock.InsertFormat
@@ -31,6 +32,8 @@ data class ClockUi(
     val search: List<ZoneEntry>? = null,
     /** The clock whose insert sheet is open: a zone id, or "" for the local one. */
     val insertZone: String? = null,
+    /** The moment the open insert sheet types; null types the time now. */
+    val insertWhen: InsertWhen? = null,
     val alarmEdit: AlarmEdit? = null,
     /** The timer keypad's digits, right-aligned into h:mm:ss like a microwave. */
     val timerDigits: String = "",
@@ -52,7 +55,15 @@ data class ClockUi(
     val hour24: Boolean get() = config.is24(systemHour24)
 
     val insertFormat: InsertFormat get() = InsertFormat.of(config.insertFormat) ?: InsertFormat.TIME_PLACE
+
+    val discordStyle: DiscordStyle get() = DiscordStyle.of(config.discordStyle) ?: DiscordStyle.LONG_DATE_TIME
 }
+
+/**
+ * A moment picked in the insert sheet, on the clock of the card it was
+ * opened from: [dayOffset] days from today there, at [hour]:[minute].
+ */
+data class InsertWhen(val dayOffset: Int, val hour: Int, val minute: Int)
 
 /** What the keyboard's own text box in the panel is for. */
 enum class ClockTextField { SEARCH, ALARM_LABEL, TIMER_LABEL, COUNTDOWN_TITLE, ZONE_LABEL }
@@ -130,6 +141,13 @@ sealed interface ClockAction {
     data class Insert(val zoneId: String, val format: InsertFormat, val at: Long? = null) : ClockAction
     data class InsertDefault(val zoneId: String) : ClockAction
     data class SetDefaultFormat(val format: InsertFormat) : ClockAction
+    data class InsertDiscord(val zoneId: String, val style: DiscordStyle) : ClockAction
+
+    /** Makes [style] the Discord style and Discord the default format. */
+    data class SetDefaultDiscord(val style: DiscordStyle) : ClockAction
+
+    /** Sets the moment the insert sheet types; null goes back to now. */
+    data class SetInsertWhen(val at: InsertWhen?) : ClockAction
     data object InsertAllClocks : ClockAction
 
     // Alarms
@@ -175,6 +193,7 @@ sealed interface ClockAction {
     data class PlannerSlot(val slot: Int?) : ClockAction
     data object PlannerBest : ClockAction
     data object PlannerInsert : ClockAction
+    data object PlannerDiscord : ClockAction
 
     // Dates
     data class DatesModeSet(val mode: DatesMode) : ClockAction

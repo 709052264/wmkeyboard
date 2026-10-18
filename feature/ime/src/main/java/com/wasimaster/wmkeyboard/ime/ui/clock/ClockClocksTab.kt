@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui.clock
 
+import android.text.format.DateUtils
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.clock.ClockFormats
+import com.wasimaster.wmkeyboard.core.clock.DiscordStyle
 import com.wasimaster.wmkeyboard.core.clock.IcuZoneNames
 import com.wasimaster.wmkeyboard.core.clock.InsertFormat
 import com.wasimaster.wmkeyboard.core.clock.WorldZone
@@ -56,6 +58,8 @@ import com.wasimaster.wmkeyboard.core.clock.ZoneCatalog
 import com.wasimaster.wmkeyboard.core.clock.ZoneCoordinates
 import com.wasimaster.wmkeyboard.core.clock.ZoneEntry
 import com.wasimaster.wmkeyboard.core.clock.utcOffsetLabel
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowLeft
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bedtime
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
@@ -70,8 +74,10 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clock.ClockAction
 import com.wasimaster.wmkeyboard.ime.clock.ClockUi
+import com.wasimaster.wmkeyboard.ime.clock.InsertWhen
 import com.wasimaster.wmkeyboard.ime.ui.LocalKbTheme
 import com.wasimaster.wmkeyboard.ime.ui.chipShape
+import java.text.DateFormatSymbols
 import java.util.Calendar
 import java.util.TimeZone
 import kotlin.math.PI
@@ -340,9 +346,10 @@ private fun SunLine(sunrise: Int, sunset: Int, hour24: Boolean) {
 /**
  * Every way to type this clock's time, each chip showing exactly what it
  * types. Tap types it; hold makes it what a hold on a clock card types, and
- * the default wears a dot.
+ * the default wears a dot. Above the chips, Now or another moment on this
+ * clock: tomorrow at 12:00 here, say. Under them, Discord's own styles, which
+ * each reader sees in their own time zone.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun InsertSheet(zoneId: String, now: Long, ui: ClockUi, act: (ClockAction) -> Unit) {
     val kb = LocalKbTheme.current
@@ -352,44 +359,72 @@ private fun InsertSheet(zoneId: String, now: Long, ui: ClockUi, act: (ClockActio
         ui.config.zones.firstOrNull { it.zoneId == zoneId }?.label?.takeIf { it.isNotEmpty() }
             ?: IcuZoneNames().city(tz.id) ?: ZoneCatalog.fallbackCity(tz.id)
     }
+    val picked = ui.insertWhen
+    val at = picked?.let { ClockFormats.atLocal(now, tz, it.dayOffset, it.hour, it.minute) } ?: now
+    // A picked moment stays put; the live one moves on with the minute.
+    val tick = if (picked == null) now / 60_000 else at
+    val relative = { t: Long -> relativeText(context, t, now) }
     Column(Modifier.fillMaxWidth()) {
+        WhenRow(picked, now, tz, act)
+        AnimatedVisibility(visible = picked != null) {
+            val w = picked ?: InsertWhen(0, 0, 0)
+            TimeWheel(
+                hour = w.hour,
+                minute = w.minute,
+                hour24 = ui.hour24,
+                amLabel = remember { DateFormatSymbols.getInstance().amPmStrings[0] },
+                pmLabel = remember { DateFormatSymbols.getInstance().amPmStrings[1] },
+                hourDescription = stringResource(R.string.ime_clock_hour_desc),
+                minuteDescription = stringResource(R.string.ime_clock_minute_desc),
+                onChange = { h, m -> act(ClockAction.SetInsertWhen(w.copy(hour = h, minute = m))) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+            )
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            InsertFormat.entries.forEach { format ->
-                val text = remember(format, now / 60_000, zoneId, ui.hour24, place) {
-                    ClockFormats.format(
-                        format, now, tz, ui.hour24, place,
-                        relative = { stringOrNow(context) },
-                    )
+            // Discord has a row of its own below.
+            InsertFormat.entries.filter { it != InsertFormat.DISCORD }.forEach { format ->
+                val text = remember(format, tick, zoneId, ui.hour24, place) {
+                    ClockFormats.format(format, at, tz, ui.hour24, place, relative = relative)
                 }
-                val isDefault = format == ui.insertFormat
-                val shape = kb.chipShape()
-                Column(
-                    modifier = Modifier
-                        .clockChip(selected = isDefault, shape = shape)
-                        .combinedClickable(
-                            onClick = { act(ClockAction.Insert(zoneId, format)) },
-                            onLongClick = { act(ClockAction.SetDefaultFormat(format)) },
-                        )
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
-                ) {
-                    Text(
-                        stringResource(formatLabel(format)),
-                        color = (if (isDefault) kb.chipActiveText else kb.secondaryText).copy(alpha = 0.8f),
-                        fontSize = 9.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    Text(
-                        text,
-                        color = if (isDefault) kb.chipActiveText else kb.chipText,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                    )
+                FormatChip(
+                    label = stringResource(formatLabel(format)),
+                    text = text,
+                    selected = format == ui.insertFormat,
+                    onClick = { act(ClockAction.Insert(zoneId, format)) },
+                    onLongClick = { act(ClockAction.SetDefaultFormat(format)) },
+                )
+            }
+        }
+        Text(
+            stringResource(R.string.ime_clock_discord_header),
+            color = kb.secondaryText,
+            fontSize = 10.sp,
+            modifier = Modifier.padding(start = 4.dp, top = 6.dp, bottom = 3.dp),
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            DiscordStyle.entries.forEach { style ->
+                val text = remember(style, tick, zoneId, ui.hour24) {
+                    ClockFormats.discordPreview(at, style, tz, ui.hour24, relative)
                 }
+                FormatChip(
+                    label = stringResource(discordLabel(style)) + " · :" + style.code,
+                    text = text,
+                    selected = ui.insertFormat == InsertFormat.DISCORD && style == ui.discordStyle,
+                    onClick = { act(ClockAction.InsertDiscord(zoneId, style)) },
+                    onLongClick = { act(ClockAction.SetDefaultDiscord(style)) },
+                )
             }
         }
         Text(
@@ -401,7 +436,85 @@ private fun InsertSheet(zoneId: String, now: Long, ui: ClockUi, act: (ClockActio
     }
 }
 
-private fun stringOrNow(context: android.content.Context): String = context.getString(R.string.ime_clock_relative_now)
+/**
+ * Now, or a day and a time on this clock. Picking starts at the next whole
+ * hour; the arrows step the day.
+ */
+@Composable
+private fun WhenRow(picked: InsertWhen?, now: Long, tz: TimeZone, act: (ClockAction) -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PillButton(stringResource(R.string.ime_clock_when_now), primary = picked == null, height = 30.dp) {
+            act(ClockAction.SetInsertWhen(null))
+        }
+        if (picked == null) {
+            PillButton(stringResource(R.string.ime_clock_when_pick), height = 30.dp) {
+                val hour = Calendar.getInstance(tz).apply { timeInMillis = now }.get(Calendar.HOUR_OF_DAY) + 1
+                act(ClockAction.SetInsertWhen(InsertWhen(dayOffset = hour / 24, hour = hour % 24, minute = 0)))
+            }
+        } else {
+            Spacer(Modifier.weight(1f))
+            RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowLeft, stringResource(R.string.ime_clock_previous_day_desc), size = 30.dp) {
+                act(ClockAction.SetInsertWhen(picked.copy(dayOffset = (picked.dayOffset - 1).coerceAtLeast(-MAX_PICK_DAYS))))
+            }
+            Text(
+                when (picked.dayOffset) {
+                    0 -> stringResource(R.string.ime_clock_today)
+                    1 -> stringResource(R.string.ime_clock_tomorrow)
+                    -1 -> stringResource(R.string.ime_clock_yesterday)
+                    else -> ClockFormats.shortDate(now + picked.dayOffset * DAY_MS, tz)
+                },
+                color = kb.suggestionText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+            )
+            RoundButton(Icons.AutoMirrored.Outlined.KeyboardArrowRight, stringResource(R.string.ime_clock_next_day_desc), size = 30.dp) {
+                act(ClockAction.SetInsertWhen(picked.copy(dayOffset = (picked.dayOffset + 1).coerceAtMost(MAX_PICK_DAYS))))
+            }
+        }
+    }
+}
+
+/** A small label over the text a tap types. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun FormatChip(label: String, text: String, selected: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    Column(
+        modifier = Modifier
+            .clockChip(selected = selected, shape = kb.chipShape())
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+    ) {
+        Text(
+            label,
+            color = (if (selected) kb.chipActiveText else kb.secondaryText).copy(alpha = 0.8f),
+            fontSize = 9.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text,
+            color = if (selected) kb.chipActiveText else kb.chipText,
+            fontSize = 12.sp,
+            maxLines = 1,
+        )
+    }
+}
+
+/** "now" within the minute, else Android's own "in 3 hours" / "2 days ago". */
+private fun relativeText(context: android.content.Context, t: Long, now: Long): String =
+    if (kotlin.math.abs(t - now) < 60_000L) {
+        context.getString(R.string.ime_clock_relative_now)
+    } else {
+        DateUtils.getRelativeTimeSpanString(t, now, DateUtils.MINUTE_IN_MILLIS).toString()
+    }
 
 @Composable
 private fun SearchResults(results: List<ZoneEntry>, ui: ClockUi, act: (ClockAction) -> Unit) {
@@ -539,4 +652,19 @@ internal fun formatLabel(format: InsertFormat): Int = when (format) {
     InsertFormat.UNIX -> R.string.ime_clock_format_unix
 }
 
+internal fun discordLabel(style: DiscordStyle): Int = when (style) {
+    DiscordStyle.SHORT_TIME -> R.string.ime_clock_discord_short_time
+    DiscordStyle.LONG_TIME -> R.string.ime_clock_discord_long_time
+    DiscordStyle.SHORT_DATE -> R.string.ime_clock_discord_short_date
+    DiscordStyle.LONG_DATE -> R.string.ime_clock_discord_long_date
+    DiscordStyle.SHORT_DATE_TIME -> R.string.ime_clock_discord_short_date_time
+    DiscordStyle.LONG_DATE_TIME -> R.string.ime_clock_discord_long_date_time
+    DiscordStyle.RELATIVE -> R.string.ime_clock_discord_relative
+    DiscordStyle.NUMERIC -> R.string.ime_clock_discord_numeric
+    DiscordStyle.NUMERIC_SECONDS -> R.string.ime_clock_discord_numeric_seconds
+}
+
 private const val DAY_MS = 86_400_000L
+
+/** How far the insert sheet's day arrows go either way. */
+private const val MAX_PICK_DAYS = 366

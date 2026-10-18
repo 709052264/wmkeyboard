@@ -139,6 +139,8 @@ Rules run in the order listed, each on what the one before left. Tap a rule to c
 
 By default the rules change only what the history keeps, and what the keyboard pastes from it. Turn on **Change the system clipboard too** on that screen and a copy a rule changed is put back on the system clipboard as changed, so the paste menu of every app gets the tidy text.
 
+**Remove trackers from copied links**, on the same screen and off by default, takes the tracking parameters off every link in a copy: `utm_source`, `fbclid`, `gclid`, `si` and the rest of the list the selection bar's [Remove trackers](/smart/selection-actions/) uses. A link inside a sentence is cleaned where it stands, and the rest of the text is left alone. The clean copy always goes back on the system clipboard, whatever the setting above says, because a clean paste is the point. **Your own tracking parameters** adds names to that list, one on each line, for both this and the selection bar. End a name with `*` to take a whole family, so `abc_*` removes `abc_id` and `abc_src`.
+
 ### Pasting rich media
 
 Tapping an image, file, or video card negotiates a MIME type with the focused field. The keyboard offers the clip's own type, and sends it via `commitContent` when the field advertises that it takes one. If the field wants PNG but the clip is a static WebP, it converts on the fly. Animated WebP is left alone, so an animation is never silently flattened into a still. If nothing matches, the item goes back onto the system clipboard and a toast tells you to paste it there. That happens when the field takes no rich content at all, or when the permission to read the file has lapsed.

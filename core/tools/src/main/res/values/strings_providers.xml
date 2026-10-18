@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tools that keep a list of providers -->
+    <string name="core_tools_provider_tool_gif">GIFs</string>
+    <string name="core_tools_provider_tool_sticker">Stickers</string>
+    <string name="core_tools_provider_tool_translate">Translate</string>
+    <string name="core_tools_provider_tool_dictionary">Dictionary</string>
+    <string name="core_tools_provider_tool_synonyms">Synonyms</string>
+    <string name="core_tools_provider_tool_vocab">Vocabulary</string>
+    <string name="core_tools_provider_tool_search">Web and image search</string>
+    <string name="core_tools_provider_tool_photos">Background photos</string>
+    <string name="core_tools_provider_tool_currency_fiat">Currency rates</string>
+    <string name="core_tools_provider_tool_currency_crypto">Coin prices</string>
+
+    <!-- How a tool uses its list -->
+    <string name="core_tools_provider_mode_fallback">One at a time</string>
+    <string name="core_tools_provider_mode_fallback_desc">Ask the first provider. If it fails or has no results, ask the next one.</string>
+    <string name="core_tools_provider_mode_mix">Mixed</string>
+    <string name="core_tools_provider_mode_mix_desc">Ask all providers at the same time and mix their results in one grid.</string>
+    <string name="core_tools_provider_mode_tabs">Tabs</string>
+    <string name="core_tools_provider_mode_tabs_desc">Each provider gets its own chip. Tap a chip to see its results.</string>
+
+    <!-- Provider types -->
+    <string name="core_tools_provider_klipy_desc">GIFs and stickers. Needs a KLIPY API key, unless this build has one.</string>
+    <string name="core_tools_provider_giphy_desc">GIFs and stickers. Always in its own tab: GIPHY does not let apps mix its results with others.</string>
+    <string name="core_tools_provider_commons" translatable="false">Wikimedia Commons</string>
+    <string name="core_tools_provider_commons_desc">Free GIFs and photos from Wikimedia Commons, or from your own MediaWiki. No key. The GIFs are mostly educational.</string>
+    <string name="core_tools_provider_gifcities_desc">Old GeoCities GIFs from the Internet Archive. No key. The results have no content rating.</string>
+    <string name="core_tools_provider_offline_gifs">Offline GIF packs</string>
+    <string name="core_tools_provider_offline_gifs_desc">GIF packs that you imported. They work with no connection.</string>
+    <string name="core_tools_provider_sticker_packs_desc">Your sticker packs on this phone.</string>
+    <string name="core_tools_provider_mlkit">On device</string>
+    <string name="core_tools_provider_mlkit_desc">Translates on the phone with ML Kit. Your text stays on the phone. Each language needs a model download first.</string>
+    <string name="core_tools_provider_translate_server">Your translation server</string>
+    <string name="core_tools_provider_translate_server_desc">A server that answers OpenAI chat requests: llama.cpp, Ollama, LM Studio, vLLM or a gateway.</string>
+    <string name="core_tools_provider_deepl" translatable="false">DeepL</string>
+    <string name="core_tools_provider_deepl_desc">Needs your DeepL API key, or the address of a proxy that adds one.</string>
+    <string name="core_tools_provider_libretranslate" translatable="false">LibreTranslate</string>
+    <string name="core_tools_provider_libretranslate_desc">A LibreTranslate server: your own or a public one. Public servers usually need a key.</string>
+    <string name="core_tools_provider_google_translate">Google Translate</string>
+    <string name="core_tools_provider_google_translate_desc">Google\'s free endpoint, or Cloud Translation when you add a key.</string>
+    <string name="core_tools_provider_searxng" translatable="false">SearXNG</string>
+    <string name="core_tools_provider_searxng_desc">A SearXNG instance that allows JSON results. Most public instances do not.</string>
+    <string name="core_tools_provider_tavily" translatable="false">Tavily</string>
+    <string name="core_tools_provider_tavily_desc">Web search with a short answer. Needs your Tavily key.</string>
+    <string name="core_tools_provider_brave">Brave Search</string>
+    <string name="core_tools_provider_brave_desc">Web and image search. Needs a Brave Search API key, unless this build has one.</string>
+    <string name="core_tools_provider_unsplash_desc">Photos from Unsplash. Needs an API key, unless this build has one.</string>
+    <string name="core_tools_provider_pexels_desc">Photos from Pexels. Needs an API key, unless this build has one.</string>
+    <string name="core_tools_provider_er_api" translatable="false">ExchangeRate-API</string>
+    <string name="core_tools_provider_er_api_desc">Daily rates for most currencies. No key.</string>
+    <string name="core_tools_provider_frankfurter" translatable="false">Frankfurter</string>
+    <string name="core_tools_provider_frankfurter_desc">European Central Bank rates for the main currencies. Free software, no key.</string>
+    <string name="core_tools_provider_coinbase" translatable="false">Coinbase</string>
+    <string name="core_tools_provider_coinbase_desc">Currencies and coins from Coinbase. No key.</string>
+    <string name="core_tools_provider_currency_api" translatable="false">currency-api</string>
+    <string name="core_tools_provider_currency_api_desc">Open data for most currencies and many coins. No key.</string>
+    <string name="core_tools_provider_coingecko" translatable="false">CoinGecko</string>
+    <string name="core_tools_provider_coingecko_desc">Coin prices from CoinGecko. No key.</string>
+</resources>

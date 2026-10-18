@@ -255,6 +255,7 @@
          word on the chip is read after this, so it says what pressing does. -->
     <string name="ime_undo_correction_desc">Put back the word you typed</string>
     <string name="ime_capture_undo_desc">Undo the last change</string>
+    <string name="ime_capture_redo_desc">Redo the change you undid</string>
 
     <!-- Shown under a glide's word picker once the finger has slid down away
          from the words: lifting now types nothing. -->

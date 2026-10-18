@@ -499,8 +499,11 @@ private fun previewLayoutSet(
         symbolsShifted = safe.compile(LayoutLayer.SYMBOLS_SHIFTED).unthemed(),
         fn = safe.layer(LayoutLayer.FN)?.let { safe.compile(LayoutLayer.FN).unthemed() },
         number = safe.layer(LayoutLayer.NUMBER)?.let { safe.compile(LayoutLayer.NUMBER).unthemed() },
+        // A panel's own theme off too (#779): a Numpad tab naming a theme
+        // painted the open pad in it, not the draft.
         panels = safe.panelLayers.mapValues { (kind, grid) ->
-            PanelLayoutSpec(kind, grid, appearance = safe.appearance)
+            val unthemed = if (grid.themeId == null) grid else grid.copy(themeId = null)
+            PanelLayoutSpec(kind, unthemed, appearance = safe.appearance)
         },
         numberRows = buildMap {
             safe.numberRowFor(LayoutLayer.LETTERS)?.let { put(LayoutMode.LETTERS, it) }
@@ -510,7 +513,11 @@ private fun previewLayoutSet(
         },
         symbolsFillRow = safe.fillRowFor(LayoutLayer.SYMBOLS),
         gridWidth = gridWidth,
-        themeId = safe.themeId,
+        // Null rather than the layout's: a panel with no theme of its own falls
+        // back to this one (see `screenThemeId`), so a themed layout drew every
+        // panel the preview opened — the Numpad first among them (#779) — in its
+        // theme while the letters showed the draft.
+        themeId = null,
         secondaries = secondaryLayouts(customs).associate { secondary ->
             secondary.id to secondary.repair().spec.compile(LayoutLayer.LETTERS).unthemed()
         },

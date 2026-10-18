@@ -3135,9 +3135,17 @@ open class WMKeyboardService : InputMethodService() {
         val copied = item.coerceToText(this)?.toString() ?: return@OnPrimaryClipChangedListener
         // The user's copy rules tidy it first (#612). Not a clip its app marked
         // secret: a password is kept exactly as it was copied.
-        val text = if (flaggedSensitive) copied else tidyCopy(copied, state.settings.clipboard)
+        val ruled = if (flaggedSensitive) copied else tidyCopy(copied, state.settings.clipboard)
+        // Then the links lose their trackers (#665), when asked. Always onto
+        // the system clipboard as well: a clean paste is the point of it.
+        val cleaned = if (state.settings.clipboard.cleanCopiedLinks && !flaggedSensitive) {
+            SelectionMacros.stripTrackersInText(ruled, state.settings.clipboard.extraTrackers)
+        } else {
+            null
+        }
+        val text = cleaned ?: ruled
         val tidied = text != copied
-        if (tidied && text.isNotBlank() && state.settings.clipboard.copyRulesToSystem) {
+        if (tidied && text.isNotBlank() && (state.settings.clipboard.copyRulesToSystem || cleaned != null)) {
             // Back onto the system clipboard as changed, so the app's own paste
             // gets it too; the listener lets this one copy of ours go by.
             restoringSystemClipText = text
@@ -4519,9 +4527,14 @@ open class WMKeyboardService : InputMethodService() {
         // Kept apart from the signal above because the two disagree by design:
         // a panel marked "Keep this layer open" is open, and back still belongs
         // to the system while it is (issue #227).
+        // A pinned keyboard takes Back too, with nothing open, so the hide it
+        // asks for is seen as the user's (#665); see [onPinnedBack]. So does
+        // one the floating button summoned (#756): Back left it to come
+        // straight back the same way.
         serviceScope.launch {
-            uiState
-                .map { backClosesLayer(it) }
+            combine(uiState, summonHolding) { state, summoned ->
+                backClosesLayer(state) || state.settings.persistentKeyboard || summoned
+            }
                 .distinctUntilChanged()
                 .collect { updatePanelBackCallback(it) }
         }
@@ -5821,6 +5834,34 @@ open class WMKeyboardService : InputMethodService() {
     /** A re-show is already on its way and will judge the state when it runs. */
     private var pinReshowQueued = false
 
+    /** When the latest re-shows ran, in uptime millis; see [pinReshowsRunAway]. */
+    private val pinReshowTimes = ArrayDeque<Long>()
+
+    /**
+     * Whether re-shows are coming faster than any user could cause, across
+     * fields. [pinReshowStreak] is per field, so a loop that swaps between a
+     * field and no field resets it every turn and never runs out: a pinned
+     * keyboard over the settings app opened its test field, the field closed
+     * with the keyboard's next hide, and the re-show opened it again, over
+     * and over, until the system's recent apps button froze too (#665).
+     * Past [PIN_RESHOW_BURST] in [PIN_RESHOW_BURST_MS], pinning stands down
+     * until the user next brings the keyboard up.
+     */
+    private fun pinReshowsRunAway(): Boolean {
+        val now = SystemClock.uptimeMillis()
+        while (pinReshowTimes.isNotEmpty() && now - pinReshowTimes.first() > PIN_RESHOW_BURST_MS) {
+            pinReshowTimes.removeFirst()
+        }
+        if (pinReshowTimes.size >= PIN_RESHOW_BURST) {
+            DebugLog.w("ime", "pinned keyboard re-shown ${pinReshowTimes.size}x in ${PIN_RESHOW_BURST_MS}ms; standing down")
+            pinReshowTimes.clear()
+            pinSuspended = true
+            return true
+        }
+        pinReshowTimes.addLast(now)
+        return false
+    }
+
     /** The keyboard should be up whether or not any field wants it. */
     private fun pinnedNow(): Boolean =
         (_uiState.value.settings.persistentKeyboard || summonedNow()) && !pinSuspended
@@ -5836,6 +5877,18 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The summon got the keyboard on screen; it now lasts until a hide. */
     private var summonHeld = false
+        set(value) {
+            field = value
+            summonHolding.value = value
+        }
+
+    /**
+     * [summonHeld] as a flow, for the Back callback: from Android 14 Back
+     * hides through a private overload, never the [requestHideSelf] override,
+     * so a summoned keyboard took the user's Back for an app's hide and
+     * [reshowPinned] put it back (#756). See [onPinnedBack].
+     */
+    private val summonHolding = MutableStateFlow(false)
 
     /** The app a held summon belongs to; switching to another one ends it. */
     private var summonPackage: String? = null
@@ -6084,6 +6137,19 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Back with nothing of the keyboard's open, while pinned (#665). From
+     * Android 14 the framework's own Back handling hides through a private
+     * `requestHideSelf(flags, reason)` overload, never the public one
+     * overridden above, so a pinned keyboard read the user's Back as an app
+     * hiding it and put itself straight back: the keyboard flashed, and a
+     * browser's address bar could never be left. Hiding through the override
+     * suspends pinning the way the hide tool does.
+     */
+    private fun onPinnedBack() {
+        requestHideSelf(0)
+    }
+
+    /**
      * Puts a pinned keyboard back after something other than the user took it
      * down: a field losing focus, an app hiding the IME, a switch to a window
      * with no editor at all. Goes through the framework's own show request
@@ -6103,6 +6169,7 @@ open class WMKeyboardService : InputMethodService() {
             delay(PIN_RESHOW_DELAY_MS)
             pinReshowQueued = false
             if (!pinnedNow() || isInputViewShown || isDeviceLocked()) return@launch
+            if (pinReshowsRunAway()) return@launch
             pinReshowStreak++
             if (summonedNow()) {
                 forcedShowUp = true
@@ -6326,6 +6393,15 @@ open class WMKeyboardService : InputMethodService() {
         val fieldIncognito = (baseSettings ?: _uiState.value.settings).autoIncognito &&
             attribute.requestsNoPersonalizedLearning()
         if (_uiState.value.fieldIncognito != fieldIncognito) {
+            // Which app and flag turned the badge on, for the next report
+            // of one nobody asked for (#665).
+            if (fieldIncognito) {
+                DebugLog.i(
+                    "ime",
+                    "field asks for incognito: ${attribute?.packageName} imeOptions " +
+                        "0x${Integer.toHexString(attribute?.imeOptions ?: 0)} private ${attribute?.privateImeOptions}",
+                )
+            }
             _uiState.update { it.copy(fieldIncognito = fieldIncognito) }
         }
         // A forced show that outlived its summon does not get to follow the
@@ -9804,6 +9880,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             CaptureSelectionAction.PASTE -> capturePaste()
             CaptureSelectionAction.UNDO -> captureUndo(target, before)
+            CaptureSelectionAction.REDO -> captureRedo(target, before)
         }
     }
 
@@ -9815,7 +9892,10 @@ open class WMKeyboardService : InputMethodService() {
      * matches [CaptureHistory.lastText], and its history is dropped rather
      * than undone onto text it never described.
      */
-    private class CaptureHistory(val steps: ArrayDeque<CaretText>, var lastText: String)
+    private class CaptureHistory(val steps: ArrayDeque<CaretText>, var lastText: String) {
+        /** What the undos took back, newest last, for the redo button; any new edit drops it. */
+        val redo = ArrayDeque<CaretText>()
+    }
 
     private val captureHistories = HashMap<String, CaptureHistory>()
 
@@ -9839,6 +9919,8 @@ open class WMKeyboardService : InputMethodService() {
             ?.takeIf { it.lastText == before.text }
             ?: CaptureHistory(ArrayDeque(), before.text).also { captureHistories[key] = it }
         val big = kotlin.math.abs(after.text.length - before.text.length) > 1
+        // A new edit after an undo starts another branch; what was undone is gone.
+        history.redo.clear()
         if (history.steps.isEmpty() || big || now - captureHistoryAt > CAPTURE_UNDO_GROUP_MS) {
             history.steps.addLast(before)
             while (history.steps.size > CAPTURE_UNDO_MAX) history.steps.removeFirst()
@@ -9857,9 +9939,25 @@ open class WMKeyboardService : InputMethodService() {
             if (_uiState.value.captureUndo != null) _uiState.update { it.copy(captureUndo = null) }
             return
         }
+        history.redo.addLast(now)
         captureUndoing = true
         try {
             captureWrite(target, now, previous)
+        } finally {
+            captureUndoing = false
+        }
+        captureHistoryAt = 0L
+    }
+
+    /** The redo button beside it: puts back what the last undo took away. */
+    private fun captureRedo(target: CaptureTarget, now: CaretText) {
+        val key = _uiState.value.captureKey() ?: return
+        val history = captureHistories[key]?.takeIf { it.lastText == now.text } ?: return
+        val next = history.redo.removeLastOrNull() ?: return
+        history.steps.addLast(now)
+        captureUndoing = true
+        try {
+            captureWrite(target, now, next)
         } finally {
             captureUndoing = false
         }
@@ -9939,7 +10037,11 @@ open class WMKeyboardService : InputMethodService() {
         // next edit, or an undo, still recognises it as the same text.
         val history = key?.let { captureHistories[it] }
         history?.lastText = written
-        val undo = if (key != null && history != null && history.steps.isNotEmpty()) CaptureUndoMark(key, written) else null
+        val undo = if (key != null && history != null && (history.steps.isNotEmpty() || history.redo.isNotEmpty())) {
+            CaptureUndoMark(key, written, canUndo = history.steps.isNotEmpty(), canRedo = history.redo.isNotEmpty())
+        } else {
+            null
+        }
         _uiState.update {
             it.copy(captureCaret = key?.let { k -> CaptureCaret(k, at, written, anchor) }, captureUndo = undo)
         }
@@ -24161,14 +24263,14 @@ open class WMKeyboardService : InputMethodService() {
      * twice for the same thing. Everything the *device* decides still applies:
      * a lite build and an unusable tool both come out as a key that does
      * nothing, exactly as they do on the toolbar.
+     *
+     * No focus ring: that is for a physical keyboard ([openToolByKey]). A
+     * flick or a key on the screen put it on the first clip, snippet or note,
+     * which read as that item being pinned (#612, #665).
      */
-    private fun runToolFromKey(tool: ToolbarTool, hardware: Boolean = false) {
+    private fun runToolFromKey(tool: ToolbarTool) {
         runTool(tool)
         ensureInputViewShown()
-        // The ring is a physical keyboard's: a key on the screen, or a flick
-        // bound to a tool, opened the clipboard and the snippets with their
-        // first item lit as if it were pinned (#612), and it stayed lit.
-        if (hardware) seedPanelFocus()
     }
 
     /**
@@ -28086,11 +28188,10 @@ open class WMKeyboardService : InputMethodService() {
      * the IME has no way to reach their private undo stacks.
      */
     fun onUndoRedo(redo: Boolean) {
-        // A keyboard-owned field has the keys (#612): its own history steps
-        // back, rather than Ctrl+Z reaching the app behind the panel. It has
-        // no redo, so a redo there does nothing.
+        // A keyboard-owned field has the keys (#612): its own history steps,
+        // rather than Ctrl+Z reaching the app behind the panel.
         if (_uiState.value.captureTarget() != null) {
-            if (!redo) onCaptureSelectionAction(CaptureSelectionAction.UNDO)
+            onCaptureSelectionAction(if (redo) CaptureSelectionAction.REDO else CaptureSelectionAction.UNDO)
             return
         }
         val ic = currentInputConnection ?: return
@@ -28115,11 +28216,7 @@ open class WMKeyboardService : InputMethodService() {
         // The field itself asked for incognito, so the switch has nothing to
         // turn off — say so instead of leaving the tool looking stuck on.
         if (state.fieldIncognito) {
-            Toast.makeText(
-                this,
-                getString(R.string.ime_service_incognito_field_toast),
-                Toast.LENGTH_SHORT,
-            ).show()
+            showFieldIncognitoToast()
             return
         }
         val next = !state.settings.incognito
@@ -28133,6 +28230,31 @@ open class WMKeyboardService : InputMethodService() {
             Toast.LENGTH_SHORT,
         ).show()
         serviceScope.launch { settingsRepository.setIncognito(next) }
+    }
+
+    /**
+     * The toolbar's incognito badge tapped (#665). The badge also shows when
+     * the field asked for it, which some apps do outside any private tab, and
+     * a badge nobody switched on read as a bug. Names who did: the app, or
+     * the Incognito switch.
+     */
+    private fun onIncognitoBadge() {
+        if (_uiState.value.fieldIncognito) {
+            showFieldIncognitoToast()
+        } else {
+            Toast.makeText(this, getString(R.string.ime_service_incognito_switch_toast), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    /** Which app's field asked for incognito, so the user knows where it came from. */
+    private fun showFieldIncognitoToast() {
+        val pkg = currentInputEditorInfo?.packageName
+        val text = if (pkg.isNullOrEmpty()) {
+            getString(R.string.ime_service_incognito_field_toast)
+        } else {
+            getString(R.string.ime_service_incognito_field_app_toast, appLabel(pkg))
+        }
+        Toast.makeText(this, text, Toast.LENGTH_LONG).show()
     }
 
     /**
@@ -32652,6 +32774,7 @@ open class WMKeyboardService : InputMethodService() {
                     dictionaryMeaning(result.entries.firstOrNull()?.word ?: word, index, codes, settings),
                 )
                 DictionaryLookup.Result.NotFound -> DictionaryUi.NotFound(word)
+                DictionaryLookup.Result.NotOnDevice -> DictionaryUi.NotOnDevice(word)
                 DictionaryLookup.Result.Failed -> DictionaryUi.Error(word)
             }
             _uiState.update { it.copy(dictionary = ui) }
@@ -35214,6 +35337,7 @@ open class WMKeyboardService : InputMethodService() {
             onTrackpadHold = ::onTrackpadHold,
             onVoiceModePick = ::onVoiceModePick,
             onHardwareKeysToggle = { onHardwareKeysToggle() },
+            onIncognitoBadge = ::onIncognitoBadge,
             dictionaryBar = com.wasimaster.wmkeyboard.ime.ui.DictionaryBarCallbacks(
                 onToggle = ::onDictionaryChipToggle,
                 onFilter = ::onDictionaryFilterSelect,
@@ -36789,6 +36913,7 @@ open class WMKeyboardService : InputMethodService() {
                 dateTime = SelectionMacro.CALENDAR in allowed || SelectionMacro.TIME_ZONES in allowed,
                 place = SelectionMacro.MAP in allowed,
                 nowMillis = System.currentTimeMillis(),
+                extraTrackers = settings.clipboard.extraTrackers,
             ),
         )
         val aiReady = ToolbarTool.AI in settings.enabledTools && aiInitialState(settings) == AiUi.Idle
@@ -36929,7 +37054,9 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.JSON_FORMAT -> JsonReformat.toggle(text)?.let(::rewriteSelection)
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
-            SelectionMacro.STRIP_TRACKERS -> SelectionMacros.stripTrackers(text)?.let(::rewriteSelection)
+            SelectionMacro.STRIP_TRACKERS ->
+                SelectionMacros.stripTrackersInText(text, _uiState.value.settings.clipboard.extraTrackers)
+                    ?.let(::rewriteSelection)
             SelectionMacro.CHAT_BOLD -> chatToggle(text, ChatStyle.BOLD)
             SelectionMacro.CHAT_ITALIC -> chatToggle(text, ChatStyle.ITALIC)
             SelectionMacro.CHAT_STRIKE -> chatToggle(text, ChatStyle.STRIKE)
@@ -41124,10 +41251,11 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * On Android 13+ the IME's back handling goes through the
      * OnBackInvokedDispatcher, never [onKeyDown] — register a callback while
-     * there is a layer for back to close; unregister when there is not,
-     * letting the system's default callback hide the keyboard as usual. Driven
-     * by [backClosesLayer], so a panel marked "Keep this layer open" leaves the
-     * key to the system rather than swallowing it (issue #227).
+     * there is a layer for back to close, or while the keyboard is pinned (see
+     * [onPinnedBack]); unregister when neither, letting the system's default
+     * callback hide the keyboard as usual. Driven by [backClosesLayer], so a
+     * panel marked "Keep this layer open" leaves the key to the system rather
+     * than swallowing it (issue #227).
      */
     private var panelBackCallback: android.window.OnBackInvokedCallback? = null
 
@@ -41135,7 +41263,9 @@ open class WMKeyboardService : InputMethodService() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val dispatcher = window?.window?.onBackInvokedDispatcher ?: return
         if (backHasLayer && panelBackCallback == null) {
-            val callback = android.window.OnBackInvokedCallback { dismissTopLayer(fromBack = true) }
+            val callback = android.window.OnBackInvokedCallback {
+                if (!dismissTopLayer(fromBack = true)) onPinnedBack()
+            }
             dispatcher.registerOnBackInvokedCallback(
                 android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
                 callback,
@@ -41292,6 +41422,13 @@ open class WMKeyboardService : InputMethodService() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && backClosesLayer()) {
             return true
+        }
+        // The plain hide Back is about to do is the user's, pinned or not;
+        // see [onPinnedBack] for why the framework's own path misses it.
+        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown &&
+            _uiState.value.settings.persistentKeyboard
+        ) {
+            pinSuspended = true
         }
         // Before the volume keys, so a leader remapped onto one still wins, and
         // before [handleHardwareKeyDown], whose composing gate and input-connection
@@ -42200,7 +42337,8 @@ open class WMKeyboardService : InputMethodService() {
         // shortcut is a binding to a button, and a button that is not there is
         // not one to press. See [runToolFromKey].
         if (tool !in _uiState.value.settings.enabledTools) return
-        runToolFromKey(tool, hardware = true)
+        runToolFromKey(tool)
+        seedPanelFocus()
     }
 
     private fun openToolPanelByKey(panel: PanelMode) {
@@ -43771,6 +43909,8 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val PIN_RESHOW_DELAY_MS = 250L
         private const val PIN_RESHOW_LIMIT = 4
+        private const val PIN_RESHOW_BURST = 6
+        private const val PIN_RESHOW_BURST_MS = 5_000L
 
         /**
          * See [summonKeyboard]: how long a summon waits for the keyboard to

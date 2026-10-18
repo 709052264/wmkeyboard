@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.BuildConfig
 import android.graphics.BitmapFactory
 import android.os.Build
+import android.os.SystemClock
 import android.Manifest
 import androidx.annotation.StringRes
 import androidx.activity.compose.BackHandler
@@ -61,6 +62,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PushPin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
@@ -106,6 +109,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -2348,6 +2352,84 @@ private class OpenLook(
 }
 
 /**
+ * The theme editor's undo and redo (#665): whole theme families, like the
+ * layout editor's whole layouts, so every write the screen makes is covered
+ * without each one knowing about it — the rows, the pickers, the photo
+ * sources, a variant added or deleted.
+ *
+ * It watches the stored family rather than the writes. A change that lands
+ * within [THEME_UNDO_GROUP_MS] of the one before it joins its step, so a
+ * slider's drag or a name typed out is one undo, not one per frame or letter.
+ * A family this history wrote back itself (an undo or a redo) is recognised
+ * and not recorded as a new edit. Session-scoped, as the layout editor's is.
+ *
+ * A photo is a file the theme points at, and picking a new one deletes the
+ * old file, so undoing a photo change brings back the path but not always the
+ * picture.
+ */
+@Stable
+private class ThemeEditHistory {
+    var undo by mutableStateOf(emptyList<ThemeSpec>())
+        private set
+    var redo by mutableStateOf(emptyList<ThemeSpec>())
+        private set
+
+    /**
+     * Bumped when an undo or a redo has landed in storage. The text fields
+     * that keep their own copy while typing are keyed on it, so they show the
+     * restored text instead of what was typed before.
+     */
+    var restores by mutableIntStateOf(0)
+        private set
+    private var last: ThemeSpec? = null
+    private var lastAt = 0L
+    private var restoring: ThemeSpec? = null
+
+    /** The family as stored now; called whenever it changes. */
+    fun observe(family: ThemeSpec?) {
+        if (family == null) return
+        val before = last
+        last = family
+        if (before == null || before == family) return
+        if (family == restoring) {
+            restoring = null
+            lastAt = 0L
+            restores++
+            return
+        }
+        val now = SystemClock.uptimeMillis()
+        if (undo.isEmpty() || now - lastAt > THEME_UNDO_GROUP_MS) {
+            undo = (undo + before).takeLast(UndoDepth)
+        }
+        redo = emptyList()
+        lastAt = now
+    }
+
+    /** The family to write back for one step back, or null with none left. */
+    fun stepBack(): ThemeSpec? {
+        val target = undo.lastOrNull() ?: return null
+        val current = last ?: return null
+        undo = undo.dropLast(1)
+        redo = redo + current
+        restoring = target
+        return target
+    }
+
+    /** The family to write back for one step forward again. */
+    fun stepForward(): ThemeSpec? {
+        val target = redo.lastOrNull() ?: return null
+        val current = last ?: return null
+        redo = redo.dropLast(1)
+        undo = (undo + current).takeLast(UndoDepth)
+        restoring = target
+        return target
+    }
+}
+
+/** Theme edits closer together than this undo as one step; see [ThemeEditHistory]. */
+private const val THEME_UNDO_GROUP_MS = 800L
+
+/**
  * High contrast repaints the keys, the board and the hints over whatever theme
  * is on, and the previews here draw the theme as it is stored. Without a word
  * about it, a theme edited to the user's own colours looks right in every card
@@ -2395,6 +2477,14 @@ fun ThemeEditorScreen(
     fun update(transform: (ThemeSpec) -> ThemeSpec) {
         val (family, _) = look.now() ?: return
         scope.launch { repository.upsertCustomTheme(family.replacingMember(look.id, transform)) }
+    }
+    // Undo and redo over every write to this theme (#665); see ThemeEditHistory.
+    val history = remember(familyId) { ThemeEditHistory() }
+    val storedFamily = settings.watch { it.customThemes.findThemeFamily(themeId) }
+    LaunchedEffect(history, storedFamily) { history.observe(storedFamily) }
+    fun restore(family: ThemeSpec?) {
+        family ?: return
+        scope.launch { repository.upsertCustomTheme(family) }
     }
 
     val imagePicker = rememberLauncherForActivityResult(
@@ -2641,16 +2731,46 @@ fun ThemeEditorScreen(
                     )
                     // The pencil the issue asked for on the keyboard itself: the
                     // way into picking, in the corner of the bar it also edits.
+                    // Undo and redo sit beside it (#665), each while it has a step.
                     if (!picking) {
-                        FilledTonalIconButton(
-                            onClick = { picking = true },
-                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(32.dp),
+                        Row(
+                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            Icon(
-                                Icons.Outlined.Edit,
-                                contentDescription = stringResource(R.string.theme_pick_start_desc),
-                                modifier = Modifier.size(18.dp),
-                            )
+                            if (history.undo.isNotEmpty()) {
+                                FilledTonalIconButton(
+                                    onClick = { restore(history.stepBack()) },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Outlined.Undo,
+                                        contentDescription = stringResource(R.string.theme_editor_undo_desc),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                            if (history.redo.isNotEmpty()) {
+                                FilledTonalIconButton(
+                                    onClick = { restore(history.stepForward()) },
+                                    modifier = Modifier.size(32.dp),
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Outlined.Redo,
+                                        contentDescription = stringResource(R.string.theme_editor_redo_desc),
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
+                            }
+                            FilledTonalIconButton(
+                                onClick = { picking = true },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    Icons.Outlined.Edit,
+                                    contentDescription = stringResource(R.string.theme_pick_start_desc),
+                                    modifier = Modifier.size(18.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -2780,7 +2900,7 @@ fun ThemeEditorScreen(
                 // Same local-echo pattern as the name field below: the field
                 // is the source of truth while the user types.
                 val storedFamilyName = settings.watch { it.customThemes.findThemeFamily(themeId)?.familyName }
-                var familyNameText by rememberSaveable(familyId) {
+                var familyNameText by rememberSaveable(familyId, history.restores) {
                     mutableStateOf(storedFamilyName.orEmpty())
                 }
                 OutlinedTextField(
@@ -2834,7 +2954,7 @@ fun ThemeEditorScreen(
     }
 
     val storedName = look.watch { it.name }
-    var name by rememberSaveable(lookId) { mutableStateOf(storedName) }
+    var name by rememberSaveable(lookId, history.restores) { mutableStateOf(storedName) }
     OutlinedTextField(
         value = name,
         onValueChange = {
@@ -4739,7 +4859,7 @@ fun ThemeEditorScreen(
             // bound straight to the async theme write scrambles input when
             // the DataStore emission echoes back mid-edit.
             val storedParam = look.watch { it.keyEffectParam }
-            var emojiParam by remember(lookId) {
+            var emojiParam by remember(lookId, history.restores) {
                 mutableStateOf(storedParam.orEmpty())
             }
             OutlinedTextField(

@@ -377,6 +377,24 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `remove trackers cleans links inside text, long links and the user's own names`() {
+        assertEquals(
+            "see https://x.com/a?id=1, and www.y.org/b.",
+            SelectionMacros.stripTrackersInText("see https://x.com/a?id=1&utm_source=n, and www.y.org/b?fbclid=2."),
+        )
+        assertNull(SelectionMacros.stripTrackersInText("what? https://x.com/a?id=1"))
+        assertTrue(SelectionMacros.detectContent("read this https://x.com/a?gclid=9 now").hasTrackers)
+
+        val long = "https://shop.example/p?id=7&" + (1..40).joinToString("&") { "utm_x$it=value$it" }
+        assertTrue(long.length > 320)
+        assertEquals(SelectionKind.URL, SelectionMacros.detect(long))
+        assertEquals("https://shop.example/p?id=7", SelectionMacros.stripTrackers(long))
+
+        assertEquals("https://x.com/a?id=1", SelectionMacros.stripTrackers("https://x.com/a?id=1&abc_k=2&zz=3", listOf("abc_*", "ZZ")))
+        assertNull(SelectionMacros.stripTrackers("https://x.com/a?id=1", listOf("*")))
+    }
+
+    @Test
     fun `remove trackers keeps the link's own shape and only offers itself when there is something to take`() {
         assertEquals(
             "example.com/watch?v=abc#t",
@@ -394,7 +412,8 @@ class SelectionMacrosTest {
         val tracked = MacroGates(content = ContentFlags(hasTrackers = true))
         assertTrue(SelectionMacro.STRIP_TRACKERS in SelectionMacros.offer(SelectionKind.URL, all, tracked))
         assertTrue(SelectionMacro.STRIP_TRACKERS !in SelectionMacros.offer(SelectionKind.URL, all))
-        assertTrue(SelectionMacro.STRIP_TRACKERS !in SelectionMacros.offer(SelectionKind.TEXT, all, tracked))
+        // A link inside a sentence is text, and is cleaned where it stands (#665).
+        assertTrue(SelectionMacro.STRIP_TRACKERS in SelectionMacros.offer(SelectionKind.TEXT, all, tracked))
     }
 
     @Test

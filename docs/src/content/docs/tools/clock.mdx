@@ -35,10 +35,25 @@ Tap your own clock or any city card, and a row of chips opens under it. Each chi
 | Time and place (the default) | `14:05 Tokyo (UTC+9)` |
 | ISO 8601 | `2026-10-14T14:05:00+09:00` |
 | Relative | `in 3 hours`, `2 days ago` |
-| Discord | `<t:1791000000:F>`, which Discord shows in each reader's own time zone |
 | Unix time | `1791000000` |
 
-Hold a chip to make it the default. After that, holding your own clock types the default straight away, without opening the chips, and the default is the first button when you hold a city. **Insert all clocks** at the bottom types one line with every clock: `14:05 London = 9:05 New York = 18:35 Kolkata`. A city whose date is different from yours gets its weekday, so nobody turns up a day early.
+Under those is a row for Discord timestamps. Discord turns `<t:1791000000:F>` into a time in each reader's own time zone and language, so one message works for everyone in the server. Every style Discord has gets a chip, showing roughly what readers will see:
+
+| Discord style | Typed | Readers see |
+|---|---|---|
+| Short time | `<t:…:t>` | `10:23 PM` |
+| Long time | `<t:…:T>` | `10:23:18 PM` |
+| Short date | `<t:…:d>` | `10/18/2026` |
+| Long date | `<t:…:D>` | `October 18, 2026` |
+| Date and time | `<t:…:f>` | `October 18, 2026 at 10:23 PM` |
+| Full date and time | `<t:…:F>` | `Sunday, October 18, 2026 at 10:23 PM` |
+| Relative | `<t:…:R>` | `in 2 hours`, kept current as the message ages |
+| Numeric | `<t:…:s>` | `10/18/2026, 10:23 PM` |
+| Numeric with seconds | `<t:…:S>` | `10/18/2026, 10:23:18 PM` |
+
+Every chip types the time now unless you pick another. **Another time** above the chips opens a time wheel set to the next whole hour, with arrows to step the day: tomorrow, next week, or a date you have to remember. The time is on the clock you tapped, so tapping the Kolkata card and picking 12:00 tomorrow gives 12:00 tomorrow in Kolkata, and a Discord chip then shows it to a reader in Karachi as 11:30. **Now** goes back to the current time.
+
+Hold a chip to make it the default. Holding a Discord chip makes Discord the default in that style. After that, holding your own clock types the default straight away, without opening the chips, and the default is the first button when you hold a city. **Insert all clocks** at the bottom types one line with every clock: `14:05 London = 9:05 New York = 18:35 Kolkata`. A city whose date is different from yours gets its weekday, so nobody turns up a day early.
 
 ## Alarms
 
@@ -106,7 +121,7 @@ The stopwatch keeps running with the keyboard hidden, and the shade has its **La
 
 The **Planner** tab lays the same day out for your own city and every city on your list: one strip each, 24 hours across, in half hours. Working hours are the strong colour, waking hours the faint one, and night is nearly blank. The half hours where everyone is at work are brightest, and the line under the day buttons says how long that overlap is.
 
-Drag along any strip, or tap it, and a cursor follows your finger with a tick at each half hour. Every city's time at that moment shows beside its name, with `+1` or `−1` where it is already tomorrow or still yesterday. **Best time** jumps to the first half hour that suits the most people with nobody asleep. **Insert** types the moment in every city at once. The arrows move to other days.
+Drag along any strip, or tap it, and a cursor follows your finger with a tick at each half hour. Every city's time at that moment shows beside its name, with `+1` or `−1` where it is already tomorrow or still yesterday. **Best time** jumps to the first half hour that suits the most people with nobody asleep. **Insert** types the moment in every city at once, and **Discord** types it as one timestamp that each reader sees in their own time zone, in your default Discord style. The arrows move to other days.
 
 Working hours are 9:00 to 17:00 unless you change them in the settings. They apply to every city.
 

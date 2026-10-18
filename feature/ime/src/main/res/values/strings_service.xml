@@ -150,6 +150,8 @@
 
     <!-- Toolbar switches: what the keyboard says after a tap. -->
     <string name="ime_service_incognito_field_toast">This field is always incognito</string>
+    <string name="ime_service_incognito_field_app_toast">Incognito: %1$s asked for it in this field, so nothing typed here is learned</string>
+    <string name="ime_service_incognito_switch_toast">Incognito is on. Tap the Incognito tool to turn it off</string>
     <string name="ime_service_incognito_on_toast">Incognito is on. The keyboard does not learn what you type.</string>
     <string name="ime_service_incognito_off_toast">Incognito is off</string>
     <string name="ime_service_power_saving_on_toast">Power saving is on</string>

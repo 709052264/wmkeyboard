@@ -22,6 +22,10 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.endpoints.repoLocationFromFields
 import com.wasimaster.wmkeyboard.core.endpoints.toFields
+import com.wasimaster.wmkeyboard.core.providers.ProviderChain
+import com.wasimaster.wmkeyboard.core.providers.ProviderCodec
+import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
@@ -3511,6 +3515,8 @@ data class KeyboardSettings(
     val scanner: ScannerSettings = ScannerSettings(),
     /** The GIF and sticker search tools (see [GifSettings]). */
     val gif: GifSettings = GifSettings(),
+    /** Every tool's provider list and the credentials they share (see [ProviderSettings]). */
+    val providers: ProviderSettings = ProviderSettings(),
     /** Dictionary tool looks up the word at the cursor when it opens. */
     val dictionaryAutoLookup: Boolean = true,
     /** Where the Dictionary tool looks, in the order it asks, each on or off. */
@@ -6718,6 +6724,18 @@ data class ClipboardSettings(
      */
     val copyRulesToSystem: Boolean = false,
     /**
+     * Take the trackers off every link copied (#665), the same ones Remove
+     * trackers takes, and put the clean link back on the system clipboard so
+     * every paste gets it. Off by default.
+     */
+    val cleanCopiedLinks: Boolean = false,
+    /**
+     * The user's own tracking parameters, on top of the built-in list (#665),
+     * for Remove trackers and [cleanCopiedLinks]. A name ending in `*` is a
+     * family (`abc_*`). Empty by default.
+     */
+    val extraTrackers: List<String> = emptyList(),
+    /**
      * The last rule clips were combined with in the panel (#612): the text
      * between them, a text put in front, and a pattern that keeps only part
      * of each clip. Remembered for the next Combine, set in the panel.
@@ -8975,6 +8993,10 @@ private fun decodeKeySoundPacksByLayout(raw: String): Map<String, String> =
         .toMap()
 
 /** Serializes the per-script font map to a compact `SCRIPT=fontId;...` string. */
+/** [SettingsRepository.setClipboardExtraTrackers]'s list back: one name a line, blanks dropped. */
+private fun decodeTrackerNames(raw: String): List<String> =
+    raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
+
 private fun encodeScriptFontIds(map: Map<String, String>): String =
     map.entries
         .filter { it.key.isNotEmpty() && it.value.isNotEmpty() }
@@ -9707,6 +9729,8 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
         private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
+        private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
+        private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
@@ -10225,6 +10249,8 @@ class SettingsRepository(private val context: Context) {
         private val SELF_HOSTED_COMMONS_URL = stringPreferencesKey("self_hosted_commons_url")
         private val SELF_HOSTED_ENDPOINTS = stringPreferencesKey("self_hosted_endpoints")
         private val SELF_HOSTED_REPOS = stringPreferencesKey("self_hosted_repos")
+        private val PROVIDER_CREDENTIALS = stringPreferencesKey(SettingsBackup.PROVIDER_CREDENTIALS)
+        private val PROVIDER_CHAINS = stringPreferencesKey("provider_chains")
         // Absent means "never chosen", which takes the seeded defaults; an
         // empty set is a real choice (nothing counts as music) and is kept.
         private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
@@ -10763,6 +10789,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.stickerSendMode,
             scanner = readScanner(p, defaults),
             gif = readGif(p, defaults),
+            providers = ProviderSettings(
+                credentials = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS]),
+                chains = ProviderCodec.decodeChains(p[PROVIDER_CHAINS]),
+            ),
             dictionaryAutoLookup = p[DICTIONARY_AUTO_LOOKUP] ?: defaults.dictionaryAutoLookup,
             dictionarySources = p[DICTIONARY_SOURCES]?.let(DictionarySources::decode) ?: defaults.dictionarySources,
             textEditing = readTextEditing(p, defaults),
@@ -11384,6 +11414,8 @@ class SettingsRepository(private val context: Context) {
             privateCopies = p[CLIPBOARD_PRIVATE_COPIES] ?: defaults.clipboard.privateCopies,
             copyRules = p[CLIPBOARD_COPY_RULES]?.let(ClipCopyRules::decode) ?: defaults.clipboard.copyRules,
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
+            cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
+            extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
@@ -12894,6 +12926,31 @@ class SettingsRepository(private val context: Context) {
             val next = if (location == null) current - repo.id else current + (repo.id to location)
             if (next.isEmpty()) prefs.remove(SELF_HOSTED_REPOS) else prefs[SELF_HOSTED_REPOS] = encodeRepoMap(next)
         }
+
+    /**
+     * Writes one provider edit ([ProviderEdits]) in a single transaction: the
+     * tool's whole list, the whole credential list, or both. Cooldowns are
+     * forgotten, so a provider the user just fixed is asked straight away.
+     */
+    suspend fun saveProviders(change: ProviderEdits.Change) {
+        if (change.chain == null && change.credentials == null) return
+        editPrefs { prefs ->
+            val tool = change.tool
+            val chain = change.chain
+            if (tool != null && chain != null) {
+                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain)
+                prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
+            }
+            change.credentials?.let { prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(it) }
+        }
+        ProviderRunner.reset()
+    }
+
+    /** Puts [tool]'s list back on what the build and the old settings make, by forgetting the stored one. */
+    suspend fun resetProviderChain(tool: ProviderTool) = editPrefs { prefs ->
+        val chains = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) - tool
+        if (chains.isEmpty()) prefs.remove(PROVIDER_CHAINS) else prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
+    }
 
     suspend fun setSearxUrl(value: String) =
         editPrefs { it[SELF_HOSTED_SEARX_URL] = value.trim() }
@@ -18142,6 +18199,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardCopyRulesToSystem(value: Boolean) =
         editPrefs { it[CLIPBOARD_COPY_RULES_TO_SYSTEM] = value }
+
+    suspend fun setClipboardCleanCopiedLinks(value: Boolean) =
+        editPrefs { it[CLIPBOARD_CLEAN_COPIED_LINKS] = value }
+
+    /** The user's own tracking parameters (#665), one name per entry. */
+    suspend fun setClipboardExtraTrackers(names: List<String>) =
+        editPrefs { it[CLIPBOARD_EXTRA_TRACKERS] = names.joinToString("\n") }
 
     /** The rule the panel's Combine last used (#612), offered again next time. */
     suspend fun setClipboardCombineRule(joiner: String, base: String, append: String, template: String = "") =

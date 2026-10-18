@@ -69,6 +69,14 @@ object SettingsBackup {
      */
     const val AUTO_BACKUP_LOCATIONS = "auto_backup_locations"
 
+    /**
+     * The credentials every tool's provider list shares: API keys, server
+     * addresses, tokens; see [ProviderSettings]. A secret for the same
+     * reasons as [AUTO_BACKUP_LOCATIONS]. The lists themselves
+     * (`provider_chains`) hold no secret and travel as usual.
+     */
+    const val PROVIDER_CREDENTIALS = "provider_credentials"
+
     /** How the last run went at each location; see [LocationStatus]. */
     const val AUTO_BACKUP_LOCATION_STATUS = "auto_backup_location_status"
 
@@ -155,6 +163,8 @@ object SettingsBackup {
         // fingerprint on the new phone; see AppLockSettings.secret.
         APP_LOCK_SECRET,
         AUTO_BACKUP_LOCATIONS,
+        PROVIDER_CREDENTIALS,
+        "self_hosted_libretranslate_key",
     )
 
     /** The app lock's stored PIN, password or pattern hash. */

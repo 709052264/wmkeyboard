@@ -2032,6 +2032,12 @@ sealed interface DictionaryUi {
     /** Every source that answered knows no entry for this word. */
     data class NotFound(val word: String) : DictionaryUi
 
+    /**
+     * The vocabulary packs do not have it, and no online source could be
+     * reached to ask (#665): not a verdict on the word.
+     */
+    data class NotOnDevice(val word: String) : DictionaryUi
+
     /** The user turned every source off. */
     data object NoSources : DictionaryUi
     data class Ready(

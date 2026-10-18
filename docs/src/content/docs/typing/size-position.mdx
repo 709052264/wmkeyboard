@@ -196,7 +196,9 @@ Touches outside the panel pass straight through to the app underneath, and the k
 
 The point of it is apps that read keys without a text field. A notes app that asks you to press a hotkey combination, a terminal, a game with keyboard controls: normally the keyboard vanishes the moment you leave the text box, so there's no way to send Ctrl+Shift+P from the screen. With this on, the keyboard stays and every key, modifier chords included, reaches the app as a key event. Letters and backspace arrive as key presses too, so plain typing into a fieldless screen works.
 
-Closing it is deliberate rather than automatic. The **Hide keyboard** tool, a swipe down on the toolbar, and the Back button all put it away, and it stays away until you next tap a text field, at which point it comes up and sticks again. The keyboard never follows you onto the lock screen. An app that forces the keyboard closed every time it appears gets a few tries and then wins, so a badly behaved app can't leave the keyboard flickering.
+Closing it is deliberate rather than automatic. The **Hide keyboard** tool, a swipe down on the toolbar, and the Back button all put it away, and it stays away until you next tap a text field, at which point it comes up and sticks again. The keyboard never follows you onto the lock screen. An app that forces the keyboard closed every time it appears gets a few tries and then wins, so a badly behaved app can't leave the keyboard flickering. If the keyboard is put back more than six times in five seconds across any mix of fields, it stops coming back until you next open it yourself, which breaks the loops some web pages and spelling popups set off.
+
+Back hides the keyboard before it reaches the app, as it does with this setting off, so a browser's address bar takes a second Back to leave. Before version 0.6.2, Android 14 and newer sent Back past this rule, and the keyboard came straight back up instead of going away.
 
 Pin the **Keep on screen** tool to your toolbar to toggle this directly. That tool and this row write the same setting.
 
@@ -208,9 +210,9 @@ Keeping the keyboard on screen only helps once it's open. To open it on a screen
 
 A small round button with a keyboard on it floats over every app. Tap it and the keyboard opens right there, field or not, and stays open on that app's screens until you close it. Keys reach the app as key presses, the same as with **Keep the keyboard on screen**. Switch to another app and the keyboard goes back to opening for text fields only.
 
-While the keyboard is open the button stays, moved up to sit just above the keys, and its glyph changes to a keyboard with a down arrow. Tap it then and the keyboard closes. On a screen with no text field that is often the easiest way out, since such screens may not answer Back. The **Hide keyboard** tool and a swipe down on the toolbar still work too. When the keyboard closes, the button drops back to where you left it.
+While the keyboard is open the button stays, moved up to sit just above the keys, and its glyph changes to a keyboard with a down arrow. Tap it then and the keyboard closes. Back, the **Hide keyboard** tool and a swipe down on the toolbar close it too, and it stays closed until you tap the button or a text field. When the keyboard closes, the button drops back to where you left it.
 
-Kept or summoned open over WM Keyboard's own settings, the keyboard brings up the settings' [test field](/reference/settings/#trying-a-change), so you can type straight away and every row stays reachable above the keys. Opening the settings from the keyboard itself, such as holding a tool, doesn't do this.
+Kept or summoned open over WM Keyboard's own settings, the keyboard brings up the settings' [test field](/reference/settings/#trying-a-change), so you can type straight away and every row stays reachable above the keys. It does this once each time you come to the app: close the field and it stays closed until you leave the app and come back. Opening the settings from the keyboard itself, such as holding a tool, doesn't do this unless the keyboard is kept on screen.
 
 - **Drag** the button to move it. It settles against the nearer side of the screen and stays where you left it. Dropped behind the open keyboard, it pops back up above it.
 - **Press and hold** it to hide it until the keyboard next opens or closes, for when it covers something you need.
