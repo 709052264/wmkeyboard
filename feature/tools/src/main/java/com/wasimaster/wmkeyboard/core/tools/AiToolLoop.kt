@@ -126,8 +126,14 @@ object AiToolLoop {
         native: Boolean,
     ) {
         if (native) {
+            // The replay carries what some providers refuse to do without —
+            // Gemini's thought signatures, DeepSeek's reasoning — so the turn
+            // goes back as the provider wrote it, not as rebuilt from text.
             conversation.add(
-                AiClient.ChatTurn(AiClient.ChatRole.ASSISTANT, completion.text, toolCalls = calls),
+                AiClient.ChatTurn(
+                    AiClient.ChatRole.ASSISTANT, completion.text,
+                    toolCalls = calls, replay = completion.replay,
+                ),
             )
             for (result in results) {
                 conversation.add(
