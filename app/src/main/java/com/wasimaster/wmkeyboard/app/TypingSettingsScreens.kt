@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
+import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
 import com.wasimaster.wmkeyboard.core.settings.MAX_STOP_AFTER_DECLINES
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SuggestionHotkeyMode
@@ -80,6 +81,7 @@ import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.ShiftGlideMode
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
+import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_RETRACT_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TwoThumbWordEnd
 import com.wasimaster.wmkeyboard.core.settings.GlidePickerChoicesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideRadiusRange
@@ -1816,6 +1818,10 @@ internal fun TypingGesturesSettings(
     val shiftCapitals = settings.watch { it.gesture.shiftGlideCapitals }
     val twoThumb = settings.watch { it.gesture.twoThumbGlide }
     val twoThumbWordEnd = settings.watch { it.gesture.twoThumbWordEnd }
+    // Two-thumb typing turns off the features that read one swipe as a
+    // whole word (#745). Their rows stay editable, since the values come
+    // back when it is turned off, but say so instead of their usual line.
+    val offWithTwoThumb = stringResource(R.string.typing_off_with_two_thumb)
     val pickerOn = settings.watch { it.gesture.ambiguityPicker }
     val pickerAsksAtEveryPause =
         settings.watch { it.gesture.pickerSensitivity == GlidePickerSensitivity.EVERY_PAUSE }
@@ -1882,7 +1888,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_space_glide_multiword_title,
-                        stringResource(R.string.typing_space_glide_multiword_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_space_glide_multiword_subtitle),
                         settings.watch { it.gesture.spaceGlideMultiWord },
                         info = stringResource(R.string.typing_space_glide_multiword_info),
                         default = SettingsDefaults.gesture.spaceGlideMultiWord,
@@ -1930,6 +1936,54 @@ internal fun TypingGesturesSettings(
                         default = SettingsDefaults.gesture.twoThumbPauseMs.toFloat(),
                     ) { scope.launch { repository.setGestureTwoThumbPauseMs(it.roundToInt()) } }
                 }
+                // The tapped-word pause, the one-letter floor, the space taken
+                // back and the band over the pause (#747): all-up only too.
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    SliderSetting(
+                        R.string.typing_two_thumb_tap_pause_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_tap_pause_subtitle),
+                        value = settings.watch { it.gesture.twoThumbTapPauseMs }.toFloat(),
+                        range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
+                        display = { msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_tap_pause_info),
+                        default = SettingsDefaults.gesture.twoThumbTapPauseMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbTapPauseMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    SliderSetting(
+                        R.string.typing_two_thumb_one_letter_pause_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_one_letter_pause_subtitle),
+                        value = settings.watch { it.gesture.twoThumbOneLetterPauseMs }.toFloat(),
+                        range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
+                        display = { msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_one_letter_pause_info),
+                        default = SettingsDefaults.gesture.twoThumbOneLetterPauseMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbOneLetterPauseMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    val off = stringResource(R.string.typing_two_thumb_retract_off)
+                    SliderSetting(
+                        R.string.typing_two_thumb_retract_title,
+                        subtitle = stringResource(R.string.typing_two_thumb_retract_subtitle),
+                        value = settings.watch { it.gesture.twoThumbRetractWindowMs }.toFloat(),
+                        range = TWO_THUMB_RETRACT_RANGE.first.toFloat()..TWO_THUMB_RETRACT_RANGE.last.toFloat(),
+                        display = { if (it.roundToInt() == 0) off else msFormat.format(it.roundToInt()) },
+                        info = stringResource(R.string.typing_two_thumb_retract_info),
+                        default = SettingsDefaults.gesture.twoThumbRetractWindowMs.toFloat(),
+                    ) { scope.launch { repository.setGestureTwoThumbRetractWindowMs(it.roundToInt()) } }
+                }
+                item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
+                    ToggleSetting(
+                        R.string.typing_two_thumb_pause_band_title,
+                        stringResource(R.string.typing_two_thumb_pause_band_subtitle),
+                        settings.watch { it.gesture.twoThumbPauseBand },
+                        info = stringResource(R.string.typing_two_thumb_pause_band_info),
+                        default = SettingsDefaults.gesture.twoThumbPauseBand,
+                    ) { scope.launch { repository.setGestureTwoThumbPauseBand(it) } }
+                }
                 item(visible = !twoThumb) {
                     ToggleSetting(
                         R.string.typing_swipe_continues_typed_title,
@@ -1942,7 +1996,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_shift_glide_capitals_title,
-                        stringResource(R.string.typing_shift_glide_capitals_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_shift_glide_capitals_subtitle),
                         shiftCapitals,
                         info = stringResource(R.string.typing_shift_glide_capitals_info),
                         default = SettingsDefaults.gesture.shiftGlideCapitals,
@@ -1952,7 +2006,7 @@ internal fun TypingGesturesSettings(
                 item(visible = shiftCapitals) {
                     ChoiceSetting(
                         title = R.string.typing_shift_glide_mode_title,
-                        subtitle = stringResource(R.string.typing_shift_glide_mode_subtitle),
+                        subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_shift_glide_mode_subtitle),
                         info = stringResource(R.string.typing_shift_glide_mode_info),
                         options = listOf(
                             ShiftGlideMode.WORD to
@@ -1968,7 +2022,7 @@ internal fun TypingGesturesSettings(
                 item {
                     ToggleSetting(
                         R.string.typing_glide_picker_title,
-                        stringResource(R.string.typing_glide_picker_subtitle),
+                        if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_subtitle),
                         pickerOn,
                         info = stringResource(R.string.typing_glide_picker_info),
                         default = SettingsDefaults.gesture.ambiguityPicker,
@@ -1981,7 +2035,7 @@ internal fun TypingGesturesSettings(
                     item {
                         ChoiceSetting(
                             title = R.string.typing_glide_picker_sensitivity_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_sensitivity_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_sensitivity_subtitle),
                             info = stringResource(R.string.typing_glide_picker_sensitivity_info),
                             options = GlidePickerSensitivity.entries.map { it to stringResource(it.labelRes) },
                             selected = settings.watch { it.gesture.pickerSensitivity },
@@ -1994,7 +2048,7 @@ internal fun TypingGesturesSettings(
                         val msFormat = stringResource(R.string.typing_value_milliseconds)
                         SliderSetting(
                             R.string.typing_glide_picker_dwell_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_dwell_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_dwell_subtitle),
                             value = settings.watch { it.gesture.pickerDwellMs }.toFloat(),
                             range = GlidePickerDwellMsRange.first.toFloat()..GlidePickerDwellMsRange.last.toFloat(),
                             display = { msFormat.format(it.roundToInt()) },
@@ -2007,7 +2061,7 @@ internal fun TypingGesturesSettings(
                     item(visible = !pickerAsksAtEveryPause) {
                         ToggleSetting(
                             R.string.typing_glide_picker_hold_title,
-                            stringResource(R.string.typing_glide_picker_hold_subtitle),
+                            if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_hold_subtitle),
                             settings.watch { it.gesture.pickerHoldToAsk },
                             info = stringResource(R.string.typing_glide_picker_hold_info),
                             default = SettingsDefaults.gesture.pickerHoldToAsk,
@@ -2017,7 +2071,7 @@ internal fun TypingGesturesSettings(
                         val numberFormat = stringResource(R.string.values_number)
                         SliderSetting(
                             R.string.typing_glide_picker_choices_title,
-                            subtitle = stringResource(R.string.typing_glide_picker_choices_subtitle),
+                            subtitle = if (twoThumb) offWithTwoThumb else stringResource(R.string.typing_glide_picker_choices_subtitle),
                             value = settings.watch { it.gesture.pickerChoices }.toFloat(),
                             range = GlidePickerChoicesRange.first.toFloat()..GlidePickerChoicesRange.last.toFloat(),
                             display = { numberFormat.format(it.roundToInt()) },
@@ -2499,6 +2553,16 @@ internal fun TypingGesturesSettings(
             ) { scope.launch { repository.setFlickPopup(it) } }
         }
         item {
+            // Issue #410: a key with arms and no centre types nothing on a tap.
+            ToggleSetting(
+                R.string.typing_swipe_only_tap_title,
+                stringResource(R.string.typing_swipe_only_tap_subtitle),
+                settings.watch { it.layoutBehavior.swipeOnlyTapShowsArms },
+                info = stringResource(R.string.typing_swipe_only_tap_info),
+                default = SettingsDefaults.layoutBehavior.swipeOnlyTapShowsArms,
+            ) { scope.launch { repository.setSwipeOnlyTapShowsArms(it) } }
+        }
+        item {
             val dpFormat = stringResource(R.string.typing_value_dp)
             SliderSetting(
                 R.string.typing_flick_distance_title,
@@ -2509,6 +2573,29 @@ internal fun TypingGesturesSettings(
                 info = stringResource(R.string.typing_flick_distance_info),
                 default = SettingsDefaults.layoutBehavior.flickDistanceDp.toFloat(),
             ) { scope.launch { repository.setFlickDistanceDp(it.roundToInt()) } }
+        }
+        item {
+            // Issue #720: where a stroke off a flick key stops being a flick
+            // and glide typing takes it.
+            val percentFormat = stringResource(R.string.typing_value_percent)
+            SliderSetting(
+                R.string.typing_flick_reach_title,
+                subtitle = stringResource(R.string.typing_flick_reach_subtitle),
+                value = settings.watch { it.layoutBehavior.flickReachPct }.toFloat(),
+                range = FlickReachRange.first.toFloat()..FlickReachRange.last.toFloat(),
+                display = { percentFormat.format(it.roundToInt()) },
+                info = stringResource(R.string.typing_flick_reach_info),
+                default = SettingsDefaults.layoutBehavior.flickReachPct.toFloat(),
+            ) { scope.launch { repository.setFlickReachPct(it.roundToInt()) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.typing_flick_onto_letter_title,
+                stringResource(R.string.typing_flick_onto_letter_subtitle),
+                settings.watch { it.layoutBehavior.flickOntoLetterGlides },
+                info = stringResource(R.string.typing_flick_onto_letter_info),
+                default = SettingsDefaults.layoutBehavior.flickOntoLetterGlides,
+            ) { scope.launch { repository.setFlickOntoLetterGlides(it) } }
         }
         item {
             // Issue #169: a short straight swipe from a punctuation key to s

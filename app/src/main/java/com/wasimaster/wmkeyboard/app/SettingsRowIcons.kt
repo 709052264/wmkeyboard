@@ -1034,6 +1034,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_finger_swipes_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_two_thumb_word_end_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_two_thumb_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_tap_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_one_letter_pause_title) { Icons.Outlined.Timer }
+        put(R.string.typing_two_thumb_retract_title) { Icons.AutoMirrored.Outlined.Undo }
+        put(R.string.typing_two_thumb_pause_band_title) { Icons.Outlined.HorizontalRule }
         put(R.string.typing_swipe_continues_typed_title) { Icons.Outlined.Swipe }
         put(R.string.typing_shift_glide_capitals_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_shift_glide_mode_title) { Icons.Outlined.KeyboardCapslock }
@@ -1092,7 +1096,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_capital_flick_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.typing_flick_hints_title) { Icons.Outlined.OpenWith }
         put(R.string.typing_flick_popup_title) { Icons.Outlined.Preview }
+        put(R.string.typing_swipe_only_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_flick_distance_title) { Icons.Outlined.Straighten }
+        put(R.string.typing_flick_reach_title) { Icons.Outlined.Gesture }
+        put(R.string.typing_flick_onto_letter_title) { Icons.Outlined.Swipe }
         put(R.string.typing_space_hold_keys_label) { Icons.Outlined.TouchApp }
         put(R.string.typing_backspace_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.typing_backspace_unit_title) { Icons.AutoMirrored.Outlined.Backspace }
@@ -1561,6 +1568,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_shortcuts_group_title) { Icons.Outlined.Shortcut }
         put(R.string.languages_translit_hints_row_title) { Icons.Outlined.Translate }
         put(R.string.languages_phonetic_strip_fixed_title) { Icons.Outlined.PushPin }
+        put(R.string.languages_raw_keys_chip_title) { Icons.Outlined.Keyboard }
         put(R.string.languages_phonetic_strip_source_title) { Icons.Outlined.Translate }
         put(R.string.languages_phonetic_candidates_title) { Icons.Outlined.ViewAgenda }
         put(R.string.languages_phonetic_guide_title) { Icons.AutoMirrored.Outlined.MenuBook }

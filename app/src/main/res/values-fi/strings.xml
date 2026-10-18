@@ -8766,11 +8766,9 @@
     <string name="typing_trail_opacity_title">Jäljen peittävyys</string>
     <string name="typing_trail_width_subtitle">Liukujäljen paksuus</string>
     <string name="typing_trail_width_title">Jäljen leveys</string>
-    <string name="typing_two_thumb_info">Käytä molempia peukaloita yhdessä. Kumpikin peukalo voi napauttaa tai pyyhkäistä samanaikaisesti toisen kanssa, ja jokainen napautus ja pyyhkäisy lisää sanaan merkkejä. Esimerkiksi: napauta S vasemmalla peukalolla, pyyhkäise O:sta M:ään oikealla, napauta E vasemmalla, pyyhkäise sitten T H I N G oikealla, niin saat sanan. Napautus, joka osuu toisen peukalon pyyhkäistessä, lisätään sanaan siinä kohdassa, joten pyyhkäisy H E L O:n yli ja napautus L:n kohdalla antaa sanan hello. Askelpalautin poistaa sanasta viimeisimmän napautuksen tai pyyhkäisyn.</string>
     <string name="typing_two_thumb_subtitle">Napauta ja pyyhkäise molemmilla peukaloilla samanaikaisesti muodostaaksesi yhden sanan</string>
     <string name="typing_two_thumb_title">Kahden peukalon kirjoitus</string>
     <string name="typing_two_thumb_word_end_all_up_label">Kaikki peukalot ylhäällä</string>
-    <string name="typing_two_thumb_word_end_info">Välilyönnin avulla sana pysyy auki, kun napautat ja pyyhkäiset, ja näppäimistö lukee sen uudelleen jokaisen jälkeen. Napauta välilyöntiä tai välimerkkiä kirjoittaaksesi sen. Kun kaikki peukalot ovat ylhäällä, sana kirjoitetaan välilyönnillä heti, kun mikään peukalo ei kosketa näppäimistöä, kuten tavallisessa pyyhkäisykirjoituksessa, joten peukaloiden on oltava päällekkäin sanan jakamiseksi.</string>
     <string name="typing_two_thumb_word_end_space_label">Välilyönti</string>
     <string name="typing_two_thumb_word_end_subtitle">Mikä kirjoittaa muodostamasi sanan</string>
     <string name="typing_two_thumb_word_end_title">Viimeistele kahden peukalon sana</string>

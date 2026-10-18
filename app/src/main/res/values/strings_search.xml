@@ -145,6 +145,7 @@
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
     <string name="search_kw_languages_translit_hints_row">transliteration phonetic romanized</string>
     <string name="search_kw_languages_phonetic_strip_fixed">avro ridmik suggestion strip order fixed pinned english typed word</string>
+    <string name="search_kw_languages_raw_keys_chip">khipro raw input typed keys roman latin modifier suggestion strip</string>
     <string name="search_kw_languages_phonetic_candidates">candidates dropdown suffix bar row suggestions bangla</string>
     <string name="search_kw_languages_phonetic_guide">key map keymap avro hinglish help cheat sheet chandrabindu hasant</string>
     <string name="search_kw_languages_ansi">bayanno sutonnymj unicode converter legacy bangla</string>
@@ -205,7 +206,10 @@
     <string name="search_kw_typing_hint_flick">flick gesture alternate long press number symbol gboard</string>
     <string name="search_kw_typing_flick_hints">swipe directions corner messagease flickboard multiling kana pad labels</string>
     <string name="search_kw_typing_flick_popup">swipe preview bubble kana pad messagease</string>
+    <string name="search_kw_typing_swipe_only_tap">tapless swipe only flick key no centre center unexpected keyboard</string>
     <string name="search_kw_typing_flick_distance">swipe threshold slop sensitivity kana pad messagease</string>
+    <string name="search_kw_typing_flick_reach">glide swipe typing boundary long short flick corner unexpected keyboard</string>
+    <string name="search_kw_typing_flick_onto_letter">glide swipe typing overshoot two letter word neighbour flick corner</string>
     <string name="search_kw_typing_possessive_swipe">possessive apostrophe contraction gesture flick comma full stop dont ill were youve</string>
     <string name="search_kw_typing_smart_currency">exchange rate forex dollar euro</string>
     <string name="search_kw_layout_extend_edge_keys">hitbox hit box touch area target gap margin</string>

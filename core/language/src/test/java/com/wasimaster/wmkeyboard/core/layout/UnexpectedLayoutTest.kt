@@ -245,9 +245,13 @@ class UnexpectedLayoutTest {
     }
 
     @Test
-    fun `a key with swipes and no tap takes its first swipe as the tap`() {
-        val key = single("""<key nw="esc" sw="config"/>""")
-        assertEquals(KeyAction.SendKey(111), key.action)
+    fun `a key with swipes and no tap is a swipe-only key`() {
+        val key = single("""<key nw="esc" ne="1" se="2"/>""")
+        assertEquals(KeyAction.Text, key.action)
+        assertEquals("", key.label)
+        assertTrue(key.isSwipeOnly())
+        assertEquals(mapOf(FlickDirection.UP_RIGHT to "1", FlickDirection.DOWN_RIGHT to "2"), key.flick)
+        assertEquals(KeyAction.SendKey(111), key.flickActions.getValue(FlickDirection.UP_LEFT).action)
     }
 
     // ---- the corpus ----

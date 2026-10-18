@@ -274,10 +274,10 @@ object UnexpectedLayouts {
         val arms = Directions.mapNotNull { (direction, names) ->
             slot(attrs, *names)?.let { parseValue(it, report) }?.let { direction to it }
         }
-        // A key with swipes and no tap is a key there; here a key has to do
-        // something on a tap, so its first swipe stands in for it.
-        val tap = tapValue ?: arms.firstOrNull()?.second ?: return gapKey(width)
-        val base = keyFrom(tap, width)
+        // A key with swipes and no tap is a swipe-only key, here as there
+        // (#410): no centre, and a tap types nothing.
+        if (tapValue == null && arms.isEmpty()) return gapKey(width)
+        val base = tapValue?.let { keyFrom(it, width) } ?: Key(label = "", width = width)
 
         val textArms = arms.mapNotNull { (d, v) -> (v as? Value.Text)?.let { d to normalizeForScript(it.output) } }
             .filter { it.second.isNotEmpty() }.toMap()

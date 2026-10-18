@@ -8764,11 +8764,9 @@
     <string name="typing_trail_opacity_title">Opacità scia</string>
     <string name="typing_trail_width_subtitle">Spessore della scia di scorrimento</string>
     <string name="typing_trail_width_title">Larghezza traccia</string>
-    <string name="typing_two_thumb_info">Usa entrambi i pollici contemporaneamente. Ogni pollice può toccare o scorrere, nello stesso momento dell\'altro, e ogni tocco o scorrimento contribuisce alla stessa parola. Ad esempio, tocca S con il pollice sinistro, scorri da O a M con il destro, tocca E con il sinistro, poi scorri T H I N G con il destro, e otterrai qualcosa. Un tocco che avviene mentre l\'altro pollice sta ancora scorrendo viene inserito nella parola in quel punto, quindi uno scorrimento su H E L O e un tocco su L danno hello. Il tasto backspace rimuove l\'ultimo tocco o scorrimento dalla parola.</string>
     <string name="typing_two_thumb_subtitle">Tocca e scorri con entrambi i pollici contemporaneamente per comporre una parola</string>
     <string name="typing_two_thumb_title">Digitazione con due pollici</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tutti i pollici in su</string>
-    <string name="typing_two_thumb_word_end_info">Con lo spazio, la parola rimane aperta mentre tocchi e scorri, e la tastiera la legge di nuovo dopo ogni tocco. Tocca spazio o punteggiatura per digitarla. Con entrambi i pollici sollevati, la parola viene digitata con uno spazio non appena nessun pollice tocca la tastiera, come nella digitazione a scorrimento normale, quindi i tuoi pollici devono sovrapporsi per condividere una parola.</string>
     <string name="typing_two_thumb_word_end_space_label">Spazio</string>
     <string name="typing_two_thumb_word_end_subtitle">Cosa digita la parola che stai componendo</string>
     <string name="typing_two_thumb_word_end_title">Termina una parola con due pollici</string>

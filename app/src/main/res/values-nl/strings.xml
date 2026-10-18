@@ -8775,11 +8775,9 @@
     <string name="typing_trail_opacity_title">Doorzichtigheid van het spoor</string>
     <string name="typing_trail_width_subtitle">Dikte van het glijspoor</string>
     <string name="typing_trail_width_title">Breedte van het spoor</string>
-    <string name="typing_two_thumb_info">Gebruik beide duimen tegelijk. Elke duim kan tikken of vegen, tegelijkertijd met de andere, en elke tik en veeg wordt aan hetzelfde woord toegevoegd. Tik bijvoorbeeld met de linkerduim op S, veeg met de rechter van O naar M, tik met de linker op E, en veeg dan met de rechter T H I N G, en je krijgt iets. Een tik die plaatsvindt terwijl de andere duim nog aan het vegen is, wordt op dat punt in het woord ingevoegd, dus een veeg over H E L O en een tik op L geeft hello. Backspace verwijdert de laatste tik of veeg uit het woord.</string>
     <string name="typing_two_thumb_subtitle">Tik en veeg met beide duimen tegelijk om één woord te vormen</string>
     <string name="typing_two_thumb_title">Typen met twee duimen</string>
     <string name="typing_two_thumb_word_end_all_up_label">Alle duimen omhoog</string>
-    <string name="typing_two_thumb_word_end_info">Met spatie blijft het woord open terwijl je tikt en veegt, en het toetsenbord leest het opnieuw na elke actie. Tik op spatie of leestekens om het te typen. Als beide duimen omhoog zijn, wordt het woord met een spatie getypt zodra er geen duim meer het toetsenbord aanraakt, zoals bij gewoon glijden, dus je duimen moeten elkaar overlappen om een woord te delen.</string>
     <string name="typing_two_thumb_word_end_space_label">Spatie</string>
     <string name="typing_two_thumb_word_end_subtitle">Wat het woord typt dat je aan het opbouwen bent</string>
     <string name="typing_two_thumb_word_end_title">Voltooi een woord met twee duimen</string>

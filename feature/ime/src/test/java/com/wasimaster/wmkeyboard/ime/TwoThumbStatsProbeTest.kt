@@ -37,6 +37,9 @@ class TwoThumbStatsProbeTest {
             twoThumbGlide = twoThumb,
             twoThumbWordEnd = if (allUp) TwoThumbWordEnd.ALL_UP else TwoThumbWordEnd.SPACE,
             twoThumbPauseMs = PAUSE_MS.toInt(),
+            twoThumbTapPauseMs = PAUSE_MS.toInt(),
+            twoThumbOneLetterPauseMs = PAUSE_MS.toInt(),
+            twoThumbRetractWindowMs = 0,
         ),
     )
 

@@ -403,10 +403,11 @@ fun validateLayout(spec: LayoutSpec): List<LayoutFinding> {
  * this one definition so the warning and the deletion can never disagree.
  *
  * Emptiness, not blankness — a key labelled with a space types a space, which is
- * a key doing its job.
+ * a key doing its job. And not a key with flick arms: one with no centre is
+ * a swipe-only key ([isSwipeOnly], #410), whose arms are what it types.
  */
 internal fun Key.typesNothing(): Boolean =
-    action == KeyAction.Text && label.isEmpty() && output.isNullOrEmpty()
+    action == KeyAction.Text && label.isEmpty() && output.isNullOrEmpty() && !hasFlicks()
 
 /** A popup entry that does something when tapped; see [Key.actionAlternates]. */
 internal fun KeyAlternate.isUsable(): Boolean = when (action) {

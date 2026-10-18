@@ -136,24 +136,8 @@ class GlideWorkspace {
     val loopShrink = FloatArray(SAMPLE_POINTS)
     var loopCount = 0
 
-    /**
-     * The stroke resampled finely, for the loop search alone: [fineCount]
-     * points [fineStep] key widths apart. The alignment's samples are too
-     * coarse for it — on a long word they sit half a key apart, and a loop
-     * on a key is three of them.
-     */
-    var fineX = FloatArray(INITIAL_FINE); private set
-    var fineY = FloatArray(INITIAL_FINE); private set
-    var fineCount = 0
-    var fineStep = 0f
-
-    /** Grows the fine arrays to hold [count] points. */
-    fun prepareFine(count: Int) {
-        if (fineX.size < count) {
-            fineX = FloatArray(count)
-            fineY = FloatArray(count)
-        }
-    }
+    /** The loop search's fine resample and the windows it finds; see [LoopScan]. */
+    internal val loopScan = LoopScan()
 
     /** Per key, the strongest loop event that key is the mark of. */
     var keyLoop = FloatArray(INITIAL_KEYS); private set
@@ -415,11 +399,6 @@ class GlideWorkspace {
 
         /** Longest key sequence a candidate's ideal path can have. */
         const val MAX_IDEAL_POINTS = 32
-
-        /** Most points the loop search's fine resample holds; a longer stroke is spaced out to fit. */
-        const val MAX_FINE_POINTS = 1024
-
-        private const val INITIAL_FINE = 256
 
         private const val INITIAL = 256
         private const val INITIAL_KEYS = 48

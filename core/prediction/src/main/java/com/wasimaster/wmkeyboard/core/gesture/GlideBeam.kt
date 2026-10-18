@@ -1409,56 +1409,23 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
     /**
      * Finds the places the finger went round on itself or rubbed back and
-     * forth and files each as an event: the samples it covers, where it sat,
-     * the key it is on, and how much of a doubled-letter mark it is — a loop
-     * all of one, a wiggle none, since a wiggle files a pause instead. Then
-     * leaves each event's inside to its key and collapses the events' arc out
-     * of [GlideWorkspace.arcAt]. See [Tuning.loopExtent] for the reading and
-     * [Tuning.wiggleExtent] for the wiggle's. Nothing happens at zero extent,
-     * and a stroke with no loops leaves the workspace as it found it.
-     *
-     * The search runs on a fine resample of the stroke rather than on the
-     * alignment's [GlideWorkspace.SAMPLE_POINTS]: on a long word those sit
-     * half a key apart, a loop is three of them, and no three points make a
-     * circle. The first start that passes is usually a step or two early, on
-     * the way in, so once a window is found every later start inside it is
-     * tried too and the roundest wins — the loop itself rather than the loop
-     * with its approach.
+     * forth ([LoopScan], shared with [DuetBeam]) and files each as an event:
+     * the samples it covers, where it sat, the key it is on, and how much of
+     * a doubled-letter mark it is — a loop all of one, a wiggle none, since a
+     * wiggle files a pause instead. Then leaves each event's inside to its
+     * key and collapses the events' arc out of [GlideWorkspace.arcAt]. See
+     * [Tuning.loopExtent] for the reading and [Tuning.wiggleExtent] for the
+     * wiggle's. Nothing happens at zero extent, and a stroke with no loops
+     * leaves the workspace as it found it.
      */
     private fun buildLoops(path: List<GesturePoint>, keyWidth: Float, keys: GlideKeyMap, ws: GlideWorkspace) {
         ws.loopCount = 0
-        val reach = maxOf(tuning.loopExtent, tuning.wiggleExtent)
-        if (reach <= 0f) return
-        resampleFine(path, keyWidth, ws)
-        val n = ws.fineCount
-        var a = 0
-        while (a < n - 2) {
-            var window = roundestWindow(a, reach, ws)
-            if (window == NO_WINDOW) {
-                a++
-                continue
-            }
-            var from = a
-            var other = a + 1
-            while (other < windowEnd(window) - 1) {
-                val later = roundestWindow(other, reach, ws)
-                if (later != NO_WINDOW && windowRoundness(later) > windowRoundness(window)) {
-                    window = later
-                    from = other
-                }
-                other++
-            }
-            val b = windowEnd(window)
-            val extent = sqrt(extentSq(from, b, ws))
-            val loop = windowRoundness(window) >= LOOP_ROUNDNESS && extent <= tuning.loopExtent
-            val wiggle = !loop && tuning.wiggleExtent > 0f && extent <= tuning.wiggleExtent
-            if (!loop && !wiggle) {
-                a++
-                continue
-            }
-            val e = recordLoop(from, b, if (loop) 1f else 0f, keys, ws)
-            if (wiggle) recordWiggle(e, keys, ws)
-            a = b + 1
+        val scan = ws.loopScan
+        val found = scan.find(path, keyWidth, tuning)
+        for (w in 0 until found) {
+            val loop = scan.windowIsLoop[w]
+            val e = recordLoop(scan.windowFrom[w], scan.windowTo[w], if (loop) 1f else 0f, keys, ws)
+            if (!loop) recordWiggle(e, keys, ws)
         }
         if (ws.loopCount > 0) {
             excludeNeighbours(keys, ws)
@@ -1529,172 +1496,26 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     }
 
     /**
-     * Resamples [path] into [GlideWorkspace.fineX] and [GlideWorkspace.fineY]
-     * at [FINE_SPACING] key widths a point — coarser only when a stroke would
-     * need more than [GlideWorkspace.MAX_FINE_POINTS] of them. Position only:
-     * the loop search has no use for the clock.
-     */
-    private fun resampleFine(path: List<GesturePoint>, keyWidth: Float, ws: GlideWorkspace) {
-        var totalPx = 0f
-        for (i in 1 until path.size) totalPx += distance(path[i - 1], path[i])
-        val total = totalPx / keyWidth
-        val spacing = maxOf(FINE_SPACING, total / (GlideWorkspace.MAX_FINE_POINTS - 1))
-        val count = (total / spacing).toInt() + 1
-        ws.prepareFine(count)
-        ws.fineStep = spacing
-        val stepPx = spacing * keyWidth
-        val first = path.first()
-        ws.fineX[0] = first.x / keyWidth
-        ws.fineY[0] = first.y / keyWidth
-        var out = 1
-        var index = 0
-        var cx = first.x
-        var cy = first.y
-        var accumulated = 0f
-        while (out < count && index < path.size - 1) {
-            val next = path[index + 1]
-            val segment = sqrt((next.x - cx) * (next.x - cx) + (next.y - cy) * (next.y - cy))
-            if (accumulated + segment >= stepPx && segment > 0f) {
-                val fraction = (stepPx - accumulated) / segment
-                cx += fraction * (next.x - cx)
-                cy += fraction * (next.y - cy)
-                ws.fineX[out] = cx / keyWidth
-                ws.fineY[out] = cy / keyWidth
-                out++
-                accumulated = 0f
-            } else {
-                accumulated += segment
-                cx = next.x
-                cy = next.y
-                index++
-            }
-        }
-        ws.fineCount = out
-    }
-
-    /**
-     * Of the windows of fine points starting at [a] that stay within [reach]
-     * of themselves and hold at least [Tuning.loopMinArc] of path and
-     * `LOOP_RATIO` times their own extent, the roundest — its end and its
-     * roundness packed into one long, or [NO_WINDOW].
-     *
-     * Roundness is the isoperimetric quotient `4πA / P²` of the polygon the
-     * window's points make when closed back to the start: 1 for a circle,
-     * nothing for a path that goes out and comes back along itself, and
-     * nothing for a zigzag, whose signed area cancels. Turning was the
-     * obvious measure and the wrong one: a loop drawn on a key that sits at
-     * a reversal — the `o` of `good` on QWERTY — has the corner's own turn
-     * cancelling half of the circle's, and a loop entered on a cusp cancels
-     * all of it. Area does not care which way round the finger went.
-     *
-     * Path length is the sum of the chords, not the point count times the
-     * spacing: a sharp corner between two points has less chord than
-     * spacing, and counting the spacing turned every hairpin into a loop.
-     * The extent is the window's widest pairwise distance, which only grows
-     * as the window does, so the scan stops the moment it passes [reach].
-     */
-    private fun roundestWindow(a: Int, reach: Float, ws: GlideWorkspace): Long {
-        val n = ws.fineCount
-        val xs = ws.fineX
-        val ys = ws.fineY
-        val ax = xs[a]
-        val ay = ys[a]
-        val reachSq = reach * reach
-        var extentSq = 0f
-        var length = 0f
-        var twiceArea = 0f
-        var bestEnd = -1
-        var bestRoundness = 0f
-        var b = a + 1
-        while (b < n && b - a <= MAX_WINDOW_POINTS) {
-            val bx = xs[b]
-            val by = ys[b]
-            val sx = bx - xs[b - 1]
-            val sy = by - ys[b - 1]
-            length += sqrt(sx * sx + sy * sy)
-            twiceArea += xs[b - 1] * by - bx * ys[b - 1]
-            var i = a
-            while (i < b) {
-                val dx = xs[i] - bx
-                val dy = ys[i] - by
-                val d = dx * dx + dy * dy
-                if (d > extentSq) extentSq = d
-                i++
-            }
-            if (extentSq > reachSq) break
-            if (length >= tuning.loopMinArc && extentSq >= MIN_LOOP_EXTENT_SQ &&
-                length * length >= LOOP_RATIO * LOOP_RATIO * extentSq
-            ) {
-                val closed = twiceArea + (bx * ay - ax * by)
-                val dx = bx - ax
-                val dy = by - ay
-                val perimeter = length + sqrt(dx * dx + dy * dy)
-                val roundness = TWO_PI * (if (closed < 0f) -closed else closed) / (perimeter * perimeter)
-                if (roundness > bestRoundness) {
-                    bestRoundness = roundness
-                    bestEnd = b
-                }
-            }
-            b++
-        }
-        return if (bestEnd < 0) NO_WINDOW else (bestEnd.toLong() shl Int.SIZE_BITS) or
-            (bestRoundness.toRawBits().toLong() and 0xffffffffL)
-    }
-
-    private fun windowEnd(window: Long): Int = (window shr Int.SIZE_BITS).toInt()
-
-    private fun windowRoundness(window: Long): Float = Float.fromBits(window.toInt())
-
-    /** Squared widest pairwise distance among fine points `[a, b]`. */
-    private fun extentSq(a: Int, b: Int, ws: GlideWorkspace): Float {
-        var extent = 0f
-        for (j in a + 1..b) {
-            for (i in a until j) {
-                val dx = ws.fineX[i] - ws.fineX[j]
-                val dy = ws.fineY[i] - ws.fineY[j]
-                val d = dx * dx + dy * dy
-                if (d > extent) extent = d
-            }
-        }
-        return extent
-    }
-
-    /**
-     * Files the fine window `[from, to]` as a loop event of strength [score]:
-     * its centroid, the alignment samples it covers, how much of its path its
-     * chord is — what the collapse leaves of it — and its key, the one nearest
-     * the centroid within [Tuning.loopRadius], or -1. Only that key is
-     * credited: a loop is a mark on one key, and crediting every key in reach
-     * let a circle drawn a little off the f of `off` double the d of `odd`
-     * (issue #337). Returns the event's index.
+     * Files the fine window `[from, to]` of [GlideWorkspace.loopScan] as a
+     * loop event of strength [score]: its centroid, the alignment samples it
+     * covers, how much of its path its chord is — what the collapse leaves of
+     * it — and its key, the one nearest the centroid within
+     * [Tuning.loopRadius], or -1 (see [LoopScan.nearestKey]). Returns the
+     * event's index.
      */
     private fun recordLoop(from: Int, to: Int, score: Float, keys: GlideKeyMap, ws: GlideWorkspace): Int {
-        val xs = ws.fineX
-        val ys = ws.fineY
-        var cx = 0f
-        var cy = 0f
-        var length = 0f
-        for (j in from..to) {
-            cx += xs[j]
-            cy += ys[j]
-            if (j > from) {
-                val sx = xs[j] - xs[j - 1]
-                val sy = ys[j] - ys[j - 1]
-                length += sqrt(sx * sx + sy * sy)
-            }
-        }
-        val points = (to - from + 1).toFloat()
-        cx /= points
-        cy /= points
-        val dx = xs[to] - xs[from]
-        val dy = ys[to] - ys[from]
-        val chord = sqrt(dx * dx + dy * dy)
+        val scan = ws.loopScan
+        scan.measure(from, to)
+        val cx = scan.centreX
+        val cy = scan.centreY
+        val length = scan.length
+        val chord = scan.chord
 
         // Onto the alignment's samples: the nearest to where the window
         // starts and ends, at least one step apart so there is something to
         // collapse.
         val last = ws.samples - 1
-        val toSample = ws.fineStep / ws.arcStep
+        val toSample = scan.fineStep / ws.arcStep
         var a = minOf(last, (from * toSample + 0.5f).toInt())
         var b = minOf(last, (to * toSample + 0.5f).toInt())
         if (b <= a) {
@@ -1708,17 +1529,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         ws.loopY[e] = cy
         ws.loopScore[e] = score
         ws.loopCount = e + 1
-        var own = -1
-        var nearestSq = tuning.loopRadiusSq
-        for (k in 0 until keys.keyCount) {
-            val kx = cx - keys.keyX[k]
-            val ky = cy - keys.keyY[k]
-            val d = kx * kx + ky * ky
-            if (d <= nearestSq) {
-                nearestSq = d
-                own = k
-            }
-        }
+        val own = scan.nearestKey(cx, cy, keys, tuning.loopRadiusSq)
         ws.loopKey[e] = own
         if (own >= 0 && score > ws.keyLoop[own]) ws.keyLoop[own] = score
         return e
@@ -2139,34 +1950,6 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * next door to answer for a stop a little off centre.
          */
         private const val DWELL_TIE = 0.25f
-
-        /**
-         * Arc over extent a window needs to be a loop: a straight pass is 1,
-         * any single corner at most 2 — exactly 2 for a full reversal — and a
-         * circle π. Halfway between the corner and the circle.
-         */
-        private const val LOOP_RATIO = 2.5f
-
-        /**
-         * Least roundness — `4πA / P²` of the closed window, 1 for a circle —
-         * a loop must show. A loop drawn as an egg or a teardrop still clears
-         * this; a corner, a reversal and a zigzag are nowhere near it.
-         */
-        private const val LOOP_ROUNDNESS = 0.55f
-
-        /** Point spacing of the loop search's resample, in key widths. */
-        private const val FINE_SPACING = 0.08f
-
-        /** Longest window the loop search extends, in fine points: five key widths of path. */
-        private const val MAX_WINDOW_POINTS = 64
-
-        private const val TWO_PI = 2f * Math.PI.toFloat()
-
-        /** [roundestWindow]'s answer when no window starting at a sample is a loop. */
-        private const val NO_WINDOW = -1L
-
-        /** Below this extent a window is tremor, whatever its path: a loop a finger means is wider than a third of a key. */
-        private const val MIN_LOOP_EXTENT_SQ = 0.3f * 0.3f
 
         /**
          * Most stroke a loop may have after it, in key widths, and still be

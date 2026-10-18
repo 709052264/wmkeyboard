@@ -8759,11 +8759,9 @@
     <string name="typing_trail_opacity_title">궤적 불투명도</string>
     <string name="typing_trail_width_subtitle">글라이드 궤적 두께</string>
     <string name="typing_trail_width_title">궤적 너비</string>
-    <string name="typing_two_thumb_info">양쪽 엄지손가락을 함께 사용하세요. 양쪽 엄지 모두 동시에 탭하거나 스와이프할 수 있으며, 모든 탭과 스와이프는 하나의 단어를 구성합니다. 예를 들어, 왼손 엄지로 S를 탭하고, 오른손으로 O에서 M까지 스와이프하고, 왼손으로 E를 탭한 다음, 오른손으로 T H I N G를 스와이프하면 \'something\'이 입력됩니다. 다른 손가락이 스와이프하는 중에 탭을 하면 해당 위치에서 단어가 완성되므로, H E L O를 스와이프하는 중에 L을 탭하면 \'hello\'가 입력됩니다. 백스페이스는 마지막으로 입력된 탭이나 스와이프를 삭제합니다.</string>
     <string name="typing_two_thumb_subtitle">양쪽 엄지손가락으로 동시에 탭하고 스와이프하여 하나의 단어를 만듭니다</string>
     <string name="typing_two_thumb_title">양손 엄지 타이핑</string>
     <string name="typing_two_thumb_word_end_all_up_label">모두 엄지척</string>
-    <string name="typing_two_thumb_word_end_info">스페이스바를 사용하면 탭하고 스와이프하는 동안 단어가 열린 상태로 유지되며, 키보드가 각 동작 후에 단어를 다시 읽습니다. 스페이스바나 문장 부호를 탭하여 입력하세요. 엄지손가락을 모두 떼면 일반적인 글라이드 입력처럼 엄지손가락이 키보드에 닿지 않는 즉시 단어가 스페이스와 함께 입력되므로, 단어를 공유하려면 엄지손가락이 겹쳐야 합니다.</string>
     <string name="typing_two_thumb_word_end_space_label">공백</string>
     <string name="typing_two_thumb_word_end_subtitle">작성 중인 단어를 입력하는 방법</string>
     <string name="typing_two_thumb_word_end_title">양손 엄지 단어 완성</string>

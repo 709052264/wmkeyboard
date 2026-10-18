@@ -205,6 +205,22 @@ class LayoutEditOpsTest {
     }
 
     @Test
+    fun `a key with arms and no centre is a swipe-only key, not a blank one`() {
+        // Issue #410: an empty label on a key with flick arms means the arms are
+        // the key. It must neither warn nor be deleted at activation.
+        val swipes = Key("", flick = mapOf(FlickDirection.UP_RIGHT to "1", FlickDirection.DOWN_LEFT to "&"))
+        assertTrue(swipes.isSwipeOnly())
+        assertFalse(Key("").isSwipeOnly())
+        assertFalse(Key("a", flick = mapOf(FlickDirection.UP to "1")).isSwipeOnly())
+        val spec = mine().withLayerRows(listOf(listOf(swipes, Key("a"))))
+        assertTrue(
+            "findings were ${validateLayout(spec)}",
+            validateLayout(spec).none { it.text.pluralsRes == R.plurals.core_lang_layout_blank_key_warning },
+        )
+        assertTrue(spec.repair().spec.layer(layer)!!.rows.flatten().contains(swipes))
+    }
+
+    @Test
     fun `a half-built layout can be saved but not enabled`() {
         val broken = mine().withLayerRows(listOf(listOf(Key("a"))))
         assertTrue(

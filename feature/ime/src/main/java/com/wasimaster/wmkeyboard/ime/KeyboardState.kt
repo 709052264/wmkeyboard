@@ -2903,6 +2903,12 @@ data class StickerOffer(
 )
 
 /**
+ * One all-thumbs-up pause (#747): how long it waits, and a number of its own so
+ * the band restarts for a new pause even when it is just as long.
+ */
+data class AllUpCountdown(val durationMs: Long, val id: Int)
+
+/**
  * Immutable UI state rendered by the Compose keyboard. The service owns a
  * MutableStateFlow of this and mutates it via copy().
  */
@@ -3179,6 +3185,11 @@ data class KeyboardUiState(
      * two readings.
      */
     val glideCloseCall: Boolean = false,
+    /**
+     * The two-thumb all-thumbs-up pause running now, for the band on the strip
+     * that shrinks until the word is typed (#747); null while none is.
+     */
+    val allUpCountdown: AllUpCountdown? = null,
     /**
      * Whether the active language and layout can be glided: a word list to
      * decode against, a layout that types letters rather than converting them,

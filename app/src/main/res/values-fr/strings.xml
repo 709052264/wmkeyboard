@@ -8764,11 +8764,9 @@
     <string name="typing_trail_opacity_title">Opacité de la traînée</string>
     <string name="typing_trail_width_subtitle">Épaisseur de la traînée de glissement</string>
     <string name="typing_trail_width_title">Largeur de la traînée</string>
-    <string name="typing_two_thumb_info">Utilisez vos deux pouces ensemble. Chaque pouce peut appuyer ou glisser, en même temps que l\'autre, et chaque appui ou glissement s\'ajoute au même mot. Par exemple, appuyez sur S avec le pouce gauche, glissez de O à M avec le droit, appuyez sur E avec le gauche, puis glissez T H I N G avec le droit, et vous obtenez quelque chose. Un appui qui se produit pendant que l\'autre pouce glisse s\'insère dans le mot à ce moment-là, donc un glissement sur H E L O et un appui sur L donnent hello. Le retour arrière supprime le dernier appui ou glissement du mot.</string>
     <string name="typing_two_thumb_subtitle">Appuyez et faites glisser avec les deux pouces en même temps pour former un mot</string>
     <string name="typing_two_thumb_title">Saisie à deux pouces</string>
     <string name="typing_two_thumb_word_end_all_up_label">Tous les pouces levés</string>
-    <string name="typing_two_thumb_word_end_info">Avec l\'espace, le mot reste ouvert pendant que vous appuyez et faites glisser, et le clavier le lit à nouveau après chaque action. Appuyez sur espace ou sur la ponctuation pour le taper. Avec tous les pouces levés, le mot est tapé avec un espace dès qu\'aucun pouce ne touche le clavier, comme pour le glissement ordinaire, de sorte que vos pouces doivent se chevaucher pour partager un mot.</string>
     <string name="typing_two_thumb_word_end_space_label">Espace</string>
     <string name="typing_two_thumb_word_end_subtitle">Ce qui tape le mot que vous êtes en train de construire</string>
     <string name="typing_two_thumb_word_end_title">Terminer un mot à deux pouces</string>

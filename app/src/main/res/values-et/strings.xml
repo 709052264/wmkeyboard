@@ -8779,11 +8779,9 @@
     <string name="typing_trail_opacity_title">Jälje läbipaistmatus</string>
     <string name="typing_trail_width_subtitle">Libistamisjoone paksus</string>
     <string name="typing_trail_width_title">Jälje laius</string>
-    <string name="typing_two_thumb_info">Kasutage mõlemat pöialt korraga. Kumbki pöial saab toksata või libistada samal ajal kui teine, ja iga toksamine ning libistamine lisandub samasse sõnasse. Näiteks toksake vasaku pöidlaga S-i, libistage paremaga O-st M-ini, toksake vasakuga E-d, seejärel libistage paremaga T H I N G ja saate sõna \"something\". Toksamine, mis toimub samal ajal kui teine pöial libistab, lisatakse sõnasse selles punktis, seega libistamine üle H E L O ja toksamine L-il annab \"hello\". Tagasilükkeklahv eemaldab sõnast viimase toksamise või libistamise.</string>
     <string name="typing_two_thumb_subtitle">Puudutage ja libistage mõlema pöidlaga korraga, et moodustada üks sõna</string>
     <string name="typing_two_thumb_title">Kahe pöidlaga tippimine</string>
     <string name="typing_two_thumb_word_end_all_up_label">Kõik pöidlad püsti</string>
-    <string name="typing_two_thumb_word_end_info">Tühikuga jääb sõna avatuks, kuni sa toksad ja libistad, ning klaviatuur loeb seda pärast iga toimingut uuesti. Toksa tühikut või kirjavahemärki, et see sisestada. Kui mõlemad pöidlad on üleval, sisestatakse sõna koos tühikuga kohe, kui ükski pöial klaviatuuri ei puuduta, nagu tavalise libistamise puhul, seega peavad sinu pöidlad sõna jagamiseks kattuma.</string>
     <string name="typing_two_thumb_word_end_space_label">Tühik</string>
     <string name="typing_two_thumb_word_end_subtitle">Mida kirjutab sõna, mida koostate</string>
     <string name="typing_two_thumb_word_end_title">Lõpeta kahe pöidlaga sõna</string>

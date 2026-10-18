@@ -2,6 +2,11 @@ package com.wasimaster.wmkeyboard.core.gesture
 
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.math.sqrt
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -29,16 +34,20 @@ class DuetBeamTest {
         "heed" to 100, "head" to 600,
     )
 
-    private val sources: List<FuzzyBeamSearch.WalkSource> = run {
-        val trie = Trie().apply { lexicon.forEach { (word, frequency) -> insert(word, frequency) } }
-        trie.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
+    private fun sourcesOf(entries: List<Pair<String, Int>>): List<FuzzyBeamSearch.WalkSource> {
+        val trie = Trie().apply { entries.forEach { (word, frequency) -> insert(word, frequency) } }
+        return trie.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
     }
+
+    private val sources = sourcesOf(lexicon)
 
     private val beam = DuetBeam()
     private val workspace = DuetWorkspace()
 
-    private fun decode(vararg tokens: GlideToken): List<String> =
-        beam.decode(tokens.toList(), grid, keyWidth, sources, workspace, limit = 4).map { it.word }
+    private fun decode(vararg tokens: GlideToken): List<String> = decodeFrom(sources, *tokens)
+
+    private fun decodeFrom(from: List<FuzzyBeamSearch.WalkSource>, vararg tokens: GlideToken): List<String> =
+        beam.decode(tokens.toList(), grid, keyWidth, from, workspace, limit = 4).map { it.word }
 
     private fun tap(letter: Char, t: Long): GlideToken.Tap {
         val key = centers.getValue(letter.code)
@@ -66,6 +75,55 @@ class DuetBeamTest {
             }
         }
         return GlideToken.Swipe(points)
+    }
+
+    /**
+     * [swipe] with a small circle drawn on [letter]'s key, built like
+     * GlideBeamTest's: the finger reaches the key, goes once round through it
+     * and carries on. The circle takes no time, so only its geometry speaks.
+     */
+    private fun loopedAt(swipe: GlideToken.Swipe, letter: Char): GlideToken.Swipe {
+        val path = swipe.points
+        val key = centers.getValue(letter.code)
+        var nearest = 0
+        var best = Float.MAX_VALUE
+        path.forEachIndexed { i, p ->
+            val d = (p.x - key.x) * (p.x - key.x) + (p.y - key.y) * (p.y - key.y)
+            if (d < best) {
+                best = d
+                nearest = i
+            }
+        }
+        val at = path[nearest]
+        val before = path[(nearest - 1).coerceAtLeast(0)]
+        val after = path[(nearest + 1).coerceAtMost(path.lastIndex)]
+        var dx = after.x - before.x
+        var dy = after.y - before.y
+        val len = sqrt(dx * dx + dy * dy).takeIf { it > 0f } ?: 1f
+        dx /= len
+        dy /= len
+        // Centre off to one side of the line of travel, so the circle passes
+        // through the key rather than around it.
+        val cx = at.x - dy * LOOP_RADIUS_PX
+        val cy = at.y + dx * LOOP_RADIUS_PX
+        val start = atan2(at.y - cy, at.x - cx)
+        val out = ArrayList<GesturePoint>(path.size + LOOP_POINTS)
+        path.forEachIndexed { i, p ->
+            out.add(p)
+            if (i == nearest) {
+                for (s in 1..LOOP_POINTS) {
+                    val angle = start + 2.0 * PI * s / LOOP_POINTS
+                    out.add(
+                        GesturePoint(
+                            cx + LOOP_RADIUS_PX * cos(angle).toFloat(),
+                            cy + LOOP_RADIUS_PX * sin(angle).toFloat(),
+                            p.t,
+                        ),
+                    )
+                }
+            }
+        }
+        return GlideToken.Swipe(out)
     }
 
     @Test
@@ -173,6 +231,33 @@ class DuetBeamTest {
         assertEquals("heed", decode(swipe("hed", 0L), tap('e', 170L)).firstOrNull())
     }
 
+    // Issue #740: the loop that marks a doubled letter, read as one stroke reads it.
+
+    @Test
+    fun `a loop on a key reads as the doubled spelling`() {
+        // GlideBeamTest's god and good, with the g tapped and o→d swiped. The
+        // swipe crosses the o once either way, so unmarked the commoner god
+        // wins; a loop on the o waives good's doubling and charges god for
+        // ignoring it.
+        val from = sourcesOf(listOf("god" to 800, "good" to 300))
+        assertEquals("god", decodeFrom(from, tap('g', 0L), swipe("od", 200L)).firstOrNull())
+        assertEquals("good", decodeFrom(from, tap('g', 0L), loopedAt(swipe("od", 200L), 'o')).firstOrNull())
+    }
+
+    @Test
+    fun `a loop asks for the doubled letter the other thumb's swipe starts on`() {
+        // m tapped dead centre, e→t swiped. Unmarked, net's whole-key miss
+        // costs less than meet's doubling and meet comes last. A loop on the e
+        // puts meet straight after met, whose lead in frequency is more than a
+        // loop is meant to overcome.
+        val from = sourcesOf(listOf("met" to 1757, "net" to 805, "meet" to 300))
+        val m = centers.getValue('m'.code)
+        val plain = decodeFrom(from, GlideToken.Tap(m.x, m.y, 0L), swipe("et", 200L))
+        assertEquals(listOf("met", "net", "meet"), plain)
+        val looped = decodeFrom(from, GlideToken.Tap(m.x, m.y, 0L), loopedAt(swipe("et", 200L), 'e'))
+        assertEquals(listOf("met", "meet", "net"), looped)
+    }
+
     @Test
     fun `routing sends a lone swipe and taps alone elsewhere`() {
         assertFalse(DuetBeam.needsDuet(listOf(swipe("helo", 0L))))
@@ -183,5 +268,7 @@ class DuetBeamTest {
 
     private companion object {
         const val STEPS = 10
+        const val LOOP_RADIUS_PX = 18f
+        const val LOOP_POINTS = 24
     }
 }

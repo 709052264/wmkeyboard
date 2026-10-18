@@ -12,8 +12,13 @@ import kotlin.math.abs
  * words floating over the keys are actually used, or are decoration. Folded
  * into [PICK] that number is inside the suggestion strip's and can never be
  * recovered.
+ *
+ * [DUET] is a word read off two-thumb gestures (#638): the decoder's answer,
+ * like [GLIDE], so fixing it teaches the word pair and never a typing habit
+ * (#741). Kept apart from [GLIDE] because its taps are real touches and its
+ * swipes are pieces of the word, not a stroke of the whole of it.
  */
-enum class WordOrigin { TYPED, GLIDE, PICK, OCTOPUS }
+enum class WordOrigin { TYPED, GLIDE, PICK, OCTOPUS, DUET }
 
 /**
  * Words committed into the field that have not settled yet.

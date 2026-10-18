@@ -50,8 +50,17 @@ class DuetCorpus(
         (xs.min() + xs.max()) / 2f
     }
 
-    /** [count] two-thumb cases at [noise], words sampled by frequency. */
-    fun generate(entries: List<Pair<String, Int>>, noise: SwipeCorpus.Noise, count: Int): List<Case> {
+    /**
+     * [count] two-thumb cases at [noise], words sampled by frequency. Swipes
+     * are drawn at [profile], the level's own unless a sweep asks for, say,
+     * loops on doubled letters (issue #740); taps keep the level's scatter.
+     */
+    fun generate(
+        entries: List<Pair<String, Int>>,
+        noise: SwipeCorpus.Noise,
+        count: Int,
+        profile: SwipeCorpus.Profile = noise.profile,
+    ): List<Case> {
         val usable = entries.filter { (word, _) -> word.length in MIN_WORD..MAX_WORD && grid.canSpell(word) }
         val total = usable.sumOf { it.second.coerceAtLeast(1).toLong() }
         val out = ArrayList<Case>(count)
@@ -62,7 +71,7 @@ class DuetCorpus(
                 pick -= f.coerceAtLeast(1)
                 pick < 0
             }.first
-            val tokens = tokensFor(word, noise) ?: continue
+            val tokens = tokensFor(word, noise, profile) ?: continue
             out.add(Case(word, tokens, noise))
         }
         return out
@@ -73,7 +82,11 @@ class DuetCorpus(
      * or taps alone — neither is a two-thumb word, and the decoder is never
      * asked to read one.
      */
-    fun tokensFor(word: String, noise: SwipeCorpus.Noise): List<GlideToken>? {
+    fun tokensFor(
+        word: String,
+        noise: SwipeCorpus.Noise,
+        profile: SwipeCorpus.Profile = noise.profile,
+    ): List<GlideToken>? {
         val runs = runsOf(word) ?: return null
         val tapSigma = TAP_SIGMA.getValue(noise)
         val tokens = ArrayList<GlideToken>()
@@ -84,7 +97,7 @@ class DuetCorpus(
             val overlap = if (tokens.isEmpty()) 0L else random.nextLong(maxOverlapMs + 1)
             var at = maxOf(lastEnd - overlap, free[thumb] + SAME_THUMB_GAP_MS, START_MS)
             val swiped = letters.toSet().size >= 2 && random.nextFloat() < SWIPE_SHARE
-            val path = if (swiped) strokes.swipe(letters, noise.profile) else null
+            val path = if (swiped) strokes.swipe(letters, profile) else null
             if (path != null) {
                 val shift = at - path.first().t
                 tokens.add(GlideToken.Swipe(path.map { GesturePoint(it.x, it.y, it.t + shift) }))

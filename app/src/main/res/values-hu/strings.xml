@@ -8761,11 +8761,9 @@
     <string name="typing_trail_opacity_title">Nyomvonal átlátszósága</string>
     <string name="typing_trail_width_subtitle">A csúsztatási nyomvonal vastagsága</string>
     <string name="typing_trail_width_title">Nyomvonal szélessége</string>
-    <string name="typing_two_thumb_info">Használd mindkét hüvelykujjadat egyszerre. Mindkét hüvelykujjaddal koppinthatsz vagy húzhatsz, akár egyszerre is, és minden koppintás és húzás ugyanahhoz a szóhoz adódik hozzá. Például koppints az S betűre a bal hüvelykujjaddal, húzz az O-tól az M-ig a jobbossal, koppints az E-re a balossal, majd húzz a T H I N G betűkön a jobbossal, és megkapod a „something” szót. Ha egy koppintás akkor történik, amikor a másik hüvelykujjad éppen húz, az a koppintás az adott ponton kerül be a szóba, így a H E L O betűkön való húzás és egy L-re történő koppintás a „hello” szót adja. A visszatörlés a szó utolsó koppintását vagy húzását távolítja el.</string>
     <string name="typing_two_thumb_subtitle">Koppintson és húzza mindkét hüvelykujjával egyszerre egy szó létrehozásához</string>
     <string name="typing_two_thumb_title">Két hüvelykujjas gépelés</string>
     <string name="typing_two_thumb_word_end_all_up_label">Minden hüvelykujj felfelé</string>
-    <string name="typing_two_thumb_word_end_info">Szóközzel a szó nyitva marad, miközben koppint és csúsztat, és a billentyűzet mindegyik után újra elolvassa. Koppintson a szóközre vagy az írásjelre a beíráshoz. Ha minden hüvelykujj felemelkedik, a szó szóközzel együtt íródik be, amint egyetlen hüvelykujj sem érinti a billentyűzetet, mint a szokásos csúsztatásnál, így a hüvelykujjainak át kell fedniük egymást a szó megosztásához.</string>
     <string name="typing_two_thumb_word_end_space_label">Szóköz</string>
     <string name="typing_two_thumb_word_end_subtitle">Mi írja be az éppen épített szót</string>
     <string name="typing_two_thumb_word_end_title">Két hüvelykujjas szó befejezése</string>

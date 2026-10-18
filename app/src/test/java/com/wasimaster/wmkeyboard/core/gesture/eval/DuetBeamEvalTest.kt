@@ -18,7 +18,9 @@ import org.junit.Test
 /**
  * Measurement, not yet a gate: two-thumb words ([DuetCorpus]) through
  * [DuetBeam] on the bundled English list, top-1 and top-3 per noise level,
- * with decode latency.
+ * with decode latency. One more line repeats the typical level with every
+ * doubled letter inside a swipe drawn as a loop (`loopOnDoubles`), the mark
+ * the decoder reads since issue #740; the graded levels draw none.
  *
  * Skipped unless `WM_DUET_EVAL` is set, until it has been run once and its
  * numbers written down as floors the way [GestureEvalBaseline] holds the
@@ -58,8 +60,7 @@ class DuetBeamEvalTest {
         val beam = DuetBeam()
         val ws = DuetWorkspace()
         println("DuetBeam on en/qwerty, $CASES_PER_LEVEL two-thumb words a level")
-        for (noise in SwipeCorpus.Noise.entries) {
-            val cases = DuetCorpus(SEED).generate(entries, noise, CASES_PER_LEVEL)
+        fun report(label: String, cases: List<DuetCorpus.Case>) {
             var top1 = 0
             var top3 = 0
             var empty = 0
@@ -79,10 +80,16 @@ class DuetBeamEvalTest {
                 String.format(
                     Locale.ROOT,
                     "  %-8s top1 %.4f  top3 %.4f  empty %.3f  p50 %.2f ms  p95 %.2f ms",
-                    noise.name, top1 / n, top3 / n, empty / n,
+                    label, top1 / n, top3 / n, empty / n,
                     times[times.size / 2], times[(times.size * 95) / 100],
                 ),
             )
         }
+        for (noise in SwipeCorpus.Noise.entries) {
+            report(noise.name, DuetCorpus(SEED).generate(entries, noise, CASES_PER_LEVEL))
+        }
+        val typical = SwipeCorpus.Noise.TYPICAL
+        val looping = typical.profile.copy(loopOnDoubles = 1f)
+        report("LOOPED", DuetCorpus(SEED).generate(entries, typical, CASES_PER_LEVEL, looping))
     }
 }

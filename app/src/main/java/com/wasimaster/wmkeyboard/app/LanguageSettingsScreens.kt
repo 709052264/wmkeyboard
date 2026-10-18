@@ -1179,8 +1179,8 @@ internal fun LanguageDetailScreen(
             resolveLayout(s.customLayouts, id).let { it.langId == langId && it.inputMethod?.kind == InputMethodKind.RULES }
         }
     }
-    val transliterating = phonetic || rulesMethod ||
-        ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
+    val khipro = ComposerType.KHIPRO in composers || ComposerType.KHIPRO_DARK in composers
+    val transliterating = phonetic || rulesMethod || khipro
     if (transliterating) {
         SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
             item {
@@ -1218,6 +1218,20 @@ internal fun LanguageDetailScreen(
         // strip, so they get no row.
         if (phonetic && PhoneticSchemes.forLanguage(langId) != null) {
             PhoneticStripGroup(langId, lang.englishName, settings, repository, scope)
+        }
+        // Khipro's strip has a chip of its own: the keys as pressed (#772).
+        if (khipro) {
+            SettingsGroup(stringResource(R.string.languages_phonetic_strip_title)) {
+                item {
+                    ToggleSetting(
+                        R.string.languages_raw_keys_chip_title,
+                        stringResource(R.string.languages_raw_keys_chip_subtitle),
+                        settings.watch { it.suggestionStrip.rawKeysChipFor(langId) },
+                        info = stringResource(R.string.languages_raw_keys_chip_info),
+                        default = SettingsDefaults.suggestionStrip.rawKeysChipFor(langId),
+                    ) { scope.launch { repository.setRawKeysChip(langId, it) } }
+                }
+            }
         }
     }
 

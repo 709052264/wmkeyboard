@@ -8781,11 +8781,9 @@
     <string name="typing_trail_opacity_title">شفافیت رد تایپ</string>
     <string name="typing_trail_width_subtitle">ضخامت مسیر حرکت انگشت</string>
     <string name="typing_trail_width_title">عرض رد تایپ</string>
-    <string name="typing_two_thumb_info">از هر دو شست با هم استفاده کنید. هر شست می‌تواند همزمان با دیگری ضربه بزند یا بکشد، و هر ضربه و کشیدن به همان کلمه اضافه می‌شود. برای مثال، با شست چپ روی S ضربه بزنید، با راست O تا M را بکشید، با چپ روی E ضربه بزنید، سپس با راست T H I N G را بکشید، و کلمه something ساخته می‌شود. ضربه‌ای که در حین کشیدن شست دیگر زده شود، در همان نقطه به کلمه اضافه می‌شود، بنابراین کشیدن روی H E L O و ضربه روی L کلمه hello را می‌سازد. کلید بازگشت (Backspace) آخرین ضربه یا کشیدن را از کلمه حذف می‌کند.</string>
     <string name="typing_two_thumb_subtitle">برای ساختن یک کلمه، با هر دو شست همزمان ضربه بزنید و بکشید</string>
     <string name="typing_two_thumb_title">تایپ با دو شست</string>
     <string name="typing_two_thumb_word_end_all_up_label">همه عالی</string>
-    <string name="typing_two_thumb_word_end_info">با فاصله، کلمه در حین ضربه زدن و کشیدن باز می‌ماند و صفحه‌کلید پس از هر بار آن را دوباره می‌خواند. برای تایپ آن، روی فاصله یا علائم نگارشی ضربه بزنید. با بالا بودن همه انگشتان، کلمه به محض اینکه هیچ انگشتی صفحه‌کلید را لمس نکند، با یک فاصله تایپ می‌شود، مانند کشیدن معمولی، بنابراین انگشتان شما باید برای اشتراک‌گذاری یک کلمه با هم همپوشانی داشته باشند.</string>
     <string name="typing_two_thumb_word_end_space_label">فاصله</string>
     <string name="typing_two_thumb_word_end_subtitle">آنچه کلمه‌ای که در حال ساخت آن هستید را تایپ می‌کند</string>
     <string name="typing_two_thumb_word_end_title">پایان یک کلمه با دو انگشت شست</string>

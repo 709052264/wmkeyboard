@@ -1290,8 +1290,17 @@ enum class ShiftGlideMode { WORD, LETTER }
  */
 enum class TwoThumbWordEnd { SPACE, ALL_UP }
 
-/** The range [GestureSettings.twoThumbPauseMs] is held to, in ms. */
+/**
+ * The range [GestureSettings.twoThumbPauseMs], [GestureSettings.twoThumbTapPauseMs]
+ * and [GestureSettings.twoThumbOneLetterPauseMs] are held to, in ms.
+ */
 val TWO_THUMB_PAUSE_RANGE: IntRange = 100..1500
+
+/**
+ * The range [GestureSettings.twoThumbRetractWindowMs] is held to, in ms. Zero
+ * is the retraction switched off.
+ */
+val TWO_THUMB_RETRACT_RANGE: IntRange = 0..3000
 
 /** The character each [GlideApostropheKey] borrows, or null for [GlideApostropheKey.OFF]/SPACE. */
 val GlideApostropheKey.sourceChar: Char?
@@ -6107,6 +6116,9 @@ val BoardCornerRadiusRange = 0..40
 /** Bounds for [LayoutBehaviorSettings.flickDistanceDp], in dp. The slider shares them. */
 val FlickDistanceRange = 8..48
 
+/** Bounds for [LayoutBehaviorSettings.flickReachPct], in percent of a key's diagonal. The slider shares them. */
+val FlickReachRange = 80..200
+
 /** Bounds for [LayoutBehaviorSettings.globeTypingGuardMs]; 0 is off. The slider shares them. */
 val GlobeTypingGuardMsRange = 0..1000
 
@@ -7223,6 +7235,34 @@ data class GestureSettings(
      */
     val twoThumbPauseMs: Int = 350,
     /**
+     * [twoThumbPauseMs] for a word of taps alone (#747). Tapping leaves longer
+     * gaps inside a word than swiping does, so a typist who stops to think
+     * mid-word may want more room here than after a swipe. Read as
+     * [twoThumbPauseMs] until it is set, so nothing changes until someone
+     * moves it. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     */
+    val twoThumbTapPauseMs: Int = 350,
+    /**
+     * The least a one-letter word waits under [TwoThumbWordEnd.ALL_UP] (#747),
+     * whichever of the two pauses it would otherwise take: a lone letter is
+     * far more often the start of a word than a word. Read as
+     * [twoThumbPauseMs] until it is set. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     */
+    val twoThumbOneLetterPauseMs: Int = 350,
+    /**
+     * How long after an all-thumbs-up space a letter may still take it back
+     * and carry on the word before it, when the two together still lead to a
+     * dictionary word (#747): `car`, the space, `pet` is "carpet", and `car`,
+     * the space, `dog` stays "car dog". Read as twice [twoThumbPauseMs] until
+     * it is set; 0 never takes a space back. Clamped to [TWO_THUMB_RETRACT_RANGE].
+     */
+    val twoThumbRetractWindowMs: Int = 700,
+    /**
+     * A band on the suggestion strip that shrinks over the all-thumbs-up
+     * pause, so the wait before the space is visible (#747).
+     */
+    val twoThumbPauseBand: Boolean = true,
+    /**
      * Two, three or four fingers swiped together across the keys run an
      * action instead of typing (issue #647). On by default: the swipe is
      * claimed only once every finger down has moved the same way, which a
@@ -7819,6 +7859,29 @@ data class LayoutBehaviorSettings(
      * count on a small key; higher stops a tap that drifts from flicking.
      */
     val flickDistanceDp: Int = 22,
+    /**
+     * With glide typing on, how far a stroke off a letter key with flick arms
+     * may travel from the down and still be a flick, in percent of that key's
+     * diagonal; see [FlickReachRange] (#720). Past it the stroke is a glide.
+     * 141 is CleverKeys' short/long boundary. A stroke that turns, or that
+     * reaches another letter heading where no arm points, is a glide sooner.
+     */
+    val flickReachPct: Int = 141,
+    /**
+     * With glide typing on, whether a short straight stroke that lifts on a
+     * neighbouring letter glides a word even when an arm points that way
+     * (#720). Off by default: the arm wins, so an overshooting flick still
+     * types what it points at, and a two-letter word along an armed corner
+     * is tapped instead.
+     */
+    val flickOntoLetterGlides: Boolean = false,
+    /**
+     * Whether a tap on a swipe-only key (a key with flick arms and no centre,
+     * issue #410) shows its arms for a moment. Off by default: the tap does
+     * nothing, as on Unexpected Keyboard, where such keys come from. On, the
+     * cross popup comes up for a look even with [flickPopup] off.
+     */
+    val swipeOnlyTapShowsArms: Boolean = false,
     /**
      * For this long after a typed key, a tap on the 🌐 key is ignored, in ms
      * (0 = off). The globe sits between `?123`/comma and the spacebar, and a
@@ -8770,6 +8833,14 @@ data class SuggestionStripSettings(
      */
     val phoneticContextOffLangs: Set<String> = emptySet(),
     /**
+     * Languages whose Khipro layouts leave out the strip's chip of the keys
+     * exactly as pressed (#772), modifiers and all (`prshn/` beside প্রশ্ন).
+     * Khipro's `f` and `/` change what came before them, so the chip is how
+     * to see which modifier went in; a tap on it writes the keys as typed.
+     * Stored as the switched-off set, so a language nobody has touched shows it.
+     */
+    val rawKeysChipOffLangs: Set<String> = emptySet(),
+    /**
      * Languages whose suggestions come from the user's own imported word lists
      * alone: the bundled list and any downloaded one are dropped for them
      * (issue #28).
@@ -8923,6 +8994,9 @@ data class SuggestionStripSettings(
 
     /** Whether [langId]'s phonetic layout ranks its readings by the words before them. */
     fun phoneticContextEnabledFor(langId: String): Boolean = langId !in phoneticContextOffLangs
+
+    /** Whether [langId]'s Khipro strip shows the keys as pressed beside the word they spell. */
+    fun rawKeysChipFor(langId: String): Boolean = langId !in rawKeysChipOffLangs
 
     /** Whether [langId]'s phonetic layout commits English words as English; null is no phonetic layout. */
     fun phoneticEnglishFor(langId: String?): Boolean = langId != null && langId in phoneticEnglishLangs
@@ -9507,6 +9581,7 @@ class SettingsRepository(private val context: Context) {
         private val SPELLING_MAP_OFF_LANGS = stringSetPreferencesKey("spelling_map_off_langs")
         private val PHONETIC_SIBLINGS_OFF_LANGS = stringSetPreferencesKey("phonetic_siblings_off_langs")
         private val PHONETIC_CONTEXT_OFF_LANGS = stringSetPreferencesKey("phonetic_context_off_langs")
+        private val RAW_KEYS_CHIP_OFF_LANGS = stringSetPreferencesKey("raw_keys_chip_off_langs")
         private val IMPORTED_ONLY_LANGS = stringSetPreferencesKey("imported_only_langs")
         private val WORD_PAIRS_OFF_LANGS = stringSetPreferencesKey("word_pairs_off_langs")
         private val WORD_MENU_ITEMS = stringSetPreferencesKey("word_menu_items")
@@ -9533,6 +9608,11 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_TWO_THUMB = booleanPreferencesKey("gesture_two_thumb")
         private val GESTURE_TWO_THUMB_WORD_END = stringPreferencesKey("gesture_two_thumb_word_end")
         private val GESTURE_TWO_THUMB_PAUSE_MS = intPreferencesKey("gesture_two_thumb_pause_ms")
+        private val GESTURE_TWO_THUMB_TAP_PAUSE_MS = intPreferencesKey("gesture_two_thumb_tap_pause_ms")
+        private val GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS =
+            intPreferencesKey("gesture_two_thumb_one_letter_pause_ms")
+        private val GESTURE_TWO_THUMB_RETRACT_MS = intPreferencesKey("gesture_two_thumb_retract_window_ms")
+        private val GESTURE_TWO_THUMB_PAUSE_BAND = booleanPreferencesKey("gesture_two_thumb_pause_band")
         private val GESTURE_MULTI_FINGER = booleanPreferencesKey("gesture_multi_finger_swipes")
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
@@ -9614,6 +9694,9 @@ class SettingsRepository(private val context: Context) {
         private val FLICK_HINTS = booleanPreferencesKey("flick_hints")
         private val FLICK_POPUP = booleanPreferencesKey("flick_popup")
         private val FLICK_DISTANCE = intPreferencesKey("flick_distance_dp")
+        private val FLICK_REACH = intPreferencesKey("flick_reach_pct")
+        private val FLICK_ONTO_LETTER_GLIDES = booleanPreferencesKey("flick_onto_letter_glides")
+        private val SWIPE_ONLY_TAP_SHOWS_ARMS = booleanPreferencesKey("swipe_only_tap_shows_arms")
         private val TRANSLITERATION_HINTS = stringPreferencesKey("transliteration_hints")
         private val FANCY_STYLE = stringPreferencesKey("fancy_style")
         private val FANCY_TOOL_STYLE = stringPreferencesKey("fancy_tool_style")
@@ -11324,6 +11407,22 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.twoThumbWordEnd,
             twoThumbPauseMs = p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)
                 ?: defaults.gesture.twoThumbPauseMs,
+            // The three below began as the one pause above (#747), and follow
+            // it until they are set, so a pause the user had already moved
+            // still holds for every word.
+            twoThumbTapPauseMs = (p[GESTURE_TWO_THUMB_TAP_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
+                ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                ?: defaults.gesture.twoThumbTapPauseMs,
+            twoThumbOneLetterPauseMs =
+                (p[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
+                    ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                    ?: defaults.gesture.twoThumbOneLetterPauseMs,
+            twoThumbRetractWindowMs = (
+                p[GESTURE_TWO_THUMB_RETRACT_MS]
+                    ?: p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)?.let { it * 2 }
+                )?.coerceIn(TWO_THUMB_RETRACT_RANGE)
+                ?: defaults.gesture.twoThumbRetractWindowMs,
+            twoThumbPauseBand = p[GESTURE_TWO_THUMB_PAUSE_BAND] ?: defaults.gesture.twoThumbPauseBand,
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
                 ?: defaults.gesture.fingerSwipes,
@@ -11811,6 +11910,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.phoneticSiblingsOffLangs,
             phoneticContextOffLangs = p[PHONETIC_CONTEXT_OFF_LANGS]
                 ?: defaults.suggestionStrip.phoneticContextOffLangs,
+            rawKeysChipOffLangs = p[RAW_KEYS_CHIP_OFF_LANGS]
+                ?: defaults.suggestionStrip.rawKeysChipOffLangs,
             importedOnlyLangs = p[IMPORTED_ONLY_LANGS]
                 ?: defaults.suggestionStrip.importedOnlyLangs,
             wordPairsOffLangs = p[WORD_PAIRS_OFF_LANGS]
@@ -11951,6 +12052,10 @@ class SettingsRepository(private val context: Context) {
             flickPopup = p[FLICK_POPUP] ?: defaults.layoutBehavior.flickPopup,
             flickDistanceDp = p[FLICK_DISTANCE]?.coerceIn(FlickDistanceRange)
                 ?: defaults.layoutBehavior.flickDistanceDp,
+            flickReachPct = p[FLICK_REACH]?.coerceIn(FlickReachRange)
+                ?: defaults.layoutBehavior.flickReachPct,
+            flickOntoLetterGlides = p[FLICK_ONTO_LETTER_GLIDES] ?: defaults.layoutBehavior.flickOntoLetterGlides,
+            swipeOnlyTapShowsArms = p[SWIPE_ONLY_TAP_SHOWS_ARMS] ?: defaults.layoutBehavior.swipeOnlyTapShowsArms,
             transliterationHints = p[TRANSLITERATION_HINTS]
                 ?.let { runCatching { TransliterationHintMode.valueOf(it) }.getOrNull() }
                 ?: defaults.layoutBehavior.transliterationHints,
@@ -17472,6 +17577,13 @@ class SettingsRepository(private val context: Context) {
             it[PHONETIC_CONTEXT_OFF_LANGS] = if (enabled) off - langId else off + langId
         }
 
+    /** Shows or hides the chip of the keys as pressed on [langId]'s Khipro strip (#772). */
+    suspend fun setRawKeysChip(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[RAW_KEYS_CHIP_OFF_LANGS].orEmpty()
+            it[RAW_KEYS_CHIP_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
+
     /**
      * Turn the bundled and downloaded dictionaries on or off for one language,
      * leaving it to the user's imported lists. Only the switched-off languages
@@ -17620,6 +17732,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbPauseMs(value: Int) =
         editPrefs { it[GESTURE_TWO_THUMB_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbTapPauseMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_TAP_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbOneLetterPauseMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] = value.coerceIn(TWO_THUMB_PAUSE_RANGE) }
+
+    suspend fun setGestureTwoThumbRetractWindowMs(value: Int) =
+        editPrefs { it[GESTURE_TWO_THUMB_RETRACT_MS] = value.coerceIn(TWO_THUMB_RETRACT_RANGE) }
+
+    suspend fun setGestureTwoThumbPauseBand(value: Boolean) =
+        editPrefs { it[GESTURE_TWO_THUMB_PAUSE_BAND] = value }
 
     suspend fun setMultiFingerSwipes(value: Boolean) =
         editPrefs { it[GESTURE_MULTI_FINGER] = value }
@@ -17934,6 +18058,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFlickDistanceDp(value: Int) =
         editPrefs { it[FLICK_DISTANCE] = value.coerceIn(FlickDistanceRange) }
+
+    suspend fun setFlickReachPct(value: Int) =
+        editPrefs { it[FLICK_REACH] = value.coerceIn(FlickReachRange) }
+
+    suspend fun setFlickOntoLetterGlides(value: Boolean) =
+        editPrefs { it[FLICK_ONTO_LETTER_GLIDES] = value }
+
+    suspend fun setSwipeOnlyTapShowsArms(value: Boolean) =
+        editPrefs { it[SWIPE_ONLY_TAP_SHOWS_ARMS] = value }
 
     suspend fun setTransliterationHints(value: TransliterationHintMode) =
         editPrefs { it[TRANSLITERATION_HINTS] = value.name }

@@ -8776,11 +8776,9 @@
     <string name="typing_trail_opacity_title">ट्रेल अपारदर्शकता</string>
     <string name="typing_trail_width_subtitle">ग्लाइड ट्रेलची जाडी</string>
     <string name="typing_trail_width_title">ट्रेलची रुंदी</string>
-    <string name="typing_two_thumb_info">दोन्ही अंगठ्यांचा एकत्र वापर करा. प्रत्येक अंगठा टॅप किंवा स्वाइप करू शकतो, दुसऱ्याच्याच वेळी, आणि प्रत्येक टॅप आणि स्वाइप एकाच शब्दात भर घालतो. उदाहरणार्थ, डाव्या अंगठ्याने S टॅप करा, उजव्याने O ते M स्वाइप करा, डाव्याने E टॅप करा, मग उजव्याने T H I N G स्वाइप करा, आणि तुम्हाला काहीतरी मिळेल. दुसरा अंगठा स्वाइप करत असताना पडलेला टॅप त्या बिंदूवर शब्दात जातो, म्हणून H E L O वर स्वाइप आणि L वर टॅप केल्यास hello मिळते. बॅकस्पेस शब्दातून शेवटचा टॅप किंवा स्वाइप काढून टाकतो.</string>
     <string name="typing_two_thumb_subtitle">एक शब्द तयार करण्यासाठी दोन्ही अंगठ्यांनी एकाच वेळी टॅप करा आणि स्वाइप करा</string>
     <string name="typing_two_thumb_title">दोन अंगठ्यांनी टायपिंग</string>
     <string name="typing_two_thumb_word_end_all_up_label">सर्व अंगठे वर</string>
-    <string name="typing_two_thumb_word_end_info">स्पेससह, तुम्ही टॅप आणि स्वाइप करत असताना शब्द उघडा राहतो आणि कीबोर्ड प्रत्येक टॅप/स्वाइपनंतर तो पुन्हा वाचतो. ते टाइप करण्यासाठी स्पेस किंवा विरामचिन्ह टॅप करा. सर्व अंगठे वर असताना, कोणताही अंगठा कीबोर्डला स्पर्श करत नाही तोपर्यंत शब्द स्पेससह टाइप केला जातो, जसे सामान्य ग्लाइडमध्ये असते, त्यामुळे शब्द शेअर करण्यासाठी तुमच्या अंगठ्यांनी ओव्हरलॅप करणे आवश्यक आहे.</string>
     <string name="typing_two_thumb_word_end_space_label">स्पेस</string>
     <string name="typing_two_thumb_word_end_subtitle">तुम्ही तयार करत असलेला शब्द काय टाईप करतो</string>
     <string name="typing_two_thumb_word_end_title">दोन-अंगठ्यांचा शब्द पूर्ण करा</string>

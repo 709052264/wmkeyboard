@@ -8802,11 +8802,9 @@
     <string name="typing_trail_opacity_title">ট্রেইল অপাসিটি</string>
     <string name="typing_trail_width_subtitle">গ্লাইড ট্রেইলের পুরুত্ব</string>
     <string name="typing_trail_width_title">ট্রেইল প্রস্থ</string>
-    <string name="typing_two_thumb_info">উভয় বুড়ো আঙুল একসাথে ব্যবহার করুন। প্রতিটি আঙুল একই সময়ে ট্যাপ বা সোয়াইপ করতে পারে এবং প্রতিটি ট্যাপ ও সোয়াইপ একই শব্দে যুক্ত হয়। উদাহরণস্বরূপ, বাম আঙুল দিয়ে S ট্যাপ করুন, ডান আঙুল দিয়ে O থেকে M সোয়াইপ করুন, বাম দিয়ে E ট্যাপ করুন, তারপর ডান দিয়ে T H I N G সোয়াইপ করুন, তাহলে আপনি একটি শব্দ পাবেন। অন্য আঙুল সোয়াইপ করার সময় কোনো ট্যাপ করলে তা সেই পয়েন্টে শব্দে যুক্ত হয়, তাই H E L O এর ওপর সোয়াইপ এবং L এর ওপর একটি ট্যাপ করলে hello তৈরি হয়। ব্যাকস্পেস শব্দ থেকে শেষ ট্যাপ বা সোয়াইপ মুছে ফেলে।</string>
     <string name="typing_two_thumb_subtitle">একটি শব্দ তৈরি করতে একসাথে উভয় বুড়ো আঙুল দিয়ে ট্যাপ এবং সোয়াইপ করুন</string>
     <string name="typing_two_thumb_title">দুই হাতের বুড়ো আঙুলে টাইপিং</string>
     <string name="typing_two_thumb_word_end_all_up_label">সব থাম্বস আপ</string>
-    <string name="typing_two_thumb_word_end_info">স্পেস কি ব্যবহার করলে শব্দটি খোলা থাকে যখন আপনি ট্যাপ করেন ও সোয়াইপ করেন এবং প্রতিটি কি চাপার পর কিবোর্ড তা আবার পড়ে। টাইপ করতে স্পেস বা যতিচিহ্নে ট্যাপ করুন। আর যখন কোনো থাম্ব স্পর্শ ছাড়াই টাইপ করতে চান, সাধারণ গ্লাইড টাইপিংয়ের মতো কিবোর্ড থেকে আঙুল সরানো মাত্রই শব্দটি স্পেসসহ টাইপ হয়ে যায়, তাই একটি শব্দ শেয়ার করার জন্য আপনার থাম্বগুলো ওভারল্যাপ করতে হয়।</string>
     <string name="typing_two_thumb_word_end_space_label">স্পেস</string>
     <string name="typing_two_thumb_word_end_subtitle">আপনি যে শব্দটি তৈরি করছেন তা কী দিয়ে টাইপ করবেন</string>
     <string name="typing_two_thumb_word_end_title">দুই-বুড়ো আঙুলের শব্দ শেষ করুন</string>
