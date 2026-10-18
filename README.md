@@ -12,7 +12,7 @@ An open source multilingual Android keyboard with prediction, glide typing, tran
 emoji search and a 75+ tool toolbox that all run on the phone and never phone home.
 
 <a href="https://github.com/wasi-master/wmkeyboard/releases/latest"><img src="https://img.shields.io/github/v/release/wasi-master/wmkeyboard?style=flat-square&label=Release&color=3DDC84&logo=android&logoColor=white" alt="Latest release"></a>
-<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://img.shields.io/badge/Google%20Play-Get%20it-01875F?style=flat-square&logo=googleplay&logoColor=white" alt="Google Play"></a>
+<a href="https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fwasi-master%2Fwmkeyboard%2Fbadges%2Fplay.json&style=flat-square&logo=googleplay&logoColor=white" alt="Google Play"></a>
 <a href="https://f-droid.org/packages/com.wasimaster.wmkeyboard/"><img src="https://img.shields.io/f-droid/v/com.wasimaster.wmkeyboard?style=flat-square&label=F-Droid&color=1976D2&logo=fdroid&logoColor=white" alt="F-Droid"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/releases"><img src="https://img.shields.io/github/downloads/wasi-master/wmkeyboard/total?style=flat-square&label=Downloads&color=6C5CE7&logo=rolldown&logoColor=white" alt="Downloads"></a>
 <a href="https://github.com/wasi-master/wmkeyboard/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/wasi-master/wmkeyboard/ci.yml?style=flat-square&label=CI&logo=githubactions&logoColor=white" alt="CI"></a>
