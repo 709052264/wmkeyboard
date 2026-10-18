@@ -132,6 +132,7 @@ object IconDefaults {
         // two sit side by side on a toolbar often enough that sharing a
         // glyph left only their position to tell them apart (#414).
         ToolbarTool.CLIPBOARD -> Icons.AutoMirrored.Outlined.Assignment
+        ToolbarTool.CLIPBOARD_SEARCH -> Icons.Outlined.Search
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote
         ToolbarTool.TRACKPAD -> SymbolIcons.TrackpadInput

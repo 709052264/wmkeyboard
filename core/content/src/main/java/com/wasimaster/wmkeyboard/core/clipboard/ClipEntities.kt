@@ -96,6 +96,16 @@ object ClipEntities {
         RegexOption.IGNORE_CASE,
     )
 
+    /**
+     * An address with no `https://` or `www.` in front (#612): `x.com`,
+     * `m.youtube.com/watch?v=…`. Not part of an email address, a longer word
+     * or a path, and only with a known ending; see [ClipLinks.BARE_TLDS].
+     */
+    private val BARE_URL = Regex(
+        """(?<![\w@./-])${ClipLinks.BARE_HOST}(?![\w@-])(?:[/?#][^\s<>"'`]*)?""",
+        RegexOption.IGNORE_CASE,
+    )
+
     // The word-character guards keep digit runs glued to an identifier out —
     // `emoji_864356927` is a filename's tail, not a number to dial.
     private val PHONE = Regex("""(?<![\w+])\+?\d[\d ().\-]{5,18}\d(?!\w)""")
@@ -160,6 +170,10 @@ object ClipEntities {
             if (url.length >= 8 && url.substringAfterLast('.').isNotBlank()) {
                 claim(ClipEntityKind.URL, url, match.range.first)
             }
+        }
+        // After the ones with a scheme, which claim their own host first.
+        for (match in BARE_URL.findAll(text)) {
+            claim(ClipEntityKind.URL, trimUrlTail(match.value), match.range.first)
         }
 
         // Before codes and numbers: a Plus code is code-shaped, and the

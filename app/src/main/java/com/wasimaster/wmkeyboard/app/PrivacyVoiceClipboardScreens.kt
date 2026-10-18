@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.settings.ClipLineSpacingRange
 import com.wasimaster.wmkeyboard.core.settings.ClipSwipePin
+import com.wasimaster.wmkeyboard.core.settings.ClipCardShortcut
 import com.wasimaster.wmkeyboard.core.settings.HoldToTalkRange
 import com.wasimaster.wmkeyboard.core.settings.VoiceSilenceStopRange
 import com.wasimaster.wmkeyboard.core.settings.ClipboardView
@@ -857,9 +858,18 @@ internal fun ClipboardSettings(
                 R.string.clipboard_pinned_last_title,
                 stringResource(R.string.clipboard_pinned_last_subtitle),
                 settings.watch { it.clipboard.pinnedLast },
-                enabled = !settings.watch { it.clipboard.pinnedTabs },
+                enabled = !settings.watch { it.clipboard.pinnedTabs } && !settings.watch { it.clipboard.pinnedInPlace },
                 default = SettingsDefaults.clipboard.pinnedLast,
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.clipboard_pinned_in_place_title,
+                stringResource(R.string.clipboard_pinned_in_place_subtitle),
+                settings.watch { it.clipboard.pinnedInPlace },
+                info = stringResource(R.string.clipboard_pinned_in_place_info),
+                default = SettingsDefaults.clipboard.pinnedInPlace,
+            ) { scope.launch { repository.setClipboardPinnedInPlace(it) } }
         }
         // Screenshots, the source app and the paste chip are all read as a
         // clip is being stored, and nothing is stored with history off. The
@@ -1215,6 +1225,16 @@ internal fun ClipboardSettings(
                 info = stringResource(R.string.clipboard_card_buttons_info),
                 default = SettingsDefaults.clipboard.cardButtons,
             ) { scope.launch { repository.setClipboardCardButtons(it) } }
+        }
+        item {
+            ChoiceSetting(
+                title = R.string.clipboard_card_shortcut_title,
+                subtitle = stringResource(R.string.clipboard_card_shortcut_subtitle),
+                info = stringResource(R.string.clipboard_card_shortcut_info),
+                options = ClipCardShortcut.entries.map { it to stringResource(it.labelRes) },
+                selected = settings.watch { it.clipboard.cardShortcut },
+                default = SettingsDefaults.clipboard.cardShortcut,
+            ) { scope.launch { repository.setClipboardCardShortcut(it) } }
         }
         item {
             ToggleSetting(

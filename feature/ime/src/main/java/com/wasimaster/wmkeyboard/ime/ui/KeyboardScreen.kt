@@ -466,6 +466,7 @@ import com.wasimaster.wmkeyboard.core.settings.holdActionOf
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ClipRecentChipsMax
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Reorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Checklist
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
@@ -4689,7 +4690,20 @@ private fun RowScope.StripAnswerChips(
     // rather than stretching across a strip it now shares.
     // Not a copy the keyboard just made privately, which holds the row
     // until the next key ([KeyboardUiState.clipChipHeld], #679).
-    val clipChipShares = !state.clipChipHeld && (suggestionsShowing || smartReplies.isNotEmpty())
+    val clipChipSharesNow = !state.clipChipHeld && (suggestionsShowing || smartReplies.isNotEmpty())
+    // Held in its narrow form for a moment after the words go (#612): they
+    // come and go between keystrokes and as the caret moves, and a chip that
+    // grew to fill the strip each time they went flickered while typing.
+    var clipChipShareHold by remember { mutableStateOf(false) }
+    LaunchedEffect(clipChipSharesNow) {
+        if (clipChipSharesNow) {
+            clipChipShareHold = true
+        } else {
+            delay(ClipChipShareHoldMs)
+            clipChipShareHold = false
+        }
+    }
+    val clipChipShares = clipChipSharesNow || clipChipShareHold
     // The last few copies as a row of chips (#414), newest first
     // whatever is pinned (#612). Asked for by hand, so it holds the
     // strip over any words until something is typed or its ✕.
@@ -6193,6 +6207,9 @@ private val CandidateChipMinWidth = 44.dp
 /** Han and kana need more size than Latin to stay legible at strip height. */
 private val CandidateFontSize = 20.sp
 
+/** How long the last-copy chip keeps its narrow form after the words leave the strip (#612). */
+private const val ClipChipShareHoldMs = 1_500L
+
 /**
  * How many copies the row of recent copies holds (#612): the setting's own
  * number once it is above one; at one, which is the chip alone and no button
@@ -6224,6 +6241,9 @@ private fun ClipboardSuggestionChip(
 ) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
+    // A press and hold deletes the copy (#612); not a part of one, whose
+    // clip is more than what the chip shows.
+    val onDelete = LocalClipChipDelete.current?.takeIf { otp == null }
     val tint = kb.accent
     // The fragment chip is an outline, not a solid — same language as the
     // clipboard panel's own fragment chips, and unmistakably not the ordinary
@@ -6270,7 +6290,10 @@ private fun ClipboardSuggestionChip(
             modifier = Modifier
                 .weight(1f, fill = false)
                 .fillMaxHeight()
-                .clickable {
+                .combinedClickable(
+                    onLongClickLabel = onDelete?.let { stringResource(R.string.ime_clip_chip_delete_desc) },
+                    onLongClick = onDelete?.let { delete -> { feedback(); delete(clip) } },
+                ) {
                     feedback()
                     onPaste()
                 }
@@ -8183,6 +8206,7 @@ internal fun toolIcon(tool: ToolbarTool): ImageVector = IconDefaults.forTool(too
 internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> R.string.ime_tool_emoji
     ToolbarTool.CLIPBOARD -> R.string.ime_tool_clipboard
+    ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8281,6 +8305,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
         state.panel == PanelMode.EMOJI
     }
     ToolbarTool.CLIPBOARD -> state.panel == PanelMode.CLIPBOARD
+    ToolbarTool.CLIPBOARD_SEARCH -> state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive
     ToolbarTool.SNIPPETS -> state.panel == PanelMode.SNIPPETS
     ToolbarTool.TEXT_EDIT -> state.panel == PanelMode.TEXT_EDIT
     ToolbarTool.TRACKPAD -> state.panel == PanelMode.TRACKPAD
@@ -8376,7 +8401,6 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
-    // Lit while its row is on the strip (#612).
 }
 
 /**
@@ -29133,6 +29157,8 @@ internal fun ClipboardSearchField(
     /** The filter button inside the pill's end (#612), lit while a filter is open or set; none when null. */
     onFilter: (() -> Unit)? = null,
     filterOn: Boolean = false,
+    /** The ✕ that closes the search; off where a back button beside the pill does it (#612). */
+    showClose: Boolean = true,
 ) {
     val active = state.clipboardSearchActive
     val kb = LocalKbTheme.current
@@ -29181,7 +29207,7 @@ internal fun ClipboardSearchField(
         }
         // Only up while searching (typing is the only way to fill the query,
         // and closing clears it). Clears the filter and hands the keys back.
-        if (active) {
+        if (active && showClose) {
             val clear = stringResource(R.string.ime_clipboard_search_clear_desc)
             IconHint(clear, Modifier.padding(start = 8.dp)) {
                 Icon(
@@ -29475,6 +29501,10 @@ internal fun ClipInfoPopup(
     onPick: (() -> Unit)? = null,
     /** The Reorder view (#612). */
     onReorder: (() -> Unit)? = null,
+    /** Show in history: close the search and scroll to this clip (#612); null outside a search. */
+    onJump: (() -> Unit)? = null,
+    /** The clip's tags, in the editor (#612). */
+    onTags: (() -> Unit)? = null,
     /** Pastes the clip, as a tap on it does; at the end of the action row (#612). */
     onPaste: (() -> Unit)? = null,
     onDismiss: () -> Unit,
@@ -29574,6 +29604,12 @@ internal fun ClipInfoPopup(
                             }
                             onReorder?.let {
                                 ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+                            }
+                            onJump?.let {
+                                ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                            }
+                            onTags?.let {
+                                ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
                             }
                             onEdit?.let {
                                 ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)

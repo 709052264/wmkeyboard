@@ -21,9 +21,23 @@ class ClipKindsTest {
 
     @Test fun rejectsProseAndBareWords() {
         assertNull(ClipLinks.asUrl("see https://example.com for details"))
-        assertNull(ClipLinks.asUrl("example.com"))
         assertNull(ClipLinks.asUrl("hello world"))
         assertNull(ClipLinks.asUrl(""))
+        // File names and abbreviations are not addresses (#612).
+        assertNull(ClipLinks.asUrl("notes.txt"))
+        assertNull(ClipLinks.asUrl("main.py"))
+        assertNull(ClipLinks.asUrl("Node.js"))
+        assertNull(ClipLinks.asUrl("e.g."))
+        assertNull(ClipLinks.asUrl("someone@example.com"))
+    }
+
+    @Test fun addressesWithoutASchemeAreLinks() {
+        // #612: x.com, youtu.be and the like, with https:// put in front.
+        assertEquals("https://example.com", ClipLinks.asUrl("example.com"))
+        assertEquals("https://x.com", ClipLinks.asUrl("x.com"))
+        assertEquals("https://youtu.be/Z7pkvfRl5S8", ClipLinks.asUrl("youtu.be/Z7pkvfRl5S8"))
+        assertEquals("https://wmkeyboard.pages.dev/tools/", ClipLinks.asUrl("wmkeyboard.pages.dev/tools/"))
+        assertEquals("https://m.youtube.com/watch?v=1", ClipLinks.asUrl("m.youtube.com/watch?v=1"))
     }
 
     @Test fun hostDropsWww() {

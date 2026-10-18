@@ -279,6 +279,8 @@
     <string name="ime_clip_chip_image">Copied image</string>
     <string name="ime_clip_chip_item">Copied item</string>
     <string name="ime_clip_chip_dismiss_desc">Hide the copied text</string>
+    <!-- Accessibility label of a press and hold on a copy's chip on the strip (#612). -->
+    <string name="ime_clip_chip_delete_desc">Delete this copy</string>
     <string name="ime_clip_chip_more_desc">Show more recent copies</string>
     <!-- The ✕ on the chip that offers a code found in a notification. -->
     <string name="ime_otp_chip_dismiss_desc">Hide the code</string>
@@ -376,6 +378,7 @@
          the toolbox, the settings screens and the hardware shortcut legend. -->
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_clipboard">Clipboard</string>
+    <string name="ime_tool_clipboard_search">Clipboard search</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
     <string name="ime_tool_trackpad">Trackpad</string>
@@ -696,6 +699,10 @@
     <string name="ime_clip_edit_title">Edit clip</string>
     <string name="ime_clip_edit_save">Save</string>
     <string name="ime_clip_edit_placeholder">Type the clip’s text</string>
+    <!-- A clip's own labels (#612): the hold popup's action, and the editor opened on them. -->
+    <string name="ime_clip_tags">Tags</string>
+    <string name="ime_clip_tags_title">Tags</string>
+    <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
     <string name="ime_clip_edit_rich_note">Saving a change drops the formatting</string>
     <!-- The bar at the bottom of the clipboard panel after a delete. %1$d is how many clips it would bring back. -->
     <plurals name="ime_clip_deleted">
@@ -752,6 +759,19 @@
     <string name="ime_clip_filter_all">All</string>
     <string name="ime_clip_filter_images">Images</string>
     <string name="ime_clip_filter_files">Files</string>
+    <!-- Filter showing clips with the same text but for case and spacing (#612). -->
+    <string name="ime_clip_filter_duplicates">Duplicates</string>
+    <!-- Hold popup: delete the other clips the duplicates filter groups with this one (#612). -->
+    <string name="ime_clip_keep_only">Keep only this one</string>
+    <!-- Hold popup, while searching: close the search and scroll the history to this clip (#612). -->
+    <string name="ime_clip_show_in_history">Show in history</string>
+    <!-- Selection bar: run the copy rules over the picked clips (#612). -->
+    <string name="ime_clip_tidy">Tidy</string>
+    <string name="ime_clip_tidy_none_toast">The copy rules change nothing in these clips</string>
+    <plurals name="ime_clip_tidied_toast">
+        <item quantity="one">%1$d clip tidied</item>
+        <item quantity="other">%1$d clips tidied</item>
+    </plurals>
     <!-- The button that brings back the folded strip of parts found in clips. %1$d is how many parts it holds. -->
     <plurals name="ime_clip_entity_show_desc">
         <item quantity="one">Show %1$d part found in your clips</item>
@@ -774,8 +794,13 @@
         <item quantity="other">Combine %1$d clips</item>
     </plurals>
     <string name="ime_clip_combine_joiner">Between the clips</string>
-    <string name="ime_clip_combine_base">In front of them all (optional)</string>
-    <string name="ime_clip_combine_append">Keep only the part that matches this pattern (optional)</string>
+    <string name="ime_clip_combine_base">Prefix, in front of them all (optional, $1 is the first clip\'s group)</string>
+    <string name="ime_clip_combine_append">Pattern: keep only the part that matches (optional)</string>
+    <string name="ime_clip_combine_template">Combination: what each match becomes, $1 for its groups (optional)</string>
+    <string name="ime_clip_combine_result">Result, press to edit</string>
+    <string name="ime_clip_combine_result_edited">Result, edited by hand</string>
+    <string name="ime_clip_combine_originals">The clips, with the part each gives marked</string>
+    <string name="ime_clip_combine_delete">Delete these clips after combining</string>
     <string name="ime_clip_combine_bad_pattern">The pattern is not finished, so nothing can be combined yet</string>
     <string name="ime_clip_combine_no_match">No clip has a part that matches the pattern</string>
     <string name="ime_clip_joiner_space">Space</string>
@@ -785,7 +810,7 @@
     <string name="ime_clip_joiner_bar">Bar</string>
     <!-- Dragging clips into an order of the user's own (#612). -->
     <string name="ime_clip_reorder">Reorder</string>
-    <string name="ime_clip_reorder_hint">Drag a clip by its handle to move it. It stays where you put it.</string>
+    <string name="ime_clip_reorder_hint">Drag a clip by its handle, or press and hold it, to move it. It stays where you put it.</string>
     <string name="ime_clip_reorder_done">Done</string>
     <string name="ime_clip_reorder_handle_desc">Drag to move this clip</string>
     <string name="ime_clip_reorder_top_desc">Move to the top</string>

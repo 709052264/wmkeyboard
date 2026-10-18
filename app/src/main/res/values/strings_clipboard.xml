@@ -68,6 +68,12 @@
     <string name="clipboard_confirm_pinned_delete_subtitle">Deleting a pinned clip asks first; unpinned clips go at once</string>
     <string name="clipboard_confirm_pinned_delete_info">You pin a clip to keep it, so losing one to a stray tap on its bin or a swipe made while scrolling costs more than losing any other clip. With this setting on, deleting a pinned clip from the panel shows a question first, and only Delete removes it. Unpinned clips are deleted straight away, as before. This setting is on by default.</string>
     <string name="clipboard_pinned_last_title">Pinned entries last</string>
+    <string name="clipboard_pinned_in_place_title">Keep pinned clips in place</string>
+    <string name="clipboard_pinned_in_place_subtitle">Pinned clips stay among the others instead of moving to the top or the end</string>
+    <string name="clipboard_pinned_in_place_info">A pinned clip keeps its pin, so it never expires, but it stays where it was copied in the history, the way SwiftKey shows pins. With this setting on, Pinned entries last and the Pinned and unpinned tabs have no effect. This setting is off by default.</string>
+    <string name="clipboard_card_shortcut_title">Clip shortcut button</string>
+    <string name="clipboard_card_shortcut_subtitle">What the small button at the end of a clip does</string>
+    <string name="clipboard_card_shortcut_info">Edited mark shows a pencil on a clip you edited, and does nothing when pressed. Nothing hides it. Edit puts an edit button on every clip you can edit, so you do not have to press and hold the clip first. Select starts selecting clips with that one, for Combine, Tidy or Delete. Edited mark is the default.</string>
     <string name="clipboard_clear_button_title">Clear button</string>
     <string name="clipboard_clear_button_subtitle">Show a bin beside the search bar that deletes all unpinned clips</string>
     <string name="clipboard_clear_button_info">The bin asks before it deletes. Pinned clips always stay. It also empties the system clipboard, unless that holds a pinned clip. When Undo a deleted clip is on, the Undo bar gives all of the clips back. This setting is off by default.</string>
@@ -202,6 +208,11 @@
     <string name="copy_rules_test_field_label">Text as copied</string>
     <string name="copy_rules_test_result">Kept as: %1$s</string>
     <string name="copy_rules_test_unchanged">No rule changes this text</string>
+    <string name="clipboard_plain_letters_title">Plain letters</string>
+    <string name="clipboard_plain_letters_subtitle">Keep copies in fancy fonts as the plain letters they stand for</string>
+    <string name="clipboard_plain_letters_info">Some apps and websites write in decorated letters: bold or italic letters from the math alphabets, script and double-struck letters, full-width letters, circled and squared letters, small capitals, and lines drawn through or under each letter. Copied, they paste the same way, and a search box or a screen reader cannot read them. With this setting on, the clipboard keeps the plain letters instead, before any rule runs. Symbols such as ™ and ℃ stay as they are. To tidy clips that are already in the history, select them in the clipboard and press Tidy. This setting is off by default.</string>
+    <string name="copy_rules_reorder_action">Change the order</string>
+    <string name="copy_rules_reorder_done">Done</string>
     <string name="clipboard_copy_rules_system_title">Change the system clipboard too</string>
     <string name="clipboard_copy_rules_system_subtitle">So a paste from any app\'s own menu gets the tidied text</string>
     <string name="clipboard_copy_rules_system_info">With this setting off, the rules change only what the clipboard history keeps, and what the keyboard pastes from it. Turn it on and a copy a rule changed is put back on the system clipboard as changed, so the paste menu of every app gets it too. A clip its app marked as a password is never changed. This setting is off by default.</string>

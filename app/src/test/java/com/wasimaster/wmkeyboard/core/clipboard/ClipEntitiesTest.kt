@@ -105,6 +105,17 @@ class ClipEntitiesTest {
         )
     }
 
+    @Test fun findsAddressesWithoutAScheme() {
+        // #612.
+        assertEquals(
+            listOf("x.com", "m.youtube.com/watch?v=Z7pkvfRl5S8"),
+            values("try x.com or m.youtube.com/watch?v=Z7pkvfRl5S8.", ClipEntityKind.URL),
+        )
+        assertEquals(emptyList<String>(), values("mail someone@example.com about notes.txt, e.g. today", ClipEntityKind.URL))
+        // Inside an address with a scheme, the host is not found a second time.
+        assertEquals(listOf("https://example.com/a"), values("see https://example.com/a", ClipEntityKind.URL))
+    }
+
     @Test fun digitsInsideALinkAreNotAPhoneNumber() {
         val found = ClipEntities.extract("open https://example.com/id/5551234567 now")
         assertEquals(listOf(ClipEntityKind.URL), found.map { it.kind })

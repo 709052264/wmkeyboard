@@ -58,6 +58,38 @@ class ClipRulesTest {
         assertEquals("youtube.com/watch?v=Z7pkvfRl5S8; =A1bcdeFg2H3", joined)
     }
 
+    @Test fun `a template rewrites each match and the prefix reads the first clip's groups`() {
+        val joined = ClipCombine.combine(
+            listOf("https://github.com/wasi-master/wmkeyboard", "https://github.com/wasi-master/wmkeyboard-addon-repository/"),
+            joiner = "; ",
+            base = "$1: github.com",
+            append = "github\\.com/([^/]+)(/[^/]+)",
+            template = "/$1$2",
+        )
+        assertEquals("wasi-master: github.com/wasi-master/wmkeyboard; /wasi-master/wmkeyboard-addon-repository", joined)
+    }
+
+    @Test fun `a template keeps an escaped dollar and drops a missing group`() {
+        val match = Regex("(a)(b)?").find("a")!!
+        assertEquals("\$1 is a, 2 is []", ClipCombine.expand("\\$1 is $1, 2 is [$2]", match))
+        assertEquals("a", ClipCombine.expand("\${1}", match))
+    }
+
+    @Test fun `the preview marks what each clip gives`() {
+        assertEquals(listOf(0..1, null), ClipCombine.matchedRanges(listOf("42 x", "none"), "\\d+"))
+        assertEquals(listOf(0..3), ClipCombine.matchedRanges(listOf("text"), ""))
+    }
+
+    @Test fun `decorated letters become plain ones`() {
+        assertEquals("Bold Italic", ClipPlainLetters.plain("𝐁𝐨𝐥𝐝 𝘐𝘵𝘢𝘭𝘪𝘤"))
+        assertEquals("ABC 123", ClipPlainLetters.plain("ＡＢＣ １２３"))
+        assertEquals("small caps", ClipPlainLetters.plain("ꜱᴍᴀʟʟ ᴄᴀᴘꜱ"))
+        assertEquals("strike", ClipPlainLetters.plain("s̶t̶r̶i̶k̶e̶"))
+        assertEquals("RN", ClipPlainLetters.plain("ℝℕ"))
+        // Symbols of their own stay: ™ and ℃ are not dressed-up letters.
+        assertEquals("Brand™ 20℃ café", ClipPlainLetters.plain("Brand™ 20℃ café"))
+    }
+
     @Test fun `nothing to join is null`() {
         assertNull(ClipCombine.combine(listOf("abc"), " ", append = "\\d+"))
         assertNull(ClipCombine.combine(listOf("abc"), " ", append = "[0-9"))

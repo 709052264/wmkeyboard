@@ -191,6 +191,15 @@ data class CaretText(
         // A pick with text selected replaces the selection, as typing would.
         if (hasSelection) return withoutSelection().typed(if (spaceAfter) "$word " else word)
         val span = wordAtCaret()
+        // Letters typed in front of a word already there (#612): `ab|out` in
+        // a clip being edited is a new word written before `out`, unless the
+        // pick ends the way the word does and so finishes it. Swallowing the
+        // tail overwrote text the user never touched.
+        val rest = text.substring(at, span.end)
+        if (rest.isNotEmpty() && !word.endsWith(rest, ignoreCase = true)) {
+            val head = text.substring(0, span.start) + word
+            return CaretText("$head ${text.substring(at)}", head.length + 1)
+        }
         val tail = text.substring(span.end)
         val head = text.substring(0, span.start) + word
         if (!spaceAfter) return CaretText(head + tail, head.length)

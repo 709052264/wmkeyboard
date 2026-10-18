@@ -28,7 +28,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.THEMES -> Color(0xFFEC407A)
 
     // Text & clipboard — blues/teals
-    ToolbarTool.CLIPBOARD -> Color(0xFF42A5F5)
+    ToolbarTool.CLIPBOARD, ToolbarTool.CLIPBOARD_SEARCH -> Color(0xFF42A5F5)
     // The one-tap trio reads as the clipboard panel's own family (issue #41).
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE -> Color(0xFF42A5F5)
     ToolbarTool.SNIPPETS -> Color(0xFF26A69A)

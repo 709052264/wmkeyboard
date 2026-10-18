@@ -85,6 +85,50 @@ class ClipboardStoreTest {
         assertEquals(listOf("pinned", "old", "new"), store.items(now = 4000).map { it.text })
     }
 
+    @Test fun placeGoesBetweenTheClipsItWasDroppedBetween() {
+        val store = ClipboardStore(null)
+        val a = store.add("a", now = 1000)!!
+        val b = store.add("b", now = 2000)!!
+        val c = store.add("c", now = 3000)!!
+        val d = store.add("d", now = 4000)!!
+        // d c b a: a dropped between d and c (#612).
+        assertTrue(store.place(a.id, newerId = d.id, olderId = c.id, now = 5000))
+        assertEquals(listOf("d", "a", "c", "b"), store.items(now = 5000).map { it.text })
+        // Above everything, and a later copy lands under it.
+        assertTrue(store.place(b.id, newerId = null, olderId = d.id, now = 5000))
+        store.add("e", now = 6000)
+        assertEquals(listOf("b", "e", "d", "a", "c"), store.items(now = 6000).map { it.text })
+        // At the bottom.
+        assertTrue(store.place(d.id, newerId = c.id, olderId = null, now = 6000))
+        assertEquals(listOf("b", "e", "a", "c", "d"), store.items(now = 6000).map { it.text })
+        assertFalse(store.place(a.id, newerId = null, olderId = null))
+    }
+
+    @Test fun pinnedInPlaceKeepsCopyOrder() {
+        val store = ClipboardStore(null, pinnedInPlace = true)
+        store.add("old", now = 1000)
+        val pin = store.add("pinned", now = 2000)!!
+        store.add("new", now = 3000)
+        store.setPinned(pin.id, true)
+        assertEquals(listOf("new", "pinned", "old"), store.items(now = 4000).map { it.text })
+        store.pinnedInPlace = false
+        assertEquals(listOf("pinned", "new", "old"), store.items(now = 4000).map { it.text })
+    }
+
+    @Test fun tagsAreSetAndFoundBySearch() {
+        val store = ClipboardStore(null)
+        val clip = store.add("an address", now = 1000)!!
+        assertTrue(store.setTags(clip.id, listOf("work", "maps")))
+        assertFalse(store.setTags(clip.id, listOf("work", "maps")))
+        assertEquals(listOf("work", "maps"), store.items(now = 2000).single().tags)
+        // Found by the tag's name, with or without the # it is shown with (#612).
+        assertEquals(1, store.search("#maps").size)
+        assertEquals(1, store.search("work").size)
+        // An edit keeps them.
+        store.editText(clip.id, "a new address")
+        assertEquals(listOf("work", "maps"), store.items(now = 3000).single().tags)
+    }
+
     @Test fun editKeepsIdPlaceAndTimestamp() {
         val store = ClipboardStore(null)
         val a = store.add("teh answer", now = 1000)!!

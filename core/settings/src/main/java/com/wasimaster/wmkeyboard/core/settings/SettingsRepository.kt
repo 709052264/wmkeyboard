@@ -6377,6 +6377,32 @@ enum class ClipSwipePin {
         }
 }
 
+/**
+ * The small button at the end of a clip's bottom row (#612, #576): the mark
+ * an edited clip wears, nothing at all, or a shortcut to the hold popup's
+ * most used action, the way Chrome's toolbar shortcut works.
+ */
+enum class ClipCardShortcut {
+    /** The pencil on a clip that was edited, which does nothing on a press (#576). */
+    EDITED_MARK,
+    NONE,
+    /** An edit button on every clip that can be edited. */
+    EDIT,
+    /** A button that starts picking clips with this one, for Combine and Delete. */
+    SELECT,
+    ;
+
+    /** Caption for this choice; resolve it where it is drawn. */
+    @get:StringRes
+    val labelRes: Int
+        get() = when (this) {
+            EDITED_MARK -> R.string.core_settings_clip_shortcut_edited_label
+            NONE -> R.string.core_settings_clip_shortcut_none_label
+            EDIT -> R.string.core_settings_clip_shortcut_edit_label
+            SELECT -> R.string.core_settings_clip_shortcut_select_label
+        }
+}
+
 /** Lines of text a clip may show in the panel; 0 is the view's own (see [ClipboardSettings.previewLines]). */
 val ClipPreviewLinesRange = 0..20
 
@@ -6482,6 +6508,21 @@ data class ClipboardSettings(
     val copiedCodeChip: CopiedCodeChip = CopiedCodeChip.ANY_FIELD,
     /** List pinned entries at the end instead of the top of the clipboard panel. */
     val pinnedLast: Boolean = false,
+    /**
+     * Pinned clips keep their place among the others instead of being lifted
+     * to the top or the end (#612), wearing their pin, the way SwiftKey lists
+     * them. Off by default. The Pinned tab and [pinnedLast] stand down while
+     * it is on.
+     */
+    val pinnedInPlace: Boolean = false,
+    /** The button at the end of each clip's bottom row (#612); see [ClipCardShortcut]. */
+    val cardShortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
+    /**
+     * Copies written in decorated Unicode letters (bold, italic, script,
+     * double-struck, full width, circled) are kept as the plain letters they
+     * stand for (#612), before any copy rule runs. Off by default.
+     */
+    val plainLetters: Boolean = false,
     /** Show a search bar at the top of the clipboard panel to filter history. */
     val search: Boolean = false,
     /**
@@ -6720,6 +6761,13 @@ data class ClipboardSettings(
     val combineJoiner: String = " ",
     val combineBase: String = "",
     val combineAppend: String = "",
+    /**
+     * What each clip's matched part becomes in Combine (#612), with `$1` for
+     * the pattern's groups; empty keeps the whole match.
+     */
+    val combineTemplate: String = "",
+    /** Combine deletes the clips it joined, with one Undo (#612). Off by default. */
+    val combineDeleteOriginals: Boolean = false,
     /**
      * How much taller than the keyboard the clipboard panel opens, in dp
      * (#414), set by dragging the bar on top of the panel. 0, the default, is
@@ -9718,6 +9766,11 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
+        private val CLIPBOARD_COMBINE_TEMPLATE = stringPreferencesKey("clipboard_combine_template")
+        private val CLIPBOARD_COMBINE_DELETE = booleanPreferencesKey("clipboard_combine_delete_originals")
+        private val CLIPBOARD_PINNED_IN_PLACE = booleanPreferencesKey("clipboard_pinned_in_place")
+        private val CLIPBOARD_CARD_SHORTCUT = stringPreferencesKey("clipboard_card_shortcut")
+        private val CLIPBOARD_PLAIN_LETTERS = booleanPreferencesKey("clipboard_plain_letters")
         private val CLIPBOARD_RECENT_CHIPS = intPreferencesKey("clipboard_recent_chips")
         private val CLIPBOARD_PANEL_EXTRA_HEIGHT_DP = intPreferencesKey("clipboard_panel_extra_height_dp")
         private val OTP_CHIP_ENABLED = booleanPreferencesKey("otp_chip_enabled")
@@ -11397,6 +11450,13 @@ class SettingsRepository(private val context: Context) {
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
+            combineTemplate = p[CLIPBOARD_COMBINE_TEMPLATE] ?: defaults.clipboard.combineTemplate,
+            combineDeleteOriginals = p[CLIPBOARD_COMBINE_DELETE] ?: defaults.clipboard.combineDeleteOriginals,
+            pinnedInPlace = p[CLIPBOARD_PINNED_IN_PLACE] ?: defaults.clipboard.pinnedInPlace,
+            cardShortcut = p[CLIPBOARD_CARD_SHORTCUT]
+                ?.let { runCatching { ClipCardShortcut.valueOf(it) }.getOrNull() }
+                ?: defaults.clipboard.cardShortcut,
+            plainLetters = p[CLIPBOARD_PLAIN_LETTERS] ?: defaults.clipboard.plainLetters,
             recentChips = p[CLIPBOARD_RECENT_CHIPS]?.coerceIn(1, ClipRecentChipsMax)
                 ?: defaults.clipboard.recentChips,
             panelExtraHeightDp = p[CLIPBOARD_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(ClipPanelExtraHeightRange)
@@ -18334,12 +18394,25 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[CLIPBOARD_EXTRA_TRACKERS] = names.joinToString("\n") }
 
     /** The rule the panel's Combine last used (#612), offered again next time. */
-    suspend fun setClipboardCombineRule(joiner: String, base: String, append: String) =
+    suspend fun setClipboardCombineRule(joiner: String, base: String, append: String, template: String = "") =
         editPrefs {
             it[CLIPBOARD_COMBINE_JOINER] = joiner
             it[CLIPBOARD_COMBINE_BASE] = base
             it[CLIPBOARD_COMBINE_APPEND] = append
+            it[CLIPBOARD_COMBINE_TEMPLATE] = template
         }
+
+    suspend fun setClipboardCombineDeleteOriginals(value: Boolean) =
+        editPrefs { it[CLIPBOARD_COMBINE_DELETE] = value }
+
+    suspend fun setClipboardPinnedInPlace(value: Boolean) =
+        editPrefs { it[CLIPBOARD_PINNED_IN_PLACE] = value }
+
+    suspend fun setClipboardCardShortcut(value: ClipCardShortcut) =
+        editPrefs { it[CLIPBOARD_CARD_SHORTCUT] = value.name }
+
+    suspend fun setClipboardPlainLetters(value: Boolean) =
+        editPrefs { it[CLIPBOARD_PLAIN_LETTERS] = value }
 
     suspend fun setClipboardRecentChips(value: Int) =
         editPrefs { it[CLIPBOARD_RECENT_CHIPS] = value.coerceIn(1, ClipRecentChipsMax) }

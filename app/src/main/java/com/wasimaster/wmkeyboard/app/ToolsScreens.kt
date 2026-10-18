@@ -90,6 +90,7 @@ private val ToolsWithoutOptions: Set<ToolbarTool> =
 internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> ImeR.string.ime_tool_emoji
     ToolbarTool.CLIPBOARD -> ImeR.string.ime_tool_clipboard
+    ToolbarTool.CLIPBOARD_SEARCH -> ImeR.string.ime_tool_clipboard_search
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> ImeR.string.ime_tool_trackpad
@@ -178,6 +179,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
 internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> R.string.fonts_tool_emoji_desc
     ToolbarTool.CLIPBOARD -> R.string.fonts_tool_clipboard_desc
+    ToolbarTool.CLIPBOARD_SEARCH -> R.string.fonts_tool_clipboard_search_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc
     ToolbarTool.TRACKPAD -> R.string.fonts_tool_trackpad_desc
@@ -587,7 +589,7 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
     add(
         R.string.tools_group_quick_actions_title to listOf(
             ToolbarTool.UNDO, ToolbarTool.REDO,
-            ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+            ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE, ToolbarTool.CLIPBOARD_SEARCH,
             ToolbarTool.AUTOCORRECT, ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH,
             ToolbarTool.LANGUAGE, ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.INCOGNITO, ToolbarTool.SOUND_HAPTICS,
             ToolbarTool.THEMES, ToolbarTool.POWER_SAVING, ToolbarTool.SETTINGS, ToolbarTool.STATISTICS,
