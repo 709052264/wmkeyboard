@@ -24,6 +24,7 @@ import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRule
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
+import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
@@ -1125,6 +1126,9 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
     var editing by remember { mutableStateOf<Int?>(null) }
     var sample by remember { mutableStateOf("") }
     val save: (List<ClipCopyRule>) -> Unit = { next -> scope.launch { repository.setClipboardCopyRules(next) } }
+    val cleanLinks = settings.watch { it.clipboard.cleanCopiedLinks }
+    val extraTrackers = settings.watch { it.clipboard.extraTrackers }
+    var editingTrackers by remember { mutableStateOf(false) }
 
     RegisterAddFab(stringResource(R.string.copy_rules_add_action)) { editing = -1 }
     SettingsGroup {
@@ -1136,6 +1140,27 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                 info = stringResource(R.string.clipboard_copy_rules_system_info),
                 default = SettingsDefaults.clipboard.copyRulesToSystem,
             ) { scope.launch { repository.setClipboardCopyRulesToSystem(it) } }
+        }
+        // Links lose their trackers on the way in (#665), with the same list
+        // the selection bar's Remove trackers uses, the user's own names too.
+        item {
+            ToggleSetting(
+                R.string.clipboard_clean_links_title,
+                stringResource(R.string.clipboard_clean_links_subtitle),
+                settings.watch { it.clipboard.cleanCopiedLinks },
+                info = stringResource(R.string.clipboard_clean_links_info),
+                default = SettingsDefaults.clipboard.cleanCopiedLinks,
+            ) { scope.launch { repository.setClipboardCleanCopiedLinks(it) } }
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.clipboard_extra_trackers_title),
+                subtitle = extraTrackers.joinToString(", ").ifEmpty {
+                    stringResource(R.string.clipboard_extra_trackers_none)
+                },
+                icon = Icons.AutoMirrored.Outlined.Rule,
+                onClick = { editingTrackers = true },
+            )
         }
     }
     if (rules.isEmpty()) {
@@ -1190,7 +1215,10 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
             .padding(horizontal = 16.dp, vertical = 8.dp),
     )
     if (sample.isNotBlank()) {
-        val kept = remember(sample, rules) { ClipCopyRules.apply(sample, rules) }
+        val kept = remember(sample, rules, cleanLinks, extraTrackers) {
+            val tidied = ClipCopyRules.apply(sample, rules)
+            if (cleanLinks) SelectionMacros.stripTrackersInText(tidied, extraTrackers) ?: tidied else tidied
+        }
         Text(
             if (kept == sample) {
                 stringResource(R.string.copy_rules_test_unchanged)
@@ -1203,6 +1231,47 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
         )
     }
     Spacer(Modifier.height(16.dp))
+
+    if (editingTrackers) {
+        var input by remember { mutableStateOf(extraTrackers.joinToString("\n")) }
+        AlertDialog(
+            onDismissRequest = { editingTrackers = false },
+            title = { Text(stringResource(R.string.clipboard_extra_trackers_title)) },
+            text = {
+                Column {
+                    Text(
+                        stringResource(R.string.clipboard_extra_trackers_body),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        label = { Text(stringResource(R.string.clipboard_extra_trackers_label)) },
+                        minLines = 3,
+                        maxLines = 8,
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val names = input.split('\n', ',', ' ')
+                            .map { it.trim().removePrefix("?").removePrefix("&").substringBefore('=') }
+                            .filter { it.isNotEmpty() }
+                            .distinct()
+                        scope.launch { repository.setClipboardExtraTrackers(names) }
+                        editingTrackers = false
+                    },
+                ) { Text(stringResource(CommonR.string.common_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingTrackers = false }) {
+                    Text(stringResource(CommonR.string.common_cancel))
+                }
+            },
+        )
+    }
 
     editing?.let { index ->
         val existing = rules.getOrNull(index)

@@ -1280,6 +1280,16 @@ internal fun ToolDetailSettings(
                         }
                     }
                 }
+                // The packs source is only as good as the packs installed, and
+                // this list's switch alone said nothing about where they come
+                // from (#665).
+                item {
+                    NavRow(
+                        R.string.tooldetail_dictionary_packs_title,
+                        stringResource(R.string.tooldetail_dictionary_packs_subtitle),
+                        onClick = { onNavigate("vocab/packs") },
+                    )
+                }
                 serverItems(
                     repository,
                     settings,

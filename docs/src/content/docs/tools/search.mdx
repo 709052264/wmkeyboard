@@ -124,12 +124,13 @@ The dictionary looks up English words in a chain of sources you put in order (se
 - A line under the last entry names the source that answered, for example "From Wiktionary".
 - A **Copy** chip beside the search bar copies everything the look-up found as text. With the [AI tool](/tools/ai/) on, an **Ask AI** chip beside it opens a [chat](/tools/ai-chat/) about the same text, and a long press on a definition or an example selects it, with **Ask AI**, **Copy** and **Insert** on a bar over it. See [Asking the AI about an article](#asking-the-ai-about-an-article), which works the same way.
 - "The app cannot reach the dictionary" means no source could be reached: you're offline, or every online source you left on is down. A word that every reachable source answered for, without an entry, shows "No entry for" instead.
+- When only the **Vocabulary packs** source answered and no online source could be reached, the panel says the word is not in your vocabulary packs, rather than "No entry for". The packs hold only the words of their own study lists, a few thousand at most, so offline the tool knows those words and no others.
 
 ### Dictionary sources
 
 The tool asks the first source that is on. When that source doesn't know the word, or can't be reached, it asks the next one, so one service being down doesn't stop the tool. The default order, all on:
 
-1. **Vocabulary packs**: the [vocabulary](/tools/vocabulary/) packs you downloaded, read on the device. Only knows the packs' words, but sends nothing and works offline.
+1. **Vocabulary packs**: the [vocabulary](/tools/vocabulary/) packs you downloaded, read on the device. Only knows the packs' words, but sends nothing and works offline. The **Vocabulary packs** row under the list opens the screen where you get them.
 2. **Wiktionary**: Wiktionary's full entry through kaikki.org, with definitions, examples, IPA and recordings.
 3. **Wiktionary definitions**: Wiktionary's own definition endpoint on wiktionary.org. Definitions and examples only, but small and fast.
 4. **Free Dictionary API**: dictionaryapi.dev. Last because it's often down for days at a time; while it's down, every look-up waits about 8 seconds on it before giving up.

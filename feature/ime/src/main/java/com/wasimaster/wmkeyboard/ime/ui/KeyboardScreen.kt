@@ -124,6 +124,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.InsertDriveFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Redo
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Undo
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.PushPin
@@ -8501,6 +8502,9 @@ private class ToolDragController {
     // the visible panel box; content coords are the scrolling grid column,
     // so slot math follows the scroll position for free.
     var toolboxViewport: Rect? = null
+    /** The incognito badge tapped: says who switched incognito on (#665). */
+    var onIncognitoBadge: () -> Unit = {}
+
     var toolboxContentCoords: LayoutCoordinates? = null
     var toolboxCellSize: Size = Size.Zero
     var toolboxColumns: Int = 1
@@ -10657,7 +10661,10 @@ private fun RowScope.ToolbarRow(
             IconSlots.CHROME_INCOGNITO,
             contentDescription = stringResource(R.string.ime_incognito_on_desc),
             modifier = Modifier
-                .padding(end = 6.dp)
+                .clickable { drag.onIncognitoBadge() }
+                .padding(start = 4.dp, top = 4.dp, end = 6.dp, bottom = 4.dp)
+        // Tappable: a field can switch incognito on by itself, and a badge
+        // that shows up with no reason given reads as a bug (#665).
                 .size(16.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -12613,7 +12620,8 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
         // text never offers to undo into the last one.
         val undo = state.captureUndo
         if (undo != null && undo.key == state.captureKey() && undo.text == state.captureBuffer()) {
-            CaptureUndoButton { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+            if (undo.canUndo) CaptureUndoButton(redo = false) { capture.onSelectionAction(CaptureSelectionAction.UNDO) }
+            if (undo.canRedo) CaptureUndoButton(redo = true) { capture.onSelectionAction(CaptureSelectionAction.REDO) }
         }
         if (dictation) {
             FieldVoiceMic(state.voice, mine = state.voice.field == state.captureKey()) {
@@ -12623,11 +12631,11 @@ private fun CaptureStrip(state: KeyboardUiState, capture: CaptureCallbacks) {
     }
 }
 
-/** The undo button at the end of a keyboard-owned field's strip (#665). */
+/** The undo button at the end of a keyboard-owned field's strip (#665), or the redo one beside it. */
 @Composable
-private fun CaptureUndoButton(onUndo: () -> Unit) {
+private fun CaptureUndoButton(redo: Boolean, onUndo: () -> Unit) {
     val kb = LocalKbTheme.current
-    val description = stringResource(R.string.ime_capture_undo_desc)
+    val description = stringResource(if (redo) R.string.ime_capture_redo_desc else R.string.ime_capture_undo_desc)
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
@@ -12640,7 +12648,7 @@ private fun CaptureUndoButton(onUndo: () -> Unit) {
             .clickable(onClickLabel = description) { onUndo() },
     ) {
         Icon(
-            Icons.AutoMirrored.Outlined.Undo,
+            if (redo) Icons.AutoMirrored.Outlined.Redo else Icons.AutoMirrored.Outlined.Undo,
             contentDescription = description,
             tint = kb.chipText,
             modifier = Modifier.size(16.dp),
@@ -12856,6 +12864,7 @@ private fun KeyboardBody(
     // rather than [onToolTap]: that one refuses any tool the toolbar does not
     // list, and the tool the user bound a hold to is very often one they never
     // put on the bar — that being the point of binding it (#31).
+    drag.onIncognitoBadge = toolHold.onIncognitoBadge
     drag.onHoldAction = toolHold.onHoldAction
     var bodyOrigin by remember { mutableStateOf(Offset.Zero) }
     // Kept alongside the origin so the drag-scope pill can park itself against
@@ -28483,6 +28492,12 @@ data class ToolHoldCallbacks(
      * ride this bundle because it is the nearest one already on the call and
      * the caller cannot afford another parameter (see [DictionaryBarCallbacks]).
      */
+    /**
+     * The toolbar's incognito badge tapped (#665): a toast naming the app
+     * whose field asked for it, or the switch that did. Not a hold; it rides
+     * here for the reason [onHardwareKeysToggle] does.
+     */
+    val onIncognitoBadge: () -> Unit = {},
     val dictionaryBar: DictionaryBarCallbacks = DictionaryBarCallbacks(),
     /** The vocabulary panel's and chips' callbacks; here for the same reason as [dictionaryBar]. */
     val vocab: VocabCallbacks = VocabCallbacks(),

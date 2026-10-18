@@ -175,6 +175,8 @@
     <string name="tooldetail_dictionary_sources_title">Dictionary sources</string>
     <string name="tooldetail_dictionary_sources_subtitle">Where the tool looks for definitions, in order</string>
     <string name="tooldetail_dictionary_sources_info">The tool asks the first source that is on. When that source does not know the word, or cannot be reached, the tool asks the next one. Drag a source to change the order, and turn off a source to never ask it. Online sources receive only the word you look up.</string>
+    <string name="tooldetail_dictionary_packs_title">Vocabulary packs</string>
+    <string name="tooldetail_dictionary_packs_subtitle">The packs the Vocabulary packs source reads, offline. They know only the words of their own lists, so most words need an online source</string>
 
     <!-- Text editing tool. -->
     <string name="tooldetail_text_edit_repeat_title">Key repeat interval</string>

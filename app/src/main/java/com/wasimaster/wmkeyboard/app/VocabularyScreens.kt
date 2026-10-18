@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInBrowser
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
@@ -738,6 +739,7 @@ internal fun VocabPacksScreen(
     var confirmDelete by remember { mutableStateOf<InstalledVocabPack?>(null) }
     var blocked by remember { mutableStateOf(false) }
     var confirmMetered by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var showLinks by remember { mutableStateOf(false) }
     val states by VocabDownloadManager.states.collectAsState()
     val translationStates by VocabDownloadManager.translationStates.collectAsState()
     val downloadDecision = rememberDownloadDecision(settings)
@@ -857,6 +859,20 @@ internal fun VocabPacksScreen(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
             )
         }
+        // Where each pack is published, to fetch in a browser when the
+        // download here cannot run: the no-internet build, a blocked network
+        // (#665). The file then comes in through Import above.
+        item {
+            WmRow(
+                title = stringResource(R.string.vocab_packs_links_title),
+                subtitle = stringResource(R.string.vocab_packs_links_subtitle),
+                icon = Icons.Outlined.OpenInBrowser,
+                onClick = { showLinks = true },
+            )
+        }
+    }
+    if (showLinks) {
+        OfflineLinksDialog(VocabCatalog.entries.map { OfflineLink(it.name, it.url) }) { showLinks = false }
     }
     if (available.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.vocab_packs_available_title), info = stringResource(R.string.vocab_packs_available_info)) {

@@ -146,9 +146,9 @@ internal class FingerSwipeGate {
 /**
  * What a swipe's bound action means while one of the keyboard's own boxes has
  * the keys (issue #712): the translator's text, a search, a note. Select all,
- * copy, cut, paste and undo act on that box, as its selection bar does, rather
- * than on the app behind the panel. [Unbound] is an action the box has no
- * counterpart for and that would otherwise reach that app (redo); null is one
+ * copy, cut, paste, undo and redo act on that box, as its selection bar does,
+ * rather than on the app behind the panel. [Unbound] is an action the box has
+ * no counterpart for and that would otherwise reach that app; null is one
  * that already finds the box on its own way through the service (arrows,
  * backspace) or has nothing to do with text, and runs as the key it is.
  */
@@ -172,7 +172,7 @@ internal fun KeyAction.inCaptureBox(): CaptureSwipe? {
             ToolbarTool.CUT -> CaptureSelectionAction.CUT
             ToolbarTool.PASTE -> CaptureSelectionAction.PASTE
             ToolbarTool.UNDO -> CaptureSelectionAction.UNDO
-            ToolbarTool.REDO -> return CaptureSwipe.Unbound
+            ToolbarTool.REDO -> CaptureSelectionAction.REDO
             else -> null
         }
         else -> null

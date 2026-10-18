@@ -6677,6 +6677,18 @@ data class ClipboardSettings(
      */
     val copyRulesToSystem: Boolean = false,
     /**
+     * Take the trackers off every link copied (#665), the same ones Remove
+     * trackers takes, and put the clean link back on the system clipboard so
+     * every paste gets it. Off by default.
+     */
+    val cleanCopiedLinks: Boolean = false,
+    /**
+     * The user's own tracking parameters, on top of the built-in list (#665),
+     * for Remove trackers and [cleanCopiedLinks]. A name ending in `*` is a
+     * family (`abc_*`). Empty by default.
+     */
+    val extraTrackers: List<String> = emptyList(),
+    /**
      * The last rule clips were combined with in the panel (#612): the text
      * between them, a text put in front, and a pattern that keeps only part
      * of each clip. Remembered for the next Combine, set in the panel.
@@ -8927,6 +8939,10 @@ private fun decodeKeySoundPacksByLayout(raw: String): Map<String, String> =
         .toMap()
 
 /** Serializes the per-script font map to a compact `SCRIPT=fontId;...` string. */
+/** [SettingsRepository.setClipboardExtraTrackers]'s list back: one name a line, blanks dropped. */
+private fun decodeTrackerNames(raw: String): List<String> =
+    raw.split('\n').map { it.trim() }.filter { it.isNotEmpty() }
+
 private fun encodeScriptFontIds(map: Map<String, String>): String =
     map.entries
         .filter { it.key.isNotEmpty() && it.value.isNotEmpty() }
@@ -9659,6 +9675,8 @@ class SettingsRepository(private val context: Context) {
         private val CLIPBOARD_PRIVATE_COPIES = booleanPreferencesKey("clipboard_private_copies")
         private val CLIPBOARD_COPY_RULES = stringPreferencesKey("clipboard_copy_rules")
         private val CLIPBOARD_COPY_RULES_TO_SYSTEM = booleanPreferencesKey("clipboard_copy_rules_to_system")
+        private val CLIPBOARD_CLEAN_COPIED_LINKS = booleanPreferencesKey("clipboard_clean_copied_links")
+        private val CLIPBOARD_EXTRA_TRACKERS = stringPreferencesKey("clipboard_extra_trackers")
         private val CLIPBOARD_COMBINE_JOINER = stringPreferencesKey("clipboard_combine_joiner")
         private val CLIPBOARD_COMBINE_BASE = stringPreferencesKey("clipboard_combine_base")
         private val CLIPBOARD_COMBINE_APPEND = stringPreferencesKey("clipboard_combine_append")
@@ -11331,6 +11349,8 @@ class SettingsRepository(private val context: Context) {
             privateCopies = p[CLIPBOARD_PRIVATE_COPIES] ?: defaults.clipboard.privateCopies,
             copyRules = p[CLIPBOARD_COPY_RULES]?.let(ClipCopyRules::decode) ?: defaults.clipboard.copyRules,
             copyRulesToSystem = p[CLIPBOARD_COPY_RULES_TO_SYSTEM] ?: defaults.clipboard.copyRulesToSystem,
+            cleanCopiedLinks = p[CLIPBOARD_CLEAN_COPIED_LINKS] ?: defaults.clipboard.cleanCopiedLinks,
+            extraTrackers = p[CLIPBOARD_EXTRA_TRACKERS]?.let(::decodeTrackerNames) ?: defaults.clipboard.extraTrackers,
             combineJoiner = p[CLIPBOARD_COMBINE_JOINER] ?: defaults.clipboard.combineJoiner,
             combineBase = p[CLIPBOARD_COMBINE_BASE] ?: defaults.clipboard.combineBase,
             combineAppend = p[CLIPBOARD_COMBINE_APPEND] ?: defaults.clipboard.combineAppend,
@@ -18082,6 +18102,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setClipboardCopyRulesToSystem(value: Boolean) =
         editPrefs { it[CLIPBOARD_COPY_RULES_TO_SYSTEM] = value }
+
+    suspend fun setClipboardCleanCopiedLinks(value: Boolean) =
+        editPrefs { it[CLIPBOARD_CLEAN_COPIED_LINKS] = value }
+
+    /** The user's own tracking parameters (#665), one name per entry. */
+    suspend fun setClipboardExtraTrackers(names: List<String>) =
+        editPrefs { it[CLIPBOARD_EXTRA_TRACKERS] = names.joinToString("\n") }
 
     /** The rule the panel's Combine last used (#612), offered again next time. */
     suspend fun setClipboardCombineRule(joiner: String, base: String, append: String) =

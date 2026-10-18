@@ -478,7 +478,7 @@ class AiToolRunner(
         return when (result) {
             is DictionaryLookup.Result.Found -> AiToolResult(call, formatDefinitions(result.entries))
             DictionaryLookup.Result.NotFound -> notFound(call, word)
-            DictionaryLookup.Result.Failed -> refused(
+            DictionaryLookup.Result.Failed, DictionaryLookup.Result.NotOnDevice -> refused(
                 call,
                 context.getString(R.string.ftools_ai_tool_failed, context.getString(R.string.ftools_ai_tool_reason_dictionary_offline)),
                 context.getString(R.string.ftools_ai_tool_reason_dictionary_offline),

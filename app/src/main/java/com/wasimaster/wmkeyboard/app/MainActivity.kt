@@ -150,6 +150,7 @@ import kotlin.math.roundToInt
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
@@ -691,7 +692,10 @@ private fun SettingsNavHost(
     // screen is padded clear of them rather than hiding its bottom rows.
     val upWithoutField by KeyboardControls.upOverOwnApp.collectAsStateWithLifecycle()
     LaunchedEffect(upWithoutField, previewWanted) {
-        if (upWithoutField && previewWanted) preview.open = true
+        if (upWithoutField && previewWanted && !previewAutoOpened) {
+            previewAutoOpened = true
+            preview.open = true
+        }
     }
     CloseOrphanedKeyboardPreview(preview)
     val context = LocalContext.current
@@ -706,7 +710,14 @@ private fun SettingsNavHost(
             LocalAdvancedFolds provides folds,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
+    // Once per visit, though: the field closes with the keyboard, and a
+    // pinned keyboard that an app hides comes straight back, so reopening on
+    // every return turned into a loop of the field and the keyboard going up
+    // and down that froze the phone's recent apps button (#665). Coming back
+    // to the app is a new visit.
             // motions deep in a row can be still without every row being
+    var previewAutoOpened by remember { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_STOP) { previewAutoOpened = false }
             // handed the settings.
             LocalReduceMotion provides reduceMotion,
             LocalKeyboardPreview provides preview.takeIf { previewWanted },

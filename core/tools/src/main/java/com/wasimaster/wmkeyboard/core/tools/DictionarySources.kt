@@ -108,6 +108,14 @@ object DictionaryLookup {
 
         /** No source could be asked (offline, or every one failed). */
         data object Failed : Result
+
+        /**
+         * Only the sources on the device answered, and none knew the word,
+         * while every online one could not be reached (#665). The packs
+         * hold only their own lists' words, so "no entry" would wrongly say
+         * the word does not exist.
+         */
+        data object NotOnDevice : Result
     }
 
     /** One source asked for one word: its entries, empty for none; throws when it could not be asked. */
@@ -119,18 +127,26 @@ object DictionaryLookup {
         val trimmed = word.trim()
         if (trimmed.isEmpty() || sources.isEmpty()) return Result.NotFound
         var answered = false
+        var onlineAnswered = false
+        var onlineFailed = false
         for (source in sources) {
             val entries = try {
                 withContext(Dispatchers.IO) { fetch.entries(source, trimmed) }
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
+                if (source.online) onlineFailed = true
                 continue
             }
             answered = true
+            if (source.online) onlineAnswered = true
             if (entries.isNotEmpty()) return Result.Found(entries, source)
         }
-        return if (answered) Result.NotFound else Result.Failed
+        return when {
+            !answered -> Result.Failed
+            onlineFailed && !onlineAnswered -> Result.NotOnDevice
+            else -> Result.NotFound
+        }
     }
 
     /**

@@ -44,6 +44,8 @@ data class DetectOptions(
     val nowMillis: Long = 0L,
     val zone: TimeZone = TimeZone.getDefault(),
     val locale: Locale = Locale.getDefault(),
+    /** The user's own tracking parameters; see [SelectionMacros.stripTrackers]. */
+    val extraTrackers: Collection<String> = emptyList(),
 )
 
 /**

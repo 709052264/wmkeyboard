@@ -153,6 +153,9 @@ internal fun DictionaryPanel(
             is DictionaryUi.NotFound -> DictionaryMessage(
                 stringResource(R.string.ime_dict_not_found_empty, dict.word),
             )
+            is DictionaryUi.NotOnDevice -> DictionaryMessage(
+                stringResource(R.string.ime_dict_not_on_device, dict.word),
+            )
             DictionaryUi.NoSources -> DictionaryMessage(stringResource(R.string.ime_dict_no_sources))
             is DictionaryUi.Ready -> DictionaryEntries(state, dict, onLookup, onInsert, onAddToVocab)
         }

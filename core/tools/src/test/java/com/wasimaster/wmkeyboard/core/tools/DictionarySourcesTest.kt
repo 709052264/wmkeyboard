@@ -112,4 +112,19 @@ class DictionarySourcesTest {
             DictionaryLookup.resolve("word", sources) { _, _ -> throw IOException("offline") },
         )
     }
+
+    @Test
+    fun `packs without the word and no online source reached is not a verdict`() = runBlocking {
+        val sources = listOf(DictionarySource.VOCAB_PACKS, DictionarySource.WIKTIONARY)
+        assertEquals(
+            DictionaryLookup.Result.NotOnDevice,
+            DictionaryLookup.resolve("word", sources) { source, _ ->
+                if (source.online) throw IOException("offline") else emptyList()
+            },
+        )
+        assertEquals(
+            DictionaryLookup.Result.NotFound,
+            DictionaryLookup.resolve("word", listOf(DictionarySource.VOCAB_PACKS)) { _, _ -> emptyList() },
+        )
+    }
 }

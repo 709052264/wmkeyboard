@@ -161,6 +161,8 @@ All {wordlists.length} downloadable wordlists, AOSP and Frequency. Word counts a
 the Small/Medium/Large tiers keep the most frequent 50k/150k/300k words, and
 Everything keeps them all.
 
+The size in the **Download** column links the file itself. On a phone that cannot download (the no-internet build, or a blocked network), fetch it in a browser and bring it in with **Import from a file** on the language's **Dictionaries** screen. That screen's **Get the files** button lists the same links, with copy and open buttons, plus the language pack that holds them all.
+
 <FilterTable
 	columns={[
 		{ label: 'Id' },
@@ -174,10 +176,13 @@ Everything keeps them all.
 		w.name,
 		w.source,
 		w.words.toLocaleString('en-US'),
-		`${(w.gzBytes / 1024 / 1024).toFixed(w.gzBytes < 1024 * 1024 ? 2 : 1)} MB`,
+		{
+			text: `${(w.gzBytes / 1024 / 1024).toFixed(w.gzBytes < 1024 * 1024 ? 2 : 1)} MB`,
+			href: w.url,
+		},
 	])}
 	extras={wordlists.map((w) => w.english)}
-	placeholder="Filter 358 wordlists…"
+	placeholder="Filter wordlists…"
 	caption="Generated from the app's dictionary catalog; sizes are the gzipped downloads."
 />
 {/* keep it */}

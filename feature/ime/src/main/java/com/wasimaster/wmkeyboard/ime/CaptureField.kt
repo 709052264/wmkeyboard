@@ -438,14 +438,20 @@ enum class CaptureTarget(
 data class CaptureCaret(val key: String, val at: Int, val text: String, val anchor: Int = at)
 
 /** What the selection bar over a keyboard-owned field can do with its text (#352). */
-enum class CaptureSelectionAction { CUT, COPY, PASTE, SELECT_ALL, UNDO }
+enum class CaptureSelectionAction { CUT, COPY, PASTE, SELECT_ALL, UNDO, REDO }
 
 /**
- * A keyboard-owned field that has edits to undo (#665): the field's key and the
- * text it held when the history last saw it. The undo button shows only while
- * both still describe the field that has the keys.
+ * A keyboard-owned field that has edits to undo or redo (#665): the field's key
+ * and the text it held when the history last saw it. The buttons show only
+ * while both still describe the field that has the keys, each while it has a
+ * step to take.
  */
-data class CaptureUndoMark(val key: String, val text: String)
+data class CaptureUndoMark(
+    val key: String,
+    val text: String,
+    val canUndo: Boolean = true,
+    val canRedo: Boolean = false,
+)
 
 /** What the microphone on a keyboard-owned field's strip was asked to do (#353). */
 enum class CaptureVoiceAction {

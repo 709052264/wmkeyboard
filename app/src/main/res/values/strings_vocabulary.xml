@@ -9,6 +9,8 @@
     <string name="vocab_packs_installed_empty">Nothing yet. Download a pack above, install one from an add-on repository, or import a file.</string>
     <string name="vocab_packs_import_title">Import a pack or flashcards</string>
     <string name="vocab_packs_import_subtitle">A .wmvocab.json pack, an Anki deck (.apkg or .colpkg), or a CSV or TSV of words and meanings, as Quizlet exports</string>
+    <string name="vocab_packs_links_title">Get the pack files</string>
+    <string name="vocab_packs_links_subtitle">The link to every pack, to copy or open in a browser when the download here cannot run. Import the file you get</string>
     <string name="vocab_pack_download_action">Download</string>
     <!-- %1$s bytes so far, %2$s the total. -->
     <string name="vocab_pack_downloading_subtitle">Downloading… <xliff:g id="done" example="120 KB">%1$s</xliff:g> of <xliff:g id="total" example="270 KB">%2$s</xliff:g></string>

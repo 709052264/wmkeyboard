@@ -5,7 +5,7 @@
  *
  *   <FilterTable
  *     columns={[{ label: 'Language' }, { label: 'Words', numeric: true }]}
- *     rows={rows}                 // string[][] matching columns
+ *     rows={rows}                 // matching columns; a cell may be { text, href } for a link
  *     placeholder="Filter languages…"
  *   />
  *
@@ -17,9 +17,15 @@ interface Column {
 	label: string;
 	numeric?: boolean;
 }
+/** A cell that links somewhere: the text shows, the href is where it goes. */
+interface LinkCell {
+	text: string;
+	href: string;
+}
+type Cell = string | LinkCell;
 interface Props {
 	columns: Column[];
-	rows: string[][];
+	rows: Cell[][];
 	/** Extra per-row search terms not shown as cells (e.g. English names). */
 	extras?: string[];
 	placeholder?: string;
@@ -51,7 +57,9 @@ const { columns, rows, extras = [], placeholder = 'Filter…', caption } = Astro
 				{rows.map((r, ri) => (
 					<tr data-extra={extras[ri]}>
 						{r.map((cell, i) => (
-							<td class:list={{ 'ft-num': columns[i]?.numeric }}>{cell}</td>
+							<td class:list={{ 'ft-num': columns[i]?.numeric }}>
+								{typeof cell === 'string' ? cell : <a href={cell.href} rel="nofollow">{cell.text}</a>}
+							</td>
 						))}
 					</tr>
 				))}
