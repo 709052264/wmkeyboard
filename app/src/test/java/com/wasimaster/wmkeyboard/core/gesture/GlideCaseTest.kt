@@ -159,7 +159,7 @@ class GlideCaseTest {
         assertEquals(1, trim.cuts.size)
         // h to e is one key of the h-e-l-o path's four; the cut is at e.
         val alignment = beam.align("hello", trim.points, grid, keyWidth, workspace)!!
-        val eFraction = alignment.samples[1] / (GlideWorkspace.SAMPLE_POINTS - 1f)
+        val eFraction = alignment.samples[1] / (alignment.sampleCount - 1f)
         assertEquals(eFraction, trim.cuts[0], 0.08f)
     }
 

@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Plak een link en druk op enter om erheen te gaan, of plak meer fragmenten met een spatie of een nieuwe regel ertussen, zonder terug te gaan naar het toetsenbord. ABC gaat terug naar de letters. Als je de paneelindeling hebt gewijzigd, doet deze instelling niets: voeg de toetsen in plaats daarvan toe in de lay-outeditor. De rij wordt niet getoond terwijl het klembord over de toetsen gestapeld is. Deze instelling staat standaard uit.</string>
     <string name="clipboard_key_row_subtitle">Een rij toetsen onderaan het klembordpaneel</string>
     <string name="clipboard_key_row_title">ABC-, spatie- en enter-toetsen</string>
-    <string name="clipboard_line_spacing_info">Bij 100% staan de regels van een clip zo dicht op elkaar als het lettertype toelaat. Verhoog dit percentage om ze verder uit elkaar te plaatsen. De standaardwaarde is 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Bij 100% staan de regels van een clip zo dicht op elkaar als het lettertype toelaat. Verhoog dit percentage om ze verder uit elkaar te plaatsen. De standaardwaarde is 130%.</string>
     <string name="clipboard_line_spacing_subtitle">De ruimte tussen de regels van de tekst van een fragment</string>
     <string name="clipboard_line_spacing_title">Regelafstand</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

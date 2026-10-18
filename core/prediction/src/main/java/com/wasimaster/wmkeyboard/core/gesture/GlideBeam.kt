@@ -485,7 +485,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * it was placed on, in key widths.
      *
      * [samples] is the resampled index each visit was placed on, `0` until
-     * [GlideWorkspace.SAMPLE_POINTS], and [chars] the offset in the word at
+     * [sampleCount], and [chars] the offset in the word at
      * which each visit's characters begin — together, what maps a place along
      * the stroke back to the letters written there (see `GlideCase.Letters`).
      */
@@ -495,6 +495,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val y: FloatArray,
         val samples: IntArray = IntArray(keys.size),
         val chars: IntArray = IntArray(keys.size),
+        /** Samples the stroke was resampled to; see [GlideWorkspace.samples]. */
+        val sampleCount: Int = GlideWorkspace.SHORT_SAMPLES,
     ) {
         val size: Int get() = keys.size
     }
@@ -586,7 +588,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         // Inject or promote learned words whose saved shape matches the drawn stroke,
         // even if trie pruning or anchor mismatch filtered or demoted them in results.
         if (shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0) {
-            quantise(ws.pathX, ws.pathY, ws.drawnShape8)
+            drawnShape(ws)
+            quantise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShape8)
             val nearWords = shapes.wordsNear(ws.drawnShape8, radius = 0.35f, limit = limit)
             if (nearWords.isNotEmpty()) {
                 val maxRescoredScore = read.maxOfOrNull { it.score } ?: 0.0
@@ -642,8 +645,9 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     fun sampleShape(path: List<GesturePoint>, keyWidth: Float, ws: GlideWorkspace): ByteArray? {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return null
         if (!resample(path, keyWidth, ws)) return null
-        val out = ByteArray(2 * GlideWorkspace.SAMPLE_POINTS)
-        quantise(ws.pathX, ws.pathY, out)
+        val out = ByteArray(2 * GlideWorkspace.SHAPE_POINTS)
+        drawnShape(ws)
+        quantise(ws.drawnShapeX, ws.drawnShapeY, out)
         return out
     }
 
@@ -699,7 +703,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         buildCosts(keys, ws)
         buildLoops(path, keyWidth, keys, ws)
 
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val keyCount = keys.keyCount
         val cost = ws.pointCost
         val step = ws.arcStep
@@ -753,7 +757,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             samples[m] = j
             if (m > 0) j = back[m * n + j]
         }
-        return Alignment(visits.copyOf(count), x, y, samples, starts.copyOf(count))
+        return Alignment(visits.copyOf(count), x, y, samples, starts.copyOf(count), n)
     }
 
     // ---- the walk ----
@@ -778,7 +782,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     ): Double {
         var floor = floorIn
         val walker = src.walker
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val keyCount = keys.keyCount
         // The vocabulary cap as this source's own frequency. A source with no
         // frequency ranking answers 0, which switches every test below off.
@@ -1070,7 +1074,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         prevKey: Int,
         keys: GlideKeyMap,
     ): Float {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val keyCount = keys.keyCount
         val cost = ws.pointCost
         val out = ws.scratch
@@ -1148,7 +1152,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      */
     @Suppress("NestedBlockDepth")
     private fun buildRemain(keys: GlideKeyMap, ws: GlideWorkspace) {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val keyCount = keys.keyCount
         val cost = ws.pointCost
         val remain = ws.remain
@@ -1195,17 +1199,23 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     // ---- per-decode preparation ----
 
     /**
-     * Resamples [path] to [GlideWorkspace.SAMPLE_POINTS] equidistant samples in
+     * Resamples [path] to [GlideWorkspace.samples] equidistant samples in
      * key-width coordinates, interpolating the clock along with the position so
      * timing survives. False when the stroke is too short to be a swipe at all.
      */
     private fun resample(path: List<GesturePoint>, keyWidth: Float, ws: GlideWorkspace): Boolean {
-        val n = GlideWorkspace.SAMPLE_POINTS
         var totalPx = 0f
         for (i in 1 until path.size) {
             totalPx += distance(path[i - 1], path[i])
         }
         if (totalPx / keyWidth < MIN_STROKE_LENGTH) return false
+        // A long stroke gets finer samples; see GlideWorkspace.SAMPLE_POINTS.
+        val n = if (totalPx / keyWidth >= GlideWorkspace.LONG_STROKE) {
+            GlideWorkspace.SAMPLE_POINTS
+        } else {
+            GlideWorkspace.SHORT_SAMPLES
+        }
+        ws.samples = n
 
         val step = totalPx / (n - 1)
         ws.arcStep = step / keyWidth
@@ -1262,7 +1272,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * started on, and keys it could have ended on.
      */
     private fun buildCosts(keys: GlideKeyMap, ws: GlideWorkspace) {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val keyCount = keys.keyCount
         val cost = ws.pointCost
         val invTwoSigmaSq = tuning.invTwoSigmaSq
@@ -1298,7 +1308,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      */
     private fun buildDwell(keys: GlideKeyMap, ws: GlideWorkspace) {
         if (tuning.unclaimedDwell <= 0f) return
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val span = (ws.pathT[n - 1] - ws.pathT[0]).toFloat()
         if (span <= 0f) return
         val evenStep = span / (n - 1)
@@ -1462,7 +1472,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * as the stroke's last act, with at most the flick of the lift after it.
      */
     private fun endsOnLoop(ws: GlideWorkspace): Boolean {
-        val last = GlideWorkspace.SAMPLE_POINTS - 1
+        val last = ws.samples - 1
         for (e in ws.loopCount - 1 downTo 0) {
             if (ws.loopScore[e] <= 0f || ws.loopKey[e] < 0) continue
             return ws.arcAt[last] - ws.arcAt[ws.loopTo[e]] <= END_LOOP_REACH
@@ -1480,7 +1490,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     private fun recordWiggle(e: Int, keys: GlideKeyMap, ws: GlideWorkspace) {
         val p = ws.pauseCount
         if (tuning.unclaimedDwell <= 0f || tuning.wiggleWeight <= 0f) return
-        if (p >= GlideWorkspace.SAMPLE_POINTS) return
+        if (p >= ws.samples) return
         ws.pauseAt[p] = (ws.loopFrom[e] + ws.loopTo[e]) / 2
         ws.pauseScore[p] = tuning.wiggleWeight
         placePause(p, ws.loopX[e], ws.loopY[e], keys, ws)
@@ -1683,7 +1693,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         // Onto the alignment's samples: the nearest to where the window
         // starts and ends, at least one step apart so there is something to
         // collapse.
-        val last = GlideWorkspace.SAMPLE_POINTS - 1
+        val last = ws.samples - 1
         val toSample = ws.fineStep / ws.arcStep
         var a = minOf(last, (from * toSample + 0.5f).toInt())
         var b = minOf(last, (to * toSample + 0.5f).toInt())
@@ -1722,7 +1732,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * the other still credits the finger with the distance it net-moved.
      */
     private fun collapseArc(ws: GlideWorkspace) {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = ws.samples
         val step = ws.arcStep
         val arc = ws.arcAt
         var removed = 0f
@@ -1811,7 +1821,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         // reading that skipped the charge because it had no rival would be
         // measured against guesses that paid it.
         if (weight <= 0.0 || ranked.isEmpty()) return ranked
-        normalise(ws.pathX, ws.pathY, ws.drawnShapeX, ws.drawnShapeY)
+        drawnShape(ws)
+        normalise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShapeX, ws.drawnShapeY)
         val learned = shapes?.takeIf { tuning.learnedShapeGain > 0.0 }
 
         val rescored = ArrayList<Candidate>(ranked.size)
@@ -1885,12 +1896,12 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         normalise(ws.idealShapeX, ws.idealShapeY, ws.idealShapeX, ws.idealShapeY)
 
         var sum = 0.0
-        for (j in 0 until GlideWorkspace.SAMPLE_POINTS) {
+        for (j in 0 until GlideWorkspace.SHAPE_POINTS) {
             val dx = ws.drawnShapeX[j] - ws.idealShapeX[j]
             val dy = ws.drawnShapeY[j] - ws.idealShapeY[j]
             sum += sqrt(dx * dx + dy * dy).toDouble()
         }
-        return sum / GlideWorkspace.SAMPLE_POINTS
+        return sum / GlideWorkspace.SHAPE_POINTS
     }
 
     /**
@@ -1912,7 +1923,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         shapes ?: return ideal
         val stored = shapes.shapesOf(word)
         if (stored.isEmpty()) return ideal
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = GlideWorkspace.SHAPE_POINTS
         var own = Double.MAX_VALUE
         for (shape in stored) {
             for (j in 0 until n) {
@@ -1933,7 +1944,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
 
     /** A key-width path as the shape store keeps one: [GlideShapeStore.QUANT] to the key width, clamped to a byte. */
     private fun quantise(xs: FloatArray, ys: FloatArray, out: ByteArray) {
-        for (j in 0 until GlideWorkspace.SAMPLE_POINTS) {
+        for (j in 0 until GlideWorkspace.SHAPE_POINTS) {
             out[2 * j] = (xs[j] * GlideShapeStore.QUANT).toInt().coerceIn(-SHAPE_BYTE_LIMIT, SHAPE_BYTE_LIMIT).toByte()
             out[2 * j + 1] = (ys[j] * GlideShapeStore.QUANT).toInt().coerceIn(-SHAPE_BYTE_LIMIT, SHAPE_BYTE_LIMIT).toByte()
         }
@@ -1945,7 +1956,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      * be the same arrays.
      */
     private fun normalise(xs: FloatArray, ys: FloatArray, outX: FloatArray, outY: FloatArray) {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = GlideWorkspace.SHAPE_POINTS
         var cx = 0f
         var cy = 0f
         for (j in 0 until n) {
@@ -1967,7 +1978,25 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         }
     }
 
-    /** Resamples a [count]-point polyline to [GlideWorkspace.SAMPLE_POINTS] by arc length. */
+    /**
+     * The resampled stroke at the shape channel's own size, in key widths,
+     * into [GlideWorkspace.drawnShapeX]/[GlideWorkspace.drawnShapeY]. The
+     * alignment's samples are finer than a shape's, and learned shapes are
+     * saved at [GlideWorkspace.SHAPE_POINTS], so the two are kept apart.
+     */
+    private fun drawnShape(ws: GlideWorkspace) {
+        // Copied when the sizes agree, which is every short stroke: resampling
+        // onto the same count moves the points a little, and that alone cost
+        // short words accuracy.
+        if (ws.samples == GlideWorkspace.SHAPE_POINTS) {
+            ws.pathX.copyInto(ws.drawnShapeX, endIndex = GlideWorkspace.SHAPE_POINTS)
+            ws.pathY.copyInto(ws.drawnShapeY, endIndex = GlideWorkspace.SHAPE_POINTS)
+        } else {
+            resamplePolyline(ws.pathX, ws.pathY, ws.samples, ws.drawnShapeX, ws.drawnShapeY)
+        }
+    }
+
+    /** Resamples a [count]-point polyline to [GlideWorkspace.SHAPE_POINTS] by arc length. */
     private fun resamplePolyline(
         xs: FloatArray,
         ys: FloatArray,
@@ -1975,7 +2004,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         outX: FloatArray,
         outY: FloatArray,
     ) {
-        val n = GlideWorkspace.SAMPLE_POINTS
+        val n = GlideWorkspace.SHAPE_POINTS
         var total = 0f
         for (i in 1 until count) {
             val dx = xs[i] - xs[i - 1]

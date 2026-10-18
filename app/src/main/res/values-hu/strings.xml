@@ -1150,7 +1150,7 @@
     <string name="clipboard_key_row_info">Illessz be egy linket, és nyomj entert a megnyitásához, vagy illessz be több vágólap-elemet szóközzel vagy új sorral elválasztva anélkül, hogy visszamennél a billentyűzetre. Az ABC visszavisz a betűkhöz. Ha módosítottad a panel elrendezését, ez a beállítás nem csinál semmit: inkább add hozzá a billentyűket az elrendezésszerkesztőben. A sor nem látható, amíg a vágólap a billentyűk felett van. Ez a beállítás alapértelmezés szerint ki van kapcsolva.</string>
     <string name="clipboard_key_row_subtitle">Egy billentyűsor a vágólap panel alján</string>
     <string name="clipboard_key_row_title">ABC, szóköz és enter billentyűk</string>
-    <string name="clipboard_line_spacing_info">100%-on a vágólap-elem sorai olyan közel vannak egymáshoz, amennyire a betűtípus engedi. Növelje az értékét a széthúzásukhoz. Az alapértelmezett 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100%-on a vágólap-elem sorai olyan közel vannak egymáshoz, amennyire a betűtípus engedi. Növelje az értékét a széthúzásukhoz. Az alapértelmezett 130%.</string>
     <string name="clipboard_line_spacing_subtitle">A vágólapi szöveg sorai közötti távolság</string>
     <string name="clipboard_line_spacing_title">Sorköz</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

@@ -275,8 +275,13 @@ class DuetWorkspace {
         /** Swipes that can be open at once: one per thumb. */
         const val SLOTS = 2
 
-        /** Most samples one swipe is resampled to; short swipes take fewer. */
-        const val MAX_SAMPLES = GlideWorkspace.SAMPLE_POINTS
+        /**
+         * Most samples one swipe is resampled to; short swipes take fewer.
+         * Not [GlideWorkspace.SAMPLE_POINTS]: that went to 64 for long single
+         * strokes, and a duet's swipes are pieces of a word, never measured
+         * at the finer spacing.
+         */
+        const val MAX_SAMPLES = 48
 
         /** Frontier cap: ~1.5 MB of columns once grown into. A backstop, as in [GlideWorkspace]. */
         const val MAX_STATES = 4096

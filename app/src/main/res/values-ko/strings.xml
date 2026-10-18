@@ -1150,7 +1150,7 @@
     <string name="clipboard_key_row_info">링크를 붙여넣고 엔터를 눌러 이동하거나, 키보드로 돌아가지 않고 공백이나 줄 바꿈을 사용하여 클립을 더 붙여넣으세요. ABC는 문자로 돌아갑니다. 패널 레이아웃을 변경한 경우 이 설정은 작동하지 않으며, 대신 레이아웃 편집기에서 키를 추가하세요. 클립보드가 키 위에 쌓여 있는 동안에는 행이 표시되지 않습니다. 이 설정은 기본적으로 꺼져 있습니다.</string>
     <string name="clipboard_key_row_subtitle">클립보드 패널 하단을 따라 배치된 키 행</string>
     <string name="clipboard_key_row_title">ABC, 공백 및 엔터 키</string>
-    <string name="clipboard_line_spacing_info">100%일 때 클립의 줄 간격은 글꼴이 허용하는 최소 간격이 됩니다. 값을 높이면 간격이 넓어집니다. 기본값은 130%입니다.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100%일 때 클립의 줄 간격은 글꼴이 허용하는 최소 간격이 됩니다. 값을 높이면 간격이 넓어집니다. 기본값은 130%입니다.</string>
     <string name="clipboard_line_spacing_subtitle">클립 텍스트 줄 간격</string>
     <string name="clipboard_line_spacing_title">줄 간격</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -8472,7 +8472,7 @@
     <string name="typing_letter_swipe_select_key_label">키로 밀기</string>
     <string name="typing_letter_swipe_type_words_desc">키 위를 스와이프하여 한 단어를 입력합니다</string>
     <string name="typing_letter_swipe_type_words_label">단어 입력</string>
-    <string name="typing_mistype_tolerance_info">모든 탭은 단순히 누른 키뿐만 아니라 착지한 위치를 기준으로 읽히므로 키 가장자리 근처의 탭도 인접한 키로 읽힐 수 있습니다. 이 설정은 해당 읽기 범위를 결정합니다. 100% 이상이면 인접한 키 안쪽 깊숙이 들어온 탭도 오타로 간주될 가능성이 높으며, 이는 빠르거나 거친 타이핑과 큰 손가락에 적합합니다. 100% 미만이면 누른 키를 더 신뢰하며, 이는 신중한 타이핑에 적합합니다. 이 설정은 제안 줄에 표시되는 단어와 자동 수정 선택에 영향을 줍니다. 기본값은 100%입니다.</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">모든 탭은 단순히 누른 키뿐만 아니라 착지한 위치를 기준으로 읽히므로 키 가장자리 근처의 탭도 인접한 키로 읽힐 수 있습니다. 이 설정은 해당 읽기 범위를 결정합니다. 100% 이상이면 인접한 키 안쪽 깊숙이 들어온 탭도 오타로 간주될 가능성이 높으며, 이는 빠르거나 거친 타이핑과 큰 손가락에 적합합니다. 100% 미만이면 누른 키를 더 신뢰하며, 이는 신중한 타이핑에 적합합니다. 이 설정은 제안 줄에 표시되는 단어와 자동 수정 선택에 영향을 줍니다. 기본값은 100%입니다.</string>
     <string name="typing_mistype_tolerance_subtitle">탭이 인접한 키로 얼마나 들어와야 오타로 간주할지 설정</string>
     <string name="typing_mistype_tolerance_title">오타 허용 범위</string>
     <string name="typing_new_word_sightings_info">사전에 없는 단어만 계산됩니다. 사전에 이미 있는 단어는 입력하는 순간 학습됩니다. 단어를 입력한 후 다른 작업을 수행해야만 사용 횟수가 계산되므로, 오타를 수정하는 경우는 계산되지 않습니다. 고유 명사나 은어가 학습되는 데 너무 오래 걸린다면 이 값을 낮추세요. 이전 버전처럼 모든 새 단어를 즉시 저장하려면 1로 설정하세요. 기본값은 3입니다.</string>

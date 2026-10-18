@@ -1152,7 +1152,7 @@
     <string name="clipboard_key_row_info">Wklej link i naciśnij Enter, aby przejść do niego, lub wklej więcej elementów schowka oddzielonych spacją lub nową linią, bez wracania do klawiatury. ABC wraca do liter. Jeśli zmieniłeś układ panelu, to ustawienie nie działa: dodaj klawisze w edytorze układu. Wiersz nie jest pokazywany, gdy schowek jest nałożony na klawisze. To ustawienie jest domyślnie wyłączone.</string>
     <string name="clipboard_key_row_subtitle">Rząd klawiszy wzdłuż dolnej części panelu schowka</string>
     <string name="clipboard_key_row_title">Klawisze ABC, spacji i entera</string>
-    <string name="clipboard_line_spacing_info">Przy 100% linie klipu znajdują się tak blisko, jak pozwala na to czcionka. Zwiększ tę wartość, aby je rozsunąć. Domyślna wartość to 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Przy 100% linie klipu znajdują się tak blisko, jak pozwala na to czcionka. Zwiększ tę wartość, aby je rozsunąć. Domyślna wartość to 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Odstęp między liniami tekstu klipu</string>
     <string name="clipboard_line_spacing_title">Odstępy między wierszami</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

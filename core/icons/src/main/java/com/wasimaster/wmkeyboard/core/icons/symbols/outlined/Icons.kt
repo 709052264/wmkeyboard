@@ -13,6 +13,12 @@ val Icons.Outlined.Abc: ImageVector
         .also { _abc = it }
 private var _abc: ImageVector? = null
 
+/** Material Symbols `ac_unit`. */
+val Icons.Outlined.AcUnit: ImageVector
+    get() = _acUnit ?: symbolVector("Outlined.AcUnit", """M440-246 337-145q-11 11-27.5 11T282-146q-12-11-12-27.5t12-28.5l158-158v-80h-80L201-281q-11 11-27.5 11T145-282q-11-11-11-27.5t11-27.5l101-103H119q-17 0-28-11.5T80-480q0-17 11.5-28.5T120-520h126L145-622q-11-11-11-27.5t12-28.5q11-11 27.5-11t28.5 11l158 158h80v-80L281-758q-11-11-11-27.5t12-28.5q11-11 27.5-11t27.5 11l103 100v-126q0-17 11.5-28.5T480-880q17 0 28.5 11.5T520-840v126l102-100q11-11 27.5-11t28.5 11q11 12 11 28.5T678-758L520-600v80h80l158-158q11-11 27.5-11t28.5 12q11 11 11 27.5T814-622L714-520h126q17 0 28.5 11.5T880-480q0 17-11.5 28.5T840-440H714l100 103q11 11 11 27.5T814-282q-12 12-28.5 12T758-282L600-440h-80v80l158 159q11 11 11 27.5T677-145q-11 11-27.5 11T622-145L520-246v127q0 17-11.5 28T480-80q-17 0-28.5-11.5T440-120v-126Z""", autoMirror = false)
+        .also { _acUnit = it }
+private var _acUnit: ImageVector? = null
+
 /** Material Symbols `accessibility`. */
 val Icons.Outlined.Accessibility: ImageVector
     get() = _accessibility ?: symbolVector("Outlined.Accessibility", """M423.5-743.5Q400-767 400-800t23.5-56.5Q447-880 480-880t56.5 23.5Q560-833 560-800t-23.5 56.5Q513-720 480-720t-56.5-23.5ZM360-120v-480H160q-17 0-28.5-11.5T120-640q0-17 11.5-28.5T160-680h640q17 0 28.5 11.5T840-640q0 17-11.5 28.5T800-600H600v480q0 17-11.5 28.5T560-80q-17 0-28.5-11.5T520-120v-200h-80v200q0 17-11.5 28.5T400-80q-17 0-28.5-11.5T360-120Z""", autoMirror = false)
@@ -163,6 +169,12 @@ val Icons.Outlined.AspectRatio: ImageVector
         .also { _aspectRatio = it }
 private var _aspectRatio: ImageVector? = null
 
+/** Material Symbols `assistant`. */
+val Icons.Outlined.Assistant: ImageVector
+    get() = _assistant ?: symbolVector("Outlined.Assistant", """M360-160H200q-33 0-56.5-23.5T120-240v-560q0-33 23.5-56.5T200-880h560q33 0 56.5 23.5T840-800v560q0 33-23.5 56.5T760-160H600l-92 92q-12 12-28 12t-28-12l-92-92Zm-160-80h192l88 88 88-88h192v-560H200v560Zm218-218 44 97q5 12 18 12t18-12l44-97 97-44q12-5 12-18t-12-18l-97-44-44-97q-5-12-18-12t-18 12l-44 97-97 44q-12 5-12 18t12 18l97 44Zm62-62Z""", autoMirror = false)
+        .also { _assistant = it }
+private var _assistant: ImageVector? = null
+
 /** Material Symbols `attach_file`. */
 val Icons.Outlined.AttachFile: ImageVector
     get() = _attachFile ?: symbolVector("Outlined.AttachFile", """M720-330q0 104-73 177T470-80q-104 0-177-73t-73-177v-370q0-75 52.5-127.5T400-880q75 0 127.5 52.5T580-700v350q0 46-32 78t-78 32q-46 0-78-32t-32-78v-330q0-17 11.5-28.5T400-720q17 0 28.5 11.5T440-680v330q0 13 8.5 21.5T470-320q13 0 21.5-8.5T500-350v-350q-1-42-29.5-71T400-800q-42 0-71 29t-29 71v370q-1 71 49 120.5T470-160q70 0 119-49.5T640-330v-350q0-17 11.5-28.5T680-720q17 0 28.5 11.5T720-680v350Z""", autoMirror = false)
@@ -252,6 +264,12 @@ val Icons.Outlined.Bedtime: ImageVector
     get() = _bedtime ?: symbolVector("Outlined.Bedtime", """M484-80q-84 0-157.5-32t-128-86.5Q144-253 112-326.5T80-484q0-128 72-232t193-146q22-8 41 5.5t18 36.5q-3 85 27 162t90 137q60 60 137 90t162 27q26-1 38.5 17.5T863-345q-44 120-147.5 192.5T484-80Zm0-80q88 0 163-44t118-121q-86-8-163-43.5T464-465q-61-61-97-138t-43-163q-77 43-120.5 118.5T160-484q0 135 94.5 229.5T484-160Zm-20-305Z""", autoMirror = false)
         .also { _bedtime = it }
 private var _bedtime: ImageVector? = null
+
+/** Material Symbols `blinds`. */
+val Icons.Outlined.Blinds: ImageVector
+    get() = _blinds ?: symbolVector("Outlined.Blinds", """M160-200v-560q0-33 23.5-56.5T240-840h480q33 0 56.5 23.5T800-760v560h40q17 0 28.5 11.5T880-160q0 17-11.5 28.5T840-120H120q-17 0-28.5-11.5T80-160q0-17 11.5-28.5T120-200h40Zm80-480h320v-80H240v80Zm0 160h320v-80H240v80Zm0 320h480v-240h-80v73q14 10 22 25t8 32q0 29-20.5 49.5T600-240q-29 0-49.5-20.5T530-310q0-17 8-32t22-25v-73H240v240Zm400-480h80v-80h-80v80Zm0 160h80v-80h-80v80Z""", autoMirror = false)
+        .also { _blinds = it }
+private var _blinds: ImageVector? = null
 
 /** Material Symbols `block`. */
 val Icons.Outlined.Block: ImageVector
@@ -613,6 +631,12 @@ val Icons.Outlined.CurrencyExchange: ImageVector
         .also { _currencyExchange = it }
 private var _currencyExchange: ImageVector? = null
 
+/** Material Symbols `curtains`. */
+val Icons.Outlined.Curtains: ImageVector
+    get() = _curtains ?: symbolVector("Outlined.Curtains", """M160-200v-560q0-33 23.5-56.5T240-840h480q33 0 56.5 23.5T800-760v560h40q17 0 28.5 11.5T880-160q0 17-11.5 28.5T840-120H120q-17 0-28.5-11.5T80-160q0-17 11.5-28.5T120-200h40Zm80 0h158q-8-70-46-141.5T240-434v234Zm0-560v234q74-21 112-92.5T398-760H240Zm89 280q68 45 105 123t44 157h4q7-79 44-157t105-123q-68-45-105-123t-44-157h-4q-7 79-44 157T329-480Zm391-280H562q8 70 46 141.5T720-526v-234Zm0 560v-234q-74 21-111.5 92.5T563-200h157ZM240-760v234-234Zm480 0v234-234Zm0 560v-234 234Zm-480 0v-234 234Z""", autoMirror = false)
+        .also { _curtains = it }
+private var _curtains: ImageVector? = null
+
 /** Material Symbols `dark_mode`. */
 val Icons.Outlined.DarkMode: ImageVector
     get() = _darkMode ?: symbolVector("Outlined.DarkMode", """M480-120q-151 0-255.5-104.5T120-480q0-138 90-239.5T440-838q13-2 23 3.5t16 14.5q6 9 6.5 21t-7.5 23q-17 26-25.5 55t-8.5 61q0 90 63 153t153 63q31 0 61.5-9t54.5-25q11-7 22.5-6.5T819-479q10 5 15.5 15t3.5 24q-14 138-117.5 229T480-120Zm0-80q88 0 158-48.5T740-375q-20 5-40 8t-40 3q-123 0-209.5-86.5T364-660q0-20 3-40t8-40q-78 32-126.5 102T200-480q0 116 82 198t198 82Zm-10-270Z""", autoMirror = false)
@@ -691,6 +715,24 @@ val Icons.Outlined.Deselect: ImageVector
         .also { _deselect = it }
 private var _deselect: ImageVector? = null
 
+/** Material Symbols `detector_smoke`. */
+val Icons.Outlined.DetectorSmoke: ImageVector
+    get() = _detectorSmoke ?: symbolVector("Outlined.DetectorSmoke", """M482-80q-16-5-23.5-19.5T456-130q9-29 8.5-54T448-236q-30-46-33-86.5t13-91.5q5-16 19.5-23.5T478-440q16 5 23.5 19.5T504-390q-9 29-9.5 53.5T512-284q28 45 31.5 86.5T532-106q-5 16-19.5 23.5T482-80Zm-176 0q-16-5-23.5-19.5T280-130q8-28 8.5-54T272-236q-30-44-32.5-86.5T252-414q5-16 19.5-23.5T302-440q16 5 23.5 19.5T328-390q-8 28-9 54t17 52q29 44 32 87t-12 91q-5 16-19.5 23.5T306-80Zm348 0q-16-5-23.5-19.5T628-130q8-28 8.5-54T620-236q-30-44-32.5-86.5T600-414q5-16 19.5-23.5T650-440q16 5 23.5 19.5T676-390q-9 29-9.5 54t17.5 52q28 44 31.5 87T704-106q-5 16-19.5 23.5T654-80ZM200-760v40h560v-40H200Zm124 120 12 40h288l12-40H324Zm12 120q-26 0-47-15.5T260-576l-20-64h-40q-33 0-56.5-23.5T120-720v-40q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v40q0 33-23.5 56.5T760-640h-40l-26 68q-9 23-29 37.5T620-520H336ZM200-760v40-40Z""", autoMirror = false)
+        .also { _detectorSmoke = it }
+private var _detectorSmoke: ImageVector? = null
+
+/** Material Symbols `device_thermostat`. */
+val Icons.Outlined.DeviceThermostat: ImageVector
+    get() = _deviceThermostat ?: symbolVector("Outlined.DeviceThermostat", """M338.5-138.5Q280-197 280-280q0-48 21-89.5t59-70.5v-320q0-50 35-85t85-35q50 0 85 35t35 85v320q38 29 59 70.5t21 89.5q0 83-58.5 141.5T480-80q-83 0-141.5-58.5ZM440-520h80v-40h-40v-40h40v-80h-40v-40h40v-40q0-17-11.5-28.5T480-800q-17 0-28.5 11.5T440-760v240Z""", autoMirror = false)
+        .also { _deviceThermostat = it }
+private var _deviceThermostat: ImageVector? = null
+
+/** Material Symbols `device_unknown`. */
+val Icons.Outlined.DeviceUnknown: ImageVector
+    get() = _deviceUnknown ?: symbolVector("Outlined.DeviceUnknown", """M280-40q-33 0-56.5-23.5T200-120v-720q0-33 23.5-56.5T280-920h400q33 0 56.5 23.5T760-840v124q18 7 29 22t11 34v80q0 19-11 34t-29 22v404q0 33-23.5 56.5T680-40H280Zm0-80h400v-720H280v720Zm0 0v-720 720Zm229.5-172.5Q522-305 522-322t-12.5-29.5Q497-364 480-364t-29.5 12.5Q438-339 438-322t12.5 29.5Q463-280 480-280t29.5-12.5ZM389-587q11 6 22.5 3.5T431-597q8-12 21.5-18.5T480-622q21 0 37.5 13t16.5 33q0 17-10.5 31T500-518q-19 17-34 37t-15 45q0 12 8.5 20t20.5 8q12 0 20.5-8.5T511-437q3-18 15.5-31t25.5-26q17-17 29.5-38t12.5-46q0-47-33-74.5T480-680q-30 0-56.5 14.5T380-625q-7 10-4 21.5t13 16.5Z""", autoMirror = false)
+        .also { _deviceUnknown = it }
+private var _deviceUnknown: ImageVector? = null
+
 /** Material Symbols `devices`. */
 val Icons.Outlined.Devices: ImageVector
     get() = _devices ?: symbolVector("Outlined.Devices", """M480-540Zm-40 380H120q-17 0-28.5-11.5T80-200q0-17 11.5-28.5T120-240h320q17 0 28.5 11.5T480-200q0 17-11.5 28.5T440-160ZM200-280q-33 0-56.5-23.5T120-360v-360q0-33 23.5-56.5T200-800h600q17 0 28.5 11.5T840-760q0 17-11.5 28.5T800-720H200v360h240q17 0 28.5 11.5T480-320q0 17-11.5 28.5T440-280H200Zm600 40v-320H640v320h160Zm-180 80q-25 0-42.5-17.5T560-220v-360q0-25 17.5-42.5T620-640h200q25 0 42.5 17.5T880-580v360q0 25-17.5 42.5T820-160H620Zm100-300q13 0 21.5-9t8.5-21q0-13-8.5-21.5T720-520q-12 0-21 8.5t-9 21.5q0 12 9 21t21 9Zm0 60Z""", autoMirror = false)
@@ -721,6 +763,12 @@ val Icons.Outlined.DirectionsCar: ImageVector
         .also { _directionsCar = it }
 private var _directionsCar: ImageVector? = null
 
+/** Material Symbols `directions_run`. */
+val Icons.Outlined.DirectionsRun: ImageVector
+    get() = _directionsRun ?: symbolVector("Outlined.DirectionsRun", """M520-80v-200l-84-80-31 138q-4 16-17.5 24.5T358-192l-198-40q-17-3-26-17t-6-31q3-17 17-26.5t31-5.5l152 32 64-324-72 28v96q0 17-11.5 28.5T280-440q-17 0-28.5-11.5T240-480v-122q0-12 6.5-21.5T264-638l134-58q35-15 51.5-19.5T480-720q21 0 39 11t29 29l40 64q21 34 54.5 59t77.5 33q17 3 28.5 15t11.5 29q0 17-11.5 28t-27.5 9q-54-8-101-33.5T540-540l-24 120 72 68q6 6 9 13.5t3 15.5v243q0 17-11.5 28.5T560-40q-17 0-28.5-11.5T520-80Zm-36.5-683.5Q460-787 460-820t23.5-56.5Q507-900 540-900t56.5 23.5Q620-853 620-820t-23.5 56.5Q573-740 540-740t-56.5-23.5Z""", autoMirror = false)
+        .also { _directionsRun = it }
+private var _directionsRun: ImageVector? = null
+
 /** Material Symbols `dns`. */
 val Icons.Outlined.Dns: ImageVector
     get() = _dns ?: symbolVector("Outlined.Dns", """M300-720q-25 0-42.5 17.5T240-660q0 25 17.5 42.5T300-600q25 0 42.5-17.5T360-660q0-25-17.5-42.5T300-720Zm0 400q-25 0-42.5 17.5T240-260q0 25 17.5 42.5T300-200q25 0 42.5-17.5T360-260q0-25-17.5-42.5T300-320ZM160-840h640q17 0 28.5 11.5T840-800v280q0 17-11.5 28.5T800-480H160q-17 0-28.5-11.5T120-520v-280q0-17 11.5-28.5T160-840Zm40 80v200h560v-200H200Zm-40 320h640q17 0 28.5 11.5T840-400v280q0 17-11.5 28.5T800-80H160q-17 0-28.5-11.5T120-120v-280q0-17 11.5-28.5T160-440Zm40 80v200h560v-200H200Zm0-400v200-200Zm0 400v200-200Z""", autoMirror = false)
@@ -744,6 +792,12 @@ val Icons.Outlined.Done: ImageVector
     get() = _done ?: symbolVector("Outlined.Done", """m382-354 339-339q12-12 28-12t28 12q12 12 12 28.5T777-636L410-268q-12 12-28 12t-28-12L182-440q-12-12-11.5-28.5T183-497q12-12 28.5-12t28.5 12l142 143Z""", autoMirror = false)
         .also { _done = it }
 private var _done: ImageVector? = null
+
+/** Material Symbols `door_front`. */
+val Icons.Outlined.DoorFront: ImageVector
+    get() = _doorFront ?: symbolVector("Outlined.DoorFront", """M160-120q-17 0-28.5-11.5T120-160q0-17 11.5-28.5T160-200h40v-560q0-33 23.5-56.5T280-840h400q33 0 56.5 23.5T760-760v560h40q17 0 28.5 11.5T840-160q0 17-11.5 28.5T800-120H160Zm120-80h400v-560H280v560Zm280-240q17 0 28.5-11.5T600-480q0-17-11.5-28.5T560-520q-17 0-28.5 11.5T520-480q0 17 11.5 28.5T560-440ZM280-760v560-560Z""", autoMirror = false)
+        .also { _doorFront = it }
+private var _doorFront: ImageVector? = null
 
 /** Material Symbols `doorbell`. */
 val Icons.Outlined.Doorbell: ImageVector
@@ -1039,6 +1093,24 @@ val Icons.Outlined.Flip: ImageVector
         .also { _flip = it }
 private var _flip: ImageVector? = null
 
+/** Material Symbols `floor_lamp`. */
+val Icons.Outlined.FloorLamp: ImageVector
+    get() = _floorLamp ?: symbolVector("Outlined.FloorLamp", """M451.5-211.5Q440-223 440-240v-280H240q-20 0-32-16t-6-36l78-252q8-25 29-40.5t47-15.5h248q26 0 47 15.5t29 40.5l78 252q6 20-6 36t-32 16H520v280q0 17-11.5 28.5T480-200q-17 0-28.5-11.5ZM294-600h372l-62-200H356l-62 200Zm66 520q-17 0-28.5-11.5T320-120q0-17 11.5-28.5T360-160h240q17 0 28.5 11.5T640-120q0 17-11.5 28.5T600-80H360Zm120-620Z""", autoMirror = false)
+        .also { _floorLamp = it }
+private var _floorLamp: ImageVector? = null
+
+/** Material Symbols `fluorescent`. */
+val Icons.Outlined.Fluorescent: ImageVector
+    get() = _fluorescent ?: symbolVector("Outlined.Fluorescent", """M200-438v-80q0-33 23.5-56.5T280-598h400q33 0 56.5 23.5T760-518v80q0 33-23.5 56.5T680-358H280q-33 0-56.5-23.5T200-438Zm240-362v-40q0-17 11.5-28.5T480-880q17 0 28.5 11.5T520-840v40q0 17-11.5 28.5T480-760q-17 0-28.5-11.5T440-800Zm280 68 16-16q11-11 28-11t28 11q11 11 11 28t-11 28l-16 16q-11 11-28 11t-28-11q-11-11-11-28t11-28ZM440-120v-40q0-17 11.5-28.5T480-200q17 0 28.5 11.5T520-160v40q0 17-11.5 28.5T480-80q-17 0-28.5-11.5T440-120Zm296-88-16-16q-11-11-11-28t11-28q11-11 28-11t28 11l16 16q11 11 11 28t-11 28q-11 11-28 11t-28-11ZM184-676l-16-16q-11-11-11-28t11-28q11-11 28-11t28 11l16 16q11 11 11 28t-11 28q-11 11-28 11t-28-11Zm-16 412 16-16q11-11 28-11t28 11q11 11 11 28t-11 28l-16 16q-11 11-28 11t-28-11q-11-11-11-28t11-28Zm112-174h400v-80H280v80Zm200-40Z""", autoMirror = false)
+        .also { _fluorescent = it }
+private var _fluorescent: ImageVector? = null
+
+/** Material Symbols `foggy`. */
+val Icons.Outlined.Foggy: ImageVector
+    get() = _foggy ?: symbolVector("Outlined.Foggy", """M720-200q-17 0-28.5-11.5T680-240q0-17 11.5-28.5T720-280q17 0 28.5 11.5T760-240q0 17-11.5 28.5T720-200ZM280-80q-17 0-28.5-11.5T240-120q0-17 11.5-28.5T280-160q17 0 28.5 11.5T320-120q0 17-11.5 28.5T280-80Zm-40-120q-17 0-28.5-11.5T200-240q0-17 11.5-28.5T240-280h360q17 0 28.5 11.5T640-240q0 17-11.5 28.5T600-200H240ZM400-80q-17 0-28.5-11.5T360-120q0-17 11.5-28.5T400-160h280q17 0 28.5 11.5T720-120q0 17-11.5 28.5T680-80H400ZM300-320q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Zm0-80h400q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-40q0-66-47-113t-113-47q-48 0-87.5 26T333-704l-10 24h-25q-57 2-97.5 42.5T160-540q0 58 41 99t99 41Zm180-200Z""", autoMirror = false)
+        .also { _foggy = it }
+private var _foggy: ImageVector? = null
+
 /** Material Symbols `folder`. */
 val Icons.Outlined.Folder: ImageVector
     get() = _folder ?: symbolVector("Outlined.Folder", """M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h207q16 0 30.5 6t25.5 17l57 57h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z""", autoMirror = false)
@@ -1146,6 +1218,30 @@ val Icons.Outlined.Gamepad: ImageVector
     get() = _gamepad ?: symbolVector("Outlined.Gamepad", """M480-654Zm174 174Zm-348 0Zm174 174Zm-28-262-80-80q-6-6-9-13.5t-3-15.5v-163q0-17 11.5-28.5T400-880h160q17 0 28.5 11.5T600-840v163q0 8-3 15.5t-9 13.5l-80 80q-6 6-13 8.5t-15 2.5q-8 0-15-2.5t-13-8.5Zm116 116q-6-6-8.5-13t-2.5-15q0-8 2.5-15t8.5-13l80-80q6-6 13.5-9t15.5-3h163q17 0 28.5 11.5T880-560v160q0 17-11.5 28.5T840-360H677q-8 0-15.5-3t-13.5-9l-80-80ZM80-400v-160q0-17 11.5-28.5T120-600h163q8 0 15.5 3t13.5 9l80 80q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13l-80 80q-6 6-13.5 9t-15.5 3H120q-17 0-28.5-11.5T80-400Zm280 280v-163q0-8 3-15.5t9-13.5l80-80q6-6 13-8.5t15-2.5q8 0 15 2.5t13 8.5l80 80q6 6 9 13.5t3 15.5v163q0 17-11.5 28.5T560-80H400q-17 0-28.5-11.5T360-120Zm120-534 40-40v-106h-80v106l40 40ZM160-440h106l40-40-40-40H160v80Zm280 280h80v-106l-40-40-40 40v106Zm254-280h106v-80H694l-40 40 40 40Z""", autoMirror = false)
         .also { _gamepad = it }
 private var _gamepad: ImageVector? = null
+
+/** Material Symbols `garage`. */
+val Icons.Outlined.Garage: ImageVector
+    get() = _garage ?: symbolVector("Outlined.Garage", """M160-80q-33 0-56.5-23.5T80-160v-640q0-33 23.5-56.5T160-880h640q33 0 56.5 23.5T880-800v640q0 33-23.5 56.5T800-80H160Zm0-80h640v-640H160v640Zm171.5-251.5Q320-423 320-440t11.5-28.5Q343-480 360-480t28.5 11.5Q400-457 400-440t-11.5 28.5Q377-400 360-400t-28.5-11.5Zm240 0Q560-423 560-440t11.5-28.5Q583-480 600-480t28.5 11.5Q640-457 640-440t-11.5 28.5Q617-400 600-400t-28.5-11.5ZM240-220q17 0 28.5-11.5T280-260v-40h400v40q0 17 11.5 28.5T720-220q17 0 28.5-11.5T760-260v-243q0-7-1-13.5t-3-12.5l-54-157q-8-24-29-39t-47-15H334q-26 0-47 15t-29 39l-54 157q-2 6-3 12.5t-1 13.5v243q0 17 11.5 28.5T240-220Zm66-360 28-80h292l28 80H306ZM160-800v640-640Zm120 420v-120h400v120H280Z""", autoMirror = false)
+        .also { _garage = it }
+private var _garage: ImageVector? = null
+
+/** Material Symbols `garage_door`. */
+val Icons.Outlined.GarageDoor: ImageVector
+    get() = _garageDoor ?: symbolVector("Outlined.GarageDoor", """M300-240v-360h360v360-360H300v360Zm-60 80q-33 0-56.5-23.5T160-240v-320h-59q-14 0-19-14t7-22l344-250q21-15 47-15t47 15l343 250q12 8 7 22t-19 14h-58v320q0 33-23.5 56.5T720-160H240Zm0-446v366h60v-320q0-17 11.5-28.5T340-600h280q17 0 28.5 11.5T660-560v320h60v-366L480-780 240-606Zm120 366h240v-60H360v60Zm0-120h240v-60H360v60Zm0-120h240v-60H360v60Zm120-160q17 0 28.5-11.5T520-680q0-17-11.5-28.5T480-720q-17 0-28.5 11.5T440-680q0 17 11.5 28.5T480-640Z""", autoMirror = false)
+        .also { _garageDoor = it }
+private var _garageDoor: ImageVector? = null
+
+/** Material Symbols `gas_meter`. */
+val Icons.Outlined.GasMeter: ImageVector
+    get() = _gasMeter ?: symbolVector("Outlined.GasMeter", """M320-80q-66 0-113-47t-47-113v-400q0-66 47-113t113-47h40v-40q0-17 11.5-28.5T400-880q17 0 28.5 11.5T440-840v40h80v-40q0-17 11.5-28.5T560-880q17 0 28.5 11.5T600-840v40h40q66 0 113 47t47 113v400q0 66-47 113T640-80H320Zm0-80h320q33 0 56.5-23.5T720-240v-400q0-33-23.5-56.5T640-720H320q-33 0-56.5 23.5T240-640v400q0 33 23.5 56.5T320-160Zm40-400h240q17 0 28.5-11.5T640-600q0-17-11.5-28.5T600-640H360q-17 0-28.5 11.5T320-600q0 17 11.5 28.5T360-560Zm120 320q42 0 71-28.5t29-69.5q0-17-4-29t-15-28l-58-68q-9-11-23-11t-23 11l-58 69q-11 16-15 27.5t-4 28.5q0 41 29 69.5t71 28.5ZM240-720v560-560Z""", autoMirror = false)
+        .also { _gasMeter = it }
+private var _gasMeter: ImageVector? = null
+
+/** Material Symbols `gate`. */
+val Icons.Outlined.Gate: ImageVector
+    get() = _gate ?: symbolVector("Outlined.Gate", """M91.5-291.5Q80-303 80-320v-320q0-17 11.5-28.5T120-680q17 0 28.5 11.5T160-640v320q0 17-11.5 28.5T120-280q-17 0-28.5-11.5ZM240-200q-17 0-28.5-11.5T200-240v-360q0-66 47-113t113-47h240q66 0 113 47t47 113v360q0 17-11.5 28.5T720-200H240Zm571.5-91.5Q800-303 800-320v-320q0-17 11.5-28.5T840-680q17 0 28.5 11.5T880-640v320q0 17-11.5 28.5T840-280q-17 0-28.5-11.5ZM480-480ZM280-280h160v-160h-40q-17 0-28.5-11.5T360-480q0-17 11.5-28.5T400-520h40v-160h-80q-33 0-56.5 23.5T280-600v320Zm240 0h160v-320q0-33-23.5-56.5T600-680h-80v160h40q17 0 28.5 11.5T600-480q0 17-11.5 28.5T560-440h-40v160Z""", autoMirror = false)
+        .also { _gate = it }
+private var _gate: ImageVector? = null
 
 /** Material Symbols `gavel`. */
 val Icons.Outlined.Gavel: ImageVector
@@ -1255,6 +1351,12 @@ val Icons.Outlined.Home: ImageVector
         .also { _home = it }
 private var _home: ImageVector? = null
 
+/** Material Symbols `home_iot_device`. */
+val Icons.Outlined.HomeIotDevice: ImageVector
+    get() = _homeIotDevice ?: symbolVector("Outlined.HomeIotDevice", """M221-240q42 0 71-29t29-71q0-24-11-47t-33-37l-36-24v-252q0-9-5.5-14.5T221-720q-9 0-14.5 5.5T201-700v252l-36 24q-22 15-33 37t-11 47q0 42 29 71t71 29Zm0 80q-75 0-127.5-52T41-340q0-48 22-86t58-62v-212q0-42 29-71t71-29q42 0 71 29t29 71v212q36 24 58 62t22 86q0 75-52.5 127.5T221-160Zm327-200q-48-33-78-85t-30-115q0-100 70-170t170-70q100 0 170 70t70 170q0 63-30 115t-78 85H548Zm28-80h212q27-24 39.5-54t12.5-66q0-66-47-113t-113-47q-66 0-113 47t-47 113q0 36 14.5 66t41.5 54Zm104 280q-24 0-42-18t-18-42h120q0 24-18 42t-42 18Zm-80-80q-17 0-28.5-11.5T560-280q0-17 11.5-28.5T600-320h160q17 0 28.5 11.5T800-280q0 17-11.5 28.5T760-240H600ZM221-340Zm459-240Z""", autoMirror = false)
+        .also { _homeIotDevice = it }
+private var _homeIotDevice: ImageVector? = null
+
 /** Material Symbols `horizontal_rule`. */
 val Icons.Outlined.HorizontalRule: ImageVector
     get() = _horizontalRule ?: symbolVector("Outlined.HorizontalRule", """M200-440q-17 0-28.5-11.5T160-480q0-17 11.5-28.5T200-520h560q17 0 28.5 11.5T800-480q0 17-11.5 28.5T760-440H200Z""", autoMirror = false)
@@ -1278,6 +1380,12 @@ val Icons.Outlined.Hub: ImageVector
     get() = _hub ?: symbolVector("Outlined.Hub", """M155-75q-35-35-35-85t35-85q35-35 85-35 14 0 26 3t23 8l57-71q-28-31-39-70t-5-78l-81-27q-17 25-43 40t-58 15q-50 0-85-35T0-580q0-50 35-85t85-35q50 0 85 35t35 85v8l81 28q20-36 53.5-61t75.5-32v-87q-39-11-64.5-42.5T360-840q0-50 35-85t85-35q50 0 85 35t35 85q0 42-26 73.5T510-724v87q42 7 75.5 32t53.5 61l81-28v-8q0-50 35-85t85-35q50 0 85 35t35 85q0 50-35 85t-85 35q-32 0-58.5-15T739-515l-81 27q6 39-5 77.5T614-340l57 70q11-5 23-7.5t26-2.5q50 0 85 35t35 85q0 50-35 85t-85 35q-50 0-85-35t-35-85q0-20 6.5-38.5T624-232l-57-71q-41 23-87.5 23T392-303l-56 71q11 15 17.5 33.5T360-160q0 50-35 85t-85 35q-50 0-85-35Zm-35-465q17 0 28.5-11.5T160-580q0-17-11.5-28.5T120-620q-17 0-28.5 11.5T80-580q0 17 11.5 28.5T120-540Zm148.5 408.5Q280-143 280-160t-11.5-28.5Q257-200 240-200t-28.5 11.5Q200-177 200-160t11.5 28.5Q223-120 240-120t28.5-11.5Zm240-680Q520-823 520-840t-11.5-28.5Q497-880 480-880t-28.5 11.5Q440-857 440-840t11.5 28.5Q463-800 480-800t28.5-11.5ZM480-360q42 0 71-29t29-71q0-42-29-71t-71-29q-42 0-71 29t-29 71q0 42 29 71t71 29Zm268.5 228.5Q760-143 760-160t-11.5-28.5Q737-200 720-200t-28.5 11.5Q680-177 680-160t11.5 28.5Q703-120 720-120t28.5-11.5Zm120-420Q880-563 880-580t-11.5-28.5Q857-620 840-620t-28.5 11.5Q800-597 800-580t11.5 28.5Q823-540 840-540t28.5-11.5ZM480-840ZM120-580Zm360 120Zm360-120ZM240-160Zm480 0Z""", autoMirror = false)
         .also { _hub = it }
 private var _hub: ImageVector? = null
+
+/** Material Symbols `humidity_percentage`. */
+val Icons.Outlined.HumidityPercentage: ImageVector
+    get() = _humidityPercentage ?: symbolVector("Outlined.HumidityPercentage", """M622.5-257.5Q640-275 640-300t-17.5-42.5Q605-360 580-360t-42.5 17.5Q520-325 520-300t17.5 42.5Q555-240 580-240t42.5-17.5ZM378-258q16 0 28-12l204-204q12-12 12-28t-12-28q-12-12-28.5-12T553-530L350-327q-12 12-12 28.5t12 28.5q12 12 28 12Zm44.5-199.5Q440-475 440-500t-17.5-42.5Q405-560 380-560t-42.5 17.5Q320-525 320-500t17.5 42.5Q355-440 380-440t42.5-17.5ZM251.5-174Q160-268 160-408q0-62 28-124t70-119q42-57 91-107t91-87q8-8 18.5-11.5T480-860q11 0 21.5 3.5T520-845q42 37 91 87t91 107q42 57 70 119t28 124q0 140-91.5 234T480-80q-137 0-228.5-94ZM652-230.5Q720-301 720-408q0-73-60.5-165T480-774Q361-665 300.5-573T240-408q0 107 68 177.5T480-160q104 0 172-70.5ZM480-480Z""", autoMirror = false)
+        .also { _humidityPercentage = it }
+private var _humidityPercentage: ImageVector? = null
 
 /** Material Symbols `image`. */
 val Icons.Outlined.Image: ImageVector
@@ -1441,11 +1549,23 @@ val Icons.Outlined.LibraryMusic: ImageVector
         .also { _libraryMusic = it }
 private var _libraryMusic: ImageVector? = null
 
+/** Material Symbols `light`. */
+val Icons.Outlined.Light: ImageVector
+    get() = _light ?: symbolVector("Outlined.Light", """M367-167q-47-47-47-113H200q-33 0-56.5-23.5T120-360q0-140 92-241.5T440-718v-82q0-17 11.5-28.5T480-840q17 0 28.5 11.5T520-800v82q136 15 228 116.5T840-360q0 33-23.5 56.5T760-280H640q0 66-47 113t-113 47q-66 0-113-47ZM200-360h560q0-116-82-198t-198-82q-116 0-198 82t-82 198Zm336.5 136.5Q560-247 560-280H400q0 33 23.5 56.5T480-200q33 0 56.5-23.5ZM480-280Z""", autoMirror = false)
+        .also { _light = it }
+private var _light: ImageVector? = null
+
 /** Material Symbols `light_mode`. */
 val Icons.Outlined.LightMode: ImageVector
     get() = _lightMode ?: symbolVector("Outlined.LightMode", """M565-395q35-35 35-85t-35-85q-35-35-85-35t-85 35q-35 35-35 85t35 85q35 35 85 35t85-35Zm-226.5 56.5Q280-397 280-480t58.5-141.5Q397-680 480-680t141.5 58.5Q680-563 680-480t-58.5 141.5Q563-280 480-280t-141.5-58.5ZM80-440q-17 0-28.5-11.5T40-480q0-17 11.5-28.5T80-520h80q17 0 28.5 11.5T200-480q0 17-11.5 28.5T160-440H80Zm720 0q-17 0-28.5-11.5T760-480q0-17 11.5-28.5T800-520h80q17 0 28.5 11.5T920-480q0 17-11.5 28.5T880-440h-80ZM451.5-771.5Q440-783 440-800v-80q0-17 11.5-28.5T480-920q17 0 28.5 11.5T520-880v80q0 17-11.5 28.5T480-760q-17 0-28.5-11.5Zm0 720Q440-63 440-80v-80q0-17 11.5-28.5T480-200q17 0 28.5 11.5T520-160v80q0 17-11.5 28.5T480-40q-17 0-28.5-11.5ZM226-678l-43-42q-12-11-11.5-28t11.5-29q12-12 29-12t28 12l42 43q11 12 11 28t-11 28q-11 12-27.5 11.5T226-678Zm494 495-42-43q-11-12-11-28.5t11-27.5q11-12 27.5-11.5T734-282l43 42q12 11 11.5 28T777-183q-12 12-29 12t-28-12Zm-42-495q-12-11-11.5-27.5T678-734l42-43q11-12 28-11.5t29 11.5q12 12 12 29t-12 28l-43 42q-12 11-28 11t-28-11ZM183-183q-12-12-12-29t12-28l43-42q12-11 28.5-11t27.5 11q12 11 11.5 27.5T282-226l-42 43q-11 12-28 11.5T183-183Zm297-297Z""", autoMirror = false)
         .also { _lightMode = it }
 private var _lightMode: ImageVector? = null
+
+/** Material Symbols `light_off`. */
+val Icons.Outlined.LightOff: ImageVector
+    get() = _lightOff ?: symbolVector("Outlined.LightOff", """M423.5-103.5Q400-127 400-160h160q0 33-23.5 56.5T480-80q-33 0-56.5-23.5ZM480-800q-44 0-81.5 15.5T332-742l-58-56q41-38 93.5-60T480-880q125 0 212.5 87.5T780-580q0 71-25 121.5T698-376l-56-56q21-23 39.5-59t18.5-89q0-92-64-156t-156-64Zm46 480H330q-69-41-109.5-110T180-580q0-20 2.5-39t7.5-37L84-764q-11-11-11.5-27.5T84-820q11-11 28-11t28 11l680 680q12 12 12 28t-12 28q-12 12-28.5 12T763-84L526-320Zm-172-80h92L260-586v6q0 54 24.5 101t69.5 79Zm-6-98Zm134-94ZM360-200q-17 0-28.5-11.5T320-240q0-17 11.5-28.5T360-280h246q17 0 28.5 11.5T646-240q0 17-11.5 28.5T606-200H360Z""", autoMirror = false)
+        .also { _lightOff = it }
+private var _lightOff: ImageVector? = null
 
 /** Material Symbols `lightbulb`. */
 val Icons.Outlined.Lightbulb: ImageVector
@@ -1476,6 +1596,12 @@ val Icons.Outlined.LinkOff: ImageVector
     get() = _linkOff ?: symbolVector("Outlined.LinkOff", """m625-449-71-71h46q17 0 28.5 11.5T640-480q0 10-4 18t-11 13ZM820-84q-11 11-28 11t-28-11L84-764q-11-11-11-28t11-28q11-11 28-11t28 11l680 680q11 11 11 28t-11 28ZM280-280q-83 0-141.5-58.5T80-480q0-69 42-123t108-71l74 74h-24q-50 0-85 35t-35 85q0 50 35 85t85 35h120q17 0 28.5 11.5T440-320q0 17-11.5 28.5T400-280H280Zm80-160q-17 0-28.5-11.5T320-480q0-17 11.5-28.5T360-520h25l79 80H360Zm380 112q-9-14-6.5-30t16.5-25q23-17 36.5-42t13.5-55q0-50-35-85t-85-35H560q-17 0-28.5-11.5T520-640q0-17 11.5-28.5T560-680h120q83 0 141.5 58.5T880-480q0 49-22.5 91.5T795-318q-14 9-30 6.5T740-328Z""", autoMirror = false)
         .also { _linkOff = it }
 private var _linkOff: ImageVector? = null
+
+/** Material Symbols `local_fire_department`. */
+val Icons.Outlined.LocalFireDepartment: ImageVector
+    get() = _localFireDepartment ?: symbolVector("Outlined.LocalFireDepartment", """M253-173q-93-93-93-227 0-113 67-217t184-182q22-15 45.5-1.5T480-760v52q0 34 23.5 57t57.5 23q17 0 32.5-7.5T621-657q8-10 20.5-12.5T665-664q63 45 99 115t36 149q0 134-93 227T480-80q-134 0-227-93Zm-13-227q0 52 21 98.5t60 81.5q-1-5-1-9v-9q0-32 12-60t35-51l113-111 113 111q23 23 35 51t12 60v9q0 4-1 9 39-35 60-81.5t21-98.5q0-50-18.5-94.5T648-574q-20 13-42 19.5t-45 6.5q-62 0-107.5-41T401-690q-78 66-119.5 140.5T240-400Zm240 52-57 56q-11 11-17 25t-6 29q0 32 23.5 55t56.5 23q33 0 56.5-23t23.5-55q0-16-6-29.5T537-292l-57-56Z""", autoMirror = false)
+        .also { _localFireDepartment = it }
+private var _localFireDepartment: ImageVector? = null
 
 /** Material Symbols `location_city`. */
 val Icons.Outlined.LocationCity: ImageVector
@@ -1549,6 +1675,12 @@ val Icons.Outlined.MilitaryTech: ImageVector
         .also { _militaryTech = it }
 private var _militaryTech: ImageVector? = null
 
+/** Material Symbols `mode_fan`. */
+val Icons.Outlined.ModeFan: ImageVector
+    get() = _modeFan ?: symbolVector("Outlined.ModeFan", """M424-80q-51 0-77.5-30.5T320-180q0-26 11.5-50.5T367-271q22-14 35.5-36t18.5-47l-12-6q-6-3-11-7l-92 33q-17 6-33 10t-33 4q-63 0-111.5-55T80-536q0-51 30.5-77.5T179-640q26 0 51 11.5t41 35.5q14 22 36 35.5t47 18.5l6-12q3-6 7-11l-33-92q-6-17-10-33t-4-32q0-64 55-112.5T536-880q51 0 77.5 30.5T640-781q0 26-11.5 51T593-689q-22 14-35.5 36T539-606l12 6q6 3 11 7l92-34q17-6 32.5-9.5T719-640q81 0 121 67t40 149q0 51-32 77.5T777-320q-25 0-48.5-11.5T689-367q-14-22-36-35.5T606-421l-6 12q-3 6-7 11l33 92q6 16 10 30.5t4 30.5q1 65-54 115T424-80Zm56-340q25 0 42.5-17.5T540-480q0-25-17.5-42.5T480-540q-25 0-42.5 17.5T420-480q0 25 17.5 42.5T480-420Zm-46-192q6-2 12.5-3.5T459-618q8-42 30.5-78t59.5-60q5-4 8-10t3-15q0-8-6-13.5t-18-5.5q-38 0-86 16.5T400-719q0 9 2.5 17t4.5 15l27 75ZM240-400q14 0 33-7l75-27q-2-6-3.5-12.5T342-459q-42-8-78-30.5T204-549q-4-5-10.5-8t-14.5-3q-9 0-14 6t-5 18q0 54 20.5 95t59.5 41Zm184 240q47 0 92.5-19t43.5-66q0-8-2.5-15t-4.5-13l-27-75q-6 2-12.5 3.5T501-342q-8 42-30.5 78T411-204q-5 4-8.5 10.5T400-180q1 8 6 14t18 6Zm353-240q9 0 16-5t7-19q0-38-16-86.5T719-560q-9 0-17 2t-15 4l-75 28q2 6 3.5 12.5T618-501q42 8 78 30.5t60 59.5q3 5 9 8t12 3ZM618-501ZM459-618ZM342-459Zm159 117Z""", autoMirror = false)
+        .also { _modeFan = it }
+private var _modeFan: ImageVector? = null
+
 /** Material Symbols `mood`. */
 val Icons.Outlined.Mood: ImageVector
     get() = _mood ?: symbolVector("Outlined.Mood", """M620-520q25 0 42.5-17.5T680-580q0-25-17.5-42.5T620-640q-25 0-42.5 17.5T560-580q0 25 17.5 42.5T620-520Zm-280 0q25 0 42.5-17.5T400-580q0-25-17.5-42.5T340-640q-25 0-42.5 17.5T280-580q0 25 17.5 42.5T340-520Zm-16 408.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5ZM480-480Zm227 227q93-93 93-227t-93-227q-93-93-227-93t-227 93q-93 93-93 227t93 227q93 93 227 93t227-93Zm-227-7q58 0 107-28t79-76q6-12-1-24t-21-12H316q-14 0-21 12t-1 24q30 48 79.5 76T480-260Z""", autoMirror = false)
@@ -1615,6 +1747,12 @@ val Icons.Outlined.Notifications: ImageVector
         .also { _notifications = it }
 private var _notifications: ImageVector? = null
 
+/** Material Symbols `notifications_active`. */
+val Icons.Outlined.NotificationsActive: ImageVector
+    get() = _notificationsActive ?: symbolVector("Outlined.NotificationsActive", """M200-200q-17 0-28.5-11.5T160-240q0-17 11.5-28.5T200-280h40v-280q0-83 50-147.5T420-792v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28q80 20 130 84.5T720-560v280h40q17 0 28.5 11.5T800-240q0 17-11.5 28.5T760-200H200Zm280-300Zm0 420q-33 0-56.5-23.5T400-160h160q0 33-23.5 56.5T480-80ZM320-280h320v-280q0-66-47-113t-113-47q-66 0-113 47t-47 113v280ZM120-560q-17 0-28.5-13T82-603q8-75 42-139.5T211-855q13-11 29.5-10t26.5 15q10 14 8 30t-15 28q-39 37-64 86t-33 106q-2 17-14 28.5T120-560Zm720 0q-17 0-29-11.5T797-600q-8-57-33-106t-64-86q-13-12-15-28t8-30q10-14 26.5-15t29.5 10q53 48 87 112.5T878-603q2 17-9.5 30T840-560Z""", autoMirror = false)
+        .also { _notificationsActive = it }
+private var _notificationsActive: ImageVector? = null
+
 /** Material Symbols `notifications_off`. */
 val Icons.Outlined.NotificationsOff: ImageVector
     get() = _notificationsOff ?: symbolVector("Outlined.NotificationsOff", """M646-200H200q-17 0-28.5-11.5T160-240q0-17 11.5-28.5T200-280h40v-280q0-33 8.5-65t25.5-61l60 60q-7 16-10.5 32.5T320-560v280h248L84-764q-11-11-11-28t11-28q11-11 28-11t28 11l680 680q11 11 11.5 27.5T820-84q-11 11-28 11t-28-11L646-200ZM540-792q80 20 130 84.5T720-560v110q0 20-12.5 30T680-410q-15 0-27.5-10.5T640-451v-109q0-66-47-113t-113-47q-16 0-34 4t-32 10q-17 7-33.5 3T355-722q-8-13-5.5-27.5T365-771q13-7 27-12t28-9v-28q0-25 17.5-42.5T480-880q25 0 42.5 17.5T540-820v28Zm-96 388Zm36 324q-30 0-53.5-16.5T403-141q0-8 6.5-13.5T424-160h112q8 0 14.5 5.5T557-141q0 28-23.5 44.5T480-80Zm33-481Z""", autoMirror = false)
@@ -1656,6 +1794,12 @@ val Icons.Outlined.OpenWith: ImageVector
     get() = _openWith ?: symbolVector("Outlined.OpenWith", """M440-234v-126q0-17 11.5-28.5T480-400q17 0 28.5 11.5T520-360v125l43-44q12-12 29-12t29 12q12 12 12 29t-12 29L508-108q-6 6-13 8.5T480-97q-8 0-15-2.5t-13-8.5L338-222q-12-12-11.5-28.5T339-279q12-12 28.5-12t28.5 12l44 45ZM235-440l44 43q12 12 12 29t-12 29q-12 12-29 12t-29-12L108-452q-6-6-8.5-13T97-480q0-8 2.5-15t8.5-13l113-113q12-12 28.5-12t28.5 12q12 12 12 28.5T278-564l-44 44h126q17 0 28.5 11.5T400-480q0 17-11.5 28.5T360-440H235Zm491 0H600q-17 0-28.5-11.5T560-480q0-17 11.5-28.5T600-520h125l-44-43q-12-12-12-29t12-29q12-12 29-12t29 12l113 113q6 6 8.5 13t2.5 15q0 8-2.5 15t-8.5 13L738-338q-12 12-28 11.5T682-339q-12-12-12-28.5t12-28.5l44-44ZM440-726l-45 45q-12 12-28 12t-28-12q-12-12-12-28.5t12-28.5l113-114q6-6 13-8.5t15-2.5q8 0 15 2.5t13 8.5l114 114q12 12 12 28t-12 28q-12 12-28.5 12T565-682l-45-44v126q0 17-11.5 28.5T480-560q-17 0-28.5-11.5T440-600v-126Z""", autoMirror = false)
         .also { _openWith = it }
 private var _openWith: ImageVector? = null
+
+/** Material Symbols `outlet`. */
+val Icons.Outlined.Outlet: ImageVector
+    get() = _outlet ?: symbolVector("Outlined.Outlet", """M360-480q17 0 28.5-11.5T400-520v-120q0-17-11.5-28.5T360-680q-17 0-28.5 11.5T320-640v120q0 17 11.5 28.5T360-480Zm80 240h80q17 0 28.5-11.5T560-280v-40q0-33-23.5-56.5T480-400q-33 0-56.5 23.5T400-320v40q0 17 11.5 28.5T440-240Zm160-240q17 0 28.5-11.5T640-520v-120q0-17-11.5-28.5T600-680q-17 0-28.5 11.5T560-640v120q0 17 11.5 28.5T600-480ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z""", autoMirror = false)
+        .also { _outlet = it }
+private var _outlet: ImageVector? = null
 
 /** Material Symbols `flag`. */
 val Icons.Outlined.OutlinedFlag: ImageVector
@@ -1837,6 +1981,12 @@ val Icons.Outlined.PlaylistAdd: ImageVector
         .also { _playlistAdd = it }
 private var _playlistAdd: ImageVector? = null
 
+/** Material Symbols `potted_plant`. */
+val Icons.Outlined.PottedPlant: ImageVector
+    get() = _pottedPlant ?: symbolVector("Outlined.PottedPlant", """M342-160h276l40-160H302l40 160Zm0 80q-28 0-49-17t-28-44l-45-179h520l-45 179q-7 27-28 44t-49 17H342ZM200-400h560v-80H200v80Zm280-240q0-90 61-156t152-80q5-1 9 1t8 5q4 3 5.5 7.5t.5 9.5q-11 79-64.5 137.5T520-644v84h280q17 0 28.5 11.5T840-520v120q0 33-23.5 56.5T760-320H200q-33 0-56.5-23.5T120-400v-120q0-17 11.5-28.5T160-560h280v-84q-78-13-131.5-71.5T244-853q-1-5 .5-9.5t5.5-7.5q4-3 8-5t9-1q91 14 152 80t61 156Z""", autoMirror = false)
+        .also { _pottedPlant = it }
+private var _pottedPlant: ImageVector? = null
+
 /** Material Symbols `power_settings_new`. */
 val Icons.Outlined.PowerSettingsNew: ImageVector
     get() = _powerSettingsNew ?: symbolVector("Outlined.PowerSettingsNew", """M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-73 24.5-138.5T172-736q11-14 26.5-13t26.5 11q11 10 14.5 26T229-679q-32 41-50.5 91.5T160-480q0 134 93 227t227 93q134 0 227-93t93-227q0-57-18.5-107.5T731-679q-14-17-10.5-33t14.5-26q11-10 26.5-11t26.5 13q43 52 67.5 117.5T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-28.5-371.5Q440-463 440-480v-360q0-17 11.5-28.5T480-880q17 0 28.5 11.5T520-840v360q0 17-11.5 28.5T480-440q-17 0-28.5-11.5Z""", autoMirror = false)
@@ -1915,6 +2065,12 @@ val Icons.Outlined.Quickreply: ImageVector
         .also { _quickreply = it }
 private var _quickreply: ImageVector? = null
 
+/** Material Symbols `radio`. */
+val Icons.Outlined.Radio: ImageVector
+    get() = _radio ?: symbolVector("Outlined.Radio", """M160-80q-33 0-56.5-23.5T80-160v-480q0-25 13.5-45t36.5-29l473-193q14-5 27.5.5T649-887q5 14-.5 27.5T629-841L332-720h468q33 0 56.5 23.5T880-640v480q0 33-23.5 56.5T800-80H160Zm0-80h640v-280H160v280Zm231-69q29-29 29-71t-29-71q-29-29-71-29t-71 29q-29 29-29 71t29 71q29 29 71 29t71-29ZM160-520h480v-40q0-17 11.5-28.5T680-600q17 0 28.5 11.5T720-560v40h80v-120H160v120Zm0 360v-280 280Z""", autoMirror = false)
+        .also { _radio = it }
+private var _radio: ImageVector? = null
+
 /** Material Symbols `radio_button_checked`. */
 val Icons.Outlined.RadioButtonChecked: ImageVector
     get() = _radioButtonChecked ?: symbolVector("Outlined.RadioButtonChecked", """M621.5-338.5Q680-397 680-480t-58.5-141.5Q563-680 480-680t-141.5 58.5Q280-563 280-480t58.5 141.5Q397-280 480-280t141.5-58.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z""", autoMirror = false)
@@ -1926,6 +2082,12 @@ val Icons.Outlined.RadioButtonUnchecked: ImageVector
     get() = _radioButtonUnchecked ?: symbolVector("Outlined.RadioButtonUnchecked", """M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Z""", autoMirror = false)
         .also { _radioButtonUnchecked = it }
 private var _radioButtonUnchecked: ImageVector? = null
+
+/** Material Symbols `rainy`. */
+val Icons.Outlined.Rainy: ImageVector
+    get() = _rainy ?: symbolVector("Outlined.Rainy", """M558-84q-15 8-30.5 2.5T504-102l-60-120q-8-15-2.5-30.5T462-276q15-8 30.5-2.5T516-258l60 120q8 15 2.5 30.5T558-84Zm240 0q-15 8-30.5 2.5T744-102l-60-120q-8-15-2.5-30.5T702-276q15-8 30.5-2.5T756-258l60 120q8 15 2.5 30.5T798-84Zm-480 0q-15 8-30.5 2.5T264-102l-60-120q-8-15-2.5-30.5T222-276q15-8 30.5-2.5T276-258l60 120q8 15 2.5 30.5T318-84Zm-18-236q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Zm0-80h400q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-40q0-66-47-113t-113-47q-48 0-87.5 26T333-704l-10 24h-25q-57 2-97.5 42.5T160-540q0 58 41 99t99 41Zm180-200Z""", autoMirror = false)
+        .also { _rainy = it }
+private var _rainy: ImageVector? = null
 
 /** Material Symbols `record_voice_over`. */
 val Icons.Outlined.RecordVoiceOver: ImageVector
@@ -1950,6 +2112,12 @@ val Icons.Outlined.RemoveCircleOutline: ImageVector
     get() = _removeCircleOutline ?: symbolVector("Outlined.RemoveCircleOutline", """M320-440h320q17 0 28.5-11.5T680-480q0-17-11.5-28.5T640-520H320q-17 0-28.5 11.5T280-480q0 17 11.5 28.5T320-440ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z""", autoMirror = false)
         .also { _removeCircleOutline = it }
 private var _removeCircleOutline: ImageVector? = null
+
+/** Material Symbols `remove_moderator`. */
+val Icons.Outlined.RemoveModerator: ImageVector
+    get() = _removeModerator ?: symbolVector("Outlined.RemoveModerator", """M800-705v189q0 35-5.5 69.5T778-378q-7 21-22 27.5t-29 1.5q-14-5-23.5-17.5T700-397q10-28 15-58.5t5-60.5v-189l-240-90-122 46q-11 4-22.5 1.5T316-758q-16-16-11-37t25-29l122-45q14-5 28-5t28 5l240 90q23 9 37.5 29t14.5 45ZM480-84q-4 0-25-4-135-45-215-166.5T160-516v-172l-76-76q-11-11-11-28t11-28q11-11 28-11t28 11l680 680q11 11 11 28t-11 28q-11 11-28 11t-28-11L662-186q-33 35-72.5 59T505-88q-6 2-12 3t-13 1Zm-57-341Zm91-135Zm-34 396q35-11 67-31t59-47L240-608v92q0 121 68 220t172 132Z""", autoMirror = false)
+        .also { _removeModerator = it }
+private var _removeModerator: ImageVector? = null
 
 /** Material Symbols `reorder`. */
 val Icons.Outlined.Reorder: ImageVector
@@ -1986,6 +2154,12 @@ val Icons.Outlined.Restore: ImageVector
     get() = _restore ?: symbolVector("Outlined.Restore", """M480-120q-126 0-223-76.5T131-392q-4-15 6-27.5t27-14.5q16-2 29 6t18 24q24 90 99 147t170 57q117 0 198.5-81.5T760-480q0-117-81.5-198.5T480-760q-69 0-129 32t-101 88h70q17 0 28.5 11.5T360-600q0 17-11.5 28.5T320-560H160q-17 0-28.5-11.5T120-600v-160q0-17 11.5-28.5T160-800q17 0 28.5 11.5T200-760v54q51-64 124.5-99T480-840q75 0 140.5 28.5t114 77q48.5 48.5 77 114T840-480q0 75-28.5 140.5t-77 114q-48.5 48.5-114 77T480-120Zm40-376 100 100q11 11 11 28t-11 28q-11 11-28 11t-28-11L452-452q-6-6-9-13.5t-3-15.5v-159q0-17 11.5-28.5T480-680q17 0 28.5 11.5T520-640v144Z""", autoMirror = false)
         .also { _restore = it }
 private var _restore: ImageVector? = null
+
+/** Material Symbols `roller_shades`. */
+val Icons.Outlined.RollerShades: ImageVector
+    get() = _rollerShades ?: symbolVector("Outlined.RollerShades", """M160-200v-560q0-33 23.5-56.5T240-840h480q33 0 56.5 23.5T800-760v560h40q17 0 28.5 11.5T880-160q0 17-11.5 28.5T840-120H120q-17 0-28.5-11.5T80-160q0-17 11.5-28.5T120-200h40Zm80-320h480v-240H240v240Zm0 320h480v-240H520v72q14 10 22 25t8 33q0 29-20.5 49.5T480-240q-29 0-49.5-20.5T410-310q0-18 8-32.5t22-24.5v-73H240v240Zm0-560h480-480Z""", autoMirror = false)
+        .also { _rollerShades = it }
+private var _rollerShades: ImageVector? = null
 
 /** Material Symbols `rotate_90_degrees_cw`. */
 val Icons.Outlined.Rotate90DegreesCw: ImageVector
@@ -2077,6 +2251,12 @@ val Icons.Outlined.Sell: ImageVector
         .also { _sell = it }
 private var _sell: ImageVector? = null
 
+/** Material Symbols `send`. */
+val Icons.Outlined.Send: ImageVector
+    get() = _send ?: symbolVector("Outlined.Send", """M792-443 176-183q-20 8-38-3.5T120-220v-520q0-22 18-33.5t38-3.5l616 260q25 11 25 37t-25 37ZM200-280l474-200-474-200v140l240 60-240 60v140Zm0 0v-400 400Z""", autoMirror = false)
+        .also { _send = it }
+private var _send: ImageVector? = null
+
 /** Material Symbols `sensors`. */
 val Icons.Outlined.Sensors: ImageVector
     get() = _sensors ?: symbolVector("Outlined.Sensors", """M160-480q0 56 17 105.5t49 89.5q11 14 11 30.5T225-226q-12 12-29 11.5T168-229q-42-52-65-115.5T80-480q0-72 23-136t65-115q11-14 28-14.5t29 11.5q12 12 12 28.5T226-675q-32 41-49 90.5T160-480Zm160 0q0 23 6 43.5t17 38.5q9 14 8.5 31T339-338q-12 12-29 11.5T284-341q-21-29-32.5-65T240-480q0-39 11.5-74.5T284-619q10-14 26.5-14t28.5 12q12 12 12.5 28.5T343-562q-11 18-17 38.5t-6 43.5Zm103.5 56.5Q400-447 400-480t23.5-56.5Q447-560 480-560t56.5 23.5Q560-513 560-480t-23.5 56.5Q513-400 480-400t-56.5-23.5ZM640-480q0-23-6-43.5T617-562q-9-14-8-31t13-29q12-12 28-11.5t26 14.5q21 29 32.5 64.5T720-480q0 38-11.5 74T676-341q-9 14-26 14t-29-12q-12-12-12.5-28.5T617-398q11-18 17-38.5t6-43.5Zm160 0q0-56-17-105.5T734-675q-11-14-11.5-30.5T734-734q12-12 29.5-11.5T792-731q42 51 65 115t23 136q0 72-23 135.5T792-229q-11 14-28 14.5T735-226q-12-12-12-28.5t11-30.5q32-41 49-90.5T800-480Z""", autoMirror = false)
@@ -2143,6 +2323,12 @@ val Icons.Outlined.SignalCellularAlt2Bar: ImageVector
         .also { _signalCellularAlt2Bar = it }
 private var _signalCellularAlt2Bar: ImageVector? = null
 
+/** Material Symbols `siren`. */
+val Icons.Outlined.Siren: ImageVector
+    get() = _siren ?: symbolVector("Outlined.Siren", """M160-200h640v-80H160v80Zm240-360q0-33 23.5-56.5T480-640q17 0 28.5-11.5T520-680q0-17-11.5-28.5T480-720q-66 0-113 47t-47 113v80q0 17 11.5 28.5T360-440q17 0 28.5-11.5T400-480v-80Zm80 280Zm-200-80h400v-200q0-83-58.5-141.5T480-760q-83 0-141.5 58.5T280-560v200ZM160-120q-33 0-56.5-23.5T80-200v-80q0-33 23.5-56.5T160-360h40v-200q0-117 81.5-198.5T480-840q117 0 198.5 81.5T760-560v200h40q33 0 56.5 23.5T880-280v80q0 33-23.5 56.5T800-120H160Zm320-240Z""", autoMirror = false)
+        .also { _siren = it }
+private var _siren: ImageVector? = null
+
 /** Material Symbols `skip_next`. */
 val Icons.Outlined.SkipNext: ImageVector
     get() = _skipNext ?: symbolVector("Outlined.SkipNext", """M660-280v-400q0-17 11.5-28.5T700-720q17 0 28.5 11.5T740-680v400q0 17-11.5 28.5T700-240q-17 0-28.5-11.5T660-280Zm-440-35v-330q0-18 12-29t28-11q5 0 11 1t11 5l248 166q9 6 13.5 14.5T548-480q0 10-4.5 18.5T530-447L282-281q-5 4-11 5t-11 1q-16 0-28-11t-12-29Zm80-165Zm0 90 136-90-136-90v180Z""", autoMirror = false)
@@ -2160,6 +2346,12 @@ val Icons.Outlined.SmartButton: ImageVector
     get() = _smartButton ?: symbolVector("Outlined.SmartButton", """M160-280q-33 0-56.5-23.5T80-360v-240q0-33 23.5-56.5T160-680h640q33 0 56.5 23.5T880-600v240q0 33-23.5 56.5T800-280q-17 0-28.5-11.5T760-320q0-17 11.5-28.5T800-360v-240H160v240h200q17 0 28.5 11.5T400-320q0 17-11.5 28.5T360-280H160Zm376-16-76-35q-6-3-6-9t6-9l76-35 35-76q3-6 9-6t9 6l35 76 76 35q6 3 6 9t-6 9l-76 35-35 76q-3 6-9 6t-9-6l-35-76Zm119-159-35-16q-6-3-6-9t6-9l35-16 16-35q3-6 9-6t9 6l16 35 35 16q6 3 6 9t-6 9l-35 16-16 35q-3 6-9 6t-9-6l-16-35Z""", autoMirror = false)
         .also { _smartButton = it }
 private var _smartButton: ImageVector? = null
+
+/** Material Symbols `smart_toy`. */
+val Icons.Outlined.SmartToy: ImageVector
+    get() = _smartToy ?: symbolVector("Outlined.SmartToy", """M160-360q-50 0-85-35t-35-85q0-50 35-85t85-35v-80q0-33 23.5-56.5T240-760h120q0-50 35-85t85-35q50 0 85 35t35 85h120q33 0 56.5 23.5T800-680v80q50 0 85 35t35 85q0 50-35 85t-85 35v160q0 33-23.5 56.5T720-120H240q-33 0-56.5-23.5T160-200v-160Zm242.5-97.5Q420-475 420-500t-17.5-42.5Q385-560 360-560t-42.5 17.5Q300-525 300-500t17.5 42.5Q335-440 360-440t42.5-17.5Zm240 0Q660-475 660-500t-17.5-42.5Q625-560 600-560t-42.5 17.5Q540-525 540-500t17.5 42.5Q575-440 600-440t42.5-17.5ZM360-280h240q17 0 28.5-11.5T640-320q0-17-11.5-28.5T600-360H360q-17 0-28.5 11.5T320-320q0 17 11.5 28.5T360-280Zm-120 80h480v-480H240v480Zm240-240Z""", autoMirror = false)
+        .also { _smartToy = it }
+private var _smartToy: ImageVector? = null
 
 /** Material Symbols `smartphone`. */
 val Icons.Outlined.Smartphone: ImageVector
@@ -2196,6 +2388,12 @@ val Icons.Outlined.SpaceBar: ImageVector
     get() = _spaceBar ?: symbolVector("Outlined.SpaceBar", """M240-360q-33 0-56.5-23.5T160-440v-120q0-17 11.5-28.5T200-600q17 0 28.5 11.5T240-560v120h480v-120q0-17 11.5-28.5T760-600q17 0 28.5 11.5T800-560v120q0 33-23.5 56.5T720-360H240Z""", autoMirror = false)
         .also { _spaceBar = it }
 private var _spaceBar: ImageVector? = null
+
+/** Material Symbols `speaker`. */
+val Icons.Outlined.Speaker: ImageVector
+    get() = _speaker ?: symbolVector("Outlined.Speaker", """M680-80H280q-33 0-56.5-23.5T200-160v-640q0-33 23.5-56.5T280-880h400q33 0 56.5 23.5T760-800v640q0 33-23.5 56.5T680-80Zm0-80v-640H280v640h400ZM536.5-623.5Q560-647 560-680t-23.5-56.5Q513-760 480-760t-56.5 23.5Q400-713 400-680t23.5 56.5Q447-600 480-600t56.5-23.5ZM593-247q47-47 47-113t-47-113q-47-47-113-47t-113 47q-47 47-47 113t47 113q47 47 113 47t113-47Zm-169.5-56.5Q400-327 400-360t23.5-56.5Q447-440 480-440t56.5 23.5Q560-393 560-360t-23.5 56.5Q513-280 480-280t-56.5-23.5ZM280-800v640-640Z""", autoMirror = false)
+        .also { _speaker = it }
+private var _speaker: ImageVector? = null
 
 /** Material Symbols `speed`. */
 val Icons.Outlined.Speed: ImageVector
@@ -2431,6 +2629,12 @@ val Icons.Outlined.Thermostat: ImageVector
         .also { _thermostat = it }
 private var _thermostat: ImageVector? = null
 
+/** Material Symbols `thunderstorm`. */
+val Icons.Outlined.Thunderstorm: ImageVector
+    get() = _thunderstorm ?: symbolVector("Outlined.Thunderstorm", """M327-40q-10 0-15.5-8T309-65l27-75h-62q-5 0-8-4t-1-9l38-107q3-9 10.5-14.5T331-280h49q11 0 17 9t1 19l-31 72h62q6 0 9 5.5t-1 10.5L346-47q-3 4-7 5.5T327-40Zm270-40q-10 0-15.5-8t-2.5-17l19-55h-64q-5 0-8-4t-1-9l31-87q3-9 10.5-14.5T584-280h48q11 0 17.5 9t1.5 19l-23 52h61q6 0 8.5 5.5T696-184l-80 97q-1 1-19 7ZM300-320q-91 0-155.5-64.5T80-540q0-83 55-145t136-73q32-57 87.5-89.5T480-880q90 0 156.5 57.5T717-679q69 6 116 57t47 122q0 75-52.5 127.5T700-320H300Zm0-80h400q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-40q0-66-47-113t-113-47q-48 0-87.5 26T333-704l-10 24h-25q-57 2-97.5 42.5T160-540q0 58 41 99t99 41Zm180-200Z""", autoMirror = false)
+        .also { _thunderstorm = it }
+private var _thunderstorm: ImageVector? = null
+
 /** Material Symbols `timeline`. */
 val Icons.Outlined.Timeline: ImageVector
     get() = _timeline ?: symbolVector("Outlined.Timeline", """M120-240q-33 0-56.5-23.5T40-320q0-33 23.5-56.5T120-400h10.5q4.5 0 9.5 2l182-182q-2-5-2-9.5V-600q0-33 23.5-56.5T400-680q33 0 56.5 23.5T480-600q0 2-2 20l102 102q5-2 9.5-2h21q4.5 0 9.5 2l142-142q-2-5-2-9.5V-640q0-33 23.5-56.5T840-720q33 0 56.5 23.5T920-640q0 33-23.5 56.5T840-560h-10.5q-4.5 0-9.5-2L678-420q2 5 2 9.5v10.5q0 33-23.5 56.5T600-320q-33 0-56.5-23.5T520-400v-10.5q0-4.5 2-9.5L420-522q-5 2-9.5 2H400q-2 0-20-2L198-340q2 5 2 9.5v10.5q0 33-23.5 56.5T120-240Z""", autoMirror = false)
@@ -2563,6 +2767,12 @@ val Icons.Outlined.Usb: ImageVector
         .also { _usb = it }
 private var _usb: ImageVector? = null
 
+/** Material Symbols `valve`. */
+val Icons.Outlined.Valve: ImageVector
+    get() = _valve ?: symbolVector("Outlined.Valve", """M440-760H320q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760H520v80q0 17-11.5 28.5T480-640q-17 0-28.5-11.5T440-680v-80ZM160-159v-242q0-17 11.5-28.5T200-441q17 0 28.5 11.5T240-401v1h120v-120h-1q-17 0-28.5-11.5T319-560q0-17 11.5-28.5T359-600h242q17 0 28.5 11.5T641-560q0 17-11.5 28.5T601-520h-1v120h120v-1q0-17 11.5-28.5T760-441q17 0 28.5 11.5T800-401v242q0 17-11.5 28.5T760-119q-17 0-28.5-11.5T720-159v-1H240v1q0 17-11.5 28.5T200-119q-17 0-28.5-11.5T160-159Zm80-81h480v-80H520v-200h-80v200H240v80Zm240 0Z""", autoMirror = false)
+        .also { _valve = it }
+private var _valve: ImageVector? = null
+
 /** Material Symbols `verified`. */
 val Icons.Outlined.Verified: ImageVector
     get() = _verified ?: symbolVector("Outlined.Verified", """m438-452-58-57q-11-11-27.5-11T324-508q-11 11-11 28t11 28l86 86q12 12 28 12t28-12l170-170q12-12 11.5-28T636-592q-12-12-28.5-12.5T579-593L438-452ZM326-90l-58-98-110-24q-15-3-24-15.5t-7-27.5l11-113-75-86q-10-11-10-26t10-26l75-86-11-113q-2-15 7-27.5t24-15.5l110-24 58-98q8-13 22-17.5t28 1.5l104 44 104-44q14-6 28-1.5t22 17.5l58 98 110 24q15 3 24 15.5t7 27.5l-11 113 75 86q10 11 10 26t-10 26l-75 86 11 113q2 15-7 27.5T802-212l-110 24-58 98q-8 13-22 17.5T584-74l-104-44-104 44q-14 6-28 1.5T326-90Zm52-72 102-44 104 44 56-96 110-26-10-112 74-84-74-86 10-112-110-24-58-96-102 44-104-44-56 96-110 24 10 112-74 86 74 84-10 114 110 24 58 96Zm102-318Z""", autoMirror = false)
@@ -2671,6 +2881,18 @@ val Icons.Outlined.VisibilityOff: ImageVector
         .also { _visibilityOff = it }
 private var _visibilityOff: ImageVector? = null
 
+/** Material Symbols `volume_off`. */
+val Icons.Outlined.VolumeOff: ImageVector
+    get() = _volumeOff ?: symbolVector("Outlined.VolumeOff", """M671-177q-11 7-22 13t-23 11q-15 7-30.5 0T574-176q-6-15 1.5-29.5T598-227q4-2 7.5-4t7.5-4L480-368v111q0 27-24.5 37.5T412-228L280-360H160q-17 0-28.5-11.5T120-400v-160q0-17 11.5-28.5T160-600h88L84-764q-11-11-11-28t11-28q11-11 28-11t28 11l680 680q11 11 11 28t-11 28q-11 11-28 11t-28-11l-93-93Zm89-304q0-83-44-151.5T598-735q-15-7-22-21.5t-2-29.5q6-16 21.5-23t31.5 0q97 43 155 131t58 197q0 33-6 65.5T817-353q-8 22-24.5 27.5t-30.5.5q-14-5-22.5-18t-.5-30q11-26 16-52.5t5-55.5ZM591-623q33 21 51 63t18 80v10q0 5-1 10-2 13-14 17t-22-6l-51-51q-6-6-9-13.5t-3-15.5v-77q0-12 10.5-17.5t20.5.5Zm-201-59q-6-6-6-14t6-14l22-22q19-19 43.5-8.5T480-703v63q0 14-12 19t-22-5l-56-56Zm10 328v-94l-72-72H200v80h114l86 86Zm-36-130Z""", autoMirror = false)
+        .also { _volumeOff = it }
+private var _volumeOff: ImageVector? = null
+
+/** Material Symbols `volume_up`. */
+val Icons.Outlined.VolumeUp: ImageVector
+    get() = _volumeUp ?: symbolVector("Outlined.VolumeUp", """M760-481q0-83-44-151.5T598-735q-15-7-22-21.5t-2-29.5q6-16 21.5-23t31.5 0q97 43 155 131.5T840-481q0 108-58 196.5T627-153q-16 7-31.5 0T574-176q-5-15 2-29.5t22-21.5q74-34 118-102.5T760-481ZM280-360H160q-17 0-28.5-11.5T120-400v-160q0-17 11.5-28.5T160-600h120l132-132q19-19 43.5-8.5T480-703v446q0 27-24.5 37.5T412-228L280-360Zm380-120q0 42-19 79.5T591-339q-10 6-20.5.5T560-356v-250q0-12 10.5-17.5t20.5.5q31 25 50 63t19 80ZM400-606l-86 86H200v80h114l86 86v-252ZM300-480Z""", autoMirror = false)
+        .also { _volumeUp = it }
+private var _volumeUp: ImageVector? = null
+
 /** Material Symbols `volunteer_activism`. */
 val Icons.Outlined.VolunteerActivism: ImageVector
     get() = _volunteerActivism ?: symbolVector("Outlined.VolunteerActivism", """m558-144 238-74q-5-9-14.5-15.5T760-240H558q-27 0-43-2t-33-8l-57-19q-16-5-23-20t-2-31q5-16 19.5-23.5T450-346l42 14q17 5 38.5 8t58.5 4h11q0-11-6.5-21T578-354l-234-86h-64v220l278 76Zm-21 78-257-72q-8 26-31.5 42T200-80h-80q-33 0-56.5-23.5T40-160v-280q0-33 23.5-56.5T120-520h224q7 0 14 1.5t13 3.5l235 87q33 12 53.5 42t20.5 66h80q50 0 85 33t35 87q0 22-11.5 34.5T833-145L583-67q-11 4-23 4t-23-3Zm-417-94h80v-280h-80v280Zm490.5-317.5Q596-483 584-494L474-602q-31-30-52.5-66.5T400-748q0-55 38.5-93.5T532-880q32 0 60 13.5t48 36.5q20-23 48-36.5t60-13.5q55 0 93.5 38.5T880-748q0 43-21 79.5T807-602L696-494q-12 11-26.5 16.5T640-472q-15 0-29.5-5.5ZM640-552l109-107q19-19 35-40.5t16-48.5q0-22-15-37t-37-15q-14 0-26.5 5.5T700-778l-29 35q-12 14-31 14t-31-14l-29-35q-9-11-21.5-16.5T532-800q-22 0-37 15t-15 37q0 27 16 48.5t35 40.5l109 107Zm0-154Z""", autoMirror = false)
@@ -2701,6 +2923,12 @@ val Icons.Outlined.WaterDrop: ImageVector
         .also { _waterDrop = it }
 private var _waterDrop: ImageVector? = null
 
+/** Material Symbols `water_heater`. */
+val Icons.Outlined.WaterHeater: ImageVector
+    get() = _waterHeater ?: symbolVector("Outlined.WaterHeater", """M372-529q0 19 6.5 37t18.5 33q2-12 8-23.5t15-19.5l60-58 59 59q9 8 15 19t8 23q11-15 19.5-32t8.5-36q0-19-6-36.5T566-596q-11 5-22.5 8t-23.5 3q-30 0-55-17t-38-45q-12 12-22 25.5T387.5-593q-7.5 15-11.5 31t-4 33Zm108 53-17 17q-4 4-5.5 8t-1.5 9q0 10 7 16t17 6q10 0 17-6t7-16q0-5-1.5-9t-5.5-8l-17-17Zm0-284v76q0 17 12 28.5t29 11.5q11 0 20-6.5t16-15.5l7-10q41 23 63.5 62.5T650-527q0 70-50 118.5T480-360q-70 0-119-49t-49-119q0-77 49-137t119-95ZM240-80q-33 0-56.5-23.5T160-160v-560q0-66 47-113t113-47h320q66 0 113 47t47 113v560q0 33-23.5 56.5T720-80H240Zm0-160v80h480v-80q-30 0-48 20t-72 20q-54 0-70.5-20T480-240q-33 0-49.5 20T360-200q-54 0-70.5-20T240-240Zm120-40q33 0 49.5-20t70.5-20q54 0 72 20t48 20q30 0 48-20t72-20v-400q0-33-23.5-56.5T640-800H320q-33 0-56.5 23.5T240-720v400q54 0 70.5 20t49.5 20Z""", autoMirror = false)
+        .also { _waterHeater = it }
+private var _waterHeater: ImageVector? = null
+
 /** Material Symbols `waves`. */
 val Icons.Outlined.Waves: ImageVector
     get() = _waves ?: symbolVector("Outlined.Waves", """M280-202q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-230q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-185q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-164 544.5-155t-64.5 9q-39 0-64.5-9t-46-19.5Q349-185 329-193.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-408q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-363q0 17-12 28t-29 8q-52-9-81-31t-78-22q-29 0-49.5 8.5t-41 19Q569-342 544-333t-64 9q-39 0-64.5-9t-46-19.5Q349-363 329-371.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-586q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-541q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-520 544.5-511t-64.5 9q-39 0-64.5-9t-46-19.5Q349-541 329-549.5t-49-8.5Zm0-178q-49 0-78 22t-81 31q-17 3-29-8t-12-28q0-17 11.5-28.5T120-764q36-11 68-30.5t92-19.5q38 0 62.5 8.5t45.5 19q21 10.5 42 19.5t50 9q29 0 50-9t42-19.5q21-10.5 46-19t62-8.5q60 0 92 19.5t68 30.5q17 5 28.5 16.5T880-719q0 17-12 28t-29 8q-52-9-81-31t-78-22q-28 0-48.5 8.5t-41 19Q570-698 544.5-689t-64.5 9q-39 0-64.5-9t-46-19.5Q349-719 329-727.5t-49-8.5Z""", autoMirror = false)
@@ -2719,6 +2947,12 @@ val Icons.Outlined.WbTwilight: ImageVector
         .also { _wbTwilight = it }
 private var _wbTwilight: ImageVector? = null
 
+/** Material Symbols `weather_snowy`. */
+val Icons.Outlined.WeatherSnowy: ImageVector
+    get() = _weatherSnowy ?: symbolVector("Outlined.WeatherSnowy", """M224.5-214.5Q210-229 210-250t14.5-35.5Q239-300 260-300t35.5 14.5Q310-271 310-250t-14.5 35.5Q281-200 260-200t-35.5-14.5Zm120 120Q330-109 330-130t14.5-35.5Q359-180 380-180t35.5 14.5Q430-151 430-130t-14.5 35.5Q401-80 380-80t-35.5-14.5Zm120-120Q450-229 450-250t14.5-35.5Q479-300 500-300t35.5 14.5Q550-271 550-250t-14.5 35.5Q521-200 500-200t-35.5-14.5Zm240 0Q690-229 690-250t14.5-35.5Q719-300 740-300t35.5 14.5Q790-271 790-250t-14.5 35.5Q761-200 740-200t-35.5-14.5Zm-120 120Q570-109 570-130t14.5-35.5Q599-180 620-180t35.5 14.5Q670-151 670-130t-14.5 35.5Q641-80 620-80t-35.5-14.5ZM300-360q-91 0-155.5-64.5T80-580q0-83 55-145t136-73q32-57 87.5-89.5T480-920q90 0 156.5 57.5T717-719q69 6 116 57t47 122q0 75-52.5 127.5T700-360H300Zm0-80h400q42 0 71-29t29-71q0-42-29-71t-71-29h-60v-40q0-66-47-113t-113-47q-48 0-87.5 26T333-744l-10 24h-25q-57 2-97.5 42.5T160-580q0 58 41 99t99 41Zm180-100Z""", autoMirror = false)
+        .also { _weatherSnowy = it }
+private var _weatherSnowy: ImageVector? = null
+
 /** Material Symbols `weekend`. */
 val Icons.Outlined.Weekend: ImageVector
     get() = _weekend ?: symbolVector("Outlined.Weekend", """M160-680q0-50 35-85t85-35h400q50 0 85 35t35 85v80q50 0 85 35t35 85v200q0 50-35 85t-85 35H160q-50 0-85-35t-35-85v-200q0-50 35-85t85-35v-80Zm80 0v112q18 17 29 39t11 49v80h400v-80q0-27 11-49t29-39v-112q0-17-11.5-28.5T680-720H280q-17 0-28.5 11.5T240-680Zm520 360H200v-160q0-8-3-15.5t-8.5-13q-5.5-5.5-13-8.5t-15.5-3q-17 0-28.5 11.5T120-480v200q0 17 11.5 28.5T160-240h640q17 0 28.5-11.5T840-280v-200q0-17-11.5-28.5T800-520q-8 0-15.5 3t-13 8.5q-5.5 5.5-8.5 13t-3 15.5v160Zm-280 0Zm0 80Zm0-160Z""", autoMirror = false)
@@ -2736,6 +2970,12 @@ val Icons.Outlined.Wifi: ImageVector
     get() = _wifi ?: symbolVector("Outlined.Wifi", """M409-149q-29-29-29-71t29-71q29-29 71-29t71 29q29 29 29 71t-29 71q-29 29-71 29t-71-29Zm213.5-387Q690-512 745-470q20 15 20.5 39.5T748-388q-17 17-42 17.5T661-384q-38-26-84-41t-97-15q-51 0-97 15t-84 41q-20 14-45 13t-42-18q-17-18-17-42.5t20-39.5q55-42 122.5-65.5T480-560q75 0 142.5 24Zm93-223Q826-718 914-643q20 17 21 42t-17 43q-17 17-42 17.5T831-556q-72-59-161.5-91.5T480-680q-100 0-189.5 32.5T129-556q-20 16-45 15.5T42-558q-18-18-17-43t21-42q88-75 198.5-116T480-800q125 0 235.5 41Z""", autoMirror = false)
         .also { _wifi = it }
 private var _wifi: ImageVector? = null
+
+/** Material Symbols `window`. */
+val Icons.Outlined.Window: ImageVector
+    get() = _window ?: symbolVector("Outlined.Window", """M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm320-320v240h240v-240H520Zm0-80h240v-240H520v240Zm-80 0v-240H200v240h240Zm0 80H200v240h240v-240Z""", autoMirror = false)
+        .also { _window = it }
+private var _window: ImageVector? = null
 
 /** Material Symbols `work`. */
 val Icons.Outlined.WorkOutline: ImageVector

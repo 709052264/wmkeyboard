@@ -31,6 +31,9 @@ sealed interface ToolPrefill {
     /** A search the GIF/sticker panel opens on. */
     data class Gif(val query: String) : ToolPrefill
 
+    /** A sentence the Home Assistant panel sends to Assist as it opens. */
+    data class Assist(val sentence: String) : ToolPrefill
+
     /** A vocabulary word whose card the panel opens on. */
     data class Vocab(val word: String) : ToolPrefill
 
@@ -230,6 +233,8 @@ object SmartSuggest {
         val lookupChips: Boolean = true,
         val intentChips: Boolean = true,
         val gifChips: Boolean = true,
+        /** Home Assistant is connected, so a command for the house can be run by a chip. */
+        val haReady: Boolean = false,
         // ---- vocabulary nudges ----
         /** "hate" → abhor, when a plainer word with a stronger alternative is typed. */
         val vocabChips: Boolean = true,
@@ -1506,6 +1511,16 @@ object SmartSuggest {
      * opens the Location tool and keeps what was typed, so the place goes in
      * after the words.
      */
+    /**
+     * A sentence that reads like a command for the house, from its verb to the
+     * end of the typed text. Only the common verbs, and only with a target
+     * after them: "turn" alone is not a command.
+     */
+    private val HA_TAIL = Regex(
+        """(?i)\b(?:(?:turn|switch|put|set)\s+(?:on|off)\s+(?:the\s+)?\S.*|(?:turn|switch|set)\s+(?:the\s+)?\S.*\s+(?:on|off|to\s+\S.*)|dim\s+(?:the\s+)?\S.*|(?:lock|unlock)\s+(?:the\s+)?\S.*|(?:open|close)\s+(?:the\s+)?(?:garage|blinds?|curtains?|shutters?|gate|door)\b.*|start\s+(?:the\s+)?(?:vacuum|robot|cleaning)\b.*|(?:play|pause|resume|stop)\s+(?:the\s+)?(?:music|tv|radio|speaker|player)\b.*|(?:arm|disarm)\s+(?:the\s+)?(?:alarm|house|home)\b.*)$""",
+    )
+    private const val HA_MIN_LENGTH = 8
+
     private val LOCATION_TAIL = Regex(
         "(?:^|[^\\p{L}])(?:i'?m at|i am at|i'?m here|i am here|my (?:current )?location|where i am|" +
             "(?:send|share|here'?s|here is) (?:you )?my (?:current )?location)\\s?[:?!.]?$",
@@ -1562,6 +1577,14 @@ object SmartSuggest {
             // Straight quotes and curly ones both: phones type ’ in "I’m".
             LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
                 return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
+            }
+        }
+        if (ctx.haReady && toolOn(ToolbarTool.HOME_ASSISTANT, ctx)) {
+            // "turn off the kitchen lights", "dim the bedroom to 30%", "lock the front door":
+            // the sentence goes to Assist as typed, which resolves the names itself.
+            HA_TAIL.find(tail)?.let {
+                val sentence = it.value.trim().trimEnd('.', '!', '?', ' ')
+                if (sentence.length >= HA_MIN_LENGTH) return intentHit(ToolbarTool.HOME_ASSISTANT, sentence, ToolPrefill.Assist(sentence))
             }
         }
         return null
@@ -1823,6 +1846,8 @@ object SmartSuggest {
         ToolbarTool.LOCATION to listOf("location", "gps"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        // Not "home" or "lights" alone: both are everyday prose.
+        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
         ToolbarTool.GALLERY to listOf("gallery", "photos", "pics"),
         ToolbarTool.LEVEL to listOf("level"),

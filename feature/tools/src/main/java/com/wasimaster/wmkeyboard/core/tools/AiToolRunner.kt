@@ -140,6 +140,7 @@ class AiToolRunner(
         AiTools.CURRENT_LOCATION -> LocationAccess.declared(context)
         AiTools.OPEN_APP -> host?.canOpenApps == true
         AiTools.SEND_TO_PC -> host?.canSendToPc == true && settings.kdeConnect.enabled
+        AiTools.HOME_ASSISTANT, AiTools.HOME_ASSISTANT_STATES -> host?.canControlHome == true
         // Only with a picture in the chat, and the reader only for a model
         // that cannot look at the picture itself.
         AiTools.READ_IMAGE_TEXT -> host.let { it != null && it.imageCount > 0 && it.canReadImageText && !it.modelSeesImages }
@@ -295,6 +296,8 @@ class AiToolRunner(
         AiTools.OPEN_APP -> openApp(call)
         AiTools.MEDIA_CONTROL -> mediaControl(call)
         AiTools.SEND_TO_PC -> sendToPc(call)
+        AiTools.HOME_ASSISTANT -> homeAssistant(call)
+        AiTools.HOME_ASSISTANT_STATES -> homeAssistantStates(call)
         AiTools.READ_IMAGE_TEXT -> readImageText(call)
         AiTools.REVERSE_IMAGE_SEARCH -> reverseImageSearch(call)
         else -> refused(
@@ -855,6 +858,28 @@ class AiToolRunner(
             onFailure = { failure ->
                 val why = failure.message.orEmpty()
                 refusedWith(call, R.string.ftools_ai_tool_pc_failed, R.string.ftools_ai_tool_reason_pc_failed, why)
+            },
+        )
+    }
+
+    /** One sentence to the user's Home Assistant, through its Assist; what it said back is the result. */
+    private fun homeAssistant(call: AiToolCall): AiToolResult {
+        val request = call.argument("request") ?: return missing(call, "request")
+        val home = host ?: return refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, "")
+        return home.homeControl(request).fold(
+            onSuccess = { speech -> AiToolResult(call, speech.ifBlank { "Done." }) },
+            onFailure = { failure ->
+                refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, failure.message.orEmpty())
+            },
+        )
+    }
+
+    private fun homeAssistantStates(call: AiToolCall): AiToolResult {
+        val home = host ?: return refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, "")
+        return home.homeStates(call.argument("query")).fold(
+            onSuccess = { AiToolResult(call, it) },
+            onFailure = { failure ->
+                refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, failure.message.orEmpty())
             },
         )
     }

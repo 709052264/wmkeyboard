@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">Ielīmējiet saiti un nospiediet Enter, lai to atvērtu, vai ielīmējiet vairākus klipus ar atstarpi vai jaunu rindiņu starp tiem, neatgriežoties pie tastatūras. ABC atgriežas pie burtiem. Ja mainījāt paneļa izkārtojumu, šis iestatījums neko nedara: tā vietā pievienojiet taustiņus izkārtojuma redaktorā. Rinda netiek rādīta, kamēr starpliktuve ir novietota virs taustiņiem. Šis iestatījums pēc noklusējuma ir izslēgts.</string>
     <string name="clipboard_key_row_subtitle">Taustiņu rinda starpliktuves paneļa apakšā</string>
     <string name="clipboard_key_row_title">ABC, atstarpes un ievades taustiņi</string>
-    <string name="clipboard_line_spacing_info">Pie 100% klipa rindas atrodas tik tuvu, cik atļauj fonts. Palieliniet to, lai tās izkliedētu. Noklusējums ir 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pie 100% klipa rindas atrodas tik tuvu, cik atļauj fonts. Palieliniet to, lai tās izkliedētu. Noklusējums ir 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Atstarpe starp klipa teksta rindām</string>
     <string name="clipboard_line_spacing_title">Rindu atstarpes</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

@@ -16,7 +16,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 88 | 94 |
-| Toolbar and the tool set | 10 | 86 | 337 |
+| Toolbar and the tool set | 10 | 87 | 352 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 11 | 71 | 167 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
@@ -1596,7 +1596,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## Toolbar and the tool set
 
-- **Toolbar & toolbox mechanics** `uncommon` — 85 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
+- **Toolbar & toolbox mechanics** `uncommon` — 86 tools in ToolbarTool enum; 3 pinned by default (Emoji, Clipboard, Settings)
   - Pinned bar vs toolbox — A tool is on the bar or in the toolbox grid, never both
     - Default pinned row — Emoji, Clipboard, Settings (DefaultToolbarTools)
     - Tablet-aware default pin set — 5 pinned on small tablets, 7 on large, applied only if user never rearranged
@@ -1653,7 +1653,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Tool background radius and shape — toolCircleRadiusDp default 20, toolShape shares the key shapes; 0 removes it
     - Tool button width 38dp default — toolWidthDp stretches the circle into a pill
     - Tool icon size 22dp default (14–30) — toolbarBehavior.iconSizeDp, glyph only, button stays 38dp; toolbar + toolbox grid
-  - Per-tool settings screen `RARE` — Every one of the 85 tools has its own screen under Settings → Tools
+  - Per-tool settings screen `RARE` — Every one of the 86 tools has its own screen under Settings → Tools
     - Eight groups plus an Other catch-all — Panels, Scanners, Online, Create & convert, Modes, Cursor, Quick actions, Utilities
     - Tune icon marks tools with real options — toolHasOptions; toggle-only tools show just the switch
     - One switch controls bar, toolbox and leader key — setToolEnabled hides the tool everywhere at once
@@ -1662,7 +1662,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Per-tool colour override — toolColorOverrides map, reset-all button when any override exists
     - Two-colour gradient icons — toolIconGradients off by default, with its own end-colour override map
     - Icon-pack glyph substitution — IconSlots.forTool resolves an installed icon pack's glyph
-  - Direct-boot tool filter `RARE` — 49 of 84 tools work before the first unlock after reboot
+  - Direct-boot tool filter `RARE` — 50 of 86 tools work before the first unlock after reboot
     - Rule is what the tool reads — Arithmetic, sensors and keyboard-own state stay; disk, credentials, providers, activities go
     - All 14 cursor tools stay usable — They only touch the input connection
     - Not a user toggle — isDirectBootSafeTool is automatic and only applies pre-first-unlock
@@ -2056,6 +2056,20 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Conditional stat grid — Feels-like, humidity, wind always; rain chance, cloud, pressure, UV, sunrise, sunset when present
     - 8-point wind direction — Plus emoji and short description for current conditions
     - Shares its location with the compass — Qibla reads the same saved coordinates
+  - Home Assistant `RARE` — The user's own Home Assistant from the keyboard: rooms of live tiles, a card of controls per entity, a typed Assist bar
+    - Live over the WebSocket API — `subscribe_entities` compressed stream applied in a JVM-tested engine (`:core:homeassistant`); REST fallback; reconnect with backoff; a refused token stops and asks once
+    - Browser sign-in, IndieAuth style — The docs site's `/ha/` page is the client id and names `wmkeyboard://ha-auth`; tokens refresh themselves; a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server
+    - Two addresses — Home first, remote fallback, remembered per session
+    - Tiles by room — Favourites, one tab per HA area in floor order, Elsewhere, All; search by name, id or room; a tab per room can be switched off
+    - Every kind — light (brightness, warmth, hue, colours, effects), switch, fan, cover, valve, climate dial, media transport and volume, lock, alarm with codes, vacuum, humidifier, water heater, siren, number, select, text, button, scene, script, automation, camera stills (sendable as a picture), sensors with three insert formats
+    - Optimistic taps — The tile shows the expected state, the server's event confirms it, a refusal shakes it back
+    - Hold to confirm — Locks, alarms, garage doors, gates, sirens and valves fill a ring for 800 ms before acting
+    - Motion — Staggered tile entrance, a pulse ring when the server changes an entity, run flash on scenes, card grows from the middle, rolling thermostat digits, breathing status dot while connecting; all under the motion flags
+    - Assist bar — A capture target under the tiles; the reply slides up, touched tiles ring, Insert reply types it; conversation id kept per panel session
+    - Smart chip — "turn off the lights" typed anywhere offers Ask home, which opens the panel and sends it
+    - AI chat tools — `home_assistant` (Assist, one sentence) and `home_assistant_states` (what is on, or a search), both Ask by default
+    - Snippet variables — `{ha:entity_id}` and `{ha:entity_id:attribute}`
+    - Cache — Last states on disk so the panel draws at once, dimmed until live; excluded from backups; tokens in SECRET_KEYS and never in the direct-boot mirror
   - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
     - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
     - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is
@@ -2141,7 +2155,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
 | 35 tools of 83 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 79 of 84 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| Lite edition tool count | 81 of 86 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 

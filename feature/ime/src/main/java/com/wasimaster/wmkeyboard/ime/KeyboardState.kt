@@ -770,6 +770,14 @@ enum class PanelMode {
     CLOCK,
 
     /**
+     * The Home Assistant tool: the house's entities as tiles, live from the
+     * server, and a typed Assist bar. Its state is the controller's, see
+     * `ime.homeassistant.HaUi`; its search, Assist and code boxes take the keys
+     * through the `HA_*` capture targets.
+     */
+    HOME_ASSISTANT,
+
+    /**
      * The gallery tool (#708): the phone's photos and videos, picked, viewed,
      * edited and sent. Its state is the controller's, see
      * `ime.gallery.GalleryUi`; its caption box and the editor's text take the
@@ -954,6 +962,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The room tabs, the tiles, then the open tile's controls.
+    PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.
     PanelMode.GALLERY -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     PanelMode.PASSWORD_GEN ->
@@ -3624,6 +3634,12 @@ data class KeyboardUiState(
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
     /**
+     * The Home Assistant panel's text box while it has the keys: a search, an
+     * Assist sentence, a lock code, a text entity's value. The rest of the
+     * panel's state is the controller's.
+     */
+    val haText: com.wasimaster.wmkeyboard.ime.homeassistant.HaTextEntry? = null,
+    /**
      * The gallery panel's text box while it has the keys: the caption, or a
      * text layer in the editor. The rest of the panel's state is the controller's.
      */
@@ -4079,6 +4095,10 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val haTypingActive: Boolean
+        get() = panel == PanelMode.HOME_ASSISTANT && haText != null
+
     /** Whether the gallery panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val galleryTypingActive: Boolean
         get() = panel == PanelMode.GALLERY && galleryText != null
@@ -4166,6 +4186,11 @@ data class KeyboardUiState(
                 CaptureTarget.CLOCK_LABEL
             }
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
+        haTypingActive -> when (haText?.field) {
+            com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.SEARCH -> CaptureTarget.HA_SEARCH
+            com.wasimaster.wmkeyboard.ime.homeassistant.HaTextField.ASSIST -> CaptureTarget.HA_ASSIST
+            else -> CaptureTarget.HA_TEXT
+        }
         textRepeatTypingActive ->
             if (textRepeat.focused == TextRepeatField.SEPARATOR) {
                 CaptureTarget.REPEAT_SEPARATOR
@@ -4234,6 +4259,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator
         CaptureTarget.GALLERY_TEXT -> galleryText?.text.orEmpty()

@@ -109,6 +109,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.LOCATION -> Color(0xFFE53935)
     // An evening indigo: a clock face at night, and apart from the calendar's red.
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
+    // Home Assistant's own sky blue, so the tile reads as the house it controls.
+    ToolbarTool.HOME_ASSISTANT -> Color(0xFF18BCF2)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
     ToolbarTool.GALLERY -> Color(0xFFFF7043)
     ToolbarTool.MOON_PHASE -> Color(0xFF7986CB)

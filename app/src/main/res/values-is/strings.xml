@@ -1148,7 +1148,7 @@
     <string name="clipboard_key_row_info">Límdu inn tengil og ýttu á enter til að fara á hann, eða límdu inn fleiri klippur með bili eða nýrri línu á milli þeirra, án þess að fara aftur á lyklaborðið. ABC fer aftur á bókstafina. Ef þú breyttir útliti spjaldsins gerir þessi stilling ekkert: bættu frekar við tökkunum í útlitritlinum. Röðin sést ekki á meðan klemmuspjaldið er staflað yfir takkana. Þessi stilling er óvirk sjálfgefið.</string>
     <string name="clipboard_key_row_subtitle">Röð af lyklum neðst á klippispjaldinu</string>
     <string name="clipboard_key_row_title">ABC, bil- og færslulyklar</string>
-    <string name="clipboard_line_spacing_info">Við 100% eru línur í klippi eins þéttar og leturgerðin leyfir. Hækkaðu gildið til að auka bilið. Sjálfgefið gildi er 130%.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Við 100% eru línur í klippi eins þéttar og leturgerðin leyfir. Hækkaðu gildið til að auka bilið. Sjálfgefið gildi er 130%.</string>
     <string name="clipboard_line_spacing_subtitle">Bilið á milli línanna í texta klippu</string>
     <string name="clipboard_line_spacing_title">Línubil</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

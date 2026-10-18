@@ -386,8 +386,10 @@ data class ProviderChain(
         return if (added.isEmpty()) this else copy(entries = entries + added.map { ProviderEntry(it.id) })
     }
 
-    private companion object {
-        val APPENDING = setOf(ProviderTool.DICTIONARY, ProviderTool.SYNONYMS, ProviderTool.VOCAB_AUTOFILL)
+    // Not private: the serialization plugin hangs `serializer()` on the
+    // companion, and ProviderCodec has to reach it.
+    companion object {
+        private val APPENDING = setOf(ProviderTool.DICTIONARY, ProviderTool.SYNONYMS, ProviderTool.VOCAB_AUTOFILL)
     }
 }
 

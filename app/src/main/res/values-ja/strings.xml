@@ -1151,7 +1151,7 @@
     <string name="clipboard_key_row_info">リンクを貼り付けてEnterキーを押すとそのページに移動します。また、キーボードに戻ることなく、スペースや改行で区切って複数のクリップを貼り付けることもできます。「ABC」で文字入力に戻ります。パネルレイアウトを変更した場合、この設定は機能しません。代わりにレイアウトエディタでキーを追加してください。クリップボードがキーの上に重なっている間、この行は表示されません。この設定はデフォルトでオフになっています。</string>
     <string name="clipboard_key_row_subtitle">クリップボードパネルの下部に沿ったキーの列</string>
     <string name="clipboard_key_row_title">ABC、スペース、Enterキー</string>
-    <string name="clipboard_line_spacing_info">100%に設定すると、クリップの行間はフォントが許容する最小の間隔になります。数値を上げると行間が広がります。デフォルトは130%です。</string>
+    <string name="clipboard_line_spacing_info" formatted="false">100%に設定すると、クリップの行間はフォントが許容する最小の間隔になります。数値を上げると行間が広がります。デフォルトは130%です。</string>
     <string name="clipboard_line_spacing_subtitle">クリップのテキストの行間</string>
     <string name="clipboard_line_spacing_title">行間</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -8479,7 +8479,7 @@
     <string name="typing_letter_swipe_select_key_label">キーまでスライド</string>
     <string name="typing_letter_swipe_type_words_desc">キーをスワイプして1単語を入力</string>
     <string name="typing_letter_swipe_type_words_label">単語を入力</string>
-    <string name="typing_mistype_tolerance_info">タップ位置は、押したキーだけでなく、その周囲のキーとの関係でも判定されるため、キーの端をタップしても隣のキーとして認識されることがあります。この設定で、その判定の許容範囲を調整します。100%より大きくすると、隣接するキーの内側をタップしても誤入力とみなされやすくなり、素早い入力や大きな指での入力に適しています。100%より小さくすると、実際に押したキーがより重視され、慎重な入力に適しています。この設定は、候補バーに表示される単語や自動修正の選択に影響します。デフォルトは100%です。</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">タップ位置は、押したキーだけでなく、その周囲のキーとの関係でも判定されるため、キーの端をタップしても隣のキーとして認識されることがあります。この設定で、その判定の許容範囲を調整します。100%より大きくすると、隣接するキーの内側をタップしても誤入力とみなされやすくなり、素早い入力や大きな指での入力に適しています。100%より小さくすると、実際に押したキーがより重視され、慎重な入力に適しています。この設定は、候補バーに表示される単語や自動修正の選択に影響します。デフォルトは100%です。</string>
     <string name="typing_mistype_tolerance_subtitle">隣接するキーをタップした際、どの程度までなら誤入力として許容するか</string>
     <string name="typing_mistype_tolerance_title">打ち間違いの許容範囲</string>
     <string name="typing_new_word_sightings_info">辞書に存在しない単語のみがカウントされます。辞書にある単語は、入力した瞬間に学習されます。単語の使用は、その単語から離れて入力を続けた場合にのみカウントされるため、戻って修正した誤字はカウントされません。独自の固有名詞やスラングがなかなか学習されない場合は、この値を下げてください。1に設定すると、古いバージョンと同様に、すべての新しい単語が即座に保存されます。この設定のデフォルト値は3です。</string>

@@ -582,6 +582,16 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_chat_tool_builtin_running,
         R.string.ime_ai_chat_tool_builtin_done,
     ),
+    AiTools.HOME_ASSISTANT to ToolLabels(
+        R.string.ime_ai_tool_name_home_assistant,
+        R.string.ime_ai_tool_home_assistant_running,
+        R.string.ime_ai_tool_home_assistant_done,
+    ),
+    AiTools.HOME_ASSISTANT_STATES to ToolLabels(
+        R.string.ime_ai_tool_name_home_assistant_states,
+        R.string.ime_ai_tool_home_assistant_states_running,
+        R.string.ime_ai_tool_home_assistant_states_done,
+    ),
     AiTools.ADD_CALENDAR_EVENT to ToolLabels(
         R.string.ime_ai_tool_name_add_calendar_event,
         R.string.ime_ai_tool_add_calendar_event_running,

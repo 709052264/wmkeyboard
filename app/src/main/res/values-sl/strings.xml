@@ -1153,7 +1153,7 @@
     <string name="clipboard_key_row_info">Prilepite povezavo in pritisnite enter, da jo odprete, ali prilepite več izrezkov s presledkom ali novo vrstico med njimi, ne da bi se vrnili na tipkovnico. ABC se vrne na črke. Če ste spremenili postavitev plošče, ta nastavitev ne naredi ničesar: namesto tega dodajte tipke v urejevalniku postavitve. Vrstica ni prikazana, medtem ko je odložišče zloženo nad tipkami. Ta nastavitev je privzeto izklopljena.</string>
     <string name="clipboard_key_row_subtitle">Vrstica tipk vzdolž dna plošče odložišča</string>
     <string name="clipboard_key_row_title">Tipke ABC, presledek in vnos</string>
-    <string name="clipboard_line_spacing_info">Pri 100 % so vrstice izrezka tako blizu, kot dovoljuje pisava. Povečajte vrednost, da jih razmaknete. Privzeta vrednost je 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Pri 100 % so vrstice izrezka tako blizu, kot dovoljuje pisava. Povečajte vrednost, da jih razmaknete. Privzeta vrednost je 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Razmik med vrsticami besedila izrezka</string>
     <string name="clipboard_line_spacing_title">Razmik med vrsticami</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

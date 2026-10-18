@@ -40,6 +40,20 @@ interface AiToolHost {
     fun sendToPc(text: String): Result<String> =
         Result.failure(UnsupportedOperationException("no KDE Connect here"))
 
+    /** Whether [homeControl] and [homeStates] have a signed-in Home Assistant behind them. */
+    val canControlHome: Boolean get() = false
+
+    /**
+     * Sends [request] to Home Assistant's Assist and gives back what it said.
+     * Blocking: it waits for the connection and the answer.
+     */
+    fun homeControl(request: String): Result<String> =
+        Result.failure(UnsupportedOperationException("no Home Assistant here"))
+
+    /** The user's entities matching [query], one state per line; everything on or open when [query] is null. Blocking. */
+    fun homeStates(query: String?): Result<String> =
+        Result.failure(UnsupportedOperationException("no Home Assistant here"))
+
     /** How many pictures the user has sent in this conversation (#698). */
     val imageCount: Int get() = 0
 

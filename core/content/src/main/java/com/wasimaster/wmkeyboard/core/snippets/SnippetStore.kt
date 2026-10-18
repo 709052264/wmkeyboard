@@ -1123,6 +1123,12 @@ class SnippetStore(private val storageFile: File?) {
             val location: ((format: String?) -> String?)? = null,
             /** `{place:Home}` and `{place:Home:format}`: a saved place, by name. */
             val place: ((name: String, format: String?) -> String?)? = null,
+            /**
+             * `{ha:sensor.outside}` and `{ha:sensor.outside:unit_of_measurement}`:
+             * a Home Assistant entity's state, or one of its attributes, as last
+             * seen; null when the tool is off or knows nothing about the entity.
+             */
+            val homeAssistant: ((entityId: String, attribute: String?) -> String?)? = null,
         )
 
         /** Expanded text plus where the cursor should end up inside it. */
@@ -1142,6 +1148,9 @@ class SnippetStore(private val storageFile: File?) {
 
         /** `{place:Home}` or `{place:Home:address}`. */
         private val PLACE = Regex("""\{place:([^}:\n]{1,60})(?::([a-z_]{1,20}))?\}""")
+
+        /** `{ha:light.kitchen}` or `{ha:sensor.outside:unit_of_measurement}`. */
+        private val HOME_ASSISTANT = Regex("""\{ha:([a-z0-9_]{1,40}\.[a-z0-9_]{1,80})(?::([a-z0-9_]{1,40}))?\}""")
 
         /** `{random:one|two|three}`, one alternative picked per insertion. */
         private val RANDOM = Regex("""\{random:([^}\n]{1,400})\}""")
@@ -1193,6 +1202,9 @@ class SnippetStore(private val storageFile: File?) {
             // The Location tool's places (#350). Before the plain tokens so an
             // address can never be read as one.
             out = LOCATION.replace(out) { match -> ctx.location?.invoke(match.groupValues[1].ifEmpty { null }).orEmpty() }
+            out = HOME_ASSISTANT.replace(out) { match ->
+                ctx.homeAssistant?.invoke(match.groupValues[1], match.groupValues[2].ifEmpty { null }).orEmpty()
+            }
             out = PLACE.replace(out) { match ->
                 ctx.place?.invoke(match.groupValues[1].trim(), match.groupValues[2].ifEmpty { null }).orEmpty()
             }

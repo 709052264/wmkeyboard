@@ -1154,7 +1154,7 @@
     <string name="clipboard_key_row_info">Įklijuokite nuorodą ir paspauskite „Enter“, kad ją atidarytumėte, arba įklijuokite daugiau iškarpų su tarpu ar nauja eilute tarp jų, negrįždami į klaviatūrą. „ABC“ grįžta prie raidžių. Jei pakeitėte skydelio išdėstymą, šis nustatymas nieko nedaro: pridėkite klavišus išdėstymo redaktoriuje. Eilutė nerodoma, kai iškarpinė yra virš klavišų. Pagal numatytuosius nustatymus šis nustatymas išjungtas.</string>
     <string name="clipboard_key_row_subtitle">Klavišų eilutė išilgai iškarpinės skydelio apačios</string>
     <string name="clipboard_key_row_title">ABC, tarpo ir įvedimo klavišai</string>
-    <string name="clipboard_line_spacing_info">Esant 100 %, iškarpų eilutės yra kuo arčiau viena kitos, kiek leidžia šriftas. Padidinkite, kad jas atskirtumėte. Numatytasis nustatymas yra 130 %.</string>
+    <string name="clipboard_line_spacing_info" formatted="false">Esant 100 %, iškarpų eilutės yra kuo arčiau viena kitos, kiek leidžia šriftas. Padidinkite, kad jas atskirtumėte. Numatytasis nustatymas yra 130 %.</string>
     <string name="clipboard_line_spacing_subtitle">Tarpas tarp iškarpinės teksto eilučių</string>
     <string name="clipboard_line_spacing_title">Eilučių intervalas</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>

@@ -1,0 +1,115 @@
+---
+/**
+ * /ha/ — the OAuth client page for the Home Assistant tool.
+ *
+ * Home Assistant's sign-in works the IndieAuth way: the client id is a web
+ * page, and that page may name the redirect address a native app wants with a
+ * `<link rel="redirect_uri">` in its first 10 kB. This page is that client id,
+ * `https://wmkeyboard.pages.dev/ha/`, and it allows `wmkeyboard://ha-auth`,
+ * which the keyboard's settings app answers. Home Assistant fetches it once
+ * per sign-in to check the redirect; a person only lands here when the
+ * redirect back to the app did not fire, so the page says what to do then.
+ *
+ * Nothing about the user's server or sign-in reaches this host: the browser
+ * goes from Home Assistant straight back to the app.
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const head: { tag: 'link' | 'meta'; attrs: Record<string, string> }[] = [
+	{ tag: 'link', attrs: { rel: 'redirect_uri', href: 'wmkeyboard://ha-auth' } },
+	{ tag: 'meta', attrs: { name: 'wm:own-title', content: '' } },
+];
+---
+
+<StarlightPage
+	frontmatter={{
+		title: 'WM Keyboard for Home Assistant',
+		description: 'The sign-in client for the Home Assistant tool in WM Keyboard.',
+		template: 'splash',
+		tableOfContents: false,
+		pagefind: false,
+		head,
+	}}
+	hasSidebar={false}
+>
+	<div class="ha-page not-content">
+		<div class="ha-card">
+			<div class="ha-pin" aria-hidden="true">🏠</div>
+			<p class="ha-kicker">WM Keyboard</p>
+			<h1 class="ha-title">Signing in to Home Assistant</h1>
+			<p class="ha-detail">
+				Home Assistant checks this page when you connect the keyboard: it is the address the keyboard uses as its
+				name, and it tells Home Assistant that the sign-in may come back to the app. Your server, your account and
+				your key never pass through here.
+			</p>
+			<p class="ha-detail">
+				If you are reading this after signing in, the browser did not hand the result back to the app. Open the
+				keyboard's settings and sign in again from the Home Assistant tool's page.
+			</p>
+			<div class="ha-row">
+				<a class="ha-btn" href="wmkeyboard://settings?route=tool/HOME_ASSISTANT">Back to WM Keyboard</a>
+				<a class="ha-btn ha-btn-quiet" href="/tools/home-assistant/">About the tool</a>
+			</div>
+		</div>
+	</div>
+</StarlightPage>
+
+<style>
+	.ha-page {
+		display: flex;
+		justify-content: center;
+		padding: 3rem 1rem 4rem;
+	}
+	.ha-card {
+		max-width: 34rem;
+		width: 100%;
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 1.25rem;
+		padding: 2rem 1.75rem;
+		background: var(--sl-color-bg-nav);
+		text-align: center;
+	}
+	.ha-pin {
+		font-size: 2.5rem;
+		line-height: 1;
+	}
+	.ha-kicker {
+		margin: 1rem 0 0.25rem;
+		font-size: var(--sl-text-xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.ha-title {
+		margin: 0 0 1rem;
+		font-size: var(--sl-text-2xl);
+		line-height: 1.2;
+	}
+	.ha-detail {
+		margin: 0.5rem 0;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		line-height: 1.6;
+	}
+	.ha-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+	.ha-btn {
+		display: inline-block;
+		padding: 0.65rem 1.1rem;
+		border-radius: 999px;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.ha-btn-quiet {
+		background: transparent;
+		color: var(--sl-color-text);
+		border: 1px solid var(--sl-color-hairline);
+	}
+</style>

@@ -1149,7 +1149,7 @@
     <string name="clipboard_key_row_info">粘贴链接并按回车键即可访问，或用空格或换行符分隔多个剪辑片段以进行连续粘贴，无需切回键盘。点击 ABC 返回字母面板。如果您更改了面板布局，此设置将无效：请改用布局编辑器添加这些按键。当剪贴板悬浮于键盘之上时，该行将隐藏。此设置默认处于关闭状态。</string>
     <string name="clipboard_key_row_subtitle">剪贴板面板底部的一排按键</string>
     <string name="clipboard_key_row_title">ABC、空格和回车键</string>
-    <string name="clipboard_line_spacing_info">在 100% 时，剪贴板条目的行间距尽可能紧凑。调高该值可增加行间距。默认值为 130%。</string>
+    <string name="clipboard_line_spacing_info" formatted="false">在 100% 时，剪贴板条目的行间距尽可能紧凑。调高该值可增加行间距。默认值为 130%。</string>
     <string name="clipboard_line_spacing_subtitle">剪贴板文本的行间距</string>
     <string name="clipboard_line_spacing_title">行间距</string>
     <string name="clipboard_line_spacing_value">%1$d%%</string>
@@ -8469,7 +8469,7 @@
     <string name="typing_letter_swipe_select_key_label">滑动到按键</string>
     <string name="typing_letter_swipe_type_words_desc">在按键上滑动即可拼写一个单词</string>
     <string name="typing_letter_swipe_type_words_label">输入单词</string>
-    <string name="typing_mistype_tolerance_info">系统会根据点击位置而非仅根据击中的按键来读取输入，因此点击按键边缘时仍可能被识别为相邻按键。此设置用于调整该读取的宽容度。超过 100% 时，即使点击在相邻按键内部较深处，仍可能被视为误触，适合快速或忙乱的打字以及手指较大的用户。低于 100% 时，系统更信任您击中的按键，适合细致的打字。这会改变候选词栏提供的词汇以及自动更正的选择。默认值为 100%。</string>
+    <string name="typing_mistype_tolerance_info" formatted="false">系统会根据点击位置而非仅根据击中的按键来读取输入，因此点击按键边缘时仍可能被识别为相邻按键。此设置用于调整该读取的宽容度。超过 100% 时，即使点击在相邻按键内部较深处，仍可能被视为误触，适合快速或忙乱的打字以及手指较大的用户。低于 100% 时，系统更信任您击中的按键，适合细致的打字。这会改变候选词栏提供的词汇以及自动更正的选择。默认值为 100%。</string>
     <string name="typing_mistype_tolerance_subtitle">点击落入相邻按键多远距离仍可计为误触</string>
     <string name="typing_mistype_tolerance_title">误触容错度</string>
     <string name="typing_new_word_sightings_info">仅计算字典中不存在的单词。字典中已有的单词在您输入的那一刻就会被学习。只有在您继续输入并离开该单词后，使用次数才会增加，因此您返回并修复的拼写错误永远不会被计算在内。如果您的名字和俚语需要太长时间才能被记住，请调低此值。将其设置为 1 可立即保存每个新单词，旧版本就是这样做的。此设置默认为 3。</string>

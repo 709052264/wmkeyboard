@@ -141,7 +141,9 @@ object MediaPrep {
      * Not the XMP or the maker note, which point into bytes the new file no
      * longer has (a motion photo's video, a depth map).
      */
-    private val KEEP_TAGS: List<String> = LOCATION_TAGS + listOf(
+    // Lazy: LOCATION_TAGS is declared further down this object, so an eager
+    // initializer here would read it before it is set.
+    private val KEEP_TAGS: List<String> by lazy { LOCATION_TAGS + listOf(
         ExifInterface.TAG_MAKE, ExifInterface.TAG_MODEL, ExifInterface.TAG_ARTIST, ExifInterface.TAG_COPYRIGHT,
         ExifInterface.TAG_IMAGE_DESCRIPTION, ExifInterface.TAG_USER_COMMENT,
         ExifInterface.TAG_LENS_MAKE, ExifInterface.TAG_LENS_MODEL,
@@ -151,7 +153,7 @@ object MediaPrep {
         ExifInterface.TAG_F_NUMBER, ExifInterface.TAG_EXPOSURE_TIME, ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
         ExifInterface.TAG_EXPOSURE_BIAS_VALUE, ExifInterface.TAG_FOCAL_LENGTH, ExifInterface.TAG_FOCAL_LENGTH_IN_35MM_FILM,
         ExifInterface.TAG_FLASH, ExifInterface.TAG_WHITE_BALANCE,
-    )
+    ) }
 
     /**
      * Copies [KEEP_TAGS] from the photo at [from] onto [to], marked upright,

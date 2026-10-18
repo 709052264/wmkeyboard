@@ -14,6 +14,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.zIndex
@@ -3223,7 +3224,7 @@ private fun ClipReorderList(
                     // The whole row after a hold (#612): a handle alone was a
                     // small target for a finger aiming at one clip of many.
                     .pointerInput(item.id) {
-                        androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress(
+                        detectDragGesturesAfterLongPress(
                             onDragStart = { start() },
                             onDragEnd = { drop() },
                             onDragCancel = { cancel() },
