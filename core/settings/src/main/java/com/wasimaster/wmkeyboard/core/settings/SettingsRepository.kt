@@ -2863,7 +2863,7 @@ data class GifSettings(
      */
     val telegramBotToken: String = "",
     /** Provider rating level results are filtered to; see [GifContentFilter]. */
-    val contentFilter: GifContentFilter = GifContentFilter.MEDIUM,
+    val contentFilter: GifContentFilter = GifContentFilter.HIGH,
     /** Tabs per provider vs one evenly-mixed grid, when several have keys. */
     val sourceMode: GifSourceMode = GifSourceMode.TABS,
     /** GIF/sticker results per search or trending fetch (local packs exempt). */
