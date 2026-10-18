@@ -28,8 +28,8 @@ data class AiToolSpec(
  * One call a model asked for.
  *
  * [id] is the provider's own handle for the call, which the result has to
- * quote back. Gemini matches results by tool name instead and the prompt
- * fallback has no ids at all, so it is blank for both.
+ * quote back. Older Gemini models send none and match results by tool name,
+ * and the prompt fallback has no ids at all, so it is blank for those.
  *
  * [arguments] stays the raw JSON object text rather than a parsed map: a model
  * that writes a number where a string belongs, or an extra field nobody asked
