@@ -186,6 +186,22 @@ class ClockLogicTest {
     }
 
     @Test
+    fun discordStylesAndPickedMoments() {
+        val now = at(london, 2026, 10, 14, 22, 0)
+        // 22:00 in London is already the 15th in Kolkata, so tomorrow there
+        // is the 16th, and 12:00 then is 06:30 UTC.
+        val noon = ClockFormats.atLocal(now, kolkata, 1, 12, 0)
+        assertEquals(at(utc, 2026, 10, 16, 6, 30), noon)
+        assertEquals("<t:${noon / 1000}:R>", ClockFormats.discord(noon, DiscordStyle.RELATIVE))
+        assertEquals(listOf('t', 'T', 'd', 'D', 'f', 'F', 'R', 's', 'S'), DiscordStyle.entries.map { it.code })
+        assertEquals(DiscordStyle.NUMERIC_SECONDS, DiscordStyle.of("S"))
+        assertEquals(
+            "<t:${noon / 1000}:d>",
+            ClockFormats.format(InsertFormat.DISCORD, noon, kolkata, true, "", { "" }, discordStyle = DiscordStyle.SHORT_DATE),
+        )
+    }
+
+    @Test
     fun dayShiftAndDelta() {
         val t = at(london, 2026, 10, 14, 22, 0)
         assertEquals(1, ClockFormats.dayShift(t, kolkata, london))

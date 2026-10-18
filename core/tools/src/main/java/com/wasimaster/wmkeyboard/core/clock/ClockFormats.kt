@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.clock
 
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
@@ -26,7 +27,10 @@ enum class InsertFormat(val id: String) {
     /** "in 3 hours", "2 days ago". */
     RELATIVE("relative"),
 
-    /** `<t:1791000000:F>`, which Discord shows in each reader's own time zone. */
+    /**
+     * `<t:1791000000:F>`, which Discord shows in each reader's own time zone,
+     * in the [DiscordStyle] the user last held.
+     */
     DISCORD("discord"),
 
     /** Seconds since 1970, for logs and code. */
@@ -35,6 +39,45 @@ enum class InsertFormat(val id: String) {
 
     companion object {
         fun of(id: String?): InsertFormat? = entries.firstOrNull { it.id == id }
+    }
+}
+
+/**
+ * Discord's timestamp styles, by the letter after the second colon of
+ * `<t:seconds:style>`. Discord draws each in the reader's own zone and
+ * language; the examples are what an English reader sees.
+ */
+enum class DiscordStyle(val code: Char) {
+    /** "10:23 PM". */
+    SHORT_TIME('t'),
+
+    /** "10:23:18 PM". */
+    LONG_TIME('T'),
+
+    /** "10/18/2026". */
+    SHORT_DATE('d'),
+
+    /** "October 18, 2026". */
+    LONG_DATE('D'),
+
+    /** "October 18, 2026 at 10:23 PM". */
+    SHORT_DATE_TIME('f'),
+
+    /** "Sunday, October 18, 2026 at 10:23 PM", and what a bare `<t:seconds>` shows. */
+    LONG_DATE_TIME('F'),
+
+    /** "in 2 hours", "3 days ago", kept current as the message ages. */
+    RELATIVE('R'),
+
+    /** "10/18/2026, 10:23 PM". */
+    NUMERIC('s'),
+
+    /** "10/18/2026, 10:23:18 PM". */
+    NUMERIC_SECONDS('S'),
+    ;
+
+    companion object {
+        fun of(code: String?): DiscordStyle? = entries.firstOrNull { it.code.toString() == code }
     }
 }
 
@@ -83,11 +126,57 @@ object ClockFormats {
         return "$base$sign${(a / 60).toString().padStart(2, '0')}:${(a % 60).toString().padStart(2, '0')}"
     }
 
+    /** The markup Discord turns into a time in each reader's own zone. */
+    fun discord(at: Long, style: DiscordStyle): String = "<t:${at / 1000}:${style.code}>"
+
+    /**
+     * Roughly what Discord will draw for [discord] to a reader in [zone], for a
+     * chip to show before it is typed. Discord uses the reader's settings, so
+     * the words and the 12/24 hours may differ on their screen.
+     */
+    @Suppress("detekt.LongParameterList")
+    fun discordPreview(
+        at: Long,
+        style: DiscordStyle,
+        zone: TimeZone,
+        hour24: Boolean,
+        relative: (Long) -> String,
+        locale: Locale = Locale.getDefault(),
+    ): String {
+        val date = { kind: Int -> DateFormat.getDateInstance(kind, locale).apply { timeZone = zone }.format(Date(at)) }
+        return when (style) {
+            DiscordStyle.SHORT_TIME -> time(at, zone, hour24, locale)
+            DiscordStyle.LONG_TIME -> time(at, zone, hour24, locale, seconds = true)
+            DiscordStyle.SHORT_DATE -> date(DateFormat.SHORT)
+            DiscordStyle.LONG_DATE -> date(DateFormat.LONG)
+            DiscordStyle.SHORT_DATE_TIME -> "${date(DateFormat.LONG)}, ${time(at, zone, hour24, locale)}"
+            DiscordStyle.LONG_DATE_TIME -> "${date(DateFormat.FULL)}, ${time(at, zone, hour24, locale)}"
+            DiscordStyle.RELATIVE -> relative(at)
+            DiscordStyle.NUMERIC -> "${date(DateFormat.SHORT)}, ${time(at, zone, hour24, locale)}"
+            DiscordStyle.NUMERIC_SECONDS -> "${date(DateFormat.SHORT)}, ${time(at, zone, hour24, locale, seconds = true)}"
+        }
+    }
+
+    /**
+     * The instant [dayOffset] days from the date at [now] in [zone], at
+     * [hour]:[minute] on that zone's clock: "tomorrow at 12:00 in Kolkata".
+     */
+    fun atLocal(now: Long, zone: TimeZone, dayOffset: Int, hour: Int, minute: Int): Long =
+        Calendar.getInstance(zone).apply {
+            timeInMillis = now
+            add(Calendar.DAY_OF_MONTH, dayOffset)
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
     /**
      * One instant as text in [format].
      *
      * [place] names the zone for [InsertFormat.TIME_PLACE]; [relative] phrases
-     * a distance from now for [InsertFormat.RELATIVE].
+     * a distance from now for [InsertFormat.RELATIVE]; [discordStyle] is the
+     * style [InsertFormat.DISCORD] asks for.
      */
     @Suppress("detekt.LongParameterList")
     fun format(
@@ -98,6 +187,7 @@ object ClockFormats {
         place: String,
         relative: (Long) -> String,
         locale: Locale = Locale.getDefault(),
+        discordStyle: DiscordStyle = DiscordStyle.LONG_DATE_TIME,
     ): String = when (format) {
         InsertFormat.TIME -> time(at, zone, hour24, locale)
         InsertFormat.DATE_TIME -> "${shortDate(at, zone, locale)}, ${time(at, zone, hour24, locale)}"
@@ -106,7 +196,7 @@ object ClockFormats {
             "${time(at, zone, hour24, locale)} $place (${utcOffsetLabel(zone.getOffset(at) / 60_000)})"
         InsertFormat.ISO -> iso(at, zone)
         InsertFormat.RELATIVE -> relative(at)
-        InsertFormat.DISCORD -> "<t:${at / 1000}:F>"
+        InsertFormat.DISCORD -> discord(at, discordStyle)
         InsertFormat.UNIX -> (at / 1000).toString()
     }
 

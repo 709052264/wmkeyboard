@@ -58,7 +58,8 @@ import java.util.TimeZone
  * The meeting planner: one strip per place across the same 24 hours, shaded
  * by working hours, awake hours and night. The columns where everyone is at
  * work glow. Drag along the strips and every place's time follows the
- * finger; Insert types the moment in all of them at once.
+ * finger; Insert types the moment in all of them at once, and Discord types
+ * it as a timestamp each reader sees in their own zone.
  */
 @Composable
 internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) -> Unit) {
@@ -117,6 +118,10 @@ internal fun PlannerTab(state: KeyboardUiState, ui: ClockUi, act: (ClockAction) 
             Spacer(Modifier.weight(1f))
             RoundButton(Icons.Outlined.AutoAwesome, stringResource(R.string.ime_clock_best_time), size = 30.dp) {
                 act(ClockAction.PlannerBest)
+            }
+            Spacer(Modifier.width(6.dp))
+            PillButton(stringResource(R.string.ime_clock_format_discord), height = 30.dp) {
+                act(ClockAction.PlannerDiscord)
             }
             Spacer(Modifier.width(6.dp))
             PillButton(stringResource(R.string.ime_clock_insert), icon = Icons.Outlined.ContentPaste, primary = true, height = 30.dp) {

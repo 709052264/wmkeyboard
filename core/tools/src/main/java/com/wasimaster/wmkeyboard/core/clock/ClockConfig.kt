@@ -23,6 +23,8 @@ data class ClockConfig(
     val showSeconds: Boolean = true,
     val zones: List<WorldZone> = emptyList(),
     val insertFormat: String = InsertFormat.TIME_PLACE.id,
+    /** The [DiscordStyle.code] the Discord format types. */
+    val discordStyle: String = "F",
     val workStartMinutes: Int = 9 * 60,
     val workEndMinutes: Int = 17 * 60,
     val snoozeMinutes: Int = 10,
