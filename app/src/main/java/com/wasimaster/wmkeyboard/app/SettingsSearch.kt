@@ -707,8 +707,8 @@ private fun SearchStrings.photoRows(): List<SettingsSearchEntry> {
         screenRoot = R.string.home_appearance_title,
     )
     return listOf(
-        services(R.string.photo_unsplash_key_label),
-        services(R.string.photo_pexels_key_label),
+        // Unsplash, Pexels and Commons are rows of the provider list now.
+        services(R.string.photo_providers_section_title, R.string.providers_add_subtitle),
         rotation(R.string.photo_rotation_on_title, R.string.photo_rotation_on_subtitle),
         rotation(R.string.photo_rotation_interval_title),
         rotation(R.string.photo_rotation_shuffle_title, R.string.photo_rotation_shuffle_subtitle),
@@ -1264,6 +1264,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_cooldown_title, 0),
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_related_title, R.string.tooldetail_vocab_related_subtitle),
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_translations_title, R.string.tooldetail_vocab_translations_auto_subtitle),
+    toolEntry(ToolbarTool.VOCABULARY, R.string.providers_group_title, R.string.providers_add_subtitle),
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_audio_source_title, 0),
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_accent_title, R.string.tooldetail_vocab_accent_subtitle),
     toolEntry(ToolbarTool.VOCABULARY, R.string.tooldetail_vocab_tts_rate_title, 0),
@@ -1546,13 +1547,8 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_layout_nav_one_handed_subtitle,
         weight = EntryWeight.MIRROR,
     ),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_key_label, R.string.tooldetail_translate_key_hint),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_deepl_key_label, R.string.tooldetail_deepl_key_hint),
-    toolEntry(
-        ToolbarTool.TRANSLATE,
-        R.string.tooldetail_translate_server_url_label,
-        R.string.tooldetail_translate_server_group,
-    ),
+    // Google, DeepL, LibreTranslate and the user's own server are rows of the provider list now.
+    toolEntry(ToolbarTool.TRANSLATE, R.string.providers_group_title, R.string.providers_add_subtitle),
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */
@@ -1612,10 +1608,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_gif_send_title, R.string.tooldetail_media_gif_send_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_limit_title, R.string.tooldetail_media_limit_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_limit_title, R.string.tooldetail_media_limit_subtitle),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_key_label, R.string.tooldetail_search_key_hint),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_key_label, R.string.tooldetail_search_key_hint),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_tavily_key_label, R.string.tooldetail_tavily_key_hint),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_tavily_key_label, R.string.tooldetail_tavily_key_hint),
+    // SearXNG, Tavily and Brave are rows of the provider list now.
+    toolEntry(ToolbarTool.WEB_SEARCH, R.string.providers_group_title, R.string.providers_add_subtitle),
+    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.providers_group_title, R.string.providers_add_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_safe_title, R.string.tooldetail_search_safe_subtitle),
     toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_safe_title, R.string.tooldetail_search_safe_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_count_title, R.string.tooldetail_search_count_subtitle),

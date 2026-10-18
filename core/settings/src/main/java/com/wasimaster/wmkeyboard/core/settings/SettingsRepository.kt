@@ -5032,6 +5032,12 @@ data class SelectionMacroSettings(
      * are everywhere else on this bar.
      */
     val inEverySelection: Boolean = false,
+    /**
+     * The actions drawn as their icon alone, with no word beside it (#679),
+     * so the ones somebody knows by sight take less of the row. An action with
+     * no icon of its own (the case options) keeps its word whatever this says.
+     */
+    val iconOnly: Set<SelectionMacro> = emptySet(),
 )
 
 /** The zones the ladder shows: the picked ones, or UTC and the device's own. */
@@ -10313,6 +10319,9 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_EVERY_SELECTION =
             booleanPreferencesKey("selection_macros_every_selection")
 
+        /** [SelectionMacroSettings.iconOnly], by [SelectionMacro] name. */
+        private val SELECTION_MACROS_ICON_ONLY = stringSetPreferencesKey("selection_macros_icon_only")
+
         /**
          * The macros that are on, by [SelectionMacro] name.
          *
@@ -12435,6 +12444,9 @@ class SettingsRepository(private val context: Context) {
             detectEntities = p[SELECTION_MACROS_DETECT] ?: defaults.selectionMacros.detectEntities,
             inEverySelection = p[SELECTION_MACROS_EVERY_SELECTION]
                 ?: defaults.selectionMacros.inEverySelection,
+            iconOnly = p[SELECTION_MACROS_ICON_ONLY]
+                ?.mapNotNullTo(mutableSetOf()) { name -> runCatching { SelectionMacro.valueOf(name) }.getOrNull() }
+                ?: defaults.selectionMacros.iconOnly,
         )
 
     private fun readPasswordGenerator(p: Preferences, defaults: KeyboardSettings) =
@@ -12494,7 +12506,10 @@ class SettingsRepository(private val context: Context) {
             deepSeekKey = p[AI_DEEPSEEK_KEY] ?: defaults.ai.deepSeekKey,
             deepSeekModel = p[AI_DEEPSEEK_MODEL] ?: defaults.ai.deepSeekModel,
             braveKey = p[AI_BRAVE_KEY] ?: defaults.ai.braveKey,
-            braveSearchKey = p[BRAVE_API_KEY].orEmpty(),
+            // The web search Brave key, as the search provider list keeps it.
+            braveSearchKey = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS])
+                ?.firstOrNull { it.id == "brave" }?.apiKey
+                ?: p[BRAVE_API_KEY].orEmpty(),
             compatibleUrl = p[AI_COMPATIBLE_URL] ?: defaults.ai.compatibleUrl,
             compatibleKey = p[AI_COMPATIBLE_KEY] ?: defaults.ai.compatibleKey,
             compatibleModel = p[AI_COMPATIBLE_MODEL] ?: defaults.ai.compatibleModel,
@@ -12962,7 +12977,7 @@ class SettingsRepository(private val context: Context) {
             val tool = change.tool
             val chain = change.chain
             if (tool != null && chain != null) {
-                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain)
+                val chains: Map<ProviderTool, ProviderChain> = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS]) + (tool to chain.stamped(tool))
                 prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains)
             }
             change.credentials?.let { prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(it) }
@@ -15782,7 +15797,30 @@ class SettingsRepository(private val context: Context) {
         appVersionName: String,
         /** Settings left out on top of the usual ones; see [AutoBackupRunner]. */
         excludeKeys: Set<String> = emptySet(),
-    ): String {
+    ): String =
+        ConfigBackup.encode(appVersion, appVersionName, exportSections(sections, includeSecrets, excludeKeys))
+
+    /** [exportConfig] written straight to [out], never held whole as a string (#693). */
+    suspend fun exportConfigTo(
+        out: java.io.OutputStream,
+        sections: Set<ConfigBackup.Section>,
+        includeSecrets: Boolean,
+        appVersion: Int,
+        appVersionName: String,
+    ) {
+        ConfigBackup.encodeTo(out, appVersion, appVersionName, exportSections(sections, includeSecrets))
+    }
+
+    /**
+     * What [exportConfig] puts under `sections`, before it is encoded. Sync
+     * reads it as it is: encoding it to a string only to parse it straight back
+     * held the bundle twice over (#693).
+     */
+    suspend fun exportSections(
+        sections: Set<ConfigBackup.Section>,
+        includeSecrets: Boolean,
+        excludeKeys: Set<String> = emptySet(),
+    ): Map<ConfigBackup.Section, JsonElement> {
         val prefs = context.dataStore.data.first()
         val out = LinkedHashMap<ConfigBackup.Section, JsonElement>()
         if (ConfigBackup.Section.SETTINGS in sections) {
@@ -15878,7 +15916,7 @@ class SettingsRepository(private val context: Context) {
                 out[ConfigBackup.Section.CLOCK] = com.wasimaster.wmkeyboard.core.clock.ClockBackup.portable(context)
             }
         }
-        return ConfigBackup.encode(appVersion, appVersionName, out)
+        return out
     }
 
     /** How many items each section of a decoded bundle holds, for the dialog. */
@@ -19219,6 +19257,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacrosInEverySelection(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_EVERY_SELECTION] = value }
+
+    /** Whether [macro] draws as its icon alone on the bar (#679). */
+    suspend fun setSelectionMacroIconOnly(macro: SelectionMacro, on: Boolean) =
+        editPrefs {
+            val current = it[SELECTION_MACROS_ICON_ONLY].orEmpty()
+            it[SELECTION_MACROS_ICON_ONLY] = if (on) current + macro.name else current - macro.name
+        }
 
     /**
      * Stamps the current list version, writing the shipped lists first when

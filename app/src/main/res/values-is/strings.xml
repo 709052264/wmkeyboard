@@ -3515,7 +3515,6 @@
     <string name="layout_editor_alternate_columns_info">Þetta er dálkafjöldinn fyrir þennan lykil einan og sér. Lyklar eru mismunandi: lykill með tugi valkosta lítur betur út sem rist, og lykill með þremur eða fjórum lítur betur út sem ein röð. Frá stillingum er lykillinn látinn fylgja stillingunni „Dálkar fyrir varalykla“ undir Lyklaborðsýn, sem er Sjálfvirkt nema þú hafir breytt því. Tala frá 3 til 11 gefur þessum lykli þann fjölda dálka, óháð því hvað stillingin segir.</string>
     <string name="layout_editor_alternate_columns_subtitle">Hversu marga valkosti þessi takki setur í röð</string>
     <string name="layout_editor_alternate_columns_title">Dálkar í sprettiglugga</string>
-    <string name="layout_editor_alternate_hint_badge">ábending</string>
     <string name="layout_editor_alternates_field_hint">Aðskildu færslurnar með bilum, svo valkostur geti ekki verið bil. Færslur með fleiri en einum staf, eins og .com, eru réttar. Forritið teiknar líka þá fyrstu í horninu á takkanum.</string>
     <string name="layout_editor_alternates_field_label">Valmöguleikar fyrir ýta og halda</string>
     <string name="layout_editor_apply_action">Virkja</string>
@@ -3611,7 +3610,6 @@
     <string name="layout_editor_field_row_title">Íhlutur</string>
     <string name="layout_editor_fill_row_action">Fylla röðina (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Töluröðin sýnir nú þegar tölustafina, svo lyklaborðið sýnir þessa röð í stað fyrstu raðarinnar í þessu lagi.</string>
-    <string name="layout_editor_fill_row_off_caption">Þegar töluröð er virk, sýnir lyklaborðið þessa röð í stað fyrstu raðarinnar í þessu lagi, þar sem töluröðin sýnir nú þegar tölustafina. Töluröð er óvirk núna.</string>
     <string name="layout_editor_fill_row_title">Röð í stað tölustafa</string>
     <string name="layout_editor_fit_row_action">Laga röðina að ristinni (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Engin stroka í þessa átt. Pikkaðu til að velja aðgerð.</string>
@@ -3786,8 +3784,6 @@
     <string name="layout_editor_new_secondary_title">Byrja á aukaskipan</string>
     <string name="layout_editor_not_live_caption">Breytingar þínar hér hafa ekki áhrif á innslátt fyrr en þú kveikir á lyklaborðinu undir Tungumálum.</string>
     <string name="layout_editor_number_row_caption">Lyklaborðið sýnir þessa röð fyrir ofan þetta lag. Pikkaðu á lykil til að breyta honum. Haltu inni lykli og dragðu hann til að færa hann.</string>
-    <string name="layout_editor_number_row_hidden_caption">Lyklaborðið sýnir þessa röð fyrir ofan þetta lag þegar töluröð í táknum er virk í Útliti og stærð. Hún er óvirk núna.</string>
-    <string name="layout_editor_number_row_off_caption">Lyklaborðið sýnir þessa röð fyrir ofan þetta lag þegar töluröð er virk í Útliti og stærð. Töluröð er óvirk núna.</string>
     <string name="layout_editor_number_row_title">Töluröð</string>
     <string name="layout_editor_panel_inherited_caption">Þetta útlit notar sameiginlega %1$s spjaldið. Breytingar hér búa til afrit eingöngu fyrir þetta útlit. Sameiginlega spjaldið er undir Lyklaborðsútlit, Spjaldútlit.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Erfa þema skipulagsins</string>

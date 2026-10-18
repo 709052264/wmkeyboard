@@ -297,3 +297,6 @@ object CurrencyClient {
         "AED", "SAR", "MYR", "TRY", "PKR",
     )
 }
+
+/** Every row of a currency provider list is switched off, so nothing is fetched. */
+class NoRateProviderException : java.io.IOException("No rate provider is on")

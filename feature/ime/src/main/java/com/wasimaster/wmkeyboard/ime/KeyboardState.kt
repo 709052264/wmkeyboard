@@ -314,6 +314,11 @@ data class LayoutSet(
      */
     val symbolsFillRow: List<Key>? = null,
     /**
+     * Arrow keys rows this layout authored, by the layer they sit under
+     * (issue #769). Absent entries draw the four arrows in the setting's order.
+     */
+    val arrowRows: Map<LayoutMode, List<Key>> = emptyMap(),
+    /**
      * The column count these grids were laid out against, when the tablet
      * expansion widened them; null on a phone and on any layout that declined it.
      *
@@ -2378,6 +2383,12 @@ sealed interface WordMenuAction {
     /** Forget [word] everywhere the keyboard can, and hide it where it cannot. */
     data class Delete(val word: String) : WordMenuAction
 
+    /**
+     * Forget what the keyboard learned about [word], and leave it a word: the
+     * lists still offer it, at their own rank, with their own capitals (#679).
+     */
+    data class Forget(val word: String) : WordMenuAction
+
     /** Open the word card for [word]. */
     data class Open(val word: String) : WordMenuAction
 
@@ -2458,6 +2469,12 @@ data class WordMenuFacts(
     val typedAddable: String? = null,
     /** Whether the held word is somewhere the keyboard can forget it from. */
     val deletable: Boolean = false,
+    /**
+     * Whether the keyboard has learned something about the held word that a
+     * word list also holds, so forgetting the learning leaves a word behind
+     * and is not the same as deleting it.
+     */
+    val resettable: Boolean = false,
     /** Whether the held word is on the never-suggest list. */
     val blacklisted: Boolean = false,
     /**
@@ -3345,6 +3362,16 @@ data class KeyboardUiState(
      */
     val recentClipsOpen: Boolean = false,
     /**
+     * [clipboardSuggestion] is a copy the keyboard itself just made and kept
+     * private (#679). A private copy gets no system "Copied" bubble, so the
+     * chip is the one sign it worked, and it holds the strip, over any words
+     * and any smart chip, until the next key typed or the next field. Before,
+     * the caret settling after the copy put the strip's words back up and the
+     * chip shrank beside them, or went altogether behind a smart chip, which
+     * read as the copy having done nothing.
+     */
+    val clipChipHeld: Boolean = false,
+    /**
      * The [ClipItem.id] of the copy whose parts no longer hold the strip
      * (#612, `fragmentsOnStrip`): typing or the row's ✕ put them away. Kept
      * as an id rather than a flag so a field change does not bring them back,
@@ -3892,6 +3919,19 @@ data class KeyboardUiState(
             fieldKind == FieldKind.TEXT ||
                 (fieldKind == FieldKind.URI && !fieldNoSuggestions)
             )
+
+    /**
+     * Whether a word the caret comes back to is taken up again as the word
+     * being typed: backspace into "excepted", type on, and the whole word is
+     * the one being finished. Wherever words are composed at all, the URL bar
+     * included: there [allowsTypingIntelligence] said no, so a word backspaced
+     * into and typed on in a browser's address bar started over from the new
+     * letters, and the strip offered words for "io" instead of "exceptio"
+     * (#662, #679). Taking the word up changes nothing in the field, and the
+     * corrections that do stay on [allowsTypingIntelligence].
+     */
+    val resumesWords: Boolean
+        get() = allowsTypingIntelligence || (fieldKind == FieldKind.URI && composesForSuggestions)
 
     /**
      * Whether the focused field takes any image at all through commitContent.

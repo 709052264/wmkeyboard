@@ -3519,7 +3519,6 @@
     <string name="layout_editor_alternate_columns_default">సెట్టింగ్‌ల నుండి</string>
     <string name="layout_editor_alternate_columns_subtitle">ఈ కీ ఒక వరుసలో ఎన్ని ప్రత్యామ్నాయాలను ఉంచుతుంది</string>
     <string name="layout_editor_alternate_columns_title">పాపప్‌లోని నిలువు వరుసలు</string>
-    <string name="layout_editor_alternate_hint_badge">సూచన</string>
     <string name="layout_editor_alternates_field_hint">ఎంట్రీలను ఖాళీలతో వేరు చేయండి, తద్వారా ప్రత్యామ్నాయం ఖాళీగా ఉండకూడదు. .com వంటి ఒకటి కంటే ఎక్కువ అక్షరాల ఎంట్రీలు సరైనవి. యాప్ కీ మూలలో మొదటి దానిని కూడా చూపుతుంది.</string>
     <string name="layout_editor_alternates_field_label">నొక్కి పట్టుకోవడానికి ప్రత్యామ్నాయాలు</string>
     <string name="layout_editor_apply_action">వర్తింపజేయి</string>
@@ -3615,7 +3614,6 @@
     <string name="layout_editor_field_row_title">కాంపోనెంట్</string>
     <string name="layout_editor_fill_row_action">అడ్డు వరుసను నింపండి (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">సంఖ్యల వరుస ఇప్పటికే అంకెలను చూపుతుంది, కాబట్టి కీబోర్డ్ ఈ లేయర్ యొక్క మొదటి వరుసకు బదులుగా ఈ వరుసను చూపుతుంది.</string>
-    <string name="layout_editor_fill_row_off_caption">సంఖ్యల వరుస ఆన్‌లో ఉన్నప్పుడు, సంఖ్యల వరుస ఇప్పటికే అంకెలను చూపుతున్నందున, కీబోర్డ్ ఈ లేయర్ యొక్క మొదటి వరుసకు బదులుగా ఈ వరుసను చూపుతుంది. సంఖ్యల వరుస ప్రస్తుతం ఆఫ్‌లో ఉంది.</string>
     <string name="layout_editor_fill_row_title">అంకెలకు బదులుగా వరుస</string>
     <string name="layout_editor_fit_row_action">అడ్డు వరుసను గ్రిడ్‌కు సరిచేయండి (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">ఈ దిశలో ఫ్లిక్ లేదు. చర్యను ఎంచుకోవడానికి నొక్కండి.</string>
@@ -3790,8 +3788,6 @@
     <string name="layout_editor_new_secondary_title">సెకండరీ లేఅవుట్‌ను ప్రారంభించండి</string>
     <string name="layout_editor_not_live_caption">భాషల విభాగంలో లేఅవుట్‌ను ఆన్ చేసే వరకు ఇక్కడ మీరు చేసే మార్పులు టైపింగ్‌పై ప్రభావం చూపవు.</string>
     <string name="layout_editor_number_row_caption">కీబోర్డ్ ఈ లేయర్ పైన ఈ వరుసను చూపుతుంది. దాన్ని మార్చడానికి ఒక కీని నొక్కండి. ఒక కీని పట్టుకుని, దాన్ని తరలించడానికి లాగండి.</string>
-    <string name="layout_editor_number_row_hidden_caption">లేఅవుట్ మరియు పరిమాణంలో చిహ్నాలలో సంఖ్యల వరుస ఆన్‌లో ఉన్నప్పుడు కీబోర్డ్ ఈ లేయర్ పైన ఈ వరుసను చూపుతుంది. ఇది ప్రస్తుతం ఆఫ్‌లో ఉంది.</string>
-    <string name="layout_editor_number_row_off_caption">లేఅవుట్ మరియు పరిమాణంలో సంఖ్యల వరుస ఆన్‌లో ఉన్నప్పుడు కీబోర్డ్ ఈ లేయర్ పైన ఈ వరుసను చూపుతుంది. సంఖ్యల వరుస ప్రస్తుతం ఆఫ్‌లో ఉంది.</string>
     <string name="layout_editor_number_row_title">సంఖ్యల వరుస</string>
     <string name="layout_editor_panel_inherited_caption">ఈ లేఅవుట్ షేర్ చేసిన %1$s ప్యానెల్‌ను ఉపయోగిస్తుంది. ఇక్కడ ఏదైనా మార్చడం వల్ల ఈ లేఅవుట్ కోసం మాత్రమే ఒక కాపీ తయారవుతుంది. షేర్ చేసిన ప్యానెల్ కీ లేఅవుట్‌లు, ప్యానెల్ లేఅవుట్‌ల కింద ఉంటుంది.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">లేఅవుట్ యొక్క థీమ్‌ను వారసత్వంగా పొందండి</string>

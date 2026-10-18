@@ -3517,7 +3517,6 @@
     <string name="layout_editor_alternate_columns_default">Pagal nustatymus</string>
     <string name="layout_editor_alternate_columns_subtitle">Kiek alternatyvų šis klavišas deda į eilutę</string>
     <string name="layout_editor_alternate_columns_title">Stulpeliai iššokančiajame lange</string>
-    <string name="layout_editor_alternate_hint_badge">užuomina</string>
     <string name="layout_editor_alternates_field_hint">Atskirkite įrašus tarpais, todėl alternatyva negali būti tarpas. Daugiau nei vieno simbolio įrašai, pvz., .com, yra teisingi. Programa taip pat nubraižo pirmąjį klavišo kampe.</string>
     <string name="layout_editor_alternates_field_label">Alternatyvos paspaudus ir palaikius</string>
     <string name="layout_editor_apply_action">Taikyti</string>
@@ -3613,7 +3612,6 @@
     <string name="layout_editor_field_row_title">Komponentas</string>
     <string name="layout_editor_fill_row_action">Užpildyti eilutę (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Skaičių eilutėje jau rodomi skaitmenys, todėl klaviatūra rodo šią eilutę pirmojo šio sluoksnio eilutės vietoje.</string>
-    <string name="layout_editor_fill_row_off_caption">Kai skaičių eilutė įjungta, klaviatūra rodo šią eilutę pirmojo šio sluoksnio eilutės vietoje, nes skaičių eilutėje jau rodomi skaitmenys. Skaičių eilutė šiuo metu išjungta.</string>
     <string name="layout_editor_fill_row_title">Eilutė skaitmenų vietoje</string>
     <string name="layout_editor_fit_row_action">Pritaikyti eilutę prie tinklelio (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Jokio brūkštelėjimo šia kryptimi. Bakstelėkite, kad pasirinktumėte veiksmą.</string>
@@ -3788,8 +3786,6 @@
     <string name="layout_editor_new_secondary_title">Pradėti antrinį išdėstymą</string>
     <string name="layout_editor_not_live_caption">Jūsų pakeitimai čia neturės įtakos rašymui, kol neįjungsite išdėstymo skiltyje „Kalbos“.</string>
     <string name="layout_editor_number_row_caption">Klaviatūra rodo šią eilutę virš šio sluoksnio. Bakstelėkite klavišą, kad jį pakeistumėte. Palaikykite klavišą ir vilkite jį, kad perkeltumėte.</string>
-    <string name="layout_editor_number_row_hidden_caption">Klaviatūra rodo šią eilutę virš šio sluoksnio, kai skaičių eilutė simboliuose yra įjungta skiltyje „Išdėstymas ir dydis“. Šiuo metu ji išjungta.</string>
-    <string name="layout_editor_number_row_off_caption">Klaviatūra rodo šią eilutę virš šio sluoksnio, kai skaičių eilutė yra įjungta skiltyje „Išdėstymas ir dydis“. Skaičių eilutė šiuo metu išjungta.</string>
     <string name="layout_editor_number_row_title">Skaičių eilutė</string>
     <string name="layout_editor_panel_inherited_caption">Šis išdėstymas naudoja bendrinamą %1$s skydelį. Bet koks pakeitimas čia sukuria kopiją tik šiam išdėstymui. Bendrinamas skydelis yra skiltyje „Pagrindiniai išdėstymai“, „Skydelių išdėstymai“.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Paveldėti išdėstymo temą</string>

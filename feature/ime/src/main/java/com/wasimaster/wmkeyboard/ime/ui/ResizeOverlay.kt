@@ -30,12 +30,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,12 +49,14 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SidePadScaleRange
@@ -322,6 +326,40 @@ private fun imeWindowMaxHeightPx(context: Context): Int = runCatching {
         resources.displayMetrics.heightPixels - statusBar
     }
 }.getOrDefault(Int.MAX_VALUE)
+
+/**
+ * Holds the reserved frame to the window the system actually gives, whatever
+ * [rememberImeWindowMaxHeightPx] predicted (#724).
+ *
+ * The prediction is the display less the status bar, and the #669 fix capped
+ * the frame there. Some phones still let the window have less (seen on a
+ * Galaxy S25 Ultra): the window then does not grow at all, the frame is drawn
+ * from the top of the old window, and only the toolbar shows, on the
+ * navigation bar, with the keys below the screen's edge. [StableMeasureFrame]
+ * sees that as the keyboard measured taller than the window it was let have,
+ * and the reserved band gives up exactly that much, down to the keyboard's own
+ * height, so the keys are back on screen with whatever headroom fits.
+ */
+@Composable
+internal fun ResizeWindowFit(session: ResizeSession) {
+    val view = LocalView.current
+    val frame = remember(view) {
+        generateSequence(view.parent) { it.parent }.filterIsInstance<StableMeasureFrame>().firstOrNull()
+    } ?: return
+    LaunchedEffect(session, frame) {
+        snapshotFlow { frame.overflowPx.intValue }.collect { session.fitWindow(it) }
+    }
+}
+
+/** Takes [overflowPx] the window could not hold off the reserved band; see [ResizeWindowFit]. */
+internal fun ResizeSession.fitWindow(overflowPx: Int) {
+    val reserved = reservedPx.intValue
+    if (overflowPx <= 0 || reserved == 0) return
+    val fitted = (reserved - overflowPx).coerceAtLeast(keyboardPx.intValue)
+    if (fitted == reserved) return
+    DebugLog.i("window", "resize frame ${reserved}px over the window by ${overflowPx}px, held at ${fitted}px")
+    reservedPx.intValue = fitted
+}
 
 /**
  * How much of the frame's top is window rather than keyboard: from the frame's

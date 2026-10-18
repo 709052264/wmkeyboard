@@ -58,7 +58,8 @@ Two things sit outside the order. **Undo** is always first while there is someth
 | Format | A number, link or address the rewrite would change; any text | On |
 | Find | Anything, when the field could hold another copy | On |
 | Replace | Anything | On |
-| Sort, Unique, Number, Bullets | Two or more lines | On |
+| Sort, Unique, Number, Bullets, Check boxes | Two or more lines | On (Check boxes off) |
+| Move up, Move down | Anything short of the whole field | Off |
 | Grammar | Text, with the [Grammar](/smart/grammar/) tool on | On |
 | DeepL Write | Text up to 2,500 characters, once [DeepL Write](/tools/translate/#deepl) is set up | On |
 | Translate | Text, with the [Translate](/tools/translate/) tool on | On |
@@ -94,7 +95,7 @@ The memory ends with the selection. Move it onto other text, clear it, or leave 
 
 ## Editing
 
-**Select all** selects the whole field. A long press usually selects only one word, so this is the fast way to act on everything you wrote. **Copy**, **Cut** and **Paste** are the editor's own; Paste replaces the selection and only appears while the clipboard holds text. **Delete** removes the selection. **Share** opens the system chooser with the selected text. **Save as note** keeps the selection in the [Notes tool](/tools/notes/) as a new note, or adds it to the note you edited last when <SettingsPath path="Tools / Notes / Save as note from a selection" /> says so; a toast says which. It appears only while the Notes tool is enabled.
+**Select all** selects the whole field. A long press usually selects only one word, so this is the fast way to act on everything you wrote. In a web page it goes in as Ctrl+A, so an editor in the page, like a code editor that only draws the lines on screen, selects its whole text itself rather than losing a selection the keyboard made for it. **Copy**, **Cut** and **Paste** are the editor's own; Paste replaces the selection and only appears while the clipboard holds text. **Delete** removes the selection. **Share** opens the system chooser with the selected text. **Save as note** keeps the selection in the [Notes tool](/tools/notes/) as a new note, or adds it to the note you edited last when <SettingsPath path="Tools / Notes / Save as note from a selection" /> says so; a toast says which. It appears only while the Notes tool is enabled.
 
 ## Find and replace
 
@@ -112,7 +113,9 @@ Three toggles: **Aa** matches case, **[ab]** matches whole words only (in any sc
 
 ## Lines
 
-With two or more lines selected, four chips appear. **Sort** puts them in order, digits compared as numbers so `item2` comes before `item10`; sort a list that is already in order and it turns the other way round. **Unique** drops repeated lines. **Number** puts `1.`, `2.`, `3.` in front of each line, and **Bullets** a bullet. Both are toggles: a list that already has the prefix on every line loses it, and either one converts into the other, so a bulleted list becomes a numbered one in a tap.
+With two or more lines selected, four chips appear. **Sort** puts them in order, digits compared as numbers so `item2` comes before `item10`; sort a list that is already in order and it turns the other way round. **Unique** drops repeated lines. **Number** puts `1.`, `2.`, `3.` in front of each line, and **Bullets** a bullet. **Check boxes** puts `☐` in front of each line, a list to tick off. All three are toggles: a list that already has the prefix on every line loses it, and any one converts into the others, so a bulleted list becomes a numbered one in a tap. A ticked box (`☑`, `✅`) and a Markdown task box (`- [ ]`, `[x]`) count as boxes already.
+
+**Move up** and **Move down** swap the lines your selection touches with the line above or below, and the selection goes with them, so pressing again keeps moving them. They work on one line as well as several, which is how a single item in a list changes places with its neighbour. Both are off to start with; turn them on under Actions.
 
 ## Format
 
@@ -200,7 +203,8 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Where it appears | Choice of 2 | Own row |
 | Show on every selection | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 33 of 48 on |
+| Actions | Screen | 33 of 51 on |
+| Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and your own |
 
@@ -209,6 +213,8 @@ None of these send anything anywhere themselves: each hands the text to an app y
 **Read what is selected** is the entity half of the feature. Turn it off and every selection is read as plain text: you keep the edits, the case options and the conversions, and lose Call, Email, Open, QR and Contact. It is worth turning off if you find the guesses wrong more often than right, since the generic half is the half that always applies.
 
 **Actions** is the list of everything the bar can offer, grouped, searchable, each with its own switch, and with a pencil that lets you drag the actions that are on into the order you want. The full list is on the [settings reference](/reference/settings/selection-actions/).
+
+**Icon only** picks the actions drawn as their icon with no name, for a shorter row once you know them by sight.
 
 ## Details and edge cases
 

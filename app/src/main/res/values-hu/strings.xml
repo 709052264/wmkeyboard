@@ -3511,7 +3511,6 @@
     <string name="layout_editor_alternate_columns_default">Beállításokból</string>
     <string name="layout_editor_alternate_columns_subtitle">Hány alternatívát helyez el ez a billentyű egy sorban</string>
     <string name="layout_editor_alternate_columns_title">Oszlopok a felugró ablakban</string>
-    <string name="layout_editor_alternate_hint_badge">tipp</string>
     <string name="layout_editor_alternates_field_hint">Válaszd el a bejegyzéseket szóközzel, így egy alternatíva nem lehet szóköz. Az egynél több karakterből álló bejegyzések, mint például a .com, helyesek. Az alkalmazás az elsőt a billentyű sarkában is megjeleníti.</string>
     <string name="layout_editor_alternates_field_label">Alternatívák a lenyomva tartáshoz</string>
     <string name="layout_editor_apply_action">Alkalmaz</string>
@@ -3607,7 +3606,6 @@
     <string name="layout_editor_field_row_title">Összetevő</string>
     <string name="layout_editor_fill_row_action">Sor kitöltése (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">A számok sora már mutatja a számjegyeket, ezért a billentyűzet ezt a sort jeleníti meg e réteg első sora helyett.</string>
-    <string name="layout_editor_fill_row_off_caption">Amikor a Számok sora be van kapcsolva, a billentyűzet ezt a sort jeleníti meg e réteg első sora helyett, mivel a számok sora már mutatja a számjegyeket. A Számok sora jelenleg ki van kapcsolva.</string>
     <string name="layout_editor_fill_row_title">Sor a számjegyek helyett</string>
     <string name="layout_editor_fit_row_action">Sor igazítása a rácshoz (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Nincs pöccintés ebben az irányban. Koppintson egy művelet kiválasztásához.</string>
@@ -3782,8 +3780,6 @@
     <string name="layout_editor_new_secondary_title">Másodlagos elrendezés indítása</string>
     <string name="layout_editor_not_live_caption">Az itt végzett módosítások csak akkor lépnek érvénybe gépeléskor, ha bekapcsolja a kiosztást a Nyelvek menüpont alatt.</string>
     <string name="layout_editor_number_row_caption">A billentyűzet ezt a sort jeleníti meg e réteg felett. Koppintson egy billentyűre a módosításához. Tartson lenyomva egy billentyűt és húzza az áthelyezéséhez.</string>
-    <string name="layout_editor_number_row_hidden_caption">A billentyűzet ezt a sort jeleníti meg e réteg felett, ha a Számok sora a szimbólumokban be van kapcsolva az Elrendezés és méret menüben. Jelenleg ki van kapcsolva.</string>
-    <string name="layout_editor_number_row_off_caption">A billentyűzet ezt a sort jeleníti meg e réteg felett, ha a Számok sora be van kapcsolva az Elrendezés és méret menüben. A Számok sora jelenleg ki van kapcsolva.</string>
     <string name="layout_editor_number_row_title">Számok sora</string>
     <string name="layout_editor_panel_inherited_caption">Ez az elrendezés a megosztott %1$s panelt használja. Bármilyen módosítás itt csak erre az elrendezésre vonatkozó másolatot hoz létre. A megosztott panel a Billentyűzet-elrendezések, Panel-elrendezések alatt található.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Az elrendezés témájának öröklése</string>

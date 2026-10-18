@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.vocab
 
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.tools.DictionaryClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,6 +40,18 @@ object VocabAutofill {
 
     /** Richest first; each is only asked when the one before had nothing or could not be reached. */
     val defaultSources: List<Source> = listOf(KaikkiClient, WiktionaryRestClient, DictionaryApiSource)
+
+    /**
+     * The source behind a row of the vocabulary provider list, by its type
+     * id, or null for a type that is not one. The list's default is
+     * [defaultSources], in that order.
+     */
+    fun sourceOf(typeId: String): Source? = when (typeId) {
+        ProviderTypes.WIKTIONARY.id -> KaikkiClient
+        ProviderTypes.WIKTIONARY_REST.id -> WiktionaryRestClient
+        ProviderTypes.DICTIONARY_API.id -> DictionaryApiSource
+        else -> null
+    }
 
     sealed interface Result {
         data class Found(val word: VocabWord, val fromOnline: Boolean) : Result

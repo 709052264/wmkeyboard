@@ -42,7 +42,6 @@ import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
 import com.wasimaster.wmkeyboard.core.tools.ReplyLength
 import com.wasimaster.wmkeyboard.core.tools.CryptoCatalog
-import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.CurrencyLabel
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
@@ -76,7 +75,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.Switch
 import androidx.compose.ui.text.style.TextOverflow
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
-import com.wasimaster.wmkeyboard.core.tools.DictionarySourceChoice
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColorArgb
 import com.wasimaster.wmkeyboard.core.ui.toolAccentEndColorArgb
@@ -86,6 +84,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.providerChain
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -1256,49 +1257,6 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.dictionaryAutoLookup,
                     ) { scope.launch { repository.setDictionaryAutoLookup(it) } }
                 }
-                item {
-                    // Where the tool looks, in the order it asks: a source is
-                    // only asked when those above it did not know the word or
-                    // were unreachable.
-                    val sources = settings.watch { it.dictionarySources }
-                    val save: (List<DictionarySourceChoice>) -> Unit = { scope.launch { repository.setDictionarySources(it) } }
-                    ControlSetting(
-                        R.string.tooldetail_dictionary_sources_title,
-                        subtitle = stringResource(R.string.tooldetail_dictionary_sources_subtitle),
-                        info = stringResource(R.string.tooldetail_dictionary_sources_info),
-                    ) {
-                        val names = DictionarySource.entries.associateWith { stringResource(it.labelRes) }
-                        ReorderableColumn(
-                            items = sources,
-                            label = { names[it.source].orEmpty() },
-                            onReorder = save,
-                            modifier = Modifier.padding(top = 8.dp),
-                            rowHeight = DictionarySourceRowHeight,
-                        ) { choice ->
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    names[choice.source].orEmpty(),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                Text(
-                                    stringResource(choice.source.descriptionRes),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                            }
-                            Switch(
-                                checked = choice.enabled,
-                                onCheckedChange = { on ->
-                                    save(sources.map { if (it.source == choice.source) it.copy(enabled = on) else it })
-                                },
-                            )
-                        }
-                    }
-                }
                 // The packs source is only as good as the packs installed, and
                 // this list's switch alone said nothing about where they come
                 // from (#665).
@@ -1315,6 +1273,17 @@ internal fun ToolDetailSettings(
                     endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
                 )
             }
+            // Where the tool looks, in the order it asks: a provider is only
+            // asked when those above it did not know the word or were unreachable.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.DICTIONARY,
+                titleRes = R.string.tooldetail_dictionary_sources_title,
+                info = stringResource(R.string.tooldetail_dictionary_sources_info),
+            )
+            // The words the packs above do not know, with no network (#665).
+            OfflineDictionariesGroup(settings)
         }
         ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {
@@ -2097,48 +2066,24 @@ internal fun ToolDetailSettings(
                 }
             }
             if (onDevice) TranslateModelManager(settings)
+            // Who translates, in order: on the device, the user's own server,
+            // DeepL, LibreTranslate, Google. The engine switch above decides
+            // which part of the list a translation asks.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.TRANSLATE,
+                info = stringResource(R.string.tooldetail_translate_providers_info),
+            )
             if (BuildConfig.ENABLE_FDROID) {
-                // This build translates against a LibreTranslate server the
-                // user runs or trusts, so the field is an address rather than
-                // a key. The key below it is optional and often unused.
                 SettingsGroup(
-                    stringResource(R.string.tooldetail_translate_instance_group),
-                    info = stringResource(R.string.tooldetail_translate_instance_info),
+                    stringResource(R.string.servers_group_title),
+                    info = stringResource(R.string.servers_group_info),
                 ) {
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_translate_instance_label),
-                            value = settings.watch { it.selfHosted.libreTranslateUrl },
-                            hint = stringResource(R.string.tooldetail_translate_instance_hint),
-                            default = SettingsDefaults.selfHosted.libreTranslateUrl,
-                        ) { repository.setLibreTranslateUrl(it) }
-                    }
-                    item {
-                        ApiKeyField(
-                            label = stringResource(R.string.tooldetail_translate_instance_key_label),
-                            value = settings.watch { it.selfHosted.libreTranslateApiKey },
-                            builtInAvailable = false,
-                            emptyHint = stringResource(R.string.tooldetail_translate_instance_key_hint),
-                        ) { repository.setLibreTranslateApiKey(it) }
-                    }
                     serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TRANSLATE_GOOGLE, ServiceEndpoint.TRANSLATE_CLOUD))
                 }
             }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_translate_key_group),
-                info = stringResource(R.string.tooldetail_translate_info),
-            ) {
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_translate_key_label),
-                        value = settings.watch { it.translateApiKey },
-                        builtInAvailable = ToolApiKeys.builtInTranslate,
-                        emptyHint = stringResource(R.string.tooldetail_translate_key_hint),
-                    ) { repository.setTranslateApiKey(it) }
-                }
-            }
-            TranslateServerSettingsGroup(repository, settings)
-            DeepLSettingsGroup(repository, settings)
+            DeepLWriteSettingsGroup(repository, settings)
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
             // Who the panel asks: KLIPY, GIPHY, Commons or another wiki,
@@ -2484,48 +2429,29 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH -> {
-            SettingsGroup(
-                stringResource(R.string.tooldetail_search_group),
-                info = stringResource(R.string.tooldetail_search_info),
-            ) {
-                if (BuildConfig.ENABLE_FDROID) {
-                    // Offered first, because it is the one that needs no key —
-                    // but the Brave field stays below it for anyone who has one.
-                    item {
-                        TextFieldSetting(
-                            label = stringResource(R.string.tooldetail_search_instance_label),
-                            value = settings.watch { it.selfHosted.searxUrl },
-                            hint = stringResource(R.string.tooldetail_search_instance_hint),
-                            default = SettingsDefaults.selfHosted.searxUrl,
-                        ) { repository.setSearxUrl(it) }
-                    }
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH))
-                }
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_search_key_label),
-                        value = settings.watch { it.webSearch.braveApiKey },
-                        builtInAvailable = ToolApiKeys.builtInBrave,
-                        emptyHint = stringResource(R.string.tooldetail_search_key_hint),
-                    ) { repository.setBraveApiKey(it) }
+            // Who answers, in order: a SearXNG instance, Tavily, Brave. One
+            // list for both tools, as one service always answered both.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.SEARCH,
+                info = stringResource(R.string.tooldetail_search_providers_info),
+            )
+            if (BuildConfig.ENABLE_FDROID) {
+                SettingsGroup(
+                    stringResource(R.string.servers_group_title),
+                    info = stringResource(R.string.servers_group_info),
+                ) {
+                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH, ServiceEndpoint.TAVILY))
                 }
             }
+            // Tavily's own option, once Tavily is in the list.
+            val tavilyListed = settings.watch { it.providerChain(ProviderTool.SEARCH).has(ProviderTypes.TAVILY.id) }
             SettingsGroup(
                 stringResource(R.string.tooldetail_tavily_group),
                 info = stringResource(R.string.tooldetail_tavily_info),
             ) {
-                if (BuildConfig.ENABLE_FDROID) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TAVILY))
-                }
-                item {
-                    ApiKeyField(
-                        label = stringResource(R.string.tooldetail_tavily_key_label),
-                        value = settings.watch { it.webSearch.tavilyApiKey },
-                        builtInAvailable = false,
-                        emptyHint = stringResource(R.string.tooldetail_tavily_key_hint),
-                    ) { repository.setTavilyApiKey(it) }
-                }
-                item {
+                item(visible = tavilyListed) {
                     ToggleSetting(
                         R.string.tooldetail_tavily_advanced_title,
                         stringResource(R.string.tooldetail_tavily_advanced_subtitle),
@@ -2997,17 +2923,16 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyCacheHours.toFloat(),
                     ) { scope.launch { repository.setCurrencyCacheHours(it.toInt()) } }
                 }
-                item {
-                    RateSourceSetting(
-                        title = R.string.tooldetail_currency_source_title,
-                        subtitle = stringResource(R.string.tooldetail_currency_source_subtitle),
-                        providers = settings.watch { it.rateSources.fiatProviders },
-                        defaultProviders = SettingsDefaults.rateSources.fiatProviders,
-                        candidates = CurrencyClient.Provider.entries.filter { it.fiat },
-                    ) { scope.launch { repository.setFiatProviders(it) } }
-                }
                 serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR, ServiceEndpoint.FRANKFURTER, ServiceEndpoint.ER_API))
             }
+            // Where rates come from, best first; the next is asked when one fails.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.CURRENCY_FIAT,
+                titleRes = R.string.tooldetail_currency_source_title,
+                info = stringResource(R.string.tooldetail_currency_source_subtitle),
+            )
             SettingsGroup(
                 stringResource(R.string.tooldetail_crypto_group_title),
                 info = stringResource(R.string.tooldetail_crypto_info),
@@ -3045,18 +2970,18 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoCacheMinutes.toFloat(),
                         ) { scope.launch { repository.setCryptoCacheMinutes(it.toInt()) } }
                     }
-                    item {
-                        RateSourceSetting(
-                            title = R.string.tooldetail_crypto_source_title,
-                            subtitle = stringResource(R.string.tooldetail_crypto_source_subtitle),
-                            providers = settings.watch { it.rateSources.cryptoProviders },
-                            defaultProviders = SettingsDefaults.rateSources.cryptoProviders,
-                            candidates = CurrencyClient.Provider.entries.filter { it.crypto },
-                        ) { scope.launch { repository.setCryptoProviders(it) } }
-                    }
                     serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.COINBASE, ServiceEndpoint.COINGECKO))
                     item { CryptoCoinPicker(repository, settings) }
                 }
+            }
+            if (cryptoOn) {
+                ProvidersGroup(
+                    repository,
+                    settings,
+                    ProviderTool.CURRENCY_CRYPTO,
+                    titleRes = R.string.tooldetail_crypto_source_title,
+                    info = stringResource(R.string.tooldetail_crypto_source_subtitle),
+                )
             }
         }
         ToolbarTool.QR_GEN -> {
@@ -3252,57 +3177,6 @@ internal fun ToolDetailSettings(
         }
         else -> {}
     }
-}
-/** The display name of a rate provider. Ids are stored, names are shown. */
-@Composable
-private fun providerLabel(provider: CurrencyClient.Provider): String = stringResource(
-    when (provider) {
-        CurrencyClient.Provider.ER_API -> R.string.tooldetail_rate_source_er_api
-        CurrencyClient.Provider.FRANKFURTER -> R.string.tooldetail_rate_source_frankfurter
-        CurrencyClient.Provider.COINBASE -> R.string.tooldetail_rate_source_coinbase
-        CurrencyClient.Provider.CURRENCY_API -> R.string.tooldetail_rate_source_currency_api
-        CurrencyClient.Provider.COINGECKO -> R.string.tooldetail_rate_source_coingecko
-    },
-)
-/**
- * Which source to fetch from, and whether the rest stand behind it. Both
- * answers are one stored list: the head is the source that is tried and the
- * tail is the fallback chain, so switching fallbacks off simply drops the
- * tail.
- */
-@Composable
-private fun RateSourceSetting(
-    @StringRes title: Int,
-    subtitle: String,
-    providers: List<String>,
-    defaultProviders: List<String>,
-    candidates: List<CurrencyClient.Provider>,
-    onChange: (List<String>) -> Unit,
-) {
-    val primary = providers.firstNotNullOfOrNull { CurrencyClient.Provider.of(it) }
-        ?: candidates.first()
-    val fallback = providers.size > 1
-    // Both rows are views onto the one stored list, so both read their default
-    // off the list the app shipped with rather than off a constant of their own.
-    val defaultPrimary = defaultProviders.firstNotNullOfOrNull { CurrencyClient.Provider.of(it) }
-        ?: candidates.first()
-    fun write(head: CurrencyClient.Provider, withFallback: Boolean) {
-        val rest = if (withFallback) candidates.filter { it != head }.map { it.name } else emptyList()
-        onChange(listOf(head.name) + rest)
-    }
-    ChoiceSetting(
-        title = title,
-        subtitle = subtitle,
-        options = candidates.map { it to providerLabel(it) },
-        selected = primary,
-        default = defaultPrimary,
-    ) { write(it, fallback) }
-    ToggleSetting(
-        R.string.tooldetail_rate_fallback_title,
-        stringResource(R.string.tooldetail_rate_fallback_subtitle),
-        fallback,
-        default = defaultProviders.size > 1,
-    ) { write(primary, it) }
 }
 /**
  * The coins the keyboard reads and offers. An empty stored set means the
@@ -3711,84 +3585,24 @@ private fun ToolKeywordSetting(
         StateBanner(stringResource(R.string.toolai_keyword_off_info))
     }
 }
-/**
- * A translation server the user runs that answers OpenAI chat-completions
- * requests (#435). The address is the switch: blank, the tool is as it was.
- */
-@Composable
-private fun TranslateServerSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
-    val defaults = SettingsDefaults.translate.server
-    SettingsGroup(
-        stringResource(R.string.tooldetail_translate_server_group),
-        info = stringResource(R.string.tooldetail_translate_server_info),
-    ) {
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_translate_server_url_label),
-                value = settings.watch { it.translate.server.url },
-                hint = stringResource(R.string.tooldetail_translate_server_url_hint),
-                default = defaults.url,
-            ) { repository.setTranslateServerUrl(it) }
-        }
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_translate_server_model_label),
-                value = settings.watch { it.translate.server.model },
-                hint = stringResource(R.string.tooldetail_translate_server_model_hint),
-                default = defaults.model,
-            ) { repository.setTranslateServerModel(it) }
-        }
-        item {
-            ApiKeyField(
-                label = stringResource(R.string.tooldetail_translate_server_key_label),
-                value = settings.watch { it.translate.server.apiKey },
-                builtInAvailable = false,
-                emptyHint = stringResource(R.string.tooldetail_translate_server_key_hint),
-            ) { repository.setTranslateServerKey(it) }
-        }
-    }
-}
 
 /**
- * DeepL, the user's own opt-in service (#331): a key or a server, and then
- * what to use it for. Until one of the two fields is filled in the switches
- * stay out of sight, because they would switch nothing.
+ * DeepL Write (#331), for the grammar panel and the selection bar. Its key
+ * and proxy are the DeepL provider of the translate list, so the group only
+ * shows once that is set up; the rows here are what DeepL is used for
+ * besides translating.
  */
 @Composable
-private fun DeepLSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+private fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val defaults = SettingsDefaults.translate.deepl
     // What decides which rows the group holds; each row reads its own value.
-    val configured = settings.watch { it.translate.deepl.configured }
-    val writeActive = settings.watch { it.translate.deepl.writeActive }
+    val configured = settings.watch { it.deeplLive.configured }
+    val writeActive = settings.watch { it.deeplLive.writeActive }
     SettingsGroup(
         stringResource(R.string.tooldetail_deepl_group),
-        info = stringResource(R.string.tooldetail_deepl_info),
+        info = stringResource(R.string.tooldetail_deepl_write_group_info),
     ) {
-        item {
-            ApiKeyField(
-                label = stringResource(R.string.tooldetail_deepl_key_label),
-                value = settings.watch { it.translate.deepl.apiKey },
-                builtInAvailable = false,
-                emptyHint = stringResource(R.string.tooldetail_deepl_key_hint),
-            ) { repository.setDeepLApiKey(it) }
-        }
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_deepl_endpoint_label),
-                value = settings.watch { it.translate.deepl.endpoint },
-                hint = stringResource(R.string.tooldetail_deepl_endpoint_hint),
-                default = defaults.endpoint,
-            ) { repository.setDeepLEndpoint(it) }
-        }
-        item(visible = configured) {
-            ToggleSetting(
-                R.string.tooldetail_deepl_translate_title,
-                stringResource(R.string.tooldetail_deepl_translate_subtitle),
-                settings.watch { it.translate.deepl.translate },
-                default = defaults.translate,
-            ) { scope.launch { repository.setDeepLTranslate(it) } }
-        }
         item(visible = configured) {
             ToggleSetting(
                 R.string.tooldetail_deepl_write_title,
@@ -4528,7 +4342,6 @@ private fun grammarCategoryInfo(category: GrammarCategory): Int = when (category
     GrammarCategory.DELIVERY -> R.string.tooldetail_grammar_delivery_info
 }
 
-private val DictionarySourceRowHeight = 64.dp
 
 /**
  * The AI reply tool's page (#234).

@@ -3515,7 +3515,6 @@
     <string name="layout_editor_alternate_columns_default">ترتیبات سے</string>
     <string name="layout_editor_alternate_columns_subtitle">یہ کلید ایک قطار میں کتنے متبادل رکھتی ہے</string>
     <string name="layout_editor_alternate_columns_title">پاپ اپ میں کالم</string>
-    <string name="layout_editor_alternate_hint_badge">اشارہ</string>
     <string name="layout_editor_alternates_field_hint">اندراجات کو خالی جگہوں کے ساتھ الگ کریں، تاکہ متبادل ایک خالی جگہ نہ ہو۔ ایک سے زیادہ حروف کے اندراجات، جیسے .com، درست ہیں۔ ایپ کونے میں موجود کلید پر پہلا والا بھی ڈرا کرتی ہے۔</string>
     <string name="layout_editor_alternates_field_label">دبانے اور ہولڈ کرنے کے متبادل</string>
     <string name="layout_editor_apply_action">لاگو کریں</string>
@@ -3611,7 +3610,6 @@
     <string name="layout_editor_field_row_title">جز</string>
     <string name="layout_editor_fill_row_action">قطار کو بھریں (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">نمبر کی قطار پہلے ہی ہندسے دکھاتی ہے، لہذا کی بورڈ اس تہہ کی پہلی قطار کی جگہ یہ قطار دکھاتا ہے۔</string>
-    <string name="layout_editor_fill_row_off_caption">جب نمبر کی قطار آن ہوتی ہے، تو کی بورڈ اس تہہ کی پہلی قطار کی جگہ یہ قطار دکھاتا ہے، کیونکہ نمبر کی قطار پہلے ہی ہندسے دکھاتی ہے۔ نمبر کی قطار ابھی آف ہے۔</string>
     <string name="layout_editor_fill_row_title">ہندسوں کی جگہ قطار</string>
     <string name="layout_editor_fit_row_action">قطار کو گرڈ کے مطابق فٹ کریں (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">اس سمت میں کوئی فلک نہیں۔ عمل منتخب کرنے کے لیے تھپتھپائیں۔</string>
@@ -3786,8 +3784,6 @@
     <string name="layout_editor_new_secondary_title">ثانوی لے آؤٹ شروع کریں</string>
     <string name="layout_editor_not_live_caption">یہاں آپ کی تبدیلیاں ٹائپنگ پر اثر انداز نہیں ہوں گی جب تک کہ آپ زبانوں کے تحت لے آؤٹ کو آن نہ کریں۔</string>
     <string name="layout_editor_number_row_caption">کی بورڈ اس تہہ کے اوپر یہ قطار دکھاتا ہے۔ اسے تبدیل کرنے کے لیے کسی کلید کو تھپتھپائیں۔ اسے منتقل کرنے کے لیے کسی کلید کو دبائے رکھیں اور گھسیٹیں۔</string>
-    <string name="layout_editor_number_row_hidden_caption">جب لے آؤٹ اور سائز میں علامتوں میں نمبر کی قطار آن ہوتی ہے تو کی بورڈ اس تہہ کے اوپر یہ قطار دکھاتا ہے۔ یہ ابھی آف ہے۔</string>
-    <string name="layout_editor_number_row_off_caption">جب لے آؤٹ اور سائز میں نمبر کی قطار آن ہوتی ہے تو کی بورڈ اس تہہ کے اوپر یہ قطار دکھاتا ہے۔ نمبر کی قطار ابھی آف ہے۔</string>
     <string name="layout_editor_number_row_title">نمبر کی قطار</string>
     <string name="layout_editor_panel_inherited_caption">یہ لے آؤٹ مشترکہ %1$s پینل استعمال کرتا ہے۔ یہاں کچھ بھی تبدیل کرنے سے صرف اس لے آؤٹ کے لیے ایک کاپی بن جاتی ہے۔ مشترکہ پینل کلیدی لے آؤٹس، پینل لے آؤٹس کے تحت ہے۔</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">لے آؤٹ کے تھیم کو وراثت میں حاصل کریں</string>

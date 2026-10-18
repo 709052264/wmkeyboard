@@ -171,23 +171,7 @@ class ProviderFrameworkTest {
     }
 
     @Test
-    fun `translate on device asks ML Kit alone`() {
-        val s = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ON_DEVICE))
-        val chain = s.providerChain(ProviderTool.TRANSLATE, play)
-        assertEquals("mlkit", chain.entries.first().typeId)
-        assertEquals(listOf("mlkit"), on(chain))
-    }
-
-    @Test
-    fun `translate online leaves ML Kit off at the end`() {
-        val s = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ONLINE))
-        val chain = s.providerChain(ProviderTool.TRANSLATE, github)
-        assertEquals(listOf("google_translate", "mlkit"), ids(chain))
-        assertEquals(listOf("google_translate"), on(chain))
-    }
-
-    @Test
-    fun `translate automatic asks the device first, then online`() {
+    fun `translate lists the device first, then the online services`() {
         val s = KeyboardSettings(
             translate = TranslateSettings(engine = TranslateEngine.AUTO, deepl = DeepLSettings(apiKey = "d")),
             selfHosted = SelfHostedSettings(libreTranslateUrl = "https://lt"),
@@ -196,6 +180,14 @@ class ProviderFrameworkTest {
             listOf("mlkit", "deepl", "libretranslate", "google_translate"),
             on(s.providerChain(ProviderTool.TRANSLATE, play)),
         )
+    }
+
+    @Test
+    fun `the engine switch stays out of the list`() {
+        val online = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ONLINE))
+        val device = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ON_DEVICE))
+        assertEquals(online.providerChain(ProviderTool.TRANSLATE, play), device.providerChain(ProviderTool.TRANSLATE, play))
+        assertEquals(listOf("mlkit", "google_translate"), ids(online.providerChain(ProviderTool.TRANSLATE, github)))
     }
 
     @Test
@@ -260,6 +252,16 @@ class ProviderFrameworkTest {
         assertEquals(stored, s.providerChain(ProviderTool.GIF, play))
     }
 
+    @Test
+    fun `a word source a later build adds joins a saved list, a removed one stays out`() {
+        val known = ProviderTypes.serving(ProviderTool.SYNONYMS).map { it.id } - "similar_words"
+        val saved = ProviderChain(listOf(ProviderEntry("datamuse")), known = known)
+        val s = KeyboardSettings(providers = ProviderSettings(chains = mapOf(ProviderTool.SYNONYMS to saved)))
+        assertEquals(listOf("datamuse", "similar_words"), ids(s.providerChain(ProviderTool.SYNONYMS, play)))
+        val stamped = saved.stamped(ProviderTool.SYNONYMS)
+        assertEquals(listOf("datamuse"), ids(stamped.withNewTypes(ProviderTool.SYNONYMS)))
+    }
+
     // ---- resolution ----
 
     @Test
@@ -316,6 +318,15 @@ class ProviderFrameworkTest {
         assertTrue(withServer.providerChain(ProviderTool.TRANSLATE, fdroid).has("libretranslate:01"))
         val removed = ProviderEdits.removeEntry(withServer, ProviderTool.TRANSLATE, "libretranslate:01", fdroid)
         assertFalse(removed.credentials!!.any { it.id == "libretranslate:01" })
+    }
+
+    @Test
+    fun `a new translation server answers alone until the others are switched back on`() {
+        val s = KeyboardSettings(translate = TranslateSettings(deepl = DeepLSettings(apiKey = "d")))
+        val server = ProviderCredential("translate_server:01", "translate_server", url = "http://box")
+        val chain = ProviderEdits.saveCredential(s, server, ProviderTool.TRANSLATE, play).chain!!
+        assertEquals(listOf("mlkit", "translate_server", "deepl", "google_translate"), ids(chain))
+        assertEquals(listOf("mlkit", "translate_server"), on(chain))
     }
 
     @Test

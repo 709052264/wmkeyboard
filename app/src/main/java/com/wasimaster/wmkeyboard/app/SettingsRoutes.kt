@@ -173,6 +173,7 @@ internal object SettingsRoutes {
         "notifications",
         "selection_macros",
         "selection_macros/actions",
+        "selection_macros/icons",
         "selection_macros/ai",
         "selection_macros/zones",
         "advanced",

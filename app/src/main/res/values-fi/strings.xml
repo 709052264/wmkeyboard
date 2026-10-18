@@ -3513,7 +3513,6 @@
     <string name="layout_editor_alternate_columns_default">Asetuksista</string>
     <string name="layout_editor_alternate_columns_subtitle">Kuinka monta vaihtoehtoa tämä näppäin asettaa riville</string>
     <string name="layout_editor_alternate_columns_title">Sarakkeet ponnahdusikkunassa</string>
-    <string name="layout_editor_alternate_hint_badge">vihje</string>
     <string name="layout_editor_alternates_field_hint">Erota merkinnät välilyönneillä, joten vaihtoehto ei voi olla välilyönti. Yli yhden merkin mittaiset merkinnät, kuten .com, ovat oikein. Sovellus piirtää myös ensimmäisen näppäimen kulmaan.</string>
     <string name="layout_editor_alternates_field_label">Vaihtoehdot painallukselle ja pidolle</string>
     <string name="layout_editor_apply_action">Käytä</string>
@@ -3609,7 +3608,6 @@
     <string name="layout_editor_field_row_title">Komponentti</string>
     <string name="layout_editor_fill_row_action">Täytä rivi (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Numerorivi näyttää jo numerot, joten näppäimistö näyttää tämän rivin tämän tason ensimmäisen rivin tilalla.</string>
-    <string name="layout_editor_fill_row_off_caption">Kun numerorivi on päällä, näppäimistö näyttää tämän rivin tämän tason ensimmäisen rivin tilalla, koska numerorivi näyttää jo numerot. Numerorivi on nyt pois päältä.</string>
     <string name="layout_editor_fill_row_title">Rivi numeroiden tilalla</string>
     <string name="layout_editor_fit_row_action">Sovita rivi ruudukkoon (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Ei pyyhkäisytoimintoa tähän suuntaan. Valitse toiminto napauttamalla.</string>
@@ -3784,8 +3782,6 @@
     <string name="layout_editor_new_secondary_title">Aloita toissijainen asettelu</string>
     <string name="layout_editor_not_live_caption">Täällä tekemäsi muutokset eivät vaikuta kirjoittamiseen, ennen kuin otat asettelun käyttöön Kielten alla.</string>
     <string name="layout_editor_number_row_caption">Näppäimistö näyttää tämän rivin tämän tason yläpuolella. Muuta näppäintä napauttamalla sitä. Siirrä näppäintä pitämällä sitä painettuna ja vetämällä.</string>
-    <string name="layout_editor_number_row_hidden_caption">Näppäimistö näyttää tämän rivin tämän tason yläpuolella, kun symbolien numerorivi on päällä kohdassa Asettelu ja koko. Se on nyt pois päältä.</string>
-    <string name="layout_editor_number_row_off_caption">Näppäimistö näyttää tämän rivin tämän tason yläpuolella, kun numerorivi on päällä kohdassa Asettelu ja koko. Numerorivi on nyt pois päältä.</string>
     <string name="layout_editor_number_row_title">Numerorivi</string>
     <string name="layout_editor_panel_inherited_caption">Tämä asettelu käyttää jaettua %1$s-paneelia. Minkä tahansa muuttaminen tässä luo kopion vain tätä asettelua varten. Jaettu paneeli löytyy kohdasta Näppäinasettelut, Paneeliasettelut.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Peri asettelun teema</string>

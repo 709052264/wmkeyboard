@@ -3,11 +3,12 @@ package com.wasimaster.wmkeyboard.core.settings
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 
 /**
- * Whether the two search tools have somewhere to search: a SearXNG instance the
- * user named, a Tavily key of theirs, or a Brave key — theirs or the one baked
- * into this build.
+ * Whether the two search tools have somewhere to search: a row of the search
+ * provider list that is on and set up (a SearXNG instance, a Tavily key, or a
+ * Brave key, theirs or the one baked into this build).
  *
  * Any one will do, and none excludes the others. The F-Droid build ships no
  * Brave key, so in practice its answer comes from the instance; but a user of
@@ -18,10 +19,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * anything reaches a network client.
  */
 fun hasSearchKey(settings: KeyboardSettings): Boolean =
-    settings.selfHosted.searxUrl.isNotBlank() ||
-        settings.webSearch.tavilyApiKey.isNotBlank() ||
-        settings.webSearch.braveApiKey.isNotBlank() ||
-        BuildConfig.BRAVE_API_KEY.isNotBlank()
+    settings.resolveProviders(ProviderTool.SEARCH).isNotEmpty()
 
 /**
  * Whether a tool can do its job right now — as opposed to [isSupportedTool],

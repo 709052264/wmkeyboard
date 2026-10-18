@@ -3510,7 +3510,6 @@
     <string name="layout_editor_alternate_columns_default">Depuis les paramètres</string>
     <string name="layout_editor_alternate_columns_subtitle">Nombre d\'alternatives que cette touche affiche sur une ligne</string>
     <string name="layout_editor_alternate_columns_title">Colonnes dans la fenêtre contextuelle</string>
-    <string name="layout_editor_alternate_hint_badge">indice</string>
     <string name="layout_editor_alternates_field_hint">Séparez les entrées par des espaces, afin qu\'une alternative ne puisse pas être un espace. Les entrées de plus d\'un caractère, comme .com, sont correctes. L\'application dessine également la première dans le coin de la touche.</string>
     <string name="layout_editor_alternates_field_label">Alternances pour l\'appui long</string>
     <string name="layout_editor_apply_action">Appliquer</string>
@@ -3606,7 +3605,6 @@
     <string name="layout_editor_field_row_title">Composant</string>
     <string name="layout_editor_fill_row_action">Remplir la ligne (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">La rangée de chiffres affichant déjà les chiffres, le clavier affiche cette rangée à la place de la première rangée de cette couche.</string>
-    <string name="layout_editor_fill_row_off_caption">Lorsque la rangée de chiffres est activée, le clavier affiche cette rangée à la place de la première rangée de cette couche, car la rangée de chiffres affiche déjà les chiffres. La rangée de chiffres est actuellement désactivée.</string>
     <string name="layout_editor_fill_row_title">Rangée à la place des chiffres</string>
     <string name="layout_editor_fit_row_action">Ajuster la ligne à la grille (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Pas de balayage dans cette direction. Appuyez pour choisir une action.</string>
@@ -3781,8 +3779,6 @@
     <string name="layout_editor_new_secondary_title">Démarrer une disposition secondaire</string>
     <string name="layout_editor_not_live_caption">Vos modifications ici n\'affectent pas la saisie tant que vous n\'activez pas la disposition dans Langues.</string>
     <string name="layout_editor_number_row_caption">Le clavier affiche cette rangée au-dessus de cette couche. Appuyez sur une touche pour la modifier. Maintenez une touche enfoncée et faites-la glisser pour la déplacer.</string>
-    <string name="layout_editor_number_row_hidden_caption">Le clavier affiche cette rangée au-dessus de cette couche lorsque l\'option Rangée de chiffres dans les symboles est activée dans Disposition et taille. Elle est actuellement désactivée.</string>
-    <string name="layout_editor_number_row_off_caption">Le clavier affiche cette rangée au-dessus de cette couche lorsque l\'option Rangée de chiffres est activée dans Disposition et taille. La rangée de chiffres est actuellement désactivée.</string>
     <string name="layout_editor_number_row_title">Rangée de chiffres</string>
     <string name="layout_editor_panel_inherited_caption">Cette disposition utilise le panneau partagé %1$s. Toute modification ici crée une copie pour cette disposition uniquement. Le panneau partagé se trouve sous Dispositions des touches, Dispositions des panneaux.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Hériter du thème de la mise en page</string>

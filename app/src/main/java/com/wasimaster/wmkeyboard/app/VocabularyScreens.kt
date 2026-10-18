@@ -3,6 +3,8 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.provider.OpenableColumns
@@ -277,6 +279,10 @@ private fun VocabCardField.titleRes(): Int = when (this) {
 
 // ---- the tool's own page ----
 
+/** Where a word not in the packs is looked up, in the order of the tool's provider list. */
+private fun vocabSources(settings: KeyboardSettings): List<VocabAutofill.Source> =
+    settings.resolveProviders(ProviderTool.VOCAB_AUTOFILL).mapNotNull { VocabAutofill.sourceOf(it.typeId) }
+
 /** The Vocabulary tool's settings page body, called from [ToolDetailSettings]. */
 @Composable
 internal fun VocabularyToolSettings(
@@ -504,6 +510,13 @@ internal fun VocabularyToolSettings(
         }
     }
 
+    // Where a word that no pack knows is looked up when you add it.
+    ProvidersGroup(
+        repository,
+        settings,
+        ProviderTool.VOCAB_AUTOFILL,
+        info = stringResource(R.string.tooldetail_vocab_providers_info),
+    )
     SettingsGroup(stringResource(R.string.tooldetail_vocab_audio_group), info = stringResource(R.string.tooldetail_vocab_audio_info)) {
         item {
             ChoiceSetting(
@@ -1421,7 +1434,13 @@ private fun AddVocabWordSheet(
         lookingUp = true
         status = context.getString(R.string.vocab_add_looking_up)
         scope.launch {
-            val result = VocabAutofill.resolve(VocabIndex.EMPTY, lemma, allowOnline = true, translationCodes = translationCodes)
+            val result = VocabAutofill.resolve(
+                VocabIndex.EMPTY,
+                lemma,
+                allowOnline = true,
+                translationCodes = translationCodes,
+                sources = vocabSources(settings.value),
+            )
             lookingUp = false
             when (result) {
                 is VocabAutofill.Result.Found -> {
@@ -1651,6 +1670,7 @@ private fun BulkAddDialog(
                                         lemma,
                                         allowOnline = true,
                                         translationCodes = translationCodes,
+                                        sources = vocabSources(settings.value),
                                     )
                                     delay(300)
                                     (result as? VocabAutofill.Result.Found)?.word ?: VocabWord(lemma)
@@ -1954,7 +1974,13 @@ private fun VocabLookupSheet(
     val speaker = rememberVocabSpeaker()
     val codes = settings.watch { vocabTranslationCodes(it) }
     val result by produceState<VocabAutofill.Result?>(initialValue = null, key1 = word) {
-        value = VocabAutofill.resolve(VocabIndex.EMPTY, word, allowOnline = true, translationCodes = codes)
+        value = VocabAutofill.resolve(
+            VocabIndex.EMPTY,
+            word,
+            allowOnline = true,
+            translationCodes = codes,
+            sources = vocabSources(settings.value),
+        )
     }
     var saved by remember(word) { mutableStateOf(false) }
     val myWordsName = stringResource(com.wasimaster.wmkeyboard.tools.R.string.core_tools_vocab_my_words)

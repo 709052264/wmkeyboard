@@ -3514,7 +3514,6 @@
     <string name="layout_editor_alternate_columns_default">Des de la configuració</string>
     <string name="layout_editor_alternate_columns_subtitle">Quants alternatius posa aquesta tecla en una fila</string>
     <string name="layout_editor_alternate_columns_title">Columnes a la finestra emergent</string>
-    <string name="layout_editor_alternate_hint_badge">pista</string>
     <string name="layout_editor_alternates_field_hint">Separeu les entrades amb espais, de manera que un alternatiu no pugui ser un espai. Les entrades de més d\'un caràcter, com .com, són correctes. L\'aplicació també dibuixa la primera a la cantonada de la tecla.</string>
     <string name="layout_editor_alternates_field_label">Alternatives per prémer i mantenir</string>
     <string name="layout_editor_apply_action">Aplica</string>
@@ -3610,7 +3609,6 @@
     <string name="layout_editor_field_row_title">Component</string>
     <string name="layout_editor_fill_row_action">Omple la fila (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">La fila de números ja mostra els dígits, per la qual cosa el teclat mostra aquesta fila en lloc de la primera fila d\'aquesta capa.</string>
-    <string name="layout_editor_fill_row_off_caption">Quan la fila de números està activada, el teclat mostra aquesta fila en lloc de la primera fila d\'aquesta capa, perquè la fila de números ja mostra els dígits. La fila de números està desactivada ara.</string>
     <string name="layout_editor_fill_row_title">Fila en lloc dels dígits</string>
     <string name="layout_editor_fit_row_action">Ajusta la fila a la graella (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Cap acció de lliscament en aquesta direcció. Toca per triar una acció.</string>
@@ -3785,8 +3783,6 @@
     <string name="layout_editor_new_secondary_title">Inicia una disposició secundària</string>
     <string name="layout_editor_not_live_caption">Els teus canvis aquí no afecten l\'escriptura fins que activis la disposició a Idiomes.</string>
     <string name="layout_editor_number_row_caption">El teclat mostra aquesta fila a sobre d\'aquesta capa. Toca una tecla per canviar-la. Mantén premuda una tecla i arrossega-la per moure-la.</string>
-    <string name="layout_editor_number_row_hidden_caption">El teclat mostra aquesta fila a sobre d\'aquesta capa quan la fila de números en símbols està activada a Disseny i mida. Ara està desactivada.</string>
-    <string name="layout_editor_number_row_off_caption">El teclat mostra aquesta fila a sobre d\'aquesta capa quan la fila de números està activada a Disseny i mida. La fila de números està desactivada ara.</string>
     <string name="layout_editor_number_row_title">Fila de números</string>
     <string name="layout_editor_panel_inherited_caption">Aquest disseny utilitza el panell compartit %1$s. Canviar qualsevol cosa aquí fa una còpia només per a aquest disseny. El panell compartit es troba a Dissenys de tecles, Dissenys de panell.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Hereta el tema de la disposició</string>

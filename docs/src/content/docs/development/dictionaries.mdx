@@ -7,7 +7,7 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-The dictionary behind completion and autocorrect is a `.wmdict` file: a memory-mapped, frequency-ranked trie compiled from a plain-text wordlist. It isn't the only word source (the learned lexicon is JSON, and imported custom lists are packed into a trie in memory at load), but it is the one that ships in the APK and the one every download produces. This page covers the compiler that builds them, the format itself, where the wordlists come from, and how to add or improve one.
+The dictionary behind completion and autocorrect is a `.wmdict` file: a memory-mapped, frequency-ranked trie compiled from a plain-text wordlist. It ships in the APK, every download produces one, and imported custom lists become one too: the keyboard compiles a language's switched-on lists into a single `.wmdict` under `dictionary_cache/`, maps it like a download, and compiles again only when a list's name, size or modification time changes. The learned lexicon is the one word source that stays JSON. This page covers the compiler that builds them, the format itself, where the wordlists come from, and how to add or improve one.
 
 For the user-facing side of this (the per-language download screen, size tiers, and custom-dictionary import), see [Downloadable dictionaries](/languages/dictionaries/). This page is about the pipeline behind it.
 

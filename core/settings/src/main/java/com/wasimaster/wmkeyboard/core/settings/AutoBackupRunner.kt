@@ -98,6 +98,22 @@ object AutoBackupRunner {
         return dropped
     }
 
+    /**
+     * The heavy sections a file export from the settings screen leaves out.
+     *
+     * The same rule as the automatic backup's with twice the room: the export
+     * is written as it is encoded rather than built as a string first, and it
+     * runs while the user waits for it rather than inside a keyboard that is
+     * typing. Without any ceiling a large sticker collection made the export
+     * run out of memory and report only that the file could not be written
+     * (#693).
+     */
+    fun exportSectionsToDrop(
+        repository: SettingsRepository,
+        requested: Set<ConfigBackup.Section>,
+    ): Set<ConfigBackup.Section> =
+        sectionsToDrop(requested, maxEmbeddedBytes() * 2) { repository.embeddedByteEstimate(setOf(it)) }
+
     /** Sections that carry whole files, and so are the ones worth dropping. */
     private val HEAVY_SECTIONS = setOf(
         ConfigBackup.Section.STICKERS,

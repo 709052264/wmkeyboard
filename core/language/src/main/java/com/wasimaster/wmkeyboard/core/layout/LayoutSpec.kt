@@ -74,6 +74,14 @@ data class LayerSpec(
      */
     val fillRow: List<Key>? = null,
     /**
+     * The arrow keys row drawn under this grid while that setting is on
+     * (issue #769). Null takes the four arrows in the order the setting gives
+     * them. Stored here, like [numberRow], so a layout can put a Word left key
+     * or a second Shift on it: the row is under the thumbs, which is where
+     * those keys are wanted.
+     */
+    val arrowRow: List<Key>? = null,
+    /**
      * Optional per-row height multipliers, one per entry in [rows] (index
      * aligned). Null — the normal case — keeps every row at the standard key
      * height; a value of e.g. 1.5 makes that row half again as tall. A short or

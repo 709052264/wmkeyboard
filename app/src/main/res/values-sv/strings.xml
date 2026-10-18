@@ -3520,7 +3520,6 @@
     <string name="layout_editor_alternate_columns_default">Från inställningar</string>
     <string name="layout_editor_alternate_columns_subtitle">Hur många alternativ den här tangenten placerar på en rad</string>
     <string name="layout_editor_alternate_columns_title">Kolumner i popup-fönstret</string>
-    <string name="layout_editor_alternate_hint_badge">tips</string>
     <string name="layout_editor_alternates_field_hint">Separera posterna med mellanslag, så att ett alternativ inte kan vara ett mellanslag. Poster med mer än ett tecken, som .com, är korrekta. Appen ritar också den första i hörnet av tangenten.</string>
     <string name="layout_editor_alternates_field_label">Alternativ för tryck och håll</string>
     <string name="layout_editor_apply_action">Verkställ</string>
@@ -3616,7 +3615,6 @@
     <string name="layout_editor_field_row_title">Komponent</string>
     <string name="layout_editor_fill_row_action">Fyll raden (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Sifferraden visar redan siffrorna, så tangentbordet visar den här raden istället för den första raden i det här lagret.</string>
-    <string name="layout_editor_fill_row_off_caption">När sifferraden är aktiverad visar tangentbordet den här raden istället för den första raden i det här lagret, eftersom sifferraden redan visar siffrorna. Sifferraden är avstängd nu.</string>
     <string name="layout_editor_fill_row_title">Rad istället för siffrorna</string>
     <string name="layout_editor_fit_row_action">Anpassa raden till rutnätet (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Inget svep åt detta håll. Tryck för att välja en åtgärd.</string>
@@ -3791,8 +3789,6 @@
     <string name="layout_editor_new_secondary_title">Starta en sekundär layout</string>
     <string name="layout_editor_not_live_caption">Dina ändringar här påverkar inte skrivandet förrän du aktiverar layouten under Språk.</string>
     <string name="layout_editor_number_row_caption">Tangentbordet visar den här raden ovanför det här lagret. Tryck på en tangent för att ändra den. Håll ned en tangent och dra den för att flytta den.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tangentbordet visar den här raden ovanför det här lagret när sifferraden i symboler är aktiverad under Layout och storlek. Den är avstängd nu.</string>
-    <string name="layout_editor_number_row_off_caption">Tangentbordet visar den här raden ovanför det här lagret när sifferraden är aktiverad under Layout och storlek. Sifferraden är avstängd nu.</string>
     <string name="layout_editor_number_row_title">Sifferrad</string>
     <string name="layout_editor_panel_inherited_caption">Den här layouten använder den delade %1$s-panelen. Att ändra något här skapar en kopia endast för den här layouten. Den delade panelen finns under Tangentlayouter, Panellayouter.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Ärv layoutens tema</string>

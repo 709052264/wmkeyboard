@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
@@ -349,12 +350,28 @@ class MainActivity : FragmentActivity() {
                     LocalAppUpdater provides updater,
                     LocalAppLock provides appLock,
                 ) {
-                    SettingsNavHost(
-                        repository = repository,
-                        settings = settings,
-                        pending = pending,
-                        onPendingHandled = { pendingNav.value = null },
-                    )
+                    // From Android 15 the window is edge to edge, the
+                    // keyboard's inset reaches the screens, and the pan the
+                    // fields below used to rely on lost races with a keyboard
+                    // that grows after the field is focused: Trigger words and
+                    // Try the rules stayed under the keys (#679). So the
+                    // screens stop at the keyboard instead, the window is told
+                    // not to pan, and a scrolling list keeps its focused field
+                    // in view as it shrinks, which Compose's scroll containers
+                    // do for the focused child. A screen that pads itself by the
+                    // keyboard already gets nothing twice: the padding here
+                    // consumes the inset. Before 15 the inset does not reach a
+                    // window that fits the system bars, so the pan stays.
+                    val stopAtKeyboard = Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM
+                    if (stopAtKeyboard) ResizeForKeyboard()
+                    Box(if (stopAtKeyboard) Modifier.imePadding() else Modifier) {
+                        SettingsNavHost(
+                            repository = repository,
+                            settings = settings,
+                            pending = pending,
+                            onPendingHandled = { pendingNav.value = null },
+                        )
+                    }
                     // Settings fields rely on the window panning; keep it in
                     // step with a keyboard that changes height under them.
                     RepanOnKeyboardResize()
@@ -1990,12 +2007,14 @@ private fun SettingsNavGraph(
             }
         }
         composable("tools") {
+            var query by rememberSaveable { mutableStateOf("") }
             SettingsScreen(
                 stringResource(R.string.home_tools_title),
                 { navController.popBackStack() },
                 route = "tools",
+                pinned = { ToolsSearchField(query) { query = it } },
             ) {
-                ToolsSettings(repository, settings) { tool -> navController.navigate("tool/${tool.name}") }
+                ToolsSettings(repository, settings, query) { tool -> navController.navigate("tool/${tool.name}") }
             }
         }
         composable("tool/{toolName}") { backStackEntry ->
@@ -2150,6 +2169,15 @@ private fun SettingsNavGraph(
                 route = SelectionMacroAiRoute,
             ) {
                 SelectionMacroAiScreen(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable(SelectionMacroIconsRoute) {
+            SettingsScreen(
+                stringResource(R.string.selection_macros_icons_title),
+                { navController.popBackStack() },
+                route = SelectionMacroIconsRoute,
+            ) {
+                SelectionMacroIconsScreen(repository, settings)
             }
         }
         composable(SelectionMacroZonesRoute) {
@@ -2907,6 +2935,8 @@ private fun AnimatedVisibilityScope.SettingsScreen(
     subtitle: String? = null,
     subtitleInBar: Boolean = false,
     subtitleMaxLines: Int = 1,
+    /** Held under the bar while the body scrolls; see [WmScreen]'s own. */
+    pinned: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     // A highlight that found no matching row on this screen (the searched
@@ -2930,6 +2960,7 @@ private fun AnimatedVisibilityScope.SettingsScreen(
         subtitleInBar = subtitleInBar,
         subtitleMaxLines = subtitleMaxLines,
         anim = this,
+        pinned = pinned,
     ) {
         // The one place every settings destination passes through, and it
         // already knows its own route, so the fingerprint gate needs no new

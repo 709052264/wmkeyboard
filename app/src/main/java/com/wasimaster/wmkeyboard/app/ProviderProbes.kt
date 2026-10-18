@@ -6,7 +6,17 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
+import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
+import com.wasimaster.wmkeyboard.core.tools.PhotoQuery
+import com.wasimaster.wmkeyboard.core.tools.PhotoSearchClient
+import com.wasimaster.wmkeyboard.core.tools.PhotoSource
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
+import com.wasimaster.wmkeyboard.core.tools.DeepLClient
+import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
 import kotlinx.coroutines.Dispatchers
@@ -40,11 +50,59 @@ internal object ProviderProbes {
             ProviderTypes.COMMONS.id -> {
                 { CommonsClient.searchGifs(PROBE_WORD, limit = 1, endpoint = credential.url) }
             }
+            ProviderTypes.GOOGLE_TRANSLATE.id -> {
+                { TranslateClient.translate(text = PROBE_WORD, targetLang = PROBE_TARGET, apiKey = key, sourceLang = PROBE_SOURCE) }
+            }
+            ProviderTypes.DEEPL.id -> {
+                {
+                    DeepLClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, apiKey = key, endpoint = credential.url, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.LIBRETRANSLATE.id -> {
+                {
+                    LibreTranslateClient.translate(
+                        text = PROBE_WORD, target = PROBE_TARGET, endpoint = credential.url, apiKey = key, source = PROBE_SOURCE,
+                    )
+                }
+            }
+            ProviderTypes.TRANSLATE_SERVER.id -> {
+                {
+                    TranslateServerClient.translate(
+                        text = PROBE_WORD,
+                        target = PROBE_TARGET,
+                        url = credential.url,
+                        model = credential.model,
+                        apiKey = key,
+                        source = PROBE_SOURCE,
+                        isActive = { true },
+                    )
+                }
+            }
+            ProviderTypes.SEARXNG.id -> {
+                { SearxClient.webSearch(PROBE_WORD, credential.url, 1, true) }
+            }
+            ProviderTypes.TAVILY.id -> {
+                { TavilySearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
+            ProviderTypes.BRAVE.id -> {
+                { BraveSearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
             else -> null
         }
-        return call?.let { blocking -> { withContext(Dispatchers.IO) { blocking() } } }
+        if (call != null) return { withContext(Dispatchers.IO) { call() } }
+        // The photo services page through their own client, which suspends.
+        val photo = when (type.id) {
+            ProviderTypes.UNSPLASH.id -> PhotoSource.UNSPLASH
+            ProviderTypes.PEXELS.id -> PhotoSource.PEXELS
+            else -> return null
+        }
+        return { PhotoSearchClient.page(photo, PhotoQuery(text = PROBE_WORD, perPage = 1), key) }
     }
 
     /** A word every provider has something for. */
     private const val PROBE_WORD = "hello"
+    private const val PROBE_SOURCE = "en"
+    private const val PROBE_TARGET = "es"
 }

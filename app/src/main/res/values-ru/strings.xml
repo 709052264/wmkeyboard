@@ -3519,7 +3519,6 @@
     <string name="layout_editor_alternate_columns_default">Из настроек</string>
     <string name="layout_editor_alternate_columns_subtitle">Сколько альтернативных символов эта клавиша размещает в ряду</string>
     <string name="layout_editor_alternate_columns_title">Столбцы во всплывающем окне</string>
-    <string name="layout_editor_alternate_hint_badge">подсказка</string>
     <string name="layout_editor_alternates_field_hint">Разделяйте записи пробелами, поэтому альтернатива не может быть пробелом. Записи из нескольких символов, например .com, допустимы. Приложение также отображает первую из них в углу клавиши.</string>
     <string name="layout_editor_alternates_field_label">Альтернативы для длительного нажатия</string>
     <string name="layout_editor_apply_action">Применить</string>
@@ -3615,7 +3614,6 @@
     <string name="layout_editor_field_row_title">Компонент</string>
     <string name="layout_editor_fill_row_action">Заполнить ряд (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Цифровой ряд уже отображает цифры, поэтому клавиатура показывает этот ряд вместо первого ряда этого слоя.</string>
-    <string name="layout_editor_fill_row_off_caption">Когда включен цифровой ряд, клавиатура показывает этот ряд вместо первого ряда этого слоя, так как цифровой ряд уже отображает цифры. Сейчас цифровой ряд выключен.</string>
     <string name="layout_editor_fill_row_title">Ряд вместо цифр</string>
     <string name="layout_editor_fit_row_action">Подогнать ряд к сетке (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Нет жеста в этом направлении. Нажмите, чтобы выбрать действие.</string>
@@ -3790,8 +3788,6 @@
     <string name="layout_editor_new_secondary_title">Начать вторичную раскладку</string>
     <string name="layout_editor_not_live_caption">Ваши изменения здесь не повлияют на ввод текста, пока вы не включите раскладку в разделе «Языки».</string>
     <string name="layout_editor_number_row_caption">Клавиатура показывает этот ряд над этим слоем. Нажмите на клавишу, чтобы изменить её. Удерживайте клавишу и перетащите её, чтобы переместить.</string>
-    <string name="layout_editor_number_row_hidden_caption">Клавиатура показывает этот ряд над этим слоем, когда включен «Цифровой ряд в символах» в разделе «Раскладка и размер». Сейчас он выключен.</string>
-    <string name="layout_editor_number_row_off_caption">Клавиатура показывает этот ряд над этим слоем, когда включен «Цифровой ряд» в разделе «Раскладка и размер». Сейчас цифровой ряд выключен.</string>
     <string name="layout_editor_number_row_title">Цифровой ряд</string>
     <string name="layout_editor_panel_inherited_caption">Эта раскладка использует общую панель %1$s. Любые изменения здесь создают копию только для этой раскладки. Общая панель находится в разделе «Ключевые раскладки», «Панели раскладок».</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Наследовать тему макета</string>

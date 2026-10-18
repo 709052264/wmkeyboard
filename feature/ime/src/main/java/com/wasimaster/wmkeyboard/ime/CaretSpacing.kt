@@ -35,3 +35,18 @@ private val CARET_SPACERS = charArrayOf(' ', ' ', '\t')
  */
 internal fun spacedAfterCaret(after: CharSequence?): Boolean =
     !after.isNullOrEmpty() && after[0] in CARET_SPACERS
+
+/**
+ * Whether [after], the text right after the caret, starts with a mark that
+ * belongs to the word in front of it: a full stop, a comma, a question mark, a
+ * closing bracket or quote. A word picked in front of one gets no space of its
+ * own, or "A question?" with "questionable" picked over "question" reads
+ * "A questionable ?" (#679). The space is held back instead and typed only if
+ * a letter follows (see `WMKeyboardService.deferredWordSpace`), which is what
+ * FUTO and SwiftKey do.
+ */
+internal fun markHugsCaretWord(after: CharSequence?): Boolean =
+    !after.isNullOrEmpty() && after[0] in WORD_HUGGING_MARKS
+
+/** What [markHugsCaretWord] counts as closing up onto the word before it. */
+private const val WORD_HUGGING_MARKS = ".,;:!?…)]}\"'”’»،؛؟۔।"

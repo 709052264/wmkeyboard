@@ -3515,7 +3515,6 @@
     <string name="layout_editor_alternate_columns_default">Dari pengaturan</string>
     <string name="layout_editor_alternate_columns_subtitle">Berapa banyak alternatif yang diletakkan tombol ini dalam satu baris</string>
     <string name="layout_editor_alternate_columns_title">Kolom di jendela sembul</string>
-    <string name="layout_editor_alternate_hint_badge">petunjuk</string>
     <string name="layout_editor_alternates_field_hint">Pisahkan entri dengan spasi, sehingga alternatif tidak boleh berupa spasi. Entri yang terdiri dari lebih dari satu karakter, seperti .com, adalah benar. Aplikasi juga menggambar yang pertama di sudut tombol.</string>
     <string name="layout_editor_alternates_field_label">Alternatif untuk tekan dan tahan</string>
     <string name="layout_editor_apply_action">Terapkan</string>
@@ -3611,7 +3610,6 @@
     <string name="layout_editor_field_row_title">Komponen</string>
     <string name="layout_editor_fill_row_action">Isi baris (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Baris angka sudah menampilkan digit, jadi papan ketik menampilkan baris ini sebagai pengganti baris pertama lapisan ini.</string>
-    <string name="layout_editor_fill_row_off_caption">Saat Baris angka aktif, papan ketik menampilkan baris ini sebagai pengganti baris pertama lapisan ini, karena baris angka sudah menampilkan digit. Baris angka saat ini nonaktif.</string>
     <string name="layout_editor_fill_row_title">Baris sebagai pengganti digit</string>
     <string name="layout_editor_fit_row_action">Sesuaikan baris ke kisi (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Tidak ada jentikan ke arah ini. Ketuk untuk memilih tindakan.</string>
@@ -3786,8 +3784,6 @@
     <string name="layout_editor_new_secondary_title">Mulai tata letak sekunder</string>
     <string name="layout_editor_not_live_caption">Perubahan Anda di sini tidak memengaruhi pengetikan sampai Anda mengaktifkan tata letak di bawah Bahasa.</string>
     <string name="layout_editor_number_row_caption">Papan ketik menampilkan baris ini di atas lapisan ini. Ketuk tombol untuk mengubahnya. Tahan tombol dan seret untuk memindahkannya.</string>
-    <string name="layout_editor_number_row_hidden_caption">Papan ketik menampilkan baris ini di atas lapisan ini saat Baris angka dalam simbol aktif di Tata letak dan ukuran. Saat ini nonaktif.</string>
-    <string name="layout_editor_number_row_off_caption">Papan ketik menampilkan baris ini di atas lapisan ini saat Baris angka aktif di Tata letak dan ukuran. Baris angka saat ini nonaktif.</string>
     <string name="layout_editor_number_row_title">Baris angka</string>
     <string name="layout_editor_panel_inherited_caption">Tata letak ini menggunakan panel %1$s yang dibagikan. Mengubah apa pun di sini akan membuat salinan khusus untuk tata letak ini saja. Panel yang dibagikan ada di bawah Tata letak tombol, Tata letak panel.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Warisi tema tata letak</string>

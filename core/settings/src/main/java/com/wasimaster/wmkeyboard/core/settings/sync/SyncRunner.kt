@@ -230,8 +230,7 @@ object SyncRunner {
         me: String,
     ): Map<String, Map<String, JsonElement>> {
         val exported = sections - ConfigBackup.Section.STATISTICS
-        val bundle = repository.exportConfig(exported, filter.includeSecrets, appVersion = 0, appVersionName = "")
-        val parsed = ConfigBackup.decode(bundle)?.sections.orEmpty()
+        val parsed = repository.exportSections(exported, filter.includeSecrets)
         return sections.associate { section ->
             val element = parsed[section]
             val entries = when {

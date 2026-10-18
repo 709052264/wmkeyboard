@@ -3520,7 +3520,6 @@
     <string name="layout_editor_alternate_columns_default">Desde la configuración</string>
     <string name="layout_editor_alternate_columns_subtitle">Cuántos alternativos pone esta tecla en una fila</string>
     <string name="layout_editor_alternate_columns_title">Columnas en la ventana emergente</string>
-    <string name="layout_editor_alternate_hint_badge">sugerencia</string>
     <string name="layout_editor_alternates_field_hint">Separa las entradas con espacios, de modo que un alternativo no pueda ser un espacio. Las entradas de más de un carácter, como .com, son correctas. La aplicación también dibuja la primera en la esquina de la tecla.</string>
     <string name="layout_editor_alternates_field_label">Alternativas para mantener presionado</string>
     <string name="layout_editor_apply_action">Aplicar</string>
@@ -3616,7 +3615,6 @@
     <string name="layout_editor_field_row_title">Componente</string>
     <string name="layout_editor_fill_row_action">Rellenar la fila (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">La fila de números ya muestra los dígitos, por lo que el teclado muestra esta fila en lugar de la primera fila de esta capa.</string>
-    <string name="layout_editor_fill_row_off_caption">Cuando la Fila de números está activada, el teclado muestra esta fila en lugar de la primera fila de esta capa, porque la fila de números ya muestra los dígitos. La Fila de números está desactivada ahora.</string>
     <string name="layout_editor_fill_row_title">Fila en lugar de los dígitos</string>
     <string name="layout_editor_fit_row_action">Ajustar la fila a la cuadrícula (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Sin deslizamiento en esta dirección. Toca para elegir una acción.</string>
@@ -3791,8 +3789,6 @@
     <string name="layout_editor_new_secondary_title">Iniciar un diseño secundario</string>
     <string name="layout_editor_not_live_caption">Los cambios realizados aquí no afectarán a la escritura hasta que active el diseño en Idiomas.</string>
     <string name="layout_editor_number_row_caption">El teclado muestra esta fila sobre esta capa. Toca una tecla para cambiarla. Mantén presionada una tecla y arrástrala para moverla.</string>
-    <string name="layout_editor_number_row_hidden_caption">El teclado muestra esta fila sobre esta capa cuando la opción Fila de números en símbolos está activada en Diseño y tamaño. Actualmente está desactivada.</string>
-    <string name="layout_editor_number_row_off_caption">El teclado muestra esta fila sobre esta capa cuando la Fila de números está activada en Diseño y tamaño. La Fila de números está desactivada ahora.</string>
     <string name="layout_editor_number_row_title">Fila de números</string>
     <string name="layout_editor_panel_inherited_caption">Este diseño utiliza el panel compartido %1$s. Cualquier cambio aquí creará una copia solo para este diseño. El panel compartido se encuentra en Diseños de teclas, Diseños de panel.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Heredar el tema del diseño</string>

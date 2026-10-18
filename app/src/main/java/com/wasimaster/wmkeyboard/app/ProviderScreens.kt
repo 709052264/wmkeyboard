@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,6 +101,8 @@ internal fun ProvidersGroup(
     repository: SettingsRepository,
     settings: LiveSettings,
     tool: ProviderTool,
+    /** The group's heading, which is also what a settings search lands on. */
+    @StringRes titleRes: Int = R.string.providers_group_title,
     info: String? = null,
     /** After every saved change: for a cache that answered for the old setup. */
     onChanged: () -> Unit = {},
@@ -124,9 +127,9 @@ internal fun ProvidersGroup(
     fun chain(): ProviderChain = settings.value.providerChain(tool, env)
 
     SettingsGroup(
-        stringResource(R.string.providers_group_title),
-        // What a search for "providers" lands on; one list per tool page.
-        highlightKey = R.string.providers_group_title,
+        stringResource(titleRes),
+        // What a settings search lands on; one list per page.
+        highlightKey = titleRes,
         info = info ?: stringResource(R.string.providers_group_info),
     ) {
         if (tool.modes.size > 1) {

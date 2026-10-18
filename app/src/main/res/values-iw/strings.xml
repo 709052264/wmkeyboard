@@ -3516,7 +3516,6 @@
     <string name="layout_editor_alternate_columns_default">מהגדרות</string>
     <string name="layout_editor_alternate_columns_subtitle">כמה חלופות מקש זה מציב בשורה</string>
     <string name="layout_editor_alternate_columns_title">עמודות בחלון הקופץ</string>
-    <string name="layout_editor_alternate_hint_badge">רמז</string>
     <string name="layout_editor_alternates_field_hint">הפרד את הערכים ברווחים, כך שחלופה לא יכולה להיות רווח. ערכים של יותר מתו אחד, כמו .com, הם תקינים. האפליקציה גם מציירת את הראשון בפינת המקש.</string>
     <string name="layout_editor_alternates_field_label">חלופות ללחיצה ארוכה</string>
     <string name="layout_editor_apply_action">החל</string>
@@ -3612,7 +3611,6 @@
     <string name="layout_editor_field_row_title">רכיב</string>
     <string name="layout_editor_fill_row_action">מלא את השורה (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">שורת המספרים כבר מציגה את הספרות, לכן המקלדת מציגה שורה זו במקום השורה הראשונה של שכבה זו.</string>
-    <string name="layout_editor_fill_row_off_caption">כאשר \'שורת מספרים\' מופעלת, המקלדת מציגה שורה זו במקום השורה הראשונה של שכבה זו, מכיוון ששורת המספרים כבר מציגה את הספרות. שורת המספרים כבויה כעת.</string>
     <string name="layout_editor_fill_row_title">שורה במקום הספרות</string>
     <string name="layout_editor_fit_row_action">התאם את השורה לרשת (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">אין תנועה בכיוון זה. הקש כדי לבחור פעולה.</string>
@@ -3787,8 +3785,6 @@
     <string name="layout_editor_new_secondary_title">התחל פריסה משנית</string>
     <string name="layout_editor_not_live_caption">השינויים שתבצע כאן לא ישפיעו על ההקלדה עד שתפעיל את הפריסה תחת \'שפות\'.</string>
     <string name="layout_editor_number_row_caption">המקלדת מציגה שורה זו מעל שכבה זו. הקש על מקש כדי לשנות אותו. החזק מקש וגרור אותו כדי להזיז אותו.</string>
-    <string name="layout_editor_number_row_hidden_caption">המקלדת מציגה שורה זו מעל שכבה זו כאשר \'שורת מספרים בסמלים\' מופעלת תחת \'פריסה וגודל\'. היא כבויה כעת.</string>
-    <string name="layout_editor_number_row_off_caption">המקלדת מציגה שורה זו מעל שכבה זו כאשר \'שורת מספרים\' מופעלת תחת \'פריסה וגודל\'. שורת המספרים כבויה כעת.</string>
     <string name="layout_editor_number_row_title">שורת מספרים</string>
     <string name="layout_editor_panel_inherited_caption">פריסה זו משתמשת בלוח המשותף %1$s. שינוי כלשהו כאן ייצור עותק עבור פריסה זו בלבד. הלוח המשותף נמצא תחת פריסות מקשים, פריסות לוח.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">ירש את ערכת הנושא של הפריסה</string>

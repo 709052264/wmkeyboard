@@ -3516,7 +3516,6 @@
     <string name="layout_editor_alternate_columns_default">Fra indstillinger</string>
     <string name="layout_editor_alternate_columns_subtitle">Hvor mange alternativer denne tast placerer på en række</string>
     <string name="layout_editor_alternate_columns_title">Kolonner i pop-up</string>
-    <string name="layout_editor_alternate_hint_badge">tip</string>
     <string name="layout_editor_alternates_field_hint">Adskil indtastningerne med mellemrum, så et alternativ ikke kan være et mellemrum. Indtastninger på mere end ét tegn, såsom .com, er korrekte. Appen tegner også det første i hjørnet af tasten.</string>
     <string name="layout_editor_alternates_field_label">Alternativer til tryk og hold</string>
     <string name="layout_editor_apply_action">Anvend</string>
@@ -3612,7 +3611,6 @@
     <string name="layout_editor_field_row_title">Komponent</string>
     <string name="layout_editor_fill_row_action">Udfyld rækken (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Talrækken viser allerede tallene, så tastaturet viser denne række i stedet for den første række i dette lag.</string>
-    <string name="layout_editor_fill_row_off_caption">Når Talrække er slået til, viser tastaturet denne række i stedet for den første række i dette lag, da talrækken allerede viser tallene. Talrække er slået fra nu.</string>
     <string name="layout_editor_fill_row_title">Række i stedet for tallene</string>
     <string name="layout_editor_fit_row_action">Tilpas rækken til gitteret (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Intet svirp i denne retning. Tryk for at vælge en handling.</string>
@@ -3787,8 +3785,6 @@
     <string name="layout_editor_new_secondary_title">Start et sekundært layout</string>
     <string name="layout_editor_not_live_caption">Dine ændringer her påvirker ikke skrivningen, før du aktiverer layoutet under Sprog.</string>
     <string name="layout_editor_number_row_caption">Tastaturet viser denne række over dette lag. Tryk på en tast for at ændre den. Hold en tast nede og træk den for at flytte den.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tastaturet viser denne række over dette lag, når Talrække i symboler er slået til under Layout og størrelse. Den er slået fra nu.</string>
-    <string name="layout_editor_number_row_off_caption">Tastaturet viser denne række over dette lag, når Talrække er slået til under Layout og størrelse. Talrække er slået fra nu.</string>
     <string name="layout_editor_number_row_title">Talrække</string>
     <string name="layout_editor_panel_inherited_caption">Dette layout bruger det delte %1$s-panel. Ændringer her laver en kopi kun til dette layout. Det delte panel findes under Tastaturlayouts, Panellayouts.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Arv temaet fra layoutet</string>

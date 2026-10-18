@@ -3532,7 +3532,6 @@
     <string name="layout_editor_alternate_columns_info">ಇದು ಈ ಕೀಲಿಗಾಗಿ ಮಾತ್ರ ಕಾಲಮ್‌ಗಳ ಸಂಖ್ಯೆಯಾಗಿದೆ. ಕೀಲಿಗಳು ಭಿನ್ನವಾಗಿರುತ್ತವೆ: ಹನ್ನೆರಡು ಪರ್ಯಾಯಗಳನ್ನು ಹೊಂದಿರುವ ಕೀಲಿಯು ಗ್ರಿಡ್‌ನಂತೆ ಉತ್ತಮವಾಗಿ ಕಾಣುತ್ತದೆ, ಮತ್ತು ಮೂರು ಅಥವಾ ನಾಲ್ಕು ಹೊಂದಿರುವ ಕೀಲಿಯು ಒಂದೇ ಸಾಲಿನಂತೆ ಉತ್ತಮವಾಗಿ ಕಾಣುತ್ತದೆ. ಸೆಟ್ಟಿಂಗ್‌ಗಳಿಂದ ಕೀಲಿಯನ್ನು \'ಪರ್ಯಾಯ ಕೀ ಕಾಲಮ್‌ಗಳು\' ಸೆಟ್ಟಿಂಗ್‌ಗೆ ಬಿಡಲಾಗುತ್ತದೆ, ನೀವು ಅದನ್ನು ಬದಲಾಯಿಸದ ಹೊರತು ಇದು ಸ್ವಯಂಚಾಲಿತವಾಗಿರುತ್ತದೆ. 3 ರಿಂದ 11 ರವರೆಗಿನ ಸಂಖ್ಯೆಯು ಸೆಟ್ಟಿಂಗ್ ಏನೇ ಇದ್ದರೂ ಈ ಕೀಲಿಗಾಗಿ ಅಷ್ಟು ಕಾಲಮ್‌ಗಳನ್ನು ನೀಡುತ್ತದೆ.</string>
     <string name="layout_editor_alternate_columns_subtitle">ಈ ಕೀಲಿಯು ಒಂದು ಸಾಲಿನಲ್ಲಿ ಎಷ್ಟು ಪರ್ಯಾಯಗಳನ್ನು ಇರಿಸುತ್ತದೆ</string>
     <string name="layout_editor_alternate_columns_title">ಪಾಪ್‌ಅಪ್‌ನಲ್ಲಿನ ಕಾಲಮ್‌ಗಳು</string>
-    <string name="layout_editor_alternate_hint_badge">ಸುಳಿವು</string>
     <string name="layout_editor_alternates_field_hint">ನಮೂದುಗಳನ್ನು ಸ್ಪೇಸ್‌ಗಳೊಂದಿಗೆ ಪ್ರತ್ಯೇಕಿಸಿ, ಆದ್ದರಿಂದ ಪರ್ಯಾಯವು ಸ್ಪೇಸ್ ಆಗಿರಲು ಸಾಧ್ಯವಿಲ್ಲ. .com ನಂತಹ ಒಂದಕ್ಕಿಂತ ಹೆಚ್ಚು ಅಕ್ಷರಗಳ ನಮೂದುಗಳು ಸರಿಯಾಗಿವೆ. ಅಪ್ಲಿಕೇಶನ್ ಕೀಯ ಮೂಲೆಯಲ್ಲಿ ಮೊದಲನೆಯದನ್ನು ಸಹ ತೋರಿಸುತ್ತದೆ.</string>
     <string name="layout_editor_alternates_field_label">ಒತ್ತಿ ಹಿಡಿಯಲು ಪರ್ಯಾಯಗಳು</string>
     <string name="layout_editor_apply_action">ಅನ್ವಯಿಸು</string>
@@ -3628,7 +3627,6 @@
     <string name="layout_editor_field_row_title">ಘಟಕ</string>
     <string name="layout_editor_fill_row_action">ಸಾಲು ತುಂಬಿಸಿ (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">ಸಂಖ್ಯೆಯ ಸಾಲು ಈಗಾಗಲೇ ಅಂಕಿಗಳನ್ನು ತೋರಿಸುತ್ತದೆ, ಆದ್ದರಿಂದ ಕೀಬೋರ್ಡ್ ಈ ಪದರದ ಮೊದಲ ಸಾಲಿನ ಬದಲಿಗೆ ಈ ಸಾಲನ್ನು ತೋರಿಸುತ್ತದೆ.</string>
-    <string name="layout_editor_fill_row_off_caption">ಸಂಖ್ಯೆಯ ಸಾಲು ಆನ್ ಆಗಿರುವಾಗ, ಕೀಬೋರ್ಡ್ ಈ ಪದರದ ಮೊದಲ ಸಾಲಿನ ಬದಲಿಗೆ ಈ ಸಾಲನ್ನು ತೋರಿಸುತ್ತದೆ, ಏಕೆಂದರೆ ಸಂಖ್ಯೆಯ ಸಾಲು ಈಗಾಗಲೇ ಅಂಕಿಗಳನ್ನು ತೋರಿಸುತ್ತದೆ. ಸಂಖ್ಯೆಯ ಸಾಲು ಈಗ ಆಫ್ ಆಗಿದೆ.</string>
     <string name="layout_editor_fill_row_title">ಅಂಕಿಗಳ ಬದಲಿಗೆ ಸಾಲು</string>
     <string name="layout_editor_fit_row_action">ಸಾಲುಗಳನ್ನು ಗ್ರಿಡ್‌ಗೆ ಹೊಂದಿಸಿ (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">ಈ ಕಡೆ ಯಾವುದೇ ಫ್ಲಿಕ್ ಇಲ್ಲ. ಕ್ರಿಯೆಯನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಟ್ಯಾಪ್ ಮಾಡಿ.</string>
@@ -3803,8 +3801,6 @@
     <string name="layout_editor_new_secondary_title">ದ್ವಿತೀಯ ಲೇಔಟ್ ಅನ್ನು ಪ್ರಾರಂಭಿಸಿ</string>
     <string name="layout_editor_not_live_caption">ನೀವು ಭಾಷೆಗಳ ಅಡಿಯಲ್ಲಿ ಲೇಔಟ್ ಅನ್ನು ಆನ್ ಮಾಡುವವರೆಗೆ ಇಲ್ಲಿನ ನಿಮ್ಮ ಬದಲಾವಣೆಗಳು ಟೈಪಿಂಗ್ ಮೇಲೆ ಪರಿಣಾಮ ಬೀರುವುದಿಲ್ಲ.</string>
     <string name="layout_editor_number_row_caption">ಕೀಬೋರ್ಡ್ ಈ ಪದರದ ಮೇಲೆ ಈ ಸಾಲನ್ನು ತೋರಿಸುತ್ತದೆ. ಅದನ್ನು ಬದಲಾಯಿಸಲು ಕೀಲಿಯನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ. ಅದನ್ನು ಸರಿಸಲು ಕೀಲಿಯನ್ನು ಹಿಡಿದಿಟ್ಟುಕೊಂಡು ಎಳೆಯಿರಿ.</string>
-    <string name="layout_editor_number_row_hidden_caption">ಲೇಔಟ್ ಮತ್ತು ಗಾತ್ರದಲ್ಲಿ ಚಿಹ್ನೆಗಳಲ್ಲಿನ ಸಂಖ್ಯೆಯ ಸಾಲು ಆನ್ ಆಗಿರುವಾಗ ಕೀಬೋರ್ಡ್ ಈ ಪದರದ ಮೇಲೆ ಈ ಸಾಲನ್ನು ತೋರಿಸುತ್ತದೆ. ಇದು ಈಗ ಆಫ್ ಆಗಿದೆ.</string>
-    <string name="layout_editor_number_row_off_caption">ಲೇಔಟ್ ಮತ್ತು ಗಾತ್ರದಲ್ಲಿ ಸಂಖ್ಯೆಯ ಸಾಲು ಆನ್ ಆಗಿರುವಾಗ ಕೀಬೋರ್ಡ್ ಈ ಪದರದ ಮೇಲೆ ಈ ಸಾಲನ್ನು ತೋರಿಸುತ್ತದೆ. ಸಂಖ್ಯೆಯ ಸಾಲು ಈಗ ಆಫ್ ಆಗಿದೆ.</string>
     <string name="layout_editor_number_row_title">ಸಂಖ್ಯೆಯ ಸಾಲು</string>
     <string name="layout_editor_panel_inherited_caption">ಈ ಲೇಔಟ್ ಹಂಚಿಕೆಯಾದ %1$s ಪ್ಯಾನಲ್ ಅನ್ನು ಬಳಸುತ್ತದೆ. ಇಲ್ಲಿ ಏನನ್ನಾದರೂ ಬದಲಾಯಿಸುವುದು ಈ ಲೇಔಟ್‌ಗೆ ಮಾತ್ರ ಪ್ರತಿಯನ್ನು ಮಾಡುತ್ತದೆ. ಹಂಚಿಕೆಯಾದ ಪ್ಯಾನಲ್ ಕೀ ಲೇಔಟ್‌ಗಳು, ಪ್ಯಾನಲ್ ಲೇಔಟ್‌ಗಳ ಅಡಿಯಲ್ಲಿದೆ.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">ಲೇಔಟ್‌ನ ಥೀಮ್ ಅನ್ನು ಪಡೆದುಕೊಳ್ಳಿ</string>

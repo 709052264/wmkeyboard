@@ -50,6 +50,9 @@ internal const val SelectionMacroActionsRoute = "selection_macros/actions"
 internal const val SelectionMacroAiRoute = "selection_macros/ai"
 internal const val SelectionMacroZonesRoute = "selection_macros/zones"
 
+/** Selection actions › Icon only. */
+internal const val SelectionMacroIconsRoute = "selection_macros/icons"
+
 /** The configurable macros, grouped for browsing, each group in shipped order. */
 private val MacroGroups: List<Pair<MacroCategory, List<SelectionMacro>>> =
     MacroCategory.entries.map { category ->
@@ -252,6 +255,9 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.LINES_DEDUPE -> R.string.selection_macros_desc_lines_dedupe
     SelectionMacro.LINES_NUMBER -> R.string.selection_macros_desc_lines_number
     SelectionMacro.LINES_BULLET -> R.string.selection_macros_desc_lines_bullet
+    SelectionMacro.LINES_CHECKBOX -> R.string.selection_macros_desc_lines_checkbox
+    SelectionMacro.LINES_UP -> R.string.selection_macros_desc_lines_up
+    SelectionMacro.LINES_DOWN -> R.string.selection_macros_desc_lines_down
     SelectionMacro.SEARCH -> R.string.selection_macros_desc_search
     SelectionMacro.TRANSLATE -> R.string.selection_macros_desc_translate
     SelectionMacro.GRAMMAR_FIX -> R.string.selection_macros_desc_grammar
@@ -336,6 +342,48 @@ internal fun SelectionMacroAiScreen(
     SettingsGroup {
         item {
             NavRow(R.string.selection_macros_ai_manage_title, route = "ai_actions") { onNavigate("ai_actions") }
+        }
+    }
+}
+
+/**
+ * Selection actions › Icon only (#679): which of the actions that are on draw
+ * as their icon alone. Only the ones with an icon are listed; a case option is
+ * written in the case it applies and has nothing else to show.
+ */
+@Composable
+internal fun SelectionMacroIconsScreen(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    // Decides which rows the group holds; each row reads whether it is picked.
+    val shown = settings.watch { s ->
+        val prefs = s.selectionMacros
+        prefs.order.filter { it in prefs.macros && it != SelectionMacro.UNDO && selectionMacroIcon(it) != null }
+    }
+    SettingsGroup(
+        stringResource(R.string.selection_macros_icons_title),
+        info = stringResource(R.string.selection_macros_icons_info),
+    ) {
+        if (shown.isEmpty()) {
+            item { CaptionText(stringResource(R.string.selection_macros_icons_empty)) }
+        }
+        for (macro in shown) {
+            item {
+                val on = settings.watch { macro in it.selectionMacros.iconOnly }
+                WmRow(
+                    title = stringResource(macro.labelRes),
+                    icon = selectionMacroIcon(macro) ?: Icons.Outlined.Abc,
+                    trailing = {
+                        Checkbox(
+                            checked = on,
+                            onCheckedChange = { checked -> scope.launch { repository.setSelectionMacroIconOnly(macro, checked) } },
+                        )
+                    },
+                    onClick = { scope.launch { repository.setSelectionMacroIconOnly(macro, !on) } },
+                )
+            }
         }
     }
 }

@@ -156,11 +156,8 @@
     <string name="layout_editor_add_row_subtitle">Adds an empty row at the end of this layer</string>
     <string name="layout_editor_number_row_title">Number row</string>
     <string name="layout_editor_number_row_caption">The keyboard shows this row above this layer. Tap a key to change it. Hold a key and drag it to move it.</string>
-    <string name="layout_editor_number_row_off_caption">The keyboard shows this row above this layer when Number row is on in Layout and size. Number row is off now.</string>
-    <string name="layout_editor_number_row_hidden_caption">The keyboard shows this row above this layer when Number row in symbols is on in Layout and size. It is off now.</string>
     <string name="layout_editor_fill_row_title">Row in place of the digits</string>
     <string name="layout_editor_fill_row_caption">The number row already shows the digits, so the keyboard shows this row in place of the first row of this layer.</string>
-    <string name="layout_editor_fill_row_off_caption">When Number row is on, the keyboard shows this row in place of the first row of this layer, because the number row already shows the digits. Number row is off now.</string>
     <string name="layout_editor_extra_row_add_key_desc">Add a key to this row</string>
     <string name="layout_editor_extra_row_reset">Use the standard row</string>
     <string name="layout_editor_reorder_rows_title">Reorder rows</string>
@@ -335,7 +332,6 @@
     <string name="layout_editor_select_hold_notice">Holding a Select key turns selection mode on for as long as you hold it. If you give this key alternates, the long press opens them instead and hold to select stops working on it. Tap, double tap and triple tap still work either way.</string>
     <string name="layout_editor_alternates_field_hint">Separate the entries with spaces, so an alternate cannot be a space. Entries of more than one character, such as .com, are correct. The app also draws the first one in the corner of the key.</string>
     <!-- Small badge on the first alternate, which the keyboard also draws in the corner of the key. -->
-    <string name="layout_editor_alternate_hint_badge">hint</string>
 
     <!-- Per-key column count for the press and hold popup. The first step is not a
          number: it hands the key back to the Alternate key columns setting. -->
@@ -373,13 +369,13 @@
     <string name="layout_editor_hint_never_desc">This key never draws its corner hint</string>
 
     <string name="layout_editor_role_title">Field adaptation</string>
-    <string name="layout_editor_role_subtitle">Email and web fields put @ and / in these two slots</string>
+    <string name="layout_editor_role_subtitle">Email and web address fields change the comma and full stop keys</string>
     <string name="layout_editor_role_comma">Comma slot</string>
     <string name="layout_editor_role_period">Full stop slot</string>
     <string name="layout_editor_role_plain">Exactly as laid out</string>
     <!-- One line under each option in the field adaptation picker. -->
     <string name="layout_editor_role_none_desc">Work it out from the key: a full stop or a comma on the bottom row fills its slot</string>
-    <string name="layout_editor_role_comma_desc">An email field puts @ here, and a web field puts /</string>
+    <string name="layout_editor_role_comma_desc">An email field puts @ here. A web field keeps the comma and puts / first on its press and hold</string>
     <string name="layout_editor_role_period_desc">An email field and a web field add .com and the other endings to the long press</string>
     <string name="layout_editor_role_plain_desc">No slot and no substitution: the key types what you put on it, so a full stop stays a full stop on a language that ends sentences some other way</string>
 
@@ -726,5 +722,43 @@
     <!-- Chevron on a layout's row that opens or closes the list of its layers. %1$s is the layout's name. -->
     <string name="layout_editor_layers_expand_desc">Show the layers of <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>
     <string name="layout_editor_layers_collapse_desc">Hide the layers of <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>
+
+    <!-- Issue #769: the editor's preview draws the keyboard as it is, and the selected key's settings sit on the page under it. -->
+    <!-- A row of the preview grid that has no keys in it. -->
+    <string name="layout_editor_empty_row_label">Empty row</string>
+    <!-- Label before the chips that pick the kind of text field the preview draws the keyboard for. -->
+    <string name="layout_editor_preview_field_label">Show as in</string>
+    <string name="layout_editor_preview_field_text">Ordinary text</string>
+    <string name="layout_editor_preview_field_email">Email address</string>
+    <string name="layout_editor_preview_field_web">Web address</string>
+    <string name="layout_editor_preview_field_email_caption">In an email address field the keyboard changes two keys on this layer. The comma key types @, and the press and hold of the full stop starts with .com and the other endings. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
+    <string name="layout_editor_preview_field_web_caption">In a web address field, such as the address bar of a browser, the keyboard changes keys on this layer. The comma key keeps its comma but its press and hold, and its corner hint, start with /. The full stop gets .com and the other endings, and enter shows Go. To keep a key as you made it, open the key and set Field adaptation, under More, to Exactly as laid out.</string>
+    <!-- Heading of the group of settings for the layer on screen. %1$s is the layer's name. -->
+    <string name="layout_editor_layer_section_title">This layer: <xliff:g id="layer" example="Letters">%1$s</xliff:g></string>
+    <string name="layout_editor_layout_section_title">The whole layout</string>
+    <!-- Button on a theme row that opens that theme in the theme editor. -->
+    <string name="layout_editor_theme_edit_action">Edit</string>
+    <string name="layout_editor_arrow_row_title">Arrow keys row</string>
+    <string name="layout_editor_arrow_row_caption">The keyboard shows this row under this layer when Arrow keys row is on in Layout and size. You can add any key to it, such as Word left or a second Shift.</string>
+    <!-- Heading of a selected key on one of the rows around the grid. %1$d is the key's place in the row. -->
+    <string name="layout_editor_number_row_key_title">Number row, key <xliff:g id="key" example="3">%1$d</xliff:g></string>
+    <string name="layout_editor_fill_row_key_title">Row in place of the digits, key <xliff:g id="key" example="3">%1$d</xliff:g></string>
+    <string name="layout_editor_arrow_row_key_title">Arrow keys row, key <xliff:g id="key" example="3">%1$d</xliff:g></string>
+    <!-- Headings of the groups of the selected key's settings. -->
+    <string name="layout_editor_key_section_main">Label and action</string>
+    <string name="layout_editor_key_section_hold">Press and hold</string>
+    <string name="layout_editor_key_section_flicks">Flicks</string>
+    <string name="layout_editor_key_section_look">Size and look</string>
+    <string name="layout_editor_key_section_more">More</string>
+    <string name="layout_editor_key_close_desc">Done with this key</string>
+    <string name="layout_editor_insert_key_action">Add key after</string>
+    <string name="layout_editor_row_add_key_action">Add key</string>
+    <string name="layout_editor_key_hint_text_label">Corner hint text</string>
+    <string name="layout_editor_key_hint_text_hint">What the corner of the key shows. It does not change what a press and hold types. Blank shows the first alternate.</string>
+    <!-- %1$s is the first alternate of the key, which the corner shows while this field is blank. -->
+    <string name="layout_editor_key_hint_text_hint_alternate">What the corner of the key shows, for example ,?! on a full stop. It does not change what a press and hold types. Blank shows <xliff:g id="alternate" example="1">%1$s</xliff:g>.</string>
+    <string name="layout_editor_popup_preview_title">The popup</string>
+    <string name="layout_editor_popup_preview_caption">How the keyboard shows it. The outlined entry is what a plain press and hold types.</string>
+    <string name="layout_editor_popup_preview_caption_added">How the keyboard shows it. The outlined entry is what a plain press and hold types. Faded entries come from your settings, such as the press and hold shortcuts and the accents, not from this layout.</string>
 
 </resources>

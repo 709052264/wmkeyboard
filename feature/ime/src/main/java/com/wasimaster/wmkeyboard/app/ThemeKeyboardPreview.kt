@@ -72,6 +72,7 @@ import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.expandForTablet
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.fillRowFor
+import com.wasimaster.wmkeyboard.core.layout.arrowRowFor
 import com.wasimaster.wmkeyboard.core.layout.numberRowFor
 import com.wasimaster.wmkeyboard.core.layout.panelLayers
 import com.wasimaster.wmkeyboard.core.layout.repair
@@ -512,6 +513,12 @@ private fun previewLayoutSet(
             safe.numberRowFor(LayoutLayer.FN)?.let { put(LayoutMode.FN, it) }
         },
         symbolsFillRow = safe.fillRowFor(LayoutLayer.SYMBOLS),
+        arrowRows = buildMap {
+            safe.arrowRowFor(LayoutLayer.LETTERS)?.let { put(LayoutMode.LETTERS, it) }
+            safe.arrowRowFor(LayoutLayer.SYMBOLS)?.let { put(LayoutMode.SYMBOLS, it) }
+            safe.arrowRowFor(LayoutLayer.SYMBOLS_SHIFTED)?.let { put(LayoutMode.SYMBOLS_SHIFTED, it) }
+            safe.arrowRowFor(LayoutLayer.FN)?.let { put(LayoutMode.FN, it) }
+        },
         gridWidth = gridWidth,
         // Null rather than the layout's: a panel with no theme of its own falls
         // back to this one (see `screenThemeId`), so a themed layout drew every

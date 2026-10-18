@@ -38,19 +38,30 @@ object DictionaryLoader {
 
     fun loadEntries(stream: InputStream): List<Pair<String, Int>> {
         val entries = ArrayList<Pair<String, Int>>()
+        forEachEntry(stream) { word, frequency -> entries.add(word to frequency) }
+        return entries
+    }
+
+    /**
+     * Every entry of [stream] handed to [action] as it is read, with nothing
+     * kept. A list of a few hundred thousand words held as pairs is tens of
+     * megabytes before anything is built from it (#693); a caller filling its
+     * own arrays never pays that.
+     */
+    fun forEachEntry(stream: InputStream, action: (word: String, frequency: Int) -> Unit) {
         var format: Format? = null
         stream.bufferedReader().useLines { lines ->
             for (line in lines) {
                 val trimmed = line.trim()
                 if (trimmed.isEmpty() || trimmed.startsWith("#")) continue
                 if (format == null) format = formatOf(trimmed)
-                when (format) {
-                    Format.COMBINED -> combinedEntry(trimmed)?.let { entries.add(it) }
-                    Format.PLAIN, null -> entries.add(plainEntry(trimmed))
-                }
+                val entry = when (format) {
+                    Format.COMBINED -> combinedEntry(trimmed)
+                    Format.PLAIN, null -> plainEntry(trimmed)
+                } ?: continue
+                action(entry.first, entry.second)
             }
         }
-        return entries
     }
 
     /**

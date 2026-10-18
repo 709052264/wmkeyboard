@@ -3516,7 +3516,6 @@
     <string name="layout_editor_alternate_columns_default">Aus den Einstellungen</string>
     <string name="layout_editor_alternate_columns_subtitle">Wie viele Alternativen diese Taste in einer Zeile anzeigt</string>
     <string name="layout_editor_alternate_columns_title">Spalten im Popup</string>
-    <string name="layout_editor_alternate_hint_badge">Hinweis</string>
     <string name="layout_editor_alternates_field_hint">Trennen Sie die Einträge mit Leerzeichen, sodass eine Alternative kein Leerzeichen sein kann. Einträge mit mehr als einem Zeichen, wie z. B. .com, sind korrekt. Die App zeichnet auch das erste Zeichen in der Ecke der Taste.</string>
     <string name="layout_editor_alternates_field_label">Alternativen für langes Drücken</string>
     <string name="layout_editor_apply_action">Anwenden</string>
@@ -3612,7 +3611,6 @@
     <string name="layout_editor_field_row_title">Komponente</string>
     <string name="layout_editor_fill_row_action">Zeile füllen (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Die Zahlenreihe zeigt bereits die Ziffern an, daher zeigt die Tastatur diese Reihe anstelle der ersten Reihe dieser Ebene an.</string>
-    <string name="layout_editor_fill_row_off_caption">Wenn die Zahlenreihe aktiviert ist, zeigt die Tastatur diese Reihe anstelle der ersten Reihe dieser Ebene an, da die Zahlenreihe bereits die Ziffern anzeigt. Die Zahlenreihe ist derzeit deaktiviert.</string>
     <string name="layout_editor_fill_row_title">Reihe anstelle der Ziffern</string>
     <string name="layout_editor_fit_row_action">Zeile an das Raster anpassen (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Kein Wisch in diese Richtung. Tippen Sie, um eine Aktion auszuwählen.</string>
@@ -3787,8 +3785,6 @@
     <string name="layout_editor_new_secondary_title">Ein sekundäres Layout starten</string>
     <string name="layout_editor_not_live_caption">Ihre Änderungen hier wirken sich erst auf das Tippen aus, wenn Sie das Layout unter Sprachen aktivieren.</string>
     <string name="layout_editor_number_row_caption">Die Tastatur zeigt diese Reihe über dieser Ebene an. Tippen Sie auf eine Taste, um sie zu ändern. Halten Sie eine Taste gedrückt und ziehen Sie sie, um sie zu verschieben.</string>
-    <string name="layout_editor_number_row_hidden_caption">Die Tastatur zeigt diese Reihe über dieser Ebene an, wenn die Zahlenreihe in Symbolen unter Layout und Größe aktiviert ist. Sie ist derzeit deaktiviert.</string>
-    <string name="layout_editor_number_row_off_caption">Die Tastatur zeigt diese Reihe über dieser Ebene an, wenn die Zahlenreihe unter Layout und Größe aktiviert ist. Die Zahlenreihe ist derzeit deaktiviert.</string>
     <string name="layout_editor_number_row_title">Zahlenreihe</string>
     <string name="layout_editor_panel_inherited_caption">Dieses Layout verwendet das freigegebene %1$s-Panel. Änderungen hier erstellen eine Kopie nur für dieses Layout. Das freigegebene Panel finden Sie unter Tastenlayouts, Panellayouts.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Das Design des Layouts übernehmen</string>

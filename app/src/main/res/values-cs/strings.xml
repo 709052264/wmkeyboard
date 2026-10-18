@@ -3513,7 +3513,6 @@
     <string name="layout_editor_alternate_columns_default">Z nastavení</string>
     <string name="layout_editor_alternate_columns_subtitle">Kolik alternativních znaků tato klávesa umístí do řádku</string>
     <string name="layout_editor_alternate_columns_title">Sloupce ve vyskakovacím okně</string>
-    <string name="layout_editor_alternate_hint_badge">nápověda</string>
     <string name="layout_editor_alternates_field_hint">Oddělte položky mezerami, takže alternativou nemůže být mezera. Položky o více než jednom znaku, jako např. .com, jsou v pořádku. Aplikace také vykreslí první z nich v rohu klávesy.</string>
     <string name="layout_editor_alternates_field_label">Alternativy pro stisknutí a podržení</string>
     <string name="layout_editor_apply_action">Použít</string>
@@ -3609,7 +3608,6 @@
     <string name="layout_editor_field_row_title">Komponenta</string>
     <string name="layout_editor_fill_row_action">Vyplnit řádek (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Číselný řádek již číslice zobrazuje, takže klávesnice zobrazuje tento řádek namísto prvního řádku této vrstvy.</string>
-    <string name="layout_editor_fill_row_off_caption">Když je zapnutý číselný řádek, klávesnice zobrazuje tento řádek namísto prvního řádku této vrstvy, protože číselný řádek již číslice zobrazuje. Číselný řádek je nyní vypnutý.</string>
     <string name="layout_editor_fill_row_title">Řádek namísto číslic</string>
     <string name="layout_editor_fit_row_action">Přizpůsobit řádek mřížce (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Tímto směrem žádný švih. Klepnutím vyberte akci.</string>
@@ -3784,8 +3782,6 @@
     <string name="layout_editor_new_secondary_title">Spustit sekundární rozložení</string>
     <string name="layout_editor_not_live_caption">Vaše změny zde neovlivní psaní, dokud rozložení nezapnete v části Jazyky.</string>
     <string name="layout_editor_number_row_caption">Klávesnice zobrazuje tento řádek nad touto vrstvou. Klepnutím na klávesu ji změníte. Podržením a přetažením klávesu přesunete.</string>
-    <string name="layout_editor_number_row_hidden_caption">Klávesnice zobrazuje tento řádek nad touto vrstvou, když je v Rozvržení a velikost zapnuta volba Číselný řádek v symbolech. Nyní je vypnutá.</string>
-    <string name="layout_editor_number_row_off_caption">Klávesnice zobrazuje tento řádek nad touto vrstvou, když je v Rozvržení a velikost zapnutý Číselný řádek. Číselný řádek je nyní vypnutý.</string>
     <string name="layout_editor_number_row_title">Číselný řádek</string>
     <string name="layout_editor_panel_inherited_caption">Toto rozvržení používá sdílený panel %1$s. Změna čehokoli zde vytvoří kopii pouze pro toto rozvržení. Sdílený panel je v části Rozvržení kláves, Rozvržení panelů.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Převzít motiv rozložení</string>

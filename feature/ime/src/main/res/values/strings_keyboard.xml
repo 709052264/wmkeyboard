@@ -137,6 +137,10 @@
     <string name="ime_word_menu_add">Add \"<xliff:g id="word" example="Wasi">%1$s</xliff:g>\"</string>
     <!-- Menu item that forgets a word. %1$s is the word the user held. -->
     <string name="ime_word_menu_delete">Delete \"<xliff:g id="word" example="mary">%1$s</xliff:g>\"</string>
+    <!-- Menu item that forgets what the keyboard learned about a word (how
+         often it was used, its capitals, its rank) but keeps the word, which
+         the word lists still offer. %1$s is the word the user held. -->
+    <string name="ime_word_menu_forget">Forget what you learned about \"<xliff:g id="word" example="Toolbar">%1$s</xliff:g>\"</string>
     <!-- Menu item that decodes the swipe that wrote the word the cursor is in
          again, this time against every word list rather than the narrower set
          the user has glide typing limited to. %1$s is that word. -->

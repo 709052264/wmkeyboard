@@ -803,16 +803,9 @@ internal fun LayoutSettings(
     // What decides which rows the groups hold; each row reads its own value.
     val numberRow = settings.watch { it.numberRow }
     val symbolsReturn = settings.watch { it.layoutBehavior.symbolsReturnToLetters }
-    // The keyboard's shape as the rows below set it, pinned so it stays in
-    // view while they change (#43).
-    RegisterPinned {
-        MiniKeyboardPreview(
-            numberRow = settings.watch { it.numberRow },
-            globeAsEmoji = settings.watch { it.globeAsEmoji },
-            showGlobeKey = settings.watch { it.showGlobeKey },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        )
-    }
+    // No pinned sketch of the keyboard here any more (issue #769): it took a
+    // band of the screen and drew a board that was not the user's, and the
+    // keyboard test button on every screen (#412) shows the real one.
     // The grids themselves, first: which layout the keyboard draws is a bigger
     // question than how tall its keys are, and every row below this one is an
     // adjustment to whatever is chosen here. The whole group came off the

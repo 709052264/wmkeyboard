@@ -3528,7 +3528,6 @@
     <string name="layout_editor_alternate_columns_default">Kutoka kwa mipangilio</string>
     <string name="layout_editor_alternate_columns_subtitle">Ni mbadala ngapi ufunguo huu huweka kwenye safu</string>
     <string name="layout_editor_alternate_columns_title">Safu wima kwenye kidukizo</string>
-    <string name="layout_editor_alternate_hint_badge">kidokezo</string>
     <string name="layout_editor_alternates_field_hint">Tenganisha viingilio kwa nafasi, ili mbadala isiwe nafasi. Viingilio vya zaidi ya herufi moja, kama vile .com, ni sahihi. Programu pia huchora ya kwanza kwenye kona ya kitufe.</string>
     <string name="layout_editor_alternates_field_label">Mbadala kwa kubonyeza na kushikilia</string>
     <string name="layout_editor_apply_action">Tumia</string>
@@ -3624,7 +3623,6 @@
     <string name="layout_editor_field_row_title">Kipengele</string>
     <string name="layout_editor_fill_row_action">Jaza safu (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Safu ya namba tayari inaonyesha tarakimu, kwa hivyo kibodi huonyesha safu hii badala ya safu ya kwanza ya safu hii.</string>
-    <string name="layout_editor_fill_row_off_caption">Wakati Safu ya namba imewashwa, kibodi huonyesha safu hii badala ya safu ya kwanza ya safu hii, kwa sababu safu ya namba tayari inaonyesha tarakimu. Safu ya namba imezimwa sasa.</string>
     <string name="layout_editor_fill_row_title">Safu badala ya tarakimu</string>
     <string name="layout_editor_fit_row_action">Linganisha safu na gridi (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Hakuna kutelezesha kwa njia hii. Gonga ili kuchagua kitendo.</string>
@@ -3799,8 +3797,6 @@
     <string name="layout_editor_new_secondary_title">Anzisha mpangilio wa pili</string>
     <string name="layout_editor_not_live_caption">Mabadiliko yako hapa hayaathiri uandishi hadi uwashe mpangilio chini ya Lugha.</string>
     <string name="layout_editor_number_row_caption">Kibodi huonyesha safu hii juu ya safu hii. Gusa kitufe ili kukibadilisha. Shikilia kitufe na ukiburute ili kukisogeza.</string>
-    <string name="layout_editor_number_row_hidden_caption">Kibodi huonyesha safu hii juu ya safu hii wakati Safu ya namba katika alama imewashwa kwenye Mpangilio na ukubwa. Imezimwa sasa.</string>
-    <string name="layout_editor_number_row_off_caption">Kibodi huonyesha safu hii juu ya safu hii wakati Safu ya namba imewashwa kwenye Mpangilio na ukubwa. Safu ya namba imezimwa sasa.</string>
     <string name="layout_editor_number_row_title">Safu ya namba</string>
     <string name="layout_editor_panel_inherited_caption">Mpangilio huu unatumia paneli iliyoshirikiwa ya %1$s. Kubadilisha chochote hapa kutatengeneza nakala kwa ajili ya mpangilio huu pekee. Paneli iliyoshirikiwa iko chini ya Mipangilio ya vitufe, Mipangilio ya paneli.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Urithi mandhari ya mpangilio</string>

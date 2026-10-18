@@ -3522,7 +3522,6 @@
     <string name="layout_editor_alternate_columns_default">از تنظیمات</string>
     <string name="layout_editor_alternate_columns_subtitle">این کلید چند جایگزین در یک ردیف قرار می‌دهد</string>
     <string name="layout_editor_alternate_columns_title">ستون‌ها در پنجره بازشو</string>
-    <string name="layout_editor_alternate_hint_badge">راهنما</string>
     <string name="layout_editor_alternates_field_hint">ورودی‌ها را با فاصله جدا کنید، بنابراین یک جایگزین نمی‌تواند یک فاصله باشد. ورودی‌های بیش از یک کاراکتر، مانند .com، درست هستند. برنامه همچنین اولین مورد را در گوشه کلید ترسیم می‌کند.</string>
     <string name="layout_editor_alternates_field_label">جایگزین‌ها برای فشار دادن و نگه داشتن</string>
     <string name="layout_editor_apply_action">اعمال</string>
@@ -3618,7 +3617,6 @@
     <string name="layout_editor_field_row_title">مؤلفه</string>
     <string name="layout_editor_fill_row_action">پر کردن ردیف (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">ردیف اعداد قبلاً ارقام را نشان می‌دهد، بنابراین صفحه‌کلید این ردیف را به جای ردیف اول این لایه نشان می‌دهد.</string>
-    <string name="layout_editor_fill_row_off_caption">هنگامی که ردیف اعداد روشن است، صفحه‌کلید این ردیف را به جای ردیف اول این لایه نشان می‌دهد، زیرا ردیف اعداد قبلاً ارقام را نشان می‌دهد. ردیف اعداد اکنون خاموش است.</string>
     <string name="layout_editor_fill_row_title">ردیف جایگزین ارقام</string>
     <string name="layout_editor_fit_row_action">متناسب کردن ردیف با شبکه (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">در این جهت حرکتی وجود ندارد. برای انتخاب یک عمل ضربه بزنید.</string>
@@ -3793,8 +3791,6 @@
     <string name="layout_editor_new_secondary_title">شروع یک طرح‌بندی ثانویه</string>
     <string name="layout_editor_not_live_caption">تغییرات شما در اینجا تا زمانی که طرح‌بندی را در بخش زبان‌ها فعال نکنید، بر تایپ تأثیری نخواهد داشت.</string>
     <string name="layout_editor_number_row_caption">صفحه‌کلید این ردیف را بالای این لایه نشان می‌دهد. برای تغییر یک کلید، روی آن ضربه بزنید. برای جابه‌جایی، کلیدی را نگه دارید و بکشید.</string>
-    <string name="layout_editor_number_row_hidden_caption">هنگامی که ردیف اعداد در نمادها در بخش «طرح‌بندی و اندازه» روشن باشد، صفحه‌کلید این ردیف را بالای این لایه نشان می‌دهد. این گزینه اکنون خاموش است.</string>
-    <string name="layout_editor_number_row_off_caption">هنگامی که ردیف اعداد در بخش «طرح‌بندی و اندازه» روشن باشد، صفحه‌کلید این ردیف را بالای این لایه نشان می‌دهد. ردیف اعداد اکنون خاموش است.</string>
     <string name="layout_editor_number_row_title">ردیف اعداد</string>
     <string name="layout_editor_panel_inherited_caption">این طرح‌بندی از پنل مشترک %1$s استفاده می‌کند. تغییر هر چیزی در اینجا، یک کپی فقط برای همین طرح‌بندی ایجاد می‌کند. پنل مشترک در بخش «طرح‌بندی‌های کلید» و «طرح‌بندی‌های پنل» قرار دارد.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">به ارث بردن تم از طرح‌بندی</string>

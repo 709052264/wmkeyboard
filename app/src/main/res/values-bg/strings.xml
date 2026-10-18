@@ -3518,7 +3518,6 @@
     <string name="layout_editor_alternate_columns_default">От настройките</string>
     <string name="layout_editor_alternate_columns_subtitle">Колко алтернативи поставя този клавиш на един ред</string>
     <string name="layout_editor_alternate_columns_title">Колони в изскачащия прозорец</string>
-    <string name="layout_editor_alternate_hint_badge">подсказка</string>
     <string name="layout_editor_alternates_field_hint">Разделете записите с интервали, така че алтернативата да не може да бъде интервал. Записи от повече от един знак, като .com, са правилни. Приложението също така изчертава първия в ъгъла на клавиша.</string>
     <string name="layout_editor_alternates_field_label">Алтернативи за натискане и задържане</string>
     <string name="layout_editor_apply_action">Прилагане</string>
@@ -3614,7 +3613,6 @@
     <string name="layout_editor_field_row_title">Компонент</string>
     <string name="layout_editor_fill_row_action">Запълване на реда (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Редът с цифри вече показва цифрите, затова клавиатурата показва този ред на мястото на първия ред от този слой.</string>
-    <string name="layout_editor_fill_row_off_caption">Когато „Ред с цифри“ е включен, клавиатурата показва този ред на мястото на първия ред от този слой, тъй като редът с цифри вече показва цифрите. В момента редът с цифри е изключен.</string>
     <string name="layout_editor_fill_row_title">Ред на мястото на цифрите</string>
     <string name="layout_editor_fit_row_action">Напасни реда към мрежата (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Няма плъзгане в тази посока. Докоснете, за да изберете действие.</string>
@@ -3789,8 +3787,6 @@
     <string name="layout_editor_new_secondary_title">Стартиране на вторична подредба</string>
     <string name="layout_editor_not_live_caption">Промените ви тук няма да повлияят на писането, докато не включите оформлението в „Езици“.</string>
     <string name="layout_editor_number_row_caption">Клавиатурата показва този ред над този слой. Докоснете клавиш, за да го промените. Задръжте клавиш и го плъзнете, за да го преместите.</string>
-    <string name="layout_editor_number_row_hidden_caption">Клавиатурата показва този ред над този слой, когато „Ред с цифри в символите“ е включен в „Оформление и размер“. В момента е изключен.</string>
-    <string name="layout_editor_number_row_off_caption">Клавиатурата показва този ред над този слой, когато „Ред с цифри“ е включен в „Оформление и размер“. В момента редът с цифри е изключен.</string>
     <string name="layout_editor_number_row_title">Ред с цифри</string>
     <string name="layout_editor_panel_inherited_caption">Това оформление използва споделения панел %1$s. Промяната на каквото и да е тук създава копие само за това оформление. Споделеният панел се намира под „Оформления на клавиши“, „Оформления на панели“.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Наследяване на темата от оформлението</string>

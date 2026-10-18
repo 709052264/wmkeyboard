@@ -3518,7 +3518,6 @@
     <string name="layout_editor_alternate_columns_default">सेटिंग्जवरून</string>
     <string name="layout_editor_alternate_columns_subtitle">ही की एका ओळीवर किती पर्याय ठेवते</string>
     <string name="layout_editor_alternate_columns_title">पॉपअपमधील स्तंभ</string>
-    <string name="layout_editor_alternate_hint_badge">हिंट</string>
     <string name="layout_editor_alternates_field_hint">एंट्रीज स्पेसने वेगळ्या करा, जेणेकरून पर्यायी की स्पेस असू शकत नाही. एकापेक्षा जास्त अक्षरांच्या एंट्रीज, जसे की .com, योग्य आहेत. ॲप पहिली एंट्री कीच्या कोपऱ्यात देखील काढते.</string>
     <string name="layout_editor_alternates_field_label">दाबून धरण्यासाठी पर्याय</string>
     <string name="layout_editor_apply_action">लागू करा</string>
@@ -3614,7 +3613,6 @@
     <string name="layout_editor_field_row_title">घटक</string>
     <string name="layout_editor_fill_row_action">ओळ भरा (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">नंबर ओळ आधीच अंक दाखवते, म्हणून कीबोर्ड या लेयरच्या पहिल्या ओळीच्या जागी ही ओळ दाखवतो.</string>
-    <string name="layout_editor_fill_row_off_caption">जेव्हा नंबर ओळ चालू असते, तेव्हा कीबोर्ड या लेयरच्या पहिल्या ओळीच्या जागी ही ओळ दाखवतो, कारण नंबर ओळ आधीच अंक दाखवते. नंबर ओळ आता बंद आहे.</string>
     <string name="layout_editor_fill_row_title">अंकांच्या जागी ओळ</string>
     <string name="layout_editor_fit_row_action">रो ला ग्रिडमध्ये बसवा (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">या दिशेला कोणतीही फ्लिक क्रिया नाही. क्रिया निवडण्यासाठी टॅप करा.</string>
@@ -3789,8 +3787,6 @@
     <string name="layout_editor_new_secondary_title">दुय्यम लेआउट सुरू करा</string>
     <string name="layout_editor_not_live_caption">तुम्ही \'भाषा\' अंतर्गत लेआउट चालू करेपर्यंत येथील तुमचे बदल टायपिंगवर परिणाम करत नाहीत.</string>
     <string name="layout_editor_number_row_caption">कीबोर्ड या लेयरच्या वर ही ओळ दाखवतो. ती बदलण्यासाठी की वर टॅप करा. की हलवण्यासाठी ती दाबून धरा आणि ड्रॅग करा.</string>
-    <string name="layout_editor_number_row_hidden_caption">जेव्हा लेआउट आणि आकार मध्ये चिन्हांमधील नंबर ओळ चालू असते, तेव्हा कीबोर्ड या लेयरच्या वर ही ओळ दाखवतो. ती आता बंद आहे.</string>
-    <string name="layout_editor_number_row_off_caption">जेव्हा लेआउट आणि आकार मध्ये नंबर ओळ चालू असते, तेव्हा कीबोर्ड या लेयरच्या वर ही ओळ दाखवतो. नंबर ओळ आता बंद आहे.</string>
     <string name="layout_editor_number_row_title">नंबर ओळ</string>
     <string name="layout_editor_panel_inherited_caption">हे लेआउट सामायिक %1$s पॅनेल वापरते. येथे काहीही बदलल्यास ते फक्त या लेआउटसाठी एक प्रत तयार करते. सामायिक पॅनेल की लेआउट्स, पॅनेल लेआउट्स अंतर्गत आहे.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">लेआउटची थीम इनहेरिट करा</string>

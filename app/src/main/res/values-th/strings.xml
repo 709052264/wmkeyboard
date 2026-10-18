@@ -3508,7 +3508,6 @@
     <string name="layout_editor_alternate_columns_default">จากการตั้งค่า</string>
     <string name="layout_editor_alternate_columns_subtitle">จำนวนตัวเลือกสำรองที่ปุ่มนี้ใส่ไว้ในแถว</string>
     <string name="layout_editor_alternate_columns_title">คอลัมน์ในป๊อปอัป</string>
-    <string name="layout_editor_alternate_hint_badge">คำใบ้</string>
     <string name="layout_editor_alternates_field_hint">แยกรายการด้วยช่องว่าง ดังนั้นตัวเลือกอื่นไม่สามารถเป็นช่องว่างได้ รายการที่มีมากกว่าหนึ่งตัวอักษร เช่น .com สามารถใช้ได้ แอปจะวาดตัวแรกไว้ที่มุมของปุ่มด้วย</string>
     <string name="layout_editor_alternates_field_label">ตัวเลือกสำหรับการกดค้าง</string>
     <string name="layout_editor_apply_action">ใช้</string>
@@ -3604,7 +3603,6 @@
     <string name="layout_editor_field_row_title">ส่วนประกอบ</string>
     <string name="layout_editor_fill_row_action">เติมเต็มแถว (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">แถวตัวเลขแสดงตัวเลขอยู่แล้ว แป้นพิมพ์จึงแสดงแถวนี้แทนที่แถวแรกของเลเยอร์นี้</string>
-    <string name="layout_editor_fill_row_off_caption">เมื่อเปิดใช้งานแถวตัวเลข แป้นพิมพ์จะแสดงแถวนี้แทนที่แถวแรกของเลเยอร์นี้ เนื่องจากแถวตัวเลขแสดงตัวเลขอยู่แล้ว ขณะนี้แถวตัวเลขปิดอยู่</string>
     <string name="layout_editor_fill_row_title">แถวแทนที่ตัวเลข</string>
     <string name="layout_editor_fit_row_action">ปรับแถวให้พอดีกับตาราง (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">ไม่มีการปัดในทิศทางนี้ แตะเพื่อเลือกการดำเนินการ</string>
@@ -3779,8 +3777,6 @@
     <string name="layout_editor_new_secondary_title">เริ่มเลย์เอาต์รอง</string>
     <string name="layout_editor_not_live_caption">การเปลี่ยนแปลงของคุณที่นี่จะยังไม่มีผลต่อการพิมพ์จนกว่าคุณจะเปิดใช้งานเลย์เอาต์ภายใต้หัวข้อภาษา</string>
     <string name="layout_editor_number_row_caption">แป้นพิมพ์จะแสดงแถวนี้เหนือเลเยอร์นี้ แตะปุ่มเพื่อเปลี่ยน หรือกดปุ่มค้างไว้แล้วลากเพื่อย้าย</string>
-    <string name="layout_editor_number_row_hidden_caption">แป้นพิมพ์จะแสดงแถวนี้เหนือเลเยอร์นี้เมื่อเปิดใช้งานแถวตัวเลขในสัญลักษณ์ในการตั้งค่าเค้าโครงและขนาด ขณะนี้แถวตัวเลขปิดอยู่</string>
-    <string name="layout_editor_number_row_off_caption">แป้นพิมพ์จะแสดงแถวนี้เหนือเลเยอร์นี้เมื่อเปิดใช้งานแถวตัวเลขในการตั้งค่าเค้าโครงและขนาด ขณะนี้แถวตัวเลขปิดอยู่</string>
     <string name="layout_editor_number_row_title">แถวตัวเลข</string>
     <string name="layout_editor_panel_inherited_caption">เค้าโครงนี้ใช้แผง %1$s ที่แชร์ร่วมกัน การเปลี่ยนแปลงใดๆ ที่นี่จะเป็นการสร้างสำเนาสำหรับเค้าโครงนี้เท่านั้น แผงที่แชร์จะอยู่ภายใต้เค้าโครงคีย์และเค้าโครงแผง</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">สืบทอดธีมของเลย์เอาต์</string>

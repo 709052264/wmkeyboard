@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.animation.core.Animatable
+import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
@@ -175,7 +176,7 @@ internal fun GrammarPanel(
     val grammar = state.grammar
     // Refused in a password field: the chip would send the whole field to
     // DeepL, so it is not offered there (the service refuses it too).
-    val deeplWrite = state.settings.translate.deepl.writeActive && !state.secureField
+    val deeplWrite = state.settings.deeplLive.writeActive && !state.secureField
     val rephrase = grammar.rephrase
     var pickerOpen by remember { mutableStateOf(false) }
     var filterOpen by remember { mutableStateOf(false) }

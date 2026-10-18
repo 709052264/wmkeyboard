@@ -1,13 +1,13 @@
 ---
 title: "Selection actions"
-description: "Every row on the Selection actions screen and its three sub-screens: the switch, where the bar draws, the list of actions and their order, the AI buttons and the time zones."
+description: "Every row on the Selection actions screen and its four sub-screens: the switch, where the bar draws, the list of actions and their order, the icon-only actions, the AI buttons and the time zones."
 sidebar:
   order: 18.8
 ---
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-The Selection actions screen is the switch and two choices, then three doors: the Actions list, the AI buttons and the Time zones. This page is the field reference. For what the feature is and how each action behaves, start at [Selection actions](/smart/selection-actions/).
+The Selection actions screen is the switch and two choices, then four doors: the Actions list, Icon only, the AI buttons and the Time zones. This page is the field reference. For what the feature is and how each action behaves, start at [Selection actions](/smart/selection-actions/).
 
 ## Options
 
@@ -19,7 +19,8 @@ The Selection actions screen is the switch and two choices, then three doors: th
 | Where it appears | Choice of 2 | **Own row** |
 | Show on every selection | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 33 of 48 on |
+| Actions | Screen | 33 of 51 on |
+| Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and the device's zone |
 
@@ -53,6 +54,8 @@ The list is an allow list, not a guarantee: an action that is on is drawn only w
 | Unique | Lines | On | Two or more lines |
 | Number | Lines | On | Two or more lines |
 | Bullets | Lines | On | Two or more lines |
+| Check boxes | Lines | Off | Two or more lines |
+| Move up, Move down | Lines | Off | Anything short of the whole field |
 | Format | Format | On | Every selection, when the rewrite would change something |
 | Fancy | Format | On | Plain text |
 | Bold, Italic, Strike, Mono | Format | Off | Plain text, in a chat app the keyboard knows |
@@ -84,6 +87,12 @@ The list is an allow list, not a guarantee: an action that is on is drawn only w
 | Calendar | Open in | Off | A date or time |
 
 Search is off to start with, because it is a round trip to a network service and not what a selection usually means. Translate is on: it only opens the Translate tool, which can translate on the device, and a selection in a language you can't read is the text you could not have typed into that tool yourself. It was off before; a list you had already picked yourself keeps its choices, so switch it on here. The chat markers, the programmer's cases, Speak, Zones, Map, Calendar and the decoders are off because each is a taste rather than a need, and the row is long enough already.
+
+## Icon only
+
+<SettingsPath path="Advanced / Selection actions / Icon only" />
+
+A checkbox per action that is on and has an icon, in the bar's order. A picked action is drawn as its icon alone, with no name beside it, so the ones you know by sight take less of the row; a screen reader still says the name. The case options are not listed: they are written in the case they apply and have no icon to show instead.
 
 ## AI buttons
 

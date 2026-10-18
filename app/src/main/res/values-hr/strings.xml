@@ -3523,7 +3523,6 @@
     <string name="layout_editor_alternate_columns_info">Ovo je broj stupaca samo za ovu tipku. Tipke se razlikuju: tipka s desetak alternativa bolje izgleda kao mreža, a tipka s tri ili četiri bolje izgleda kao jedan redak. Iz postavki se tipka ostavlja na postavci \"Stupci zamjenskih tipki\" pod Pritisak tipke, koja je Automatska osim ako je niste promijenili. Broj od 3 do 11 daje ovoj tipki toliko stupaca bez obzira na to što kaže postavka.</string>
     <string name="layout_editor_alternate_columns_subtitle">Koliko zamjenskih znakova ova tipka stavlja u red</string>
     <string name="layout_editor_alternate_columns_title">Stupci u skočnom prozoru</string>
-    <string name="layout_editor_alternate_hint_badge">savjet</string>
     <string name="layout_editor_alternates_field_hint">Odvojite unose razmacima, tako da zamjenski znak ne može biti razmak. Unosi od više znakova, kao što je .com, su ispravni. Aplikacija također iscrtava prvi znak u kutu tipke.</string>
     <string name="layout_editor_alternates_field_label">Alternative za pritisni i drži</string>
     <string name="layout_editor_apply_action">Primijeni</string>
@@ -3619,7 +3618,6 @@
     <string name="layout_editor_field_row_title">Komponenta</string>
     <string name="layout_editor_fill_row_action">Popuni redak (%1$.2f)</string>
     <string name="layout_editor_fill_row_caption">Brojčani redak već prikazuje znamenke, pa tipkovnica prikazuje ovaj redak umjesto prvog retka ovog sloja.</string>
-    <string name="layout_editor_fill_row_off_caption">Kada je uključen Brojčani redak, tipkovnica prikazuje ovaj redak umjesto prvog retka ovog sloja, jer brojčani redak već prikazuje znamenke. Brojčani redak je trenutačno isključen.</string>
     <string name="layout_editor_fill_row_title">Redak umjesto znamenki</string>
     <string name="layout_editor_fit_row_action">Prilagodi redak mreži (%1$.2f)</string>
     <string name="layout_editor_flick_action_none">Nema pokreta u ovom smjeru. Dodirnite za odabir radnje.</string>
@@ -3794,8 +3792,6 @@
     <string name="layout_editor_new_secondary_title">Započni sekundarni raspored</string>
     <string name="layout_editor_not_live_caption">Vaše promjene ovdje ne utječu na tipkanje dok ne uključite raspored pod Jezici.</string>
     <string name="layout_editor_number_row_caption">Tipkovnica prikazuje ovaj redak iznad ovog sloja. Dodirnite tipku za promjenu. Držite tipku i povucite je za pomicanje.</string>
-    <string name="layout_editor_number_row_hidden_caption">Tipkovnica prikazuje ovaj redak iznad ovog sloja kada je uključen Brojčani redak u simbolima u postavkama Raspored i veličina. Trenutačno je isključen.</string>
-    <string name="layout_editor_number_row_off_caption">Tipkovnica prikazuje ovaj redak iznad ovog sloja kada je uključen Brojčani redak u postavkama Raspored i veličina. Brojčani redak je trenutačno isključen.</string>
     <string name="layout_editor_number_row_title">Brojčani redak</string>
     <string name="layout_editor_panel_inherited_caption">Ovaj raspored koristi dijeljenu ploču %1$s. Promjena bilo čega ovdje stvara kopiju samo za ovaj raspored. Dijeljena ploča nalazi se pod Rasporedi tipki, Rasporedi ploča.</string>
     <string name="layout_editor_panel_theme_inherit_subtitle">Naslijedi temu izgleda</string>

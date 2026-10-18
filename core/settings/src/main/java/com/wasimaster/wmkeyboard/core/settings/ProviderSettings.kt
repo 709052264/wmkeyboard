@@ -86,7 +86,7 @@ fun KeyboardSettings.providerCredential(id: String): ProviderCredential? =
 fun KeyboardSettings.providerChain(
     tool: ProviderTool,
     env: ProviderEnv = ProviderEnvironment.current(),
-): ProviderChain = providers.chains[tool] ?: LegacyProviders.chain(this, tool, env)
+): ProviderChain = providers.chains[tool]?.withNewTypes(tool) ?: LegacyProviders.chain(this, tool, env)
 
 /**
  * [tool]'s list resolved: every row with its credential and, when it cannot
@@ -103,6 +103,28 @@ fun KeyboardSettings.resolveProviders(
     if (all) return resolved
     return resolved.filter { it.entry.enabled && it.usable }
 }
+
+/**
+ * DeepL as DeepL Write reads it: the switches from [DeepLSettings], the key
+ * and the proxy from the shared DeepL credential the translate list sets up.
+ */
+val KeyboardSettings.deeplLive: DeepLSettings
+    get() {
+        val credential = providerCredential(ProviderTypes.DEEPL.id)
+        return translate.deepl.copy(apiKey = credential?.apiKey.orEmpty(), endpoint = credential?.url.orEmpty())
+    }
+
+/**
+ * The currency lists as `CurrencyClient.Provider` names, best first, the rows
+ * that are off left out. Empty when the user switched every one off, which
+ * the callers take as "fetch nothing" rather than the client's defaults.
+ */
+fun KeyboardSettings.fiatRateProviders(): List<String> =
+    resolveProviders(ProviderTool.CURRENCY_FIAT).map { it.typeId.uppercase(java.util.Locale.ROOT) }
+
+/** The same for coin prices. */
+fun KeyboardSettings.cryptoRateProviders(): List<String> =
+    resolveProviders(ProviderTool.CURRENCY_CRYPTO).map { it.typeId.uppercase(java.util.Locale.ROOT) }
 
 /** How [tool] uses its list. */
 fun KeyboardSettings.providerMode(tool: ProviderTool, env: ProviderEnv = ProviderEnvironment.current()): ChainMode =
@@ -262,10 +284,11 @@ object LegacyProviders {
     }
 
     /**
-     * Before: one engine switch, and behind Online a fixed order. The user's
-     * own server, when set, answered alone; then DeepL, then LibreTranslate,
-     * then Google. On device came first on Automatic, alone on On device,
-     * and not at all on Online.
+     * Before: behind Online a fixed order. The user's own server, when set,
+     * answered alone; then DeepL, then LibreTranslate, then Google. On the
+     * device is the list's first row; the engine switch (On device, Online,
+     * Automatic) still decides which part of the list is asked, as it always
+     * has, so it stays out of the list itself.
      *
      * The server answering alone is kept by switching off what comes after
      * it: falling through to Google would send text the user meant for their
@@ -280,13 +303,7 @@ object LegacyProviders {
             add(ProviderEntry(ProviderTypes.GOOGLE_TRANSLATE.id, enabled = !server))
         }
         if (!env.onDeviceTranslate) return ProviderChain(online)
-        val engine = s.translate.engine
-        val device = ProviderEntry(ProviderTypes.ML_KIT.id, enabled = engine != TranslateEngine.ONLINE)
-        return when (engine) {
-            TranslateEngine.ONLINE -> ProviderChain(online + device)
-            TranslateEngine.ON_DEVICE -> ProviderChain(listOf(device) + online.map { it.copy(enabled = false) })
-            TranslateEngine.AUTO -> ProviderChain(listOf(device) + online)
-        }
+        return ProviderChain(listOf(ProviderEntry(ProviderTypes.ML_KIT.id)) + online)
     }
 
     /**
@@ -334,7 +351,21 @@ object ProviderEdits {
             typeId = credential.typeId,
             credentialId = if (type?.multiInstance == true && credential.id != credential.typeId) credential.id else null,
         )
-        return Change(tool, s.providerChain(tool, env).plus(entry), next)
+        val chain = s.providerChain(tool, env)
+        if (chain.has(entry.key)) return Change(tool, chain, next)
+        return Change(tool, withNewRow(tool, chain, entry), next)
+    }
+
+    /**
+     * A new row goes to the end, except the user's own translation server:
+     * the point of running one is that the text goes nowhere else, so it goes
+     * first and the other online rows are switched off, as they were when the
+     * server was a single address field. The user can switch them back on.
+     */
+    private fun withNewRow(tool: ProviderTool, chain: ProviderChain, entry: ProviderEntry): ProviderChain {
+        if (tool != ProviderTool.TRANSLATE || entry.typeId != ProviderTypes.TRANSLATE_SERVER.id) return chain.plus(entry)
+        val (device, online) = chain.entries.partition { it.type?.onDevice == true }
+        return chain.copy(entries = device + entry + online.map { it.copy(enabled = false) })
     }
 
     /** Adds a row that needs nothing set up, or reuses a credential that exists. */
@@ -343,7 +374,10 @@ object ProviderEdits {
         tool: ProviderTool,
         entry: ProviderEntry,
         env: ProviderEnv = ProviderEnvironment.current(),
-    ): Change = Change(tool, s.providerChain(tool, env).plus(entry), null)
+    ): Change {
+        val chain = s.providerChain(tool, env)
+        return Change(tool, if (chain.has(entry.key)) chain else withNewRow(tool, chain, entry), null)
+    }
 
     fun setChain(tool: ProviderTool, chain: ProviderChain): Change = Change(tool, chain, null)
 
