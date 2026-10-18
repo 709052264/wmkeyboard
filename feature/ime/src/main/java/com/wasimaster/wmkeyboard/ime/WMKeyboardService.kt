@@ -11782,8 +11782,10 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
-        // A two-thumb word takes back its latest tap or swipe (#638).
-        if (composing.isNotEmpty() && duetBackspace(ic)) return
+        // A two-thumb word takes back its latest tap or swipe (#638) — even
+        // before its first reading lands, while the buffer is still empty and
+        // this press would otherwise delete the text in front of it (#732).
+        if (duetWord.active && duetBackspace(ic)) return
         if (composing.isNotEmpty()) {
             // A correction re-armed as the composing word and backspaced is
             // being deleted all the same; the buffer path just never reaches
@@ -23056,6 +23058,15 @@ open class WMKeyboardService : InputMethodService() {
                     else -> ShiftState.OFF
                 }
             } else {
+                // A new word. What Backspace or the strip would still take back
+                // belongs to the word before it, and goes as after a typed
+                // letter: left armed, a Backspace before this word's first
+                // reading lands would undo that word instead (#732).
+                lastGestureWord = null
+                lastGestureStroke = null
+                lastRevertible = null
+                clearSwapOffer()
+                pendingWordSpace = false
                 duetWord.clear()
                 duetShift = shift
                 consumeShift()
@@ -23093,9 +23104,24 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Backspace on a two-thumb word takes back its latest tap or swipe. When
      * no swipe is left, what remains is the letters as they were typed.
+     *
+     * With "Backspace undoes swipe" off (#455) the word stops being gestures
+     * instead, and the press takes one letter of it, as after a glide (#732):
+     * false, so the caller's buffer delete runs.
      */
     private fun duetBackspace(ic: InputConnection): Boolean {
         if (!duetWord.active) return false
+        if (!_uiState.value.settings.gesture.backspaceUndoesGlide) {
+            // Settled first, so a swipe still being read is not lost; dropped
+            // without the setter, which would take the word's text and its
+            // all-up pause with the gestures.
+            if (duetShownGeneration != duetGeneration) settleDuet(ic)
+            duetJob?.cancel()
+            duetGeneration++
+            duetWord.clear()
+            // Nothing could be shown at all: the gestures were the whole word.
+            return composing.isEmpty()
+        }
         duetWord.removeLast()
         if (duetWord.active) {
             redecodeDuet(commit = false)
