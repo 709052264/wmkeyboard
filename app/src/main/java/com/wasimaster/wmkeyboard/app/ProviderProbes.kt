@@ -6,7 +6,13 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
+import com.wasimaster.wmkeyboard.core.tools.BraveSearchClient
 import com.wasimaster.wmkeyboard.core.tools.CommonsClient
+import com.wasimaster.wmkeyboard.core.tools.PhotoQuery
+import com.wasimaster.wmkeyboard.core.tools.PhotoSearchClient
+import com.wasimaster.wmkeyboard.core.tools.PhotoSource
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.LibreTranslateClient
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
@@ -74,9 +80,25 @@ internal object ProviderProbes {
                     )
                 }
             }
+            ProviderTypes.SEARXNG.id -> {
+                { SearxClient.webSearch(PROBE_WORD, credential.url, 1, true) }
+            }
+            ProviderTypes.TAVILY.id -> {
+                { TavilySearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
+            ProviderTypes.BRAVE.id -> {
+                { BraveSearchClient.webSearch(PROBE_WORD, key, 1, true) }
+            }
             else -> null
         }
-        return call?.let { blocking -> { withContext(Dispatchers.IO) { blocking() } } }
+        if (call != null) return { withContext(Dispatchers.IO) { call() } }
+        // The photo services page through their own client, which suspends.
+        val photo = when (type.id) {
+            ProviderTypes.UNSPLASH.id -> PhotoSource.UNSPLASH
+            ProviderTypes.PEXELS.id -> PhotoSource.PEXELS
+            else -> return null
+        }
+        return { PhotoSearchClient.page(photo, PhotoQuery(text = PROBE_WORD, perPage = 1), key) }
     }
 
     /** A word every provider has something for. */

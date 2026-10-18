@@ -12446,7 +12446,10 @@ class SettingsRepository(private val context: Context) {
             deepSeekKey = p[AI_DEEPSEEK_KEY] ?: defaults.ai.deepSeekKey,
             deepSeekModel = p[AI_DEEPSEEK_MODEL] ?: defaults.ai.deepSeekModel,
             braveKey = p[AI_BRAVE_KEY] ?: defaults.ai.braveKey,
-            braveSearchKey = p[BRAVE_API_KEY].orEmpty(),
+            // The web search Brave key, as the search provider list keeps it.
+            braveSearchKey = ProviderCodec.decodeCredentials(p[PROVIDER_CREDENTIALS])
+                ?.firstOrNull { it.id == "brave" }?.apiKey
+                ?: p[BRAVE_API_KEY].orEmpty(),
             compatibleUrl = p[AI_COMPATIBLE_URL] ?: defaults.ai.compatibleUrl,
             compatibleKey = p[AI_COMPATIBLE_KEY] ?: defaults.ai.compatibleKey,
             compatibleModel = p[AI_COMPATIBLE_MODEL] ?: defaults.ai.compatibleModel,

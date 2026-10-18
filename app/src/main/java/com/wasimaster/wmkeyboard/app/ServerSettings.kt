@@ -97,9 +97,9 @@ internal fun ServerFieldsGroup(
 }
 
 /**
- * The three services that were settable before this screen existed. Their own
- * fields stay as they were, since blank means "not set up" there rather than
- * "the default"; the Servers screen just shows them with the rest.
+ * The self-hosted services each group carries besides its endpoints. Only the
+ * AI servers are left here: LibreTranslate, SearXNG and the MediaWiki became
+ * rows of their tools' provider lists, set up on the tools' own pages.
  */
 private fun SettingsGroupScope.selfHostedItems(
     group: ServiceGroup,
@@ -107,30 +107,9 @@ private fun SettingsGroupScope.selfHostedItems(
     settings: LiveSettings,
 ) {
     when (group) {
-        ServiceGroup.TRANSLATE -> item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_translate_instance_label),
-                value = settings.watch { it.selfHosted.libreTranslateUrl },
-                hint = stringResource(R.string.tooldetail_translate_instance_hint),
-                default = SettingsDefaults.selfHosted.libreTranslateUrl,
-            ) { repository.setLibreTranslateUrl(it) }
-        }
-        ServiceGroup.SEARCH -> item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_search_instance_label),
-                value = settings.watch { it.selfHosted.searxUrl },
-                hint = stringResource(R.string.tooldetail_search_instance_hint),
-                default = SettingsDefaults.selfHosted.searxUrl,
-            ) { repository.setSearxUrl(it) }
-        }
-        ServiceGroup.MEDIA -> item {
-            TextFieldSetting(
-                label = stringResource(R.string.tooldetail_media_wiki_label),
-                value = settings.watch { it.selfHosted.commonsUrl },
-                hint = stringResource(R.string.tooldetail_media_wiki_hint),
-                default = SettingsDefaults.selfHosted.commonsUrl,
-            ) { repository.setCommonsUrl(it) }
-        }
+        // LibreTranslate, SearXNG and the MediaWiki are servers you add to
+        // the tool's own provider list now, on the tool's page.
+        ServiceGroup.TRANSLATE, ServiceGroup.SEARCH, ServiceGroup.MEDIA -> Unit
         ServiceGroup.AI -> {
             item {
                 TextFieldSetting(

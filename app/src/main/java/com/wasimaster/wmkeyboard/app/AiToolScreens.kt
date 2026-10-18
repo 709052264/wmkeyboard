@@ -286,7 +286,7 @@ internal fun AiToolSettings(
         ) {
             item {
                 // No model field: Brave's Answers API has exactly one model.
-                val hasSearchKey = settings.watch { it.webSearch.braveApiKey.isNotBlank() }
+                val hasSearchKey = settings.watch { it.ai.braveSearchKey.isNotBlank() }
                 ApiKeyField(
                     label = stringResource(R.string.toolai_ai_brave_key_label),
                     value = settings.watch { it.ai.braveKey },

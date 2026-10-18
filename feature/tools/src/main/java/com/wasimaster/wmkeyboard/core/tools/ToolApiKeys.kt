@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.core.tools
 
-import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
@@ -10,18 +9,14 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 
 /**
- * Resolves the effective API key for each network tool: a key the user
- * pasted into the tool's settings wins; otherwise the key baked into the
- * build (from local.properties / environment variables — see
- * app/build.gradle.kts) applies; blank means the tool shows its
- * "needs an API key" state (translate instead falls back to the free
- * endpoint, which needs none).
+ * The effective key of a provider, and the search and photo lists as their
+ * clients take them. A key the user set up in a tool's provider list (shared
+ * by every tool that lists the provider) wins; otherwise the key baked into
+ * the build applies; blank means the provider's row says it needs a key.
+ * GIFs, stickers and translate read their lists through [MediaProviders] and
+ * [TranslateProviders].
  */
 object ToolApiKeys {
-
-    fun klipy(settings: KeyboardSettings): String = key(settings, ProviderTypes.KLIPY)
-
-    fun giphy(settings: KeyboardSettings): String = key(settings, ProviderTypes.GIPHY)
 
     /**
      * The key in force for a single-instance provider: the one the user set
@@ -29,14 +24,6 @@ object ToolApiKeys {
      */
     fun key(settings: KeyboardSettings, type: ProviderType): String =
         settings.providerCredential(type.id)?.apiKey?.trim().orEmpty().ifBlank { type.builtInKey }
-
-    /** Which GIF providers can serve requests, in the user's order; see [MediaProviders]. */
-    fun gifSources(settings: KeyboardSettings): List<GifSource> =
-        MediaProviders.targets(settings, sticker = false).map { it.source }.distinct()
-
-    /** The same for the sticker tool. */
-    fun stickerSources(settings: KeyboardSettings): List<GifSource> =
-        MediaProviders.targets(settings, sticker = true).map { it.source }.distinct()
 
     fun brave(settings: KeyboardSettings): String = key(settings, ProviderTypes.BRAVE)
 
@@ -57,8 +44,6 @@ object ToolApiKeys {
      * its panel says the key is missing.
      */
     fun hasSearchProvider(settings: KeyboardSettings): Boolean = hasSearchKey(settings)
-
-    fun translate(settings: KeyboardSettings): String = key(settings, ProviderTypes.GOOGLE_TRANSLATE)
 
     fun unsplash(settings: KeyboardSettings): String = key(settings, ProviderTypes.UNSPLASH)
 
@@ -92,14 +77,6 @@ object ToolApiKeys {
         ProviderTypes.COMMONS.id -> PhotoSource.COMMONS
         else -> null
     }
-
-    /** For the settings screens: whether the build ships its own key. */
-    val builtInKlipy: Boolean get() = BuildConfig.KLIPY_API_KEY.isNotBlank()
-    val builtInGiphy: Boolean get() = BuildConfig.GIPHY_API_KEY.isNotBlank()
-    val builtInBrave: Boolean get() = BuildConfig.BRAVE_API_KEY.isNotBlank()
-    val builtInTranslate: Boolean get() = BuildConfig.TRANSLATE_API_KEY.isNotBlank()
-    val builtInUnsplash: Boolean get() = BuildConfig.UNSPLASH_API_KEY.isNotBlank()
-    val builtInPexels: Boolean get() = BuildConfig.PEXELS_API_KEY.isNotBlank()
 }
 
 /** The services behind the web and image search tools; see [ToolApiKeys.searchBackend]. */
