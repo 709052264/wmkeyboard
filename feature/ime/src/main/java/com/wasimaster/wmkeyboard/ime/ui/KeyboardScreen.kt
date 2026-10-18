@@ -17268,6 +17268,10 @@ private fun KeyRows(
     // at the same two places, and it gives way to an octopus word on the key,
     // whose flick is also upward.
     val capitalFlickOn = state.settings.layoutBehavior.capitalFlick
+    // The same two, read live by the two-thumb loop (#746), which asks them at
+    // each finger's down and does not restart when they change.
+    val hintFlickLive = rememberUpdatedState(hintFlickOn)
+    val capitalFlickLive = rememberUpdatedState(capitalFlickOn)
     // A drag off 🌐 onto one of the six shortcut letters runs its action. Read
     // live by the loops that must leave such a drag alone, so switching it
     // does not restart every gesture detector on the grid.
@@ -17967,6 +17971,26 @@ private fun KeyRows(
                         onStrayTap = { at, id ->
                             liveRects.value.keyAt(at + boxOrigin)?.let { strayTap.value(it, id) }
                         },
+                        hintAt = { at ->
+                            if (hintFlickLive.value) liveRects.value.hintFlickTarget(at + boxOrigin) else null
+                        },
+                        capitalAt = { at ->
+                            if (capitalFlickLive.value) {
+                                val rects = liveRects.value
+                                rects.capitalFlickTarget(at + boxOrigin)?.let { (_, cell) ->
+                                    rects.keyAt(at + boxOrigin)?.let { it to cell }
+                                }
+                            } else {
+                                null
+                            }
+                        },
+                        // Typed as a pick from the key's popup is, which already
+                        // decides how a character meets an open word.
+                        onHintFlick = { key -> stampedOnText(key.longPress.first()) },
+                        // A shifted tap of the letter, so it joins the open word
+                        // the way a tap under a held shift does: a capital flick
+                        // can start "Hello" and the thumbs carry on.
+                        onCapitalFlick = { key -> stampedOnKey(shiftChordKey(key) ?: key) },
                     )
                     return@pointerInput
                 }
@@ -20579,6 +20603,45 @@ internal class ThumbStroke(val down: Offset, val downAt: Long, var owned: Boolea
 
     /** The flick letter's cell it began in, box space, or null (#736). */
     var flickCell: Rect? = null
+
+    /** The key a hint flick off it would type from, and that key's cell, fixed at the down (#746). */
+    var hint: Pair<Key, Rect>? = null
+
+    /** The key an up-flick off it would type the capital of, and its cell (#746). */
+    var capital: Pair<Key, Rect>? = null
+}
+
+/** What a lifted two-thumb stroke was, as a flick off the key it began on (#746). */
+internal enum class ThumbFlick { NONE, HINT, CAPITAL }
+
+/**
+ * Whether a lifted two-thumb stroke is a flick for the key it began on (#746):
+ * a short flick down off a key that takes a hint flick, or up off one that
+ * takes a capital. [hintKeyHeightPx] and [capitalKeyHeightPx] are those keys'
+ * cell heights, null where the key takes none or the setting is off.
+ *
+ * The one-finger loop's tests, unchanged, so #178's trade between a flick and a
+ * short vertical swipe (`e→d`) is the same under both: [hintFlick] and
+ * [keyFlick], and a floor of half a key's height or a little past the stroke's
+ * own start distance ([startSlopPx], the cooldown included), whichever is more.
+ * The hint is asked first, as there.
+ */
+internal fun flickForKey(
+    points: List<GesturePoint>,
+    hintKeyHeightPx: Float?,
+    capitalKeyHeightPx: Float?,
+    startSlopPx: Float,
+): ThumbFlick {
+    fun floor(height: Float) = maxOf(height * HINT_FLICK_MIN_TRAVEL_HEIGHTS, startSlopPx * OCTOPUS_SLOP_CLEARANCE)
+    if (hintKeyHeightPx != null && hintFlick(points, hintKeyHeightPx, floor(hintKeyHeightPx))) {
+        return ThumbFlick.HINT
+    }
+    if (capitalKeyHeightPx != null &&
+        keyFlick(points, capitalKeyHeightPx, floor(capitalKeyHeightPx), KeyFlickDirection.UP)
+    ) {
+        return ThumbFlick.CAPITAL
+    }
+    return ThumbFlick.NONE
 }
 
 /**
@@ -20619,8 +20682,9 @@ internal fun thumbSlopBoost(sinceSideTapMs: Long, cooldownMs: Int): Float =
  * the thumbs take turns.
  *
  * Left out, against the one-finger loop: the ambiguity picker, spacebar word
- * chains, shift-crossing capitals and the flicks off a key. Each of them reads
- * one stroke as the whole of a word, which a two-thumb stroke never is.
+ * chains and shift-crossing capitals. Each of them reads one stroke as the
+ * whole of a word, which a two-thumb stroke never is. The hint and capital
+ * flicks off a key are kept (#746), judged per finger at its lift.
  */
 @Suppress("LongParameterList", "CyclomaticComplexMethod", "NestedBlockDepth", "LongMethod")
 private suspend fun PointerInputScope.twoThumbGlide(
@@ -20647,6 +20711,12 @@ private suspend fun PointerInputScope.twoThumbGlide(
     cooldownMs: Int,
     /** Types the key under this point as its own tap would: a stroke that was a tap (#738). */
     onStrayTap: (Offset, PointerId) -> Unit,
+    /** The key a hint flick from this point would type the hint of, with its cell, or null (#746). */
+    hintAt: (Offset) -> Pair<Key, Rect>?,
+    /** The key an up-flick from this point would type the capital of, with its cell, or null (#746). */
+    capitalAt: (Offset) -> Pair<Key, Rect>?,
+    onHintFlick: (Key) -> Unit,
+    onCapitalFlick: (Key) -> Unit,
 ) {
     val strokes = HashMap<PointerId, ThumbStroke>()
     // When each half of the board last tapped, for that thumb's cooldown.
@@ -20665,7 +20735,14 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     }
                     val stroke = ThumbStroke(change.position, change.uptimeMillis, ownsStroke(change.position))
                     stroke.side = if (change.position.x < size.width / 2f) 0 else 1
-                    if (!stroke.owned) stroke.flickCell = flickCell(change.position)
+                    if (!stroke.owned) {
+                        stroke.flickCell = flickCell(change.position)
+                        // Fixed at the down, as the one-finger loop fixes them:
+                        // the stroke is judged at the lift, but the key it
+                        // began on cannot change (#746).
+                        stroke.hint = hintAt(change.position)
+                        stroke.capital = capitalAt(change.position)
+                    }
                     stroke.startSlopPx =
                         slopPx * thumbSlopBoost(change.uptimeMillis - lastTapAt[stroke.side], cooldownMs)
                     strokes[change.id] = stroke
@@ -20685,6 +20762,33 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     stroke.reachPx = maxOf(stroke.reachPx, (change.position - stroke.down).getDistance())
                     val keys = stroke.keys
                     val claimed = swipeClaimed()
+                    // A short flick off the key it began on is that key's hint
+                    // or capital, not part of the word (#746). Asked before the
+                    // tap test, as the one-finger loop asks it, with the same
+                    // tests and travel.
+                    val flick = if (claimed) {
+                        ThumbFlick.NONE
+                    } else {
+                        flickForKey(
+                            stroke.points,
+                            hintKeyHeightPx = stroke.hint?.second?.height,
+                            capitalKeyHeightPx = stroke.capital?.second?.height,
+                            startSlopPx = stroke.startSlopPx,
+                        )
+                    }
+                    if (flick != ThumbFlick.NONE) {
+                        if (stroke.slot >= 0) trails[stroke.slot].release()
+                        if (stroke.previewed && keys != null) {
+                            onGesture(stroke.points, keys, keyWidth.value, GlideVerdict.Cancel)
+                        }
+                        when (flick) {
+                            ThumbFlick.HINT -> stroke.hint?.let { onHintFlick(it.first) }
+                            ThumbFlick.CAPITAL -> stroke.capital?.let { onCapitalFlick(it.first) }
+                            ThumbFlick.NONE -> Unit
+                        }
+                        lastTapAt[stroke.side] = change.uptimeMillis
+                        continue
+                    }
                     // A tap that rolled past the start distance (#738, the
                     // one-finger loop's #782). The stroke took the pointer from
                     // the key, so the key's own lift typed nothing, and a stroke
