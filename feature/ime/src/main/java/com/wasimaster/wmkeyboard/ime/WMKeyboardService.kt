@@ -24043,6 +24043,30 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A stroke under two-thumb typing too small to be a swipe (#738): a fast
+     * tap that rolled past the swipe start distance, whose key press the loop
+     * had already given up. It types the letter of the key it started on, as
+     * the tap it was: into the word in progress, or as the start of one.
+     * False when two-thumb typing is off or the stroke is a real swipe.
+     */
+    private fun duetStrokeAsTap(
+        state: KeyboardUiState,
+        points: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): Boolean {
+        if (!state.settings.gesture.twoThumbGlide || !swipeJoinsWord(state)) return false
+        if (!isTapSizedStroke(points, keyWidthPx)) return false
+        val down = points.first()
+        val key = keys.minByOrNull { (it.x - down.x) * (it.x - down.x) + (it.y - down.y) * (it.y - down.y) }
+            ?: return false
+        if (!Character.isLetter(key.codePoint)) return false
+        onKeyTouch(down.x, down.y, down.t)
+        onKey(Key(String(Character.toChars(Character.toLowerCase(key.codePoint)))))
+        return true
+    }
+
+    /**
      * A letter tapped while a two-thumb word is open: one more gesture in it,
      * and the word read again. False when no such word is open, and the letter
      * is typed the ordinary way.
@@ -24493,6 +24517,8 @@ open class WMKeyboardService : InputMethodService() {
         // Only when the picker did not answer. A frozen stroke was the user
         // choosing, and what they chose is not a key's word.
         if (verdict is GlideVerdict.Leader && octopusFlickPick(state, points, keys, keyWidthPx)) return
+        // A tap that rolled into a swipe under two thumbs is still the tap.
+        if (duetStrokeAsTap(state, points, keys, keyWidthPx)) return
         // Two-thumb typing, or a swipe finishing typed letters: the stroke
         // joins the word in progress instead of being one (#638, #595).
         if (duetSwipe(state, points, keys, keyWidthPx, shiftAtGesture)) return
