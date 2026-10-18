@@ -72,7 +72,7 @@ Animated GIFs can never actually become stickers. Android has no animated-WebP e
 
 The panel can also show GIFs kept on the phone, which need no key and no connection: [CleverKeys' offline GIF packs](https://github.com/tribixbite/CleverKeys/releases/tag/CleverKeys-GIF). Download a pack in your browser, then under <SettingsPath path="Tools / GIFs / Offline GIF packs" /> press **Import** and pick the zip. **Get the files** on the same row opens the release page.
 
-Once a pack is installed the panel gains an **Offline** chip. It is a grid of its own in either **Multiple sources** mode, never mixed in with online results, and like the user's own sticker packs it never asks about [mobile data](/privacy/data-saver/). Search matches the words each GIF is tagged with; the category chips are the packs' own (Funny, Love, Sad and the rest), and one searches for everything filed under it. A search lists up to 240 GIFs. Tapping one sends it as any other result is sent, without a download.
+Once a pack is installed the panel gains an **Offline** chip. It is a grid of its own in every provider mode, never mixed in with online results, and like the user's own sticker packs it never asks about [mobile data](/privacy/data-saver/). Search matches the words each GIF is tagged with; the category chips are the packs' own (Funny, Love, Sad and the rest), and one searches for everything filed under it. A search lists up to 240 GIFs. Tapping one sends it as any other result is sent, without a download.
 
 Only the **Discord community** packs (about 100 MB each, around 900 animated GIFs) carry GIFs to send. The **thumbnail** packs hold 80-pixel still previews and nothing else, so the import refuses them and says so. Each pack installed is listed with its size and a Delete. Importing a pack again replaces it.
 
@@ -100,9 +100,7 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 
 | Setting | Default | What it does |
 |---|---|---|
-| KLIPY API key | Empty | Paste a free key from `partner.klipy.com`. KLIPY replaced Tenor as the primary provider after Google retired Tenor's third-party API in mid-2026. |
-| GIPHY API key | Empty | Paste a free key from `developers.giphy.com`, as a second source. |
-| GifCities | Off | Adds the Internet Archive's GeoCities GIF search as a source. No key needed. See [GifCities](#gifcities). |
+| Providers | Depends on the build | Who the panel asks, in order: KLIPY, GIPHY, Wikimedia Commons or another MediaWiki, GifCities and offline GIF packs. Add, reorder, switch off or set up each one, and choose **Tabs**, **Mixed** or **One at a time**. See [Choosing providers](#choosing-providers). |
 | Full-screen picker | On | The toolbar, emoji row and symbol row step aside so the GIF grid gets the full keyboard height, with search moved up next to a back button. Shared with the sticker tool. |
 | GIFs per row | 3 | A slider from 1 to 6: the most GIFs side by side in a row. Fewer makes each one bigger. A row of wide GIFs can hold fewer than this. The sticker tool has its own. |
 | Gap between cells | 4 dp | A slider from 0 to 12 dp: the space around each result. Shared with the sticker tool. |
@@ -112,16 +110,32 @@ Saving to a pack is sticker-only, since a GIF can't become one. That row shows o
 | Keep favourites on the phone | Off | Saves a copy of each favourite, so it shows and sends with no connection. Turning it off deletes the copies and keeps the favourites. |
 | Panel layout | Standard | The keys around the results. **Standard** ends the way the emoji panel ends. See [Panel layouts](/languages/custom-layouts/#panel-layouts). |
 | Send GIFs as | Image | Whether a tap tries to land the result as a sticker-style MIME first or always as a plain image. See the sticker-limitation note above. |
-| Multiple sources | Tabs | **Tabs**: one chip per configured provider once you have more than one, to switch between them. **Mixed**: a single grid interleaving results from every provider evenly, with an **Online** chip for it and an **Offline** chip for your offline GIF packs once one is installed. GIPHY is the exception: its terms forbid mixing its results with another service's, so it keeps a chip and a grid of its own in Mixed mode too. Without an offline pack or GIPHY next to another provider, the Mixed panel shows no chip row at all. |
 | Offline GIF packs | None | The packs on the phone, each with a Delete, and the row that imports more. See [Offline GIF packs](#offline-gif-packs). |
 | Content filter | High | Four levels (Off, Low, Medium, High) mapped to each provider's own content rating (High maps to G-rated results, Off to R). Shared with the sticker tool. |
 | Results for each search | 24 | A slider from 6 to 48. How many GIFs one search or the trending view loads. Shared with the sticker tool. |
 
-You only need one working key, KLIPY or GIPHY, for the tool to work, except on the F-Droid build, which already has Commons, or with GifCities turned on. Configuring both KLIPY and GIPHY adds a second source to search. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
+You only need one working provider for the tool to work: a KLIPY or GIPHY key, Commons (already in the list on the F-Droid build), GifCities, or an offline pack. **Send GIFs as** is only shown here, and the sticker tool's **Send stickers as** only on its own page. Each governs the panel it sits under, so neither page offers the other's setting. See [Stickers](/emoji/stickers/) for that one.
+
+## Choosing providers
+
+<SettingsPath path="Tools / GIFs / Providers" /> is the list of services the panel asks. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for another one.
+
+- **KLIPY** and **GIPHY** need an API key, unless the build carries one. Paste a free key from `partner.klipy.com` or `developers.giphy.com` in the provider's setup. KLIPY replaced Tenor after Google retired Tenor's third-party API in mid-2026. The keys are shared with the sticker tool.
+- **Wikimedia Commons** needs no key. Its GIFs are mostly educational rather than reactions. Add it again with an address to search another MediaWiki as well.
+- **GifCities** needs no key. See [GifCities](#gifcities).
+- **Offline GIF packs** is the packs you imported. It shows once a pack is installed.
+
+**How to use them** decides the chip row:
+
+- **Tabs** (the default): one chip per provider, to switch between them.
+- **Mixed**: one grid that interleaves every provider evenly, with an **Online** chip for it and an **Offline** chip for your offline GIF packs. GIPHY keeps a chip and a grid of its own, because its terms forbid mixing its results with another service's.
+- **One at a time**: one grid from the first provider that answers. If it fails or finds nothing, the next one is asked. Offline packs keep their own chip.
+
+Without an offline pack or GIPHY next to another provider, Mixed and One at a time show no chip row at all.
 
 ## GifCities
 
-GifCities is the Internet Archive's search over the GIFs it saved from GeoCities home pages before GeoCities closed in 2009. Turn on **GifCities** under <SettingsPath path="Tools / GIFs / GifCities" /> and it joins the panel as one more source, with a chip of its own in Tabs mode or mixed into the Online grid. It needs no key and no account, so it works on every build.
+GifCities is the Internet Archive's search over the GIFs it saved from GeoCities home pages before GeoCities closed in 2009. Add **GifCities** under <SettingsPath path="Tools / GIFs / Providers" /> and it joins the panel as one more provider, with a chip of its own in Tabs mode or mixed into the Online grid. It needs no key and no account, so it works on every build.
 
 Expect the 1990s web rather than reaction GIFs: under construction signs, spinning globes, dancing figures, animated email icons. Results smaller than 32 pixels on a side (bullets, spacers) are left out. GifCities has no trending feed, so with the search box empty it shows a search for a different classic term each day.
 
@@ -134,7 +148,7 @@ Expect the 1990s web rather than reaction GIFs: under construction signs, spinni
 - **Not pinned to the toolbar by default on a phone.** The onboarding wizard turns the GIF tool on for every persona, but a phone's out-of-the-box pinned toolbar only holds Emoji, Clipboard and Settings, so GIF sits in the [toolbox](/tools/overview/) until you drag it onto the bar or open it from there. A tablet is the exception: its wider default bar pins GIF from the start.
 - **Trending, not random.** An empty search box always shows each provider's trending feed, not a blank grid, useful as a starting point before you type a query.
 - **24 results per fetch, and you can change it.** That's the number each provider is asked for on a search or a trending call, and the **Results for each search** slider moves it anywhere from 6 to 48. In Mixed mode every provider is asked for that many and the merged grid is then cut back down to it, so the number is what the grid holds in total, not what each source contributes.
-- **Two of these rows never grow a restore button.** Settings you've moved off their shipped value normally pick up [a small restore button](/reference/settings/#putting-one-setting-back) next to the control. **Multiple sources** and **Content filter** are the exception on this screen. They're drawn as a bare segmented row under a heading rather than as full setting rows, so there's nowhere for the button to sit. Put them back by picking Tabs and High yourself. (The two API key fields don't have one either, but there the shipped value is an empty box.)
+- **Two of these rows never grow a restore button.** Settings you've moved off their shipped value normally pick up [a small restore button](/reference/settings/#putting-one-setting-back) next to the control. **Content filter** is the exception on this screen. It's drawn as a bare segmented row under a heading rather than as a full setting row, so there's nowhere for the button to sit. Put it back by picking High yourself. The provider list has **Reset to default** instead.
 - **No size cap on downloads.** Stickers cap the source file size. A GIF download has no maximum, so a very large or very long GIF still downloads in full before sending.
 - **Recently sent files are cached, not stored permanently.** Downloaded files are kept in a local cache, so re-picking the same GIF skips re-downloading it. The cache keeps only the 30 most recently touched files and deletes the rest, so it isn't a place to go looking for something you sent a while ago.
 - **Network use is opt-in and tool-scoped.** KLIPY and GIPHY are only contacted while the GIF panel is open: trending on open, live search as you type, and the download on tap. Nothing happens in the background. See [Network policy](/privacy/network/) for the full breakdown of what each online tool sends.

@@ -102,7 +102,6 @@ import coil3.gif.AnimatedImageDecoder
 import coil3.gif.GifDecoder
 import coil3.memory.MemoryCache
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -112,6 +111,8 @@ import com.wasimaster.wmkeyboard.core.tools.GifSources
 import com.wasimaster.wmkeyboard.core.tools.MediaCategories
 import com.wasimaster.wmkeyboard.core.tools.MediaCategory
 import com.wasimaster.wmkeyboard.core.tools.SearchBackend
+import com.wasimaster.wmkeyboard.core.tools.MediaProviders
+import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
@@ -795,12 +796,12 @@ private fun gifSearchHint(state: KeyboardUiState, stickers: Boolean): String {
 @Composable
 private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): String? {
     // Nothing to credit for packs on the device.
-    val credited = gifTargets(state, stickers).filter { !it.onDevice && it !in BRANDED_SOURCES }
+    val credited = gifTargets(state, stickers).filter { !it.onDevice && it.source !in BRANDED_SOURCES }
     if (credited.isEmpty()) return null
     val names = StringBuilder()
-    for (source in credited) {
+    for (target in credited) {
         if (names.isNotEmpty()) names.append(" · ")
-        names.append(stringResource(GifSources.displayNameRes(source)))
+        names.append(target.name.ifBlank { stringResource(GifSources.displayNameRes(target.source)) })
     }
     return stringResource(R.string.ime_media_attribution, names.toString())
 }
@@ -811,16 +812,17 @@ private fun gifAttribution(state: KeyboardUiState, stickers: Boolean = false): S
  * ([GifSource.ownGrid]), so a grid has at most one of the two.
  */
 private fun gifBrand(state: KeyboardUiState, stickers: Boolean): GifSource? =
-    gifTargets(state, stickers).firstOrNull { it in BRANDED_SOURCES }
+    gifTargets(state, stickers).firstOrNull { it.source in BRANDED_SOURCES }?.source
 
-private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<GifSource> = GifSources.targets(
+private fun gifTargets(state: KeyboardUiState, stickers: Boolean): List<MediaTarget> = GifSources.targets(
     gifSourcesFor(state, stickers),
-    state.mediaSource,
-    state.settings.gif.sourceMode == GifSourceMode.TABS,
+    state.mediaProvider,
+    MediaProviders.mode(state.settings, stickers),
 )
 
-private fun gifSourcesFor(state: KeyboardUiState, stickers: Boolean): List<GifSource> =
-    if (stickers) ToolApiKeys.stickerSources(state.settings) else ToolApiKeys.gifSources(state.settings)
+/** The tool's providers as the service asks them; see [MediaProviders]. */
+private fun gifSourcesFor(state: KeyboardUiState, stickers: Boolean): List<MediaTarget> =
+    MediaProviders.targets(state.settings, stickers)
 
 /** The providers whose terms ask for their own "Powered by" mark rather than a line of text. */
 private val BRANDED_SOURCES = setOf(GifSource.KLIPY, GifSource.GIPHY)
@@ -929,7 +931,7 @@ internal fun GifPanel(
     onQueryTap: () -> Unit,
     onRetry: () -> Unit,
     onSelect: (GifItem) -> Unit,
-    onSourceSelect: (GifSource) -> Unit,
+    onSourceSelect: (String) -> Unit,
     onOpenToolSettings: (ToolbarTool) -> Unit,
     fullBleed: Boolean = false,
     onCategorySelect: (String) -> Unit = {},
@@ -947,9 +949,9 @@ internal fun GifPanel(
     val ui = if (stickers) state.sticker else state.gif
     val tool = if (stickers) ToolbarTool.STICKER else ToolbarTool.GIF
     val sources = gifSourcesFor(state, stickers)
-    val tabsMode = state.settings.gif.sourceMode == GifSourceMode.TABS
-    val chips = GifSources.chips(sources, tabsMode)
-    val localGrid = GifSources.targets(sources, state.mediaSource, tabsMode) == listOf(GifSource.LOCAL)
+    val mode = MediaProviders.mode(state.settings, stickers)
+    val chips = GifSources.chips(sources, mode)
+    val localGrid = GifSources.targets(sources, state.mediaProvider, mode).map { it.source } == listOf(GifSource.LOCAL)
     val sizing = if (fullBleed || inGrid) {
         Modifier.fillMaxSize()
     } else {
@@ -1028,14 +1030,14 @@ internal fun GifPanel(
                         region = FocusRegion.CHIPS,
                         count = chips.size,
                         columns = chips.size,
-                        onActivate = { index -> chips.getOrNull(index)?.let { onSourceSelect(it.source) } },
+                        onActivate = { index -> chips.getOrNull(index)?.let { onSourceSelect(it.key) } },
                     )
                     // The add chip ends this row rather than taking a row of its
                     // own under it: with one pack there is nothing else to put
                     // there, and a row for one small chip was a row of stickers.
                     GifSourceChips(
                         chips = chips,
-                        selectedIndex = GifSources.selectedChip(chips, state.mediaSource),
+                        selectedIndex = GifSources.selectedChip(chips, state.mediaProvider, sources, mode),
                         onSelect = onSourceSelect,
                         focused = state.focusedIndex(FocusRegion.CHIPS),
                         onAdd = if (canAdd) onAdd else null,
@@ -1279,7 +1281,7 @@ internal fun stickerAddTarget(
 private fun GifSourceChips(
     chips: List<com.wasimaster.wmkeyboard.core.tools.SourceChip>,
     selectedIndex: Int,
-    onSelect: (GifSource) -> Unit,
+    onSelect: (String) -> Unit,
     focused: Int? = null,
     /** Adds a sticker to a pack of your own: a [StickerAddChip] at the row's end. Null, none. */
     onAdd: (() -> Unit)? = null,
@@ -1295,7 +1297,7 @@ private fun GifSourceChips(
         chips.forEachIndexed { index, chip ->
             val active = index == selectedIndex
             Text(
-                stringResource(chip.labelRes),
+                chip.name.ifBlank { stringResource(chip.labelRes) },
                 color = if (active) kb.chipActiveText else kb.chipText,
                 fontSize = 12.sp,
                 fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
@@ -1309,7 +1311,7 @@ private fun GifSourceChips(
                     .background(if (active) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
                     .focusRing(index == focused, shape)
-                    .clickable { onSelect(chip.source) }
+                    .clickable { onSelect(chip.key) }
                     .padding(horizontal = 12.dp, vertical = 4.dp),
             )
         }

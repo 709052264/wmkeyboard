@@ -58,4 +58,7 @@
     <string name="providers_testing">Testing</string>
     <string name="providers_test_ok">It works.</string>
     <string name="providers_test_failed">It did not work: %1$s</string>
+
+    <!-- Tool pages that use the list -->
+    <string name="tooldetail_media_providers_info">GIFs and stickers keep separate lists but share keys: a KLIPY or GIPHY key set up on one page works on the other. GIPHY never shares a grid with another provider, because its terms do not allow it. The content filter below applies to KLIPY and GIPHY.</string>
 </resources>

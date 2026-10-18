@@ -101,6 +101,8 @@ internal fun ProvidersGroup(
     settings: LiveSettings,
     tool: ProviderTool,
     info: String? = null,
+    /** After every saved change: for a cache that answered for the old setup. */
+    onChanged: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -114,12 +116,17 @@ internal fun ProvidersGroup(
     var removing by remember { mutableStateOf<ResolvedProvider?>(null) }
 
     fun save(change: ProviderEdits.Change) {
-        scope.launch { repository.saveProviders(change) }
+        scope.launch {
+            repository.saveProviders(change)
+            onChanged()
+        }
     }
     fun chain(): ProviderChain = settings.value.providerChain(tool, env)
 
     SettingsGroup(
         stringResource(R.string.providers_group_title),
+        // What a search for "providers" lands on; one list per tool page.
+        highlightKey = R.string.providers_group_title,
         info = info ?: stringResource(R.string.providers_group_info),
     ) {
         if (tool.modes.size > 1) {
@@ -189,7 +196,12 @@ internal fun ProvidersGroup(
                 title = stringResource(R.string.providers_reset),
                 subtitle = stringResource(R.string.providers_reset_subtitle),
                 icon = Icons.Outlined.History,
-                onClick = { scope.launch { repository.resetProviderChain(tool) } },
+                onClick = {
+                    scope.launch {
+                        repository.resetProviderChain(tool)
+                        onChanged()
+                    }
+                },
             )
         }
     }

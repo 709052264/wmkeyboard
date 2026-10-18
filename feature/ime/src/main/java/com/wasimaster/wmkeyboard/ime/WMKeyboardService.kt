@@ -354,7 +354,6 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.support.Support
 import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerTriggerIndex
-import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
@@ -515,7 +514,11 @@ import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.QrCodeGen
 import com.wasimaster.wmkeyboard.core.tools.CalcEngine
+import com.wasimaster.wmkeyboard.core.tools.MediaProviders
+import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
+import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolPrefill
 import com.wasimaster.wmkeyboard.core.tools.TypingHeatmapMath
 import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
@@ -33415,18 +33418,19 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
-        // Stickers add the user's own packs, which need no key — so only the
-        // GIF tool can end up with nothing to ask.
-        val sources = if (sticker) ToolApiKeys.stickerSources(settings) else ToolApiKeys.gifSources(settings)
+        // The user's list for the tool, rows that are off or cannot be asked
+        // left out. Stickers start with the user's own packs, which need no
+        // key, so it is usually the GIF tool that can end up with nothing.
+        val sources = MediaProviders.targets(settings, sticker)
         if (sources.isEmpty()) {
             setUi(MediaUi.NeedKey)
             return
         }
-        val tabs = settings.gif.sourceMode == GifSourceMode.TABS
-        val targets = GifSources.targets(sources, state.mediaSource, tabs)
-        if (tabs) {
-            val selected = targets.first()
-            if (selected != state.mediaSource) _uiState.update { it.copy(mediaSource = selected) }
+        val mode = MediaProviders.mode(settings, sticker)
+        val targets = GifSources.targets(sources, state.mediaProvider, mode)
+        if (mode == ChainMode.TABS) {
+            val selected = targets.first().key
+            if (selected != state.mediaProvider) _uiState.update { it.copy(mediaProvider = selected) }
         }
         // Data saving. Only the online providers count: the user's own sticker
         // packs and imported GIF packs are files on disk, and a panel that
@@ -33443,11 +33447,32 @@ open class WMKeyboardService : InputMethodService() {
         setUi(MediaUi.Loading)
         val panel = state.panel
         mediaFetchJob = serviceScope.launch {
-            val results = withContext(Dispatchers.IO) {
-                targets.map { source ->
-                    async { runCatching { fetchGifs(source, query, sticker, settings) } }
-                }.awaitAll()
+            // One at a time: the first provider with something to show is the
+            // grid, and the next is asked only when it fails or has nothing.
+            if (mode == ChainMode.FALLBACK && targets.size > 1) {
+                val outcome = withContext(Dispatchers.IO) {
+                    ProviderRunner.fallback(
+                        targets,
+                        key = { it.key },
+                        isEmpty = { items: List<GifItem> -> items.isEmpty() },
+                    ) { target -> fetchGifs(target, query, sticker, settings) }
+                }
+                if (_uiState.value.panel != panel) return@launch
+                setUi(
+                    when (outcome) {
+                        is ProviderRunner.Outcome.Found -> MediaUi.Ready(outcome.value.take(settings.gif.resultLimit), query)
+                        ProviderRunner.Outcome.NotFound -> MediaUi.Ready(emptyList(), query)
+                        is ProviderRunner.Outcome.Failed -> MediaUi.Error(
+                            outcome.error?.let { ToolHttp.friendlyMessage(this@WMKeyboardService, it) }
+                                ?: getString(R.string.ime_service_media_fetch_error),
+                        )
+                    },
+                )
+                return@launch
             }
+            val results = withContext(Dispatchers.IO) {
+                ProviderRunner.all(targets, key = { it.key }) { target -> fetchGifs(target, query, sticker, settings) }
+            }.map { it.second }
             if (_uiState.value.panel != panel) return@launch
             val successes = results.mapNotNull { it.getOrNull() }
             setUi(
@@ -33475,17 +33500,17 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Blocking provider dispatch; call on an IO dispatcher. */
     private fun fetchGifs(
-        source: GifSource,
+        target: MediaTarget,
         query: String,
         sticker: Boolean,
         settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
-    ): List<GifItem> = when (source) {
+    ): List<GifItem> = when (target.source) {
         GifSource.KLIPY -> KlipyClient.search(
-            query, ToolApiKeys.klipy(settings), sticker, settings.gif.contentFilter,
+            query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
         GifSource.GIPHY -> GiphyClient.search(
-            query, ToolApiKeys.giphy(settings), sticker, settings.gif.contentFilter,
+            query, target.apiKey, sticker, settings.gif.contentFilter,
             limit = settings.gif.resultLimit,
         )
         GifSource.LOCAL ->
@@ -33500,19 +33525,20 @@ open class WMKeyboardService : InputMethodService() {
             else CommonsClient.searchGifs(
                 query,
                 limit = settings.gif.resultLimit,
-                endpoint = settings.selfHosted.commonsUrl,
+                // Blank is Wikimedia Commons itself; a row of its own is another wiki.
+                endpoint = target.url,
             )
-        // GIF-only: never offered on the sticker panel (see ToolApiKeys.stickerSources).
+        // GIF-only: the sticker list never offers it.
         GifSource.GIFCITIES ->
             if (sticker) emptyList()
             else com.wasimaster.wmkeyboard.core.tools.GifCitiesClient.search(query, limit = settings.gif.resultLimit)
     }
 
-    /** Provider chip on the GIF/sticker panel (tabs mode). */
-    fun onGifSourceSelect(source: GifSource) {
+    /** Provider chip on the GIF/sticker panel; [key] is the provider row's. */
+    fun onGifSourceSelect(key: String) {
         vibrate()
-        if (_uiState.value.mediaSource == source) return
-        _uiState.update { it.copy(mediaSource = source, mediaAction = null, stickerPackId = null) }
+        if (_uiState.value.mediaProvider == key) return
+        _uiState.update { it.copy(mediaProvider = key, mediaAction = null, stickerPackId = null) }
         refreshMedia(_uiState.value.mediaQuery.trim())
         // Categories belong to a provider, so the row follows the chip.
         refreshMediaCategories()
@@ -33535,14 +33561,13 @@ open class WMKeyboardService : InputMethodService() {
         val sticker = state.panel == PanelMode.STICKER
         if (!sticker && state.panel != PanelMode.GIF) return
         val settings = state.settings
-        val sources =
-            if (sticker) ToolApiKeys.stickerSources(settings) else ToolApiKeys.gifSources(settings)
-        val tabs = settings.gif.sourceMode == GifSourceMode.TABS
+        val sources = MediaProviders.targets(settings, sticker)
+        val mode = MediaProviders.mode(settings, sticker)
         // One provider, not every target: two taxonomies interleaved are a
         // row of near-duplicates for twice the requests. Local packs have no
         // categories at all — the pack chips are their equivalent.
-        val target = GifSources.targets(sources, state.mediaSource, tabs)
-            .firstOrNull { it != GifSource.LOCAL }
+        val target = GifSources.targets(sources, state.mediaProvider, mode)
+            .firstOrNull { it.source != GifSource.LOCAL }
         if (target == null) {
             _uiState.update { it.copy(mediaCategories = emptyList(), mediaCategory = null) }
             return
@@ -33553,18 +33578,18 @@ open class WMKeyboardService : InputMethodService() {
         mediaCategoryJob = serviceScope.launch {
             // Imported packs change under the cache's day-long lifetime, and
             // reading their categories costs a query, not a request.
-            val cached = if (target == GifSource.OFFLINE) {
+            val cached = if (target.source == GifSource.OFFLINE) {
                 null
             } else {
-                MediaCategoryCache.get(target, sticker, System.currentTimeMillis())
+                MediaCategoryCache.get(target.source, sticker, System.currentTimeMillis())
             }
             val fetched = cached ?: withContext(Dispatchers.IO) {
-                runCatching { fetchCategories(target, sticker, settings) }
+                runCatching { fetchCategories(target, sticker) }
             }.onSuccess {
                 // Cache the empty answer too: a provider with no categories
                 // endpoint is then asked once a day, not once per open. Only
                 // on success — a cancelled fetch must not poison the entry.
-                MediaCategoryCache.put(target, sticker, it, System.currentTimeMillis())
+                MediaCategoryCache.put(target.source, sticker, it, System.currentTimeMillis())
             }.getOrNull()
             if (_uiState.value.panel != panel) return@launch
             _uiState.update {
@@ -33575,12 +33600,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Blocking provider dispatch; call on an IO dispatcher. */
     private fun fetchCategories(
-        source: GifSource,
+        target: MediaTarget,
         sticker: Boolean,
-        settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
-    ): List<MediaCategory> = when (source) {
-        GifSource.KLIPY -> KlipyClient.categories(ToolApiKeys.klipy(settings), sticker)
-        GifSource.GIPHY -> GiphyClient.categories(ToolApiKeys.giphy(settings), sticker)
+    ): List<MediaCategory> = when (target.source) {
+        GifSource.KLIPY -> KlipyClient.categories(target.apiKey, sticker)
+        GifSource.GIPHY -> GiphyClient.categories(target.apiKey, sticker)
         GifSource.LOCAL -> emptyList()
         // No category endpoint: Commons is a search index, not a curated feed.
         GifSource.COMMONS -> emptyList()
