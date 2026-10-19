@@ -340,7 +340,7 @@ class GoogleHomeBackend(
             val done = GoogleHomeMapping.command(call, l, _entities.value[id])
             if (!done) throw HaCommandException("unsupported", "${call.domain}.${call.service}")
         } catch (e: HomeException) {
-            throw HaCommandException(e.code.toString(), e.message ?: "refused")
+            throw HaCommandException(e.error.code.toString(), e.message ?: "refused")
         }
     }
 

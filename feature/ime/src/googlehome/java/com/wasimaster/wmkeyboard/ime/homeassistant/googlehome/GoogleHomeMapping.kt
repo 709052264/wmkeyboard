@@ -371,16 +371,16 @@ object GoogleHomeMapping {
                     if (p == 0 && onOff != null) onOff.off() else f.update { setPercentSetting(p.toUByte()) }
                     return true
                 }
-                "media_play" -> live.trait<MediaPlayback>()?.play() != null
-                "media_pause" -> live.trait<MediaPlayback>()?.pause() != null
+                "media_play" -> return live.trait<MediaPlayback>()?.play() != null
+                "media_pause" -> return live.trait<MediaPlayback>()?.pause() != null
                 "media_play_pause" -> {
                     val m = live.trait<MediaPlayback>() ?: return false
                     if (current?.state == "playing") m.pause() else m.play()
                     return true
                 }
-                "media_stop" -> live.trait<MediaPlayback>()?.stop() != null
-                "media_next_track" -> live.trait<MediaPlayback>()?.next() != null
-                "media_previous_track" -> live.trait<MediaPlayback>()?.previous() != null
+                "media_stop" -> return live.trait<MediaPlayback>()?.stop() != null
+                "media_next_track" -> return live.trait<MediaPlayback>()?.next() != null
+                "media_previous_track" -> return live.trait<MediaPlayback>()?.previous() != null
                 "volume_set" -> {
                     val v = data.num("volume_level") ?: return false
                     val l = level ?: return false
