@@ -465,7 +465,7 @@ object NgramPackCatalog {
             repoCode = "bs",
             bigramStem = "bs_bigrams",
             trigramStem = "bs_trigrams",
-            approxGzBytes = 3_667,
+            approxGzBytes = 1_247_898,
         ),
         NgramPackEntry(
             languageId = "bzt",

@@ -195,7 +195,7 @@ internal val REGION_LANGUAGES: Map<String, List<String>> = mapOf(
     "AR" to listOf("es"),
     "AT" to listOf("de"),
     "AZ" to listOf("az", "ru"),
-    "BA" to listOf("sr", "hr"),
+    "BA" to listOf("bs", "hr", "sr"),
     "BD" to listOf("bn", "syl"),
     "BE" to listOf("nl", "fr", "de"),
     "BF" to listOf("fr", "mos"),

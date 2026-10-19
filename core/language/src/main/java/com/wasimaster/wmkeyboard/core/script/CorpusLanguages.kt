@@ -230,7 +230,7 @@ internal object CorpusLanguages {
             englishName = "Bosnian",
             script = ScriptId.LATIN,
             localeTag = "bs",
-            layoutIds = listOf("asset_bs", "asset_bs_t9"),
+            layoutIds = listOf("asset_bs_qwertz", "asset_bs_letters", "asset_bs", "asset_bs_t9"),
         ),
         LanguageDef(
             id = "rn",
