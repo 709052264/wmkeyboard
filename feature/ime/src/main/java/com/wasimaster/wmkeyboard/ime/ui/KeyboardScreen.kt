@@ -10536,6 +10536,24 @@ private fun RowScope.ToolbarRow(
     // preview order would label cells with their neighbours' keys.
     val hints = if (dragTool == null) armedHintPlan(state) else null
     val panelOpen = state.panel != PanelMode.NONE
+    // The toolbox's search button, shown while the toolbox is open (#687) and
+    // opening over the whole keyboard (see [barFullBleed]). It sits at the far
+    // end of the bar by default, out of reach of a tap meant for back, or
+    // beside the back button when the user puts it there.
+    val toolboxSearchShown = customizing && state.settings.toolbox.searchButton &&
+        !state.toolboxView.searchActive
+    val searchAtEnd = state.settings.toolbox.searchAtEnd
+    val toolboxSearchCell: @Composable (Modifier) -> Unit = { cell ->
+        Box(cell, contentAlignment = Alignment.Center) {
+            ToolCircle(
+                slot = IconSlots.CHROME_TOOLBOX_SEARCH,
+                description = stringResource(R.string.ime_toolbox_search_desc),
+                active = false,
+                longPressLabel = stringResource(R.string.ime_toolbox_search_desc),
+                wide = true,
+            ) { drag.toolbox.onSearchToggle() }
+        }
+    }
 
     // In greedy mode every button — chevron, toolbox and tools alike — is an
     // equal-weight cell, so the whole bar is one evenly spaced grid instead
@@ -10596,19 +10614,9 @@ private fun RowScope.ToolbarRow(
                 }
             }
         }
-        // The toolbox's search sits beside the way back while the toolbox is
-        // open (#687), and opens over the whole keyboard (see [barFullBleed]).
-        if (customizing && state.settings.toolbox.searchButton && !state.toolboxView.searchActive) {
-            Box(cell, contentAlignment = Alignment.Center) {
-                ToolCircle(
-                    slot = IconSlots.CHROME_TOOLBOX_SEARCH,
-                    description = stringResource(R.string.ime_toolbox_search_desc),
-                    active = false,
-                    longPressLabel = stringResource(R.string.ime_toolbox_search_desc),
-                    wide = true,
-                ) { drag.toolbox.onSearchToggle() }
-            }
-        }
+        // The toolbox's search, when it sits beside the way back rather than
+        // at the far end (see [toolboxSearchCell]).
+        if (toolboxSearchShown && !searchAtEnd) toolboxSearchCell(cell)
         Box(cell, contentAlignment = Alignment.Center) {
             ToolCircle(
                 slot = IconSlots.CHROME_TOOLBOX,
@@ -10863,6 +10871,19 @@ private fun RowScope.ToolbarRow(
             }
         }
     }
+    // At the far end, after the tools. In greedy mode it takes an equal cell
+    // like every other button, so the bar stays one evenly spaced grid.
+    if (toolboxSearchShown && searchAtEnd) {
+        toolboxSearchCell(
+            if (greedy) {
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            } else {
+                Modifier.padding(horizontal = 3.dp)
+            },
+        )
+    }
     // Typing on a physical keyboard with only the toolbar showing: the keys
     // are one tap away (#642). At the far end and never weighted, so it
     // stays put whatever the tools do, and a greedy bar does not hand it half
@@ -10983,7 +11004,8 @@ private fun ToolboxPanel(
         val box = drag.toolboxViewport
         val from = drag.folderOrigin
         levelPivot = when {
-            level == "search" || leaving == "search" -> TransformOrigin(0f, 0f)
+            level == "search" || leaving == "search" ->
+                TransformOrigin(if (state.settings.toolbox.searchAtEnd) 1f else 0f, 0f)
             box != null && from != null && box.width > 0f && box.height > 0f -> TransformOrigin(
                 ((from.x - box.left) / box.width).coerceIn(0f, 1f),
                 ((from.y - box.top) / box.height).coerceIn(0f, 1f),

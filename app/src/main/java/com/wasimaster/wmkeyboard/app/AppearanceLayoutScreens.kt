@@ -649,6 +649,7 @@ internal fun AppearanceToolboxSettings(
     val orderMoved = settings.watch { it.toolboxOrder != SettingsDefaults.toolboxOrder }
     val toolboxLayout = settings.watch { it.toolbox.layout }
     val paginate = settings.watch { it.toolbox.paginate }
+    val searchButtonOn = settings.watch { it.toolbox.searchButton }
     val toolboxMoved = settings.watch { s ->
         val d = SettingsDefaults
         s.toolbox != d.toolbox || s.toolboxColumns != d.toolboxColumns
@@ -761,6 +762,15 @@ internal fun AppearanceToolboxSettings(
                 info = stringResource(R.string.appearance_toolbox_search_button_info),
                 default = SettingsDefaults.toolbox.searchButton,
             ) { scope.launch { repository.setToolboxSearchButton(it) } }
+        }
+        item(visible = searchButtonOn) {
+            ToggleSetting(
+                R.string.appearance_toolbox_search_at_end_title,
+                stringResource(R.string.appearance_toolbox_search_at_end_subtitle),
+                settings.watch { it.toolbox.searchAtEnd },
+                info = stringResource(R.string.appearance_toolbox_search_at_end_info),
+                default = SettingsDefaults.toolbox.searchAtEnd,
+            ) { scope.launch { repository.setToolboxSearchAtEnd(it) } }
         }
         // Drawn only once something has actually moved, like the group reset on
         // Layout & size. The order of the tools has its own reset above.

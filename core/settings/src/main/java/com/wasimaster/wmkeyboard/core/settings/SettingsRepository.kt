@@ -2145,6 +2145,12 @@ data class ToolboxSettings(
      * for someone who finds every tool by where it sits.
      */
     val searchButton: Boolean = true,
+    /**
+     * Where that search button sits: at the far end of the toolbar, away from
+     * the back button, or (off) right beside it, where it first lived. The
+     * far end keeps a tap meant for back from landing on the search.
+     */
+    val searchAtEnd: Boolean = true,
 ) {
     /** The caption size to draw at, resolving 0 against the toolbar's setting. */
     fun labelSizeOr(toolbarLabelSize: Int): Int =
@@ -10506,6 +10512,7 @@ class SettingsRepository(private val context: Context) {
         private val TOOLBOX_HIDDEN_TOOLS = stringPreferencesKey("toolbox_hidden_tools")
         private val TOOLBOX_FOLDERS = stringPreferencesKey("toolbox_folders")
         private val TOOLBOX_SEARCH_BUTTON = booleanPreferencesKey("toolbox_search_button")
+        private val TOOLBOX_SEARCH_AT_END = booleanPreferencesKey("toolbox_search_at_end")
         private val SUGGESTION_TEXT_SCALE = floatPreferencesKey("suggestion_text_scale")
         private val LEARNED_WORD_MIN_COUNT = intPreferencesKey("learned_word_min_count")
         private val NEW_WORD_SIGHTINGS = intPreferencesKey("new_word_sightings")
@@ -12426,6 +12433,7 @@ class SettingsRepository(private val context: Context) {
             hiddenTools = decodeToolNames(p[TOOLBOX_HIDDEN_TOOLS]).toSet(),
             folders = decodeToolboxFolders(p[TOOLBOX_FOLDERS]),
             searchButton = p[TOOLBOX_SEARCH_BUTTON] ?: defaults.toolbox.searchButton,
+            searchAtEnd = p[TOOLBOX_SEARCH_AT_END] ?: defaults.toolbox.searchAtEnd,
         )
 
     private fun readSensorTools(p: Preferences, defaults: KeyboardSettings) =
@@ -14334,6 +14342,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setToolboxSearchButton(value: Boolean) =
         editPrefs { it[TOOLBOX_SEARCH_BUTTON] = value }
+
+    suspend fun setToolboxSearchAtEnd(value: Boolean) =
+        editPrefs { it[TOOLBOX_SEARCH_AT_END] = value }
 
     suspend fun setToolboxPageSize(value: Int) =
         editPrefs { it[TOOLBOX_PAGE_SIZE] = value.coerceIn(ToolboxPageSizeRange) }
@@ -17511,6 +17522,7 @@ class SettingsRepository(private val context: Context) {
         it.remove(TOOLBOX_PAGE_SIZE)
         it.remove(TOOLBOX_LABEL_SIZE)
         it.remove(TOOLBOX_SEARCH_BUTTON)
+        it.remove(TOOLBOX_SEARCH_AT_END)
     }
 
     suspend fun setHoldToTalkMs(value: Int) = editPrefs {
