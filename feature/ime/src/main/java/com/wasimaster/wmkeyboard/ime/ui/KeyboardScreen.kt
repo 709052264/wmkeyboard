@@ -23299,7 +23299,12 @@ internal fun KeyButton(
             .height((heightDp ?: settings.keyHeightDp).dp + keyGapV(settings) * 2 + touchBelow)
             .then(
                 if (screenReaderKeys) {
-                    Modifier.semantics {
+                    // Clear, not merge: the key's spoken name is the whole of
+                    // what it says. Left as plain semantics, the face's own
+                    // Text nodes (the corner hint, a flick arm's label) stayed
+                    // separate focus stops beside it, and Labels mode read the
+                    // hold's punctuation between the letters.
+                    Modifier.clearAndSetSemantics {
                         contentDescription = label
                         role = Role.Button
                         if (octopusWord != null) {
@@ -26345,6 +26350,10 @@ private fun BoxScope.KeyCornerHint(
     // Bold labels make the corner bold too: it is the smaller of the two, so
     // the harder one to read (#493).
     val hintWeight = if (settings.accessibility.boldLabels) FontWeight.Bold else null
+    // Every text in this lane is cleared from semantics. A screen reader
+    // otherwise gives the corner its own focus stop, so exploring across the
+    // letters reads out "$", "@", "(" between them (the hold's symbols, not the
+    // keys), and the key's own spoken name already covers what it types.
     when {
         // Drawn a step larger than the hint lane: these are Bengali
         // conjuncts, not a single Latin letter, and ক্ক at [HintLabelSp]
@@ -26352,6 +26361,7 @@ private fun BoxScope.KeyCornerHint(
         translit != null -> Text(
             text = translit,
             modifier = Modifier
+                .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
                 .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = HintEndPadding),
             fontSize = (TranslitHintSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
@@ -26373,6 +26383,7 @@ private fun BoxScope.KeyCornerHint(
         hint != null -> Text(
             text = hint,
             modifier = hintMask
+                .clearAndSetSemantics {}
                 .align(Alignment.TopEnd)
                 .padding(top = settings.layoutBehavior.hintOffsetDp.dp, end = HintEndPadding),
             fontSize = (HintLabelSp * fontScale * settings.layoutBehavior.hintFontScale).sp,
