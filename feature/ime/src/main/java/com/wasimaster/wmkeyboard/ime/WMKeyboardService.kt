@@ -6518,9 +6518,39 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
 
+    private var keyguardWatchJob: Job? = null
+
+    /**
+     * Re-reads the keyguard while a field the board shows started under it
+     * (#793). Unlocking with a fingerprint from a dark screen turns the screen
+     * on and dismisses the keyguard in one go: the field restart lands while
+     * [KeyguardManager.isKeyguardLocked] still says locked, and USER_PRESENT
+     * arrives either before that restart or while the keyguard is still
+     * animating away, so [onKeyguardGone] finds nothing to undo or nothing
+     * gone. No broadcast follows, and the strip stayed hidden. Polled only
+     * while the window is on screen; [onWindowShown] covers the way back.
+     */
+    private fun watchKeyguard() {
+        if (keyguardWatchJob?.isActive == true) return
+        keyguardWatchJob = serviceScope.launch {
+            while (_uiState.value.deviceLocked && windowOnScreen) {
+                delay(KEYGUARD_POLL_MS)
+                if (!isDeviceLocked()) {
+                    onKeyguardGone()
+                    break
+                }
+            }
+        }
+    }
+
     /** Puts back what the field start withheld for the lock screen, once it is gone. */
     private fun onKeyguardGone() {
-        if (!_uiState.value.deviceLocked || isDeviceLocked()) return
+        if (!_uiState.value.deviceLocked) return
+        if (isDeviceLocked()) {
+            // Still going away (USER_PRESENT beats the keyguard's own exit).
+            watchKeyguard()
+            return
+        }
         _uiState.update {
             it.copy(
                 deviceLocked = false,
@@ -7118,6 +7148,7 @@ open class WMKeyboardService : InputMethodService() {
                 ),
             )
         }
+        if (deviceLocked) watchKeyguard()
         // Chord and morse state belongs to the field it was typed over.
         resetChordInputs()
         refreshKarContext()
@@ -8044,6 +8075,7 @@ open class WMKeyboardService : InputMethodService() {
         // Nothing to draw from here until the window comes back, so the
         // composition stops being handed new state — see [_shownState].
         windowOnScreen = false
+        keyguardWatchJob?.cancel()
         forcedShowUp = false
         lifecycleOwner.onStop()
         jankMonitor.stop()
@@ -46447,6 +46479,9 @@ open class WMKeyboardService : InputMethodService() {
          * for another reason does not open a stale tool.
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
+
+        /** How often [watchKeyguard] asks whether the lock screen is still up (#793). */
+        private const val KEYGUARD_POLL_MS = 400L
 
         /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
         private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS)
