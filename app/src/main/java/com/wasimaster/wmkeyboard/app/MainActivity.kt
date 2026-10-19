@@ -297,6 +297,9 @@ class MainActivity : FragmentActivity() {
         // without a Context by the tool lists below, so it has to be answered
         // before the first screen composes.
         PlayServices.prime(applicationContext)
+        // The Google Home consent flow needs its launcher registered before
+        // the activity is started; the smart home editor asks for it later.
+        com.wasimaster.wmkeyboard.ime.homeassistant.googlehome.GoogleHomeSupport.register(this)
         repository = SettingsRepository(applicationContext)
         appLock = BiometricAppLock(this, repository)
         // The JSON asset layouts back the tail of the language list; the first
@@ -457,6 +460,11 @@ class MainActivity : FragmentActivity() {
         // tokens, and the tool page shows the result.
         com.wasimaster.wmkeyboard.core.homeassistant.HaAuth.parseCallback(link)?.let { callback ->
             com.wasimaster.wmkeyboard.app.homeassistant.HaSignIn.finish(applicationContext, lifecycleScope, callback)
+            return PendingNav(route = "tool/${ToolbarTool.HOME_ASSISTANT.name}")
+        }
+        // The same for SmartThings, through the hosted /st/ page.
+        com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsAuth.parseCallback(link)?.let { callback ->
+            com.wasimaster.wmkeyboard.app.homeassistant.SmartThingsSignIn.finish(applicationContext, lifecycleScope, callback)
             return PendingNav(route = "tool/${ToolbarTool.HOME_ASSISTANT.name}")
         }
         AddonDeepLink.routeFor(link)?.let { return PendingNav(route = it) }

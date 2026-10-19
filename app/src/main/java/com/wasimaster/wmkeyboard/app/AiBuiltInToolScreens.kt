@@ -28,6 +28,7 @@ import com.wasimaster.wmkeyboard.core.location.LocationAccess
 import com.wasimaster.wmkeyboard.core.tools.AiCalendarMode
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
 import com.wasimaster.wmkeyboard.core.tools.AiBuiltInTool
 import com.wasimaster.wmkeyboard.core.tools.AiToolGroup
@@ -163,7 +164,7 @@ internal fun AiBuiltInToolSettings(
     val context = LocalContext.current
     val searchReady = settings.watch { hasSearchKey(it) }
     val kdeOn = settings.watch { it.kdeConnect.enabled }
-    val haOn = settings.watch { it.homeAssistant.enabled && it.homeAssistant.hasToken }
+    val haOn = settings.watch { it.homeAssistant.enabled && it.homes().isNotEmpty() }
     val locationBuilt = remember { LocationAccess.declared(context) }
     val calendarAddOn = settings.watch { s ->
         AiTools.builtIn(AiTools.ADD_CALENDAR_EVENT)?.let { AiTools.policyOf(it, s.ai.toolPolicies) } != McpToolPolicy.OFF

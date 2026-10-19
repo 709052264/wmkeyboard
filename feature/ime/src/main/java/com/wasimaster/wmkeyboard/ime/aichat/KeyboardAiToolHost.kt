@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.homeassistant.HaDomains
 import com.wasimaster.wmkeyboard.core.homeassistant.HaStateFormat
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
 import com.wasimaster.wmkeyboard.core.settings.HomeAssistantSettings
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
@@ -22,7 +23,7 @@ import com.wasimaster.wmkeyboard.core.tools.Translation
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateResult
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.ime.AppCatalog
-import com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub
+import com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,9 @@ class KeyboardAiToolHost(
     private val context: Context,
     private val hints: List<String> = emptyList(),
     private val kdeConnect: KdeConnectSettings? = null,
-    private val homeAssistant: HomeAssistantSettings? = null,
+    /** The smart home tool's preferences and its listed homes; both empty when the tool is off. */
+    private val homePrefs: HomeAssistantSettings? = null,
+    private val homes: List<HomeAccount> = emptyList(),
     private val images: List<String> = emptyList(),
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
@@ -123,15 +126,15 @@ class KeyboardAiToolHost(
         }
     }
 
-    override val canControlHome: Boolean get() = homeAssistant?.let { it.enabled && it.hasToken && it.hasServer } == true
+    override val canControlHome: Boolean get() = homePrefs?.enabled == true && homes.isNotEmpty()
 
-    /** Holds the hub up under the AI's reason, asks Assist, and lets go a little later. */
+    /** Holds the hub up under the AI's reason, asks the first home with an assistant, and lets go a little later. */
     override fun homeControl(request: String): Result<String> = runCatching {
-        val settings = requireNotNull(homeAssistant) { "Home Assistant is off" }
+        val settings = requireNotNull(homePrefs) { "The smart home tool is off" }
         runBlocking {
             holdHome(settings)
             try {
-                val reply = HomeAssistantHub.assist(request, hints.firstOrNull()?.substringBefore('-'), null)
+                val reply = SmartHomeHub.assist(request, hints.firstOrNull()?.substringBefore('-'), null)
                 if (reply.isError) error(reply.speech.ifBlank { "Home Assistant could not do that" })
                 reply.speech.ifBlank { "Done." }
             } finally {
@@ -140,28 +143,36 @@ class KeyboardAiToolHost(
         }
     }
 
+    /** Every home's states, each line with the home's name first when there are several. */
     override fun homeStates(query: String?): Result<String> = runCatching {
-        val settings = requireNotNull(homeAssistant) { "Home Assistant is off" }
+        val settings = requireNotNull(homePrefs) { "The smart home tool is off" }
         runBlocking {
             holdHome(settings)
             try {
-                val states = HomeAssistantHub.ensureStates()
-                val registry = HomeAssistantHub.state.value.registry
+                val states = SmartHomeHub.ensureStates()
+                val hub = SmartHomeHub.state.value
+                val several = hub.homes.size > 1
                 val q = query?.trim()?.lowercase().orEmpty()
                 val format = HaStateFormat()
                 val rows = states.values.asSequence()
-                    .filter { HaDomains.isListed(it.domain) && !registry.isHidden(it.entityId) }
+                    .filter { HaDomains.isListed(it.domain) && !hub.registryOf(it).isHidden(it.entityId) }
                     .filter { e ->
+                        val registry = hub.registryOf(e)
                         if (q.isEmpty()) {
                             e.state !in QUIET_STATES
                         } else {
                             registry.nameOf(e).lowercase().contains(q) || e.entityId.contains(q) ||
-                                registry.areaOf(e.entityId)?.name?.lowercase()?.contains(q) == true
+                                registry.areaOf(e.entityId)?.name?.lowercase()?.contains(q) == true ||
+                                hub.home(e.home)?.name?.lowercase()?.contains(q) == true
                         }
                     }
-                    .sortedBy { registry.nameOf(it) }
+                    .sortedBy { hub.registryOf(it).nameOf(it) }
                     .take(MAX_STATE_ROWS)
-                    .map { e -> listOfNotNull(registry.areaOf(e.entityId)?.name, registry.nameOf(e)).joinToString(" / ") + ": " + format.state(e) + " (" + e.entityId + ")" }
+                    .map { e ->
+                        val registry = hub.registryOf(e)
+                        val home = hub.home(e.home)?.name?.takeIf { several && it.isNotBlank() }
+                        listOfNotNull(home, registry.areaOf(e.entityId)?.name, registry.nameOf(e)).joinToString(" / ") + ": " + format.state(e) + " (" + e.entityId + ")"
+                    }
                     .toList()
                 if (rows.isEmpty()) "Nothing matched." else rows.joinToString("\n")
             } finally {
@@ -171,15 +182,15 @@ class KeyboardAiToolHost(
     }
 
     private suspend fun holdHome(settings: HomeAssistantSettings) = kotlinx.coroutines.withContext(Dispatchers.Main) {
-        HomeAssistantHub.attach(context)
-        HomeAssistantHub.batch {
-            HomeAssistantHub.applySettings(settings)
-            HomeAssistantHub.hold(HomeAssistantHub.Reason.AI)
+        SmartHomeHub.attach(context)
+        SmartHomeHub.batch {
+            SmartHomeHub.apply(settings, homes)
+            SmartHomeHub.hold(SmartHomeHub.Reason.AI)
         }
     }
 
     private fun releaseHomeLater() {
-        Handler(Looper.getMainLooper()).postDelayed({ HomeAssistantHub.release(HomeAssistantHub.Reason.AI) }, RELEASE_DELAY_MS)
+        Handler(Looper.getMainLooper()).postDelayed({ SmartHomeHub.release(SmartHomeHub.Reason.AI) }, RELEASE_DELAY_MS)
     }
 
     override val imageCount: Int get() = images.size

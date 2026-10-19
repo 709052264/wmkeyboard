@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.providers
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
+import com.wasimaster.wmkeyboard.core.util.PlayServices
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 
 /**
@@ -32,6 +33,8 @@ data class ProviderEnv(
     val onDeviceTranslate: Boolean,
     /** At least one offline GIF pack is imported. */
     val offlineGifPacks: Boolean,
+    /** The Google Home APIs can run: the build carries them and Play services is on the phone. */
+    val googleHome: Boolean = false,
 )
 
 /**
@@ -45,8 +48,13 @@ object ProviderEnvironment {
     var onDeviceTranslate: Boolean = false
         private set
 
-    fun install(onDeviceTranslate: Boolean) {
+    @Volatile
+    var googleHome: Boolean = false
+        private set
+
+    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false) {
         this.onDeviceTranslate = onDeviceTranslate
+        this.googleHome = googleHome
     }
 
     fun current(): ProviderEnv = ProviderEnv(
@@ -54,6 +62,8 @@ object ProviderEnvironment {
         offline = !InternetPermission.granted,
         onDeviceTranslate = onDeviceTranslate,
         offlineGifPacks = OfflineGifPacks.hasPacks,
+        // The build carries the Home APIs, and the phone has the Play services they run through.
+        googleHome = googleHome && PlayServices.available,
     )
 }
 
@@ -73,6 +83,7 @@ object ProviderCatalog {
     fun runnable(type: ProviderType, env: ProviderEnv): Boolean = when {
         env.offline && !type.onDevice -> false
         type === ProviderTypes.ML_KIT && !env.onDeviceTranslate -> false
+        type === ProviderTypes.GOOGLE_HOME && !env.googleHome -> false
         else -> true
     }
 

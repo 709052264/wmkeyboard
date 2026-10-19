@@ -73,6 +73,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragIndicator
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
@@ -80,6 +81,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
+import com.wasimaster.wmkeyboard.app.homeassistant.HomeProviderExtras
+import com.wasimaster.wmkeyboard.app.homeassistant.homeReady
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
 import com.wasimaster.wmkeyboard.core.providers.Need
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
@@ -245,6 +249,7 @@ internal fun ProvidersGroup(
     }
     editing?.let { target ->
         ProviderEditorSheet(
+            repository = repository,
             tool = tool,
             target = target,
             usedBy = ProviderEdits.usedBy(settings.value, target.credential.id, tool, env),
@@ -258,7 +263,10 @@ internal fun ProvidersGroup(
                     removing = row
                 }
             },
-            onDismiss = { editing = null },
+            onDismiss = {
+                editing = null
+                onChanged()
+            },
         )
     }
     removing?.let { row ->
@@ -334,6 +342,13 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
     val type = row.type
     return when (row.problem) {
         ProviderProblem.NEEDS_KEY -> stringResource(R.string.providers_status_needs_key) to true
+        ProviderProblem.NEEDS_SIGN_IN -> stringResource(
+            when (HomeKind.of(type?.id.orEmpty())) {
+                HomeKind.HUE -> R.string.providers_status_needs_pairing
+                HomeKind.GOOGLE_HOME -> R.string.providers_status_needs_grant
+                else -> R.string.providers_status_needs_sign_in
+            },
+        ) to true
         ProviderProblem.NEEDS_SERVER -> stringResource(R.string.providers_status_needs_server) to true
         ProviderProblem.NEEDS_MODEL -> stringResource(R.string.providers_status_needs_model) to true
         ProviderProblem.NEEDS_PACKS -> stringResource(R.string.providers_status_needs_packs) to true
@@ -341,6 +356,10 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
         ProviderProblem.UNKNOWN -> stringResource(R.string.providers_status_unknown) to true
         null -> when {
             !row.entry.enabled -> stringResource(R.string.providers_status_off)
+            // A home reads as what it is called, else where it is.
+            HomeKind.of(type?.id.orEmpty()) != null -> row.credential?.extra?.get("instance_name")?.takeIf { it.isNotBlank() }
+                ?: row.url.takeIf { it.isNotBlank() }?.let(::hostOf)
+                ?: stringResource(R.string.providers_status_signed_in)
             type?.onDevice == true -> stringResource(R.string.providers_status_on_device)
             // A front end's engine beside its host: two Mozhi rows may differ in nothing else.
             row.url.isNotBlank() -> type?.credential?.engine(row.model)
@@ -578,6 +597,7 @@ internal fun ProviderTile(type: ProviderType?, active: Boolean = true) {
 /** The glyph a kind of provider is drawn with: by what it is first, then by what it does. */
 internal fun providerIcon(type: ProviderType?): ImageVector = when {
     type == null -> Icons.Outlined.Public
+    HomeKind.of(type.id) != null -> Icons.Outlined.HomeIotDevice
     type.onDevice -> Icons.Outlined.PhoneAndroid
     type.selfHosted -> Icons.Outlined.Dns
     ProviderTool.TRANSLATE in type.serves -> Icons.Outlined.Translate
@@ -608,6 +628,11 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.SEARXNG.id -> Color(0xFF3050FF)
     ProviderTypes.UNSPLASH.id -> Color(0xFF111111)
     ProviderTypes.PEXELS.id -> Color(0xFF05A081)
+    ProviderTypes.HOME_ASSISTANT.id -> Color(0xFF18BCF2)
+    ProviderTypes.GOOGLE_HOME.id -> Color(0xFF4285F4)
+    ProviderTypes.SMARTTHINGS.id -> Color(0xFF1F8EFA)
+    ProviderTypes.HUE.id -> Color(0xFF0065D3)
+    ProviderTypes.OPENHAB.id -> Color(0xFFE64A19)
     else -> when {
         type == null -> Color(0xFF757575)
         type.onDevice -> Color(0xFF2E7D32)
@@ -708,7 +733,9 @@ private fun ProviderTypeSheet(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("detekt.LongMethod", "detekt.CyclomaticComplexMethod")
 private fun ProviderEditorSheet(
+    repository: SettingsRepository,
     tool: ProviderTool,
     target: ProviderEditTarget,
     usedBy: List<ProviderTool>,
@@ -724,10 +751,15 @@ private fun ProviderEditorSheet(
     var draft by remember { mutableStateOf(target.credential) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
-    val ready = (spec.url != Need.REQUIRED || draft.url.isNotBlank()) &&
-        (spec.key != Need.REQUIRED || type.hasBuiltInKey || draft.apiKey.isNotBlank()) &&
-        (!spec.modelRequired || draft.model.isNotBlank()) &&
-        (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
+    val home = HomeKind.of(type.id) != null
+    val ready = if (home) {
+        homeReady(type, draft)
+    } else {
+        (spec.url != Need.REQUIRED || draft.url.isNotBlank()) &&
+            (spec.key != Need.REQUIRED || type.hasBuiltInKey || draft.apiKey.isNotBlank()) &&
+            (!spec.modelRequired || draft.model.isNotBlank()) &&
+            (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
+    }
     fun edit(next: ProviderCredential) {
         draft = next
         testResult = null
@@ -786,7 +818,8 @@ private fun ProviderEditorSheet(
                     )
                 }
             }
-            if (spec.key != Need.NONE) {
+            // A home's key is a token pasted or a pairing made in its own section below, not a plain field.
+            if (spec.key != Need.NONE && !home) {
                 StoredTextField(
                     label = stringResource(R.string.providers_field_key),
                     value = draft.apiKey,
@@ -808,6 +841,17 @@ private fun ProviderEditorSheet(
                         if (spec.modelRequired) R.string.providers_field_model_required_hint else R.string.providers_field_model_hint,
                     ),
                 ) { edit(draft.copy(model = it)) }
+            }
+            if (home) {
+                HomeProviderExtras(
+                    repository = repository,
+                    type = type,
+                    draft = draft,
+                    isNew = target.isNew,
+                    onDraft = ::edit,
+                    onSave = { onSave(it.trimmed()) },
+                    onDismiss = onDismiss,
+                )
             }
             if (usedBy.isNotEmpty()) {
                 Text(

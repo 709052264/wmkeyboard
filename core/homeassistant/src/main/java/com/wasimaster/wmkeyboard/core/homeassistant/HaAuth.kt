@@ -44,19 +44,27 @@ object HaAuth {
     const val REDIRECT_URI = "wmkeyboard://ha-auth"
     const val CALLBACK_HOST = "ha-auth"
     private const val STATE_SEPARATOR = '|'
+    private const val STATE_PARTS = 3
     private const val NONCE_BYTES = 16
     private const val MS_PER_SECOND = 1000L
 
-    /** A fresh `state` carrying a nonce and the server it was started for. */
-    fun newState(base: HaUrl, random: SecureRandom = SecureRandom()): String {
+    /**
+     * A fresh `state`: a nonce, the credential (the home's row) the sign-in is
+     * for, and the server it was started against, so the callback knows which
+     * home to finish and which address to trade the code at.
+     */
+    fun newState(base: HaUrl, credentialId: String, random: SecureRandom = SecureRandom()): String {
         val bytes = ByteArray(NONCE_BYTES).also { random.nextBytes(it) }
         val nonce = bytes.joinToString("") { "%02x".format(it) }
-        return nonce + STATE_SEPARATOR + base.base
+        return nonce + STATE_SEPARATOR + credentialId + STATE_SEPARATOR + base.base
     }
 
     fun nonceOf(state: String): String = state.substringBefore(STATE_SEPARATOR)
 
-    fun baseOf(state: String): HaUrl? = state.substringAfter(STATE_SEPARATOR, "").takeIf { it.isNotEmpty() }?.let(HaUrl::parse)
+    /** The credential id the sign-in was started for, blank for a state of another shape. */
+    fun credentialOf(state: String): String = state.split(STATE_SEPARATOR, limit = STATE_PARTS).getOrNull(1).orEmpty()
+
+    fun baseOf(state: String): HaUrl? = state.split(STATE_SEPARATOR, limit = STATE_PARTS).getOrNull(2)?.takeIf { it.isNotEmpty() }?.let(HaUrl::parse)
 
     fun authorizeUrl(base: HaUrl, state: String): String =
         base.auth("authorize") +

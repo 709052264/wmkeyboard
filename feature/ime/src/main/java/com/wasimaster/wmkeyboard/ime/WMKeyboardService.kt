@@ -304,6 +304,8 @@ import com.wasimaster.wmkeyboard.core.plugins.resolve
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
 import com.wasimaster.wmkeyboard.core.settings.ScreenVariant
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.assistHome
+import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.TextEditingSettings
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
@@ -8228,8 +8230,8 @@ open class WMKeyboardService : InputMethodService() {
         KdeConnectHub.release(KdeConnectHub.Reason.PANEL)
         KdeConnectHub.release(KdeConnectHub.Reason.KEYBOARD)
         KdeConnectHub.release(KdeConnectHub.Reason.SERVICE)
-        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL)
-        com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD)
+        com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.PANEL)
+        com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.release(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.KEYBOARD)
         finishRevisionOnLeave()
         flushLearningBuffer()
         // Blocking, and on the same queue as the hide's saves: the process is
@@ -20045,7 +20047,7 @@ open class WMKeyboardService : InputMethodService() {
             weatherFahrenheit = state.settings.weather.fahrenheit,
             lookupChips = state.settings.smartChips.lookups,
             intentChips = state.settings.smartChips.intents,
-            haReady = state.settings.homeAssistant.let { it.enabled && it.hasToken && it.hasServer && it.smartChip && it.assistEnabled },
+            haReady = state.settings.let { it.homeAssistant.enabled && it.homeAssistant.smartChip && it.homeAssistant.assistEnabled && it.assistHome() != null },
             gifChips = state.settings.smartChips.gifs,
             vocabChips = state.settings.vocabulary.nudges,
             vocabSelfChips = state.settings.vocabulary.nudgeOnVocabWord,
@@ -33611,7 +33613,8 @@ open class WMKeyboardService : InputMethodService() {
         applicationContext,
         hints = listOf(_uiState.value.language.id) + settings.enabledLanguages.map { it.id },
         kdeConnect = settings.kdeConnect,
-        homeAssistant = settings.homeAssistant,
+        homePrefs = settings.homeAssistant,
+        homes = settings.homes(),
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -37265,9 +37268,9 @@ open class WMKeyboardService : InputMethodService() {
     // ---- Home Assistant tool ----
 
     /**
-     * The Home Assistant tool. Built on first use, like [clockTool]; the
+     * The smart home tool. Built on first use, like [clockTool]; the
      * delegate is kept so the keyboard-shown hook can skip a controller
-     * nobody opened. The connection itself is [com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub]'s,
+     * nobody opened. The connections are [com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub]'s,
      * held and released by [syncHomeAssistant].
      */
     private val haToolDelegate = lazy {
@@ -37276,6 +37279,7 @@ open class WMKeyboardService : InputMethodService() {
             scope = serviceScope,
             repository = settingsRepository,
             settings = { _uiState.value.settings.homeAssistant },
+            homes = { _uiState.value.settings.homes() },
             insertText = ::onToolTextInsert,
             haptic = { vibrate() },
             openToolSettings = { openToolSettings(ToolbarTool.HOME_ASSISTANT) },
@@ -37314,13 +37318,13 @@ open class WMKeyboardService : InputMethodService() {
     private fun syncHomeAssistant() {
         val state = _uiState.value
         val ha = state.settings.homeAssistant
-        val hub = com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub
+        val hub = com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
         hub.attach(this)
         val panelOpen = keyboardVisible && state.panel == PanelMode.HOME_ASSISTANT
         hub.batch {
-            hub.applySettings(ha)
-            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.KEYBOARD, ha.enabled && keyboardVisible)
-            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.HomeAssistantHub.Reason.PANEL, ha.enabled && panelOpen)
+            hub.apply(ha, state.settings.homes())
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.KEYBOARD, ha.enabled && keyboardVisible)
+            hub.setHeld(com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub.Reason.PANEL, ha.enabled && panelOpen)
         }
     }
 

@@ -12,6 +12,8 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
 
 /**
@@ -46,7 +48,10 @@ enum class ProviderProblem {
     /** Offline GIF packs with no pack imported. */
     NEEDS_PACKS,
 
-    /** This build cannot run it: no internet permission, or no ML Kit. */
+    /** A home that is set up but not signed in, paired or granted yet. */
+    NEEDS_SIGN_IN,
+
+    /** This build cannot run it: no internet permission, no ML Kit, no Google Home APIs. */
     UNAVAILABLE,
 
     /** Written by a newer build; this one does not know the type. */
@@ -176,13 +181,50 @@ object ProviderResolution {
             // DeepL works with a key, a proxy that adds one, or both.
             type === ProviderTypes.DEEPL && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
             type.credential.url == Need.REQUIRED && url.isBlank() -> ProviderProblem.NEEDS_SERVER
+            // A home's key is a pairing or a sign-in, which the row says in its own words.
+            HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
             type.credential.modelRequired && model.isBlank() -> ProviderProblem.NEEDS_MODEL
             type.credential.key == Need.REQUIRED && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             else -> null
         }
         return ResolvedProvider(entry, type, credential, apiKey, url, model, problem)
     }
+
+    private fun homeProblem(entry: ProviderEntry, type: ProviderType, credential: ProviderCredential?): ProviderProblem? {
+        val kind = HomeKind.of(type.id) ?: return ProviderProblem.UNKNOWN
+        val account = HomeAccount(entry.key, kind, url = credential?.url?.trim().orEmpty(), apiKey = credential?.apiKey?.trim().orEmpty(), extra = credential?.extra.orEmpty())
+        return when {
+            !account.hasServer -> ProviderProblem.NEEDS_SERVER
+            !account.signedIn -> ProviderProblem.NEEDS_SIGN_IN
+            else -> null
+        }
+    }
 }
+
+/**
+ * [tool] is [ProviderTool.SMART_HOME]: every home the panel should connect,
+ * in list order. [all] keeps the ones that are off or not signed in, for a
+ * settings page that shows them.
+ */
+fun KeyboardSettings.homes(env: ProviderEnv = ProviderEnvironment.current(), all: Boolean = false): List<HomeAccount> =
+    resolveProviders(ProviderTool.SMART_HOME, env, all).mapNotNull { it.toHomeAccount() }
+
+/** The home as the backends read it, or null for a type this build does not know. */
+fun ResolvedProvider.toHomeAccount(): HomeAccount? {
+    val kind = HomeKind.of(typeId) ?: return null
+    return HomeAccount(
+        key = key,
+        kind = kind,
+        name = customName,
+        url = url,
+        apiKey = apiKey,
+        extra = credential?.extra.orEmpty(),
+    )
+}
+
+/** The first Home Assistant on the list: the one Assist and the AI's "control your home" talk to. */
+fun KeyboardSettings.assistHome(env: ProviderEnv = ProviderEnvironment.current()): HomeAccount? =
+    homes(env).firstOrNull { it.kind == HomeKind.HOME_ASSISTANT }
 
 /**
  * The lists and credentials the settings before provider lists amount to.
@@ -325,6 +367,8 @@ object LegacyProviders {
                 currencyChain(s.rateSources.fiatProviders, tool, CurrencyClient.Provider.fiatDefaults(fdroid))
             ProviderTool.CURRENCY_CRYPTO ->
                 currencyChain(s.rateSources.cryptoProviders, tool, CurrencyClient.Provider.cryptoDefaults(fdroid))
+            // Nothing came before the list: a home is only ever added by the user.
+            ProviderTool.SMART_HOME -> ProviderChain(emptyList(), ChainMode.MIX)
             // Only the reader the user set up: nothing reads a photo online
             // that the user did not name.
             ProviderTool.OCR -> ProviderChain(

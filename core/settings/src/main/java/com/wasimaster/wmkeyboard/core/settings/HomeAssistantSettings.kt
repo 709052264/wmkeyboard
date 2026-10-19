@@ -16,41 +16,22 @@ enum class HaOpenOn { FAVOURITES, LAST_TAB }
 enum class HaTileSize { COMFORTABLE, COMPACT }
 
 /**
- * The Home Assistant tool, grouped the way every family here is: one
- * [KeyboardSettings] slot, flat `ha_*` DataStore keys.
+ * The smart home tool's panel preferences, grouped the way every family here
+ * is: one [KeyboardSettings] slot, flat `ha_*` DataStore keys (the tool began
+ * as Home Assistant alone, and the keys keep that name).
  *
- * The tokens live here too, under keys listed in `SettingsBackup.SECRET_KEYS`,
- * so an export leaves them out unless asked and the direct-boot mirror never
- * holds them. Everything else is plain preference.
+ * The homes themselves, their addresses and their sign-ins, are the tool's
+ * provider list (`ProviderTool.SMART_HOME`, see `homes()`), whose credentials
+ * are already kept out of backups and the direct-boot mirror.
  */
 data class HomeAssistantSettings(
-    /** The master switch. Off until the user connects a server. */
+    /** The master switch. Off until the user adds a home. */
     val enabled: Boolean = false,
-    /** The address inside the house, as typed: `homeassistant.local:8123`, `192.168.1.5`. */
-    val internalUrl: String = "",
-    /** An address that works from anywhere (Nabu Casa, a reverse proxy). Blank for none. */
-    val externalUrl: String = "",
-    /** Try the house address first and fall back to the remote one when it does not answer. */
-    val preferInternal: Boolean = true,
-    /** What the server calls itself, learnt on connect. */
-    val instanceName: String = "",
-    /** The server's stable id, learnt on connect; a different one means a different house. */
-    val instanceId: String = "",
-
-    // Tokens. Secrets: see SettingsBackup.SECRET_KEYS.
-    val accessToken: String = "",
-    val refreshToken: String = "",
-    /** When [accessToken] stops working, epoch millis; 0 for a long-lived token, which never does. */
-    val tokenExpiresAtMs: Long = 0L,
-    /** Whether [accessToken] is a long-lived token the user pasted rather than one a sign-in minted. */
-    val longLivedToken: Boolean = false,
-    /** The `state` of a browser sign-in under way, checked when the browser comes back. Not a secret. */
-    val authState: String = "",
 
     val lifetime: HaLinkLifetime = HaLinkLifetime.KEYBOARD,
-    /** Entity ids on the Favourites tab, in the user's order. */
+    /** Entity refs (`HomeRef`: `home|entity_id`) on the Favourites tab, in the user's order. */
     val favourites: List<String> = emptyList(),
-    /** Entity ids the panel never lists. */
+    /** Entity refs the panel never lists. */
     val hidden: Set<String> = emptySet(),
     /** Whole domains the panel never lists (`sensor`, `automation`, …). */
     val hiddenDomains: Set<String> = emptySet(),
@@ -75,14 +56,7 @@ data class HomeAssistantSettings(
     /** The panel tab last used. Remembered, never shown as a setting. */
     val lastTab: String = "",
 ) {
-    /** Signed in, one way or the other. */
-    val hasToken: Boolean get() = accessToken.isNotBlank()
-
-    /** Something to connect to. */
-    val hasServer: Boolean get() = internalUrl.isNotBlank() || externalUrl.isNotBlank()
-
     companion object {
         const val MAX_FAVOURITES = 200
-        const val URL_MAX = 300
     }
 }

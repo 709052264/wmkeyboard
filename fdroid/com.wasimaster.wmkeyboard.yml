@@ -30,6 +30,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -49,6 +50,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -68,6 +70,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -87,6 +90,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -106,6 +110,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -125,6 +130,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -143,6 +149,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -161,6 +168,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
     gradleprops:
       - wmkb.enablePlayStore=false
       - wmkb.enableGms=false
@@ -184,6 +192,7 @@ Builds:
     scandelete:
       - core/intelligence/src/full/jniLibs
       - feature/llm/src/main/jniLibs
+      - feature/ime/libs/googlehome
       - core/voice/src/full/jniLibs
       - native/whistle-jni/prebuilt
       - core/voice/src/main/jniLibs

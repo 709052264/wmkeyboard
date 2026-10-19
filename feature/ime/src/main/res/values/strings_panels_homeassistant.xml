@@ -8,7 +8,7 @@
 
     <string name="ime_ha_search_hint">Search lights, rooms, sensors…</string>
     <string name="ime_ha_search_desc">Search</string>
-    <string name="ime_ha_settings_desc">Home Assistant settings</string>
+    <string name="ime_ha_settings_desc">Smart home settings</string>
     <string name="ime_ha_back_desc">Back to the tiles</string>
     <string name="ime_ha_done">Done</string>
     <string name="ime_ha_cancel">Cancel</string>
@@ -27,13 +27,13 @@
     <string name="ime_ha_status_cache">Last known</string>
 
     <string name="ime_ha_empty_title">Your home, from the keyboard</string>
-    <string name="ime_ha_empty_body">Connect the keyboard to your Home Assistant to switch lights, set the thermostat and run scenes while you type.</string>
+    <string name="ime_ha_empty_body">Add your home (Home Assistant, Google Home, SmartThings, a Hue bridge or openHAB) to switch lights, set the thermostat and run scenes while you type.</string>
     <string name="ime_ha_empty_connect">Connect</string>
     <string name="ime_ha_found_title">Found %1$s</string>
     <string name="ime_ha_found_body">A Home Assistant on this network. Sign in to it in your browser; the keyboard gets no password, only a key it can use.</string>
     <string name="ime_ha_found_sign_in">Sign in</string>
     <string name="ime_ha_signed_out_title">Signed out</string>
-    <string name="ime_ha_signed_out_body">Home Assistant stopped accepting the keyboard\'s key. Sign in again to carry on.</string>
+    <string name="ime_ha_signed_out_body">Your home stopped accepting the keyboard\'s key. Sign in again to carry on.</string>
     <string name="ime_ha_signed_out_action">Sign in again</string>
     <string name="ime_ha_unreachable_banner">Can\'t reach %1$s</string>
     <string name="ime_ha_retry">Retry</string>
@@ -44,8 +44,8 @@
     <string name="ime_ha_loading">Fetching your home…</string>
 
     <string name="ime_ha_error_token">The key was refused. Sign in again.</string>
-    <string name="ime_ha_error_refused">Home Assistant refused that.</string>
-    <string name="ime_ha_error_unreachable">Home Assistant did not answer.</string>
+    <string name="ime_ha_error_refused">The home refused that.</string>
+    <string name="ime_ha_error_unreachable">The home did not answer.</string>
 
     <string name="ime_ha_tile_switch_desc">%1$s switch</string>
     <string name="ime_ha_tile_expand_desc">More controls</string>
@@ -58,7 +58,7 @@
     <string name="ime_ha_insert_value_unit">With unit</string>
     <string name="ime_ha_insert_name_value">Name and value</string>
     <string name="ime_ha_insert_default_hint">Hold a chip to make it the default</string>
-    <string name="ime_ha_open_in_ha">Open in Home Assistant</string>
+    <string name="ime_ha_open_in_ha">Open in its app</string>
     <string name="ime_ha_undo_unfavourite">Removed from favourites</string>
     <string name="ime_ha_undo_hidden">Tile hidden</string>
     <string name="ime_ha_last_changed">Changed %1$s</string>

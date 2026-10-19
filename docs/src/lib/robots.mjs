@@ -33,6 +33,8 @@ export const NOINDEX_PATHS = [
 	'/place/',
 	// The Home Assistant sign-in client page: a redirect declaration, nothing to index.
 	'/ha/',
+	// The SmartThings sign-in return page: a redirect, nothing to index.
+	'/st/',
 ];
 
 /** Trailing slash either way, and query strings ignored. */

@@ -77,4 +77,17 @@
     <string name="core_tools_provider_currency_api_desc">Open data for most currencies and many coins. No key.</string>
     <string name="core_tools_provider_coingecko" translatable="false">CoinGecko</string>
     <string name="core_tools_provider_coingecko_desc">Coin prices from CoinGecko. No key.</string>
+
+    <!-- Smart home: the homes the panel lists. -->
+    <string name="core_tools_provider_tool_smart_home">Smart home</string>
+    <string name="core_tools_provider_home_assistant" translatable="false">Home Assistant</string>
+    <string name="core_tools_provider_home_assistant_desc">Your own Home Assistant server. Every kind of thing, live, with Assist.</string>
+    <string name="core_tools_provider_google_home">Google Home</string>
+    <string name="core_tools_provider_google_home_desc">The devices in your Google Home, through Play services. One home at a time; you choose which in Google\'s own screen.</string>
+    <string name="core_tools_provider_smartthings" translatable="false">SmartThings</string>
+    <string name="core_tools_provider_smartthings_desc">Your SmartThings devices, rooms and scenes, through Samsung\'s cloud. States refresh while the panel is open.</string>
+    <string name="core_tools_provider_hue">Philips Hue bridge</string>
+    <string name="core_tools_provider_hue_desc">Lights, rooms, scenes and sensors straight from a Hue bridge on your Wi-Fi. Nothing leaves the house.</string>
+    <string name="core_tools_provider_openhab" translatable="false">openHAB</string>
+    <string name="core_tools_provider_openhab_desc">An openHAB server: its items, live, with rooms from the semantic model.</string>
 </resources>

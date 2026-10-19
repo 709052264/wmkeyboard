@@ -24,6 +24,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.repoLocationFromFields
 import com.wasimaster.wmkeyboard.core.endpoints.toFields
 import com.wasimaster.wmkeyboard.core.providers.ProviderChain
 import com.wasimaster.wmkeyboard.core.providers.ProviderCodec
+import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
@@ -10547,16 +10548,6 @@ class SettingsRepository(private val context: Context) {
         // empty set is a real choice (nothing counts as music) and is kept.
         private val MEDIA_MUSIC_APPS = stringSetPreferencesKey("media_music_apps")
         private val HA_ENABLED = booleanPreferencesKey("ha_enabled")
-        private val HA_INTERNAL_URL = stringPreferencesKey("ha_internal_url")
-        private val HA_EXTERNAL_URL = stringPreferencesKey("ha_external_url")
-        private val HA_PREFER_INTERNAL = booleanPreferencesKey("ha_prefer_internal")
-        private val HA_INSTANCE_NAME = stringPreferencesKey("ha_instance_name")
-        private val HA_INSTANCE_ID = stringPreferencesKey("ha_instance_id")
-        private val HA_ACCESS_TOKEN = stringPreferencesKey(SettingsBackup.HA_ACCESS_TOKEN)
-        private val HA_REFRESH_TOKEN = stringPreferencesKey(SettingsBackup.HA_REFRESH_TOKEN)
-        private val HA_TOKEN_EXPIRES_AT = longPreferencesKey(SettingsBackup.HA_TOKEN_EXPIRES_AT)
-        private val HA_LONG_LIVED_TOKEN = booleanPreferencesKey(SettingsBackup.HA_LONG_LIVED_TOKEN)
-        private val HA_AUTH_STATE = stringPreferencesKey("ha_auth_state")
         private val HA_LIFETIME = stringPreferencesKey("ha_lifetime")
         private val HA_FAVOURITES = stringPreferencesKey("ha_favourites")
         private val HA_HIDDEN = stringSetPreferencesKey("ha_hidden")
@@ -12990,16 +12981,6 @@ class SettingsRepository(private val context: Context) {
         val d = defaults.homeAssistant
         return HomeAssistantSettings(
             enabled = p[HA_ENABLED] ?: d.enabled,
-            internalUrl = p[HA_INTERNAL_URL] ?: d.internalUrl,
-            externalUrl = p[HA_EXTERNAL_URL] ?: d.externalUrl,
-            preferInternal = p[HA_PREFER_INTERNAL] ?: d.preferInternal,
-            instanceName = p[HA_INSTANCE_NAME] ?: d.instanceName,
-            instanceId = p[HA_INSTANCE_ID] ?: d.instanceId,
-            accessToken = p[HA_ACCESS_TOKEN] ?: d.accessToken,
-            refreshToken = p[HA_REFRESH_TOKEN] ?: d.refreshToken,
-            tokenExpiresAtMs = p[HA_TOKEN_EXPIRES_AT] ?: d.tokenExpiresAtMs,
-            longLivedToken = p[HA_LONG_LIVED_TOKEN] ?: d.longLivedToken,
-            authState = p[HA_AUTH_STATE] ?: d.authState,
             lifetime = p[HA_LIFETIME]?.let { v -> HaLinkLifetime.entries.firstOrNull { it.name == v } } ?: d.lifetime,
             favourites = p[HA_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: d.favourites,
             hidden = p[HA_HIDDEN] ?: d.hidden,
@@ -13300,35 +13281,6 @@ class SettingsRepository(private val context: Context) {
     // ---- Home Assistant tool ----
 
     suspend fun setHaEnabled(value: Boolean) = editPrefs { it[HA_ENABLED] = value }
-    suspend fun setHaInternalUrl(value: String) = editPrefs { it[HA_INTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
-    suspend fun setHaExternalUrl(value: String) = editPrefs { it[HA_EXTERNAL_URL] = value.trim().take(HomeAssistantSettings.URL_MAX) }
-    suspend fun setHaPreferInternal(value: Boolean) = editPrefs { it[HA_PREFER_INTERNAL] = value }
-    suspend fun setHaInstance(name: String, id: String) = editPrefs {
-        it[HA_INSTANCE_NAME] = name.trim().take(HomeAssistantSettings.URL_MAX)
-        it[HA_INSTANCE_ID] = id.trim()
-    }
-
-    /** The tokens a sign-in or a paste produced, written in one edit so no reader sees half a pair. */
-    suspend fun setHaTokens(accessToken: String, refreshToken: String, expiresAtMs: Long, longLived: Boolean) = editPrefs {
-        it[HA_ACCESS_TOKEN] = accessToken.trim()
-        it[HA_REFRESH_TOKEN] = refreshToken.trim()
-        it[HA_TOKEN_EXPIRES_AT] = expiresAtMs
-        it[HA_LONG_LIVED_TOKEN] = longLived
-        it.remove(HA_AUTH_STATE)
-    }
-
-    /** Signing out: every token goes, and so does what was learnt about the server. */
-    suspend fun clearHaTokens() = editPrefs {
-        it.remove(HA_ACCESS_TOKEN)
-        it.remove(HA_REFRESH_TOKEN)
-        it.remove(HA_TOKEN_EXPIRES_AT)
-        it.remove(HA_LONG_LIVED_TOKEN)
-        it.remove(HA_AUTH_STATE)
-        it.remove(HA_INSTANCE_NAME)
-        it.remove(HA_INSTANCE_ID)
-    }
-
-    suspend fun setHaAuthState(value: String) = editPrefs { if (value.isEmpty()) it.remove(HA_AUTH_STATE) else it[HA_AUTH_STATE] = value }
     suspend fun setHaLifetime(value: HaLinkLifetime) = editPrefs { it[HA_LIFETIME] = value.name }
 
     /** Rewrites the favourites through [change], read and written in one edit so the keyboard and the app cannot drop each other's. */
@@ -13452,6 +13404,19 @@ class SettingsRepository(private val context: Context) {
             change.credentials?.let { prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(it) }
         }
         ProviderRunner.reset()
+    }
+
+    /**
+     * Rewrites one stored credential through [change], read and written in
+     * one edit: a refreshed token, a bridge pairing, what a server said its
+     * name is. Nothing happens for an id that is not stored, which is every
+     * credential still derived from the old settings; those are saved whole
+     * through [saveProviders] first.
+     */
+    suspend fun updateProviderCredential(id: String, change: (ProviderCredential) -> ProviderCredential) = editPrefs { prefs ->
+        val stored = ProviderCodec.decodeCredentials(prefs[PROVIDER_CREDENTIALS]) ?: return@editPrefs
+        if (stored.none { it.id == id }) return@editPrefs
+        prefs[PROVIDER_CREDENTIALS] = ProviderCodec.encodeCredentials(stored.map { if (it.id == id) change(it) else it })
     }
 
     /** Puts [tool]'s list back on what the build and the old settings make, by forgetting the stored one. */

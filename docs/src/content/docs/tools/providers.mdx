@@ -32,7 +32,7 @@ Server kinds can be added more than once, each with its own address and name: tw
 
 ## How a tool uses its list
 
-Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
+Most tools ask **One at a time**: the first provider that is on, and the next one only if the first fails or has nothing. The GIF and sticker panels can also show their providers as **Tabs** (a chip for each) or **Mixed** (all of them at once, in one grid). The smart home list is always mixed: every home on it is connected, and the order is the order their rooms appear in. Packs on your phone always get a chip of their own, and GIPHY keeps its own chip in Mixed mode, because its terms do not allow mixing its results with another service's.
 
 Translate, the dictionary, web and image search, online text scanning and photo translation can instead **Choose in the panel**. The panel then shows a chip with the provider in use, and tapping it lists the providers that are on. Only the one you pick is asked, with no fallback to the next. Picking another one runs the same request again with it. The choice lasts until the keyboard restarts, and then the first provider in the list is the one in use again. With only one provider on, there is nothing to choose and the chip stays hidden. The AI's own tools always use the list in order, whatever the mode.
 
@@ -65,3 +65,4 @@ Updating the app does not change your lists. Until you edit a list, it is worked
 | [Text scan, online](/tools/scanner/#reading-text-online) | Your vision model, Rens | <SettingsPath path="Tools / Text scan (OCR) / Online text reader" /> |
 | [Camera, Translate](/tools/camera/#translating-a-photo) | Rens | <SettingsPath path="Tools / Camera / Translate photos" /> |
 | [Vocabulary](/tools/vocabulary/) | Wiktionary, Wiktionary definitions, Free Dictionary API, for words no pack knows | <SettingsPath path="Tools / Vocabulary / Providers" /> |
+| [Smart home](/tools/home-assistant/) | Home Assistant, Google Home, SmartThings, a Philips Hue bridge, openHAB; every home on the list is connected at once, and its sign-in or pairing lives in the row's setup | <SettingsPath path="Tools / Smart home / Homes" /> |

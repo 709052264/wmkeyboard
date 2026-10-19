@@ -19,6 +19,18 @@ includeBuild("build-logic")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
+        // The Google Home APIs SDK, unpacked under feature/ime/libs/googlehome/m2
+        // (see the README there): only its two artifacts come from here.
+        val googleHomeM2 = rootDir.resolve("feature/ime/libs/googlehome/m2")
+        if (googleHomeM2.isDirectory) {
+            maven {
+                url = uri(googleHomeM2)
+                content {
+                    includeModule("com.google.android.gms", "play-services-home")
+                    includeModule("com.google.android.gms", "play-services-home-types")
+                }
+            }
+        }
         google()
         mavenCentral()
     }
@@ -44,6 +56,7 @@ include(":core:tools")
 include(":core:kdeconnect")
 include(":core:send")
 include(":core:homeassistant")
+include(":core:smarthome")
 include(":core:content")
 include(":core:addons")
 include(":core:voice")

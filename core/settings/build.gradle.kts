@@ -60,6 +60,7 @@ dependencies {
     api(project(":core:icons"))
     api(project(":core:content"))
     api(project(":core:tools"))
+    api(project(":core:homeassistant"))
     api(project(":core:addons"))
     api(project(":core:voice"))
     implementation(libs.androidx.core.ktx)

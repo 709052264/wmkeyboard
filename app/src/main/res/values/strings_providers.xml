@@ -11,6 +11,10 @@
     <string name="providers_reset_subtitle">Go back to the list this build starts with</string>
 
     <string name="providers_status_needs_key">Needs an API key</string>
+    <string name="providers_status_needs_sign_in">Not signed in. Edit to sign in.</string>
+    <string name="providers_status_needs_pairing">Not paired. Edit to pair with the bridge.</string>
+    <string name="providers_status_needs_grant">No home chosen. Edit to choose one.</string>
+    <string name="providers_status_signed_in">Signed in</string>
     <string name="providers_status_needs_server">Needs a server address</string>
     <string name="providers_status_needs_model">Needs a model name</string>
     <string name="providers_status_needs_packs">Import a GIF pack first</string>

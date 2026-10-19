@@ -28,6 +28,10 @@ fun apiKey(propertyName: String, envName: String): String =
         ?: System.getenv(envName)?.trim()
         ?: ""
 
+/** The Google Home APIs SDK is checked in under feature/ime/libs/googlehome; without it the flag cannot be on. */
+val googleHomeSdk: Boolean = rootProject.file("feature/ime/libs/googlehome").listFiles()?.any { it.name.endsWith(".aar") } == true ||
+    rootProject.file("feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home").isDirectory
+
 fun flag(propertyName: String, envName: String): Boolean =
     (providers.gradleProperty(propertyName).orNull
         ?: localProperties.getProperty(propertyName)
@@ -56,6 +60,10 @@ android {
         buildConfigField("String", "TRANSLATE_API_KEY", "\"${apiKey("wmkb.translateApiKey", "WMKB_TRANSLATE_API_KEY")}\"")
         buildConfigField("String", "UNSPLASH_API_KEY", "\"${apiKey("wmkb.unsplashApiKey", "WMKB_UNSPLASH_API_KEY")}\"")
         buildConfigField("String", "PEXELS_API_KEY", "\"${apiKey("wmkb.pexelsApiKey", "WMKB_PEXELS_API_KEY")}\"")
+        // The SmartThings OAuth app this build signs in through (smart home
+        // tool). Blank leaves only the pasted-token way in.
+        buildConfigField("String", "SMARTTHINGS_CLIENT_ID", "\"${apiKey("wmkb.smartThingsClientId", "WMKB_SMARTTHINGS_CLIENT_ID")}\"")
+        buildConfigField("String", "SMARTTHINGS_CLIENT_SECRET", "\"${apiKey("wmkb.smartThingsClientSecret", "WMKB_SMARTTHINGS_CLIENT_SECRET")}\"")
         buildConfigField("Boolean", "ENABLE_PLAY_STORE", "${flag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE")}")
         buildConfigField("Boolean", "ENABLE_FDROID", "${flag("wmkb.enableFdroid", "WMKB_ENABLE_FDROID")}")
         // Diagnostic builds only: on an uncaught exception, replace Android's
@@ -76,6 +84,10 @@ android {
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
             buildConfigField("Boolean", "ENABLE_WHISPER", "true")
+            // The Google Home APIs: their SDK is a full-only dependency, and
+            // the grant only works for a signing certificate that has an
+            // OAuth client, so each channel says whether it carries one.
+            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME") && googleHomeSdk}")
         }
         create("lite") {
             dimension = "capabilities"
@@ -86,6 +98,7 @@ android {
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
             buildConfigField("Boolean", "ENABLE_WHISPER", "false")
+            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "false")
         }
     }
     buildFeatures { buildConfig = true }

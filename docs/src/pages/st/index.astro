@@ -1,0 +1,116 @@
+---
+/**
+ * /st/ — the redirect page for the SmartThings sign-in in the smart home tool.
+ *
+ * SmartThings sends the browser back to an https address it has on file for
+ * the app, with the authorization code in the query. This page is that
+ * address, `https://wmkeyboard.pages.dev/st/`; it hands the query straight on
+ * to `wmkeyboard://st-auth`, which the keyboard's settings app answers, and
+ * shows a button for a browser that will not follow the custom scheme on its
+ * own. The code is single-use and worthless without the app's client secret;
+ * nothing is logged or kept here.
+ */
+import StarlightPage from '@astrojs/starlight/components/StarlightPage.astro';
+
+const head: { tag: 'link' | 'meta'; attrs: Record<string, string> }[] = [
+	{ tag: 'meta', attrs: { name: 'wm:own-title', content: '' } },
+];
+---
+
+<StarlightPage
+	frontmatter={{
+		title: 'WM Keyboard for SmartThings',
+		description: 'The sign-in return page for the SmartThings home in WM Keyboard.',
+		template: 'splash',
+		tableOfContents: false,
+		pagefind: false,
+		head,
+	}}
+	hasSidebar={false}
+>
+	<div class="st-page not-content">
+		<div class="st-card">
+			<div class="st-pin" aria-hidden="true">🏠</div>
+			<p class="st-kicker">WM Keyboard</p>
+			<h1 class="st-title">Back to the keyboard</h1>
+			<p class="st-detail">
+				SmartThings has signed you in. The browser should now hand the result back to WM Keyboard; if it has
+				not, tap the button.
+			</p>
+			<div class="st-row">
+				<a class="st-btn" id="st-open" href="wmkeyboard://st-auth">Open WM Keyboard</a>
+				<a class="st-btn st-btn-quiet" href="/tools/home-assistant/#smartthings">About the tool</a>
+			</div>
+		</div>
+	</div>
+</StarlightPage>
+
+<script is:inline>
+	(function () {
+		var query = window.location.search.replace(/^\?/, '');
+		var target = 'wmkeyboard://st-auth' + (query ? '?' + query : '');
+		var button = document.getElementById('st-open');
+		if (button) button.setAttribute('href', target);
+		if (query) window.location.replace(target);
+	})();
+</script>
+
+<style>
+	.st-page {
+		display: flex;
+		justify-content: center;
+		padding: 3rem 1rem 4rem;
+	}
+	.st-card {
+		max-width: 34rem;
+		width: 100%;
+		border: 1px solid var(--sl-color-hairline);
+		border-radius: 1.25rem;
+		padding: 2rem 1.75rem;
+		background: var(--sl-color-bg-nav);
+		text-align: center;
+	}
+	.st-pin {
+		font-size: 2.5rem;
+		line-height: 1;
+	}
+	.st-kicker {
+		margin: 1rem 0 0.25rem;
+		font-size: var(--sl-text-xs);
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.st-title {
+		margin: 0 0 1rem;
+		font-size: var(--sl-text-2xl);
+		line-height: 1.2;
+	}
+	.st-detail {
+		margin: 0.5rem 0;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-sm);
+		line-height: 1.6;
+	}
+	.st-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		justify-content: center;
+		margin-top: 1.5rem;
+	}
+	.st-btn {
+		display: inline-block;
+		padding: 0.65rem 1.1rem;
+		border-radius: 999px;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		font-weight: 600;
+		text-decoration: none;
+	}
+	.st-btn-quiet {
+		background: transparent;
+		color: var(--sl-color-text);
+		border: 1px solid var(--sl-color-hairline);
+	}
+</style>
