@@ -23304,12 +23304,15 @@ open class WMKeyboardService : InputMethodService() {
             null
         }
         val words = kept.map { restoreApostrophe(it.word) ?: it.word }
-        val declared = declareApostrophe(words, points, keys, keyWidthPx)
-        // Scores follow the words through both rewrites. `declareApostrophe`
-        // can put a spelling in front that the decoder never ranked — "it's"
-        // read off a stroke that spelled "its" — and that word stands exactly
-        // where the leader stood, so it inherits the leader's score.
-        val byWord = words.withIndex().associate { (i, w) -> w to kept[i].score }
+        val (offered, offeredScores) = offerApostrophes(words, kept.map { it.score })
+        val declared = declareApostrophe(offered, points, keys, keyWidthPx)
+        // Scores follow the words through every rewrite. An offered
+        // contraction carries the score of the reading it was offered behind,
+        // and `declareApostrophe` can put a spelling in front that the decoder
+        // never ranked — "it's" read off a stroke that spelled "its" — and
+        // that word stands exactly where the leader stood, so it inherits the
+        // leader's score.
+        val byWord = offered.zip(offeredScores).toMap()
         val leaderScore = kept.first().score
         // Which of the surviving words are guesses, and which of those the
         // decoder is sure of. Measured here against this decode's own best
@@ -23547,6 +23550,36 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (!state.settings.autoText.apostrophe || !state.allowsTypingIntelligence) return null
         return suggestionEngine?.elide(word)
+    }
+
+    /**
+     * [words] with the apostrophe spelling each one may also have been drawn
+     * as right behind it: "id" swiped offers "I'd", as "id" typed does
+     * (#384). The strip's half of [restoreApostrophe], for a spelling that is
+     * a word of its own and so is committed as drawn.
+     *
+     * Behind every reading rather than only the leader's, because the same
+     * argument holds for each: a contraction can only be drawn without its
+     * apostrophe. [scores] are aligned with [words] and stay so; an offer
+     * takes the score of the reading it was read off, and never leads one,
+     * so neither the lift nor the preview's steadiness gate can type it.
+     */
+    private fun offerApostrophes(words: List<String>, scores: List<Double>): Pair<List<String>, List<Double>> {
+        val state = _uiState.value
+        if (!state.settings.autoText.apostrophe || !state.allowsTypingIntelligence) return words to scores
+        val engine = suggestionEngine ?: return words to scores
+        val seen = words.mapTo(HashSet()) { it.lowercase() }
+        val offered = ArrayList<String>(words.size)
+        val offeredScores = ArrayList<Double>(scores.size)
+        words.forEachIndexed { i, word ->
+            offered += word
+            scores.getOrNull(i)?.let { offeredScores += it }
+            val offer = engine.apostropheOffer(word) ?: return@forEachIndexed
+            if (!seen.add(offer.lowercase())) return@forEachIndexed
+            offered += offer
+            scores.getOrNull(i)?.let { offeredScores += it }
+        }
+        return offered to offeredScores
     }
 
     /**
@@ -24805,10 +24838,14 @@ open class WMKeyboardService : InputMethodService() {
             recentWords = recentWords.toList(),
         )
         if (decoded.isEmpty()) return GlideReading.NONE
+        val (words, scores) = offerApostrophes(
+            decoded.map { restoreApostrophe(it.word) ?: it.word },
+            decoded.map { it.score },
+        )
         return GlideReading(
-            words = decoded.map { restoreApostrophe(it.word) ?: it.word },
+            words = words,
             closeCall = false,
-            scores = decoded.map { it.score },
+            scores = scores,
         )
     }
 

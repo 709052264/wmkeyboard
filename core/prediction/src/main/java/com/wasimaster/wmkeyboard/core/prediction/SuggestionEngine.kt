@@ -2480,7 +2480,10 @@ class SuggestionEngine(
         // hold the fused misspelling as a word and the real spelling hardly
         // at all (#215, #240).
         if (!ambiguous) {
-            apostropheReading(lower)?.let { merged.merge(it.spelling, it.score, ::maxOf) }
+            apostropheReading(lower)?.let {
+                merged.merge(it.spelling, it.score, ::maxOf)
+                it.typedScore?.let { lifted -> merged.merge(lower, lifted, ::maxOf) }
+            }
             // The same for a compound typed without its hyphen: "чтото" is
             // *что-то*, "wellpaid" is *well-paid*.
             hyphenReading(lower)?.let { (spelling, score) -> merged.merge(spelling, score, ::maxOf) }
@@ -4304,6 +4307,13 @@ class SuggestionEngine(
      * completions without the strip preferring a reading the space bar will
      * not make.
      *
+     * The pair stands on the commoner of the two. `id` is rarer than
+     * *identify*, *idiot* and *ideas*, but *I'd* is commoner than all three;
+     * held behind `id`'s own count it fell off a three-slot strip with `id`.
+     * So where the contraction outranks the typed word, the typed word is
+     * lifted to the contraction's standing ([ElisionReading.typedScore]) and
+     * the contraction sits just behind it.
+     *
      * [fixed] is the table's own answer for a repair the user has undone,
      * which drops to exactly this standing.
      */
@@ -4311,13 +4321,13 @@ class SuggestionEngine(
         if (fixed == null) return null
         val typed = dictionaryScore(lower)
         val own = dictionaryScore(fixed.lowercase())
-        val score = if (typed == Double.NEGATIVE_INFINITY) {
-            own
-        } else {
-            minOf(maxOf(own, typed - ln(DECLARED_TRAIL)), typed - DECLARED_BEHIND)
+        if (typed == Double.NEGATIVE_INFINITY) {
+            if (own == Double.NEGATIVE_INFINITY) return null
+            return ElisionReading(fixed, own, shadowed = false)
         }
-        if (score == Double.NEGATIVE_INFINITY) return null
-        return ElisionReading(fixed, score, shadowed = false)
+        val standing = maxOf(typed, own)
+        val score = minOf(maxOf(own, standing - ln(DECLARED_TRAIL)), standing - DECLARED_BEHIND)
+        return ElisionReading(fixed, score, shadowed = false, typedScore = standing.takeIf { it > typed })
     }
 
     /** [dictionaryScore] with an unknown word's negative infinity read as zero. */
@@ -4377,7 +4387,13 @@ class SuggestionEngine(
         return best
     }
 
-    private class ElisionReading(val spelling: String, val score: Double, val shadowed: Boolean)
+    private class ElisionReading(
+        val spelling: String,
+        val score: Double,
+        val shadowed: Boolean,
+        /** The strip score the typed word is lifted to, when this reading holds it up; see [declaredReading]. */
+        val typedScore: Double? = null,
+    )
 
     /**
      * The apostrophe [word] was typed without, or null when it needs none:
@@ -4392,6 +4408,18 @@ class SuggestionEngine(
     fun elide(word: String): String? {
         val reading = apostropheReading(word.lowercase()) ?: return null
         if (!reading.shadowed) return null
+        return matchCase(word, reading.spelling).takeIf { it != word }
+    }
+
+    /**
+     * The apostrophe spelling [word] may have been meant as, when it is a
+     * word of its own and so is left alone: "id" → "I'd", "lune" → "l'une"
+     * (#384). The other half of [elide]: the reading the strip offers right
+     * behind what was typed, and the space bar never commits.
+     */
+    fun apostropheOffer(word: String): String? {
+        val reading = apostropheReading(word.lowercase()) ?: return null
+        if (reading.shadowed) return null
         return matchCase(word, reading.spelling).takeIf { it != word }
     }
 

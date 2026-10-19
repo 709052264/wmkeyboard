@@ -82,12 +82,17 @@ internal object TwoThumbKit {
     }
 
     /** A word list the decoder reads strokes against, so a word has readings and alternates. */
-    fun plantDictionary(service: WMKeyboardService, vararg words: Pair<String, Int>) {
-        val engine = SuggestionEngine(
+    fun plantDictionary(service: WMKeyboardService, vararg words: Pair<String, Int>) = plantEngine(
+        service,
+        SuggestionEngine(
             Trie().apply { words.forEach { (word, frequency) -> insert(word, frequency) } },
             BengaliPhoneticIndex(emptyList()),
             UserLexicon(null),
-        )
+        ),
+    )
+
+    /** [engine] as the one the service reads strokes and taps against. */
+    fun plantEngine(service: WMKeyboardService, engine: SuggestionEngine) {
         WMKeyboardService::class.java.getDeclaredField("suggestionEngine").apply {
             isAccessible = true
             set(service, engine)
