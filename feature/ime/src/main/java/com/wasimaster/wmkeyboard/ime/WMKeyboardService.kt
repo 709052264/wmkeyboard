@@ -3191,6 +3191,11 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
+        // A private copy never reaches the system clipboard, so whatever just
+        // landed there is newer than it, and the paste keys paste that now
+        // (#612). Not the picture a paste put back as a fallback: that is the
+        // keyboard's own, and no copy the user made.
+        if (KeyboardClipboard.held != null && !holdsOwnFallbackClip()) KeyboardClipboard.yieldToSystem()
         restoringSystemClipText?.let { restoring ->
             restoringSystemClipText = null
             val back = runCatching {
@@ -3334,6 +3339,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (added?.kind == ClipKind.LINK) fetchLinkPreviews()
     }
+
+    /** Whether the system clipboard holds a picture this keyboard put there itself. */
+    private fun holdsOwnFallbackClip(): Boolean = runCatching {
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .primaryClip?.getItemAt(0)?.uri?.authority == clipboardFileProviderAuthority
+    }.getOrDefault(false)
 
     /**
      * [text] as the history keeps it (#612): decorated letters made plain when
@@ -42686,6 +42697,18 @@ open class WMKeyboardService : InputMethodService() {
         clearAll: Boolean = false,
     ) {
         if (removed.isEmpty()) return
+        // The keyboard's private copy is a clipboard too (#612): a deleted
+        // clip must not paste from there either. Compared the way the store
+        // keeps text, trimmed and capped.
+        KeyboardClipboard.forgetIf { held ->
+            val text = com.wasimaster.wmkeyboard.core.clipboard.capClipText(held.trim(), clipboardStore.maxTextChars)
+                .trimEnd()
+            if (clearAll) {
+                clipboardStore.items().none { it.pinned && it.kind.isTextual && it.text == text }
+            } else {
+                removed.any { it.kind.isTextual && it.text == text }
+            }
+        }
         val manager = runCatching {
             getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         }.getOrNull() ?: return

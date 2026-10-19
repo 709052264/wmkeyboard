@@ -877,8 +877,6 @@ internal fun ClipboardSettings(
                 stringResource(R.string.clipboard_pinned_folders_subtitle),
                 settings.watch { it.clipboard.pinnedFolders },
                 info = stringResource(R.string.clipboard_pinned_folders_info),
-                // Kept in place there is no pinned group to file anything out of.
-                enabled = !settings.watch { it.clipboard.pinnedInPlace },
                 default = SettingsDefaults.clipboard.pinnedFolders,
             ) { scope.launch { repository.setClipboardPinnedFolders(it) } }
         }

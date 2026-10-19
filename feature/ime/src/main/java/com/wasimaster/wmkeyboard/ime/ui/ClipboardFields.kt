@@ -563,9 +563,11 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     val kindFilter = filter.value
     // Pinned folders (#768): where the pinned clips are drawn, outside a
     // search, each tag they carry is a folder, and its clips are in there
-    // rather than among the rest. A folder is opened by the tag filter.
+    // rather than among the rest. A folder is opened by the tag filter. With
+    // the pinned clips kept in place (no tabs, only filters) the folders head
+    // the whole history instead, and the clips filed in them leave its flow.
     val pinnedPage = !tabbed || tab.value == ClipTab.PINNED
-    val foldersOn = state.settings.clipboard.pinnedFolders && !pinsInPlace && !state.clipboardSearchActive && pinnedPage
+    val foldersOn = state.settings.clipboard.pinnedFolders && !state.clipboardSearchActive && pinnedPage
     val folders = if (foldersOn && tagShown == null) {
         remember(state.clipboardItems) { pinnedClipFolders(state.clipboardItems) }
     } else {

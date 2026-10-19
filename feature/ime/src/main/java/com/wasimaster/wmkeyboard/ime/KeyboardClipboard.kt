@@ -40,6 +40,22 @@ object KeyboardClipboard {
     @Volatile
     var onPrivateCopy: ((String) -> Unit)? = null
 
+    /**
+     * A copy made anywhere else (#612): the system clipboard now holds
+     * something newer than [held], so the paste keys go back to it. Without
+     * this a private copy outranked every later copy in every other app, and
+     * the paste keys kept pasting it.
+     */
+    fun yieldToSystem() {
+        held = null
+    }
+
+    /** Forgets [held] when it is a clip [gone] says was deleted (#612). */
+    fun forgetIf(gone: (String) -> Boolean) {
+        val kept = held ?: return
+        if (gone(kept)) held = null
+    }
+
     /** Copies [text]: into [held] while private, else onto the system clipboard. */
     fun copy(context: Context, text: CharSequence, label: String = "") {
         if (isPrivate) {
