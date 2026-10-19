@@ -23029,6 +23029,20 @@ internal fun KeyButton(
     // the user opted back in: a floating digit over a PIN pad is noise, and easy
     // shoulder-surfing.
     val previewToken = remember { Any() }
+    // The key a cell draws can change under a held finger: a hold that moves
+    // the board to another layer (ABC held on the symbols) leaves this same
+    // cell drawing `?123`. The pointer handler restarts on the new key without
+    // ever seeing the lift, so nothing else clears the press it lit (#665).
+    DisposableEffect(key) {
+        onDispose {
+            alternatesPrewarm[0]?.cancel()
+            alternatesPrepared = false
+            if (pressed.value) {
+                pressed.value = false
+                keyPreview.release(previewToken)
+            }
+        }
+    }
     // A flick key's cross popup already names what the press will type, so the
     // bubble would be a second popup over the first, showing the centre glyph
     // while an arm is lit (issue #410). It stays for a flick key whose cross
