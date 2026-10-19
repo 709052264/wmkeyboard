@@ -1,7 +1,7 @@
 package com.wasimaster.wmkeyboard.app.assistant
 
 import androidx.annotation.StringRes
-import com.wasimaster.wmkeyboard.app.R
+import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 
