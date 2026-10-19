@@ -11601,8 +11601,9 @@ open class WMKeyboardService : InputMethodService() {
      * A line break is not a space here, for the reason [spacedAfterCaret] gives.
      */
     private fun stepOverFollowingSpace(ic: InputConnection): Boolean {
+        if (isWebEditField()) return false
         val next = ic.getTextAfterCursor(1, 0)
-        if (next == null || !spacedAfterCaret(next)) return false
+        if (next == null || !spaceToStepOver(next)) return false
         val gap = next.subSequence(0, 1).toString()
         mirrorTypedIntoRevision(ic, gap)
         ic.beginBatchEdit()
@@ -22371,7 +22372,7 @@ open class WMKeyboardService : InputMethodService() {
         val autoSpace = _uiState.value.settings.suggestionStrip.autoSpaceAfterSuggestion &&
             suggestion.lastOrNull()?.isWhitespace() != true
         val after = ic.getTextAfterCursor(1, 0)
-        val spaced = autoSpace && spacedAfterCaret(after)
+        val spaced = autoSpace && spaceToStepOver(after)
         // In front of a mark that closes up onto the word ("question⌶?"), the
         // space waits for a letter instead of landing between them (#679).
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)
@@ -22495,6 +22496,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun pickCaretOffset(spaced: Boolean): Int = if (spaced) 2 else 1
 
+    /**
+     * Whether [after], read from behind the caret, starts with a space the
+     * keyboard may step over rather than type again ([stepOverFollowingSpace],
+     * and a pick from the strip).
+     *
+     * Never in a web editor (#760). What a page reports after the caret is not
+     * always text the user wrote: Gmail's compose body puts its Smart Compose
+     * suggestion there as a grey, non-editable span (" back to you"), and the
+     * connection hands it over as plain characters, so its leading space read
+     * as one to step over. The forward delete, or the caret sent past it, then
+     * landed in that span and Gmail took the keyboard down. A page cannot say
+     * which characters are real, so there the space is typed as it is, the way
+     * HeliBoard types it everywhere.
+     */
+    private fun spaceToStepOver(after: CharSequence?): Boolean = !isWebEditField() && spacedAfterCaret(after)
+
     /** How a pick that replaces a word where it stands is spaced; see [splicedPickSpacing]. */
     private class PickSpacing(val tail: String, val caretOffset: Int, val deferred: Boolean)
 
@@ -22514,7 +22531,7 @@ open class WMKeyboardService : InputMethodService() {
         if (!_uiState.value.settings.suggestionStrip.autoSpaceAfterSuggestion) return PickSpacing("", 1, false)
         val after = next?.toString()
         return when {
-            spacedAfterCaret(after) -> PickSpacing("", pickCaretOffset(spaced = true), false)
+            spaceToStepOver(after) -> PickSpacing("", pickCaretOffset(spaced = true), false)
             markHugsCaretWord(after) -> PickSpacing("", 1, true)
             else -> PickSpacing(" ", 1, false)
         }
@@ -22563,7 +22580,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestion
         val after = ic.getTextAfterCursor(1, 0)
-        val spaced = autoSpace && spacedAfterCaret(after)
+        val spaced = autoSpace && spaceToStepOver(after)
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)
         val tail = if (autoSpace && !spaced && !deferSpace) " " else ""
         val committed = displayCaseForShift(word, state.shiftState)

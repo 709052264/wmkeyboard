@@ -157,6 +157,8 @@ Two related rules ride along with autocorrect and share its "sentence in progres
 
 Every rule that types a space after something, the space bar after a word, the space after a mark and the space after a glided word, checks first whether the text already goes on with a space. If it does, the cursor steps over that space instead of typing a second one, so it lands at the start of the next word. Put the cursor at `auto| space`, type `matic` and a space, and you get `automatic |space`, ready for the next word. The same goes for a word tapped from the strip. Before, the cursor stayed in front of the old space, so the next word ran into the one after it and every space and mark after that landed in the same wrong place.
 
+Web pages and app screens built on one are the exception: there the space is always typed. A page can show text after the cursor that isn't really there, such as Gmail's grey Smart Compose suggestion, and the keyboard has no way to tell the two apart. Stepping over that suggestion's first space made Gmail close the keyboard.
+
 A word the cursor only landed on is not a word you ended, so a space pressed there with nothing typed into the word is an ordinary space.
 
 ### Shift cancels a pending auto-space
