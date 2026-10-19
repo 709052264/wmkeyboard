@@ -107,6 +107,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         # One variant per Gradle call. All four at once shared one Kotlin
         # daemon and ran it out of heap at 4 GB (0.5.13, compileFullEnRelease
         # and compileLiteEnRelease side by side), after 0.5.8 had already
@@ -378,6 +380,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: |
           ./gradlew assembleFullIntlRelease assembleLiteEnRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
@@ -490,6 +494,8 @@ jobs:
           WMKB_PEXELS_API_KEY: ${{ secrets.WMKB_PEXELS_API_KEY }}
           WMKB_DROPBOX_APP_KEY: ${{ secrets.WMKB_DROPBOX_APP_KEY }}
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
+          WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: ./gradlew bundleFullEnRelease --stacktrace
 
       - name: Wipe keystore
