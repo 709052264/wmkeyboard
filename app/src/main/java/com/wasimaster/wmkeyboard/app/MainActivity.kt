@@ -2083,6 +2083,15 @@ private fun SettingsNavGraph(
                 SnippetEditor(settings, snippetId) { navController.popBackStack() }
             }
         }
+        composable("ai") {
+            SettingsScreen(
+                stringResource(R.string.home_ai_title),
+                { navController.popBackStack() },
+                route = "ai",
+            ) {
+                AiHubSettings(repository, settings) { route -> navController.navigate(route) }
+            }
+        }
         composable("tools") {
             var query by rememberSaveable { mutableStateOf("") }
             SettingsScreen(

@@ -523,6 +523,7 @@ internal object SettingsRouteIcons {
         "keymaps" to { Icons.Outlined.GridOn },
         "rows" to { Icons.Outlined.ViewAgenda },
         "rows/symbol" to { Icons.Outlined.Tag },
+        "ai" to { Icons.Outlined.AutoAwesome },
         "ai_actions" to { Icons.Outlined.AutoAwesome },
         "ai_history" to { Icons.Outlined.History },
         "ai_chat" to { Icons.AutoMirrored.Outlined.Chat },

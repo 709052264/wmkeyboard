@@ -425,13 +425,25 @@ internal fun ToolsSettings(
             }
         }
     }
-    // Only the group titles need a composition; the grouping itself is fixed.
-    val allGroups = ToolGroups.map { (title, tools) -> stringResource(title) to tools }
-    // Resolved once, not per recomposition: the keys go into saved settings,
-    // so they have to be the same string every time the screen is built.
+    // Panels as one group or two (#759). Above the groups it reshapes, so
+    // the switch and what it changes are on screen together.
+    val splitPanels = settings.watch { it.appUi.splitToolPanels }
+    ToggleSetting(
+        title = R.string.tools_split_panels_title,
+        subtitle = stringResource(R.string.tools_split_panels_subtitle),
+        checked = splitPanels,
+        onChange = { scope.launch { repository.setSplitToolPanels(it) } },
+        default = SettingsDefaults.appUi.splitToolPanels,
+    )
+    val groups = if (splitPanels) SplitToolGroups else ToolGroups
+    // Only the group titles need a composition; each grouping itself is fixed.
+    val allGroups = groups.map { (title, tools) -> stringResource(title) to tools }
+    // Resolved once per grouping, not per recomposition: the keys go into
+    // saved settings, so they have to be the same string every time the
+    // screen is built.
     val resources = LocalContext.current.resources
-    val foldKeys = remember(resources) {
-        ToolGroups.map { (titleRes, _) -> toolGroupFoldKey(resources, titleRes) }
+    val foldKeys = remember(resources, groups) {
+        groups.map { (titleRes, _) -> toolGroupFoldKey(resources, titleRes) }
     }
     // Composing the sixty rows is deferred and staggered by SettingsGroup
     // itself now — see [rememberGroupRevealed] — so the screen no longer
@@ -493,7 +505,7 @@ private fun toolGroupFoldKey(resources: Resources, @StringRes titleRes: Int): St
  * `settings`, so a row that took the settings object could not be skipped.
  */
 @Composable
-private fun ToolRow(
+internal fun ToolRow(
     tool: ToolbarTool,
     paint: ToolPaint?,
     /** Why the tool cannot run, or null; the row says so in place of its description. */
@@ -548,6 +560,24 @@ private fun ToolRow(
         onClick = onOpen,
     )
 }
+/** The Panels group, in the order the Tools screen lists it. */
+private val PanelTools = listOf(
+    ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES,
+    ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
+    ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
+    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
+    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+)
+
+/**
+ * The panels that go to Connect and media when Panels is split: media, other
+ * apps and other devices. The rest of [PanelTools] is Writing.
+ */
+private val ConnectPanels = setOf(
+    ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
+    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+)
+
 /**
  * The Tools screen's sections, as string resource and tools.
  *
@@ -559,17 +589,30 @@ private fun ToolRow(
  * here still gets a settings entry, because this menu is the only path to a
  * tool's own options. Tools this build cannot provide (the lite flavor) are
  * filtered out, and a group left empty by that is dropped.
+ *
+ * This is the grouping every tool picker uses. The Tools screen alone can
+ * show [SplitToolGroups] instead, when the user asks for it.
+ *
+ * Below the two panel lists on purpose: top-level values are set in the order
+ * the file declares them, and these two read those lists as they are built.
  */
-internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
-    add(
-        R.string.tools_group_panels_title to listOf(
-            ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES,
-            ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
-            ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
-            ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
-            ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
-        ),
-    )
+internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildToolGroups(splitPanels = false)
+
+/**
+ * [ToolGroups] with Panels shown as two groups, Writing and Connect and
+ * media (#759). Only the Tools screen offers it, behind
+ * `AppUiSettings.splitToolPanels`: a picker is opened to find one tool, and a
+ * second shape of the same list there would only be one more to learn.
+ */
+internal val SplitToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildToolGroups(splitPanels = true)
+
+private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTool>>> = buildList {
+    if (splitPanels) {
+        add(R.string.tools_group_writing_title to PanelTools.filterNot { it in ConnectPanels })
+        add(R.string.tools_group_connect_title to PanelTools.filter { it in ConnectPanels })
+    } else {
+        add(R.string.tools_group_panels_title to PanelTools)
+    }
     add(
         R.string.tools_group_scanners_title to listOf(
             ToolbarTool.OCR, ToolbarTool.QR_SCAN, ToolbarTool.DOC_SCAN,

@@ -166,6 +166,7 @@ internal object SettingsRoutes {
         "expander/folder/{folderId}",
         "expander/folder/{folderId}/new",
         "expander/edit/{snippetId}",
+        "ai",
         "tools",
         "tool/{toolName}",
         "accessibility",

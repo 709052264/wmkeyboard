@@ -50,6 +50,8 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiToolRoundsRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
+import com.wasimaster.wmkeyboard.core.settings.toolBlocker
+import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.BuildConfig
@@ -58,6 +60,75 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import androidx.compose.runtime.saveable.rememberSaveable
+
+/**
+ * The AI screen on the settings root (#759): the two AI tools, the chat and
+ * the history, which were otherwise reached only through the Tools list.
+ *
+ * It holds doors, not settings. The provider, key and model stay on the AI
+ * writing tools page, because AI reply, the chat and the settings assistant
+ * all read them from there, and a second copy here would be two places to
+ * keep in step.
+ */
+@Composable
+internal fun AiHubSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    val optionsDesc = stringResource(R.string.tools_has_options_desc)
+    SettingsGroup(
+        stringResource(R.string.toolai_hub_tools_title),
+        info = stringResource(R.string.toolai_hub_tools_info),
+    ) {
+        for (tool in AiHubTools) {
+            item {
+                // The Tools list's own row, switch and all, so a tool turned
+                // on here is the same tool turned on there.
+                ToolRow(
+                    tool = tool,
+                    paint = settings.watch { toolAccentPaint(tool, it) },
+                    blocker = settings.watch { toolBlocker(tool, it) },
+                    enabled = settings.watch { tool in it.enabledTools },
+                    optionsDesc = optionsDesc,
+                    onToggle = { on -> scope.launch { repository.setToolEnabled(tool, on) } },
+                    onOpen = { onNavigate(toolRoute(tool)) },
+                )
+            }
+        }
+    }
+    SettingsGroup(stringResource(R.string.toolai_ai_chat_group_title)) {
+        item {
+            NavRow(
+                title = R.string.toolai_ai_chat_nav_title,
+                subtitle = stringResource(R.string.toolai_ai_chat_nav_subtitle),
+                route = "ai_chat",
+                onClick = { onNavigate("ai_chat") },
+            )
+        }
+        item {
+            NavRow(
+                title = R.string.settings_assistant_title,
+                subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
+                route = "settings_assistant",
+                onClick = { onNavigate("settings_assistant") },
+            )
+        }
+    }
+    SettingsGroup(stringResource(R.string.toolai_ai_history_group_title)) {
+        item {
+            NavRow(
+                title = R.string.toolai_ai_history_nav_title,
+                subtitle = stringResource(R.string.toolai_ai_history_nav_subtitle),
+                onClick = { onNavigate("ai_history") },
+            )
+        }
+    }
+}
+
+/** The tools the AI screen lists, in the order the Tools list has them. */
+private val AiHubTools = listOf(ToolbarTool.AI, ToolbarTool.AI_REPLY)
 
 /** The AI tool's settings: provider, credentials, output and prompts. */
 @Composable

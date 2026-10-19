@@ -332,6 +332,7 @@
     <string name="search_kw_expander">snippet, snippets, abbreviation, macro, autotext, text replacement, canned reply, boilerplate, signature, template</string>
     <string name="search_kw_clipboard">copy, paste, cut, clip, clipboard history, pin, pinned, otp, screenshot, sensitive</string>
     <string name="search_kw_voice">dictation, speech, speak, microphone, mic, talk, transcribe, whisper, offline speech</string>
+    <string name="search_kw_ai">assistant, llm, chatgpt, claude, gemini, ollama, language model, api key, rewrite, summarize</string>
     <string name="search_kw_tools">toolbar, toolbox, shortcuts, widgets, buttons</string>
     <string name="search_kw_privacy">incognito, permissions, tracking, learning, data</string>
     <string name="search_kw_permissions">grant, allow, revoke, access, microphone, camera, contacts, calendar, notification access, usage access</string>

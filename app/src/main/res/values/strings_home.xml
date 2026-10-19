@@ -70,6 +70,9 @@
     <string name="home_voice_title">Voice typing</string>
     <string name="home_voice_subtitle">Recognition engine, microphone view, spoken punctuation</string>
 
+    <string name="home_ai_title">AI</string>
+    <string name="home_ai_subtitle">Writing tools, replies, chat and history</string>
+
     <string name="home_tools_title">Tools</string>
     <string name="home_tools_subtitle">Flashlight, compass, snippets, calendar &amp; more</string>
 

@@ -5,6 +5,7 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.TextSnippet
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Info
@@ -46,7 +47,9 @@ internal class RootEntry(
  * anyone looks for on a new keyboard. Key layouts is not here — it is a row
  * inside Languages, and one door is enough. What a first-week user never
  * needs (modes, add-ons, data saver, the physical keyboard) sits behind
- * Advanced, still one press away.
+ * Advanced, still one press away. AI has a row of its own (#759) although
+ * its two tools are on the Tools list too: the provider, the chat and the
+ * history serve more than one tool, and nobody looks for them under Tools.
  */
 internal val RootEntries: List<RootEntry> = listOf(
     RootEntry(
@@ -98,6 +101,11 @@ internal val RootEntries: List<RootEntry> = listOf(
         "expander", Icons.AutoMirrored.Outlined.TextSnippet,
         R.string.home_expander_title, R.string.home_expander_subtitle,
         R.string.search_kw_expander, RootGroup.FEATURES,
+    ),
+    RootEntry(
+        "ai", Icons.Outlined.AutoAwesome,
+        R.string.home_ai_title, R.string.home_ai_subtitle,
+        R.string.search_kw_ai, RootGroup.FEATURES,
     ),
     RootEntry(
         "tools", Icons.Outlined.Widgets,

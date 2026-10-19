@@ -1137,6 +1137,7 @@ internal object SettingsRowIcons {
 
         // ---- Tools screen ----
         put(R.string.tools_colored_icons_title) { Icons.Outlined.Palette }
+        put(R.string.tools_split_panels_title) { Icons.Outlined.ViewAgenda }
         put(R.string.tools_gradient_icons_title) { Icons.Outlined.Gradient }
 
         // ---- Tool pages: shared ----

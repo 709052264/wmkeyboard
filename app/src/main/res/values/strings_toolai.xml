@@ -558,4 +558,7 @@
     <string name="toolai_reply_catch_shots_title">Add screenshots automatically</string>
     <string name="toolai_reply_catch_shots_subtitle">One taken while the panel is open, and the newest from the last two minutes when it opens. Needs permission to read your images</string>
     <string name="toolai_reply_provider_nav_subtitle">Replies use the provider, key and model set up for the AI tool</string>
+    <!-- AI screen, opened from the settings home screen. It collects the AI tools, the chat and the history. -->
+    <string name="toolai_hub_tools_title">On the keyboard</string>
+    <string name="toolai_hub_tools_info">The AI writing tools screen sets the provider, the key and the model. AI reply, the chat and the settings assistant use the same ones.</string>
 </resources>

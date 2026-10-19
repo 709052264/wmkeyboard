@@ -6264,6 +6264,13 @@ data class AppUiSettings(
      * by default; it is for people who send other people to a setting.
      */
     val settingLinks: SettingLinkMode = SettingLinkMode.OFF,
+    /**
+     * Whether the Tools screen shows its Panels group as two smaller ones,
+     * Writing and Connect and media (#759). Off by default: one group is
+     * what the screen has always had, and the split is for those who find a
+     * twenty-row group too long to scan.
+     */
+    val splitToolPanels: Boolean = false,
 )
 
 /** See [AppUiSettings.settingLinks]. */
@@ -9921,6 +9928,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_KEYBOARD_PREVIEW_BUTTON =
             booleanPreferencesKey("settings_keyboard_preview_button")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
+        private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
         private val SYMBOL_ROW_SCROLL = stringPreferencesKey("symbol_row_scroll")
@@ -11684,6 +11692,7 @@ class SettingsRepository(private val context: Context) {
             settingLinks = p[SETTINGS_SETTING_LINKS]
                 ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingLinks,
+            splitToolPanels = p[SETTINGS_SPLIT_TOOL_PANELS] ?: defaults.appUi.splitToolPanels,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -18617,6 +18626,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.settingLinks]. */
     suspend fun setSettingLinks(value: SettingLinkMode) =
         editPrefs { it[SETTINGS_SETTING_LINKS] = value.name }
+
+    /** See [AppUiSettings.splitToolPanels]. */
+    suspend fun setSplitToolPanels(value: Boolean) =
+        editPrefs { it[SETTINGS_SPLIT_TOOL_PANELS] = value }
 
     suspend fun setWeatherRefreshMinutes(value: Int) =
         editPrefs { it[WEATHER_REFRESH_MINUTES] = value.coerceIn(1, 180) }
