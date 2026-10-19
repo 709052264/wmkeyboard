@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Merged only into a full build that carries the Home APIs SDK (see the
+  "full" source set in build.gradle.kts). Play services ships its home
+  module on demand: this entry is what asks for it, as Google's setup guide
+  and the sample app do. Without it the APIs can be missing on a phone that
+  never installed an app declaring the module.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            android:enabled="false"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.metadata.MODULE_DEPENDENCIES" />
+            </intent-filter>
+            <meta-data android:name="home:0:preferred" android:value="" />
+        </service>
+    </application>
+</manifest>

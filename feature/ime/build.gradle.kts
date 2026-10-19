@@ -74,6 +74,8 @@ android {
             val dir = if (googleHomeSdk) "src/googlehome/java" else "src/googlehomestub/java"
             java.srcDir(dir)
             kotlin.srcDir(dir)
+            // The Play services module request the Home APIs need; only with the SDK.
+            if (googleHomeSdk) manifest.srcFile("src/googlehome/AndroidManifest.xml")
         }
     }
     compileOptions {
