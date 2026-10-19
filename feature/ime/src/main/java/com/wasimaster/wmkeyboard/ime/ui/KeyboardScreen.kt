@@ -10839,6 +10839,16 @@ private fun RowScope.ToolbarRow(
                     toolCells()
                 }
             }
+            // Inside the grid, as one more equal cell. Out in the bar beside
+            // this weighted row it would split the width with the whole grid
+            // and take half the bar.
+            if (toolboxSearchShown && searchAtEnd) {
+                toolboxSearchCell(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                )
+            }
         }
     } else {
         leading(Modifier.padding(horizontal = 3.dp))
@@ -10871,18 +10881,10 @@ private fun RowScope.ToolbarRow(
             }
         }
     }
-    // At the far end, after the tools. In greedy mode it takes an equal cell
-    // like every other button, so the bar stays one evenly spaced grid.
-    if (toolboxSearchShown && searchAtEnd) {
-        toolboxSearchCell(
-            if (greedy) {
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-            } else {
-                Modifier.padding(horizontal = 3.dp)
-            },
-        )
+    // The toolbox search at the far end, after the tools. Unweighted here:
+    // the greedy bar draws its own inside its grid, above.
+    if (toolboxSearchShown && searchAtEnd && !greedy) {
+        toolboxSearchCell(Modifier.padding(horizontal = 3.dp))
     }
     // Typing on a physical keyboard with only the toolbar showing: the keys
     // are one tap away (#642). At the far end and never weighted, so it
