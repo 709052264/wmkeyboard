@@ -638,7 +638,7 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Unicode License v3", "unicode-3.0.txt",
         "https://www.unicode.org/",
     ))
-    // The two below are downloaded by full-edition features only, so a lite
+    // The three below are downloaded by full-edition features only, so a lite
     // build does not list what it cannot fetch.
     if (com.wasimaster.wmkeyboard.core.stickers.SubjectCutout.supported) {
         add(Attribution(
@@ -647,6 +647,15 @@ private val dataPackAttributions: List<Attribution> = buildList {
             "Copyright the U\u00b2-Net authors (Xuebin Qin et al., 2020); rembg's u2netp.onnx, converted with onnx2tf",
             "Apache-2.0", "apache-2.0.txt",
             "https://github.com/xuebinqin/U-2-Net",
+        ))
+    }
+    if (BuildConfig.ENABLE_WHISPER) {
+        add(Attribution(
+            "PaddleOCR PP-OCRv5 models",
+            R.string.about_pack_paddle_used,
+            "Copyright PaddlePaddle Authors; LiteRT conversion by iFleey (PPOCRv5-Android)",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/PaddlePaddle/PaddleOCR",
         ))
     }
     if (BuildConfig.ENABLE_LOCAL_LLM) {

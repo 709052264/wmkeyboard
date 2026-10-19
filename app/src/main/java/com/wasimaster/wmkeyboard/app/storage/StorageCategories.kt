@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
+import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
@@ -483,11 +484,13 @@ internal object StorageCategories {
             group = StorageGroup.DOWNLOADS,
             danger = Danger.REDOWNLOAD,
             manageRoute = "tool/OCR",
-            pathsOf = { listOf(OcrPacks.dataDir(it.files)) },
+            pathsOf = { listOf(OcrPacks.dataDir(it.files), PaddleOcrModel.dir(it.files)) },
             itemsOf = { env ->
                 val dir = OcrPacks.dataDir(env.roots.files)
                 sweepLeftovers(dir)
-                childrenOf(dir).map { file ->
+                val paddleDir = PaddleOcrModel.dir(env.roots.files)
+                sweepLeftovers(paddleDir)
+                val tesseract = childrenOf(dir).map { file ->
                     val pack = file.name.removeSuffix(".traineddata")
                     StorageItem(
                         id = pack,
@@ -497,10 +500,24 @@ internal object StorageCategories {
                         files = listOf(file),
                     )
                 }
+                // PaddleOCR's three files are one pack, and one row.
+                val paddleFiles = childrenOf(paddleDir)
+                val paddle = if (paddleFiles.isEmpty()) emptyList() else listOf(
+                    StorageItem(
+                        id = PaddleOcrModel.PACK,
+                        label = OcrLanguages.nameOf(PaddleOcrModel.PACK),
+                        detail = paddleFiles.joinToString(", ") { it.name },
+                        bytes = paddleFiles.sumOf { diskUsage(it, env.roots.blockSize) },
+                        files = paddleFiles,
+                    ),
+                )
+                tesseract + paddle
             },
             deleteOne = { env, item -> OcrPacks.delete(env.roots.files, item.id) },
             clearOf = { env ->
                 OcrPacks.downloaded(env.roots.files).forEach { OcrPacks.delete(env.roots.files, it) }
+                // Also a Paddle download cut short, whose files are not yet a pack.
+                OcrPacks.delete(env.roots.files, PaddleOcrModel.PACK)
             },
         ),
         StorageCategory(
