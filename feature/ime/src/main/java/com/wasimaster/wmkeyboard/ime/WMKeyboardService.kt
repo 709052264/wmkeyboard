@@ -7232,6 +7232,8 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         if (deviceLocked) watchKeyguard()
+        // Left with voice typing on screen: it opens again here, listening (#699).
+        resumeVoiceSurface()
         // Chord and morse state belongs to the field it was typed over.
         resetChordInputs()
         refreshKarContext()
@@ -8288,6 +8290,9 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             _uiState.update { it.copy(autofillChips = emptyList(), smartReplyChips = emptyList()) }
         }
+        // Which voice view the keyboard is leaving on, for the next show to
+        // open again (#699). Read before the cancel below settles the session.
+        persistentSurface.saveVoice(voiceSurfaceToResume(_uiState.value))
         // The keyboard is going away mid-dictation: release the mic (the
         // privacy indicator must never outlive the keyboard) and keep the
         // partial that was already on screen.
@@ -29034,6 +29039,51 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The voice view on screen as the keyboard goes away, when the user has
+     * asked for it back on the next show (#699): [VOICE_RESUME_PANEL],
+     * [VOICE_RESUME_STRIP] or [VOICE_RESUME_BAR], else null. Leaving the view
+     * by hand — Back, its close key, the tool — is how this is switched off, so
+     * no separate toggle is needed for the times dictation is not wanted.
+     */
+    private fun voiceSurfaceToResume(state: KeyboardUiState): String? {
+        val voice = state.settings.voiceBar
+        if (!voice.enabled || !voice.resumeOnShow || state.secureField) return null
+        return when {
+            state.panel == PanelMode.VOICE -> VOICE_RESUME_PANEL
+            state.voice.strip -> VOICE_RESUME_STRIP
+            voiceBarShowing() -> VOICE_RESUME_BAR
+            else -> null
+        }
+    }
+
+    /**
+     * Opens the voice view [voiceSurfaceToResume] recorded and starts
+     * listening. Recorded in a file rather than a field, because the keyboard
+     * that comes back is often a new process (see [PersistentSurfacePrefs]);
+     * so it waits for the stored settings, and asks again whether the switch
+     * is still on and the field still takes dictation.
+     */
+    private fun resumeVoiceSurface() {
+        val kind = persistentSurface.voice ?: return
+        persistentSurface.saveVoice(null)
+        serviceScope.launch {
+            storedSettingsApplied.await()
+            val state = _uiState.value
+            val voice = state.settings.voiceBar
+            if (!keyboardVisible || state.secureField || !voice.enabled || !voice.resumeOnShow) return@launch
+            voiceSilentRetries = 0
+            when (kind) {
+                VOICE_RESUME_PANEL -> if (state.panel == PanelMode.NONE) onPanelChange(PanelMode.VOICE, haptic = false)
+                VOICE_RESUME_STRIP -> if (state.panel == PanelMode.NONE && !state.voice.strip) {
+                    _uiState.update { it.copy(voice = it.voice.copy(strip = true)) }
+                    startVoice()
+                }
+                VOICE_RESUME_BAR -> if (voiceBarShowing() && !voiceActive()) startVoice()
+            }
+        }
+    }
+
     private fun closeVoiceStrip() {
         if (!_uiState.value.voice.strip) return
         vibrate()
@@ -46732,6 +46782,11 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How long after the microphone closes the paused media gets its focus back. */
         private const val VOICE_MEDIA_RESUME_MS = 1_200L
+
+        /** What [voiceSurfaceToResume] records (#699). */
+        private const val VOICE_RESUME_PANEL = "panel"
+        private const val VOICE_RESUME_STRIP = "strip"
+        private const val VOICE_RESUME_BAR = "bar"
 
         /** How long the recognizer's word list is used before it is gathered again. */
         private const val VOICE_BIAS_TTL_MS = 5 * 60_000L

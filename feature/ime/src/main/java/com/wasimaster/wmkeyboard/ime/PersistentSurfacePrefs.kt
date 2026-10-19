@@ -54,10 +54,23 @@ class PersistentSurfacePrefs(context: Context) {
         }
     }
 
+    /**
+     * The voice view the keyboard last left the screen on, when the user asked
+     * for it to open again on the next show (#699), or null.
+     */
+    val voice: String? get() = prefs.getString(KEY_VOICE, null)
+
+    /** Records [voice]; writes nothing when it has not changed. */
+    fun saveVoice(voice: String?) {
+        if (voice == this.voice) return
+        prefs.edit { putString(KEY_VOICE, voice) }
+    }
+
     private companion object {
         const val FILE_NAME = "persistent_surface"
         const val KEY_PANEL = "panel"
         const val KEY_LAYER = "layer"
         const val KEY_SECONDARY = "secondary"
+        const val KEY_VOICE = "voice"
     }
 }

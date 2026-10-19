@@ -45,6 +45,12 @@ Every word you dictate is learned the same way a typed word is, so frequent dict
 - **No microphone permission** shows an explanation and an "Allow microphone" button. Tapping it opens a system permission prompt through a small trampoline screen (IMEs can't show permission dialogs directly), and the keyboard rechecks automatically once you're back. The bars have room for one line, so they say "The app needs microphone permission" with an **Allow** chip.
 - **No speech recognizer on the device** (rare, typically no Google app installed) shows "Speech recognition is not available on your device." in the panel, or "Speech recognition is not available" on either bar.
 
+### Opening on voice typing
+
+If you dictate more than you type, switch on **Reopen voice typing where you left it** on the Voice typing screen. After that, closing the keyboard with the voice panel, the compact bar or the collapsed bar on screen means the next field you tap opens on the same view and starts listening. That holds when you send a message, switch apps or tap into another box.
+
+You turn it off by leaving voice typing yourself. Press Back or the close button on the panel or the compact bar, the keyboard button on the collapsed bar, or the Voice tool, and the keyboard opens on its keys from then on. Open voice typing again and it sticks again. Password fields always open on the keys, and without the microphone permission the view asks for it instead of listening.
+
 ## Typing while you dictate
 
 <SettingsPath path="Voice typing / Voice typing mode" />
@@ -255,6 +261,7 @@ Everything below lives on the Voice typing screen, under Features on the setting
 | Language button on the compact bar | Off | Shown while **Voice typing view** is the compact bar. Adds the language chip to the bar, so you can pick what dictation listens for without opening the panel. See [Language and engine](#language-and-engine). |
 | Voice typing mode | One block at a time | Another choice of three: whether the keys work while the mic is open. **One block at a time**, **Type while you speak**, or **Type while you speak, plain text**. See [Typing while you dictate](#typing-while-you-dictate). |
 | Hold the tool to pick a mode | On | A press and hold on the toolbar's Voice tool opens a menu of the three modes; picking one makes it the mode and starts dictation. Off gives the hold back to the toolbar's own press-and-hold action. |
+| Reopen voice typing where you left it | Off | Close the keyboard with a voice view open and the next field opens on that view, already listening. See [Opening on voice typing](#opening-on-voice-typing). |
 | Pause media during voice typing | Off | The keyboard takes the audio focus while the microphone listens, so music, podcasts and video pause. They resume about a second after dictation ends, which keeps a continuous session from restarting the music between sentences. An app that ignores the request keeps playing. |
 | Microphone switch | On | Off leaves the microphone to Android and takes the switch off the voice views. See [Choosing the microphone](#choosing-the-microphone). |
 | Microphone | Automatic | Which microphone voice typing listens through: **Automatic**, **Bluetooth headset**, **Wired headset**, **USB microphone** or **Phone microphone**. A pick is preferred whenever one of its kind is connected, and automatic stands in when none is. See [Choosing the microphone](#choosing-the-microphone). |

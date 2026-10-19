@@ -121,6 +121,10 @@
     <string name="voice_strip_language_title">Language button on the compact bar</string>
     <string name="voice_strip_language_subtitle">Pick the voice typing language without leaving the bar</string>
     <string name="voice_strip_language_info">Adds a small button with the language code, such as EN, to the compact bar over the keys. Tap it to choose which language voice typing listens for: the keyboard\'s language, one language whatever the keyboard is set to, or all your keyboard languages at once. It is the same choice as the button on the full voice panel.\n\nThis setting is off by default, because the bar has room for one line. The button shows only when you have more than one keyboard language, or a language already chosen.</string>
+    <!-- #699: the keyboard opens on the voice view it was closed on. -->
+    <string name="voice_resume_title">Reopen voice typing where you left it</string>
+    <string name="voice_resume_subtitle">Close the keyboard with voice typing open, and it opens listening next time</string>
+    <string name="voice_resume_info">When the keyboard goes away with the voice panel, the compact bar or the collapsed bar on screen, the next text field you tap opens on the same view and starts listening.\n\nTo stop that, leave voice typing before you close the keyboard: press Back or the close button on the panel or the compact bar, the keyboard button on the collapsed bar, or the Voice tool. The keyboard then opens on the keys as usual until you start voice typing again. Password fields always open on the keys.</string>
     <string name="voice_pause_media_title">Pause media during voice typing</string>
     <string name="voice_pause_media_subtitle">Pause music and video while the microphone listens</string>
     <string name="voice_mic_title">Microphone</string>

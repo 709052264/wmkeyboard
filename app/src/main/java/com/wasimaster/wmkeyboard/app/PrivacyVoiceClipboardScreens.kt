@@ -478,6 +478,15 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
         item {
             ToggleSetting(
+                R.string.voice_resume_title,
+                stringResource(R.string.voice_resume_subtitle),
+                settings.watch { it.voiceBar.resumeOnShow },
+                info = stringResource(R.string.voice_resume_info),
+                default = SettingsDefaults.voiceBar.resumeOnShow,
+            ) { scope.launch { repository.setVoiceResumeOnShow(it) } }
+        }
+        item {
+            ToggleSetting(
                 R.string.voice_pause_media_title,
                 stringResource(R.string.voice_pause_media_subtitle),
                 settings.watch { it.voiceBar.pauseMedia },

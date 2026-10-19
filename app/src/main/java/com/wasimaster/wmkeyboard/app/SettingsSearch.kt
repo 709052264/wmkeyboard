@@ -1111,6 +1111,7 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_strip_language_title, R.string.voice_strip_language_subtitle),
         row(R.string.voice_typing_title, R.string.voice_typing_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.voice_hold_picks_title, R.string.voice_hold_picks_subtitle),
+        row(R.string.voice_resume_title, R.string.voice_resume_subtitle),
         row(R.string.voice_pause_media_title, R.string.voice_pause_media_subtitle),
         row(R.string.voice_mic_switch_title, R.string.voice_mic_switch_subtitle),
         row(R.string.voice_mic_title, R.string.voice_mic_subtitle),

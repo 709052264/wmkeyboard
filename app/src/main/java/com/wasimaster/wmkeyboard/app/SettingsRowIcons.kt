@@ -1449,6 +1449,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_strip_language_title) { Icons.Outlined.Language }
         put(R.string.voice_typing_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.voice_hold_picks_title) { Icons.Outlined.TouchApp }
+        put(R.string.voice_resume_title) { Icons.Outlined.Replay }
         put(R.string.voice_pause_media_title) { Icons.Outlined.MusicNote }
         put(R.string.voice_mic_title) { Icons.Outlined.HeadsetMic }
         put(R.string.voice_mic_switch_title) { Icons.Outlined.HeadsetMic }

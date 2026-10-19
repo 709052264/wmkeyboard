@@ -595,6 +595,7 @@
 		"voice_server_language_title": "0.5.11",
 		"voice_server_test_title": "0.5.11",
 		"voice_silence_stop_title": "0.5.14",
+		"voice_resume_title": "0.6.2",
 		"voice_strip_language_title": "0.6.0",
 		"voice_system_on_device_title": "0.6.0"
 	},
