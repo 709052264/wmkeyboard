@@ -719,6 +719,7 @@
     <string name="textedit_action_doc_start">Start of the text</string>
     <string name="textedit_action_doc_end">End of the text</string>
     <string name="textedit_action_cut">Cut</string>
+    <string name="textedit_action_retype_word">Retype word</string>
     <string name="textedit_action_home">Start of the line</string>
     <string name="textedit_action_end">End of the line</string>
     <string name="textedit_action_select">Select</string>

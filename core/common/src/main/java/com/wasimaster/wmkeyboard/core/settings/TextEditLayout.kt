@@ -30,6 +30,11 @@ enum class TextEditAction {
     // in a long note lands a screen away from the top). And cut, which the
     // clipboard trio had always been missing on a key.
     DOC_START, DOC_END, CUT,
+
+    // Issue #791. Takes the word right behind the caret back out so it can be
+    // typed again, and puts it and whatever else its swipe read on the strip.
+    // Nothing runs it by default; it is there for a key, a flick or a gesture.
+    RETYPE_WORD,
 }
 
 /**

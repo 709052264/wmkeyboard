@@ -19,6 +19,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrow
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardDoubleArrowUp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignBottom
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VerticalAlignTop
 import androidx.compose.runtime.Composable
@@ -63,6 +64,7 @@ fun textEditIcon(op: TextEditAction): ImageVector? = when (op) {
     TextEditAction.DOC_START -> Icons.Outlined.VerticalAlignTop
     TextEditAction.DOC_END -> Icons.Outlined.VerticalAlignBottom
     TextEditAction.CUT -> Icons.Outlined.ContentCut
+    TextEditAction.RETYPE_WORD -> Icons.Outlined.EditNote
     // Select is a toggle rather than a move: it reads as a word, and being lit
     // is what says it is on.
     TextEditAction.SELECT -> null
@@ -103,4 +105,5 @@ internal fun textEditDescription(op: TextEditAction): Int = when (op) {
     TextEditAction.DOC_START -> R.string.ime_textedit_doc_start_desc
     TextEditAction.DOC_END -> R.string.ime_textedit_doc_end_desc
     TextEditAction.CUT -> CommonR.string.common_cut
+    TextEditAction.RETYPE_WORD -> R.string.ime_textedit_retype_word_desc
 }

@@ -802,6 +802,7 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.DOC_START -> "⇱"
     TextEditAction.DOC_END -> "⇲"
     TextEditAction.CUT -> "✂"
+    TextEditAction.RETYPE_WORD -> "↺"
 }
 
 /**

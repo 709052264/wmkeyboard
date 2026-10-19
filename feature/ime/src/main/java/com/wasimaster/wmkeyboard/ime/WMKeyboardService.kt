@@ -2799,6 +2799,19 @@ open class WMKeyboardService : InputMethodService() {
     private var caretWord: CaretWord? = null
 
     /**
+     * What a Retype (#791) took out of the field: the word, where it began
+     * (where the caret was left), and the other words its swipe read. The
+     * strip offers the word and then those until the next keystroke; a pick
+     * from them spends it. [start] is -1 until the field's own echo reports
+     * the caret, for a word that was still composing and so had no offset.
+     */
+    private class RetypeOffer(val word: String, val start: Int, val readings: List<String>) {
+        val offered: List<String> get() = listOf(word) + readings
+    }
+
+    private var retypeOffer: RetypeOffer? = null
+
+    /**
      * Puts a selected word on the strip (#413): one word, selected whole, is
      * the user asking about it, and the strip's answer is the same as for a
      * caret parked inside the word — the word itself, for the hold menu, and
@@ -2849,6 +2862,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun clearCaretWord() {
         caretWord = null
+        retypeOffer = null
         // Both are about that word in that place: a caret anywhere else is a
         // different question, and a stale offer would teach a stroke the
         // answer to one it never asked (#135).
@@ -13487,6 +13501,15 @@ open class WMKeyboardService : InputMethodService() {
      * the composing region.
      */
     private fun restartSuggestionsAtCursor(ic: InputConnection, newSelStart: Int) {
+        // The caret settling where a Retype left it (#791): the strip stays on
+        // the word that was taken out, rather than predicting past it.
+        retypeOffer?.let { offer ->
+            if (composing.isEmpty() && (offer.start < 0 || offer.start == newSelStart)) {
+                clearCaretWord()
+                publishRetypeOffer(RetypeOffer(offer.word, newSelStart, offer.readings))
+                return
+            }
+        }
         val state = _uiState.value
         // Whatever the caret was sitting in before this update, it is being
         // answered again from scratch below.
@@ -13864,6 +13887,81 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 it.copy(suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
             }
+        }
+    }
+
+    /**
+     * Retype (#791): takes the word right behind the caret back out of the
+     * field so it can be typed again, and keeps what else it could have been.
+     *
+     * The target is the word that ends at the caret, or one space before it,
+     * the space a pick or a glide leaves after a word; with a word still being
+     * typed it is that word. Anything else behind the caret (a mark, a line
+     * break, two spaces) is not a word to retype, and nothing happens rather
+     * than reaching further back for one. Nothing happens either with a
+     * selection, in a field that will not say what is behind its caret, or
+     * when the caret is no longer where the keyboard last saw it: a stale
+     * offset would take the wrong characters out.
+     *
+     * The word and that one space go, and the caret is left where the word
+     * began. The strip then offers the word itself first, so one tap puts it
+     * back, then whatever else its swipe read ([glideReadings]); a tapped word
+     * has nothing more to offer, and nothing is made up for it. The word is
+     * deleted the way a backspace swipe deletes one, so it is dropped from
+     * the learning buffer with it.
+     */
+    private fun retypeWord() {
+        if (backspaceEditsBuffer()) return
+        val ic = currentInputConnection ?: return
+        if (hasSelection(ic) || isNullField()) return
+        val engine = suggestionEngine
+        if (composing.isNotEmpty()) {
+            val word = composing.toString()
+            val shown = _uiState.value.suggestions
+                .filterNot { it.equals(word, ignoreCase = true) }
+                .filterNot { engine?.suppresses(it) == true }
+            composing.setLength(0)
+            duetWord.clear()
+            composingTouch.clear()
+            composingKeys.clear()
+            composingHints.clear()
+            ambiguousReading = null
+            keystrokeTiming.reset()
+            updateComposingText(ic)
+            clearCaretWord()
+            publishRetypeOffer(RetypeOffer(word, -1, shown))
+            return
+        }
+        val at = expectedSelStart
+        if (at < 0 || !caretStillAt(ic, at)) return
+        val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
+        val body = if (before.endsWith(' ') && !before.endsWith("  ")) before.dropLast(1) else before
+        var from = body.length
+        while (from > 0 && isComposingWordChar(body[from - 1])) from--
+        val word = body.substring(from)
+        // No letter, no word; and one that runs back past what was read may
+        // be longer than it looks.
+        if (word.none { it.isLetter() } || (from == 0 && before.length >= RETYPE_LOOKBEHIND)) return
+        val length = before.length - from
+        val start = at - length
+        val readings = glideReadings.readingsAt(word, start).filterNot { engine?.suppresses(it) == true }
+        recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        clearCaretWord()
+        revision?.expectDelete(length, 0)
+        noteDeletedForLearning(start, at)
+        ic.deleteSurroundingText(length, 0)
+        lastGestureWord = null
+        lastRevertible = null
+        clearSwapOffer()
+        syncPreviousWordFromField(ic)
+        publishRetypeOffer(RetypeOffer(word, start, readings))
+    }
+
+    /** Puts a Retype's word and its readings on the strip, and keeps them as the offer. */
+    private fun publishRetypeOffer(offer: RetypeOffer) {
+        retypeOffer = offer
+        _uiState.update {
+            it.copy(suggestions = offer.offered, emojiSuggestions = emptyList(), octopus = emptyMap())
         }
     }
 
@@ -21971,6 +22069,15 @@ open class WMKeyboardService : InputMethodService() {
         // edit in the service. A live buffer keeps its region, which is the
         // one the ordinary pick is *supposed* to replace.
         if (composing.isEmpty()) ic.finishComposingText()
+        // A word picked off a Retype's strip (#791) goes in at the caret like
+        // any other pick, below. One of the swipe's other readings teaches the
+        // stroke what picking it right after the swipe would have.
+        retypeOffer?.let { offer ->
+            retypeOffer = null
+            if (composing.isEmpty() && suggestion != offer.word && suggestion in offer.readings) {
+                noteGlidePreference(rejected = offer.word, chosen = suggestion)
+            }
+        }
         // Email-field completion: no composing region backs the tapped address,
         // so the partial token the user typed is removed by hand before the full
         // address is committed. Not learned — an address is not a dictionary word,
@@ -40328,6 +40435,13 @@ open class WMKeyboardService : InputMethodService() {
             if (action == TextEditAction.BACKSPACE) onDelete() else onForwardDelete()
             return
         }
+        // Before the composing text is committed below: a word still being
+        // typed is the word to retype.
+        if (action == TextEditAction.RETYPE_WORD) {
+            if (haptic) vibrate()
+            retypeWord()
+            return
+        }
         val ic = currentInputConnection ?: return
         if (haptic) vibrate()
         endCompositionForCaretKey(ic)
@@ -40388,7 +40502,7 @@ open class WMKeyboardService : InputMethodService() {
                 purgeAfterPasswordPaste()
             }
             // Handled above, before the composing text was committed.
-            TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE -> Unit
+            TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
             // shift too and extend to the end.
@@ -46624,6 +46738,9 @@ open class WMKeyboardService : InputMethodService() {
         private const val NUMBER_SUGGESTION_LIMIT = 3
 
         /** Enough to hold the longest number [TypedNumbers] keeps, and what stands in front of it. */
+        /** How far back a Retype (#791) reads for the word behind the caret. */
+        private const val RETYPE_LOOKBEHIND = 64
+
         private const val NUMBER_RUN_LOOKBEHIND = TypedNumbers.MAX_LENGTH + 1
 
         /** How far back [listStepAtCaret] looks for the start of the caret's line. */

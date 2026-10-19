@@ -159,6 +159,7 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.DOC_START -> R.string.textedit_action_doc_start
     TextEditAction.DOC_END -> R.string.textedit_action_doc_end
     TextEditAction.CUT -> R.string.textedit_action_cut
+    TextEditAction.RETYPE_WORD -> R.string.textedit_action_retype_word
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */

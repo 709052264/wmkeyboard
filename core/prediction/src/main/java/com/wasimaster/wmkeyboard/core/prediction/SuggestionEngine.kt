@@ -789,6 +789,9 @@ class SuggestionEngine(
      */
     private fun suppressed(word: String): Boolean = blacklisted(word) || offensive(word)
 
+    /** Whether the strip would hold [word] back: on the blacklist, or a blocked offensive word. */
+    fun suppresses(word: String): Boolean = suppressed(word)
+
     /** The bundled dictionary, or an empty one when [englishSources] is off. */
     private val activeDictionary: WordSource
         get() = if (englishSources) dictionary else emptyTrie
