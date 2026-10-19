@@ -72,19 +72,6 @@ android {
     testOptions.unitTests.isIncludeAndroidResources = true
 }
 
-androidComponents {
-    onVariants { variant ->
-        // Which ML Kit OCR scripts the full build can name (#757): all five on
-        // Play, Latin only elsewhere. A static source dir rather than a flavour
-        // folder because it follows the channel, which no flavour does.
-        if (variant.flavorName == "full") {
-            variant.sources.kotlin?.addStaticSourceDirectory(
-                if (playStoreChannel) "src/ocrplay/java" else "src/ocrsideload/java"
-            )
-        }
-    }
-}
-
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
@@ -144,16 +131,19 @@ dependencies {
     if (playStoreChannel) {
         "fullImplementation"(libs.mlkit.text.recognition.unbundled)
         "fullImplementation"(libs.mlkit.barcode.scanning.unbundled)
-        // The other four OCR scripts (#757), Play only: their models come from
-        // Play services on first use. See src/ocrplay.
-        "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
-        "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     } else {
         "fullImplementation"(libs.mlkit.text.recognition)
         "fullImplementation"(libs.mlkit.barcode.scanning)
     }
+    // The other four OCR scripts (#757), unbundled on every channel: Play
+    // services fetches each model on first use. About 3 KB of code each, as
+    // the shared pipeline is already here through the Latin artifact (the
+    // bundled one depends on the unbundled one). Without Play services those
+    // scripts read with Paddle or Tesseract instead (OcrLanguages).
+    "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
+    "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     "fullImplementation"(libs.mlkit.document.scanner)
 
     testImplementation(libs.junit)

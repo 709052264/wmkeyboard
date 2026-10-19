@@ -28,13 +28,14 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 object OcrLanguages {
 
     /**
-     * Whether ML Kit's four non-Latin recognizers can run: a Play build on a
-     * phone with Play services. Null asks the build and the phone; tests set it.
+     * Whether ML Kit's four non-Latin recognizers can run: a full build on a
+     * phone with Play services, which downloads their models. Null asks the
+     * build and the phone; tests set it.
      */
     internal var extraScriptsOverride: Boolean? = null
 
     private val extraScripts: Boolean
-        get() = extraScriptsOverride ?: (BuildConfig.ENABLE_PLAY_STORE && PlayServices.available)
+        get() = extraScriptsOverride ?: (BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available)
 
     /**
      * Whether this build can run PaddleOCR: every full build, since the
@@ -149,9 +150,9 @@ object OcrLanguages {
      * none for its script. Each non-Latin recognizer reads Latin as well, so
      * English words in a Japanese sign still come through.
      *
-     * Only Play builds carry the other four, and their models come from Play
-     * services on first use, so off Play or without Play services they count
-     * as missing and those scripts go to Paddle or Tesseract.
+     * The other four's models come from Play services on first use, so
+     * without Play services they count as missing and those scripts go to
+     * Paddle or Tesseract.
      */
     fun mlKitScript(language: LanguageDef): MlKitScript? {
         if (language.id in notText) return null

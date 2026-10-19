@@ -82,8 +82,8 @@ class OcrLanguagesTest {
     }
 
     @Test
-    fun offPlayOnlyLatinIsMlKits() {
-        // Sideload builds, or no Play services: Chinese and Japanese go to
+    fun withoutPlayServicesOnlyLatinIsMlKits() {
+        // No Play services to fetch the models: Chinese and Japanese go to
         // Paddle (#757), Korean and Devanagari to Tesseract.
         OcrLanguages.extraScriptsOverride = false
         assertEquals(MlKitScript.LATIN, OcrLanguages.mlKitScript(lang("en")))
