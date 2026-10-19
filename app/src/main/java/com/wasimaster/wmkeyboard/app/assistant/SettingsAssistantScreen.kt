@@ -73,6 +73,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -96,13 +97,16 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shuffle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Stop
-import com.wasimaster.wmkeyboard.core.settings.AiProviders
-import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
 import com.wasimaster.wmkeyboard.ime.ui.ChatLink
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdown
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdownColors
+import kotlin.random.Random
 import kotlinx.coroutines.launch
 
 /**
@@ -142,16 +146,20 @@ internal fun SettingsAssistantScreen(
     // The row a link in an answer named, while its sheet is up.
     var peekKey by rememberSaveable { mutableStateOf<String?>(null) }
 
+    // Keyed on the chat store's version as the AI chat's chips are, so a
+    // model downloaded a moment ago is offered here too.
     val ai = settings.watch { it.ai }
     val providers = settings.watch { it.providers }
-    val rows = remember(ai, providers) { SettingsAssistantSession.rows(settings.value) }
-    val row = remember(rows, chosenKey) { SettingsAssistantSession.row(settings.value) }
+    val storeVersion by AiChatController.storeVersion.collectAsState()
+    val choices = remember(ai, providers, storeVersion) { SettingsAssistantSession.choices(context, settings.value) }
+    val choice = remember(choices, chosenKey) { SettingsAssistantSession.current(choices, settings.value) }
     val noProvider = stringResource(R.string.settings_assistant_no_provider)
     val title = stringResource(R.string.settings_assistant_title)
     RegisterSettingsCrumb(title)
 
     fun send(text: String = draft) {
         SettingsAssistantSession.send(
+            context = context,
             text = text,
             settings = { settings.value },
             index = index,
@@ -188,14 +196,14 @@ internal fun SettingsAssistantScreen(
                 title = {
                     Column {
                         Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        if (row != null) {
+                        if (choice != null) {
                             ModelPicker(
-                                row = row,
-                                rows = rows,
+                                choice = choice,
+                                choices = choices,
                                 model = { SettingsAssistantSession.modelOf(settings.value, it) },
                                 enabled = !busy,
                                 reduceMotion = reduceMotion,
-                                onPick = { SettingsAssistantSession.choose(it.key) },
+                                onPick = SettingsAssistantSession::choose,
                                 onSetUp = onOpenAiSettings,
                             )
                         }
@@ -236,9 +244,10 @@ internal fun SettingsAssistantScreen(
                 if (items.isEmpty()) {
                     item(key = "intro") {
                         Intro(
-                            hasProvider = row != null,
+                            hasProvider = choice != null,
+                            reduceMotion = reduceMotion,
                             onOpenAiSettings = onOpenAiSettings,
-                            onStarter = { starter -> if (row != null && !busy) send(starter) else draft = starter },
+                            onStarter = { starter -> if (choice != null && !busy) send(starter) else draft = starter },
                             modifier = listItemMotion(reduceMotion),
                         )
                     }
@@ -383,24 +392,25 @@ private fun Answer(text: String, settingLink: (String) -> ChatLink?) {
 
 /**
  * Which model answers, under the screen's title, and the menu to pick
- * another. The menu offers every remote row of the AI list that can answer;
- * picking one changes the assistant's choice only, never the keyboard's.
+ * another. The menu offers what the AI chat's chips do: downloaded on-device
+ * models, then every row of the AI list that can answer. Picking one changes
+ * the assistant's choice only, never the keyboard's.
  */
 @Composable
 private fun ModelPicker(
-    row: ResolvedProvider,
-    rows: List<ResolvedProvider>,
-    model: (ResolvedProvider) -> String,
+    choice: ModelChoice,
+    choices: List<ModelChoice>,
+    model: (ModelChoice) -> String,
     enabled: Boolean,
     reduceMotion: Boolean,
-    onPick: (ResolvedProvider) -> Unit,
+    onPick: (ModelChoice) -> Unit,
     onSetUp: () -> Unit,
 ) {
     var open by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     val turn by animateFloatAsState(if (open) 180f else 0f, label = "pickerChevron")
-    val label = rowLabel(row)
-    val current = listOf(label, model(row)).filter { it.isNotBlank() }.joinToString(" · ")
+    val label = choiceLabel(choice)
+    val current = listOf(label, model(choice)).filter { it.isNotBlank() }.joinToString(" · ")
     val described = stringResource(R.string.settings_assistant_model_desc, current)
     Box {
         Row(
@@ -447,13 +457,15 @@ private fun ModelPicker(
             onDismissRequest = { open = false },
             shape = RoundedCornerShape(16.dp),
         ) {
-            for (option in rows) {
-                val picked = option.key == row.key
+            for (option in choices) {
+                val picked = option.key == choice.key
                 DropdownMenuItem(
                     text = {
                         Column {
-                            Text(rowLabel(option), style = MaterialTheme.typography.bodyLarge)
-                            val name = model(option)
+                            Text(choiceLabel(option), style = MaterialTheme.typography.bodyLarge)
+                            val name = model(option).ifBlank {
+                                if (option.provider == AiProvider.ON_DEVICE) stringResource(AiProvider.ON_DEVICE.labelRes) else ""
+                            }
                             if (name.isNotBlank()) {
                                 Text(name, style = MaterialTheme.typography.labelSmall, color = colors.onSurfaceVariant)
                             }
@@ -485,16 +497,28 @@ private fun ModelPicker(
     }
 }
 
-/** A row of the AI list by the name the list shows: the user's own for it, else its service's. */
+/**
+ * A choice by the name the pickers show: an on-device model by its own name,
+ * a row of the AI list by the one the user gave it, else its service's.
+ */
 @Composable
-private fun rowLabel(row: ResolvedProvider): String =
-    row.customName.ifEmpty { AiProviders.of(row.typeId)?.let { stringResource(it.labelRes) } ?: row.typeId }
+private fun choiceLabel(choice: ModelChoice): String =
+    if (choice.provider == AiProvider.ON_DEVICE) {
+        AiChatController.localModelLabel(choice.localModelId)
+    } else {
+        choice.name.ifEmpty { stringResource(choice.provider.labelRes) }
+    }
 
-/** The first thing on an empty conversation: what the assistant does, and three ways to start. */
+/**
+ * The first thing on an empty conversation: what the assistant does, and
+ * three questions to start from, drawn at random from the FAQ list each time
+ * the screen opens. Shuffle deals three more.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Intro(
     hasProvider: Boolean,
+    reduceMotion: Boolean,
     onOpenAiSettings: () -> Unit,
     onStarter: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -512,14 +536,43 @@ private fun Intro(
                 Text(stringResource(R.string.settings_assistant_set_up_ai))
             }
         } else {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                for (starter in listOf(
-                    R.string.settings_assistant_starter_long_press,
-                    R.string.settings_assistant_starter_quiet,
-                    R.string.settings_assistant_starter_glide,
-                )) {
-                    val text = stringResource(starter)
-                    AssistChip(onClick = { onStarter(text) }, label = { Text(text) })
+            val faq = stringArrayResource(R.array.settings_assistant_faq)
+            // Saved, so a rotation keeps the three on screen; a fresh visit
+            // to the screen deals new ones.
+            var deal by rememberSaveable { mutableIntStateOf(Random.nextInt()) }
+            val picks = remember(faq, deal) { faq.toList().shuffled(Random(deal)).take(STARTERS) }
+            Column {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(R.string.settings_assistant_try),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = colors.primary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    IconButton(onClick = { deal = Random.nextInt() }) {
+                        Icon(Icons.Outlined.Shuffle, contentDescription = stringResource(R.string.settings_assistant_shuffle))
+                    }
+                }
+                AnimatedContent(
+                    targetState = picks,
+                    transitionSpec = {
+                        val swap = if (reduceMotion) {
+                            fadeIn() togetherWith fadeOut()
+                        } else {
+                            (fadeIn() + slideInVertically { it / 6 }) togetherWith (fadeOut() + slideOutVertically { -it / 6 })
+                        }
+                        swap using SizeTransform(clip = false)
+                    },
+                    label = "starters",
+                ) { shown ->
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        for (text in shown) {
+                            AssistChip(onClick = { onStarter(text) }, label = { Text(text) })
+                        }
+                    }
                 }
             }
         }
@@ -712,3 +765,6 @@ private fun Modifier.arrival(id: Int, moving: Boolean): Modifier {
 }
 
 private val ARRIVAL_RISE = 18.dp
+
+/** How many FAQ questions the empty conversation offers at once. */
+private const val STARTERS = 3

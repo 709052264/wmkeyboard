@@ -6,7 +6,7 @@
     <string name="settings_assistant_ask">Ask the settings assistant</string>
     <string name="settings_assistant_intro">Say what you want from the keyboard, such as \"I keep triggering long presses\" or \"set up a mode for typing codes\". The assistant finds the settings, explains them and shows you where they are. For a few common settings it can propose a change, which happens only when you press Apply.</string>
     <string name="settings_assistant_set_up_ai">Set up an AI provider</string>
-    <string name="settings_assistant_no_provider">The assistant needs an AI provider set up with a key or an address. The on-device model can\'t run it.</string>
+    <string name="settings_assistant_no_provider">The assistant needs an AI provider: a cloud or self-hosted one with its key or address, or an on-device model you have downloaded.</string>
     <!-- %1$s is the error the provider gave. -->
     <string name="settings_assistant_failed">The assistant couldn\'t answer: <xliff:g id="reason" example="timeout">%1$s</xliff:g></string>
     <string name="settings_assistant_hint">Ask about a setting</string>
@@ -34,8 +34,79 @@
     <string name="settings_assistant_add_provider">Set up another provider</string>
     <!-- Label over a change the assistant proposes. -->
     <string name="settings_assistant_proposal">Suggested change</string>
-    <string name="settings_assistant_starter_long_press">I keep triggering long presses</string>
-    <string name="settings_assistant_starter_quiet">Make the keyboard quieter</string>
-    <string name="settings_assistant_starter_glide">How do I turn on glide typing?</string>
+    <!-- Questions the empty assistant offers, three at a time, picked at random. Each should be answerable from a settings row. -->
+    <string-array name="settings_assistant_faq">
+        <item>I keep triggering long presses</item>
+        <item>Make the keyboard quieter</item>
+        <item>How do I turn on glide typing?</item>
+        <item>Turn off the key vibration</item>
+        <item>Make the vibration stronger</item>
+        <item>Add a number row on top</item>
+        <item>Make the keyboard taller</item>
+        <item>Make the keys smaller</item>
+        <item>Use the keyboard with one hand</item>
+        <item>Autocorrect keeps changing my words</item>
+        <item>Stop capitalising the first letter</item>
+        <item>Stop adding a space after a suggestion</item>
+        <item>Show more suggestions while I type</item>
+        <item>Turn off word suggestions</item>
+        <item>Type in two languages without switching</item>
+        <item>Add another language</item>
+        <item>How do I switch languages quickly?</item>
+        <item>Hide the globe key</item>
+        <item>Move the cursor with the spacebar</item>
+        <item>Delete whole words faster</item>
+        <item>Add arrow keys</item>
+        <item>Show the key I press bigger</item>
+        <item>Turn off the key popup</item>
+        <item>Make a dark theme</item>
+        <item>Use my own photo as the background</item>
+        <item>Change the font on the keys</item>
+        <item>Give the keys rounded corners</item>
+        <item>Match the keyboard to my wallpaper colours</item>
+        <item>Keep things I copy in a clipboard history</item>
+        <item>Clear the clipboard history</item>
+        <item>Stop the keyboard learning what I type</item>
+        <item>Type privately without saving anything</item>
+        <item>Add a word to my dictionary</item>
+        <item>Remove a word it keeps suggesting</item>
+        <item>Import a dictionary file</item>
+        <item>Set up voice typing</item>
+        <item>Make voice typing work offline</item>
+        <item>Set up a text shortcut that expands</item>
+        <item>Where are the emoji settings?</item>
+        <item>Show emoji suggestions while I type</item>
+        <item>Add kaomoji</item>
+        <item>Use my own sticker packs</item>
+        <item>Translate what I type</item>
+        <item>Set up an AI provider</item>
+        <item>Let the AI rewrite my message</item>
+        <item>Lock the settings with my fingerprint</item>
+        <item>Back up my settings</item>
+        <item>Move my settings to a new phone</item>
+        <item>How fast do I type?</item>
+        <item>Turn off the typing statistics</item>
+        <item>Use less mobile data</item>
+        <item>Make the keyboard float</item>
+        <item>Set up the keyboard for a physical keyboard</item>
+        <item>Change what the toolbar shows</item>
+        <item>Add tools to the toolbar</item>
+        <item>Use a different setup in one app</item>
+        <item>Make the keyboard easier to read</item>
+        <item>Make it work better with TalkBack</item>
+        <item>Show my typing speed on the spacebar</item>
+        <item>Turn on two-thumb glide typing</item>
+        <item>Make the long-press menu appear faster</item>
+        <item>Change the key click sound</item>
+        <item>Type Bengali phonetically</item>
+        <item>Type Chinese with pinyin</item>
+        <item>Use flick input for Japanese</item>
+        <item>Write by hand instead of typing</item>
+        <item>Reset a setting to its default</item>
+        <item>Install a plugin</item>
+    </string-array>
+    <!-- Heading over the three starter questions. -->
+    <string name="settings_assistant_try">Try asking</string>
+    <string name="settings_assistant_shuffle">Show other questions</string>
     <string name="settings_assistant_invalid">Not applied: that value isn\'t one the setting takes.</string>
 </resources>

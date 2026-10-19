@@ -86,6 +86,13 @@ internal class AssistantTools(
         ),
     )
 
+    /**
+     * The tools an on-device model is offered: no documentation search, which
+     * is the one that needs the network and the longest to describe, and every
+     * description is prefilled again on every round.
+     */
+    val localSpecs: List<AiToolSpec> = specs.filter { it.name != DOCS }
+
     override fun run(call: AiToolCall): AiToolResult = runCatching {
         when (call.name) {
             SEARCH -> search(call)
@@ -99,19 +106,23 @@ internal class AssistantTools(
 
     private fun search(call: AiToolCall): AiToolResult {
         val query = call.argument("query") ?: return AiToolResult(call, "", error = "No query given.")
-        val hits = searchSettings(query, index).take(MAX_RESULTS)
+        val hits = lookup(query)
         if (hits.isEmpty()) return AiToolResult(call, "No settings row matches \"$query\".")
-        return AiToolResult(
-            call,
-            hits.joinToString("\n") { entry ->
-                buildString {
-                    append("id=").append(refs.idFor(entry.key)).append(" | ").append(entry.title)
-                    if (entry.screen.isNotEmpty()) append(" | in ").append(entry.screen)
-                    if (entry.subtitle.isNotEmpty()) append(" | ").append(entry.subtitle)
-                    changeable(entry)?.let { append(" | changeable as ").append(it.name) }
-                }
-            },
-        )
+        return AiToolResult(call, describe(hits))
+    }
+
+    /** The rows a search for [query] finds, best first, as [search] ranks them. */
+    fun lookup(query: String): List<SettingsSearchEntry> =
+        if (query.isBlank()) emptyList() else searchSettings(query, index).take(MAX_RESULTS)
+
+    /** [hits] the way a search answers the model: one line each, with the short id a link names. */
+    fun describe(hits: List<SettingsSearchEntry>): String = hits.joinToString("\n") { entry ->
+        buildString {
+            append("id=").append(refs.idFor(entry.key)).append(" | ").append(entry.title)
+            if (entry.screen.isNotEmpty()) append(" | in ").append(entry.screen)
+            if (entry.subtitle.isNotEmpty()) append(" | ").append(entry.subtitle)
+            changeable(entry)?.let { append(" | changeable as ").append(it.name) }
+        }
     }
 
     private fun show(call: AiToolCall): AiToolResult {

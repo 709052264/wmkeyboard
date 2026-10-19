@@ -2,7 +2,9 @@ package com.wasimaster.wmkeyboard.app.assistant
 
 import com.wasimaster.wmkeyboard.app.R
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.core.tools.AiToolCall
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -93,6 +95,24 @@ class SettingsAssistantTest {
         assertEquals(index.first().key, refs.keyFor("${SettingRefs.LINK_SCHEME}$first"))
         refs.clear()
         assertNull(refs.keyFor(first))
+    }
+
+    @Test
+    fun `an on-device model is told about rows without searching, and offered no docs search`() {
+        val rows = tools.describe(tools.lookup("long press"))
+        assertTrue(rows, Regex("""id=s\d+ \| Long press delay""").containsMatchIn(rows))
+        assertTrue(tools.lookup("   ").isEmpty())
+        assertFalse(tools.localSpecs.any { it.name == AssistantTools.DOCS })
+        assertTrue(tools.localSpecs.any { it.name == AssistantTools.SHOW })
+    }
+
+    @Test
+    fun `a cloud row answers before a downloaded model unless one is picked`() {
+        val local = AiChatController.ModelChoice(AiProvider.ON_DEVICE, "gemma", rowKey = "on_device")
+        val cloud = AiChatController.ModelChoice(AiProvider.OPENAI, rowKey = "openai")
+        assertEquals(cloud, SettingsAssistantSession.current(listOf(local, cloud), settings))
+        assertEquals(local, SettingsAssistantSession.current(listOf(local), settings))
+        assertNull(SettingsAssistantSession.current(emptyList(), settings))
     }
 
     @Test

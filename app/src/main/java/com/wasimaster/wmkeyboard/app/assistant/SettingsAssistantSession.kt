@@ -1,17 +1,20 @@
 package com.wasimaster.wmkeyboard.app.assistant
 
+import android.content.Context
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
-import com.wasimaster.wmkeyboard.core.settings.AiProviders
-import com.wasimaster.wmkeyboard.core.settings.AiSettings
-import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
-import com.wasimaster.wmkeyboard.core.settings.aiRows
-import com.wasimaster.wmkeyboard.core.settings.through
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
+import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
+import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -74,50 +77,57 @@ internal object SettingsAssistantSession {
     private val refs = SettingRefs()
 
     /**
-     * The AI row picked in the screen's model menu, by its key, for as long as
-     * the process lives. Never written to the keyboard's own choice: asking
-     * the assistant through Gemini leaves the AI tool on Claude.
+     * What was picked in the screen's model menu, by [ModelChoice.key], for as
+     * long as the process lives. Never written to the keyboard's own choice:
+     * asking the assistant through Gemini leaves the AI tool on Claude.
      */
     private val _chosen = MutableStateFlow<String?>(null)
     val chosen: StateFlow<String?> = _chosen
 
-    fun choose(rowKey: String) {
-        if (!_busy.value) _chosen.value = rowKey
+    fun choose(choice: ModelChoice) {
+        if (!_busy.value) _chosen.value = choice.key
     }
 
-    /** The rows the model menu offers: every remote row of the AI list that can answer. */
-    fun rows(settings: KeyboardSettings): List<ResolvedProvider> =
-        settings.aiRows().filter { AiProviders.of(it.typeId).let { p -> p != null && p != AiProvider.ON_DEVICE } }
+    /**
+     * What the model menu offers: the same list the AI chat's chips draw, so
+     * the downloaded on-device models when the AI list has that row, then
+     * every other row that can answer.
+     */
+    fun choices(context: Context, settings: KeyboardSettings): List<ModelChoice> =
+        AiChatController.choices(context, settings)
 
-    /** The model [row] answers with: its own, else its service's default; blank when there is none. */
-    fun modelOf(settings: KeyboardSettings, row: ResolvedProvider): String =
-        row.model.ifBlank { AiClient.config(settings.ai.through(row)).model }
+    /** The model a remote [choice] answers with, as its row names it; blank for an on-device one. */
+    fun modelOf(settings: KeyboardSettings, choice: ModelChoice): String =
+        if (choice.provider == AiProvider.ON_DEVICE) {
+            ""
+        } else {
+            settings.aiThrough(choice.rowKey)?.let { AiClient.config(it).model }.orEmpty()
+        }
 
-    /** The row the assistant answers through right now; see [provider]. */
-    fun row(settings: KeyboardSettings): ResolvedProvider? {
-        val remote = rows(settings)
-        return remote.firstOrNull { it.key == _chosen.value }
-            ?: remote.firstOrNull { it.key == settings.ai.providerKey }
+    /**
+     * What answers right now: the menu's pick while it can still answer, else
+     * the keyboard's own row when that is a cloud or self-hosted one, else
+     * the first of those, else the keyboard's own on-device model, else the
+     * first downloaded one. A remote row comes first because it calls the
+     * tools natively; an on-device model goes through the sentinel protocol,
+     * and [runOnDevice] does what it can to make that dependable.
+     */
+    fun current(available: List<ModelChoice>, settings: KeyboardSettings): ModelChoice? {
+        val remote = available.filter { it.provider != AiProvider.ON_DEVICE }
+        val local = available.filter { it.provider == AiProvider.ON_DEVICE }
+        return available.firstOrNull { it.key == _chosen.value }
+            ?: remote.firstOrNull { it.rowKey == settings.ai.providerKey }
             ?: remote.firstOrNull()
+            ?: local.firstOrNull { it.localModelId == settings.ai.localModelId }
+            ?: local.firstOrNull()
     }
 
     /** The [SettingsSearchEntry.key] a `setting:` link in an answer names, or null when it names none. */
     fun linkedKey(url: String): String? =
         if (url.startsWith(SettingRefs.LINK_SCHEME)) refs.keyFor(url) else null
 
-    /**
-     * The AI settings the assistant runs on, through a row of the AI list:
-     * the one picked in the model menu while it can still answer, else the
-     * keyboard's own when it is a remote one, else the first remote row on
-     * the list. The
-     * on-device model is left out on purpose: tools on it go through a
-     * sentinel protocol that a small model follows unreliably, and a missed
-     * call here would read as the assistant changing nothing for no reason.
-     */
-    fun provider(settings: KeyboardSettings): AiSettings? =
-        row(settings)?.let { settings.ai.through(it) }
-
     fun send(
+        context: Context,
         text: String,
         settings: () -> KeyboardSettings,
         index: List<SettingsSearchEntry>,
@@ -127,8 +137,9 @@ internal object SettingsAssistantSession {
         val question = text.trim()
         if (question.isEmpty() || _busy.value) return
         add { Item.User(it, question) }
-        val provider = provider(settings())
-        if (provider == null) {
+        val app = context.applicationContext
+        val choice = current(choices(app, settings()), settings())
+        if (choice == null) {
             add { Item.Reply(it, noProvider, failed = true) }
             return
         }
@@ -136,7 +147,7 @@ internal object SettingsAssistantSession {
         _partial.value = ""
         job = scope.launch {
             val answer = runCatching {
-                withContext(Dispatchers.IO) { run(provider, settings, index) }
+                withContext(Dispatchers.IO) { run(app, choice, settings, index) }
             }
             _busy.value = false
             _partial.value = ""
@@ -196,12 +207,11 @@ internal object SettingsAssistantSession {
     }
 
     private fun run(
-        provider: AiSettings,
+        context: Context,
+        choice: ModelChoice,
         settings: () -> KeyboardSettings,
         index: List<SettingsSearchEntry>,
     ): String {
-        val chosen = provider
-        val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT, sessionId = sessionId)
         val tools = AssistantTools(
             index = index,
             settings = settings,
@@ -232,6 +242,10 @@ internal object SettingsAssistantSession {
                 is Item.Change, is Item.Setting -> null
             }
         }.takeLast(MAX_TURNS)
+        if (choice.provider == AiProvider.ON_DEVICE) return runOnDevice(context, choice, settings(), tools, turns)
+        val current = settings()
+        val chosen = current.aiThrough(choice.rowKey) ?: current.ai.copy(provider = choice.provider)
+        val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT, sessionId = sessionId)
         val completion = AiClient.completeWithTools(
             config = config,
             system = SYSTEM_PROMPT,
@@ -245,6 +259,72 @@ internal object SettingsAssistantSession {
             isActive = { job?.isActive != false },
         )
         return AiThinking.stripped(completion.text)
+    }
+
+    /**
+     * The same conversation on an on-device model, made to work on one.
+     *
+     * A small model has no function calling, so the tools go through the
+     * sentinel protocol, and it often answers before it thinks to search. So
+     * the settings index is searched here first, with the user's own words,
+     * and the rows it finds are in the prompt with their ids: a model that
+     * calls nothing can still name and link the right rows. The prompt is
+     * shorter and the tools fewer (no documentation search), because every
+     * word of it is prefilled again on every round. When the answer still
+     * points at nothing, the best match is shown as a card, so a question is
+     * never left without the row it was about.
+     *
+     * Each round is one stateless [LocalLlmEngine.generate] over the folded
+     * conversation, so no native session outlives the answer. A stop retires
+     * the loop at the next round; the round already running finishes in the
+     * background, as a blocking native call has to.
+     */
+    private fun runOnDevice(
+        context: Context,
+        choice: ModelChoice,
+        current: KeyboardSettings,
+        tools: AssistantTools,
+        turns: List<AiClient.ChatTurn>,
+    ): String {
+        val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
+            ?: throw IOException(context.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_chat_error_no_model))
+        val question = turns.lastOrNull { it.role == AiClient.ChatRole.USER }?.text.orEmpty()
+        val hits = tools.lookup(question).take(LOCAL_HINTS)
+        val system = buildString {
+            append(LOCAL_PROMPT)
+            if (hits.isNotEmpty()) {
+                append("\n\nSettings rows that match the question:\n")
+                append(tools.describe(hits))
+            }
+        }
+        val before = _items.value.size
+        val completion = AiToolLoop.run(
+            system = system,
+            turns = turns.takeLast(LOCAL_TURNS),
+            tools = tools.localSpecs,
+            native = false,
+            executor = tools,
+            maxRounds = LOCAL_ROUNDS,
+            onPartial = { partial -> _partial.value = AiThinking.stripped(partial) },
+            isActive = { job?.isActive != false },
+        ) { roundSystem, roundTurns, _, roundPartial ->
+            AiClient.Completion(
+                LocalLlmEngine.generate(
+                    context = context,
+                    modelFile = modelFile,
+                    backend = current.ai.localBackend,
+                    contextTokens = current.ai.localContextTokens,
+                    system = roundSystem,
+                    user = AiClient.foldedPrompt("", roundTurns),
+                    onPartial = roundPartial,
+                ),
+            )
+        }
+        val answer = AiThinking.stripped(completion.text)
+        val pointed = SettingRefs.LINK_SCHEME in answer ||
+            _items.value.drop(before).any { it is Item.Setting || it is Item.Change }
+        if (!pointed) hits.firstOrNull()?.let { best -> add { Item.Setting(it, best.key) } }
+        return answer
     }
 
     private fun change(id: Int): Item.Change? = _items.value.firstOrNull { it.id == id } as? Item.Change
@@ -264,6 +344,22 @@ internal object SettingsAssistantSession {
 
     /** Search, open, read, propose: rarely more than this before an answer. */
     private const val MAX_ROUNDS = 5
+
+    /** On-device: the rows found up front already answer most questions, and every round prefills it all again. */
+    private const val LOCAL_ROUNDS = 2
+    private const val LOCAL_TURNS = 6
+    private const val LOCAL_HINTS = 6
+
+    private val LOCAL_PROMPT = """
+        You help the user set up WM Keyboard from inside its Settings app.
+        Below are the settings rows that match the question, each with an id. Explain the one or two that answer it in
+        plain words, and link every setting you name as [its title](setting:ID), such as [Long-press delay](setting:s3).
+        Only name settings listed below or returned by search_settings. If none of them fits, call search_settings with
+        other words before you answer.
+        For the settings get_setting lists you may call propose_change; the user decides with Apply, so never say a
+        setting has been changed.
+        Answer in Markdown, in a few short sentences.
+    """.trimIndent()
 
     private val SYSTEM_PROMPT = """
         You help the user set up WM Keyboard from inside its Settings app.
