@@ -110,6 +110,12 @@ object YomichanDictionaries {
 
     fun isDictionary(zip: ZipFile): Boolean = YomichanImport.isDictionary(zip)
 
+    /** The same test on a zip's entry names, for a zip read as a stream. */
+    fun looksLikeDictionary(entryNames: Collection<String>): Boolean {
+        val leaves = entryNames.map { it.substringAfterLast('/') }
+        return YomichanFormat.INDEX in leaves && leaves.any { YomichanFormat.TERM_BANK.matches(it) }
+    }
+
     /**
      * Installs [zipFile], replacing one with the same title. A new one joins
      * the end of the list, switched on. Blocking: minutes for a large

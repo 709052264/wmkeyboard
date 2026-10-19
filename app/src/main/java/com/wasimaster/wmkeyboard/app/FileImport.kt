@@ -42,7 +42,27 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.core.content.IntentCompat
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.emoji.EmojiKeywordPacks
+import com.wasimaster.wmkeyboard.core.emoji.KaomojiFiles
+import com.wasimaster.wmkeyboard.core.emoji.KaomojiStore
+import com.wasimaster.wmkeyboard.core.feedback.SoundFile
+import com.wasimaster.wmkeyboard.core.feedback.SoundImportResult
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackFile
+import com.wasimaster.wmkeyboard.core.feedback.SoundStore
+import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
+import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinProfile
+import com.wasimaster.wmkeyboard.core.input.composer.FlexLanguagePack
+import com.wasimaster.wmkeyboard.core.input.imported.Conversion
+import com.wasimaster.wmkeyboard.core.input.imported.ConvertedMethod
+import com.wasimaster.wmkeyboard.core.input.imported.InputMethodImport
+import com.wasimaster.wmkeyboard.core.input.imported.SourceFile
+import com.wasimaster.wmkeyboard.core.keyman.KeymanImport
+import com.wasimaster.wmkeyboard.core.layout.ForeignLayouts
+import com.wasimaster.wmkeyboard.core.prediction.AospCombined
+import com.wasimaster.wmkeyboard.core.prediction.AospDictionary
+import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.theme.HeliResult
+import com.wasimaster.wmkeyboard.core.theme.HeliTheme
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackImportResult
 import com.wasimaster.wmkeyboard.core.feedback.SoundPackStore
 import com.wasimaster.wmkeyboard.core.icons.IconImportResult
@@ -118,8 +138,10 @@ import com.wasimaster.wmkeyboard.core.util.readCapped
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.content.R as ContentR
+import com.wasimaster.wmkeyboard.feedback.R as FeedbackR
 import com.wasimaster.wmkeyboard.icons.R as IconsR
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -146,7 +168,12 @@ import java.io.File
  *
  * The extension only gets the file here. What is actually *done* with it is
  * decided by reading it: every format but the theme carries a format tag, so
- * a `.wmlayout.json` holding a backup still restores a backup.
+ * a `.wmlayout.json` holding a backup still restores a backup. Everything the
+ * app imports anywhere is recognised the same way, by its contents: fonts and
+ * sounds by their headers, other keyboards' files by their structure (see
+ * [FileSniff]), and the files the download screens install by their published
+ * names. Only plain text that could be anything (a word list, a note) is left
+ * to the editor.
  */
 object WMFileTypes {
 
@@ -384,6 +411,43 @@ object WMFileTypes {
          */
         data object OfflineFiles : Opened
 
+        /** A font. [emoji] when it draws colour glyphs, which is what makes one an emoji font. */
+        data class Font(val emoji: Boolean) : Opened
+
+        /** One key-press sound: an MP3, Ogg or WAV. */
+        data object KeySound : Opened
+
+        /** A FlorisBoard language pack (`.flex`): Chinese code tables. [schemas] are the tables inside. */
+        data class FlorisLanguagePack(val schemas: List<String>) : Opened
+
+        /** A HeliBoard or LeanType colour theme, already converted. */
+        data class HeliThemeFile(val result: HeliResult.Converted) : Opened
+
+        /** A layout from FlorisBoard's JSON or a Keyman touch layout, already converted. */
+        data class ForeignLayout(val converted: ConvertedLayout) : Opened
+
+        /** This app's kaomoji export, or an Emotic archive, already read. */
+        internal data class KaomojiFile(val preview: KaomojiImportPreview) : Opened
+
+        /** An fcitx double-pinyin scheme: lines of `zh=v` under a `方案名称=` name. */
+        data class DoublePinyinScheme(val text: String, val name: String?) : Opened
+
+        /** A `.cin` table, a Rime schema or dictionary, or an m17n method, already converted. */
+        data class InputMethod(val method: ConvertedMethod) : Opened
+
+        /**
+         * Word lists for suggestions: a compiled AOSP `.dict`, AOSP's
+         * `.combined` text, or a zip of dictionaries (a LibreOffice `.oxt`, a
+         * Firefox `.xpi`). Already read, so the dialog can say how many words.
+         */
+        data class Dictionaries(val found: List<CustomDictionaries.ImportCandidate>) : Opened
+
+        /** An emoji keyword pack, in its TSV shape or the data repository's JSON. */
+        data object EmojiKeywords : Opened
+
+        /** An Anki deck or collection (`.apkg`, `.colpkg`), for the vocabulary tool. */
+        data object AnkiDeck : Opened
+
         /** Not one of ours, and not something worth showing either. */
         data object Unrecognized : Opened
 
@@ -397,54 +461,106 @@ object WMFileTypes {
      */
     fun identify(context: android.content.Context, uri: Uri, name: String): Opened {
         val head = runCatching {
-            context.contentResolver.requireInputStream(uri).use { input ->
-                val buffer = ByteArray(4)
-                var read = 0
-                while (read < buffer.size) {
-                    val n = input.read(buffer, read, buffer.size - read)
-                    if (n <= 0) break
-                    read += n
-                }
-                buffer.copyOf(read)
-            }
+            context.contentResolver.requireInputStream(uri).use { readHead(it) }
         }.getOrNull() ?: return Opened.Unreadable
-        if (head.contentEquals(ZIP_MAGIC)) return identifyArchive(context, uri)
-        // A word list or dictionary downloaded on another device. Told by the
-        // name it is published under, before the text read below: a word list
-        // is gzipped text, and would otherwise open in the editor.
-        if (OfflineImport.recognises(name)) return Opened.OfflineFiles
+        // A file the download screens install: a word list, a model, a
+        // handwriting pack. Told by the name it is published under, and for
+        // the models by their size too, before anything below reads it: a
+        // word list is gzipped text, and a `.task` model is a zip.
+        if (OfflineImport.recognises(context, name, sizeOf(context, uri))) return Opened.OfflineFiles
+        if (head.size >= ZIP_MAGIC.size && head.copyOf(ZIP_MAGIC.size).contentEquals(ZIP_MAGIC)) {
+            return identifyArchive(context, uri)
+        }
         // Before the text read below, which on a large encrypted bundle would
         // decode megabytes of ciphertext as UTF-8 to produce a string that
         // could never match anything.
         if (BackupCrypto.looksEncrypted(head)) return Opened.EncryptedConfig
+
+        // Binary formats with a header of their own, before the text read
+        // would turn them into replacement characters.
+        if (FileSniff.isFont(head)) return Opened.Font(emoji = FileSniff.isColourFont(head))
+        if (FileSniff.isSound(head, name)) return Opened.KeySound
+        if (AospDictionary.looksLikeDictionary(head)) return dictionariesIn(context, uri, name)
+        if (FileSniff.isSqlite(head) || FileSniff.isTar(head)) return kaomojiIn(context, uri)
 
         // A gzipped file is read through the inflater: the data repository
         // hosts vocabulary packs that way, and an add-on entry may point
         // straight at one. The proposal re-opens the raw stream when it
         // applies, and each importer inflates for itself.
         val gzipped = head.size >= 2 && head[0] == GZIP_MAGIC_1 && head[1] == GZIP_MAGIC_2
-        val text = runCatching {
+        // Emotic's current export is a gzipped tar, which the inflater below
+        // would otherwise read as text.
+        if (gzipped) {
+            val inner = runCatching {
+                context.contentResolver.requireInputStream(uri).use {
+                    readHead(java.util.zip.GZIPInputStream(it, 32 * 1024))
+                }
+            }.getOrNull()
+            if (inner != null && FileSniff.isTar(inner)) return kaomojiIn(context, uri)
+        }
+        val bytes = runCatching {
             context.contentResolver.requireInputStream(uri).use { raw ->
                 val input = if (gzipped) java.util.zip.GZIPInputStream(raw, 32 * 1024) else raw
                 // Capped on what comes *out*: a few megabytes of gzip inflate
                 // to far more, and this is the one read where the file's own
                 // size says nothing about what it costs to hold.
-                // UTF-16 is read as such: MSKLC saves every `.klc` that way.
-                input.readCapped()?.let(DesktopLayouts::decodeText)
+                input.readCapped()
             }
         }.getOrNull() ?: return Opened.Unreadable
+        // UTF-16 is read as such: MSKLC saves every `.klc` that way.
+        val text = DesktopLayouts.decodeText(bytes)
 
         // Exports from before the truncating write could carry the tail of an
         // older, longer file after the document. The proposal below keeps this
         // trimmed text, so what gets applied is what got recognised.
         val kind = textKindFor(text.firstJsonDocument(), name)
         if (kind != Opened.Unrecognized) return kind
+        // An input method table. After every text format above, because the
+        // conversion is the expensive part, and with the raw bytes, because a
+        // `.cin` is as often Big5 as UTF-8.
+        if (FileSniff.looksLikeInputMethod(text, name)) {
+            val conversion = runCatching { InputMethodImport.read(listOf(SourceFile(name, bytes))) }.getOrNull()
+            if (conversion is Conversion.Ready) return Opened.InputMethod(conversion.method)
+        }
         // None of ours. Text still opens — in the editor rather than on a dead
         // end — now that the manifest claims application/json and
         // application/octet-stream and files that are nobody's business here
         // reach this activity on purpose.
         return if (isEditableText(text)) Opened.Text else Opened.Unrecognized
     }
+
+    /** Up to [FileSniff.HEAD_BYTES] of [input]: enough for every header sniff. */
+    private fun readHead(input: java.io.InputStream): ByteArray {
+        val buffer = ByteArray(FileSniff.HEAD_BYTES)
+        var read = 0
+        while (read < buffer.size) {
+            val n = input.read(buffer, read, buffer.size - read)
+            if (n <= 0) break
+            read += n
+        }
+        return buffer.copyOf(read)
+    }
+
+    /** The provider's size for [uri], or -1 when it does not say. */
+    private fun sizeOf(context: android.content.Context, uri: Uri): Long = runCatching {
+        context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else -1L
+        }
+    }.getOrNull() ?: -1L
+
+    /** Every dictionary in [uri], read the way the word-list screen reads a pick. */
+    private fun dictionariesIn(context: android.content.Context, uri: Uri, name: String): Opened {
+        val bytes = runCatching {
+            context.contentResolver.requireInputStream(uri).use { CustomDictionaries.readCapped(it) }
+        }.getOrNull() ?: return Opened.Unrecognized
+        val inspection = CustomDictionaries.inspect(listOf(CustomDictionaries.ImportFile(name, bytes)))
+        return (inspection as? CustomDictionaries.Inspection.Found)?.let { Opened.Dictionaries(it.dictionaries) }
+            ?: Opened.Unrecognized
+    }
+
+    /** An Emotic archive or database, read as the kaomoji screen reads one. */
+    private fun kaomojiIn(context: android.content.Context, uri: Uri): Opened =
+        readKaomojiImport(context, uri)?.let { Opened.KaomojiFile(it) } ?: Opened.Unrecognized
 
     /**
      * Whether [text] is worth putting in an editor.
@@ -488,6 +604,13 @@ object WMFileTypes {
         // Not ours, but its first line is as good as a tag: no other format
         // can start with Gboard's own header comment.
         GboardDictionary.read(text)?.let { return Opened.GboardDictionaryFile(it) }
+        // This app's kaomoji export carries its format tag; the plain lists the
+        // kaomoji screen also reads are any text, and stay with the editor.
+        if (text.contains("\"${KaomojiFiles.FORMAT}\"")) {
+            KaomojiFiles.decode(text)?.let {
+                return Opened.KaomojiFile(KaomojiImportPreview(it.items, it.tags))
+            }
+        }
         // A theme has no tag and every field has a default, so decoding any JSON
         // object at all succeeds and yields an all-defaults theme. The file name
         // is one piece of evidence that this one was meant to be a theme; the
@@ -498,6 +621,35 @@ object WMFileTypes {
         // nothing left to be told apart by.
         if (name.endsWith(".${ThemeCodec.FILE_EXTENSION}", ignoreCase = true) || looksLikeThemeExport(text)) {
             ThemeCodec.decode(text)?.let { return Opened.Theme(it) }
+        }
+
+        // Untagged JSON from other keyboards, each told by structure the theme
+        // check above cannot match: a Keyman touch layout by its platform
+        // keys, a HeliBoard theme by its colour pairs or colour roles, and a
+        // FlorisBoard layout by its key types. Keyman before FlorisBoard, as
+        // the layout editor orders them, since the Floris reader would take a
+        // Keyman file and return nothing.
+        if (KeymanImport.looksLikeTouchLayout(text)) {
+            KeymanImport.convert(text, name)?.let { return Opened.ForeignLayout(it) }
+        }
+        (HeliTheme.read(text) as? HeliResult.Converted)?.let { return Opened.HeliThemeFile(it) }
+        if (FileSniff.looksLikeFlorisLayout(text)) {
+            ForeignLayouts.fromFlorisJson(text, name)?.let { return Opened.ForeignLayout(it) }
+        }
+        // Emoji names for search, as TSV rows that each start with an emoji, or
+        // as the data repository's JSON.
+        if (FileSniff.looksLikeEmojiKeywords(text) || FileSniff.looksLikeEmojiKeywordJson(text)) {
+            return Opened.EmojiKeywords
+        }
+        // AOSP's `.combined` word list opens with its own header line.
+        val firstLine = text.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() && !it.startsWith("#") }
+        if (firstLine != null && AospCombined.looksLikeCombined(firstLine)) {
+            val inspection = CustomDictionaries.inspect(listOf(CustomDictionaries.ImportFile(name, text.toByteArray())))
+            (inspection as? CustomDictionaries.Inspection.Found)?.let { return Opened.Dictionaries(it.dictionaries) }
+        }
+        // An fcitx double-pinyin scheme names itself on a line of its own.
+        if (text.lineSequence().any { it.trim().removePrefix("\uFEFF").startsWith(DoublePinyinProfile.NAME_PREFIX) }) {
+            return Opened.DoublePinyinScheme(text, DoublePinyinProfile.parse(text).name)
         }
 
         // A Keys Cafe grid is base64 text, which no JSON or YAML document is,
@@ -626,6 +778,12 @@ object WMFileTypes {
             }.getOrNull()
             return if (contents != null) Opened.KeymanPackageFile(contents) else Opened.Unrecognized
         }
+        if (manifest.contains("\"${FlexLanguagePack.FORMAT}\"")) {
+            val schemas = runCatching {
+                context.contentResolver.requireInputStream(uri).use { FlexLanguagePack.schemas(it, context.cacheDir) }
+            }.getOrDefault(emptyList())
+            return Opened.FlorisLanguagePack(schemas)
+        }
         if (isFlexManifest(manifest)) {
             val result = runCatching {
                 context.contentResolver.requireInputStream(uri).use {
@@ -680,10 +838,21 @@ object WMFileTypes {
             }.getOrNull()
             if (contents != null) return Opened.GboardDictionaryFile(contents)
         }
-        // A language pack: word lists, word pairs and emoji names, each under
-        // the name it is published under. Any one of them is enough, since
-        // the import reports on every file it was handed.
-        if (names.any(OfflineImport::recognises)) return Opened.OfflineFiles
+        // A language pack (word lists, word pairs and emoji names, each under
+        // the name it is published under), a GIF pack or a Yomichan
+        // dictionary: whatever the download screens install. Any one file of
+        // a language pack is enough, since the import reports on every file.
+        if (OfflineImport.recognisesArchive(names)) return Opened.OfflineFiles
+        // An Anki deck, by the collection every export carries.
+        if (names.any { it.substringAfterLast('/').startsWith("collection.anki2") }) return Opened.AnkiDeck
+        // Dictionaries for suggestions: AOSP's compiled ones, or a Hunspell pair
+        // as LibreOffice and Firefox package them.
+        val lower = names.map { it.lowercase() }
+        val hunspell = lower.any { it.endsWith(".aff") } && lower.any { it.endsWith(".dic") }
+        if (hunspell || lower.any { it.endsWith(".dict") || it.endsWith(".combined") }) {
+            val found = dictionariesIn(context, uri, displayName(context, uri))
+            if (found is Opened.Dictionaries) return found
+        }
         if (!WaStickersFile.looksLikeWaStickers(names)) return Opened.Unrecognized
         val header = runCatching {
             context.contentResolver.requireInputStream(uri).use { WaStickersFile.peek(it) }
@@ -1325,6 +1494,129 @@ private fun desktopProposal(
 }
 
 /**
+ * A font opened from outside the app. An emoji font is switched on at once,
+ * as the emoji screen's own import does; any other font is added to the list
+ * the font pickers offer, since which script it should draw is the user's
+ * to say.
+ */
+private fun fontProposal(
+    emoji: Boolean,
+    repository: SettingsRepository,
+    context: android.content.Context,
+    uri: Uri,
+): ImportProposal {
+    val name = WMFileTypes.displayName(context, uri).substringBeforeLast('.')
+    return ImportProposal(
+        titleRes = R.string.import_name_title,
+        titleArg = name,
+        body = context.getString(if (emoji) R.string.import_emoji_font_body else R.string.import_font_body),
+        apply = {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use {
+                        FontFile.import(it, FontStore.get(context), name = name, emoji = emoji)
+                    }
+                }.getOrElse { FontImportResult.Failed(ContentR.string.core_content_font_error_read) }
+            }
+            when (result) {
+                is FontImportResult.Imported -> {
+                    if (emoji) repository.setInstalledEmojiFont(result.font.id)
+                    context.getString(R.string.import_done_name, result.font.name)
+                }
+                is FontImportResult.NotAFont -> context.getString(result.messageRes)
+                FontImportResult.TooManyFonts -> context.resources.getQuantityString(
+                    R.plurals.fonts_import_limit_message, FontStore.MAX_FONTS, FontStore.MAX_FONTS,
+                )
+                is FontImportResult.Failed -> context.getString(result.messageRes, *result.messageArgs.toTypedArray())
+            }
+        },
+    )
+}
+
+/** A key sound opened from outside the app: added, and played on every key from then on. */
+private fun keySoundProposal(
+    repository: SettingsRepository,
+    context: android.content.Context,
+    uri: Uri,
+): ImportProposal {
+    val name = WMFileTypes.displayName(context, uri).substringBeforeLast('.')
+    return ImportProposal(
+        titleRes = R.string.import_name_title,
+        titleArg = name,
+        body = context.getString(R.string.import_key_sound_body),
+        apply = {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.requireInputStream(uri).use {
+                        SoundFile.import(it, SoundStore.get(context), name = name)
+                    }
+                }.getOrElse { SoundImportResult.Failed(FeedbackR.string.core_feedback_sound_import_read_error) }
+            }
+            when (result) {
+                is SoundImportResult.Imported -> {
+                    repository.setKeySoundCustomId(result.sound.id)
+                    context.getString(R.string.import_done_name, result.sound.name)
+                }
+                is SoundImportResult.NotASound -> context.getString(result.messageRes)
+                SoundImportResult.TooManySounds -> context.resources.getQuantityString(
+                    R.plurals.hardware_sound_limit_error, SoundStore.MAX_SOUNDS, SoundStore.MAX_SOUNDS,
+                )
+                is SoundImportResult.Failed -> if (result.messageArg.isEmpty()) {
+                    context.getString(result.messageRes)
+                } else {
+                    context.getString(result.messageRes, result.messageArg)
+                }
+            }
+        },
+    )
+}
+
+/**
+ * Word lists for suggestions, with the language step: a dictionary names its
+ * locale when it is an AOSP or Hunspell one, and that seeds the picker.
+ * Everything a list carries is written (its pairs and shortcuts too), as the
+ * word-list screen does when there is nothing to choose between.
+ */
+private fun dictionariesProposal(
+    found: List<CustomDictionaries.ImportCandidate>,
+    repository: SettingsRepository,
+    context: android.content.Context,
+): ImportProposal {
+    val words = found.sumOf { it.words.size }
+    return ImportProposal(
+        titleRes = R.string.import_name_title,
+        titleArg = found.first().description ?: found.first().name,
+        body = context.resources.getQuantityString(R.plurals.import_dictionary_body, words, words),
+        language = guessFileLanguage(found.firstNotNullOfOrNull { it.locale }),
+        applyWithLanguage = { langId ->
+            val written = withContext(Dispatchers.IO) {
+                found.sumOf {
+                    CustomDictionaries.write(context.filesDir, langId, it, CustomDictionaries.ImportParts.ALL).words
+                }
+            }
+            repository.bumpCustomDictVersion()
+            context.resources.getQuantityString(
+                R.plurals.customdict_import_added_words, written, written, LanguageRegistry.byId(langId).displayName,
+            )
+        },
+    )
+}
+
+/**
+ * The language to seed the picker with for a file that may name a [locale]
+ * (`en_US`, `pt-BR`, `de`), or else the phone's own, or else English. Only a
+ * language this build has counts: `byId` falls back for anything else.
+ */
+private fun guessFileLanguage(locale: String?): String {
+    val candidates = listOfNotNull(locale, java.util.Locale.getDefault().toLanguageTag())
+        .flatMap { tag ->
+            val dashed = tag.replace('_', '-')
+            listOf(dashed, dashed.lowercase(), dashed.substringBefore('-').lowercase())
+        }
+    return candidates.firstOrNull { LanguageRegistry.byId(it).id == it } ?: "en"
+}
+
+/**
  * Turns a read file into what the dialog should say and do. Every branch mirrors
  * the equivalent in-app import so an opened file and a picked file behave the
  * same — including reading first and asking before anything is written.
@@ -1444,6 +1736,186 @@ private fun rememberProposal(
         is WMFileTypes.Opened.ForeignBackupFile -> ImportProposal(
             titleRes = R.string.foreign_backup_title_generic,
             body = "",
+        )
+
+        is WMFileTypes.Opened.Font -> fontProposal(state.emoji, repository, context, uri)
+
+        WMFileTypes.Opened.KeySound -> keySoundProposal(repository, context, uri)
+
+        is WMFileTypes.Opened.FlorisLanguagePack -> ImportProposal(
+            titleRes = R.string.import_flex_language_title,
+            body = context.getString(
+                R.string.import_flex_language_body,
+                state.schemas.joinToString(", ").ifEmpty { "?" },
+            ),
+            apply = {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            FlexLanguagePack.import(it, context.filesDir, context.cacheDir)
+                        }
+                    }.getOrDefault(FlexLanguagePack.Result.Unreadable)
+                }
+                // A new pack on disk changes the state token the keyboard checks.
+                CjkDictDownloadManager.refresh(context.filesDir)
+                when (result) {
+                    is FlexLanguagePack.Result.Imported ->
+                        context.getString(R.string.languages_cjk_flex_import_done, result.schema, result.rows)
+                    is FlexLanguagePack.Result.NoUsableTable ->
+                        context.getString(R.string.languages_cjk_flex_import_unusable, result.schemas.joinToString(", "))
+                    FlexLanguagePack.Result.NotALanguagePack ->
+                        context.getString(R.string.languages_cjk_flex_import_not_a_pack)
+                    FlexLanguagePack.Result.Unreadable ->
+                        context.getString(R.string.languages_cjk_flex_import_unreadable)
+                }
+            },
+        )
+
+        is WMFileTypes.Opened.HeliThemeFile -> {
+            val result = state.result
+            ImportProposal(
+                titleRes = R.string.import_name_title,
+                titleArg = result.theme.name,
+                body = context.getString(R.string.import_heli_file_body),
+                repairs = result.dropped.map { heliDroppedLine(context, it) },
+                apply = {
+                    // Saved, not switched to, as the theme gallery's own import
+                    // does: a converted theme is the thing worth looking at first.
+                    val stored = result.theme.copy(id = "custom_${System.currentTimeMillis()}")
+                    repository.upsertCustomTheme(stored)
+                    context.getString(R.string.import_heli_done, stored.name, result.coloursUsed, result.coloursRead)
+                },
+            )
+        }
+
+        is WMFileTypes.Opened.ForeignLayout -> ImportProposal(
+            titleRes = R.string.import_name_title,
+            titleArg = state.converted.layout.name,
+            body = context.getString(R.string.import_foreign_layout_body),
+            repairs = state.converted.notes.map { it.format(context.resources) },
+            language = state.converted.guessedLangId,
+            applyWithLanguage = { langId ->
+                repository.upsertCustomLayout(
+                    state.converted.withLanguage(langId)
+                        .copy(id = "custom_${System.currentTimeMillis()}"),
+                )
+                context.getString(R.string.import_done_name, state.converted.layout.name)
+            },
+        )
+
+        is WMFileTypes.Opened.KaomojiFile -> {
+            val preview = state.preview
+            ImportProposal(
+                titleRes = if (preview.fromEmotic) {
+                    R.string.langemoji_kaomoji_import_emotic_title
+                } else {
+                    R.string.langemoji_kaomoji_import_title
+                },
+                body = buildString {
+                    append(
+                        context.resources.getQuantityString(
+                            R.plurals.langemoji_kaomoji_import_faces, preview.faces.size, preview.faces.size,
+                        ),
+                    )
+                    if (preview.images.isNotEmpty()) {
+                        append("\n\n")
+                        append(
+                            context.resources.getQuantityString(
+                                R.plurals.langemoji_kaomoji_import_images, preview.images.size, preview.images.size,
+                            ),
+                        )
+                    }
+                },
+                apply = {
+                    // Added to the library rather than replacing it: an opened
+                    // file is a gift, and the screen is where to start over.
+                    coroutineScope {
+                        val model = KaomojiModel(File(context.filesDir, KaomojiStore.FILE_PATH), this, repository)
+                        applyKaomojiImport(context, model, preview, replace = false)
+                    }
+                },
+            )
+        }
+
+        is WMFileTypes.Opened.DoublePinyinScheme -> ImportProposal(
+            titleRes = R.string.import_double_pinyin_title,
+            body = context.getString(
+                R.string.import_double_pinyin_body,
+                state.name ?: WMFileTypes.displayName(context, uri),
+            ),
+            apply = {
+                repository.setPinyinDoublePinyinCustom(DoublePinyinProfile.withHeader(state.text), select = true)
+                context.getString(R.string.import_double_pinyin_done)
+            },
+        )
+
+        is WMFileTypes.Opened.InputMethod -> {
+            val method = state.method
+            ImportProposal(
+                titleRes = R.string.import_name_title,
+                titleArg = method.name,
+                body = context.getString(R.string.import_input_method_body) + "\n\n" +
+                    InputMethodImport.summary(method).format(context.resources),
+                repairs = InputMethodImport.notes(method).map { it.format(context.resources) },
+                language = InputMethodImport.guessLanguage(method),
+                applyWithLanguage = { langId ->
+                    val id = "custom_${System.currentTimeMillis()}"
+                    val layout = withContext(Dispatchers.IO) {
+                        InputMethodImport.install(context.filesDir, method, langId, id)
+                    }
+                    if (layout == null) {
+                        context.getString(R.string.layout_editor_im_failed)
+                    } else {
+                        repository.upsertCustomLayout(layout)
+                        context.getString(R.string.layout_editor_import_done_message, layout.name)
+                    }
+                },
+            )
+        }
+
+        is WMFileTypes.Opened.Dictionaries -> dictionariesProposal(state.found, repository, context)
+
+        WMFileTypes.Opened.EmojiKeywords -> ImportProposal(
+            titleRes = R.string.import_emoji_keywords_title,
+            body = context.getString(R.string.import_emoji_keywords_body),
+            language = guessFileLanguage(null),
+            applyWithLanguage = { langId ->
+                val count = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            EmojiKeywordPacks.import(context.filesDir, langId, WMFileTypes.displayName(context, uri), it)
+                        }
+                    }.getOrDefault(0)
+                }
+                if (count > 0) repository.bumpEmojiKeywordPackVersion()
+                when {
+                    count == EmojiKeywordPacks.TOO_LARGE -> context.getString(R.string.customdict_import_too_large_error)
+                    count <= 0 -> context.getString(R.string.customdict_emoji_import_empty_error)
+                    else -> context.resources.getQuantityString(
+                        R.plurals.customdict_emoji_import_added, count, count, LanguageRegistry.byId(langId).displayName,
+                    )
+                }
+            },
+        )
+
+        WMFileTypes.Opened.AnkiDeck -> ImportProposal(
+            titleRes = R.string.import_anki_title,
+            body = context.getString(R.string.import_anki_body),
+            apply = {
+                val result = withContext(Dispatchers.IO) {
+                    runCatching {
+                        context.contentResolver.requireInputStream(uri).use {
+                            VocabPacks.import(context.filesDir, "en", WMFileTypes.displayName(context, uri), it)
+                        }
+                    }.getOrNull()
+                }
+                when (result) {
+                    is VocabPacks.ImportResult.Imported -> context.resources.getQuantityString(
+                        R.plurals.import_vocab_done, result.wordCount, result.wordCount,
+                    )
+                    else -> context.getString(R.string.import_vocab_error)
+                }
+            },
         )
 
         // Drawn by OfflineFilesDialog instead; never reaches here.

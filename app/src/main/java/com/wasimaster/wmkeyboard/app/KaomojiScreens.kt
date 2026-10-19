@@ -578,7 +578,7 @@ internal data class KaomojiImportPreview(
  * Reads [uri] as an Emotic export (its `.tar.gz` or the older bare database)
  * or as one of [KaomojiFiles]'s shapes. Null for a file that is neither.
  */
-private fun readKaomojiImport(context: Context, uri: Uri): KaomojiImportPreview? = runCatching {
+internal fun readKaomojiImport(context: Context, uri: Uri): KaomojiImportPreview? = runCatching {
     val head = ByteArray(HEADER_BYTES)
     val got = context.contentResolver.requireInputStream(uri).use { stream ->
         var n = 0
@@ -657,7 +657,7 @@ private fun KaomojiImportDialog(found: KaomojiImportPreview, onDismiss: () -> Un
  * sticker pack named after it, their tags kept as the stickers' search words.
  * Returns what to tell the user.
  */
-private suspend fun applyKaomojiImport(
+internal suspend fun applyKaomojiImport(
     context: Context,
     model: KaomojiModel,
     found: KaomojiImportPreview,

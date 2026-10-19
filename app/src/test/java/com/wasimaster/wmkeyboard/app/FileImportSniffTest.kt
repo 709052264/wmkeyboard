@@ -63,20 +63,15 @@ class FileImportSniffTest {
         // .wmtheme.json name it would decode to an all-defaults theme and the
         // user would have imported a black keyboard instead of their grid.
         val foreign = """[[{"${'$'}":"text_key","code":113,"label":"q"}]]"""
-        assertEquals(
-            WMFileTypes.Opened.Unrecognized,
-            WMFileTypes.textKindFor(foreign, "qwerty.json"),
-        )
-        assertEquals(
-            WMFileTypes.Opened.Unrecognized,
-            WMFileTypes.textKindFor(foreign, "qwerty.txt"),
-        )
+        // It is recognised as what it is: a FlorisBoard layout.
+        assertTrue(WMFileTypes.textKindFor(foreign, "qwerty.json") is WMFileTypes.Opened.ForeignLayout)
+        assertTrue(WMFileTypes.textKindFor(foreign, "qwerty.txt") is WMFileTypes.Opened.ForeignLayout)
         // Even renamed, it is refused: it decodes to a theme that sets nothing,
         // and importing that is worse than importing nothing.
         val renamed = WMFileTypes.textKindFor(foreign, "qwerty.wmtheme.json")
         assertTrue(
             "a foreign layout was read as a theme",
-            renamed !is WMFileTypes.Opened.Layout,
+            renamed !is WMFileTypes.Opened.Theme,
         )
     }
 

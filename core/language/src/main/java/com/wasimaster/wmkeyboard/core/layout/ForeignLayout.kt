@@ -137,10 +137,9 @@ object ForeignLayouts {
      * Converts [text], guessing which of the two formats it is from its first
      * character. Null when it is neither, or holds no keys.
      *
-     * Deliberately not reachable from `WMFileTypes.identify()`: neither format
-     * carries a tag of ours, and the one untagged format already in that chain
-     * is recognised by file name alone. A second one would have nothing left to
-     * be told apart by.
+     * Not reachable from `WMFileTypes.identify()` as a whole: the text format
+     * takes any text at all. [fromFlorisJson] is, behind a sniff for the key
+     * types a FlorisBoard file names, since it takes any array of arrays.
      */
     fun convert(text: String, name: String): ConvertedLayout? =
         if (firstMeaningfulChar(text) in JSON_OPENERS) {

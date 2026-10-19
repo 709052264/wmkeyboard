@@ -84,8 +84,7 @@ internal object OfflineImport {
      * alone: a word list, a word-pair half, an emoji name list, a conversion
      * dictionary, a Bengali phonetic table or an offline dictionary. What
      * opening a file from outside the app goes by, to send a language pack
-     * here rather than call it nobody's file. Models are left out: their
-     * extensions are too common to claim a file on.
+     * here rather than call it nobody's file.
      */
     fun recognises(name: String): Boolean {
         val leaf = name.substringAfterLast('/').substringAfterLast('\\')
@@ -97,6 +96,36 @@ internal object OfflineImport {
             leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
             PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
             OfflineDictionaries.recognises(leaf)
+    }
+
+    /**
+     * [recognises], plus the files told by their name *and* their size, or
+     * by an extension nothing else uses: a Whisper model or its vocabulary,
+     * the Whistle model, OCR data, the background remover, an on-device AI
+     * model and a handwriting pack. [size] is -1 when the provider does not
+     * say, and then only the names that need no size can match.
+     */
+    fun recognises(context: Context, name: String, size: Long): Boolean {
+        if (recognises(name)) return true
+        val leaf = name.substringAfterLast('/').substringAfterLast('\\')
+        if (size > 0 && WhisperDownloadManager.recognises(leaf, size)) return true
+        if (leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME) return true
+        if (PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null) return true
+        val extension = leaf.substringAfterLast('.', "").lowercase()
+        if (ModelFormat.entries.any { it.extension == extension }) return true
+        return size > 0 && InkPackImports.isPackFile(context, leaf, size)
+    }
+
+    /**
+     * Whether a zip with these entries is something this installs: a
+     * language pack (any entry [recognises]), a CleverKeys GIF pack or a
+     * Yomichan dictionary, the two zips installed whole.
+     */
+    fun recognisesArchive(entryNames: List<String>): Boolean {
+        val leaves = entryNames.map { it.substringAfterLast('/') }
+        if (leaves.any(::recognises)) return true
+        if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return true
+        return YomichanDictionaries.looksLikeDictionary(entryNames)
     }
 
     /**

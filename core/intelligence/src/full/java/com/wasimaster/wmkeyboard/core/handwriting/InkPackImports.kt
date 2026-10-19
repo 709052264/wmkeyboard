@@ -71,6 +71,16 @@ object InkPackImports {
     /** Whether [file] is one of the packs ML Kit fetches, by name or failing that by size. Blocking. */
     fun isPack(context: Context, file: File): Boolean = match(context, file) != null
 
+    /**
+     * Whether a file called [name], [size] bytes long, is one of the packs, from
+     * the name and size alone: for a file not yet copied anywhere, such as one
+     * opened from a file manager. [isPack] still has the last word on install.
+     */
+    fun isPackFile(context: Context, name: String, size: Long): Boolean {
+        val manifest = runCatching { HandwritingModelSizes.manifest(context) }.getOrNull() ?: return false
+        return manifest.values.any { it.fileName == name && it.compressedSize == size }
+    }
+
     private fun match(context: Context, file: File): InkPack? {
         val manifest = runCatching { HandwritingModelSizes.manifest(context) }.getOrNull() ?: return null
         val length = file.length()

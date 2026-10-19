@@ -34,6 +34,8 @@ object InkPackImports {
 
     fun isPack(context: Context, file: java.io.File): Boolean = false
 
+    fun isPackFile(context: Context, name: String, size: Long): Boolean = false
+
     suspend fun install(context: Context, files: List<java.io.File>): List<Result> = emptyList()
 
     fun packUrls(context: Context, tag: String): List<String> = emptyList()

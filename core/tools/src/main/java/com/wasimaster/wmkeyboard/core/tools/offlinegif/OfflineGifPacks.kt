@@ -44,6 +44,10 @@ object OfflineGifPacks {
     private const val DIR_NAME = "gif_packs"
     private const val MANIFEST = "manifest.json"
     private const val DATABASE = "pack.db"
+
+    /** The two entries every pack has, for telling one from its entry names alone. */
+    const val MANIFEST_NAME = MANIFEST
+    const val DATABASE_NAME = DATABASE
     private const val ITEM_PREFIX = "offline:"
     private const val SPACE_MARGIN_BYTES = 32L * 1024 * 1024
     private val PACK_ID = Regex("[A-Za-z0-9._-]{1,64}")
