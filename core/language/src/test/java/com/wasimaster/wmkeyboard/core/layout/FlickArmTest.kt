@@ -60,9 +60,17 @@ class FlickArmTest {
     fun `keys whose drag or hold is already the gesture take no action arms`() {
         val arms = mapOf(FlickDirection.LEFT to left)
         assertFalse(Key(" ", action = KeyAction.Space, flickActions = arms).hasFlicks())
-        assertFalse(Key("", action = KeyAction.Delete, flickActions = arms).hasFlicks())
         assertFalse(Key("x", repeatOnHold = true, flickActions = arms).hasFlicks())
         assertTrue(Key("", action = KeyAction.Shift, flickActions = arms).hasFlicks())
+    }
+
+    @Test
+    fun `the delete keys take arms although their hold repeats`() {
+        // Issue #769: forward delete on a flick of backspace.
+        val arms = mapOf(FlickDirection.UP to KeyAlternate(KeyAction.ForwardDelete))
+        assertTrue(Key("", action = KeyAction.Delete, flickActions = arms).hasFlicks())
+        assertTrue(Key("", action = KeyAction.ForwardDelete, flickActions = arms).hasFlicks())
+        assertTrue(Key("", action = KeyAction.Delete, flick = mapOf(FlickDirection.UP to "x")).hasFlicks())
     }
 
     @Test

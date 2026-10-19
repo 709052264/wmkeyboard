@@ -979,12 +979,20 @@ sealed interface FlickArm {
  * Whether [Key.flickActions] work on this key (issue #549).
  *
  * Every key but the ones whose drag or hold is already the gesture: the space
- * bar's swipes and language picker, the delete keys' swipe and repeat, a braille
- * dot's chord, a component's cell, and a key told to repeat while held. A flick
- * arm on one of those would either never be reached or take away what the key
- * is for, so the editor does not offer them and the keyboard does not read them.
+ * bar's swipes and language picker, a braille dot's chord, a component's cell,
+ * and a key told to repeat while held. A flick arm on one of those would either
+ * never be reached or take away what the key is for, so the editor does not
+ * offer them and the keyboard does not read them.
+ *
+ * The delete keys are the exception (issue #769): their hold repeats and their
+ * sideways drag deletes by the word, but a delete only lands on the lift, so a
+ * flick that has left the key before the repeat starts can still be read as
+ * one. Forward delete on a flick of ⌫ is the arm people ask for. The delete
+ * key's own handler gives an armed direction to the arm and leaves the swipe
+ * the directions that have none.
  */
-fun Key.takesFlickActions(): Boolean = action != KeyAction.Space && !holdIsSpokenFor()
+fun Key.takesFlickActions(): Boolean = action != KeyAction.Space &&
+    (!holdIsSpokenFor() || action.deletesBackward() || action.deletesForward())
 
 /**
  * What a flick towards [direction] does: an action arm where the key has one

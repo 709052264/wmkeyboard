@@ -199,7 +199,7 @@
     <string name="layout_editor_problem_blocking_subtitle">You must fix this before you turn this layout on</string>
     <string name="layout_editor_problem_warning_subtitle">Look at this, but the layout still works</string>
     <!-- Under the preview grid, on every editor that lets you drag a key. -->
-    <string name="layout_editor_drag_caption">Press a key to change it. Press and hold a key, then drag, to move it somewhere else in the grid, including into another row.</string>
+    <string name="layout_editor_drag_caption">Press a key to change it. Press and hold a key, then drag, to move it somewhere else in the grid, including into another row. Let go on the line between two rows, or above or below them all, to give the key a row of its own.</string>
     <string name="layout_editor_not_live_caption">Your changes here do not affect typing until you turn the layout on under Languages.</string>
     <string name="layout_editor_live_caption">This layout is on, so your changes affect typing straight away. The keyboard adds a delete, space or enter key back if you remove the last one.</string>
     <string name="layout_editor_cannot_enable_title">Cannot turn on %1$s</string>
@@ -772,5 +772,35 @@
     <string name="layout_editor_popup_preview_title">The popup</string>
     <string name="layout_editor_popup_preview_caption">How the keyboard shows it. The outlined entry is what a plain press and hold types.</string>
     <string name="layout_editor_popup_preview_caption_added">How the keyboard shows it. The outlined entry is what a plain press and hold types. Faded entries come from your settings, such as the press and hold shortcuts and the accents, not from this layout.</string>
+    <!-- Chip beside undo and redo that turns on picking several keys at once. -->
+    <string name="layout_editor_multi_chip">Select several</string>
+    <string name="layout_editor_multi_caption">Press keys to pick them, and press one again to put it back. Keys side by side in one row move together, with the arrows or by dragging one of them.</string>
+    <plurals name="layout_editor_multi_title">
+        <item quantity="one"><xliff:g id="count" example="1">%d</xliff:g> key picked</item>
+        <item quantity="other"><xliff:g id="count" example="4">%d</xliff:g> keys picked</item>
+    </plurals>
+    <string name="layout_editor_multi_done_desc">Stop picking several keys</string>
+    <string name="layout_editor_multi_delete_action">Delete them</string>
+    <string name="layout_editor_multi_move_caption">To move them together, pick keys that sit side by side in one row.</string>
+    <string name="layout_editor_multi_section_look">For all of them</string>
+    <string name="layout_editor_copy_key_action">Copy</string>
+    <string name="layout_editor_paste_key_action">Paste after</string>
+    <!-- Label the system shows for copied keys on the clipboard. -->
+    <string name="layout_editor_key_clip_label">Keyboard keys</string>
+    <plurals name="layout_editor_copy_keys_done">
+        <item quantity="one">Copied <xliff:g id="count" example="1">%d</xliff:g> key, with its flicks, icon, corner hint and alternates. Pick a key in any layer or layout and press Paste after.</item>
+        <item quantity="other">Copied <xliff:g id="count" example="4">%d</xliff:g> keys, with their flicks, icons, corner hints and alternates. Pick a key in any layer or layout and press Paste after.</item>
+    </plurals>
+    <string name="layout_editor_paste_keys_wrong_clip_error">The clipboard holds no keys. Copy a key in the layout editor first.</string>
+    <string name="layout_editor_special_key_action">Add a special key</string>
+    <!-- Description of a text-editing operation in the special key picker. -->
+    <string name="layout_editor_special_edit_detail">A key that runs this text-editing operation.</string>
+    <!-- %1$.2f is the width of the selected row, in key widths. -->
+    <string name="layout_editor_row_width_label">Row width <xliff:g id="width" example="9.00">%1$.2f</xliff:g></string>
+    <!-- %1$.2f is the width of the grid, in key widths. -->
+    <string name="layout_editor_row_width_hint">Every key keeps its share. A row narrower than the grid (<xliff:g id="grid_width" example="10.00">%1$.2f</xliff:g>) is drawn centred, like the second row of QWERTY.</string>
+    <string name="layout_editor_row_width_field_label">Row width</string>
+    <string name="layout_editor_row_width_decrease_desc">Make the row narrower</string>
+    <string name="layout_editor_row_width_increase_desc">Make the row wider</string>
 
 </resources>

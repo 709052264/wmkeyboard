@@ -65,6 +65,7 @@ import com.wasimaster.wmkeyboard.core.layout.arrangedBy
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.KanaVariantKeyLabel
 import com.wasimaster.wmkeyboard.core.layout.LayerFile
+import com.wasimaster.wmkeyboard.core.layout.KeyFile
 import com.wasimaster.wmkeyboard.core.layout.LayerSpec
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.util.readTextCapped
@@ -1691,7 +1692,7 @@ internal fun moveKeyIn(rows: List<List<Key>>, from: KeyRef, to: KeyRef): List<Li
  * itself, is already the answer.
  */
 internal fun dropLanding(from: KeyRef, gap: KeyRef): KeyRef =
-    if (gap.row == from.row && gap.col > from.col) KeyRef(gap.row, gap.col - 1) else gap
+    if (gap.col != NewRowCol && gap.row == from.row && gap.col > from.col) KeyRef(gap.row, gap.col - 1) else gap
 
 /**
  * Where the key at [from] lands when it is pushed [delta] rows up or down, or
@@ -1832,6 +1833,34 @@ internal fun KeyLayoutEditorScreen(
     var extraSel by remember(layoutId, layer) { mutableStateOf<ExtraRef?>(null) }
     // The kind of field the preview draws the keyboard for (issue #769).
     var previewField by rememberSaveable(layoutId) { mutableStateOf(EditorPreviewField.TEXT) }
+    // Several keys picked at once (issue #769), in the grid's own coordinates;
+    // null while the grid picks one key at a time.
+    var multi by remember(layoutId, layer) { mutableStateOf<Set<KeyRef>?>(null) }
+    // Where the selection goes once an edit that moves the selected keys comes
+    // back from the store (issue #769). Moved at once, the selection pointed at
+    // the moved key's new seat while the grid on screen still had its
+    // neighbour there, and the key's settings filled with the neighbour's.
+    var pendingSelect by remember(layoutId, layer) { mutableStateOf<PendingSelect?>(null) }
+    val specNow = edited.watch { it }
+    pendingSelect?.let { pending ->
+        if (specNow != pending.before) {
+            pendingSelect = null
+            pending.onLanded()
+        }
+    }
+    // An edit that changed nothing never comes back; let the selection go.
+    LaunchedEffect(pendingSelect) {
+        if (pendingSelect != null) {
+            kotlinx.coroutines.delay(PendingSelectTimeoutMs)
+            pendingSelect = null
+        }
+    }
+    /** Runs [then] once the edit just sent has reached the layout on screen. */
+    fun selectAfterEdit(then: () -> Unit) {
+        pendingSelect = PendingSelect(specNow, then)
+    }
+    // What a row pressed below has to say: a copied layer or key, a paste.
+    var message by remember(layoutId) { mutableStateOf<String?>(null) }
 
     // Session-scoped on purpose. Persisting it would mean a second serialized
     // document per layout, for a benefit — "undo what I did last Tuesday" —
@@ -1957,6 +1986,14 @@ internal fun KeyLayoutEditorScreen(
         }
     }
 
+    /** [editDrawnRows] for an edit that adds or drops rows, so the row heights follow them. */
+    fun editDrawnLayer(asDrawn: Boolean, transform: (LayerSpec) -> LayerSpec) {
+        edit { spec ->
+            val from = if (asDrawn) laidOutAsDrawn(spec) else spec
+            from.copy(layers = from.layers + (layer.key to transform(baseLayerOf(from))))
+        }
+    }
+
     // Whole-layer edit, so a structural change to the rows can keep the parallel
     // per-row heights aligned. Authoring an inherited layer copies the built-in's
     // compiled grid (heights and all) first.
@@ -2041,7 +2078,6 @@ internal fun KeyLayoutEditorScreen(
     // these keys, so the corner hints, the popups the key section lists and an
     // email field's @ are the board's own rather than the editor's guess.
     val fullSettings = settings.watch { it }
-    val specNow = edited.watch { it }
     val board = remember(fullSettings, specNow, layer, compiled, previewField, panelKind) {
         if (panelKind != null) null else editorBoardView(fullSettings, specNow, layer, compiled, previewField)
     }
@@ -2138,23 +2174,12 @@ internal fun KeyLayoutEditorScreen(
         }
     }
 
-    // Issue #769: the tabs, the field the preview is drawn for and the undo
-    // pair go first, straight under the pinned grid they all act on.
-    if (!secondary) {
-        LayerChips(
-            edited = edited,
-            selected = layer,
-            selectedPanel = panelTab,
-            onSelect = { layer = it; panelTab = null; selection = null; extraSel = null },
-            onSelectPanel = { panelTab = it; selection = null; extraSel = null },
-        )
-    }
     // An email box and a browser's address bar change keys on the letters
-    // (issue #769): the comma, the full stop and enter. Drawn here on request,
-    // so the key that changes can be found and told to stay put.
+    // (issue #769): the comma, the full stop and enter. Drawn on request, so
+    // the key that changes can be found and told to stay put. The chips ride
+    // with the grid, above it; their caption is here.
     val fieldPreview = panelKind == null && !secondary && layer == LayoutLayer.LETTERS
     if (fieldPreview) {
-        PreviewFieldChips(previewField) { previewField = it }
         if (previewField != EditorPreviewField.TEXT) {
             CaptionText(
                 stringResource(
@@ -2202,6 +2227,31 @@ internal fun KeyLayoutEditorScreen(
                 contentDescription = stringResource(R.string.layout_editor_redo_desc),
             )
         }
+        // Several keys at once (issue #769): to move them together, or to
+        // set the same size or corner hint on all of them in one go.
+        if (panelKind == null) {
+            Spacer(Modifier.width(8.dp))
+            FilterChip(
+                selected = multi != null,
+                onClick = {
+                    stepPushed = false
+                    pendingSelect = null
+                    if (multi == null) {
+                        multi = setOfNotNull(selection?.takeIf { it.col >= 0 })
+                        selection = null
+                        extraSel = null
+                    } else {
+                        multi = null
+                    }
+                },
+                label = { Text(stringResource(R.string.layout_editor_multi_chip)) },
+                leadingIcon = if (multi != null) {
+                    { Icon(Icons.Outlined.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                } else {
+                    null
+                },
+            )
+        }
         Spacer(Modifier.weight(1f))
         Text(
             stringResource(R.string.layout_editor_autosave_label),
@@ -2212,9 +2262,33 @@ internal fun KeyLayoutEditorScreen(
 
     // The one line saying the keys can be pressed, while none is (issue #139):
     // once one is, the key's own section takes its place.
-    if (selection == null && shownExtraSel == null && (panelKind == null || panelSelection == null)) {
+    if (multi?.isEmpty() == true) {
+        CaptionText(stringResource(R.string.layout_editor_multi_caption))
+    } else if (multi == null && selection == null && shownExtraSel == null &&
+        (panelKind == null || panelSelection == null)
+    ) {
         CaptionText(stringResource(R.string.layout_editor_drag_caption))
     }
+
+    // Keys onto the clipboard and back (issue #769), whole: flicks, icon,
+    // corner hint, alternates and size go with them, to another place in this
+    // layer, another layer, or another layout.
+    val keyClipLabel = stringResource(R.string.layout_editor_key_clip_label)
+    val copyFailed = stringResource(R.string.layout_editor_copy_layer_error)
+    val pasteKeysWrong = stringResource(R.string.layout_editor_paste_keys_wrong_clip_error)
+    fun copyKeys(keys: List<Key>) {
+        val text = KeyFile.encode(keys, BuildConfig.VERSION_CODE)
+        message = if (putOnClipboard(context, keyClipLabel, text)) {
+            context.resources.getQuantityString(R.plurals.layout_editor_copy_keys_done, keys.size, keys.size)
+        } else {
+            copyFailed
+        }
+    }
+    /** The keys on the clipboard, or null after saying there are none. */
+    fun clipKeys(): List<Key>? = clipboardText(context)?.let { KeyFile.decode(it) }.also {
+        if (it == null) message = pasteKeysWrong
+    }
+    var pickingSpecialKey by remember(layoutId, layer) { mutableStateOf(false) }
 
     // A key dragged in the preview, dropped: one edit on whichever grid the tab
     // is showing, through the same helper the key section's arrows move a key
@@ -2225,8 +2299,39 @@ internal fun KeyLayoutEditorScreen(
         val kind = panelKind
         if (kind == null) {
             val (fromExtra, from) = fromDisplay(fromCell)
-            val (toExtra, to) = fromDisplay(toCell)
+            val (toExtra, to) = if (toCell.col == NewRowCol) null to null else fromDisplay(toCell)
+            // The picked keys go together when the one dragged is among them
+            // and they sit side by side in one row (issue #769).
+            val run = multi?.let { picked -> from?.let { runContaining(picked, it) } }
             when {
+                // Dropped between two rows, or above or below them all: a row
+                // of its own there (issue #769).
+                from != null && toCell.col == NewRowCol -> {
+                    val keys = multi?.takeIf { from in it }?.sortedWith(compareBy({ it.row }, { it.col }))
+                        ?: listOf(from)
+                    val floor = if (fillRowKeys != null) 1 else 0
+                    val at = (toCell.row - topOffset).coerceIn(floor, drawnRows.size)
+                    editDrawnLayer(keys.any { arranged.rowChanged(it.row) }) { it.withKeysInNewRow(keys, at) }
+                    extraSel = null
+                    stepPushed = false
+                    selectAfterEdit {
+                        val landed = newRowLanding(drawnRows, keys, at)
+                        if (multi != null) multi = landed.toSet() else selection = landed.firstOrNull()
+                    }
+                }
+                from != null && to != null && run != null -> {
+                    // The drop's gap, as the grid counted it before it took
+                    // one key's place off for [dropLanding].
+                    val gap = if (to.row == from.row && to.col >= from.col) to.col + 1 else to.col
+                    val target = runDropTarget(run, KeyRef(to.row, gap))
+                    if (target != null) {
+                        editDrawnRows(arranged.rowChanged(run.row) || arranged.rowChanged(target.row)) {
+                            moveRunIn(it, run, target)
+                        }
+                        stepPushed = false
+                        selectAfterEdit { multi = run.movedTo(target).toSet() }
+                    }
+                }
                 from != null && to != null -> {
                     // A move in a row the settings rearranged is made on the
                     // row as drawn, which is the only order the drop makes
@@ -2234,9 +2339,9 @@ internal fun KeyLayoutEditorScreen(
                     editDrawnRows(arranged.rowChanged(from.row) || arranged.rowChanged(to.row)) {
                         moveKeyIn(it, from, to)
                     }
-                    selection = to
                     extraSel = null
                     stepPushed = false
+                    selectAfterEdit { if (multi == null) selection = to else multi = setOf(to) }
                 }
                 // Along one of the rows around the grid, never off it: those
                 // rows are not rows of the layer, so a key cannot change seat
@@ -2245,9 +2350,9 @@ internal fun KeyLayoutEditorScreen(
                     editExtraRow(fromExtra.band) { row ->
                         moveKeyIn(listOf(row), KeyRef(0, fromExtra.col), KeyRef(0, toExtra.col)).first()
                     }
-                    extraSel = toExtra
                     selection = null
                     stepPushed = false
+                    selectAfterEdit { extraSel = toExtra }
                 }
                 else -> Unit
             }
@@ -2260,8 +2365,8 @@ internal fun KeyLayoutEditorScreen(
                         (kind.layerKey to base.copy(rows = moveKeyIn(base.rows, fromCell, toCell))),
                 )
             }
-            panelSelection = toCell
             stepPushed = false
+            selectAfterEdit { panelSelection = toCell }
         }
     }
 
@@ -2271,37 +2376,68 @@ internal fun KeyLayoutEditorScreen(
     // cost a scroll back up to the top after every edit. It keeps its place
     // under the bar now and takes a ceiling instead: over that it scrolls
     // within itself, and the page below never moves.
+    // The layer tabs ride in the pinned strip with the grid, above it (issue
+    // #769). On the page under a grid whose height changes with the layer,
+    // the next tab moved out from under the finger every time one was picked.
     RegisterPinned {
-        val gridScroll = rememberScrollState()
-        val ceiling = LocalConfiguration.current.screenHeightDp.dp * ActualSizePreviewShare
-        Box(
-            modifier = if (actualSize) {
-                Modifier.heightIn(max = ceiling).verticalScroll(gridScroll)
-            } else {
-                Modifier
-            },
-        ) {
-            EditorGrid(
-                layout = panelPreviewPair?.first ?: displayLayout,
-                settings = settings,
-                selection = if (panelKind != null) panelSelection else displaySelection,
-                showShift = showShift && panelKind == null,
-                actualSize = actualSize,
-                onSelect = { cell ->
-                    stepPushed = false
-                    if (panelKind != null) {
-                        panelSelection = cell
-                    } else {
-                        val (extra, main) = fromDisplay(cell)
-                        extraSel = extra
-                        selection = main
-                    }
+        Column {
+            if (!secondary) {
+                LayerChips(
+                    edited = edited,
+                    selected = layer,
+                    selectedPanel = panelTab,
+                    onSelect = { layer = it; panelTab = null; selection = null; extraSel = null },
+                    onSelectPanel = { panelTab = it; selection = null; extraSel = null },
+                )
+            }
+            if (fieldPreview) PreviewFieldChips(previewField) { previewField = it }
+            val gridScroll = rememberScrollState()
+            val ceiling = LocalConfiguration.current.screenHeightDp.dp * ActualSizePreviewShare
+            Box(
+                modifier = if (actualSize) {
+                    Modifier.heightIn(max = ceiling).verticalScroll(gridScroll)
+                } else {
+                    Modifier
                 },
-                rowHeightsDp = panelPreviewPair?.second,
-                onKeyDragged = onKeyDragged,
-                enterSlot = board?.enterSlot ?: IconSlots.KEY_ENTER,
-                spaceText = board?.spaceText,
-            )
+            ) {
+                EditorGrid(
+                    layout = panelPreviewPair?.first ?: displayLayout,
+                    settings = settings,
+                    selection = if (panelKind != null) panelSelection else displaySelection,
+                    showShift = showShift && panelKind == null,
+                    actualSize = actualSize,
+                    onSelect = { cell ->
+                        stepPushed = false
+                        pendingSelect = null
+                        if (panelKind != null) {
+                            panelSelection = cell
+                        } else {
+                            val (extra, main) = fromDisplay(cell)
+                            val picked = multi
+                            if (picked != null) {
+                                // Picking several: a tap adds a key or takes it
+                                // back out. Only keys of the layer itself.
+                                if (main != null && main.col >= 0) {
+                                    multi = if (main in picked) picked - main else picked + main
+                                }
+                            } else {
+                                extraSel = extra
+                                selection = main
+                            }
+                        }
+                    },
+                    rowHeightsDp = panelPreviewPair?.second,
+                    onKeyDragged = onKeyDragged,
+                    enterSlot = board?.enterSlot ?: IconSlots.KEY_ENTER,
+                    spaceText = board?.spaceText,
+                    allowNewRow = panelKind == null,
+                    multiSelection = if (panelKind == null) {
+                        multi.orEmpty().mapTo(HashSet()) { KeyRef(it.row + topOffset, it.col) }
+                    } else {
+                        emptySet()
+                    },
+                )
+            }
         }
     }
 
@@ -2399,14 +2535,14 @@ internal fun KeyLayoutEditorScreen(
                 if (target in drawnRows[ref.row].indices) {
                     editDrawnRows(arranged.rowChanged(ref.row)) { r ->
                         r.mapIndexed { i, row ->
-                            if (i != ref.row) {
+                            if (i != ref.row || ref.col !in row.indices || target !in row.indices) {
                                 row
                             } else {
                                 row.toMutableList().apply { add(target, removeAt(ref.col)) }
                             }
                         }
                     }
-                    selection = ref.copy(col = target)
+                    selectAfterEdit { selection = ref.copy(col = target) }
                 }
             },
             onMoveRow = { delta ->
@@ -2416,7 +2552,7 @@ internal fun KeyLayoutEditorScreen(
                     editDrawnRows(arranged.rowChanged(ref.row) || arranged.rowChanged(to.row)) {
                         moveKeyIn(it, ref, to)
                     }
-                    selection = to
+                    selectAfterEdit { selection = to }
                 }
             },
             onDuplicate = {
@@ -2448,6 +2584,18 @@ internal fun KeyLayoutEditorScreen(
                 selection = null
             },
             onDismiss = { selection = null },
+            onCopy = { copyKeys(listOf(selectedKey)) },
+            onPaste = {
+                clipKeys()?.let { pasted ->
+                    editDrawnRows(asDrawn) { r ->
+                        r.mapIndexed { i, row ->
+                            if (i != at.row) row else row.take(at.col + 1) + pasted + row.drop(at.col + 1)
+                        }
+                    }
+                    stepPushed = false
+                    selectAfterEdit { selection = ref.copy(col = ref.col + 1) }
+                }
+            },
             secondaryLayouts = secondaryLayoutList,
             keyboardModes = keyboardModeList,
             kanaPad = !secondary && edited.watch { it.language().id == "ja" },
@@ -2491,7 +2639,7 @@ internal fun KeyLayoutEditorScreen(
                                 stored
                             }
                         }
-                        extraSel = extra.copy(col = target)
+                        selectAfterEdit { extraSel = extra.copy(col = target) }
                     }
                 },
                 // One row: the section's up and down arrows are off at rowCount 1.
@@ -2515,6 +2663,14 @@ internal fun KeyLayoutEditorScreen(
                     extraSel = null
                 },
                 onDismiss = { extraSel = null },
+                onCopy = { copyKeys(listOf(key)) },
+                onPaste = {
+                    clipKeys()?.let { pasted ->
+                        editExtraRow(band) { stored -> stored.take(extra.col + 1) + pasted + stored.drop(extra.col + 1) }
+                        stepPushed = false
+                        selectAfterEdit { extraSel = extra.copy(col = extra.col + 1) }
+                    }
+                },
                 secondaryLayouts = secondaryLayoutList,
                 keyboardModes = keyboardModeList,
                 popupColumns = popupColumns,
@@ -2543,6 +2699,69 @@ internal fun KeyLayoutEditorScreen(
                 )
             }
         }
+    }
+
+    // Several keys at once (issue #769).
+    val picked = multi?.filterTo(HashSet()) { drawnRows.getOrNull(it.row)?.getOrNull(it.col) != null }
+    if (panelKind == null && !picked.isNullOrEmpty()) {
+        val order = picked.sortedWith(compareBy({ it.row }, { it.col }))
+        val pickedKeys = order.map { drawnRows[it.row][it.col] }
+        val run = runOf(picked)
+        fun moveRun(target: KeyRef) {
+            val r = run ?: return
+            editDrawnRows(arranged.rowChanged(r.row) || arranged.rowChanged(target.row)) { moveRunIn(it, r, target) }
+            stepPushed = false
+            selectAfterEdit { multi = r.movedTo(target).toSet() }
+        }
+        MultiKeySection(
+            keys = pickedKeys,
+            canMoveLeft = run != null && run.start > 0,
+            canMoveRight = run != null && run.start + run.len < drawnRows[run.row].size,
+            canMoveUp = run != null && run.row > 0,
+            canMoveDown = run != null && run.row < drawnRows.lastIndex,
+            onMove = { delta -> run?.let { moveRun(KeyRef(it.row, it.start + delta)) } },
+            onMoveRow = { delta ->
+                run?.let { r ->
+                    val toRow = r.row + delta
+                    if (toRow in drawnRows.indices) moveRun(KeyRef(toRow, r.start.coerceAtMost(drawnRows[toRow].size)))
+                }
+            },
+            onCopy = { copyKeys(pickedKeys) },
+            onPaste = {
+                clipKeys()?.let { pasted ->
+                    val last = order.last()
+                    editDrawnRows(arranged.rowChanged(last.row)) { r ->
+                        r.mapIndexed { i, row ->
+                            if (i != last.row) row else row.take(last.col + 1) + pasted + row.drop(last.col + 1)
+                        }
+                    }
+                    stepPushed = false
+                    selectAfterEdit { multi = pasted.indices.mapTo(HashSet()) { KeyRef(last.row, last.col + 1 + it) } }
+                }
+            },
+            onDelete = {
+                editDrawnRows(picked.any { arranged.rowChanged(it.row) }) { r ->
+                    r.mapIndexed { i, row -> row.filterIndexed { c, _ -> KeyRef(i, c) !in picked } }
+                }
+                multi = emptySet()
+            },
+            onDone = { multi = null },
+            onChange = { change ->
+                // As the single key's section does it: a key the Bottom row
+                // settings rewrote is changed as drawn, any other where stored.
+                val asDrawn = picked.any { arranged.rewritten(it.row, it.col) }
+                val at = if (asDrawn) picked else picked.mapTo(HashSet(), ::storedRef)
+                editCoalesced { spec ->
+                    val from = if (asDrawn) laidOutAsDrawn(spec) else spec
+                    withLayerRows(
+                        from,
+                        baseLayerOf(from).rows.mapIndexed { r, row ->
+                            row.mapIndexed { c, k -> if (KeyRef(r, c) in at) change(k) else k }
+                        },
+                    )
+                }
+            },
+        )
     }
 
     if (panelKind == null) selection?.let { sel ->
@@ -2600,10 +2819,52 @@ internal fun KeyLayoutEditorScreen(
                     }
                 }
             }
+            // The row's own width (issue #769): narrower than the grid
+            // centres it, the way QWERTY's second row is drawn.
+            RowWidthRow(
+                rowIndex = sel.row,
+                width = rows[sel.row].sumOf { it.width.toDouble() }.toFloat(),
+                gridWeight = gridWeightOf(rows),
+            ) { target ->
+                editCoalesced { spec ->
+                    withLayerRows(
+                        spec,
+                        baseLayerOf(spec).rows.mapIndexed { i, row -> if (i == sel.row) fitRowToGrid(row, target) else row },
+                    )
+                }
+            }
             RowHeightRow(
                 rowIndex = sel.row,
                 height = rowHeights?.getOrNull(sel.row) ?: 1f,
             ) { setRowHeight(sel.row, it) }
+            // Ctrl, Alt, Tab, the arrows and the rest, made in one step with
+            // the right action and the label the keyboard draws for it.
+            OutlinedButton(
+                onClick = { pickingSpecialKey = true },
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+            ) {
+                Icon(Icons.Outlined.Add, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.layout_editor_special_key_action))
+            }
+            if (pickingSpecialKey) {
+                KeyActionPickerDialog(
+                    current = KeyAction.None,
+                    options = SpecialKeyPresets,
+                    onDismiss = { pickingSpecialKey = false },
+                    onPick = { action ->
+                        pickingSpecialKey = false
+                        val col = sel.col.coerceAtLeast(-1)
+                        editDrawnRows(arranged.rowChanged(sel.row)) { r ->
+                            r.mapIndexed { i, row ->
+                                if (i != sel.row) row else row.take(col + 1) + Key("", action = action) + row.drop(col + 1)
+                            }
+                        }
+                        stepPushed = false
+                        selectAfterEdit { selection = KeyRef(sel.row, col + 1) }
+                    },
+                )
+            }
         }
     }
 
@@ -2681,7 +2942,6 @@ internal fun KeyLayoutEditorScreen(
     // (issue #105). Every word of it is resolved here because a click lambda is
     // a plain lambda, and because a note about a pasted grid names the layer it
     // landed in, which is a translated word.
-    var message by remember(layoutId) { mutableStateOf<String?>(null) }
     val layerName = stringResource(layerTitleRes(layer))
     val layerNames = LayoutLayer.entries.associate { it.key to stringResource(layerTitleRes(it)) }
     val clipLabel = stringResource(R.string.layout_editor_layer_clip_label)
@@ -3237,6 +3497,99 @@ internal fun KeyLayoutEditorScreen(
     }
 }
 
+/**
+ * A selection waiting on the edit that moves it (issue #769): [onLanded] runs
+ * once the layout on screen is no longer [before]. See `selectAfterEdit`.
+ */
+internal class PendingSelect(val before: LayoutSpec, val onLanded: () -> Unit)
+
+/** How long a [PendingSelect] waits for an edit that may never change anything. */
+private const val PendingSelectTimeoutMs = 1000L
+
+/**
+ * The column a drop gap carries when it is a new row rather than a place in
+ * one (issue #769): its row is the row the new one goes in front of, or the
+ * row count for one under them all. Not -1, which is an empty row's address.
+ */
+internal const val NewRowCol = -2
+
+/** Keys side by side in one row: what several picked keys move as (issue #769). */
+internal data class KeyRun(val row: Int, val start: Int, val len: Int) {
+    val refs: List<KeyRef> get() = (start until start + len).map { KeyRef(row, it) }
+
+    /** Where the run's keys are once it lands at [target]. */
+    fun movedTo(target: KeyRef): List<KeyRef> = (0 until len).map { KeyRef(target.row, target.col + it) }
+}
+
+/** [picked] as one run, when it is one: all in one row, side by side. */
+internal fun runOf(picked: Set<KeyRef>): KeyRun? {
+    if (picked.isEmpty()) return null
+    val row = picked.first().row
+    if (picked.any { it.row != row || it.col < 0 }) return null
+    val start = picked.minOf { it.col }
+    val end = picked.maxOf { it.col }
+    return KeyRun(row, start, end - start + 1).takeIf { it.len == picked.size }
+}
+
+/** [runOf], only when [ref] is one of its keys. */
+internal fun runContaining(picked: Set<KeyRef>, ref: KeyRef): KeyRun? =
+    runOf(picked)?.takeIf { ref in picked }
+
+/**
+ * Where [run] starts once it is taken out and dropped into the gap before key
+ * [gap].col of row [gap].row, counted with the run still in place; null for a
+ * gap inside or at either edge of the run itself, which moves nothing.
+ */
+internal fun runDropTarget(run: KeyRun, gap: KeyRef): KeyRef? = when {
+    gap.row != run.row -> gap
+    gap.col in run.start..run.start + run.len -> null
+    gap.col > run.start -> KeyRef(gap.row, gap.col - run.len)
+    else -> gap
+}
+
+/** [rows] with [run] taken out and put back starting at [target], counted after the removal. */
+internal fun moveRunIn(rows: List<List<Key>>, run: KeyRun, target: KeyRef): List<List<Key>> {
+    val source = rows.getOrNull(run.row) ?: return rows
+    if (run.start < 0 || run.start + run.len > source.size || target.row !in rows.indices) return rows
+    val keys = source.subList(run.start, run.start + run.len).toList()
+    val out = rows.map { it.toMutableList() }
+    repeat(run.len) { out[run.row].removeAt(run.start) }
+    out[target.row].addAll(target.col.coerceIn(0, out[target.row].size), keys)
+    return out.map { it.toList() }
+}
+
+/**
+ * This layer with [keys] lifted out of their rows into a new row of their own,
+ * put in front of row [at] (the row count puts it last). A row the move leaves
+ * empty goes, so dragging a key down out of a row of one does not leave a hole.
+ */
+internal fun LayerSpec.withKeysInNewRow(keys: List<KeyRef>, at: Int): LayerSpec {
+    val picked = keys.toSet()
+    val moved = rows.flatMapIndexed { r, row -> row.filterIndexed { c, _ -> KeyRef(r, c) in picked } }
+    if (moved.isEmpty()) return this
+    class Line(val keys: List<Key>, val height: Float, val emptied: Boolean)
+    val lines = rows.mapIndexed { r, row ->
+        val left = row.filterIndexed { c, _ -> KeyRef(r, c) !in picked }
+        Line(left, rowHeights?.getOrNull(r) ?: 1f, left.isEmpty() && row.isNotEmpty())
+    }.toMutableList()
+    lines.add(at.coerceIn(0, lines.size), Line(moved, 1f, emptied = false))
+    val kept = lines.filterNot { it.emptied }
+    return copy(
+        rows = kept.map { it.keys },
+        rowHeights = kept.map { it.height }.takeUnless { heights -> heights.all { it == 1f } },
+    )
+}
+
+/** Where [withKeysInNewRow] puts [keys], against the rows as they were before it. */
+internal fun newRowLanding(rows: List<List<Key>>, keys: List<KeyRef>, at: Int): List<KeyRef> {
+    val picked = keys.toSet()
+    val emptiedAbove = rows.indices.count { r ->
+        r < at && rows[r].isNotEmpty() && rows[r].indices.all { KeyRef(r, it) in picked }
+    }
+    val row = at.coerceIn(0, rows.size) - emptiedAbove
+    return keys.indices.map { KeyRef(row, it) }
+}
+
 /** Which of the rows drawn around a layer's grid, rather than in it, a key is on (issue #769). */
 internal enum class ExtraBand { NUMBER, FILL, ARROW }
 
@@ -3414,7 +3767,13 @@ internal fun RowActionBar(
             Text(
                 stringResource(R.string.layout_editor_row_width_mismatch, rowWidth, gridWeight),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.error,
+                // Narrower is a row drawn centred, which is a choice (QWERTY's
+                // second row); only wider, which squeezes the row, is a fault.
+                color = if (rowWidth > gridWeight) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
@@ -3572,6 +3931,14 @@ internal fun EditorGrid(
     enterSlot: String = IconSlots.KEY_ENTER,
     /** What the spacebar says on the keyboard; null draws the word "space". */
     spaceText: String? = null,
+    /**
+     * Whether a key dropped between two rows, or above or below them all,
+     * starts a row of its own there (issue #769). The drop then names the row
+     * it goes in front of, with [NewRowCol] for its column.
+     */
+    allowNewRow: Boolean = false,
+    /** Keys drawn as picked besides [selection]: the several-keys selection. */
+    multiSelection: Set<KeyRef> = emptySet(),
 ) {
     // Where each cell was last drawn, in the coordinates of the composition
     // root. A plain map on purpose: it is written from onGloballyPositioned,
@@ -3610,6 +3977,7 @@ internal fun EditorGrid(
     // over the copies it was composed with.
     val currentRows by rememberUpdatedState(layout.rows)
     val currentDrop by rememberUpdatedState(onKeyDragged)
+    val newRows by rememberUpdatedState(allowNewRow)
     val still by rememberUpdatedState(LocalReduceMotion.current)
     val scope = rememberCoroutineScope()
     // How far the key in the air has come up off the grid, 0 to 1: the scale
@@ -3736,7 +4104,7 @@ internal fun EditorGrid(
                             // measure in.
                             val at = (cellBounds[ref]?.topLeft ?: Offset.Zero) + change.position
                             dragPointer.value = at
-                            dropGap = dropGapAt(currentRows, cellBounds, at)
+                            dropGap = dropGapAt(currentRows, cellBounds, at, newRows)
                         }
                     }
                 },
@@ -3834,6 +4202,7 @@ internal fun EditorGrid(
                                     gridWeight = gridWeight,
                                     heights = band.map { heightOf(it) },
                                     selection = selection,
+                                    multiSelection = multiSelection,
                                     showShift = showShift,
                                     fontScale = fontScale,
                                     onSelect = onSelect,
@@ -3868,7 +4237,7 @@ internal fun EditorGrid(
                                             key = cellKey,
                                             kb = kb,
                                             heightDp = heightOf(r),
-                                            selected = selection == KeyRef(r, c),
+                                            selected = selection == KeyRef(r, c) || KeyRef(r, c) in multiSelection,
                                             showShift = showShift,
                                             fontScale = fontScale,
                                             face = KeyFace(enterSlot, spaceText, hintsOn),
@@ -3932,22 +4301,27 @@ private fun DragDecorations(
 ) {
     if (from == null && settle == null) return
     val density = LocalDensity.current
-    // The caret first, so the key in the air rides over it.
+    // The caret first, so the key in the air rides over it. Upright between
+    // two keys; lying flat between two rows, for a drop that makes a row of
+    // its own (issue #769).
     val gapBar = gap?.let { caretRect(rows, bounds, it) }
     if (gapBar != null) {
-        val barWidth = 3.dp
-        val barHeight = with(density) { gapBar.height.toDp() }
-        val halfBar = with(density) { (barWidth / 2).roundToPx() }
+        val thickness = 3.dp
+        val flat = gapBar.height == 0f
+        val half = with(density) { (thickness / 2).roundToPx() }
         Box(
             modifier = Modifier
                 .offset {
                     val at = origin.value
                     IntOffset(
-                        (gapBar.left - at.x).roundToInt() - halfBar,
-                        (gapBar.top - at.y).roundToInt(),
+                        (gapBar.left - at.x).roundToInt() - if (flat) 0 else half,
+                        (gapBar.top - at.y).roundToInt() - if (flat) half else 0,
                     )
                 }
-                .size(width = barWidth, height = barHeight)
+                .size(
+                    width = if (flat) with(density) { gapBar.width.toDp() } else thickness,
+                    height = if (flat) thickness else with(density) { gapBar.height.toDp() },
+                )
                 .clip(RoundedCornerShape(2.dp))
                 .background(kb.accent),
         )
@@ -4138,9 +4512,17 @@ internal fun dropGapAt(
     rows: List<List<Key>>,
     bounds: Map<KeyRef, Rect>,
     pointer: Offset,
+    /**
+     * Whether the seams between rows are drop targets of their own (issue
+     * #769): a finger on the thin band where two rows meet, or above the first
+     * row or below the last, asks for a new row there.
+     */
+    newRows: Boolean = false,
 ): KeyRef? {
     var bestRow = -1
     var bestDistance = Float.MAX_VALUE
+    // Each drawn row's top and bottom, in order, for the seams between them.
+    val spans = mutableListOf<Triple<Int, Float, Float>>()
     for (r in rows.indices) {
         val own = rows[r].indices.mapNotNull { c ->
             bounds[KeyRef(r, c)]?.takeIf { rows[r][c].rowSpan <= 1 }
@@ -4149,6 +4531,7 @@ internal fun dropGapAt(
         if (rects.isEmpty()) continue
         val top = rects.minOf { it.top }
         val bottom = rects.maxOf { it.bottom }
+        spans += Triple(r, top, bottom)
         val distance = when {
             pointer.y < top -> top - pointer.y
             pointer.y > bottom -> pointer.y - bottom
@@ -4160,6 +4543,7 @@ internal fun dropGapAt(
         }
     }
     if (bestRow < 0) return null
+    if (newRows) newRowSeamAt(spans, rows.size, pointer.y)?.let { return KeyRef(it, NewRowCol) }
     // Keys are written left to right, so the gap is simply how many of them the
     // finger has passed the middle of.
     val gap = rows[bestRow].indices.count { c ->
@@ -4169,11 +4553,36 @@ internal fun dropGapAt(
 }
 
 /**
+ * The row a new row would go in front of, for a finger at height [y] on one of
+ * the seams of [spans] (row, top, bottom, in order), or null off them. A seam
+ * is the gap between two rows and [NewRowSeamShare] of each row beside it; the
+ * first row's top edge and the last row's bottom edge are seams too, reaching
+ * out past the grid.
+ */
+private fun newRowSeamAt(spans: List<Triple<Int, Float, Float>>, rowCount: Int, y: Float): Int? {
+    if (spans.isEmpty()) return null
+    for ((index, span) in spans.withIndex()) {
+        val (row, top, bottom) = span
+        val edge = (bottom - top) * NewRowSeamShare
+        val previous = spans.getOrNull(index - 1)
+        val above = previous?.let { it.third - (it.third - it.second) * NewRowSeamShare } ?: Float.NEGATIVE_INFINITY
+        if (y >= above && y < top + edge) return row
+    }
+    val (lastRow, lastTop, lastBottom) = spans.last()
+    return if (y > lastBottom - (lastBottom - lastTop) * NewRowSeamShare) minOf(lastRow + 1, rowCount) else null
+}
+
+/** How much of a row's height, at its top and bottom edge, counts as the seam a new row is dropped on. */
+private const val NewRowSeamShare = 0.12f
+
+/**
  * Where the caret for [gap] is drawn: a hairline down the left edge of the key
  * that would be pushed along, or down the right edge of the row when the key is
  * going on the end. Root coordinates, and zero width — the caller gives it one.
+ * A new row's caret is zero height instead, lying across the grid on the seam.
  */
 internal fun caretRect(rows: List<List<Key>>, bounds: Map<KeyRef, Rect>, gap: KeyRef): Rect? {
+    if (gap.col == NewRowCol) return seamRect(rows, bounds, gap.row)
     val row = rows.getOrNull(gap.row) ?: return null
     val rects = row.indices.mapNotNull { bounds[KeyRef(gap.row, it)] }
     if (rects.isEmpty()) return null
@@ -4183,6 +4592,25 @@ internal fun caretRect(rows: List<List<Key>>, bounds: Map<KeyRef, Rect>, gap: Ke
     val ahead = if (gap.col in row.indices) bounds[KeyRef(gap.row, gap.col)] else null
     val x = ahead?.left ?: rects.maxOf { it.right }
     return Rect(left = x, top = rects.minOf { it.top }, right = x, bottom = rects.maxOf { it.bottom })
+}
+
+/** The flat caret for a new row in front of row [at]: across the grid, midway in the gap. */
+private fun seamRect(rows: List<List<Key>>, bounds: Map<KeyRef, Rect>, at: Int): Rect? {
+    val all = rows.indices.flatMap { r -> rows[r].indices.mapNotNull { bounds[KeyRef(r, it)] } }
+    if (all.isEmpty()) return null
+    fun edges(r: Int): Pair<Float, Float>? {
+        val rects = rows.getOrNull(r)?.indices?.mapNotNull { bounds[KeyRef(r, it)] }.orEmpty()
+        return if (rects.isEmpty()) null else rects.minOf { it.top } to rects.maxOf { it.bottom }
+    }
+    val below = (at until rows.size).firstNotNullOfOrNull { edges(it) }
+    val above = (at - 1 downTo 0).firstNotNullOfOrNull { edges(it) }
+    val y = when {
+        above != null && below != null -> (above.second + below.first) / 2f
+        below != null -> below.first - 2f
+        above != null -> above.second + 2f
+        else -> return null
+    }
+    return Rect(left = all.minOf { it.left }, top = y, right = all.maxOf { it.right }, bottom = y)
 }
 
 /**
@@ -4204,6 +4632,7 @@ internal fun EditorBand(
     showShift: Boolean,
     fontScale: Float,
     onSelect: (KeyRef) -> Unit,
+    multiSelection: Set<KeyRef> = emptySet(),
     /**
      * What the grid adds to every cell: where it landed, and the drag that can
      * pick it up. A band's cells are placed by hand, so they cannot inherit it
@@ -4230,7 +4659,7 @@ internal fun EditorBand(
                         key = slot.key,
                         kb = kb,
                         heightDp = heights[slot.row - band.first],
-                        selected = selection == ref,
+                        selected = selection == ref || ref in multiSelection,
                         showShift = showShift,
                         fontScale = fontScale,
                         face = face,
@@ -4940,6 +5369,10 @@ internal fun KeyEditSheet(
     onDelete: () -> Unit,
     /** Done with this key: the selection goes, and the section with it. */
     onDismiss: () -> Unit,
+    /** The key, whole, onto the clipboard; null offers no Copy (issue #769). */
+    onCopy: (() -> Unit)? = null,
+    /** Keys from the clipboard, straight after this one; null offers no Paste. */
+    onPaste: (() -> Unit)? = null,
     /** The actions offered; a panel layout narrows it and adds its components. */
     catalog: List<KeyActionOption> = KeyActionCatalog,
     /** The components a panel layout may place; null for a typing layout. */
@@ -5000,6 +5433,8 @@ internal fun KeyEditSheet(
         onInsertAfter = onInsertAfter,
         onDelete = onDelete,
         onDismiss = onDismiss,
+        onCopy = onCopy,
+        onPaste = onPaste,
     )
 
     // What the key is and what a tap does.
@@ -5356,10 +5791,19 @@ internal fun KeyEditSheet(
                 // would otherwise keep a tag with nowhere left to show it (issue
                 // #25). The renderer ignores such a tag either way; this is so
                 // the stored layout does not carry one.
+                // A new action takes the old one's label and icon with it
+                // (issue #769): a Del key turned into Ctrl kept saying Del.
+                // Left blank, the key draws what the keyboard draws for the
+                // action it now has. Typing text keeps its label.
+                val changed = !(catalog.firstOrNull { o -> o.matches(action) }?.matches(key.action) ?: false)
                 onChange {
+                    val relabel = changed && action != KeyAction.Text
                     it.copy(
                         action = action,
                         role = it.role.takeIf { _ -> action == KeyAction.Text },
+                        label = if (relabel) "" else it.label,
+                        shiftLabel = if (relabel) null else it.shiftLabel,
+                        icon = if (relabel) null else it.icon,
                     )
                 }
                 pickingAction = false
@@ -5490,6 +5934,8 @@ private fun KeyEditHeader(
     onInsertAfter: (() -> Unit)?,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
+    onCopy: (() -> Unit)? = null,
+    onPaste: (() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier.padding(start = 32.dp, end = 8.dp, top = 4.dp),
@@ -5542,11 +5988,105 @@ private fun KeyEditHeader(
                 Text(stringResource(R.string.layout_editor_insert_key_action))
             }
         }
+        if (onCopy != null) {
+            TextButton(onClick = onCopy) { Text(stringResource(R.string.layout_editor_copy_key_action)) }
+        }
+        if (onPaste != null) {
+            TextButton(onClick = onPaste) {
+                Icon(Icons.Outlined.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(stringResource(R.string.layout_editor_paste_key_action))
+            }
+        }
         TextButton(onClick = onDelete) {
             Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text(stringResource(R.string.layout_editor_delete_key_action))
         }
+    }
+}
+
+/**
+ * Several picked keys at once (issue #769): moved together while they sit side
+ * by side in one row, copied, deleted, and given the same width, label size or
+ * corner hint in one go. What one of them shows is the first one's value.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun MultiKeySection(
+    keys: List<Key>,
+    canMoveLeft: Boolean,
+    canMoveRight: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMove: (Int) -> Unit,
+    onMoveRow: (Int) -> Unit,
+    onCopy: () -> Unit,
+    onPaste: () -> Unit,
+    onDelete: () -> Unit,
+    onDone: () -> Unit,
+    onChange: ((Key) -> Key) -> Unit,
+) {
+    Row(
+        modifier = Modifier.padding(start = 32.dp, end = 8.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            pluralStringResource(R.plurals.layout_editor_multi_title, keys.size, keys.size),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onDone) {
+            Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.layout_editor_multi_done_desc))
+        }
+    }
+    FlowRow(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.Center) {
+        IconButton(enabled = canMoveLeft, onClick = { onMove(-1) }) {
+            Icon(
+                Icons.AutoMirrored.Outlined.KeyboardArrowLeft,
+                contentDescription = stringResource(R.string.layout_editor_move_left_desc),
+            )
+        }
+        IconButton(enabled = canMoveUp, onClick = { onMoveRow(-1) }) {
+            Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = stringResource(R.string.layout_editor_move_up_desc))
+        }
+        IconButton(enabled = canMoveDown, onClick = { onMoveRow(+1) }) {
+            Icon(Icons.Outlined.KeyboardArrowDown, contentDescription = stringResource(R.string.layout_editor_move_down_desc))
+        }
+        IconButton(enabled = canMoveRight, onClick = { onMove(+1) }) {
+            Icon(
+                Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                contentDescription = stringResource(R.string.layout_editor_move_right_desc),
+            )
+        }
+        TextButton(onClick = onCopy) { Text(stringResource(R.string.layout_editor_copy_key_action)) }
+        TextButton(onClick = onPaste) {
+            Icon(Icons.Outlined.ContentPaste, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.layout_editor_paste_key_action))
+        }
+        TextButton(onClick = onDelete) {
+            Icon(Icons.Outlined.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(stringResource(R.string.layout_editor_multi_delete_action))
+        }
+    }
+    if (!canMoveLeft && !canMoveRight && !canMoveUp && !canMoveDown && keys.size > 1) {
+        CaptionText(stringResource(R.string.layout_editor_multi_move_caption))
+    }
+    val first = keys.first()
+    SettingsGroup(stringResource(R.string.layout_editor_multi_section_look)) {
+        item {
+            // No row to fill: the keys may sit in several.
+            KeyWidthRow(width = first.width, gridWeight = 0f, otherWidthsInRow = 0f, resetKey = keys.size) { width ->
+                onChange { it.copy(width = width) }
+            }
+        }
+        keys.firstOrNull(::drawsScalableLabel)?.let { sample ->
+            item { KeyLabelScaleRow(sample) { scale -> onChange { it.copy(labelScale = scale) } } }
+        }
+        item { HintRow(first, onChange, always = true) }
     }
 }
 
@@ -6568,10 +7108,15 @@ private fun SheetField(
  * keeps the row whatever else changed, or setting one would be a one-way door.
  */
 @Composable
-private fun HintRow(key: Key, onChange: ((Key) -> Key) -> Unit) {
+private fun HintRow(
+    key: Key,
+    onChange: ((Key) -> Key) -> Unit,
+    /** Drawn whatever [key] holds: the several-keys section sets it for keys it has not looked at. */
+    always: Boolean = false,
+) {
     val hasIconHint = key.iconHint != null || key.hint != null
     val hasCharHint = key.opensAlternatesPopup() && key.longPress.isNotEmpty()
-    if (!key.hideHint && !key.forceHint && !hasIconHint && !hasCharHint) return
+    if (!always && !key.hideHint && !key.forceHint && !hasIconHint && !hasCharHint) return
     ChoiceSetting(
         title = R.string.layout_editor_hint_title,
         subtitle = stringResource(R.string.layout_editor_hint_subtitle),
@@ -6933,6 +7478,71 @@ internal fun RowFitRow(rowWidth: Float, gridWeight: Float, onFit: () -> Unit) {
         onClick = onFit,
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
     ) { Text(stringResource(R.string.layout_editor_fit_row_action, gridWeight)) }
+}
+
+/**
+ * The selected row's own width (issue #769), the row-level twin of a key's:
+ * every key in the row keeps its share as the total moves. A row narrower than
+ * the grid is centred, which is how QWERTY's second row is short; the only way
+ * to get that on another row used to be resizing its keys one at a time.
+ */
+@Composable
+internal fun RowWidthRow(rowIndex: Int, width: Float, gridWeight: Float, onChange: (Float) -> Unit) {
+    if (width <= 0f) return
+    val travel = sliderTravel(width, floor = 1f, ceiling = maxOf(gridWeight, 10f), hardMax = MaxRowWidthShown)
+    ControlSetting(
+        stringResource(R.string.layout_editor_row_width_label, width),
+        subtitle = stringResource(R.string.layout_editor_row_width_hint, gridWeight),
+        icon = SettingsRowIcons[R.string.layout_editor_key_width_label],
+    ) {
+        WmSlider(
+            value = sliderPosition(width, travel),
+            onValueChange = { onChange(roundGridUnit(it)) },
+            valueRange = travel,
+        )
+        GridSizeStepper(
+            value = width,
+            range = GridUnitStep..MaxRowWidthShown,
+            fieldLabel = stringResource(R.string.layout_editor_row_width_field_label),
+            decreaseDesc = stringResource(R.string.layout_editor_row_width_decrease_desc),
+            increaseDesc = stringResource(R.string.layout_editor_row_width_increase_desc),
+            resetKey = rowIndex,
+            onChange = onChange,
+        )
+    }
+}
+
+/** The widest the row width control goes; the stepper's two-digit field holds no more. */
+private const val MaxRowWidthShown = 30f
+
+/**
+ * The keys "Add a special key" makes (issue #769): every action of the catalog
+ * that needs nothing more said about it, and each text-editing operation by
+ * name, so a Ctrl, a Tab or a Copy key is one pick rather than a new key, an
+ * action, and then a second question. Left out: typing text, the ones that ask
+ * which tool, layout, mode or keyboard, and the keys of one script's pad.
+ */
+internal val SpecialKeyPresets: List<KeyActionOption> by lazy {
+    val skipped = setOf(
+        KeyAction.Text, KeyAction.None, KeyAction.KanaVariant, KeyAction.AddStroke,
+        KeyAction.DoubleConsonant, KeyAction.ReadingColumn, KeyAction.MorseDot, KeyAction.MorseDash,
+    )
+    KeyActionCatalog.filter { option ->
+        when (val action = option.build()) {
+            is KeyAction.Edit, is KeyAction.Tool, is KeyAction.Layout, is KeyAction.Mode,
+            is KeyAction.SwitchInputMethod, is KeyAction.Broadcast, is KeyAction.BrailleDot,
+            -> false
+            else -> action !in skipped
+        }
+    } + TextEditAction.entries.map { op ->
+        KeyActionOption(
+            textEditActionTitle(op),
+            R.string.layout_editor_action_group_text_edit,
+            R.string.layout_editor_special_edit_detail,
+            { KeyAction.Edit(op) },
+            { it == KeyAction.Edit(op) },
+        )
+    }
 }
 
 /**

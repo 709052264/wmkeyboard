@@ -27659,14 +27659,18 @@ private fun Modifier.pointerInputKey(
         }
     } else if (
         (key.action.deletesBackward() && backspaceSwipeDelete) ||
-        (key.action.deletesForward() && textEditing.forwardDeleteSwipe)
+        (key.action.deletesForward() && textEditing.forwardDeleteSwipe) ||
+        // A delete key given flick arms (#769) runs this machine too, swipe
+        // or no swipe: the arms live in it, beside the repeat.
+        ((key.action.deletesBackward() || key.action.deletesForward()) && key.hasFlicks())
     ) {
         // A delete key owns its whole gesture rather than bolting a drag onto
         // the shared press handler: tap, hold-to-repeat and the delete swipe
         // are one state machine, so a drag can cleanly take over from the
         // repeat loop mid-press and the move events are consumed while it does.
         Modifier.pointerInput(key, longPressDelayMs, keyRepeat, textEditing, hapticOnLongPress,
-            hapticOnLongPressRelease, vibrateOnRepeat, soundOnRepeat, vibrateOnDeleteSwipe) {
+            hapticOnLongPressRelease, vibrateOnRepeat, soundOnRepeat, vibrateOnDeleteSwipe,
+            backspaceSwipeDelete, flickDistanceDp) {
             val slopPx = 10.dp.toPx()
             val byWord = textEditing.backspaceSwipeUnit == BackspaceSwipeUnit.WORD
             // ⌦ runs the identical machine pointed the other way (issue #226):
@@ -27676,6 +27680,14 @@ private fun Modifier.pointerInputKey(
             // so the text-editing pad's own delete keys — which are `Edit`
             // actions, not these — run this machine too (issue #226).
             val forward = key.action.deletesForward()
+            val swipeOn = if (forward) textEditing.forwardDeleteSwipe else backspaceSwipeDelete
+            // The key's flick arms (#769). An arm takes the directions it
+            // covers away from the swipe, so a swipe waits until the finger is
+            // past the flick distance and heading somewhere no arm is.
+            val hasArm: (FlickDirection) -> Boolean = { key.flickArm(it) != null }
+            val armed = FlickDirection.entries.any(hasArm)
+            val flickSlopPx = flickDistanceDp.dp.toPx()
+            val swipeSlopPx = if (armed) maxOf(slopPx, flickSlopPx) else slopPx
             val dir = if (forward) 1f else -1f
             fun canDeleteHere(): Boolean = if (forward) canForwardDelete() else canDelete()
             // The repeat clears whole words instead of characters (issue #216),
@@ -27726,6 +27738,12 @@ private fun Modifier.pointerInputKey(
                 // first unit goes, then walked one step at a time.
                 var anchorX = down.position.x
                 var longPressFired = false
+                // The arm the finger is on, and whether one was ever reached:
+                // once it has, this press is a flick and never a swipe.
+                var arm: FlickDirection? = null
+                var flicked = false
+                var armRepeat: Job? = null
+                var armRepeated = false
                 val repeat = scope.launch {
                     delay(keyRepeat.startDelayMs.toLong())
                     longPressFired = true
@@ -27750,7 +27768,39 @@ private fun Modifier.pointerInputKey(
                     // long URL rolls a few pixels sideways, and turning that into
                     // a swipe cancelled the repeat under it: delete just stopped,
                     // the finger still down (#662).
-                    if (!swiping && !longPressFired && abs(change.position.x - down.position.x) > slopPx) {
+                    if (armed && !swiping && !longPressFired) {
+                        val offset = change.position - down.position
+                        val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                        if (live != arm) {
+                            arm = live
+                            setFlickDirection(live)
+                            armRepeat?.cancel()
+                            armRepeat = null
+                            if (live != null) {
+                                flicked = true
+                                repeat.cancel()
+                                onKeyHaptic()
+                                // A forward delete or an arrow on the arm keeps
+                                // going while the finger stays out on it.
+                                armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
+                                    scope.launch {
+                                        delay(keyRepeat.startDelayMs.toLong())
+                                        armRepeated = true
+                                        while (true) {
+                                            repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                                            onKeyRepeat(armKey)
+                                            delay(keyRepeat.deleteMs.toLong())
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (flicked) {
+                            change.consume()
+                            continue
+                        }
+                    }
+                    if (swipeOn && !swiping && !longPressFired && abs(change.position.x - down.position.x) > swipeSlopPx) {
                         swiping = true
                         repeat.cancel()
                         anchorX = down.position.x
@@ -27815,9 +27865,18 @@ private fun Modifier.pointerInputKey(
                     }
                 }
                 repeat.cancel()
+                armRepeat?.cancel()
+                if (flicked) setFlickDirection(null)
                 setPressed(false)
                 onKeyRelease()
+                val armKey = arm?.let { key.flickKey(it) }
                 when {
+                    // The arm already ran while held, or it runs now.
+                    armRepeated -> Unit
+                    armKey != null -> onKey(armKey)
+                    // Out to an arm and back inside the flick distance: the
+                    // cancel it is on every flick key.
+                    flicked -> Unit
                     // The lift is what deletes, once the finger has had the
                     // whole drag to change its mind.
                     swiping && previewing && taken > 0 -> deleteSwipe.onCommit()
