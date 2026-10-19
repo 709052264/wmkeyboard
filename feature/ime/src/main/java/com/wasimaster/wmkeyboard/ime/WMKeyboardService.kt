@@ -22722,25 +22722,48 @@ open class WMKeyboardService : InputMethodService() {
      * the start or the end of the text, which is what a desktop text box does
      * with them. The arrow itself is no line move there; a search box steps
      * into its dropdown and a plain field hands focus on, leaving nothing
-     * selected. False in a multi-line field, where the arrow follows the app's
-     * own wrapping, and when the field has not said where its selection is.
+     * selected. False unless [isOneLineField], where the arrow follows the
+     * app's own wrapping, and when the field has not said where its selection
+     * is.
      */
     private fun extendSelectionToEdgeDirectly(ic: InputConnection, up: Boolean): Boolean {
-        val inputType = currentInputEditorInfo?.inputType ?: return false
-        if (inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) return false
+        if (!isOneLineField()) return false
         val start = expectedSelStart
         val end = expectedSelEnd
         if (start < 0 || end < start) return false
         val anchor = anchorFor(start, end, if (up) -1 else 1)
         val to = if (up) {
             val before = ic.getTextBeforeCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            if (before.hasLineBreak()) return false
             (start - before.length).coerceAtLeast(0)
         } else {
             val after = ic.getTextAfterCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            if (after.hasLineBreak()) return false
             end + after.length
         }
         return setStretchedSelection(ic, anchor, to)
     }
+
+    /**
+     * The field is a one-line box, where Up and Down are no line moves: it
+     * flies no multi-line flag and declares an Enter action of its own, as a
+     * TextView, a search box and a web page's `<input>` all do. The flag alone
+     * was not enough (#800): Firefox's textarea and APKTool M's editor leave it
+     * off, and Shift+Down there selected to the end of the text instead of
+     * down a line. A multi-line box declares no action, or flies
+     * IME_FLAG_NO_ENTER_ACTION over the one it declared. The callers also
+     * stand down at a line break in the text they read, for an editor that
+     * declares an action anyway.
+     */
+    private fun isOneLineField(): Boolean {
+        val info = currentInputEditorInfo ?: return false
+        if (info.inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) return false
+        if (info.imeOptions and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) return false
+        val action = info.imeOptions and EditorInfo.IME_MASK_ACTION
+        return action != EditorInfo.IME_ACTION_NONE && action != EditorInfo.IME_ACTION_UNSPECIFIED
+    }
+
+    private fun CharSequence.hasLineBreak(): Boolean = any { it == '\n' || it == '\r' || it == '\u2028' }
 
     /**
      * The panel's Start of text and End of text keys (#785), as a selection
@@ -22879,19 +22902,20 @@ open class WMKeyboardService : InputMethodService() {
      * only: up puts the caret at the start of the text, down at its end, with a
      * selection change. An up or down arrow in a one-line field is not a line
      * move at all; a search box takes it into its dropdown, and a plain field
-     * hands focus to the view above or below. False in a multi-line field,
-     * where the arrow is what follows the app's own line wrapping, and when the
-     * field has not said where its caret is.
+     * hands focus to the view above or below. False unless [isOneLineField],
+     * where the arrow is what follows the app's own line wrapping, and when
+     * the field has not said where its caret is.
      */
     private fun moveCaretToEdgeDirectly(ic: InputConnection, delta: Int): Boolean {
-        val inputType = currentInputEditorInfo?.inputType ?: return false
-        if (inputType and InputType.TYPE_TEXT_FLAG_MULTI_LINE != 0) return false
+        if (!isOneLineField()) return false
         if (expectedSelStart < 0 || expectedSelStart != expectedSelEnd) return false
         val to = if (delta < 0) {
             val before = ic.getTextBeforeCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            if (before.hasLineBreak()) return false
             (expectedSelStart - before.length).coerceAtLeast(0)
         } else {
             val after = ic.getTextAfterCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            if (after.hasLineBreak()) return false
             expectedSelStart + after.length
         }
         if (to == expectedSelStart) return true
