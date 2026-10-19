@@ -1,4 +1,5 @@
 /** Font, sound, sound-pack, sticker and icon-pack previews. */
+import DOMPurify from 'dompurify';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { fmtBytes } from '../../lib/net';
 import { slotLabel, ICON_SLOT_GROUPS, ICON_SLOTS } from '../../lib/icon-slots';
@@ -270,14 +271,29 @@ export function IconPackPreview({ read }: { read: IconPackRead }) {
 	);
 }
 
-/** Strips scripts/handlers/external refs from an SVG before inlining it. */
+/**
+ * An icon from someone else's repo, safe to inline: DOMPurify parses it and
+ * keeps only SVG, so handlers, scripts, foreignObject and javascript: links go
+ * whatever the quoting. External refs are dropped too (a pack icon has no
+ * business loading anything), and the root's width/height so CSS sizes it.
+ * Empty where there is no DOM to parse with: never pass markup through unchecked.
+ */
 export function sanitizeSvg(svg: string): string {
-	return svg
-		.replace(/<\?xml[^>]*\?>/g, '')
-		.replace(/<!--[\s\S]*?-->/g, '')
-		.replace(/<script[\s\S]*?<\/script>/gi, '')
-		.replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
-		.replace(/\son\w+="[^"]*"/gi, '')
-		.replace(/\s(xlink:)?href="(?!#)[^"]*"/gi, '')
-		.replace(/<svg\b([^>]*)>/i, (_, attrs: string) => `<svg${attrs.replace(/\s(width|height)="[^"]*"/gi, '')}>`);
+	if (!DOMPurify.isSupported) return '';
+	const root = DOMPurify.sanitize(svg, {
+		USE_PROFILES: { svg: true, svgFilters: true },
+		ADD_TAGS: ['use'],
+		FORBID_TAGS: ['foreignObject', 'image'],
+		RETURN_DOM_FRAGMENT: true,
+	}).querySelector('svg');
+	if (!root) return '';
+	for (const el of [root, ...root.querySelectorAll('*')]) {
+		for (const name of ['href', 'xlink:href']) {
+			const value = el.getAttribute(name);
+			if (value !== null && !value.startsWith('#')) el.removeAttribute(name);
+		}
+	}
+	root.removeAttribute('width');
+	root.removeAttribute('height');
+	return root.outerHTML;
 }

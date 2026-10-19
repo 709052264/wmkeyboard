@@ -488,7 +488,10 @@ is judged from the pixels rather than from anything the file says.
 presentation attributes and inline `style`, and `#rgb`/`#rrggbb`/`#rrggbbaa`/
 `rgb()`/named colours. Text, embedded images, `<use>`, gradients, filters, masks
 and CSS `<style>` blocks are skipped. An icon that leans on them renders as
-whatever is left rather than failing to import.
+whatever is left rather than failing to import. The [addon store](/addons/)
+previews SVG icons the same untrusted way: it drops scripts, event handlers,
+`<foreignObject>`, embedded images and any link that points outside the file
+before drawing one, so a pack can't run code on this site.
 
 **Limits.** An SVG must be under 256 KB. A raster icon must be under 512 KB and
 no more than 2048 px on its longest edge, which is checked by reading the
