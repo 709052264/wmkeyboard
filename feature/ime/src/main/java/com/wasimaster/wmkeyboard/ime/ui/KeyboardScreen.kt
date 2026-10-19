@@ -23144,9 +23144,15 @@ internal fun KeyButton(
     val keyShape = kb.keyShape(bleedDp = keyGapH(settings).value, kind = visual.shapeKind)
     // A key the theme gave its own shape re-runs the shadow guard for that
     // shape: a round enter key may cast one on a board whose own shape cannot.
-    val keyElevation = visual.shapeKind
-        ?.let { elevationFor(it, kb.keyElevation) }
-        ?: kb.keyElevation
+    // Only an opaque face casts one: the platform shadow is a solid slab under
+    // the whole outline, and a see-through fill (a photo background's key
+    // opacity, a translucent theme) shows its inner edge as a lighter
+    // rectangle inset in every key.
+    val keyElevation = (
+        visual.shapeKind
+            ?.let { elevationFor(it, kb.keyElevation) }
+            ?: kb.keyElevation
+        ).takeIf { visual.background.alpha >= 1f } ?: 0.dp
 
     // Outer box = full grid cell and the touch target; inner box = the
     // visible key, inset by the gap. Presses in the gap between keys land
