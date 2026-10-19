@@ -11125,7 +11125,7 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { EmojiInsertMode.valueOf(it) }.getOrNull() }
                 ?: defaults.emojiInsertMode,
             emoji = readEmoji(p, defaults),
-            enabledTools = ToolbarTool.entries - decodeDisabledTools(p[DISABLED_TOOLS]),
+            enabledTools = ToolbarTool.entries - decodeDisabledTools(p[DISABLED_TOOLS]) - ActionOnlyTools,
             toolboxOrder = decodeToolOrder(p[TOOLBOX_ORDER]),
             toolboxHintDismissed = p[TOOLBOX_HINT_DISMISSED] ?: defaults.toolboxHintDismissed,
             toolbox = readToolbox(p, defaults),

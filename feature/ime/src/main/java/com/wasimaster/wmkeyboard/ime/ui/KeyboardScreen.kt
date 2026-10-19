@@ -8382,6 +8382,8 @@ internal fun toolIcon(tool: ToolbarTool): ImageVector = IconDefaults.forTool(too
 internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> R.string.ime_tool_emoji
     ToolbarTool.CLIPBOARD -> R.string.ime_tool_clipboard
+    ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
+    ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8483,6 +8485,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
         state.panel == PanelMode.EMOJI
     }
     ToolbarTool.CLIPBOARD -> state.panel == PanelMode.CLIPBOARD
+    ToolbarTool.CLIPBOARD_SEARCH -> state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive
+    ToolbarTool.RECENT_COPIES -> state.recentClipsOpen
     ToolbarTool.SNIPPETS -> state.panel == PanelMode.SNIPPETS
     ToolbarTool.TEXT_EDIT -> state.panel == PanelMode.TEXT_EDIT
     ToolbarTool.TRACKPAD -> state.panel == PanelMode.TRACKPAD

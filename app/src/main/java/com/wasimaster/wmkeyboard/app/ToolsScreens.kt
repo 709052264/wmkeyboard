@@ -40,6 +40,7 @@ import com.wasimaster.wmkeyboard.ime.ui.IconDefaults
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.CursorTools
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -90,6 +91,8 @@ private val ToolsWithoutOptions: Set<ToolbarTool> =
 internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> ImeR.string.ime_tool_emoji
     ToolbarTool.CLIPBOARD -> ImeR.string.ime_tool_clipboard
+    ToolbarTool.CLIPBOARD_SEARCH -> ImeR.string.ime_tool_clipboard_search
+    ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> ImeR.string.ime_tool_trackpad
@@ -181,6 +184,8 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
 internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.EMOJI -> R.string.fonts_tool_emoji_desc
     ToolbarTool.CLIPBOARD -> R.string.fonts_tool_clipboard_desc
+    ToolbarTool.CLIPBOARD_SEARCH -> R.string.fonts_tool_clipboard_search_desc
+    ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc
     ToolbarTool.TRACKPAD -> R.string.fonts_tool_trackpad_desc
@@ -607,7 +612,8 @@ internal val ToolGroups: List<Pair<Int, List<ToolbarTool>>> = buildList {
         ),
     )
     val grouped = flatMapTo(HashSet()) { it.second }
-    val ungrouped = ToolbarTool.entries.filterNot { it in grouped }
+    // Action-only tools have no tile: the binding pickers list them under Other.
+    val ungrouped = ToolbarTool.entries.filterNot { it in grouped || it in ActionOnlyTools }
     if (ungrouped.isNotEmpty()) add(R.string.tools_group_other_title to ungrouped)
 }.map { (title, tools) -> title to tools.filter(::isSupportedTool) }
     .filter { it.second.isNotEmpty() }

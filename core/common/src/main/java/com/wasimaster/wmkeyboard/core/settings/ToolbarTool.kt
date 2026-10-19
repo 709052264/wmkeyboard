@@ -131,6 +131,13 @@ enum class ToolbarTool {
     // The next language, as the 🌐 key switches it (issue #667): for a bottom
     // row with no globe key, or one whose globe sits where a comma is meant.
     LANGUAGE,
+    // The clipboard opened straight into its search (#612). Action-only: for
+    // a flick, a key or a hold, never a toolbar tile; see [ActionOnlyTools].
+    CLIPBOARD_SEARCH,
+    // The row of the latest copies on the suggestion strip (#612), up until a
+    // key is typed. Action-only, like [CLIPBOARD_SEARCH]: bound to the Copy
+    // tool's hold, it is the last few copies one press away.
+    RECENT_COPIES,
     // A piece of text written out many times: "ha" fifty times, a numbered
     // list of one line, "no" with its last letter stretched. Opened by its
     // chip when the same thing has just been typed a few times in a row.
@@ -250,6 +257,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
+    ToolbarTool.RECENT_COPIES,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -285,7 +293,17 @@ val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
  * compares the stored set against this one to tell an untouched default from
  * a user's own choice.
  */
-val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in OptInOnlyTools }
+val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in OptInOnlyTools || it in ActionOnlyTools }
+
+/**
+ * Tools that are only ever something a gesture does: a flick arm, a key or its
+ * long press, a toolbar button's hold, the floating button. They never sit on
+ * the toolbar or in the toolbox, have no page on the Tools screen and are
+ * never "enabled": the pickers for those bindings are where they live. The
+ * bindings run through paths that skip the enabled-tools test, so they fire
+ * regardless.
+ */
+val ActionOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES)
 
 /**
  * The onboarding starting selection for the "keep it simple" persona: what a
@@ -364,6 +382,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
+    ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES,
 )
 
 /**

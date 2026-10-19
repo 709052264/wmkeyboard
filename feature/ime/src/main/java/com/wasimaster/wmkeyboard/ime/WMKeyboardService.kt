@@ -310,6 +310,7 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.settings.TextEditingSettings
 import com.wasimaster.wmkeyboard.core.settings.ThemeSelectionTarget
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_MIN_TOOLS
 import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_NAME_MAX
 import com.wasimaster.wmkeyboard.core.settings.folderById
@@ -25842,6 +25843,8 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD -> {
                 if (isClipboardAccessible()) onPanelChange(PanelMode.CLIPBOARD)
             }
+            ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
+            ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -35031,6 +35034,32 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Clipboard panel search bar tapped: route keys into [clipboardQuery]. */
+    /**
+     * The Clipboard search action (#612): the clipboard opens with its search
+     * already taking the keys, or, already open there, closes the way a
+     * second tap on a tool does. Turns the search bar on for good if it was
+     * off: the action is that bar, a gesture away.
+     */
+    private fun onClipboardOpenSearching() {
+        if (!isClipboardAccessible()) return
+        val state = _uiState.value
+        if (state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive) {
+            onPanelChange(PanelMode.CLIPBOARD)
+            return
+        }
+        if (!state.settings.clipboard.search) serviceScope.launch { settingsRepository.setClipboardSearch(true) }
+        if (state.panel != PanelMode.CLIPBOARD) onPanelChange(PanelMode.CLIPBOARD)
+        if (_uiState.value.panel != PanelMode.CLIPBOARD) return
+        _uiState.update {
+            it.copy(
+                clipboardSearchActive = true,
+                clipEdit = null,
+                clipCombine = null,
+                panelFocus = null,
+            )
+        }
+    }
+
     fun onClipboardSearchToggle() {
         vibrate()
         _uiState.update {
@@ -43076,7 +43105,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The button beside the last-copy chip (#612):
+     * The Recent copies action, or the button beside the last-copy chip (#612):
      * the row of the latest copies goes up on the strip, or comes down. It
      * stays until a key is typed, its ✕, or another field.
      */
@@ -45269,8 +45298,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun openToolByKey(tool: ToolbarTool) {
         // Gated on the toolbar's set, unlike a key bound to the tool: a hardware
         // shortcut is a binding to a button, and a button that is not there is
-        // not one to press. See [runToolFromKey].
-        if (tool !in _uiState.value.settings.enabledTools) return
+        // not one to press. See [runToolFromKey]. An action-only tool has no
+        // button at all, so its binding is the only way to reach it.
+        if (tool !in _uiState.value.settings.enabledTools && tool !in ActionOnlyTools) return
         runToolFromKey(tool)
         seedPanelFocus()
     }

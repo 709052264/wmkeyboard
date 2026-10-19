@@ -387,6 +387,8 @@
          the toolbox, the settings screens and the hardware shortcut legend. -->
     <string name="ime_tool_emoji">Emoji</string>
     <string name="ime_tool_clipboard">Clipboard</string>
+    <string name="ime_tool_clipboard_search">Clipboard search</string>
+    <string name="ime_tool_recent_copies">Recent copies</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
     <string name="ime_tool_trackpad">Trackpad</string>

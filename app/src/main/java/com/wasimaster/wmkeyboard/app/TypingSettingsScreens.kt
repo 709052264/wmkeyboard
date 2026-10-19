@@ -109,6 +109,7 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
 import kotlinx.coroutines.CoroutineScope
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
@@ -3016,6 +3017,16 @@ internal fun HardwareShortcutsSettings(repository: SettingsRepository, settings:
             if (free.isEmpty()) continue
             SettingsGroup(stringResource(groupTitle)) {
                 for (tool in free) {
+                    item { HardwareShortcutRow(tool, null, settings, repository) { editing = tool } }
+                }
+            }
+        }
+        // Action-only tools sit in no group of the Tools screen, but a
+        // shortcut is one of the bindings they exist for.
+        val freeActions = tools.filter { it in ActionOnlyTools && letterOf[it] == null }
+        if (freeActions.isNotEmpty()) {
+            SettingsGroup(stringResource(R.string.tools_group_other_title)) {
+                for (tool in freeActions) {
                     item { HardwareShortcutRow(tool, null, settings, repository) { editing = tool } }
                 }
             }

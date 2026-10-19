@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
 /**
@@ -2702,7 +2703,7 @@ private fun SearchStrings.sectionChildRows(): List<SettingsSearchEntry> = listOf
  * tool is searchable the moment it has a title. No index edit needed.
  */
 private fun SearchStrings.toolRows(): List<SettingsSearchEntry> =
-    ToolbarTool.entries.filter(::isSupportedTool).map { tool ->
+    ToolbarTool.entries.filter { isSupportedTool(it) && it !in ActionOnlyTools }.map { tool ->
         toolEntry(tool, toolTitle(tool), toolDescription(tool), weight = EntryWeight.TOOL)
     }
 
