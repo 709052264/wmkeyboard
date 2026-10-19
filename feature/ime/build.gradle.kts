@@ -36,6 +36,21 @@ val googleHomeVersion: String? = file("libs/googlehome/m2/com/google/android/gms
     ?.filter { it.isDirectory }?.map { it.name }?.maxOrNull()
 val googleHomeAars: Boolean = file("libs/googlehome").listFiles()?.any { it.name.endsWith(".aar") } == true
 val googleHomeSdk: Boolean = googleHomeVersion != null || googleHomeAars
+// Having the SDK on disk is not enough: it costs about 22 MB of dex before R8,
+// so it is linked only when wmkb.enableGoogleHome says so too. Pass
+// -Pwmkb.enableGoogleHome=true for one build (a fast one, say) and leave
+// local.properties at false; :core:config reads the same flag for
+// ENABLE_GOOGLE_HOME, so the code and the dependency never disagree.
+val googleHome: Boolean = googleHomeSdk && run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    (providers.gradleProperty("wmkb.enableGoogleHome").orNull
+        ?: localProperties.getProperty("wmkb.enableGoogleHome")
+        ?: System.getenv("WMKB_ENABLE_GOOGLE_HOME")
+        ?: "false").toBoolean()
+}
 
 val playStoreChannel = run {
     val localProperties = Properties().apply {
@@ -71,11 +86,11 @@ android {
     // the SDK still builds. ENABLE_GOOGLE_HOME in :core:config follows suit.
     sourceSets {
         getByName("full") {
-            val dir = if (googleHomeSdk) "src/googlehome/java" else "src/googlehomestub/java"
+            val dir = if (googleHome) "src/googlehome/java" else "src/googlehomestub/java"
             java.srcDir(dir)
             kotlin.srcDir(dir)
             // The Play services module request the Home APIs need; only with the SDK.
-            if (googleHomeSdk) manifest.srcFile("src/googlehome/AndroidManifest.xml")
+            if (googleHome) manifest.srcFile("src/googlehome/AndroidManifest.xml")
         }
     }
     compileOptions {
@@ -170,10 +185,10 @@ dependencies {
     "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
     "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     "fullImplementation"(libs.mlkit.document.scanner)
-    if (googleHomeVersion != null) {
+    if (googleHome && googleHomeVersion != null) {
         "fullImplementation"("com.google.android.gms:play-services-home:$googleHomeVersion")
         "fullImplementation"("com.google.android.gms:play-services-home-types:$googleHomeVersion")
-    } else if (googleHomeAars) {
+    } else if (googleHome && googleHomeAars) {
         "fullImplementation"(fileTree("libs/googlehome") { include("*.aar", "*.jar") })
     }
 
