@@ -64,6 +64,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.AppTheme
+import com.wasimaster.wmkeyboard.app.SharedUris
 import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.net.NetLogInterceptor
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -107,11 +108,14 @@ class SendShareActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val uris: List<Uri> = when (intent?.action) {
-            Intent.ACTION_SEND -> listOfNotNull(intent.stream())
-            Intent.ACTION_SEND_MULTIPLE -> intent.streams()
-            else -> emptyList()
-        }
+        val uris: List<Uri> = SharedUris.foreign(
+            this,
+            when (intent?.action) {
+                Intent.ACTION_SEND -> listOfNotNull(intent.stream())
+                Intent.ACTION_SEND_MULTIPLE -> intent.streams()
+                else -> emptyList()
+            },
+        )
         val text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
         val shared = uris.mapNotNull { describe(it) }.toMutableList()
         if (shared.isEmpty() && !text.isNullOrBlank()) {

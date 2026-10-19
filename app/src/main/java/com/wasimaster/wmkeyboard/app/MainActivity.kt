@@ -236,6 +236,9 @@ class MainActivity : FragmentActivity() {
          * through the search index, the screen holding it.
          */
         const val EXTRA_OPEN_SETTING = MainActivityContract.EXTRA_OPEN_SETTING
+
+        /** Saved-state key of an unanswered [PairLinkDialog][com.wasimaster.wmkeyboard.app.kdeconnect.PairLinkDialog]. */
+        private const val STATE_PENDING_PAIR = "pending_pair"
     }
 
     private lateinit var repository: SettingsRepository
@@ -271,6 +274,12 @@ class MainActivity : FragmentActivity() {
      * keeps the dialog up over it.
      */
     private val missingLink = MutableStateFlow<MissingLink?>(null)
+
+    /**
+     * A computer's pairing link waiting for the user's yes. A link alone never
+     * pairs: any page or app can open one, naming any address (#702).
+     */
+    private val pendingPair = MutableStateFlow<String?>(null)
 
     /**
      * The app language (#322). On Android 12 and older nothing else applies
@@ -322,6 +331,7 @@ class MainActivity : FragmentActivity() {
         // comes back from the saved state, so one the user already closed
         // stays closed.
         missingLink.value = if (savedInstanceState != null) MissingLink.restore(savedInstanceState) else nav?.missing
+        if (savedInstanceState != null) pendingPair.value = savedInstanceState.getString(STATE_PENDING_PAIR)
         setContent {
             val stored = repository.settings
                 .collectAsStateWithLifecycle(null as KeyboardSettings?)
@@ -386,7 +396,20 @@ class MainActivity : FragmentActivity() {
                     // the offer arrives.
                     val missing by missingLink.collectAsStateWithLifecycle()
                     val link = missing
-                    if (link != null) {
+                    // A pairing link asks first, and nothing else stacks on it.
+                    val pairState by pendingPair.collectAsStateWithLifecycle()
+                    val pairLink = pairState
+                    val pairCode = pairLink?.let { com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode.parse(it) }
+                    if (pairLink != null && pairCode != null) {
+                        com.wasimaster.wmkeyboard.app.kdeconnect.PairLinkDialog(
+                            pairCode,
+                            onPair = {
+                                pendingPair.value = null
+                                pairByLink(pairLink)
+                            },
+                            onDismiss = { pendingPair.value = null },
+                        )
+                    } else if (link != null) {
                         // Holds the update offer itself, so the ordinary
                         // prompt waits rather than stacking a second dialog.
                         NewerLinkDialog(link, settings) { missingLink.value = null }
@@ -410,6 +433,18 @@ class MainActivity : FragmentActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         missingLink.value?.save(outState)
+        pendingPair.value?.let { outState.putString(STATE_PENDING_PAIR, it) }
+    }
+
+    /** Turns KDE Connect on and pairs with the computer [link] names; see KdeConnectHub.pairByCode. */
+    private fun pairByLink(link: String) {
+        val repository = com.wasimaster.wmkeyboard.core.settings.SettingsRepository(applicationContext)
+        lifecycleScope.launch {
+            repository.setKdeEnabled(true)
+            com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.attach(applicationContext)
+            com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.applySettings(repository.settings.first().kdeConnect)
+            com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.pairByCode(link)
+        }
     }
 
     override fun onResume() {
@@ -442,17 +477,12 @@ class MainActivity : FragmentActivity() {
         // An https /open/ address is one of ours wearing a web page's
         // clothes; unwrap it first and everything below treats it the same.
         val link = WebOpenLink.appLink(intent.data) ?: intent.data?.toString()
-        // A computer's pairing code: KDE Connect on, pairing under way, and
-        // the devices screen open to watch it happen. The code only pairs with
-        // the computer whose certificate it names; see KdeConnectHub.pairByCode.
+        // A computer's pairing code: the devices screen opens, and the phone
+        // pairs once the user says yes in PairLinkDialog. The code only pairs
+        // with the computer whose certificate it names, but the code itself can
+        // come from anyone, so it never pairs on its own.
         if (link != null && com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode.parse(link) != null) {
-            val repository = com.wasimaster.wmkeyboard.core.settings.SettingsRepository(applicationContext)
-            lifecycleScope.launch {
-                repository.setKdeEnabled(true)
-                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.attach(applicationContext)
-                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.applySettings(repository.settings.first().kdeConnect)
-                com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.pairByCode(link)
-            }
+            pendingPair.value = link
             return PendingNav(route = com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub.DEVICES_ROUTE)
         }
         // Home Assistant's browser sign-in coming back with its code: checked

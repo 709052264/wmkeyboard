@@ -14,6 +14,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.SharedUris
 import com.wasimaster.wmkeyboard.core.kdeconnect.KdeDevice
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
@@ -157,11 +158,14 @@ abstract class KdeSendActivity : ComponentActivity() {
 class KdeShareActivity : KdeSendActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val uris: List<Uri> = when (intent?.action) {
-            Intent.ACTION_SEND -> listOfNotNull(intent.stream())
-            Intent.ACTION_SEND_MULTIPLE -> intent.streams()
-            else -> emptyList()
-        }
+        val uris: List<Uri> = SharedUris.foreign(
+            this,
+            when (intent?.action) {
+                Intent.ACTION_SEND -> listOfNotNull(intent.stream())
+                Intent.ACTION_SEND_MULTIPLE -> intent.streams()
+                else -> emptyList()
+            },
+        )
         val text = intent?.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
         if (uris.isEmpty() && text.isNullOrBlank()) {
             finish()

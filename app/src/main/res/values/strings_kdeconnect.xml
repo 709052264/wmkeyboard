@@ -111,6 +111,8 @@
     <string name="kdeconnect_pairing_accept">Accept</string>
     <string name="kdeconnect_pairing_reject">Reject</string>
     <string name="kdeconnect_pairing_cancel">Cancel</string>
+    <string name="kdeconnect_pair_link_title">Pair with %1$s?</string>
+    <string name="kdeconnect_pair_link_body">A link asks this phone to pair with the computer at %1$s. A paired computer can type into the field you use, get the text you copy, and send files. Pair only if you scanned this code from your own computer.</string>
     <string name="kdeconnect_hosts_title">Added by address</string>
     <string name="kdeconnect_hosts_info">For networks that block discovery. This phone announces itself to each address directly, and the computer answers.</string>
     <string name="kdeconnect_hosts_label">IP address or host name</string>
