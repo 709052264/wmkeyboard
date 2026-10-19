@@ -8573,6 +8573,10 @@ open class WMKeyboardService : InputMethodService() {
         if (panel != PanelMode.GIF) {
             com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.releaseDatabases()
         }
+        // And one per imported dictionary (#765).
+        if (panel != PanelMode.DICTIONARY) {
+            com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.releaseDatabases()
+        }
         // Media thumbnails: a tenth of the heap, shared by every media panel,
         // so they only go when none of them is the one on screen.
         if (panel == null || panel == PanelMode.NONE) trimMediaImageMemory()

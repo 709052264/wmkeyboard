@@ -1299,6 +1299,8 @@ internal fun ToolDetailSettings(
             )
             // The words the packs above do not know, with no network (#665).
             OfflineDictionariesGroup(settings)
+            // Yomichan / Yomitan dictionaries, in any language (#765).
+            ImportedDictionariesGroup()
         }
         ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {

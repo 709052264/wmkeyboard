@@ -122,7 +122,8 @@ The dictionary looks up English words in a chain of sources you put in order (se
 - Each entry shows the word and, when the source has them, its IPA phonetic transcription and a pronunciation-audio play button. The **Wiktionary definitions** source carries neither. An **Insert** chip types the headword itself at the cursor, not a definition.
 - When an installed [vocabulary pack](/tools/vocabulary/) has the word and a translation for it, a line under the headword gives its meaning in your language: the one you picked under **Translation languages**, or else your keyboard's. It needs the Vocabulary tool on and translations shown in the keyboard under its **Card sections**; a word outside the packs has no such line. When the entry has [translations](#translations), that line is left out, because the translations already say it.
 - Each meaning lists its part of speech, numbered definitions with optional italic example sentences, and up to 12 tappable synonym/antonym chips per row. Tapping a chip looks that word up in turn.
-- A line under the last entry names the source that answered, for example "From Wiktionary".
+- An entry from an [imported dictionary](#imported-dictionaries) can carry more: the reading in small kana over a Japanese headword, and a line under it with the pitch accent and the dictionary's frequency figure, as in "たべꜜる [2] · Frequency 512". The ꜜ marks the mora the pitch falls after; [0] is a flat word.
+- A line under the last entry names the source that answered, for example "From Wiktionary". An imported dictionary is named by its own title, as in "From Jitendex".
 - A **Copy** chip beside the search bar copies everything the look-up found as text. With the [AI tool](/tools/ai/) on, an **Ask AI** chip beside it opens a [chat](/tools/ai-chat/) about the same text, and a long press on a definition or an example selects it, with **Ask AI**, **Copy** and **Insert** on a bar over it. See [Asking the AI about an article](#asking-the-ai-about-an-article), which works the same way.
 - "The app cannot reach the dictionary" means no source could be reached: you're offline, or every online source you left on is down. A word that every reachable source answered for, without an entry, shows "No entry for" instead.
 - When only the sources on the device answered and no online source could be reached, the panel says the word is not in the dictionaries on this device, rather than "No entry for". The vocabulary packs hold only the words of their own study lists, a few thousand at most. To define ordinary words with no connection, download one of the [offline dictionaries](#offline-dictionaries).
@@ -150,6 +151,7 @@ The tool asks the first source that is on. When that source doesn't know the wor
 4. **Free Dictionary API**: dictionaryapi.dev. Last of the online sources because it's often down for days at a time; while it's down, every look-up waits about 8 seconds on it before giving up.
 5. **Wiktionary, offline**: the [offline dictionary](#offline-dictionaries) made from Wiktionary, once downloaded.
 6. **Open English WordNet**: the [offline dictionary](#offline-dictionaries) made from WordNet, once downloaded.
+7. **Imported dictionaries**: the [Yomichan and Yomitan dictionaries](#imported-dictionaries) you imported, in any language. Every one that is on and knows the word answers, in their own order.
 
 The two offline dictionaries come after the online sources, so with a connection you get Wiktionary's fuller entries and recordings, and without one the tool still answers from the phone. Drag either one higher to have it answer first and send nothing. An update that adds a source puts it at the end of your list, switched on.
 
@@ -172,6 +174,21 @@ Each takes about 14 MB on the phone once installed. A look-up reads a few kiloby
 
 The **Import a dictionary** row under them takes a `.wmdict.gz` file fetched elsewhere: **Get the files** lists both download links, to open in a browser on any device, and **Import** installs the file. See [Using it without internet](/privacy/offline/).
 
+### Imported dictionaries
+
+<SettingsPath path="Tools / Dictionary / Imported dictionaries" />
+
+The dictionaries made for Yomichan and its successor Yomitan, the pop-up dictionaries that language learners use in their browser. There are hundreds of them: Japanese ones such as JMdict and Jitendex with readings, pitch accent and frequency lists, and Chinese, Korean and Wiktionary-based dictionaries for many other languages. **Get the files** opens the Yomitan wiki's list of dictionaries. Download a dictionary's `.zip` there, then tap **Import** and pick it. Any of the app's other **Import** rows takes it too; see [Using it without internet](/privacy/offline/).
+
+- A large dictionary takes some minutes to import, and the import line shows how far it has got. On the phone it takes about as much space as the dictionary's text unpacked, so a big Japanese dictionary needs a few hundred megabytes free while it imports.
+- Each imported dictionary gets a row with its number of entries, its size, its languages, its version and its attribution. The switch turns it off without deleting it. The arrows set the order its entries are shown in, and the bin deletes it.
+- Importing a dictionary with the same title again replaces it, so a newer version simply goes over the old one.
+- In the [source list](#dictionary-sources) they are one source, **Imported dictionaries**, which you can drag above the English sources so that it answers first.
+- An inflected Japanese word finds its dictionary form: 食べました opens 食べる, 行かなかった opens 行く, 高くない opens 高い. A word typed in kana finds the entry written in kanji. Other languages are matched in any case.
+- They work with no connection, and nothing about a look-up in them leaves the phone.
+- Kanji dictionaries, which list one character's readings and strokes rather than words, are not supported. A dictionary with both keeps its words.
+- Some dictionaries put pictures in their definitions; those are left out.
+
 ### Options
 
 <SettingsPath path="Tools / Dictionary" />
@@ -183,6 +200,7 @@ The **Import a dictionary** row under them takes a `.wmdict.gz` file fetched els
 - **Translate into**: the languages of those translations, in order. With none picked, your keyboard languages other than English.
 - **Dictionary sources**: a [provider list](/tools/providers/): drag to reorder, switch a source off, remove one, or add it back with **Add a provider**. See [Dictionary sources](#dictionary-sources) above.
 - **Offline dictionaries**: download, delete or import the two offline dictionaries. See [Offline dictionaries](#offline-dictionaries) above.
+- **Imported dictionaries**: import Yomichan and Yomitan dictionaries, switch them on and off, order and delete them. See [Imported dictionaries](#imported-dictionaries) above.
 - **Servers** (F-Droid build only): the addresses of kaikki.org, Wiktionary and the Free Dictionary API, for a mirror or a copy you host yourself.
 
 The settings page's caption: "Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool." [Power saving](/typing/power-saving/)'s "Background network" toggle overrides this row. While that toggle is on, auto-lookup is forced off whatever you've set here. A look-up nobody explicitly asked for is exactly what it exists to stop.
@@ -193,7 +211,7 @@ The settings page's caption: "Definitions come from the sources below, in their 
 - **Default hardware letters:** <KeyCap>W</KeyCap> for web search, <KeyCap>I</KeyCap> for image search, <KeyCap>D</KeyCap> for dictionary. Wikipedia has no letter of its own out of the box, so reach it through the toolbox (<KeyCap>T</KeyCap>), or [rebind a letter to it yourself](/reference/shortcuts/).
 - **Discoverable by typing.** Typing "search", "images", "wiki"/"wikipedia", or "define"/"dict" as the last word before your cursor offers a [smart chip](/smart/chips/) that opens the matching tool. The keyword list is editable per tool, and only shows while that tool is enabled.
 - **None of these four are edition-gated.** Full and lite behave identically across all four tools here.
-- **Attribution.** Brave Search and Tavily results, Wikipedia's article text, Wiktionary's entries, and the Free Dictionary API's definitions are all credited under "Online services" on the app's About → Open-source licences screen, alongside the terms each service is used under. Wikipedia's and Wiktionary's text is CC BY-SA, which keeps its own license independent of the app's. The offline dictionaries carry their sources' licenses with them: Wiktionary's CC BY-SA 4.0 and GFDL, and Open English WordNet's CC BY 4.0.
+- **Attribution.** Brave Search and Tavily results, Wikipedia's article text, Wiktionary's entries, and the Free Dictionary API's definitions are all credited under "Online services" on the app's About → Open-source licences screen, alongside the terms each service is used under. Wikipedia's and Wiktionary's text is CC BY-SA, which keeps its own license independent of the app's. The offline dictionaries carry their sources' licenses with them: Wiktionary's CC BY-SA 4.0 and GFDL, and Open English WordNet's CC BY 4.0. An imported dictionary's own attribution line is shown on its row.
 
 The [AI tool](/tools/ai/#letting-the-model-look-things-up) can run searches of its own through this same backend, when you let it: it writes the query, reads the results and answers from them, and each one counts against your quota like a search you ran yourself.
 

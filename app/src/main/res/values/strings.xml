@@ -105,6 +105,7 @@
     <string name="offline_import_avro_done">Desktop Avro\'s dictionary, for the Bangla candidate list</string>
     <string name="offline_import_mismatch">Not the file this app expects: its size or checksum differs from the one published.</string>
     <string name="offline_import_llm_done">AI model %1$s</string>
+    <string name="offline_import_yomichan_done">Dictionary %1$s, %2$s entries, for the Dictionary tool and Look up</string>
     <string name="offline_import_gif_done">GIF pack %1$s, %2$s GIFs</string>
     <string name="offline_import_gif_previews_only">%1$s holds only still previews, with no GIFs to send. The Discord community packs carry the animated ones.</string>
     <string name="offline_import_no_space">Not enough free space</string>
@@ -134,5 +135,7 @@
     <string name="offline_gifs_import_subtitle">Download a pack in your browser, then import the zip</string>
     <string name="offline_gifs_link_label">CleverKeys offline GIF packs</string>
     <string name="storage_gif_packs_title">GIF packs</string>
+    <string name="storage_yomichan_title">Imported dictionaries</string>
+    <string name="storage_yomichan_subtitle">Yomichan and Yomitan dictionaries you imported for the Dictionary tool and Look up</string>
     <string name="storage_gif_packs_subtitle">Offline GIF packs you imported for the GIF panel</string>
 </resources>

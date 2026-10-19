@@ -43,6 +43,18 @@ data class DictEntry(
      * source that carries no translations.
      */
     val translations: Map<String, VocabTranslation> = emptyMap(),
+    /**
+     * How the word is read when that differs from how it is written: the
+     * kana of a Japanese headword, from an imported dictionary (#765). Empty
+     * otherwise.
+     */
+    val reading: String = "",
+    /** Pitch accent downstep positions for [reading] (0 = flat), from an imported dictionary. */
+    val pitch: List<Int> = emptyList(),
+    /** An imported dictionary's frequency figure for the word, as it shows it ("1234", "★★★"). */
+    val frequency: String = "",
+    /** The imported dictionary this entry is from, for the card's "From …" line; empty for the built-in sources. */
+    val origin: String = "",
 )
 
 /**

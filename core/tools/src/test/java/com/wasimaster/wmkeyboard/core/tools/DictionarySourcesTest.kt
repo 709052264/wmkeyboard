@@ -32,18 +32,19 @@ class DictionarySourcesTest {
                 DictionarySourceChoice(DictionarySource.WIKTIONARY_REST),
                 DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
                 DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET),
+                DictionarySourceChoice(DictionarySource.IMPORTED),
             ),
             DictionarySources.decode("dictionary_api,-bogus,-wiktionary,dictionary_api"),
         )
     }
 
     @Test
-    fun `default asks the packs first, the free dictionary API last online, then the offline dictionaries`() {
+    fun `default asks the packs first, the free dictionary API last online, then the offline and imported dictionaries`() {
         val order = DictionarySources.DEFAULT.map { it.source }
         assertEquals(DictionarySource.VOCAB_PACKS, order.first())
         assertEquals(DictionarySource.DICTIONARY_API, order.last { it.online })
         assertEquals(
-            listOf(DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET),
+            listOf(DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET, DictionarySource.IMPORTED),
             order.dropWhile { it != DictionarySource.DICTIONARY_API }.drop(1),
         )
         assertTrue(DictionarySources.DEFAULT.all { it.enabled })

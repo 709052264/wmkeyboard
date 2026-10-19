@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.tools.DictEntry
 import com.wasimaster.wmkeyboard.core.tools.DictMeaning
 import com.wasimaster.wmkeyboard.core.tools.DictionarySource
+import com.wasimaster.wmkeyboard.core.tools.yomichan.PitchNotation
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
 import com.wasimaster.wmkeyboard.ime.DictionaryUi
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -233,15 +234,27 @@ private fun DictionaryEntries(
                             .padding(top = if (entryIndex == 0) 2.dp else 14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            entry.word,
-                            color = kb.modifierKeyText,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = serif,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        Column {
+                            // The kana over a Japanese headword (#765), furigana-style.
+                            if (entry.reading.isNotEmpty()) {
+                                Text(
+                                    entry.reading,
+                                    color = kb.toolbarIcon,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                            Text(
+                                entry.word,
+                                color = kb.modifierKeyText,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = serif,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                         if (entry.phonetic.isNotEmpty()) {
                             Spacer(Modifier.width(10.dp))
                             Text(
@@ -282,6 +295,8 @@ private fun DictionaryEntries(
                             ) { onAddToVocab(entry.word) }
                         }
                     }
+                    // Pitch accent and frequency, from an imported dictionary (#765).
+                    DictionaryPitchLine(entry)
                     // The word in the user's language, from a vocabulary pack's
                     // translations (#651). Inside the headword's item, so the
                     // focus scroll's item count is unchanged.
@@ -306,8 +321,13 @@ private fun DictionaryEntries(
         // Which source answered: the user's order decides, and Wiktionary's
         // licence asks for the credit.
         item(key = "source") {
+            // An imported dictionary names itself; the rest name the source.
+            val origins = entries.map { it.origin }.filter { it.isNotEmpty() }.distinct()
             Text(
-                stringResource(R.string.ime_dict_from, stringResource(source.labelRes)),
+                stringResource(
+                    R.string.ime_dict_from,
+                    if (origins.isEmpty()) stringResource(source.labelRes) else origins.joinToString(", "),
+                ),
                 color = kb.toolbarIcon,
                 fontSize = 11.sp,
                 modifier = Modifier.padding(top = 12.dp),
@@ -441,6 +461,27 @@ private fun DictionaryTranslations(
             }
         }
     }
+}
+
+/**
+ * The pitch accent and frequency an imported dictionary gives (#765), on one
+ * quiet line under the headword: たべꜜる [2] · Frequency 1234. Nothing for
+ * an entry with neither.
+ */
+@Composable
+private fun DictionaryPitchLine(entry: DictEntry) {
+    val reading = entry.reading.ifEmpty { entry.word }
+    val parts = entry.pitch.map { PitchNotation.format(reading, it) } +
+        listOfNotNull(entry.frequency.takeIf { it.isNotEmpty() }?.let { stringResource(R.string.ime_dict_frequency, it) })
+    if (parts.isEmpty()) return
+    Text(
+        parts.joinToString(" · "),
+        color = LocalKbTheme.current.toolbarIcon,
+        fontSize = 12.sp,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis,
+        modifier = Modifier.padding(top = 2.dp),
+    )
 }
 
 /** Label plus a scrolling row of tappable related words (tap = look up). */

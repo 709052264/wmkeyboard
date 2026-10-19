@@ -32,6 +32,8 @@ import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -111,8 +113,13 @@ internal object OfflineImport {
                     return@forEachIndexed
                 }
                 val isGifPack = runCatching { ZipFile(staged).use { OfflineGifPacks.isPack(it) } }.getOrDefault(false)
+                val isYomichan = !isGifPack &&
+                    runCatching { ZipFile(staged).use { YomichanDictionaries.isDictionary(it) } }.getOrDefault(false)
                 if (isGifPack) {
                     outcomes += installGifPack(context, name, staged)
+                } else if (isYomichan) {
+                    outcomes += installYomichan(context, name, staged, onFile)
+                    staged.delete()
                 } else {
                     runCatching { files += unzip(staged, File(dir, "zip")) }
                         .onFailure { outcomes += Outcome(name, false, R.string.offline_import_unreadable_zip) }
@@ -336,6 +343,23 @@ internal object OfflineImport {
         }
     }
 
+    /**
+     * A Yomichan / Yomitan dictionary (#765): a zip that is itself the thing
+     * installed, as a GIF pack is. Large ones take minutes, so the progress
+     * line carries a percentage.
+     */
+    private fun installYomichan(context: Context, name: String, zip: File, onFile: (String) -> Unit): Outcome = attempt(name) {
+        var shown = -1
+        val info = YomichanDictionaries.import(context.filesDir, zip) { done, total ->
+            val percent = if (total > 0) (done * 100 / total).toInt() else 0
+            if (percent != shown) {
+                shown = percent
+                onFile("$name · $percent%")
+            }
+        }
+        Outcome(name, true, R.string.offline_import_yomichan_done, listOf(info.title, count(info.terms)))
+    }
+
     private fun installGifPack(context: Context, name: String, zip: File): Outcome = attempt(name) {
         when (val result = OfflineGifPacks.import(context.filesDir, zip)) {
             is OfflineGifPacks.ImportResult.Imported -> Outcome(
@@ -365,6 +389,8 @@ internal object OfflineImport {
 
     private fun failure(name: String, error: Throwable): Outcome = when (error) {
         is NoSpaceException -> Outcome(name, false, R.string.offline_import_no_space)
+        is YomichanImport.NoSpaceException -> Outcome(name, false, R.string.offline_import_no_space)
+        is YomichanImport.NotADictionaryException -> Outcome(name, false, R.string.offline_import_mismatch)
         is OfflineDictionaries.NotAPackException -> Outcome(name, false, R.string.offline_import_mismatch)
         else -> Outcome(name, false, R.string.offline_import_failed)
     }

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries
 import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.vocab.KaikkiClient
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndex
@@ -52,6 +53,13 @@ enum class DictionarySource(
 
     /** Open English WordNet as a download: every single word, plainer definitions than Wiktionary's. */
     OFFLINE_WORDNET("offline_wordnet", online = false, packId = OfflineDictionaryCatalog.OEWN.id),
+
+    /**
+     * The Yomichan / Yomitan dictionaries the user imported (#765): any
+     * language pair, with readings and pitch accent. Asks every one that is
+     * on, in the order its own settings list keeps ([YomichanDictionaries]).
+     */
+    IMPORTED("imported_dictionaries", online = false),
     ;
 
     /** The source's name, for the settings list and the panel's "From …" line. */
@@ -64,6 +72,7 @@ enum class DictionarySource(
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet
+            IMPORTED -> R.string.core_tools_dictionary_source_imported
         }
 
     /** One line on what the source knows, under its name in settings. */
@@ -76,6 +85,7 @@ enum class DictionarySource(
             DICTIONARY_API -> R.string.core_tools_dictionary_source_dictionary_api_desc
             OFFLINE_WIKTIONARY -> R.string.core_tools_dictionary_source_offline_wiktionary_desc
             OFFLINE_WORDNET -> R.string.core_tools_dictionary_source_offline_wordnet_desc
+            IMPORTED -> R.string.core_tools_dictionary_source_imported_desc
         }
 
     companion object {
@@ -197,6 +207,7 @@ object DictionaryLookup {
             }
             DictionarySource.OFFLINE_WIKTIONARY, DictionarySource.OFFLINE_WORDNET ->
                 OfflineDictionaries.lookup(source.packId!!, word)
+            DictionarySource.IMPORTED -> YomichanDictionaries.lookup(word)
         }
     }
 

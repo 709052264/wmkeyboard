@@ -364,6 +364,12 @@ object ProviderTypes {
         R.string.core_tools_dictionary_source_offline_wordnet, R.string.core_tools_dictionary_source_offline_wordnet_desc,
         onDevice = true, freeSoftware = true,
     )
+    /** The Yomichan / Yomitan dictionaries the user imported (#765); the id is its `DictionarySource` id. */
+    val IMPORTED_DICTIONARIES = ProviderType(
+        "imported_dictionaries", setOf(ProviderTool.DICTIONARY),
+        R.string.core_tools_dictionary_source_imported, R.string.core_tools_dictionary_source_imported_desc,
+        onDevice = true,
+    )
     val DATAMUSE = ProviderType(
         "datamuse", setOf(ProviderTool.SYNONYMS),
         R.string.core_tools_synonym_source_datamuse, R.string.core_tools_synonym_source_datamuse_desc,
@@ -464,7 +470,7 @@ object ProviderTypes {
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
-        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET,
+        VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, IMPORTED_DICTIONARIES,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,

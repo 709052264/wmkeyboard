@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
@@ -552,6 +553,40 @@ internal object StorageCategories {
                 OfflineGifPacks.attach(env.roots.files)
                 OfflineGifPacks.packs().forEach { OfflineGifPacks.delete(it.id) }
                 emptyOut(File(env.roots.files, "gif_packs"))
+            },
+        ),
+        StorageCategory(
+            id = "yomichan",
+            title = R.string.storage_yomichan_title,
+            subtitle = R.string.storage_yomichan_subtitle,
+            icon = Icons.AutoMirrored.Outlined.LibraryBooks,
+            accent = Color(0xFF8D6E63),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "tool/DICTIONARY",
+            pathsOf = { listOf(File(it.files, YomichanDictionaries.DIR_NAME)) },
+            itemsOf = { env ->
+                YomichanDictionaries.attach(env.roots.files)
+                YomichanDictionaries.installed().map { dictionary ->
+                    val dir = File(File(env.roots.files, YomichanDictionaries.DIR_NAME), dictionary.info.id)
+                    StorageItem(
+                        id = dictionary.info.id,
+                        label = dictionary.info.title,
+                        detail = dictionary.info.revision,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+            },
+            deleteOne = { env, item ->
+                YomichanDictionaries.attach(env.roots.files)
+                YomichanDictionaries.delete(item.id)
+            },
+            clearOf = { env ->
+                YomichanDictionaries.attach(env.roots.files)
+                YomichanDictionaries.installed().forEach { YomichanDictionaries.delete(it.info.id) }
+                emptyOut(File(env.roots.files, YomichanDictionaries.DIR_NAME))
             },
         ),
         StorageCategory(

@@ -97,6 +97,8 @@ open class WMApplication : Application() {
         // look-up from the keyboard or the AI tool alike. Only a path: before
         // the unlock nothing is read, and a look-up then finds nothing.
         com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
+        // The same for the dictionaries the user imported (#765).
+        com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.attach(filesDir)
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be
