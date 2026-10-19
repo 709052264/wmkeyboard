@@ -25825,7 +25825,6 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD -> {
                 if (isClipboardAccessible()) onPanelChange(PanelMode.CLIPBOARD)
             }
-            ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -35015,32 +35014,6 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Clipboard panel search bar tapped: route keys into [clipboardQuery]. */
-    /**
-     * The Clipboard search tool (#612): the clipboard opens with its search
-     * already taking the keys, or, already open there, closes the way a
-     * second tap on a tool does. Turns the search bar on for good if it was
-     * off: the tool is that bar, a gesture away.
-     */
-    private fun onClipboardOpenSearching() {
-        if (!isClipboardAccessible()) return
-        val state = _uiState.value
-        if (state.panel == PanelMode.CLIPBOARD && state.clipboardSearchActive) {
-            onPanelChange(PanelMode.CLIPBOARD)
-            return
-        }
-        if (!state.settings.clipboard.search) serviceScope.launch { settingsRepository.setClipboardSearch(true) }
-        if (state.panel != PanelMode.CLIPBOARD) onPanelChange(PanelMode.CLIPBOARD)
-        if (_uiState.value.panel != PanelMode.CLIPBOARD) return
-        _uiState.update {
-            it.copy(
-                clipboardSearchActive = true,
-                clipEdit = null,
-                clipCombine = null,
-                panelFocus = null,
-            )
-        }
-    }
-
     fun onClipboardSearchToggle() {
         vibrate()
         _uiState.update {

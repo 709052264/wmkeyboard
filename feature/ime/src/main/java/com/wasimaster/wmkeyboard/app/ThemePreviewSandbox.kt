@@ -264,7 +264,7 @@ data class SandboxContext(
  */
 internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.EMOJI -> PanelMode.EMOJI
-    ToolbarTool.CLIPBOARD, ToolbarTool.CLIPBOARD_SEARCH -> PanelMode.CLIPBOARD
+    ToolbarTool.CLIPBOARD -> PanelMode.CLIPBOARD
     ToolbarTool.SNIPPETS -> PanelMode.SNIPPETS
     ToolbarTool.TEXT_EDIT -> PanelMode.TEXT_EDIT
     ToolbarTool.TRACKPAD -> PanelMode.TRACKPAD
