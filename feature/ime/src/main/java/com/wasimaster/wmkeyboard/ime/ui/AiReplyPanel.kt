@@ -274,8 +274,9 @@ private fun ReplyGather(state: KeyboardUiState, callbacks: ReplyCallbacks) {
         }
         // Only where there is a selection to take: in most chat apps the
         // conversation cannot be selected at all, and a chip that is always
-        // "nothing selected" is a chip nobody presses twice.
-        if (state.selectionMacros != null) {
+        // "nothing selected" is a chip nobody presses twice. An offer with no
+        // text is a bare caret's (#763) or one the keyboard did not read.
+        if (state.selectionMacros?.text?.isNotEmpty() == true) {
             ToolPanelChip(stringResource(R.string.ime_reply_add_selection)) {
                 callbacks.onAddSelection()
             }

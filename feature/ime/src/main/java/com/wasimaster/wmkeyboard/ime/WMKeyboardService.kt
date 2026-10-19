@@ -4090,7 +4090,7 @@ open class WMKeyboardService : InputMethodService() {
             var linkPreviewsEnabled: Boolean? = null
             var pinnedLastEnabled: Boolean? = null
             var pinnedInPlaceEnabled: Boolean? = null
-            var selectionMacrosEnabled: Boolean? = null
+            var selectionMacrosEnabled: Triple<Boolean, Boolean, SelectionMacroPlacement>? = null
             var userScreenshotsEnabled: Boolean? = null
             var otpCaptureEnabled: Boolean? = null
             var keyboardControlsPinned: Boolean? = null
@@ -4223,7 +4223,13 @@ open class WMKeyboardService : InputMethodService() {
                 // Same for the macro bar, which is otherwise only recomputed on
                 // a selection change: switching the feature off, or taking a
                 // macro out of the list, has to reach a bar already on screen.
-                if (_uiState.value.selectionMacros != null) {
+                // An offer with no text (a bare caret's, or a selection the
+                // keyboard did not read) has nothing to rebuild from, so it is
+                // offered again from the field instead; that path reads nothing.
+                val shownOffer = _uiState.value.selectionMacros
+                if (shownOffer != null && shownOffer.text.isEmpty()) {
+                    refreshSelectionMacros(settings = settings)
+                } else if (shownOffer != null) {
                     _uiState.update { state ->
                         val offer = state.selectionMacros
                         state.copy(
@@ -4232,14 +4238,21 @@ open class WMKeyboardService : InputMethodService() {
                         )
                     }
                 }
-                // The rebuild above cannot see the switch itself (the offer
-                // does not read it), and switching it back on leaves nothing
-                // on screen to rebuild. A selection that never moves sends no
-                // onUpdateSelection, so read it again on every flip: off clears
-                // the bar, on offers one for text that is already selected.
-                if (selectionMacrosEnabled != settings.selectionMacros.enabled) {
+                // The rebuild above cannot see the switches themselves (the
+                // offer does not read them), and switching the bar back on
+                // leaves nothing on screen to rebuild. A selection that never
+                // moves sends no onUpdateSelection, so read it again on every
+                // flip: off clears the bar, on offers one for text that is
+                // already selected, and the always-shown row (#763) comes or
+                // goes with its switch and its placement.
+                val macroSwitches = Triple(
+                    settings.selectionMacros.enabled,
+                    settings.selectionMacros.withoutSelection,
+                    settings.selectionMacros.placement,
+                )
+                if (selectionMacrosEnabled != macroSwitches) {
                     val flipped = selectionMacrosEnabled != null
-                    selectionMacrosEnabled = settings.selectionMacros.enabled
+                    selectionMacrosEnabled = macroSwitches
                     if (flipped) refreshSelectionMacros(settings = settings)
                 }
                 // Mirror the code-chip switch to the notification listener's
@@ -38731,7 +38744,10 @@ open class WMKeyboardService : InputMethodService() {
             if (offer == _uiState.value.selectionMacros) return
             val arriving = _uiState.value.selectionMacros == null
             _uiState.update { it.copy(selectionMacros = offer) }
-            if (arriving && settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW &&
+            // A bare caret's row (#763) is left to [noteBoardGrowth], which
+            // puts a caret back in view after any growth of the board.
+            if (arriving && selStart != selEnd &&
+                settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW &&
                 _uiState.value.panel == PanelMode.NONE
             ) {
                 revealCaretAfterGrowth(selStart, selEnd)
@@ -38749,7 +38765,7 @@ open class WMKeyboardService : InputMethodService() {
         // right after a field opens.
         val rangeReported = selStart >= 0 && selEnd >= 0
         if (rangeReported) {
-            if (selStart == selEnd) return clear()
+            if (selStart == selEnd) return publishCaret(settings, ::clear) { publish(it) }
             if (selEnd - selStart > MAX_MACRO_SELECTION) return publishUnread(selStart, selEnd, settings) { publish(it) }
         }
         val ic = currentInputConnection ?: return clear()
@@ -38761,7 +38777,11 @@ open class WMKeyboardService : InputMethodService() {
         // where it has reported nothing either, there is no selection to be
         // sure of.
         if (text.isEmpty()) {
-            return if (rangeReported) publishUnread(selStart, selEnd, settings) { publish(it) } else clear()
+            return if (rangeReported) {
+                publishUnread(selStart, selEnd, settings) { publish(it) }
+            } else {
+                publishCaret(settings, ::clear) { publish(it) }
+            }
         }
         // The same cap again, for the path that could not check it up front.
         if (selected.length > MAX_MACRO_SELECTION) return publishUnread(selStart, selEnd, settings) { publish(it) }
@@ -38817,6 +38837,47 @@ open class WMKeyboardService : InputMethodService() {
                 null
             } else {
                 SelectionMacroOffer(text = "", kind = SelectionKind.TEXT, macros = macros, wholeField = wholeField)
+            },
+        )
+    }
+
+    /**
+     * The row for a bare caret, when it is set to stay up with nothing
+     * selected (#763): Select all and Paste, out of
+     * [SelectionMacros.caretMacros]. Otherwise [clear], which is what a
+     * collapsed caret has always meant.
+     *
+     * Only on a row of its own. The strip placement would hand the
+     * suggestion strip to the macros for as long as the caret sat anywhere,
+     * which is all the time somebody types.
+     *
+     * Paste is drawn whatever the clipboard holds. The point of the switch is
+     * a row that stays put, and one that lost a chip each time the clipboard
+     * emptied would move under the thumb; a paste of nothing does nothing.
+     * Nothing is read from the field, so this costs nothing per caret move.
+     */
+    private fun publishCaret(
+        settings: KeyboardSettings,
+        clear: () -> Unit,
+        publish: (SelectionMacroOffer?) -> Unit,
+    ) {
+        val prefs = settings.selectionMacros
+        if (!prefs.withoutSelection || prefs.placement != SelectionMacroPlacement.OWN_ROW) return clear()
+        // The selection is gone, so is what the undo stack and the reader
+        // were about; the same housekeeping [clear] does, minus the row.
+        if (_uiState.value.panel != PanelMode.FIND_REPLACE) macroUndo.clear()
+        stopReadAloud()
+        val macros = SelectionMacros.offer(
+            kind = SelectionKind.TEXT,
+            allowed = prefs.macros.intersect(SelectionMacros.caretMacros),
+            gates = MacroGates(clipboardHasText = true),
+            order = prefs.order,
+        )
+        publish(
+            if (macros.isEmpty()) {
+                null
+            } else {
+                SelectionMacroOffer(text = "", kind = SelectionKind.TEXT, macros = macros)
             },
         )
     }

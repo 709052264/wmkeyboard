@@ -5126,6 +5126,17 @@ data class SelectionMacroSettings(
      */
     val inEverySelection: Boolean = false,
     /**
+     * Keep the row up with nothing selected (#763), offering what a bare
+     * caret can use: Select all and Paste. Select all then brings the full
+     * bar for the whole text, so Copy, Translate and the rest are one tap
+     * further on rather than a long-press away.
+     *
+     * The own-row placement only. On the strip it would take the suggestions
+     * away for good, since a caret is where typing happens. Password fields
+     * stay excluded, as everywhere else on this bar.
+     */
+    val withoutSelection: Boolean = false,
+    /**
      * The actions drawn as their icon alone, with no word beside it (#679),
      * so the ones somebody knows by sight take less of the row. An action with
      * no icon of its own (the case options) keeps its word whatever this says.
@@ -10608,6 +10619,8 @@ class SettingsRepository(private val context: Context) {
         private val SELECTION_MACROS_DETECT = booleanPreferencesKey("selection_macros_detect")
         private val SELECTION_MACROS_EVERY_SELECTION =
             booleanPreferencesKey("selection_macros_every_selection")
+        private val SELECTION_MACROS_WITHOUT_SELECTION =
+            booleanPreferencesKey("selection_macros_without_selection")
 
         /** [SelectionMacroSettings.iconOnly], by [SelectionMacro] name. */
         private val SELECTION_MACROS_ICON_ONLY = stringSetPreferencesKey("selection_macros_icon_only")
@@ -12815,6 +12828,8 @@ class SettingsRepository(private val context: Context) {
             detectEntities = p[SELECTION_MACROS_DETECT] ?: defaults.selectionMacros.detectEntities,
             inEverySelection = p[SELECTION_MACROS_EVERY_SELECTION]
                 ?: defaults.selectionMacros.inEverySelection,
+            withoutSelection = p[SELECTION_MACROS_WITHOUT_SELECTION]
+                ?: defaults.selectionMacros.withoutSelection,
             iconOnly = p[SELECTION_MACROS_ICON_ONLY]
                 ?.mapNotNullTo(mutableSetOf()) { name -> runCatching { SelectionMacro.valueOf(name) }.getOrNull() }
                 ?: defaults.selectionMacros.iconOnly,
@@ -19966,6 +19981,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacrosInEverySelection(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_EVERY_SELECTION] = value }
+
+    suspend fun setSelectionMacrosWithoutSelection(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_WITHOUT_SELECTION] = value }
 
     /** Whether [macro] draws as its icon alone on the bar (#679). */
     suspend fun setSelectionMacroIconOnly(macro: SelectionMacro, on: Boolean) =
