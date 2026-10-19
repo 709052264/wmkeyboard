@@ -2398,9 +2398,7 @@
     <string name="import_sticker_editor_border_white_option">Білий</string>
     <string name="import_sticker_editor_border_width_label">Ширина межі</string>
     <string name="import_sticker_editor_brush_size_label">Розмір пензля</string>
-    <string name="import_sticker_editor_caption">Клавіатура зберігає стікер розміром 512 на 512. Переміщуйте та масштабуйте зображення, щоб вибрати потрібну частину, потім видаліть фон і додайте рамку. Додаток зберігає це зображення на телефоні, щоб ви могли відредагувати стікер пізніше.</string>
     <string name="import_sticker_editor_crop_action">Обрізати</string>
-    <string name="import_sticker_editor_crop_hint">Перетягніть, щоб перемістити зображення. Зведіть пальці, щоб збільшити його.</string>
     <string name="import_sticker_editor_cutout_action">Видалити фон</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Спочатку завантажте засіб видалення фону. Це завантаження розміром 5 МБ.</string>
     <string name="import_sticker_editor_cutout_download_progress">Додаток завантажує засіб видалення фону…</string>

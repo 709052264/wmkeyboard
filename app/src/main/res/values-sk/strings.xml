@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">Biela</string>
     <string name="import_sticker_editor_border_width_label">Šírka okraja</string>
     <string name="import_sticker_editor_brush_size_label">Veľkosť štetca</string>
-    <string name="import_sticker_editor_caption">Klávesnica uloží nálepku s rozmermi 512 x 512. Posúvajte a približujte obrázok, aby ste vybrali časť, ktorú chcete zachovať, potom odstráňte pozadie a pridajte okraj. Aplikácia uchováva tento obrázok v telefóne, takže nálepku môžete neskôr znova upraviť.</string>
     <string name="import_sticker_editor_crop_action">Orezať</string>
-    <string name="import_sticker_editor_crop_hint">Potiahnutím presuniete obrázok. Zovretím ho zväčšíte.</string>
     <string name="import_sticker_editor_cutout_action">Odstrániť pozadie</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Najprv získajte odstraňovač pozadia. Je to sťahovanie s veľkosťou 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Aplikácia sťahuje nástroj na odstránenie pozadia…</string>

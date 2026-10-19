@@ -2398,9 +2398,7 @@
     <string name="import_sticker_editor_border_white_option">తెలుపు</string>
     <string name="import_sticker_editor_border_width_label">బోర్డర్ వెడల్పు</string>
     <string name="import_sticker_editor_brush_size_label">బ్రష్ పరిమాణం</string>
-    <string name="import_sticker_editor_caption">కీబోర్డ్ 512 బై 512 స్టిక్కర్‌ను సేవ్ చేస్తుంది. ఉంచాల్సిన భాగాన్ని ఎంచుకోవడానికి చిత్రాన్ని కదిలించండి మరియు పిన్చ్ చేయండి, ఆపై నేపథ్యాన్ని తొలగించి బోర్డర్‌ను జోడించండి. యాప్ ఈ చిత్రాన్ని ఫోన్‌లో ఉంచుతుంది, కాబట్టి మీరు తర్వాత మళ్లీ స్టిక్కర్‌ను ఎడిట్ చేయవచ్చు.</string>
     <string name="import_sticker_editor_crop_action">క్రాప్ చేయి</string>
-    <string name="import_sticker_editor_crop_hint">చిత్రాన్ని తరలించడానికి లాగండి. పెద్దదిగా చేయడానికి చిటికెడుతో జూమ్ చేయండి.</string>
     <string name="import_sticker_editor_cutout_action">నేపథ్యాన్ని తొలగించండి</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ముందుగా బ్యాక్‌గ్రౌండ్ రిమూవర్‌ని పొందండి. ఇది 5 MB డౌన్‌లోడ్.</string>
     <string name="import_sticker_editor_cutout_download_progress">యాప్ బ్యాక్‌గ్రౌండ్ రిమూవర్‌ను పొందుతోంది…</string>

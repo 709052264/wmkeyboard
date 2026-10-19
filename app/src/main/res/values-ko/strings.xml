@@ -2395,9 +2395,7 @@
     <string name="import_sticker_editor_border_white_option">흰색</string>
     <string name="import_sticker_editor_border_width_label">테두리 두께</string>
     <string name="import_sticker_editor_brush_size_label">브러시 크기</string>
-    <string name="import_sticker_editor_caption">키보드는 512x512 크기의 스티커를 저장합니다. 이미지를 이동하고 핀치하여 유지할 부분을 선택한 다음, 배경을 제거하고 테두리를 추가하세요. 앱이 이 이미지를 휴대폰에 보관하므로 나중에 스티커를 다시 편집할 수 있습니다.</string>
     <string name="import_sticker_editor_crop_action">자르기</string>
-    <string name="import_sticker_editor_crop_hint">드래그하여 이미지를 이동하세요. 핀치하여 확대하세요.</string>
     <string name="import_sticker_editor_cutout_action">배경 제거</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">먼저 배경 제거 도구를 받으세요. 5MB를 다운로드합니다.</string>
     <string name="import_sticker_editor_cutout_download_progress">앱에서 배경 제거 도구를 가져오는 중…</string>

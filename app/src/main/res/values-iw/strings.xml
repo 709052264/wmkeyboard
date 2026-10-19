@@ -2399,9 +2399,7 @@
     <string name="import_sticker_editor_border_white_option">לבן</string>
     <string name="import_sticker_editor_border_width_label">רוחב גבול</string>
     <string name="import_sticker_editor_brush_size_label">גודל מברשת</string>
-    <string name="import_sticker_editor_caption">המקלדת שומרת מדבקה בגודל 512 על 512. הזז וצבוט את התמונה כדי לבחור את החלק שברצונך לשמור, לאחר מכן הסר את הרקע והוסף מסגרת. האפליקציה שומרת את התמונה הזו בטלפון, כך שתוכל לערוך את המדבקה שוב מאוחר יותר.</string>
     <string name="import_sticker_editor_crop_action">חיתוך</string>
-    <string name="import_sticker_editor_crop_hint">גרור כדי להזיז את התמונה. צבוט כדי להגדיל אותה.</string>
     <string name="import_sticker_editor_cutout_action">הסר את הרקע</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">הורד תחילה את מסיר הרקע. זוהי הורדה של 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">האפליקציה מורידה את מסיר הרקע...</string>

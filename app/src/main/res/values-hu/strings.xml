@@ -2397,9 +2397,7 @@
     <string name="import_sticker_editor_border_white_option">Fehér</string>
     <string name="import_sticker_editor_border_width_label">Szegély szélessége</string>
     <string name="import_sticker_editor_brush_size_label">Ecsetméret</string>
-    <string name="import_sticker_editor_caption">A billentyűzet egy 512x512-es matricát ment el. Mozgassa és nagyítsa a képet a megtartandó rész kiválasztásához, majd távolítsa el a hátteret és adjon hozzá szegélyt. Az alkalmazás megőrzi ezt a képet a telefonon, így később újra szerkesztheti a matricát.</string>
     <string name="import_sticker_editor_crop_action">Körbevágás</string>
-    <string name="import_sticker_editor_crop_hint">Húzza a kép mozgatásához. Csippentse össze a nagyításhoz.</string>
     <string name="import_sticker_editor_cutout_action">Háttér eltávolítása</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Először töltse le a háttéreltávolítót. Ez egy 5 MB-os letöltés.</string>
     <string name="import_sticker_editor_cutout_download_progress">Az alkalmazás letölti a háttéreltávolítót…</string>

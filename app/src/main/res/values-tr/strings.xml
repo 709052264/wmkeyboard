@@ -2396,9 +2396,7 @@
     <string name="import_sticker_editor_border_white_option">Beyaz</string>
     <string name="import_sticker_editor_border_width_label">Kenarlık genişliği</string>
     <string name="import_sticker_editor_brush_size_label">Fırça boyutu</string>
-    <string name="import_sticker_editor_caption">Klavye 512\'ye 512 boyutunda bir çıkartma kaydeder. Saklanacak kısmı seçmek için resmi hareket ettirin ve sıkıştırın, ardından arka planı kaldırın ve bir kenarlık ekleyin. Uygulama bu resmi telefonda tutar, böylece çıkartmayı daha sonra tekrar düzenleyebilirsiniz.</string>
     <string name="import_sticker_editor_crop_action">Kırp</string>
-    <string name="import_sticker_editor_crop_hint">Görüntüyü taşımak için sürükleyin. Büyütmek için çimdikleyin.</string>
     <string name="import_sticker_editor_cutout_action">Arka planı kaldır</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Önce arka plan kaldırma aracını edinin. 5 MB boyutunda bir indirmedir.</string>
     <string name="import_sticker_editor_cutout_download_progress">Uygulama arka plan kaldırma aracını alıyor…</string>

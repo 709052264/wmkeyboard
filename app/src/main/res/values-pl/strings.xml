@@ -2399,9 +2399,7 @@
     <string name="import_sticker_editor_border_white_option">Biały</string>
     <string name="import_sticker_editor_border_width_label">Szerokość obramowania</string>
     <string name="import_sticker_editor_brush_size_label">Rozmiar pędzla</string>
-    <string name="import_sticker_editor_caption">Klawiatura zapisuje naklejkę o wymiarach 512 na 512. Przesuń i uszczypnij obraz, aby wybrać część do zachowania, a następnie usuń tło i dodaj obramowanie. Aplikacja przechowuje ten obraz w telefonie, dzięki czemu możesz później ponownie edytować naklejkę.</string>
     <string name="import_sticker_editor_crop_action">Przytnij</string>
-    <string name="import_sticker_editor_crop_hint">Przeciągnij, aby przesunąć obraz. Ściśnij, aby go powiększyć.</string>
     <string name="import_sticker_editor_cutout_action">Usuń tło</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Najpierw pobierz narzędzie do usuwania tła. To pobranie o rozmiarze 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Aplikacja pobiera narzędzie do usuwania tła…</string>

@@ -2395,9 +2395,7 @@
     <string name="import_sticker_editor_border_white_option">Hvítt</string>
     <string name="import_sticker_editor_border_width_label">Breidd ramma</string>
     <string name="import_sticker_editor_brush_size_label">Stærð pensils</string>
-    <string name="import_sticker_editor_caption">Lyklaborðið vistar 512x512 límmiða. Færðu og stækkaðu/minnkaðu myndina til að velja hlutann sem á að halda, fjarlægðu síðan bakgrunninn og bættu við jaðri. Forritið geymir þessa mynd í símanum svo þú getir breytt límmiðanum aftur síðar.</string>
     <string name="import_sticker_editor_crop_action">Skera</string>
-    <string name="import_sticker_editor_crop_hint">Dragðu til að færa myndina. Klíptu til að stækka hana.</string>
     <string name="import_sticker_editor_cutout_action">Fjarlægja bakgrunninn</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Sæktu bakgrunnsfjarlæginguna fyrst. Þetta er 5 MB niðurhal.</string>
     <string name="import_sticker_editor_cutout_download_progress">Forritið sækir bakgrunnseyðinn…</string>

@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">سفید</string>
     <string name="import_sticker_editor_border_width_label">عرض حاشیه</string>
     <string name="import_sticker_editor_brush_size_label">اندازه قلم‌مو</string>
-    <string name="import_sticker_editor_caption">صفحه‌کلید یک استیکر ۵۱۲ در ۵۱۲ ذخیره می‌کند. تصویر را حرکت دهید و کوچک‌نمایی/بزرگ‌نمایی کنید تا بخشی که می‌خواهید حفظ شود را انتخاب کنید، سپس پس‌زمینه را حذف کرده و حاشیه اضافه کنید. برنامه این تصویر را روی گوشی نگه می‌دارد تا بتوانید بعداً دوباره استیکر را ویرایش کنید.</string>
     <string name="import_sticker_editor_crop_action">برش</string>
-    <string name="import_sticker_editor_crop_hint">برای جابجایی تصویر بکشید. برای بزرگ‌تر کردن، دو انگشت خود را روی صفحه باز کنید.</string>
     <string name="import_sticker_editor_cutout_action">حذف پس‌زمینه</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ابتدا حذف‌کننده پس‌زمینه را دریافت کنید. این یک دانلود ۵ مگابایتی است.</string>
     <string name="import_sticker_editor_cutout_download_progress">برنامه در حال دریافت حذف‌کننده پس‌زمینه است...</string>

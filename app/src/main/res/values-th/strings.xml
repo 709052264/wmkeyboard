@@ -2395,9 +2395,7 @@
     <string name="import_sticker_editor_border_white_option">สีขาว</string>
     <string name="import_sticker_editor_border_width_label">ความกว้างของเส้นขอบ</string>
     <string name="import_sticker_editor_brush_size_label">ขนาดแปรง</string>
-    <string name="import_sticker_editor_caption">แป้นพิมพ์จะบันทึกสติกเกอร์ขนาด 512 คูณ 512 เลื่อนและย่อขยายรูปภาพเพื่อเลือกส่วนที่ต้องการเก็บไว้ จากนั้นลบพื้นหลังและเพิ่มขอบ แอปจะเก็บรูปภาพนี้ไว้ในโทรศัพท์เพื่อให้คุณแก้ไขสติกเกอร์ได้อีกครั้งในภายหลัง</string>
     <string name="import_sticker_editor_crop_action">ครอบตัด</string>
-    <string name="import_sticker_editor_crop_hint">ลากเพื่อย้ายรูปภาพ ใช้สองนิ้วถ่างเพื่อขยาย</string>
     <string name="import_sticker_editor_cutout_action">ลบพื้นหลัง</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ดาวน์โหลดตัวลบพื้นหลังก่อน ซึ่งมีขนาด 5 MB</string>
     <string name="import_sticker_editor_cutout_download_progress">แอปกำลังดาวน์โหลดตัวลบพื้นหลัง...</string>

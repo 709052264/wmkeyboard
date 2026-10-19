@@ -2402,9 +2402,7 @@
     <string name="import_sticker_editor_border_white_option">সাদা</string>
     <string name="import_sticker_editor_border_width_label">বর্ডারের প্রস্থ</string>
     <string name="import_sticker_editor_brush_size_label">ব্রাশের আকার</string>
-    <string name="import_sticker_editor_caption">কিবোর্ড একটি ৫১২ বাই ৫১২ স্টিকার সংরক্ষণ করে। রাখার অংশটি নির্বাচন করতে ছবিটিকে সরান এবং জুম করুন, তারপর ব্যাকগ্রাউন্ড সরিয়ে একটি বর্ডার যোগ করুন। অ্যাপটি এই ছবিটি ফোনে রাখে, যাতে আপনি পরে আবার স্টিকারটি এডিট করতে পারেন।</string>
     <string name="import_sticker_editor_crop_action">ক্রপ করুন</string>
-    <string name="import_sticker_editor_crop_hint">ছবি সরাতে ড্র্যাগ করুন। বড় করতে চিমটি কাটুন।</string>
     <string name="import_sticker_editor_cutout_action">ব্যাকগ্রাউন্ড মুছে ফেলুন</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">প্রথমে ব্যাকগ্রাউন্ড রিমুভারটি ডাউনলোড করুন। এটি ৫ এমবি-র একটি ডাউনলোড।</string>
     <string name="import_sticker_editor_cutout_download_progress">অ্যাপটি ব্যাকগ্রাউন্ড রিমুভার সংগ্রহ করছে…</string>

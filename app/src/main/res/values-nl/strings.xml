@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">Wit</string>
     <string name="import_sticker_editor_border_width_label">Randbreedte</string>
     <string name="import_sticker_editor_brush_size_label">Penseelgrootte</string>
-    <string name="import_sticker_editor_caption">Het toetsenbord slaat een sticker van 512 bij 512 op. Verplaats en knijp in de afbeelding om het deel te selecteren dat je wilt behouden, verwijder vervolgens de achtergrond en voeg een rand toe. De app bewaart deze afbeelding op de telefoon, zodat je de sticker later opnieuw kunt bewerken.</string>
     <string name="import_sticker_editor_crop_action">Bijsnijden</string>
-    <string name="import_sticker_editor_crop_hint">Sleep om de afbeelding te verplaatsen. Knijp om deze groter te maken.</string>
     <string name="import_sticker_editor_cutout_action">Verwijder de achtergrond</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Installeer eerst de achtergrondverwijderaar. Dit is een download van 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">De app haalt de achtergrondverwijderaar op…</string>

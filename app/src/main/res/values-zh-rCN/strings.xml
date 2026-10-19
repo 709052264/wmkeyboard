@@ -2394,9 +2394,7 @@
     <string name="import_sticker_editor_border_white_option">白色</string>
     <string name="import_sticker_editor_border_width_label">边框宽度</string>
     <string name="import_sticker_editor_brush_size_label">画笔大小</string>
-    <string name="import_sticker_editor_caption">键盘会保存一张 512x512 的贴纸。移动并缩放图像以选择要保留的部分，然后移除背景并添加边框。应用程序会将此图像保留在手机上，以便您稍后可以再次编辑该贴纸。</string>
     <string name="import_sticker_editor_crop_action">裁剪</string>
-    <string name="import_sticker_editor_crop_hint">拖动以移动图像。捏合以放大。</string>
     <string name="import_sticker_editor_cutout_action">移除背景</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">请先获取背景移除工具。这是一个 5 MB 的下载包。</string>
     <string name="import_sticker_editor_cutout_download_progress">应用正在获取背景移除工具……</string>

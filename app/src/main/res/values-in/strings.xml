@@ -2396,9 +2396,7 @@
     <string name="import_sticker_editor_border_white_option">Putih</string>
     <string name="import_sticker_editor_border_width_label">Lebar batas</string>
     <string name="import_sticker_editor_brush_size_label">Ukuran kuas</string>
-    <string name="import_sticker_editor_caption">Papan ketik menyimpan stiker berukuran 512 kali 512. Pindahkan dan cubit gambar untuk memilih bagian yang ingin disimpan, lalu hapus latar belakang dan tambahkan batas. Aplikasi menyimpan gambar ini di ponsel, sehingga Anda dapat mengedit stiker lagi nanti.</string>
     <string name="import_sticker_editor_crop_action">Pangkas</string>
-    <string name="import_sticker_editor_crop_hint">Seret untuk memindahkan gambar. Cubit untuk memperbesar.</string>
     <string name="import_sticker_editor_cutout_action">Hapus latar belakang</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Dapatkan penghapus latar belakang terlebih dahulu. Ini adalah unduhan sebesar 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Aplikasi sedang mengambil penghapus latar belakang…</string>

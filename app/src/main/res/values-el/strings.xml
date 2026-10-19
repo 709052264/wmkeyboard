@@ -2399,9 +2399,7 @@
     <string name="import_sticker_editor_border_white_option">Λευκό</string>
     <string name="import_sticker_editor_border_width_label">Πλάτος περιγράμματος</string>
     <string name="import_sticker_editor_brush_size_label">Μέγεθος πινέλου</string>
-    <string name="import_sticker_editor_caption">Το πληκτρολόγιο αποθηκεύει ένα αυτοκόλλητο 512 επί 512. Μετακινήστε και κάντε τσίμπημα στην εικόνα για να επιλέξετε το μέρος που θέλετε να κρατήσετε, μετά αφαιρέστε το φόντο και προσθέστε ένα περίγραμμα. Η εφαρμογή διατηρεί αυτή την εικόνα στο τηλέφωνο, ώστε να μπορείτε να επεξεργαστείτε το αυτοκόλλητο ξανά αργότερα.</string>
     <string name="import_sticker_editor_crop_action">Περικοπή</string>
-    <string name="import_sticker_editor_crop_hint">Σύρετε για να μετακινήσετε την εικόνα. Τσιμπήστε για να τη μεγαλώσετε.</string>
     <string name="import_sticker_editor_cutout_action">Αφαίρεση φόντου</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Αποκτήστε πρώτα το εργαλείο αφαίρεσης φόντου. Είναι μια λήψη 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Η εφαρμογή λαμβάνει το εργαλείο αφαίρεσης φόντου…</string>

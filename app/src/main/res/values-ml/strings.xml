@@ -2398,9 +2398,7 @@
     <string name="import_sticker_editor_border_white_option">വെള്ള</string>
     <string name="import_sticker_editor_border_width_label">ബോർഡർ വീതി</string>
     <string name="import_sticker_editor_brush_size_label">ബ്രഷ് വലുപ്പം</string>
-    <string name="import_sticker_editor_caption">കീബോർഡ് 512 ബൈ 512 വലിപ്പമുള്ള സ്റ്റിക്കർ സേവ് ചെയ്യുന്നു. ചിത്രം നീക്കി പിഞ്ച് ചെയ്ത് ആവശ്യമുള്ള ഭാഗം തിരഞ്ഞെടുക്കുക, തുടർന്ന് പശ്ചാത്തലം നീക്കം ചെയ്ത് ബോർഡർ ചേർക്കുക. ഈ ചിത്രം ഫോണിൽ തന്നെ സൂക്ഷിക്കുന്നതിനാൽ നിങ്ങൾക്ക് പിന്നീട് സ്റ്റിക്കർ വീണ്ടും എഡിറ്റ് ചെയ്യാം.</string>
     <string name="import_sticker_editor_crop_action">ക്രോപ്പ് ചെയ്യുക</string>
-    <string name="import_sticker_editor_crop_hint">ചിത്രം നീക്കാൻ വലിച്ചിടുക. വലുതാക്കാൻ പിഞ്ച് ചെയ്യുക.</string>
     <string name="import_sticker_editor_cutout_action">പശ്ചാത്തലം നീക്കം ചെയ്യുക</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ആദ്യം ബാക്ക്ഗ്രൗണ്ട് റിമൂവർ ഡൗൺലോഡ് ചെയ്യുക. ഇതൊരു 5 MB ഡൗൺലോഡ് ആണ്.</string>
     <string name="import_sticker_editor_cutout_download_progress">ആപ്പ് ബാക്ക്ഗ്രൗണ്ട് റിമൂവർ നേടുന്നു...</string>

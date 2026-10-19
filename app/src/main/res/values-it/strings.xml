@@ -2397,9 +2397,7 @@
     <string name="import_sticker_editor_border_white_option">Bianco</string>
     <string name="import_sticker_editor_border_width_label">Larghezza bordo</string>
     <string name="import_sticker_editor_brush_size_label">Dimensione pennello</string>
-    <string name="import_sticker_editor_caption">La tastiera salva un adesivo 512x512. Sposta e pizzica l\'immagine per selezionare la parte da mantenere, quindi rimuovi lo sfondo e aggiungi un bordo. L\'app mantiene questa immagine sul telefono, così potrai modificare l\'adesivo in seguito.</string>
     <string name="import_sticker_editor_crop_action">Ritaglia</string>
-    <string name="import_sticker_editor_crop_hint">Trascina per spostare l\'immagine. Pizzica per ingrandirla.</string>
     <string name="import_sticker_editor_cutout_action">Rimuovi lo sfondo</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Scarica prima lo strumento di rimozione dello sfondo. È un download di 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">L\'app sta scaricando lo strumento di rimozione sfondo…</string>

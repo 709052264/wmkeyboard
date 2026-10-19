@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Бяло</string>
     <string name="import_sticker_editor_border_width_label">Ширина на рамката</string>
     <string name="import_sticker_editor_brush_size_label">Размер на четката</string>
-    <string name="import_sticker_editor_caption">Клавиатурата записва стикер с размер 512 на 512. Преместете и мащабирайте изображението, за да изберете частта, която искате да запазите, след това премахнете фона и добавете рамка. Приложението запазва това изображение на телефона, така че можете да редактирате стикера отново по-късно.</string>
     <string name="import_sticker_editor_crop_action">Изрязване</string>
-    <string name="import_sticker_editor_crop_hint">Плъзнете, за да преместите изображението. Щипнете, за да го увеличите.</string>
     <string name="import_sticker_editor_cutout_action">Премахване на фона</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Първо изтеглете инструмента за премахване на фон. Това е изтегляне от 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Приложението изтегля инструмента за премахване на фон…</string>

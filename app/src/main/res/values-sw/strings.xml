@@ -2404,9 +2404,7 @@
     <string name="import_sticker_editor_border_white_option">Nyeupe</string>
     <string name="import_sticker_editor_border_width_label">Upana wa mpaka</string>
     <string name="import_sticker_editor_brush_size_label">Ukubwa wa brashi</string>
-    <string name="import_sticker_editor_caption">Kibodi huhifadhi kibandiko cha 512 kwa 512. Sogeza na ubanie picha ili kuchagua sehemu ya kuhifadhi, kisha ondoa mandharinyuma na uongeze mpaka. Programu huhifadhi picha hii kwenye simu, ili uweze kuhariri kibandiko tena baadaye.</string>
     <string name="import_sticker_editor_crop_action">Punguza</string>
-    <string name="import_sticker_editor_crop_hint">Buruta ili kusogeza picha. Finya ili kuifanya iwe kubwa.</string>
     <string name="import_sticker_editor_cutout_action">Ondoa mandharinyuma</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Pakua kiondoa mandharinyuma kwanza. Ni upakuaji wa MB 5.</string>
     <string name="import_sticker_editor_cutout_download_progress">Programu inapakua kiondoa mandharinyuma…</string>

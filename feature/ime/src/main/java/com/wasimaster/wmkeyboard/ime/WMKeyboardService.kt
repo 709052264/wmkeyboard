@@ -42635,6 +42635,13 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
 
+        // WhatsApp and Messenger take a sticker only as a 512 square; one
+        // kept in its own shape goes to them as a letterboxed copy, and as
+        // itself everywhere else.
+        if (chosen != null && MediaMime.needsSquareSticker(chosen, editorInfo?.packageName)) {
+            val square = squareStickerCopy(file)
+            if (square != null && tryCommit(square, chosen)) return
+        }
         if (chosen != null && tryCommit(file, chosen)) return
 
         // A still WebP the field won't take can usually go through as PNG;
@@ -42714,6 +42721,20 @@ open class WMKeyboardService : InputMethodService() {
         }
         return true
     }
+
+    /**
+     * [file] as a 512×512 sticker for WhatsApp or Messenger, made once and kept in the media
+     * cache under the sticker's name (an edit renames the file, so a stale
+     * copy is never found). Null when [file] already is one, or is animated.
+     */
+    private fun squareStickerCopy(file: File): File? = runCatching {
+        val target = File(File(cacheDir, "media").apply { mkdirs() }, "${file.nameWithoutExtension}_square.webp")
+        if (target.isFile && target.length() > 0L) return@runCatching target
+        val bytes = StickerImage.squareCopy(file.readBytes())
+            ?: return@runCatching null
+        target.writeBytes(bytes)
+        target
+    }.getOrNull()
 
     private fun isAnimatedWebp(file: File): Boolean = runCatching {
         val head = ByteArray(WEBP_HEADER_BYTES)

@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Bijela</string>
     <string name="import_sticker_editor_border_width_label">Širina obruba</string>
     <string name="import_sticker_editor_brush_size_label">Veličina kista</string>
-    <string name="import_sticker_editor_caption">Tipkovnica sprema naljepnicu veličine 512x512. Pomičite i zumirajte sliku kako biste odabrali dio koji želite zadržati, zatim uklonite pozadinu i dodajte obrub. Aplikacija čuva ovu sliku na telefonu, tako da naljepnicu možete ponovno urediti kasnije.</string>
     <string name="import_sticker_editor_crop_action">Izreži</string>
-    <string name="import_sticker_editor_crop_hint">Povucite za pomicanje slike. Prstima raširite za povećanje.</string>
     <string name="import_sticker_editor_cutout_action">Ukloni pozadinu</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Prvo preuzmite alat za uklanjanje pozadine. Preuzimanje je veličine 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Aplikacija preuzima alat za uklanjanje pozadine…</string>

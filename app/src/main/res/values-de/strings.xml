@@ -2399,9 +2399,7 @@
     <string name="import_sticker_editor_border_white_option">Weiß</string>
     <string name="import_sticker_editor_border_width_label">Rahmenbreite</string>
     <string name="import_sticker_editor_brush_size_label">Pinselgröße</string>
-    <string name="import_sticker_editor_caption">Die Tastatur speichert einen 512x512 Sticker. Bewegen und zoomen Sie das Bild, um den gewünschten Bereich auszuwählen, entfernen Sie dann den Hintergrund und fügen Sie einen Rand hinzu. Die App behält dieses Bild auf dem Telefon, damit Sie den Sticker später erneut bearbeiten können.</string>
     <string name="import_sticker_editor_crop_action">Zuschneiden</string>
-    <string name="import_sticker_editor_crop_hint">Ziehen, um das Bild zu verschieben. Zum Vergrößern aufziehen.</string>
     <string name="import_sticker_editor_cutout_action">Hintergrund entfernen</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Laden Sie zuerst den Hintergrundentferner herunter. Es ist ein 5 MB Download.</string>
     <string name="import_sticker_editor_cutout_download_progress">Die App lädt den Hintergrundentferner herunter…</string>

@@ -2397,9 +2397,7 @@
     <string name="import_sticker_editor_border_white_option">سفید</string>
     <string name="import_sticker_editor_border_width_label">بارڈر کی چوڑائی</string>
     <string name="import_sticker_editor_brush_size_label">برش کا سائز</string>
-    <string name="import_sticker_editor_caption">کی بورڈ 512 بائی 512 کا اسٹیکر محفوظ کرتا ہے۔ تصویر کو رکھنے کے لیے حصہ منتخب کرنے کے لیے اسے حرکت دیں اور چٹکی بھریں، پھر پس منظر کو ہٹا دیں اور بارڈر شامل کریں۔ ایپ اس تصویر کو فون پر رکھتی ہے، تاکہ آپ بعد میں دوبارہ اسٹیکر میں ترمیم کر سکیں۔</string>
     <string name="import_sticker_editor_crop_action">کراپ کریں</string>
-    <string name="import_sticker_editor_crop_hint">تصویر کو منتقل کرنے کے لیے ڈریگ کریں۔ اسے بڑا کرنے کے لیے چٹکی (پنچ) کریں۔</string>
     <string name="import_sticker_editor_cutout_action">پس منظر ہٹائیں</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">پہلے بیک گراؤنڈ ریموور حاصل کریں۔ یہ 5 ایم بی کی ڈاؤن لوڈ ہے۔</string>
     <string name="import_sticker_editor_cutout_download_progress">ایپ پس منظر ہٹانے والا ڈاؤن لوڈ کر رہی ہے...</string>

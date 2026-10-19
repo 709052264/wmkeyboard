@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">Valkoinen</string>
     <string name="import_sticker_editor_border_width_label">Reunan leveys</string>
     <string name="import_sticker_editor_brush_size_label">Siveltimen koko</string>
-    <string name="import_sticker_editor_caption">Näppäimistö tallentaa 512x512-kokoisen tarran. Siirrä ja nipistä kuvaa valitaksesi säilytettävän osan, poista sitten tausta ja lisää reunus. Sovellus säilyttää tämän kuvan puhelimessa, joten voit muokata tarraa myöhemmin uudelleen.</string>
     <string name="import_sticker_editor_crop_action">Rajaa</string>
-    <string name="import_sticker_editor_crop_hint">Siirrä kuvaa vetämällä. Suurenna nipistämällä.</string>
     <string name="import_sticker_editor_cutout_action">Poista tausta</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Hanki ensin taustan poistaja. Se on 5 Mt:n lataus.</string>
     <string name="import_sticker_editor_cutout_download_progress">Sovellus lataa taustanpoistotyökalua…</string>

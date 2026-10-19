@@ -2398,9 +2398,7 @@
     <string name="import_sticker_editor_border_white_option">पांढरा</string>
     <string name="import_sticker_editor_border_width_label">बॉर्डरची रुंदी</string>
     <string name="import_sticker_editor_brush_size_label">ब्रशचा आकार</string>
-    <string name="import_sticker_editor_caption">कीबोर्ड ५१२ बाय ५१२ स्टिकर सेव्ह करतो. ठेवण्यासाठी भाग निवडण्यासाठी इमेज हलवा आणि पिंच करा, त्यानंतर बॅकग्राउंड काढून टाका आणि बॉर्डर जोडा. अॅप ही इमेज फोनवर ठेवते, जेणेकरून तुम्ही नंतर पुन्हा स्टिकर एडिट करू शकाल.</string>
     <string name="import_sticker_editor_crop_action">क्रॉप करा</string>
-    <string name="import_sticker_editor_crop_hint">इमेज हलवण्यासाठी ड्रॅग करा. मोठी करण्यासाठी पिंच करा.</string>
     <string name="import_sticker_editor_cutout_action">पार्श्वभूमी काढा</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">आधी बॅकग्राउंड रिमूव्हर मिळवा. हे ५ MB चे डाउनलोड आहे.</string>
     <string name="import_sticker_editor_cutout_download_progress">ॲप बॅकग्राउंड रिमूव्हर मिळवत आहे…</string>

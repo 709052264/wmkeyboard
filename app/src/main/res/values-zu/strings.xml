@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Mhlophe</string>
     <string name="import_sticker_editor_border_width_label">Ububanzi bomngcele</string>
     <string name="import_sticker_editor_brush_size_label">Usayizi webhulashi</string>
-    <string name="import_sticker_editor_caption">Ikhibhodi ilondoloza isitikha esingu-512 ngo-512. Hambisa futhi ucindezele isithombe ukuze ukhethe ingxenye ofuna ukuyigcina, bese ususa ingemuva bese wengeza umngcele. Uhlelo lokusebenza lugcina lesi sithombe ocingweni, ukuze ukwazi ukuhlela isitikha futhi kamuva.</string>
     <string name="import_sticker_editor_crop_action">Nqampuna</string>
-    <string name="import_sticker_editor_crop_hint">Hudula ukuze uhambise isithombe. Phina ukuze usenze sibe sikhulu.</string>
     <string name="import_sticker_editor_cutout_action">Susa ingemuva</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Thola isisusi sangemuva kuqala. Ukulanda okungama-5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Uhlelo lokusebenza luthola isisusi sangemuva…</string>

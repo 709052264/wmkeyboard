@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Balts</string>
     <string name="import_sticker_editor_border_width_label">Apmales platums</string>
     <string name="import_sticker_editor_brush_size_label">Otas izmērs</string>
-    <string name="import_sticker_editor_caption">Tastatūra saglabā 512x512 uzlīmi. Pārvietojiet un tuviniet attēlu, lai atlasītu paturamo daļu, pēc tam noņemiet fonu un pievienojiet apmali. Lietotne saglabā šo attēlu tālrunī, lai vēlāk varētu rediģēt uzlīmi vēlreiz.</string>
     <string name="import_sticker_editor_crop_action">Apgriezt</string>
-    <string name="import_sticker_editor_crop_hint">Velciet, lai pārvietotu attēlu. Saspiediet, lai palielinātu.</string>
     <string name="import_sticker_editor_cutout_action">Noņemt fonu</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Vispirms iegūstiet fona noņemšanas rīku. Tas ir 5 MB lejupielāde.</string>
     <string name="import_sticker_editor_cutout_download_progress">Lietotne iegūst fona noņēmēju…</string>

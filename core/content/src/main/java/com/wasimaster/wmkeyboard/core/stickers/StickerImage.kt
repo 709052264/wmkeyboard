@@ -17,10 +17,14 @@ import java.io.ByteArrayOutputStream
 /**
  * Turns an arbitrary picked image into sticker bytes.
  *
- * Still images become 512×512 WebP under 100 KB — WhatsApp's static sticker
- * spec, and the only shape that reliably gets accepted as an
- * `image/webp.wasticker` rather than a plain image (see
- * [com.wasimaster.wmkeyboard.core.media.MediaMime]).
+ * Still images become WebP in their own shape, scaled down to
+ * [MAX_STILL_SIZE] on the long edge and never up. They used to be letterboxed
+ * into WhatsApp's 512×512 square on the way in, which put an empty band
+ * beside every picture that was not square, everywhere it was sent. Only
+ * WhatsApp and Messenger ask for that square, so only a send to them gets
+ * it: see [squareCopy], and
+ * [com.wasimaster.wmkeyboard.core.media.MediaMime.needsSquareSticker] for
+ * which sends that is.
  *
  * Animated GIF and WebP sources are stored byte for byte instead: re-encoding
  * one would cost a generation of quality for nothing. An animated WebP that
@@ -48,6 +52,19 @@ object StickerImage {
     const val TARGET_SIZE = 512
 
     /**
+     * Long edge a still sticker is kept at. The size the editor works at, so
+     * an edited sticker and a picked one come out alike; twice the WhatsApp
+     * canvas, and still small enough that a panel of them decodes quickly.
+     */
+    const val MAX_STILL_SIZE = 1024
+
+    /**
+     * Budget for a still sticker in its own shape. Four times WhatsApp's,
+     * for up to four times the pixels; the WhatsApp copy gets its own.
+     */
+    const val STILL_BYTES = 400 * 1024
+
+    /**
      * The largest sample [ImageDecoder] accepts, i.e. the cheapest decode it
      * will do — for the animation probe, which draws nothing.
      */
@@ -57,11 +74,11 @@ object StickerImage {
     const val TARGET_BYTES = 100 * 1024
 
     /**
-     * Long edge the editor decodes to. Four times the sticker canvas, so a
-     * crop down to a corner of the picture still has pixels to spare, and
-     * still only 4 MB of heap.
+     * Long edge the editor decodes to: the size a still is kept at, so an
+     * uncropped edit comes out as big as a plain add would, and still only
+     * 4 MB of heap.
      */
-    const val EDIT_SIZE = 1024
+    const val EDIT_SIZE = MAX_STILL_SIZE
 
     /**
      * Long edge a kept original is stored at — the size the editor decodes to,
@@ -144,20 +161,10 @@ object StickerImage {
             )
         }
 
-        val source = decodeStill(bytes) ?: return Result.NotAnImage
-        val canvas = square(source)
-        if (canvas !== source) source.recycle()
-        val encoded = encodeWebp(canvas)
-        canvas.recycle()
-        return if (encoded == null) Result.NotAnImage else Result.Ok(
-            ProcessedSticker(
-                bytes = encoded,
-                mime = MediaMime.WEBP,
-                animated = false,
-                aspectRatio = 1f,
-                flattened = apng,
-            )
-        )
+        val source = decodeStill(bytes, MAX_STILL_SIZE) ?: return Result.NotAnImage
+        val sticker = still(source, flattened = apng)
+        source.recycle()
+        return if (sticker == null) Result.NotAnImage else Result.Ok(sticker)
     }
 
     /**
@@ -189,20 +196,10 @@ object StickerImage {
         val count = frames.forEach { frame, _ ->
             if (first == null) first = frame.copy(Bitmap.Config.ARGB_8888, false)
         }
-        val still = first ?: return Result.NotAnImage
-        val canvas = square(still)
-        if (canvas !== still) still.recycle()
-        val encoded = encodeWebp(canvas)
-        canvas.recycle()
-        return if (encoded == null) Result.NotAnImage else Result.Ok(
-            ProcessedSticker(
-                bytes = encoded,
-                mime = MediaMime.WEBP,
-                animated = false,
-                aspectRatio = 1f,
-                flattened = count > 1,
-            )
-        )
+        val frame = first ?: return Result.NotAnImage
+        val sticker = still(frame, flattened = count > 1)
+        frame.recycle()
+        return if (sticker == null) Result.NotAnImage else Result.Ok(sticker)
     }
 
     /**
@@ -249,9 +246,8 @@ object StickerImage {
     /**
      * Decodes a still for the editor, at up to [maxSide] on its long edge.
      *
-     * Bigger than [process] decodes at, on purpose: the editor crops, and a
-     * crop of a picture already resampled down to 512 would be soft. Callers
-     * recycle it as soon as a crop is applied.
+     * The same long edge [process] keeps a still at, so an uncropped edit
+     * loses nothing a plain add would have kept.
      */
     fun decodeForEditing(bytes: ByteArray, maxSide: Int = EDIT_SIZE): Bitmap? =
         decodeStill(bytes, maxSide)
@@ -277,29 +273,63 @@ object StickerImage {
     }
 
     /**
-     * Encodes an edited 512×512 bitmap as sticker bytes. Anything smaller (or
-     * off-square) is letterboxed first, so the editor may hand over whatever
-     * it has.
+     * Encodes an edited bitmap as sticker bytes, in whatever shape the edit
+     * left it. Anything past [MAX_STILL_SIZE] is scaled down first.
      */
-    fun encodeStill(bitmap: Bitmap): ProcessedSticker? {
-        val canvas = square(bitmap)
-        val encoded = encodeWebp(canvas)
-        if (canvas !== bitmap) canvas.recycle()
+    fun encodeStill(bitmap: Bitmap): ProcessedSticker? = still(bitmap, flattened = false)
+
+    /**
+     * [bytes] letterboxed into WhatsApp's 512×512 square under its 100 KB
+     * budget, or null when they need nothing doing (already that square) or
+     * cannot be made into it (animated, which is stored byte for byte and
+     * cannot be re-encoded frame for frame here, or unreadable).
+     *
+     * WhatsApp takes `image/webp.wasticker` only in that shape and Messenger
+     * draws anything else badly, so this is the copy a send to either goes
+     * out as. Every other app gets the sticker as it is stored.
+     */
+    fun squareCopy(bytes: ByteArray): ByteArray? {
+        if (bytes.isEmpty() || bytes.size > MAX_SOURCE_BYTES) return null
+        if (isAnimatedSource(bytes)) return null
+        if (bytes.size <= TARGET_BYTES && isWebp(bytes) && boundsOf(bytes) == TARGET_SIZE to TARGET_SIZE) {
+            return null
+        }
+        val source = decodeStill(bytes, TARGET_SIZE) ?: return null
+        val canvas = square(source)
+        if (canvas !== source) source.recycle()
+        val encoded = encodeWebp(canvas, TARGET_BYTES)
+        canvas.recycle()
+        return encoded
+    }
+
+    /** [source] as a still sticker in its own shape; [source] stays the caller's. */
+    private fun still(source: Bitmap, flattened: Boolean): ProcessedSticker? {
+        val canvas = fitted(source)
+        val encoded = encodeWebp(canvas, STILL_BYTES)
+        val ratio = canvas.width.toFloat() / canvas.height
+        if (canvas !== source) canvas.recycle()
         return encoded?.let {
-            ProcessedSticker(bytes = it, mime = MediaMime.WEBP, animated = false, aspectRatio = 1f)
+            ProcessedSticker(
+                bytes = it,
+                mime = MediaMime.WEBP,
+                animated = false,
+                aspectRatio = ratio,
+                flattened = flattened,
+            )
         }
     }
 
     /**
-     * [bytes] as a sticker if they already meet the spec — a still 512×512
-     * WebP inside the size budget — or null when they need re-encoding.
+     * [bytes] as a sticker if they can be kept as they are — a still WebP no
+     * bigger than [MAX_STILL_SIZE] inside [STILL_BYTES] — or null when they
+     * need re-encoding.
      */
     private fun conforming(bytes: ByteArray): ProcessedSticker? {
-        if (bytes.size > TARGET_BYTES) return null
+        if (bytes.size > STILL_BYTES) return null
         if (!isWebp(bytes) || isAnimatedWebp(bytes)) return null
         val (width, height) = boundsOf(bytes) ?: return null
-        if (width != TARGET_SIZE || height != TARGET_SIZE) return null
-        return ProcessedSticker(bytes, MediaMime.WEBP, animated = false, aspectRatio = 1f)
+        if (maxOf(width, height) > MAX_STILL_SIZE) return null
+        return ProcessedSticker(bytes, MediaMime.WEBP, animated = false, aspectRatio = width.toFloat() / height)
     }
 
     /**
@@ -390,6 +420,23 @@ object StickerImage {
     }
 
     /**
+     * [source] scaled down to [MAX_STILL_SIZE] on its long edge, or [source]
+     * itself when it already fits. Never scaled up: a small picture stays the
+     * size it was made at.
+     */
+    private fun fitted(source: Bitmap): Bitmap {
+        val longest = maxOf(source.width, source.height)
+        if (longest <= MAX_STILL_SIZE) return source
+        val scale = MAX_STILL_SIZE.toFloat() / longest
+        return Bitmap.createScaledBitmap(
+            source,
+            (source.width * scale).toInt().coerceAtLeast(1),
+            (source.height * scale).toInt().coerceAtLeast(1),
+            true,
+        )
+    }
+
+    /**
      * Fits [source] inside a transparent 512×512 canvas, preserving aspect
      * ratio. Small sources are scaled up so the sticker doesn't arrive as a
      * postage stamp floating in an empty frame.
@@ -411,11 +458,11 @@ object StickerImage {
         return out
     }
 
-    private fun encodeWebp(bitmap: Bitmap): ByteArray? {
+    private fun encodeWebp(bitmap: Bitmap, budget: Int): ByteArray? {
         var last: ByteArray? = null
         for (quality in QUALITY_LADDER) {
             last = encodeWebpAt(bitmap, quality) ?: return last
-            if (last.size <= TARGET_BYTES) return last
+            if (last.size <= budget) return last
         }
         return last
     }

@@ -455,11 +455,11 @@
 
     <string name="import_sticker_editor_title">Edit image</string>
     <string name="import_sticker_editor_subtitle">Crop the image, remove the background, and add a border</string>
-    <string name="import_sticker_editor_caption">The keyboard saves a 512 by 512 sticker. Move and pinch the image to select the part to keep, then remove the background and add a border. The app keeps this image on the phone, so you can edit the sticker again later.</string>
+    <string name="import_sticker_editor_shape_caption">The sticker keeps the shape and size of the part that you select, up to 1024 pixels on the longest side. Drag the edges and the corners of the frame to select the part to keep, then remove the background and add a border. WhatsApp and Messenger get a 512 by 512 copy when you send. The app keeps this image on the phone, so you can edit the sticker again later.</string>
     <string name="import_sticker_editor_resumed_caption">The app opened the image that you made this sticker from, with your crop, your erasures and your border on it. Continue where you stopped. The sticker changes only after you save.</string>
     <string name="import_sticker_editor_original_caption">This is the image that you made the sticker from. The app kept it on this phone for edits like this one. Your crop, your erasures and your border are not in it. The sticker changes only after you save.</string>
     <string name="import_sticker_editor_crop_action">Crop</string>
-    <string name="import_sticker_editor_crop_hint">Drag to move the image. Pinch to make it larger.</string>
+    <string name="import_sticker_editor_frame_hint">Drag an edge or a corner to change the frame. Drag in the frame to move it.</string>
     <string name="import_sticker_editor_erase_action">Erase</string>
     <string name="import_sticker_editor_restore_action">Restore</string>
     <string name="import_sticker_editor_border_action">Border</string>

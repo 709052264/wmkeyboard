@@ -61,6 +61,21 @@ object MediaMime {
     fun animatedGoesAsGif(chosen: String?, fieldTakesGif: Boolean): Boolean =
         fieldTakesGif && chosen != WHATSAPP_STICKER
 
+    /**
+     * Apps that take a still sticker only as a 512×512 square, by package.
+     * Messenger offers plain [WEBP], so unlike WhatsApp nothing it advertises
+     * gives it away; the package is the only thing that does.
+     */
+    private val SQUARE_STICKER_PACKAGES = setOf("com.facebook.orca", "com.facebook.mlite")
+
+    /**
+     * Whether a sticker sent as [chosen] into [packageName] has to go out as
+     * the 512×512 square rather than in its own shape. WhatsApp's sticker type
+     * is only ever that square; Messenger draws anything else badly too.
+     */
+    fun needsSquareSticker(chosen: String?, packageName: String?): Boolean =
+        chosen == WHATSAPP_STICKER || (chosen == WEBP && packageName in SQUARE_STICKER_PACKAGES)
+
     /** File extension to store [mimeType] under. */
     fun extension(mimeType: String): String = when (mimeType) {
         GIF -> "gif"

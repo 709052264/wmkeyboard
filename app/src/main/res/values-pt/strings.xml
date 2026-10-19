@@ -2397,9 +2397,7 @@
     <string name="import_sticker_editor_border_white_option">Branco</string>
     <string name="import_sticker_editor_border_width_label">Largura da borda</string>
     <string name="import_sticker_editor_brush_size_label">Tamanho do pincel</string>
-    <string name="import_sticker_editor_caption">O teclado salva uma figurinha de 512 por 512. Mova e pince a imagem para selecionar a parte a ser mantida, depois remova o fundo e adicione uma borda. O aplicativo mantém esta imagem no telefone, para que você possa editar a figurinha novamente mais tarde.</string>
     <string name="import_sticker_editor_crop_action">Cortar</string>
-    <string name="import_sticker_editor_crop_hint">Arraste para mover a imagem. Faça o gesto de pinça para a aumentar.</string>
     <string name="import_sticker_editor_cutout_action">Remover o fundo</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Obtenha primeiro o removedor de fundo. É um download de 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">O aplicativo está obtendo o removedor de fundo...</string>

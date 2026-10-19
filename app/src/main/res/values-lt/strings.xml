@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Balta</string>
     <string name="import_sticker_editor_border_width_label">Kraštinės plotis</string>
     <string name="import_sticker_editor_brush_size_label">Teptuko dydis</string>
-    <string name="import_sticker_editor_caption">Klaviatūra išsaugo 512x512 dydžio lipduką. Perkelkite ir suimkite vaizdą, kad pasirinktumėte norimą palikti dalį, tada pašalinkite foną ir pridėkite rėmelį. Programėlė išsaugo šį vaizdą telefone, todėl vėliau galėsite vėl redaguoti lipduką.</string>
     <string name="import_sticker_editor_crop_action">Apkarpyti</string>
-    <string name="import_sticker_editor_crop_hint">Vilkite, kad perkeltumėte vaizdą. Suimkite, kad padidintumėte.</string>
     <string name="import_sticker_editor_cutout_action">Pašalinti foną</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Pirmiausia atsisiųskite fono šalinimo priemonę. Tai 5 MB atsisiuntimas.</string>
     <string name="import_sticker_editor_cutout_download_progress">Programėlė atsisiunčia fono šalinimo įrankį…</string>

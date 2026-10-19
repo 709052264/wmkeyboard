@@ -2398,9 +2398,7 @@
     <string name="import_sticker_editor_border_white_option">સફેદ</string>
     <string name="import_sticker_editor_border_width_label">બોર્ડરની પહોળાઈ</string>
     <string name="import_sticker_editor_brush_size_label">બ્રશનું કદ</string>
-    <string name="import_sticker_editor_caption">કીબોર્ડ 512 બાય 512 સ્ટીકર સાચવે છે. રાખવા માટેના ભાગને પસંદ કરવા માટે છબીને ખસેડો અને પિંચ કરો, પછી બેકગ્રાઉન્ડ દૂર કરો અને બોર્ડર ઉમેરો. એપ આ છબીને ફોન પર રાખે છે, જેથી તમે પછીથી સ્ટીકરને ફરીથી એડિટ કરી શકો.</string>
     <string name="import_sticker_editor_crop_action">ક્રોપ કરો</string>
-    <string name="import_sticker_editor_crop_hint">ઇમેજ ખસેડવા માટે ડ્રેગ કરો. તેને મોટી કરવા માટે પિંચ કરો.</string>
     <string name="import_sticker_editor_cutout_action">બેકગ્રાઉન્ડ દૂર કરો</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">પહેલા બેકગ્રાઉન્ડ રિમૂવર મેળવો. તે 5 MB નું ડાઉનલોડ છે.</string>
     <string name="import_sticker_editor_cutout_download_progress">એપ બેકગ્રાઉન્ડ રિમૂવર મેળવી રહી છે...</string>

@@ -2402,9 +2402,7 @@
     <string name="import_sticker_editor_border_white_option">أبيض</string>
     <string name="import_sticker_editor_border_width_label">عرض الحدود</string>
     <string name="import_sticker_editor_brush_size_label">حجم الفرشاة</string>
-    <string name="import_sticker_editor_caption">تحفظ لوحة المفاتيح ملصقاً بحجم 512 في 512. قم بتحريك الصورة وتكبيرها لتحديد الجزء الذي تريد الاحتفاظ به، ثم قم بإزالة الخلفية وإضافة إطار. يحتفظ التطبيق بهذه الصورة على الهاتف، حتى تتمكن من تعديل الملصق مرة أخرى لاحقاً.</string>
     <string name="import_sticker_editor_crop_action">قص</string>
-    <string name="import_sticker_editor_crop_hint">اسحب لتحريك الصورة. استخدم إصبعين للتكبير.</string>
     <string name="import_sticker_editor_cutout_action">إزالة الخلفية</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">احصل على أداة إزالة الخلفية أولاً. إنه تنزيل بحجم 5 ميجابايت.</string>
     <string name="import_sticker_editor_cutout_download_progress">يقوم التطبيق بجلب أداة إزالة الخلفية...</string>

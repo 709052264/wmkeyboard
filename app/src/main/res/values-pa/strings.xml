@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">ਚਿੱਟਾ</string>
     <string name="import_sticker_editor_border_width_label">ਬਾਰਡਰ ਦੀ ਚੌੜਾਈ</string>
     <string name="import_sticker_editor_brush_size_label">ਬੁਰਸ਼ ਦਾ ਆਕਾਰ</string>
-    <string name="import_sticker_editor_caption">ਕੀਬੋਰਡ 512 ਗੁਣਾ 512 ਦਾ ਸਟਿੱਕਰ ਸੇਵ ਕਰਦਾ ਹੈ। ਰੱਖਣ ਵਾਲੇ ਹਿੱਸੇ ਨੂੰ ਚੁਣਨ ਲਈ ਚਿੱਤਰ ਨੂੰ ਹਿਲਾਓ ਅਤੇ ਪਿੰਚ ਕਰੋ, ਫਿਰ ਬੈਕਗ੍ਰਾਊਂਡ ਹਟਾਓ ਅਤੇ ਬਾਰਡਰ ਜੋੜੋ। ਐਪ ਇਸ ਚਿੱਤਰ ਨੂੰ ਫ਼ੋਨ \'ਤੇ ਰੱਖਦੀ ਹੈ, ਤਾਂ ਜੋ ਤੁਸੀਂ ਬਾਅਦ ਵਿੱਚ ਸਟਿੱਕਰ ਨੂੰ ਦੁਬਾਰਾ ਐਡਿਟ ਕਰ ਸਕੋ।</string>
     <string name="import_sticker_editor_crop_action">ਕ੍ਰੌਪ ਕਰੋ</string>
-    <string name="import_sticker_editor_crop_hint">ਚਿੱਤਰ ਨੂੰ ਹਿਲਾਉਣ ਲਈ ਖਿੱਚੋ। ਇਸਨੂੰ ਵੱਡਾ ਕਰਨ ਲਈ ਚੂੰਡੀ (pinch) ਮਾਰੋ।</string>
     <string name="import_sticker_editor_cutout_action">ਬੈਕਗ੍ਰਾਊਂਡ ਹਟਾਓ</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ਪਹਿਲਾਂ ਬੈਕਗ੍ਰਾਊਂਡ ਰੀਮੂਵਰ ਪ੍ਰਾਪਤ ਕਰੋ। ਇਹ 5 MB ਦੀ ਡਾਊਨਲੋਡ ਹੈ।</string>
     <string name="import_sticker_editor_cutout_download_progress">ਐਪ ਬੈਕਗ੍ਰਾਊਂਡ ਰਿਮੂਵਰ ਪ੍ਰਾਪਤ ਕਰ ਰਹੀ ਹੈ...</string>

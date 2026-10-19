@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Hvit</string>
     <string name="import_sticker_editor_border_width_label">Kantbredde</string>
     <string name="import_sticker_editor_brush_size_label">Penselstørrelse</string>
-    <string name="import_sticker_editor_caption">Tastaturet lagrer et 512 x 512 klistremerke. Flytt og knip på bildet for å velge delen som skal beholdes, fjern deretter bakgrunnen og legg til en kantlinje. Appen beholder dette bildet på telefonen, slik at du kan redigere klistremerket igjen senere.</string>
     <string name="import_sticker_editor_crop_action">Beskjær</string>
-    <string name="import_sticker_editor_crop_hint">Dra for å flytte bildet. Knip for å gjøre det større.</string>
     <string name="import_sticker_editor_cutout_action">Fjern bakgrunnen</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Hent bakgrunnsfjerneren først. Det er en nedlasting på 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Appen henter bakgrunnsfjerneren…</string>

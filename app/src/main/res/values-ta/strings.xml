@@ -2399,9 +2399,7 @@
     <string name="import_sticker_editor_border_white_option">வெள்ளை</string>
     <string name="import_sticker_editor_border_width_label">எல்லை அகலம்</string>
     <string name="import_sticker_editor_brush_size_label">தூரிகை அளவு</string>
-    <string name="import_sticker_editor_caption">விசைப்பலகை 512க்கு 512 என்ற அளவில் ஸ்டிக்கரைச் சேமிக்கும். படத்தை நகர்த்தி, தேவையான பகுதியைத் தேர்ந்தெடுக்கவும், பின்னர் பின்னணியை நீக்கி பார்டரைச் சேர்க்கவும். இந்த ஆப் படத்தை போனில் வைத்திருக்கும், எனவே நீங்கள் ஸ்டிக்கரை மீண்டும் எடிட் செய்யலாம்.</string>
     <string name="import_sticker_editor_crop_action">கத்தரி</string>
-    <string name="import_sticker_editor_crop_hint">படத்தை நகர்த்த இழுக்கவும். பெரிதாக்க பிஞ்ச் செய்யவும்.</string>
     <string name="import_sticker_editor_cutout_action">பின்னணியை நீக்கவும்</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">முதலில் பின்னணியை நீக்கும் கருவியைப் பதிவிறக்கவும். இது 5 MB அளவுள்ள பதிவிறக்கம்.</string>
     <string name="import_sticker_editor_cutout_download_progress">பயன்பாடு பின்னணியை நீக்கும் கருவியைப் பெறுகிறது…</string>

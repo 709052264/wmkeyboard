@@ -2395,9 +2395,7 @@
     <string name="import_sticker_editor_border_white_option">Blanc</string>
     <string name="import_sticker_editor_border_width_label">Largeur de bordure</string>
     <string name="import_sticker_editor_brush_size_label">Taille du pinceau</string>
-    <string name="import_sticker_editor_caption">Le clavier enregistre un autocollant de 512 par 512. Déplacez et pincez l\'image pour sélectionner la partie à conserver, puis supprimez l\'arrière-plan et ajoutez une bordure. L\'application conserve cette image sur le téléphone, afin que vous puissiez modifier l\'autocollant à nouveau plus tard.</string>
     <string name="import_sticker_editor_crop_action">Recadrer</string>
-    <string name="import_sticker_editor_crop_hint">Faites glisser pour déplacer l\'image. Pincez pour l\'agrandir.</string>
     <string name="import_sticker_editor_cutout_action">Supprimer l\'arrière-plan</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Obtenez d\'abord l\'outil de suppression d\'arrière-plan. Il s\'agit d\'un téléchargement de 5 Mo.</string>
     <string name="import_sticker_editor_cutout_download_progress">L\'application récupère l\'outil de suppression d\'arrière-plan…</string>

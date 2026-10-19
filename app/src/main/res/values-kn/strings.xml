@@ -2404,9 +2404,7 @@
     <string name="import_sticker_editor_border_white_option">ಬಿಳಿ</string>
     <string name="import_sticker_editor_border_width_label">ಅಂಚಿನ ಅಗಲ</string>
     <string name="import_sticker_editor_brush_size_label">ಬ್ರಷ್ ಗಾತ್ರ</string>
-    <string name="import_sticker_editor_caption">ಕೀಬೋರ್ಡ್ 512 ಬೈ 512 ಸ್ಟಿಕ್ಕರ್ ಅನ್ನು ಉಳಿಸುತ್ತದೆ. ಇರಿಸಿಕೊಳ್ಳಬೇಕಾದ ಭಾಗವನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಚಿತ್ರವನ್ನು ಸರಿಸಿ ಮತ್ತು ಪಿಂಚ್ ಮಾಡಿ, ನಂತರ ಹಿನ್ನೆಲೆಯನ್ನು ತೆಗೆದುಹಾಕಿ ಮತ್ತು ಬಾರ್ಡರ್ ಸೇರಿಸಿ. ಅಪ್ಲಿಕೇಶನ್ ಈ ಚಿತ್ರವನ್ನು ಫೋನ್‌ನಲ್ಲಿ ಇರಿಸುತ್ತದೆ, ಆದ್ದರಿಂದ ನೀವು ನಂತರ ಸ್ಟಿಕ್ಕರ್ ಅನ್ನು ಮತ್ತೆ ಎಡಿಟ್ ಮಾಡಬಹುದು.</string>
     <string name="import_sticker_editor_crop_action">ಕ್ರಾಪ್ ಮಾಡಿ</string>
-    <string name="import_sticker_editor_crop_hint">ಚಿತ್ರವನ್ನು ಚಲಿಸಲು ಎಳೆಯಿರಿ. ಅದನ್ನು ದೊಡ್ಡದಾಗಿಸಲು ಪಿಂಚ್ ಮಾಡಿ.</string>
     <string name="import_sticker_editor_cutout_action">ಹಿನ್ನೆಲೆಯನ್ನು ತೆಗೆದುಹಾಕಿ</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">ಮೊದಲು ಹಿನ್ನೆಲೆ ತೆಗೆಯುವ ಸಾಧನವನ್ನು ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ. ಇದು 5 MB ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ.</string>
     <string name="import_sticker_editor_cutout_download_progress">ಅಪ್ಲಿಕೇಶನ್ ಹಿನ್ನೆಲೆ ತೆಗೆಯುವ ಸಾಧನವನ್ನು ಪಡೆಯುತ್ತಿದೆ…</string>

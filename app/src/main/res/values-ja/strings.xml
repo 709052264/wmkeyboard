@@ -2396,9 +2396,7 @@
     <string name="import_sticker_editor_border_white_option">白</string>
     <string name="import_sticker_editor_border_width_label">枠線の幅</string>
     <string name="import_sticker_editor_brush_size_label">ブラシサイズ</string>
-    <string name="import_sticker_editor_caption">キーボードは512x512のステッカーを保存します。画像を移動・ピンチして残す部分を選択し、背景を削除して枠線を追加してください。アプリはこの画像をスマートフォン内に保持するため、後でステッカーを再編集できます。</string>
     <string name="import_sticker_editor_crop_action">切り抜き</string>
-    <string name="import_sticker_editor_crop_hint">ドラッグして画像を移動します。ピンチ操作で拡大します。</string>
     <string name="import_sticker_editor_cutout_action">背景を削除</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">先に背景削除ツールを取得してください。5MBのダウンロードが必要です。</string>
     <string name="import_sticker_editor_cutout_download_progress">アプリが背景削除ツールを取得しています…</string>

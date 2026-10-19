@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Blanco</string>
     <string name="import_sticker_editor_border_width_label">Ancho del borde</string>
     <string name="import_sticker_editor_brush_size_label">Tamaño del pincel</string>
-    <string name="import_sticker_editor_caption">El teclado guarda un sticker de 512 por 512. Mueve y pellizca la imagen para seleccionar la parte que quieres conservar, luego elimina el fondo y añade un borde. La aplicación mantiene esta imagen en el teléfono, para que puedas editar el sticker de nuevo más tarde.</string>
     <string name="import_sticker_editor_crop_action">Recortar</string>
-    <string name="import_sticker_editor_crop_hint">Arrastra para mover la imagen. Pellizca para ampliarla.</string>
     <string name="import_sticker_editor_cutout_action">Eliminar el fondo</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Obtén primero el eliminador de fondos. Es una descarga de 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">La aplicación está obteniendo el eliminador de fondo…</string>

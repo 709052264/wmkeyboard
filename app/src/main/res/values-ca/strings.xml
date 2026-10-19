@@ -2400,9 +2400,7 @@
     <string name="import_sticker_editor_border_white_option">Blanc</string>
     <string name="import_sticker_editor_border_width_label">Amplada de la vora</string>
     <string name="import_sticker_editor_brush_size_label">Mida del pinzell</string>
-    <string name="import_sticker_editor_caption">El teclat desa un adhesiu de 512 per 512. Mou i pessiga la imatge per seleccionar la part que vols conservar, després elimina el fons i afegeix una vora. L\'aplicació manté aquesta imatge al telèfon, així que pots tornar a editar l\'adhesiu més tard.</string>
     <string name="import_sticker_editor_crop_action">Retalla</string>
-    <string name="import_sticker_editor_crop_hint">Arrossegueu per moure la imatge. Pessigueu per fer-la més gran.</string>
     <string name="import_sticker_editor_cutout_action">Elimina el fons</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Obteniu primer l\'eliminador de fons. És una descàrrega de 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">L\'aplicació està obtenint l\'eliminador de fons…</string>

@@ -2395,9 +2395,7 @@
     <string name="import_sticker_editor_border_white_option">Trắng</string>
     <string name="import_sticker_editor_border_width_label">Độ rộng đường viền</string>
     <string name="import_sticker_editor_brush_size_label">Kích thước cọ</string>
-    <string name="import_sticker_editor_caption">Bàn phím lưu một nhãn dán kích thước 512x512. Di chuyển và thu phóng hình ảnh để chọn phần muốn giữ lại, sau đó xóa nền và thêm đường viền. Ứng dụng giữ hình ảnh này trên điện thoại để bạn có thể chỉnh sửa nhãn dán sau này.</string>
     <string name="import_sticker_editor_crop_action">Cắt</string>
-    <string name="import_sticker_editor_crop_hint">Kéo để di chuyển hình ảnh. Chụm để phóng to.</string>
     <string name="import_sticker_editor_cutout_action">Xóa nền</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Tải xuống công cụ xóa nền trước. Đây là bản tải xuống 5 MB.</string>
     <string name="import_sticker_editor_cutout_download_progress">Ứng dụng đang tải trình xóa nền…</string>

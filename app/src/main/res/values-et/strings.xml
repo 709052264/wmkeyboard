@@ -2401,9 +2401,7 @@
     <string name="import_sticker_editor_border_white_option">Valge</string>
     <string name="import_sticker_editor_border_width_label">Äärise laius</string>
     <string name="import_sticker_editor_brush_size_label">Pintsli suurus</string>
-    <string name="import_sticker_editor_caption">Klaviatuur salvestab 512x512 kleebise. Liigutage ja suumige pilti, et valida säilitatav osa, seejärel eemaldage taust ja lisage ääris. Rakendus hoiab seda pilti telefonis, et saaksite kleebist hiljem uuesti muuta.</string>
     <string name="import_sticker_editor_crop_action">Kärbi</string>
-    <string name="import_sticker_editor_crop_hint">Pildi liigutamiseks lohistage. Suurendamiseks näpistage.</string>
     <string name="import_sticker_editor_cutout_action">Eemalda taust</string>
     <string name="import_sticker_editor_cutout_download_own_subtitle">Esmalt hankige tausta eemaldaja. See on 5 MB suurune allalaadimine.</string>
     <string name="import_sticker_editor_cutout_download_progress">Rakendus hangib taustaeemaldajat...</string>
