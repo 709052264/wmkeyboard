@@ -1069,7 +1069,11 @@ object AssetLayouts {
         val loaded = runCatching {
             val text = manager.open("$DIR/${id.removePrefix(ID_PREFIX)}$SUFFIX")
                 .use { it.readBytes().decodeToString() }
-            LayoutFile.decode(text)?.layout?.let { Parsed(it, text.length.toLong() * PARSED_WEIGHT_FACTOR) }
+            LayoutFile.decode(text)?.layout?.let {
+                // Most of these files came from keyboards that put no digits on
+                // the letters; give them QWERTY's corner hints (DigitHints).
+                Parsed(it.withDigitHints(), text.length.toLong() * PARSED_WEIGHT_FACTOR)
+            }
         }.getOrNull() ?: return null
         // Two threads racing the same miss both parse; the first one in wins,
         // so every caller ends up holding the same instance.

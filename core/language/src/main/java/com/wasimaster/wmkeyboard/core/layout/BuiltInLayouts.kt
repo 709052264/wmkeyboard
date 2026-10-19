@@ -207,7 +207,7 @@ object BuiltInLayouts {
         id = PROBHAT_ID,
         name = "প্রভাত (Probhat)",
         langId = "bn",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(probhatRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(probhatRows))),
     )
 
     /**
@@ -221,7 +221,7 @@ object BuiltInLayouts {
         id = JATIYA_ID,
         name = "জাতীয় (National)",
         langId = "bn",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(jatiyaRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(jatiyaRows))),
     )
 
     /** French shares AZERTY's key grid; the modes differ in language, not keys. */
@@ -270,7 +270,7 @@ object BuiltInLayouts {
         name = "한국어 (2-beolsik)",
         langId = "ko",
         composer = ComposerType.HANGUL,
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(koreanRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(koreanRows))),
     )
 
     /** Russian ЙЦУКЕН: the standard Cyrillic phone layout; shift uppercases. */
@@ -290,7 +290,7 @@ object BuiltInLayouts {
         id = ARABIC_ID,
         name = "العربية",
         langId = "ar",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(arabicRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(arabicRows))),
     )
 
     /** Greek: the national layout; shift uppercases, tonos vowels on long-press. */
@@ -298,7 +298,7 @@ object BuiltInLayouts {
         id = GREEK_ID,
         name = "Ελληνικά",
         langId = "el",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(greekRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(greekRows))),
     )
 
     /**
@@ -310,7 +310,7 @@ object BuiltInLayouts {
         id = HEBREW_ID,
         name = "עברית",
         langId = "he",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(hebrewRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(hebrewRows))),
     )
 
     /**
@@ -322,7 +322,7 @@ object BuiltInLayouts {
         id = HINDI_ID,
         name = "हिन्दी",
         langId = "hi",
-        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(hindiRows)),
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(hindiRows))),
     )
 
     /**
