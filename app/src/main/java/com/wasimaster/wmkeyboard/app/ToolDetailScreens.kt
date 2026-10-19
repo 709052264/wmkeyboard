@@ -1287,6 +1287,7 @@ internal fun ToolDetailSettings(
                     endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
                 )
             }
+            DictionaryTranslationsGroup(repository, settings)
             // Where the tool looks, in the order it asks: a provider is only
             // asked when those above it did not know the word or were unreachable.
             ProvidersGroup(

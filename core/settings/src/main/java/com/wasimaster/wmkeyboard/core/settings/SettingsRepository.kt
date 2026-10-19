@@ -3576,6 +3576,8 @@ data class KeyboardSettings(
     val dictionaryAutoLookup: Boolean = true,
     /** Where the Dictionary tool looks, in the order it asks, each on or off. */
     val dictionarySources: List<DictionarySourceChoice> = DictionarySources.DEFAULT,
+    /** The Dictionary tool's translations into other languages (#764, see [DictionaryTranslationSettings]). */
+    val dictionaryTranslations: DictionaryTranslationSettings = DictionaryTranslationSettings(),
     /** Text-editing tool and selection-editing settings (see [TextEditingSettings]). */
     val textEditing: TextEditingSettings = TextEditingSettings(),
     /** The trackpad tool: sensitivity and the gestures it answers to (see [TrackpadSettings]). */
@@ -10309,6 +10311,8 @@ class SettingsRepository(private val context: Context) {
         private val QR_SEND_MODE = stringPreferencesKey("qr_send_mode")
         private val DICTIONARY_AUTO_LOOKUP = booleanPreferencesKey("dictionary_auto_lookup")
         private val DICTIONARY_SOURCES = stringPreferencesKey("dictionary_sources")
+        private val DICTIONARY_TRANSLATIONS = booleanPreferencesKey("dictionary_translations")
+        private val DICTIONARY_TRANSLATION_LANGS = stringPreferencesKey("dictionary_translation_langs")
         private val TEXT_EDIT_REPEAT_MS = intPreferencesKey("text_edit_repeat_ms")
         private val CURSOR_TOOLS_REPEAT_ON_HOLD =
             booleanPreferencesKey("cursor_tools_repeat_on_hold")
@@ -11116,6 +11120,10 @@ class SettingsRepository(private val context: Context) {
             ),
             dictionaryAutoLookup = p[DICTIONARY_AUTO_LOOKUP] ?: defaults.dictionaryAutoLookup,
             dictionarySources = p[DICTIONARY_SOURCES]?.let(DictionarySources::decode) ?: defaults.dictionarySources,
+            dictionaryTranslations = DictionaryTranslationSettings(
+                enabled = p[DICTIONARY_TRANSLATIONS] ?: defaults.dictionaryTranslations.enabled,
+                langs = p[DICTIONARY_TRANSLATION_LANGS] ?: defaults.dictionaryTranslations.langs,
+            ),
             textEditing = readTextEditing(p, defaults),
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
@@ -14236,6 +14244,13 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDictionaryAutoLookup(value: Boolean) =
         editPrefs { it[DICTIONARY_AUTO_LOOKUP] = value }
+
+    suspend fun setDictionaryTranslations(value: Boolean) =
+        editPrefs { it[DICTIONARY_TRANSLATIONS] = value }
+
+    /** Comma-separated Wiktionary codes; "" follows the keyboard languages. */
+    suspend fun setDictionaryTranslationLangs(value: String) =
+        editPrefs { it[DICTIONARY_TRANSLATION_LANGS] = value }
 
     /** Replaces the Dictionary tool's sources, order and switches together. */
     suspend fun setDictionarySources(value: List<DictionarySourceChoice>) =

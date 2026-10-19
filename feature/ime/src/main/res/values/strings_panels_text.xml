@@ -38,6 +38,9 @@
     <string name="ime_dict_idle_info">Look up an English word. Press the search bar and type. You can also put the cursor on a word before you open the tool.</string>
     <string name="ime_dict_synonyms_label">Synonyms</string>
     <string name="ime_dict_antonyms_label">Antonyms</string>
+    <!-- Heading over the word's translations into other languages. -->
+    <string name="ime_dict_translations_label">Translations</string>
+    <string name="ime_dict_translations_loading">Looking for translations…</string>
     <!-- %1$s is the word the user asked for. -->
     <string name="ime_dict_lookup_progress">Looking up “<xliff:g id="word" example="keyboard">%1$s</xliff:g>”…</string>
     <string name="ime_dict_lookup_desc">Look up the word</string>
