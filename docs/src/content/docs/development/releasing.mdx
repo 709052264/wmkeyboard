@@ -24,7 +24,8 @@ of it, so nothing here needs a branch or a patched source tree.
 | `wmkb.splitApks` | `true` | not used | ignored by `bundle*` |
 | `wmkb.enableCrashScreen` | not set | not set | `false`, forced by the Fastfile over `local.properties` |
 | Automation `TYPE_TEXT` | offered | offered | left out |
-| Artifact | one APK per ABI, for all four flavor combinations, plus R8 mappings, native symbols, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm` per flavor combination, which the in-app updater installs with the APK) and `SHA256SUMS.txt`; the `offline` job adds `full-intl-nointernet` and `lite-en-nointernet` in `arm64-v8a` and `universal` | one APK, built by F-Droid, carrying our signature once it matches the release's `-fdroid.apk` | one AAB, with its R8 mapping and native symbols inside |
+| Artifact | one APK per ABI, for all four flavor combinations, plus R8 mappings, native symbols, the baseline profile as dex metadata (`*-api31.dm` and `*-api28.dm` per flavor combination, which the in-app updater installs with the APK) and `SHA256SUMS.txt`; the `offline` job adds `full-intl-nointernet` and `lite-en-nointernet` in `arm64-v8a` and `universal` | one APK per ABI from 0.6.2, built by F-Droid, each carrying our signature once it matches the release's `-vc<code>-fdroid.apk` for that ABI | one AAB, with its R8 mapping and native symbols inside |
+| Manifest `versionCode` (from 0.6.2) | `wmkb.versionCode × 10` plus 1 for `armeabi-v7a`, 2 for `arm64-v8a`, 3 for `x86_64`, 0 for `universal` | the same three digits, one APK each | `× 10`, digit 0 |
 | ML Kit | bundled in the APK | absent | unbundled, fetched from Play services |
 | Local LLM | bundled | absent | on-demand `:feature:llm` module |
 | On-device translation (ML Kit) | bundled | absent | on-demand `:feature:translate` module |
@@ -245,6 +246,16 @@ inside a fence long enough that no backtick run in it can escape.
    the `internal` lane uploads that one instead, and F-Droid keeps the shared
    file. 0.5.10 does this, because its F-Droid notes open with the one-time
    reinstall for [reproducible builds](#reproducible-builds).
+
+   Then run `scripts/changelog-abi-copies.sh` and commit what it writes. From
+   0.6.2 every manifest's `versionCode` is `wmkb.versionCode × 10` plus a digit
+   for the ABI (`abiDigits` in `app/build.gradle.kts`), and both stores look
+   the notes up by that number: F-Droid wants `351.txt`, `352.txt` and
+   `353.txt` beside its three APKs, Play wants `350.txt` beside the bundle,
+   and neither falls back to `35.txt`. The script copies the file you wrote
+   to those names. The release workflow's first job and the Fastfile's
+   `preflight` both stop when a copy is missing or stale, since F-Droid reads
+   them from the tagged commit.
 
 3. **Write the release notes.** `release-notes/<versionName>.md`, in the repo
    root. This is the prose at the top of the GitHub release: what changed, in
@@ -554,6 +565,19 @@ and checks the `lite` engines are inside. Until 0.5.14 the job ran
 the recipe was Gradle alone. From 0.6.0 the recipe compiles Harper, whisper.cpp
 and ExecuTorch with the NDK and Rust, and only fdroidserver itself reproduces
 that faithfully.
+
+From 0.6.2 there are three of everything. Up to 0.6.1 F-Droid built one APK
+with all three ABIs' native code in it, which made 0.6.0's 98 MB where the
+arm64 build alone is 82 MB ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).
+The recipe now has one `Builds:` entry per ABI, each setting `wmkb.abi`
+(Gradle packages that ABI alone and gives it its digit) and `WMKB_ABIS`
+(`native/build-lite-libs.sh` compiles that ABI alone), and
+`VercodeOperation` tells their bot to write three entries per tag. F-Droid
+serves each phone the highest `versionCode` it can run. `%c` in `Binaries:`
+is each entry's full code, so the reference APKs are
+`wmkeyboard-<version>-vc<code × 10 + digit>-fdroid.apk`, and the `fdroid`
+job is a matrix over the three ABIs, each running `fdroid-build.sh` with its
+ABI and checking that no other ABI's code is in its APK.
 
 The rules that follow from this:
 

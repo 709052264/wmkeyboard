@@ -244,8 +244,8 @@ words the settings app shows you. Every layout and dictionary is in both.
 - **Google Play** carries the Full edition. Play delivers the heavier on-device parts (the local
   LLM runtime, the translation engine, handwriting, the offline-voice interpreter) the first time
   you use them, so the install stays small, and updates it like any other app.
-- **F-Droid** carries the Lite edition, built from source and checked byte-for-byte against the
-  `-fdroid.apk` on the matching GitHub release.
+- **F-Droid** carries the Lite edition, built from source as one APK per CPU architecture and
+  checked byte-for-byte against the matching `-fdroid.apk` on the GitHub release.
 - **GitHub releases** carry both editions, each in English-only and all-languages builds, for
   `arm64-v8a`, `armeabi-v7a`, `x86_64` and a universal APK. Almost every phone made since 2017
   wants `arm64-v8a`. A `SHA256SUMS.txt` sits next to them.

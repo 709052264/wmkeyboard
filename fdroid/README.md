@@ -50,8 +50,8 @@ version on F-Droid instead of shipping it. `AllowedAPKSigningKeys` is the SHA-25
 of the release certificate (`apksigner verify --print-certs`, "certificate
 SHA-256 digest"), and the reference APK has to carry a v2 signature or better.
 
-The reference APK is built by the `fdroid` job in `.github/workflows/release.yml`,
-and since 0.6.0 it is not built with Gradle there at all. The job runs
+The reference APKs are built by the `fdroid` job in `.github/workflows/release.yml`, one matrix run per ABI,
+and since 0.6.0 they are not built with Gradle there at all. The job runs
 fdroidserver's own `fdroid build`, from fdroidserver master, inside F-Droid's
 buildserver image (`registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie`),
 from this recipe with one entry for the commit being released
@@ -128,8 +128,38 @@ beside the r29 the native scripts use. Gradle's own steps (stripping the
 libraries it packages) then run with the NDK they expect. The release
 workflow builds from this file, so its reference APK gets the same.
 
+**Three entries per version, and `VercodeOperation`** (from 0.6.2): one
+APK per ABI ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).
+Up to 0.6.1 the one APK carried the native libraries of all three ABIs to
+every phone, about 16 MB more than an arm64 phone uses. Each entry sets
+`wmkb.abi`, which makes Gradle package that ABI's libraries alone and stamp
+its versionCode (`wmkb.versionCode * 10 + digit`: 1 armeabi-v7a, 2
+arm64-v8a, 3 x86_64; `abiDigits` in `app/build.gradle.kts`), and
+`WMKB_ABIS` in `build`, which makes `native/build-lite-libs.sh` compile that
+ABI alone, so ExecuTorch builds once per entry instead of three times. The
+F-Droid client installs the highest code a phone can run, which is why
+arm64-v8a sits above armeabi-v7a.
+
+`VercodeOperation` turns the one versionCode in `gradle.properties` into the
+three. Their bot (`checkupdates.py`) copies the last *three* `Builds:`
+entries and gives them the three codes in ascending order, so the entries
+have to stay last and in that order: armeabi-v7a, arm64-v8a, x86_64.
+`CurrentVersionCode` is the highest of them, x86_64's.
+
+`Binaries:` is unchanged, and that is why the reference APKs are named by
+the full code (`-vc352-fdroid.apk`) while every other release asset keeps
+the plain one: `%c` is the entry's versionCode and the pattern has nothing
+else to tell the ABIs apart by. The in-app update check reads F-Droid's
+index in the same terms and divides by ten (`FdroidIndex.releaseCode`),
+because the index's suggested build is x86_64's whatever the phone is.
+
+Store changelogs follow the codes: `changelogs/351.txt` to `353.txt` are
+copies of `35.txt`, made by `scripts/changelog-abi-copies.sh`.
+
 **`timeout`**: five hours. fdroidserver stops a build after two by default,
-and ExecuTorch is three full builds, one per ABI, before Gradle starts.
+and in 0.6.0 ExecuTorch was three full builds, one per ABI, before Gradle
+started. From 0.6.2 each entry builds one ABI and needs far less, but the
+limit stays until a build log shows how much less.
 
 **`commit: v0.6.0`** in the staged copy: a tag, which fdroiddata will not
 take. The copy is written before the tag exists, so it cannot hold the hash;

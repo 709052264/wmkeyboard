@@ -78,11 +78,31 @@ internal object FdroidIndex {
      * Returns the name alongside the code because F-Droid's suggested build is
      * an entry in the same response, and a card that named only a number would
      * be worse than one that names a version.
+     *
+     * [installedVersionCode] is the plain release number
+     * (`BuildConfig.RELEASE_VERSION_CODE`), and so is the code returned. The
+     * index speaks in manifest codes, which carry an ABI digit from 0.6.2
+     * (app/build.gradle.kts, abiDigits), and its suggested build is the
+     * highest of the release's three APKs: x86_64's, whatever this phone is.
+     * Compared as they stand, an arm64 phone on the newest version would see
+     * an update for ever.
      */
     fun newerThan(index: FdroidPackages, installedVersionCode: Int): FdroidPackage? {
         val suggested = index.suggestedVersionCode
-        if (suggested <= installedVersionCode) return null
-        return index.packages.firstOrNull { it.versionCode == suggested }
-            ?: FdroidPackage(versionName = "", versionCode = suggested)
+        val release = releaseCode(suggested)
+        if (release <= installedVersionCode) return null
+        val name = index.packages.firstOrNull { it.versionCode == suggested }?.versionName.orEmpty()
+        return FdroidPackage(versionName = name, versionCode = release)
     }
+
+    /**
+     * The release number in an F-Droid versionCode. Codes from 0.6.2 on are
+     * `release * 10 + ABI digit`, so at least 340; every code before them
+     * was the release number itself, 34 at the most (0.6.1), and the two
+     * ranges cannot meet before release 100 has a digit of its own.
+     */
+    fun releaseCode(versionCode: Int): Int =
+        if (versionCode >= FIRST_ABI_CODE) versionCode / 10 else versionCode
+
+    private const val FIRST_ABI_CODE = 100
 }

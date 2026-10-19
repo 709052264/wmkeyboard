@@ -42,9 +42,11 @@ CARGO_TARGET_DIR=$(cd "$CARGO_TARGET_DIR" && pwd -P)
 export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SYSROOT=/rustc --remap-path-prefix=$REPO=/wmkeyboard --remap-path-prefix=$CARGO_TARGET_DIR=/target"
 
 cd "$HERE"
-ANDROID_NDK_HOME=$NDK cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \
+# WMKB_ABIS narrows the build to some of the three (native/build-lite-libs.sh).
+ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64})
+ANDROID_NDK_HOME=$NDK cargo ndk $(printf -- '-t %s ' "${ABIS[@]}") --platform 24 \
     -o "$OUT" build --release --locked
-for abi in arm64-v8a armeabi-v7a x86_64; do
+for abi in "${ABIS[@]}"; do
     f=$OUT/$abi/libharper_jni.so
     echo "$abi libharper_jni.so: $(wc -c < "$f") bytes"
 done

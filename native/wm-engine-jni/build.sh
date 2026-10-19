@@ -38,9 +38,11 @@ export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SY
 export CARGO_TARGET_DIR=${WM_ENGINE_TARGET_DIR:-$HERE/target}
 
 cd "$HERE"
-ANDROID_NDK_HOME=$NDK cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 --platform 24 \
+# WMKB_ABIS narrows the build to some of the three (native/build-lite-libs.sh).
+ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64})
+ANDROID_NDK_HOME=$NDK cargo ndk $(printf -- '-t %s ' "${ABIS[@]}") --platform 24 \
     -o "$OUT" build --release --locked
-for abi in arm64-v8a armeabi-v7a x86_64; do
+for abi in "${ABIS[@]}"; do
     f=$OUT/$abi/libwm_engine_jni.so
     echo "$abi libwm_engine_jni.so: $(wc -c < "$f") bytes"
 done

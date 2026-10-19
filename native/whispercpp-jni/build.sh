@@ -70,13 +70,22 @@ build() {
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"
 }
 
+# WMKB_ABIS narrows the build to some of the three (native/build-lite-libs.sh).
+wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
+
 # arm64: a baseline ARMv8.0 build every 64-bit phone runs, and one for
 # ARMv8.2 cores with dot-product and half-precision instructions (2018 on),
 # which quantized matrix maths runs several times faster on. WhisperCpp picks
 # between them from /proc/cpuinfo at load.
-build arm64-v8a wmwhispercpp     -DGGML_CPU_ARM_ARCH=armv8-a
-build arm64-v8a wmwhispercpp_v82 -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16
-build armeabi-v7a wmwhispercpp
+if wanted arm64-v8a; then
+    build arm64-v8a wmwhispercpp     -DGGML_CPU_ARM_ARCH=armv8-a
+    build arm64-v8a wmwhispercpp_v82 -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16
+fi
+if wanted armeabi-v7a; then
+    build armeabi-v7a wmwhispercpp
+fi
 # x86_64 (Chromebooks, emulators): SSE4.2 is what the Android ABI guarantees.
-build x86_64 wmwhispercpp -DGGML_SSE42=ON -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF \
-    -DGGML_F16C=OFF -DGGML_AVX512=OFF -DGGML_BMI2=OFF -DGGML_AVX_VNNI=OFF
+if wanted x86_64; then
+    build x86_64 wmwhispercpp -DGGML_SSE42=ON -DGGML_AVX=OFF -DGGML_AVX2=OFF -DGGML_FMA=OFF \
+        -DGGML_F16C=OFF -DGGML_AVX512=OFF -DGGML_BMI2=OFF -DGGML_AVX_VNNI=OFF
+fi

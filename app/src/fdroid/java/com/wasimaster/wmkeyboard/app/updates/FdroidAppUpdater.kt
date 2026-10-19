@@ -133,7 +133,7 @@ internal class FdroidAppUpdater(
 
     private fun restore() {
         val candidate = GithubUpdateChecker.decodeCandidate(prefs.knownCandidate) ?: return
-        if (candidate.versionCode <= BuildConfig.VERSION_CODE) {
+        if (candidate.versionCode <= BuildConfig.RELEASE_VERSION_CODE) {
             prefs.clearCandidate()
             return
         }
@@ -153,7 +153,7 @@ internal class FdroidAppUpdater(
         }
         prefs.lastCheckAt = now()
         val index = FdroidIndex.decode(body)
-        val newer = index?.let { FdroidIndex.newerThan(it, BuildConfig.VERSION_CODE) }
+        val newer = index?.let { FdroidIndex.newerThan(it, BuildConfig.RELEASE_VERSION_CODE) }
         if (newer == null) {
             prefs.clearCandidate()
             _state.value = UpdateState.UpToDate(userAsked)

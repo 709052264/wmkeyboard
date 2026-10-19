@@ -141,7 +141,7 @@ SRC=$(cd "$SRC" && pwd -P)
 OPS=$(grep -v '^\s*$' "$HERE/ops.txt" | paste -sd, -)
 MAP="-ffile-prefix-map=$SRC=executorch -ffile-prefix-map=$STUB/torch/include=torch -ffile-prefix-map=$WORK=build -ffile-prefix-map=$HERE=. -ffile-prefix-map=$NDK=ndk"
 
-for abi in ${ET_ABIS:-arm64-v8a armeabi-v7a x86_64}; do
+for abi in ${ET_ABIS:-${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64}}; do
     et=$WORK/et-$abi
     prefix=$WORK/et-install-$abi
     common=(

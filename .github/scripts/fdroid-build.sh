@@ -2,22 +2,32 @@
 # Builds the F-Droid APK the way F-Droid does: `fdroid build` from fdroidserver
 # master, inside F-Droid's own buildserver image, from this repo's recipe
 # (fdroid/com.wasimaster.wmkeyboard.yml) with one build entry for the commit
-# being released. The steps follow the `fdroid build` job in fdroiddata's
-# .gitlab-ci.yml, which is the job that checks a reproducible build against
-# its reference APK.
+# being released and one ABI. The recipe has one entry per ABI from 0.6.2
+# (VercodeOperation there), so a release takes three runs of this script.
+# The steps follow the `fdroid build` job in fdroiddata's .gitlab-ci.yml,
+# which is the job that checks a reproducible build against its reference APK.
 #
 # Run as root inside registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie
 # with this repo mounted at /src:
 #
-#   fdroid-build.sh <commit> <versionName> <versionCode>
+#   fdroid-build.sh <commit> <versionName> <versionCode> <abi>
 #
-# Leaves the unsigned APK at /src/dist/fdroid-unsigned.apk and the build log
-# at /src/dist/fdroid-build.log.
+# <versionCode> is the plain number in gradle.properties; the entry gets
+# `versionCode * 10 + ABI digit`, as app/build.gradle.kts gives the APK.
+# Leaves the unsigned APK at /src/dist/fdroid-unsigned-<abi>.apk and the
+# build log at /src/dist/fdroid-build-<abi>.log.
 set -euo pipefail
 
 commit=${1:?commit}
 version=${2:?versionName}
-code=${3:?versionCode}
+release=${3:?versionCode}
+abi=${4:?abi}
+case "$abi" in
+    armeabi-v7a) code=$((release * 10 + 1)) ;;
+    arm64-v8a)   code=$((release * 10 + 2)) ;;
+    x86_64)      code=$((release * 10 + 3)) ;;
+    *) echo "unknown ABI $abi" >&2; exit 1 ;;
+esac
 appid=com.wasimaster.wmkeyboard
 
 export ANDROID_HOME=/opt/android-sdk
@@ -34,19 +44,25 @@ echo "fdroidserver $(git -C "$fdroidserver" rev-parse HEAD)"
 git -C "$home_vagrant/gradlew-fdroid" pull --quiet || true
 
 # The recipe as fdroiddata will carry it, reduced to one entry for this
-# commit. `Binaries:` comes out: the reference APK is what this build is for,
-# and it is not published yet.
+# commit: the newest entry for this ABI, the one whose gradleprops name it.
+# `Binaries:` comes out: the reference APK is what this build is for, and it
+# is not published yet. VercodeOperation comes out too, with only one entry
+# left for it to describe.
 mkdir -p "$home_vagrant/metadata"
-python3 - "$commit" "$version" "$code" > "$home_vagrant/metadata/$appid.yml" <<'EOF'
+python3 - "$commit" "$version" "$code" "$abi" > "$home_vagrant/metadata/$appid.yml" <<'EOF'
 import sys, yaml
-commit, version, code = sys.argv[1], sys.argv[2], int(sys.argv[3])
+commit, version, code, abi = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
 with open("/src/fdroid/com.wasimaster.wmkeyboard.yml") as f:
     recipe = yaml.safe_load(f)
-build = dict(recipe["Builds"][-1])
+mine = [b for b in recipe["Builds"] if f"wmkb.abi={abi}" in b.get("gradleprops", [])]
+if not mine:
+    sys.exit(f"the recipe has no build entry with wmkb.abi={abi}")
+build = dict(mine[-1])
 build.pop("disable", None)
 build.update(versionName=version, versionCode=code, commit=commit)
 recipe["Builds"] = [build]
 recipe.pop("Binaries", None)
+recipe.pop("VercodeOperation", None)
 recipe["CurrentVersion"] = version
 recipe["CurrentVersionCode"] = code
 yaml.safe_dump(recipe, sys.stdout, sort_keys=False, allow_unicode=True)
@@ -76,7 +92,7 @@ sudo --preserve-env --user vagrant \
     env HOME="$home_vagrant" \
     env -u CI \
     fdroid build --verbose --test --refresh-scanner --on-server --no-tarball "$appid:$code" \
-    2>&1 | tee /src/dist/fdroid-build.log
+    2>&1 | tee /src/dist/fdroid-build-$abi.log
 status=${PIPESTATUS[0]}
 set -e
 apt-get install -qy sudo >/dev/null
@@ -84,5 +100,5 @@ apt-get install -qy sudo >/dev/null
 
 apk="$home_vagrant/tmp/${appid}_${code}.apk"
 [ -f "$apk" ] || { echo "fdroid build left no $apk"; ls -la "$home_vagrant/tmp"; exit 1; }
-cp "$apk" /src/dist/fdroid-unsigned.apk
+cp "$apk" "/src/dist/fdroid-unsigned-$abi.apk"
 chmod a+r /src/dist/*

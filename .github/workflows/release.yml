@@ -53,6 +53,13 @@ jobs:
           fi
           echo "Releasing $declared"
 
+      # F-Droid and Play read the release notes by the manifest's versionCode,
+      # which has an ABI digit from 0.6.2, and F-Droid reads them from the
+      # tagged commit, so the copies have to be in it already.
+      - name: Check the changelog copies
+        if: steps.v.outputs.buildable == 'true'
+        run: scripts/changelog-abi-copies.sh --check
+
   apks:
     name: Signed APKs (direct download)
     needs: verify
@@ -225,12 +232,24 @@ jobs:
   # The unsigned APK it leaves is then signed with the release key, keeping
   # its alignment, which is what apksigcopier needs to carry the signature
   # back onto F-Droid's build.
+  #
+  # One per ABI from 0.6.2. F-Droid builds the recipe's three entries as three
+  # APKs and serves each phone the one for its processor, told apart by the
+  # versionCode's last digit (abiDigits in app/build.gradle.kts), so there are
+  # three reference APKs to match, named by that full versionCode because
+  # `Binaries:` only knows %v and %c. One fat APK carried every ABI's native
+  # code to every phone: 98 MB in 0.6.0 against 82 MB for arm64 alone (#801).
   fdroid:
-    name: F-Droid reference APK
+    name: F-Droid reference APK (${{ matrix.abi }})
     needs: verify
     if: needs.verify.outputs.buildable == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 300
+    strategy:
+      # All three logs, even when one ABI fails: the release waits on every one.
+      fail-fast: false
+      matrix:
+        abi: [armeabi-v7a, arm64-v8a, x86_64]
     steps:
       - uses: actions/checkout@v4
 
@@ -248,15 +267,15 @@ jobs:
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           docker run --rm -v "$PWD:/src" \
             registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie \
-            bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code"
+            bash /src/.github/scripts/fdroid-build.sh "$GITHUB_SHA" "$version" "$code" '${{ matrix.abi }}'
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: fdroid-build-log
+          name: fdroid-build-log-${{ matrix.abi }}
           path: |
-            dist/fdroid-build.log
-            dist/fdroid-unsigned.apk
+            dist/fdroid-build-${{ matrix.abi }}.log
+            dist/fdroid-unsigned-${{ matrix.abi }}.apk
           retention-days: 30
 
       - name: Restore keystore
@@ -279,12 +298,17 @@ jobs:
         run: |
           version='${{ needs.verify.outputs.version }}'
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
+          case '${{ matrix.abi }}' in
+            armeabi-v7a) code=$((code * 10 + 1)) ;;
+            arm64-v8a)   code=$((code * 10 + 2)) ;;
+            x86_64)      code=$((code * 10 + 3)) ;;
+          esac
           apksigner=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
           mkdir -p out
           "$apksigner" sign --ks release.keystore --ks-key-alias "$RELEASE_KEY_ALIAS" \
             --ks-pass env:RELEASE_STORE_PASSWORD --key-pass env:RELEASE_KEY_PASSWORD \
             --alignment-preserved \
-            --out "out/wmkeyboard-${version}-vc${code}-fdroid.apk" dist/fdroid-unsigned.apk
+            --out "out/wmkeyboard-${version}-vc${code}-fdroid.apk" 'dist/fdroid-unsigned-${{ matrix.abi }}.apk'
           rm -f out/*.idsig
 
       - name: Wipe keystore
@@ -307,18 +331,29 @@ jobs:
             || { echo "::error::$out is not signed with the key AllowedAPKSigningKeys pins"; exit 1; }
           unzip -p "$out" META-INF/version-control-info.textproto | grep -q "revision: \"$GITHUB_SHA\"" \
             || { echo "::error::$out does not record commit $GITHUB_SHA"; exit 1; }
-          # The lite edition's own engines must be in it, built from source.
-          for lib in libwm_engine_jni.so libharper_jni.so libwmwhispercpp.so libwmwhispercpp_v82.so libwmexecutorch.so; do
-            unzip -l "$out" | grep -q "lib/arm64-v8a/$lib" \
-              || { echo "::error::$out has no arm64-v8a $lib"; exit 1; }
+          # The lite edition's own engines must be in it, built from source,
+          # for this ABI and no other.
+          abi='${{ matrix.abi }}'
+          libs="libwm_engine_jni.so libharper_jni.so libwmwhispercpp.so libwmexecutorch.so"
+          [ "$abi" = arm64-v8a ] && libs="$libs libwmwhispercpp_v82.so"
+          for lib in $libs; do
+            unzip -l "$out" | grep -q "lib/$abi/$lib" \
+              || { echo "::error::$out has no $abi $lib"; exit 1; }
           done
+          others=$(unzip -Z1 "$out" 'lib/*' | grep -v "^lib/$abi/" || true)
+          [ -z "$others" ] || { echo "::error::$out carries another ABI's code:"; echo "$others"; exit 1; }
+          # The manifest's versionCode is the one the file is named by.
+          aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          want=$(basename "$out" | sed -E 's/.*-vc([0-9]+)-fdroid\.apk/\1/')
+          "$aapt2" dump badging "$out" | grep -q "versionCode='$want'" \
+            || { echo "::error::$out does not declare versionCode $want"; exit 1; }
           PATH="$(dirname "$apksigner"):$PATH" \
-            pipx run apksigcopier==1.1.1 compare "$out" --unsigned dist/fdroid-unsigned.apk
+            pipx run apksigcopier==1.1.1 compare "$out" --unsigned "dist/fdroid-unsigned-$abi.apk"
           mkdir -p dist-ref && mv "$out" dist-ref/
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fdroid-apk
+          name: fdroid-apk-${{ matrix.abi }}
           path: dist-ref/
           retention-days: 30
 
@@ -614,7 +649,8 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: fdroid-apk
+          pattern: fdroid-apk-*
+          merge-multiple: true
           path: dist
 
       - uses: actions/download-artifact@v4

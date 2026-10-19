@@ -180,6 +180,29 @@ val translatedLocales: String = run {
 // splits as conflicting ways of saying the same thing.
 val splitApks = flag("wmkb.splitApks", "WMKB_SPLIT_APKS")
 
+// The ABIs a release ships, and the last digit each gives the versionCode.
+// Every APK and bundle carries `wmkb.versionCode * 10 + digit` in its manifest
+// (from 0.6.2): 0 for one that holds every ABI (the universal APK, the Play
+// bundle, a build with no split), then one per ABI. A phone that runs two of
+// them installs the highest it can, so arm64-v8a sits above armeabi-v7a, and
+// x86_64 above both for the x86 Chromebooks that also translate ARM code.
+// F-Droid builds one APK per ABI and serves each phone the right one by these
+// numbers (VercodeOperation in fdroid/com.wasimaster.wmkeyboard.yml), and the
+// GitHub splits carry the same digits, so a GitHub APK and an F-Droid APK of
+// one version still install over each other.
+//
+// Only the manifest gets the digit. BuildConfig.RELEASE_VERSION_CODE, the
+// release asset names and the changelog files keep the plain number, which
+// is what the update checks compare.
+val abiDigits = linkedMapOf("armeabi-v7a" to 1, "arm64-v8a" to 2, "x86_64" to 3)
+val baseVersionCode = providers.gradleProperty("wmkb.versionCode").get().toInt()
+
+// `-Pwmkb.abi=arm64-v8a`: a release with that ABI's native code alone and that
+// ABI's versionCode, without the ABI split. F-Droid's recipe sets it, one
+// build entry per ABI, because fdroidserver takes one APK from each build.
+val singleAbi = providers.gradleProperty("wmkb.abi").orNull?.trim()?.takeIf { it.isNotEmpty() }
+    ?.also { require(it in abiDigits) { "wmkb.abi=$it is not one of ${abiDigits.keys}" } }
+
 // Macrobenchmarks and baseline profile generation (:benchmark). Off by default,
 // for the reasons settings.gradle.kts gives; the flag has to match there.
 val benchmarkBuild = flag("wmkb.benchmark", "WMKB_BENCHMARK")
@@ -209,7 +232,9 @@ android {
         targetSdk = 36
         // Both from gradle.properties so :core:config stamps the same numbers on
         // crash reports as the manifest carries. Never hardcode them here again.
-        versionCode = providers.gradleProperty("wmkb.versionCode").get().toInt()
+        // The plain number. Each output's manifest gets `* 10 + ABI digit`
+        // (see abiDigits), set per output in androidComponents below.
+        versionCode = baseVersionCode
         versionName = providers.gradleProperty("wmkb.versionName").get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -222,6 +247,10 @@ android {
         buildConfigField("String", "TRANSLATE_API_KEY", "\"${apiKey("wmkb.translateApiKey", "WMKB_TRANSLATE_API_KEY")}\"")
         buildConfigField("String", "UNSPLASH_API_KEY", "\"${apiKey("wmkb.unsplashApiKey", "WMKB_UNSPLASH_API_KEY")}\"")
         buildConfigField("String", "PEXELS_API_KEY", "\"${apiKey("wmkb.pexelsApiKey", "WMKB_PEXELS_API_KEY")}\"")
+        // The versionCode without its ABI digit, the same in every APK of a
+        // release. The update checks compare this, never the manifest's
+        // number: F-Droid's index and the GitHub asset names speak in it.
+        buildConfigField("int", "RELEASE_VERSION_CODE", "$baseVersionCode")
         buildConfigField("Boolean", "ENABLE_PLAY_STORE", "$playStoreChannel")
         buildConfigField("Boolean", "ENABLE_FDROID", "$fdroidChannel")
         // The third channel is the absence of the other two, which is a fact
@@ -328,7 +357,7 @@ android {
         }
         release {
             ndk {
-                if (!splitApks) abiFilters += setOf("arm64-v8a", "armeabi-v7a", "x86_64")
+                if (!splitApks) abiFilters += singleAbi?.let(::setOf) ?: abiDigits.keys
                 debugSymbolLevel = "FULL"
             }
             // No debug-key fallback. A debug-signed "release" build looks
@@ -439,7 +468,7 @@ android {
         abi {
             isEnable = splitApks
             reset()
-            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            include(*abiDigits.keys.toTypedArray())
             isUniversalApk = true
         }
     }
@@ -880,6 +909,20 @@ androidComponents {
         variant.artifacts.use(minify)
             .wiredWithDirectories(MinifyLayoutAssetsTask::input, MinifyLayoutAssetsTask::output)
             .toTransform(com.android.build.api.artifact.SingleArtifact.ASSETS)
+    }
+}
+
+// The ABI digit on every output's versionCode (see abiDigits). An ABI split
+// names its ABI; the universal APK and the bundle name none and take 0,
+// unless the whole build is one ABI's (wmkb.abi).
+androidComponents {
+    onVariants { variant ->
+        variant.outputs.forEach { output ->
+            val abi = output.filters.firstOrNull {
+                it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI
+            }?.identifier ?: singleAbi
+            output.versionCode.set(baseVersionCode * 10 + (abi?.let(abiDigits::getValue) ?: 0))
+        }
     }
 }
 

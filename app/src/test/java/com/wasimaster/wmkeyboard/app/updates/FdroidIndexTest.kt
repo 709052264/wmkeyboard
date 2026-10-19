@@ -10,12 +10,12 @@ class FdroidIndexTest {
     @Test
     fun readsFdroidOrgWhereVersionCodesAreNumbers() {
         val index = FdroidIndex.decode(
-            """{"packageName":"org.fdroid.fdroid","suggestedVersionCode":1023052,""" +
-                """"packages":[{"versionName":"1.23.2","versionCode":1023052},{"versionName":"1.23.1","versionCode":1023051}]}""",
+            """{"packageName":"com.wasimaster.wmkeyboard","suggestedVersionCode":362,""" +
+                """"packages":[{"versionName":"0.6.3","versionCode":362},{"versionName":"0.6.2","versionCode":352}]}""",
         )
         assertNotNull(index)
-        assertEquals(1023052, index!!.suggestedVersionCode)
-        assertEquals("1.23.2", FdroidIndex.newerThan(index, 1023051)?.versionName)
+        assertEquals(362, index!!.suggestedVersionCode)
+        assertEquals("0.6.3", FdroidIndex.newerThan(index, 35)?.versionName)
     }
 
     @Test
@@ -29,6 +29,28 @@ class FdroidIndexTest {
         assertEquals(76, index!!.suggestedVersionCode)
         assertEquals("4.8.4", FdroidIndex.newerThan(index, 75)?.versionName)
         assertNull(FdroidIndex.newerThan(index, 76))
+    }
+
+    @Test
+    fun perAbiCodesCompareAsTheirRelease() {
+        // 0.6.2's three F-Droid APKs: armeabi-v7a, arm64-v8a, x86_64. F-Droid
+        // suggests the highest, which is not the one an arm64 phone runs.
+        val index = FdroidIndex.decode(
+            """{"packageName":"com.wasimaster.wmkeyboard","suggestedVersionCode":353,""" +
+                """"packages":[{"versionName":"0.6.2","versionCode":353},""" +
+                """{"versionName":"0.6.2","versionCode":352},{"versionName":"0.6.2","versionCode":351}]}""",
+        )!!
+        assertNull(FdroidIndex.newerThan(index, 35))
+        val newer = FdroidIndex.newerThan(index, 34)
+        assertEquals(35, newer?.versionCode)
+        assertEquals("0.6.2", newer?.versionName)
+    }
+
+    @Test
+    fun codesBeforeTheAbiDigitAreTheReleaseItself() {
+        assertEquals(34, FdroidIndex.releaseCode(34))
+        assertEquals(35, FdroidIndex.releaseCode(350))
+        assertEquals(35, FdroidIndex.releaseCode(353))
     }
 
     @Test

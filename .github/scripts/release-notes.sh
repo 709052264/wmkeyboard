@@ -174,6 +174,14 @@ row() { # <file> <what it is>
 }
 row SHA256SUMS.txt 'Checksums for everything above'
 row "${prefix}-fdroid.apk" 'The F-Droid build, **lite · all languages**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves, byte for byte. Installs over an F-Droid install from 0.5.10 on'
+# From 0.6.2 one per ABI, named by the full versionCode (release * 10 + ABI
+# digit), since that is all F-Droid's `Binaries:` pattern can name them by.
+fdroid_row() { # <abi> <digit> <who>
+  row "wmkeyboard-${version}-vc$((code * 10 + $2))-fdroid.apk" "The F-Droid build for **$1**, **lite · all languages**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves $3, byte for byte. Installs over an F-Droid install from 0.5.10 on"
+}
+fdroid_row arm64-v8a 2 'to most phones'
+fdroid_row armeabi-v7a 1 'to 32-bit phones'
+fdroid_row x86_64 3 'to x86 Chromebooks and tablets'
 row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **full · all languages**. Retraces a stack trace'
 row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **full · English**'
 row "${prefix}-lite-intl-mapping.txt.gz" 'R8 mapping, **lite · all languages**'

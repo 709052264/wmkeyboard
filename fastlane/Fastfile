@@ -82,6 +82,14 @@ def version_code
   gradle_prop("wmkb.versionCode")
 end
 
+# What the bundle's manifest says, and so what Play knows the release by:
+# from 0.6.2 every build's versionCode is wmkb.versionCode * 10 plus an ABI
+# digit, 0 for the bundle (abiDigits in app/build.gradle.kts).
+def bundle_version_code
+  code = version_code.to_i
+  code >= 35 ? code * 10 : code
+end
+
 def version_name
   gradle_prop("wmkb.versionName")
 end
@@ -110,6 +118,10 @@ def ensure_changelog!
     "fastlane/metadata/android/en-US/changelogs/#{version_code}.txt — " \
     "F-Droid and Play both read it, it is the only place the release notes live."
   ) unless File.exist?(changelog)
+  # Play reads the bundle's copy (<code>0.txt) and F-Droid one per ABI.
+  sh(File.expand_path("../scripts/changelog-abi-copies.sh", __dir__), "--check") do |status, _result, _cmd|
+    UI.user_error!("Changelog copies are missing or stale. Run scripts/changelog-abi-copies.sh and commit them.") unless status.success?
+  end
 end
 
 # A changelog under the Play tree, when there is one, is what Play gets for that
@@ -118,7 +130,7 @@ end
 # reproducible builds, which would only confuse a Play user. Most versions have
 # no override and Play reads the shared file as before.
 def play_changelog_override
-  path = File.join(PLAY_LISTING_DIR, "changelogs", "#{version_code}.txt")
+  path = File.join(PLAY_LISTING_DIR, "changelogs", "#{bundle_version_code}.txt")
   File.exist?(path) ? path : nil
 end
 
@@ -222,7 +234,7 @@ platform :android do
       skip_upload_changelogs: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
-      version_code: version_code.to_i,
+      version_code: bundle_version_code,
     )
     UI.success("Promoted #{options[:from] || 'internal'} → #{options[:to] || 'production'}")
   end
