@@ -12,6 +12,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.providers.SameKind
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
@@ -70,13 +71,22 @@ data class ResolvedProvider(
     val url: String,
     val model: String,
     val problem: ProviderProblem?,
+    /**
+     * The later rows of this kind, asked in order when this one fails, when
+     * the list keeps two of a kind together ([SameKind.FALLBACK]). Only a
+     * grouped resolution fills it ([resolveProviders] with `grouped`).
+     */
+    val backups: List<ResolvedProvider> = emptyList(),
 ) {
     val key: String get() = entry.key
     val typeId: String get() = entry.typeId
     val usable: Boolean get() = problem == null && type != null
 
     /** The key in use is the one this build carries, not one the user typed. */
-    val usesBuiltInKey: Boolean get() = credential?.apiKey.isNullOrBlank() && type?.hasBuiltInKey == true
+    val usesBuiltInKey: Boolean get() = credential?.apiKey.isNullOrBlank() && type?.hasBuiltInKey == true && entry.primary
+
+    /** This row, then its [backups]: the order a fetch walks. */
+    val withBackups: List<ResolvedProvider> get() = if (backups.isEmpty()) listOf(this) else listOf(copy(backups = emptyList())) + backups
 
     /** What the list shows: the name the user gave the server, else the type's own. */
     val customName: String get() = credential?.name?.trim().orEmpty()
@@ -103,22 +113,41 @@ fun KeyboardSettings.providerChain(
  *
  * [pick] is the panel's choice, for a list in [ChainMode.PICK]: then only the
  * row with that key is left, or the first row when the choice is gone (or
- * was never made, ""). Null is a caller with no panel, the AI's tools, which
- * walk the whole list whatever the mode.
+ * was never made, ""), followed by the rows of its kind that back it up
+ * ([SameKind.FALLBACK]). Null is a caller with no panel, the AI's tools,
+ * which walk the whole list whatever the mode.
+ *
+ * [grouped] is for a caller that shows one entry per provider (the media
+ * chips, the panel's chooser): with [SameKind.FALLBACK] and a mode other
+ * than [ChainMode.FALLBACK], the rows of one kind become the first of them,
+ * carrying the rest as its [ResolvedProvider.backups].
  */
 fun KeyboardSettings.resolveProviders(
     tool: ProviderTool,
     env: ProviderEnv = ProviderEnvironment.current(),
     all: Boolean = false,
     pick: String? = null,
+    grouped: Boolean = false,
 ): List<ResolvedProvider> {
     val credentials = providerCredentials()
     val chain = providerChain(tool, env)
     val resolved = chain.entries.map { ProviderResolution.resolve(it, credentials, env) }
     if (all) return resolved
     val asked = resolved.filter { it.entry.enabled && it.usable }
-    if (pick == null || chain.mode != ChainMode.PICK) return asked
-    return listOfNotNull(asked.firstOrNull { it.key == pick } ?: asked.firstOrNull())
+    if (pick != null && chain.mode == ChainMode.PICK) {
+        val leads = groupSameKind(asked, chain)
+        val chosen = leads.firstOrNull { it.key == pick } ?: leads.firstOrNull() ?: return emptyList()
+        return chosen.withBackups
+    }
+    return if (grouped) groupSameKind(asked, chain) else asked
+}
+
+/** [rows] with each kind's later rows folded into its first, when [chain] says so; else as they are. */
+private fun groupSameKind(rows: List<ResolvedProvider>, chain: ProviderChain): List<ResolvedProvider> {
+    if (chain.mode == ChainMode.FALLBACK || chain.sameKindInForce != SameKind.FALLBACK) return rows
+    val byKind = rows.groupBy { it.typeId }
+    if (byKind.values.none { it.size > 1 }) return rows
+    return byKind.values.map { kind -> kind.first().copy(backups = kind.drop(1)) }
 }
 
 /** The rows a panel in [ChainMode.PICK] offers, and which of them is chosen. */
@@ -134,7 +163,7 @@ fun KeyboardSettings.providerChoices(
     env: ProviderEnv = ProviderEnvironment.current(),
 ): ProviderChoices? {
     if (providerMode(tool, env) != ChainMode.PICK) return null
-    val rows = resolveProviders(tool, env)
+    val rows = resolveProviders(tool, env, grouped = true)
     if (rows.isEmpty()) return null
     val chosen = rows.firstOrNull { it.key == pick }?.key ?: rows.first().key
     return ProviderChoices(rows, chosen)
@@ -171,7 +200,8 @@ object ProviderResolution {
     fun resolve(entry: ProviderEntry, credentials: List<ProviderCredential>, env: ProviderEnv): ResolvedProvider {
         val type = entry.type
         val credential = credentials.firstOrNull { it.id == entry.credentialKey }
-        val apiKey = credential?.apiKey?.trim().orEmpty().ifBlank { type?.builtInKey.orEmpty() }
+        // The build's key stands in for the type's own credential only: a second one is there to bring its own.
+        val apiKey = credential?.apiKey?.trim().orEmpty().ifBlank { if (entry.primary) type?.builtInKey.orEmpty() else "" }
         val url = credential?.url?.trim().orEmpty()
         val model = credential?.model?.trim().orEmpty()
         val problem = when {
@@ -442,10 +472,9 @@ object ProviderEdits {
             current + credential
         }
         if (tool == null) return Change(null, null, next)
-        val type = credential.type
         val entry = ProviderEntry(
             typeId = credential.typeId,
-            credentialId = if (type?.multiInstance == true && credential.id != credential.typeId) credential.id else null,
+            credentialId = credential.id.takeIf { it != credential.typeId },
         )
         val chain = s.providerChain(tool, env)
         if (chain.has(entry.key)) return Change(tool, chain, next)

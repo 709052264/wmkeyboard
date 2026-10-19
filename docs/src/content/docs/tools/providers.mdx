@@ -15,20 +15,31 @@ Each row is one provider: its place in the order, its logo, its name, what it is
 
 - **Drag the number** at the start of a row (the grip under it) to change the order. The tool asks the providers in this order. With TalkBack, the row's actions include **Move up** and **Move down**.
 - **Switch a row off** to skip it without losing its setup.
-- **Tap a row** to open the provider's setup: its key, its server address, a model, an engine, or a name for the server. A provider with nothing to set up shows what it is.
+- **Tap a row** to open the provider's setup: its key, its server address, a model, an engine, or a nickname. A provider with nothing to set up shows what it is.
 - **Remove**, at the bottom of that sheet, takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
-- **Add a provider** opens a sheet of every kind this build can use. A kind that needs nothing typed in is added at once. The rest open the setup first.
+- **Add a provider** opens a sheet of every kind this build can use, in the same order on every build. A kind that needs nothing typed in is added at once. The rest open the setup first.
 - **Reset to default** appears once you have changed the list, and puts it back to the list this build starts with.
 
 A row with a problem says what it needs in red: an API key, a server address, a model name, or an imported GIF pack. Such a row is skipped until it is fixed.
 
-Rows show the service's own logo where the app carries one. The logos are small vector drawings from [Simple Icons](https://simpleicons.org/) or from each project's own repository, and are in the app itself, so drawing them never reaches the network.
+Rows show the service's own logo where the app carries one. The logos are small vector drawings from [Simple Icons](https://simpleicons.org/) or from each project's own repository, and are in the app itself, so drawing them never reaches the network. A one-colour logo is lightened on a dark theme when the brand's colour is close to black, and a logo whose colours would vanish on one theme (KLIPY, Lingva, Tavily) sits on a small plate of its own.
 
 ## Shared keys and servers
 
 A provider is set up once, and every tool that lists it uses the same setup. A KLIPY key added on the GIF page also works for stickers. The setup sheet says which other tools use it, under **Also used by**. Edit it on either page and both change.
 
-Server kinds can be added more than once, each with its own address and name: two Wikimedia wikis, say. When you add one on another tool's page, the add sheet offers the servers you already set up, under **Use**, so you don't type the address twice.
+Server kinds can be added more than once, each with its own address and nickname: two Wikimedia wikis, say. When you add one on another tool's page, the add sheet offers the servers you already set up, under **Use**, so you don't type the address twice.
+
+## Two of the same provider
+
+A service you set up with a key can also be added a second time, with another key or another account: two KLIPY keys, two DeepL accounts, a Brave key of your own beside the one in the build. Tap the kind again in **Add a provider**. The second one always needs its own key, since the key in the build already belongs to the first. Give each a **Nickname** so the list and the keyboard can tell them apart; a row without one shows the last four characters of its key.
+
+This works on the GIF, sticker, translate, web and image search, online text scanning and photo translation lists. Background photos, currency rates and the word sources ask a service by its name, so they keep one of each.
+
+When a list asks **One at a time**, the second one is simply the next provider down. In **Tabs**, **Mixed** or **Choose in the panel**, a setting called **Two of the same provider** appears as soon as one kind is on the list twice:
+
+- **As backups** (the default for a second key): they act as one provider, with one chip and one entry in the panel. The first is asked, and the next only when it fails, for example when a key runs out of quota.
+- **Separately**: each one is its own provider, with its own chip, its own entry in the panel, and its own share of a mixed grid. Two servers of one kind, like two Wikimedia wikis, start out this way.
 
 ## How a tool uses its list
 
@@ -40,13 +51,13 @@ A provider that can't be reached (no answer, a server error, too many requests) 
 
 ## What each build offers
 
-Every build can add every kind it can run, your own servers included. What changes is the order of the add sheet and the list a fresh install starts with.
+Every build offers every kind it can run, your own servers included, in the same order and with none put first. The tags under each kind (free software, on the phone, your own server, needs your key) say what it is. What changes between builds is the list a fresh install starts with.
 
-| Build | Suggested first | Starts with |
-|---|---|---|
-| Google Play and GitHub | Kinds that work with nothing typed in: no key, or a key the build carries | The services this build has keys for |
-| F-Droid | Free software and open data, such as Wikimedia Commons | Services that need no proprietary key |
-| No internet | Only what runs on the phone | Only what runs on the phone |
+| Build | Starts with |
+|---|---|
+| Google Play and GitHub | The services this build has keys for |
+| F-Droid | Services that need no proprietary key |
+| No internet | Only what runs on the phone; nothing else can be added |
 
 Updating the app does not change your lists. Until you edit a list, it is worked out from your earlier settings, so the same providers are asked in the same order with the same keys. When an update adds a word source that needs no setup (a new dictionary, say), it joins the end of the dictionary, synonym or vocabulary list, switched on. One you removed stays removed.
 

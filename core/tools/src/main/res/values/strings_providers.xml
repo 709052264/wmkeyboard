@@ -24,6 +24,12 @@
     <string name="core_tools_provider_mode_pick">Choose in the panel</string>
     <string name="core_tools_provider_mode_pick_desc">The panel shows the providers that are on. Choose one there, and only that one is asked.</string>
 
+    <!-- Two rows of one kind on a list that is not one at a time -->
+    <string name="core_tools_provider_same_kind_fallback">As backups</string>
+    <string name="core_tools_provider_same_kind_fallback_desc">Providers of the same kind act as one. The first is asked, and the next only when it fails, for example when a key runs out of quota.</string>
+    <string name="core_tools_provider_same_kind_separate">Separately</string>
+    <string name="core_tools_provider_same_kind_separate_desc">Each one is its own provider: its own chip, its own choice in the panel, its own share of a mixed grid.</string>
+
     <!-- A tool whose list has nothing switched on -->
     <string name="core_tools_provider_none_on">No provider is on. Turn one on in this tool\'s settings.</string>
 

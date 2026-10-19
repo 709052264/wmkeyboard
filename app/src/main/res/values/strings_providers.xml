@@ -2,8 +2,9 @@
 <resources>
     <!-- A tool's provider list (ProviderScreens.kt) -->
     <string name="providers_group_title">Providers</string>
-    <string name="providers_group_info">The services this tool asks, in order. Drag a provider to move it, switch one off to skip it, or add your own server. A provider that cannot be reached is skipped for a minute, so the next one answers at once.</string>
+    <string name="providers_group_info">The services this tool asks, in order. Drag a provider to move it, switch one off to skip it, or add your own server. Some providers can be added twice, with a second key or account. A provider that cannot be reached is skipped for a minute, so the next one answers at once.</string>
     <string name="providers_mode_label">How to use them</string>
+    <string name="providers_same_kind_label">Two of the same provider</string>
     <string name="providers_empty">No providers yet. Add one below.</string>
     <string name="providers_add">Add a provider</string>
     <string name="providers_add_subtitle">A service, your own server, or files on the phone</string>
@@ -24,6 +25,7 @@
     <string name="providers_status_on_device">On the phone</string>
     <string name="providers_status_builtin_key">Uses the key in this build</string>
     <string name="providers_status_your_key">Uses your key</string>
+    <string name="providers_status_your_key_ending">Uses your key ending %1$s</string>
     <string name="providers_status_no_key">No key needed</string>
 
     <string name="providers_move_up">Move up</string>
@@ -36,9 +38,8 @@
 
     <string name="providers_type_title">Add a provider</string>
     <string name="providers_type_subtitle">Choose what %1$s asks.</string>
-    <string name="providers_type_suggested">Suggested for this build</string>
-    <string name="providers_type_more">More providers</string>
     <string name="providers_type_use_existing">Use %1$s</string>
+    <string name="providers_type_existing_key">%1$s, key ending %2$s</string>
     <string name="providers_type_new_server">Add another server</string>
     <string name="providers_tag_free">Free software</string>
     <string name="providers_tag_on_device">On the phone</string>
@@ -48,14 +49,15 @@
     <string name="providers_tag_no_key">No key</string>
     <string name="providers_tag_separator" translatable="false">" · "</string>
 
-    <string name="providers_field_name">Name</string>
-    <string name="providers_field_name_hint">To tell your servers apart</string>
+    <string name="providers_field_name">Nickname</string>
+    <string name="providers_field_name_hint">Optional. Tells two of the same provider apart, here and in the keyboard.</string>
     <string name="providers_field_url">Server address</string>
     <string name="providers_field_url_hint">For example https://translate.example.org</string>
     <string name="providers_field_url_optional_hint">Optional. Leave it empty for the default.</string>
     <string name="providers_field_key">API key</string>
     <string name="providers_field_key_builtin_hint">Optional. Leave it empty to use the key in this build.</string>
     <string name="providers_field_key_optional_hint">Optional.</string>
+    <string name="providers_field_key_another_hint">Required. This is a second one, so it needs a key of its own.</string>
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>
     <string name="providers_field_model_hint">Optional. Leave it empty if the server runs one model.</string>

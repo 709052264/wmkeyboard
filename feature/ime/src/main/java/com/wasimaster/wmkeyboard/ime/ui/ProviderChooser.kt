@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -197,6 +198,17 @@ private fun ProviderMenu(
 @Composable
 internal fun ProviderGlyph(type: ProviderType?, tint: Color, size: Dp) {
     val logo = type?.let { ProviderLogos.of(it.id) }
+    val plate = logo?.backdrop
+    if (logo != null && plate != null) {
+        // A picture that vanishes on a light or a dark keyboard sits on its own plate, as in settings.
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(size).background(Color(plate), RoundedCornerShape(size / 4)),
+        ) {
+            Icon(painterResource(logo.res), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(size * 0.72f))
+        }
+        return
+    }
     if (logo != null) {
         Icon(
             painterResource(logo.res),

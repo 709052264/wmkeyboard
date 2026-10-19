@@ -35496,8 +35496,32 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** Blocking provider dispatch; call on an IO dispatcher. */
+    /**
+     * Blocking; call on an IO dispatcher. A target with backups (a second
+     * key of the same kind, kept as one provider) hands the query to the next
+     * of them when it fails or has nothing.
+     */
     private fun fetchGifs(
+        target: MediaTarget,
+        query: String,
+        sticker: Boolean,
+        settings: com.wasimaster.wmkeyboard.core.settings.KeyboardSettings,
+    ): List<GifItem> {
+        if (target.backups.isEmpty()) return fetchGifsFrom(target, query, sticker, settings)
+        val outcome = ProviderRunner.fallback(
+            target.withBackups,
+            key = { it.key },
+            isEmpty = { items: List<GifItem> -> items.isEmpty() },
+        ) { fetchGifsFrom(it, query, sticker, settings) }
+        return when (outcome) {
+            is ProviderRunner.Outcome.Found -> outcome.value
+            ProviderRunner.Outcome.NotFound -> emptyList()
+            is ProviderRunner.Outcome.Failed -> throw checkNotNull(outcome.error)
+        }
+    }
+
+    /** Blocking provider dispatch; call on an IO dispatcher. */
+    private fun fetchGifsFrom(
         target: MediaTarget,
         query: String,
         sticker: Boolean,

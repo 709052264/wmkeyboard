@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 
@@ -22,11 +23,15 @@ object MediaProviders {
         settings: KeyboardSettings,
         sticker: Boolean,
         env: ProviderEnv = ProviderEnvironment.current(),
-    ): List<MediaTarget> = settings.resolveProviders(tool(sticker), env).mapNotNull { row ->
-        val source = GifSources.sourceOf(row.typeId) ?: return@mapNotNull null
-        // Commons with no address of its own is Wikimedia Commons; the
-        // client reads a blank endpoint that way.
-        MediaTarget(key = row.key, source = source, apiKey = row.apiKey, url = row.url, name = row.customName)
+    ): List<MediaTarget> = settings.resolveProviders(tool(sticker), env, grouped = true).mapNotNull { row ->
+        target(row)?.copy(backups = row.backups.mapNotNull(::target))
+    }
+
+    // Commons with no address of its own is Wikimedia Commons; the client
+    // reads a blank endpoint that way.
+    private fun target(row: ResolvedProvider): MediaTarget? {
+        val source = GifSources.sourceOf(row.typeId) ?: return null
+        return MediaTarget(key = row.key, source = source, apiKey = row.apiKey, url = row.url, name = row.customName)
     }
 
     fun mode(settings: KeyboardSettings, sticker: Boolean, env: ProviderEnv = ProviderEnvironment.current()): ChainMode =

@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.material.icons.Icons
@@ -57,6 +59,8 @@ import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -72,6 +76,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DragIndicator
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
@@ -96,6 +101,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderLogos
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.providers.SameKind
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.ProviderProblem
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
@@ -138,6 +144,10 @@ internal fun ProvidersGroup(
     val rows = settings.watch { it.resolveProviders(tool, env, all = true) }
     val mode = settings.watch { it.providerMode(tool, env) }
     val stored = settings.watch { tool in it.providers.chains }
+    // Only a list that is not one at a time, with some kind on it twice, has anything to decide here.
+    val sameKind = settings.watch { s ->
+        s.providerChain(tool, env).takeIf { it.mode != ChainMode.FALLBACK && it.repeatsKind }?.sameKindInForce
+    }
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<ProviderEditTarget?>(null) }
     var removing by remember { mutableStateOf<ResolvedProvider?>(null) }
@@ -172,6 +182,23 @@ internal fun ProvidersGroup(
                         modifier = Modifier.padding(top = 6.dp),
                     )
                 }
+            }
+        }
+        item(visible = sameKind != null) {
+            val shown = sameKind ?: SameKind.FALLBACK
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                ChoiceControl(
+                    options = SameKind.entries.map { it to stringResource(it.labelRes) },
+                    selected = shown,
+                    label = stringResource(R.string.providers_same_kind_label),
+                    onChange = { picked: SameKind -> save(ProviderEdits.setChain(tool, chain().copy(sameKind = picked))) },
+                )
+                Text(
+                    stringResource(shown.descRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
             }
         }
         item {
@@ -313,19 +340,34 @@ internal sealed interface ProviderPick {
 /**
  * A kind that needs nothing typed in (no key, a key the build carries, a
  * credential another tool already set up) goes straight into the list; the
- * rest open the editor. A server kind with no default instance, or one whose
- * default instance is already listed, always sets up a new server.
+ * rest open the editor. A kind whose own row is already listed sets up
+ * another one of it: a new server, or a second key or account.
  */
 internal fun pickProvider(type: ProviderType, existing: ProviderCredential?, chain: ProviderChain): ProviderPick {
     if (existing != null) {
-        val credentialId = existing.id.takeIf { type.multiInstance && it != type.id }
-        return ProviderPick.Add(ProviderEntry(type.id, credentialId))
+        return ProviderPick.Add(ProviderEntry(type.id, existing.id.takeIf { it != type.id }))
     }
     val defaultListed = chain.entries.any { it.typeId == type.id && it.credentialId == null }
     if (type.readyOutOfTheBox && !defaultListed) return ProviderPick.Add(ProviderEntry(type.id))
-    val id = if (type.multiInstance) ProviderCredential.newId(type.id) else type.id
+    val id = if (type.multiInstance || defaultListed) ProviderCredential.newId(type.id) else type.id
     return ProviderPick.Edit(ProviderEditTarget(type, ProviderCredential(id, type.id), isNew = true))
 }
+
+/** Set up beside the type's own credential: a second key or account, which brings its own key. */
+private fun ProviderCredential.isAnother(type: ProviderType): Boolean = !type.multiInstance && id != type.id
+
+/** What tells a saved setup apart when it has no nickname: its server, else the end of its key. */
+@Composable
+private fun credentialLabel(type: ProviderType, credential: ProviderCredential): String = when {
+    credential.name.isNotBlank() -> credential.name
+    credential.url.isNotBlank() -> hostOf(credential.url)
+    credential.apiKey.isNotBlank() ->
+        stringResource(R.string.providers_type_existing_key, stringResource(type.labelRes), credential.apiKey.takeLast(KEY_TAIL))
+    else -> stringResource(type.labelRes)
+}
+
+/** How much of a key a row shows: enough to tell two apart, too little to use. */
+private const val KEY_TAIL = 4
 
 
 /** The name a row goes by: the one the user gave a server, else its kind's. */
@@ -366,6 +408,7 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
                 ?.let { hostOf(row.url) + stringResource(R.string.providers_tag_separator) + it.label }
                 ?: hostOf(row.url)
             row.usesBuiltInKey -> stringResource(R.string.providers_status_builtin_key)
+            row.apiKey.length > KEY_TAIL * 2 -> stringResource(R.string.providers_status_your_key_ending, row.apiKey.takeLast(KEY_TAIL))
             row.apiKey.isNotBlank() -> stringResource(R.string.providers_status_your_key)
             else -> stringResource(R.string.providers_status_no_key)
         } to false
@@ -569,30 +612,66 @@ private fun ProviderRow(
     }
 }
 
-/** A kind's tile: its logo where the app carries one, else the glyph for what it is. */
+/**
+ * A kind's tile: its logo where the app carries one, else the glyph for what
+ * it is. A one-colour mark is made readable on the theme ([readableMark]); a
+ * picture that vanishes on one theme sits on its own plate.
+ */
 @Composable
 internal fun ProviderTile(type: ProviderType?, active: Boolean = true) {
     val logo = type?.let { ProviderLogos.of(it.id) }
+    val dark = isSystemInDarkTheme()
     val accent = when {
         !active -> MaterialTheme.colorScheme.outline
-        logo != null && logo.monochrome -> Color(logo.color)
+        logo != null && logo.monochrome -> readableMark(Color(logo.color), dark)
         logo != null -> Color(0xFF9E9E9E)
-        else -> providerAccent(type)
+        else -> readableMark(providerAccent(type), dark)
     }
     if (logo == null) {
         WmIconTile(icon = providerIcon(type), accent = accent)
         return
     }
     WmIconTile(accent) {
-        Icon(
-            painterResource(logo.res),
-            contentDescription = null,
-            // A brand's own colours stay as they are; a one-colour mark takes the tile's.
-            tint = if (logo.monochrome || !active) LocalContentColor.current else Color.Unspecified,
-            modifier = Modifier.size(20.dp).graphicsLayer { alpha = if (active) 1f else 0.6f },
-        )
+        val plate = logo.backdrop?.takeIf { active }
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = if (plate != null) {
+                Modifier.size(30.dp).background(Color(plate), RoundedCornerShape(8.dp))
+            } else {
+                Modifier
+            },
+        ) {
+            Icon(
+                painterResource(logo.res),
+                contentDescription = null,
+                // A brand's own colours stay as they are; a one-colour mark takes the tile's.
+                tint = if (logo.monochrome || !active) LocalContentColor.current else Color.Unspecified,
+                modifier = Modifier.size(20.dp).graphicsLayer { alpha = if (active) 1f else 0.6f },
+            )
+        }
     }
 }
+
+/**
+ * [color] moved toward white on a dark theme, or toward black on a light
+ * one, until it stands out from the tile. The tile draws its glyph in the
+ * accent itself on a dark theme, so a near-black brand (Unsplash, Wiktionary,
+ * DeepL's navy) disappeared there; a pale one did the same on a light theme.
+ */
+internal fun readableMark(color: Color, dark: Boolean): Color {
+    var mark = color
+    repeat(MARK_STEPS) {
+        val luminance = mark.luminance()
+        if (if (dark) luminance >= DARK_MIN_LUMINANCE else luminance <= LIGHT_MAX_LUMINANCE) return mark
+        mark = lerp(mark, if (dark) Color.White else Color.Black, MARK_STEP)
+    }
+    return mark
+}
+
+private const val MARK_STEPS = 10
+private const val MARK_STEP = 0.2f
+private const val DARK_MIN_LUMINANCE = 0.22f
+private const val LIGHT_MAX_LUMINANCE = 0.45f
 
 /** The glyph a kind of provider is drawn with: by what it is first, then by what it does. */
 internal fun providerIcon(type: ProviderType?): ImageVector = when {
@@ -674,7 +753,7 @@ private fun ProviderTypeSheet(
     onPick: (ProviderType, ProviderCredential?) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val groups = remember(tool, env, chain) { ProviderCatalog.addable(tool, chain, env) }
+    val types = remember(tool, env, chain) { ProviderCatalog.addable(tool, chain, env) }
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -691,34 +770,31 @@ private fun ProviderTypeSheet(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
             )
-            for (group in groups) {
-                Text(
-                    stringResource(if (group.suggested) R.string.providers_type_suggested else R.string.providers_type_more),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp, bottom = 4.dp),
+            Spacer(Modifier.height(8.dp))
+            for (type in types) {
+                val tags = providerTags(type)
+                val desc = stringResource(type.descriptionRes(tool))
+                WmRow(
+                    title = stringResource(type.labelRes),
+                    subtitle = if (tags.isEmpty()) desc else desc + "\n" + tags,
+                    leading = { ProviderTile(type) },
+                    onClick = {
+                        // The type's own setup, made on another tool's page, when this list does not have it yet.
+                        onPick(type, credentials.firstOrNull { it.id == type.id && !type.multiInstance && !chain.has(type.id) })
+                    },
                 )
-                for (type in group.types) {
-                    val tags = providerTags(type)
-                    val desc = stringResource(type.descriptionRes(tool))
-                    WmRow(
-                        title = stringResource(type.labelRes),
-                        subtitle = if (tags.isEmpty()) desc else desc + "\n" + tags,
-                        leading = { ProviderTile(type) },
-                        onClick = { onPick(type, credentials.firstOrNull { it.id == type.id && !type.multiInstance }) },
-                    )
-                    if (type.multiInstance) {
-                        val unused = credentials.filter { c -> c.typeId == type.id && !chain.has(c.id) && c.url.isNotBlank() }
-                        for (credential in unused) {
-                            WmRow(
-                                title = stringResource(
-                                    R.string.providers_type_use_existing,
-                                    credential.name.ifBlank { hostOf(credential.url) },
-                                ),
-                                icon = Icons.Outlined.Dns,
-                                onClick = { onPick(type, credential) },
-                            )
-                        }
+                // The other setups of this kind that this list does not use yet: servers, second keys.
+                if (tool.allowsAnother(type)) {
+                    val unused = credentials.filter { c ->
+                        c.typeId == type.id && !chain.has(c.id) && (type.multiInstance || c.id != type.id) &&
+                            (c.url.isNotBlank() || c.apiKey.isNotBlank())
+                    }
+                    for (credential in unused) {
+                        WmRow(
+                            title = stringResource(R.string.providers_type_use_existing, credentialLabel(type, credential)),
+                            icon = if (credential.url.isNotBlank()) Icons.Outlined.Dns else Icons.Outlined.Key,
+                            onClick = { onPick(type, credential) },
+                        )
                     }
                 }
             }
@@ -752,11 +828,14 @@ private fun ProviderEditorSheet(
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<Pair<Boolean, String>?>(null) }
     val home = HomeKind.of(type.id) != null
+    // A second key or account of a single kind: the build's key is the first one's, so this one needs its own.
+    val another = target.credential.isAnother(type)
     val ready = if (home) {
         homeReady(type, draft)
     } else {
         (spec.url != Need.REQUIRED || draft.url.isNotBlank()) &&
-            (spec.key != Need.REQUIRED || type.hasBuiltInKey || draft.apiKey.isNotBlank()) &&
+            (spec.key != Need.REQUIRED || (type.hasBuiltInKey && !another) || draft.apiKey.isNotBlank()) &&
+            (!another || spec.key == Need.NONE || draft.apiKey.isNotBlank() || (type === ProviderTypes.DEEPL && draft.url.isNotBlank())) &&
             (!spec.modelRequired || draft.model.isNotBlank()) &&
             (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
     }
@@ -777,7 +856,10 @@ private fun ProviderEditorSheet(
                 ProviderTile(type)
                 Spacer(Modifier.size(16.dp))
                 Column {
-                    Text(stringResource(type.labelRes), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        target.credential.name.ifBlank { stringResource(type.labelRes) },
+                        style = MaterialTheme.typography.titleLarge,
+                    )
                     Text(
                         stringResource(type.descriptionRes(tool)),
                         style = MaterialTheme.typography.bodyMedium,
@@ -785,7 +867,8 @@ private fun ProviderEditorSheet(
                     )
                 }
             }
-            if (type.multiInstance) {
+            // A nickname wherever there can be two of the kind, so the list and the panel can tell them apart.
+            if (type.multiInstance || tool.allowsAnother(type)) {
                 StoredTextField(
                     label = stringResource(R.string.providers_field_name),
                     value = draft.name,
@@ -825,6 +908,7 @@ private fun ProviderEditorSheet(
                     value = draft.apiKey,
                     supporting = stringResource(
                         when {
+                            another -> R.string.providers_field_key_another_hint
                             type.hasBuiltInKey -> R.string.providers_field_key_builtin_hint
                             spec.key == Need.OPTIONAL -> R.string.providers_field_key_optional_hint
                             else -> R.string.providers_field_key_required_hint

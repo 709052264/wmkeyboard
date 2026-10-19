@@ -460,24 +460,106 @@ class ProviderFrameworkTest {
 
     @Test
     fun `the no internet build offers only what runs on the phone`() {
-        val groups = ProviderCatalog.addable(ProviderTool.GIF, ProviderChain(), offline)
-        assertEquals(listOf("offline_gif_packs"), groups.flatMap { it.types }.map { it.id })
+        val types = ProviderCatalog.addable(ProviderTool.GIF, ProviderChain(), offline)
+        assertEquals(listOf("offline_gif_packs"), types.map { it.id })
     }
 
     @Test
-    fun `F-Droid suggests free software and lists proprietary keys after it`() {
-        val groups = ProviderCatalog.addable(ProviderTool.GIF, ProviderChain(), fdroid)
-        val suggested = groups.first { it.suggested }.types.map { it.id }
-        assertTrue("commons" in suggested)
-        assertFalse("klipy" in suggested)
-        assertTrue(groups.first { !it.suggested }.types.any { it.id == "klipy" })
+    fun `every build offers the same kinds in the same order`() {
+        val gif = { env: ProviderEnv -> ProviderCatalog.addable(ProviderTool.GIF, ProviderChain(), env).map { it.id } }
+        assertEquals(gif(play), gif(fdroid))
+        assertEquals(gif(play), gif(github))
+        assertEquals(ProviderTypes.serving(ProviderTool.GIF).map { it.id }, gif(play))
     }
 
     @Test
-    fun `a single instance type already listed is not offered again, a server type is`() {
+    fun `a keyed kind can be listed twice where the list asks rows by credential`() {
         val chain = ProviderChain(listOf(ProviderEntry("google_translate"), ProviderEntry("libretranslate", "libretranslate:01")))
-        val offered = ProviderCatalog.addable(ProviderTool.TRANSLATE, chain, github).flatMap { it.types }.map { it.id }
-        assertFalse("google_translate" in offered)
+        val offered = ProviderCatalog.addable(ProviderTool.TRANSLATE, chain, github).map { it.id }
+        assertTrue("google_translate" in offered)
         assertTrue("libretranslate" in offered)
+        // The photo grid asks a service by its name, so a second Unsplash would never be asked.
+        val photos = ProviderCatalog.addable(ProviderTool.PHOTOS, ProviderChain(listOf(ProviderEntry("unsplash"))), github).map { it.id }
+        assertFalse("unsplash" in photos)
+        // Nothing to set up, nothing to repeat.
+        val gif = ProviderCatalog.addable(ProviderTool.GIF, ProviderChain(listOf(ProviderEntry("gifcities"))), github).map { it.id }
+        assertFalse("gifcities" in gif)
+    }
+
+    // ---- two of a kind ----
+
+    private fun twoKlipy(mode: ChainMode, sameKind: SameKind? = null) = KeyboardSettings(
+        providers = ProviderSettings(
+            credentials = listOf(
+                ProviderCredential("klipy", "klipy", apiKey = "first"),
+                ProviderCredential("klipy:02", "klipy", name = "Work", apiKey = "second"),
+            ),
+            chains = mapOf(
+                ProviderTool.GIF to ProviderChain(
+                    listOf(ProviderEntry("klipy"), ProviderEntry("gifcities"), ProviderEntry("klipy", "klipy:02")),
+                    mode,
+                    sameKind = sameKind,
+                ),
+            ),
+        ),
+    )
+
+    @Test
+    fun `a second key of a kind is a backup by default, and can be kept apart`() {
+        val grouped = twoKlipy(ChainMode.TABS).resolveProviders(ProviderTool.GIF, play, grouped = true)
+        assertEquals(listOf("klipy", "gifcities"), grouped.map { it.key })
+        assertEquals(listOf("klipy:02"), grouped.first().backups.map { it.key })
+        assertEquals(listOf("first", "second"), grouped.first().withBackups.map { it.apiKey })
+        val apart = twoKlipy(ChainMode.TABS, SameKind.SEPARATE).resolveProviders(ProviderTool.GIF, play, grouped = true)
+        assertEquals(listOf("klipy", "gifcities", "klipy:02"), apart.map { it.key })
+        // One at a time is a fallback already: nothing to fold.
+        val walk = twoKlipy(ChainMode.FALLBACK).resolveProviders(ProviderTool.GIF, play, grouped = true)
+        assertEquals(listOf("klipy", "gifcities", "klipy:02"), walk.map { it.key })
+    }
+
+    @Test
+    fun `two servers of a server kind stay apart unless the user says otherwise`() {
+        val chain = ProviderChain(listOf(ProviderEntry("commons", "commons:01"), ProviderEntry("commons", "commons:02")), ChainMode.MIX)
+        assertEquals(SameKind.SEPARATE, chain.sameKindInForce)
+        assertEquals(SameKind.FALLBACK, chain.copy(sameKind = SameKind.FALLBACK).sameKindInForce)
+        assertTrue(chain.repeatsKind)
+        assertFalse(ProviderChain(listOf(ProviderEntry("klipy"))).repeatsKind)
+    }
+
+    @Test
+    fun `a chosen kind in pick mode is asked with its backups`() {
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                listOf(ProviderCredential("deepl", "deepl", apiKey = "a"), ProviderCredential("deepl:02", "deepl", apiKey = "b")),
+                mapOf(
+                    ProviderTool.TRANSLATE to ProviderChain(
+                        listOf(ProviderEntry("deepl"), ProviderEntry("google_translate"), ProviderEntry("deepl", "deepl:02")),
+                        ChainMode.PICK,
+                    ),
+                ),
+            ),
+        )
+        assertEquals(listOf("deepl", "deepl:02"), s.resolveProviders(ProviderTool.TRANSLATE, play, pick = "deepl").map { it.key })
+        assertEquals(listOf("deepl", "google_translate"), s.providerChoices(ProviderTool.TRANSLATE, "", play)!!.rows.map { it.key })
+    }
+
+    @Test
+    fun `a second instance brings its own key and gets a row of its own`() {
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                credentials = listOf(ProviderCredential("brave:02", "brave")),
+                chains = mapOf(ProviderTool.SEARCH to ProviderChain(listOf(ProviderEntry("brave"), ProviderEntry("brave", "brave:02")))),
+            ),
+        )
+        val second = s.resolveProviders(ProviderTool.SEARCH, play, all = true).last()
+        assertFalse(second.usesBuiltInKey)
+        if (ProviderTypes.BRAVE.credential.key == Need.REQUIRED) assertEquals(ProviderProblem.NEEDS_KEY, second.problem)
+        val change = ProviderEdits.saveCredential(
+            KeyboardSettings(),
+            ProviderCredential("deepl:03", "deepl", apiKey = "k"),
+            ProviderTool.TRANSLATE,
+            play,
+        )
+        assertTrue(change.chain!!.entries.any { it.typeId == "deepl" && it.credentialId == "deepl:03" })
     }
 }

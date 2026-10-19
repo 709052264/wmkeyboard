@@ -76,8 +76,13 @@ data class MediaTarget(
     val url: String = "",
     /** The name the user gave this server, shown on its chip instead of the kind's. */
     val name: String = "",
+    /** Rows of the same kind asked in turn when this one fails: a second key kept as a backup. */
+    val backups: List<MediaTarget> = emptyList(),
 ) {
     constructor(source: GifSource) : this(source.name, source)
+
+    /** This target, then its [backups]: the order one fetch walks. */
+    val withBackups: List<MediaTarget> get() = if (backups.isEmpty()) listOf(this) else listOf(copy(backups = emptyList())) + backups
 
     val onDevice: Boolean get() = source.onDevice
 }

@@ -43,8 +43,21 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     PHOTO_TRANSLATE("photo_translate", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_photo_translate),
     ;
 
+    /**
+     * Whether this list can hold [type] more than once. A server kind always
+     * can, each row its own address. A kind set up with a key can here too,
+     * for a second key or a second account, on the lists whose callers
+     * ask each row by its own credential: not the photo grid or the currency
+     * lists, which ask a service by its name, and not the word sources,
+     * which have nothing to set up.
+     */
+    fun allowsAnother(type: ProviderType): Boolean =
+        type.multiInstance || (type.repeatable && this in REPEATING)
+
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
+
+        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE) }
     }
 }
 
@@ -66,6 +79,23 @@ enum class ChainMode(@StringRes val labelRes: Int, @StringRes val descRes: Int) 
     MIX(R.string.core_tools_provider_mode_mix, R.string.core_tools_provider_mode_mix_desc),
     TABS(R.string.core_tools_provider_mode_tabs, R.string.core_tools_provider_mode_tabs_desc),
     PICK(R.string.core_tools_provider_mode_pick, R.string.core_tools_provider_mode_pick_desc),
+}
+
+/**
+ * What a list does with two rows of one kind (two KLIPY keys, two DeepL
+ * accounts) when its mode is not [ChainMode.FALLBACK], where the whole list
+ * is a fallback already.
+ *
+ * [SEPARATE] keeps them apart: a chip each, a row each in the panel's
+ * chooser, a share each of a mixed grid. [FALLBACK] makes them one provider:
+ * the first row of the kind is asked, and the later ones only when it fails,
+ * which is what a second key for when the first runs out of quota wants.
+ * Stored by name, and unset ([ProviderChain.sameKindInForce]) until the user picks.
+ */
+@Serializable
+enum class SameKind(@StringRes val labelRes: Int, @StringRes val descRes: Int) {
+    FALLBACK(R.string.core_tools_provider_same_kind_fallback, R.string.core_tools_provider_same_kind_fallback_desc),
+    SEPARATE(R.string.core_tools_provider_same_kind_separate, R.string.core_tools_provider_same_kind_separate_desc),
 }
 
 /** Whether a provider's form asks for a field, and whether it may stay blank. */
@@ -121,7 +151,7 @@ class ProviderType(
     val multiInstance: Boolean = false,
     /** Works with no network: files or a model on the phone. */
     val onDevice: Boolean = false,
-    /** Free software anyone can run, or open data: what the F-Droid build suggests first. */
+    /** Free software anyone can run, or open data. */
     val freeSoftware: Boolean = false,
     /** A server the user runs themself rather than a public service. */
     val selfHosted: Boolean = false,
@@ -136,6 +166,15 @@ class ProviderType(
     fun descriptionRes(tool: ProviderTool): Int = toolDescRes[tool] ?: descRes
 
     val hasBuiltInKey: Boolean get() = builtInKey.isNotBlank()
+
+    /**
+     * Can be set up more than once: a server kind, or a kind with a key, for
+     * a second key or account. Not a home: a second sign-in to one cloud
+     * would show the same devices twice. Whether a list takes it twice is
+     * [ProviderTool.allowsAnother].
+     */
+    val repeatable: Boolean
+        get() = multiInstance || (credential.key != Need.NONE && ProviderTool.SMART_HOME !in serves)
 
     /** Needs nothing typed in to work: no key, no address, or a key the build has. */
     val readyOutOfTheBox: Boolean
@@ -431,11 +470,13 @@ object ProviderTypes {
 
 /**
  * What one provider was set up with: a key, an address, a model. Shared by
- * every tool that lists the provider. A single-instance type's credential
- * has the type's own id, so there is only ever one; a [ProviderType.multiInstance]
- * one gets a fresh id per server.
+ * every tool that lists the provider. A single-instance type's first
+ * credential has the type's own id, which is what the callers that want "the"
+ * DeepL key read; a second one of it, and every [ProviderType.multiInstance]
+ * one, gets a fresh id ([newId]). [name] is the nickname that tells two apart.
  *
- * A blank [apiKey] on a type with a built-in key means "use the build's key".
+ * A blank [apiKey] on a type with a built-in key means "use the build's key",
+ * on the type's own credential only: a second instance exists to bring a key.
  *
  * [extra] holds what the four fields cannot: a sign-in's refresh token and
  * expiry, a second address, a bridge id. Its keys are the type's business
@@ -481,6 +522,9 @@ data class ProviderEntry(
 
     /** The credential this row reads: its own, or its single-instance type's. */
     val credentialKey: String get() = credentialId ?: typeId
+
+    /** Reads the type's own credential, the one a build's key can stand in for. */
+    val primary: Boolean get() = credentialKey == typeId
 }
 
 /** A tool's list: the providers in the order they are asked, and how they are used. */
@@ -494,8 +538,30 @@ data class ProviderChain(
      * a source that is new from one the user removed.
      */
     val known: List<String> = emptyList(),
+    /**
+     * Two rows of one kind: kept apart, or one the other's fallback. Only
+     * read outside [ChainMode.FALLBACK]. Null until the user picks; see [sameKindInForce].
+     */
+    val sameKind: SameKind? = null,
 ) {
     fun has(key: String): Boolean = entries.any { it.key == key }
+
+    /** Some kind is on the list more than once, which is when [sameKind] matters. */
+    val repeatsKind: Boolean get() = entries.groupBy { it.typeId }.any { it.value.size > 1 }
+
+    /**
+     * [sameKind], or the default for what is repeated: two servers of a
+     * server kind (two wikis, two SearXNG instances) were always separate
+     * and stay so, while a second key for one service is there as a backup.
+     */
+    val sameKindInForce: SameKind
+        get() = sameKind ?: if (
+            entries.groupBy { it.typeId }.any { (typeId, rows) -> rows.size > 1 && ProviderTypes.of(typeId)?.multiInstance == false }
+        ) {
+            SameKind.FALLBACK
+        } else {
+            SameKind.SEPARATE
+        }
 
     fun without(key: String): ProviderChain = copy(entries = entries.filterNot { it.key == key })
 

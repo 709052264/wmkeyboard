@@ -68,14 +68,9 @@ object ProviderEnvironment {
 }
 
 /**
- * The curated part: which provider types a build offers, and which it
- * suggests first.
- *
- * Every build can add every type it can run, self-hosted servers included.
- * What changes is the order and the grouping of the add sheet. The F-Droid
- * build suggests free software and open data, and lists the services that
- * want a proprietary key after them. Play and GitHub suggest what works with
- * nothing typed in. The no-internet build lists only what runs on the phone.
+ * Which provider types a build can add. Every build lists every kind it can
+ * run, in the same order ([ProviderTypes.all]), with nothing put first: the
+ * no-internet build simply cannot run what needs the network.
  */
 object ProviderCatalog {
 
@@ -87,23 +82,13 @@ object ProviderCatalog {
         else -> true
     }
 
-    fun suggested(type: ProviderType, env: ProviderEnv): Boolean = when (env.channel) {
-        ProviderChannel.FDROID -> type.freeSoftware || type.onDevice
-        ProviderChannel.PLAY, ProviderChannel.GITHUB -> type.onDevice || type.readyOutOfTheBox
-    }
-
-    /** One group of the add sheet. */
-    data class Group(val suggested: Boolean, val types: List<ProviderType>)
-
     /**
      * The types the add sheet offers for [tool]: every runnable one, minus a
-     * single-instance type already in [chain]. Suggested ones first.
+     * type already in [chain] that [tool] cannot list twice
+     * ([ProviderTool.allowsAnother]).
      */
-    fun addable(tool: ProviderTool, chain: ProviderChain, env: ProviderEnv): List<Group> {
-        val types = ProviderTypes.serving(tool)
+    fun addable(tool: ProviderTool, chain: ProviderChain, env: ProviderEnv): List<ProviderType> =
+        ProviderTypes.serving(tool)
             .filter { runnable(it, env) }
-            .filter { it.multiInstance || chain.entries.none { entry -> entry.typeId == it.id } }
-        val (first, rest) = types.partition { suggested(it, env) }
-        return listOf(Group(true, first), Group(false, rest)).filter { it.types.isNotEmpty() }
-    }
+            .filter { tool.allowsAnother(it) || chain.entries.none { entry -> entry.typeId == it.id } }
 }
