@@ -527,6 +527,18 @@ class ProviderFrameworkTest {
     }
 
     @Test
+    fun `a second SmartThings account can be added, and homes are never folded`() {
+        val chain = ProviderChain(listOf(ProviderEntry("smartthings"), ProviderEntry("google_home")), ChainMode.MIX)
+        val offered = ProviderCatalog.addable(ProviderTool.SMART_HOME, chain, play.copy(googleHome = true)).map { it.id }
+        assertTrue("smartthings" in offered)
+        assertFalse("google_home" in offered)
+        assertFalse(ProviderTool.SMART_HOME.foldsSameKind(ChainMode.MIX))
+        assertFalse(ProviderTool.PHOTOS.foldsSameKind(ChainMode.MIX))
+        assertTrue(ProviderTool.GIF.foldsSameKind(ChainMode.TABS))
+        assertTrue(ProviderTool.TRANSLATE.foldsSameKind(ChainMode.PICK))
+    }
+
+    @Test
     fun `a chosen kind in pick mode is asked with its backups`() {
         val s = KeyboardSettings(
             providers = ProviderSettings(

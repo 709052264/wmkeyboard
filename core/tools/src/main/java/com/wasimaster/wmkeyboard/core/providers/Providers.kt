@@ -54,6 +54,15 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     fun allowsAnother(type: ProviderType): Boolean =
         type.multiInstance || (type.repeatable && this in REPEATING)
 
+    /**
+     * Whether [SameKind] does anything on this list in [mode]: the media
+     * chips and the panel's chooser fold a kind into one, a fetch walks its
+     * backups. The smart home panel connects every home, and the photo grid
+     * asks by service, so neither has a choice to offer.
+     */
+    fun foldsSameKind(mode: ChainMode): Boolean =
+        mode == ChainMode.PICK || (mode != ChainMode.FALLBACK && (this == GIF || this == STICKER))
+
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
 
@@ -169,12 +178,11 @@ class ProviderType(
 
     /**
      * Can be set up more than once: a server kind, or a kind with a key, for
-     * a second key or account. Not a home: a second sign-in to one cloud
-     * would show the same devices twice. Whether a list takes it twice is
+     * a second key or account. Whether a list takes it twice is
      * [ProviderTool.allowsAnother].
      */
     val repeatable: Boolean
-        get() = multiInstance || (credential.key != Need.NONE && ProviderTool.SMART_HOME !in serves)
+        get() = multiInstance || credential.key != Need.NONE
 
     /** Needs nothing typed in to work: no key, no address, or a key the build has. */
     val readyOutOfTheBox: Boolean
@@ -432,10 +440,14 @@ object ProviderTypes {
         "google_home", HOMES, R.string.core_tools_provider_google_home, R.string.core_tools_provider_google_home_desc,
     )
 
-    /** A browser sign-in fills `extra`; a pasted personal access token (24 hours) is the key. */
+    /**
+     * A browser sign-in fills `extra`; a pasted personal access token (24
+     * hours) is the key. One row per account, as often as there are
+     * accounts: a home, a parent's house, an office.
+     */
     val SMARTTHINGS = ProviderType(
         "smartthings", HOMES, R.string.core_tools_provider_smartthings, R.string.core_tools_provider_smartthings_desc,
-        CredentialSpec(key = Need.OPTIONAL),
+        CredentialSpec(key = Need.OPTIONAL), multiInstance = true,
     )
 
     /** A Hue bridge on the LAN: the address, and the application key pairing gives. */

@@ -144,9 +144,9 @@ internal fun ProvidersGroup(
     val rows = settings.watch { it.resolveProviders(tool, env, all = true) }
     val mode = settings.watch { it.providerMode(tool, env) }
     val stored = settings.watch { tool in it.providers.chains }
-    // Only a list that is not one at a time, with some kind on it twice, has anything to decide here.
+    // Only a list that folds two of a kind, with some kind on it twice, has anything to decide here.
     val sameKind = settings.watch { s ->
-        s.providerChain(tool, env).takeIf { it.mode != ChainMode.FALLBACK && it.repeatsKind }?.sameKindInForce
+        s.providerChain(tool, env).takeIf { tool.foldsSameKind(it.mode) && it.repeatsKind }?.sameKindInForce
     }
     var adding by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<ProviderEditTarget?>(null) }
