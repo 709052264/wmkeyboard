@@ -465,7 +465,7 @@ class AiToolRunner(
             } else {
                 null
             }
-            DictionaryLookup.resolve(word, sources, DictionaryLookup.fetcher { index })
+            DictionaryLookup.resolve(word, sources, DictionaryLookup.fetcher({ index }))
         }
         return when (result) {
             is DictionaryLookup.Result.Found -> AiToolResult(call, formatDefinitions(result.entries))
