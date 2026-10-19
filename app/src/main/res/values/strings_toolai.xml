@@ -200,6 +200,8 @@
     <string name="toolai_ai_builtin_image_search_subtitle">Finds pictures through the search tool\'s service</string>
     <string name="toolai_ai_builtin_weather_title">Weather</string>
     <string name="toolai_ai_builtin_weather_subtitle">Today\'s and tomorrow\'s weather for any place, or for the place saved in the weather tool</string>
+    <string name="toolai_ai_builtin_wm_docs_title">WM Keyboard docs</string>
+    <string name="toolai_ai_builtin_wm_docs_subtitle">Searches this keyboard's documentation to answer questions about the keyboard itself. Sends only the search words, to the docs site.</string>
     <string name="toolai_ai_builtin_wikipedia_title">Wikipedia</string>
     <string name="toolai_ai_builtin_wikipedia_subtitle">Reads the summary of an article, in the Wikipedia language that the encyclopedia tool uses</string>
     <string name="toolai_ai_builtin_define_word_title">Dictionary</string>

@@ -537,6 +537,11 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_weather_running,
         R.string.ime_ai_tool_weather_done,
     ),
+    AiTools.WM_DOCS to ToolLabels(
+        R.string.ime_ai_tool_name_wm_docs,
+        R.string.ime_ai_tool_wm_docs_running,
+        R.string.ime_ai_tool_wm_docs_done,
+    ),
     AiTools.WIKIPEDIA to ToolLabels(
         R.string.ime_ai_tool_name_wikipedia,
         R.string.ime_ai_tool_wikipedia_running,

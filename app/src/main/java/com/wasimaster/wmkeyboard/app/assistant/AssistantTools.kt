@@ -2,11 +2,13 @@ package com.wasimaster.wmkeyboard.app.assistant
 
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
 import com.wasimaster.wmkeyboard.app.searchSettings
+import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.tools.AiToolCall
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolResult
 import com.wasimaster.wmkeyboard.core.tools.AiToolSpec
+import com.wasimaster.wmkeyboard.core.tools.WmDocs
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonArray
@@ -15,7 +17,7 @@ import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 
 /**
- * The four things the Settings assistant (#788) can do, as tools a model calls.
+ * The five things the Settings assistant (#788) can do, as tools a model calls.
  *
  * * `search_settings` reads the real settings index, the one the search screen
  *   ranks, so every row the assistant names is one that exists.
@@ -24,6 +26,9 @@ import kotlinx.serialization.json.putJsonObject
  * * `get_setting` and `propose_change` are about [AssistantSetting]s only. A
  *   proposal is not a change: it is put in front of the user with the current
  *   and the proposed value, and only their Apply writes it.
+ * * `search_docs` searches the documentation site ([WmDocs]), for what no
+ *   settings row explains: which files an import takes, how a feature works.
+ *   Only the query leaves the phone.
  *
  * None of these return a value outside [AssistantSetting], which holds no
  * secret, so a key or an address cannot reach the model through them.
@@ -69,6 +74,12 @@ internal class AssistantTools(
                 "value" to "The new value, in the form $GET describes.",
             ),
         ),
+        AiToolSpec(
+            DOCS,
+            "Search WM Keyboard's documentation, for questions a settings row does not answer: how a feature works, " +
+                "which files an import accepts, how to do something step by step. Returns sections with their links.",
+            schema("query" to "What to look for, in English."),
+        ),
     )
 
     override fun run(call: AiToolCall): AiToolResult = runCatching {
@@ -77,6 +88,7 @@ internal class AssistantTools(
             OPEN -> open(call)
             GET -> get(call)
             PROPOSE -> propose(call)
+            DOCS -> docs(call)
             else -> AiToolResult(call, "", error = "No tool named ${call.name}.")
         }
     }.getOrElse { AiToolResult(call, "", error = it.message ?: "The tool failed.") }
@@ -128,6 +140,11 @@ internal class AssistantTools(
         )
     }
 
+    private fun docs(call: AiToolCall): AiToolResult {
+        val query = call.argument("query") ?: return AiToolResult(call, "", error = "No query given.")
+        return AiToolResult(call, WmDocs.format(query, WmDocs.search(query, source = NetSource.AI_CHAT)))
+    }
+
     private fun setting(call: AiToolCall): AssistantSetting? =
         call.argument("name")?.let(AssistantSetting::byName)
 
@@ -159,6 +176,7 @@ internal class AssistantTools(
         const val OPEN = "open_setting"
         const val GET = "get_setting"
         const val PROPOSE = "propose_change"
+        const val DOCS = "search_docs"
         const val MAX_RESULTS = 8
     }
 }

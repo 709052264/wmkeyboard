@@ -15,6 +15,7 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 
+import { markdownUrl } from '../lib/llm-text';
 import { isNoindex } from '../lib/robots.mjs';
 import { SECTIONS, SITE_DESCRIPTION, SITE_TITLE, SITE_URL, sectionFor } from '../site.mjs';
 
@@ -29,13 +30,17 @@ export const GET: APIRoute = async () => {
 		'WM Keyboard is a free, open-source (MIT) Android keyboard. Prediction,',
 		'autocorrect, glide typing and every dictionary run on the device; the app',
 		'ships no analytics, and typing never reaches a network. This is its',
-		'documentation. Each link below is a page on this site; fetch the page for',
-		'the detail behind its one-line summary.',
+		'documentation. Each link below is the Markdown copy of a page; fetch it for',
+		'the detail behind its one-line summary, and cite the page itself, which is',
+		'the same address without `.md` (`/typing/glide-typing.md` is',
+		'`/typing/glide-typing/`).',
 		'',
 		'## Start here',
 		'',
-		`- [Documentation home](${SITE_URL}/): what the keyboard is, and the feature tour.`,
+		`- [Documentation home](${SITE_URL}/index.md): what the keyboard is, and the feature tour.`,
 		`- [Full text of every page](${SITE_URL}/llms-full.txt): this documentation as one plain-text file.`,
+		`- [Search the documentation](${SITE_URL}/api/docs/search?q=import+rime+dictionary): \`GET /api/docs/search?q=<words>\` answers with the best-matching sections as JSON, each with its page URL and text. Described in [OpenAPI](${SITE_URL}/openapi.json).`,
+		`- [MCP server](${SITE_URL}/mcp): the same search and page reading as Model Context Protocol tools (Streamable HTTP, no sign-in). Setup for each assistant: [Using the docs with AI](${SITE_URL}/reference/ai-access.md).`,
 		'',
 	];
 
@@ -52,7 +57,7 @@ export const GET: APIRoute = async () => {
 		lines.push(`## ${label}`, '');
 		for (const page of pages) {
 			const description = page.data.description ? `: ${page.data.description}` : '';
-			lines.push(`- [${page.data.title}](${SITE_URL}/${page.id}/)${description}`);
+			lines.push(`- [${page.data.title}](${markdownUrl(page.id)})${description}`);
 		}
 		lines.push('');
 	}

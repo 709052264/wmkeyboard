@@ -1,0 +1,62 @@
+---
+title: "Using the docs with AI"
+description: "Point ChatGPT, Claude, Gemini, Cursor or the keyboard's own AI at this documentation: llms.txt, Markdown copies of every page, a search API and an MCP server."
+sidebar:
+  order: 9
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+An assistant asked about WM Keyboard answers from whatever it remembers, and the keyboard changes faster than any model's training data. This site is built to be read by one instead: every page exists as plain text, the whole site can be searched with one request, and an assistant that supports tools can be connected to it directly. With that, a question like "how do I import the Sogou dictionary for Chinese?" gets an answer from the page that covers it, with a link, rather than a guess.
+
+Nothing here needs an account or a key. It's the same public text the pages show.
+
+## In the keyboard
+
+The keyboard's own AI already uses it. **WM Keyboard docs** is one of the [keyboard's own tools](/tools/ai/#the-keyboards-own-tools), on by default: ask the [AI chat](/tools/ai-chat/), on the keyboard or in the app, about anything the keyboard does and the model searches these pages, reads the sections that match and answers with links to them. The [Settings assistant](/tools/ai-chat/#the-settings-assistant) uses the same search for questions its settings rows can't answer.
+
+<SettingsPath path="Tools / AI writing tools / Keyboard tools / WM Keyboard docs" />
+
+A search sends the words the model chose, and nothing else, to this site (`wmkeyboard.pages.dev`). Nothing on the site stores them. Set the tool to **Off** and the model isn't told it exists. With an on-device model the search still goes over the network, so a phone with no connection gets an answer from the model alone.
+
+## Connecting an assistant (MCP)
+
+The docs are a [Model Context Protocol](https://modelcontextprotocol.io) server at:
+
+```
+https://wmkeyboard.pages.dev/mcp
+```
+
+It speaks Streamable HTTP, needs no sign-in, and offers three read-only tools: `search_docs` finds the sections that answer a question, `read_page` reads one page in full, and `list_pages` lists every page with its summary. Each page is also offered as a resource. Its description lives at `/.well-known/mcp/server-card.json` for clients that discover servers by domain.
+
+How to add it in the common clients:
+
+- **Claude** (claude.ai and the desktop app): Settings › Connectors › Add custom connector, and paste the address.
+- **Claude Code**: `claude mcp add --transport http wmkeyboard-docs https://wmkeyboard.pages.dev/mcp`
+- **ChatGPT**: Settings › Apps & Connectors, turn on developer mode under Advanced, then create a connector with the address and no authentication.
+- **Cursor**: add it under `mcpServers` in `~/.cursor/mcp.json` as `"wmkeyboard-docs": { "url": "https://wmkeyboard.pages.dev/mcp" }`.
+- **VS Code** (Copilot agent mode): run **MCP: Add Server**, pick HTTP, and paste the address.
+- **Gemini CLI**: add `"wmkeyboard-docs": { "httpUrl": "https://wmkeyboard.pages.dev/mcp" }` under `mcpServers` in `~/.gemini/settings.json`.
+- **WM Keyboard itself**: under [MCP servers](/tools/ai/#mcp-servers), though the built-in **WM Keyboard docs** tool already does the same job.
+
+Menu names move around between versions of these apps; the address is the part that matters.
+
+## For assistants that browse
+
+An assistant that reads the web finds the docs without any setup, and these files make what it reads cleaner:
+
+| Address | What it holds |
+|---|---|
+| [`/llms.txt`](/llms.txt) | An index of every page with its one-line summary, in the [llms.txt](https://llmstxt.org) format. |
+| [`/llms-full.txt`](/llms-full.txt) | Every page's text in one file, for a model with a large context. |
+| `/<page>.md` | Any page as Markdown: add `.md` to its address without the final slash, so `/languages/cjk/` is [`/languages/cjk.md`](/languages/cjk.md). Each page names its copy in a `<link rel="alternate" type="text/markdown">`. |
+| `/api/docs/search?q=…` | The sections that best match a question, as JSON with each section's address and text. Try [`?q=import rime dictionary`](/api/docs/search?q=import+rime+dictionary). |
+| [`/openapi.json`](/openapi.json) | The search API described in OpenAPI 3.1, for a custom GPT action or any other agent builder that takes one. |
+
+To ask about a page you are reading, paste its address into the chat and ask for the `.md` version to be read; that is a fraction of the size of the HTML and has none of the navigation.
+
+`robots.txt` lets the search and answer crawlers in, the assistant ones by name, and states the site's [Content Signals](https://contentsignals.org): search, answers built from the pages, and training are all allowed. The documentation is MIT-licensed like the app.
+
+## What it can and can't tell you
+
+The docs describe the current release. A model that searched them can still misread a section, so the link it gives is worth a tap before you change anything important. Search ranks by the words in your question, in English best: a question in another language still works when it names the feature (`fcitx5`, `Rime`, `Avro`), and Chinese and Japanese terms the pages use are matched as written. It knows nothing about your own phone, your settings or what you typed; for those, the [Settings assistant](/tools/ai-chat/#the-settings-assistant) is the one that can look.

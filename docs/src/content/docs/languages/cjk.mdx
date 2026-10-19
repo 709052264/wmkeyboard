@@ -379,6 +379,17 @@ A word your list adds appears under its reading. A word the pack already has kee
 
 A list goes live the next time you open a text field, and only the table for its own language is reloaded.
 
+#### Dictionaries made for fcitx5, Rime or Sogou
+
+Most Chinese dictionary projects on GitHub are built for the desktop input methods, and many ship two files per release: a `.dict` for fcitx5 and a `.dict.yaml` for Rime. Take the `.dict.yaml`. It is the Rime format from the list above, so it imports as it is: pick **Chinese**, open **Custom dictionaries** and import the file.
+
+The other formats are compiled, and the keyboard can't read them:
+
+- **fcitx5's `.dict`** is libime's binary dictionary. Look for the Rime file in the same release, or convert the project's source text instead.
+- **Sogou's `.scel` cell dictionaries** (细胞词库) are binary too. [imewlconverter](https://github.com/studyzy/imewlconverter) (深蓝词库转换) turns them into Rime's format: choose 搜狗细胞词库 scel as the input and Rime 中州韵 as the output, then import what it writes.
+
+Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Convert the topics you actually type, such as computing, place names or medicine, and import those. A few thematic lists of a few megabytes each give most of the benefit and load fast.
+
 ## Details & edge cases
 
 - **A Japanese word-list download exists but does nothing for typing.** Japanese has its own entry in the ordinary downloadable-dictionary catalog (see [Downloadable dictionaries](/languages/dictionaries/)), but because Japanese is a conversion input method, the regular suggestion engine never runs for it. That download currently has no effect on any of the three Japanese layouts. Korean's word list, by contrast, is fully active, since Korean isn't a conversion method.

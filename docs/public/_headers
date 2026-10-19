@@ -33,6 +33,36 @@
   Cache-Control: public, max-age=3600
   X-Robots-Tag: noindex
 
+# Every page's Markdown copy, for an assistant to read rather than a search
+# engine to index: the HTML page is the one to rank, and two copies of every
+# page would compete with each other. Readable from any origin, like the
+# files above, so a browser-based agent can fetch them too.
+/*.md
+  Content-Type: text/markdown; charset=utf-8
+  Cache-Control: public, max-age=3600
+  X-Robots-Tag: noindex
+  Access-Control-Allow-Origin: *
+
+/llms.txt
+  Access-Control-Allow-Origin: *
+
+/llms-full.txt
+  Access-Control-Allow-Origin: *
+
+# What the search API and the MCP server rank (functions/_docs.ts).
+/ai/*
+  Cache-Control: public, max-age=3600
+  X-Robots-Tag: noindex
+  Access-Control-Allow-Origin: *
+
+/openapi.json
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
+/.well-known/mcp/*
+  Cache-Control: public, max-age=3600
+  Access-Control-Allow-Origin: *
+
 # Nothing here is served to be framed or sniffed, and a referrer leaking the
 # full path of a settings page to an outbound link buys nobody anything.
 /*

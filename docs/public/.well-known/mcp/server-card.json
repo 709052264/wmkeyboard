@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "protocolVersion": "2025-11-25",
+  "serverInfo": {
+    "name": "wmkeyboard-docs",
+    "title": "WM Keyboard documentation",
+    "version": "1.0.0",
+    "websiteUrl": "https://wmkeyboard.pages.dev/"
+  },
+  "description": "Search and read the official documentation of WM Keyboard, a free, open-source Android keyboard.",
+  "documentationUrl": "https://wmkeyboard.pages.dev/reference/ai-access/",
+  "transport": {
+    "type": "streamable-http",
+    "endpoint": "https://wmkeyboard.pages.dev/mcp"
+  },
+  "authentication": {
+    "required": false
+  },
+  "capabilities": {
+    "tools": { "listChanged": false },
+    "resources": { "listChanged": false }
+  },
+  "tools": [
+    { "name": "search_docs", "title": "Search the WM Keyboard docs" },
+    { "name": "read_page", "title": "Read a WM Keyboard docs page" },
+    { "name": "list_pages", "title": "List the WM Keyboard docs pages" }
+  ]
+}

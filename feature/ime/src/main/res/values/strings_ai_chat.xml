@@ -133,6 +133,7 @@
     <!-- Each tool's name, as the chat and the settings show it. -->
     <string name="ime_ai_tool_name_image_search">Image search</string>
     <string name="ime_ai_tool_name_weather">Weather</string>
+    <string name="ime_ai_tool_name_wm_docs">WM Keyboard docs</string>
     <string name="ime_ai_tool_name_wikipedia">Wikipedia</string>
     <string name="ime_ai_tool_name_define_word">Dictionary</string>
     <string name="ime_ai_tool_name_translate">Translate</string>
@@ -145,6 +146,8 @@
     <!-- %1$s is a place, such as Dhaka. -->
     <string name="ime_ai_tool_weather_running">Checking the weather in %1$s…</string>
     <string name="ime_ai_tool_weather_done">Checked the weather in %1$s</string>
+    <string name="ime_ai_tool_wm_docs_running">Searching the WM Keyboard docs for “%1$s”…</string>
+    <string name="ime_ai_tool_wm_docs_done">Searched the WM Keyboard docs for “%1$s”</string>
     <string name="ime_ai_tool_wikipedia_running">Looking up “%1$s” on Wikipedia…</string>
     <string name="ime_ai_tool_wikipedia_done">Looked up “%1$s” on Wikipedia</string>
     <string name="ime_ai_tool_define_word_running">Looking up “%1$s” in the dictionary…</string>

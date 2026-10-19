@@ -278,6 +278,7 @@ object AiTools {
 
     const val WEB_SEARCH = "web_search"
     const val WEB_FETCH = "web_fetch"
+    const val WM_DOCS = "search_wm_docs"
     const val IMAGE_SEARCH = "image_search"
     const val WEATHER = "weather"
     const val WIKIPEDIA = "wikipedia"
@@ -349,6 +350,15 @@ object AiTools {
      * answer built on a real exchange rate beats one remembered from training.
      */
     val builtIns: List<AiBuiltInTool> = listOf(
+        // First, because the question a user most often asks the keyboard's own
+        // AI is about the keyboard, and a model's training data describes some
+        // other one, or this one a year ago.
+        info(
+            WM_DOCS,
+            "Search WM Keyboard's own documentation. Use it for any question about this keyboard: " +
+                "how to do something in it, what a setting does, which files it can import.",
+            param("query", "What to look for, in English, such as 'import Rime dictionary Chinese'."),
+        ),
         info(
             IMAGE_SEARCH,
             "Search the web for images. Returns each image's address and the page it is on.",
@@ -530,7 +540,7 @@ object AiTools {
      * the argument out, or for a tool with nothing short to say.
      */
     fun targetOf(call: AiToolCall): String = when (call.name) {
-        WEB_SEARCH, IMAGE_SEARCH, WIKIPEDIA -> call.argument("query")
+        WEB_SEARCH, IMAGE_SEARCH, WIKIPEDIA, WM_DOCS -> call.argument("query")
         WEB_FETCH -> call.argument("url")
         WEATHER -> call.argument("place")
         DEFINE_WORD -> call.argument("word")

@@ -44,6 +44,10 @@ internal class BuiltInToolText(@StringRes val title: Int, @StringRes val subtitl
 
 /** Every tool in [AiTools.builtIns] has an entry; one without would have no row. */
 internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
+    AiTools.WM_DOCS to BuiltInToolText(
+        R.string.toolai_ai_builtin_wm_docs_title,
+        R.string.toolai_ai_builtin_wm_docs_subtitle,
+    ),
     AiTools.IMAGE_SEARCH to BuiltInToolText(
         R.string.toolai_ai_builtin_image_search_title,
         R.string.toolai_ai_builtin_image_search_subtitle,

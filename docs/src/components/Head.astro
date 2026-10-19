@@ -76,6 +76,17 @@ const docId = entry.id || 'index';
 const section = sectionFor(docId);
 
 /**
+ * The page's Markdown copy (src/pages/[...slug].md.ts), named so an agent
+ * holding only the HTML finds the text without the chrome. Only content pages
+ * have one: the addon store's routes render an entry that isn't in the
+ * collection, and a noindex page is left out of every machine-facing route.
+ */
+const markdownHref =
+	!noindex && (await getCollection('docs')).some((doc) => (doc.id || 'index') === docId)
+		? `${SITE_URL}/${docId}.md`
+		: undefined;
+
+/**
  * Eleven pages share a name with another page — three `Permissions`, two each
  * of `Backup & restore`, `Data saver`, `Selection actions` and `Accessibility`
  * — because a feature and its settings screen are documented separately. With
@@ -215,6 +226,11 @@ const jsonLd = noindex || ownGraph ? undefined : JSON.stringify(graph(nodes));
     navigator.getInstalledRelatedApps() on the settings chips. The app's
     side of the handshake is public/.well-known/assetlinks.json. */}
 <link rel="manifest" href="/manifest.webmanifest" />
+
+{/* For assistants: this page as Markdown, and the llmstxt.org index of the
+    whole site. */}
+{markdownHref && <link rel="alternate" type="text/markdown" href={markdownHref} title="This page as Markdown" />}
+<link rel="alternate" type="text/plain" href={`${SITE_URL}/llms.txt`} title="llms.txt" />
 
 <SEO
 	canonical={canonical}

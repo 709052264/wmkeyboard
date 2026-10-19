@@ -32,6 +32,9 @@ if (process.env.CHECK_LINKS) {
 			exclude: ({ link }) => {
 				// The /open/ doorway is a custom Astro page too.
 				if (/^\/open(?:[/?#]|$)/.test(link)) return true;
+				// The machine-facing routes (reference/ai-access.mdx links them):
+				// endpoints, the Markdown copies and the Functions, none of them pages.
+				if (/^\/(?:llms(?:-full)?\.txt|openapi\.json|api\/|mcp\b|\.well-known\/)|\.md(?:[?#]|$)/.test(link)) return true;
 				const match = /^\/addons(?:\/([^/?#]*)|(?=[?#]|$))/.exec(link);
 				return match !== null && !addonGuides.has(match[1] ?? '');
 			},

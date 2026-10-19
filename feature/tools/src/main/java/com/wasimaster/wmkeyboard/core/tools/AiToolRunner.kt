@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.media.MediaControlManager
 import com.wasimaster.wmkeyboard.core.media.MediaSnapshot
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -278,6 +279,7 @@ class AiToolRunner(
 
     /** One of the keyboard's own tools, already allowed to run. */
     private fun runBuiltIn(call: AiToolCall): AiToolResult = when (call.name) {
+        AiTools.WM_DOCS -> wmDocs(call)
         AiTools.IMAGE_SEARCH -> imageSearch(call)
         AiTools.WEATHER -> weather(call)
         AiTools.WIKIPEDIA -> wikipedia(call)
@@ -369,6 +371,22 @@ class AiToolRunner(
             call = call,
             content = formatPage(page, url, context.getString(R.string.ftools_ai_tool_truncated)),
             sources = listOf(AiToolSource(page.title.trim(), target)),
+        )
+    }
+
+    /**
+     * The keyboard's own documentation, searched on its site. An on-device
+     * model gets fewer sections: each is replayed into every later round, and
+     * its context is the smallest.
+     */
+    private fun wmDocs(call: AiToolCall): AiToolResult {
+        val query = call.argument("query") ?: return missing(call, "query")
+        val limit = if (settings.ai.provider == AiProvider.ON_DEVICE) ON_DEVICE_DOCS_RESULTS else WmDocs.DEFAULT_RESULTS
+        val hits = WmDocs.search(query, limit, NetSource.AI_TOOLS)
+        return AiToolResult(
+            call = call,
+            content = WmDocs.format(query, hits),
+            sources = hits.map { AiToolSource(it.label, it.url) },
         )
     }
 
@@ -955,6 +973,9 @@ class AiToolRunner(
          * same run, so a page of twenty would crowd out the answer.
          */
         private const val SEARCH_RESULTS = 5
+
+        /** Documentation sections for an on-device model; see [wmDocs]. */
+        private const val ON_DEVICE_DOCS_RESULTS = 2
 
         private const val CURRENCY_DIGITS = 2
         private const val RATE_DIGITS = 6
