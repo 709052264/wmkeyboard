@@ -5700,6 +5700,10 @@ private fun FlickFields(
 ) {
     val typesText = key.action == KeyAction.Text
     val takesActions = key.takesFlickActions()
+    // Since #789 an arm can type text on any key that takes action arms too:
+    // Enter with `?` on its flick up, Shift with a quote. The tap is still
+    // the key's own action.
+    val takesText = typesText || takesActions
     var open by remember(ref) { mutableStateOf(key.flick.isNotEmpty() || key.flickActions.isNotEmpty()) }
     // The arm whose action is being picked, then the second question some
     // actions ask: which operation, which tool, which layout.
@@ -5778,7 +5782,7 @@ private fun FlickFields(
             },
             onClick = { picking = direction },
         )
-    } else if (!typesText) {
+    } else if (!takesText) {
         WmRow(
             title = stringResource(flickLabelRes(direction)),
             subtitle = stringResource(R.string.layout_editor_flick_action_none),

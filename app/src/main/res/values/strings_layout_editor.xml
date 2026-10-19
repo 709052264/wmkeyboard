@@ -319,8 +319,8 @@
     <string name="layout_editor_flick_clear">Remove all flick directions</string>
     <string name="layout_editor_flick_field_hint">Blank: no flick in this direction</string>
     <string name="layout_editor_flick_set_hint">A flick this way types %1$s</string>
-    <string name="layout_editor_flick_add_subtitle_action">A short swipe from the key in any of eight directions does an action, such as moving the cursor</string>
-    <string name="layout_editor_flick_caption_action">Tap a cell of the pad to choose what a swipe that way does. A tap on the key still does what the key does.</string>
+    <string name="layout_editor_flick_add_subtitle_action">A short swipe from the key in any of eight directions types something or does an action, such as moving the cursor</string>
+    <string name="layout_editor_flick_caption_action">Tap a cell of the pad to set what a swipe that way types, or tap its bolt for an action. A tap on the key still does what the key does.</string>
     <string name="layout_editor_flick_action_none">No flick this way. Tap to choose an action.</string>
     <string name="layout_editor_flick_action_set">A flick this way does this: %1$s</string>
     <string name="layout_editor_flick_action_pick_desc">Do an action instead</string>

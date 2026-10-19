@@ -635,6 +635,11 @@ fun Key.flickKey(direction: FlickDirection): Key? {
         // what the same action does as an alternate.
         is FlickArm.Action -> return Key(label = arm.alternate.label, action = arm.alternate.action)
         is FlickArm.Text -> {
+            // A text arm on a key that does something else (#789): Enter's
+            // flick up typing `?` types it, and is not Enter.
+            if (action != KeyAction.Text && action !is KeyAction.KeymanKey) {
+                return Key(label = arm.text, shiftLabel = flickShift[direction])
+            }
             val target = (action as? KeyAction.KeymanKey)?.flick?.get(direction)
             // The arm's own shift form, never the centre's: under Shift the
             // flick used to type the tap's shiftLabel, whatever arm it took.
@@ -957,7 +962,7 @@ const val MaxRowHeightScale = 2.5f
  * or reserve one either.
  */
 val Key.activeFlick: Map<FlickDirection, String>
-    get() = if (action == KeyAction.Text || action is KeyAction.KeymanKey) flick else emptyMap()
+    get() = if (action == KeyAction.Text || action is KeyAction.KeymanKey || takesFlickActions()) flick else emptyMap()
 
 /** One arm of a key's flick cross: text it types, or an action it runs. */
 sealed interface FlickArm {

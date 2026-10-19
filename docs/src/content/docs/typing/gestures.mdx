@@ -113,6 +113,20 @@ With glide typing on, a letter with flick arms shares each swipe with the glide.
 
 **A flick onto a letter glides a word** settles the one case that is left: a short straight swipe from a letter onto its neighbour, along the way an arm points. Off, the default, it types the arm, so you tap those two-letter words. On, lifting inside the neighbour types the word, and a flick has to stop short of the next key. Until the keyboard has decided, a glide that starts on one of these keys can show the flick popup and buzz for the arm for a moment.
 
+### Flicks off the edges and off special keys
+
+Flicks belong to keys, not to the edges of the keyboard. A swipe down off the bottom row, up off the top row or outward off the first or last key in a row is that key's arm in that direction, so it does something only where you have given the key an arm in the [layout editor](/languages/custom-layouts/#editing-a-key). Nothing is reserved for an edge on its own.
+
+The special keys take arms too: <KeyCap>Enter</KeyCap>, <KeyCap>Shift</KeyCap>, <KeyCap>?123</KeyCap>, <KeyCap>ABC</KeyCap>, the globe, the emoji key and the rest, everything but the space bar, the delete keys and a key set to repeat. An arm on one of them types text or runs an action, and the tap is still the key's own. <KeyCap>Enter</KeyCap> with `?` on its flick up types one `?`, without sending and without a new line. <KeyCap>Delete</KeyCap> keeps its swipe and its repeat and takes no arms.
+
+Where two gestures could claim the same swipe, the rule is fixed rather than guessed:
+
+- **An arm on <KeyCap>Shift</KeyCap>, <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> or <KeyCap>Meta</KeyCap> replaces [dragging from that key](#dragging-from-a-modifier-key).** On a key with arms the swipe is the arm; a modifier key without arms keeps the drag.
+- **An arm on <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> replaces the drag that peeks at the other layer.** Holding <KeyCap>?123</KeyCap> still and tapping a key, the [symbol chord](#chords-with-123), is a hold and not a swipe, so it works either way.
+- **A key with text arms gives up [Swipe down to type the hint](#swiping-down-on-a-key-for-its-hint).** Its own down arm, if it has one, is what a swipe down types.
+- **A capital stays out-and-back.** On a top-row letter with an up arm, a flick up types the arm, and swiping out to it and back again types the arm's capital, the same as any other arm.
+- **Glide typing never starts on a special key**, so arms there cannot cost you a word. On a letter, the arm and the glide share the swipe by the reach rules above.
+
 ## Swiping to add 's
 
 <SettingsPath path="Typing / Gestures / Swipe to add 's" />
