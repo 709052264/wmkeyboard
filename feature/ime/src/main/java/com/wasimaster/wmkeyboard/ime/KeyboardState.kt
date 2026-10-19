@@ -3637,6 +3637,8 @@ data class KeyboardUiState(
      * highlights it; the toolbar's mode tool lights up while set.
      */
     val activeModeId: String? = null,
+    /** The Modes tool's None row is picked: no mode, whatever the bindings say. */
+    val noModePicked: Boolean = false,
     /**
      * Symbol set picked from the row's chip this session, overriding the
      * (possibly mode-supplied) persisted choice; cleared on field switch.

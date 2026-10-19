@@ -355,6 +355,7 @@ import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.keywordsEnabledFor
 import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.core.settings.usableTools
+import com.wasimaster.wmkeyboard.core.settings.NoKeyboardModeId
 import com.wasimaster.wmkeyboard.core.settings.resolveKeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.textShapeFields
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
@@ -4541,6 +4542,7 @@ open class WMKeyboardService : InputMethodService() {
                             modeSettings.customLayouts,
                         ),
                         activeModeId = mode?.id,
+                        noModePicked = manualModeId == NoKeyboardModeId,
                     )
                 }
                 if (!modeSettings.voiceBar.enabled) putVoiceAway()
@@ -7068,6 +7070,7 @@ open class WMKeyboardService : InputMethodService() {
                     modeSettings.customLayouts,
                 ),
                 activeModeId = activeMode?.id,
+                noModePicked = manualModeId == NoKeyboardModeId,
                 activeSymbolSetId = null,
                 // Harmless reset: the strip persists the pick on tap, so the
                 // persisted style takes over seamlessly on the next field.
@@ -30586,8 +30589,9 @@ open class WMKeyboardService : InputMethodService() {
     // ---- symbols / calculator / converter inserts ----
 
     /**
-     * Modes panel: apply a mode manually (null = back to automatic). The
-     * pick sticks for the current app and resets on the next app switch.
+     * Modes panel: apply a mode manually (null = back to automatic,
+     * [NoKeyboardModeId] = no mode at all). The pick sticks for the current
+     * app and resets on the next app switch.
      */
     fun onModeSelect(id: String?) {
         vibrate()
@@ -30629,6 +30633,7 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(
                 settings = settings,
                 activeModeId = mode?.id,
+                noModePicked = manualModeId == NoKeyboardModeId,
                 // The mode brings its own default set; drop the session pick.
                 activeSymbolSetId = null,
             )

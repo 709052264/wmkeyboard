@@ -709,6 +709,13 @@ fun KeyboardSettings.modesOverridingRow(row: BarRow): List<KeyboardMode> {
 }
 
 /**
+ * Manual pick meaning "no mode at all": the Modes tool's None row. Unlike a
+ * null pick (automatic), it also silences the modes whose app and field
+ * bindings match, until the pick is cleared like any other.
+ */
+const val NoKeyboardModeId = "__no_mode__"
+
+/**
  * Picks the active mode: a manual pick from the Modes tool wins, then the
  * most specific automatic match. A mode that names hint texts beats one that
  * names field kinds, which beats one that only names apps — so a password
@@ -725,6 +732,7 @@ fun resolveKeyboardMode(
     manualModeId: String?,
     hint: String? = null,
 ): KeyboardMode? {
+    if (manualModeId == NoKeyboardModeId) return null
     manualModeId?.let { id -> modes.firstOrNull { it.id == id }?.let { return it } }
     val matching = modes.filter { it.matchesField(packageName, fieldKinds, hint) }
     return matching.firstOrNull { it.hints.isNotEmpty() }

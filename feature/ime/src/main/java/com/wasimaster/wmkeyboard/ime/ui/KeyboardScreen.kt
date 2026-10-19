@@ -157,6 +157,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
@@ -440,6 +441,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.OctopusPlacement
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
+import com.wasimaster.wmkeyboard.core.settings.NoKeyboardModeId
 import com.wasimaster.wmkeyboard.core.transliteration.BengaliGraphemes
 import com.wasimaster.wmkeyboard.core.settings.OneHandedMode
 import com.wasimaster.wmkeyboard.core.settings.AlternateGroup
@@ -8144,7 +8146,8 @@ private fun DictionaryBarStrip(
 }
 
 /**
- * The Modes panel: pick which keyboard mode is active. "Automatic" follows
+ * The Modes panel: pick which keyboard mode is active. "None" turns every
+ * mode off, bindings included; "Automatic" follows
  * the per-app and per-field bindings; picking a mode by hand overrides them
  * until the user switches to another app. Modes are created and edited in
  * the settings app (long-press the tool).
@@ -8200,14 +8203,18 @@ private fun ModesPanel(
                 onClick = onOpenSettings,
             )
         }
-        // Index 0 is the leading "Automatic" row, so a mode sits at its own
-        // position plus one — the same offset the activate lambda undoes.
+        // Index 0 is the leading "None" row and 1 is "Automatic", so a mode
+        // sits at its own position plus two — the offset the lambda undoes.
         PanelFocusTarget(
             panel = PanelMode.MODES,
-            count = modes.size + 1,
+            count = modes.size + 2,
             columns = 1,
             onActivate = { index ->
-                if (index == 0) onModeSelect(null) else modes.getOrNull(index - 1)?.let { onModeSelect(it.id) }
+                when (index) {
+                    0 -> onModeSelect(NoKeyboardModeId)
+                    1 -> onModeSelect(null)
+                    else -> modes.getOrNull(index - 2)?.let { onModeSelect(it.id) }
+                }
             },
         )
         val focused = state.focusedIndex()
@@ -8216,16 +8223,27 @@ private fun ModesPanel(
         // Hoisted out of the list: the summaries are worded per mode, and a
         // LazyColumn's content block is not a composable scope.
         val resources = LocalContext.current.resources
+        val noneTitle = stringResource(CommonR.string.common_none)
+        val noneSubtitle = stringResource(R.string.ime_modes_none_subtitle)
         val autoTitle = stringResource(CommonR.string.common_auto)
         val autoSubtitle = stringResource(R.string.ime_modes_auto_subtitle)
         LazyColumn(state = listState, modifier = Modifier.weight(1f)) {
             item {
                 ModeRow(
+                    title = noneTitle,
+                    subtitle = noneSubtitle,
+                    icon = Icons.Outlined.Block,
+                    selected = state.noModePicked,
+                    focused = focused == 0,
+                ) { onModeSelect(NoKeyboardModeId) }
+            }
+            item {
+                ModeRow(
                     title = autoTitle,
                     subtitle = autoSubtitle,
                     icon = Icons.Outlined.AutoAwesome,
-                    selected = state.activeModeId == null,
-                    focused = focused == 0,
+                    selected = state.activeModeId == null && !state.noModePicked,
+                    focused = focused == 1,
                 ) { onModeSelect(null) }
             }
             itemsIndexed(modes) { index, mode ->
@@ -8234,7 +8252,7 @@ private fun ModesPanel(
                     subtitle = modeSummary(resources, mode),
                     icon = ModeIcons.icon(mode.icon),
                     selected = state.activeModeId == mode.id,
-                    focused = focused == index + 1,
+                    focused = focused == index + 2,
                 ) { onModeSelect(mode.id) }
             }
         }

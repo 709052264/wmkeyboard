@@ -102,8 +102,8 @@ When a mode draws the emoji row or the symbol row differently from its global se
 
 ## Keyboard modes
 
-<PhoneFrame side caption="The Modes tool: Automatic at the top, then one row per mode with its auto-activation summary.">
-  <Shot id="typing/modes-tool-panel" alt="The Modes tool: Automatic at the top, then one row per mode with its auto-activation summary." />
+<PhoneFrame side caption="The Modes tool: None and Automatic at the top, then one row per mode with its auto-activation summary.">
+  <Shot id="typing/modes-tool-panel" alt="The Modes tool: None and Automatic at the top, then one row per mode with its auto-activation summary." />
 </PhoneFrame>
 
 Beyond the global settings above, WM Keyboard can carry a different profile into different apps and fields, with its own theme, its own pinned toolbar tools and its own symbol row setup, switching automatically as you move between them.
@@ -163,7 +163,7 @@ A mode's **apps** list, **field-type** chips and **field hints** combine as an A
 
 When more than one mode's bindings match, the one that names a field hint wins over one that names a field type, which wins over one that only names apps. So a password box inside a coding app still gets the Passwords mode rather than Coding, and the "Extension" box of a rename dialog gets the mode written for it rather than the one for every single-line field. Beyond that, the first match in your mode list wins.
 
-You can also override the automatic pick from the keyboard itself. Open the **Modes** tool, from the toolbar or the toolbox, for a list starting with **Automatic** and its "Follow the app and field bindings of each mode" subtitle, then one row per mode. Tapping a mode pins it by hand. How long that pin lasts is **A mode you pick by hand**, under Keyboard modes: **Until you change app**, the default, or **Until you change it**, which keeps the mode on until you pick another or turn it off.
+You can also override the automatic pick from the keyboard itself. Open the **Modes** tool, from the toolbar or the toolbox, for a list starting with **None**, then **Automatic** and its "Follow the app and field bindings of each mode" subtitle, then one row per mode. **None** switches the current mode off, including one an app or field binding turned on, so the keyboard runs on your global settings alone. Tapping a mode pins it by hand. How long that pin (or **None**) lasts is **A mode you pick by hand**, under Keyboard modes: **Until you change app**, the default, or **Until you change it**, which keeps the mode on until you pick another or turn it off.
 
 A mode can also be one press away. In the [layout editor](/languages/custom-layouts/), set a key, a flick or a long-press alternate to **Toggle a keyboard mode** and pick the mode. Pressing it picks that mode exactly as the Modes tool would, and pressing it again goes back to **Automatic**. A peck mode on a flick of the `?123` key, say, is there for one URL and gone after it. A mode that is on because its apps or fields chose it has no "off" for the key to go back to, so the key leaves it on.
 

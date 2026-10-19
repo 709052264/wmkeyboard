@@ -347,6 +347,7 @@
 
     <!-- The Modes panel: which keyboard mode is active. -->
     <string name="ime_modes_empty">No modes yet. Create one in Settings → Modes.</string>
+    <string name="ime_modes_none_subtitle">No mode, even where one is bound to this app or field</string>
     <string name="ime_modes_auto_subtitle">Follow the app and field bindings of each mode</string>
     <string name="ime_modes_manual_note">A manual pick lasts until you switch apps.</string>
     <string name="ime_modes_settings_desc">Mode settings</string>
