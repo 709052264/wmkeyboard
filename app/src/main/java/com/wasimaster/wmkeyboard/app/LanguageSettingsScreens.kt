@@ -1034,6 +1034,30 @@ internal fun LanguageDetailScreen(
         }
     }
 
+    // Autocorrect per language (#802): English corrected and romanized
+    // Bengali kept as typed, on the same phone. Greyed out under the global
+    // switch, which still rules every language; the row keeps its own answer
+    // for when that comes back on.
+    SettingsGroup(stringResource(R.string.languages_autocorrect_group)) {
+        item {
+            val globalOn = settings.watch { it.correction.enabled }
+            ToggleSetting(
+                R.string.languages_autocorrect_title,
+                stringResource(
+                    if (globalOn) {
+                        R.string.languages_autocorrect_subtitle
+                    } else {
+                        R.string.languages_autocorrect_global_off_subtitle
+                    },
+                ),
+                settings.watch { langId !in it.correction.offLanguages },
+                info = stringResource(R.string.languages_autocorrect_info, lang.englishName),
+                enabled = globalOn,
+                default = true,
+            ) { scope.launch { repository.setAutocorrectForLanguage(langId, it) } }
+        }
+    }
+
     // Fancy Text: the style the one fancy layout draws and types. The strip
     // over the keys switches it too; this row makes it discoverable from
     // Settings and readable as a plain list.

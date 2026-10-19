@@ -41,7 +41,7 @@
     <!-- ==== Typing settings: automatic corrections ==== -->
     <string name="typing_autocorrect_title">Autocorrect</string>
     <string name="typing_autocorrect_subtitle">Fix typos automatically when you press space</string>
-    <string name="typing_autocorrect_info">When you press space, the keyboard compares the word you typed with the word list. If the word looks like a slip of a much more common word, the keyboard replaces it. The keyboard never corrects a word that you taught it. Autocorrect stays off in password fields.</string>
+    <string name="typing_autocorrect_info">When you press space, the keyboard compares the word you typed with the word list. If the word looks like a slip of a much more common word, the keyboard replaces it. The keyboard never corrects a word that you taught it. Autocorrect stays off in password fields. To turn it off for one language only, open that language in Languages &amp; layouts.</string>
 
     <string name="typing_autocorrect_confidence_title">Autocorrect confidence</string>
     <string name="typing_autocorrect_confidence_subtitle">How certain the keyboard must be before it corrects a word</string>

@@ -131,6 +131,13 @@
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_conjunct_backspace_info">Backspace usually deletes one code point at a time. This sometimes leaves half-formed clusters on the screen. With this setting on, one press deletes the whole cluster while you type <xliff:g id="language" example="Bengali">%1$s</xliff:g>. Other languages keep their own setting.</string>
 
+    <string name="languages_autocorrect_group">Autocorrect</string>
+    <string name="languages_autocorrect_title">Autocorrect this language</string>
+    <string name="languages_autocorrect_subtitle">Fix typos when you press space</string>
+    <string name="languages_autocorrect_global_off_subtitle">Autocorrect is off for all languages in Typing</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_autocorrect_info">Turn this off to keep each word you type in <xliff:g id="language" example="Bengali">%1$s</xliff:g> as you typed it, while other languages are still corrected. The suggestion strip still shows its suggestions, and you can tap one. The autocorrect switch in Typing turns autocorrect off for all languages.</string>
+
     <string name="languages_spelling_map_title">Spellings</string>
     <string name="languages_spelling_map_row_title">Use known spellings</string>
     <string name="languages_spelling_map_row_subtitle">Type "tmr" to get তোমার, and "table" to get টেবিল</string>

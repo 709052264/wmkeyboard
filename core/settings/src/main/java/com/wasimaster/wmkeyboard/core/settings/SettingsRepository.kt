@@ -2552,7 +2552,17 @@ data class AutocorrectSettings(
      * in lower case (#481). German writes every noun like this.
      */
     val dictionaryCapitals: Boolean = true,
-)
+    /**
+     * Languages autocorrect leaves alone while [enabled] stays on for the rest
+     * (#802): someone writing English and romanized Bengali side by side wants
+     * typos fixed in one and every word kept as typed in the other. Only the
+     * switched-off languages are stored, so a language added later corrects.
+     */
+    val offLanguages: Set<String> = emptySet(),
+) {
+    /** Whether a word typed in [languageId] may be replaced on commit. */
+    fun enabledFor(languageId: String): Boolean = enabled && languageId !in offLanguages
+}
 
 /**
  * The characters the keyboard types that the user did not: capitals at the
@@ -9534,6 +9544,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("autocorrect_skip_all_caps")
         private val AUTOCORRECT_ON_ENTER = booleanPreferencesKey("autocorrect_on_enter")
         private val AUTOCORRECT_ON_PUNCTUATION = booleanPreferencesKey("autocorrect_on_punctuation")
+        private val AUTOCORRECT_OFF_LANGS = stringSetPreferencesKey("autocorrect_off_langs")
         private val DICTIONARY_CAPITALS = booleanPreferencesKey("dictionary_capitals")
         private val AUTO_CAPITALIZE = booleanPreferencesKey("auto_capitalize")
         private val DOUBLE_SPACE_PERIOD = booleanPreferencesKey("double_space_period")
@@ -11432,6 +11443,7 @@ class SettingsRepository(private val context: Context) {
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
             dictionaryCapitals = p[DICTIONARY_CAPITALS] ?: defaults.correction.dictionaryCapitals,
+            offLanguages = p[AUTOCORRECT_OFF_LANGS] ?: defaults.correction.offLanguages,
         )
 
     private fun readAutoText(p: Preferences, defaults: KeyboardSettings) =
@@ -17140,6 +17152,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrect(value: Boolean) =
         editPrefs { it[AUTOCORRECT] = value }
+
+    /**
+     * Turn autocorrect on or off for one language (#802). Only the
+     * switched-off languages are stored; the global switch still rules them all.
+     */
+    suspend fun setAutocorrectForLanguage(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[AUTOCORRECT_OFF_LANGS].orEmpty()
+            it[AUTOCORRECT_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
 
     /** Bounds mirror `SuggestionEngine.MIN/MAX_AUTOCORRECT_CONFIDENCE`. */
     suspend fun setAutocorrectConfidence(value: Float) =

@@ -11328,7 +11328,7 @@ open class WMKeyboardService : InputMethodService() {
             // second-guessed.
             val committedWord = commitComposing(
                 ic,
-                autocorrect = endsWord && state.settings.correction.enabled &&
+                autocorrect = endsWord && state.settings.correction.enabledFor(state.language.id) &&
                     state.settings.correction.onPunctuation,
                 fixApostrophes = endsWord && state.settings.autoText.apostrophe,
                 expandPatterns = endsWord,
@@ -14362,7 +14362,7 @@ open class WMKeyboardService : InputMethodService() {
         val typedWord = composing.isNotEmpty() && composing.toString() != resumedWord
         val committed = commitComposing(
             ic,
-            autocorrect = state.settings.correction.enabled,
+            autocorrect = state.settings.correction.enabledFor(state.language.id),
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
         ) || tryUncomposedTrigger(ic, state, endedBySpace = true)
@@ -14501,7 +14501,8 @@ open class WMKeyboardService : InputMethodService() {
         recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
         commitComposing(
             ic,
-            autocorrect = state.settings.correction.enabled && state.settings.correction.onEnter,
+            autocorrect = state.settings.correction.enabledFor(state.language.id) &&
+                state.settings.correction.onEnter,
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
         ) || tryUncomposedTrigger(ic, state)
@@ -14668,10 +14669,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun onNewline() {
         val ic = currentInputConnection ?: return
         recordStat { onSeparator(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
-        val settings = _uiState.value.settings
+        val state = _uiState.value
+        val settings = state.settings
         commitComposing(
             ic,
-            autocorrect = settings.correction.enabled && settings.correction.onEnter,
+            autocorrect = settings.correction.enabledFor(state.language.id) && settings.correction.onEnter,
             fixApostrophes = settings.autoText.apostrophe,
             expandPatterns = true,
         )
@@ -21207,7 +21209,7 @@ open class WMKeyboardService : InputMethodService() {
             // asks the engine about that word and not about the keystrokes. A
             // resolution computed over "tieengs" could only be discarded.
             !isVietnameseTransliterator(state) &&
-            state.settings.correction.enabled && state.allowsTypingIntelligence
+            state.settings.correction.enabledFor(state.language.id) && state.allowsTypingIntelligence
 
     /**
      * Whether the composer writes Vietnamese by transliteration, Telex or VNI.
@@ -24729,7 +24731,7 @@ open class WMKeyboardService : InputMethodService() {
         ic.beginBatchEdit()
         val committed = commitComposing(
             ic,
-            autocorrect = state.settings.correction.enabled,
+            autocorrect = state.settings.correction.enabledFor(state.language.id),
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
         )
@@ -29980,7 +29982,13 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onAutocorrectToggle() {
         vibrate()
-        val next = !_uiState.value.settings.correction.enabled
+        val state = _uiState.value
+        val correction = state.settings.correction
+        val langId = state.language.id
+        // Lit only where it corrects, so a press on a language switched off in
+        // its own settings (#802) means "correct here": that language comes
+        // back on rather than every language going off.
+        val next = !correction.enabledFor(langId)
         Toast.makeText(
             this,
             if (next) {
@@ -29990,7 +29998,12 @@ open class WMKeyboardService : InputMethodService() {
             },
             Toast.LENGTH_SHORT,
         ).show()
-        serviceScope.launch { settingsRepository.setAutocorrect(next) }
+        serviceScope.launch {
+            if (next && langId in correction.offLanguages) {
+                settingsRepository.setAutocorrectForLanguage(langId, true)
+            }
+            if (next != correction.enabled) settingsRepository.setAutocorrect(next)
+        }
     }
 
     /**

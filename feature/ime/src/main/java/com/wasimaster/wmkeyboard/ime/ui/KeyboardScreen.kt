@@ -8515,7 +8515,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
         state.settings.suggestionStrip.phoneticEnglishFor(state.composer.phoneticLanguage)
     ToolbarTool.POWER_SAVING -> state.powerSavingOn
     ToolbarTool.THEMES -> state.panel == PanelMode.THEMES
-    ToolbarTool.AUTOCORRECT -> state.settings.correction.enabled
+    ToolbarTool.AUTOCORRECT -> state.settings.correction.enabledFor(state.language.id)
     ToolbarTool.SOUND_HAPTICS -> state.panel == PanelMode.SOUND_HAPTICS
     ToolbarTool.NUMPAD -> state.panel == PanelMode.NUMPAD
     ToolbarTool.HANDWRITING -> state.panel == PanelMode.HANDWRITING
