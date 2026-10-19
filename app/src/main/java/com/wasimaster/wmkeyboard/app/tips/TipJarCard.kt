@@ -143,10 +143,11 @@ internal fun TipJarCard(jar: TipJar) {
     }
 }
 
-private fun cardSwap(): ContentTransform =
-    (fadeIn(tween(360, delayMillis = 90)) + scaleIn(tween(360, delayMillis = 90), initialScale = 0.92f))
-        .togetherWith(fadeOut(tween(160)))
-        .using(SizeTransform(clip = false))
+private fun cardSwap(): ContentTransform = ContentTransform(
+    targetContentEnter = fadeIn(tween(360, delayMillis = 90)) + scaleIn(tween(360, delayMillis = 90), initialScale = 0.92f),
+    initialContentExit = fadeOut(tween(160)),
+    sizeTransform = SizeTransform(clip = false),
+)
 
 @Composable
 private fun Jar(

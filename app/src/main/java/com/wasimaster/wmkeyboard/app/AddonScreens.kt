@@ -879,7 +879,6 @@ private fun installTargets(
     return AddonLocales.pick(requested, enabledLangIds, deviceLocales)
         .filter { installed[it.key(repoId)] == null }
 }
-}
 
 @Composable
 private fun RepositoryRow(
