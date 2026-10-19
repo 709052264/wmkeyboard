@@ -260,6 +260,21 @@ class SettingsSearchIndexTest {
     )
 
     @Test
+    fun `a mode's typing overrides are indexed on the mode list with an icon`() {
+        // #797: the editor drew these two overrides, but search and the row
+        // icons never heard of them. mode() routes to the mode list, since a
+        // result cannot know which mode the user means.
+        val icons = File(appDir, "SettingsRowIcons.kt").readText()
+        for (key in listOf("modes_glide_title", "modes_two_thumb_title")) {
+            assertTrue(
+                "$key is not a mode() entry in the index",
+                Regex("""mode\(R\.string\.$key\b""").containsMatchIn(indexSource),
+            )
+            assertTrue("$key has no row icon", "put(R.string.$key)" in icons)
+        }
+    }
+
+    @Test
     fun `search ranks an exact title above a subtitle mention`() {
         val results = searchSettings("autocorrect", fixture)
         assertTrue(results.isNotEmpty())
