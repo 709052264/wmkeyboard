@@ -16,6 +16,8 @@ import com.wasimaster.wmkeyboard.core.smarthome.hue.HueBackend
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueTls
 import com.wasimaster.wmkeyboard.core.smarthome.openhab.OpenHabBackend
 import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsBackend
+import com.wasimaster.wmkeyboard.core.smarthome.switchbot.SwitchBotBackend
+import com.wasimaster.wmkeyboard.core.smarthome.tuya.TuyaBackend
 import com.wasimaster.wmkeyboard.ime.homeassistant.googlehome.GoogleHomeSupport
 import kotlinx.coroutines.CoroutineScope
 import okhttp3.OkHttpClient
@@ -63,6 +65,18 @@ object HomeBackends {
             key = account.key,
             initial = account,
             http = HomeHttp(client(NetSource.OPENHAB)),
+            scope = scope,
+        )
+        HomeKind.TUYA -> TuyaBackend(
+            key = account.key,
+            initial = account,
+            http = HomeHttp(client(NetSource.TUYA)),
+            scope = scope,
+        )
+        HomeKind.SWITCHBOT -> SwitchBotBackend(
+            key = account.key,
+            initial = account,
+            http = HomeHttp(client(NetSource.SWITCHBOT)),
             scope = scope,
         )
         HomeKind.GOOGLE_HOME -> GoogleHomeSupport.create(context, account, scope)

@@ -467,6 +467,22 @@ object ProviderTypes {
         CredentialSpec(url = Need.REQUIRED, key = Need.OPTIONAL), multiInstance = true, freeSoftware = true, selfHosted = true,
     )
 
+    /**
+     * Smart Life and Tuya Smart, through the user's own Tuya Developer
+     * Platform project: the address is its data centre, picked from a list in
+     * the row's setup; the key its Access Secret; the Access ID in `extra`.
+     */
+    val TUYA = ProviderType(
+        "tuya", HOMES, R.string.core_tools_provider_tuya, R.string.core_tools_provider_tuya_desc,
+        CredentialSpec(key = Need.REQUIRED), multiInstance = true,
+    )
+
+    /** The token from the SwitchBot app's developer options is the key; its secret key is in `extra`. */
+    val SWITCHBOT = ProviderType(
+        "switchbot", HOMES, R.string.core_tools_provider_switchbot, R.string.core_tools_provider_switchbot_desc,
+        CredentialSpec(key = Need.REQUIRED), multiInstance = true,
+    )
+
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
@@ -475,7 +491,7 @@ object ProviderTypes {
         SEARXNG, TAVILY, BRAVE,
         UNSPLASH, PEXELS,
         ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
-        HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB,
+        HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         VISION_OCR, RENS,
     )
 

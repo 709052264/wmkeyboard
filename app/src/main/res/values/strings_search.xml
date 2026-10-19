@@ -101,7 +101,7 @@
     <string name="search_kw_ime_tool_vocabulary">spaced repetition anki srs</string>
     <string name="search_kw_ime_tool_notes">notebook memo jot scratchpad diary</string>
     <string name="search_kw_ime_tool_weather">forecast temperature rain</string>
-    <string name="search_kw_ime_tool_home_assistant">smart home hass googlehome smartthings hue openhab lights switch thermostat scene assist iot</string>
+    <string name="search_kw_ime_tool_home_assistant">smart home hass googlehome smartthings hue openhab tuya smartlife switchbot lights switch thermostat scene assist iot</string>
     <string name="search_kw_ime_tool_clock">alarm timer stopwatch time zone world clock pomodoro countdown</string>
     <string name="search_kw_ime_tool_location">gps pin share whereabouts navigation</string>
     <string name="search_kw_ime_tool_wikipedia">encyclopedia wiki article</string>

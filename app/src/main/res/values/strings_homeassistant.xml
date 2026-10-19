@@ -6,7 +6,7 @@
 
     <!-- Banners -->
     <string name="ha_banner_off">The tool is off. Turn it on, then add a home.</string>
-    <string name="ha_banner_no_homes">No home yet. Add one below: Home Assistant, Google Home, SmartThings, a Hue bridge or openHAB.</string>
+    <string name="ha_banner_no_homes">No home yet. Add one below: Home Assistant, Google Home, SmartThings, a Hue bridge, openHAB, Smart Life or SwitchBot.</string>
     <string name="ha_banner_not_signed_in">Not signed in.</string>
     <string name="ha_banner_connected">Connected to %1$s</string>
     <string name="ha_banner_connected_version">Connected to %1$s · version %2$s</string>
@@ -26,7 +26,7 @@
     <string name="ha_enabled_title">Smart home tool</string>
     <string name="ha_enabled_subtitle">Lights, switches, climate, media, scenes and sensors as tiles in the keyboard, live</string>
     <string name="smarthome_homes_title">Homes</string>
-    <string name="smarthome_homes_info">Every home on the list is connected while the tool runs, and its rooms join the panel\'s tabs. Add a Home Assistant, Google Home, SmartThings, a Hue bridge or an openHAB server; more than one is fine.</string>
+    <string name="smarthome_homes_info">Every home on the list is connected while the tool runs, and its rooms join the panel\'s tabs. Add a Home Assistant, Google Home, SmartThings, a Hue bridge, an openHAB server, a Smart Life (Tuya) project or a SwitchBot account; more than one is fine.</string>
 
     <!-- Home Assistant editor -->
     <string name="ha_external_url_label">Remote address (optional)</string>
@@ -77,6 +77,21 @@
     <!-- openHAB editor -->
     <string name="oh_token_supporting">The API token comes from your openHAB profile (the user menu, Create new API token). Leave it blank if your server lets devices on your network in without one.</string>
 
+    <!-- Tuya editor -->
+    <string name="tuya_setup_steps">Tuya lets other apps in only through a project of your own. At platform.tuya.com, sign up and create a Smart Home cloud project in your app account\'s data centre. Under Devices, Link App Account, scan the QR code with Smart Life or Tuya Smart (Me tab, scan icon). Then copy the project\'s Access ID and Access Secret here. The free plan needs renewing every few months on Tuya\'s site.</string>
+    <string name="tuya_region_title">Data centre</string>
+    <string name="tuya_access_id_label">Access ID</string>
+    <string name="tuya_access_id_supporting">The project\'s Overview tab, Authorization Key</string>
+    <string name="tuya_access_secret_label">Access Secret</string>
+    <string name="tuya_access_secret_supporting">Beside the Access ID. Kept only on this phone; it signs each request and is never sent.</string>
+
+    <!-- SwitchBot editor -->
+    <string name="switchbot_setup_steps">In the SwitchBot app: Profile, Preferences, About, then tap App Version ten times. Open the Developer Options that appear and tap Get Token for the token and the secret key. Bluetooth devices need Cloud Services turned on in their settings, and a hub.</string>
+    <string name="switchbot_token_label">Token</string>
+    <string name="switchbot_token_supporting">Developer Options, Token. SwitchBot allows 10,000 requests a day for it.</string>
+    <string name="switchbot_secret_label">Secret key</string>
+    <string name="switchbot_secret_supporting">Developer Options, Secret Key. Kept only on this phone; it signs each request and is never sent.</string>
+
     <!-- Google Home editor -->
     <string name="gh_choose_subtitle">Google\'s own screen asks which account and which home, and which kinds of device the keyboard may see. Needs the Google Home app on this phone.</string>
     <string name="gh_granted">Access granted to %1$s.</string>
@@ -119,7 +134,7 @@
     <!-- Link group -->
     <string name="ha_group_link">Connection lifetime</string>
     <string name="ha_lifetime_title">Stay connected</string>
-    <string name="ha_lifetime_info">Home Assistant, a Hue bridge and openHAB hold a connection open so tiles change the moment the house does; SmartThings is asked every few seconds instead. It costs little, but it is a connection.</string>
+    <string name="ha_lifetime_info">Home Assistant, a Hue bridge and openHAB hold a connection open so tiles change the moment the house does; SmartThings, Smart Life and SwitchBot are asked every few seconds to once a minute instead. It costs little, but it is a connection.</string>
     <string name="ha_lifetime_panel">While the panel is open</string>
     <string name="ha_lifetime_panel_detail">Connects when you open the tool and drops a minute after you leave it.</string>
     <string name="ha_lifetime_keyboard">While the keyboard is shown</string>

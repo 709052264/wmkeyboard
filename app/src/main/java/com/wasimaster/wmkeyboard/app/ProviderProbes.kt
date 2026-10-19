@@ -25,12 +25,16 @@ import com.wasimaster.wmkeyboard.core.tools.TranslateServerClient
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
 import com.wasimaster.wmkeyboard.core.tools.KlipyClient
 import com.wasimaster.wmkeyboard.app.homeassistant.HaSignIn
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.smarthome.HomeHttp
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueApi
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueUrl
 import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsBackend
+import com.wasimaster.wmkeyboard.core.smarthome.switchbot.SwitchBotBackend
+import com.wasimaster.wmkeyboard.core.smarthome.tuya.TuyaBackend
 import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -170,8 +174,19 @@ internal object ProviderProbes {
                 probe { HomeBackends.http(NetSource.SMARTTHINGS).get("${SmartThingsBackend.API}/locations", HomeHttp.bearer(token)).require() }
             }
         }
+        ProviderTypes.TUYA.id -> {
+            val account = credential.homeAccountFor(HomeKind.TUYA)
+            if (!account.ready) null else probe { TuyaBackend.probe(HomeBackends.http(NetSource.TUYA), account) }
+        }
+        ProviderTypes.SWITCHBOT.id -> {
+            val account = credential.homeAccountFor(HomeKind.SWITCHBOT)
+            if (!account.ready) null else probe { SwitchBotBackend.probe(HomeBackends.http(NetSource.SWITCHBOT), account) }
+        }
         else -> null
     }
+
+    private fun ProviderCredential.homeAccountFor(kind: HomeKind): HomeAccount =
+        HomeAccount(id, kind, url = url.trim(), apiKey = apiKey.trim(), extra = extra)
 
     /** A word every provider has something for. */
     private const val PROBE_WORD = "hello"

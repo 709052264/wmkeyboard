@@ -1,6 +1,6 @@
 ---
 title: "Smart home"
-description: "Your home from the keyboard: Home Assistant, Google Home, SmartThings, a Philips Hue bridge or openHAB as rooms of live tiles for lights, blinds, thermostats, media, locks and sensors, with a typed command bar for Home Assistant's Assist."
+description: "Your home from the keyboard: Home Assistant, Google Home, SmartThings, a Philips Hue bridge, openHAB, Smart Life (Tuya) or SwitchBot as rooms of live tiles for lights, blinds, thermostats, media, locks and sensors, with a typed command bar for Home Assistant's Assist."
 sidebar:
   order: 16.5
 ---
@@ -9,9 +9,9 @@ import SettingsPath from '@components/SettingsPath.astro';
 
 The **Smart home** tool puts your house inside the keyboard. It connects to the homes you list, shows every room as a tab of tiles, and keeps them live: when somebody flips a wall switch, the tile rings and changes while you watch. A tap switches a light, runs a scene or types a sensor's reading into your message. A hold opens the thing's own card, with a brightness slider, a thermostat dial, blinds buttons, the media transport, or a lock that takes a hold to open. With a Home Assistant on the list, a bar under the tiles takes a sentence for Assist, so `turn off the kitchen lights` typed with the keyboard does exactly that.
 
-Five kinds of home can be on the list, and more than one at once: [Home Assistant](#home-assistant), [Google Home](#google-home), [SmartThings](#smartthings), a [Philips Hue bridge](#philips-hue-bridge) and [openHAB](#openhab). Each is a row of the tool's [provider list](/tools/providers/): add it once, sign in or pair, and its rooms join the panel. The panel talks only to the homes you listed; nothing about your home passes through any other service.
+Seven kinds of home can be on the list, and more than one at once: [Home Assistant](#home-assistant), [Google Home](#google-home), [SmartThings](#smartthings), a [Philips Hue bridge](#philips-hue-bridge), [openHAB](#openhab), [Smart Life and Tuya](#smart-life-and-tuya) and [SwitchBot](#switchbot). Each is a row of the tool's [provider list](/tools/providers/): add it once, sign in or pair, and its rooms join the panel. The panel talks only to the homes you listed; nothing about your home passes through any other service.
 
-Open **Smart home** from the toolbox, or type `hass`, `smarthome`, `googlehome`, `smartthings`, `hue` or `openhab` on its own and tap the chip.
+Open **Smart home** from the toolbox, or type `hass`, `smarthome`, `googlehome`, `smartthings`, `hue`, `openhab`, `tuya`, `smartlife` or `switchbot` on its own and tap the chip.
 
 ## Adding a home
 
@@ -62,6 +62,25 @@ What arrives, live over the bridge's event stream: every light with brightness, 
 Your openHAB server, at its address, with an API token from your profile (the user menu, **Create new API token**). Leave the token blank when your server lets devices on your network in without one.
 
 Items map by type and semantic tag: Switch, Dimmer and Color items are lights or switches (a `Lock` tag makes a lock), Rollershutter is a cover, Contact a contact sensor, Number a sensor or, with a `Setpoint` tag, a slider, String a selection or a text, Player a media player. Rooms and floors come from the semantic model: groups tagged as locations. States arrive live over the server's event stream.
+
+### Smart Life and Tuya
+
+Devices in the Smart Life or Tuya Smart app, through Tuya's cloud. Tuya lets another app in only through a developer project of your own, so this takes a one-time setup on Tuya's site, free of charge:
+
+1. Sign up at `platform.tuya.com` and create a cloud project. Pick **Smart Home** as the industry and development method, and the data centre that serves the country your app account was registered in; Tuya's own data centre table lists them.
+2. In the project, open **Devices**, then **Link App Account**, and add your account: the page shows a QR code that you scan from the Smart Life or Tuya Smart app (**Me** tab, the scan icon). Your devices appear in the project.
+3. Make sure the project's **Service API** list has **IoT Core** and **Smart Home Scene Linkage**; the first is added for you, the second gives the scenes.
+4. Copy the **Access ID** and **Access Secret** from the project's **Overview** into the keyboard's setup sheet, and pick the same data centre there.
+
+The Access Secret stays on the phone: it signs each request and is never sent. Tuya's free trial of the cloud services has to be extended on its site from time to time; when it lapses, the home shows as refused until you extend it. One row per project, so two app accounts can sit side by side.
+
+Tuya has no push channel a phone can hold, so the panel asks for the device list every 30 seconds while it is open, and the dot stays amber. What arrives: lights with brightness, colour temperature and colour; plugs, power strips (one switch per socket) and wall switches; fans; curtains and garage door openers; thermostats, heaters and air conditioners; and temperature, humidity, battery, power, voltage, energy, CO2, PM2.5, door, motion, presence, leak, smoke and gas readings. Rooms and tap-to-run scenes come from the app's homes. Locks and cameras are left out: Tuya's cloud opens a lock only through a separate password flow.
+
+### SwitchBot
+
+Your SwitchBot devices through SwitchBot's cloud, with the token and secret key from the SwitchBot app: **Profile**, **Preferences**, **About**, then tap **App Version** ten times; **Developer Options** appears, and **Get Token** shows both. Paste them into the setup sheet. The secret key stays on the phone and only signs requests. Bluetooth devices answer through a hub, and only once **Cloud Services** is on in each device's settings.
+
+SwitchBot allows 10,000 requests a day per account, and a device's state is one request, so the panel asks each device that reports anything once a minute while it is open; a tap acts at once and checks the device two seconds later. What arrives: bulbs, strips and ceiling lights; plugs, relays (two switches for a 2PM) and Bots; Curtain, Roller Shade and Blind Tilt, with position; the garage door opener; locks, with the door sensor where there is one; circulator fans and air purifiers; the radiator thermostat; and meter, CO2, motion, contact, presence and leak readings. The infrared remotes a hub has learnt are switches that remember what the keyboard last sent them, since a remote cannot report. Manual scenes run from their tiles. SwitchBot has no rooms, so its things sit under **Elsewhere**.
 
 ## The panel
 
@@ -142,10 +161,10 @@ Assist speaks the language you are typing in, when **Send the keyboard's languag
 
 ## Details & edge cases
 
-- **What is sent, and where.** Only to the homes you listed: each home's key in a header, the commands you give, the states it sends back, and a camera still when you ask for one. Home Assistant is a WebSocket to `/api/websocket`; a Hue bridge and openHAB hold an event stream open; SmartThings is asked every ten seconds; Google Home goes through Play services. All of it only while the panel is open or the keyboard is shown, and a minute after. Nothing goes out when the tool is off or no home is signed in. The [network activity log](/privacy/network-activity/) shows every request under the home's platform.
+- **What is sent, and where.** Only to the homes you listed: each home's key in a header, the commands you give, the states it sends back, and a camera still when you ask for one. Home Assistant is a WebSocket to `/api/websocket`; a Hue bridge and openHAB hold an event stream open; SmartThings is asked every ten seconds, Smart Life every 30 and SwitchBot once a minute; Google Home goes through Play services. All of it only while the panel is open or the keyboard is shown, and a minute after. Nothing goes out when the tool is off or no home is signed in. The [network activity log](/privacy/network-activity/) shows every request under the home's platform.
 - **Plain HTTP to your own server.** A Home Assistant or openHAB address without `https://` is plain HTTP on your own network, which is how most installs answer. A remote address should be `https://`; a bare public domain is taken as such. A Hue bridge is always HTTPS, with its own certificate pinned at pairing.
 - **When a stream cannot connect**, Home Assistant falls back to its plain web API: taps still work, states refresh when you act, and the dot turns amber. When nothing answers, that home's tiles stay as last seen, dimmed, under a banner with **Retry**; the other homes carry on.
-- **A key that stops working** (you revoked it, the server was reset, a SmartThings token expired) shows as a red dot and a banner on the tool's page. Edit the home and sign in again; nothing else is lost.
+- **A key that stops working** (you revoked it, the server was reset, a SmartThings token expired, a Tuya trial lapsed) shows as a red dot and a banner on the tool's page. Edit the home and sign in again; nothing else is lost.
 - **Several homes.** Rooms with the same name in two homes are two tabs, each with its home's name first. Favourites and hidden things remember which home they belong to.
 - **Before the first unlock** after a restart, the tool is not available: the keys live in the part of the phone that opens with your unlock.
 - **Backups** leave every home's key out unless you turn on **Include API keys**; the addresses and the list go with them.

@@ -96,4 +96,8 @@
     <string name="core_tools_provider_hue_desc">Lights, rooms, scenes and sensors straight from a Hue bridge on your Wi-Fi. Nothing leaves the house.</string>
     <string name="core_tools_provider_openhab" translatable="false">openHAB</string>
     <string name="core_tools_provider_openhab_desc">An openHAB server: its items, live, with rooms from the semantic model.</string>
+    <string name="core_tools_provider_tuya">Smart Life / Tuya</string>
+    <string name="core_tools_provider_tuya_desc">Smart Life and Tuya Smart devices, rooms and scenes, through a free Tuya developer project linked to your app account. States refresh while the panel is open.</string>
+    <string name="core_tools_provider_switchbot" translatable="false">SwitchBot</string>
+    <string name="core_tools_provider_switchbot_desc">Your SwitchBot devices, infrared remotes and scenes, through SwitchBot\'s cloud with the token from its app. States refresh once a minute while the panel is open.</string>
 </resources>

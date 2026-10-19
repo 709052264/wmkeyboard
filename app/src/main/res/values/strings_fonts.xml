@@ -101,7 +101,7 @@
     <string name="fonts_tool_redo_desc">One press sends the redo shortcut of the editor</string>
     <string name="fonts_tool_moon_phase_desc">The current phase, the illumination and the next full moon and new moon</string>
     <string name="fonts_tool_weather_desc">Current conditions for a saved location</string>
-    <string name="fonts_tool_home_assistant_desc">Your home from the keyboard: Home Assistant, Google Home, SmartThings, Hue or openHAB as rooms of lights, switches, blinds, thermostats, media and sensors, live</string>
+    <string name="fonts_tool_home_assistant_desc">Your home from the keyboard: Home Assistant, Google Home, SmartThings, Hue, openHAB, Smart Life or SwitchBot as rooms of lights, switches, blinds, thermostats, media and sensors, live</string>
     <string name="fonts_tool_clock_desc">World clocks, alarms, timers, a stopwatch, a meeting planner and date maths, and any time typed in the form you pick</string>
     <string name="fonts_tool_send_files_desc">Send a file to anyone as an encrypted link that expires, or straight to a phone nearby, and receive both kinds</string>
     <string name="fonts_tool_gallery_desc">Your photos and videos inside the keyboard: albums, picks, a viewer and an editor, and a send that gives the app only a copy</string>

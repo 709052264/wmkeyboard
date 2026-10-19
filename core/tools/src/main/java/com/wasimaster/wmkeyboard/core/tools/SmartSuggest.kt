@@ -1891,7 +1891,7 @@ object SmartSuggest {
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
         // Not "home" or "lights" alone: both are everyday prose.
-        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab"),
+        ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab", "tuya", "smartlife", "switchbot"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".
         ToolbarTool.GALLERY to listOf("gallery", "photos", "pics"),
         ToolbarTool.LEVEL to listOf("level"),

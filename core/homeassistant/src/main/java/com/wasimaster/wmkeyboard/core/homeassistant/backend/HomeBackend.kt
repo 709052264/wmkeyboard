@@ -20,6 +20,8 @@ enum class HomeKind(val typeId: String) {
     SMARTTHINGS("smartthings"),
     HUE("hue"),
     OPENHAB("openhab"),
+    TUYA("tuya"),
+    SWITCHBOT("switchbot"),
     ;
 
     companion object {
@@ -76,6 +78,12 @@ object HomeKeys {
     const val STRUCTURE_ID = "structure_id"
     const val ACCOUNT = "account"
     const val GRANTED = "granted"
+
+    /** Tuya: the cloud project's Access ID. Its Access Secret is the credential's `apiKey`, its data centre the address. */
+    const val CLIENT_ID = "client_id"
+
+    /** SwitchBot: the secret key that signs each request. The token is the credential's `apiKey`. */
+    const val SECRET = "secret"
 }
 
 /**
@@ -96,9 +104,9 @@ data class HomeAccount(
     /** Something to connect to. */
     val hasServer: Boolean
         get() = when (kind) {
-            HomeKind.GOOGLE_HOME, HomeKind.SMARTTHINGS -> true
+            HomeKind.GOOGLE_HOME, HomeKind.SMARTTHINGS, HomeKind.SWITCHBOT -> true
             HomeKind.HOME_ASSISTANT -> url.isNotBlank() || extra(HomeKeys.EXTERNAL_URL) != null
-            HomeKind.HUE, HomeKind.OPENHAB -> url.isNotBlank()
+            HomeKind.HUE, HomeKind.OPENHAB, HomeKind.TUYA -> url.isNotBlank()
         }
 
     /** Signed in, paired, or granted, as the kind requires. */
@@ -108,6 +116,8 @@ data class HomeAccount(
             HomeKind.GOOGLE_HOME -> extra(HomeKeys.GRANTED) == "1"
             HomeKind.HUE -> apiKey.isNotBlank()
             HomeKind.OPENHAB -> true
+            HomeKind.TUYA -> apiKey.isNotBlank() && extra(HomeKeys.CLIENT_ID) != null
+            HomeKind.SWITCHBOT -> apiKey.isNotBlank() && extra(HomeKeys.SECRET) != null
         }
 
     val ready: Boolean get() = hasServer && signedIn

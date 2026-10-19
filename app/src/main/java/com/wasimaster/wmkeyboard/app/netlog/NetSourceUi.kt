@@ -152,6 +152,8 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.SMARTTHINGS -> R.string.netlog_source_smartthings to R.string.netlog_sent_smartthings
     NetSource.HUE -> R.string.netlog_source_hue to R.string.netlog_sent_hue
     NetSource.OPENHAB -> R.string.netlog_source_openhab to R.string.netlog_sent_openhab
+    NetSource.TUYA -> R.string.netlog_source_tuya to R.string.netlog_sent_tuya
+    NetSource.SWITCHBOT -> R.string.netlog_source_switchbot to R.string.netlog_sent_switchbot
     NetSource.OTHER -> R.string.netlog_source_other to R.string.netlog_sent_other
 }
 
@@ -201,7 +203,7 @@ private val DataSaverSources = NetSource.entries.toSet() - setOf(
     // The user's own server on their own network; a data saver has nothing to save there.
     NetSource.HOME_ASSISTANT, NetSource.HUE, NetSource.OPENHAB,
     // A few small polls while the panel is open, on the user's say-so.
-    NetSource.SMARTTHINGS,
+    NetSource.SMARTTHINGS, NetSource.TUYA, NetSource.SWITCHBOT,
     // One small list, fetched only when its button is pressed.
     NetSource.SUPPORTERS,
     // One small request per share the user pressed; its own switch is on the Location page.

@@ -47,6 +47,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueApi
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueBridgeInfo
 import com.wasimaster.wmkeyboard.core.smarthome.hue.HueUrl
+import com.wasimaster.wmkeyboard.core.smarthome.tuya.TuyaRegions
 import com.wasimaster.wmkeyboard.ime.homeassistant.HaAndroidMdns
 import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
 import com.wasimaster.wmkeyboard.ime.homeassistant.HueAndroidMdns
@@ -76,6 +77,8 @@ internal fun HomeProviderExtras(
         HomeKind.SMARTTHINGS -> SmartThingsExtras(repository, draft, isNew, onSave, onDismiss)
         HomeKind.HUE -> HueExtras(draft, onDraft)
         HomeKind.OPENHAB -> OpenHabExtras()
+        HomeKind.TUYA -> TuyaExtras(draft, onDraft)
+        HomeKind.SWITCHBOT -> SwitchBotExtras(draft, onDraft)
         HomeKind.GOOGLE_HOME -> GoogleHomeExtras(draft, onDraft)
         null -> Unit
     }
@@ -86,6 +89,8 @@ internal fun homeReady(type: ProviderType, draft: ProviderCredential): Boolean =
     HomeKind.HOME_ASSISTANT -> draft.url.isNotBlank()
     HomeKind.HUE -> draft.url.isNotBlank() && draft.apiKey.isNotBlank()
     HomeKind.OPENHAB -> draft.url.isNotBlank()
+    HomeKind.TUYA -> draft.url.isNotBlank() && draft.apiKey.isNotBlank() && !draft.extra[HomeKeys.CLIENT_ID].isNullOrBlank()
+    HomeKind.SWITCHBOT -> draft.apiKey.isNotBlank() && !draft.extra[HomeKeys.SECRET].isNullOrBlank()
     HomeKind.SMARTTHINGS, HomeKind.GOOGLE_HOME, null -> true
 }
 
@@ -403,6 +408,68 @@ private fun HueExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -
 private fun OpenHabExtras() {
     Text(
         stringResource(R.string.oh_token_supporting),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
+    )
+}
+
+// ---- Tuya ------------------------------------------------------------------------------
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TuyaExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
+    Hint(stringResource(R.string.tuya_setup_steps))
+    Text(stringResource(R.string.tuya_region_title), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 24.dp)) {
+        TuyaRegions.all.forEach { r ->
+            FilterChip(
+                selected = TuyaRegions.base(draft.url) == r.base,
+                onClick = { onDraft(draft.copy(url = r.base)) },
+                label = { Text(r.label) },
+            )
+        }
+    }
+    StoredTextField(
+        label = stringResource(R.string.tuya_access_id_label),
+        value = draft.extra[HomeKeys.CLIENT_ID].orEmpty(),
+        supporting = stringResource(R.string.tuya_access_id_supporting),
+    ) { v -> onDraft(draft.copy(extra = if (v.isBlank()) draft.extra - HomeKeys.CLIENT_ID else draft.extra + (HomeKeys.CLIENT_ID to v.trim()))) }
+    StoredTextField(
+        label = stringResource(R.string.tuya_access_secret_label),
+        value = draft.apiKey,
+        supporting = stringResource(R.string.tuya_access_secret_supporting),
+        password = true,
+        keyboardType = KeyboardType.Password,
+    ) { onDraft(draft.copy(apiKey = it.trim())) }
+}
+
+// ---- SwitchBot -------------------------------------------------------------------------
+
+@Composable
+private fun SwitchBotExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
+    Hint(stringResource(R.string.switchbot_setup_steps))
+    StoredTextField(
+        label = stringResource(R.string.switchbot_token_label),
+        value = draft.apiKey,
+        supporting = stringResource(R.string.switchbot_token_supporting),
+        password = true,
+        keyboardType = KeyboardType.Password,
+        multiLine = true,
+    ) { onDraft(draft.copy(apiKey = it.trim())) }
+    StoredTextField(
+        label = stringResource(R.string.switchbot_secret_label),
+        value = draft.extra[HomeKeys.SECRET].orEmpty(),
+        supporting = stringResource(R.string.switchbot_secret_supporting),
+        password = true,
+        keyboardType = KeyboardType.Password,
+    ) { v -> onDraft(draft.copy(extra = if (v.isBlank()) draft.extra - HomeKeys.SECRET else draft.extra + (HomeKeys.SECRET to v.trim()))) }
+}
+
+@Composable
+private fun Hint(text: String) {
+    Text(
+        text,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),

@@ -712,6 +712,8 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.SMARTTHINGS.id -> Color(0xFF1F8EFA)
     ProviderTypes.HUE.id -> Color(0xFF0065D3)
     ProviderTypes.OPENHAB.id -> Color(0xFFE64A19)
+    ProviderTypes.TUYA.id -> Color(0xFFFF4800)
+    ProviderTypes.SWITCHBOT.id -> Color(0xFFE60012)
     else -> when {
         type == null -> Color(0xFF757575)
         type.onDevice -> Color(0xFF2E7D32)

@@ -27,7 +27,7 @@
     <string name="ime_ha_status_cache">Last known</string>
 
     <string name="ime_ha_empty_title">Your home, from the keyboard</string>
-    <string name="ime_ha_empty_body">Add your home (Home Assistant, Google Home, SmartThings, a Hue bridge or openHAB) to switch lights, set the thermostat and run scenes while you type.</string>
+    <string name="ime_ha_empty_body">Add your home (Home Assistant, Google Home, SmartThings, a Hue bridge, openHAB, Smart Life or SwitchBot) to switch lights, set the thermostat and run scenes while you type.</string>
     <string name="ime_ha_empty_connect">Connect</string>
     <string name="ime_ha_found_title">Found %1$s</string>
     <string name="ime_ha_found_body">A Home Assistant on this network. Sign in to it in your browser; the keyboard gets no password, only a key it can use.</string>
