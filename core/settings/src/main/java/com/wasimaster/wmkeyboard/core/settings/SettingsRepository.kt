@@ -10896,12 +10896,30 @@ class SettingsRepository(private val context: Context) {
         return if (borrowed.sourceChar != null) borrowed else defaults.gesture.possessiveKey
     }
 
+    /**
+     * [key]'s stored JSON, decoded, or null when it is unset: the same decode
+     * as before, answered from [DecodedPrefs] while the stored text is
+     * unchanged.
+     *
+     * Every DataStore emission used to decode the layouts, themes, symbol sets
+     * and modes afresh, so a toggle write handed the keyboard new instances of
+     * all of them. Downstream caches key on identity (the secondary grids, the
+     * compiled layout set) and missed on every write, and every structural
+     * comparison of the settings walked each custom layout and theme key by
+     * key, once per collector of the keyboard's state. Unchanged text now
+     * gives back the very object it gave last time.
+     */
+    private fun <T : Any> Preferences.decoded(key: Preferences.Key<String>, decode: (String) -> T): T? {
+        val raw = this[key] ?: return null
+        return DecodedPrefs.get(key.name, raw, decode)
+    }
+
     private fun mapPreferences(p: Preferences): KeyboardSettings {
         val defaults = storedDefaults
         // Layouts resolve first: the input mode is read off the active layout,
         // so it has to be known before the settings object is built. The
         // pre-registry migration lives in resolveLayoutSelection.
-        val customLayouts = p[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }
+        val customLayouts = p.decoded(CUSTOM_LAYOUTS) { LayoutCodec.decodeList(it) }
             ?: defaults.customLayouts
         val layoutSelection = resolveLayoutSelection(
             storedLayoutId = p[ACTIVE_LAYOUT_ID],
@@ -10919,7 +10937,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.recentLayoutIds,
             customLayouts = customLayouts,
             enabledLanguages = layoutSelection.enabledLanguages,
-            secondaryLanguages = p[SECONDARY_LANGUAGES]?.let { decodeSecondaryLanguages(it) }
+            secondaryLanguages = p.decoded(SECONDARY_LANGUAGES) { decodeSecondaryLanguages(it) }
                 ?: defaults.secondaryLanguages,
             language = layoutSelection.active.language(),
             script = layoutSelection.active.script(),
@@ -10927,7 +10945,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.themeMode,
             dynamicColor = p[DYNAMIC_COLOR] ?: defaults.dynamicColor,
             keyboardThemeId = p[KEYBOARD_THEME_ID] ?: defaults.keyboardThemeId,
-            customThemes = p[CUSTOM_THEMES]?.let { ThemeCodec.decodeList(it) }
+            customThemes = p.decoded(CUSTOM_THEMES) { ThemeCodec.decodeList(it) }
                 ?: defaults.customThemes,
             autoTheme = readAutoTheme(p, defaults),
             appColors = readAppColors(p, defaults),
@@ -11157,7 +11175,7 @@ class SettingsRepository(private val context: Context) {
             symbolRowSetIds = p[SYMBOL_ROW_SETS]?.split('\t')?.filter { it.isNotEmpty() }
                 ?.ifEmpty { null } ?: defaults.symbolRowSetIds,
             symbolRowActiveSetId = p[SYMBOL_ROW_ACTIVE_SET] ?: defaults.symbolRowActiveSetId,
-            customSymbolSets = p[CUSTOM_SYMBOL_SETS]?.let { SymbolSetCodec.decodeList(it) }
+            customSymbolSets = p.decoded(CUSTOM_SYMBOL_SETS) { SymbolSetCodec.decodeList(it) }
                 ?: defaults.customSymbolSets,
             // Never stored: honor the legacy emoji-row position toggle so
             // existing users keep their arrangement.
@@ -11170,7 +11188,7 @@ class SettingsRepository(private val context: Context) {
             // mode back then has it stored, and keeps the feature on.
             modesEnabled = p[MODES_ENABLED]
                 ?: (p[KEYBOARD_MODES] != null || defaults.modesEnabled),
-            keyboardModes = p[KEYBOARD_MODES]?.let { KeyboardModeCodec.decodeList(it) }
+            keyboardModes = p.decoded(KEYBOARD_MODES) { KeyboardModeCodec.decodeList(it) }
                 ?: defaults.keyboardModes,
             smartSuggestions = p[SMART_SUGGESTIONS] ?: defaults.smartSuggestions,
             smartCalc = p[SMART_CALC] ?: defaults.smartCalc,
@@ -20295,4 +20313,28 @@ class SettingsRepository(private val context: Context) {
             it[AI_HISTORY_MAX] =
                 value.coerceIn(AiHistoryStore.MIN_MAX_ITEMS, AiHistoryStore.MAX_ITEMS_CEILING)
         }
+}
+
+/**
+ * The last decode of each JSON-valued preference, by key name, for
+ * [SettingsRepository.decoded].
+ *
+ * Process-wide rather than per repository: the settings app and the keyboard
+ * service share a process and each build their own repository, and sharing
+ * the decoded objects means they also share identity. [SettingsRepository.settings]
+ * is a cold flow mapped on [Dispatchers.Default] once per collector, so the
+ * map has to be safe to read and write from several threads at once; a race
+ * only ever costs a duplicate decode. One entry per key, so it holds no more
+ * than the settings object already does.
+ */
+private object DecodedPrefs {
+    private val last = java.util.concurrent.ConcurrentHashMap<String, Pair<String, Any>>()
+
+    fun <T : Any> get(name: String, raw: String, decode: (String) -> T): T {
+        last[name]?.let { (text, value) ->
+            @Suppress("UNCHECKED_CAST")
+            if (text == raw) return value as T
+        }
+        return decode(raw).also { last[name] = raw to it }
+    }
 }

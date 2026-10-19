@@ -4100,6 +4100,7 @@ open class WMKeyboardService : InputMethodService() {
             // behind it actually changes, not on every unrelated settings save.
             var hiddenEmojiKey: Triple<Boolean, EmojiFontChoice, String>? = null
             var coinPickKey: Pair<Boolean, Set<String>>? = null
+            var languageDownloadsKey: List<Any?>? = null
             // Power saving is folded in here rather than downstream for the same
             // reason as direct boot: it is a *view* of the settings, so the
             // renderer, the engine and the tools all see one already-reduced
@@ -4667,12 +4668,27 @@ open class WMKeyboardService : InputMethodService() {
                     publishEmojiHistory(force = true)
                 }
                 emojiUsageVersion = settings.emoji.usageVersion
-                refreshLanguageDataDownloads(settings)
+                // Only when something it reads has moved: its metered check is
+                // a binder call, and it sat on the settings app's main thread
+                // for every toggle written there. A network change re-emits
+                // through the combine above, so a phone that reaches Wi-Fi
+                // still gets its word lists.
+                val downloadsKey = listOf(
+                    userUnlocked,
+                    settings.autoDownloadLanguageData,
+                    settings.emoji.autoDownloadKeywords,
+                    settings.enabledLanguages,
+                    network,
+                )
+                if (downloadsKey != languageDownloadsKey) {
+                    languageDownloadsKey = downloadsKey
+                    refreshLanguageDataDownloads(settings)
+                }
                 refreshDictionaryBar(settings)
                 // Keyed off the mode actually being typed, so a field-forced
                 // mode gets its own proximity grid and word lists rather than
                 // the saved mode's.
-                bindEngineToLayout(activeSpec, settings)
+                bindEngineToLayout(activeSpec, settings, onlyIfChanged = true)
                 suggestionEngine?.fieldDetectionShift = fieldDetectionShift(settings)
                 syncPhoneticAutoEnglish(settings, activeSpec)
                 syncPhoneticFixedStrip(settings, activeSpec)
@@ -14872,9 +14888,32 @@ open class WMKeyboardService : InputMethodService() {
      * still reading the language the user just left — which is why the strip
      * went on offering that language until the next keystroke (#233).
      */
-    private fun bindEngineToLayout(spec: LayoutSpec, settings: KeyboardSettings) {
+    private fun bindEngineToLayout(
+        spec: LayoutSpec,
+        settings: KeyboardSettings,
+        onlyIfChanged: Boolean = false,
+    ) {
         val engine = suggestionEngine ?: return
         val lang = spec.language()
+        // The settings collector passes [onlyIfChanged]: it runs this on every
+        // emission, and an unrelated toggle in the settings app (same process,
+        // same main thread) re-opened the n-gram packs from disk and handed the
+        // engine a new proximity grid each time. Everything below is read from
+        // these inputs; anything that changes the packs on disk outside them
+        // (a download landing, a list imported) sets the engine itself.
+        val binding = listOf(
+            engine,
+            spec,
+            settings.numberRow && settings.suggestionStrip.numberRowCorrections,
+            settings.secondaryLanguages[lang.id],
+            customDictionaries,
+            correctionMemory.version,
+            userUnlocked,
+            _uiState.value.settings.suggestionStrip.wordPairsEnabledFor(lang.id),
+            _uiState.value.settings.suggestionStrip.wordPairsEnabledFor("en"),
+        )
+        if (onlyIfChanged && binding == engineBinding) return
+        engineBinding = binding
         // Typo weighting follows the grid actually on screen, so a
         // rearranged custom layout weights its own neighbours.
         engine.proximity = KeyProximity.forLayout(
@@ -14916,6 +14955,9 @@ open class WMKeyboardService : InputMethodService() {
         engine.secondaryEnglishNgramPack =
             if (engine.englishAsSecondary) loadNgramPack("en") else NgramPack.EMPTY
     }
+
+    /** What [bindEngineToLayout] last bound the engine from. */
+    private var engineBinding: List<Any?>? = null
 
     /**
      * A run of 🌐 presses in recently-used order (#311). [order] is snapshotted

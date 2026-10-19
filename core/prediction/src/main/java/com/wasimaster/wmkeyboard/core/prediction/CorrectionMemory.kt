@@ -157,6 +157,20 @@ class CorrectionMemory(private val storageFile: File?) {
      */
     @Synchronized
     fun habitsFor(layoutId: String): EditHabits {
+        // The keyboard asks on every settings emission, and a toggle write in
+        // the settings app (same process) paid this rebuild on the main thread
+        // each time. [version] moves on every change to [habits], so the last
+        // answer stands until it does — and comes back as the same instance,
+        // which the engine's setter skips.
+        habitsMemo?.let { if (it.layoutId == layoutId && it.version == version) return it.habits }
+        return buildHabits(layoutId).also { habitsMemo = HabitsMemo(layoutId, version, it) }
+    }
+
+    private class HabitsMemo(val layoutId: String, val version: Int, val habits: EditHabits)
+
+    private var habitsMemo: HabitsMemo? = null
+
+    private fun buildHabits(layoutId: String): EditHabits {
         val counts = habits[layoutId] ?: return EditHabits.NONE
         if (counts.values.sum() < EditHabits.WARMUP) return EditHabits.NONE
         val subs = HashMap<Int, Double>()
