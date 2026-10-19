@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.homeassistant.googlehome
 
 import android.content.Context
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.home.ConnectivityState
@@ -73,7 +74,12 @@ import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
 /** The structure Google let the app into, as the consent flow reported it. */
-data class GoogleHomeGrant(val structureId: String, val structureName: String, val account: String = "")
+/**
+ * One consent result. [stamp] makes each result its own value: picking the
+ * same home again would otherwise build an equal grant, which a StateFlow
+ * drops, and the editor waiting on it would never hear back.
+ */
+data class GoogleHomeGrant(val structureId: String, val structureName: String, val account: String = "", val stamp: Long = 0)
 
 /**
  * The Google Home APIs, full flavour with the SDK present. One [HomeClient]
@@ -145,7 +151,7 @@ object GoogleHomeSupport {
 
     private suspend fun refreshGrant(c: HomeClient) {
         val structure = withTimeoutOrNull(STRUCTURE_TIMEOUT_MS) { c.structures().first { it.isNotEmpty() } }?.firstOrNull() ?: return
-        _grants.value = GoogleHomeGrant(structure.id.id, structure.name)
+        _grants.value = GoogleHomeGrant(structure.id.id, structure.name, stamp = SystemClock.elapsedRealtimeNanos())
     }
 
     private const val STRUCTURE_TIMEOUT_MS = 5_000L

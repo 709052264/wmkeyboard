@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /** The structure Google let the app into, as the consent flow reported it. */
-data class GoogleHomeGrant(val structureId: String, val structureName: String, val account: String = "")
+data class GoogleHomeGrant(val structureId: String, val structureName: String, val account: String = "", val stamp: Long = 0)
 
 /**
  * The lite flavour carries no Home APIs: a Google Home row can never be
