@@ -234,6 +234,24 @@ sealed interface KeyAction {
     @Serializable @SerialName("layer") data class LayerSwitch(val layer: String = "") : KeyAction
 
     /**
+     * Switches the keyboard into one of the user's keyboard modes, the same as
+     * picking it on the Modes panel, and a second press goes back to automatic.
+     *
+     * The point is a mode that is one press away rather than two: a "peck" mode
+     * with glide and two-thumb typing off, for a URL or a password, reached from
+     * a key or a flick instead of the panel.
+     *
+     * [id] is the mode's id. A key naming a mode that has since been deleted
+     * does nothing, the dead-key outcome a [Layout] naming a deleted layout
+     * gets. A blank [id] is the editor's placeholder while the picker is open.
+     *
+     * The second press clears a mode picked by hand. A mode that is on because
+     * a rule chose it for this app or field has no "off" to go to, so the key
+     * leaves it on.
+     */
+    @Serializable @SerialName("mode") data class Mode(val id: String = "") : KeyAction
+
+    /**
      * Latches a modifier for the next key, the way [Shift] latches case: tap to
      * arm, tap again to lock, a third tap to clear.
      *
@@ -558,6 +576,9 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // unlabelled one falls back to, and it is deliberately not the layer's key,
     // which is an identifier and can be any length.
     is KeyAction.LayerSwitch -> "▤"
+    // The editor writes the mode's name onto the key when it is picked, as it
+    // does a layout's; this is the glyph an unlabelled one gets.
+    is KeyAction.Mode -> "◐"
     is KeyAction.SwitchInputMethod -> "⌨"
     // A field is not a key: the cell draws its component, and the editor draws
     // the component's name from a string resource.
@@ -717,7 +738,7 @@ fun KeyAction.canRepeatOnHold(): Boolean = when (this) {
     KeyAction.LanguageSwitch, KeyAction.InputMethodPicker -> false
     is KeyAction.SwitchInputMethod -> false
     is KeyAction.Mod, is KeyAction.Layout, is KeyAction.Tool -> false
-    is KeyAction.LayerSwitch -> false
+    is KeyAction.LayerSwitch, is KeyAction.Mode -> false
     is KeyAction.Unknown -> false
     // A list, not a key: nothing presses it as a whole.
     KeyAction.ReadingColumn -> false
@@ -746,6 +767,9 @@ fun KeyAction.commitsNoText(): Boolean = when (this) {
     -> true
     is KeyAction.Layout -> true
     is KeyAction.LayerSwitch -> true
+    // Switching into a URL or email mode to reach `:` or `@` is the same
+    // trip the ?123 key makes, and must leave the typed space as spendable.
+    is KeyAction.Mode -> true
     else -> false
 }
 

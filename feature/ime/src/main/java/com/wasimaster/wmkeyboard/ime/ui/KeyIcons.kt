@@ -52,6 +52,7 @@ import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Bolt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 
 /**
  * Named-icon registry that lets any [com.wasimaster.wmkeyboard.core.layout.Key]
@@ -239,6 +240,8 @@ object KeyIcons {
         // input-method picker's plain keyboard and the globe.
         is KeyAction.Layout -> SymbolIcons.KeyboardPreviousLanguage
         is KeyAction.LayerSwitch -> Icons.Outlined.Layers
+        // The Modes tool's own icon, so a mode key reads as that panel's pick.
+        is KeyAction.Mode -> Icons.Outlined.Tune
         is KeyAction.Broadcast -> Icons.Outlined.Bolt
         is KeyAction.SendKey -> arrowKeySlot(action.keyCode)?.let(IconDefaults::forSlot)
             // Escape is a word on every physical keyboard, so it keeps "esc".

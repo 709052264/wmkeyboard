@@ -20,6 +20,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.SwipeDirection
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
+import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.LetterSwipeAction
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -56,6 +57,7 @@ internal fun FingerSwipeSettings(
     }
     val bound = settings.watch { it.gesture.fingerSwipes }
     val layouts = secondaryLayouts(settings.watch { it.customLayouts })
+    val modes = settings.watch { it.keyboardModes }
     // The slot whose action is being picked.
     var picking by remember { mutableStateOf<FingerSwipe?>(null) }
     fun bind(swipe: FingerSwipe, binding: KeyAlternate?) {
@@ -85,7 +87,7 @@ internal fun FingerSwipeSettings(
                     } else {
                         null
                     },
-                    value = binding?.let { fingerSwipeBindingName(it, layouts) }
+                    value = binding?.let { fingerSwipeBindingName(it, layouts, modes) }
                         ?: stringResource(R.string.typing_finger_swipe_nothing_value),
                 ) { picking = swipe }
             }
@@ -104,6 +106,7 @@ internal fun FingerSwipeSettings(
         KeyBindingPicker(
             current = bound.actionOf(swipe),
             layouts = layouts,
+            modes = modes,
             onDismiss = { picking = null },
         ) { binding ->
             picking = null
@@ -123,6 +126,7 @@ internal fun FingerSwipeSettings(
 internal fun KeyBindingPicker(
     current: KeyAlternate?,
     layouts: List<LayoutSpec>,
+    modes: List<KeyboardMode> = emptyList(),
     onDismiss: () -> Unit,
     onBind: (KeyAlternate) -> Unit,
 ) {
@@ -133,9 +137,9 @@ internal fun KeyBindingPicker(
             current = current?.action ?: KeyAction.None,
             options = FingerSwipeActionCatalog,
             onPick = { picked ->
-                // Half an answer until it names its text, tool, layout or keyboard.
+                // Half an answer until it names its text, tool, layout, mode or keyboard.
                 val needsMore = picked == KeyAction.Text || picked is KeyAction.Tool ||
-                    picked is KeyAction.Edit || picked is KeyAction.Layout ||
+                    picked is KeyAction.Edit || picked is KeyAction.Layout || picked is KeyAction.Mode ||
                     picked is KeyAction.SwitchInputMethod || picked is KeyAction.Broadcast
                 if (needsMore) followUp = picked else onBind(KeyAlternate(picked))
             },
@@ -159,6 +163,12 @@ internal fun KeyBindingPicker(
             onDismiss = onDismiss,
             onPick = { picked -> onBind(KeyAlternate(KeyAction.Layout(picked.id), label = picked.name)) },
         )
+        is KeyAction.Mode -> KeyboardModePickerDialog(
+            current = (current?.action as? KeyAction.Mode)?.id,
+            options = modes,
+            onDismiss = onDismiss,
+            onPick = { picked -> onBind(KeyAlternate(KeyAction.Mode(picked.id), label = picked.name)) },
+        )
         is KeyAction.SwitchInputMethod -> InputMethodPickerDialog(
             current = (current?.action as? KeyAction.SwitchInputMethod)?.id,
             onDismiss = onDismiss,
@@ -181,11 +191,15 @@ internal fun KeyBindingPicker(
 
 /** What a row says its swipe or chord does: the typed text in quotes, else the action's name. */
 @Composable
-internal fun fingerSwipeBindingName(binding: KeyAlternate, layouts: List<LayoutSpec>): String =
+internal fun fingerSwipeBindingName(
+    binding: KeyAlternate,
+    layouts: List<LayoutSpec>,
+    modes: List<KeyboardMode> = emptyList(),
+): String =
     when (binding.action) {
         KeyAction.Text -> stringResource(R.string.typing_finger_swipe_text_value, binding.label)
         is KeyAction.SwitchInputMethod -> binding.label.ifBlank { actionAlternateName(binding, layouts) }
-        else -> actionAlternateName(binding, layouts)
+        else -> actionAlternateName(binding, layouts, modes)
     }
 
 private fun directionLabel(direction: SwipeDirection): Int = when (direction) {

@@ -261,6 +261,13 @@
     <string name="layout_editor_layout_picker_title">Which layout</string>
     <string name="layout_editor_layout_picker_empty">No secondary layouts yet. Make one on the Key layouts screen first.</string>
 
+    <!-- Which keyboard mode a key toggles, shown when the key's action is "Toggle a keyboard mode". -->
+    <string name="layout_editor_mode_row_title">Mode</string>
+    <string name="layout_editor_mode_row_subtitle">The keyboard mode this key turns on and off</string>
+    <string name="layout_editor_mode_row_unset">Not set</string>
+    <string name="layout_editor_mode_picker_title">Which mode</string>
+    <string name="layout_editor_mode_picker_empty">No keyboard modes yet. Make one under Modes first.</string>
+
     <!-- Width of one key, in grid units. %1$.2f is the width, for example 1.50. -->
     <string name="layout_editor_key_width_label">Width <xliff:g id="width" example="1.50">%1$.2f</xliff:g></string>
     <!-- Button that gives the key all the width the row has left.
@@ -519,6 +526,8 @@
     <string name="layout_editor_ime_picker_empty">No other keyboards are turned on. Enable one in your device\'s keyboard settings first.</string>
     <string name="layout_editor_action_layout_title">Open a layout</string>
     <string name="layout_editor_action_layout_detail">Shows one of your secondary layouts over the letters. Press the key again, or an ABC key, to go back. Pick the layout below</string>
+    <string name="layout_editor_action_mode_title">Toggle a keyboard mode</string>
+    <string name="layout_editor_action_mode_detail">Turns one of your keyboard modes on, the way picking it from the Modes tool does. Press it again to go back to automatic. Pick the mode below</string>
     <string name="layout_editor_action_tool_title">Open a tool</string>
     <string name="layout_editor_action_tool_detail">Opens one of the keyboard tools, such as voice typing or the editing pad. Pick the tool below</string>
     <string name="layout_editor_action_broadcast_title">Broadcast intent</string>

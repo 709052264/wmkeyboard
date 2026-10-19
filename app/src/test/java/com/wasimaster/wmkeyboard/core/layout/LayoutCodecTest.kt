@@ -42,6 +42,29 @@ class LayoutCodecTest {
         assertTrue(decoded.layer(LayoutLayer.LETTERS)!!.persistent)
     }
 
+    /** A key that switches keyboard mode keeps its mode id: as its action, on a flick and on an alternate. */
+    @Test
+    fun `round trips a mode key on the key, its flicks and its alternates`() {
+        val original = spec(
+            listOf(
+                Key(
+                    "◐",
+                    action = KeyAction.Mode("email"),
+                    actionAlternates = listOf(KeyAlternate(KeyAction.Mode("url"), label = "URL")),
+                    flickActions = mapOf(FlickDirection.UP to KeyAlternate(KeyAction.Mode("normal"), label = "Normal")),
+                ),
+            ),
+        )
+        val json = LayoutCodec.encode(original)
+        assertTrue(json, json.contains("\"mode\""))
+        val decoded = LayoutCodec.decode(json)
+        assertEquals(original, decoded)
+        val key = decoded!!.layer(LayoutLayer.LETTERS)!!.rows.first().first()
+        assertEquals(KeyAction.Mode("email"), key.action)
+        assertEquals(KeyAction.Mode("url"), key.actionAlternates.first().action)
+        assertEquals(KeyAction.Mode("normal"), key.flickActions.getValue(FlickDirection.UP).action)
+    }
+
     /** Issue #64: a key's own alternates column count rides the file, and 0 stays 0. */
     @Test
     fun `round trips a key's alternates column count`() {
@@ -614,6 +637,7 @@ class LayoutCodecTest {
             KeyAction.LanguageSwitch,
             KeyAction.None,
             KeyAction.Layout("custom_1"),
+            KeyAction.Mode("email"),
         )) {
             assertTrue(action.toString(), action.commitsNoText())
         }

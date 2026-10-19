@@ -242,6 +242,7 @@ import com.wasimaster.wmkeyboard.core.layout.spanRowWidths
 import com.wasimaster.wmkeyboard.core.layout.spanSlots
 import com.wasimaster.wmkeyboard.core.layout.validateLayout
 import com.wasimaster.wmkeyboard.core.script.ComposerType
+import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
@@ -2352,6 +2353,7 @@ internal fun KeyLayoutEditorScreen(
     val popupColumns = settings.watch { it.popup.alternatesColumns }
     val popupNearestFirst = settings.watch { it.popup.alternatesNearestFirst }
     val secondaryLayoutList = secondaryLayouts(settings.watch { it.customLayouts })
+    val keyboardModeList = settings.watch { it.keyboardModes }
     val ref = selection
     if (panelKind == null && ref != null && selectedKey != null) {
         // Issue #420: the section edits the key as drawn. One the Bottom row
@@ -2447,6 +2449,7 @@ internal fun KeyLayoutEditorScreen(
             },
             onDismiss = { selection = null },
             secondaryLayouts = secondaryLayoutList,
+            keyboardModes = keyboardModeList,
             kanaPad = !secondary && edited.watch { it.language().id == "ja" },
             boardKey = board?.rows?.getOrNull(ref.row)
                 ?.takeIf { it.size == drawnRows[ref.row].size }
@@ -2513,6 +2516,7 @@ internal fun KeyLayoutEditorScreen(
                 },
                 onDismiss = { extraSel = null },
                 secondaryLayouts = secondaryLayoutList,
+                keyboardModes = keyboardModeList,
                 popupColumns = popupColumns,
                 popupNearestFirst = popupNearestFirst,
             )
@@ -4767,6 +4771,13 @@ internal val KeyActionCatalog: List<KeyActionOption> = listOf(
         R.string.layout_editor_action_layout_detail,
         { KeyAction.Layout() }, { it is KeyAction.Layout },
     ),
+    // Same placeholder arrangement: the mode picker follows straight on.
+    KeyActionOption(
+        R.string.layout_editor_action_mode_title,
+        R.string.layout_editor_action_group_layers,
+        R.string.layout_editor_action_mode_detail,
+        { KeyAction.Mode() }, { it is KeyAction.Mode },
+    ),
     KeyActionOption(
         R.string.layout_editor_action_ctrl_title,
         R.string.layout_editor_action_group_modifiers,
@@ -4935,6 +4946,8 @@ internal fun KeyEditSheet(
     fieldKinds: List<PanelFieldKind>? = null,
     /** The secondary layouts an "Open a layout" key may name; see [KeyAction.Layout]. */
     secondaryLayouts: List<LayoutSpec> = emptyList(),
+    /** The modes a "Toggle a keyboard mode" key may name; see [KeyAction.Mode]. */
+    keyboardModes: List<KeyboardMode> = emptyList(),
     /**
      * The layout types Japanese, so its keys are offered
      * [Key.kanaVariantWhileComposing]. Everywhere else the switch would name a
@@ -4961,6 +4974,8 @@ internal fun KeyEditSheet(
     var pickingTool by remember { mutableStateOf(false) }
     // Which secondary layout it shows, when the picker put a layout action on it.
     var pickingLayout by remember { mutableStateOf(false) }
+    // Which keyboard mode it toggles, for a mode action.
+    var pickingMode by remember { mutableStateOf(false) }
     // Which other keyboard app it switches to, for a switch-keyboard action.
     var pickingIme by remember { mutableStateOf(false) }
     // Which operation an edit key runs, and which component a field cell hosts.
@@ -5076,6 +5091,17 @@ internal fun KeyEditSheet(
                 ) { pickingLayout = true }
             }
         }
+        // A mode key carries which keyboard mode it toggles.
+        (key.action as? KeyAction.Mode)?.let { modeAction ->
+            item {
+                NavRow(
+                    title = R.string.layout_editor_mode_row_title,
+                    subtitle = stringResource(R.string.layout_editor_mode_row_subtitle),
+                    value = keyboardModes.firstOrNull { it.id == modeAction.id }?.name
+                        ?: stringResource(R.string.layout_editor_mode_row_unset),
+                ) { pickingMode = true }
+            }
+        }
         // A switch-keyboard key carries which keyboard app it goes to.
         (key.action as? KeyAction.SwitchInputMethod)?.let { imeAction ->
             item {
@@ -5160,6 +5186,7 @@ internal fun KeyEditSheet(
                 ActionAlternatesRows(
                     alternates = listOfNotNull(key.holdAction),
                     secondaryLayouts = secondaryLayouts,
+                    keyboardModes = keyboardModes,
                     title = R.string.layout_editor_hold_action_label,
                     subtitle = stringResource(R.string.layout_editor_hold_action_hint),
                     addLabel = R.string.layout_editor_hold_action_add,
@@ -5196,6 +5223,7 @@ internal fun KeyEditSheet(
                 ActionAlternatesRows(
                     alternates = key.actionAlternates,
                     secondaryLayouts = secondaryLayouts,
+                    keyboardModes = keyboardModes,
                     title = R.string.layout_editor_action_alternates_label,
                     subtitle = stringResource(R.string.layout_editor_action_alternates_hint),
                     addLabel = R.string.layout_editor_action_alternate_add_action,
@@ -5225,6 +5253,7 @@ internal fun KeyEditSheet(
                     columns = key.alternateColumns.takeIf { it > 0 } ?: popupColumns,
                     nearestFirst = popupNearestFirst,
                     secondaryLayouts = secondaryLayouts,
+                    keyboardModes = keyboardModes,
                 )
             }
         }
@@ -5256,7 +5285,7 @@ internal fun KeyEditSheet(
             stringResource(R.string.layout_editor_key_section_flicks),
             foldKey = if (key.hasFlicks()) null else "key_flicks",
         ) {
-            item { FlickFields(key, ref, secondaryLayouts, onChange) }
+            item { FlickFields(key, ref, secondaryLayouts, keyboardModes, onChange) }
         }
     }
 
@@ -5338,6 +5367,7 @@ internal fun KeyEditSheet(
                 // whichever one the catalog entry had to name as its default.
                 if (action is KeyAction.Tool) pickingTool = true
                 if (action is KeyAction.Layout) pickingLayout = true
+                if (action is KeyAction.Mode) pickingMode = true
                 if (action is KeyAction.SwitchInputMethod) pickingIme = true
                 if (action is KeyAction.Edit) pickingEdit = true
                 if (action is KeyAction.Field) pickingField = true
@@ -5361,6 +5391,20 @@ internal fun KeyEditSheet(
                         action = KeyAction.Layout(picked.id),
                         label = it.label.ifBlank { picked.name },
                     )
+                }
+            },
+        )
+    }
+
+    if (pickingMode) {
+        KeyboardModePickerDialog(
+            current = (key.action as? KeyAction.Mode)?.id,
+            options = keyboardModes,
+            onDismiss = { pickingMode = false },
+            onPick = { picked ->
+                pickingMode = false
+                onChange {
+                    it.copy(action = KeyAction.Mode(picked.id), label = it.label.ifBlank { picked.name })
                 }
             },
         )
@@ -5523,6 +5567,7 @@ private fun KeyPopupPreview(
     columns: Int,
     nearestFirst: Boolean,
     secondaryLayouts: List<LayoutSpec>,
+    keyboardModes: List<KeyboardMode>,
 ) {
     val entries = shown.alternateEntries()
     val colors = MaterialTheme.colorScheme
@@ -5553,12 +5598,12 @@ private fun KeyPopupPreview(
                     if (icon != null) {
                         Icon(
                             icon,
-                            contentDescription = actionAlternateName(entry.alternate, secondaryLayouts),
+                            contentDescription = actionAlternateName(entry.alternate, secondaryLayouts, keyboardModes),
                             modifier = Modifier.size(20.dp),
                         )
                     } else {
                         Text(
-                            entry.alternate.label.ifBlank { actionAlternateName(entry.alternate, secondaryLayouts) },
+                            entry.alternate.label.ifBlank { actionAlternateName(entry.alternate, secondaryLayouts, keyboardModes) },
                             maxLines = 1,
                             fontSize = 11.sp,
                             overflow = TextOverflow.Ellipsis,
@@ -5650,6 +5695,7 @@ private fun FlickFields(
     key: Key,
     ref: KeyRef,
     secondaryLayouts: List<LayoutSpec>,
+    keyboardModes: List<KeyboardMode>,
     onChange: ((Key) -> Key) -> Unit,
 ) {
     val typesText = key.action == KeyAction.Text
@@ -5661,6 +5707,7 @@ private fun FlickFields(
     var pickingEditAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingToolAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     var pickingLayoutAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
+    var pickingModeAt by remember(ref) { mutableStateOf<FlickDirection?>(null) }
     if (!open) {
         WmRow(
             title = stringResource(R.string.layout_editor_flick_add_action),
@@ -5718,7 +5765,7 @@ private fun FlickFields(
             title = stringResource(flickLabelRes(direction)),
             subtitle = stringResource(
                 R.string.layout_editor_flick_action_set,
-                actionAlternateName(arm, secondaryLayouts),
+                actionAlternateName(arm, secondaryLayouts, keyboardModes),
             ),
             leading = { Icon(Icons.Outlined.Bolt, contentDescription = null) },
             trailing = {
@@ -5809,6 +5856,7 @@ private fun FlickFields(
                     is KeyAction.Edit -> pickingEditAt = direction
                     is KeyAction.Tool -> pickingToolAt = direction
                     is KeyAction.Layout -> pickingLayoutAt = direction
+                    is KeyAction.Mode -> pickingModeAt = direction
                     else -> Unit
                 }
             },
@@ -5849,6 +5897,20 @@ private fun FlickFields(
                 pickingLayoutAt = null
                 updateArm(direction) {
                     it.copy(action = KeyAction.Layout(picked.id), label = it.label.ifBlank { picked.name })
+                }
+            },
+        )
+    }
+
+    pickingModeAt?.let { direction ->
+        KeyboardModePickerDialog(
+            current = (key.flickActions[direction]?.action as? KeyAction.Mode)?.id,
+            options = keyboardModes,
+            onDismiss = { pickingModeAt = null },
+            onPick = { picked ->
+                pickingModeAt = null
+                updateArm(direction) {
+                    it.copy(action = KeyAction.Mode(picked.id), label = it.label.ifBlank { picked.name })
                 }
             },
         )
@@ -6221,6 +6283,7 @@ private fun ActionAlternatesRows(
     subtitle: String,
     @StringRes addLabel: Int,
     limit: Int = Int.MAX_VALUE,
+    keyboardModes: List<KeyboardMode> = emptyList(),
     onChange: (List<KeyAlternate>) -> Unit,
 ) {
     // The chip whose action is being picked; [AddingAlternate] for a new one.
@@ -6229,6 +6292,8 @@ private fun ActionAlternatesRows(
     var pickingToolAt by remember { mutableStateOf<Int?>(null) }
     // Same for a secondary layout.
     var pickingLayoutAt by remember { mutableStateOf<Int?>(null) }
+    // Same for a keyboard mode.
+    var pickingModeAt by remember { mutableStateOf<Int?>(null) }
     // Same for a text-editing operation (#630): without it every one landed as Left.
     var pickingEditAt by remember { mutableStateOf<Int?>(null) }
     // Same for the keyboard a switch-keyboard action names.
@@ -6240,7 +6305,7 @@ private fun ActionAlternatesRows(
                 InputChip(
                     selected = false,
                     onClick = { editing = index },
-                    label = { Text(actionAlternateName(alternate, secondaryLayouts)) },
+                    label = { Text(actionAlternateName(alternate, secondaryLayouts, keyboardModes)) },
                     trailingIcon = {
                         Icon(
                             Icons.Outlined.Close,
@@ -6283,6 +6348,7 @@ private fun ActionAlternatesRows(
                 // A tool action is only half an answer until it names its tool.
                 if (action is KeyAction.Tool) pickingToolAt = landsAt
                 if (action is KeyAction.Layout) pickingLayoutAt = landsAt
+                if (action is KeyAction.Mode) pickingModeAt = landsAt
                 if (action is KeyAction.Edit) pickingEditAt = landsAt
                 if (action is KeyAction.SwitchInputMethod) pickingImeAt = landsAt
             },
@@ -6301,6 +6367,26 @@ private fun ActionAlternatesRows(
                     alternates.mapIndexed { i, a ->
                         if (i == index) {
                             a.copy(action = KeyAction.Layout(picked.id), label = a.label.ifBlank { picked.name })
+                        } else {
+                            a
+                        }
+                    },
+                )
+            },
+        )
+    }
+
+    pickingModeAt?.let { index ->
+        KeyboardModePickerDialog(
+            current = (alternates.getOrNull(index)?.action as? KeyAction.Mode)?.id,
+            options = keyboardModes,
+            onDismiss = { pickingModeAt = null },
+            onPick = { picked ->
+                pickingModeAt = null
+                onChange(
+                    alternates.mapIndexed { i, a ->
+                        if (i == index) {
+                            a.copy(action = KeyAction.Mode(picked.id), label = a.label.ifBlank { picked.name })
                         } else {
                             a
                         }
@@ -6375,12 +6461,20 @@ private val AlternateActionCatalog: List<KeyActionOption> =
  * not list — the glyph the popup will draw.
  */
 @Composable
-internal fun actionAlternateName(alternate: KeyAlternate, secondaryLayouts: List<LayoutSpec>): String {
+internal fun actionAlternateName(
+    alternate: KeyAlternate,
+    secondaryLayouts: List<LayoutSpec>,
+    keyboardModes: List<KeyboardMode> = emptyList(),
+): String {
     val action = alternate.action
     if (action is KeyAction.Tool) return stringResource(toolTitle(action.tool))
     if (action is KeyAction.Layout) {
         return secondaryLayouts.firstOrNull { it.id == action.id }?.name
             ?: alternate.drawnLabel()
+    }
+    if (action is KeyAction.Mode) {
+        return keyboardModes.firstOrNull { it.id == action.id }?.name
+            ?: alternate.label.ifBlank { stringResource(R.string.layout_editor_action_mode_title) }
     }
     if (action is KeyAction.Edit) return stringResource(textEditActionTitle(action.op))
     val option = KeyActionCatalog.firstOrNull { it.matches(action) }
@@ -7069,6 +7163,47 @@ internal fun SecondaryLayoutPickerDialog(
             ScrollRail(state = rail, modifier = Modifier.heightIn(max = 380.dp)) {
                 if (options.isEmpty()) {
                     Text(stringResource(R.string.layout_editor_layout_picker_empty))
+                }
+                for (option in options) {
+                    WmRow(
+                        title = option.name,
+                        leading = {
+                            RadioButton(
+                                selected = option.id == current,
+                                onClick = { onPick(option) },
+                            )
+                        },
+                        onClick = { onPick(option) },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_close)) }
+        },
+    )
+}
+
+/**
+ * Which keyboard mode a "Toggle a keyboard mode" key turns on. The list is the
+ * user's modes by name; with none it says where to make one, like
+ * [SecondaryLayoutPickerDialog].
+ */
+@Composable
+internal fun KeyboardModePickerDialog(
+    current: String?,
+    options: List<KeyboardMode>,
+    onDismiss: () -> Unit,
+    onPick: (KeyboardMode) -> Unit,
+) {
+    val rail = rememberScrollRailState()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.layout_editor_mode_picker_title)) },
+        text = {
+            ScrollRail(state = rail, modifier = Modifier.heightIn(max = 380.dp)) {
+                if (options.isEmpty()) {
+                    Text(stringResource(R.string.layout_editor_mode_picker_empty))
                 }
                 for (option in options) {
                     WmRow(

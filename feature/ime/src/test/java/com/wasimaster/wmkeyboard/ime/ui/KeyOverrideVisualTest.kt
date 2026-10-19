@@ -112,6 +112,8 @@ class KeyOverrideVisualTest {
         )
         // A blank parameter is the editor's placeholder, not a name.
         assertEquals(listOf("LAYOUT"), keyOverrideIds(Key("", action = KeyAction.Layout(""))))
+        assertEquals(listOf("MODE_EMAIL", "MODE"), keyOverrideIds(Key("", action = KeyAction.Mode("email"))))
+        assertEquals(listOf("MODE"), keyOverrideIds(Key("", action = KeyAction.Mode(""))))
     }
 
     @Test

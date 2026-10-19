@@ -16503,6 +16503,7 @@ internal fun keyOverrideIds(key: Key): List<String> = when (val action = key.act
     is KeyAction.SendKey -> listOf("SENDKEY_${action.keyCode}", "SENDKEY")
     is KeyAction.LayerSwitch -> parameterisedIds("LAYERSWITCH", action.layer)
     is KeyAction.Layout -> parameterisedIds("LAYOUT", action.id)
+    is KeyAction.Mode -> parameterisedIds("MODE", action.id)
     is KeyAction.BrailleDot -> listOf("BRAILLEDOT_${action.dot}", "BRAILLEDOT")
     else -> listOfNotNull(action::class.simpleName?.uppercase())
 }

@@ -38,6 +38,7 @@ internal fun SymbolChordSettings(
     val on = settings.watch { it.gesture.symbolChords }
     val bound = settings.watch { it.gesture.chords }
     val layouts = secondaryLayouts(settings.watch { it.customLayouts })
+    val modes = settings.watch { it.keyboardModes }
     val inForce = bound.effectiveChords()
     // The key whose chord is being picked, and whether the key is still to be named.
     var picking by remember { mutableStateOf<String?>(null) }
@@ -59,7 +60,7 @@ internal fun SymbolChordSettings(
             item(visible = on, key = "chord-$token") {
                 NavRow(
                     title = stringResource(R.string.typing_symbol_chord_row_title, token.uppercase()),
-                    value = fingerSwipeBindingName(binding, layouts),
+                    value = fingerSwipeBindingName(binding, layouts, modes),
                 ) { picking = token }
             }
         }
@@ -90,6 +91,7 @@ internal fun SymbolChordSettings(
         KeyBindingPicker(
             current = bound.chordOf(token),
             layouts = layouts,
+            modes = modes,
             onDismiss = { picking = null },
         ) { binding ->
             picking = null

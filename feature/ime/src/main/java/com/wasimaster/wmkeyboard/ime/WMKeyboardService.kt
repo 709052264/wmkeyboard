@@ -8830,6 +8830,9 @@ open class WMKeyboardService : InputMethodService() {
             // A page key of a paginated layout: one of this layout's own extra
             // grids, in place of the letters (issue #498).
             is KeyAction.LayerSwitch -> openNamedLayer((key.action as KeyAction.LayerSwitch).layer)
+            // One of the user's keyboard modes, the Modes panel's pick in one
+            // press; a second press goes back to automatic.
+            is KeyAction.Mode -> onModeKey((key.action as KeyAction.Mode).id)
             is KeyAction.Mod -> onModifier((key.action as KeyAction.Mod).key)
             KeyAction.KanaVariant -> cycleKanaVariant()
             // The 나랏글 pad's 획추가 and 쌍자음 keys (#599).
@@ -30459,6 +30462,22 @@ open class WMKeyboardService : InputMethodService() {
      */
     fun onModeSelect(id: String?) {
         vibrate()
+        applyManualMode(id)
+    }
+
+    /**
+     * A mode key (see [KeyAction.Mode]): picks the mode the way the Modes panel
+     * does, and a second press of the same key goes back to automatic. A key
+     * naming a mode that has since been deleted does nothing. No haptic here:
+     * the key press already gave one.
+     */
+    private fun onModeKey(id: String) {
+        val base = baseSettings ?: return
+        if (id.isBlank() || base.keyboardModes.none { it.id == id }) return
+        applyManualMode(if (manualModeId == id) null else id)
+    }
+
+    private fun applyManualMode(id: String?) {
         manualModeId = id
         val base = baseSettings ?: return
         val mode = resolveKeyboardMode(

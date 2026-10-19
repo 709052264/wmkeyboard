@@ -192,6 +192,10 @@ object LayoutJsonDocs {
             "Shows another of this layout's own grids: the page key of a layout spread over several pages. " +
                 "Naming the letters layer, or a layer this layout does not have, goes back to the letters.",
         "action:layer.layer" to "The layer's name, as it is spelled under \"layers\".",
+        "action:mode" to
+            "Switches to one of your keyboard modes, the same as picking it on the Modes panel. A second press goes back to " +
+                "automatic.",
+        "action:mode.id" to "The id of the keyboard mode.",
         "action:mod" to "Ctrl, Alt or Meta for the next key. Tap to arm it, and tap again to lock it.",
         "action:mod.key" to "Which modifier.",
         "action:send_key" to "Sends a key press to the app, such as Tab, Escape or an arrow.",

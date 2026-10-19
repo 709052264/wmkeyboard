@@ -557,6 +557,7 @@ internal fun PanelEditorBody(
             // An "open a layout" key on a panel names a secondary layout the
             // same way one on a typing grid does.
             secondaryLayouts = secondaryLayouts(settings.watch { it.customLayouts }),
+            keyboardModes = settings.watch { it.keyboardModes },
         )
     }
 
