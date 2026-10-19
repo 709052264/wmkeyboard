@@ -2309,10 +2309,27 @@ open class WMKeyboardService : InputMethodService() {
      * this one place is the whole of the conversion's reach into the service.
      */
     override fun getCurrentInputConnection(): InputConnection? {
-        val base = super.getCurrentInputConnection() ?: return null
+        val base = traced(super.getCurrentInputConnection() ?: return null)
         val version = ansiOutputVersion ?: return base
         ansiConnection?.let { if (it.base === base && it.version == version) return it }
         return AnsiOutputConnection(base, version).also { ansiConnection = it }
+    }
+
+    /** The connection [traced] last decided about, and what it decided. */
+    private var tracedFor: InputConnection? = null
+    private var tracedConnection: InputConnection? = null
+
+    /**
+     * [raw] wrapped in a [TracingInputConnection] when the trace is switched on
+     * for the device. Decided once per connection, so with it off the cost is
+     * one identity check.
+     */
+    private fun traced(raw: InputConnection): InputConnection {
+        if (tracedFor !== raw) {
+            tracedFor = raw
+            tracedConnection = if (TracingInputConnection.enabled()) TracingInputConnection(raw) else raw
+        }
+        return tracedConnection ?: raw
     }
 
     /**
@@ -7451,6 +7468,11 @@ open class WMKeyboardService : InputMethodService() {
         candidatesEnd: Int,
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        if (tracedConnection is TracingInputConnection) {
+            TracingInputConnection.noteSelection(
+                oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd,
+            )
+        }
         lastSelectionUpdateAt = SystemClock.uptimeMillis()
         // The first half of a caret nudge (#662): the caret is on its way
         // straight back, so nothing about where it is now is worth acting on.
