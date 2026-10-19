@@ -21,7 +21,7 @@ Voice typing turns speech into text using your device's own speech recognizer: n
 
 Open **Voice typing** from the toolbar (or the toolbox if you haven't pinned it). What opens depends on **Voice typing view**, covered below. There are three of them:
 
-- **Full panel** (the default) replaces the whole keyboard with a large mic button and a level-driven pulse ring. A four-key action rail runs down the right side: <KeyCap>Delete</KeyCap>, <KeyCap>Space</KeyCap>, a context-aware <KeyCap>Enter</KeyCap>, and a key that closes the panel and returns you to normal typing. In a search box that Enter key shows a search icon, rather than promising a newline it won't insert.
+- **Full panel** (the default) replaces the whole keyboard with a large mic button and a level-driven pulse ring. A four-key action rail runs down the right side: <KeyCap>Delete</KeyCap>, <KeyCap>Space</KeyCap>, a context-aware <KeyCap>Enter</KeyCap>, and a key that closes the panel and returns you to normal typing. In a search box that Enter key shows a search icon, rather than promising a newline it won't insert. Next to it a column of punctuation keys, <KeyCap>.</KeyCap> <KeyCap>,</KeyCap> <KeyCap>?</KeyCap> <KeyCap>!</KeyCap>, puts a mark in by hand without saying it (see [Fixing it while you talk](#fixing-it-while-you-talk)).
 - **Compact bar over the keys** replaces the suggestion strip with a small mic and status text, and the keys stay visible underneath. Dictate a sentence, then tap a letter key to fix a misheard word without leaving the view.
 - **Collapsed bar, keyboard hidden** hands the keyboard's whole window back to the app you're typing in and leaves a small draggable pill of dictation controls floating over it. See [The collapsed bar](#the-collapsed-bar).
 
@@ -35,7 +35,7 @@ With the Voice tool pinned to the toolbar, press and hold it instead of tapping 
 
 <GestureDemo type="long-press" caption="Hold the mic in the full panel to dictate walkie-talkie style." />
 
-Recognized words stream into the text field live as you talk. That's the system recognizer only. [Offline voice](/tools/whisper/) covers how Whisper's panel differs: a whisper.cpp model shows its words under the microphone while it transcribes, and types them once it's done. WM Keyboard works out the spacing around what you dictate from the characters already next to the cursor, so starting mid-sentence or dictating over a selection doesn't leave a double space or a missing one.
+Recognized words stream into the text field live as you talk, underlined until the phrase is finished. That's the system recognizer and [Asr4All](/tools/asr4all/), the offline engine that hears as you speak. [Offline voice](/tools/whisper/) covers how Whisper's panel differs: a whisper.cpp model shows its words under the microphone while it transcribes, and types them once it's done. WM Keyboard works out the spacing around what you dictate from the characters already next to the cursor, so starting mid-sentence or dictating over a selection doesn't leave a double space or a missing one.
 
 Every word you dictate is learned the same way a typed word is, so frequent dictated vocabulary starts showing up in suggestions and autocorrect too.
 
@@ -111,6 +111,12 @@ The bar isn't just for one field. It stands in for the keyboard on every new fie
 
 An **Undo** control appears (bottom-left in the panel, as a small icon on either bar) right after a phrase commits, as long as it's still sitting immediately before your cursor. Tapping it removes exactly that dictated text in one step. It disappears again once you dictate something else, edit the text some other way, or the text it would remove is no longer where dictation left it.
 
+It stays while the mic is open, too. Tapped while a phrase is still being heard, it takes back that phrase instead: the words heard so far go, and listening starts over, so a sentence that came out wrong can be said again without stopping. Between phrases, with nothing being heard, it removes the last phrase that landed, as above.
+
+### Fixing it while you talk
+
+In the default mode a phrase being heard sits in the field as one piece that the recognizer keeps rewriting, so nothing can be typed into it. The keys on the voice surfaces work around that rather than ending the dictation. A punctuation key, <KeyCap>Delete</KeyCap>, <KeyCap>Space</KeyCap> or <KeyCap>Enter</KeyCap> on the panel's rails, or the collapsed bar's backspace, pressed in the middle of a phrase lands the words heard so far as if you had paused, puts the key in after them, and goes straight back to listening. So "meet me at noon", a tap on <KeyCap>?</KeyCap>, then "or later" comes out as one line with your question mark in it. The few words you say in the moment the mic is restarting can be missed, so press at a natural break. Keys on the keyboard itself still end the dictation, as described under [Continuous mode](#continuous-mode); [Type while you speak](#typing-while-you-dictate) is the mode for typing freely with the mic open.
+
 ## Continuous mode
 
 <SettingsPath path="Voice typing / Keep listening" />
@@ -125,7 +131,7 @@ That stretch has a limit. A recognizer that stops on its own pause is expected t
 
 Continuous mode is also patient with silence: a pause that would normally time out the recognizer restarts listening quietly instead of surfacing an error, but only for two silent retries in a row. After that it gives up and goes idle, so an abandoned open mic doesn't sit there listening forever.
 
-Dictation ends completely the moment you type a key, swipe, or tap a suggestion. There's no pausing and picking up where you left off. Partial results build up as one continuous chunk, so typing in the middle of an utterance would corrupt it rather than interrupt it. Whichever view you're in stays open afterward, so you can tap the mic to resume. A tap on the Voice tool is the exception among the ways out: it finishes the phrase first (see [Starting dictation](#starting-dictation)). Dictation also stops when you close the panel, dismiss either bar, or switch to a different tool panel.
+Dictation ends completely the moment you type a key, swipe, or tap a suggestion. There's no pausing and picking up where you left off. Partial results build up as one continuous chunk, so typing in the middle of an utterance would corrupt it rather than interrupt it. Whichever view you're in stays open afterward, so you can tap the mic to resume. The keys on the voice surfaces themselves don't end it (see [Fixing it while you talk](#fixing-it-while-you-talk)). A tap on the Voice tool is the exception among the ways out: it finishes the phrase first (see [Starting dictation](#starting-dictation)). Dictation also stops when you close the panel, dismiss either bar, or switch to a different tool panel.
 
 That last paragraph describes the default mode. If you want the mic to survive typing, see [Typing while you dictate](#typing-while-you-dictate). Both interactive modes ignore the **Keep listening** setting and always chain.
 

@@ -451,11 +451,7 @@ private fun HorizontalBarContent(
             if (hasPermission && state.voiceMicSwitchVisible()) {
                 VoiceMicSwitch(state, onCycle = { onAction(VoiceBarAction.CycleMic) }, size = VoiceBarButton)
             }
-            val voice = state.voice
-            val idle = voice.status != VoiceStatus.LISTENING &&
-                voice.status != VoiceStatus.FINISHING &&
-                voice.status != VoiceStatus.TRANSCRIBING
-            if (voice.canUndo && idle) {
+            if (state.voice.undoReady()) {
                 VoiceBarIconButton(
                     icon = Icons.AutoMirrored.Outlined.Undo,
                     description = stringResource(R.string.ime_voice_strip_undo_desc),
@@ -503,7 +499,7 @@ private fun RowScope.HorizontalMenuPage(
         VoiceBarIconButton(
             icon = Icons.AutoMirrored.Outlined.Undo,
             description = stringResource(R.string.ime_voice_strip_undo_desc),
-            enabled = state.voice.canUndo,
+            enabled = state.voice.undoReady(),
         ) {
             feedback()
             onUndo()
@@ -575,7 +571,7 @@ private fun VerticalBarContent(
             VoiceBarIconButton(
                 icon = Icons.AutoMirrored.Outlined.Undo,
                 description = stringResource(R.string.ime_voice_strip_undo_desc),
-                enabled = state.voice.canUndo,
+                enabled = state.voice.undoReady(),
             ) {
                 feedback()
                 onUndo()

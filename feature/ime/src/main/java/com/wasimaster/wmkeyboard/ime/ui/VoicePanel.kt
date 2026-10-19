@@ -99,6 +99,24 @@ internal fun VoiceUi.transcribingLabelRes(): Int =
     if (tidying) R.string.ime_voice_status_tidying else R.string.ime_voice_status_transcribing
 
 /**
+ * Whether the voice surfaces offer Undo: once a phrase has landed, and also
+ * while one is being heard (#758), where it takes that phrase back and listens
+ * again. Not in the moment a phrase is being finished, with its words on the
+ * way and nothing yet to point at.
+ */
+internal fun VoiceUi.undoReady(): Boolean = when (status) {
+    VoiceStatus.FINISHING -> false
+    VoiceStatus.LISTENING -> canUndo || partial.isNotEmpty()
+    else -> canUndo
+}
+
+/**
+ * The punctuation column beside the panel's action rail (#758): the marks a
+ * dictation most often needs put in by hand, the keys being out of sight.
+ */
+private val VoicePanelMarks = listOf(".", ",", "?", "!")
+
+/**
  * Voice input panel: a large mic button with a level-driven pulse ring and
  * the utterance in progress underneath (the same text is live in the editor
  * as composing text), plus the handwriting panel's action rail. The service
@@ -147,9 +165,7 @@ internal fun VoicePanel(
     val enabledLanguageIds = state.settings.enabledLanguages.map { it.id }
     val languageChipVisible = enabledLanguageIds.size > 1 || chosenLanguages.isNotEmpty()
     var languageMenuOpen by remember { mutableStateOf(false) }
-    val undoVisible = voice.canUndo && hasPermission && !state.secureField &&
-        voice.status != VoiceStatus.LISTENING && voice.status != VoiceStatus.FINISHING &&
-        voice.status != VoiceStatus.TRANSCRIBING
+    val undoVisible = voice.undoReady() && hasPermission && !state.secureField
     val micUsable = !state.secureField && voice.status != VoiceStatus.UNAVAILABLE
     val collapseVisible = !state.secureField
     // The microphone switch (#581): there whenever there is a microphone to
@@ -422,6 +438,25 @@ internal fun VoicePanel(
                         fontSize = 13.sp,
                         modifier = Modifier.padding(start = 4.dp),
                     )
+                }
+            }
+        }
+
+        // Punctuation by hand (#758): a mark typed here mid-phrase lands what
+        // was heard so far, goes in after it, and the microphone listens on.
+        Column(
+            modifier = Modifier
+                .width(48.dp)
+                .fillMaxHeight(),
+        ) {
+            for (mark in VoicePanelMarks) {
+                VoiceRailKey(
+                    description = mark,
+                    label = mark,
+                    modifier = Modifier.weight(1f),
+                ) {
+                    feedback()
+                    onRailKey(VoiceBarAction.RailKey(Key(mark)))
                 }
             }
         }
@@ -1054,7 +1089,7 @@ internal fun VoiceStripBar(
                 }
             }
         }
-        if (voice.canUndo && !listening && !finishing) {
+        if (voice.undoReady()) {
             IconHint(stringResource(R.string.ime_voice_strip_undo_desc)) {
                 Icon(
                     Icons.AutoMirrored.Outlined.Undo,
@@ -1360,12 +1395,13 @@ private fun hasMicPermission(context: android.content.Context): Boolean =
 /**
  * One key on the panel's right-hand action rail (same look as handwriting's).
  * A non-null [label] is drawn as text instead of [icon] — for an app-supplied
- * enter action, whose whole point is the wording the app chose.
+ * enter action, whose whole point is the wording the app chose, and for the
+ * punctuation column, whose keys are their marks.
  */
 @Composable
 private fun VoiceRailKey(
     description: String,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     modifier: Modifier = Modifier,
     label: String? = null,
     repeatable: Boolean = false,
@@ -1408,14 +1444,15 @@ private fun VoiceRailKey(
             Text(
                 label,
                 color = kb.modifierKeyText,
-                fontSize = 12.sp,
+                // A lone mark is the whole face of the key; a word has to fit.
+                fontSize = if (label.length == 1) 20.sp else 12.sp,
                 fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 3.dp),
             )
-        } else {
+        } else if (icon != null) {
             Icon(
                 icon,
                 contentDescription = description,

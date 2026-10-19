@@ -3017,6 +3017,14 @@ open class WMKeyboardService : InputMethodService() {
     private class Asr4AllCapture(val stream: Asr4AllStream, var fed: Int = 0)
 
     /**
+     * What asr4all has heard so far sits in the app's field as composing text,
+     * the way the system recognizer's partials do. It stays there while the
+     * clip's last moment decodes (TRANSCRIBING), until the finished phrase
+     * replaces it. Main thread.
+     */
+    private var asr4allComposed = false
+
+    /**
      * The user's own words for the system recognizer to lean towards (#305),
      * gathered off the main thread by [refreshVoiceBias]. Read when a phrase
      * starts, which has to hand the recognizer its list at once.
@@ -7573,17 +7581,16 @@ open class WMKeyboardService : InputMethodService() {
         // can't follow a cursor jump without duplicating what's already
         // committed — end the session instead, keeping the partial.
         val voiceStatus = _uiState.value.voice.status
-        if ((voiceStatus == VoiceStatus.LISTENING || voiceStatus == VoiceStatus.FINISHING) &&
+        val partialInField = (voiceStatus == VoiceStatus.LISTENING || voiceStatus == VoiceStatus.FINISHING) &&
             _uiState.value.voice.partial.isNotEmpty() &&
-            cursorOutsideCandidates &&
             // Interactive voice typing puts no partial in the field, so a
             // cursor jump costs it nothing: the next phrase lands wherever
             // the caret now is. Moving the caret mid-sentence is a normal
             // part of using the keys while the microphone is open.
             !interactiveVoice()
-        ) {
-            cancelVoice()
-        }
+        // asr4all's words wait in the field while its last moment decodes.
+        val asr4allFinishing = voiceStatus == VoiceStatus.TRANSCRIBING && asr4allComposed
+        if ((partialInField || asr4allFinishing) && cursorOutsideCandidates) cancelVoice()
         // The caret right behind a letter of the word being composed: no caps
         // mode asks for a capital there (TextUtils.getCapsMode answers 0 for a
         // letter before the caret, sentence and word modes alike), so the shift
@@ -27424,9 +27431,17 @@ open class WMKeyboardService : InputMethodService() {
      * what it has heard so far goes on the line under the microphone. When the
      * clip ends, [finishAsr4All] needs only decode the last moment. A model
      * that will not load is left for [finishAsr4All] to report.
+     *
+     * In block voice typing the words also go into the field as composing
+     * text, underlined and rewritten as they grow, exactly like the system
+     * recognizer's partials; the finished phrase then replaces them. Typing
+     * while you speak keeps them on the line only, for the same reason it does
+     * for the recognizer, and so does a dictation into one of the keyboard's
+     * own boxes.
      */
     private fun startAsr4AllStream(model: EtModel, recorder: WhisperRecorder, generation: Int) {
         asr4allCapture = null
+        asr4allComposed = false
         asr4allJob?.cancel()
         asr4allJob = serviceScope.launch(EtNative.dispatcher) {
             val stream = runCatching { Asr4AllEngine.newStream(filesDir, model) }.getOrNull() ?: return@launch
@@ -27445,10 +27460,16 @@ open class WMKeyboardService : InputMethodService() {
                         shown = text
                         withContext(Dispatchers.Main) {
                             if (generation != voiceGeneration) return@withContext
-                            _uiState.update {
-                                if (it.voice.status != VoiceStatus.LISTENING) it
-                                else it.copy(voice = it.voice.copy(partial = text))
+                            // Once the clip is handed over its words wait in the
+                            // field for the finished phrase; nothing rewrites them.
+                            if (_uiState.value.voice.status != VoiceStatus.LISTENING) return@withContext
+                            if (!interactiveVoice() && !voiceSessionForField) {
+                                currentInputConnection?.let { ic ->
+                                    ic.setComposingText(spacedVoiceText(casedVoiceText(text)), 1)
+                                    asr4allComposed = true
+                                }
                             }
+                            _uiState.update { it.copy(voice = it.voice.copy(partial = text)) }
                         }
                     }
                 }
@@ -27601,6 +27622,12 @@ open class WMKeyboardService : InputMethodService() {
                     .map { VoiceClipGate.clean(it, faint) }
                     .onSuccess { commitWhisperResult(it, tag, userStopped) }
                     .onFailure { e ->
+                        // What asr4all typed as it heard stays, as the system
+                        // recognizer's partial stays through an error.
+                        if (asr4allComposed) {
+                            asr4allComposed = false
+                            currentInputConnection?.finishComposingText()
+                        }
                         // A WhisperException carries a resource id instead of a
                         // message, so its own message is null on purpose.
                         val text = if (e is WhisperException) {
@@ -27736,6 +27763,13 @@ open class WMKeyboardService : InputMethodService() {
         val chain = !userStopped && voiceChains() &&
             !voiceStopRequested && voiceSessionAlive()
         if (text.isBlank()) {
+            // The finished phrase is the last word: asr4all's live words for a
+            // clip that turned out to hold nothing go, as a recognizer's empty
+            // final takes its partial with it.
+            if (asr4allComposed) {
+                asr4allComposed = false
+                currentInputConnection?.commitText("", 1)
+            }
             // Nothing heard. In continuous mode keep listening — but not
             // forever, so an abandoned open mic winds down the way it does
             // for the system recognizer; otherwise idle.
@@ -27835,6 +27869,9 @@ open class WMKeyboardService : InputMethodService() {
             return null
         }
         val ic = currentInputConnection ?: return null
+        // asr4all's live words are the composing region the commit below
+        // replaces, as the recognizer's partial is.
+        asr4allComposed = false
         // A word still being composed — typed under the microphone, or resumed
         // by a caret tap while a transcription was in flight — has to commit
         // first, or the dictated text replaces it.
@@ -28035,11 +28072,12 @@ open class WMKeyboardService : InputMethodService() {
      * "I have finished talking". They leave the session running.
      *
      * The exception is a partial already sitting in the editor as composing text.
-     * The system recognizer's partials are cumulative and each one rewrites the
-     * whole composing region, so a character typed inside it is either duplicated
-     * or swallowed; that case still ends the utterance and keeps what was heard.
-     * Whisper has no partial — its audio is in the recorder, not the editor — so
-     * a rail key never costs a recording.
+     * The system recognizer's and asr4all's partials are cumulative and each one
+     * rewrites the whole composing region, so a character typed inside it is
+     * either duplicated or swallowed; that case lands what was heard so far,
+     * types the key after it and listens again ([splitVoicePhrase]). Whisper has
+     * no partial — its audio is in the recorder, not the editor — so a rail key
+     * never costs a recording.
      */
     fun onVoiceRailKey(action: VoiceBarAction) {
         when (action) {
@@ -28166,9 +28204,21 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onVoiceSurfaceKey(key: Key) {
-        if (_uiState.value.voice.partial.isNotEmpty()) {
-            onKey(key)
-            return
+        val voice = _uiState.value.voice
+        when {
+            // asr4all's words wait in the field while the clip's last moment
+            // decodes, and the key would land inside them. They stay as heard,
+            // the finish is dropped, and the key goes after them.
+            voice.status == VoiceStatus.TRANSCRIBING && asr4allComposed -> cancelVoice()
+            voice.status == VoiceStatus.LISTENING && voice.partial.isNotEmpty() &&
+                !interactiveVoice() && !voiceSessionForField -> {
+                splitVoicePhrase(key)
+                return
+            }
+            voice.partial.isNotEmpty() -> {
+                onKey(key)
+                return
+            }
         }
         voiceRailKeyInFlight = true
         try {
@@ -28177,6 +28227,33 @@ open class WMKeyboardService : InputMethodService() {
             voiceRailKeyInFlight = false
         }
         if (voiceActive()) refreshVoiceContext()
+    }
+
+    /**
+     * A rail key pressed while a phrase is still being heard in block voice
+     * typing (#758): a comma, a full stop, a backspace said by hand in the
+     * middle of dictating. The partial in the field is cumulative, so the key
+     * cannot go into it, and ending the dictation for it would make every
+     * correction cost a tap on the mic. Instead the phrase lands as heard so
+     * far, through the same path as a finished one, the key goes after it,
+     * and listening starts again for what comes next.
+     */
+    private fun splitVoicePhrase(key: Key) {
+        val voice = _uiState.value.voice
+        // Replaces the partial, which is the composing region, before the
+        // cancel below would settle that as it stands.
+        commitVoiceUtterance(voice.partial, voice.languageTag)
+        cancelVoice()
+        voiceRailKeyInFlight = true
+        try {
+            onKey(key)
+        } finally {
+            voiceRailKeyInFlight = false
+        }
+        if (voiceSessionAlive()) {
+            voiceSilentRetries = 0
+            startVoice()
+        }
     }
 
     /** A dictation session is mid-flight: recording, finishing, or transcribing. */
@@ -28229,6 +28306,7 @@ open class WMKeyboardService : InputMethodService() {
             serviceScope.launch(Dispatchers.IO) { runCatching { rec.stop() } }
         }
         voiceEngine.cancel()
+        asr4allComposed = false
         if (!interactiveVoice() && !voiceSessionForField) currentInputConnection?.finishComposingText()
         _uiState.update {
             it.copy(
@@ -28262,6 +28340,8 @@ open class WMKeyboardService : InputMethodService() {
         asr4allJob?.cancel()
         asr4allJob = null
         asr4allCapture = null
+        // Its live words are settled below with the recognizer's partial.
+        asr4allComposed = false
         if (status != VoiceStatus.LISTENING && status != VoiceStatus.FINISHING &&
             status != VoiceStatus.TRANSCRIBING
         ) {
@@ -28440,6 +28520,10 @@ open class WMKeyboardService : InputMethodService() {
         // of typing that has started.
         if (status == VoiceStatus.TRANSCRIBING) {
             voiceStopRequested = true
+            // Except asr4all's: its words are in the field as composing text
+            // while the last moment decodes, and the key's own word would
+            // replace them. They stay as heard, and the finish is dropped.
+            if (asr4allComposed) cancelVoice()
             return
         }
         if (status == VoiceStatus.LISTENING || status == VoiceStatus.FINISHING) {
@@ -28806,9 +28890,23 @@ open class WMKeyboardService : InputMethodService() {
     /** "Get a voice model" chip: open the Voice tool settings to download one. */
     fun onOpenVoiceSettings() = openToolSettings(ToolbarTool.VOICE)
 
-    /** Undo chip: removes the last dictated utterance if still at the cursor. */
+    /**
+     * Undo chip: removes the last dictated utterance if still at the cursor.
+     * Pressed while a phrase is still being heard (#758), it takes back that
+     * phrase instead: its words go, and listening starts again, so a sentence
+     * that came out wrong is said again without the microphone closing.
+     */
     fun onVoiceUndo() {
         vibrate()
+        val voice = _uiState.value.voice
+        if (voice.status == VoiceStatus.LISTENING && voice.partial.isNotEmpty()) {
+            // The partial is the composing region in block voice typing;
+            // anywhere else it was only ever on the surface.
+            if (!interactiveVoice() && !voiceSessionForField) currentInputConnection?.setComposingText("", 1)
+            voiceSilentRetries = 0
+            startVoice()
+            return
+        }
         val last = lastVoiceCommit
         lastVoiceCommit = null
         _uiState.update { it.copy(voice = it.voice.copy(canUndo = false)) }

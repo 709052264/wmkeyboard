@@ -7,7 +7,7 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Offline Asr4All is a dictation engine that runs entirely on your phone and listens as you speak. Where [offline Whisper](/tools/whisper/) and [offline Whistle](/tools/whistle/) record a phrase and transcribe it once you stop, Asr4All decodes the audio while it arrives: the words appear under the microphone as you say them, about a second and a half behind you, and when you stop the phrase is typed almost at once, because nearly all of it is already done. A second pass inside the model adds punctuation and capital letters, and repairs the mistakes a fast first pass makes. Once a model is downloaded, no audio leaves the phone.
+Offline Asr4All is a dictation engine that runs entirely on your phone and listens as you speak. Where [offline Whisper](/tools/whisper/) and [offline Whistle](/tools/whistle/) record a phrase and transcribe it once you stop, Asr4All decodes the audio while it arrives: the words appear in the field, underlined, and under the microphone as you say them, about a second and a half behind you, and when you stop the phrase is typed almost at once, because nearly all of it is already done. A second pass inside the model adds punctuation and capital letters, and repairs the mistakes a fast first pass makes. Once a model is downloaded, no audio leaves the phone.
 
 It is English only. While a layout in another language is in use, dictation uses the system recognizer instead, the same way Whistle hands over its other languages.
 
@@ -41,7 +41,9 @@ There is no separate switch for which one dictates: the largest size on the phon
 
 The model is a streaming recogniser. Every 0.64 seconds of audio it commits the next 16 frames of text, each 40 ms long, looking 0.76 seconds further ahead to be sure of them, and carries what it has heard so far into the next step. So the cost is the same for every second you speak, however long the phrase runs, and a phrase can run to two minutes before the countdown under the microphone ends it.
 
-The line under the microphone shows the words as they are recognised, without punctuation. When you stop, the second pass settles the last few words, and the phrase is typed with its full stops, commas, question marks and capitals, then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)).
+The words go into the field as they are recognised, underlined and without punctuation, the way the system recognizer's do, and the line under the microphone shows them too. When you stop, the second pass settles the last few words, and the finished phrase replaces the underlined one with its full stops, commas, question marks and capitals, then goes through the same spacing, spoken punctuation and undo as any other dictation (see [Voice typing](/tools/voice/)). A key typed in that last moment keeps the words as they stood and drops the second pass.
+
+In **Type while you speak** (see [Typing while you dictate](/tools/voice/#typing-while-you-dictate)), nothing goes into the field until the phrase is finished, so there the words are on the line under the microphone only.
 
 On a desktop, its output matched the model makers' own reference decoder word for word, punctuation included. Speed and accuracy on a phone are not yet measured by this project.
 
