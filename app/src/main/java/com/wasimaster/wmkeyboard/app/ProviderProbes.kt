@@ -1,7 +1,18 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
+import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
+import com.wasimaster.wmkeyboard.core.providers.ProviderEntry
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.AiSettings
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.through
+import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
+import com.wasimaster.wmkeyboard.core.voice.WavEncoder
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
@@ -130,7 +141,17 @@ internal object ProviderProbes {
             ProviderTypes.BRAVE.id -> {
                 { BraveSearchClient.webSearch(PROBE_WORD, key, 1, true) }
             }
-            else -> null
+            // One second of silence: it transcribes to nothing, so an answer at all is the pass.
+            ProviderTypes.TRANSCRIPTION_SERVER.id -> {
+                {
+                    TranscriptionClient.transcribe(
+                        credential.url, key, credential.model, null,
+                        WavEncoder.encode(FloatArray(WhisperMel.SAMPLE_RATE)),
+                        path = credential.extra[CredentialSpec.PATH].orEmpty(),
+                    )
+                }
+            }
+            else -> aiProbe(type, credential)
         }
         if (call != null) return { withContext(Dispatchers.IO) { call() } }
         homeProbe(context, type, credential)?.let { return it }
@@ -144,6 +165,31 @@ internal object ProviderProbes {
     }
 
     private fun probe(block: suspend () -> Unit): suspend () -> Unit = block
+
+    /**
+     * A one-line question to an AI service, capped at a few tokens: the
+     * cheapest request that proves the key, the address and the model
+     * together. Null for the on-device model, which is tested by running it.
+     */
+    private fun aiProbe(type: ProviderType, credential: ProviderCredential): (() -> Unit)? {
+        val provider = AiProviders.of(type.id)?.takeIf { it != AiProvider.ON_DEVICE } ?: return null
+        val row = ResolvedProvider(
+            entry = ProviderEntry(type.id, credential.id.takeIf { it != type.id }),
+            type = type,
+            credential = credential,
+            apiKey = credential.apiKey,
+            url = credential.url,
+            model = credential.model,
+            problem = null,
+        )
+        val config = AiClient.config(AiSettings(provider = provider).through(row))
+        return {
+            AiClient.completeStreaming(
+                config, system = "", user = PROBE_WORD, maxTokens = AI_PROBE_TOKENS,
+                onPhase = {}, onPartial = {},
+            )
+        }
+    }
 
     /** The cheapest request each home answers with the key it holds; null for a home with nothing to ask yet. */
     private fun homeProbe(context: Context, type: ProviderType, credential: ProviderCredential): (suspend () -> Unit)? = when (type.id) {
@@ -187,6 +233,9 @@ internal object ProviderProbes {
 
     private fun ProviderCredential.homeAccountFor(kind: HomeKind): HomeAccount =
         HomeAccount(id, kind, url = url.trim(), apiKey = apiKey.trim(), extra = extra)
+
+    /** Enough for a word back; a reasoning model may spend it all thinking, which still answers. */
+    private const val AI_PROBE_TOKENS = 16
 
     /** A word every provider has something for. */
     private const val PROBE_WORD = "hello"

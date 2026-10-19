@@ -41,6 +41,21 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
 
     /** The camera tool's Translate button (#727): the photo comes back with its text translated. */
     PHOTO_TRANSLATE("photo_translate", listOf(ChainMode.FALLBACK, ChainMode.PICK), R.string.core_tools_provider_tool_photo_translate),
+
+    /**
+     * The AI tools, the chat and the settings assistant. One answers at a
+     * time: the one picked on the AI panel or on the AI page, kept in
+     * `AiSettings.providerKey`, so the list is always in [ChainMode.PICK].
+     */
+    AI("ai", listOf(ChainMode.PICK), R.string.core_tools_provider_tool_ai),
+
+    /**
+     * Voice typing's engines. The first that is on and can run is the
+     * default engine; a language can still be given another one of its own.
+     * The first transcription server on the list is the one a language set
+     * to "server" sends its clips to.
+     */
+    VOICE("voice", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_voice),
     ;
 
     /**
@@ -61,12 +76,12 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * asks by service, so neither has a choice to offer.
      */
     fun foldsSameKind(mode: ChainMode): Boolean =
-        mode == ChainMode.PICK || (mode != ChainMode.FALLBACK && (this == GIF || this == STICKER))
+        (mode == ChainMode.PICK && this != AI) || (mode != ChainMode.FALLBACK && (this == GIF || this == STICKER))
 
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
 
-        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE) }
+        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI) }
     }
 }
 
@@ -126,12 +141,23 @@ data class CredentialSpec(
      * what the server should use, and a blank one means the default.
      */
     val engines: List<FrontEndEngine> = emptyList(),
+    /**
+     * A route of the server's own, for one that does not answer where its
+     * address implies (a transcription server on `/inference`). Stored in
+     * [ProviderCredential.extra] under [PATH]; blank works it out.
+     */
+    val path: Boolean = false,
 ) {
-    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty()
+    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path
 
     /** The engine [stored] names, else the default; null for a kind with no engines. */
     fun engine(stored: String): FrontEndEngine? =
         engines.firstOrNull { it.id == stored.trim() } ?: engines.firstOrNull()
+
+    companion object {
+        /** The [ProviderCredential.extra] key a [path] is kept under. */
+        const val PATH = "path"
+    }
 }
 
 /** One service behind a translation front end. [id] is what the front end's API takes; [label] is a brand name. */
@@ -483,6 +509,116 @@ object ProviderTypes {
         CredentialSpec(key = Need.REQUIRED), multiInstance = true,
     )
 
+    // ---- AI. Each maps to one `AiProvider` in :core:settings (`AiProviders`); keep them in step.
+
+    private val AI = setOf(ProviderTool.AI)
+
+    val ANTHROPIC = ProviderType(
+        "anthropic", AI, R.string.core_tools_provider_anthropic, R.string.core_tools_provider_anthropic_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val OPENAI = ProviderType(
+        "openai", AI, R.string.core_tools_provider_openai, R.string.core_tools_provider_openai_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val GEMINI = ProviderType(
+        "gemini", AI, R.string.core_tools_provider_gemini, R.string.core_tools_provider_gemini_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val XAI = ProviderType(
+        "xai", AI, R.string.core_tools_provider_xai, R.string.core_tools_provider_xai_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val DEEPSEEK = ProviderType(
+        "deepseek", AI, R.string.core_tools_provider_deepseek, R.string.core_tools_provider_deepseek_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+
+    /**
+     * Brave's Answers API, not its search: the two plans have keys of their
+     * own, so it is a kind apart from [BRAVE]. A blank key borrows the search
+     * one the user typed ([ProviderResolution]), never the build's, which is
+     * why the key is optional here and a row with neither needs a key.
+     */
+    val BRAVE_ANSWERS = ProviderType(
+        "brave_answers", AI, R.string.core_tools_provider_brave_answers, R.string.core_tools_provider_brave_answers_desc,
+        CredentialSpec(key = Need.OPTIONAL),
+    )
+    val OLLAMA = ProviderType(
+        "ollama", AI, R.string.core_tools_provider_ollama, R.string.core_tools_provider_ollama_desc,
+        CredentialSpec(url = Need.REQUIRED, model = true), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+    val LM_STUDIO = ProviderType(
+        "lm_studio", AI, R.string.core_tools_provider_lm_studio, R.string.core_tools_provider_lm_studio_desc,
+        CredentialSpec(url = Need.REQUIRED, model = true), multiInstance = true, selfHosted = true,
+    )
+
+    /** Any other service with OpenAI's chat shape: OpenRouter, Groq, Mistral, a gateway at home. */
+    val OPENAI_COMPATIBLE = ProviderType(
+        "openai_compatible", AI, R.string.core_tools_provider_openai_compatible, R.string.core_tools_provider_openai_compatible_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
+    )
+
+    /** The downloaded model the AI page's model manager picked; only where the build carries the runtime. */
+    val ON_DEVICE_AI = ProviderType(
+        "on_device_ai", AI, R.string.core_tools_provider_on_device_ai, R.string.core_tools_provider_on_device_ai_desc,
+        onDevice = true,
+    )
+
+    // ---- Voice typing. The ids map to the engine ids `WhisperSettings.engine` stores ([VOICE_ENGINES]).
+
+    private val VOICE = setOf(ProviderTool.VOICE)
+
+    val SYSTEM_RECOGNIZER = ProviderType(
+        "system_recognizer", VOICE, R.string.core_tools_provider_system_recognizer, R.string.core_tools_provider_system_recognizer_desc,
+    )
+    val WHISTLE = ProviderType(
+        "whistle", VOICE, R.string.core_tools_provider_whistle, R.string.core_tools_provider_whistle_desc,
+        onDevice = true,
+    )
+    val WHISPER = ProviderType(
+        "whisper", VOICE, R.string.core_tools_provider_whisper, R.string.core_tools_provider_whisper_desc,
+        onDevice = true, freeSoftware = true,
+    )
+    val ASR4ALL = ProviderType(
+        "asr4all", VOICE, R.string.core_tools_provider_asr4all, R.string.core_tools_provider_asr4all_desc,
+        onDevice = true,
+    )
+    val PARAKEET = ProviderType(
+        "parakeet", VOICE, R.string.core_tools_provider_parakeet, R.string.core_tools_provider_parakeet_desc,
+        onDevice = true, freeSoftware = true,
+    )
+    val MOONSHINE = ProviderType(
+        "moonshine", VOICE, R.string.core_tools_provider_moonshine, R.string.core_tools_provider_moonshine_desc,
+        onDevice = true, freeSoftware = true,
+    )
+
+    /** Anything that speaks OpenAI's `/audio/transcriptions`: speaches, whisper.cpp's server, Groq. */
+    val TRANSCRIPTION_SERVER = ProviderType(
+        "transcription_server", VOICE, R.string.core_tools_provider_transcription_server, R.string.core_tools_provider_transcription_server_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, path = true), multiInstance = true, selfHosted = true,
+    )
+
+    /** Voice type id → the engine id dictation stores and runs. */
+    val VOICE_ENGINES: Map<String, String> by lazy {
+        mapOf(
+            SYSTEM_RECOGNIZER.id to ENGINE_SYSTEM,
+            WHISTLE.id to "whistle",
+            WHISPER.id to "whisper",
+            ASR4ALL.id to "asr4all",
+            PARAKEET.id to "parakeet",
+            MOONSHINE.id to "moonshine",
+            TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
+        )
+    }
+
+    const val ENGINE_SYSTEM = "system"
+    const val ENGINE_SERVER = "server"
+
+    /** The voice type that runs [engine], or null for an engine id this build does not know. */
+    fun voiceType(engine: String): ProviderType? =
+        VOICE_ENGINES.entries.firstOrNull { it.value == engine }?.key?.let(::of)
+
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
         ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
@@ -493,6 +629,8 @@ object ProviderTypes {
         ER_API, FRANKFURTER, COINBASE, CURRENCY_API, COINGECKO,
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         VISION_OCR, RENS,
+        ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
+        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, TRANSCRIPTION_SERVER,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

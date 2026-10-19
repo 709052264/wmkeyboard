@@ -4564,7 +4564,24 @@ data class AiReplySettings(
  */
 data class AiSettings(
     // Provider, per-provider keys/models and self-hosted URLs.
+    //
+    // The AI list (ProviderTool.AI) is where these are set up now. The fields
+    // below are what the client reads: the repository writes the row in use
+    // into them on every read (withProviderChoices), and the stored values
+    // are only read to work out the list for a user who has not edited it.
     val provider: AiProvider = AiProvider.ANTHROPIC,
+    /**
+     * The AI list's row in use, by `ProviderEntry.key`: picked on the AI
+     * panel or the AI page. Blank, or a row since removed, falls back to the
+     * first row of [provider]'s kind, then the first row.
+     */
+    val providerKey: String = "",
+    /**
+     * Some row of the AI list can answer. False when the list is empty or
+     * every row is off, so the client reports the AI as not set up whatever
+     * old keys are still stored.
+     */
+    val listed: Boolean = true,
     val anthropicKey: String = "",
     val openAiKey: String = "",
     val geminiKey: String = "",
@@ -10738,6 +10755,7 @@ class SettingsRepository(private val context: Context) {
         private val QR_SIZE_PX = intPreferencesKey("qr_size_px")
         private val QR_ECC = stringPreferencesKey("qr_ecc")
         private val AI_PROVIDER = stringPreferencesKey("ai_provider")
+        private val AI_PROVIDER_KEY = stringPreferencesKey("ai_provider_key")
         private val AI_ANTHROPIC_KEY = stringPreferencesKey("ai_anthropic_key")
         private val AI_OPENAI_KEY = stringPreferencesKey("ai_openai_key")
         private val AI_GEMINI_KEY = stringPreferencesKey("ai_gemini_key")
@@ -11287,7 +11305,9 @@ class SettingsRepository(private val context: Context) {
             kdeConnect = readKdeConnect(p, defaults),
             homeAssistant = readHomeAssistant(p, defaults),
             selfHosted = readSelfHosted(p, defaults),
-        )
+        // The AI row and the voice engine in use, written where the AI client
+        // and dictation read them, so nothing downstream reads the lists itself.
+        ).withProviderChoices()
     }
 
     // ---- mapPreferences, one settings family per function ----
@@ -12955,6 +12975,7 @@ class SettingsRepository(private val context: Context) {
                 // model nothing there can run.
                 ?.takeUnless { it == AiProvider.ON_DEVICE && !BuildConfig.ENABLE_LOCAL_LLM }
                 ?: defaults.ai.provider,
+            providerKey = p[AI_PROVIDER_KEY] ?: defaults.ai.providerKey,
             anthropicKey = p[AI_ANTHROPIC_KEY] ?: defaults.ai.anthropicKey,
             openAiKey = p[AI_OPENAI_KEY] ?: defaults.ai.openAiKey,
             geminiKey = p[AI_GEMINI_KEY] ?: defaults.ai.geminiKey,
@@ -13862,8 +13883,19 @@ class SettingsRepository(private val context: Context) {
     suspend fun setVoiceSpokenPunctuation(value: Boolean) =
         editPrefs { it[VOICE_SPOKEN_PUNCTUATION] = value }
 
+    /**
+     * Makes [value] the default dictation engine. The stored engine is what
+     * the voice list is worked out from until it is edited; an edited list
+     * gets that engine's row moved to the top and switched on instead.
+     */
     suspend fun setVoiceEngine(value: String) =
-        editPrefs { it[VOICE_ENGINE] = value }
+        editPrefs { prefs ->
+            prefs[VOICE_ENGINE] = value
+            val chains = ProviderCodec.decodeChains(prefs[PROVIDER_CHAINS])
+            val stored = chains[ProviderTool.VOICE] ?: return@editPrefs
+            val next = stored.preferringEngine(value) ?: return@editPrefs
+            prefs[PROVIDER_CHAINS] = ProviderCodec.encodeChains(chains + (ProviderTool.VOICE to next.stamped(ProviderTool.VOICE)))
+        }
 
     suspend fun setWhisperModelId(value: String) =
         editPrefs { it[WHISPER_MODEL_ID] = value }
@@ -20265,6 +20297,16 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiProvider(value: AiProvider) =
         editPrefs { it[AI_PROVIDER] = value.name }
+
+    /**
+     * Picks the AI list's row [key] as the one in use. Its kind is stored as
+     * the provider too, which is what a build from before the lists reads.
+     */
+    suspend fun setAiProviderKey(key: String, provider: AiProvider) =
+        editPrefs {
+            it[AI_PROVIDER_KEY] = key
+            it[AI_PROVIDER] = provider.name
+        }
 
     suspend fun setAiAnthropicKey(value: String) =
         editPrefs { it[AI_ANTHROPIC_KEY] = value.trim() }

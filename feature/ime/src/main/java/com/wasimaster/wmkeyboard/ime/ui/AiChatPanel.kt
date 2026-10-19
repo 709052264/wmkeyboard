@@ -219,8 +219,8 @@ internal fun AiChatPanel(
     val run by AiChatController.run.collectAsState()
     // Cheap file stats, keyed on the store so a model that finished
     // downloading while the panel was up is offered without a reopen.
-    val choices = remember(version, state.settings.ai, chat.showSessions) {
-        AiChatController.choices(context, state.settings.ai)
+    val choices = remember(version, state.settings.ai, state.settings.providers, chat.showSessions) {
+        AiChatController.choices(context, state.settings)
     }
     val choice = remember(choices, chat.modelKey, version) {
         choices.firstOrNull { it.key == chat.modelKey } ?: AiChatController.initialChoice(store, choices)
@@ -330,7 +330,7 @@ private fun modelLabel(choice: ModelChoice): String =
     if (choice.provider == AiProvider.ON_DEVICE) {
         AiChatController.localModelLabel(choice.localModelId)
     } else {
-        stringResource(choice.provider.labelRes)
+        choice.name.ifEmpty { stringResource(choice.provider.labelRes) }
     }
 
 @OptIn(ExperimentalLayoutApi::class)

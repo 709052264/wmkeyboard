@@ -2,6 +2,8 @@ package com.wasimaster.wmkeyboard.core.providers
 
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.settings.DeepLSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSettings
 import com.wasimaster.wmkeyboard.core.settings.GifSourceMode
@@ -16,6 +18,10 @@ import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.TranslateServerSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateSettings
 import com.wasimaster.wmkeyboard.core.settings.WebSearchSettings
+import com.wasimaster.wmkeyboard.core.settings.WhisperSettings
+import com.wasimaster.wmkeyboard.core.settings.aiThrough
+import com.wasimaster.wmkeyboard.core.settings.preferringEngine
+import com.wasimaster.wmkeyboard.core.settings.withProviderChoices
 import com.wasimaster.wmkeyboard.core.settings.assistHome
 import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.providerChain
@@ -573,5 +579,117 @@ class ProviderFrameworkTest {
             play,
         )
         assertTrue(change.chain!!.entries.any { it.typeId == "deepl" && it.credentialId == "deepl:03" })
+    }
+
+    // ---- AI and voice typing ----
+
+    @Test
+    fun `the AI services set up before the list become its rows, the chosen one in use`() {
+        val s = KeyboardSettings(
+            ai = AiSettings(provider = AiProvider.OLLAMA, anthropicKey = "sk", anthropicModel = "m1", ollamaUrl = "http://pc:11434"),
+        )
+        val chain = s.providerChain(ProviderTool.AI, github)
+        assertEquals(ChainMode.PICK, chain.mode)
+        assertEquals(listOf("anthropic", "ollama"), ids(chain))
+        val live = s.withProviderChoices(github).ai
+        assertEquals(AiProvider.OLLAMA, live.provider)
+        assertEquals("ollama", live.providerKey)
+        assertEquals("http://pc:11434", live.ollamaUrl)
+        assertTrue(live.listed)
+        // The stored choice keeps the list it came from, whatever the overlay wrote.
+        assertEquals(listOf("anthropic", "ollama"), ids(s.withProviderChoices(github).providerChain(ProviderTool.AI, github)))
+    }
+
+    @Test
+    fun `a picked second key of one service is what the client reads`() {
+        val s = KeyboardSettings(
+            ai = AiSettings(provider = AiProvider.ANTHROPIC, providerKey = "anthropic:02"),
+            providers = ProviderSettings(
+                credentials = listOf(
+                    ProviderCredential("anthropic", "anthropic", apiKey = "first"),
+                    ProviderCredential("anthropic:02", "anthropic", name = "Work", apiKey = "second", model = "big"),
+                ),
+                chains = mapOf(
+                    ProviderTool.AI to ProviderChain(
+                        listOf(ProviderEntry("anthropic"), ProviderEntry("anthropic", "anthropic:02")),
+                        ChainMode.PICK,
+                    ),
+                ),
+            ),
+        )
+        val live = s.withProviderChoices(github).ai
+        assertEquals("second", live.anthropicKey)
+        assertEquals("big", live.anthropicModel)
+        assertEquals("first", s.aiThrough("anthropic", github)!!.anthropicKey)
+    }
+
+    @Test
+    fun `an emptied AI list is not set up whatever old keys remain`() {
+        val s = KeyboardSettings(
+            ai = AiSettings(provider = AiProvider.OPENAI, openAiKey = "old"),
+            providers = ProviderSettings(chains = mapOf(ProviderTool.AI to ProviderChain(emptyList(), ChainMode.PICK))),
+        )
+        assertFalse(s.withProviderChoices(github).ai.listed)
+        // Left to the old settings, the same key is a row again.
+        assertTrue(s.copy(providers = ProviderSettings()).withProviderChoices(github).ai.listed)
+    }
+
+    @Test
+    fun `Brave Answers borrows the search key the user typed`() {
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                credentials = listOf(ProviderCredential("brave", "brave", apiKey = "search")),
+                chains = mapOf(ProviderTool.AI to ProviderChain(listOf(ProviderEntry("brave_answers")), ChainMode.PICK)),
+            ),
+        )
+        val row = s.resolveProviders(ProviderTool.AI, github, all = true).single()
+        assertNull(row.problem)
+        assertEquals("search", row.apiKey)
+        assertEquals(AiProvider.BRAVE, s.withProviderChoices(github).ai.provider)
+        val none = s.copy(providers = s.providers.copy(credentials = emptyList()))
+        assertEquals(ProviderProblem.NEEDS_KEY, none.resolveProviders(ProviderTool.AI, github, all = true).single().problem)
+    }
+
+    @Test
+    fun `the voice engine and the server from before the list keep dictation where it was`() {
+        val s = KeyboardSettings(
+            whisper = WhisperSettings(engine = "whisper", serverUrl = "http://pc:8000/v1", serverKey = "k", serverPath = "/inference"),
+        )
+        assertEquals(listOf("whisper", "transcription_server", "system_recognizer"), ids(s.providerChain(ProviderTool.VOICE, github)))
+        val live = s.withProviderChoices(github).whisper
+        assertEquals("whisper", live.engine)
+        assertEquals("http://pc:8000/v1", live.serverUrl)
+        assertEquals("/inference", live.serverPath)
+    }
+
+    @Test
+    fun `the first voice engine that is on is the default, and an empty list still has a microphone`() {
+        val chain = ProviderChain(
+            listOf(
+                ProviderEntry("system_recognizer", enabled = false),
+                ProviderEntry("transcription_server", "transcription_server:02"),
+            ),
+        )
+        val s = KeyboardSettings(
+            providers = ProviderSettings(
+                credentials = listOf(ProviderCredential("transcription_server:02", "transcription_server", url = "http://box", model = "large")),
+                chains = mapOf(ProviderTool.VOICE to chain),
+            ),
+        )
+        val live = s.withProviderChoices(github).whisper
+        assertEquals("server", live.engine)
+        assertEquals("http://box", live.serverUrl)
+        assertEquals("large", live.serverModel)
+        val empty = s.copy(providers = s.providers.copy(chains = mapOf(ProviderTool.VOICE to ProviderChain())))
+        assertEquals("system", empty.withProviderChoices(github).whisper.engine)
+        assertEquals(listOf("system_recognizer", "transcription_server"), ids(chain.preferringEngine("system")!!))
+        assertTrue(chain.preferringEngine("system")!!.entries.first().enabled)
+    }
+
+    @Test
+    fun `a voice engine this build cannot run is not offered`() {
+        val lite = github.copy(voiceEngines = setOf("system", "server"))
+        val offered = ProviderCatalog.addable(ProviderTool.VOICE, ProviderChain(), lite).map { it.id }
+        assertEquals(listOf("system_recognizer", "transcription_server"), offered)
     }
 }

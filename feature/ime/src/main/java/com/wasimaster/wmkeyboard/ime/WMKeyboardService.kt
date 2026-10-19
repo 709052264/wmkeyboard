@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.settings.fiatRateProviders
 import com.wasimaster.wmkeyboard.core.settings.cryptoRateProviders
 import com.wasimaster.wmkeyboard.core.tools.NoRateProviderException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import android.app.AppOpsManager
@@ -497,6 +498,9 @@ import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryEntry
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryGuard
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.aiRows
+import com.wasimaster.wmkeyboard.core.settings.through
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.visibleAiActions
 import com.wasimaster.wmkeyboard.core.tools.AiInputMode
@@ -32200,20 +32204,26 @@ open class WMKeyboardService : InputMethodService() {
         else -> AiUi.Idle
     }
 
-    /** Model-picker row on the AI panel: switch provider (and local model). */
-    fun onAiPickModel(provider: AiProvider, localModelId: String?) {
+    /**
+     * Model-picker row on the AI panel: switch to another row of the AI list.
+     * [pick] is the downloaded model for [AiProvider.ON_DEVICE], else the
+     * row's key.
+     */
+    fun onAiPickModel(provider: AiProvider, pick: String?) {
         vibrate()
+        val onDevice = provider == AiProvider.ON_DEVICE
+        val localModelId = pick.takeIf { onDevice }
+        val rowKey = if (onDevice) ProviderTypes.ON_DEVICE_AI.id else pick ?: AiProviders.type(provider).id
         serviceScope.launch {
             if (localModelId != null) settingsRepository.setAiLocalModelId(localModelId)
-            settingsRepository.setAiProvider(provider)
+            settingsRepository.setAiProviderKey(rowKey, provider)
             // Re-derive the panel state for the new choice; the settings flow
             // update races this tap, so compute from the edited values.
             val current = _uiState.value.settings
+            val row = current.aiRows().firstOrNull { it.key == rowKey }
+            val picked = row?.let { current.ai.through(it) } ?: current.ai.copy(provider = provider)
             val updated = current.copy(
-                ai = current.ai.copy(
-                    provider = provider,
-                    localModelId = localModelId ?: current.ai.localModelId,
-                ),
+                ai = picked.copy(localModelId = localModelId ?: current.ai.localModelId),
             )
             _uiState.update {
                 it.copy(
@@ -33426,7 +33436,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The model the next message goes to: the one picked, else the last used. */
     private fun aiChatChoice(): AiChatController.ModelChoice? {
         val state = _uiState.value
-        val available = AiChatController.choices(this, state.settings.ai)
+        val available = AiChatController.choices(this, state.settings)
         return available.firstOrNull { it.key == state.aiChat.modelKey }
             ?: AiChatController.initialChoice(AiChatController.store(this), available)
     }

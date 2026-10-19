@@ -100,4 +100,43 @@
     <string name="core_tools_provider_tuya_desc">Smart Life and Tuya Smart devices, rooms and scenes, through a free Tuya developer project linked to your app account. States refresh while the panel is open.</string>
     <string name="core_tools_provider_switchbot" translatable="false">SwitchBot</string>
     <string name="core_tools_provider_switchbot_desc">Your SwitchBot devices, infrared remotes and scenes, through SwitchBot\'s cloud with the token from its app. States refresh once a minute while the panel is open.</string>
+    <!-- AI and voice typing as provider lists -->
+    <string name="core_tools_provider_tool_ai">AI</string>
+    <string name="core_tools_provider_tool_voice">Voice typing</string>
+
+    <string name="core_tools_provider_anthropic" translatable="false">Anthropic (Claude)</string>
+    <string name="core_tools_provider_anthropic_desc">Claude models through Anthropic\'s API, with your own key.</string>
+    <string name="core_tools_provider_openai" translatable="false">OpenAI</string>
+    <string name="core_tools_provider_openai_desc">GPT models through OpenAI\'s API, with your own key.</string>
+    <string name="core_tools_provider_gemini" translatable="false">Google Gemini</string>
+    <string name="core_tools_provider_gemini_desc">Gemini models through Google\'s API, with your own key from AI Studio.</string>
+    <string name="core_tools_provider_xai" translatable="false">xAI (Grok)</string>
+    <string name="core_tools_provider_xai_desc">Grok models through xAI\'s API, with your own key.</string>
+    <string name="core_tools_provider_deepseek" translatable="false">DeepSeek</string>
+    <string name="core_tools_provider_deepseek_desc">DeepSeek models through DeepSeek\'s API, with your own key.</string>
+    <string name="core_tools_provider_brave_answers">Brave Answers</string>
+    <string name="core_tools_provider_brave_answers_desc">Answers grounded in a Brave web search. Needs a key with the Answers plan. Left blank, the Brave Search key you typed for web search is tried.</string>
+    <string name="core_tools_provider_ollama" translatable="false">Ollama</string>
+    <string name="core_tools_provider_ollama_desc">Models on an Ollama server you run, on your computer or your network. Add one for each server.</string>
+    <string name="core_tools_provider_lm_studio" translatable="false">LM Studio</string>
+    <string name="core_tools_provider_lm_studio_desc">Models served by LM Studio on your computer. Add one for each computer.</string>
+    <string name="core_tools_provider_openai_compatible">OpenAI-compatible service</string>
+    <string name="core_tools_provider_openai_compatible_desc">Any other service with OpenAI\'s chat API: OpenRouter, Groq, Mistral, Together, or a gateway of your own. Give the address up to the version, such as https://openrouter.ai/api/v1.</string>
+    <string name="core_tools_provider_on_device_ai">On your device</string>
+    <string name="core_tools_provider_on_device_ai_desc">A model downloaded to this phone. Nothing you write leaves it. Pick and download the model on the AI page.</string>
+
+    <string name="core_tools_provider_system_recognizer">Phone\'s recognizer</string>
+    <string name="core_tools_provider_system_recognizer_desc">The speech recognizer that comes with the phone, usually Google\'s. Words appear as you speak.</string>
+    <string name="core_tools_provider_whistle" translatable="false">Whistle</string>
+    <string name="core_tools_provider_whistle_desc">A small, fast model that runs on the phone. Download it on the Voice typing page.</string>
+    <string name="core_tools_provider_whisper" translatable="false">Whisper</string>
+    <string name="core_tools_provider_whisper_desc">OpenAI\'s Whisper models, run on the phone. Many languages; download a model on the Voice typing page.</string>
+    <string name="core_tools_provider_asr4all" translatable="false">Asr4All</string>
+    <string name="core_tools_provider_asr4all_desc">English dictation on the phone, with words appearing as you speak.</string>
+    <string name="core_tools_provider_parakeet" translatable="false">Parakeet</string>
+    <string name="core_tools_provider_parakeet_desc">A large model that runs on the phone and understands 25 European languages.</string>
+    <string name="core_tools_provider_moonshine" translatable="false">Moonshine</string>
+    <string name="core_tools_provider_moonshine_desc">A tiny, quick English model that runs on the phone.</string>
+    <string name="core_tools_provider_transcription_server">Transcription server</string>
+    <string name="core_tools_provider_transcription_server_desc">A server that speaks OpenAI\'s audio transcription API: speaches, whisper.cpp\'s server, LocalAI, Groq or OpenAI. Each clip is sent to it when you stop speaking.</string>
 </resources>

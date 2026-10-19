@@ -35,6 +35,16 @@ data class ProviderEnv(
     val offlineGifPacks: Boolean,
     /** The Google Home APIs can run: the build carries them and Play services is on the phone. */
     val googleHome: Boolean = false,
+    /** The build carries the on-device AI runtime (the full flavour). */
+    val onDeviceAi: Boolean = false,
+    /**
+     * The dictation engines this build can run, by engine id
+     * ([ProviderTypes.VOICE_ENGINES]). Every one unless a caller looked:
+     * finding out loads each engine's native library, so only the Voice
+     * typing page does (`availableVoiceEngines` in :core:settings), and
+     * dictation falls back on its own from an engine that cannot run.
+     */
+    val voiceEngines: Set<String> = ProviderTypes.VOICE_ENGINES.values.toSet(),
 )
 
 /**
@@ -57,13 +67,19 @@ object ProviderEnvironment {
         this.googleHome = googleHome
     }
 
-    fun current(): ProviderEnv = ProviderEnv(
+    /**
+     * [lookAtDisk] false leaves out what takes a look at the files (the
+     * offline GIF packs), for a caller that only needs the AI and voice
+     * lists: the settings are read through here on every change.
+     */
+    fun current(lookAtDisk: Boolean = true): ProviderEnv = ProviderEnv(
         channel = ProviderChannel.current,
         offline = !InternetPermission.granted,
         onDeviceTranslate = onDeviceTranslate,
-        offlineGifPacks = OfflineGifPacks.hasPacks,
+        offlineGifPacks = lookAtDisk && OfflineGifPacks.hasPacks,
         // The build carries the Home APIs, and the phone has the Play services they run through.
         googleHome = googleHome && PlayServices.available,
+        onDeviceAi = BuildConfig.ENABLE_LOCAL_LLM,
     )
 }
 
@@ -79,6 +95,8 @@ object ProviderCatalog {
         env.offline && !type.onDevice -> false
         type === ProviderTypes.ML_KIT && !env.onDeviceTranslate -> false
         type === ProviderTypes.GOOGLE_HOME && !env.googleHome -> false
+        type === ProviderTypes.ON_DEVICE_AI && !env.onDeviceAi -> false
+        ProviderTool.VOICE in type.serves -> ProviderTypes.VOICE_ENGINES[type.id] in env.voiceEngines
         else -> true
     }
 

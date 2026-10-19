@@ -46,7 +46,13 @@ import com.wasimaster.wmkeyboard.core.tools.AiInsertMode
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
 import com.wasimaster.wmkeyboard.core.tools.visibleAiActions
+import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.aiRows
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.settings.AiToolRoundsRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
@@ -157,252 +163,46 @@ internal fun AiToolSettings(
     val mcpOn = settings.watch { s -> s.ai.mcpServers.any { it.enabled } }
     // The keyboard's own tools (#698), counted the way the runner offers them.
     val builtInsOn = settings.watch { builtInToolsOn(it.ai.toolPolicies) }
-    // What the chosen provider needs, and where the text goes, both ride on
-    // the heading's "?" rather than as paragraphs between the controls.
-    val setupNote = when (aiProvider) {
-        AiProvider.OLLAMA, AiProvider.LM_STUDIO -> stringResource(R.string.toolai_ai_local_server_info)
-        AiProvider.OPENAI_COMPATIBLE -> stringResource(R.string.toolai_ai_compatible_info)
-        AiProvider.BRAVE -> stringResource(R.string.toolai_ai_brave_info)
-        else -> null
-    }
+    // Where the text goes rides on the list's "?" rather than as a paragraph
+    // between the controls. What each kind needs is in its own description.
     val privacyNote = stringResource(
         if (aiProvider == AiProvider.ON_DEVICE) R.string.toolai_ai_on_device_info
         else R.string.toolai_ai_cloud_info,
     )
-    SectionHeader(
-        stringResource(R.string.toolai_ai_provider_title),
-        info = listOfNotNull(setupNote, privacyNote).joinToString("\n\n"),
+    // The services, keys, addresses and models are a provider list, like
+    // translate's and search's. One row answers at a time: the one in use.
+    ProvidersGroup(
+        repository,
+        settings,
+        ProviderTool.AI,
+        titleRes = R.string.toolai_ai_providers_title,
+        info = stringResource(R.string.toolai_ai_providers_info) + "\n\n" + privacyNote,
     )
-    // Ten providers no longer fit a segmented row; chips wrap instead. The
-    // order is displayOrder, not the enum's own: new entries can only be
-    // appended there, which would put them after "On your device".
-    FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-    ) {
-        val providers = AiProvider.displayOrder.filter {
-            it != AiProvider.ON_DEVICE || BuildConfig.ENABLE_LOCAL_LLM
-        }
-        for (provider in providers) {
-            FilterChip(
-                selected = aiProvider == provider,
-                onClick = { scope.launch { repository.setAiProvider(provider) } },
-                label = { Text(stringResource(provider.labelRes), maxLines = 1) },
-            )
+    val rows = settings.watch { it.aiRows() }
+    val inUse = settings.watch { it.ai.providerKey }
+    if (rows.size > 1) {
+        val context = LocalContext.current
+        SettingsGroup {
+            item {
+                ChoiceSetting(
+                    R.string.toolai_ai_in_use_title,
+                    subtitle = stringResource(R.string.toolai_ai_in_use_subtitle),
+                    options = rows.map { it.key to providerTitle(context, it) },
+                    selected = inUse,
+                ) { key ->
+                    val provider = rows.firstOrNull { it.key == key }?.let { AiProviders.of(it.typeId) } ?: return@ChoiceSetting
+                    scope.launch { repository.setAiProviderKey(key, provider) }
+                }
+            }
         }
     }
-    when (aiProvider) {
-        AiProvider.ANTHROPIC -> SettingsGroup(
-            stringResource(R.string.toolai_ai_anthropic_group_title),
-        ) {
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_anthropic_key_label),
-                    value = settings.watch { it.ai.anthropicKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_anthropic_key_hint),
-                ) { repository.setAiAnthropicKey(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.anthropicModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.ANTHROPIC,
-                    ),
-                    default = SettingsDefaults.ai.anthropicModel,
-                ) { repository.setAiAnthropicModel(it) }
-            }
-        }
-        AiProvider.OPENAI -> SettingsGroup(
-            stringResource(R.string.toolai_ai_openai_group_title),
-        ) {
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_openai_key_label),
-                    value = settings.watch { it.ai.openAiKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_openai_key_hint),
-                ) { repository.setAiOpenAiKey(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.openAiModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.OPENAI,
-                    ),
-                    default = SettingsDefaults.ai.openAiModel,
-                ) { repository.setAiOpenAiModel(it) }
-            }
-        }
-        AiProvider.GEMINI -> SettingsGroup(
-            stringResource(R.string.toolai_ai_gemini_group_title),
-        ) {
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_gemini_key_label),
-                    value = settings.watch { it.ai.geminiKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_gemini_key_hint),
-                ) { repository.setAiGeminiKey(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.geminiModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.GEMINI,
-                    ),
-                    default = SettingsDefaults.ai.geminiModel,
-                ) { repository.setAiGeminiModel(it) }
-            }
-        }
-        AiProvider.OLLAMA -> SettingsGroup(
-            stringResource(R.string.toolai_ai_ollama_group_title),
-        ) {
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_server_address_label),
-                    value = settings.watch { it.ai.ollamaUrl },
-                    hint = stringResource(R.string.toolai_ai_ollama_url_hint),
-                    default = SettingsDefaults.ai.ollamaUrl,
-                ) { repository.setAiOllamaUrl(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.ollamaModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.OLLAMA,
-                    ),
-                    default = SettingsDefaults.ai.ollamaModel,
-                ) { repository.setAiOllamaModel(it) }
-            }
-        }
-        AiProvider.LM_STUDIO -> SettingsGroup(
-            stringResource(R.string.toolai_ai_lm_studio_group_title),
-        ) {
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_server_address_label),
-                    value = settings.watch { it.ai.lmStudioUrl },
-                    hint = stringResource(R.string.toolai_ai_lm_studio_url_hint),
-                    default = SettingsDefaults.ai.lmStudioUrl,
-                ) { repository.setAiLmStudioUrl(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.lmStudioModel },
-                    hint = stringResource(R.string.toolai_ai_lm_studio_model_hint),
-                    default = SettingsDefaults.ai.lmStudioModel,
-                ) { repository.setAiLmStudioModel(it) }
-            }
-        }
-        AiProvider.XAI -> SettingsGroup(
-            stringResource(R.string.toolai_ai_xai_group_title),
-        ) {
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_xai_key_label),
-                    value = settings.watch { it.ai.xaiKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_xai_key_hint),
-                ) { repository.setAiXaiKey(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.xaiModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.XAI,
-                    ),
-                    default = SettingsDefaults.ai.xaiModel,
-                ) { repository.setAiXaiModel(it) }
-            }
-        }
-        AiProvider.DEEPSEEK -> SettingsGroup(
-            stringResource(R.string.toolai_ai_deepseek_group_title),
-        ) {
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_deepseek_key_label),
-                    value = settings.watch { it.ai.deepSeekKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_deepseek_key_hint),
-                ) { repository.setAiDeepSeekKey(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.deepSeekModel },
-                    hint = stringResource(
-                        R.string.toolai_ai_model_hint,
-                        AiClient.DefaultModels.DEEPSEEK,
-                    ),
-                    default = SettingsDefaults.ai.deepSeekModel,
-                ) { repository.setAiDeepSeekModel(it) }
-            }
-        }
-        AiProvider.BRAVE -> SettingsGroup(
-            stringResource(R.string.toolai_ai_brave_group_title),
-        ) {
-            item {
-                // No model field: Brave's Answers API has exactly one model.
-                val hasSearchKey = settings.watch { it.ai.braveSearchKey.isNotBlank() }
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_brave_key_label),
-                    value = settings.watch { it.ai.braveKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(
-                        if (hasSearchKey) R.string.toolai_ai_brave_key_search_hint
-                        else R.string.toolai_ai_brave_key_hint,
-                    ),
-                ) { repository.setAiBraveKey(it) }
-            }
-        }
-        AiProvider.OPENAI_COMPATIBLE -> SettingsGroup(
-            stringResource(R.string.toolai_ai_compatible_group_title),
-        ) {
-            item {
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_compatible_url_label),
-                    value = settings.watch { it.ai.compatibleUrl },
-                    hint = stringResource(R.string.toolai_ai_compatible_url_hint),
-                    default = SettingsDefaults.ai.compatibleUrl,
-                ) { repository.setAiCompatibleUrl(it) }
-            }
-            item {
-                // No default model: there is nothing sensible to guess for a
-                // service the app knows nothing about.
-                TextFieldSetting(
-                    label = stringResource(R.string.toolai_ai_model_label),
-                    value = settings.watch { it.ai.compatibleModel },
-                    hint = stringResource(R.string.toolai_ai_compatible_model_hint),
-                    default = SettingsDefaults.ai.compatibleModel,
-                ) { repository.setAiCompatibleModel(it) }
-            }
-            item {
-                ApiKeyField(
-                    label = stringResource(R.string.toolai_ai_compatible_key_label),
-                    value = settings.watch { it.ai.compatibleKey },
-                    builtInAvailable = false,
-                    emptyHint = stringResource(R.string.toolai_ai_compatible_key_hint),
-                ) { repository.setAiCompatibleKey(it) }
-            }
-        }
-        AiProvider.ON_DEVICE -> LocalLlmModelManager(repository, settings)
+    // The on-device row stands for whichever model is downloaded and picked here.
+    if (settings.watch { s -> s.resolveProviders(ProviderTool.AI, all = true).any { it.typeId == ProviderTypes.ON_DEVICE_AI.id } }) {
+        LocalLlmModelManager(repository, settings)
     }
-    // Every provider reached over HTTP can take extra headers (#648).
-    if (aiProvider != AiProvider.ON_DEVICE) AiProviderHeadersGroup(repository, settings, aiProvider)
+    // Every provider reached over HTTP can take extra headers (#648); these
+    // are the ones for the kind in use.
+    if (rows.isNotEmpty() && aiProvider != AiProvider.ON_DEVICE) AiProviderHeadersGroup(repository, settings, aiProvider)
     ServerFieldsGroup(
         repository,
         settings,

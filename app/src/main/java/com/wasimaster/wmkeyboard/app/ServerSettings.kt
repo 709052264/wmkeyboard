@@ -24,8 +24,6 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceGroup
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
-import com.wasimaster.wmkeyboard.core.settings.AiProvider
-import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
 
@@ -97,48 +95,17 @@ internal fun ServerFieldsGroup(
 }
 
 /**
- * The self-hosted services each group carries besides its endpoints. Only the
- * AI servers are left here: LibreTranslate, SearXNG and the MediaWiki became
- * rows of their tools' provider lists, set up on the tools' own pages.
+ * The self-hosted services each group carries besides its endpoints. None are
+ * left: LibreTranslate, SearXNG, the MediaWiki, the AI servers (Ollama, LM
+ * Studio, an OpenAI-compatible gateway) and transcription servers are rows of
+ * their tools' provider lists, set up on the tools' own pages.
  */
+@Suppress("UNUSED_PARAMETER", "UnusedReceiverParameter")
 private fun SettingsGroupScope.selfHostedItems(
     group: ServiceGroup,
     repository: SettingsRepository,
     settings: LiveSettings,
-) {
-    when (group) {
-        // LibreTranslate, SearXNG and the MediaWiki are servers you add to
-        // the tool's own provider list now, on the tool's page.
-        ServiceGroup.TRANSLATE, ServiceGroup.SEARCH, ServiceGroup.MEDIA -> Unit
-        ServiceGroup.AI -> {
-            item {
-                TextFieldSetting(
-                    label = stringResource(AiProvider.OLLAMA.labelRes),
-                    value = settings.watch { it.ai.ollamaUrl },
-                    hint = stringResource(R.string.toolai_ai_server_address_label),
-                    default = SettingsDefaults.ai.ollamaUrl,
-                ) { repository.setAiOllamaUrl(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(AiProvider.LM_STUDIO.labelRes),
-                    value = settings.watch { it.ai.lmStudioUrl },
-                    hint = stringResource(R.string.toolai_ai_server_address_label),
-                    default = SettingsDefaults.ai.lmStudioUrl,
-                ) { repository.setAiLmStudioUrl(it) }
-            }
-            item {
-                TextFieldSetting(
-                    label = stringResource(AiProvider.OPENAI_COMPATIBLE.labelRes),
-                    value = settings.watch { it.ai.compatibleUrl },
-                    hint = stringResource(R.string.toolai_ai_compatible_url_label),
-                    default = SettingsDefaults.ai.compatibleUrl,
-                ) { repository.setAiCompatibleUrl(it) }
-            }
-        }
-        else -> Unit
-    }
-}
+) = Unit
 
 /** One service's address. Empty means the service's own server, which the hint names. */
 @Composable

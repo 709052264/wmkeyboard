@@ -15,10 +15,13 @@ It works in every edition, Lite included. There is nothing to download on the ph
 
 <SettingsPath path="Voice typing" />
 
-1. Under **Engine**, set **Recognition engine** to **Transcription server**.
-2. In the **Transcription server** group that appears, fill in **Server address**. For a server on your own network it looks like `http://192.168.1.10:8000/v1`.
-3. Fill in **Model** if your server needs one (see the recipes below). Fill in **API key** if it asks for one.
-4. Press **Test** on **Test the server**. The keyboard sends one second of silence and says whether the server answered. If it fails, it shows the same message a failed dictation would show.
+1. Under **Recognition engine**, press **Add a provider** and pick **Transcription server**.
+2. In the sheet that opens, fill in **Server address**. For a server on your own network it looks like `http://192.168.1.10:8000/v1`.
+3. Fill in **Model** if your server needs one (see the recipes below). Fill in **API key** if it asks for one, and **Endpoint path** for a server on a route of its own.
+4. Press **Test**. The keyboard sends one second of silence and says whether the server answered. If it fails, it shows the same message a failed dictation would show. Then press **Add**.
+5. Drag the server to the top of the list to make it the engine for every language, or give it only some languages under **Engine for each language**.
+
+You can add more than one server, each with its own address, key and model, and switch one off without losing it. Dictation sends to the first server on the list that is on.
 
 Dictation then works the way it does with offline Whisper. Speak, then press the microphone when you are done (or let the 30-second clip fill, or set **Stop after a pause** under Voice typing and let a pause end it). The phrase lands a moment later, with [spoken punctuation](/tools/voice/), spacing and undo applied as usual. **Keep listening** chains the next phrase the same way.
 
@@ -51,9 +54,9 @@ Leave **Endpoint path** empty for the usual `/audio/transcriptions`. The request
 
 ## A model or server per language
 
-Some models are much better at one language than another. With two or more languages enabled, a **Per language** group appears under **Transcription server**, with one row per language. Each row says what that language uses. Tap it to change it:
+Some models are much better at one language than another. With two or more languages enabled, a **Per language** group appears in the **Transcription server** group under the engine list, with one row per language. Each row says what that language uses. Tap it to change it:
 
-- **Same server, another model.** Leave **Server address** empty and fill in **Model**. The language uses the main server, its route and its key, with this model instead of the main one. Leave **Model** empty too and the language goes back to the main server.
+- **Same server, another model.** Leave **Server address** empty and fill in **Model**. The language uses the main server (the first one on the list), its route and its key, with this model instead of the main one. Leave **Model** empty too and the language goes back to the main server.
 - **A server of its own.** Fill in **Server address**. **Endpoint path** and **API key** appear for that server. Nothing is borrowed from the main server: the main key is never sent to a different address, and an empty **Model** lets this server pick its own.
 
 **Test** in the dialog sends one second of silence to what the dialog holds, before you save. **Use main server** clears the language's entry.

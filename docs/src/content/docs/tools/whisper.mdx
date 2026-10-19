@@ -116,7 +116,7 @@ When exactly one model is on disk, the app quietly adopts it as that fallback, s
 
 <SettingsPath path="Voice typing" />
 
-The Whisper-specific controls live inside the same **Voice typing** screen as the system-recognizer settings. There's no separate destination for them. The **Recognition engine** picker is where you switch to Whisper in the first place; it lists Offline Whisper in either edition wherever whisper.cpp or LiteRT can run. The rest of the table only shows up once you've selected the offline engine there.
+The Whisper-specific controls live inside the same **Voice typing** screen as the system-recognizer settings. There's no separate destination for them. The **Recognition engine** list is where you add Whisper in the first place; **Add a provider** offers it in either edition wherever whisper.cpp or LiteRT can run. Move it to the top to make it the engine for every language. The rest of the table shows up once Whisper is on the list, or a language uses it.
 
 | Setting | Default | What it does |
 |---|---|---|
@@ -145,7 +145,7 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 **A microphone that drops out keeps what it had.** If capture fails in the middle of a clip, because another app tore it down or the audio service restarted, what you said up to that point is transcribed as though you had pressed stop. If it fails before anything was recorded, the panel says the microphone couldn't be opened.
 
-**Only three rows here can be reset.** **Recognition engine**, **Translate to English** and **Model for other languages** are ordinary settings, so each grows the usual restore button once you move it off the default. See [Putting one setting back](/reference/settings/#putting-one-setting-back). The per-language routing rows and the catalog aren't settings rows at all, so they have no button. You undo a pin by opening that language's dialog and picking **Automatic** again.
+**Only two rows here can be reset.** **Translate to English** and **Model for other languages** are ordinary settings, so each grows the usual restore button once you move it off the default. The **Recognition engine** list has a **Reset to default** row of its own once you change it. See [Putting one setting back](/reference/settings/#putting-one-setting-back). The per-language routing rows and the catalog aren't settings rows at all, so they have no button. You undo a pin by opening that language's dialog and picking **Automatic** again.
 
 **Speed has no benchmarked numbers.** The app carries no measured per-device timing table. The only official guidance is the relative sizing above, with Tiny fastest and the two Large graphs slowest and heaviest on RAM, plus a general note that bigger models are more accurate and slower to download and to transcribe.
 

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.Need
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderChain
@@ -29,11 +30,25 @@ import com.wasimaster.wmkeyboard.core.tools.CurrencyClient
  *
  * [credentials] is null until the first credential is saved; from then on it
  * is the whole truth and the old key fields are no longer read.
+ *
+ * [legacyAi] and [legacyWhisper] are the AI and voice settings as they were
+ * stored, before [withProviderChoices] wrote the chosen provider into them.
+ * The old settings are read from these, so a list worked out from them does
+ * not change because the provider in use did. Null outside the repository
+ * (a test, a default), where the two are the same thing.
  */
 data class ProviderSettings(
     val credentials: List<ProviderCredential>? = null,
     val chains: Map<ProviderTool, ProviderChain> = emptyMap(),
+    val legacyAi: AiSettings? = null,
+    val legacyWhisper: WhisperSettings? = null,
 )
+
+/** The AI settings as stored, before the provider in use was written into them. */
+private val KeyboardSettings.storedAi: AiSettings get() = providers.legacyAi ?: ai
+
+/** The voice settings as stored, before the engine in use was written into them. */
+private val KeyboardSettings.storedWhisper: WhisperSettings get() = providers.legacyWhisper ?: whisper
 
 /** Why a provider in a list cannot be asked. */
 enum class ProviderProblem {
@@ -201,7 +216,17 @@ object ProviderResolution {
         val type = entry.type
         val credential = credentials.firstOrNull { it.id == entry.credentialKey }
         // The build's key stands in for the type's own credential only: a second one is there to bring its own.
-        val apiKey = credential?.apiKey?.trim().orEmpty().ifBlank { if (entry.primary) type?.builtInKey.orEmpty() else "" }
+        val apiKey = credential?.apiKey?.trim().orEmpty()
+            .ifBlank { if (entry.primary) type?.builtInKey.orEmpty() else "" }
+            // Brave Answers borrows the search key the user typed: one Brave
+            // account can hold both plans. Never the build's, which pays for searches.
+            .ifBlank {
+                if (type === ProviderTypes.BRAVE_ANSWERS) {
+                    credentials.firstOrNull { it.id == ProviderTypes.BRAVE.id }?.apiKey?.trim().orEmpty()
+                } else {
+                    ""
+                }
+            }
         val url = credential?.url?.trim().orEmpty()
         val model = credential?.model?.trim().orEmpty()
         val problem = when {
@@ -210,6 +235,8 @@ object ProviderResolution {
             type === ProviderTypes.OFFLINE_GIFS && !env.offlineGifPacks -> ProviderProblem.NEEDS_PACKS
             // DeepL works with a key, a proxy that adds one, or both.
             type === ProviderTypes.DEEPL && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
+            // Brave Answers with neither its own key nor a search key to borrow.
+            type === ProviderTypes.BRAVE_ANSWERS && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             type.credential.url == Need.REQUIRED && url.isBlank() -> ProviderProblem.NEEDS_SERVER
             // A home's key is a pairing or a sign-in, which the row says in its own words.
             HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
@@ -318,6 +345,21 @@ object LegacyProviders {
         if (hosted.commonsUrl.isNotBlank()) {
             add(ProviderCredential(id = ProviderTypes.COMMONS.id, typeId = ProviderTypes.COMMONS.id, url = hosted.commonsUrl.trim()))
         }
+        aiCredentials(s.storedAi)
+        // The voice tool's one transcription server, from before it kept a list (#286).
+        val voice = s.storedWhisper
+        if (voice.serverUrl.isNotBlank()) {
+            add(
+                ProviderCredential(
+                    id = ProviderTypes.TRANSCRIPTION_SERVER.id,
+                    typeId = ProviderTypes.TRANSCRIPTION_SERVER.id,
+                    apiKey = voice.serverKey.trim(),
+                    url = voice.serverUrl.trim(),
+                    model = voice.serverModel.trim(),
+                    extra = voice.serverPath.trim().takeIf { it.isNotEmpty() }?.let { mapOf(CredentialSpec.PATH to it) }.orEmpty(),
+                ),
+            )
+        }
         // The OCR tool's one online reader, from before it kept a list (#469).
         val scanner = s.scanner
         if (scanner.ocrOnlineUrl.isNotBlank()) {
@@ -331,6 +373,23 @@ object LegacyProviders {
                 ),
             )
         }
+    }
+
+    /** One credential per AI service the old settings had a key or an address for, with its model. */
+    private fun MutableList<ProviderCredential>.aiCredentials(ai: AiSettings) {
+        fun service(type: ProviderType, key: String = "", url: String = "", model: String = "") {
+            if (key.isBlank() && url.isBlank()) return
+            this.add(ProviderCredential(id = type.id, typeId = type.id, apiKey = key.trim(), url = url.trim(), model = model.trim()))
+        }
+        service(ProviderTypes.ANTHROPIC, key = ai.anthropicKey, model = ai.anthropicModel)
+        service(ProviderTypes.OPENAI, key = ai.openAiKey, model = ai.openAiModel)
+        service(ProviderTypes.GEMINI, key = ai.geminiKey, model = ai.geminiModel)
+        service(ProviderTypes.XAI, key = ai.xaiKey, model = ai.xaiModel)
+        service(ProviderTypes.DEEPSEEK, key = ai.deepSeekKey, model = ai.deepSeekModel)
+        service(ProviderTypes.BRAVE_ANSWERS, key = ai.braveKey)
+        service(ProviderTypes.OLLAMA, url = ai.ollamaUrl, model = ai.ollamaModel)
+        service(ProviderTypes.LM_STUDIO, url = ai.lmStudioUrl, model = ai.lmStudioModel)
+        service(ProviderTypes.OPENAI_COMPATIBLE, key = ai.compatibleKey, url = ai.compatibleUrl, model = ai.compatibleModel)
     }
 
     fun chain(s: KeyboardSettings, tool: ProviderTool, env: ProviderEnv): ProviderChain {
@@ -406,7 +465,49 @@ object LegacyProviders {
             )
             // New with #727: empty until a Rens server is added.
             ProviderTool.PHOTO_TRANSLATE -> ProviderChain()
+            ProviderTool.AI -> aiChain(s.storedAi, env, ::has)
+            ProviderTool.VOICE -> voiceChain(s.storedWhisper, ::has)
         }
+    }
+
+    /**
+     * Before: one provider chosen from chips, each with its own key. Every
+     * service that was set up becomes a row, in the order the chips were
+     * drawn, so the panel's model picker offers what it offered before; the
+     * chosen one stays chosen through `AiSettings.provider`. A chip picked
+     * but never given a key is left out: there is nothing to ask it with.
+     */
+    private fun aiChain(ai: AiSettings, env: ProviderEnv, has: (ProviderType) -> Boolean): ProviderChain {
+        val rows = AiProvider.displayOrder.mapNotNull { provider ->
+            val type = AiProviders.type(provider)
+            val listed = when (provider) {
+                // The search key counted only once Brave was the chosen provider (#438).
+                AiProvider.BRAVE -> has(type) || (ai.provider == AiProvider.BRAVE && ai.braveSearchKey.isNotBlank())
+                AiProvider.ON_DEVICE -> env.onDeviceAi && (ai.provider == AiProvider.ON_DEVICE || ai.localModelId.isNotBlank())
+                else -> has(type)
+            }
+            ProviderEntry(type.id).takeIf { listed }
+        }
+        return ProviderChain(rows, ChainMode.PICK)
+    }
+
+    /**
+     * Before: one engine, and a server's address kept for the "server"
+     * choice. The engine leads; the server follows when it is set up and was
+     * not the engine, for the languages sent to it; the phone's recognizer
+     * comes last, which is what dictation fell back on when the engine could
+     * not take a language.
+     */
+    private fun voiceChain(whisper: WhisperSettings, has: (ProviderType) -> Boolean): ProviderChain {
+        val engine = ProviderTypes.voiceType(whisper.engine) ?: ProviderTypes.SYSTEM_RECOGNIZER
+        val rows = buildList {
+            add(ProviderEntry(engine.id))
+            if (engine !== ProviderTypes.TRANSCRIPTION_SERVER && has(ProviderTypes.TRANSCRIPTION_SERVER)) {
+                add(ProviderEntry(ProviderTypes.TRANSCRIPTION_SERVER.id))
+            }
+            if (engine !== ProviderTypes.SYSTEM_RECOGNIZER) add(ProviderEntry(ProviderTypes.SYSTEM_RECOGNIZER.id))
+        }
+        return ProviderChain(rows)
     }
 
     /**
@@ -539,4 +640,149 @@ object ProviderEdits {
         env: ProviderEnv = ProviderEnvironment.current(),
     ): List<ProviderTool> = ProviderTool.entries.filter { it != except }
         .filter { tool -> s.providerChain(tool, env).entries.any { it.credentialKey == credentialId } }
+}
+
+/** The AI kinds, each with the [AiProvider] the AI client speaks to it as. */
+object AiProviders {
+
+    private val byType: Map<String, AiProvider> = mapOf(
+        ProviderTypes.ANTHROPIC.id to AiProvider.ANTHROPIC,
+        ProviderTypes.OPENAI.id to AiProvider.OPENAI,
+        ProviderTypes.GEMINI.id to AiProvider.GEMINI,
+        ProviderTypes.XAI.id to AiProvider.XAI,
+        ProviderTypes.DEEPSEEK.id to AiProvider.DEEPSEEK,
+        ProviderTypes.BRAVE_ANSWERS.id to AiProvider.BRAVE,
+        ProviderTypes.OLLAMA.id to AiProvider.OLLAMA,
+        ProviderTypes.LM_STUDIO.id to AiProvider.LM_STUDIO,
+        ProviderTypes.OPENAI_COMPATIBLE.id to AiProvider.OPENAI_COMPATIBLE,
+        ProviderTypes.ON_DEVICE_AI.id to AiProvider.ON_DEVICE,
+    )
+
+    fun of(typeId: String): AiProvider? = byType[typeId]
+
+    fun type(provider: AiProvider): ProviderType =
+        byType.entries.first { it.value == provider }.key.let { ProviderTypes.of(it)!! }
+}
+
+/**
+ * The dictation engines this build and phone can run, by engine id: what
+ * the voice list's page offers and marks. Loads each engine's native library
+ * to find out, so it is for that page, not for every settings read.
+ */
+fun availableVoiceEngines(): Set<String> = buildSet {
+    add(ProviderTypes.ENGINE_SYSTEM)
+    add(ProviderTypes.ENGINE_SERVER)
+    if (isWhisperEnabled()) add("whisper")
+    // No library in lite or off arm64 (#548).
+    if (com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped) add("whistle")
+    // The ExecuTorch runtime behind Asr4All, Parakeet and Moonshine (#289).
+    if (com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.shipped) {
+        add("asr4all")
+        add("parakeet")
+        add("moonshine")
+    }
+}
+
+/**
+ * The environment the AI and voice choices are made in, on every settings
+ * read: nothing looked at on the disk, and every voice engine taken as one
+ * that can run. Dictation already falls back from an engine that cannot, as
+ * it did when the engine was a single setting.
+ */
+fun choiceEnv(): ProviderEnv = ProviderEnvironment.current(lookAtDisk = false)
+
+/** The AI rows that can answer: on, and set up. */
+fun KeyboardSettings.aiRows(env: ProviderEnv = choiceEnv()): List<ResolvedProvider> =
+    resolveProviders(ProviderTool.AI, env)
+
+/**
+ * The AI row in use: the one picked on the panel or the AI page, else the
+ * first of the provider chosen before the list existed, else the first.
+ */
+fun KeyboardSettings.aiChoice(env: ProviderEnv = choiceEnv()): ResolvedProvider? {
+    val rows = aiRows(env)
+    return rows.firstOrNull { it.key == storedAi.providerKey }
+        ?: rows.firstOrNull { AiProviders.of(it.typeId) == storedAi.provider }
+        ?: rows.firstOrNull()
+}
+
+/**
+ * These AI settings as the client reads them for [row]: its provider, and
+ * its key, address and model in that provider's own fields. Brave's field
+ * takes only a key typed for it; the client borrows the search key itself.
+ */
+fun AiSettings.through(row: ResolvedProvider): AiSettings {
+    val provider = AiProviders.of(row.typeId) ?: return this
+    val base = copy(provider = provider, providerKey = row.key, listed = true)
+    return when (provider) {
+        AiProvider.ANTHROPIC -> base.copy(anthropicKey = row.apiKey, anthropicModel = row.model)
+        AiProvider.OPENAI -> base.copy(openAiKey = row.apiKey, openAiModel = row.model)
+        AiProvider.GEMINI -> base.copy(geminiKey = row.apiKey, geminiModel = row.model)
+        AiProvider.XAI -> base.copy(xaiKey = row.apiKey, xaiModel = row.model)
+        AiProvider.DEEPSEEK -> base.copy(deepSeekKey = row.apiKey, deepSeekModel = row.model)
+        AiProvider.BRAVE -> base.copy(braveKey = row.credential?.apiKey?.trim().orEmpty())
+        AiProvider.OLLAMA -> base.copy(ollamaUrl = row.url, ollamaModel = row.model)
+        AiProvider.LM_STUDIO -> base.copy(lmStudioUrl = row.url, lmStudioModel = row.model)
+        AiProvider.OPENAI_COMPATIBLE -> base.copy(compatibleUrl = row.url, compatibleKey = row.apiKey, compatibleModel = row.model)
+        AiProvider.ON_DEVICE -> base
+    }
+}
+
+/**
+ * The AI settings through the row [key], for a picker that sends one
+ * conversation somewhere other than the provider in use (the chat, the
+ * settings assistant) without changing it. Null when that row cannot answer.
+ */
+fun KeyboardSettings.aiThrough(key: String, env: ProviderEnv = choiceEnv()): AiSettings? =
+    aiRows(env).firstOrNull { it.key == key }?.let { ai.through(it) }
+
+/** The voice rows that can run, in the order the list has them. */
+fun KeyboardSettings.voiceRows(env: ProviderEnv = choiceEnv()): List<ResolvedProvider> =
+    resolveProviders(ProviderTool.VOICE, env)
+
+/**
+ * The settings with the providers in use written where the code that runs
+ * them reads: [AiSettings] through the AI row chosen, [WhisperSettings] with
+ * the first voice engine that can run and the first transcription server.
+ * The repository applies it to every settings object it reads, so the AI
+ * client, the voice engines and every screen see one answer.
+ *
+ * With no AI row to answer, [AiSettings.listed] goes false and the client
+ * reports the AI as not set up, whatever old keys are still stored. With no
+ * voice engine on, the phone's recognizer answers, which is what a
+ * microphone with nothing behind it would otherwise not do at all.
+ */
+fun KeyboardSettings.withProviderChoices(env: ProviderEnv = choiceEnv()): KeyboardSettings {
+    val stored = copy(providers = providers.copy(legacyAi = storedAi, legacyWhisper = storedWhisper))
+    val choice = stored.aiChoice(env)
+    val ai = if (choice != null) {
+        stored.ai.through(choice)
+    } else {
+        stored.ai.copy(
+            listed = false,
+            provider = if (stored.ai.provider == AiProvider.ON_DEVICE) AiProvider.ANTHROPIC else stored.ai.provider,
+        )
+    }
+    val voices = stored.voiceRows(env)
+    val server = voices.firstOrNull { it.typeId == ProviderTypes.TRANSCRIPTION_SERVER.id }
+    val whisper = stored.whisper.copy(
+        engine = voices.firstNotNullOfOrNull { ProviderTypes.VOICE_ENGINES[it.typeId] } ?: ProviderTypes.ENGINE_SYSTEM,
+        serverUrl = server?.url.orEmpty(),
+        serverKey = server?.apiKey.orEmpty(),
+        serverModel = server?.model.orEmpty(),
+        serverPath = server?.credential?.extra?.get(CredentialSpec.PATH)?.trim().orEmpty(),
+    )
+    return stored.copy(ai = ai, whisper = whisper)
+}
+
+/**
+ * [chain] with [engine]'s row first and on, added when the list does not
+ * have it: what "Use the phone's recognizer" on the voice panel does to a
+ * list the user has edited. Null for an engine id no type runs.
+ */
+fun ProviderChain.preferringEngine(engine: String): ProviderChain? {
+    val type = ProviderTypes.voiceType(engine) ?: return null
+    val existing = entries.firstOrNull { it.typeId == type.id }
+    val row = (existing ?: ProviderEntry(type.id)).copy(enabled = true)
+    return copy(entries = listOf(row) + entries.filterNot { it.key == row.key })
 }

@@ -2517,6 +2517,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Selected chip animates to the front
   - Hardware-keyboard focus ring over the panel `RARE` — chips, results and controls are focus targets (FocusRegion CHIPS/RESULTS)
 - **AI providers and connectivity** `RARE` — 9 selectable backends, bring-your-own-key only — no bundled or proxied key for any cloud provider
+  - A provider list like translate's — `ProviderTool.AI`, always pick: rows of Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave Answers, Ollama, LM Studio, OpenAI-compatible, On your device; each row its own key/address/model with a Test button; the same service more than once (a second key, a second server); the row in use is `AiSettings.providerKey`, set under In use or by the panel's model picker
+    - Worked out from the old per-provider fields until edited — every service that had a key or address is a row, the chosen one stays chosen
+    - The row in use is written into `AiSettings` on every settings read (`withProviderChoices`), so the client and every caller read one answer; an emptied list reports the AI as not set up whatever old keys remain
   - Cloud providers with fixed endpoints `RARE` — 6: Anthropic, OpenAI, Gemini, xAI (Grok), DeepSeek, Brave Answers
     - Brave (#438) — `/res/v1/chat/completions` on the Brave Search host, model `brave`, `X-Subscription-Token`; one user message only, so system prompt + history fold into it; `<usage>`/`<citation>` tags stripped from the stream; blank key falls back to the user's own web search Brave key (never the built-in one); needs the Answers plan
     - Per-provider default model — claude-sonnet-5, gpt-5.6-luna, gemini-3.5-flash, grok-4.5, deepseek-v4-flash; shown as the field hint
@@ -2737,7 +2740,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Feature | Needs |
 |---|---|
 | On-device LLM provider and its whole model catalog | full flavour only (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent in lite |
-| Offline Whisper dictation and the Recognition-engine picker | full flavour only (BuildConfig.ENABLE_WHISPER); the section does not render in lite |
+| Offline Whisper dictation and the Recognition-engine list's Whisper row | full flavour only (BuildConfig.ENABLE_WHISPER); the section does not render in lite |
 | Handwriting panel and handwrite-with-swipes | full flavour only (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
 | Text scan (OCR) and QR/barcode scanner | full flavour only (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
 | Document scanner | full flavour only, and additionally requires Google Play services — the tool is hidden when Play services is absent |

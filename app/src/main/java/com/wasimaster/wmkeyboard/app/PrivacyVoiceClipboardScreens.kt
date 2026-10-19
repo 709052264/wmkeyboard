@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.height
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.app.lock.LocalAppLock
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.VoiceChoiceRef
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -288,13 +292,23 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val etEnabled = com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.shipped
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
+    // The default engine: the first on the voice list that can run.
     val engine = settings.watch { it.whisper.engine }
     val voiceUiMode = settings.watch { it.voiceBar.mode }
     val typingMode = settings.watch { it.voiceBar.typingMode }
     val usingWhisper = whisperEnabled && engine == "whisper"
-    val usingWhistle = whistleEnabled && engine == "whistle"
     val etEngine = com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.byId(engine)?.takeIf { etEnabled }
-    val usingServer = engine == "server"
+    // Every engine something can send dictation to: a row of the list, on or
+    // off, or a language's own choice. Each gets its model manager or setup,
+    // not only the default one, or a language set to Whisper has no model.
+    val engines = settings.watch { s ->
+        s.resolveProviders(ProviderTool.VOICE, all = true).mapNotNull { ProviderTypes.VOICE_ENGINES[it.typeId] }.toSet() +
+            s.whisper.voiceByLang.values.map { VoiceChoiceRef.parse(it).engine }
+    }
+    val whisperListed = whisperEnabled && "whisper" in engines
+    val whistleListed = whistleEnabled && "whistle" in engines
+    val etListed = if (etEnabled) engines.mapNotNull { com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.byId(it) } else emptyList()
+    val serverListed = ProviderTypes.ENGINE_SERVER in engines
     // The master switch (#578). Off, the rest of the screen is about something
     // the keyboard no longer does, so it goes; the values stay stored.
     val voiceOn = settings.watch { it.voiceBar.enabled }
@@ -311,78 +325,26 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
     }
     if (!voiceOn) return
-    // Every build has the picker now: the server engine needs no model and no
-    // native runtime, so the lite build offers system and server.
+    // The engines are a provider list: the first that is on and can run is
+    // the default, and a transcription server is a row with its address,
+    // key and model, as many as the user runs.
+    ProvidersGroup(
+        repository,
+        settings,
+        ProviderTool.VOICE,
+        titleRes = R.string.voice_engine_title,
+        info = stringResource(R.string.voice_engine_info) + "\n\n" + stringResource(R.string.voice_engines_list_info),
+    )
     run {
-        val systemEngine = stringResource(R.string.voice_engine_system)
-        val whisperEngine = stringResource(R.string.voice_engine_whisper)
-        val whistleEngine = stringResource(R.string.voice_engine_whistle)
-        val asr4allEngine = stringResource(R.string.voice_engine_asr4all)
-        val parakeetEngine = stringResource(R.string.voice_engine_parakeet)
-        val moonshineEngine = stringResource(R.string.voice_engine_moonshine)
-        val serverEngine = stringResource(R.string.voice_engine_server)
         SettingsGroup(stringResource(R.string.voice_engine_group)) {
-            item {
-                ChoiceSetting(
-                    R.string.voice_engine_title,
-                    subtitle = stringResource(R.string.voice_engine_subtitle),
-                    // What the system engine is only matters while it is the one in use.
-                    info = listOfNotNull(
-                        stringResource(R.string.voice_engine_info),
-                        stringResource(R.string.voice_system_info).takeIf { engine == "system" },
-                    ).joinToString("\n\n"),
-                    options = listOfNotNull(
-                        "system" to systemEngine,
-                        ("whistle" to whistleEngine).takeIf { whistleEnabled },
-                        ("whisper" to whisperEngine).takeIf { whisperEnabled },
-                        ("asr4all" to asr4allEngine).takeIf { etEnabled },
-                        ("parakeet" to parakeetEngine).takeIf { etEnabled },
-                        ("moonshine" to moonshineEngine).takeIf { etEnabled },
-                        "server" to serverEngine,
-                    ),
-                    selected = engine,
-                    default = SettingsDefaults.whisper.engine,
-                    detail = { engine ->
-                        when (engine) {
-                            "whisper" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_whisper_desc),
-                                Icons.Outlined.Memory,
-                            )
-                            "whistle" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_whistle_desc),
-                                Icons.Outlined.Bolt,
-                            )
-                            "parakeet" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_parakeet_desc),
-                                Icons.Outlined.Translate,
-                            )
-                            "moonshine" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_moonshine_desc),
-                                Icons.Outlined.Speed,
-                            )
-                            "asr4all" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_asr4all_desc),
-                                Icons.Outlined.GraphicEq,
-                            )
-                            "server" -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_server_desc),
-                                Icons.Outlined.Dns,
-                            )
-                            else -> ChoiceDetail(
-                                stringResource(R.string.voice_engine_system_desc),
-                                Icons.Outlined.PhoneAndroid,
-                            )
-                        }
-                    },
-                ) { scope.launch { repository.setVoiceEngine(it) } }
-            }
-            if (engine == "system") {
+            // What the phone's recognizer does only matters while it can be used.
+            if (ProviderTypes.ENGINE_SYSTEM in engines) {
                 item {
                     ToggleSetting(
                         R.string.voice_system_on_device_title,
                         stringResource(R.string.voice_system_on_device_subtitle),
                         settings.watch { it.whisper.systemOnDevice },
-                        info = stringResource(R.string.voice_system_on_device_info),
+                        info = stringResource(R.string.voice_system_info) + "\n\n" + stringResource(R.string.voice_system_on_device_info),
                         default = SettingsDefaults.whisper.systemOnDevice,
                     ) { scope.launch { repository.setVoiceSystemOnDevice(it) } }
                 }
@@ -630,7 +592,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             }
         }
     }
-    if (usingWhisper) {
+    if (whisperListed) {
         SettingsGroup(stringResource(R.string.voice_offline_group)) {
             item {
                 ToggleSetting(
@@ -643,57 +605,21 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
         WhisperModelManager(repository, settings)
     }
-    if (usingWhistle) WhistleModelManager(settings)
-    etEngine?.let { EtModelManager(it, settings) }
-    if (usingServer) VoiceServerSettings(repository, settings)
+    if (whistleListed) WhistleModelManager(settings)
+    for (et in etListed) EtModelManager(et, settings)
+    if (serverListed) VoiceServerSettings(repository, settings)
 }
 
 /**
- * The transcription server behind the "server" engine (#286): where it is,
- * the model and key it wants, and a button that proves the three work before
- * the user finds out mid-sentence. The server is any that speaks OpenAI's
- * `/audio/transcriptions`; the docs page carries the recipes.
+ * What every transcription server on the voice list is sent with (#286):
+ * whether to name the language, and the prompt. Where each server is, its
+ * key, model and route, and the Test button, are the server row's own setup
+ * on the list above; the docs page carries the recipes.
  */
 @Composable
 private fun VoiceServerSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.voice_server_group)) {
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.voice_server_url_label),
-                value = settings.watch { it.whisper.serverUrl },
-                hint = stringResource(R.string.voice_server_url_hint),
-                default = SettingsDefaults.whisper.serverUrl,
-            ) { repository.setVoiceServerUrl(it) }
-        }
-        item {
-            // For a server on a route of its own (#388); blank keeps the
-            // endpoint the address implies.
-            TextFieldSetting(
-                label = stringResource(R.string.voice_server_path_label),
-                value = settings.watch { it.whisper.serverPath },
-                hint = stringResource(R.string.voice_server_path_hint),
-                default = SettingsDefaults.whisper.serverPath,
-            ) { repository.setVoiceServerPath(it) }
-        }
-        item {
-            // No default model: speaches wants a model id, whisper.cpp ignores
-            // the field, and a blank one lets each server pick its own.
-            TextFieldSetting(
-                label = stringResource(R.string.voice_server_model_label),
-                value = settings.watch { it.whisper.serverModel },
-                hint = stringResource(R.string.voice_server_model_hint),
-                default = SettingsDefaults.whisper.serverModel,
-            ) { repository.setVoiceServerModel(it) }
-        }
-        item {
-            ApiKeyField(
-                label = stringResource(R.string.voice_server_key_label),
-                value = settings.watch { it.whisper.serverKey },
-                builtInAvailable = false,
-                emptyHint = stringResource(R.string.voice_server_key_hint),
-            ) { repository.setVoiceServerKey(it) }
-        }
         item {
             ToggleSetting(
                 R.string.voice_server_language_title,
@@ -710,52 +636,10 @@ private fun VoiceServerSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.whisper.serverPrompt,
             ) { repository.setVoiceServerPrompt(it) }
         }
-        item { VoiceServerTestRow(settings) }
     }
     VoiceServerLanguages(repository, settings)
 }
 
-/**
- * Sends one second of silence to the server and says what came back. Silence
- * transcribes to nothing, so success is simply "it answered"; a failure shows
- * the same line the keyboard would show mid-dictation.
- */
-@Composable
-private fun VoiceServerTestRow(settings: LiveSettings) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    var status by remember { mutableStateOf<String?>(null) }
-    var running by remember { mutableStateOf(false) }
-    val hasUrl = settings.watch { it.whisper.serverUrl.isNotBlank() }
-    val testing = stringResource(R.string.voice_server_test_running)
-    val ok = stringResource(R.string.voice_server_test_ok)
-    ActionRow(
-        R.string.voice_server_test_title,
-        subtitle = status ?: stringResource(R.string.voice_server_test_subtitle),
-        action = stringResource(R.string.voice_server_test_action),
-        enabled = !running && hasUrl,
-    ) {
-        val w = settings.value.whisper
-        running = true
-        status = testing
-        scope.launch {
-            status = runCatching {
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-                    val silence = com.wasimaster.wmkeyboard.core.voice.WavEncoder.encode(
-                        FloatArray(com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel.SAMPLE_RATE),
-                    )
-                    com.wasimaster.wmkeyboard.core.tools.TranscriptionClient.transcribe(
-                        w.serverUrl, w.serverKey, w.serverModel, null, silence, path = w.serverPath,
-                    )
-                }
-            }.fold(
-                onSuccess = { ok },
-                onFailure = { com.wasimaster.wmkeyboard.core.tools.ToolHttp.friendlyMessage(context, it) },
-            )
-            running = false
-        }
-    }
-}
 // ---- clipboard ----
 
 /**

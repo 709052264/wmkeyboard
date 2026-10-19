@@ -79,15 +79,19 @@ For bugs in the keyboard itself rather than something a model wrote, use the **F
 
 ## Choosing where it runs
 
-A row of provider chips sits at the top of the tool's settings: **Claude**, **OpenAI**, **Gemini**, **Grok**, **DeepSeek**, **Brave**, **Ollama**, **LM Studio**, **Other service**, and **On-device**. The pick isn't for life. Switching providers is another tap.
+The services the AI can use are an **AI providers** list at the top of the tool's settings, the same kind of [provider list](/tools/providers/) the translate and search tools keep. **Add a provider** offers Anthropic (Claude), OpenAI, Google Gemini, xAI (Grok), DeepSeek, Brave Answers, Ollama, LM Studio, an OpenAI-compatible service, and On your device. Each row holds its own key, address and model, set up in the sheet that opens when you tap it, with a **Test** button that sends the service one word and shows whether it answered.
 
-<PhoneFrame side caption="The provider row and a cloud provider's API key and model fields.">
-  <Shot id="tools/ai-settings-providers" alt="The provider row and a cloud provider's API key and model fields." />
+One row answers at a time. Pick it under **In use**, just below the list, or with the [model picker](#options) on the AI panel; the [chat](/tools/ai-chat/) and the settings assistant can each send to another row without changing it. A service can be on the list more than once: a second Anthropic key for work, or two Ollama servers, one at home and one at the office. Give each a nickname, and the picker shows it.
+
+Switching a row off takes it out of the picker. With nothing on the list, or every row off, the panel says the AI isn't set up yet, even if keys from before are still stored.
+
+<PhoneFrame side caption="The AI providers list, with a service's key and model in its setup sheet.">
+  <Shot id="tools/ai-settings-providers" alt="The AI providers list, with a service's key and model in its setup sheet." />
 </PhoneFrame>
 
 ### Cloud providers
 
-Claude (Anthropic), OpenAI, Gemini, Grok, and DeepSeek are bring-your-own-key only. Unlike some of the other network tools, WM Keyboard ships no built-in or proxied key for any of them. Paste your own key into the provider's field:
+Claude (Anthropic), OpenAI, Gemini, Grok, and DeepSeek are bring-your-own-key only. Unlike some of the other network tools, WM Keyboard ships no built-in or proxied key for any of them. Add the service and paste your own key into its setup:
 
 - **Claude**: from `console.anthropic.com` → API keys
 - **OpenAI**: from `platform.openai.com` → API keys
@@ -95,7 +99,7 @@ Claude (Anthropic), OpenAI, Gemini, Grok, and DeepSeek are bring-your-own-key on
 - **Grok**: from `console.x.ai` → API keys
 - **DeepSeek**: from `platform.deepseek.com` → API keys
 
-Each provider also has a **Model** field. Leave it blank and the app falls back to a built-in default, shown right in the field's hint: `claude-sonnet-5` for Claude, `gpt-5.6-luna` for OpenAI, `gemini-3.5-flash` for Gemini, `grok-4.5` for Grok, `deepseek-v4-flash` for DeepSeek. Type a model name here to use something else.
+Each service's setup also has a **Model** field. Leave it blank and the app falls back to a built-in default, shown right in the field's hint: `claude-sonnet-5` for Claude, `gpt-5.6-luna` for OpenAI, `gemini-3.5-flash` for Gemini, `grok-4.5` for Grok, `deepseek-v4-flash` for DeepSeek. Type a model name here to use something else.
 
 DeepSeek's reasoning models stream their thinking on a separate field. The app folds that into the same `<think>` handling everything else uses, so **Show model reasoning** and the reasoning progress readout behave there exactly as they do elsewhere.
 
@@ -104,16 +108,16 @@ DeepSeek's reasoning models stream their thinking on a separate field. The app f
 **Brave** uses Brave's Answers API, which runs a web search before it writes each answer. That makes it the provider to pick for questions about facts, prices or recent events, and a poor fit for pure writing jobs like Proofread, where the search adds cost and nothing else.
 
 - **API key**: from `api-dashboard.search.brave.com`. The key needs Brave's **Answers** plan. A key that only has the **Search** plan is refused, and the panel shows Brave's own reason.
-- **Leave the key blank to reuse the web search key.** If you already gave the [web search tool](/tools/search/) your own Brave key, the AI tool uses that one. The key built into some builds is never used for answers, only for searches. A reused key puts Brave in the panel's model picker and the chat's model list only while Brave is the selected provider; paste the key into the Brave field to keep it there.
+- **Leave the key blank to reuse the web search key.** If you already gave the [web search tool](/tools/search/) your own Brave key, the AI tool uses that one. The key built into some builds is never used for answers, only for searches. With neither key, the row says it needs one.
 - **No Model field.** Brave has one model, so there's nothing to pick.
 - **One message per request.** Brave doesn't accept a system prompt or earlier turns, so the app sends the action's instructions, and in a [chat](#chatting-instead-of-transforming) the earlier messages as a transcript, together with your text as one message.
 - Brave bills each answer for the search it ran plus the tokens in and out. The usage and citation markers it writes into the stream are removed before you see the answer.
 
 ### Any other OpenAI-compatible service
 
-**Other service** is the escape hatch, and it reaches far more than the named chips do. Anything that speaks OpenAI's chat-completions shape works: OpenRouter, Groq, Together, Mistral, Cerebras, self-hosted vLLM. Three fields:
+**OpenAI-compatible service** is the escape hatch, and it reaches far more than the named services do. Anything that speaks OpenAI's chat-completions shape works: OpenRouter, Groq, Together, Mistral, Cerebras, self-hosted vLLM. Add one row for each service you use. Three fields:
 
-- **Service address**: the address up to and including the version segment, for example `https://openrouter.ai/api/v1`. The app adds `/chat/completions` itself. That split exists because services disagree about the prefix (`/v1`, `/openai/v1`, `/api/v1`), so guessing it would break half of them.
+- **Server address**: the address up to and including the version segment, for example `https://openrouter.ai/api/v1`. The app adds `/chat/completions` itself. That split exists because services disagree about the prefix (`/v1`, `/openai/v1`, `/api/v1`), so guessing it would break half of them.
 - **Model**: required here, unlike the named providers. There's no sensible default to guess for a service the app knows nothing about.
 - **API key**: optional. A gateway on your own network often wants none.
 
@@ -123,17 +127,17 @@ An `http://` address works, for a service on your own network, and that traffic 
 
 ### Extra headers
 
-Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. Every provider except On-device has an **Extra headers** group under its fields for this. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.
+Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. An **Extra headers** group under the list holds them for the service in use, unless that is the model on your device. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.
 
 - **Yours are sent last.** A header here replaces the app's own of the same name, whatever its capitals, so a `User-Agent` or `Authorization` you add is the one the service sees.
 - **`{session}` stands in for a session id.** Type it anywhere in a value, for example the name `x-opencode-session` with the value `{session}`. One panel action, its lookups included, sends one id, and a [chat](/tools/ai-chat/) sends the same id for every message in that conversation.
-- **Each provider has its own list.** Switching providers shows that provider's headers, not the last one's.
+- **Each kind of service has its own list.** Switching to another kind shows that kind's headers, not the last one's. Two rows of one kind share theirs.
 - A name with a space or other character a header can't hold, or a value with a line break, is left out of the request rather than failing it.
 - A backup without secrets leaves the headers out, the same as API keys.
 
 ### Self-hosted servers
 
-**Ollama** and **LM Studio** point at a server on your own network instead of a cloud API. No key is needed, only an address like `http://192.168.0.10:11434` (Ollama) or `http://192.168.0.10:1234` (LM Studio). Set `OLLAMA_HOST=0.0.0.0` so Ollama listens beyond localhost. Turn on LM Studio's local-server option. Both address fields are blank by default. Ollama defaults its model field to `qwen3` when you leave it blank. LM Studio has no default model to fall back to, so it uses whatever the server currently has loaded.
+**Ollama** and **LM Studio** point at a server on your own network instead of a cloud API. No key is needed, only an address like `http://192.168.0.10:11434` (Ollama) or `http://192.168.0.10:1234` (LM Studio). Set `OLLAMA_HOST=0.0.0.0` so Ollama listens beyond localhost. Turn on LM Studio's local-server option. Add one row for each server you run. Ollama defaults its model field to `qwen3` when you leave it blank. LM Studio has no default model to fall back to, so it uses whatever the server currently has loaded.
 
 :::note
 Traffic to a self-hosted server is plain HTTP, and the app allows cleartext traffic app-wide to support it. Keep the server on a network you trust.
@@ -143,7 +147,7 @@ Traffic to a self-hosted server is plain HTTP, and the app allows cleartext traf
 
 <Flavor edition="full" />
 
-The **On-device** provider runs a model entirely on the phone, no network involved. It's the only provider option that needs a download first, and it's the one provider chip that doesn't appear at all in a Lite build.
+The **On your device** provider runs a model entirely on the phone, no network involved. It's the only provider that needs a download first, and the one that **Add a provider** doesn't offer at all in a Lite build.
 
 <PhoneFrame side caption="The on-device model catalog, with tier badges and a params/size subtitle per model.">
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
@@ -419,7 +423,8 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 
 - **Keyword**: the word that offers this tool on the suggestion strip when you type it alone. Defaults to `ai`.
 - **Extra headers**: none to start with, see [Extra headers](#extra-headers).
-- **Provider**: which of the nine providers above is active. Defaults to **Claude**, though with no key entered yet a fresh install lands on the empty-state screen until you add one.
+- **AI providers**: the services and models the AI can use, see [Choosing where it runs](#choosing-where-it-runs). Empty on a fresh install, which lands on the empty-state screen until you add one. Until you edit it, the list holds every service your earlier settings had a key or an address for.
+- **In use**: which row answers, shown once the list has two. The model picker on the panel changes it too.
 - **Max response length**: a token ceiling, roughly ¾ of a word each, picked from steps rather than a slider: 1k through 128k, plus **Provider maximum**. Default 8,192. A model the app takes for a reasoning model gets 4× this ceiling on its own, capped at 131,072, because reasoning tokens come out of the same budget before the answer starts. That guess is a substring match on the model ID, for strings like "thinking", "qwen3", "grok-4" or "deepseek-v4". The On-device provider swaps this row for **Context size**.
 - **Translate action's target language**: free text, defaults to **English**.
 - **Show model reasoning**: off by default. Turning it on streams a reasoning model's raw `<think>` passages instead of the step-by-step progress readout.
@@ -445,7 +450,7 @@ One more row lives on the History screen, under a **Downloading models** heading
 
 <Flavor edition="full" />
 
-Picking **On-device** draws the whole model manager onto the same screen, under the provider row. [Local models](#local-models) covers the catalog, **Compute** and **Context size**. Three more things sit on that screen and nowhere else:
+Adding **On your device** to the list draws the whole model manager onto the same screen, under the list. [Local models](#local-models) covers the catalog, **Compute** and **Context size**. Three more things sit on that screen and nowhere else:
 
 - **Hugging Face account**, holding an **Access token** field. Blank by default, stored the same way an API key is, and only the gated models need it. Under the field, **Get a token** opens `huggingface.co/settings/tokens` in your browser.
 - **Import your own**, an **Import model file** button that opens the system file picker. It takes `.litertlm` and `.task` files only, and anything else is rejected with a message under the button.
@@ -478,7 +483,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 
 ## Details & edge cases
 
-- **Not every row here can be reset.** The **Enabled** switch and four of the AI switches (Show model reasoning, Model picker on the panel, Show a changes view, Open a result on the changes) grow a restore button once you move them off the default listed above, and so does the Translate target-language field. See [Putting one setting back](/reference/settings/#putting-one-setting-back). **Keyword** does it differently: change the word and a **Reset to defaults** row appears under the field, naming the word it would put back. The provider row, Max response length and Context size are drawn as chip rows rather than settings rows, so none of them has a button. The shipped value of an API key or address field is an empty box, which you clear yourself.
+- **Not every row here can be reset.** The **Enabled** switch and four of the AI switches (Show model reasoning, Model picker on the panel, Show a changes view, Open a result on the changes) grow a restore button once you move them off the default listed above, and so does the Translate target-language field. See [Putting one setting back](/reference/settings/#putting-one-setting-back). **Keyword** does it differently: change the word and a **Reset to defaults** row appears under the field, naming the word it would put back. Max response length and Context size are drawn as chip rows rather than settings rows, so neither has a button. The AI providers list has a **Reset to default** row of its own once you change it, which puts it back to what your earlier settings make.
 - **Offline, an on-device model can stand in.** With [Use on-device models offline](/privacy/data-saver/#with-no-connection) on and a [local model](#local-models) downloaded, an AI action set to a cloud provider or a server runs on the phone when there is no connection, or when the server does not answer. A short message says so the first time. AI chat always uses the provider you picked.
 - **AI isn't pinned to the toolbar or the onboarding wizard's starter set by default.** You add it yourself from the toolbox once you want it, the same as most non-essential tools.
 - **Not available on the lock screen.** AI needs credentials the direct-boot-safe mirror of your data deliberately doesn't carry, so it's one of the tools that only works after you've unlocked the device once since restart.

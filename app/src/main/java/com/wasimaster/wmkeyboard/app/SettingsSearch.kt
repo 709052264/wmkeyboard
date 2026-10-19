@@ -1105,7 +1105,8 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         entry(title, subtitle, R.string.home_voice_title, "voice", weight = weight)
     return listOf(
         row(R.string.voice_enabled_title, R.string.voice_enabled_subtitle),
-        row(R.string.voice_engine_title, R.string.voice_engine_subtitle),
+        // The engines are a provider list now; its heading is the title.
+        row(R.string.voice_engine_title, R.string.providers_add_subtitle),
         row(R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle),
         row(R.string.voice_languages_title, R.string.voice_languages_subtitle),
         row(R.string.voice_engine_languages_title, R.string.voice_engine_languages_subtitle),
@@ -1126,7 +1127,6 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_translate_title, R.string.voice_translate_subtitle),
         row(R.string.voice_server_language_title, R.string.voice_server_language_subtitle),
         row(R.string.voice_bias_personal_title, R.string.voice_bias_personal_subtitle),
-        row(R.string.voice_server_test_title, R.string.voice_server_test_subtitle),
     )
 }
 
@@ -1820,24 +1820,14 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_glide_title, R.string.toolai_typing_glide_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_suggestions_title, R.string.toolai_typing_suggestions_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_clear_records_title, R.string.toolai_typing_clear_records_subtitle),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_anthropic_key_label, R.string.toolai_ai_anthropic_key_hint),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_model_label),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_openai_key_label, R.string.toolai_ai_openai_key_hint),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_gemini_key_label, R.string.toolai_ai_gemini_key_hint),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_xai_key_label, R.string.toolai_ai_xai_key_hint),
+    // The services, their keys, addresses and models are rows of the AI provider list now.
     toolEntry(
         ToolbarTool.AI,
-        R.string.toolai_ai_deepseek_key_label,
-        R.string.toolai_ai_deepseek_key_hint,
+        R.string.toolai_ai_providers_title,
+        R.string.providers_add_subtitle,
+        keywords = R.string.search_kw_ai_provider,
     ),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_brave_key_label, R.string.toolai_ai_brave_key_hint),
-    toolEntry(
-        ToolbarTool.AI,
-        R.string.toolai_ai_compatible_url_label,
-        R.string.toolai_ai_compatible_url_hint,
-    ),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_compatible_key_label, R.string.toolai_ai_compatible_key_hint),
-    toolEntry(ToolbarTool.AI, R.string.toolai_ai_server_address_label, R.string.toolai_ai_ollama_url_hint),
+    toolEntry(ToolbarTool.AI, R.string.toolai_ai_in_use_title, R.string.toolai_ai_in_use_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_max_tokens_title, R.string.toolai_ai_max_tokens_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_translate_to_label, R.string.toolai_ai_translate_to_hint),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_show_thinking_title, R.string.toolai_ai_show_thinking_subtitle),

@@ -71,6 +71,10 @@
     <!-- ================================================================== -->
 
     <string name="toolai_ai_provider_title">Provider</string>
+    <string name="toolai_ai_providers_title">AI providers</string>
+    <string name="toolai_ai_providers_info">The services and models the AI tools, AI reply, the chat and the settings assistant can use. Add a service with its key, a server you run, or a model on your device. You can add the same service more than once, for a second key or a second server. One of them answers at a time: pick it under In use, or with the model picker on the AI panel.</string>
+    <string name="toolai_ai_in_use_title">In use</string>
+    <string name="toolai_ai_in_use_subtitle">The provider the AI tools ask. The model picker on the AI panel changes it too</string>
 
     <!-- Group heading. Product names. -->
     <string name="toolai_ai_anthropic_group_title" translatable="false">Claude (Anthropic)</string>

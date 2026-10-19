@@ -79,7 +79,7 @@ private val emojiKeywords = Shot("emoji/keyword-packs", "emojikeywords")
 private val toolsList = Shot("reference/settings/tools-list", "tools", setting = "tools_colored_icons_title")
 private val clipboardSettings = Shot("tools/clipboard-settings", "clipboard", setting = "clipboard_history_group")
 private val passwordsGroup = Shot("privacy/clipboard-settings-passwords", "clipboard", setting = "clipboard_sensitive_group")
-private val aiProviders = Shot("tools/ai-settings-providers", "tool/AI", setting = "toolai_ai_anthropic_key_label")
+private val aiProviders = Shot("tools/ai-settings-providers", "tool/AI", setting = "toolai_ai_providers_title")
 
 // ---------------------------------------------------------------- themes
 private val themesTop = Shot("reference/settings/themes-gallery-overview", "themes", setting = "theme_mode_section_title")

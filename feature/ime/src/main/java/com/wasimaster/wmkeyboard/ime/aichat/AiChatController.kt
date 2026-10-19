@@ -13,7 +13,11 @@ import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.aiRows
+import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.homes
@@ -64,20 +68,47 @@ import kotlinx.coroutines.launch
  */
 object AiChatController {
 
-    /** The model the chat screen sends to: a provider, or one local model. */
-    data class ModelChoice(val provider: AiProvider, val localModelId: String = "") {
+    /**
+     * The model the chat screen sends to: a row of the AI list, or one local
+     * model. [rowKey] is the row's `ProviderEntry.key`; [name] the nickname
+     * that tells two rows of one service apart, blank for the service's own.
+     */
+    data class ModelChoice(
+        val provider: AiProvider,
+        val localModelId: String = "",
+        val rowKey: String = "",
+        val name: String = "",
+    ) {
+        /**
+         * What the store remembers as the last model. A service's own row
+         * keeps the provider's name, as before the list, so the last chat's
+         * model is still found after an update.
+         */
         val key: String
-            get() = if (provider == AiProvider.ON_DEVICE) {
-                AiChatStore.ON_DEVICE_KEY_PREFIX + localModelId
-            } else {
-                provider.name
+            get() = when {
+                provider == AiProvider.ON_DEVICE -> AiChatStore.ON_DEVICE_KEY_PREFIX + localModelId
+                rowKey.isEmpty() || rowKey == AiProviders.type(provider).id -> provider.name
+                else -> rowKey
             }
     }
 
-    /** Everything that can answer right now, in the order the pickers draw it. */
-    fun choices(context: Context, settings: AiSettings): List<ModelChoice> =
-        downloadedLocalModels(context).map { ModelChoice(AiProvider.ON_DEVICE, it) } +
-            AiClient.configuredRemoteProviders(settings).map { ModelChoice(it) }
+    /**
+     * Everything that can answer right now, in the order the pickers draw it:
+     * the downloaded models when the AI list has the on-device row, then the
+     * list's other rows.
+     */
+    fun choices(context: Context, settings: KeyboardSettings): List<ModelChoice> {
+        val rows = settings.aiRows()
+        val local = if (rows.any { it.typeId == ProviderTypes.ON_DEVICE_AI.id }) {
+            downloadedLocalModels(context).map { ModelChoice(AiProvider.ON_DEVICE, it, rowKey = ProviderTypes.ON_DEVICE_AI.id) }
+        } else {
+            emptyList()
+        }
+        return local + rows.mapNotNull { row ->
+            val provider = AiProviders.of(row.typeId)?.takeIf { it != AiProvider.ON_DEVICE } ?: return@mapNotNull null
+            ModelChoice(provider, rowKey = row.key, name = row.customName)
+        }
+    }
 
     /** The model to preselect: last used if still available, else the first. */
     fun initialChoice(store: AiChatStore, available: List<ModelChoice>): ModelChoice? {
@@ -489,9 +520,9 @@ object AiChatController {
         user: String,
         seq: Int,
     ): String {
-        // The picker's provider stands in for the settings one, so chatting
-        // with a different model never rewrites the keyboard's own selection.
-        val chosen = settings.ai.copy(provider = choice.provider)
+        // The picker's row stands in for the one in use, so chatting with a
+        // different model never rewrites the keyboard's own selection.
+        val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
         // One session per conversation, stable across its messages, so a
         // gateway that keys its prompt cache on a {session} header (#648)
         // sees one conversation rather than a new one for every reply.

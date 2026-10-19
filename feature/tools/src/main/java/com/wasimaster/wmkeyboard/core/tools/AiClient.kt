@@ -366,6 +366,8 @@ object AiClient {
 
     /** Whether the selected provider has what it needs to make a request. */
     fun isConfigured(settings: AiSettings): Boolean {
+        // Nothing on the AI list can answer: old keys still stored do not count.
+        if (!settings.listed) return false
         val config = config(settings)
         return when (config.provider) {
             AiProvider.OLLAMA, AiProvider.LM_STUDIO -> config.baseUrl.isNotBlank()

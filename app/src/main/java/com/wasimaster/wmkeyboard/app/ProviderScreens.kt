@@ -69,6 +69,8 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyBitcoin
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyExchange
@@ -90,6 +92,7 @@ import com.wasimaster.wmkeyboard.app.homeassistant.HomeProviderExtras
 import com.wasimaster.wmkeyboard.app.homeassistant.homeReady
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
 import com.wasimaster.wmkeyboard.core.providers.ChainMode
+import com.wasimaster.wmkeyboard.core.providers.CredentialSpec
 import com.wasimaster.wmkeyboard.core.providers.Need
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderChain
@@ -102,7 +105,11 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.providers.SameKind
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
+import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.ProviderProblem
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -139,8 +146,13 @@ internal fun ProvidersGroup(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // Read once: whether offline GIF packs exist is a look at the disk.
-    val env = remember { ProviderEnvironment.current() }
+    // Read once: whether offline GIF packs exist is a look at the disk, and
+    // which voice engines can run is a load of their libraries.
+    val env = remember(tool) {
+        ProviderEnvironment.current().let {
+            if (tool == ProviderTool.VOICE) it.copy(voiceEngines = availableVoiceEngines()) else it
+        }
+    }
     val rows = settings.watch { it.resolveProviders(tool, env, all = true) }
     val mode = settings.watch { it.providerMode(tool, env) }
     val stored = settings.watch { tool in it.providers.chains }
@@ -396,7 +408,7 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
         ProviderProblem.NEEDS_PACKS -> stringResource(R.string.providers_status_needs_packs) to true
         ProviderProblem.UNAVAILABLE -> stringResource(R.string.providers_status_unavailable) to true
         ProviderProblem.UNKNOWN -> stringResource(R.string.providers_status_unknown) to true
-        null -> when {
+        null -> modelAfter(row, when {
             !row.entry.enabled -> stringResource(R.string.providers_status_off)
             // A home reads as what it is called, else where it is.
             HomeKind.of(type?.id.orEmpty()) != null -> row.credential?.extra?.get("instance_name")?.takeIf { it.isNotBlank() }
@@ -411,8 +423,22 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
             row.apiKey.length > KEY_TAIL * 2 -> stringResource(R.string.providers_status_your_key_ending, row.apiKey.takeLast(KEY_TAIL))
             row.apiKey.isNotBlank() -> stringResource(R.string.providers_status_your_key)
             else -> stringResource(R.string.providers_status_no_key)
-        } to false
+        }) to false
     }
+}
+
+/**
+ * [status] with the model after it, for an AI service or a transcription
+ * server: two rows of one service often differ in nothing else. A front
+ * end's engine is in the model field too, and is shown on its own already.
+ */
+@Composable
+private fun modelAfter(row: ResolvedProvider, status: String): String {
+    val type = row.type ?: return status
+    val shows = type.credential.model && type.credential.engines.isEmpty() &&
+        (ProviderTool.AI in type.serves || ProviderTool.VOICE in type.serves)
+    if (!shows || row.model.isBlank() || !row.entry.enabled) return status
+    return status + stringResource(R.string.providers_tag_separator) + row.model
 }
 
 /**
@@ -677,6 +703,7 @@ private const val LIGHT_MAX_LUMINANCE = 0.45f
 internal fun providerIcon(type: ProviderType?): ImageVector = when {
     type == null -> Icons.Outlined.Public
     HomeKind.of(type.id) != null -> Icons.Outlined.HomeIotDevice
+    ProviderTool.VOICE in type.serves && !type.selfHosted -> Icons.Outlined.Mic
     type.onDevice -> Icons.Outlined.PhoneAndroid
     type.selfHosted -> Icons.Outlined.Dns
     ProviderTool.TRANSLATE in type.serves -> Icons.Outlined.Translate
@@ -686,6 +713,7 @@ internal fun providerIcon(type: ProviderType?): ImageVector = when {
     ProviderTool.DICTIONARY in type.serves || ProviderTool.SYNONYMS in type.serves -> Icons.Outlined.Spellcheck
     type === ProviderTypes.COMMONS -> Icons.Outlined.Public
     ProviderTool.PHOTOS in type.serves -> Icons.Outlined.PhotoLibrary
+    ProviderTool.AI in type.serves -> Icons.Outlined.AutoAwesome
     else -> Icons.Outlined.Image
 }
 
@@ -714,6 +742,12 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.OPENHAB.id -> Color(0xFFE64A19)
     ProviderTypes.TUYA.id -> Color(0xFFFF4800)
     ProviderTypes.SWITCHBOT.id -> Color(0xFFE60012)
+    ProviderTypes.ANTHROPIC.id -> Color(0xFFD97757)
+    ProviderTypes.OPENAI.id -> Color(0xFF10A37F)
+    ProviderTypes.GEMINI.id -> Color(0xFF4285F4)
+    ProviderTypes.XAI.id -> Color(0xFF111111)
+    ProviderTypes.DEEPSEEK.id -> Color(0xFF4D6BFE)
+    ProviderTypes.BRAVE_ANSWERS.id -> Color(0xFFFB542B)
     else -> when {
         type == null -> Color(0xFF757575)
         type.onDevice -> Color(0xFF2E7D32)
@@ -887,6 +921,16 @@ private fun ProviderEditorSheet(
                     keyboardType = KeyboardType.Uri,
                 ) { edit(draft.copy(url = it)) }
             }
+            if (spec.path) {
+                StoredTextField(
+                    label = stringResource(R.string.providers_field_path),
+                    value = draft.extra[CredentialSpec.PATH].orEmpty(),
+                    supporting = stringResource(R.string.providers_field_path_hint),
+                    keyboardType = KeyboardType.Uri,
+                ) { path ->
+                    edit(draft.copy(extra = if (path.isBlank()) draft.extra - CredentialSpec.PATH else draft.extra + (CredentialSpec.PATH to path)))
+                }
+            }
             if (spec.engines.isNotEmpty()) {
                 Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                     ChoiceControl(
@@ -923,7 +967,7 @@ private fun ProviderEditorSheet(
                 StoredTextField(
                     label = stringResource(R.string.providers_field_model),
                     value = draft.model,
-                    supporting = stringResource(
+                    supporting = aiModelHint(type) ?: stringResource(
                         if (spec.modelRequired) R.string.providers_field_model_required_hint else R.string.providers_field_model_hint,
                     ),
                 ) { edit(draft.copy(model = it)) }
@@ -1034,6 +1078,33 @@ private fun ProviderEditorSheet(
     }
 }
 
+/**
+ * What a blank model means for an AI service: the default the client falls
+ * back to, named from the client's own list so the two cannot drift apart.
+ * Null for a kind that is not an AI service.
+ */
+@Composable
+private fun aiModelHint(type: ProviderType): String? {
+    val default = when (AiProviders.of(type.id)) {
+        AiProvider.ANTHROPIC -> AiClient.DefaultModels.ANTHROPIC
+        AiProvider.OPENAI -> AiClient.DefaultModels.OPENAI
+        AiProvider.GEMINI -> AiClient.DefaultModels.GEMINI
+        AiProvider.XAI -> AiClient.DefaultModels.XAI
+        AiProvider.DEEPSEEK -> AiClient.DefaultModels.DEEPSEEK
+        AiProvider.OLLAMA -> AiClient.DefaultModels.OLLAMA
+        AiProvider.LM_STUDIO -> return stringResource(R.string.toolai_ai_lm_studio_model_hint)
+        AiProvider.OPENAI_COMPATIBLE -> return stringResource(R.string.toolai_ai_compatible_model_hint)
+        else -> return null
+    }
+    return stringResource(R.string.toolai_ai_model_hint, default)
+}
+
 /** Stored trimmed: a key or address pasted from a web page often arrives with a space on it. */
 private fun ProviderCredential.trimmed() =
-    copy(name = name.trim(), apiKey = apiKey.trim(), url = url.trim(), model = model.trim())
+    copy(
+        name = name.trim(),
+        apiKey = apiKey.trim(),
+        url = url.trim(),
+        model = model.trim(),
+        extra = extra[CredentialSpec.PATH]?.let { extra + (CredentialSpec.PATH to it.trim()) } ?: extra,
+    )

@@ -58,7 +58,10 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
+import com.wasimaster.wmkeyboard.core.settings.aiRows
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
@@ -816,26 +819,32 @@ internal fun rememberModelPicks(
                 (LocalLlmStore.CUSTOM_PREFIX + it.name) to it.name.substringBeforeLast('.')
             }
     }
-    val remote = AiClient.configuredRemoteProviders(settings.ai)
-    if (remote.size + localIds.size < 2) return emptyList()
+    // The AI list's rows that can answer, in the list's order. The on-device
+    // row stands for every model downloaded, so it gives one chip per model.
+    val rows = remember(settings) { settings.aiRows() }
+    val remote = rows.filter { AiProviders.of(it.typeId).let { p -> p != null && p != AiProvider.ON_DEVICE } }
+    val local = if (rows.any { it.typeId == ProviderTypes.ON_DEVICE_AI.id }) localIds else emptyList()
+    if (remote.size + local.size < 2) return emptyList()
 
     val selectedLocalId = settings.ai.localModelId
-        .takeIf { id -> localIds.any { it.first == id } }
-        ?: localIds.singleOrNull()?.first
+        .takeIf { id -> local.any { it.first == id } }
+        ?: local.singleOrNull()?.first
 
-    val picks = localIds.map { (id, name) ->
+    val picks = local.map { (id, name) ->
         ModelPick(
             key = "local:$id",
             label = name,
             selected = settings.ai.provider == AiProvider.ON_DEVICE && id == selectedLocalId,
             onClick = { onPickModel(AiProvider.ON_DEVICE, id) },
         )
-    } + remote.map { provider ->
+    } + remote.map { row ->
+        val provider = AiProviders.of(row.typeId) ?: AiProvider.OPENAI_COMPATIBLE
         ModelPick(
-            key = "remote:${provider.name}",
-            label = stringResource(provider.labelRes),
-            selected = settings.ai.provider == provider,
-            onClick = { onPickModel(provider, null) },
+            key = "remote:${row.key}",
+            label = row.customName.ifEmpty { row.type?.let { stringResource(it.labelRes) } ?: row.typeId },
+            selected = settings.ai.providerKey == row.key,
+            // A remote pick hands over the row's key where an on-device one hands over its model.
+            onClick = { onPickModel(provider, row.key) },
         )
     }
     // Stable sort: the selected entry moves to the front, everything else

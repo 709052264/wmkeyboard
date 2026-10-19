@@ -61,6 +61,8 @@
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>
     <string name="providers_field_model_hint">Optional. Leave it empty if the server runs one model.</string>
+    <string name="providers_field_path">Endpoint path</string>
+    <string name="providers_field_path_hint">Optional. For a server with its own route, such as /v1/transcribe. It is added to the address as typed. Leave it empty to use /audio/transcriptions</string>
     <string name="providers_field_model_required_hint">Required. A model that can read images, for example qwen2.5vl:7b.</string>
     <string name="providers_field_engine">Engine</string>
     <string name="providers_field_engine_hint">The service that this server sends your text to. If the server does not have it, the next provider is asked.</string>
