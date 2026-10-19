@@ -98,8 +98,16 @@ internal fun OfflineImportRow(
     if (showLinks) OfflineLinksDialog(links) { showLinks = false }
 }
 
-/** The picker, the running import and its report, for any surface that starts one. */
-internal class OfflineImportRunner(val pick: () -> Unit, val running: Boolean)
+/**
+ * The picker, the running import and its report, for any surface that starts
+ * one. [install] skips the picker, for files that are already in hand: one
+ * opened from a file manager or a chat app.
+ */
+internal class OfflineImportRunner(
+    val pick: () -> Unit,
+    val install: (List<Uri>) -> Unit,
+    val running: Boolean,
+)
 
 /** A language the import holds several word lists for, waiting on the user to pick one. */
 private class WordlistChoice(
@@ -112,14 +120,15 @@ private class WordlistChoice(
 internal fun rememberOfflineImport(
     wordlistSize: DictionaryCatalog.DictionarySize = DictionaryCatalog.DictionarySize.LARGE,
     onImported: () -> Unit = {},
+    onReportDismissed: () -> Unit = {},
 ): OfflineImportRunner {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var working by remember { mutableStateOf<String?>(null) }
     var report by remember { mutableStateOf<List<OfflineImport.Outcome>?>(null) }
     var choice by remember { mutableStateOf<WordlistChoice?>(null) }
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+    val install: (List<Uri>) -> Unit = install@{ uris ->
+        if (uris.isEmpty()) return@install
         working = ""
         scope.launch {
             val outcomes = withContext(Dispatchers.IO) {
@@ -139,6 +148,7 @@ internal fun rememberOfflineImport(
             if (outcomes.any { it.ok }) onImported()
         }
     }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments(), install)
     val pending = choice
     if (pending != null) {
         WordlistChoiceDialog(pending) { picked ->
@@ -148,8 +158,17 @@ internal fun rememberOfflineImport(
     } else {
         working?.let { OfflineImportProgress(it) }
     }
-    report?.let { OfflineImportReport(it) { report = null } }
-    return OfflineImportRunner(pick = { launcher.launch(arrayOf("*/*")) }, running = working != null)
+    report?.let {
+        OfflineImportReport(it) {
+            report = null
+            onReportDismissed()
+        }
+    }
+    return OfflineImportRunner(
+        pick = { launcher.launch(arrayOf("*/*")) },
+        install = install,
+        running = working != null,
+    )
 }
 
 /**

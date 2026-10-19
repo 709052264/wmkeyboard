@@ -376,6 +376,14 @@ object WMFileTypes {
          */
         data object Text : Opened
 
+        /**
+         * Files the app otherwise downloads: a language pack zip, or one word
+         * list, word-pair half, emoji name list or dictionary on its own. They
+         * install through [OfflineImport], the same as Import on a download
+         * screen, which re-opens the file itself.
+         */
+        data object OfflineFiles : Opened
+
         /** Not one of ours, and not something worth showing either. */
         data object Unrecognized : Opened
 
@@ -401,6 +409,10 @@ object WMFileTypes {
             }
         }.getOrNull() ?: return Opened.Unreadable
         if (head.contentEquals(ZIP_MAGIC)) return identifyArchive(context, uri)
+        // A word list or dictionary downloaded on another device. Told by the
+        // name it is published under, before the text read below: a word list
+        // is gzipped text, and would otherwise open in the editor.
+        if (OfflineImport.recognises(name)) return Opened.OfflineFiles
         // Before the text read below, which on a large encrypted bundle would
         // decode megabytes of ciphertext as UTF-8 to produce a string that
         // could never match anything.
@@ -478,11 +490,13 @@ object WMFileTypes {
         GboardDictionary.read(text)?.let { return Opened.GboardDictionaryFile(it) }
         // A theme has no tag and every field has a default, so decoding any JSON
         // object at all succeeds and yields an all-defaults theme. The file name
-        // is the only evidence there is that this one was meant to be a theme.
-        // No untagged *JSON* format may be added after this line: the name check
-        // is what stops the branch claiming every JSON file, and a second
-        // untagged one would have nothing left to be told apart by.
-        if (name.endsWith(".${ThemeCodec.FILE_EXTENSION}", ignoreCase = true)) {
+        // is one piece of evidence that this one was meant to be a theme; the
+        // keys every export writes are the other, for the many routes that lose
+        // the name (a chat app's cache, a `msf:` URI). No untagged *JSON* format
+        // may be added after this line: these checks are what stop the branch
+        // claiming every JSON file, and a second untagged one would have
+        // nothing left to be told apart by.
+        if (name.endsWith(".${ThemeCodec.FILE_EXTENSION}", ignoreCase = true) || looksLikeThemeExport(text)) {
             ThemeCodec.decode(text)?.let { return Opened.Theme(it) }
         }
 
@@ -549,6 +563,17 @@ object WMFileTypes {
             ?.let { return Opened.ForeignSnippets(it) }
         return Opened.Unrecognized
     }
+
+    /**
+     * Whether [text] is a theme as this app exports it, whatever it is called.
+     * Exports write every field, defaults included, so the two colours every
+     * theme has are always there; no other format here uses either key, and
+     * the tagged formats that embed themes (a config backup) answered above.
+     */
+    internal fun looksLikeThemeExport(text: String): Boolean =
+        text.trimStart().startsWith("{") &&
+            text.contains("\"boardBackground\"") &&
+            text.contains("\"keyBackground\"")
 
     /**
      * Which archive format a ZIP holds, from the `format` tag in its manifest.
@@ -655,6 +680,10 @@ object WMFileTypes {
             }.getOrNull()
             if (contents != null) return Opened.GboardDictionaryFile(contents)
         }
+        // A language pack: word lists, word pairs and emoji names, each under
+        // the name it is published under. Any one of them is enough, since
+        // the import reports on every file it was handed.
+        if (names.any(OfflineImport::recognises)) return Opened.OfflineFiles
         if (!WaStickersFile.looksLikeWaStickers(names)) return Opened.Unrecognized
         val header = runCatching {
             context.contentResolver.requireInputStream(uri).use { WaStickersFile.peek(it) }
@@ -933,6 +962,13 @@ internal fun ImportFileDialog(
         return
     }
 
+    // Word lists and the rest install through the download screens' own
+    // import, which brings its own choice of list, progress and report.
+    if (state is WMFileTypes.Opened.OfflineFiles) {
+        OfflineFilesDialog(uri, onClose)
+        return
+    }
+
     val proposal = rememberProposal(state, repository, context, uri, onImported)
     var passphrase by remember { mutableStateOf("") }
     var language by remember(proposal) { mutableStateOf(proposal.language.orEmpty()) }
@@ -1055,6 +1091,35 @@ internal fun ImportFileDialog(
             onDismiss = { pickingLanguage = false },
         )
     }
+}
+
+/**
+ * A language pack or another file the app downloads, opened from outside it.
+ * One question, then the same import, progress and report a download screen's
+ * Import button runs; the activity closes with the report.
+ */
+@Composable
+private fun OfflineFilesDialog(uri: Uri, onClose: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val runner = rememberOfflineImport(onReportDismissed = onClose)
+    var started by remember { mutableStateOf(false) }
+    if (started) return
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(stringResource(R.string.import_offline_title)) },
+        text = {
+            Text(stringResource(R.string.import_offline_body, remember(uri) { WMFileTypes.displayName(context, uri) }))
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                started = true
+                runner.install(listOf(uri))
+            }) { Text(stringResource(R.string.offline_import_action)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onClose) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
 }
 
 /**
@@ -1378,6 +1443,12 @@ private fun rememberProposal(
         // list stays exhaustive.
         is WMFileTypes.Opened.ForeignBackupFile -> ImportProposal(
             titleRes = R.string.foreign_backup_title_generic,
+            body = "",
+        )
+
+        // Drawn by OfflineFilesDialog instead; never reaches here.
+        WMFileTypes.Opened.OfflineFiles -> ImportProposal(
+            titleRes = R.string.import_offline_title,
             body = "",
         )
 

@@ -80,6 +80,26 @@ internal object OfflineImport {
     )
 
     /**
+     * Whether [name] is one of the published files this installs, by name
+     * alone: a word list, a word-pair half, an emoji name list, a conversion
+     * dictionary, a Bengali phonetic table or an offline dictionary. What
+     * opening a file from outside the app goes by, to send a language pack
+     * here rather than call it nobody's file. Models are left out: their
+     * extensions are too common to claim a file on.
+     */
+    fun recognises(name: String): Boolean {
+        val leaf = name.substringAfterLast('/').substringAfterLast('\\')
+        return DictionaryCatalog.byFileName(leaf) != null ||
+            NgramPackCatalog.byFileName(leaf) != null ||
+            EmojiDictCatalog.byFileName(leaf) != null ||
+            CjkDictCatalog.byFileName(leaf) != null ||
+            leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
+            leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
+            PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
+            OfflineDictionaries.recognises(leaf)
+    }
+
+    /**
      * Installs what [uris] hold and reports on each file, in order.
      * [wordlistSize] is how much of a word list to keep, as a download would
      * ask. [onFile] names the file being worked on, for a progress line.

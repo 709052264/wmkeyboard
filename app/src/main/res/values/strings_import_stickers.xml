@@ -308,6 +308,11 @@
     <string name="import_text_title">Open in the editor?</string>
     <string name="import_text_body">The keyboard has no use for <xliff:g id="file_name" example="settings.json">%1$s</xliff:g>. It is not a theme, a layout, a snippet pack, a sticker pack, an icon pack, a plugin or a backup. You can still read and edit it here.</string>
     <string name="import_open_editor_action">Open editor</string>
+    <!-- Shown for a language pack zip, or a word list or dictionary on its own,
+         opened from a file manager or a chat app. Import installs it the way
+         the download screens' own Import button does. -->
+    <string name="import_offline_title">Install language files?</string>
+    <string name="import_offline_body"><xliff:g id="file_name" example="wmkb-lang-de.zip">%1$s</xliff:g> holds files the keyboard normally downloads, such as word lists, word pairs or emoji names. Import installs them.</string>
 
     <!-- ==== The preview above the confirm dialog. ==== -->
 
