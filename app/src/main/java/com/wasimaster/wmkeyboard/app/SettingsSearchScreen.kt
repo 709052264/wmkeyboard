@@ -526,6 +526,7 @@ internal object SettingsRouteIcons {
         "ai_actions" to { Icons.Outlined.AutoAwesome },
         "ai_history" to { Icons.Outlined.History },
         "ai_chat" to { Icons.AutoMirrored.Outlined.Chat },
+        "settings_assistant" to { Icons.Outlined.Assistant },
         "ai_mcp" to { Icons.Outlined.Hub },
         "ai_tools" to { Icons.Outlined.Handyman },
         "modes" to { Icons.Outlined.Tune },
@@ -650,6 +651,8 @@ internal fun SettingsSearchScreen(
     settings: LiveSettings,
     onBack: () -> Unit,
     onOpen: (SettingsSearchEntry) -> Unit,
+    /** Opens the Settings assistant (#788) with what is typed so far. */
+    onAsk: ((String) -> Unit)? = null,
 ) {
     // Saveable, so the results are still there when the user backs out of a
     // setting that was not the one they were after (#92).
@@ -762,6 +765,19 @@ internal fun SettingsSearchScreen(
                             Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = stringResource(CommonR.string.common_back),
                         )
+                    }
+                },
+                actions = {
+                    if (onAsk != null) {
+                        IconButton(onClick = {
+                            keyboard?.hide()
+                            onAsk(query)
+                        }) {
+                            Icon(
+                                Icons.Outlined.Assistant,
+                                contentDescription = stringResource(R.string.settings_assistant_ask),
+                            )
+                        }
                     }
                 },
             )

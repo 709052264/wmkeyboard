@@ -191,6 +191,7 @@ internal object SettingsRoutes {
         "ai_history",
         "ai_chat",
         "ai_chat/{conversationId}",
+        "settings_assistant",
         "ai_action_edit/{actionId}",
         "ai_tools",
         "ai_mcp",

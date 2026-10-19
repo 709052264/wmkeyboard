@@ -987,6 +987,10 @@ private fun SettingsNavGraph(
                 SettingsSearchScreen(
                     settings = settings,
                     onBack = { navController.popBackStack() },
+                    onAsk = { question ->
+                        com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantSession.pendingQuestion = question
+                        navController.navigate("settings_assistant")
+                    },
                     onOpen = { result ->
                         // Arm the flash before navigating: the destination's
                         // rows read it during their first composition.
@@ -2335,6 +2339,21 @@ private fun SettingsNavGraph(
         // gate has to be written out by hand. Both answer to the same target:
         // locking the list has to lock a deep link straight into one
         // conversation, or it locks nothing.
+        composable("settings_assistant") {
+            LockedRoute("ai_chat", onCancel = { navController.popBackStack() }) {
+                com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantScreen(
+                    settings = settings,
+                    repository = repository,
+                    onBack = { navController.popBackStack() },
+                    onOpen = { entry ->
+                        // As a search result opens: flash the row, then go.
+                        SettingsHighlight.request(entry.titleRes)
+                        navController.navigate(entry.route)
+                    },
+                    onOpenAiSettings = { navController.navigate("tool/${ToolbarTool.AI.name}") },
+                )
+            }
+        }
         composable("ai_chat") {
             LockedRoute("ai_chat", onCancel = { navController.popBackStack() }) {
                 AiChatListScreen(

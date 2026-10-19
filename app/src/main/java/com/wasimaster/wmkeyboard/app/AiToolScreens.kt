@@ -484,6 +484,14 @@ internal fun AiToolSettings(
                 onClick = { onNavigate("ai_chat") },
             )
         }
+        item {
+            NavRow(
+                title = R.string.settings_assistant_title,
+                subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
+                route = "settings_assistant",
+                onClick = { onNavigate("settings_assistant") },
+            )
+        }
         // The chat on the keyboard's AI panel (#280). Off by default: a prompt
         // is often more than one line, and the panel has a Send button.
         item {
