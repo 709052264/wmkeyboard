@@ -552,6 +552,16 @@ object SelectionMacros {
     )
 
     /**
+     * What the row offers a bare caret, for the always-shown row (#763): the
+     * two actions that mean something with nothing selected. Select all is
+     * the way to the rest of the bar.
+     */
+    val caretMacros: Set<SelectionMacro> = setOf(
+        SelectionMacro.SELECT_ALL,
+        SelectionMacro.PASTE,
+    )
+
+    /**
      * The row as shipped. Only bar-capable macros, in the order they read
      * when the user has not moved anything: Undo, Select all, then what the
      * entity is for (absent on plain text, so they cost it nothing), then the

@@ -205,6 +205,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Selection actions | Toggle | Off |
 | Where it appears | Choice of 2 | Own row |
 | Show on every selection | Toggle | Off |
+| Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
 | Actions | Screen | 33 of 51 on |
 | Icon only | Screen | None |
@@ -212,6 +213,8 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Time zones | Screen | UTC and your own |
 
 **Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away, Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
+
+**Show with nothing selected** keeps the bar's row on screen all the time, not only while text is selected. With just a caret in the field, the row holds Select all and Paste, whichever of them you have switched on. Tap Select all and the full row for the whole text replaces it, so Copy, Translate and the rest are one tap further on and you never have to long-press to select first. The keyboard stays the same height as you move between selecting and typing. This switch only exists with **Own row** picked: over the suggestion strip it would take your suggestions away while you type, so it is hidden there. Password fields still never show the row.
 
 **Read what is selected** is the entity half of the feature. Turn it off and every selection is read as plain text: you keep the edits, the case options and the conversions, and lose Call, Email, Open, QR and Contact. It is worth turning off if you find the guesses wrong more often than right, since the generic half is the half that always applies.
 
