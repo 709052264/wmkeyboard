@@ -185,7 +185,7 @@ private fun HomeAssistantExtras(
             enabled = draft.url.isNotBlank() && !busy,
             onClick = {
                 val trimmed = draft.copy(url = draft.url.trim(), name = draft.name.trim())
-                if (HaSignIn.start(context, repository, scope, trimmed, isNew)) onDismiss()
+                if (HaSignIn.start(context, repository, trimmed, isNew)) onDismiss()
             },
         ) { Text(stringResource(if (signedIn) R.string.ha_sign_in_again_button else R.string.ha_sign_in_button)) }
         if (signedIn) {
@@ -271,7 +271,7 @@ private fun SmartThingsExtras(
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 24.dp)) {
         if (SmartThingsSignIn.available) {
-            Button(enabled = !busy, onClick = { if (SmartThingsSignIn.start(context, repository, scope, draft, isNew)) onDismiss() }) {
+            Button(enabled = !busy, onClick = { if (SmartThingsSignIn.start(context, repository, draft, isNew)) onDismiss() }) {
                 Text(stringResource(if (signedIn) R.string.ha_sign_in_again_button else R.string.ha_sign_in_button))
             }
         }

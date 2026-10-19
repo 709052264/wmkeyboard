@@ -21,6 +21,7 @@ import com.wasimaster.wmkeyboard.core.settings.providerCredential
 import com.wasimaster.wmkeyboard.ime.homeassistant.ToolHaHttp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -71,19 +72,27 @@ object HaSignIn {
      * sign-in state, and opens the browser on the server's authorize page.
      * Returns false when nothing could open it.
      */
-    fun start(context: Context, repository: SettingsRepository, scope: CoroutineScope, credential: ProviderCredential, isNew: Boolean): Boolean {
+    /**
+     * Saves the state the redirect will be checked against, then opens the
+     * browser. Not on the caller's scope: the editor closes as this returns,
+     * which cancelled the write, and the code came back to a row with no state.
+     */
+    fun start(context: Context, repository: SettingsRepository, credential: ProviderCredential, isNew: Boolean): Boolean {
         val base = baseOf(credential) ?: return false
+        val app = context.applicationContext
         val state = HaAuth.newState(base, credential.id)
         val stored = credential.copy(extra = credential.extra + (HomeKeys.AUTH_STATE to state))
-        scope.launch {
+        signInScope.launch {
             repository.saveProviders(ProviderEdits.saveCredential(repository.settings.first(), stored, if (isNew) ProviderTool.SMART_HOME else null))
+            val opened = runCatching {
+                app.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(HaAuth.authorizeUrl(base, state))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.isSuccess
+            if (!opened) _status.value = Status.Failed(app.getString(com.wasimaster.wmkeyboard.R.string.ha_sign_in_no_browser))
         }
-        return runCatching {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(HaAuth.authorizeUrl(base, state))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
-        }.isSuccess
+        return true
     }
+
+    private val signInScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     /** The redirect came back: `wmkeyboard://ha-auth?code=…&state=…`. */
     fun finish(context: Context, scope: CoroutineScope, callback: HaAuth.Callback) {

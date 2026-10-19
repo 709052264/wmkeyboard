@@ -36,6 +36,7 @@
     <string name="ha_prefer_internal_title">Try the home address first</string>
     <string name="ha_prefer_internal_subtitle">Falls back to the remote address when the home one does not answer</string>
     <string name="ha_sign_in_title">Sign in with Home Assistant</string>
+    <string name="ha_sign_in_no_browser">No browser could open the sign-in page.</string>
     <string name="ha_sign_in_subtitle">Your browser opens Home Assistant\'s own login page. The keyboard gets a key, never your password.</string>
     <string name="ha_sign_in_button">Sign in</string>
     <string name="ha_sign_in_again_button">Sign in again</string>

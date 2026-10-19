@@ -20,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsBackend
 import com.wasimaster.wmkeyboard.core.smarthome.smartthings.SmartThingsMapping
 import com.wasimaster.wmkeyboard.ime.homeassistant.HomeBackends
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -52,19 +54,25 @@ object SmartThingsSignIn {
 
     private fun http(): HomeHttp = HomeBackends.http(NetSource.SMARTTHINGS)
 
-    fun start(context: Context, repository: SettingsRepository, scope: CoroutineScope, credential: ProviderCredential, isNew: Boolean): Boolean {
+    /** Saves the state first, then opens the browser; see [HaSignIn.start] for why not on the caller's scope. */
+    fun start(context: Context, repository: SettingsRepository, credential: ProviderCredential, isNew: Boolean): Boolean {
         if (!available) return false
+        val app = context.applicationContext
         val state = SmartThingsAuth.newState(credential.id)
         val stored = credential.copy(extra = credential.extra + (HomeKeys.AUTH_STATE to state))
-        scope.launch {
+        signInScope.launch {
             repository.saveProviders(ProviderEdits.saveCredential(repository.settings.first(), stored, if (isNew) ProviderTool.SMART_HOME else null))
+            val opened = runCatching {
+                app.startActivity(
+                    Intent(Intent.ACTION_VIEW, Uri.parse(SmartThingsAuth.authorizeUrl(BuildConfig.SMARTTHINGS_CLIENT_ID, state))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }.isSuccess
+            if (!opened) _status.value = Status.Failed(app.getString(com.wasimaster.wmkeyboard.R.string.ha_sign_in_no_browser))
         }
-        return runCatching {
-            context.startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(SmartThingsAuth.authorizeUrl(BuildConfig.SMARTTHINGS_CLIENT_ID, state))).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-            )
-        }.isSuccess
+        return true
     }
+
+    private val signInScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
     fun finish(context: Context, scope: CoroutineScope, callback: SmartThingsAuth.Callback) {
         val app = context.applicationContext
