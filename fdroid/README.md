@@ -178,6 +178,15 @@ does not read build logic, so it flags strings this build never resolves:
   `jvmToolchain(n)` in the tree is fatal unless `n` is a JDK their image already
   carries.** `:tools:dictc` learned this the hard way in 0.5.4; it sets a
   jvmTarget instead now, which needs no particular JDK installed.
+* the `googleHomeM2` repository in `settings.gradle.kts` (from 0.6.2), a
+  local Maven folder for the Google Home APIs SDK. The SDK is not in the
+  repository (`feature/ime/libs/googlehome` holds only a README and a
+  `.gitignore`), so the `if` around the block is always false on their
+  builder, but the scanner reads `maven { url = ... }` and fails on an
+  unknown repository. The `sed` deletes from the `val` line to the `if`'s
+  closing brace, the first line that is eight spaces and a `}`. The same
+  path came out of `scandelete`, where fdroidserver fails on a path with
+  nothing to delete.
 * `libs.play.app.update`, `libs.play.feature.delivery` and
   `libs.play.services.auth` in `app/build.gradle.kts`. All three sit inside
   `if (playStoreChannel)` / `if (gmsChannel)` blocks, which are false for this

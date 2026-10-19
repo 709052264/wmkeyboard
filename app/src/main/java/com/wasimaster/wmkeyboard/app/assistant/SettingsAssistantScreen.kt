@@ -40,12 +40,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.app.LiveSettings
-import com.wasimaster.wmkeyboard.app.R
+import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.RegisterSettingsCrumb
 import com.wasimaster.wmkeyboard.app.ResizeForKeyboard
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
 import com.wasimaster.wmkeyboard.app.settingsSearchIndex
-import com.wasimaster.wmkeyboard.core.common.R as CommonR
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send

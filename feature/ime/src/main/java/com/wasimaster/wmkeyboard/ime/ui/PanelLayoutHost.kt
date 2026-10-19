@@ -219,16 +219,14 @@ internal fun EmojiPanelHost(state: KeyboardUiState, callbacks: PanelLayoutCallba
     val session = rememberEmojiPanelSession(state, kaomoji)
     // Toggling the open panel closes it — back to the keys.
     val onClose = { callbacks.onPanelChange(PanelMode.EMOJI) }
-    // The search and the layout cross-fade as they trade places; the layout's
-    // cells stagger back in on their own clock (see [PanelLayoutGrid]). The
-    // page on its way out takes no taps while it fades. The kaomoji tab's own
-    // boxes (its search, its editor) shrink the panel the same way.
-    val searching = emojiPanelTyping(state)
-    MotionCrossfade(searching, LocalKbTheme.current.motion.any, label = "emojiPanelPage") { search ->
-        Box(modifier = Modifier.blockTouches(search != searching)) {
-            EmojiPanelPage(state, session, callbacks, onClose, search)
-        }
-    }
+    // The search and the layout trade places at once, as the clipboard's do
+    // (#612). A cross-fade held the outgoing layout's full height while the
+    // keys came back underneath, so every search, face edit and tag rename
+    // grew the keyboard by a whole panel for the length of the fade and then
+    // dropped it again. The layout's cells still stagger back in on their own
+    // clock (see [PanelLayoutGrid]). The kaomoji tab's own boxes (its search,
+    // its editor) shrink the panel the same way.
+    EmojiPanelPage(state, session, callbacks, onClose, emojiPanelTyping(state))
     // A Popup overlay, so opening it never reflows the fixed-height panel.
     if (session.reorderOpen) {
         FavouritesReorderPopup(

@@ -288,14 +288,6 @@ fun isSupportedTool(tool: ToolbarTool): Boolean = when {
 val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
 
 /**
- * The "Everything" preset, and the enabled-tools default before setup swaps
- * it for a persona's set: every tool except [OptInOnlyTools]. Onboarding
- * compares the stored set against this one to tell an untouched default from
- * a user's own choice.
- */
-val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in OptInOnlyTools || it in ActionOnlyTools }
-
-/**
  * Tools that are only ever something a gesture does: a flick arm, a key or its
  * long press, a toolbar button's hold, the floating button. They never sit on
  * the toolbar or in the toolbox, have no page on the Tools screen and are
@@ -304,6 +296,15 @@ val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in O
  * regardless.
  */
 val ActionOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES)
+
+/**
+ * The "Everything" preset, and the enabled-tools default before setup swaps
+ * it for a persona's set: every tool except [OptInOnlyTools] and [ActionOnlyTools]
+ * (declared above it, since top-level initialisation runs in file order). Onboarding
+ * compares the stored set against this one to tell an untouched default from
+ * a user's own choice.
+ */
+val EverythingTools: List<ToolbarTool> = ToolbarTool.entries.filterNot { it in OptInOnlyTools || it in ActionOnlyTools }
 
 /**
  * The onboarding starting selection for the "keep it simple" persona: what a
