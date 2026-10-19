@@ -12,3 +12,9 @@ val Icons.Filled.PushPin: ImageVector
     get() = _pushPin ?: symbolVector("Filled.PushPin", """M640-760v280l68 68q6 6 9 13.5t3 15.5v23q0 17-11.5 28.5T680-320H520v234q0 17-11.5 28.5T480-46q-17 0-28.5-11.5T440-86v-234H280q-17 0-28.5-11.5T240-360v-23q0-8 3-15.5t9-13.5l68-68v-280q-17 0-28.5-11.5T280-800q0-17 11.5-28.5T320-840h320q17 0 28.5 11.5T680-800q0 17-11.5 28.5T640-760Z""", autoMirror = false)
         .also { _pushPin = it }
 private var _pushPin: ImageVector? = null
+
+/** Material Symbols `star` (filled). */
+val Icons.Filled.Star: ImageVector
+    get() = _star ?: symbolVector("Filled.Star", """M480-269 314-169q-11 7-23 6t-21-8q-9-7-14-17.5t-2-23.5l44-189-147-127q-10-9-12.5-20.5T140-571q4-11 12-18t22-9l194-17 75-178q5-12 15.5-18t21.5-6q11 0 21.5 6t15.5 18l75 178 194 17q14 2 22 9t12 18q4 11 1.5 22.5T809-528L662-401l44 189q3 13-2 23.5T690-171q-9 7-21 8t-23-6L480-269Z""", autoMirror = false)
+        .also { _star = it }
+private var _star: ImageVector? = null

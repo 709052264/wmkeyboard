@@ -38,7 +38,7 @@ The devices of one Google Home, through Google's own Home APIs on the phone. Nee
 
 **Choose a home** opens Google's own screen: you pick the account and the home, and which kinds of device the keyboard may see. Locks, cameras and doorbells are granted one by one. One home at a time; **Change home** runs the screen again. To take the access back on Google's side, remove WM Keyboard under your Google account's third-party apps, or in the Google Home app's linked apps.
 
-What arrives are Matter and Google device types: lights (on/off, brightness, colour temperature, colour), plugs and switches, thermostats, locks, blinds and shutters, fans, speakers and players, and contact, occupancy, temperature and light sensors. The keyboard reads and controls them through Google's service, which keeps its own connection; away from home, Google needs a hub in the house to reach the devices.
+What arrives are Matter and Google device types: lights (on/off, brightness, colour temperature, colour), plugs and switches, thermostats, air conditioners, heat pumps and air purifiers, locks, blinds and shutters, fans (by the steps a fan has, so one with five speeds moves in 20 % steps, and its named speeds as presets), speakers and players, and contact, occupancy, temperature, humidity and light sensors. The keyboard reads and controls them through Google's service, which keeps its own connection; away from home, Google needs a hub in the house to reach the devices.
 
 While Google's developer console stays closed to registration, Google caps an app's Home APIs access at a hundred test users and shows an unverified-app warning during consent. That is Google's limit on every app at this stage, not a setting.
 
@@ -84,7 +84,7 @@ SwitchBot allows 10,000 requests a day per account, and a device's state is one 
 
 ## The panel
 
-Along the top: the home's name with a dot beside it, then the tabs, then search and settings. The dot breathes while the keyboard connects, turns green when the live stream is up, amber when only a polled or plain web API answers, and red when a home cannot be reached or its key was refused. With several homes, the names join and the dot shows the best of them.
+Along the top: the tabs, then search and settings. Under the tiles, in small type, the home's name with a dot beside it. The dot breathes while the keyboard connects, turns green when the live stream is up, amber when only a polled or plain web API answers, and red when a home cannot be reached or its key was refused. With several homes, the names join and the dot shows the best of them.
 
 **Tabs.** **Favourites** first, then one tab per room of each home in the list's order, then **Elsewhere** for things with no room, then **All**. With more than one home, a room tab carries the home's name first. Swipe across the tiles to change tab. The panel opens on Favourites, or on the tab you used last if you prefer.
 

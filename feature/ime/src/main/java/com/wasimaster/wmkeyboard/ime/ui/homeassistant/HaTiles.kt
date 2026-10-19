@@ -41,9 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.homeassistant.HaKind
 import com.wasimaster.wmkeyboard.core.homeassistant.HaPrimary
+import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ChevronRight
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.settings.HaTileSize
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.FocusRegion
@@ -176,7 +176,7 @@ internal fun EntityTile(
             if (!compact) {
                 Spacer(Modifier.weight(1f))
                 if (tile.favourite) {
-                    Icon(Icons.Outlined.Star, contentDescription = null, tint = kb.secondaryText.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                    Icon(Icons.Filled.Star, contentDescription = null, tint = kb.accent.copy(alpha = 0.8f), modifier = Modifier.size(12.dp))
                 }
             }
         }

@@ -17,17 +17,23 @@ import com.google.home.PermissionsState
 import com.google.home.Room
 import com.google.home.Structure
 import com.google.home.Trait
+import com.google.home.google.ExtendedFanControl
+import com.google.home.matter.standard.AirPurifierDevice
 import com.google.home.matter.standard.BooleanState
 import com.google.home.matter.standard.ColorControl
 import com.google.home.matter.standard.ColorTemperatureLightDevice
 import com.google.home.matter.standard.ContactSensorDevice
 import com.google.home.matter.standard.DimmableLightDevice
+import com.google.home.matter.standard.DimmablePlugInUnitDevice
 import com.google.home.matter.standard.DoorLock
 import com.google.home.matter.standard.DoorLockDevice
 import com.google.home.matter.standard.ExtendedColorLightDevice
 import com.google.home.matter.standard.FanControl
 import com.google.home.matter.standard.FanDevice
 import com.google.home.matter.standard.GenericSwitchDevice
+import com.google.home.matter.standard.HeatPumpDevice
+import com.google.home.matter.standard.HeatingCoolingUnitDevice
+import com.google.home.matter.standard.HumiditySensorDevice
 import com.google.home.matter.standard.IlluminanceMeasurement
 import com.google.home.matter.standard.LevelControl
 import com.google.home.matter.standard.LightSensorDevice
@@ -38,6 +44,8 @@ import com.google.home.matter.standard.OnOff
 import com.google.home.matter.standard.OnOffLightDevice
 import com.google.home.matter.standard.OnOffLightSwitchDevice
 import com.google.home.matter.standard.OnOffPluginUnitDevice
+import com.google.home.matter.standard.RelativeHumidityMeasurement
+import com.google.home.matter.standard.RoomAirConditionerDevice
 import com.google.home.matter.standard.RootNodeDevice
 import com.google.home.matter.standard.SpeakerDevice
 import com.google.home.matter.standard.TemperatureMeasurement
@@ -57,6 +65,8 @@ import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeBackend
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeFeature
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKeys
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeKind
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,8 +80,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import java.io.IOException
-import java.util.concurrent.ConcurrentHashMap
 
 /** The structure Google let the app into, as the consent flow reported it. */
 /**
@@ -102,10 +110,14 @@ object GoogleHomeSupport {
             OnOffPluginUnitDevice, OnOffLightSwitchDevice, GenericSwitchDevice,
             ThermostatDevice, DoorLockDevice, WindowCoveringDevice, FanDevice, SpeakerDevice,
             ContactSensorDevice, OccupancySensorDevice, TemperatureSensorDevice, LightSensorDevice, RootNodeDevice,
+            // A device of a type not listed here arrives with no traits, and draws nothing.
+            RoomAirConditionerDevice, HeatPumpDevice, HeatingCoolingUnitDevice, AirPurifierDevice,
+            DimmablePlugInUnitDevice, HumiditySensorDevice,
         ),
         traits = listOf(
             OnOff, LevelControl, ColorControl, Thermostat, DoorLock, WindowCovering, FanControl, MediaPlayback,
             TemperatureMeasurement, BooleanState, OccupancySensing, IlluminanceMeasurement,
+            RelativeHumidityMeasurement, ExtendedFanControl,
         ),
     )
 

@@ -47,11 +47,11 @@ import androidx.compose.ui.unit.sp
 import com.wasimaster.wmkeyboard.core.homeassistant.HaKind
 import com.wasimaster.wmkeyboard.core.homeassistant.HaPhase
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
+import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
@@ -135,6 +135,7 @@ internal fun HaPanel(
                         Body(state, ui, animate, act)
                         ConnectionBanner(ui, act, Modifier.align(Alignment.TopCenter).padding(horizontal = 8.dp, vertical = 6.dp))
                     }
+                    if (typing == null) HomeFooter(ui, animate)
                     if (ui.assistEnabled && ui.expanded == null) {
                         HaAssistBar(ui.assist, typing = typing?.field == HaTextField.ASSIST, animate = animate, act = act)
                     }
@@ -167,7 +168,6 @@ private fun undoText(undo: HaUndo): String = when (undo) {
 private fun RowScope.TabsHeader(state: KeyboardUiState, ui: HaUi, animate: Boolean, act: (HaAction) -> Unit) {
     val kb = LocalKbTheme.current
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    InstanceChip(ui, animate)
     Row(
         modifier = Modifier
             .weight(1f)
@@ -205,9 +205,13 @@ private fun RowScope.TabsHeader(state: KeyboardUiState, ui: HaUi, animate: Boole
     ) { act(HaAction.OpenSettings) }
 }
 
-/** The house's name with a dot that breathes while connecting and settles when live. */
+/**
+ * The house's name under the tiles, with a dot that breathes while connecting
+ * and settles when live. A footer rather than a header chip, so the room tabs
+ * get the whole width.
+ */
 @Composable
-private fun InstanceChip(ui: HaUi, animate: Boolean) {
+private fun HomeFooter(ui: HaUi, animate: Boolean) {
     val kb = LocalKbTheme.current
     val connecting = ui.phase == HaPhase.CONNECTING || ui.phase == HaPhase.AUTHENTICATING
     val dot = when (ui.phase) {
@@ -219,19 +223,17 @@ private fun InstanceChip(ui: HaUi, animate: Boolean) {
     }
     val alpha = breathing(connecting, animate)
     Row(
-        modifier = Modifier.padding(start = 2.dp, end = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, bottom = 3.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(7.dp).alpha(alpha).clip(CircleShape).background(dot))
-        Spacer(Modifier.width(6.dp))
+        Box(Modifier.size(6.dp).alpha(alpha).clip(CircleShape).background(dot))
+        Spacer(Modifier.width(5.dp))
         Text(
             ui.instanceName,
-            color = kb.suggestionText,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            color = kb.secondaryText,
+            fontSize = 10.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(72.dp),
         )
     }
 }
@@ -253,7 +255,7 @@ private fun TabChip(label: String, selected: Boolean, count: Int, star: Boolean,
     ) {
         val fg = if (selected) kb.chipActiveText else kb.chipText
         if (star) {
-            Icon(Icons.Outlined.Star, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
+            Icon(Icons.Filled.Star, contentDescription = null, tint = fg, modifier = Modifier.size(13.dp))
             Spacer(Modifier.width(4.dp))
         }
         Text(label, color = fg, fontSize = 12.sp, fontWeight = FontWeight.Medium, maxLines = 1)
@@ -464,7 +466,7 @@ private fun ExpandedCard(ui: HaUi, animate: Boolean, act: (HaAction) -> Unit) {
                         }
                     }
                     Icon(
-                        if (t.favourite) Icons.Outlined.Star else Icons.Outlined.StarBorder,
+                        if (t.favourite) Icons.Filled.Star else Icons.Outlined.StarBorder,
                         contentDescription = stringResource(if (t.favourite) R.string.ime_ha_unfavourite else R.string.ime_ha_favourite),
                         tint = if (t.favourite) kb.accent else kb.secondaryText,
                         modifier = Modifier.size(22.dp).clickable { act(HaAction.Favourite(t.id, !t.favourite)) },

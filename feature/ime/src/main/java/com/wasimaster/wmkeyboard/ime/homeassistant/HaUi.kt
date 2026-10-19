@@ -70,10 +70,13 @@ data class AssistUi(
 /** A camera still as the expanded card shows it. */
 data class HaSnapshotUi(val entityId: String, val bytes: ByteArray? = null, val loading: Boolean = false, val error: String? = null)
 
-/** Something to put back. */
+/**
+ * Something to put back. [at] makes each offer its own: the same star taken
+ * off twice is two offers, and the bar keys its swipe state by the offer.
+ */
 sealed interface HaUndo {
-    data class Unfavourited(val id: String, val index: Int) : HaUndo
-    data class Hidden(val id: String) : HaUndo
+    data class Unfavourited(val id: String, val index: Int, val at: Long = System.nanoTime()) : HaUndo
+    data class Hidden(val id: String, val at: Long = System.nanoTime()) : HaUndo
 }
 
 /** What the keyboard's text box in the panel is for. */

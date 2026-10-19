@@ -33,6 +33,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
@@ -97,6 +100,16 @@ internal class HaController(
 
     private data class Pending(val state: String, val job: Job)
 
+    /**
+     * The tool's settings as the repository last wrote them. A star or a
+     * hide is written straight to the repository, and the service's own copy
+     * ([settings]) catches up a beat later; the panel redraws from this one so
+     * the star fills on the tap, not on the next event from the house.
+     */
+    private var fresh: HomeAssistantSettings? = null
+
+    private fun prefs(): HomeAssistantSettings = fresh ?: settings()
+
     /** The entity id of a [HomeRef], for a service call. */
     private fun n(ref: String): String = HomeRef.native(ref)
 
@@ -107,6 +120,12 @@ internal class HaController(
         if (watch.isEmpty()) {
             watch = listOf(
                 scope.launch { SmartHomeHub.state.collect { rebuild() } },
+                scope.launch {
+                    repository.settings.map { it.homeAssistant }.distinctUntilChanged().drop(1).collect {
+                        fresh = it
+                        rebuild()
+                    }
+                },
                 scope.launch {
                     SmartHomeHub.changes.collect { ids ->
                         val now = System.currentTimeMillis()
@@ -152,7 +171,7 @@ internal class HaController(
 
     @Suppress("detekt.LongMethod", "detekt.CyclomaticComplexMethod")
     private fun rebuild() {
-        val s = settings()
+        val s = prefs()
         val hub = SmartHomeHub.state.value
         val entities = SmartHomeHub.entitiesWithCache()
         fun regOf(e: HaEntity): com.wasimaster.wmkeyboard.core.homeassistant.HaRegistry = SmartHomeHub.cachedRegistry(e.home) ?: hub.registryOf(e.home)
@@ -461,11 +480,15 @@ internal class HaController(
 
             is HaAction.Favourite -> {
                 haptic()
-                val index = settings().favourites.indexOf(action.id)
                 scope.launch {
-                    repository.updateHaFavourites { list -> if (action.on) list + action.id else list - action.id }
+                    // Where it stood, read from the list being written, not from a copy that may lag the last tap.
+                    var index = -1
+                    repository.updateHaFavourites { list ->
+                        index = list.indexOf(action.id)
+                        if (action.on) list + action.id else list - action.id
+                    }
+                    _state.update { it.copy(undo = if (!action.on && index >= 0) HaUndo.Unfavourited(action.id, index) else null) }
                 }
-                _state.update { it.copy(undo = if (!action.on && index >= 0) HaUndo.Unfavourited(action.id, index) else null) }
             }
             is HaAction.MoveFavourite -> scope.launch {
                 repository.updateHaFavourites { list ->

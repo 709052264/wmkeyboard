@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.homeassistant.googlehome
 import com.google.home.HomeDevice
 import com.google.home.Room
 import com.google.home.Trait
+import com.google.home.google.ExtendedFanControl
 import com.google.home.matter.standard.BooleanState
 import com.google.home.matter.standard.ColorControl
 import com.google.home.matter.standard.ColorControlTrait
@@ -17,6 +18,7 @@ import com.google.home.matter.standard.MediaPlayback
 import com.google.home.matter.standard.MediaPlaybackTrait
 import com.google.home.matter.standard.OccupancySensing
 import com.google.home.matter.standard.OnOff
+import com.google.home.matter.standard.RelativeHumidityMeasurement
 import com.google.home.matter.standard.TemperatureMeasurement
 import com.google.home.matter.standard.Thermostat
 import com.google.home.matter.standard.ThermostatTrait
@@ -83,6 +85,7 @@ object GoogleHomeMapping {
             traits.any { it is OnOff } -> add((if (light) "light" else "switch") to "")
         }
         if (traits.any { it is TemperatureMeasurement } && traits.none { it is Thermostat }) add("sensor" to "_temperature")
+        if (traits.any { it is RelativeHumidityMeasurement }) add("sensor" to "_humidity")
         if (traits.any { it is IlluminanceMeasurement }) add("sensor" to "_illuminance")
         if (traits.any { it is BooleanState }) add("binary_sensor" to "_contact")
         if (traits.any { it is OccupancySensing }) add("binary_sensor" to "_occupancy")
@@ -115,14 +118,16 @@ object GoogleHomeMapping {
             when (domain) {
                 "climate" -> {
                     val t = live.trait<Thermostat>()
-                    val mode = haMode(t?.systemMode)
+                    // An air conditioner carries OnOff beside its mode: off there is off whatever the mode says.
+                    val mode = if (live.trait<OnOff>()?.onOff == false) "off" else haMode(t?.systemMode)
+                    val cooler = types.any { it.contains("AirConditioner") }
                     val heat = t?.occupiedHeatingSetpoint?.let { it / CENTI }
                     val cool = t?.occupiedCoolingSetpoint?.let { it / CENTI }
                     val range = mode == "heat_cool" && heat != null && cool != null
                     entity(
                         domain, suffix, mode,
                         attrs {
-                            attr("hvac_modes", listOf("off", "heat", "cool", "heat_cool"))
+                            attr("hvac_modes", if (cooler) listOf("off", "cool", "dry", "fan_only", "heat_cool") else listOf("off", "heat", "cool", "heat_cool"))
                             attr("current_temperature", t?.localTemperature?.let { it / CENTI })
                             attr("temperature", if (range) null else if (mode == "cool") cool ?: heat else heat ?: cool)
                             if (range) {
@@ -166,19 +171,33 @@ object GoogleHomeMapping {
                 }
                 "fan" -> {
                     val f = live.trait<FanControl>()
-                    val pct = f?.percentSetting?.toInt() ?: when (f?.fanMode) {
-                        FanControlTrait.FanModeEnum.Low -> FAN_LOW
-                        FanControlTrait.FanModeEnum.Medium -> FAN_MEDIUM
-                        FanControlTrait.FanModeEnum.High, FanControlTrait.FanModeEnum.On -> PERCENT
-                        else -> 0
+                    // A fan with a few speeds (speedMax) reports them there, and
+                    // its percentSetting can sit at 0 while it runs: speeds first,
+                    // then what it is doing, then what it was asked.
+                    val speeds = f?.speedMax?.toInt()?.takeIf { it > 0 }
+                    val speed = (f?.speedCurrent ?: f?.speedSetting)?.toInt()
+                    val pct = when {
+                        speeds != null && speed != null -> speed * PERCENT / speeds
+                        else -> (f?.percentCurrent ?: f?.percentSetting)?.toInt() ?: when (f?.fanMode) {
+                            FanControlTrait.FanModeEnum.Low -> FAN_LOW
+                            FanControlTrait.FanModeEnum.Medium -> FAN_MEDIUM
+                            FanControlTrait.FanModeEnum.High, FanControlTrait.FanModeEnum.On -> PERCENT
+                            else -> 0
+                        }
                     }
-                    val on = live.trait<OnOff>()?.onOff ?: (pct > 0)
+                    val on = live.trait<OnOff>()?.onOff ?: f?.fanMode?.let { it != FanControlTrait.FanModeEnum.Off } ?: (pct > 0)
+                    val custom = live.trait<ExtendedFanControl>()
+                    val presets = custom?.customFanModes?.speeds?.map { it.speedName }?.filter { it.isNotBlank() }.orEmpty()
                     entity(
                         domain, suffix, if (on) "on" else "off",
                         attrs {
                             attr("percentage", if (on) pct else 0)
-                            attr("percentage_step", 1)
-                            attr("supported_features", HaFeatures.Fan.SET_SPEED)
+                            attr("percentage_step", speeds?.let { PERCENT_D / it } ?: 1)
+                            if (presets.isNotEmpty()) {
+                                attr("preset_modes", presets)
+                                attr("preset_mode", custom?.customFanMode?.takeIf { on && it in presets })
+                            }
+                            attr("supported_features", HaFeatures.Fan.SET_SPEED or (if (presets.isNotEmpty()) HaFeatures.Fan.PRESET_MODE else 0))
                         },
                     )
                 }
@@ -231,7 +250,17 @@ object GoogleHomeMapping {
                         },
                     )
                 }
-                "sensor" -> if (suffix == "_temperature") {
+                "sensor" -> if (suffix == "_humidity") {
+                    val v = live.trait<RelativeHumidityMeasurement>()?.measuredValue?.toInt()?.let { it / CENTI }
+                    entity(
+                        domain, suffix, v?.roundToInt()?.toString() ?: "unknown",
+                        attrs {
+                            attr("device_class", "humidity")
+                            attr("unit_of_measurement", "%")
+                            attr("state_class", "measurement")
+                        },
+                    )
+                } else if (suffix == "_temperature") {
                     val v = live.trait<TemperatureMeasurement>()?.measuredValue?.let { it / CENTI }
                     entity(
                         domain, suffix, v?.let { ((it * TENTH).roundToInt() / TENTH).toString() } ?: "unknown",
@@ -343,7 +372,14 @@ object GoogleHomeMapping {
                     }
                     data.num("percentage")?.let { p ->
                         live.trait<FanControl>()?.let { f ->
-                            f.update { setPercentSetting(p.roundToInt().coerceIn(0, PERCENT).toUByte()) }
+                            setFanSpeed(f, p.roundToInt().coerceIn(0, PERCENT))
+                            done = true
+                        }
+                    }
+                    // A fan with no OnOff of its own comes on through its mode.
+                    if (!done && call.domain == "fan") {
+                        live.trait<FanControl>()?.let { f ->
+                            f.update { setFanMode(FanControlTrait.FanModeEnum.On) }
                             done = true
                         }
                     }
@@ -368,7 +404,21 @@ object GoogleHomeMapping {
                 "set_percentage" -> {
                     val f = live.trait<FanControl>() ?: return false
                     val p = data.num("percentage")?.roundToInt()?.coerceIn(0, PERCENT) ?: return false
-                    if (p == 0 && onOff != null) onOff.off() else f.update { setPercentSetting(p.toUByte()) }
+                    when {
+                        p == 0 && onOff != null -> onOff.off()
+                        p == 0 -> f.update { setFanMode(FanControlTrait.FanModeEnum.Off) }
+                        else -> {
+                            if (onOff != null && !isOn) onOff.on()
+                            setFanSpeed(f, p)
+                        }
+                    }
+                    return true
+                }
+                "set_preset_mode" -> {
+                    val x = live.trait<ExtendedFanControl>() ?: return false
+                    val name = data.str("preset_mode") ?: return false
+                    if (onOff != null && !isOn) onOff.on()
+                    x.update { setCustomFanMode(name) }
                     return true
                 }
                 "media_play" -> return live.trait<MediaPlayback>()?.play() != null
@@ -432,16 +482,41 @@ object GoogleHomeMapping {
                     }
                     "set_hvac_mode" -> {
                         val mode = data.str("hvac_mode") ?: return false
-                        t.update { setSystemMode(matterMode(mode)) }
+                        when {
+                            mode == "off" && onOff != null -> onOff.off()
+                            else -> {
+                                if (onOff != null && current?.state == "off") onOff.on()
+                                t.update { setSystemMode(matterMode(mode)) }
+                            }
+                        }
                     }
-                    "turn_off" -> t.update { setSystemMode(ThermostatTrait.SystemModeEnum.Off) }
-                    "turn_on" -> t.update { setSystemMode(ThermostatTrait.SystemModeEnum.Auto) }
+                    "turn_off" -> if (onOff != null) onOff.off() else t.update { setSystemMode(ThermostatTrait.SystemModeEnum.Off) }
+                    "turn_on" -> if (onOff != null) onOff.on() else t.update { setSystemMode(ThermostatTrait.SystemModeEnum.Auto) }
                     else -> return false
                 }
                 return true
             }
             else -> return false
         }
+    }
+
+    /**
+     * A fan with speeds takes the nearest one, so five speeds land on 20 %
+     * steps; one without takes the percentage. Some bridges list speeds and
+     * then refuse the speed attribute, so that falls back to the percentage.
+     */
+    private suspend fun setFanSpeed(f: FanControl, pct: Int) {
+        val max = f.speedMax?.toInt()?.takeIf { it > 0 }
+        if (max != null) {
+            val speed = ((pct * max + PERCENT / 2) / PERCENT).coerceIn(1, max)
+            try {
+                f.update { setSpeedSetting(speed.toUByte()) }
+                return
+            } catch (_: com.google.home.HomeException) {
+                // Fall through to the percentage.
+            }
+        }
+        f.update { setPercentSetting(pct.toUByte()) }
     }
 
     private const val CENTI = 100.0
