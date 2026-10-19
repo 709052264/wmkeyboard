@@ -1,0 +1,278 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_bn_mayabi",
+    "name": "মায়াবী (Mayabi)",
+    "langId": "bn",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "া",
+              "shiftLabel": "ৌ",
+              "longPress": [
+                "¿",
+                "¡"
+              ]
+            },
+            {
+              "label": "ে",
+              "shiftLabel": "ৈ",
+              "longPress": [
+                "«",
+                "»"
+              ]
+            },
+            {
+              "label": "ি",
+              "shiftLabel": "ৗ",
+              "longPress": [
+                "‹",
+                "›"
+              ]
+            },
+            {
+              "label": "ু",
+              "shiftLabel": "ূ",
+              "longPress": [
+                "„",
+                "‟"
+              ]
+            },
+            {
+              "label": "র",
+              "shiftLabel": "ড়",
+              "longPress": [
+                "≈",
+                "≠"
+              ]
+            },
+            {
+              "label": "দ",
+              "shiftLabel": "ধ",
+              "longPress": [
+                "∴",
+                "∵"
+              ]
+            },
+            {
+              "label": "ন",
+              "shiftLabel": "ণ",
+              "longPress": [
+                "⊕",
+                "⊗"
+              ]
+            },
+            {
+              "label": "আ",
+              "shiftLabel": "অ"
+            },
+            {
+              "label": "ক",
+              "shiftLabel": "উ"
+            },
+            {
+              "label": "ত",
+              "shiftLabel": "থ"
+            },
+            {
+              "label": "ম",
+              "shiftLabel": "ঃ"
+            },
+            {
+              "label": "ল",
+              "shiftLabel": "ং"
+            }
+          ],
+          [
+            {
+              "label": "ী",
+              "shiftLabel": "ঁ"
+            },
+            {
+              "label": "ো",
+              "shiftLabel": "ৃ"
+            },
+            {
+              "label": "স",
+              "shiftLabel": "়"
+            },
+            {
+              "label": "প",
+              "shiftLabel": "ফ",
+              "longPress": [
+                "_"
+              ]
+            },
+            {
+              "label": "য",
+              "shiftLabel": "ষ"
+            },
+            {
+              "label": "্",
+              "shiftLabel": "ঞ",
+              "longPress": [
+                "-",
+                "—",
+                "‌",
+                "‍"
+              ]
+            },
+            {
+              "label": "জ",
+              "shiftLabel": "ঝ"
+            },
+            {
+              "label": "ট",
+              "shiftLabel": "ঠ",
+              "longPress": [
+                "(",
+                ")"
+              ]
+            },
+            {
+              "label": "হ",
+              "shiftLabel": "ঢ",
+              "longPress": [
+                "(",
+                ")"
+              ]
+            },
+            {
+              "label": "ই",
+              "shiftLabel": "ঈ"
+            },
+            {
+              "label": "ব",
+              "shiftLabel": "ড"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "য়",
+              "shiftLabel": "ৎ",
+              "longPress": [
+                "*"
+              ]
+            },
+            {
+              "label": "গ",
+              "shiftLabel": "ঘ",
+              "longPress": [
+                "\""
+              ]
+            },
+            {
+              "label": "শ",
+              "shiftLabel": "ঙ",
+              "longPress": [
+                "'"
+              ]
+            },
+            {
+              "label": "চ",
+              "shiftLabel": "ঋ",
+              "longPress": [
+                ":"
+              ]
+            },
+            {
+              "label": "ছ",
+              "shiftLabel": "ঊ",
+              "longPress": [
+                ";"
+              ]
+            },
+            {
+              "label": "এ",
+              "shiftLabel": "ঐ"
+            },
+            {
+              "label": "খ",
+              "shiftLabel": "ঢ়"
+            },
+            {
+              "label": "ও",
+              "shiftLabel": "ঔ"
+            },
+            {
+              "label": "ভ",
+              "shiftLabel": "্ব",
+              "longPress": [
+                "‌"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";",
+                "‌",
+                "‍"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

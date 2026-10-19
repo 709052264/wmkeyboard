@@ -1,0 +1,264 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_bn_samsung",
+    "name": "স্যামসাং বর্ণমালা (Samsung)",
+    "langId": "bn",
+    "version": 2,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "্",
+              "longPress": [
+                "‌",
+                "‍"
+              ]
+            },
+            {
+              "label": "অ"
+            },
+            {
+              "label": "আ",
+              "output": "া"
+            },
+            {
+              "label": "ই",
+              "output": "ি"
+            },
+            {
+              "label": "ঈ",
+              "output": "ী"
+            },
+            {
+              "label": "ক"
+            },
+            {
+              "label": "খ"
+            },
+            {
+              "label": "গ"
+            },
+            {
+              "label": "ঘ"
+            },
+            {
+              "label": "ঙ"
+            }
+          ],
+          [
+            {
+              "label": "উ",
+              "output": "ু"
+            },
+            {
+              "label": "ঊ",
+              "output": "ূ"
+            },
+            {
+              "label": "ঋ",
+              "output": "ৃ"
+            },
+            {
+              "label": "এ",
+              "output": "ে"
+            },
+            {
+              "label": "ঐ",
+              "output": "ৈ"
+            },
+            {
+              "label": "চ"
+            },
+            {
+              "label": "ছ"
+            },
+            {
+              "label": "জ"
+            },
+            {
+              "label": "ঝ"
+            },
+            {
+              "label": "ঞ"
+            }
+          ],
+          [
+            {
+              "label": "ও",
+              "output": "ো"
+            },
+            {
+              "label": "ঔ",
+              "output": "ৌ"
+            },
+            {
+              "label": "অং",
+              "output": "ং"
+            },
+            {
+              "label": "অঃ",
+              "output": "ঃ"
+            },
+            {
+              "label": "অঁ",
+              "output": "ঁ"
+            },
+            {
+              "label": "ট"
+            },
+            {
+              "label": "ঠ"
+            },
+            {
+              "label": "ড",
+              "longPress": [
+                "ড়"
+              ]
+            },
+            {
+              "label": "ঢ",
+              "longPress": [
+                "ঢ়"
+              ]
+            },
+            {
+              "label": "ণ"
+            }
+          ],
+          [
+            {
+              "label": "ত",
+              "longPress": [
+                "ৎ"
+              ]
+            },
+            {
+              "label": "থ"
+            },
+            {
+              "label": "দ"
+            },
+            {
+              "label": "ধ"
+            },
+            {
+              "label": "ন"
+            },
+            {
+              "label": "প"
+            },
+            {
+              "label": "ফ"
+            },
+            {
+              "label": "ব",
+              "longPress": [
+                "ৱ"
+              ]
+            },
+            {
+              "label": "ভ"
+            },
+            {
+              "label": "ম"
+            }
+          ],
+          [
+            {
+              "label": "য",
+              "longPress": [
+                "য়",
+                "্য"
+              ]
+            },
+            {
+              "label": "র",
+              "longPress": [
+                "্র",
+                "র্"
+              ]
+            },
+            {
+              "label": "ল"
+            },
+            {
+              "label": "শ"
+            },
+            {
+              "label": "ষ"
+            },
+            {
+              "label": "স"
+            },
+            {
+              "label": "হ"
+            },
+            {
+              "label": "ঌ",
+              "longPress": [
+                "ৡ",
+                "ৢ"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 2
+            }
+          ],
+          [
+            {
+              "label": "!#1",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "?",
+              "longPress": [
+                ",",
+                "!",
+                ":",
+                ";"
+              ]
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 5
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";",
+                "‌",
+                "‍"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

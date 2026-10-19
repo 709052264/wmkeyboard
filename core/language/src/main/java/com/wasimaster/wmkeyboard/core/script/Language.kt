@@ -128,6 +128,8 @@ object LanguageRegistry {
                 AssetLayouts.BN_BAISHAKHI_ID,
                 AssetLayouts.BN_BORNONA_ID,
                 AssetLayouts.BN_INSCRIPT_ID,
+                AssetLayouts.BN_MAYABI_ID,
+                AssetLayouts.BN_SAMSUNG_ID,
                 AssetLayouts.BN_AKKHOR_ID,
                 AssetLayouts.BN_UNIJOY_ID,
                 AssetLayouts.BN_OLD_ID,
@@ -2081,7 +2083,7 @@ object LanguageRegistry {
             englishName = "Bangla (Romanized)",
             script = ScriptId.LATIN,
             localeTag = "bn-Latn",
-            layoutIds = listOf(AssetLayouts.BN_ROM_ID, AssetLayouts.BN_ROM_T9_ID),
+            layoutIds = listOf(AssetLayouts.BN_ROM_ID, AssetLayouts.BN_ROM_SHOROLIPI_ID, AssetLayouts.BN_ROM_T9_ID),
         ),
         LanguageDef(
             id = "gu_rom",

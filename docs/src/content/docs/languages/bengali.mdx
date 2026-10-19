@@ -1,6 +1,6 @@
 ---
 title: "Bangla"
-description: "First-class Bangla: Avro-style phonetic typing, Khipro Classic and Dark, five fixed layouts, and the spellings phonetic rules can't reach."
+description: "First-class Bangla: Avro-style phonetic typing, Khipro Classic and Dark, seven fixed layouts, and the spellings phonetic rules can't reach."
 sidebar:
   order: 3
 ---
@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import PhoneFrame from '@components/PhoneFrame.astro';
 import Shot from '@components/Shot.astro';
 
-Bangla is one of only two languages that ship a dictionary and emoji keywords inside the app itself. English is the other, and Bangla is the only one of the two with a purpose-built phonetic engine on top. It ships eight layouts: the phonetic Avro, the compositional Khipro and Khipro Dark, and five fixed ones, Probhat, Jatiya, Baishakhi, Bornona, and InScript. Adding Bangla turns on Avro, and the rest are a tap away on its own screen. A phone whose Android language list already includes Bangla gets it enabled from the first run. Type romanized Bangla and the keyboard converts it to script as you go, or pick one of the fixed keyboards if you'd rather type the script directly.
+Bangla is one of only two languages that ship a dictionary and emoji keywords inside the app itself. English is the other, and Bangla is the only one of the two with a purpose-built phonetic engine on top. It ships ten layouts: the phonetic Avro, the compositional Khipro and Khipro Dark, and seven fixed ones, Probhat, Jatiya, Baishakhi, Bornona, InScript, Mayabi, and Samsung. Adding Bangla turns on Avro, and the rest are a tap away on its own screen. A phone whose Android language list already includes Bangla gets it enabled from the first run. Type romanized Bangla and the keyboard converts it to script as you go, or pick one of the fixed keyboards if you'd rather type the script directly.
 
 <PhoneFrame caption={`Avro phonetic typing: "ami valo achi" commits as আমি ভালো আছি.`}>
   <Shot id="languages/avro-lenient-spelling" alt="Avro phonetic typing: &quot;ami valo asi&quot; commits as আমি ভালো আছি." />
@@ -203,7 +203,7 @@ The second word on the strip is the keys exactly as you pressed them, modifiers 
 
 ## Choosing a layout
 
-Bangla ships eight layouts. A fresh install turns on one of them, Avro, and only if your phone's own language list has Bangla in it. What starts enabled is read off the phone rather than fixed (see [What ships](/languages/overview/#what-ships)). Turn the rest on whenever you want them, from Bangla's own screen under **Languages**. There's one exception: a keyboard you enabled from Android's settings and then typed on without ever opening the app. The setup wizard never ran, so the built-in fallback stands, which is Avro alongside English QWERTY.
+Bangla ships ten layouts. A fresh install turns on one of them, Avro, and only if your phone's own language list has Bangla in it. What starts enabled is read off the phone rather than fixed (see [What ships](/languages/overview/#what-ships)). Turn the rest on whenever you want them, from Bangla's own screen under **Languages**. There's one exception: a keyboard you enabled from Android's settings and then typed on without ever opening the app. The setup wizard never ran, so the built-in fallback stands, which is Avro alongside English QWERTY.
 
 - **Avro phonetic**: the QWERTY grid described above, and the default layout when you add Bangla by searching for it.
 - **Khipro**: the compositional layout described above, on QWERTY letters with <KeyCap>/</KeyCap> in place of shift.
@@ -213,6 +213,8 @@ Bangla ships eight layouts. A fresh install turns on one of them, Avro, and only
 - **বৈশাখী (Baishakhi)**: another fixed Bangla layout, typed directly with nothing transliterated.
 - **বর্ণনা (Bornona)**: another fixed Bangla layout, typed directly with nothing transliterated.
 - **ইনস্ক্রিপ্ট (InScript)**: the Bengali InScript layout, the same Indic-script keyboard standard the app ships for many other Indian languages.
+- **মায়াবী (Mayabi)**: a fixed layout on a 12-key-wide grid, with the kar signs down the left of the top two rows and shift giving each key's partner letter.
+- **স্যামসাং বর্ণমালা (Samsung)**: the alphabet grid from Samsung Keyboard. The letters run in alphabet order across ten columns: the vowels in a block on the left and the consonants on the right, from ক down to হ, with no shift key. A vowel key types its kar after a consonant (ক then আ gives কা) and the full vowel at the start of a word. ড়, ঢ়, য় and ৎ are on the hold of ড, ঢ, য and ত. Like Samsung's, it has no <KeyCap>🌐</KeyCap> key, so switch away from it with a spacebar swipe.
 
 <PhoneFrame side caption="প্রভাত (Probhat) active: Bengali letters typed directly, no phonetic conversion.">
   <Shot id="languages/probhat-key-grid" alt="প্রভাত (Probhat) active: Bengali letters typed directly, no phonetic conversion." />
@@ -222,13 +224,17 @@ On Probhat, shift mostly gives you the aspirated partner of a consonant (দ→�
 
 Jatiya's letter keys also match its desktop layout. Independent vowels that sit on a desktop AltGr key are reached here as a long-press on their matching kar sign: long-press ু for উ or ঊ, long-press ি for ই or ঈ, and so on.
 
-All eight layouts type দাঁড়ি (।) from the full stop key beside the spacebar rather than a full stop (on Khipro, it comes after the <KeyCap>;</KeyCap> key), with the ASCII `.` moved to that key's long-press for numbers, file names and web addresses. Every layer but the letters is where numbers are typed, so on the <KeyCap>?123</KeyCap> pages and on an Fn, Number or secondary layer the same key stays a plain `.` for decimals and দাঁড়ি moves to its long-press instead. On the five fixed layouts, `?` comes first in that popup and `.` right after it, so a plain hold on the key types a question mark; Avro and Khipro already have one on the hold of <KeyCap>m</KeyCap>.
+All ten layouts type দাঁড়ি (।) from the full stop key beside the spacebar rather than a full stop (on Khipro, it comes after the <KeyCap>;</KeyCap> key), with the ASCII `.` moved to that key's long-press for numbers, file names and web addresses. Every layer but the letters is where numbers are typed, so on the <KeyCap>?123</KeyCap> pages and on an Fn, Number or secondary layer the same key stays a plain `.` for decimals and দাঁড়ি moves to its long-press instead. On the seven fixed layouts, `?` comes first in that popup and `.` right after it, so a plain hold on the key types a question mark; Avro and Khipro already have one on the hold of <KeyCap>m</KeyCap>.
 
 The two invisible joiners are on the fixed layouts too. Hold হসন্ত (্) or the দাঁড়ি key and the popup ends with **ZWNJ** and **ZWJ**, drawn by name because neither character has a shape of its own. ZWNJ after a হসন্ত keeps two consonants from joining, so ক ্ ZWNJ ষ shows ক্‌ষ rather than ক্ষ, and উদ্‌যাপন keeps its দ apart from the য. ZWJ asks for the half form instead, as in র‍্যাব. Desktop Jatiya and Probhat keep these on AltGr and shift keys a phone doesn't have, so the hold is where they go here. Every other fixed Bengali-script layout, the Assamese, Sylheti and Bishnupriya Manipuri ones included, has them in the same two places. Khipro has them on its দাঁড়ি key.
 
-বিসর্গ (ঃ) sits on the long-press of the colon key on the symbols layer, on all eight. It's drawn as a colon and does a different job, and the symbol layers are one grid shared by every language, so the colon's popup is where it goes.
+বিসর্গ (ঃ) sits on the long-press of the colon key on the symbols layer, on all ten. It's drawn as a colon and does a different job, and the symbol layers are one grid shared by every language, so the colon's popup is where it goes.
 
-All five fixed layouts share the same cluster-editing behavior as Avro and Khipro (see [Editing conjuncts and clusters](#editing-conjuncts-and-clusters) below), and the same font choice applies across all eight (see [Options](#options)). Switching between them works exactly like switching between any other enabled layouts: spacebar swipe, hold-drag picker, or the <KeyCap>🌐</KeyCap> key. See [Switching languages](/languages/switching/) for the full mechanics.
+All seven fixed layouts share the same cluster-editing behavior as Avro and Khipro (see [Editing conjuncts and clusters](#editing-conjuncts-and-clusters) below), and the same font choice applies across all ten (see [Options](#options)). Switching between them works exactly like switching between any other enabled layouts: spacebar swipe, hold-drag picker, or the <KeyCap>🌐</KeyCap> key. See [Switching languages](/languages/switching/) for the full mechanics.
+
+### Shörolipi
+
+Banglish, Bangla's romanized entry, has a second layout besides its plain QWERTY: **Shörolipi (সরলিপি)**, the Khipro team's [romanization of Bangla](https://github.com/KhiproTeam/shorolipi). It writes Bangla in Latin letters, one letter per sound, and fits the whole alphabet on 26 keys by putting six letters with marks where English has letters Bangla doesn't need: <KeyCap>ṛ</KeyCap> and <KeyCap>ḍ</KeyCap> in place of q and w, <KeyCap>ö</KeyCap> (অ) in place of f, <KeyCap>ŋ</KeyCap> (ঙ, ং) in place of z, <KeyCap>ë</KeyCap> (অ্যা) in place of x and <KeyCap>ṭ</KeyCap> in place of v. Hold any of those six for the plain English letter, so English words still go in without switching. The vowels a, e, i, o, u, ö and ë have their nasal form (ã, ẽ and so on) on the hold too, and the full stop's hold ends with the combining tilde for any other letter. What you type stays in Latin letters: `pöṛa` is পড়া and `kãca` is কাঁচা, written the way Shörolipi spells them, not converted to Bengali script.
 
 ## Editing conjuncts and clusters
 
@@ -236,7 +242,7 @@ Bengali script builds conjuncts (যুক্তবর্ণ) by joining consona
 
 <SettingsPath path="Languages & layouts / Bangla / Clusters / Conjunct-aware backspace" />
 
-Turning on **Conjunct-aware backspace** changes this: a whole conjunct cluster is deleted in a single press instead. স্ত্রী (a triple conjunct) disappears as one unit, ক্ষ as one unit, and a bare trailing hasant with nothing joined to it yet still deletes alone. The setting is off by default, and it applies to committed Bengali-script text across all eight Bangla layouts alike, which share the same cluster logic. It only affects text already committed to the field. Deleting through a word you are still composing on Avro or Khipro always removes one Latin character per press.
+Turning on **Conjunct-aware backspace** changes this: a whole conjunct cluster is deleted in a single press instead. স্ত্রী (a triple conjunct) disappears as one unit, ক্ষ as one unit, and a bare trailing hasant with nothing joined to it yet still deletes alone. The setting is off by default, and it applies to committed Bengali-script text across all ten Bangla layouts alike, which share the same cluster logic. It only affects text already committed to the field. Deleting through a word you are still composing on Avro or Khipro always removes one Latin character per press.
 
 This toggle isn't unique to Bangla. Every language on a cluster-forming script gets its own copy of it, and Devanagari, Tamil, Khmer and others work the same way. It's set per language, so Bangla deleting whole conjuncts doesn't commit you to Hindi doing the same.
 
@@ -270,7 +276,7 @@ Open Bangla's own screen from **Languages** in the app, or search for it from **
   <Shot id="languages/bengali-language-screen" alt="Bengali's language screen: layout cards, numeral system, and dictionary/emoji status." />
 </PhoneFrame>
 
-- **Layouts**: one card each for Avro, Khipro, Khipro Dark, Probhat, Jatiya, Baishakhi, Bornona, and InScript, each a small preview of that keyboard. Tap a card to turn it on or off; all eight are independent. At least one layout has to stay enabled somewhere across your whole keyboard, so you can't switch off the last one from here.
+- **Layouts**: one card each for Avro, Khipro, Khipro Dark, Probhat, Jatiya, Baishakhi, Bornona, InScript, Mayabi, and Samsung, each a small preview of that keyboard. Tap a card to turn it on or off; all ten are independent. At least one layout has to stay enabled somewhere across your whole keyboard, so you can't switch off the last one from here.
 - **Key hints**: <SettingsPath path="Languages & layouts / Bangla / Key hints / Show the letter each key types" />, a three-way choice (Off, Added, or Whole letter), off by default. It puts the Bengali letter a key is about to write in its corner. Unlike the settings around it, this one is shared. It's one setting for every language with a transliterating layout enabled, not only Bangla, and it shows only while such a layout, Avro or Khipro, is active.
 - **Key map**: a folded group just below the hints while Avro is on. Open it for the vowels, consonants, joins and signs, the same tables as the [Avro key map](#avro-key-map) above, so they work offline. **Full guide** at the bottom, <SettingsPath path="Languages & layouts / Bangla / Key map / Full guide" />, opens this page in your browser.
 - **Suggestion strip**: <SettingsPath path="Languages & layouts / Bangla / Suggestion strip / Keep the first two words in place" />, off by default, shown while Avro is on. Normally the first word on the strip is the one the space bar will write, so the words move as you type. Turn this on and the first two never move: on the left is what you typed, in English letters, and next to it is the Avro reading of it, letter for letter (`ami` → আমি, `tmr` → ত্ম্র). The suggestions come after them. The space bar still writes the same word as before, and that word is the bold one wherever it sits. A second row, **Suggestions after them**, picks what fills the rest of the strip: **Smart** (both languages, the one the word reads as first, with the other language's best word on the last chip when there is room), **Bengali only**, or **English only**. English only works without English under Also suggest from too, from the bundled English list. While this is on, the strip does not move its top word to the middle.
@@ -289,7 +295,7 @@ Open Bangla's own screen from **Languages** in the app, or search for it from **
 
 One more setting for Bangla lives outside this screen:
 
-- The **Bengali font** row, at <SettingsPath path="Appearance / Keyboard font / Bengali font" />, is one of the per-script font sections. It shows only while a Bengali-script language is enabled, and it's separate from the general keyboard font. Your choice applies to all eight Bangla layouts at once. The section offers the automatic Noto face, eight Bengali-focused Google Fonts, anything in your font library that covers Bengali, and an import button for a `.ttf` or `.otf` of your own. Every script section takes an import, so this isn't Bengali's alone.
+- The **Bengali font** row, at <SettingsPath path="Appearance / Keyboard font / Bengali font" />, is one of the per-script font sections. It shows only while a Bengali-script language is enabled, and it's separate from the general keyboard font. Your choice applies to all ten Bangla layouts at once. The section offers the automatic Noto face, eight Bengali-focused Google Fonts, anything in your font library that covers Bengali, and an import button for a `.ttf` or `.otf` of your own. Every script section takes an import, so this isn't Bengali's alone.
 
 ## Details & edge cases
 

@@ -449,6 +449,11 @@ object AssetLayouts {
     const val BN_BAISHAKHI_ID = "asset_bn_baishakhi"
     const val BN_BORNONA_ID = "asset_bn_bornona"
     const val BN_INSCRIPT_ID = "asset_bn_inscript"
+    const val BN_MAYABI_ID = "asset_bn_mayabi"
+    /** Samsung Keyboard's Bangla grid: the alphabet in order, vowel keys typing their kar after a consonant. */
+    const val BN_SAMSUNG_ID = "asset_bn_samsung"
+    /** KhiproTeam's Shörolipi (#803): Bangla in 26 Latin letters, ṛ ḍ ö ŋ ë ṭ in place of q w f z x v. */
+    const val BN_ROM_SHOROLIPI_ID = "asset_bn_rom_shorolipi"
     const val BO_STANDARD_ID = "asset_bo_standard"
     const val CKB_STANDARD_ID = "asset_ckb_standard"
     const val DAR_URAKHI_ID = "asset_dar_urakhi"
