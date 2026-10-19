@@ -80,7 +80,7 @@ internal fun HomeProviderExtras(
         HomeKind.OPENHAB -> OpenHabExtras()
         HomeKind.TUYA -> TuyaExtras(draft, onDraft)
         HomeKind.SWITCHBOT -> SwitchBotExtras(draft, onDraft)
-        HomeKind.GOOGLE_HOME -> GoogleHomeExtras(draft, onDraft)
+        HomeKind.GOOGLE_HOME -> GoogleHomeExtras(draft, onSave)
         null -> Unit
     }
 }
@@ -479,15 +479,23 @@ private fun Hint(text: String) {
 
 // ---- Google Home ----------------------------------------------------------------------
 
+/**
+ * Google Home has no field to fill, so the sheet shows Close rather than Save,
+ * and Close drops the draft. A grant and a sign-out are therefore saved
+ * straight away through [onSave]. Only a grant that lands while this editor
+ * is open counts: [GoogleHomeSupport.grants] keeps the last one for the
+ * process, and an editor opened later must not take it for its own.
+ */
 @Composable
-private fun GoogleHomeExtras(draft: ProviderCredential, onDraft: (ProviderCredential) -> Unit) {
+private fun GoogleHomeExtras(draft: ProviderCredential, onSave: (ProviderCredential) -> Unit) {
     val context = LocalContext.current
     val grant by GoogleHomeSupport.grants.collectAsState()
+    val before = remember { GoogleHomeSupport.grants.value }
     val granted = draft.homeAccount().signedIn
     LaunchedEffect(grant) {
-        val g = grant ?: return@LaunchedEffect
+        val g = grant?.takeIf { it !== before } ?: return@LaunchedEffect
         if (draft.extra[HomeKeys.STRUCTURE_ID] != g.structureId || draft.extra[HomeKeys.GRANTED] != "1") {
-            onDraft(
+            onSave(
                 draft.copy(
                     name = draft.name.ifBlank { g.structureName },
                     extra = draft.extra + mapOf(HomeKeys.GRANTED to "1", HomeKeys.STRUCTURE_ID to g.structureId, HomeKeys.ACCOUNT to g.account, HomeKeys.INSTANCE_NAME to g.structureName),
@@ -513,7 +521,7 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onDraft: (ProviderCreden
         ) { Text(stringResource(if (granted) R.string.gh_change_button else R.string.gh_choose_button)) }
         if (granted) {
             TextButton(onClick = {
-                onDraft(draft.copy(extra = draft.extra - HomeKeys.GRANTED - HomeKeys.STRUCTURE_ID - HomeKeys.ACCOUNT))
+                onSave(draft.copy(extra = draft.extra - HomeKeys.GRANTED - HomeKeys.STRUCTURE_ID - HomeKeys.ACCOUNT))
             }) { Text(stringResource(R.string.ha_sign_out_button)) }
         }
     }
