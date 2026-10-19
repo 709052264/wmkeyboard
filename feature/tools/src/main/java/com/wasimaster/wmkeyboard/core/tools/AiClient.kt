@@ -551,10 +551,21 @@ object AiClient {
         onToolResult = onToolResult,
         isActive = isActive,
     ) { roundSystem, roundTurns, roundTools, roundPartial ->
-        completeStreaming(
-            config, roundSystem, roundTurns, maxTokens, roundTools,
-            onPhase, roundPartial, isActive,
-        )
+        if (config.provider == AiProvider.ANTHROPIC && roundTools.isEmpty() && tools.isNotEmpty()) {
+            // Anthropic binds a thinking block's signature to the tools list
+            // it was written under, so a final round that drops the tools has
+            // every earlier round's thinking refused. The same tools go back
+            // with tool_choice "none", which forces the answer instead.
+            anthropicStream(
+                config, roundSystem, normalizedTurns(roundTurns), maxTokens, tools,
+                onPhase, roundPartial, isActive, answerOnly = true,
+            )
+        } else {
+            completeStreaming(
+                config, roundSystem, roundTurns, maxTokens, roundTools,
+                onPhase, roundPartial, isActive,
+            )
+        }
     }
 
     /**
@@ -1012,19 +1023,20 @@ object AiClient {
         onPhase: (AiPhase) -> Unit,
         onPartial: (String) -> Unit,
         isActive: () -> Boolean,
+        answerOnly: Boolean = false,
     ): Completion {
         // Anthropic is the one provider that makes the ceiling mandatory, so
         // "let the service decide" has to become a number here.
         val asked = maxTokens ?: ANTHROPIC_PROVIDER_MAXIMUM
         return try {
-            anthropicStreamOnce(config, system, turns, asked, tools, onPhase, onPartial, isActive)
+            anthropicStreamOnce(config, system, turns, asked, tools, onPhase, onPartial, isActive, answerOnly)
         } catch (e: ToolHttpException) {
             // Asking for more output than the chosen model allows is a hard 400
             // rather than a clamp, and the error names the real ceiling. Retry
             // at that number: nothing has streamed yet, because the status is
             // read before the first byte of the body.
             val ceiling = anthropicModelCeiling(e)?.takeIf { it < asked } ?: throw e
-            anthropicStreamOnce(config, system, turns, ceiling, tools, onPhase, onPartial, isActive)
+            anthropicStreamOnce(config, system, turns, ceiling, tools, onPhase, onPartial, isActive, answerOnly)
         }
     }
 
@@ -1034,6 +1046,7 @@ object AiClient {
         turns: List<ChatTurn>,
         maxTokens: Int,
         tools: List<AiToolSpec> = emptyList(),
+        answerOnly: Boolean = false,
     ): String = buildJsonObject {
         put("model", config.model)
         put("max_tokens", maxTokens)
@@ -1051,6 +1064,7 @@ object AiClient {
                     })
                 }
             })
+            if (answerOnly) put("tool_choice", buildJsonObject { put("type", "none") })
         }
         put("messages", anthropicMessages(turns))
     }.toString()
@@ -1149,8 +1163,9 @@ object AiClient {
         onPhase: (AiPhase) -> Unit,
         onPartial: (String) -> Unit,
         isActive: () -> Boolean,
+        answerOnly: Boolean = false,
     ): Completion {
-        val body = anthropicBody(config, system, turns, maxTokens, tools)
+        val body = anthropicBody(config, system, turns, maxTokens, tools, answerOnly)
         return runStream(
             source = config.netSource,
             url = ServiceEndpoints.base(ServiceEndpoint.ANTHROPIC) + "/v1/messages",
