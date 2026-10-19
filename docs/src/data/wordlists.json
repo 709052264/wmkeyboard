@@ -3920,6 +3920,16 @@
   "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/nan/nan_full.txt.gz"
  },
  {
+  "id": "be_tarask",
+  "lang": "be_tarask",
+  "name": "Беларуская, тарашкевіца · Belarusian (Taraškievica)",
+  "english": "Belarusian (Taraškievica)",
+  "words": 653151,
+  "gzBytes": 3005635,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/be_x_old/be_x_old_full.txt.gz"
+ },
+ {
   "id": "cs_aosp",
   "lang": "cs",
   "name": "Čeština · Czech",

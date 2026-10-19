@@ -3598,6 +3598,13 @@
   "keyman": false
  },
  {
+  "id": "be_tarask",
+  "name": "Беларуская, тарашкевіца · Belarusian (Taraškievica)",
+  "english": "Belarusian (Taraškievica)",
+  "script": "Cyrillic",
+  "keyman": false
+ },
+ {
   "id": "aae",
   "name": "Arbëreshë Albanian",
   "english": "Arbëreshë Albanian",

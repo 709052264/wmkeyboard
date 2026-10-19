@@ -534,6 +534,7 @@ object DictionaryCatalog {
         entry("cdo_latn", "cdo-Latn-030", "cdo", 35459, 303116L),
         entry("hak_latn", "hak-Latn-030", "hak", 25789, 188687L),
         entry("nan_latn", "nan-Latn", "nan", 310331, 1285434L),
+        entry("be_tarask", "be_tarask", "be_x_old", 653151, 3005635L),
         // --- AOSP LatinIME's lists, preferred over the counted ones above. ---
         // Where a language has two regions, the first listed is its default.
         aosp("cs_aosp", "cs", "cs", 171_544, 813_469L),

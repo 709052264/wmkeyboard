@@ -1068,5 +1068,13 @@ internal object CorpusLanguages {
             layoutIds = listOf("asset_tts", "asset_tts_t9"),
             numeralSystem = NumeralSystem.THAI,
         ),
+        LanguageDef(
+            id = "be_tarask",
+            displayName = "Беларуская, тарашкевіца · Belarusian (Taraškievica)",
+            englishName = "Belarusian (Taraškievica)",
+            script = ScriptId.CYRILLIC,
+            localeTag = "be-tarask",
+            layoutIds = listOf("asset_be_tarask", "asset_be_tarask_t9"),
+        ),
     )
 }
