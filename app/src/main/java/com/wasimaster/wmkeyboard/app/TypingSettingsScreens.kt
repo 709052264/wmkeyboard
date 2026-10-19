@@ -411,29 +411,6 @@ internal fun TypingCorrectionsSettings(
             }
             item {
                 ToggleSetting(
-                    R.string.typing_adapt_taps_title,
-                    stringResource(R.string.typing_adapt_taps_subtitle),
-                    settings.watch { it.suggestionStrip.adaptToTaps },
-                    info = stringResource(R.string.typing_adapt_taps_info),
-                    default = SettingsDefaults.suggestionStrip.adaptToTaps,
-                ) { scope.launch { repository.setAdaptToTaps(it) } }
-            }
-            // Issue #385: how far a tap may stray into a neighbour.
-            item {
-                SliderSetting(
-                    R.string.typing_mistype_tolerance_title,
-                    subtitle = stringResource(R.string.typing_mistype_tolerance_subtitle),
-                    value = settings.watch { it.suggestionStrip.mistypeTolerance }.toFloat(),
-                    range = 50f..200f,
-                    // Steps of ten: finer than that is not a difference anyone feels.
-                    display = { "${(it.toInt() + 5) / 10 * 10}%" },
-                    info = stringResource(R.string.typing_mistype_tolerance_info),
-                    default = SettingsDefaults.suggestionStrip.mistypeTolerance.toFloat(),
-                ) { scope.launch { repository.setMistypeTolerance((it.toInt() + 5) / 10 * 10) } }
-            }
-            item { ForgetTapModelRow(repository) }
-            item {
-                ToggleSetting(
                     R.string.typing_skip_all_caps_title,
                     stringResource(R.string.typing_skip_all_caps_subtitle),
                     settings.watch { it.correction.skipAllCaps },
@@ -542,6 +519,31 @@ internal fun TypingCorrectionsSettings(
                 ) { scope.launch { repository.setNumberRowCorrections(it) } }
             }
         }
+        item {
+            ToggleSetting(
+                R.string.typing_adapt_taps_title,
+                stringResource(R.string.typing_adapt_taps_subtitle),
+                settings.watch { it.suggestionStrip.adaptToTaps },
+                info = stringResource(R.string.typing_adapt_taps_info),
+                default = SettingsDefaults.suggestionStrip.adaptToTaps,
+            ) { scope.launch { repository.setAdaptToTaps(it) } }
+        }
+        // Issue #385: how far a tap may stray into a neighbour. Outside the
+        // autocorrect gate: the touch model ranks the strip whether or not
+        // autocorrect is on.
+        item {
+            SliderSetting(
+                R.string.typing_mistype_tolerance_title,
+                subtitle = stringResource(R.string.typing_mistype_tolerance_subtitle),
+                value = settings.watch { it.suggestionStrip.mistypeTolerance }.toFloat(),
+                range = 50f..200f,
+                // Steps of ten: finer than that is not a difference anyone feels.
+                display = { "${(it.toInt() + 5) / 10 * 10}%" },
+                info = stringResource(R.string.typing_mistype_tolerance_info),
+                default = SettingsDefaults.suggestionStrip.mistypeTolerance.toFloat(),
+            ) { scope.launch { repository.setMistypeTolerance((it.toInt() + 5) / 10 * 10) } }
+        }
+        item { ForgetTapModelRow(repository) }
         item {
             ToggleSetting(
                 R.string.typing_register_priors_title,
