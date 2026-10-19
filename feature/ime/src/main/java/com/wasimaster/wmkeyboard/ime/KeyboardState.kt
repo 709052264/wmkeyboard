@@ -3861,6 +3861,13 @@ data class KeyboardUiState(
     val incognitoOn: Boolean get() = settings.incognito || fieldIncognito
 
     /**
+     * Whether the spacebar's typing speed (#752) is kept out of this field: a
+     * password field or incognito (#796). Its words are not timed and no
+     * speed shows.
+     */
+    val liveWpmPrivate: Boolean get() = incognitoOn || secureField
+
+    /**
      * Whether an on-screen Enter right now would type a newline instead of
      * firing the field's Send/Go/Search action.
      *

@@ -1545,6 +1545,7 @@ fun KeyboardScreen(
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
+            LocalLiveWpmPrivate provides rememberLiveWpmPrivate(bodyState),
             // Only while something is composing, so a list the service has not
             // cleared yet never outlives the reading it was for.
             LocalConversionReadings provides rememberConversionReadings(bodyState),

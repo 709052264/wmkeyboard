@@ -11,13 +11,13 @@ class LiveTypingSpeedTest {
     private val meter = LiveTypingSpeed { now }
 
     /** Types [word] at [msPerChar], then a space, advancing the clock. */
-    private fun type(word: String, msPerChar: Long) {
+    private fun type(word: String, msPerChar: Long, into: List<LiveTypingSpeed> = listOf(meter)) {
         for (char in word) {
             now += msPerChar
-            meter.onTyped(true, 1, now)
+            into.forEach { it.onTyped(true, 1, now) }
         }
         now += msPerChar
-        meter.onSeparator(now)
+        into.forEach { it.onSeparator(now) }
     }
 
     @Test
@@ -70,5 +70,47 @@ class LiveTypingSpeedTest {
         now += 200L
         meter.onWord(letters = 0, startUptimeMs = 0L)
         assertTrue(meter.reading(now) > 0)
+    }
+
+    @Test
+    fun `a private field times nothing and reads nothing`() {
+        meter.privateField = true
+        repeat(10) { type("abcde", 200L) }
+        now += 400L
+        meter.onWord(letters = 5, startUptimeMs = now - 600L)
+        assertEquals(0, meter.reading(now))
+        // Out of it, the meter reads as one that never saw the private words.
+        meter.privateField = false
+        val fresh = LiveTypingSpeed { now }
+        type("abcde", 200L, listOf(meter, fresh))
+        assertEquals("one word is not a reading", 0, meter.reading(now))
+        type("abcde", 200L, listOf(meter, fresh))
+        assertTrue(fresh.reading(now) > 0)
+        assertEquals(fresh.reading(now), meter.reading(now))
+    }
+
+    @Test
+    fun `turning private forgets the words typed before it`() {
+        repeat(5) { type("abcde", 200L) }
+        assertTrue(meter.reading(now) > 0)
+        meter.privateField = true
+        assertEquals(0, meter.reading(now))
+        meter.privateField = false
+        assertEquals("nothing from before comes back", 0, meter.reading(now))
+        type("abcde", 200L)
+        assertEquals("one word after it is not a reading yet", 0, meter.reading(now))
+    }
+
+    @Test
+    fun `saying again that the field is not private keeps the words`() {
+        // The service restates the gate before every event it feeds; a meter
+        // that is never told reads the same.
+        val control = LiveTypingSpeed { now }
+        repeat(5) {
+            meter.privateField = false
+            type("abcde", 200L, listOf(meter, control))
+        }
+        assertTrue(control.reading(now) > 0)
+        assertEquals(control.reading(now), meter.reading(now))
     }
 }

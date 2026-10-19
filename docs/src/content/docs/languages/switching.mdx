@@ -48,7 +48,9 @@ Turn on **Typing speed on the spacebar** under <SettingsPath path="Typing / Gest
 - It changes each time a word goes in: a word you type and end with a space or a mark, a suggestion you pick, a glided word, or a two-thumb word. Each new reading moves the number half way, so one fast or slow word doesn't make it jump.
 - A pause of more than 5 seconds clears it, and the spacebar goes back to its plain label until you've typed two more words.
 - It counts each word's letters and one space after it, the usual five characters to a word. Over 250 wpm is held at 250.
-- Nothing is kept: no number, no text. So it works with [Statistics](/reference/settings/statistics/) turned off and in incognito mode, and it starts again from nothing when the keyboard restarts.
+- It never shows in a password field or while incognito is on, and nothing you type there is timed. Going into one of those fields, or coming back out, starts the count again from nothing.
+- Each field gets its own count too. Moving to a different field or closing the keyboard clears the number; the same field reloading itself keeps it.
+- Nothing is kept: no number, no text. So it works with [Statistics](/reference/settings/statistics/) turned off, and it starts again from nothing when the keyboard restarts.
 
 ## Holding to drag through the list
 

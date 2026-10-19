@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
  * Nothing is stored: it lives as long as the keyboard process and holds no
  * text, only lengths and times. [TypingStats] feeds it from the same events it
  * counts, before its own recording gate, so the readout works with the
- * statistics off.
+ * statistics off; [privateField] is its own gate.
  *
  * Behaviour modelled on Kinetica's `TypingSpeed` (described in #752); no code
  * taken from it.
@@ -34,9 +34,25 @@ class LiveTypingSpeed(private val clock: () -> Long) {
 
     private var shown = 0.0
 
+    /**
+     * A password or incognito field (#796): nothing typed there is timed and
+     * the reading is 0. Turning it on or off forgets every word held so far,
+     * so the speed typed before a private field never shows inside it or
+     * after it.
+     */
+    var privateField = false
+        @Synchronized get
+
+        @Synchronized set(value) {
+            if (field == value) return
+            field = value
+            reset()
+        }
+
     /** A letter, digit or mark was typed at [uptimeMs]. A mark ends the word in progress. */
     @Synchronized
     fun onTyped(wordChar: Boolean, length: Int, uptimeMs: Long) {
+        if (privateField) return
         if (wordChar) {
             if (openLetters == 0) openStart = uptimeMs
             openLetters += length
@@ -47,12 +63,14 @@ class LiveTypingSpeed(private val clock: () -> Long) {
 
     /** A space or enter: the end of the word typed before it. */
     @Synchronized
-    fun onSeparator(uptimeMs: Long) = close(uptimeMs)
+    fun onSeparator(uptimeMs: Long) {
+        if (!privateField) close(uptimeMs)
+    }
 
     /** A backspace takes a letter back off the word in progress; its start stays. */
     @Synchronized
     fun onBackspace() {
-        if (openLetters > 0) openLetters--
+        if (!privateField && openLetters > 0) openLetters--
     }
 
     /**
@@ -63,6 +81,7 @@ class LiveTypingSpeed(private val clock: () -> Long) {
      */
     @Synchronized
     fun onWord(letters: Int, startUptimeMs: Long) {
+        if (privateField) return
         val now = clock()
         val start = when {
             startUptimeMs in 1..now -> startUptimeMs
@@ -77,6 +96,7 @@ class LiveTypingSpeed(private val clock: () -> Long) {
     /** What to show at [nowUptimeMs]: the eased reading, or 0 after a pause or before there is one. */
     @Synchronized
     fun reading(nowUptimeMs: Long): Int {
+        if (privateField) return 0
         val last = words.lastOrNull() ?: return 0
         if (nowUptimeMs - last.end > IDLE_BREAK_MS) return 0
         return shown.roundToInt()

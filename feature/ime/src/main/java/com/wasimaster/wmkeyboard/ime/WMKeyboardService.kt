@@ -3851,6 +3851,15 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             _uiState.map { it.incognitoOn }.distinctUntilChanged().collect { NetLog.incognito = it }
         }
+        // The spacebar's speed (#752, #796) starts again the moment the field
+        // turns private or stops being private, before any key is typed in
+        // it: the words behind it belong to the other side of the change.
+        serviceScope.launch {
+            _uiState.map { it.liveWpmPrivate }.distinctUntilChanged().collect { isPrivate ->
+                liveSpeed.privateField = isPrivate
+                stopLiveWpm()
+            }
+        }
         // The system's own bar under the keyboard, on or off as asked (#582).
         serviceScope.launch {
             _uiState.map { it.settings.layoutBehavior.hideSystemKeyboardBar }
@@ -6613,6 +6622,8 @@ open class WMKeyboardService : InputMethodService() {
             stopPlugins()
             // A new field gets its own re-show budget (see reshowPinned).
             pinReshowStreak = 0
+            // And its own typing speed (#796), from its own first words.
+            stopLiveWpm()
             // A summon belongs to the app it was made in. While it is still
             // settling the focus is moving between the shade and that app, so
             // the latest start is the app; once it holds the keyboard, a start
@@ -8130,6 +8141,8 @@ open class WMKeyboardService : InputMethodService() {
         }
         selectionTaps.reset()
         selectKeyTaps.reset()
+        // The typing speed was the closing field's (#796).
+        stopLiveWpm()
         // And a held trackpad: no release is coming for it either.
         trackpadHeld = false
         // A backspace swipe caught mid-drag by the window going away: the
@@ -18298,8 +18311,21 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         typingStats.enabled = state.settings.typingStatsEnabled &&
             !(state.incognitoOn && state.settings.incognitoPausesLearning)
+        liveSpeed.privateField = state.liveWpmPrivate
         typingStats.block()
         publishLiveWpm(state.settings.spacebarLiveWpm)
+    }
+
+    /**
+     * Takes the live speed (#752) off the spacebar and forgets the words
+     * behind it (#796): the field it was typed in is gone, or has just turned
+     * private or stopped being private.
+     */
+    private fun stopLiveWpm() {
+        liveWpmJob?.cancel()
+        liveWpmJob = null
+        liveSpeed.reset()
+        if (LiveWpmReadout.wpm.intValue != 0) LiveWpmReadout.wpm.intValue = 0
     }
 
     /**
