@@ -427,7 +427,7 @@ object WMFileTypes {
         data class ForeignLayout(val converted: ConvertedLayout) : Opened
 
         /** This app's kaomoji export, or an Emotic archive, already read. */
-        internal data class KaomojiFile(val preview: KaomojiImportPreview) : Opened
+        data class KaomojiFile(val preview: KaomojiImportPreview) : Opened
 
         /** An fcitx double-pinyin scheme: lines of `zh=v` under a `方案名称=` name. */
         data class DoublePinyinScheme(val text: String, val name: String?) : Opened

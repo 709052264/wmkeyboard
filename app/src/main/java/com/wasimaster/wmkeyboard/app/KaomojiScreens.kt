@@ -566,7 +566,7 @@ private fun rememberKaomojiModel(repository: SettingsRepository): KaomojiModel {
 }
 
 /** What an import file holds, for the dialog that asks how to bring it in. */
-internal data class KaomojiImportPreview(
+data class KaomojiImportPreview(
     val faces: List<KaomojiImport>,
     val tags: List<String>,
     /** Emotic's reaction images, already unpacked into the cache. */
