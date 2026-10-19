@@ -64,7 +64,9 @@ class SmartThingsBackend(
         return HaTokens(access, a.extra(HomeKeys.REFRESH_TOKEN), a.extra(HomeKeys.EXPIRES_AT)?.toLongOrNull() ?: Long.MAX_VALUE)
     }
 
-    override fun sameConnection(a: HomeAccount, b: HomeAccount): Boolean = a.apiKey == b.apiKey && a.extra(HomeKeys.ACCESS_TOKEN) == b.extra(HomeKeys.ACCESS_TOKEN)
+    /** A token this backend refreshed comes back through the settings as the one in use; that is not a new sign-in. */
+    override fun sameConnection(a: HomeAccount, b: HomeAccount): Boolean = a.apiKey == b.apiKey &&
+        (a.extra(HomeKeys.ACCESS_TOKEN) == b.extra(HomeKeys.ACCESS_TOKEN) || b.extra(HomeKeys.ACCESS_TOKEN) == tokens?.accessToken)
 
     private suspend fun headers(): Map<String, String> {
         val current = tokens ?: throw HomeHttpException(HomeHttpException.UNAUTHORIZED, "not signed in")

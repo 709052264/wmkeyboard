@@ -397,8 +397,13 @@ object GoogleHomeMapping {
                     return false
                 }
                 "toggle" -> {
-                    onOff ?: return false
-                    if (isOn) onOff.off() else onOff.on()
+                    if (onOff != null) {
+                        if (isOn) onOff.off() else onOff.on()
+                        return true
+                    }
+                    // A fan with no OnOff of its own: its mode is the switch.
+                    val f = live.trait<FanControl>() ?: return false
+                    f.update { setFanMode(if (isOn) FanControlTrait.FanModeEnum.Off else FanControlTrait.FanModeEnum.On) }
                     return true
                 }
                 "set_percentage" -> {

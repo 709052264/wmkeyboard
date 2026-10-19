@@ -139,7 +139,10 @@ class HaSocket(
     @Volatile private var live = false
     private val nextId = AtomicInteger(1)
     private val pending = ConcurrentHashMap<Int, CompletableDeferred<JsonElement>>()
-    private var subscriptionId = -1
+    @Volatile private var subscriptionId = -1
+
+    /** The next entity event is the subscription's first: a whole snapshot, not a change to the old map. */
+    @Volatile private var snapshotNext = false
     private var backoffIndex = 0
 
     val isLive: Boolean get() = live
@@ -182,7 +185,9 @@ class HaSocket(
                     return
                 }
                 Outcome.WAS_LIVE -> backoffIndex = 0
-                Outcome.FAILED -> Unit
+                // The address that last worked did not answer this time (the phone left
+                // home, say): forget it, so the owner may try its other address next.
+                Outcome.FAILED -> connectedUrl = null
             }
             _phase.value = HaPhase.UNREACHABLE
             delay(BACKOFF_MS[backoffIndex.coerceAtMost(BACKOFF_MS.lastIndex)])
@@ -313,7 +318,12 @@ class HaSocket(
 
     /** One `subscribe_entities` event: `a` adds, `c` changes, `r` removes. */
     internal fun applyCompressed(ev: JsonObject) {
-        val current = LinkedHashMap(_entities.value)
+        // A new subscription opens with every entity under `a`; whatever the old
+        // map holds beyond that was deleted while the socket was down.
+        val fresh = snapshotNext && ev.obj("a") != null
+        if (fresh) snapshotNext = false
+        val previous = _entities.value
+        val current = if (fresh) LinkedHashMap() else LinkedHashMap(previous)
         val changed = LinkedHashSet<String>()
         ev.obj("a")?.forEach { (id, v) ->
             current[id] = HaEntity.fromCompressed(id, v.jsonObject).copy(home = home)
@@ -331,6 +341,7 @@ class HaSocket(
                 changed += it
             }
         }
+        if (fresh) previous.keys.filterTo(changed) { it !in current }
         if (changed.isEmpty()) return
         _entities.value = current
         _changes.tryEmit(changed)
@@ -372,6 +383,7 @@ class HaSocket(
         val conn = connection?.takeIf { live } ?: return
         val id = nextId.getAndIncrement()
         subscriptionId = id
+        snapshotNext = true
         val waiter = CompletableDeferred<JsonElement>()
         pending[id] = waiter
         conn.send(HaJson.encodeToString(JsonObject.serializer(), buildJsonObject {

@@ -104,8 +104,13 @@ abstract class BaseBackend(
         return changed
     }
 
-    /** Whether the two credentials reach the same server with the same sign-in. The address and the key, unless a kind says more. */
-    protected open fun sameConnection(a: HomeAccount, b: HomeAccount): Boolean = a.url == b.url && a.apiKey == b.apiKey && a.extra == b.extra
+    /**
+     * Whether the two credentials reach the same server with the same sign-in.
+     * The address and the key, unless a kind says more; not the whole of
+     * `extra`, where the hub keeps what it learns (the home's name), and
+     * writing that back would restart the connection that learnt it.
+     */
+    protected open fun sameConnection(a: HomeAccount, b: HomeAccount): Boolean = a.url == b.url && a.apiKey == b.apiKey
 
     // ---- The loop ------------------------------------------------------------
 

@@ -5,6 +5,8 @@ import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.home.ConnectivityState
+import com.google.home.DeviceType
+import com.google.home.DeviceTypeFactory
 import com.google.home.FactoryRegistry
 import com.google.home.ForcePermissionFlow
 import com.google.home.Home
@@ -71,6 +73,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -273,9 +276,7 @@ class GoogleHomeBackend(
                     for (gone in deviceJobs.keys.toList()) {
                         if (gone !in seen) {
                             deviceJobs.remove(gone)?.cancel()
-                            val removed = live.entries.filter { it.value.deviceId == gone }.map { it.key }
-                            removed.forEach { live.remove(it) }
-                            if (removed.isNotEmpty()) publish(_entities.value - removed.toSet())
+                            publishDevice(gone, emptyList())
                         }
                     }
                     publishRegistry()
@@ -286,17 +287,58 @@ class GoogleHomeBackend(
         )
     }
 
-    /** One device's types, as they change: its traits are live objects the SDK keeps current. */
-    private suspend fun follow(device: HomeDevice) {
-        device.types().collect { types ->
+    /**
+     * One device as it changes. [HomeDevice.types] says which types the device
+     * has; each type's own flow ([HomeDevice.type]) is what emits a fresh
+     * snapshot of its traits when an attribute changes, so every type is
+     * followed and the device is mapped again from the latest of each.
+     */
+    private suspend fun follow(device: HomeDevice) = coroutineScope {
+        val latest = ConcurrentHashMap<DeviceTypeFactory<*>, DeviceType>()
+        val watchers = HashMap<DeviceTypeFactory<*>, Job>()
+        fun remap() {
+            val types = latest.values.toList()
             val traits: Set<Trait> = types.flatMap { it.traits() }.toSet()
             val online = device.sourceConnectivity.connectivityState.let { it == ConnectivityState.ONLINE || it == ConnectivityState.PARTIALLY_ONLINE }
-            val built = GoogleHomeMapping.entities(device, types.map { it.factory.toString() }.toSet(), traits, online)
-            built.forEach { (entity, l) -> live[entity.entityId] = l }
-            if (built.isNotEmpty()) publish(_entities.value + built.associate { it.first.entityId to it.first })
+            publishDevice(device.id.id, GoogleHomeMapping.entities(device, types.map { it.factory.toString() }.toSet(), traits, online))
             publishRegistry()
         }
+        device.types().collect { types ->
+            val now = types.associateBy { it.factory }
+            for (gone in watchers.keys - now.keys) {
+                watchers.remove(gone)?.cancel()
+                latest.remove(gone)
+            }
+            latest.putAll(now)
+            for (factory in now.keys) {
+                if (factory in watchers) continue
+                @Suppress("UNCHECKED_CAST")
+                val typed = factory as DeviceTypeFactory<DeviceType>
+                watchers[factory] = launch {
+                    device.type(typed).collect { snapshot ->
+                        latest[factory] = snapshot
+                        remap()
+                    }
+                }
+            }
+            remap()
+        }
     }
+
+    /**
+     * Replaces everything [deviceId] contributes with [built], in one step:
+     * every device's flow runs on the IO pool, and two read-modify-writes of
+     * the map side by side would each drop the other's device.
+     */
+    private fun publishDevice(deviceId: String, built: List<Pair<HaEntity, GoogleHomeMapping.Live>>) = synchronized(publishLock) {
+        val old = live.entries.filter { it.value.deviceId == deviceId }.map { it.key }.toSet()
+        val fresh = built.associate { it.first.entityId to it.first }
+        (old - fresh.keys).forEach { live.remove(it) }
+        built.forEach { (entity, l) -> live[entity.entityId] = l }
+        if (old.isNotEmpty() || fresh.isNotEmpty()) publish(_entities.value - old + fresh)
+    }
+
+    private val publishLock = Any()
 
     private fun publishRegistry() {
         _registry.value = GoogleHomeMapping.registry(rooms.values.toList(), live.values.toList(), deviceRooms)

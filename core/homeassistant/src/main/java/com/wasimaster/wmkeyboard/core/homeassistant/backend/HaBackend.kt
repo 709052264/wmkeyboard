@@ -18,6 +18,7 @@ import com.wasimaster.wmkeyboard.core.homeassistant.HaTransport
 import com.wasimaster.wmkeyboard.core.homeassistant.HaUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -131,6 +132,11 @@ class HaBackend(
     private var socketJobs: List<Job> = emptyList()
     private var afterAuthJob: Job? = null
 
+    /** States over REST while the socket cannot connect; see [pollRest]. */
+    private var restJob: Job? = null
+
+    @Volatile private var restAnswers = false
+
     /** REST against whichever address the socket last reached, or the first candidate. */
     val rest: HaRest = HaRest(http, { activeUrl() }, { tokens?.accessToken })
 
@@ -166,7 +172,17 @@ class HaBackend(
                 made.phase.collect { phase ->
                     // An address that does not answer gives way to the other one for the next try.
                     if (phase == HaPhase.UNREACHABLE && made.connectedUrl == null && HaConnection.candidates(account).size > 1) urlIndex++
-                    _phase.value = phase
+                    when (phase) {
+                        HaPhase.LIVE, HaPhase.TOKEN_REJECTED, HaPhase.OFFLINE -> {
+                            restJob?.cancel()
+                            restJob = null
+                            restAnswers = false
+                        }
+                        HaPhase.UNREACHABLE -> if (restJob?.isActive != true) restJob = scope.launch { pollRest() }
+                        else -> Unit
+                    }
+                    // While the socket retries, a server that answers over REST is amber, not red.
+                    _phase.value = if (restAnswers && phase in RETRYING) HaPhase.REST_FALLBACK else phase
                 }
             },
             scope.launch {
@@ -182,6 +198,9 @@ class HaBackend(
         socketJobs.forEach { it.cancel() }
         socketJobs = emptyList()
         afterAuthJob?.cancel()
+        restJob?.cancel()
+        restJob = null
+        restAnswers = false
         socket = null
         current.stop()
         _phase.value = HaPhase.OFFLINE
@@ -206,7 +225,11 @@ class HaBackend(
     override fun update(account: HomeAccount): Boolean {
         val previous = this.account
         this.account = account
-        val changed = !HaConnection.sameConnection(previous, account)
+        // Against the tokens in use, not the ones stored before: a refresh this
+        // backend made comes back through the settings, and must not restart it.
+        val changed = HaConnection.candidates(previous) != HaConnection.candidates(account) ||
+            previous.extra(HomeKeys.INSTANCE_ID) != account.extra(HomeKeys.INSTANCE_ID) ||
+            HaConnection.tokens(account) != tokens
         if (changed) {
             tokens = HaConnection.tokens(account)
             urlIndex = 0
@@ -216,6 +239,30 @@ class HaBackend(
             if (running) start()
         }
         return changed
+    }
+
+    /**
+     * The states over plain REST every [REST_POLL_MS] while the socket keeps
+     * failing: a proxy or a tunnel that passes HTTP but not WebSockets still
+     * gets a panel. Ends when the socket comes up.
+     */
+    private suspend fun pollRest() {
+        while (socket?.isLive != true) {
+            restAnswers = try {
+                val map = runInterruptible { rest.states() }.associate { it.entityId to it.copy(home = key) }
+                if (map.isNotEmpty()) {
+                    val before = _entities.value
+                    _entities.value = map
+                    val changed = map.filter { (id, e) -> before[id] != e }.keys + before.keys.filter { it !in map }
+                    if (changed.isNotEmpty()) _changes.tryEmit(changed.toSet())
+                }
+                true
+            } catch (_: IOException) {
+                false
+            }
+            if (restAnswers && socket?.isLive != true) _phase.value = HaPhase.REST_FALLBACK
+            delay(REST_POLL_MS)
+        }
     }
 
     // ---- Addresses and tokens -----------------------------------------------
@@ -279,6 +326,8 @@ class HaBackend(
             }
         }
         runInterruptible { rest.callService(call) }
+        // Over REST nothing streams the result back: read it, so the tile is not left claiming.
+        if (restJob?.isActive == true) scope.launch { runCatching { states() } }
     }
 
     override suspend fun states(): Map<String, HaEntity> {
@@ -315,5 +364,7 @@ class HaBackend(
     private companion object {
         const val CHANGE_BUFFER = 256
         const val BAD_REQUEST = 400
+        const val REST_POLL_MS = 10_000L
+        val RETRYING = setOf(HaPhase.CONNECTING, HaPhase.AUTHENTICATING, HaPhase.UNREACHABLE)
     }
 }
