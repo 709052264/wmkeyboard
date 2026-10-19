@@ -221,7 +221,7 @@
     <string name="tooldetail_dictionary_packs_title">Vocabulary packs</string>
     <string name="tooldetail_dictionary_offline_group">Offline dictionaries</string>
     <string name="tooldetail_dictionary_imported_group">Imported dictionaries</string>
-    <string name="tooldetail_dictionary_imported_info">Yomichan and Yomitan dictionaries, in any language: Japanese with readings and pitch accent (JMdict, Jitendex), Chinese, Korean, and the Wiktionary dictionaries for many other languages. Import the dictionary's zip file. Inflected Japanese words find their dictionary form. The source list above asks them as one source, Imported dictionaries; inside it they answer in this order.</string>
+    <string name="tooldetail_dictionary_imported_info">Yomichan and Yomitan dictionaries, in any language: Japanese with readings and pitch accent (JMdict, Jitendex), Chinese, Korean, and the Wiktionary dictionaries for many other languages. Import the dictionary\'s zip file. Inflected Japanese words find their dictionary form. The source list above asks them as one source, Imported dictionaries; inside it they answer in this order.</string>
     <plurals name="tooldetail_dictionary_imported_entries">
         <item quantity="one">%1$s entry</item>
         <item quantity="other">%1$s entries</item>
