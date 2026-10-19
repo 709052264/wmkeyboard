@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- The Look up card (#765): a word from another app, defined over that
+         app. The label is what the text selection menu shows. -->
+    <string name="lookup_label">Look up</string>
+    <string name="lookup_loading">Looking up <xliff:g id="word" example="house">%1$s</xliff:g></string>
+    <string name="lookup_no_word">There is no word there. Tap on a word.</string>
+    <string name="lookup_not_found">No entry for <xliff:g id="word" example="house">%1$s</xliff:g></string>
+    <string name="lookup_not_on_device"><xliff:g id="word" example="house">%1$s</xliff:g> is not in the dictionaries on this device, and the online ones cannot be reached</string>
+    <string name="lookup_failed">The app cannot reach the dictionary</string>
+    <string name="lookup_no_sources">Every dictionary source is off. Turn one on in the Dictionary tool\'s settings.</string>
+    <string name="lookup_screen_off">Turn on screen reading to look up words on the screen</string>
+    <string name="lookup_play_desc">Say <xliff:g id="word" example="house">%1$s</xliff:g></string>
+    <string name="lookup_frequency">Frequency <xliff:g id="value" example="1234">%1$s</xliff:g></string>
+    <string name="lookup_translations">Translations</string>
+    <string name="lookup_from">From <xliff:g id="source" example="Wiktionary">%1$s</xliff:g></string>
+    <string name="lookup_anki_add">Add to Anki</string>
+    <string name="lookup_anki_adding">Adding to Anki</string>
+    <string name="lookup_anki_added">Added to Anki</string>
+    <string name="lookup_anki_already">Already in Anki</string>
+    <string name="lookup_anki_failed">Could not add. Try again</string>
+    <string name="lookup_anki_missing">AnkiDroid is not installed</string>
+    <string name="lookup_my_words">Add to My words</string>
+    <string name="lookup_my_words_added">Added to My words</string>
+    <string name="lookup_my_words_already">Already in My words</string>
+    <!-- The Look up group on the Dictionary tool's settings page. -->
+    <string name="lookup_settings_group">Look up in other apps</string>
+    <string name="lookup_settings_info">Look up a word in any app, on a card over that app. Select the word and tap Look up in the menu, or tap Look up on the floating button and then tap the word. The card asks the dictionary sources above, in their order. From the card you can hear the word, copy it, add it to My words, ask the AI about it, or send it to AnkiDroid as a flashcard.</string>
+    <string name="lookup_settings_selection_title">Look up in the selection menu</string>
+    <string name="lookup_settings_selection_subtitle">Look up shows in other apps\' menu for selected text</string>
+    <string name="lookup_settings_tap_title">Tap a word on the screen</string>
+    <string name="lookup_settings_tap_subtitle">Give the floating button a Look up action. It needs screen reading.</string>
+    <string name="lookup_settings_style_title">Card for a tapped word</string>
+    <string name="lookup_settings_style_subtitle">A word from the selection menu always gets the sheet</string>
+    <string name="lookup_settings_style_sheet">Sheet at the bottom</string>
+    <string name="lookup_settings_style_popup">Beside the word</string>
+    <string name="lookup_settings_anki_title">Add to Anki</string>
+    <string name="lookup_settings_anki_subtitle">How a word goes to AnkiDroid</string>
+    <string name="lookup_settings_anki_auto">Automatic</string>
+    <string name="lookup_settings_anki_direct">Straight to the deck</string>
+    <string name="lookup_settings_anki_editor">AnkiDroid\'s editor</string>
+    <string name="lookup_settings_anki_auto_desc">Straight to the deck when AnkiDroid lets WM Keyboard add to it, else AnkiDroid\'s editor, filled in</string>
+    <string name="lookup_settings_anki_direct_desc">Straight to the deck. The first time, WM Keyboard asks for AnkiDroid\'s permission.</string>
+    <string name="lookup_settings_anki_editor_desc">AnkiDroid\'s note editor opens, filled in, and you save the note there. Needs no permission.</string>
+    <string name="lookup_settings_deck_title">AnkiDroid deck</string>
+    <string name="lookup_settings_deck_hint">Made on first use. A note type named WM Keyboard Look-up is made too.</string>
+</resources>

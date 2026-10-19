@@ -243,6 +243,17 @@ object PermissionDisclosures {
         titleRes = R.string.common_permission_storage_title,
         bodyRes = R.string.common_permission_storage_body,
     )
+
+    /**
+     * AnkiDroid's own permission (#765): the Look up card adds a word to a
+     * deck. AnkiDroid defines it; the grant covers its whole collection, which
+     * the copy says rather than claiming the card only ever adds.
+     */
+    val ANKIDROID = PermissionDisclosure(
+        permission = "com.ichi2.anki.permission.READ_WRITE_DATABASE",
+        titleRes = R.string.common_permission_ankidroid_title,
+        bodyRes = R.string.common_permission_ankidroid_body,
+    )
 }
 
 /**

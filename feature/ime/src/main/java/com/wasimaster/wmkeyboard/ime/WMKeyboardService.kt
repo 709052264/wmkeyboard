@@ -6347,6 +6347,7 @@ open class WMKeyboardService : InputMethodService() {
         when (action) {
             FloatingAction.Keyboard -> onSummonButtonTap()
             FloatingAction.AskAi -> askAiAboutScreen()
+            FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
             // The button answers these itself.
             FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None -> Unit
@@ -6402,6 +6403,51 @@ open class WMKeyboardService : InputMethodService() {
         }
         runCatching { startActivity(intent) }
             .onFailure { DebugLog.w("ime", "ask ai sheet failed to open: ${it.message}") }
+    }
+
+    /**
+     * The floating button's Look up (#765): waits for a tap on a word, reads
+     * the text under it through the screen reading service, and opens the
+     * Look up card with it. The overlay that takes the tap is gone before the
+     * read, so the read sees the app. With the service off, the card opens
+     * on its own to say how to turn it on.
+     */
+    private fun lookUpOnScreen() {
+        if (ScreenContextService.current == null) {
+            openLookupCard { it.putExtra(com.wasimaster.wmkeyboard.ime.lookup.LookupLaunch.EXTRA_SCREEN_MISSING, true) }
+            return
+        }
+        floatingButton.pickPoint { x, y ->
+            serviceScope.launch {
+                val tap = withContext(Dispatchers.IO) {
+                    runCatching { ScreenContextService.current?.textAt(x, y) }.getOrNull()
+                }
+                if (tap == null) {
+                    Toast.makeText(this@WMKeyboardService, R.string.ime_floating_pick_nothing, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                openLookupCard { intent ->
+                    val launch = com.wasimaster.wmkeyboard.ime.lookup.LookupLaunch
+                    intent.putExtra(launch.EXTRA_TEXT, tap.text)
+                        .putExtra(launch.EXTRA_OFFSET, tap.offset)
+                        .putExtra(launch.EXTRA_PACKAGE, tap.packageName)
+                        .putExtra(launch.EXTRA_BOUNDS, tap.bounds)
+                        .putExtra(launch.EXTRA_RECTS_FROM, tap.rectsFrom)
+                    tap.rects?.let { intent.putExtra(launch.EXTRA_RECTS, it) }
+                }
+            }
+        }
+    }
+
+    /** Starts the Look up card afresh, [extras] filling in what it is about. */
+    private fun openLookupCard(extras: (Intent) -> Unit) {
+        val intent = Intent()
+            .setClassName(packageName, com.wasimaster.wmkeyboard.ime.lookup.LookupLaunch.ACTIVITY)
+            // A fresh card every time: one still open would be about the last word.
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        extras(intent)
+        runCatching { startActivity(intent) }
+            .onFailure { DebugLog.w("ime", "look up card failed to open: ${it.message}") }
     }
 
     /**
@@ -34807,11 +34853,8 @@ open class WMKeyboardService : InputMethodService() {
      * user's picks, else the keyboard's languages other than English. Empty
      * with translations off.
      */
-    private fun dictionaryTranslationCodes(settings: KeyboardSettings): List<String> {
-        val choice = settings.dictionaryTranslations
-        if (!choice.enabled) return emptyList()
-        return VocabLanguages.wantedCodes(choice.langList, settings.enabledLanguages.map { it.id })
-    }
+    private fun dictionaryTranslationCodes(settings: KeyboardSettings): List<String> =
+        com.wasimaster.wmkeyboard.ime.lookup.WordLookup.translationCodes(settings)
 
     /**
      * Whether an entry from [answered] should send its word on to Wiktionary
@@ -34824,11 +34867,7 @@ open class WMKeyboardService : InputMethodService() {
         answered: DictionarySource,
         codes: List<String>,
         settings: KeyboardSettings,
-    ): Boolean {
-        if (codes.isEmpty() || answered == DictionarySource.WIKTIONARY) return false
-        return settings.resolveProviders(ProviderTool.DICTIONARY)
-            .any { DictionarySource.of(it.typeId) == DictionarySource.WIKTIONARY }
-    }
+    ): Boolean = com.wasimaster.wmkeyboard.ime.lookup.WordLookup.asksWiktionaryForTranslations(answered, codes, settings)
 
     /**
      * The looked-up word's meaning in the user's language (#651), when an

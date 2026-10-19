@@ -1301,6 +1301,8 @@ internal fun ToolDetailSettings(
             OfflineDictionariesGroup(settings)
             // Yomichan / Yomitan dictionaries, in any language (#765).
             ImportedDictionariesGroup()
+            // The same look-up as a card over other apps (#765).
+            LookupSettingsGroup(repository, settings, onNavigate)
         }
         ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
             item {

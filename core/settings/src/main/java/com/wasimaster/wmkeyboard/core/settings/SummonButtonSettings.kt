@@ -72,6 +72,12 @@ data class SummonButtonSettings(
 fun SummonButtonSettings.usesAskAi(): Boolean =
     FloatingAction.AskAi in listOf(tap, doubleTap, hold) || FloatingAction.AskAi in opensMenuItems()
 
+/** Whether any of the button's gestures, or its quick menu, reads the screen: Ask AI, or Look up (#765). */
+fun SummonButtonSettings.readsScreen(): Boolean {
+    val bound = listOf(tap, doubleTap, hold) + opensMenuItems()
+    return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
+}
+
 /** The quick menu's slots when some gesture opens it, else nothing. */
 fun SummonButtonSettings.opensMenuItems(): List<FloatingAction> =
     if (FloatingAction.Menu in listOf(tap, doubleTap, hold)) menu else emptyList()

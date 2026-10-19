@@ -8,8 +8,8 @@
     <string name="floating_button_enable_title">Show the floating button</string>
     <string name="floating_button_enable_subtitle">A small round button floats over every app</string>
     <string name="floating_button_enable_info">A small round button floats over every app, with the keyboard open or closed. Tap it, double tap it or press and hold it, and it does what you set below: open the keyboard, even on a screen with no text field, start voice typing, ask the AI about the screen, or open any tool. Press and hold opens a quick menu of more actions round the button; slide onto one and let go to run it. Drag the button to move it, and it settles against the nearer side. Drag it onto the cross at the bottom of the screen to hide it until the keyboard next opens or closes. Needs Android\'s Display over other apps permission.</string>
-    <string name="floating_button_screen_title">Let the AI read the screen</string>
-    <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it once the AI screen reading service is on</string>
+    <string name="floating_button_screen_title">Let the button read the screen</string>
+    <string name="floating_button_screen_subtitle">Ask AI can bring the text on screen with it, and Look up can find the word you tap, once the screen reading service is on</string>
 
     <string name="floating_button_preview_caption">Tap: %1$s · Hold: %2$s</string>
     <string name="floating_button_preview_off">Off. Turn the button on to see it over your apps.</string>
@@ -67,6 +67,7 @@
     <string name="floating_button_pick_group_button">The button</string>
     <string name="floating_button_pick_keyboard_subtitle">Opens the keyboard, even with no text field; closes it while it is open</string>
     <string name="floating_button_pick_ai_subtitle">Opens an AI chat about what is on screen</string>
+    <string name="floating_button_pick_lookup_subtitle">Tap a word on the screen to see its meaning, reading and pronunciation</string>
     <string name="floating_button_pick_menu_subtitle">Fans more actions out round the button</string>
     <string name="floating_button_pick_hide_subtitle">Puts the button away until the keyboard next opens or closes</string>
     <string name="floating_button_pick_none_subtitle">This gesture does nothing</string>

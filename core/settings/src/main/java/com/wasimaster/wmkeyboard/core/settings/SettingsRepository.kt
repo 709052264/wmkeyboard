@@ -3589,6 +3589,8 @@ data class KeyboardSettings(
     val dictionarySources: List<DictionarySourceChoice> = DictionarySources.DEFAULT,
     /** The Dictionary tool's translations into other languages (#764, see [DictionaryTranslationSettings]). */
     val dictionaryTranslations: DictionaryTranslationSettings = DictionaryTranslationSettings(),
+    /** The Look up card over other apps (#765, see [LookupSettings]). */
+    val lookup: LookupSettings = LookupSettings(),
     /** Text-editing tool and selection-editing settings (see [TextEditingSettings]). */
     val textEditing: TextEditingSettings = TextEditingSettings(),
     /** The trackpad tool: sensitivity and the gestures it answers to (see [TrackpadSettings]). */
@@ -11169,6 +11171,7 @@ class SettingsRepository(private val context: Context) {
             vocabulary = readVocabulary(p, defaults),
             notes = readNotes(p, defaults),
             send = SendPrefs.read(p, defaults.send),
+            lookup = LookupPrefs.read(p, defaults.lookup),
             gallery = GalleryPrefs.read(p, defaults.gallery),
             powerSaving = readPowerSaving(p, defaults),
             dataSaver = dataSaverFromPrefs(p, defaults),
@@ -14139,6 +14142,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateSend(change: (SendSettings) -> SendSettings) = editPrefs { p ->
         val old = SendPrefs.read(p, storedDefaults.send)
         SendPrefs.write(p, old, change(old))
+    }
+
+    /** One change to the Look up card's settings (#765); see [updateGallery]. */
+    suspend fun updateLookup(change: (LookupSettings) -> LookupSettings) = editPrefs { p ->
+        val old = LookupPrefs.read(p, storedDefaults.lookup)
+        LookupPrefs.write(p, old, change(old))
     }
 
     /**

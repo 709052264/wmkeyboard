@@ -212,6 +212,7 @@ internal class FloatingButton(
 
     /** Takes the button, and its menu and target, off screen. Safe to call when it is not there. */
     fun hide() {
+        cancelPick()
         removeMenuWindow()
         removeTargetWindow()
         val current = button ?: return
@@ -563,6 +564,98 @@ internal class FloatingButton(
         runCatching { windowManager.removeViewImmediate(view) }
     }
 
+    // ---- picking a point: Look up's "tap a word" ----
+
+    private var pickView: PickHost? = null
+    private val pickTimeout = Runnable { cancelPick() }
+
+    /**
+     * Covers the screen with a see-through window for one tap (#765): the
+     * floating button's Look up, waiting for the word. The tap's point on
+     * screen goes to [onTap] once the window is gone, so whatever reads the
+     * screen next reads the app and not this. A tap is all it takes; the
+     * timeout, or the button's next press, gives up.
+     *
+     * It takes the tap itself rather than letting it through, so it is never
+     * the pass-through overlay Android 12 drops touches under, and it lasts
+     * only until that tap.
+     */
+    fun pickPoint(onTap: (x: Int, y: Int) -> Unit) {
+        cancelPick()
+        if (!Settings.canDrawOverlays(context)) return
+        val view = PickHost(windowContext, onTap)
+        lifecycle.attachTo(view)
+        lifecycle.onResume()
+        val layout = overlayParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            touchable = true,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            title = "WM Keyboard look up"
+        }
+        if (runCatching { windowManager.addView(view, layout) }.isFailure) {
+            if (button == null) lifecycle.onStop()
+            return
+        }
+        pickView = view
+        view.postDelayed(pickTimeout, PICK_TIMEOUT_MS)
+    }
+
+    private fun cancelPick() {
+        val view = pickView ?: return
+        pickView = null
+        view.removeCallbacks(pickTimeout)
+        runCatching { windowManager.removeViewImmediate(view) }
+        if (button == null) lifecycle.onStop()
+    }
+
+    /** The pick window: a light wash and a hint at the top, and the tap it waits for. */
+    @SuppressLint("ViewConstructor")
+    private inner class PickHost(context: Context, private val onTap: (Int, Int) -> Unit) : FrameLayout(context) {
+        private val slop = ViewConfiguration.get(context).scaledTouchSlop
+        private var downX = 0f
+        private var downY = 0f
+
+        init {
+            isClickable = true
+            isFocusable = false
+            contentDescription = context.getString(R.string.ime_floating_pick_hint)
+            addView(
+                ComposeView(context).apply {
+                    setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
+                    setContent { FloatingPickHint(context.getString(R.string.ime_floating_pick_hint)) }
+                },
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+            )
+        }
+
+        override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = true
+
+        @SuppressLint("ClickableViewAccessibility")
+        override fun onTouchEvent(event: MotionEvent): Boolean {
+            when (event.actionMasked) {
+                MotionEvent.ACTION_DOWN -> {
+                    downX = event.rawX
+                    downY = event.rawY
+                }
+                MotionEvent.ACTION_UP -> {
+                    // A drag is not a pick; it gives up, as a stray swipe would want.
+                    val moved = abs(event.rawX - downX) > slop * 3 || abs(event.rawY - downY) > slop * 3
+                    val x = downX.roundToInt()
+                    val y = downY.roundToInt()
+                    cancelPick()
+                    if (!moved) {
+                        haptic(HapticFeedbackConstants.VIRTUAL_KEY)
+                        onTap(x, y)
+                    }
+                }
+                MotionEvent.ACTION_CANCEL -> cancelPick()
+            }
+            return true
+        }
+    }
+
     // ---- the button's own view ----
 
     private val slotActions = intArrayOf(
@@ -891,5 +984,8 @@ internal class FloatingButton(
         const val SNAP_MS = 260L
         const val FADE_IN_MS = 120L
         const val FADE_OUT_MS = 420L
+
+        /** How long Look up waits for the tap on a word. */
+        const val PICK_TIMEOUT_MS = 10_000L
     }
 }

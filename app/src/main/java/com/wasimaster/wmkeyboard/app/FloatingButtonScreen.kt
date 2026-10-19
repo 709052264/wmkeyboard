@@ -50,7 +50,7 @@ import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.fitsMenu
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
-import com.wasimaster.wmkeyboard.core.settings.usesAskAi
+import com.wasimaster.wmkeyboard.core.settings.readsScreen
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_ITEM_DP
 import com.wasimaster.wmkeyboard.ime.floating.FLOATING_MENU_LABEL_DP
@@ -120,7 +120,7 @@ internal fun FloatingButtonSettingsScreen(
             ) { askOverlay() }
         }
         item(
-            visible = button.enabled && overlayGranted && button.usesAskAi() &&
+            visible = button.enabled && overlayGranted && button.readsScreen() &&
                 !screenReading && ChannelFeatures.SCREEN_CONTEXT,
         ) {
             NavRow(
@@ -482,10 +482,13 @@ private fun FloatingActionPicker(
     val own = listOf(
         FloatingAction.Keyboard to R.string.floating_button_pick_keyboard_subtitle,
         FloatingAction.AskAi to R.string.floating_button_pick_ai_subtitle,
+        FloatingAction.LookUp to R.string.floating_button_pick_lookup_subtitle,
         FloatingAction.Menu to R.string.floating_button_pick_menu_subtitle,
         FloatingAction.Hide to R.string.floating_button_pick_hide_subtitle,
         FloatingAction.None to R.string.floating_button_pick_none_subtitle,
     ).filter { (action, _) -> offered(action) }
+        // Look up reads the screen, which the Play build cannot (#765).
+        .filter { (action, _) -> action != FloatingAction.LookUp || ChannelFeatures.SCREEN_CONTEXT }
     val ownRows = own.map { (action, subtitle) ->
         PickerRow(
             key = action.token,

@@ -111,6 +111,7 @@ fun floatingActionIcon(action: FloatingAction, keyboardUp: Boolean = false): Ima
     FloatingAction.None -> Icons.Outlined.Block
     FloatingAction.Keyboard -> if (keyboardUp) Icons.Outlined.KeyboardHide else Icons.Outlined.Keyboard
     FloatingAction.AskAi -> Icons.Outlined.AutoAwesome
+    FloatingAction.LookUp -> com.wasimaster.wmkeyboard.core.icons.SymbolIcons.Dictionary
     FloatingAction.Menu -> Icons.Outlined.Apps
     FloatingAction.Hide -> Icons.Outlined.VisibilityOff
     is FloatingAction.Tool -> IconDefaults.forTool(action.tool)
@@ -125,6 +126,7 @@ internal fun floatingActionLabelRes(action: FloatingAction, keyboardUp: Boolean)
     FloatingAction.None -> R.string.ime_floating_none_label
     FloatingAction.Keyboard -> if (keyboardUp) R.string.ime_summon_button_hide_label else R.string.ime_summon_button_label
     FloatingAction.AskAi -> R.string.ime_ai_button_label
+    FloatingAction.LookUp -> R.string.ime_floating_lookup_label
     FloatingAction.Menu -> R.string.ime_floating_menu_label
     FloatingAction.Hide -> R.string.ime_floating_hide_label
     is FloatingAction.Tool -> toolLabelRes(action.tool)
@@ -376,6 +378,33 @@ internal fun FloatingDismissTarget(state: FloatingDismissState) {
                 modifier = Modifier.size(28.dp),
             )
         }
+    }
+}
+
+/**
+ * Look up waiting for its tap (#765): a light wash over the screen, so it is
+ * plain that the next tap is not the app's, and a hint at the top saying what
+ * it is for.
+ */
+@Composable
+internal fun FloatingPickHint(label: String) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.08f)),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Text(
+            label,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier
+                .padding(top = 56.dp)
+                .shadow(6.dp, RoundedCornerShape(50))
+                .background(Color(0xFF202124).copy(alpha = 0.92f), RoundedCornerShape(50))
+                .padding(horizontal = 18.dp, vertical = 10.dp),
+        )
     }
 }
 

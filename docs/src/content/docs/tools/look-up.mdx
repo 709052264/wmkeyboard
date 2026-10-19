@@ -1,0 +1,84 @@
+---
+title: "Look up"
+description: "Look up a word in any app on a card over that app, from the text selection menu or by tapping it, with readings, pitch accent and Anki cards."
+sidebar:
+  order: 17.5
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Look up defines a word in any app without leaving it, the way Yomichan and Yomitan do in a browser. A card opens over the app with the word's meaning, its reading and pronunciation, and its translations. From the card you can hear the word, keep it in your vocabulary list, or make an Anki flashcard of it.
+
+The card answers from the [Dictionary tool's sources](/tools/search/#dictionary-sources), in the order you set there. Add [imported dictionaries](/tools/search/#imported-dictionaries) for Japanese, Chinese or any other language you are learning, and the card shows their readings, pitch accent and frequency too.
+
+## Opening the card
+
+There are two ways to reach a word.
+
+**From the selection menu.** Select the word in any app and pick **Look up** from the menu that appears over the selection. On some phones it is behind the menu's three dots. Select more than one word and the card shows a chip for each, with the first one looked up; tap another chip to look that one up. This works in every build, Play Store included, and needs no permission.
+
+**By tapping it.** Give the [floating button](/reference/settings/floating-button/) the **Look up a word** action, on a gesture or in its quick menu. Use it, and a hint at the top of the screen says "Tap a word to look it up". Tap the word and the card opens for it. A swipe instead of a tap, or 10 seconds with no tap, cancels it. This needs the floating button's screen reading service, so it is not in the Play Store build. See [How a tap finds the word](#how-a-tap-finds-the-word).
+
+## The card
+
+- The word, with its reading over it in small kana when it is written in kanji, and its IPA when the source has it.
+- A speaker button. It plays the source's recording when there is one, and otherwise the phone's text-to-speech voice says the word, in the dictionary's language.
+- The pitch accent and frequency line from an imported dictionary, as in "たべꜜる [2] · Frequency 512". The ꜜ marks where the pitch falls; [0] is a flat word.
+- The meanings, grouped by part of speech, with examples where the source has them.
+- [Translations](/tools/search/#translations) into your languages, as the Dictionary tool shows them.
+- A line naming the source or the imported dictionary that answered.
+
+Under it, a row of actions:
+
+- **Add to Anki** makes a flashcard of the word. See [Anki](#anki).
+- **Add to My words** adds the word to the [vocabulary tool's](/tools/vocabulary/) My words list. Shown while the Vocabulary tool is on.
+- **Copy** copies everything on the card as text.
+- **Ask AI** opens an [AI chat](/tools/ai-chat/) about the entry. Shown while the AI tool is on.
+
+Tap outside the card, or press Back, to close it.
+
+### Sheet or popup
+
+<SettingsPath path="Tools / Dictionary / Look up in other apps / Card for a tapped word" />
+
+By default the card is a short sheet at the bottom of the screen, with the app showing above it. For a tapped word you can have it **Beside the word** instead: a small card just below the word, or above it near the bottom of the screen, with the word itself marked in your accent colour. A word from the selection menu always gets the sheet, because the menu does not say where on the screen the word is. In an app that does not report where its letters are (see below), the card sits by the piece of text you tapped, with nothing marked.
+
+## How a tap finds the word
+
+The screen reading service finds the smallest piece of text under your finger and asks the app where each of its letters is. Ordinary apps answer, so the card knows the exact letter you tapped and can mark the word.
+
+- **Words with spaces.** The word is the one the tapped letter belongs to, as Android splits words for that language.
+- **Japanese, Chinese, Thai and other text without spaces.** Look up does what Yomichan does: it tries the longest stretch from the tapped letter that an imported dictionary knows, inflected or not, down to one character. Tap the start of 食べました and the card opens on 食べる. Without an imported dictionary, Android's own word splitting decides.
+- **Apps that do not report their letters.** Some apps built with Jetpack Compose, and many web pages, give the text but not where each letter is. Then the card opens with a chip for each word in the text you tapped, so you pick the word yourself.
+
+Only the text under your finger is read, once, when you tap. Nothing is read at any other time, password fields are skipped, and nothing is kept. See [Permissions](/privacy/permissions/).
+
+## Anki
+
+<SettingsPath path="Tools / Dictionary / Look up in other apps / Add to Anki" />
+
+**Add to Anki** sends the word to [AnkiDroid](https://github.com/ankidroid/Anki-Android). Without AnkiDroid installed, the button says so. There are three ways it can go:
+
+- **Automatic** (the default): straight to the deck when AnkiDroid has let WM Keyboard add to it, and otherwise AnkiDroid's note editor, filled in, for you to save.
+- **Straight to the deck**: the first time, WM Keyboard explains and asks for AnkiDroid's permission. After that, a tap adds the note and the button says **Added to Anki**, or **Already in Anki** when the deck has a note for that word.
+- **AnkiDroid's editor**: always the editor, filled in. This needs no permission.
+
+Notes added straight to the deck go to the deck named under **AnkiDroid deck**, "WM Keyboard" by default, which AnkiDroid makes the first time. They use a note type named **WM Keyboard Look-up**, also made on first use, with six fields: Word, Reading, Pitch, Meaning, Sentence and Source. The sentence is the one the word was in, when it came from a tap or a longer selection. The front of the card shows the word and its sentence, and the back adds the reading, pitch, meaning and source. You can change the note type's look in AnkiDroid like any other. Each note is tagged `wm_keyboard`.
+
+Through the editor, the word goes in the note's first field and the rest, one item a line, in the second, in whichever note type AnkiDroid's editor opens with.
+
+## Options
+
+<SettingsPath path="Tools / Dictionary / Look up in other apps" />
+
+- **Look up in the selection menu**: on by default. Off, Look up leaves every app's selection menu.
+- **Tap a word on the screen**: opens the floating button's settings, to give it the Look up action. Not in the Play Store build.
+- **Card for a tapped word**: **Sheet at the bottom** (default) or **Beside the word**. Not in the Play Store build.
+- **Add to Anki**: **Automatic** (default), **Straight to the deck** or **AnkiDroid's editor**.
+- **AnkiDroid deck**: the deck notes go to, "WM Keyboard" by default.
+
+## Details & edge cases
+
+- **What leaves the phone.** The same as for the Dictionary tool: the word goes to an online source only when the sources before it did not know it, in the order you set. Imported and offline dictionaries answer on the phone. The surrounding text never leaves it.
+- **Long selections.** The card reads at most 2,000 characters of a selection and offers chips for its first 40 words.
+- **Japanese inflections.** The dictionary form is found for polite, negative, past, て and conditional forms, the potential, passive and causative, たい, ている and its kin, and い-adjectives, including chains of them such as 食べられなかった. Irregular readings outside those rules may not be found.

@@ -208,10 +208,20 @@
     <uses-feature android:name="android.hardware.screen.portrait" android:required="false" />
     <uses-feature android:name="android.hardware.screen.landscape" android:required="false" />
 
+    <!-- AnkiDroid's own permission (#765): the Look up card adds a word to a
+         deck through AnkiDroid's content provider. A runtime permission that
+         AnkiDroid defines; asked for only when the user sends a word, behind
+         PermissionDisclosures.ANKIDROID. -->
+    <uses-permission android:name="com.ichi2.anki.permission.READ_WRITE_DATABASE" />
+
     <!-- The keyboard-mode editor lists installed apps (launcher activities)
          so a mode can be bound to specific apps; Android 11+ hides the app
          list without this. -->
     <queries>
+        <!-- AnkiDroid, its provider and its note editor, for the Look up card's
+             Add to Anki (#765). -->
+        <package android:name="com.ichi2.anki" />
+        <provider android:authorities="com.ichi2.anki.flashcards" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
@@ -1024,6 +1034,31 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <!--
+             The Look up card (#765): a word from another app, defined over it.
+             Opened by the floating button's Look up with the text around a
+             tapped word, and by "Look up" in the text selection menu (the alias
+             below, which the Look up settings can switch off).
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.LookupActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/lookup_label"
+            android:taskAffinity="com.wasimaster.wmkeyboard.lookup"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.LookupSelectionMenu"
+            android:exported="true"
+            android:label="@string/lookup_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.LookupActivity">
+            <intent-filter android:label="@string/lookup_label">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
 
         <!-- Same trampoline pattern for the screenshot setting's
              android.permission.READ_MEDIA_IMAGES (or READ_EXTERNAL_STORAGE). -->

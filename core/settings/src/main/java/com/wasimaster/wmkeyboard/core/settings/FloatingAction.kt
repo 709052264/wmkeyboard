@@ -26,6 +26,14 @@ sealed interface FloatingAction {
         override val token = "ask_ai"
     }
 
+    /**
+     * Waits for a tap on a word anywhere on screen, then opens the Look up
+     * card for it (#765). Reads the screen, so it needs screen reading.
+     */
+    data object LookUp : FloatingAction {
+        override val token = "look_up"
+    }
+
     /** Fans the quick menu out around the button. Never a menu slot itself. */
     data object Menu : FloatingAction {
         override val token = "menu"
@@ -49,6 +57,7 @@ sealed interface FloatingAction {
             None.token -> None
             Keyboard.token -> Keyboard
             AskAi.token -> AskAi
+            LookUp.token -> LookUp
             Menu.token -> Menu
             Hide.token -> Hide
             else -> token.removePrefix(TOOL_PREFIX)
