@@ -36,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.StoredTextField
+import com.wasimaster.wmkeyboard.app.findActivity
 import com.wasimaster.wmkeyboard.core.homeassistant.HaFound
 import com.wasimaster.wmkeyboard.core.homeassistant.HaHttpException
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HaConnection
@@ -505,7 +506,7 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onDraft: (ProviderCreden
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp),
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 24.dp)) {
-        val activity = context as? ComponentActivity
+        val activity = context.findActivity() as? ComponentActivity
         Button(
             enabled = GoogleHomeSupport.AVAILABLE && activity != null,
             onClick = { activity?.let { GoogleHomeSupport.requestAccess(it, force = granted) } },

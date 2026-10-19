@@ -74,7 +74,7 @@ data class TuyaDevice(
     fun scaled(code: String, defaultScale: Int = 0): Double? {
         val v = raw(code) ?: return null
         val scale = specs[code]?.scale ?: defaultScale
-        return if (scale == 0) v else v / TEN.pow(scale)
+        return if (scale == 0) v else v / 10.0.pow(scale)
     }
 
     /** A JSON value that Tuya may send as an object or as a string holding one (`colour_data`). */
