@@ -96,6 +96,11 @@ class AssetLayoutHygieneTest {
         "asset_zh_cangjie_quick",
         "asset_zh_pinyin",
         "asset_zh_pinyin_t9",
+        // Hebrew with no Shift key: each letter's shifted form, long-press and
+        // (bottom row) up-flick is the English letter on its SI-1452 position,
+        // for typing English words without switching layouts.
+        "asset_he_gboard_plus",
+        "asset_he_gboard_plus_swipe_safe",
     )
 
     @Test

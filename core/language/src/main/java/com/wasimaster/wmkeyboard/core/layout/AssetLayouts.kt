@@ -863,6 +863,8 @@ object AssetLayouts {
     const val EE_LETTERS_ID = "asset_ee_letters"
     const val EN_CLEARFLOW_ID = "asset_en_clearflow"
     const val EN_COLEMAK_DH_ANSI_ID = "asset_en_colemak_dh_ansi"
+    const val EN_GBOARD_PLUS_ID = "asset_en_gboard_plus"
+    const val EN_GBOARD_PLUS_SWIPE_SAFE_ID = "asset_en_gboard_plus_swipe_safe"
     const val EN_KASROZ_ID = "asset_en_kasroz"
     const val EN_SHAVIAN_ID = "asset_en_shavian"
     const val EN_SHAVIAN_TWO_LAYER_ID = "asset_en_shavian_two_layer"
@@ -873,6 +875,8 @@ object AssetLayouts {
     const val GAG_LETTER_ROW_ID = "asset_gag_letter_row"
     const val GU_ALPHABETIC_ID = "asset_gu_alphabetic"
     const val HA_LETTERS_ID = "asset_ha_letters"
+    const val HE_GBOARD_PLUS_ID = "asset_he_gboard_plus"
+    const val HE_GBOARD_PLUS_SWIPE_SAFE_ID = "asset_he_gboard_plus_swipe_safe"
     const val HE_SI1452_ID = "asset_he_si1452"
     const val HI_COMPACT_ID = "asset_hi_compact"
     /** Devanagari on the keys, four pages of them, as Gboard lays it out (#498). */

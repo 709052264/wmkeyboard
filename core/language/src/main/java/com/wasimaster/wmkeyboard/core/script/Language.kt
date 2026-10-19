@@ -108,6 +108,8 @@ object LanguageRegistry {
                 AssetLayouts.EN_CLEARFLOW_ID,
                 AssetLayouts.EN_KASROZ_ID,
                 AssetLayouts.EN_COLEMAK_DH_ANSI_ID,
+                AssetLayouts.EN_GBOARD_PLUS_ID,
+                AssetLayouts.EN_GBOARD_PLUS_SWIPE_SAFE_ID,
             ),
             bundledDictionary = true,
         ),
@@ -244,6 +246,8 @@ object LanguageRegistry {
             layoutIds = listOf(
                 BuiltInLayouts.HEBREW_ID,
                 AssetLayouts.HE_SI1452_ID,
+                AssetLayouts.HE_GBOARD_PLUS_ID,
+                AssetLayouts.HE_GBOARD_PLUS_SWIPE_SAFE_ID,
                 AssetLayouts.HE_T9_ID,
             ),
         ),

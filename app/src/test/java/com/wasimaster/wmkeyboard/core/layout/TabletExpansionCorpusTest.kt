@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 35 + 835, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 35 + 839, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -124,6 +124,9 @@ class TabletExpansionCorpusTest {
                 "tlh_piqad",
                 // Handwriting pads are a drawing surface, not a key grid.
                 "ja_handwriting", "ko_handwriting", "zh_handwriting",
+                // Gboard+ English puts flick arms on its bottom row; Gboard+
+                // Hebrew has no shift key (its shifted page is English).
+                "en_gboard_plus", "he_gboard_plus", "he_gboard_plus_swipe_safe",
             ) + keypads,
             declined,
         )

@@ -1,0 +1,523 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_he_gboard_plus_swipe_safe",
+    "name": "עברית Gboard+ (Hebrew Gboard+, swipe-safe)",
+    "langId": "he",
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "'",
+              "longPress": [
+                "1",
+                "q",
+                "\"",
+                "׳",
+                "״"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "QR_SCAN"
+                  }
+                }
+              ],
+              "shiftLabel": "q"
+            },
+            {
+              "label": "-",
+              "longPress": [
+                "2",
+                "w",
+                "_",
+                "־"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "WIKIPEDIA"
+                  }
+                }
+              ],
+              "shiftLabel": "w"
+            },
+            {
+              "label": "ק",
+              "longPress": [
+                "3",
+                "e"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "EMOJI"
+                  }
+                }
+              ],
+              "shiftLabel": "e"
+            },
+            {
+              "label": "ר",
+              "longPress": [
+                "4",
+                "r"
+              ],
+              "shiftLabel": "r"
+            },
+            {
+              "label": "א",
+              "longPress": [
+                "5",
+                "t"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "TRANSLATE"
+                  }
+                }
+              ],
+              "shiftLabel": "t"
+            },
+            {
+              "label": "ט",
+              "longPress": [
+                "6",
+                "y"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "REDO"
+                  }
+                }
+              ],
+              "shiftLabel": "y"
+            },
+            {
+              "label": "ו",
+              "longPress": [
+                "7",
+                "u"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNIT_CONVERT"
+                  }
+                }
+              ],
+              "shiftLabel": "u"
+            },
+            {
+              "label": "ן",
+              "longPress": [
+                "8",
+                "i"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SETTINGS"
+                  }
+                }
+              ],
+              "shiftLabel": "i"
+            },
+            {
+              "label": "ם",
+              "longPress": [
+                "9",
+                "o"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "OCR"
+                  }
+                }
+              ],
+              "shiftLabel": "o"
+            },
+            {
+              "label": "פ",
+              "longPress": [
+                "0",
+                "p"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "INCOGNITO"
+                  }
+                }
+              ],
+              "shiftLabel": "p"
+            }
+          ],
+          [
+            {
+              "label": "ש",
+              "longPress": [
+                "@",
+                "a"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_ALL"
+                  }
+                }
+              ],
+              "shiftLabel": "a"
+            },
+            {
+              "label": "ד",
+              "longPress": [
+                "#",
+                "s"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "SNIPPETS"
+                  }
+                }
+              ],
+              "shiftLabel": "s"
+            },
+            {
+              "label": "ג",
+              "longPress": [
+                "₪",
+                "d",
+                "ג׳",
+                "$",
+                "€"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "HIDE_KEYBOARD"
+                  }
+                },
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "DICTIONARY"
+                  }
+                }
+              ],
+              "shiftLabel": "d"
+            },
+            {
+              "label": "כ",
+              "longPress": [
+                "_",
+                "f"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "FIND_REPLACE"
+                  }
+                }
+              ],
+              "shiftLabel": "f"
+            },
+            {
+              "label": "ע",
+              "longPress": [
+                "&",
+                "g"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "GRAMMAR"
+                  }
+                }
+              ],
+              "shiftLabel": "g"
+            },
+            {
+              "label": "י",
+              "longPress": [
+                "-",
+                "h",
+                "ײַ"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "VOICE"
+                  }
+                }
+              ],
+              "shiftLabel": "h"
+            },
+            {
+              "label": "ח",
+              "longPress": [
+                "+",
+                "j",
+                "ח׳"
+              ],
+              "shiftLabel": "j"
+            },
+            {
+              "label": "ל",
+              "longPress": [
+                "(",
+                "k"
+              ],
+              "shiftLabel": "k"
+            },
+            {
+              "label": "ך",
+              "longPress": [
+                ")",
+                "l"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "edit",
+                    "op": "SELECT_LINE"
+                  }
+                }
+              ],
+              "shiftLabel": "l"
+            },
+            {
+              "label": "ף",
+              "longPress": [
+                "/"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ז",
+              "longPress": [
+                "*",
+                "z",
+                "ז׳"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "UNDO"
+                  }
+                }
+              ],
+              "shiftLabel": "z"
+            },
+            {
+              "label": "ס",
+              "longPress": [
+                "\"",
+                "x",
+                "״"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "edit",
+                    "op": "CUT"
+                  }
+                }
+              ],
+              "shiftLabel": "x"
+            },
+            {
+              "label": "ב",
+              "longPress": [
+                "'",
+                "c",
+                "׳"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CALCULATOR"
+                  }
+                },
+                {
+                  "action": {
+                    "type": "edit",
+                    "op": "COPY"
+                  }
+                }
+              ],
+              "shiftLabel": "c"
+            },
+            {
+              "label": "ה",
+              "longPress": [
+                ":",
+                "v"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "CLIPBOARD"
+                  }
+                },
+                {
+                  "action": {
+                    "type": "edit",
+                    "op": "PASTE"
+                  }
+                }
+              ],
+              "shiftLabel": "v"
+            },
+            {
+              "label": "נ",
+              "longPress": [
+                ";",
+                "b"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "FANCY"
+                  }
+                }
+              ],
+              "shiftLabel": "b"
+            },
+            {
+              "label": "מ",
+              "longPress": [
+                "!",
+                "n"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "NOTES"
+                  }
+                }
+              ],
+              "shiftLabel": "n"
+            },
+            {
+              "label": "צ",
+              "longPress": [
+                "?",
+                "m",
+                "צ׳"
+              ],
+              "actionAlternates": [
+                {
+                  "action": {
+                    "type": "tool",
+                    "tool": "MODES"
+                  }
+                }
+              ],
+              "shiftLabel": "m"
+            },
+            {
+              "label": "ת",
+              "longPress": [
+                ",",
+                "ת׳"
+              ]
+            },
+            {
+              "label": "ץ",
+              "longPress": [
+                ".",
+                "ץ׳"
+              ]
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4.0
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";",
+                "।"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ],
+        "flickHints": false
+      }
+    }
+  }
+}
