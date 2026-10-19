@@ -10,7 +10,7 @@ for that to be safe) and writes:
                               English name, word count, gz size, download URL
 
 Run from docs/:  python3 scripts/extract_data.py
-Rerun whenever LanguageRegistry or DictionaryCatalog changes.
+Rerun whenever LanguageRegistry, CorpusLanguages or DictionaryCatalog changes.
 """
 import json
 import pathlib
@@ -22,6 +22,8 @@ LANG_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/scr
 # The generated half of the registry. Same LanguageDef shape, separate file
 # because it is rewritten wholesale by the Keyman pipeline.
 KEYMAN_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/script/KeymanLanguages.kt"
+# Hand-written like Language.kt, split out for the JVM method-size limit.
+CORPUS_KT = REPO / "core/language/src/main/java/com/wasimaster/wmkeyboard/core/script/CorpusLanguages.kt"
 DICT_KT = REPO / "core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/dictionaries/DictionaryCatalog.kt"
 OUT = DOCS / "src/data"
 
@@ -47,6 +49,8 @@ def parse_languages(path, keyman):
     return out
 
 langs = parse_languages(LANG_KT, keyman=False)
+if CORPUS_KT.exists():
+    langs += parse_languages(CORPUS_KT, keyman=False)
 if KEYMAN_KT.exists():
     langs += parse_languages(KEYMAN_KT, keyman=True)
 # The registry's GENERIC fallback ("und", never surfaced in UI) is not a language.

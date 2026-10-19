@@ -44,10 +44,10 @@ data class EmojiDictEntry(
  * The downloadable emoji dictionary for every language the registry knows and
  * the data repo covers.
  *
- * 126 of the repo's 142: the codes it spells differently are remapped (`no` ->
- * `nb`), its exact duplicates are dropped (`fil` == `tl`, `pt_br` == `pt`,
- * `zh_cn` == `zh`), and so are the languages the app has no entry for
- * (`blo`, `bs`, `ccp`, `quc`, `rhg`, `zh_tw`) and the seven packs the upstream
+ * 131 of the repo's 142: the codes it spells differently are remapped (`no` ->
+ * `nb`, `blo` -> the Keyman `blo-Latn`), its exact duplicates are dropped
+ * (`fil` == `tl`, `pt_br` == `pt`, `zh_cn` == `zh`), and so are `zh_tw`, which
+ * the app has no entry for, and the seven packs the upstream
  * data leaves all but empty — `bgn`, `ceb`, `ckb`, `mni`, `su`, `syr` and
  * `vec` carry between 1 and 16 emoji, so offering them would be offering a
  * download that changes nothing.
@@ -78,10 +78,13 @@ object EmojiDictCatalog {
         entry("be", 3943, 78236L),
         entry("bew", 288, 3915L),
         entry("bg", 3943, 87434L),
+        entry("blo-Latn", 108, 1332L, repoCode = "blo"),
         entry("bn", 3943, 93862L),
         entry("bn_rom", 3943, 129656L, repoDir = "bn"),
         entry("br", 1400, 24287L),
+        entry("bs", 3943, 68377L),
         entry("ca", 3943, 86524L),
+        entry("ccp", 504, 7489L),
         entry("chr", 3940, 74620L),
         entry("cs", 3943, 109075L),
         entry("cv", 3940, 95078L),
@@ -156,6 +159,8 @@ object EmojiDictCatalog {
         entry("ps", 3943, 76103L),
         entry("pt", 3943, 80636L),
         entry("qu", 3567, 61404L),
+        entry("quc", 2796, 50818L),
+        entry("rhg", 565, 15705L),
         entry("rm", 3912, 85300L),
         entry("ro", 3943, 91820L),
         entry("ru", 3943, 93725L),

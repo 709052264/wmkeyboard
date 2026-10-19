@@ -3725,8 +3725,8 @@ object LanguageRegistry {
     )
 
     /**
-     * Every language the keyboard knows: the hand-maintained ones above, then
-     * the generated Keyman ones.
+     * Every language the keyboard knows: the hand-maintained ones above and
+     * [CorpusLanguages], then the generated Keyman ones.
      *
      * Declared after [handWritten] because an object's properties initialize in
      * declaration order, and reading one above its own declaration yields null
@@ -3745,7 +3745,7 @@ object LanguageRegistry {
      * them instead would leave 290 layouts that no language names — which is to
      * say, that the user cannot reach.
      */
-    private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore).map { lang ->
+    private val handWrittenAll: List<LanguageDef> = (handWritten + handWrittenMore + CorpusLanguages.all).map { lang ->
         val extra = KeymanLanguages.extraLayoutIds[lang.id]
         if (extra.isNullOrEmpty()) lang else lang.copy(layoutIds = lang.layoutIds + extra)
     }

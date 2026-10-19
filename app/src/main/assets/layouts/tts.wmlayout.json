@@ -1,0 +1,261 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_tts",
+    "name": "ภาษาอีสาน (Isan)",
+    "langId": "tts",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ๅ"
+            },
+            {
+              "label": "ภ"
+            },
+            {
+              "label": "ถ"
+            },
+            {
+              "label": "ุ",
+              "shiftLabel": "ู"
+            },
+            {
+              "label": "ึ",
+              "shiftLabel": "฿"
+            },
+            {
+              "label": "ค",
+              "longPress": [
+                "ฅ"
+              ]
+            },
+            {
+              "label": "ต"
+            },
+            {
+              "label": "จ"
+            },
+            {
+              "label": "ข",
+              "longPress": [
+                "ฃ"
+              ]
+            },
+            {
+              "label": "ช"
+            }
+          ],
+          [
+            {
+              "label": "ๆ",
+              "longPress": [
+                "๏",
+                "๚",
+                "๛",
+                "ฯ"
+              ]
+            },
+            {
+              "label": "ไ"
+            },
+            {
+              "label": "ำ",
+              "shiftLabel": "ฎ"
+            },
+            {
+              "label": "พ",
+              "shiftLabel": "ฑ"
+            },
+            {
+              "label": "ะ",
+              "shiftLabel": "ธ"
+            },
+            {
+              "label": "ั",
+              "shiftLabel": "ํ"
+            },
+            {
+              "label": "ี",
+              "shiftLabel": "๊"
+            },
+            {
+              "label": "ร",
+              "shiftLabel": "ณ"
+            },
+            {
+              "label": "น",
+              "shiftLabel": "ฯ"
+            },
+            {
+              "label": "ย",
+              "shiftLabel": "ญ"
+            },
+            {
+              "label": "บ",
+              "shiftLabel": "ฐ"
+            },
+            {
+              "label": "ล",
+              "longPress": [
+                "ฦ"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ฟ",
+              "shiftLabel": "ฤ",
+              "longPress": [
+                "ฝ"
+              ]
+            },
+            {
+              "label": "ห",
+              "shiftLabel": "ฆ"
+            },
+            {
+              "label": "ก",
+              "shiftLabel": "ฏ"
+            },
+            {
+              "label": "ด",
+              "shiftLabel": "โ"
+            },
+            {
+              "label": "เ",
+              "shiftLabel": "ฌ"
+            },
+            {
+              "label": "้",
+              "shiftLabel": "็"
+            },
+            {
+              "label": "่",
+              "shiftLabel": "๋"
+            },
+            {
+              "label": "า",
+              "shiftLabel": "ษ"
+            },
+            {
+              "label": "ส",
+              "shiftLabel": "ศ"
+            },
+            {
+              "label": "ว",
+              "shiftLabel": "ซ"
+            },
+            {
+              "label": "ง"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ผ"
+            },
+            {
+              "label": "ป"
+            },
+            {
+              "label": "แ",
+              "shiftLabel": "ฉ"
+            },
+            {
+              "label": "อ",
+              "shiftLabel": "ฮ"
+            },
+            {
+              "label": "ิ",
+              "shiftLabel": "ฺ"
+            },
+            {
+              "label": "ื",
+              "shiftLabel": "์",
+              "longPress": [
+                "๎"
+              ]
+            },
+            {
+              "label": "ท"
+            },
+            {
+              "label": "ม",
+              "shiftLabel": "ฒ"
+            },
+            {
+              "label": "ใ",
+              "shiftLabel": "ฬ"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

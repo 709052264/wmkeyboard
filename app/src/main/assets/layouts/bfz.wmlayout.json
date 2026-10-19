@@ -1,0 +1,247 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_bfz",
+    "name": "महासु पहाड़ी (Mahasu Pahari)",
+    "langId": "bfz",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "ौ",
+              "shiftLabel": "औ"
+            },
+            {
+              "label": "ै",
+              "shiftLabel": "ऐ"
+            },
+            {
+              "label": "ा",
+              "shiftLabel": "आ"
+            },
+            {
+              "label": "ी",
+              "shiftLabel": "ई"
+            },
+            {
+              "label": "ू",
+              "shiftLabel": "ऊ"
+            },
+            {
+              "label": "ब",
+              "shiftLabel": "भ"
+            },
+            {
+              "label": "ह",
+              "shiftLabel": "ङ"
+            },
+            {
+              "label": "ग",
+              "shiftLabel": "घ",
+              "longPress": [
+                "ग़"
+              ]
+            },
+            {
+              "label": "द",
+              "shiftLabel": "ध"
+            },
+            {
+              "label": "ज",
+              "shiftLabel": "झ",
+              "longPress": [
+                "ञ",
+                "ज़"
+              ]
+            },
+            {
+              "label": "ड",
+              "shiftLabel": "ढ",
+              "longPress": [
+                "ड़",
+                "ढ़",
+                "़"
+              ]
+            }
+          ],
+          [
+            {
+              "label": "ो",
+              "shiftLabel": "ओ",
+              "longPress": [
+                "ॉ",
+                "ऑ"
+              ]
+            },
+            {
+              "label": "े",
+              "shiftLabel": "ए",
+              "longPress": [
+                "ॅ",
+                "ऍ"
+              ]
+            },
+            {
+              "label": "्",
+              "shiftLabel": "अ",
+              "longPress": [
+                "ॲ"
+              ]
+            },
+            {
+              "label": "ि",
+              "shiftLabel": "इ"
+            },
+            {
+              "label": "ु",
+              "shiftLabel": "उ"
+            },
+            {
+              "label": "प",
+              "shiftLabel": "फ",
+              "longPress": [
+                "फ़"
+              ]
+            },
+            {
+              "label": "र"
+            },
+            {
+              "label": "क",
+              "shiftLabel": "ख",
+              "longPress": [
+                "क़",
+                "ख़"
+              ]
+            },
+            {
+              "label": "त",
+              "shiftLabel": "थ"
+            },
+            {
+              "label": "च",
+              "shiftLabel": "छ"
+            },
+            {
+              "label": "ट",
+              "shiftLabel": "ठ"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "ृ",
+              "shiftLabel": "ऋ"
+            },
+            {
+              "label": "ं",
+              "shiftLabel": "ँ",
+              "longPress": [
+                "ः",
+                "ॐ",
+                "ऽ"
+              ]
+            },
+            {
+              "label": "म",
+              "shiftLabel": "ण"
+            },
+            {
+              "label": "न",
+              "shiftLabel": "ऩ"
+            },
+            {
+              "label": "व",
+              "shiftLabel": "ऴ"
+            },
+            {
+              "label": "ल",
+              "shiftLabel": "ळ",
+              "longPress": [
+                "ळ"
+              ]
+            },
+            {
+              "label": "स",
+              "shiftLabel": "श"
+            },
+            {
+              "label": "ष"
+            },
+            {
+              "label": "य",
+              "shiftLabel": "य़"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "।",
+                "॥",
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

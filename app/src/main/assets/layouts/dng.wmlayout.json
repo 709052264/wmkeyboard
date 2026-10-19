@@ -1,0 +1,197 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_dng",
+    "name": "Хуэйзў йүян (Dungan)",
+    "langId": "dng",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "й"
+            },
+            {
+              "label": "ц"
+            },
+            {
+              "label": "у",
+              "longPress": [
+                "ү",
+                "ў"
+              ]
+            },
+            {
+              "label": "к"
+            },
+            {
+              "label": "е",
+              "longPress": [
+                "ё"
+              ]
+            },
+            {
+              "label": "н",
+              "longPress": [
+                "ң"
+              ]
+            },
+            {
+              "label": "г"
+            },
+            {
+              "label": "ш"
+            },
+            {
+              "label": "щ"
+            },
+            {
+              "label": "з"
+            },
+            {
+              "label": "х"
+            },
+            {
+              "label": "ъ"
+            }
+          ],
+          [
+            {
+              "label": "ф"
+            },
+            {
+              "label": "ы"
+            },
+            {
+              "label": "в"
+            },
+            {
+              "label": "а",
+              "longPress": [
+                "ә"
+              ]
+            },
+            {
+              "label": "п"
+            },
+            {
+              "label": "р"
+            },
+            {
+              "label": "о"
+            },
+            {
+              "label": "л"
+            },
+            {
+              "label": "д"
+            },
+            {
+              "label": "ж",
+              "longPress": [
+                "җ"
+              ]
+            },
+            {
+              "label": "э"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "я"
+            },
+            {
+              "label": "ч"
+            },
+            {
+              "label": "с"
+            },
+            {
+              "label": "м"
+            },
+            {
+              "label": "и"
+            },
+            {
+              "label": "т"
+            },
+            {
+              "label": "ь"
+            },
+            {
+              "label": "б"
+            },
+            {
+              "label": "ю"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}

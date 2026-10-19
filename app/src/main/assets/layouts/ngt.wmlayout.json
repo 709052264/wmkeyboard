@@ -1,0 +1,186 @@
+{
+  "format": "wmkeyboard-layout",
+  "version": 1,
+  "layout": {
+    "id": "asset_ngt",
+    "name": "Ngeq (Kriang)",
+    "langId": "ngt",
+    "version": 1,
+    "layers": {
+      "letters": {
+        "rows": [
+          [
+            {
+              "label": "q",
+              "longPress": [
+                "ʔ"
+              ]
+            },
+            {
+              "label": "w"
+            },
+            {
+              "label": "e",
+              "longPress": [
+                "ɛ",
+                "ə"
+              ]
+            },
+            {
+              "label": "r"
+            },
+            {
+              "label": "t"
+            },
+            {
+              "label": "y"
+            },
+            {
+              "label": "u"
+            },
+            {
+              "label": "i",
+              "longPress": [
+                "ɨ"
+              ]
+            },
+            {
+              "label": "o",
+              "longPress": [
+                "ɔ"
+              ]
+            },
+            {
+              "label": "p"
+            }
+          ],
+          [
+            {
+              "label": "a",
+              "longPress": [
+                "ɑ"
+              ]
+            },
+            {
+              "label": "s"
+            },
+            {
+              "label": "d"
+            },
+            {
+              "label": "f"
+            },
+            {
+              "label": "g"
+            },
+            {
+              "label": "h"
+            },
+            {
+              "label": "j"
+            },
+            {
+              "label": "k"
+            },
+            {
+              "label": "l"
+            }
+          ],
+          [
+            {
+              "label": "⇧",
+              "action": {
+                "type": "shift"
+              },
+              "width": 1.5
+            },
+            {
+              "label": "z"
+            },
+            {
+              "label": "x"
+            },
+            {
+              "label": "c"
+            },
+            {
+              "label": "v",
+              "longPress": [
+                "ʌ"
+              ]
+            },
+            {
+              "label": "b"
+            },
+            {
+              "label": "n",
+              "longPress": [
+                "ŋ",
+                "ɲ"
+              ]
+            },
+            {
+              "label": "m"
+            },
+            {
+              "label": "⌫",
+              "action": {
+                "type": "delete"
+              },
+              "width": 1.5
+            }
+          ],
+          [
+            {
+              "label": "?123",
+              "action": {
+                "type": "symbols"
+              },
+              "width": 1.5
+            },
+            {
+              "label": ",",
+              "longPress": [
+                "!",
+                "?"
+              ],
+              "role": "Comma"
+            },
+            {
+              "label": "🌐",
+              "action": {
+                "type": "language_switch"
+              }
+            },
+            {
+              "label": " ",
+              "action": {
+                "type": "space"
+              },
+              "width": 4
+            },
+            {
+              "label": ".",
+              "longPress": [
+                "…",
+                ",",
+                "?",
+                "!",
+                ":",
+                ";"
+              ],
+              "role": "Period"
+            },
+            {
+              "label": "⏎",
+              "action": {
+                "type": "enter"
+              },
+              "width": 1.5
+            }
+          ]
+        ]
+      }
+    }
+  }
+}
