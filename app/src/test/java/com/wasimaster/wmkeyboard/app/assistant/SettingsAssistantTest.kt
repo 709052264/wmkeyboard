@@ -11,7 +11,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The Settings assistant's contract (#788): it can only open rows that exist,
+ * The Settings assistant's contract (#788): it can only show rows that exist,
  * only propose values a setting takes, and a proposal is applied once, while
  * the setting still holds what it held, and undone only while nobody has
  * changed it since.
@@ -33,15 +33,17 @@ class SettingsAssistantTest {
     )
 
     private var settings = KeyboardSettings()
-    private val opened = ArrayList<SettingsSearchEntry>()
+    private val shown = ArrayList<SettingsSearchEntry>()
+    private val refs = SettingRefs()
     private val proposed = ArrayList<Triple<AssistantSetting, String, String>>()
 
     private val tools = AssistantTools(
         index = index,
         settings = { settings },
+        refs = refs,
         host = object : AssistantTools.Host {
-            override fun open(entry: SettingsSearchEntry) {
-                opened += entry
+            override fun show(entry: SettingsSearchEntry) {
+                shown += entry
             }
 
             override fun propose(setting: AssistantSetting, from: String, to: String): Int {
@@ -61,16 +63,36 @@ class SettingsAssistantTest {
     }
 
     @Test
-    fun `a made-up row is refused and nothing opens`() {
-        val result = call(AssistantTools.OPEN, """{"id":"settings/secret#Nope"}""")
-        assertTrue(result.error.isNotEmpty())
-        assertTrue(opened.isEmpty())
+    fun `a made-up row is refused and nothing is shown`() {
+        for (id in listOf("settings/secret#Nope", "s99")) {
+            val result = call(AssistantTools.SHOW, """{"id":"$id"}""")
+            assertTrue(id, result.error.isNotEmpty())
+        }
+        assertTrue(shown.isEmpty())
     }
 
     @Test
-    fun `a row from search opens`() {
-        call(AssistantTools.OPEN, """{"id":"${index.first().key}"}""")
-        assertEquals(listOf(index.first()), opened)
+    fun `a row from search is shown by its short id`() {
+        val result = call(AssistantTools.SEARCH, """{"query":"long press"}""")
+        val id = Regex("""id=(s\d+)""").find(result.content)!!.groupValues[1]
+        call(AssistantTools.SHOW, """{"id":"$id"}""")
+        assertEquals(listOf(index.first()), shown)
+    }
+
+    @Test
+    fun `a full key is still taken`() {
+        call(AssistantTools.SHOW, """{"id":"${index.first().key}"}""")
+        assertEquals(listOf(index.first()), shown)
+    }
+
+    @Test
+    fun `short ids are stable, link-safe and forgotten on clear`() {
+        val first = refs.idFor(index.first().key)
+        assertEquals(first, refs.idFor(index.first().key))
+        assertTrue(first, first.all { it.isLetterOrDigit() })
+        assertEquals(index.first().key, refs.keyFor("${SettingRefs.LINK_SCHEME}$first"))
+        refs.clear()
+        assertNull(refs.keyFor(first))
     }
 
     @Test

@@ -21,8 +21,10 @@ import kotlinx.serialization.json.putJsonObject
  *
  * * `search_settings` reads the real settings index, the one the search screen
  *   ranks, so every row the assistant names is one that exists.
- * * `open_setting` opens a row a search returned, by the id the search gave.
- *   An id the index does not hold is refused, so a made-up route goes nowhere.
+ * * `show_setting` puts a row a search returned in front of the user, as a
+ *   card with where it lives and an Open button, by the id the search gave.
+ *   It never leaves the conversation: opening is the user's tap. An id the
+ *   index does not hold is refused, so a made-up route goes nowhere.
  * * `get_setting` and `propose_change` are about [AssistantSetting]s only. A
  *   proposal is not a change: it is put in front of the user with the current
  *   and the proposed value, and only their Apply writes it.
@@ -37,12 +39,13 @@ internal class AssistantTools(
     private val index: List<SettingsSearchEntry>,
     private val settings: () -> KeyboardSettings,
     private val host: Host,
+    private val refs: SettingRefs = SettingRefs(),
 ) : AiToolLoop.Executor {
 
     /** What the tools ask of the screen. Called on the tool's own thread. */
     interface Host {
-        /** Opens [entry], the way picking it from search does. */
-        fun open(entry: SettingsSearchEntry)
+        /** Shows [entry] as a card the user can open it from. */
+        fun show(entry: SettingsSearchEntry)
 
         /** Shows a proposal for the user to apply or ignore. Returns its id. */
         fun propose(setting: AssistantSetting, from: String, to: String): Int
@@ -56,8 +59,9 @@ internal class AssistantTools(
             schema("query" to "Words describing the setting, in the user's language or English."),
         ),
         AiToolSpec(
-            OPEN,
-            "Open one settings row so the user can see it, highlighted on its screen. Use an id from $SEARCH.",
+            SHOW,
+            "Show one settings row to the user as a card with where it lives and an Open button. " +
+                "It does not leave the chat. Use an id from $SEARCH.",
             schema("id" to "The id $SEARCH gave for the row."),
         ),
         AiToolSpec(
@@ -85,7 +89,7 @@ internal class AssistantTools(
     override fun run(call: AiToolCall): AiToolResult = runCatching {
         when (call.name) {
             SEARCH -> search(call)
-            OPEN -> open(call)
+            SHOW -> show(call)
             GET -> get(call)
             PROPOSE -> propose(call)
             DOCS -> docs(call)
@@ -101,7 +105,7 @@ internal class AssistantTools(
             call,
             hits.joinToString("\n") { entry ->
                 buildString {
-                    append("id=").append(entry.key).append(" | ").append(entry.title)
+                    append("id=").append(refs.idFor(entry.key)).append(" | ").append(entry.title)
                     if (entry.screen.isNotEmpty()) append(" | in ").append(entry.screen)
                     if (entry.subtitle.isNotEmpty()) append(" | ").append(entry.subtitle)
                     changeable(entry)?.let { append(" | changeable as ").append(it.name) }
@@ -110,12 +114,22 @@ internal class AssistantTools(
         )
     }
 
-    private fun open(call: AiToolCall): AiToolResult {
+    private fun show(call: AiToolCall): AiToolResult {
         val id = call.argument("id") ?: return AiToolResult(call, "", error = "No id given.")
-        val entry = index.firstOrNull { it.key == id }
+        val entry = entry(id)
             ?: return AiToolResult(call, "", error = "No settings row has the id \"$id\". Search first.")
-        host.open(entry)
-        return AiToolResult(call, "Opened ${entry.title}${if (entry.screen.isEmpty()) "" else " in ${entry.screen}"}.")
+        host.show(entry)
+        return AiToolResult(
+            call,
+            "Showed ${entry.title}${if (entry.screen.isEmpty()) "" else " in ${entry.screen}"}. " +
+                "The user opens it from the card when they want to.",
+        )
+    }
+
+    /** The row a short id from [search] names; a full key is still taken, for an id written out whole. */
+    private fun entry(id: String): SettingsSearchEntry? {
+        val key = refs.keyFor(id) ?: id
+        return index.firstOrNull { it.key == key }
     }
 
     private fun get(call: AiToolCall): AiToolResult {
@@ -173,10 +187,38 @@ internal class AssistantTools(
 
     companion object {
         const val SEARCH = "search_settings"
-        const val OPEN = "open_setting"
+        const val SHOW = "show_setting"
         const val GET = "get_setting"
         const val PROPOSE = "propose_change"
         const val DOCS = "search_docs"
         const val MAX_RESULTS = 8
+    }
+}
+
+/**
+ * Short ids for the rows the assistant has been shown: `s1`, `s2`, in the order
+ * searches returned them. A row's own key holds spaces and a `#`, which a
+ * markdown link cannot carry, and the answer links rows as `setting:s3`. Only a
+ * row a search returned has an id, so a link can only name a row that exists.
+ */
+internal class SettingRefs {
+    private val keys = HashMap<String, String>()
+    private val ids = HashMap<String, String>()
+
+    @Synchronized
+    fun idFor(key: String): String = ids.getOrPut(key) { "s${ids.size + 1}".also { keys[it] = key } }
+
+    @Synchronized
+    fun keyFor(id: String): String? = keys[id.trim().removePrefix(LINK_SCHEME)]
+
+    @Synchronized
+    fun clear() {
+        keys.clear()
+        ids.clear()
+    }
+
+    companion object {
+        /** The scheme of a link to a row in an answer: `[Long-press delay](setting:s3)`. */
+        const val LINK_SCHEME = "setting:"
     }
 }

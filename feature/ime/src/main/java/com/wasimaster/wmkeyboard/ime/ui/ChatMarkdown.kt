@@ -83,6 +83,14 @@ data class ChatMarkdownColors(
 )
 
 /**
+ * What a link the caller claims for itself looks like and does, for an
+ * address no browser can open: the Settings assistant's `setting:` links.
+ * A null [onTap] leaves the text inert; a null [style] draws it plain, which is
+ * how a link to something that does not exist should read.
+ */
+data class ChatLink(val style: SpanStyle?, val onTap: (() -> Unit)?)
+
+/**
  * A model's answer or a note, drawn: paragraphs, headings, lists, quotes,
  * tables, images, footnotes and highlighted code blocks, with bold, italic,
  * strikethrough, inline code and links inside them. See [AiMarkdownBlocks]
@@ -122,13 +130,18 @@ fun ChatMarkdown(
     selectable: Boolean = false,
     ask: AskAiSource? = null,
     codeActions: (@Composable RowScope.(Block.Code) -> Unit)? = null,
+    /**
+     * Claims a link's address before the usual rules see it. Returns null for
+     * an address that is not the caller's, which then opens as any link does.
+     */
+    customLink: ((String) -> ChatLink?)? = null,
 ) {
     val canSelect = selectable && LocalSelectionOverlay.current != null
     val blocks = remember(text) { AiMarkdownBlocks.parse(text) }
     val lineHeight = fontSize * LINE_HEIGHT
     val context = LocalContext.current
     val onLink: (String) -> Unit = remember(context) { { url -> openToolLink(context, url) } }
-    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink)
+    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink, customLink)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         for (block in blocks) {
             val tappable = if (onBlockTap != null && block !is Block.Task) {
@@ -172,7 +185,7 @@ fun ChatMarkdown(
                         onTap = tap,
                     )
                 }
-                is Block.Task -> TaskRow(block, colors, fontSize, lineHeight, onTaskToggle, onLink)
+                is Block.Task -> TaskRow(block, colors, fontSize, lineHeight, onTaskToggle, onLink, customLink)
                 // One bar per level of nesting, each as tall as the whole quote.
                 is Block.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
                     repeat(block.depth) {
@@ -195,7 +208,7 @@ fun ChatMarkdown(
                     )
                 }
                 is Block.Code -> CodeBlock(block, colors, fontSize, codeActions)
-                is Block.Table -> TableBlock(block, colors, fontSize, lineHeight, onLink)
+                is Block.Table -> TableBlock(block, colors, fontSize, lineHeight, onLink, customLink)
                 is Block.Image -> ImageBlock(block, colors, fontSize, lineHeight, onLink)
                 is Block.Footnote -> Row {
                     Text("${block.number}.", color = colors.dim, fontSize = fontSize * 0.85f, lineHeight = lineHeight)
@@ -247,6 +260,7 @@ private fun TaskRow(
     lineHeight: TextUnit,
     onToggle: ((Block.Task) -> Unit)?,
     onLink: (String) -> Unit,
+    customLink: ((String) -> ChatLink?)?,
 ) {
     val toggleable = if (onToggle != null) {
         Modifier.toggleable(
@@ -276,7 +290,7 @@ private fun TaskRow(
         )
         Spacer(Modifier.width(6.dp))
         Text(
-            annotated(block.inline, colors, onLink),
+            annotated(block.inline, colors, onLink, customLink),
             color = if (block.checked) colors.dim else colors.text,
             fontSize = fontSize,
             lineHeight = lineHeight,
@@ -341,6 +355,7 @@ private fun TableBlock(
     fontSize: TextUnit,
     lineHeight: TextUnit,
     onLink: (String) -> Unit,
+    customLink: ((String) -> ChatLink?)?,
 ) {
     val border = colors.dim.copy(alpha = colors.dim.alpha * 0.4f)
     Row(
@@ -361,7 +376,7 @@ private fun TableBlock(
                 val cells = listOf(block.header[column]) + block.rows.map { it[column] }
                 cells.forEachIndexed { row, cell ->
                     Text(
-                        annotated(cell, colors, onLink),
+                        annotated(cell, colors, onLink, customLink),
                         color = colors.text,
                         fontSize = fontSize,
                         lineHeight = lineHeight,
@@ -444,6 +459,7 @@ private fun annotated(
     inline: AiMarkdownBlocks.Inline,
     colors: ChatMarkdownColors,
     onLink: (String) -> Unit,
+    customLink: ((String) -> ChatLink?)? = null,
 ): AnnotatedString =
     buildAnnotatedString {
         append(inline.text)
@@ -461,6 +477,21 @@ private fun annotated(
                 AiMarkdownBlocks.Style.SUPERSCRIPT -> SpanStyle(baselineShift = BaselineShift.Superscript, fontSize = 0.75.em)
                 AiMarkdownBlocks.Style.SUBSCRIPT -> SpanStyle(baselineShift = BaselineShift.Subscript, fontSize = 0.75.em)
                 AiMarkdownBlocks.Style.LINK -> {
+                    val target = span.url
+                    val claimed = target?.let { customLink?.invoke(it) }
+                    if (target != null && claimed != null) {
+                        val tap = claimed.onTap
+                        if (tap != null) {
+                            addLink(
+                                LinkAnnotation.Clickable(target, TextLinkStyles(claimed.style)) { tap() },
+                                span.start,
+                                span.end,
+                            )
+                        } else if (claimed.style != null) {
+                            addStyle(claimed.style, span.start, span.end)
+                        }
+                        continue
+                    }
                     val look = SpanStyle(color = colors.link, textDecoration = TextDecoration.Underline)
                     val url = span.url
                     if (url != null && openable(url)) {

@@ -879,10 +879,20 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                             MaterialTheme.colorScheme.onSurface
                         },
                     )
-                    split.output.isNotBlank() -> Text(
-                        split.output,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                    // Drawn as the finished answer will be, so the bold and the
+                    // lists are there while it streams rather than at the end.
+                    split.output.isNotBlank() -> {
+                        val ink = MaterialTheme.colorScheme.onSurfaceVariant
+                        ChatMarkdown(
+                            split.output,
+                            ChatMarkdownColors(
+                                text = ink,
+                                dim = ink.copy(alpha = 0.65f),
+                                codeBackground = ink.copy(alpha = 0.10f),
+                            ),
+                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                        )
+                    }
                     // The line above already names the tool and what it is on.
                     toolRunning && !split.thinking -> Unit
                     else -> Row(verticalAlignment = Alignment.CenterVertically) {

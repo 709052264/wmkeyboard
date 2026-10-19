@@ -75,6 +75,9 @@ internal sealed class AssistantSetting(
             repository.set(value.toInt())
 
         override val accepts = "a whole number of $unit from ${range.first} to ${range.last}"
+
+        /** [value] with its unit, the way a card shows it: `300 ms`. */
+        fun withUnit(value: String) = "$value $unit"
     }
 
     companion object {

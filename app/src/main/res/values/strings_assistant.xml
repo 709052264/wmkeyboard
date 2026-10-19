@@ -4,7 +4,7 @@
     <string name="settings_assistant_title">Settings assistant</string>
     <string name="settings_assistant_nav_subtitle">Ask about the keyboard in your own words; it finds the settings and suggests changes</string>
     <string name="settings_assistant_ask">Ask the settings assistant</string>
-    <string name="settings_assistant_intro">Say what you want from the keyboard, such as \"I keep triggering long presses\" or \"set up a mode for typing codes\". The assistant finds the settings, explains them and opens them. For a few common settings it can propose a change, which happens only when you press Apply.</string>
+    <string name="settings_assistant_intro">Say what you want from the keyboard, such as \"I keep triggering long presses\" or \"set up a mode for typing codes\". The assistant finds the settings, explains them and shows you where they are. For a few common settings it can propose a change, which happens only when you press Apply.</string>
     <string name="settings_assistant_set_up_ai">Set up an AI provider</string>
     <string name="settings_assistant_no_provider">The assistant needs an AI provider set up with a key or an address. The on-device model can\'t run it.</string>
     <!-- %1$s is the error the provider gave. -->
@@ -24,5 +24,18 @@
     <string name="settings_assistant_dismissed">Dismissed</string>
     <string name="settings_assistant_stale">Not applied: the setting changed after this was proposed. Ask again.</string>
     <string name="settings_assistant_undo_refused">Not undone: the setting has been changed since.</string>
+    <string name="settings_assistant_open">Open</string>
+    <!-- Heading over a setting the assistant points at, and the spoken name of the path down to it. -->
+    <string name="settings_assistant_where">Where it is</string>
+    <!-- %1$s is the setting's value now, such as On or 300 ms. -->
+    <string name="settings_assistant_current">Currently <xliff:g id="value" example="On">%1$s</xliff:g></string>
+    <!-- Spoken name of the model picker. %1$s is the provider and model, such as Claude · claude-sonnet-4. -->
+    <string name="settings_assistant_model_desc">Answering with <xliff:g id="model" example="Claude">%1$s</xliff:g>. Pick another</string>
+    <string name="settings_assistant_add_provider">Set up another provider</string>
+    <!-- Label over a change the assistant proposes. -->
+    <string name="settings_assistant_proposal">Suggested change</string>
+    <string name="settings_assistant_starter_long_press">I keep triggering long presses</string>
+    <string name="settings_assistant_starter_quiet">Make the keyboard quieter</string>
+    <string name="settings_assistant_starter_glide">How do I turn on glide typing?</string>
     <string name="settings_assistant_invalid">Not applied: that value isn\'t one the setting takes.</string>
 </resources>

@@ -1105,7 +1105,7 @@ private const val HIGHLIGHT_MIN_LENGTH = 3
  * magnifier is the fallback for a route with no icon of its own.
  */
 @Composable
-private fun ResultIcon(
+internal fun ResultIcon(
     entry: SettingsSearchEntry,
     settings: LiveSettings,
     modifier: Modifier = Modifier,
