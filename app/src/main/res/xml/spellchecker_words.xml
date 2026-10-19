@@ -8,9 +8,13 @@
     android:label="@string/spell_checker_name">
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ab" android:subtypeLocale="ab" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ace" android:subtypeLocale="ace" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="acm" android:subtypeLocale="acm" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ady" android:subtypeLocale="ady" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="af" android:subtypeLocale="af" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="afb" android:subtypeLocale="afb" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="ajp" android:subtypeLocale="ajp" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ak" android:subtypeLocale="ak" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="aln" android:subtypeLocale="aln" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="alt" android:subtypeLocale="alt" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="am" android:subtypeLocale="am" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ami" android:subtypeLocale="ami" />
@@ -18,7 +22,9 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ang" android:subtypeLocale="ang" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ann" android:subtypeLocale="ann" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="anp" android:subtypeLocale="anp" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="apc" android:subtypeLocale="apc" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ar" android:subtypeLocale="ar" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="arn" android:subtypeLocale="arn" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="arq" android:subtypeLocale="arq" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ary" android:subtypeLocale="ary" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="arz" android:subtypeLocale="arz" />
@@ -34,10 +40,12 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ba" android:subtypeLocale="ba" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ban" android:subtypeLocale="ban" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bar" android:subtypeLocale="bar" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="bba" android:subtypeLocale="bba" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bbc" android:subtypeLocale="bbc" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bcl" android:subtypeLocale="bcl" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bdr" android:subtypeLocale="bdr" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="be" android:subtypeLocale="be" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="bem" android:subtypeLocale="bem" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ber" android:subtypeLocale="ber" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bew" android:subtypeLocale="bew" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="bg" android:subtypeLocale="bg" />
@@ -91,6 +99,7 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ee" android:subtypeLocale="ee" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="el" android:subtypeLocale="el" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="eml" android:subtypeLocale="eml" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="emp" android:subtypeLocale="emp" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="en" android:subtypeLocale="en" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="enm" android:subtypeLocale="enm" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="eo" android:subtypeLocale="eo" />
@@ -163,20 +172,25 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ka" android:subtypeLocale="ka" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kaa" android:subtypeLocale="kaa" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kab" android:subtypeLocale="kab" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="kac" android:subtypeLocale="kac" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kai" android:subtypeLocale="kai" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kaj" android:subtypeLocale="kaj" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="kam" android:subtypeLocale="kam" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kbd" android:subtypeLocale="kbd" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kbp" android:subtypeLocale="kbp" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kcg" android:subtypeLocale="kcg" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="kek" android:subtypeLocale="kek" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kg" android:subtypeLocale="kg" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kge" android:subtypeLocale="kge" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kha" android:subtypeLocale="kha" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ki" android:subtypeLocale="ki" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="kjh" android:subtypeLocale="kjh" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kk" android:subtypeLocale="kk" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kl" android:subtypeLocale="kl" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="km" android:subtypeLocale="km" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kn" android:subtypeLocale="kn" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="knc" android:subtypeLocale="knc" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="knf" android:subtypeLocale="knf" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ko" android:subtypeLocale="ko" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="koi" android:subtypeLocale="koi" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="kok" android:subtypeLocale="kok" />
@@ -228,14 +242,17 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nah" android:subtypeLocale="nah" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nap" android:subtypeLocale="nap" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nb" android:subtypeLocale="nb" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="nch" android:subtypeLocale="nch" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nd" android:subtypeLocale="nd" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nds" android:subtypeLocale="nds" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ne" android:subtypeLocale="ne" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="new" android:subtypeLocale="new" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="ngu" android:subtypeLocale="ngu" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nia" android:subtypeLocale="nia" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nl" android:subtypeLocale="nl" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nn" android:subtypeLocale="nn" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nnb" android:subtypeLocale="nnb" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="nop" android:subtypeLocale="nop" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nov" android:subtypeLocale="nov" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nqo" android:subtypeLocale="nqo" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="nr" android:subtypeLocale="nr" />
@@ -267,6 +284,7 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="pnt" android:subtypeLocale="pnt" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ppl" android:subtypeLocale="ppl" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="prg" android:subtypeLocale="prg" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="prs" android:subtypeLocale="prs" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ps" android:subtypeLocale="ps" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="pwn" android:subtypeLocale="pwn" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="qu" android:subtypeLocale="qu" />
@@ -327,6 +345,7 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="te" android:subtypeLocale="te" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="tet" android:subtypeLocale="tet" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="tg" android:subtypeLocale="tg" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="tgo" android:subtypeLocale="tgo" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="th" android:subtypeLocale="th" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="thv" android:subtypeLocale="thv" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ti" android:subtypeLocale="ti" />
@@ -350,6 +369,7 @@
     <subtype android:label="@string/subtype_plain_label" android:languageTag="udm" android:subtypeLocale="udm" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ug" android:subtypeLocale="ug" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="uk" android:subtypeLocale="uk" />
+    <subtype android:label="@string/subtype_plain_label" android:languageTag="umb" android:subtypeLocale="umb" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ur" android:subtypeLocale="ur" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="uz" android:subtypeLocale="uz" />
     <subtype android:label="@string/subtype_plain_label" android:languageTag="ve" android:subtypeLocale="ve" />

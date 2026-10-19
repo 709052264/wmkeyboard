@@ -3930,6 +3930,406 @@
   "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/be_x_old/be_x_old_full.txt.gz"
  },
  {
+  "id": "azj_latn",
+  "lang": "azj-Latn",
+  "name": "North Azerbaijani (Latin)",
+  "english": "North Azerbaijani (Latin)",
+  "words": 814123,
+  "gzBytes": 3616285,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/az/az_full.txt.gz"
+ },
+ {
+  "id": "azj_latn_az",
+  "lang": "azj-Latn-AZ",
+  "name": "North Azerbaijani (Latin, Azerbaijan)",
+  "english": "North Azerbaijani (Latin, Azerbaijan)",
+  "words": 814123,
+  "gzBytes": 3616285,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/az/az_full.txt.gz"
+ },
+ {
+  "id": "pes_arab",
+  "lang": "pes-Arab",
+  "name": "Iranian Persian (Arabic)",
+  "english": "Iranian Persian (Arabic)",
+  "words": 363989,
+  "gzBytes": 1434152,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/fa/fa_full.txt.gz"
+ },
+ {
+  "id": "prs",
+  "lang": "prs",
+  "name": "Dari",
+  "english": "Dari",
+  "words": 363989,
+  "gzBytes": 1434152,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/fa/fa_full.txt.gz"
+ },
+ {
+  "id": "khk_cyrl",
+  "lang": "khk-Cyrl",
+  "name": "Halh Mongolian (Cyrillic)",
+  "english": "Halh Mongolian (Cyrillic)",
+  "words": 137799,
+  "gzBytes": 641531,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/mn/mn_full.txt.gz"
+ },
+ {
+  "id": "khk_cyrl_mn",
+  "lang": "khk-Cyrl-MN",
+  "name": "Halh Mongolian (Cyrillic, Mongolia)",
+  "english": "Halh Mongolian (Cyrillic, Mongolia)",
+  "words": 137799,
+  "gzBytes": 641531,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/mn/mn_full.txt.gz"
+ },
+ {
+  "id": "nan_latn_035",
+  "lang": "nan-Latn-035",
+  "name": "Min Nan Chinese (Latin)",
+  "english": "Min Nan Chinese (Latin)",
+  "words": 310331,
+  "gzBytes": 1285434,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/nan/nan_full.txt.gz"
+ },
+ {
+  "id": "nan_latn_tw",
+  "lang": "nan-Latn-TW",
+  "name": "Min Nan Chinese (Latin, Taiwan, Province of China)",
+  "english": "Min Nan Chinese (Latin, Taiwan, Province of China)",
+  "words": 310331,
+  "gzBytes": 1285434,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/nan/nan_full.txt.gz"
+ },
+ {
+  "id": "bn_in",
+  "lang": "bn-IN",
+  "name": "Bengali (India)",
+  "english": "Bengali (India)",
+  "words": 451348,
+  "gzBytes": 1675761,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bn/bn_full.txt.gz"
+ },
+ {
+  "id": "tzm",
+  "lang": "tzm",
+  "name": "Central Atlas Tamazight",
+  "english": "Central Atlas Tamazight",
+  "words": 81160,
+  "gzBytes": 312491,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ber/ber_full.txt.gz"
+ },
+ {
+  "id": "tzm_tfng",
+  "lang": "tzm-Tfng",
+  "name": "Central Atlas Tamazight (Tifinagh)",
+  "english": "Central Atlas Tamazight (Tifinagh)",
+  "words": 58474,
+  "gzBytes": 243558,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/zgh/zgh_full.txt.gz"
+ },
+ {
+  "id": "dz_bt",
+  "lang": "dz-BT",
+  "name": "Dzongkha (Bhutan)",
+  "english": "Dzongkha (Bhutan)",
+  "words": 9167,
+  "gzBytes": 36081,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/dz/dz_full.txt.gz"
+ },
+ {
+  "id": "dgr_latn",
+  "lang": "dgr-Latn",
+  "name": "Tlicho (Latin)",
+  "english": "Tlicho (Latin)",
+  "words": 9916,
+  "gzBytes": 43423,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/dgr/dgr_full.txt.gz"
+ },
+ {
+  "id": "sr_latn",
+  "lang": "sr-Latn",
+  "name": "Srpski (latinica) · Serbian (Latin)",
+  "english": "Serbian (Latin)",
+  "words": 224790,
+  "gzBytes": 824744,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/sr/sr_latn.txt.gz"
+ },
+ {
+  "id": "bs_cyrl",
+  "lang": "bs-Cyrl",
+  "name": "Bosnian (Cyrillic)",
+  "english": "Bosnian (Cyrillic)",
+  "words": 383957,
+  "gzBytes": 1539125,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bs/bs_cyrl.txt.gz"
+ },
+ {
+  "id": "kk_latn",
+  "lang": "kk-Latn",
+  "name": "Qazaqşa (latyn) · Kazakh (Latin)",
+  "english": "Kazakh (Latin)",
+  "words": 270978,
+  "gzBytes": 1050392,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kk/kk_latn.txt.gz"
+ },
+ {
+  "id": "be_latn",
+  "lang": "be-Latn",
+  "name": "Biełaruskaja (łacinka) · Belarusian (Latin)",
+  "english": "Belarusian (Latin)",
+  "words": 278764,
+  "gzBytes": 1119638,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/be/be_latn.txt.gz"
+ },
+ {
+  "id": "zgh_latn",
+  "lang": "zgh-Latn",
+  "name": "Tamaziɣt (Latin) · Tamazight (Latin)",
+  "english": "Tamazight (Latin)",
+  "words": 58455,
+  "gzBytes": 205783,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/zgh/zgh_latn.txt.gz"
+ },
+ {
+  "id": "uz_cyrl",
+  "lang": "uzn-Cyrl",
+  "name": "Northern Uzbek (Cyrillic)",
+  "english": "Northern Uzbek (Cyrillic)",
+  "words": 271798,
+  "gzBytes": 1172868,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/uz/uz_cyrl.txt.gz"
+ },
+ {
+  "id": "kaa_latn",
+  "lang": "kaa-Latn",
+  "name": "Kara-Kalpak (Latin)",
+  "english": "Kara-Kalpak (Latin)",
+  "words": 52652,
+  "gzBytes": 206299,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kaa/kaa_latn.txt.gz"
+ },
+ {
+  "id": "acm",
+  "lang": "acm",
+  "name": "اللهجة العراقية · Mesopotamian Arabic",
+  "english": "Mesopotamian Arabic",
+  "words": 86141,
+  "gzBytes": 313282,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/acm/acm_full.txt.gz"
+ },
+ {
+  "id": "afb",
+  "lang": "afb",
+  "name": "اللهجة الخليجية · Gulf Arabic",
+  "english": "Gulf Arabic",
+  "words": 218035,
+  "gzBytes": 793127,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/afb/afb_full.txt.gz"
+ },
+ {
+  "id": "ajp",
+  "lang": "ajp",
+  "name": "اللهجة الشامية الجنوبية · South Levantine Arabic",
+  "english": "South Levantine Arabic",
+  "words": 142979,
+  "gzBytes": 519298,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ajp/ajp_full.txt.gz"
+ },
+ {
+  "id": "aln",
+  "lang": "aln",
+  "name": "Gegnisht · Gheg Albanian",
+  "english": "Gheg Albanian",
+  "words": 29357,
+  "gzBytes": 107618,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/aln/aln_full.txt.gz"
+ },
+ {
+  "id": "apc",
+  "lang": "apc",
+  "name": "اللهجة الشامية · North Levantine Arabic",
+  "english": "North Levantine Arabic",
+  "words": 135119,
+  "gzBytes": 490648,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/apc/apc_full.txt.gz"
+ },
+ {
+  "id": "arn",
+  "lang": "arn",
+  "name": "Mapudungun",
+  "english": "Mapudungun",
+  "words": 16809,
+  "gzBytes": 62915,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/arn/arn_full.txt.gz"
+ },
+ {
+  "id": "bba",
+  "lang": "bba",
+  "name": "Baatonum",
+  "english": "Baatonum",
+  "words": 13687,
+  "gzBytes": 51365,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bba/bba_full.txt.gz"
+ },
+ {
+  "id": "bem",
+  "lang": "bem",
+  "name": "Ichibemba · Bemba",
+  "english": "Bemba",
+  "words": 11864,
+  "gzBytes": 45272,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/bem/bem_full.txt.gz"
+ },
+ {
+  "id": "dgr",
+  "lang": "dgr",
+  "name": "Tlicho",
+  "english": "Tlicho",
+  "words": 9916,
+  "gzBytes": 43423,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/dgr/dgr_full.txt.gz"
+ },
+ {
+  "id": "emp",
+  "lang": "emp",
+  "name": "Northern Emberá",
+  "english": "Northern Emberá",
+  "words": 14798,
+  "gzBytes": 55821,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/emp/emp_full.txt.gz"
+ },
+ {
+  "id": "kac",
+  "lang": "kac",
+  "name": "Kachin",
+  "english": "Kachin",
+  "words": 4288,
+  "gzBytes": 16050,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kac/kac_full.txt.gz"
+ },
+ {
+  "id": "kam",
+  "lang": "kam",
+  "name": "Kikamba · Kamba",
+  "english": "Kamba",
+  "words": 11626,
+  "gzBytes": 43115,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kam/kam_full.txt.gz"
+ },
+ {
+  "id": "kek",
+  "lang": "kek",
+  "name": "Q'eqchi'",
+  "english": "Q'eqchi'",
+  "words": 20896,
+  "gzBytes": 84101,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kek/kek_full.txt.gz"
+ },
+ {
+  "id": "kjh",
+  "lang": "kjh",
+  "name": "Хакас тілі · Khakas",
+  "english": "Khakas",
+  "words": 48143,
+  "gzBytes": 200934,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/kjh/kjh_full.txt.gz"
+ },
+ {
+  "id": "knf",
+  "lang": "knf",
+  "name": "Mankanya",
+  "english": "Mankanya",
+  "words": 13488,
+  "gzBytes": 47279,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/knf/knf_full.txt.gz"
+ },
+ {
+  "id": "nch",
+  "lang": "nch",
+  "name": "Nawatlajtoli · Central Huasteca Nahuatl",
+  "english": "Central Huasteca Nahuatl",
+  "words": 32628,
+  "gzBytes": 132096,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/nch/nch_full.txt.gz"
+ },
+ {
+  "id": "ngu",
+  "lang": "ngu",
+  "name": "Nawatlahtolli · Guerrero Nahuatl",
+  "english": "Guerrero Nahuatl",
+  "words": 15115,
+  "gzBytes": 62022,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/ngu/ngu_full.txt.gz"
+ },
+ {
+  "id": "nop",
+  "lang": "nop",
+  "name": "Numanggang",
+  "english": "Numanggang",
+  "words": 17302,
+  "gzBytes": 65675,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/nop/nop_full.txt.gz"
+ },
+ {
+  "id": "tgo",
+  "lang": "tgo",
+  "name": "Sudest",
+  "english": "Sudest",
+  "words": 10900,
+  "gzBytes": 43110,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/tgo/tgo_full.txt.gz"
+ },
+ {
+  "id": "umb",
+  "lang": "umb",
+  "name": "Umbundu",
+  "english": "Umbundu",
+  "words": 10594,
+  "gzBytes": 39368,
+  "source": "Frequency",
+  "url": "https://raw.githubusercontent.com/wasi-master/wmkeyboard-data/HEAD/data/umb/umb_full.txt.gz"
+ },
+ {
   "id": "cs_aosp",
   "lang": "cs",
   "name": "Čeština · Czech",

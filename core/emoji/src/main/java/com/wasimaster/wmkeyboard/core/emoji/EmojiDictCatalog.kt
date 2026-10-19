@@ -45,7 +45,9 @@ data class EmojiDictEntry(
  * the data repo covers.
  *
  * 131 of the repo's 142: the codes it spells differently are remapped (`no` ->
- * `nb`, `blo` -> the Keyman `blo-Latn`), its exact duplicates are dropped
+ * `nb`, `blo` -> the Keyman `blo-Latn`; several packs also serve the Keyman
+ * codes for the same language, `pes-Arab` and `prs` reading `fa`'s), its exact
+ * duplicates are dropped
  * (`fil` == `tl`, `pt_br` == `pt`, `zh_cn` == `zh`), and so are `zh_tw`, which
  * the app has no entry for, and the seven packs the upstream
  * data leaves all but empty — `bgn`, `ceb`, `ckb`, `mni`, `su`, `syr` and
@@ -74,12 +76,15 @@ object EmojiDictCatalog {
         entry("as", 3942, 77419L),
         entry("ast", 281, 3472L),
         entry("az", 3943, 78968L),
+        entry("azj-Latn", 3943, 78968L, repoCode = "az"),
+        entry("azj-Latn-AZ", 3943, 78968L, repoCode = "az"),
         entry("ba", 3912, 77229L),
         entry("be", 3943, 78236L),
         entry("bew", 288, 3915L),
         entry("bg", 3943, 87434L),
         entry("blo-Latn", 108, 1332L, repoCode = "blo"),
         entry("bn", 3943, 93862L),
+        entry("bn-IN", 3943, 93862L, repoCode = "bn"),
         entry("bn_rom", 3943, 129656L, repoDir = "bn"),
         entry("br", 1400, 24287L),
         entry("bs", 3943, 68377L),
@@ -123,6 +128,8 @@ object EmojiDictCatalog {
         entry("jv", 3941, 67928L),
         entry("ka", 3943, 77232L),
         entry("kab", 2093, 29086L),
+        entry("khk-Cyrl", 3943, 71808L, repoCode = "mn"),
+        entry("khk-Cyrl-MN", 3943, 71808L, repoCode = "mn"),
         entry("kk", 3943, 78499L),
         entry("kl", 1200, 25934L),
         entry("km", 3943, 79041L),
@@ -155,7 +162,9 @@ object EmojiDictCatalog {
         entry("pa", 3943, 94714L),
         entry("pap", 180, 2121L),
         entry("pcm", 3940, 77020L),
+        entry("pes-Arab", 3943, 86596L, repoCode = "fa"),
         entry("pl", 3943, 82513L),
+        entry("prs", 3943, 86596L, repoCode = "fa"),
         entry("ps", 3943, 76103L),
         entry("pt", 3943, 80636L),
         entry("qu", 3567, 61404L),
