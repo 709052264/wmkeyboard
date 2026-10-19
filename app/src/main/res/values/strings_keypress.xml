@@ -54,6 +54,13 @@
     <string name="keypress_system_touch_subtitle">Let Android\'s own touch vibration switch silence the keyboard too</string>
     <string name="keypress_system_touch_info">By default the keyboard keeps vibrating even when you turn off touch feedback in Android\'s sound settings, because the keyboard has its own switch for it. Turn this on if you expect the system setting to cover the keyboard as well. This setting is off by default.</string>
 
+    <string name="keypress_haptics_hardware_title">Vibrate past the system touch feedback switch</string>
+    <string name="keypress_haptics_hardware_subtitle">Keep the Custom, Sharp and Click styles working when Android\'s touch feedback is off</string>
+    <string name="keypress_haptics_hardware_info">Android silences ordinary short vibrations when you turn off touch feedback in its sound settings. The System styles have always got past that, but the Custom, Sharp, Click and Heavy click styles went quiet with it. With this on, those styles vibrate as hardware feedback, which that switch does not silence. They still follow Android\'s vibration strength setting. Turn this off if the vibration feels wrong on your phone. Needs Android 13 or newer. This setting is on by default.</string>
+    <string name="keypress_system_touch_off_bypassed">Touch feedback is off in Android\'s settings. The keyboard still vibrates because \"Vibrate past the system touch feedback switch\" is on.</string>
+    <string name="keypress_system_touch_off_silent">Touch feedback is off in Android\'s settings, so this vibration style is silent. Turn on \"Vibrate past the system touch feedback switch\" below, or pick System key or System tap.</string>
+    <string name="keypress_system_touch_off_silent_old">Touch feedback is off in Android\'s settings, so this vibration style is silent on this Android version. Pick System key or System tap, which still vibrate.</string>
+
     <string name="keypress_repeat_start_title">Time before a key repeats</string>
     <string name="keypress_repeat_start_subtitle">How long you hold backspace or space before it starts repeating</string>
     <string name="keypress_repeat_start_info">Holding backspace or space starts repeating after this long. It used to share the long press delay, which meant slowing down accent popups also slowed down backspace. They are now separate. This setting is 300 ms by default.</string>

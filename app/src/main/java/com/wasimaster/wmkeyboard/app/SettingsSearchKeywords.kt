@@ -114,6 +114,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.keypress_shifted_popup_title, R.string.search_kw_keypress_shifted_popup)
     put(R.string.keypress_currency_keys_title, R.string.search_kw_keypress_currency_keys)
     put(R.string.keypress_dnd_mute_title, R.string.search_kw_keypress_dnd_mute)
+    put(R.string.keypress_haptics_hardware_title, R.string.search_kw_keypress_haptics_hardware)
     put(R.string.keypress_long_press_delay_title, R.string.search_kw_keypress_long_press_delay)
     put(R.string.keypress_long_press_hints_title, R.string.search_kw_keypress_long_press_hints)
     put(R.string.keypress_popup_title, R.string.search_kw_keypress_popup)

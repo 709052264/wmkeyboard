@@ -60,6 +60,7 @@ Six more toggles, visible only while Key press haptics is on, let you keep the b
 - **Vibrate on key repeat** (on) buzzes on every auto-repeat while <KeyCap>⌫</KeyCap> or <KeyCap>Space</KeyCap> is held. Off keeps only the first press buzzing.
 - **Click on key repeat** (on) is the sound half of the same thing: every auto-repeat plays the key sound too. Off leaves only the first press audible, which is worth having if you hold backspace with the sound on. It does nothing unless the key sound is on.
 - **Follow the system touch feedback setting** (off) is the odd one out, since it isn't per event. By default the keyboard keeps buzzing even when Android's own touch-feedback switch is off, because the keyboard has its own switch for that. Turn this on and the system switch silences the keyboard too.
+- **Vibrate past the system touch feedback switch** (on, Android 13 and newer) is what keeps that true for every style. The System styles get past Android's switch on their own. Custom, Sharp, Click and Heavy click drive the vibrator directly, and before this setting Android silenced them along with every other short buzz. With it on they go out as hardware feedback, which the switch leaves alone; Android's vibration-strength slider still scales them. Turn it off if the buzz feels wrong on your phone. The row hides while "Follow the system touch feedback setting" is on. With Android's switch off, the haptics group shows a note saying whether your style still vibrates; on Android 12 and older, only the System styles do.
 - **Mute haptics in Do Not Disturb** (off) is covered in [Silent and Do Not Disturb](#silent-and-do-not-disturb) below.
 
 ## Key press sound
@@ -198,6 +199,7 @@ No onboarding answer switches it on, not even "Show me everything", so if you fi
 | Vibrate on key repeat | On |
 | Click on key repeat | On |
 | Follow the system touch feedback setting | Off |
+| Vibrate past the system touch feedback switch | On |
 | Mute haptics in Do Not Disturb | Off |
 | Key sound | Off |
 | Sound style | Click |

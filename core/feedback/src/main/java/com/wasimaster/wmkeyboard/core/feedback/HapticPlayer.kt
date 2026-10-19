@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.feedback
 import android.content.Context
 import android.os.Build
 import android.os.SystemClock
+import android.os.VibrationAttributes
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -128,9 +129,10 @@ object HapticPlayer {
      * The phone's own "Touch feedback" switch. Read per press rather than
      * cached: it is a single ContentResolver lookup against a value the
      * platform keeps in a settings cache, and a stale answer here means the
-     * keyboard keeps buzzing after the user switched it off.
+     * keyboard keeps buzzing after the user switched it off. Public so the
+     * haptics settings can say when the switch is off.
      */
-    private fun systemTouchFeedbackOn(context: Context): Boolean =
+    fun systemTouchFeedbackOn(context: Context): Boolean =
         android.provider.Settings.System.getInt(
             context.contentResolver,
             android.provider.Settings.System.HAPTIC_FEEDBACK_ENABLED,
@@ -138,11 +140,50 @@ object HapticPlayer {
         ) != 0
 
     /**
+     * Whether the direct-vibrator styles can be tagged so the system "Touch
+     * feedback" switch leaves them alone. Needs the `VibrationAttributes`
+     * overload of `vibrate`, which is API 33.
+     */
+    fun canBypassSystemTouch(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+
+    /** Whether [style] drives the vibrator itself rather than the platform key haptic. */
+    fun isDirectStyle(style: HapticStyle): Boolean =
+        style != HapticStyle.SYSTEM_KEY && style != HapticStyle.SYSTEM_TAP
+
+    /**
+     * Plays [effect] on the vibrator. With [asHardwareFeedback] on API 33+ it
+     * goes out as `USAGE_HARDWARE_FEEDBACK` (issue #786).
+     *
+     * Untagged, a short effect is classed `USAGE_TOUCH` by the platform's
+     * haptic-feedback heuristic in `VibrationAttributes.Builder`, and
+     * `VibrationSettings` turns `USAGE_TOUCH` off outright while
+     * `HAPTIC_FEEDBACK_ENABLED` is 0. So the Custom, Sharp and Click styles
+     * went silent with the system "Touch feedback" switch off, while the
+     * System styles kept working through `FLAG_IGNORE_GLOBAL_SETTING`.
+     * Hardware feedback is scaled by its own intensity setting, which falls
+     * back to the touch intensity, and never consults the boolean switch.
+     */
+    private fun vibrate(vibrator: Vibrator, effect: VibrationEffect, asHardwareFeedback: Boolean) {
+        if (asHardwareFeedback && canBypassSystemTouch()) {
+            vibrator.vibrate(
+                effect,
+                VibrationAttributes.createForUsage(VibrationAttributes.USAGE_HARDWARE_FEEDBACK),
+            )
+        } else {
+            vibrator.vibrate(effect)
+        }
+    }
+
+    /**
      * [respectSystemSetting] makes the phone's own "Touch feedback" switch
      * silence the keyboard along with everything else. Off by default, which
      * is what the keyboard has always done. Previews pass false: someone
      * dragging the intensity slider wants to feel the result whatever the
      * system switch says.
+     *
+     * [asHardwareFeedback] lets the direct-vibrator styles get past that
+     * switch too; see [vibrate]. It only applies while [respectSystemSetting]
+     * is off.
      */
     @Suppress("DEPRECATION")
     fun play(
@@ -152,6 +193,7 @@ object HapticPlayer {
         durationMs: Int,
         view: View? = null,
         respectSystemSetting: Boolean = false,
+        asHardwareFeedback: Boolean = true,
     ) {
         // System styles ride the platform's tuned key haptic. If it actually
         // played we're done; otherwise fall through to a hardware click so
@@ -163,6 +205,7 @@ object HapticPlayer {
         // their own, so honouring it is this check.
         if (respectSystemSetting && !systemTouchFeedbackOn(context)) return
         val vibrator = vibratorFor(context)
+        val hardware = asHardwareFeedback && !respectSystemSetting
         if (style == HapticStyle.SHARP &&
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
             vibrator.areAllPrimitivesSupported(VibrationEffect.Composition.PRIMITIVE_CLICK)
@@ -172,24 +215,28 @@ object HapticPlayer {
             // strong — the crisp thump stock keyboards have. A raw one-shot
             // can't do this: it just drives the coil at constant amplitude,
             // which feels mushy. Scale reuses the intensity slider (0..1).
-            vibrator.vibrate(
+            vibrate(
+                vibrator,
                 VibrationEffect.startComposition()
                     .addPrimitive(
                         VibrationEffect.Composition.PRIMITIVE_CLICK,
                         amplitude.coerceIn(1, 255) / 255f,
                     )
-                    .compose()
+                    .compose(),
+                hardware,
             )
         } else if (style != HapticStyle.CUSTOM && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             // Hardware-tuned click effects — crisper than a raw one-shot and
             // what most stock keyboards use.
-            vibrator.vibrate(
+            vibrate(
+                vibrator,
                 VibrationEffect.createPredefined(
                     when (style) {
                         HapticStyle.HEAVY_CLICK -> VibrationEffect.EFFECT_HEAVY_CLICK
                         else -> VibrationEffect.EFFECT_CLICK
                     }
-                )
+                ),
+                hardware,
             )
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             // Explicit amplitude: DEFAULT_AMPLITUDE defers to a (often weak)
@@ -200,7 +247,7 @@ object HapticPlayer {
             } else {
                 VibrationEffect.DEFAULT_AMPLITUDE
             }
-            vibrator.vibrate(VibrationEffect.createOneShot(durationMs.toLong(), oneShotAmplitude))
+            vibrate(vibrator, VibrationEffect.createOneShot(durationMs.toLong(), oneShotAmplitude), hardware)
         } else {
             vibrator.vibrate(durationMs.toLong())
         }

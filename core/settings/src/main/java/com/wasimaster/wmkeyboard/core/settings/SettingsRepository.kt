@@ -2364,6 +2364,17 @@ data class FeedbackSettings(
      */
     val respectSystemTouchFeedback: Boolean = false,
     /**
+     * Send the styles that drive the vibrator directly (Custom, Sharp, Click,
+     * Heavy click) as hardware feedback, so the system "touch feedback" switch
+     * stops silencing them (issue #786). Android 13+ only; does nothing while
+     * [respectSystemTouchFeedback] is on.
+     *
+     * On by default: the System styles have always got past that switch, and
+     * the others falling silent with it was the bug. Off is the escape hatch
+     * for a device whose vendor scales hardware feedback oddly.
+     */
+    val hapticsAsHardwareFeedback: Boolean = true,
+    /**
      * Show a short toast confirming text was copied to the clipboard, for
      * fields that give no visual copy feedback of their own. Off by default.
      */
@@ -9451,6 +9462,8 @@ class SettingsRepository(private val context: Context) {
         private val FEEDBACK_SOUND_REPEAT = booleanPreferencesKey("feedback_sound_repeat")
         private val FEEDBACK_RESPECT_SYSTEM_TOUCH =
             booleanPreferencesKey("feedback_respect_system_touch")
+        private val FEEDBACK_HAPTICS_AS_HARDWARE =
+            booleanPreferencesKey("feedback_haptics_as_hardware")
         private val FEEDBACK_TOAST_ON_COPY = booleanPreferencesKey("feedback_toast_on_copy")
         private val FEEDBACK_HAPTICS_RESPECT_DND = booleanPreferencesKey("feedback_haptics_respect_dnd")
         private val KEY_SOUND = booleanPreferencesKey("key_sound")
@@ -11324,6 +11337,8 @@ class SettingsRepository(private val context: Context) {
             soundOnRepeat = p[FEEDBACK_SOUND_REPEAT] ?: defaults.feedback.soundOnRepeat,
             respectSystemTouchFeedback = p[FEEDBACK_RESPECT_SYSTEM_TOUCH]
                 ?: defaults.feedback.respectSystemTouchFeedback,
+            hapticsAsHardwareFeedback = p[FEEDBACK_HAPTICS_AS_HARDWARE]
+                ?: defaults.feedback.hapticsAsHardwareFeedback,
             toastOnCopy = p[FEEDBACK_TOAST_ON_COPY] ?: defaults.feedback.toastOnCopy,
             hapticsRespectDnd = p[FEEDBACK_HAPTICS_RESPECT_DND]
                 ?: defaults.feedback.hapticsRespectDnd,
@@ -16964,6 +16979,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setRespectSystemTouchFeedback(value: Boolean) =
         editPrefs { it[FEEDBACK_RESPECT_SYSTEM_TOUCH] = value }
+
+    suspend fun setHapticsAsHardwareFeedback(value: Boolean) =
+        editPrefs { it[FEEDBACK_HAPTICS_AS_HARDWARE] = value }
 
     suspend fun setToastOnCopy(value: Boolean) =
         editPrefs { it[FEEDBACK_TOAST_ON_COPY] = value }

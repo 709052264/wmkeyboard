@@ -49,6 +49,8 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.feedback.R as FeedbackR
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.core.feedback.HapticPlayer
 import com.wasimaster.wmkeyboard.core.feedback.KeySoundPlayer
@@ -1119,6 +1121,14 @@ internal fun KeyPressHapticsSettings(
     val hapticsOn = settings.watch { it.haptics.enabled }
     val hapticStyle = settings.watch { it.haptics.style }
     val soundOn = settings.watch { it.sound.enabled }
+    val respectSystemTouch = settings.watch { it.feedback.respectSystemTouchFeedback }
+    val asHardware = settings.watch { it.feedback.hapticsAsHardwareFeedback }
+    // Re-read on resume: the switch lives in Android's own settings, and
+    // someone who reads the notice below goes there and comes back.
+    var systemTouchOn by remember { mutableStateOf(HapticPlayer.systemTouchFeedbackOn(context)) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        systemTouchOn = HapticPlayer.systemTouchFeedbackOn(context)
+    }
     SettingsGroup(stringResource(R.string.keypress_haptics_group_title)) {
         item {
             ToggleSetting(
@@ -1268,6 +1278,35 @@ internal fun KeyPressHapticsSettings(
                 info = stringResource(R.string.keypress_system_touch_info),
                 default = SettingsDefaults.feedback.respectSystemTouchFeedback,
             ) { scope.launch { repository.setRespectSystemTouchFeedback(it) } }
+        }
+        // Issue #786: the styles that drive the vibrator directly used to go
+        // silent with Android's "Touch feedback" switch off. Say so whenever
+        // that switch is off, both when the keyboard is getting past it and
+        // when it cannot.
+        item(
+            visible = hapticsOn && !respectSystemTouch && !systemTouchOn &&
+                HapticPlayer.isDirectStyle(hapticStyle),
+        ) {
+            val bypassing = asHardware && HapticPlayer.canBypassSystemTouch()
+            StateBanner(
+                text = stringResource(
+                    when {
+                        bypassing -> R.string.keypress_system_touch_off_bypassed
+                        HapticPlayer.canBypassSystemTouch() -> R.string.keypress_system_touch_off_silent
+                        else -> R.string.keypress_system_touch_off_silent_old
+                    },
+                ),
+                tone = if (bypassing) BannerTone.INFO else BannerTone.WARNING,
+            )
+        }
+        item(visible = hapticsOn && !respectSystemTouch && HapticPlayer.canBypassSystemTouch()) {
+            ToggleSetting(
+                R.string.keypress_haptics_hardware_title,
+                stringResource(R.string.keypress_haptics_hardware_subtitle),
+                asHardware,
+                info = stringResource(R.string.keypress_haptics_hardware_info),
+                default = SettingsDefaults.feedback.hapticsAsHardwareFeedback,
+            ) { scope.launch { repository.setHapticsAsHardwareFeedback(it) } }
         }
         item(visible = hapticsOn) {
             ToggleSetting(

@@ -554,6 +554,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_vibrate_delete_swipe_title) { Icons.AutoMirrored.Outlined.Backspace }
         put(R.string.keypress_vibrate_repeat_title) { Icons.Outlined.Repeat }
         put(R.string.keypress_dnd_mute_title) { Icons.Outlined.DoNotDisturbOn }
+        put(R.string.keypress_haptics_hardware_title) { Icons.Outlined.Vibration }
         put(R.string.hardware_sound_key_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_volume_title) { Icons.AutoMirrored.Outlined.VolumeUp }
         put(R.string.hardware_sound_pack_release_title) { Icons.AutoMirrored.Outlined.VolumeUp }

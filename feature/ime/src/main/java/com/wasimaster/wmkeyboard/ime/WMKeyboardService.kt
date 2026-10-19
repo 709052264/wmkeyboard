@@ -45716,6 +45716,7 @@ open class WMKeyboardService : InputMethodService() {
         val haptics = settings.haptics
         val view = inputRootView
         val respectSystem = settings.feedback.respectSystemTouchFeedback
+        val asHardware = settings.feedback.hapticsAsHardwareFeedback
         // Off the main thread; see [feedbackPlayer]. A view detached in the
         // meantime makes the system route report false, and the player falls
         // back to the vibrator, so a press is never silent for it.
@@ -45727,6 +45728,7 @@ open class WMKeyboardService : InputMethodService() {
                 haptics.strengthMs,
                 view,
                 respectSystemSetting = respectSystem,
+                asHardwareFeedback = asHardware,
             )
         }
     }

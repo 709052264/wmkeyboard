@@ -658,6 +658,7 @@ private fun SearchStrings.keypressHapticsRows(): List<SettingsSearchEntry> {
         row(R.string.keypress_vibrate_space_title, R.string.keypress_vibrate_space_subtitle),
         row(R.string.keypress_vibrate_delete_swipe_title, R.string.keypress_vibrate_delete_swipe_subtitle),
         row(R.string.keypress_vibrate_repeat_title, R.string.keypress_vibrate_repeat_subtitle),
+        row(R.string.keypress_haptics_hardware_title, R.string.keypress_haptics_hardware_subtitle),
         row(R.string.keypress_dnd_mute_title, R.string.keypress_dnd_mute_subtitle),
     )
 }
