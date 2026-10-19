@@ -1663,6 +1663,12 @@ class SuggestionEngine(
      * contraction it is drawn for. Only the unambiguous table, so `its` and
      * `were` are still read as themselves, and only while the repair is on:
      * without it the stroke would commit `doesnt`.
+     *
+     * A bare spelling the list does hold stands here too when the
+     * contraction outnumbers it (#784). `ill` is a word, but a rare one next
+     * to *I'll*, and the stroke commits *I'll* either way; walked at `ill`'s
+     * own count it lost to whatever commoner word the stroke also passed. The walk
+     * keeps the better of the two counts for a spelling in both.
      */
     private fun glideContractionSources(): List<FuzzyBeamSearch.WalkSource> {
         if (!apostropheFixes || mixLanguageIds().none(Apostrophes::servesLanguage)) return emptyList()
@@ -1670,8 +1676,9 @@ class SuggestionEngine(
         val cached = glideContractions?.takeIf { it.first == stamp }?.second ?: run {
             val repairs = mixLanguageIds().flatMap { Apostrophes.repairs(it).entries }
             val entries = repairs.mapNotNull { (bare, fixed) ->
-                if (inDictionaries(bare)) return@mapNotNull null
-                dictionaryFrequencyOf(fixed.lowercase()).takeIf { it > 0 }?.let { bare to it }
+                val count = dictionaryFrequencyOf(fixed.lowercase()).takeIf { it > 0 } ?: return@mapNotNull null
+                if (inDictionaries(bare) && dictionaryFrequencyOf(bare) >= count) return@mapNotNull null
+                bare to count
             }
             (if (entries.isEmpty()) PackedTrie.EMPTY else PackedTrie.of(entries))
                 .also { glideContractions = stamp to it }
