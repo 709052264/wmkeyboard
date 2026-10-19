@@ -9,8 +9,11 @@ import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.homeassistant.HaDomains
+import com.wasimaster.wmkeyboard.core.homeassistant.HaServiceCall
 import com.wasimaster.wmkeyboard.core.homeassistant.HaStateFormat
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeFeature
+import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeRef
 import com.wasimaster.wmkeyboard.core.settings.HomeAssistantSettings
 import com.wasimaster.wmkeyboard.core.settings.KdeConnectSettings
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
@@ -27,6 +30,7 @@ import com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.JsonObject
 
 /**
  * What the keyboard module lends the AI's tools (#698), for the keyboard's AI
@@ -134,9 +138,50 @@ class KeyboardAiToolHost(
         runBlocking {
             holdHome(settings)
             try {
+                // Google Home, SmartThings and the rest have no Assist to read
+                // a sentence. Say so in words the model can act on, rather
+                // than the hub's bare "no_assist".
+                check(SmartHomeHub.state.value.homes.any { HomeFeature.ASSIST in it.features }) {
+                    "None of the user's homes understands sentences. Call home_assistant_states to find the device's id, " +
+                        "then call home_assistant again with entity_id and action."
+                }
                 val reply = SmartHomeHub.assist(request, hints.firstOrNull()?.substringBefore('-'), null)
                 if (reply.isError) error(reply.speech.ifBlank { "Home Assistant could not do that" })
                 reply.speech.ifBlank { "Done." }
+            } finally {
+                releaseHomeLater()
+            }
+        }
+    }
+
+    /**
+     * One service call on the home that has [entityId]: the same call a tile
+     * makes, so it reaches every kind of home. [entityId] is the home's own id
+     * as [homeStates] lists it, or a `home|id` ref; [action] is a service of
+     * the entity's own domain, or a `domain.service`.
+     */
+    override fun homeAction(entityId: String, action: String, data: JsonObject): Result<String> = runCatching {
+        val settings = requireNotNull(homePrefs) { "The smart home tool is off" }
+        runBlocking {
+            holdHome(settings)
+            try {
+                val states = SmartHomeHub.ensureStates().ifEmpty { SmartHomeHub.entitiesWithCache() }
+                val wanted = entityId.trim()
+                val ref = wanted.takeIf { it in states }
+                    ?: states.keys.firstOrNull { HomeRef.native(it) == wanted }
+                    ?: states.keys.firstOrNull { HomeRef.native(it).equals(wanted, ignoreCase = true) }
+                    ?: error("No device has the id $wanted. Call home_assistant_states for the ids.")
+                val native = HomeRef.native(ref)
+                val service = action.trim()
+                val call = if ('.' in service) {
+                    HaServiceCall(service.substringBefore('.'), service.substringAfter('.'), native, data)
+                } else {
+                    HaServiceCall(native.substringBefore('.'), service, native, data)
+                }
+                SmartHomeHub.callService(HomeRef.home(ref), call)
+                val hub = SmartHomeHub.state.value
+                val name = states[ref]?.let { hub.registryOf(it).nameOf(it) } ?: native
+                "Done: ${call.domain}.${call.service} on $name."
             } finally {
                 releaseHomeLater()
             }

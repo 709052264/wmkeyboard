@@ -166,7 +166,7 @@
 
     <!-- The AI chat's built-in tools (#698) -->
     <string name="toolai_ai_builtin_home_assistant_title">Control your home</string>
-    <string name="toolai_ai_builtin_home_assistant_subtitle">Turns things on or off, sets brightness or temperature, runs scenes, through Home Assistant\'s Assist. Only listed while a home is set up; needs a Home Assistant on the list to act.</string>
+    <string name="toolai_ai_builtin_home_assistant_subtitle">Turns things on or off, sets brightness or temperature, runs scenes, on any home on the list. With a Home Assistant, it can also ask Assist in a sentence. Only listed while a home is set up.</string>
     <string name="toolai_ai_builtin_home_assistant_states_title">Read your home</string>
     <string name="toolai_ai_builtin_home_assistant_states_subtitle">The states of your devices and sensors across every home on the list, as they are now</string>
 </resources>

@@ -40,7 +40,7 @@ interface AiToolHost {
     fun sendToPc(text: String): Result<String> =
         Result.failure(UnsupportedOperationException("no KDE Connect here"))
 
-    /** Whether [homeControl] and [homeStates] have a signed-in Home Assistant behind them. */
+    /** Whether [homeControl], [homeAction] and [homeStates] have a signed-in home behind them. */
     val canControlHome: Boolean get() = false
 
     /**
@@ -49,6 +49,14 @@ interface AiToolHost {
      */
     fun homeControl(request: String): Result<String> =
         Result.failure(UnsupportedOperationException("no Home Assistant here"))
+
+    /**
+     * Runs [action] (`turn_on`, or `domain.service`) on the device [entityId]
+     * names, on whichever home has it, with [data] as the service's fields.
+     * Works on every kind of home, not only one with Assist. Blocking.
+     */
+    fun homeAction(entityId: String, action: String, data: kotlinx.serialization.json.JsonObject): Result<String> =
+        Result.failure(UnsupportedOperationException("no smart home here"))
 
     /** The user's entities matching [query], one state per line; everything on or open when [query] is null. Blocking. */
     fun homeStates(query: String?): Result<String> =

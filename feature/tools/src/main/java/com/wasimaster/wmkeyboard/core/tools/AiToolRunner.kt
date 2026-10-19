@@ -37,6 +37,10 @@ import java.util.Locale
 import java.util.TimeZone
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonObject
 
 /**
  * Runs the tools a model asked for (#470), and turns what happened — including
@@ -880,16 +884,40 @@ class AiToolRunner(
         )
     }
 
-    /** One sentence to the user's Home Assistant, through its Assist; what it said back is the result. */
+    /**
+     * One device and an action, run on whichever home has it; or one sentence
+     * to a Home Assistant's Assist. Only Home Assistant understands sentences,
+     * so a device and an action is what reaches Google Home and the rest.
+     */
     private fun homeAssistant(call: AiToolCall): AiToolResult {
-        val request = call.argument("request") ?: return missing(call, "request")
         val home = host ?: return refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, "")
+        val entityId = call.argument("entity_id")
+        val action = call.argument("action")
+        if (entityId != null && action != null) {
+            return home.homeAction(entityId, action, homeData(call)).fold(
+                onSuccess = { AiToolResult(call, it) },
+                onFailure = { failure ->
+                    refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, failure.message.orEmpty())
+                },
+            )
+        }
+        val request = call.argument("request") ?: return missing(call, if (entityId != null) "action" else "entity_id")
         return home.homeControl(request).fold(
             onSuccess = { speech -> AiToolResult(call, speech.ifBlank { "Done." }) },
             onFailure = { failure ->
                 refusedWith(call, R.string.ftools_ai_tool_home_failed, R.string.ftools_ai_tool_reason_home_failed, failure.message.orEmpty())
             },
         )
+    }
+
+    /** The call's `data`, whether the model sent an object or the object as a string. */
+    private fun homeData(call: AiToolCall): JsonObject {
+        val raw = runCatching { Json.parseToJsonElement(call.arguments).jsonObject["data"] }.getOrNull()
+        return when (raw) {
+            is JsonObject -> raw
+            is JsonPrimitive -> runCatching { Json.parseToJsonElement(raw.content).jsonObject }.getOrNull()
+            else -> null
+        } ?: JsonObject(emptyMap())
     }
 
     private fun homeAssistantStates(call: AiToolCall): AiToolResult {

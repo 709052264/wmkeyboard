@@ -431,8 +431,9 @@ object AiTools {
         ),
         data(
             HOME_ASSISTANT_STATES,
-            "Read the state of the user's smart-home devices and sensors from Home Assistant: " +
-                "which lights are on, the temperature a sensor reads, whether a door is open.",
+            "Read the state of the user's smart-home devices and sensors, from every home they connected: " +
+                "which lights are on, the temperature a sensor reads, whether a door is open. " +
+                "Each line ends with the device's id in brackets, which $HOME_ASSISTANT takes as entity_id.",
             param("query", "A room, device or sensor name to look for. Leave it out for everything that is on or open.", required = false),
         ),
         // The pictures the user sent in the chat. Reading one's text happens on
@@ -512,9 +513,24 @@ object AiTools {
         ),
         action(
             HOME_ASSISTANT,
-            "Control the user's smart home through Home Assistant: turn things on or off, set brightness, " +
-                "temperature or position, run a scene, lock a door. Say it in one plain sentence; the home resolves the names.",
-            param("request", "What to do, as one sentence, such as 'turn off the kitchen lights' or 'set the thermostat to 21'."),
+            "Control the user's smart home: turn things on or off, set brightness, " +
+                "temperature or position, run a scene, lock a door. Either name one device by entity_id with an action, " +
+                "taking the id from $HOME_ASSISTANT_STATES, or say it in one plain sentence as request, " +
+                "which only a Home Assistant with Assist understands. Prefer entity_id and action.",
+            param("entity_id", "The device's id from $HOME_ASSISTANT_STATES, such as 'fan.bedroom'.", required = false),
+            param(
+                "action",
+                "What to do to it: turn_on, turn_off or toggle, or a service such as set_temperature, " +
+                    "set_percentage, open_cover, lock or unlock.",
+                required = false,
+            ),
+            param(
+                "data",
+                "The service's settings as a JSON object, such as {\"brightness_pct\": 40} or {\"temperature\": 21}. " +
+                    "Leave it out for a plain on or off.",
+                required = false,
+            ),
+            param("request", "What to do, as one sentence, such as 'turn off the kitchen lights'. Home Assistant only.", required = false),
         ),
     )
 
@@ -558,7 +574,8 @@ object AiTools {
         MEDIA_CONTROL -> call.argument("action")
         READ_IMAGE_TEXT, REVERSE_IMAGE_SEARCH -> call.argument("image")
         SEND_TO_PC -> call.argument("text")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
-        HOME_ASSISTANT -> call.argument("request")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
+        HOME_ASSISTANT -> (call.argument("request") ?: listOfNotNull(call.argument("action"), call.argument("entity_id")).joinToString(" ").ifEmpty { null })
+            ?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         HOME_ASSISTANT_STATES -> call.argument("query")
         else -> null
     }.orEmpty()
