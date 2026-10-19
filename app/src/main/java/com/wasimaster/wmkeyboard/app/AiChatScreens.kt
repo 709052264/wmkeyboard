@@ -768,9 +768,10 @@ private fun MessageBubble(
                                     codeBackground = ink.copy(alpha = 0.10f),
                                 ),
                                 fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                            ) { block ->
-                                BubbleAction(CommonR.string.common_copy) { copy(block.code) }
-                            }
+                                codeActions = { block ->
+                                    BubbleAction(CommonR.string.common_copy) { copy(block.code) }
+                                },
+                            )
                         }
                     }
                     if (message.attachment.isNotEmpty()) {

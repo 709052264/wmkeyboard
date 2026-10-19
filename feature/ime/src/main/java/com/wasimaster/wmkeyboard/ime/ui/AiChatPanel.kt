@@ -503,12 +503,12 @@ private fun MessageBubble(
                     fromUser -> if (message.content.isNotEmpty()) {
                         Text(message.content, color = ink, fontSize = 13.sp, lineHeight = 18.sp)
                     }
-                    else -> ChatMarkdown(message.content, colors) { block ->
+                    else -> ChatMarkdown(message.content, colors, codeActions = { block ->
                         CodeAction(stringResource(CommonR.string.common_copy), colors) { onCopy(block.code) }
                         CodeAction(stringResource(R.string.ime_ai_insert), colors) {
                             onChat(AiChatAction.Insert(block.code, raw = true))
                         }
-                    }
+                    })
                 }
                 if (message.attachment.isNotEmpty()) {
                     Caption(
