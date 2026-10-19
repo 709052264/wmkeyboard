@@ -2528,6 +2528,11 @@ data class WordMenuFacts(
      * letters, typed where the sources can answer (they are English).
      */
     val synonyms: Boolean = false,
+    /**
+     * The held word's rank adjustment, in the word card's steps, so a hold
+     * that goes on to slide (#790) starts from where the word already sits.
+     */
+    val rankSteps: Int = 0,
 )
 
 /**

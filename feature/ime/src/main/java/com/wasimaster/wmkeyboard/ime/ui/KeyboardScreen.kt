@@ -5459,6 +5459,9 @@ private fun RowScope.LatinSuggestionChips(
     // the menu cannot change shape under a finger.
     var heldFacts by remember { mutableStateOf(WordMenuFacts()) }
     val holdLabel = stringResource(R.string.ime_suggestion_hold_label)
+    // A hold that goes on to slide (#790): which word, the rank it held, and
+    // how many steps the finger has moved it. Null while nothing is sliding.
+    var rankSlide by remember { mutableStateOf<RankSlide?>(null) }
     // Candidates change under the menu as the user keeps typing; a menu still
     // naming the old word would blacklist something they never held.
     LaunchedEffect(candidates) { heldWord = null }
@@ -5577,6 +5580,45 @@ private fun RowScope.LatinSuggestionChips(
                             Modifier
                         },
                     )
+                    // Hold, then slide (#790): up lifts the word, down sinks
+                    // it, and far enough down never suggests it again. Only
+                    // watched once the hold has fired, so a tap, a swipe
+                    // along the strip and a plain hold are untouched.
+                    .pointerInput(suggestion, enabled) {
+                        if (!enabled) return@pointerInput
+                        val stepPx = RankSlideStep.toPx()
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            var anchorY = Float.NaN
+                            var held = 0
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                if (anchorY.isNaN() && heldWord == suggestion) {
+                                    anchorY = change.position.y
+                                    held = heldFacts.rankSteps
+                                }
+                                if (!anchorY.isNaN() && change.pressed) {
+                                    val steps = ((anchorY - change.position.y) / stepPx).toInt()
+                                    val current = rankSlide
+                                    if (steps != 0 || current != null) {
+                                        if (current == null || current.steps != steps) {
+                                            rankSlide = RankSlide(suggestion, held, steps)
+                                        }
+                                        // The menu was the hold's answer; a slide is a different one.
+                                        heldWord = null
+                                        change.consume()
+                                    }
+                                }
+                                if (!change.pressed) break
+                            }
+                            val slide = rankSlide
+                            rankSlide = null
+                            if (slide != null && slide.word == suggestion && slide.steps != 0) {
+                                suggestionHold.onRankSlide(slide.word, slide.target, slide.blocks)
+                            }
+                        }
+                    }
                     .combinedClickable(
                         enabled = enabled,
                         onLongClickLabel = holdLabel,
@@ -5731,6 +5773,7 @@ private fun RowScope.LatinSuggestionChips(
                 shown.forEachIndexed { index, suggestion -> slot(index, suggestion) }
             }
         }
+        rankSlide?.let { slide -> RankSlideBadge(slide, Modifier.align(Alignment.Center)) }
         val held = heldWord
         if (held != null) {
             StripMenuScrim(onDismiss = { heldWord = null })
@@ -30875,4 +30918,61 @@ private fun wordCaseOr(case: GlideCase, letters: Boolean, crossings: Int): Glide
     letters -> case
     crossings > 0 -> GlideCase.Word(crossings)
     else -> GlideCase.None
+}
+
+/** How far a held word's finger moves for one step of its rank (#790). */
+private val RankSlideStep = 24.dp
+
+/**
+ * A held strip word being slid (#790): [held] is the rank it had, [steps] how
+ * far the finger has moved it since. Down past [BLOCK_STEPS] is the never
+ * suggest boundary rather than a rank.
+ */
+@androidx.compose.runtime.Immutable
+internal data class RankSlide(val word: String, val held: Int, val steps: Int) {
+    val blocks: Boolean get() = steps <= -BLOCK_STEPS
+    val target: Int get() = (held + steps).coerceIn(MIN_RANK, MAX_RANK)
+
+    companion object {
+        /** Steps down that turn a sink into Never suggest: about 15 mm. */
+        const val BLOCK_STEPS = 6
+
+        /** The word card's own bounds (WordRanks.MIN_STEPS..MAX_STEPS). */
+        const val MIN_RANK = -10
+        const val MAX_RANK = 10
+    }
+}
+
+/** What a slide will do when the finger lifts, drawn over the strip. */
+@Composable
+private fun RankSlideBadge(slide: RankSlide, modifier: Modifier) {
+    val text = when {
+        slide.blocks -> stringResource(R.string.ime_suggestion_never_suggest, slide.word)
+        slide.target == slide.held -> stringResource(R.string.ime_suggestion_rank_unchanged, slide.word)
+        else -> stringResource(R.string.ime_suggestion_rank_badge, slide.word, signedRank(slide.target))
+    }
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        color = if (slide.blocks) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.inverseSurface,
+        contentColor = if (slide.blocks) {
+            MaterialTheme.colorScheme.onErrorContainer
+        } else {
+            MaterialTheme.colorScheme.inverseOnSurface
+        },
+    ) {
+        Text(
+            text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 1,
+        )
+    }
+}
+
+/** A rank as the badge writes it: +2, 0, −3. */
+internal fun signedRank(steps: Int): String = when {
+    steps > 0 -> "+$steps"
+    steps < 0 -> "\u2212${-steps}"
+    else -> "0"
 }

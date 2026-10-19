@@ -127,6 +127,10 @@
     <!-- Screen reader name for pressing and holding a word on the suggestion
          strip, which opens the menu below. -->
     <string name="ime_suggestion_hold_label">Word options</string>
+    <!-- Shown over the strip while a held word is slid up or down (#790). %1$s is the word, %2$s its new rank, such as +2 or −3. -->
+    <string name="ime_suggestion_rank_badge">\"<xliff:g id="word" example="mary">%1$s</xliff:g>\" rank <xliff:g id="rank" example="+2">%2$s</xliff:g></string>
+    <!-- The same, slid back to where it started: lifting changes nothing. -->
+    <string name="ime_suggestion_rank_unchanged">\"<xliff:g id="word" example="mary">%1$s</xliff:g>\" unchanged</string>
     <!-- An item in that menu. %1$s is the word the user held. -->
     <string name="ime_suggestion_never_suggest">Never suggest \"<xliff:g id="word" example="mary">%1$s</xliff:g>\"</string>
     <!-- Menu item that takes a word back off the never-suggest list. %1$s is

@@ -41809,7 +41809,27 @@ open class WMKeyboardService : InputMethodService() {
             onMorePopup = ::onMoreSuggestionsPopup,
             onMorePick = ::onMoreSuggestionPicked,
             onCandidateAdjust = ::onCandidateAdjust,
+            onRankSlide = ::onSuggestionRankSlide,
         )
+    }
+
+    /**
+     * A strip word held and slid (#790): the same rank the word card's
+     * controls set, through the same store, or past the boundary the same
+     * Never suggest the hold menu offers. A word the slide no longer names
+     * (blank, or longer than a word) changes nothing.
+     */
+    private fun onSuggestionRankSlide(word: String, steps: Int, block: Boolean) {
+        val trimmed = word.trim()
+        if (trimmed.isEmpty()) return
+        if (block) {
+            onSuggestionHeld(trimmed)
+            return
+        }
+        vibrate()
+        if (!wordRanks.set(trimmed, steps)) return
+        suggestionEngine?.rankOffsets = wordRanks.snapshot()
+        refreshSuggestions()
     }
 
     /**
@@ -41897,6 +41917,7 @@ open class WMKeyboardService : InputMethodService() {
             resettable = isResettable(trimmed),
             blacklisted = _uiState.value.let { it.settings.suggestionSources.blacklisted(trimmed, it.language.id) },
             synonyms = synonymsOffered(trimmed),
+            rankSteps = wordRanks.offsetOf(trimmed),
         )
     }
 
