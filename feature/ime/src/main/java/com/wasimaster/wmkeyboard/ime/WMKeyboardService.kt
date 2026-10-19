@@ -22486,6 +22486,41 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The panel's Start of text and End of text keys (#785), as a selection
+     * change rather than Ctrl+Home / Ctrl+End. Those key events went nowhere
+     * in many apps: a field that binds Ctrl shortcuts of its own, or one whose
+     * key listener knows no whole-text move, ate them and the caret stayed
+     * put. With [selecting] the moving end goes to the edge and the anchor
+     * stays. The start is offset 0 in any field; the end is read after the
+     * caret, and past [DIRECT_CARET_EDGE_REACH] from the extracted text. False
+     * when the field has not said where its selection is or refuses the
+     * change, and the caller sends the key events instead.
+     */
+    private fun moveToTextEdgeDirectly(ic: InputConnection, toEnd: Boolean, selecting: Boolean): Boolean {
+        val start = expectedSelStart
+        val end = expectedSelEnd
+        if (start < 0 || end < start) return false
+        val to = if (toEnd) {
+            val after = ic.getTextAfterCursor(DIRECT_CARET_EDGE_REACH, 0) ?: return false
+            if (after.length < DIRECT_CARET_EDGE_REACH) {
+                end + after.length
+            } else {
+                val et = ic.getExtractedText(ExtractedTextRequest(), 0)
+                val text = et?.text ?: return false
+                maxOf(et.startOffset + text.length, end + after.length)
+            }
+        } else {
+            0
+        }
+        if (!selecting) {
+            if (start == to && end == to) return true
+            return setStretchedSelection(ic, to, to)
+        }
+        noteSelectionAnchor()
+        return setStretchedSelection(ic, anchorFor(start, end, if (toEnd) 1 else -1), to)
+    }
+
+    /**
      * Which end of the selection [start]..[end] stays put for a step the way
      * [delta] points: the one [selectionAnchor] kept, or, for a selection the
      * keyboard did not make, the end away from the step, so the first step
@@ -40059,10 +40094,16 @@ open class WMKeyboardService : InputMethodService() {
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
             // shift too and extend to the end.
+            // Set directly first, the way Gboard does it (#785): plenty of
+            // fields take Ctrl+Home / Ctrl+End as a shortcut or drop it.
             TextEditAction.DOC_START ->
-                sendEditorKey(KeyEvent.KEYCODE_MOVE_HOME, selecting, ctrl = true)
+                if (!moveToTextEdgeDirectly(ic, toEnd = false, selecting = selecting)) {
+                    sendEditorKey(KeyEvent.KEYCODE_MOVE_HOME, selecting, ctrl = true)
+                }
             TextEditAction.DOC_END ->
-                sendEditorKey(KeyEvent.KEYCODE_MOVE_END, selecting, ctrl = true)
+                if (!moveToTextEdgeDirectly(ic, toEnd = true, selecting = selecting)) {
+                    sendEditorKey(KeyEvent.KEYCODE_MOVE_END, selecting, ctrl = true)
+                }
             // Like copy, it ends the panel's select mode: the selection is gone.
             TextEditAction.CUT -> {
                 flushLearningBuffer(verifyCorrections = false)
