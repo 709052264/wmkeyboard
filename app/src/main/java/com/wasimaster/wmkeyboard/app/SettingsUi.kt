@@ -30,6 +30,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -2504,7 +2505,8 @@ internal fun WmScreen(
                     .padding(padding)
                     .fillMaxSize()
                     .nestedScroll(scrollLock)
-                    .verticalScroll(scrollState),
+                    .verticalScroll(scrollState)
+                    .holdScrolledPlace(scrollState),
                 verticalArrangement = Arrangement.Top,
             ) {
                 // The same air under the bar whatever comes first. A group
@@ -2529,6 +2531,24 @@ internal fun WmScreen(
             }
         }
     }
+}
+
+/**
+ * Keeps a scrolled page at least as tall as the part of it already scrolled
+ * past plus the screen (#665).
+ *
+ * A row closing at the foot of a page scrolled to its end made the page
+ * shorter than where the reader stood, the scroll offset was clamped, and
+ * every card above was dragged down a row's height in a few frames, which
+ * read as the whole list flashing. Held this way the rows above stay where
+ * they are and the room the row left stays as empty space below, which goes
+ * as soon as the reader scrolls up past it. Read in layout only, so a scroll
+ * costs this node a relayout and recomposes nothing.
+ */
+private fun Modifier.holdScrolledPlace(scroll: ScrollState): Modifier = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    val floor = scroll.value + scroll.viewportSize
+    layout(placeable.width, maxOf(placeable.height, floor)) { placeable.place(0, 0) }
 }
 
 /** Height a scrolling body leaves free under a floating action button. */
