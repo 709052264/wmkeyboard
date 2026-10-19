@@ -993,20 +993,33 @@ private val koreanRows = listOf(
 )
 
 // Russian ЙЦУКЕН. Cyrillic has case, so shift uppercases the labels (no
-// per-key shiftLabel needed); ё and ъ ride long-press.
+// per-key shiftLabel needed). Digits ride the top row and symbols the other
+// two, as QWERTY's do, so the corner hints match it; ё and ъ follow the
+// symbol on their keys' long-press, as QWERTY's accents do.
 private val russianRows = listOf(
     listOf(
-        Key("й"), Key("ц"), Key("у"), Key("к"), Key("е", longPress = listOf("ё")),
-        Key("н"), Key("г"), Key("ш"), Key("щ"), Key("з"), Key("х"),
+        Key("й", longPress = listOf("1")), Key("ц", longPress = listOf("2")),
+        Key("у", longPress = listOf("3")), Key("к", longPress = listOf("4")),
+        Key("е", longPress = listOf("5", "ё")), Key("н", longPress = listOf("6")),
+        Key("г", longPress = listOf("7")), Key("ш", longPress = listOf("8")),
+        Key("щ", longPress = listOf("9")), Key("з", longPress = listOf("0")),
+        Key("х", longPress = listOf("ъ")),
     ),
     listOf(
-        Key("ф"), Key("ы"), Key("в"), Key("а"), Key("п"), Key("р"),
-        Key("о"), Key("л"), Key("д"), Key("ж"), Key("э"),
+        Key("ф", longPress = listOf("@")), Key("ы", longPress = listOf("#")),
+        Key("в", longPress = listOf("$", "₽")), Key("а", longPress = listOf("_")),
+        Key("п", longPress = listOf("&")), Key("р", longPress = listOf("-")),
+        Key("о", longPress = listOf("+")), Key("л", longPress = listOf("(")),
+        Key("д", longPress = listOf(")")), Key("ж", longPress = listOf("/")),
+        Key("э", longPress = listOf("=")),
     ),
     listOf(
         Key("⇧", action = KeyAction.Shift, width = 1.5f),
-        Key("я"), Key("ч"), Key("с"), Key("м"), Key("и"), Key("т"),
-        Key("ь", longPress = listOf("ъ")), Key("б"), Key("ю"),
+        Key("я", longPress = listOf("*")), Key("ч", longPress = listOf("\"")),
+        Key("с", longPress = listOf("'")), Key("м", longPress = listOf(":")),
+        Key("и", longPress = listOf(";")), Key("т", longPress = listOf("!")),
+        Key("ь", longPress = listOf("?", "ъ")), Key("б", longPress = listOf("«", "»")),
+        Key("ю", longPress = listOf("»", "«")),
         Key("⌫", action = KeyAction.Delete, width = 1.5f),
     ),
     bottomRow(),
