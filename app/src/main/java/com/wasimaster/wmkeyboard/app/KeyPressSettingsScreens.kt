@@ -1377,6 +1377,15 @@ internal fun KeyPressPopupSettings(
             ) { scope.launch { repository.setKeyPopupInNumericFields(it) } }
         }
         item(visible = popupOn) {
+            ToggleSetting(
+                R.string.keypress_popup_window_band_title,
+                stringResource(R.string.keypress_popup_window_band_subtitle),
+                settings.watch { it.popup.windowBand },
+                info = stringResource(R.string.keypress_popup_window_band_info),
+                default = SettingsDefaults.popup.windowBand,
+            ) { scope.launch { repository.setKeyPopupWindowBand(it) } }
+        }
+        item(visible = popupOn) {
             SliderSetting(
                 R.string.keypress_popup_min_duration_title,
                 subtitle = stringResource(R.string.keypress_popup_min_duration_subtitle),

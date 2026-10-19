@@ -81,6 +81,10 @@
     <string name="keypress_popup_numeric_subtitle">Also show the bubble on number, phone, and date fields</string>
     <string name="keypress_popup_numeric_info">Number, phone, and date and time fields use a keypad. The floating character adds little there. Over a PIN it shows each digit large enough for another person to read it.\n\nTurn this off to hide the bubble on those keypads. Normal text fields do not change.</string>
 
+    <string name="keypress_popup_window_band_title">Space above the keyboard</string>
+    <string name="keypress_popup_window_band_subtitle">Keep a clear band above the top row for its bubbles</string>
+    <string name="keypress_popup_window_band_info">The keyboard keeps a clear band above its top row, so the bubble of a top-row key shows in full over the app. Apps still fill the screen down to the keys.\n\nSome phones move an app in a floating window clear of that band as well, and squash the window against the top of the screen. Turn this off if that happens. The bubble of a top-row key then stays inside the keyboard, over the key itself.</string>
+
     <string name="keypress_popup_min_duration_title">Minimum popup duration</string>
     <string name="keypress_popup_min_duration_subtitle">How long the bubble stays visible after a quick press</string>
     <string name="keypress_popup_min_duration_info">On a quick press the keyboard releases the key almost at once, so the bubble can be a flicker that you cannot see. The bubble stays after the release until it has been visible for this time. A value of 0 hides it the moment that you lift your finger.</string>

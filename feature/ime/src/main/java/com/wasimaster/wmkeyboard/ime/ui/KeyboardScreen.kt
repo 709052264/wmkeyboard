@@ -2256,8 +2256,12 @@ private fun DockedKeyboardFrame(
     // A blurred window blurs all of itself, the empty band above the board
     // included, and that band sits over the app's field: with the window
     // blurred the bubble stays on the board instead, as in the editor preview.
+    // So it does when the band is switched off, for the floating app windows
+    // that dodge the whole IME window rather than its insets (#614).
     val bandMode = LocalKeyPreviewBand.current.let { mode ->
-        if (mode == KeyPreviewBandMode.WINDOW && windowFrostLive(LocalKbTheme.current)) {
+        if (mode == KeyPreviewBandMode.WINDOW &&
+            (!state.settings.popup.windowBand || windowFrostLive(LocalKbTheme.current))
+        ) {
             KeyPreviewBandMode.INSIDE
         } else {
             mode

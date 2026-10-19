@@ -674,6 +674,7 @@ private fun SearchStrings.keypressPopupRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.keypress_popup_title, R.string.keypress_popup_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.keypress_popup_numeric_title, R.string.keypress_popup_numeric_subtitle),
+        row(R.string.keypress_popup_window_band_title, R.string.keypress_popup_window_band_subtitle),
         row(R.string.keypress_popup_min_duration_title, R.string.keypress_popup_min_duration_subtitle),
         row(R.string.keypress_popup_max_duration_title, R.string.keypress_popup_max_duration_subtitle),
         row(R.string.keypress_popup_on_key_title, R.string.keypress_popup_on_key_subtitle),

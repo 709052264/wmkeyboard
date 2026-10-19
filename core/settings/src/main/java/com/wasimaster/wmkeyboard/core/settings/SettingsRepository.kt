@@ -379,6 +379,16 @@ data class KeyPopupSettings(
      */
     val inNumericFields: Boolean = false,
     /**
+     * Whether the docked keyboard's window holds a see-through band above the
+     * board for the top row's bubbles. The band is kept out of the app's
+     * insets, but some phones' floating (freeform) app windows dodge the IME
+     * window's whole frame instead, band included, and get squashed against
+     * the top of the screen (#614). Off, the window is the board's own height
+     * and a top-row bubble is clamped to the board's top edge, as it already
+     * is under a blurred window.
+     */
+    val windowBand: Boolean = true,
+    /**
      * Corner radius of every popup surface — the preview bubble, the long-press
      * alternates, the language picker and the panel menus. Read by the [shape]
      * kinds that follow a radius (rounded and cut); the rest size their corners
@@ -9520,6 +9530,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_POPUP_MAX_DURATION = intPreferencesKey("key_popup_max_duration")
         private val KEY_POPUP_ON_KEY = booleanPreferencesKey("key_popup_on_key")
         private val KEY_POPUP_IN_NUMERIC = booleanPreferencesKey("key_popup_in_numeric_fields")
+        private val KEY_POPUP_WINDOW_BAND = booleanPreferencesKey("key_popup_window_band")
         private val POPUP_FONT_SCALE = floatPreferencesKey("popup_font_scale")
         private val KEY_POPUP_HEIGHT = intPreferencesKey("key_popup_height")
         private val KEY_POPUP_FLOATING_HEIGHT = intPreferencesKey("key_popup_floating_height")
@@ -15718,6 +15729,7 @@ class SettingsRepository(private val context: Context) {
             maxDurationMs = p[KEY_POPUP_MAX_DURATION] ?: defaults.popup.maxDurationMs,
             onKey = onKey,
             inNumericFields = p[KEY_POPUP_IN_NUMERIC] ?: defaults.popup.inNumericFields,
+            windowBand = p[KEY_POPUP_WINDOW_BAND] ?: defaults.popup.windowBand,
             fontScale = p[POPUP_FONT_SCALE] ?: defaults.popup.fontScale,
             heightDp = if (onKey) onKeyHeightDp else floatingHeightDp,
             onKeyHeightDp = onKeyHeightDp,
@@ -17071,6 +17083,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setKeyPopupInNumericFields(value: Boolean) =
         editPrefs { it[KEY_POPUP_IN_NUMERIC] = value }
+
+    suspend fun setKeyPopupWindowBand(value: Boolean) =
+        editPrefs { it[KEY_POPUP_WINDOW_BAND] = value }
 
     suspend fun setKeyPopupCornerRadiusDp(value: Int) =
         editPrefs { it[KEY_POPUP_RADIUS] = value.coerceIn(0, 40) }

@@ -562,6 +562,7 @@ internal object SettingsRowIcons {
         put(R.string.keypress_system_touch_title) { Icons.Outlined.PhoneAndroid }
         put(R.string.keypress_popup_title) { Icons.Outlined.Notifications }
         put(R.string.keypress_popup_numeric_title) { Icons.Outlined.Dialpad }
+        put(R.string.keypress_popup_window_band_title) { Icons.Outlined.VerticalAlignTop }
         put(R.string.keypress_popup_on_key_title) { Icons.Outlined.KeyboardCapslock }
         put(R.string.keypress_popup_min_duration_title) { Icons.Outlined.Timer }
         put(R.string.keypress_popup_max_duration_title) { Icons.Outlined.Timer }
