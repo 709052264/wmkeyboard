@@ -4054,7 +4054,7 @@ open class WMKeyboardService : InputMethodService() {
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
             KhiproGlideDownloads.completions.collect {
-                if (_uiState.value.composer === KhiproComposer.CLASSIC) ensureKhiproGlide()
+                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
             }
         }
 
@@ -23714,9 +23714,10 @@ open class WMKeyboardService : InputMethodService() {
                     languageId = state.language.id,
                     converts = state.composer.isTransliterating || state.composer.isConversion,
                     phonetic = state.composer.phoneticLanguage
-                        // Classic only: the glide spellings are Classic's,
-                        // which join consonants that Dark leaves apart.
-                        ?: KHIPRO_GLIDE.takeIf { state.composer === KhiproComposer.CLASSIC }
+                        // Dark glides on Classic's spellings too: a stroke
+                        // can't draw Dark's `/` joins, and the keys are the
+                        // same, so it commits the word Classic would.
+                        ?: KHIPRO_GLIDE.takeIf { state.composer is KhiproComposer }
                         // Full pinyin spells readings on QWERTY (#580). Not
                         // Double Pinyin, whose two keys per syllable no
                         // swipe of a reading draws.
