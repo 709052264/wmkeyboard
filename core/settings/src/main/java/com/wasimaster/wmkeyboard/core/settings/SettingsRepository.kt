@@ -8735,6 +8735,12 @@ data class SuggestionStripSettings(
      */
     val skipTypedWord: Boolean = false,
     /**
+     * The recent-word bar (#787): the last words written in this field, at the
+     * start of the strip, each one tap from what else it could have been. Off
+     * by default; it takes width from the live suggestions.
+     */
+    val recentWordBar: Boolean = false,
+    /**
      * Expand shortcuts stored in Android's personal dictionary: if an entry has
      * a shortcut (e.g. "omw" → "on my way"), typing the shortcut offers the full
      * phrase as a suggestion. On by default: a shortcut is only ever there
@@ -9775,6 +9781,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_RETURN_ON_SPACE = booleanPreferencesKey("symbols_return_on_space")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
+        private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
         private val USE_SYSTEM_DICTIONARY = booleanPreferencesKey("use_system_dictionary")
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
@@ -11954,6 +11961,7 @@ class SettingsRepository(private val context: Context) {
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
+            recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
                 ?: defaults.suggestionStrip.expandUserDictShortcuts,
             useSystemDictionary = p[USE_SYSTEM_DICTIONARY]
@@ -18184,6 +18192,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSkipTypedWord(value: Boolean) =
         editPrefs { it[SKIP_TYPED_WORD] = value }
+
+    suspend fun setRecentWordBar(value: Boolean) =
+        editPrefs { it[RECENT_WORD_BAR] = value }
 
     suspend fun setOctopusEnabled(value: Boolean) =
         editPrefs { it[OCTOPUS_ENABLED] = value }

@@ -3857,6 +3857,12 @@ data class KeyboardUiState(
      * can leak into it and nothing of it can leak out.
      */
     val captureSuggestions: List<String> = emptyList(),
+    /**
+     * The recent-word bar's words (#787), oldest first: the last words
+     * written before the caret, not counting the one being typed. Empty
+     * while the bar is off or has nothing to show.
+     */
+    val recentBar: List<String> = emptyList(),
     /** The focused keyboard-owned field's undo history, while it has one (#665). */
     val captureUndo: CaptureUndoMark? = null,
 ) {

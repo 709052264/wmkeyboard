@@ -97,6 +97,14 @@ It takes the word right behind the cursor back out of the field, with the one sp
 
 It only ever takes the word at the cursor, never another copy of it further back. Behind the cursor there has to be a word, or a word and one space; after a full stop, a line break or two spaces it does nothing. It also does nothing while text is selected, in a field that won't say what is behind its cursor, or when the field has changed since the keyboard last looked. A word still being typed is taken back whole, and the strip keeps what it was offering for it.
 
+## Fixing a word you've typed past
+
+Turn on **Recent words** (<SettingsPath path="Typing / Suggestions" />, off) and the two words you wrote last sit at the left of the suggestion strip as small chips, the newest on the right, with a divider between them and the live suggestions. It is for the word you notice is wrong only after you have typed on.
+
+Tap a chip and a short list opens of what else that word could have been: the spelling the bar replaced there, if you have already changed it once, then the other readings of its swipe if you swiped it, then the dictionary's corrections. Pick one and only that word changes, where it stands. The word you are still typing stays as it is, the cursor stays where it was, and the text after the word moves by the change in length. Your old spelling goes to the top of that word's list, so the same chip changes it back.
+
+A chip is a place in the text as well as a spelling, so if "form" appears twice, the chip changes the copy it shows and not the other. If the text has changed since the chip was drawn, such as an app rewriting it or you editing it by hand, the chip does nothing and the bar is read again. The bar starts empty in every new field, is never shown in password fields or while incognito is on, and is kept only while you type, never saved. While it has words to show it takes some width from the suggestions.
+
 ## Punctuation chips
 
 Turn on **Punctuation suggestions** (off by default) and a short row of marks (<KeyCap>.</KeyCap> <KeyCap>,</KeyCap> <KeyCap>?</KeyCap> <KeyCap>!</KeyCap> <KeyCap>'</KeyCap>) rides after the word candidates, set off by a thin divider. Tap one and it commits exactly as typing that key would, so a full stop or comma is one tap away without switching to the symbols layout. Those five marks are only the default. A **Punctuation marks** text field appears under the toggle and takes up to twelve characters, one chip per character, so a Bengali danda or the Spanish inverted marks can sit here instead. Clearing the field puts the five back.

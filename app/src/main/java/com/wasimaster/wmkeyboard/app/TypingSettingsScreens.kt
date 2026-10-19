@@ -1048,6 +1048,15 @@ internal fun TypingSuggestionsSettings(
             ) { scope.launch { repository.setSkipTypedWord(it) } }
         }
         item {
+            ToggleSetting(
+                R.string.typing_recent_word_bar_title,
+                stringResource(R.string.typing_recent_word_bar_subtitle),
+                settings.watch { it.suggestionStrip.recentWordBar },
+                info = stringResource(R.string.typing_recent_word_bar_info),
+                default = SettingsDefaults.suggestionStrip.recentWordBar,
+            ) { scope.launch { repository.setRecentWordBar(it) } }
+        }
+        item {
             // Issue #181: a word typed on digit-hinted keys also offers the number.
             ToggleSetting(
                 R.string.typing_number_prediction_title,

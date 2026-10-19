@@ -359,6 +359,7 @@ private fun SearchStrings.typingSuggestionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_smart_replies_title, R.string.typing_smart_replies_subtitle),
         row(R.string.typing_group_autopilot_title, R.string.typing_group_autopilot_subtitle),
         row(R.string.typing_skip_typed_word_title, R.string.typing_skip_typed_word_subtitle),
+        row(R.string.typing_recent_word_bar_title, R.string.typing_recent_word_bar_subtitle),
         row(R.string.typing_number_prediction_title, R.string.typing_number_prediction_subtitle),
         row(R.string.typing_group_octopus_title, R.string.typing_group_octopus_subtitle),
         row(R.string.typing_word_menu_title, R.string.typing_word_menu_subtitle),

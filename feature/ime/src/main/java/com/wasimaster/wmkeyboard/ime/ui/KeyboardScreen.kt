@@ -5135,6 +5135,10 @@ private fun RowScope.StripWords(
                 }
             }
         }
+        // The recent-word bar (#787), ahead of the live words.
+        if (state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar) {
+            RecentWordBar(state.recentBar, suggestionHold)
+        }
         LatinSuggestionChips(
             // One slot, so the word sits centred across the whole strip
             // rather than in the first of three (see [glideStripOnly]).
@@ -30999,4 +31003,74 @@ internal fun signedRank(steps: Int): String = when {
     steps > 0 -> "+$steps"
     steps < 0 -> "\u2212${-steps}"
     else -> "0"
+}
+
+/**
+ * The recent-word bar (#787): the last words written, newest on the right,
+ * each a chip that opens what else it could have been. A pick replaces that
+ * occurrence where it stands; the live words to the right are untouched.
+ */
+@Composable
+private fun RecentWordBar(words: List<String>, hold: SuggestionHoldCallbacks) {
+    val kb = LocalKbTheme.current
+    Row(
+        modifier = Modifier.padding(start = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        words.forEachIndexed { index, word ->
+            val back = words.lastIndex - index
+            var offers by remember(word, back) { mutableStateOf<List<String>?>(null) }
+            Box {
+                Box(
+                    modifier = Modifier
+                        .widthIn(max = 88.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(kb.chip)
+                        .clickable(onClickLabel = stringResource(R.string.ime_recent_word_open_desc)) {
+                            offers = hold.recentOffers(back, word)
+                        }
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                ) {
+                    Text(
+                        word,
+                        color = kb.chipText,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                val shown = offers
+                if (shown != null) {
+                    DropdownMenu(
+                        expanded = true,
+                        onDismissRequest = { offers = null },
+                        properties = MenuPopupProperties,
+                    ) {
+                        if (shown.isEmpty()) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.ime_recent_word_nothing)) },
+                                onClick = { offers = null },
+                                enabled = false,
+                            )
+                        }
+                        for (offer in shown) {
+                            DropdownMenuItem(
+                                text = { Text(offer) },
+                                onClick = {
+                                    offers = null
+                                    hold.onRecentPick(back, word, offer)
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        VerticalDivider(
+            modifier = Modifier.height(20.dp),
+            thickness = SuggestionDividerWidth,
+            color = MaterialTheme.colorScheme.outlineVariant,
+        )
+    }
 }
