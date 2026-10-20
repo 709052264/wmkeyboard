@@ -150,6 +150,8 @@
     <!-- Menu item that decodes the swipe that wrote the word the cursor is in
          again, this time against every word list rather than the narrower set
          the user has glide typing limited to. %1$s is that word. -->
+    <!-- The held-word menu's Retype (#844): takes the word before the cursor back out to type it again. %1$s is that word. -->
+    <string name="ime_word_menu_retype">Retype \"<xliff:g id="word" example="form">%1$s</xliff:g>\"</string>
     <string name="ime_word_menu_search_all">Search all words for \"<xliff:g id="word" example="van">%1$s</xliff:g>\"</string>
     <!-- Menu item that opens the word card, where the word is spelled,
          weighted, ranked, deleted or banned. -->

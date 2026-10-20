@@ -2449,6 +2449,13 @@ sealed interface WordMenuAction {
      */
     data class SearchAllWords(val word: String) : WordMenuAction
 
+    /**
+     * Retype (#791, #844) on the word the caret is behind: about that word,
+     * like [SearchAllWords], not the chip held to open the menu. [word] is it,
+     * as the menu named it.
+     */
+    data class Retype(val word: String) : WordMenuAction
+
     /** Look up synonyms for [word] and offer them in its place (#321). */
     data class Synonyms(val word: String) : WordMenuAction
 }
@@ -2536,6 +2543,11 @@ data class WordMenuFacts(
      * word being typed rather than the chip.
      */
     val searchableStroke: String? = null,
+    /**
+     * The word Retype (#791) would take back out of the field, so the menu
+     * can offer it with no binding of its own (#844); null when there is none.
+     */
+    val retypable: String? = null,
     /**
      * Whether Synonyms may be offered for the held word (#321): a word in
      * letters, typed where the sources can answer (they are English).

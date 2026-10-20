@@ -2849,7 +2849,10 @@ open class WMKeyboardService : InputMethodService() {
      * What a Retype (#791) took out of the field: the word, where it began
      * (where the caret was left), and the other words its swipe read. The
      * strip offers the word and then those until the next keystroke; a pick
-     * from them spends it. [start] is -1 until the field's own echo reports
+     * from them spends it. Deliberately not kept past that keystroke (#844):
+     * the letters typed are a new word, and the strip answers them as one.
+     * Retype also takes only the word at the caret, not the last one written
+     * wherever the caret went, which the docs describe. [start] is -1 until the field's own echo reports
      * the caret, for a word that was still composing and so had no offset.
      */
     private class RetypeOffer(val word: String, val start: Int, val readings: List<String>) {
@@ -14174,6 +14177,35 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * [caretStillAt] for an edit that deletes (#844): an editor that will not
+     * say where its caret is fails, rather than being taken at its word. A
+     * Retype measured from a stale offset there deleted characters before
+     * the real caret that were never the word.
+     */
+    private fun caretProvenAt(ic: InputConnection, reportedSelStart: Int): Boolean {
+        val extracted = ic.getExtractedText(ExtractedTextRequest(), 0) ?: return false
+        if (extracted.selectionStart < 0) return false
+        return extracted.startOffset + extracted.selectionStart == reportedSelStart
+    }
+
+    /**
+     * The word [retypeWord] would take, without taking it: the one being
+     * typed, as shown, or the word behind the caret by the same rules. Null
+     * when Retype would do nothing.
+     */
+    private fun retypeTarget(): String? {
+        if (backspaceEditsBuffer() || isNullField()) return null
+        if (composing.isNotEmpty()) return _uiState.value.composingPreview.ifEmpty { composing.toString() }
+        val ic = currentInputConnection ?: return null
+        if (expectedSelStart < 0 || expectedSelStart != expectedSelEnd) return null
+        val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return null
+        val body = if (before.endsWith(' ') && !before.endsWith("  ")) before.dropLast(1) else before
+        val word = body.takeLastWhile { isComposingWordChar(it) }
+        if (word.none { it.isLetter() } || (word.length == body.length && before.length >= RETYPE_LOOKBEHIND)) return null
+        return word
+    }
+
+    /**
      * Deletes the word before the cursor — one step of the backspace swipe.
      * Trailing whitespace goes with the word, so repeated steps chew back
      * through a sentence the way ctrl+backspace does on a desktop.
@@ -14295,7 +14327,7 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val at = expectedSelStart
-        if (at < 0 || !caretStillAt(ic, at)) return
+        if (at < 0 || !caretProvenAt(ic, at)) return
         val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
         val trailing = before.endsWith(' ') && !before.endsWith("  ")
         val body = if (trailing) before.dropLast(1) else before
@@ -14327,8 +14359,13 @@ open class WMKeyboardService : InputMethodService() {
         publishRetypeOffer(RetypeOffer(word, start, readings))
     }
 
-    /** Puts a Retype's word and its readings on the strip, and keeps them as the offer. */
+    /**
+     * Puts a Retype's word and its readings on the strip, and keeps them as
+     * the offer. A strip refresh still waiting from before would land after
+     * it and replace it (#844), so it is called off.
+     */
     private fun publishRetypeOffer(offer: RetypeOffer) {
+        suggestionJob?.cancel()
         retypeOffer = offer
         _uiState.update {
             it.copy(suggestions = offer.offered, emojiSuggestions = emptyList(), octopus = emptyMap())
@@ -43388,6 +43425,7 @@ open class WMKeyboardService : InputMethodService() {
         return WordMenuFacts(
             typedAddable = addableTypedWord(),
             searchableStroke = caretStrokeWord(),
+            retypable = retypeTarget(),
             deletable = isForgettable(trimmed),
             resettable = isResettable(trimmed),
             blacklisted = _uiState.value.let { it.settings.suggestionSources.blacklisted(trimmed, it.language.id) },
@@ -43405,6 +43443,8 @@ open class WMKeyboardService : InputMethodService() {
             is WordMenuAction.Forget -> forgetLearning(action.word)
             is WordMenuAction.Open -> openWordCard(action.word)
             is WordMenuAction.SearchAllWords -> searchAllWordsForCaretWord(action.word)
+            // Only while it is still the word the menu named.
+            is WordMenuAction.Retype -> if (retypeTarget() == action.word) retypeWord()
             is WordMenuAction.Synonyms -> openSynonyms(action.word)
         }
     }

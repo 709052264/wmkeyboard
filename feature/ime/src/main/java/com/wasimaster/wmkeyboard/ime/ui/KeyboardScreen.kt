@@ -5885,6 +5885,15 @@ private fun RowScope.LatinSuggestionChips(
                         icon = Icons.Outlined.SwapHoriz,
                     ) { act(WordMenuAction.Synonyms(held)) }
                 }
+                // About the caret's word too, like the search above: take it
+                // back out and type it again (#844), with no binding needed.
+                val retypable = heldFacts.retypable
+                if (retypable != null) {
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_retype, retypable),
+                        icon = Icons.AutoMirrored.Outlined.Undo,
+                    ) { act(WordMenuAction.Retype(retypable)) }
+                }
                 // Always offered: the card carries every action above but
                 // Synonyms too, so a menu trimmed to this one item still
                 // reaches all of those —
