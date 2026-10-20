@@ -3755,6 +3755,7 @@ internal fun NavRow(
     route: String? = null,
     icon: ImageVector? = null,
     @StringRes highlightKey: Int = 0,
+    swipeActions: List<SwipeAction> = emptyList(),
     onClick: () -> Unit,
 ) {
     // A value only sits beside the title while it fits there; a longer one
@@ -3774,6 +3775,7 @@ internal fun NavRow(
             supporting = supportingWith(subtitle, below?.let { { RowValueText(it) } }),
             icon = icon,
             flightTo = route,
+            swipeActions = swipeActions,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RowExtras { SettingLinkButton(title) }

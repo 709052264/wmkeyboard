@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -41,6 +42,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryEntry
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
@@ -362,6 +364,20 @@ private fun AiHistoryRow(
     WmRow(
         title = entry.actionName,
         subtitle = timeFormat.format(Date(entry.timestamp)) + "  " + entry.model,
+        swipeActions = buildList {
+            add(SwipeAction(Icons.Outlined.ContentCopy, stringResource(R.string.toolai_ai_history_copy_input), onClick = onCopyInput))
+            if (entry.output.isNotEmpty()) {
+                add(
+                    SwipeAction(
+                        Icons.Outlined.ContentCopy,
+                        stringResource(R.string.toolai_ai_history_copy_output),
+                        SwipeTone.ACCENT,
+                        onCopyOutput,
+                    ),
+                )
+            }
+            add(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete))
+        },
         supporting = {
             Column {
                 Text(

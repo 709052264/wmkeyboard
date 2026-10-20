@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
@@ -554,8 +555,17 @@ internal fun SnippetSettings(
                     },
                     // The row opens the folder, the way the keyboard's own
                     // snippet panel does. Renaming, the icon and deleting all
-                    // live one level in or behind the pencil.
+                    // live one level in or behind the pencil, and a swipe away.
                     onClick = { onNavigate("expander/folder/${folder.id}") },
+                    swipeActions = listOf(
+                        SwipeAction(
+                            Icons.Outlined.DriveFileRenameOutline,
+                            stringResource(R.string.expander_folder_rename_title),
+                        ) { namingFolder = folder },
+                        deleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                            deletingFolder = folder
+                        },
+                    ),
                     trailing = {
                         val switchDesc = stringResource(
                             R.string.expander_folder_switch_desc, folder.name,

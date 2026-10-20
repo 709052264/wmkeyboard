@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -47,9 +48,14 @@ import com.wasimaster.wmkeyboard.app.NavRow
 import com.wasimaster.wmkeyboard.app.PermissionDisclosures
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
+import com.wasimaster.wmkeyboard.app.SwipeAction
+import com.wasimaster.wmkeyboard.app.SwipeActionsRow
 import com.wasimaster.wmkeyboard.app.ToggleSetting
+import com.wasimaster.wmkeyboard.app.deleteSwipeAction
 import com.wasimaster.wmkeyboard.app.rememberDisclosedPermissionRequest
 import com.wasimaster.wmkeyboard.app.toolRoute
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.net.NetLogInterceptor
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -433,9 +439,33 @@ internal fun SendHistoryScreen(repository: SettingsRepository, settings: LiveSet
             item { Text(stringResource(R.string.send_history_empty), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(16.dp)) }
         }
         for (upload in uploads) {
-            item {
+            item(key = upload.id) {
                 val left = ((upload.expiresAt - System.currentTimeMillis()) / 1000).coerceAtLeast(0)
                 val used = info[upload.id]
+                val copyLink = {
+                    copyText(context, upload.url)
+                    notice = context.getString(R.string.send_history_copied)
+                }
+                val deleteUpload = {
+                    scope.launch {
+                        val ok = withContext(Dispatchers.IO) {
+                            runCatching { client.delete(upload.instance, upload.id, upload.ownerToken) }.map { true }
+                                .getOrElse { (it as? SendException)?.error == SendError.NOT_FOUND }
+                        }
+                        if (ok) {
+                            withContext(Dispatchers.IO) { store.remove(upload) }
+                            notice = context.getString(R.string.send_history_deleted)
+                            reload()
+                        }
+                    }
+                    Unit
+                }
+                SwipeActionsRow(
+                    listOf(
+                        SwipeAction(Icons.Outlined.ContentCopy, stringResource(R.string.send_history_copy), onClick = copyLink),
+                        deleteSwipeAction(stringResource(R.string.send_history_delete), deleteUpload),
+                    ),
+                ) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text(upload.name, style = MaterialTheme.typography.bodyLarge)
                     Text(
@@ -451,24 +481,10 @@ internal fun SendHistoryScreen(repository: SettingsRepository, settings: LiveSet
                     )
                     Spacer(Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = {
-                            copyText(context, upload.url)
-                            notice = context.getString(R.string.send_history_copied)
-                        }) { Text(stringResource(R.string.send_history_copy)) }
-                        TextButton(onClick = {
-                            scope.launch {
-                                val ok = withContext(Dispatchers.IO) {
-                                    runCatching { client.delete(upload.instance, upload.id, upload.ownerToken) }.map { true }
-                                        .getOrElse { (it as? SendException)?.error == SendError.NOT_FOUND }
-                                }
-                                if (ok) {
-                                    withContext(Dispatchers.IO) { store.remove(upload) }
-                                    notice = context.getString(R.string.send_history_deleted)
-                                    reload()
-                                }
-                            }
-                        }) { Text(stringResource(R.string.send_history_delete)) }
+                        OutlinedButton(onClick = copyLink) { Text(stringResource(R.string.send_history_copy)) }
+                        TextButton(onClick = deleteUpload) { Text(stringResource(R.string.send_history_delete)) }
                     }
+                }
                 }
             }
         }
@@ -493,7 +509,30 @@ internal fun SendHistoryScreen(repository: SettingsRepository, settings: LiveSet
             }
         }
         for (item in received) {
-            item {
+            item(key = item.location) {
+                val open = {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Intent.ACTION_VIEW)
+                                .setDataAndType(Uri.parse(item.location), item.type.ifBlank { "*/*" })
+                                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                    Unit
+                }
+                val forget = {
+                    scope.launch {
+                        withContext(Dispatchers.IO) { store.removeReceived(item.location) }
+                        reload()
+                    }
+                    Unit
+                }
+                SwipeActionsRow(
+                    listOf(
+                        SwipeAction(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.send_history_open), onClick = open),
+                        deleteSwipeAction(stringResource(R.string.send_history_forget), forget),
+                    ),
+                ) {
                 Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
                     Text(item.name, style = MaterialTheme.typography.bodyLarge)
                     Text(
@@ -503,22 +542,10 @@ internal fun SendHistoryScreen(repository: SettingsRepository, settings: LiveSet
                     )
                     Spacer(Modifier.height(4.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        OutlinedButton(onClick = {
-                            runCatching {
-                                context.startActivity(
-                                    Intent(Intent.ACTION_VIEW)
-                                        .setDataAndType(Uri.parse(item.location), item.type.ifBlank { "*/*" })
-                                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK),
-                                )
-                            }
-                        }) { Text(stringResource(R.string.send_history_open)) }
-                        TextButton(onClick = {
-                            scope.launch {
-                                withContext(Dispatchers.IO) { store.removeReceived(item.location) }
-                                reload()
-                            }
-                        }) { Text(stringResource(R.string.send_history_forget)) }
+                        OutlinedButton(onClick = open) { Text(stringResource(R.string.send_history_open)) }
+                        TextButton(onClick = forget) { Text(stringResource(R.string.send_history_forget)) }
                     }
+                }
                 }
             }
         }

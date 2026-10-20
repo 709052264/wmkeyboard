@@ -585,7 +585,7 @@ internal fun startLanguageDataDownload(
 private val AUTO_DOWNLOAD_SIZE = DictionaryCatalog.DictionarySize.LARGE
 
 /** Bytes a language's downloaded files are taking up right now. */
-private fun downloadedLanguageBytes(filesDir: File, langId: String): Long =
+internal fun downloadedLanguageBytes(filesDir: File, langId: String): Long =
     DictionaryStore.downloadedFile(filesDir, langId).length() +
         EmojiDictStore.packFile(filesDir, langId).length() +
         NgramPackDownloadManager.packFile(filesDir, langId).length()
@@ -702,9 +702,44 @@ private fun LanguageDataDownloadDialog(
     )
 }
 
+/** Whether [langId] has anything downloaded that removing it could leave behind. */
+internal fun hasLanguageData(filesDir: File, langId: String): Boolean =
+    DictionaryStore.isDownloaded(filesDir, langId) ||
+        EmojiDictStore.isDownloaded(filesDir, langId) ||
+        NgramPackDownloadManager.isDownloaded(filesDir, langId)
+
+/** Deletes [langId]'s downloaded word list, emoji keywords and word pairs. */
+internal fun deleteLanguageData(filesDir: File, langId: String) {
+    DictionaryStore.delete(filesDir, langId)
+    WordlistDownloadManager.refresh(filesDir)
+    // Leaves a "declined" mark behind, which is what stops the
+    // automatic pass fetching the keywords straight back.
+    EmojiDictDownloadManager.delete(filesDir, langId)
+    NgramPackDownloadManager.delete(filesDir, langId)
+    if (langId == PhoneticSchemes.BENGALI.languageId) AvroDictionaryDownloads.delete(filesDir)
+}
+
+/**
+ * Takes every layout of [langId] out of the enabled set. Refuses (false) when
+ * nothing would be left to type in.
+ */
+internal suspend fun removeLanguageLayouts(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    langId: String,
+): Boolean {
+    val current = settings.value
+    val next = current.enabledLayoutIds.filterNot {
+        resolveLayout(current.customLayouts, it).language().id == langId
+    }
+    if (next.isEmpty()) return false
+    repository.setEnabledLayoutIds(next.distinct())
+    return true
+}
+
 /** The mirror of [LanguageDataDownloadDialog], for a language on its way out. */
 @Composable
-private fun LanguageDataDeleteDialog(
+internal fun LanguageDataDeleteDialog(
     language: LanguageDef,
     bytes: Long,
     onKeep: () -> Unit,
@@ -978,14 +1013,7 @@ internal fun LanguageDetailScreen(
 
     val removeLanguage: () -> Unit = {
         scope.launch {
-            val current = settings.value
-            val next = current.enabledLayoutIds.filterNot {
-                resolveLayout(current.customLayouts, it).language().id == langId
-            }
-            if (next.isNotEmpty()) {
-                repository.setEnabledLayoutIds(next.distinct())
-                onRemoved()
-            }
+            if (removeLanguageLayouts(repository, settings, langId)) onRemoved()
         }
     }
 
@@ -1001,13 +1029,7 @@ internal fun LanguageDetailScreen(
             },
             onDelete = {
                 pendingDelete = false
-                DictionaryStore.delete(filesDir, langId)
-                WordlistDownloadManager.refresh(filesDir)
-                // Leaves a "declined" mark behind, which is what stops the
-                // automatic pass fetching the keywords straight back.
-                EmojiDictDownloadManager.delete(filesDir, langId)
-                NgramPackDownloadManager.delete(filesDir, langId)
-                if (langId == PhoneticSchemes.BENGALI.languageId) AvroDictionaryDownloads.delete(filesDir)
+                deleteLanguageData(filesDir, langId)
                 removeLanguage()
             },
         )
@@ -1401,10 +1423,7 @@ internal fun LanguageDetailScreen(
             item {
                 OutlinedButton(
                     onClick = {
-                        val downloaded = DictionaryStore.isDownloaded(filesDir, langId) ||
-                            EmojiDictStore.isDownloaded(filesDir, langId) ||
-                            NgramPackDownloadManager.isDownloaded(filesDir, langId)
-                        if (downloaded) pendingDelete = true else removeLanguage()
+                        if (hasLanguageData(filesDir, langId)) pendingDelete = true else removeLanguage()
                     },
                     modifier = Modifier
                         .fillMaxWidth()

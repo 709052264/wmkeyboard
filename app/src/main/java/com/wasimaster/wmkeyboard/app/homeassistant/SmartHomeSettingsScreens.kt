@@ -38,6 +38,9 @@ import com.wasimaster.wmkeyboard.app.ProvidersGroup
 import com.wasimaster.wmkeyboard.app.ReorderableColumn
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
+import com.wasimaster.wmkeyboard.app.SwipeAction
+import com.wasimaster.wmkeyboard.app.SwipeActionsRow
+import com.wasimaster.wmkeyboard.app.SwipeTone
 import com.wasimaster.wmkeyboard.app.ToggleSetting
 import com.wasimaster.wmkeyboard.core.homeassistant.HaDomains
 import com.wasimaster.wmkeyboard.core.homeassistant.HaInsertFormat
@@ -356,6 +359,16 @@ internal fun HaEntitiesScreen(repository: SettingsRepository, settings: LiveSett
                     item(key = ref) {
                         val favourite = ref in ha.favourites
                         val hidden = ref in ha.hidden
+                        val name = registry.nameOf(e)
+                        SwipeActionsRow(
+                            listOf(
+                                SwipeAction(
+                                    Icons.Outlined.VisibilityOff,
+                                    if (hidden) stringResource(R.string.ha_entities_unhide, name) else stringResource(R.string.ha_entities_hide),
+                                    if (hidden) SwipeTone.ACCENT else SwipeTone.NEUTRAL,
+                                ) { scope.launch { repository.updateHaHidden { if (hidden) it - ref else it + ref } } },
+                            ),
+                        ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.weight(1f)) {
                                 ToggleSetting(
@@ -372,6 +385,7 @@ internal fun HaEntitiesScreen(repository: SettingsRepository, settings: LiveSett
                                     tint = if (hidden) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
+                        }
                         }
                     }
                 }
