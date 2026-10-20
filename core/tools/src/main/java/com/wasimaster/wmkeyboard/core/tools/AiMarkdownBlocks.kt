@@ -3,7 +3,7 @@ package com.wasimaster.wmkeyboard.core.tools
 /**
  * Reads a model's answer, or a note, into blocks a reader can draw:
  * paragraphs, headings (ATX and setext), list items, task items, quotes,
- * tables, images, fenced code and footnotes.
+ * tables, images, fenced code, footnotes and LaTeX maths ([LatexMath]).
  *
  * [AiMarkdown] answers a different question. It removes the markers, because a
  * text field cannot draw them. A chat bubble can, and a fenced block there is
@@ -26,9 +26,14 @@ package com.wasimaster.wmkeyboard.core.tools
  */
 object AiMarkdownBlocks {
 
-    enum class Style { BOLD, ITALIC, CODE, STRIKE, UNDERLINE, HIGHLIGHT, SUPERSCRIPT, SUBSCRIPT, LINK }
+    /**
+     * [MATH] is a formula inside a sentence (#811), written out by [LatexMath.inline].
+     * [FORMULA] marks one that needs drawing in two dimensions: its [Span.url]
+     * is the LaTeX source, and the text under it is the plain version.
+     */
+    enum class Style { BOLD, ITALIC, CODE, STRIKE, UNDERLINE, HIGHLIGHT, SUPERSCRIPT, SUBSCRIPT, LINK, MATH, FORMULA }
 
-    /** [style] over `[start, end)` of [Inline.text]. [url] is set on a [Style.LINK] span only. */
+    /** [style] over `[start, end)` of [Inline.text]. [url] is set on a [Style.LINK] or [Style.FORMULA] span only. */
     data class Span(val start: Int, val end: Int, val style: Style, val url: String? = null)
 
     /** One run of text with its markers removed and turned into [spans]. */
@@ -59,6 +64,13 @@ object AiMarkdownBlocks {
         /** [code] has no fences and no trailing newline. */
         data class Code(val language: String, val code: String, val closed: Boolean, override val line: Int = 0) : Block
         data class Rule(override val line: Int = 0) : Block
+
+        /**
+         * A display formula (#811): `$$…$$`, `\[…\]`, a bare `\begin{align}`
+         * or a ```` ```math ```` fence. [latex] is the source without its
+         * delimiters, for [LatexMath.parse]; [closed] is false while it streams.
+         */
+        data class Math(val latex: String, val closed: Boolean, override val line: Int = 0) : Block
 
         /** A GFM pipe table. Every row has exactly as many cells as [header]. */
         data class Table(
@@ -130,12 +142,13 @@ object AiMarkdownBlocks {
     private val BARE_URL = Regex("""(?<![\w/@.:])(?:https?://|www\.)[^\s<>()\[\]]*[^\s<>()\[\].,:;!?'"*_~]""")
 
     private enum class Kind {
-        CODE, AUTOLINK, HTML_PAIR, HTML_BREAK, LINKED_IMAGE, IMAGE, LINK, REF_IMAGE,
+        CODE, MATH, AUTOLINK, HTML_PAIR, HTML_BREAK, LINKED_IMAGE, IMAGE, LINK, REF_IMAGE,
         INLINE_FOOTNOTE, FOOTNOTE_REF, REF_LINK, BOLD, STRIKE, ITALIC, BARE_URL,
     }
 
     private val INLINE_RULES = listOf(
         Kind.CODE to CODE,
+        Kind.MATH to LatexMath.INLINE,
         Kind.AUTOLINK to AUTOLINK,
         Kind.HTML_PAIR to HTML_PAIR,
         Kind.HTML_BREAK to HTML_BREAK,
@@ -255,8 +268,21 @@ object AiMarkdownBlocks {
                     code += lines[i]
                     i++
                 }
-                blocks += Block.Code(fence.groupValues[2], code.joinToString("\n"), closed, lineIndex)
+                blocks += if (fence.groupValues[2].equals("math", ignoreCase = true)) {
+                    Block.Math(code.joinToString("\n"), closed, lineIndex)
+                } else {
+                    Block.Code(fence.groupValues[2], code.joinToString("\n"), closed, lineIndex)
+                }
                 continue
+            }
+            if (lineIndex !in skip) {
+                val math = LatexMath.display(lines, lineIndex)
+                if (math != null) {
+                    flush()
+                    blocks += Block.Math(math.latex, math.closed, lineIndex)
+                    i = math.end
+                    continue
+                }
             }
             i++
             if (lineIndex in skip) {
@@ -483,12 +509,25 @@ object AiMarkdownBlocks {
         return Inline(unescape(parsed.text), parsed.spans)
     }
 
-    /** `\*` becomes one stand-in character, so span offsets survive [unescape]. */
+    /**
+     * `\*` becomes one stand-in character, so span offsets survive [unescape].
+     * Inline maths is copied as it is: `\{` and `\_` mean something there.
+     */
     private fun escape(text: String): String {
         if ('\\' !in text) return text
+        val math = LatexMath.INLINE.findAll(text).iterator()
+        var nextMath = if (math.hasNext()) math.next().range else null
         val out = StringBuilder(text.length)
         var k = 0
         while (k < text.length) {
+            if (nextMath != null && k == nextMath.first) {
+                out.append(text, nextMath.first, nextMath.last + 1)
+                k = nextMath.last + 1
+                nextMath = if (math.hasNext()) math.next().range else null
+                continue
+            }
+            // An escape that runs over the start of a formula: that formula was never one.
+            while (nextMath != null && k > nextMath.first) nextMath = if (math.hasNext()) math.next().range else null
             val c = text[k]
             if (c == '\\' && k + 1 < text.length && text[k + 1] in ESCAPABLE) {
                 out.append(stand(text[k + 1]))
@@ -548,6 +587,12 @@ object AiMarkdownBlocks {
                 Kind.CODE -> {
                     val code = g[2].let { if (it.length > 2 && it.startsWith(' ') && it.endsWith(' ')) it.substring(1, it.length - 1) else it }
                     plain(literal(code), Style.CODE)
+                }
+                Kind.MATH -> {
+                    val math = LatexMath.inline(literal(LatexMath.source(m)))
+                    val start = out.length
+                    out.append(math.text)
+                    math.spans.mapTo(spans) { it.copy(start = it.start + start, end = it.end + start) }
                 }
                 Kind.AUTOLINK -> {
                     val target = g[1]

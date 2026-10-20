@@ -56,6 +56,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -92,9 +94,9 @@ data class ChatLink(val style: SpanStyle?, val onTap: (() -> Unit)?)
 
 /**
  * A model's answer or a note, drawn: paragraphs, headings, lists, quotes,
- * tables, images, footnotes and highlighted code blocks, with bold, italic,
- * strikethrough, inline code and links inside them. See [AiMarkdownBlocks]
- * for what is read.
+ * tables, images, footnotes, highlighted code blocks and LaTeX formulas, with
+ * bold, italic, strikethrough, inline code, links and inline maths inside them.
+ * See [AiMarkdownBlocks] for what is read, and [MathTypesetter] for the maths.
  *
  * A link opens in a new task, since an input method has none of its own. An
  * image is not fetched until it is tapped: a note or an answer must not phone
@@ -141,7 +143,10 @@ fun ChatMarkdown(
     val lineHeight = fontSize * LINE_HEIGHT
     val context = LocalContext.current
     val onLink: (String) -> Unit = remember(context) { { url -> openToolLink(context, url) } }
-    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink, customLink)
+    // Most answers hold no maths; they skip the typesetter altogether.
+    val hasMath = remember(blocks) { blocks.any { it is Block.Math } || '$' in text || "\\(" in text }
+    val math = if (hasMath) rememberMathScope(fontSize) else null
+    fun md(inline: AiMarkdownBlocks.Inline) = annotated(inline, colors, onLink, customLink, math != null)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         for (block in blocks) {
             val tappable = if (onBlockTap != null && block !is Block.Task) {
@@ -160,6 +165,7 @@ fun ChatMarkdown(
                     selectable = canSelect,
                     ask = ask,
                     onTap = tap,
+                    math = math,
                 )
                 is Block.Heading -> BlockText(
                     md(block.inline),
@@ -171,6 +177,7 @@ fun ChatMarkdown(
                     selectable = canSelect,
                     ask = ask,
                     onTap = tap,
+                    math = math,
                 )
                 is Block.Bullet -> Row(Modifier.padding(start = (block.indent * 12).dp)) {
                     Text(block.marker, color = colors.dim, fontSize = fontSize, lineHeight = lineHeight)
@@ -183,9 +190,10 @@ fun ChatMarkdown(
                         selectable = canSelect,
                         ask = ask,
                         onTap = tap,
+                        math = math,
                     )
                 }
-                is Block.Task -> TaskRow(block, colors, fontSize, lineHeight, onTaskToggle, onLink, customLink)
+                is Block.Task -> TaskRow(block, colors, fontSize, lineHeight, onTaskToggle, onLink, customLink, math)
                 // One bar per level of nesting, each as tall as the whole quote.
                 is Block.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
                     repeat(block.depth) {
@@ -205,15 +213,17 @@ fun ChatMarkdown(
                         selectable = canSelect,
                         ask = ask,
                         onTap = tap,
+                        math = math,
                     )
                 }
                 is Block.Code -> CodeBlock(block, colors, fontSize, codeActions)
-                is Block.Table -> TableBlock(block, colors, fontSize, lineHeight, onLink, customLink)
+                is Block.Math -> if (math != null && block.latex.isNotBlank()) MathBlock(block.latex, colors.text, math)
+                is Block.Table -> TableBlock(block, colors, fontSize, lineHeight, onLink, customLink, math)
                 is Block.Image -> ImageBlock(block, colors, fontSize, lineHeight, onLink)
                 is Block.Footnote -> Row {
                     Text("${block.number}.", color = colors.dim, fontSize = fontSize * 0.85f, lineHeight = lineHeight)
                     Spacer(Modifier.width(6.dp))
-                    BlockText(md(block.inline), colors.dim, fontSize * 0.85f, lineHeight, selectable = canSelect, ask = ask, onTap = tap)
+                    BlockText(md(block.inline), colors.dim, fontSize * 0.85f, lineHeight, selectable = canSelect, ask = ask, onTap = tap, math = math)
                 }
                 is Block.Rule -> Box(
                     Modifier
@@ -231,7 +241,7 @@ fun ChatMarkdown(
 /** One block's text: [SelectableText] when [selectable], else plain. */
 @Composable
 private fun BlockText(
-    text: AnnotatedString,
+    text: Md,
     color: Color,
     fontSize: TextUnit,
     lineHeight: TextUnit,
@@ -239,13 +249,22 @@ private fun BlockText(
     selectable: Boolean,
     ask: AskAiSource?,
     onTap: (() -> Unit)?,
+    math: MathScope?,
 ) {
+    val inline = text.inlineContent(math, color)
     if (selectable) {
-        SelectableText(text, color, fontSize, lineHeight = lineHeight, fontWeight = fontWeight, ask = ask, onTap = onTap)
+        SelectableText(text.text, color, fontSize, lineHeight = lineHeight, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
     } else {
-        Text(text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight)
+        Text(text.text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight, inlineContent = inline)
     }
 }
+
+/** A run of text built for a `Text`, and the LaTeX of the formulas sitting in its placeholders. */
+private class Md(val text: AnnotatedString, val formulas: List<String>)
+
+@Composable
+private fun Md.inlineContent(math: MathScope?, color: Color): Map<String, InlineTextContent> =
+    if (math == null || formulas.isEmpty()) emptyMap() else remember(formulas, math, color) { math.inlineContent(formulas, color) }
 
 /**
  * A task item: a box, then its text struck through once ticked. Tappable only
@@ -261,6 +280,7 @@ private fun TaskRow(
     onToggle: ((Block.Task) -> Unit)?,
     onLink: (String) -> Unit,
     customLink: ((String) -> ChatLink?)?,
+    math: MathScope?,
 ) {
     val toggleable = if (onToggle != null) {
         Modifier.toggleable(
@@ -289,9 +309,12 @@ private fun TaskRow(
                 .size(18.dp),
         )
         Spacer(Modifier.width(6.dp))
+        val md = annotated(block.inline, colors, onLink, customLink, math != null)
+        val color = if (block.checked) colors.dim else colors.text
         Text(
-            annotated(block.inline, colors, onLink, customLink),
-            color = if (block.checked) colors.dim else colors.text,
+            md.text,
+            inlineContent = md.inlineContent(math, color),
+            color = color,
             fontSize = fontSize,
             lineHeight = lineHeight,
             textDecoration = if (block.checked) TextDecoration.LineThrough else null,
@@ -356,6 +379,7 @@ private fun TableBlock(
     lineHeight: TextUnit,
     onLink: (String) -> Unit,
     customLink: ((String) -> ChatLink?)?,
+    math: MathScope?,
 ) {
     val border = colors.dim.copy(alpha = colors.dim.alpha * 0.4f)
     Row(
@@ -375,8 +399,10 @@ private fun TableBlock(
             Column(Modifier.width(IntrinsicSize.Max)) {
                 val cells = listOf(block.header[column]) + block.rows.map { it[column] }
                 cells.forEachIndexed { row, cell ->
+                    val md = annotated(cell, colors, onLink, customLink, math != null)
                     Text(
-                        annotated(cell, colors, onLink, customLink),
+                        md.text,
+                        inlineContent = md.inlineContent(math, colors.text),
                         color = colors.text,
                         fontSize = fontSize,
                         lineHeight = lineHeight,
@@ -455,14 +481,38 @@ private fun openable(url: String): Boolean {
     return u.startsWith("https://") || u.startsWith("http://") || u.startsWith("mailto:") || u.startsWith("ftp://")
 }
 
+/**
+ * [inline] as styled text. With [drawMath], a formula that needs two
+ * dimensions becomes a placeholder for [MathTypesetter] to fill, its plain text
+ * kept as the placeholder's alternate text so selection and copy still read it.
+ */
 private fun annotated(
     inline: AiMarkdownBlocks.Inline,
     colors: ChatMarkdownColors,
     onLink: (String) -> Unit,
     customLink: ((String) -> ChatLink?)? = null,
-): AnnotatedString =
-    buildAnnotatedString {
-        append(inline.text)
+    drawMath: Boolean = false,
+): Md {
+    val formulas = if (drawMath) {
+        inline.spans.filter { it.style == AiMarkdownBlocks.Style.FORMULA && it.url != null }.sortedBy { it.start }
+    } else {
+        emptyList()
+    }
+    val text = buildAnnotatedString {
+        if (formulas.isEmpty()) {
+            append(inline.text)
+        } else {
+            // Each placeholder's alternate text is the same length as what it
+            // stands for, so every other span's offsets still hold.
+            var at = 0
+            formulas.forEachIndexed { k, f ->
+                if (f.start < at) return@forEachIndexed
+                append(inline.text, at, f.start)
+                appendInlineContent(formulaId(k), inline.text.substring(f.start, f.end))
+                at = f.end
+            }
+            append(inline.text, at, inline.text.length)
+        }
         for (span in inline.spans) {
             val style = when (span.style) {
                 AiMarkdownBlocks.Style.BOLD -> SpanStyle(fontWeight = FontWeight.SemiBold)
@@ -476,6 +526,8 @@ private fun annotated(
                 AiMarkdownBlocks.Style.HIGHLIGHT -> SpanStyle(background = HIGHLIGHT)
                 AiMarkdownBlocks.Style.SUPERSCRIPT -> SpanStyle(baselineShift = BaselineShift.Superscript, fontSize = 0.75.em)
                 AiMarkdownBlocks.Style.SUBSCRIPT -> SpanStyle(baselineShift = BaselineShift.Subscript, fontSize = 0.75.em)
+                AiMarkdownBlocks.Style.MATH -> SpanStyle(fontFamily = FontFamily.Serif)
+                AiMarkdownBlocks.Style.FORMULA -> continue
                 AiMarkdownBlocks.Style.LINK -> {
                     val target = span.url
                     val claimed = target?.let { customLink?.invoke(it) }
@@ -508,6 +560,8 @@ private fun annotated(
             addStyle(style, span.start, span.end)
         }
     }
+    return Md(text, formulas.map { it.url.orEmpty() })
+}
 
 /** A code block's text with its tokens coloured; [dark] is a light-on-dark reader. */
 private fun highlight(code: String, language: String, dark: Boolean): AnnotatedString = buildAnnotatedString {

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -696,6 +697,8 @@ internal fun SelectableText(
     ask: AskAiSource? = null,
     quote: ((String) -> String)? = null,
     onTap: (() -> Unit)? = null,
+    /** Inline formulas (#811) drawn in the text's placeholders; a selection takes their plain text. */
+    inlineContent: Map<String, InlineTextContent> = emptyMap(),
 ) {
     val text = styled.text
     val kb = LocalKbTheme.current
@@ -720,6 +723,7 @@ internal fun SelectableText(
         fontWeight = fontWeight,
         fontStyle = fontStyle,
         fontFamily = fontFamily,
+        inlineContent = inlineContent,
         onTextLayout = {
             layoutState.value = it
             overlay?.moved(owner)

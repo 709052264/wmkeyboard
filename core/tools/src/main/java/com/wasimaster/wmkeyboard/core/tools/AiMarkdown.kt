@@ -39,24 +39,35 @@ object AiMarkdown {
             BOLD.containsMatchIn(text) ||
             ITALIC.containsMatchIn(text) ||
             CODE.containsMatchIn(text) ||
-            LINK.containsMatchIn(text)
+            LINK.containsMatchIn(text) ||
+            LatexMath.contains(text)
 
     /**
      * Markdown markers removed, content kept. Fenced code keeps its lines but
      * loses the fences, bullets become "• ", and a link becomes its text with
      * the URL in parentheses (dropping the URL entirely would lose the only
-     * part that can't be retyped).
+     * part that can't be retyped). LaTeX maths (#811) is written out in
+     * Unicode, `$x^2$` as `x²`, since a field draws no formula either.
      */
     fun strip(text: String): String {
         val out = StringBuilder()
         var inFence = false
-        for (line in text.lines()) {
+        val lines = text.lines()
+        var i = 0
+        while (i < lines.size) {
+            val line = lines[i++]
             if (FENCE_LINE.matches(line)) {
                 inFence = !inFence
                 continue
             }
             if (inFence) {
                 out.appendLine(line)
+                continue
+            }
+            val math = LatexMath.display(lines, i - 1)
+            if (math != null) {
+                out.appendLine(LatexMath.plain(math.latex, lines = true))
+                i = math.end
                 continue
             }
             if (RULE_LINE.matches(line)) continue
@@ -71,7 +82,21 @@ object AiMarkdown {
         return out.toString().trim()
     }
 
+    /** Maths is written out on its own, so the markdown rules never see a `*` or `_` inside it. */
     private fun stripInline(line: String): String {
+        if ('$' !in line && '\\' !in line) return stripMarkers(line)
+        val out = StringBuilder()
+        var at = 0
+        for (m in LatexMath.INLINE.findAll(line)) {
+            out.append(stripMarkers(line.substring(at, m.range.first)))
+            out.append(LatexMath.plain(LatexMath.source(m)))
+            at = m.range.last + 1
+        }
+        out.append(stripMarkers(line.substring(at)))
+        return out.toString()
+    }
+
+    private fun stripMarkers(line: String): String {
         var l = LINK.replace(line) { m ->
             val (label, url) = m.destructured
             when {
