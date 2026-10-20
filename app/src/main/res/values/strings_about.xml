@@ -211,7 +211,8 @@
     <string name="about_bundled_mms_used">The offline voices Read back and the speaker buttons download on request</string>
     <string name="about_bundled_silero_used">The voice detector Offline Sherpa and Offline Omnilingual download with each model, to hear where a phrase ends</string>
     <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
-    <string name="about_bundled_rnnoise_used">Reduce background noise, in front of the offline voice engines</string>
+    <string name="about_bundled_rnnoise_used">Reduce background noise at Light, in front of the offline voice engines</string>
+    <string name="about_bundled_dpdfnet_used">Reduce background noise at Strong, a DeepFilterNet model the phone downloads on request</string>
     <string name="about_bundled_whistle_used">The Offline Whistle speech recognition engine and its model, which run on your device</string>
     <string name="about_bundled_unicode_used">The emoji catalogue, names, keywords and skin tone sequences, and the levels of the common Chinese characters (Unihan kTGH)</string>
     <!-- :tada: is one of the shortcodes and stays exactly as it is. -->

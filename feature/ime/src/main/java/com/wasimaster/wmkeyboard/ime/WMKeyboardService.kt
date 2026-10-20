@@ -653,6 +653,7 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
+import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
@@ -8866,6 +8867,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // Strong noise reduction's idle model; a clip recording now keeps its own.
+        StrongDenoise.release()
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OfflineTranslation.release()
         // Vocabulary cards: read back from the pack files on demand.
@@ -28900,15 +28903,21 @@ open class WMKeyboardService : InputMethodService() {
         // and so do the engines that decode as they hear.
         val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true ||
             (model as? OnDeviceVoice.Et)?.model?.engine?.let(::liveEngine) == true
-        // Reduce background noise: RNNoise in front of an on-device engine,
-        // never the server, which gets the microphone as it is. It rides the
-        // speech libraries; when they are not here yet the phrase goes
-        // through as recorded and they are fetched for the next one.
-        val denoise = if (model != null && _uiState.value.settings.whisper.denoise) {
-            VoiceDenoise.newStream().also {
-                if (it == null && !WhisperCpp.moduleReady && dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
-                    WhisperCpp.requestModule()
+        // Reduce background noise in front of an on-device engine, never the
+        // server, which gets the microphone as it is. Light (RNNoise) rides
+        // the speech libraries, Strong (DPDFNet) ONNX Runtime and a model of
+        // its own; Strong without them runs as Light, and a level whose
+        // libraries are not here yet lets the phrase through as recorded.
+        // Either way the missing libraries are fetched for the next one; the
+        // model only ever downloads from the settings screen.
+        val denoiseLevel = _uiState.value.settings.whisper.denoise
+        val denoise = if (model != null && denoiseLevel != VoiceDenoise.OFF) {
+            VoiceDenoise.newStream(denoiseLevel, filesDir).also {
+                val downloads = dataSaverStatus.allows(MeteredFeature.DOWNLOADS)
+                if (denoiseLevel == VoiceDenoise.STRONG && !SherpaNative.moduleReady && downloads) {
+                    SherpaNative.requestModule()
                 }
+                if (it == null && !WhisperCpp.moduleReady && downloads) WhisperCpp.requestModule()
             }
         } else {
             null

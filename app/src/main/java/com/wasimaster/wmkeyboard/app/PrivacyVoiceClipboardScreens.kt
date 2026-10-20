@@ -560,13 +560,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         // Only the offline engines record the audio themselves, so only they
         // can have it cleaned first.
         if (whisperListed || whistleListed || etListed.isNotEmpty()) item {
-            ToggleSetting(
-                R.string.voice_denoise_title,
-                stringResource(R.string.voice_denoise_subtitle),
-                settings.watch { it.whisper.denoise },
-                info = stringResource(R.string.voice_denoise_info),
-                default = SettingsDefaults.whisper.denoise,
-            ) { scope.launch { repository.setVoiceDenoise(it) } }
+            VoiceDenoiseSetting(repository, settings, scope)
         }
         if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
             ToggleSetting(
