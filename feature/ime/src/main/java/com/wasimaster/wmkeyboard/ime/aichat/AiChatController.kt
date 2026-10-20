@@ -41,6 +41,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolResult
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ToolHttpException
+import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
@@ -248,6 +249,8 @@ object AiChatController {
         attachment: String = "",
         /** Pictures sent with it (#698), by the names [AiChatImages.import] gave them. */
         images: List<String> = emptyList(),
+        /** Sent from an incognito field: the AI memory is neither read nor changed. */
+        incognito: Boolean = false,
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
@@ -267,7 +270,10 @@ object AiChatController {
         store.setLastModelKey(choice.key)
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, promptAt(updated, updated.messages.lastIndex))
+        launchGeneration(
+            appContext, settings, conversationId, choice, promptAt(updated, updated.messages.lastIndex),
+            incognito = incognito,
+        )
     }
 
     /**
@@ -293,6 +299,7 @@ object AiChatController {
         settings: KeyboardSettings,
         conversationId: Long,
         choice: ModelChoice,
+        incognito: Boolean = false,
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
@@ -306,6 +313,7 @@ object AiChatController {
         launchGeneration(
             appContext, settings, conversationId, choice, promptAt(conversation, lastUser),
             granted = meteredAsked == conversationId,
+            incognito = incognito,
         )
     }
 
@@ -320,6 +328,7 @@ object AiChatController {
         settings: KeyboardSettings,
         conversationId: Long,
         choice: ModelChoice,
+        incognito: Boolean = false,
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
@@ -334,7 +343,7 @@ object AiChatController {
         store.setLastModelKey(choice.key)
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, promptAt(conversation, lastUser))
+        launchGeneration(appContext, settings, conversationId, choice, promptAt(conversation, lastUser), incognito = incognito)
     }
 
     /**
@@ -360,6 +369,7 @@ object AiChatController {
     fun deleteConversation(context: Context, conversationId: Long) {
         val store = store(context.applicationContext)
         closeSessionFor(conversationId)
+        synchronized(memoryTails) { memoryTails.remove(conversationId) }
         store.delete(conversationId)
         store.save()
         pruneImages(context.applicationContext, store)
@@ -374,7 +384,11 @@ object AiChatController {
         user: String,
         /** The user said yes to Data Saver's question; see [meteredAsked]. */
         granted: Boolean = false,
+        incognito: Boolean = false,
     ) {
+        // A private chat (begun in incognito) or a send from an incognito
+        // field neither reads nor changes the AI memory.
+        val privateChat = incognito || store(appContext).isEphemeral(conversationId)
         // One gate for every way in, the keyboard's chat and the app's (#826).
         val decision = if (granted) MeteredDecision.ALLOWED else cloudAiDecision(appContext, settings, choice)
         meteredAsked = null
@@ -405,9 +419,9 @@ object AiChatController {
                 )
             } else runCatching {
                 if (choice.provider == AiProvider.ON_DEVICE) {
-                    runOnDevice(appContext, settings, conversationId, choice, user, seq)
+                    runOnDevice(appContext, settings, conversationId, choice, user, seq, privateChat)
                 } else {
-                    runRemote(appContext, settings, conversationId, choice, user, seq)
+                    runRemote(appContext, settings, conversationId, choice, user, seq, privateChat)
                 }
             }
             finishRun(appContext, conversationId, choice, user, seq, result)
@@ -466,12 +480,16 @@ object AiChatController {
         choice: ModelChoice,
         user: String,
         seq: Int,
+        privateChat: Boolean,
     ): String {
         val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
             ?: throw java.io.IOException(
                 context.getString(R.string.ime_ai_chat_error_no_model),
             )
-        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice))
+        val memory = AiMemoryRecall.access(context, settings, onDevice = true, incognito = privateChat, conversationId = conversationId)
+        val runner = AiToolRunner(
+            context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice), memory,
+        )
         val tools = runner.tools()
         // A local model has no function calling, so the sentinel protocol has
         // to be part of the session's own system prompt — the session is built
@@ -479,7 +497,11 @@ object AiChatController {
         // round. The one cost: the last round is still told about tools, so a
         // model that will not stop calling them answers with nothing. The
         // round limit is what keeps that rare.
-        val sessionSystem = AiPrompts.chatPrompt() + AiToolProtocol.instructions(tools)
+        val memoryPart = memoryTail(
+            context, settings, conversationId,
+            onDevice = true, privateChat = privateChat, user = user, withTools = memory != null,
+        )
+        val sessionSystem = AiPrompts.chatPrompt() + memoryPart + AiToolProtocol.instructions(tools)
         val chat = obtainSession(context, settings.ai, conversationId, choice, modelFile, sessionSystem)
         var lastPartialAt = 0L
         return AiToolLoop.run(
@@ -570,6 +592,7 @@ object AiChatController {
         choice: ModelChoice,
         user: String,
         seq: Int,
+        privateChat: Boolean,
     ): String {
         // The picker's row stands in for the one in use, so chatting with a
         // different model never rewrites the keyboard's own selection.
@@ -601,10 +624,18 @@ object AiChatController {
             )
         }
         var lastPartialAt = 0L
-        val runner = AiToolRunner(context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice))
+        // A cloud model gets memory only once the user has allowed it.
+        val memory = AiMemoryRecall.access(context, settings, onDevice = false, incognito = privateChat, conversationId = conversationId)
+        val runner = AiToolRunner(
+            context, settings, toolApprover(seq), toolHost(context, settings, conversationId, choice), memory,
+        )
+        val memoryPart = memoryTail(
+            context, settings, conversationId,
+            onDevice = false, privateChat = privateChat, user = user, withTools = memory != null,
+        )
         val completion = AiClient.completeWithTools(
             config = config,
-            system = AiPrompts.chatPrompt(),
+            system = AiPrompts.chatPrompt() + memoryPart,
             turns = turns,
             maxTokens = AiClient.effectiveMaxTokens(chosen),
             tools = runner.tools(),
@@ -623,6 +654,78 @@ object AiChatController {
             isActive = { seq == runSeq },
         )
         return completion.text
+    }
+
+    /**
+     * The memories one conversation is handed, worked out on its first
+     * message and kept for the rest of it, by conversation; see [memoryTail].
+     */
+    private val memoryTails = HashMap<Long, Pair<String, String>>()
+
+    /**
+     * What a chat's system prompt ends with about the AI memory: the facts
+     * picked for it, and the rules for saving when it may save.
+     *
+     * Picked once per conversation, on the message that first asks, and kept:
+     * an on-device session is keyed by its system prompt, so a list that
+     * moved with every message would throw the session's cache away every
+     * turn, and a service's prompt cache with it. A fact saved during the
+     * conversation is in the conversation already. Editing the memory on its
+     * settings screen drops every kept list ([forgetMemoryTails]).
+     */
+    private fun memoryTail(
+        context: Context,
+        settings: KeyboardSettings,
+        conversationId: Long,
+        onDevice: Boolean,
+        privateChat: Boolean,
+        user: String,
+        withTools: Boolean,
+    ): String {
+        if (!AiMemoryRecall.allowed(settings, onDevice, privateChat)) return ""
+        val shape = "$onDevice|$withTools"
+        synchronized(memoryTails) {
+            memoryTails[conversationId]?.takeIf { it.first == shape }?.let { return it.second }
+        }
+        val recall = AiMemoryRecall.recall(context, settings, onDevice, privateChat, user)
+        val tail = AiMemoryRecall.promptTail(recall, forChat = true, withTools = withTools)
+        synchronized(memoryTails) { memoryTails[conversationId] = shape to tail }
+        return tail
+    }
+
+    /**
+     * Drops the memory lists kept for open conversations, so each one's next
+     * message picks again: called when the user changed the memory on its
+     * settings screen.
+     */
+    fun forgetMemoryTails() {
+        synchronized(memoryTails) { memoryTails.clear() }
+    }
+
+    /**
+     * Takes back what the `remember` call at [useIndex] of the message at
+     * [messageIndex] saved: deletes a memory it added, or puts back the
+     * wording of one it changed. The line under the answer then says it was
+     * taken back. Nothing happens when the memory has since been deleted or
+     * the store cannot be read.
+     */
+    fun undoMemory(context: Context, conversationId: Long, messageIndex: Int, useIndex: Int) {
+        val appContext = context.applicationContext
+        val store = store(appContext)
+        val message = store.get(conversationId)?.messages?.getOrNull(messageIndex) ?: return
+        val use = message.toolUses.getOrNull(useIndex) ?: return
+        val note = use.memory?.takeIf { !it.undone } ?: return
+        val memories = AiMemoryRecall.store(appContext) ?: return
+        if (note.added) {
+            memories.forget(note.id)
+        } else {
+            memories.get(note.id)?.let { memories.restore(it.copy(text = note.before, category = note.beforeCategory)) }
+        }
+        memories.save()
+        val uses = message.toolUses.toMutableList().also { it[useIndex] = use.copy(memory = note.copy(undone = true)) }
+        store.replaceMessage(conversationId, messageIndex, message.copy(toolUses = uses))
+        store.save()
+        touchStore()
     }
 
     /** [names] read back and encoded for a request; one that is gone is left out. */

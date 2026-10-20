@@ -385,6 +385,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "ai" to Color(0xFF7E57C2),
     "ai_actions" to Color(0xFF7E57C2),
     "ai_history" to Color(0xFF7E57C2),
+    "ai_memory" to Color(0xFF7E57C2),
     "ai_chat" to Color(0xFF7E57C2),
     "settings_assistant" to Color(0xFF7E57C2),
     "ai_mcp" to Color(0xFF7E57C2),

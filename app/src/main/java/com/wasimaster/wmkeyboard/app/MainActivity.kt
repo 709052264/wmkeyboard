@@ -2408,6 +2408,15 @@ private fun SettingsNavGraph(
                 AiHistoryScreen(repository, settings)
             }
         }
+        composable("ai_memory") {
+            SettingsScreen(
+                stringResource(R.string.toolai_memory_screen_title),
+                { navController.popBackStack() },
+                route = "ai_memory",
+            ) {
+                AiMemoryScreen(repository, settings)
+            }
+        }
         // The two chat destinations draw their own scaffold rather than going
         // through SettingsScreen, so they are the only places the fingerprint
         // gate has to be written out by hand. Both answer to the same target:

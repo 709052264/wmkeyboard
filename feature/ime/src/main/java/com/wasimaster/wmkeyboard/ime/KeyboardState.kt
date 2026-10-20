@@ -1849,6 +1849,9 @@ sealed interface AiChatAction {
      * chat or from the AI panel's actions: both ride this one callback.
      */
     data class ToolApproval(val choice: com.wasimaster.wmkeyboard.core.tools.AiToolApproval) : AiChatAction
+
+    /** Takes back an AI memory save: the call at [useIndex] under the message at [messageIndex]. */
+    data class UndoMemory(val messageIndex: Int, val useIndex: Int) : AiChatAction
 }
 
 

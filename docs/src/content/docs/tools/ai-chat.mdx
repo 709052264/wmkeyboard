@@ -170,6 +170,12 @@ With no downloaded model and no configured provider, the chat screen says **Noth
 
 On the F-Droid build the on-device models are the [GGUF ones](/tools/ai/#gguf-models-on-llamacpp) only: the LiteRT-LM list needs Google's runtime, which that build leaves out. See [Which build you have](/start/editions/) if you're not sure which one you have.
 
+## Memory
+
+A chat can remember things about you for the chats after it. When you mention something that will stay true, like where you live or how you like answers, the model saves it as one short fact, and a line under the answer says **Saved to memory** with an **Undo** beside it. Ask it to remember or forget something and it does. Every saved fact is on <SettingsPath path="AI / Memory" />, where you can edit it or delete it.
+
+An on-device model reads and saves memory while it's on. A cloud or self-hosted service only does once you turn on **Use with cloud models** there. A chat started in [incognito](/privacy/incognito/) never touches memory. See [AI memory](/tools/ai-memory/) for what's saved, what's refused and where it's kept.
+
 ## What's kept, and where
 
 Conversations live in one file in the app's private storage, in the same folder as the [AI history](/tools/ai/#history). It shows up as **AI chats** on the storage screen under <SettingsPath path="About / Storage" />, so you can at least see what it costs you. [Your data](/privacy/data/) covers what else is in there.
@@ -198,7 +204,7 @@ Deleting a conversation from the list removes it for good. There's no undo, whic
 Exactly what the AI tool sends, and only when you hit send:
 
 - **An on-device model** sends nothing. The whole conversation stays on the phone.
-- **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
+- **Any other provider** gets the conversation so far, because that's what makes a reply follow on from the last one. Your saved [AI memory](/tools/ai-memory/) goes with it only if you've turned on **Use with cloud models**. Pictures you sent go with your newest message, to a provider that takes them. That includes any field text you attached with the paperclip, and only the text you attached: the keyboard's chat never reads the field on its own. A fixed instruction rides along with it: answer in plain text, and keep it as short as the question allows. Your API keys stay on the device.
 - **The transcript itself** goes nowhere. It's deliberately left out of settings backups, the same as the [AI history](/tools/ai/#history) and for the same reason: your own conversations shouldn't ride along in a file you export and mail to yourself. See [Your data](/privacy/data/).
 
 ## Details & edge cases

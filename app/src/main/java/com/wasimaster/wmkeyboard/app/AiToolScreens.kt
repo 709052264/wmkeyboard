@@ -135,6 +135,16 @@ internal fun AiHubSettings(
             )
         }
     }
+    SettingsGroup(stringResource(R.string.toolai_memory_group_title)) {
+        item {
+            NavRow(
+                title = R.string.toolai_memory_screen_title,
+                subtitle = stringResource(R.string.toolai_memory_nav_subtitle),
+                route = "ai_memory",
+                onClick = { onNavigate("ai_memory") },
+            )
+        }
+    }
     SettingsGroup(stringResource(R.string.toolai_ai_history_group_title)) {
         item {
             NavRow(
