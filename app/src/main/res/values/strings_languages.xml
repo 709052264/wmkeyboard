@@ -330,6 +330,14 @@
 
     <string name="languages_custom_dictionaries_title">Custom dictionaries</string>
     <string name="languages_custom_dictionaries_subtitle">Import your own word lists</string>
+    <string name="languages_hunspell_title">Hunspell spell checking</string>
+    <string name="languages_hunspell_subtitle">Words your imported Hunspell dictionary accepts, compound words included, are never autocorrected, and its spellings join the suggestions.</string>
+    <string name="languages_hunspell_list_off_subtitle">Its word list is switched off. Switch it on under Custom dictionaries to check words with it.</string>
+    <string name="languages_hunspell_not_in_build_subtitle">This build of the app has no Hunspell library. Suggestions come from the word list alone.</string>
+    <string name="languages_hunspell_module_missing_info">Hunspell is an extra part of the keyboard, about 1 MB. Download it to check words and compound words against your imported dictionary.</string>
+    <string name="languages_hunspell_module_installing_info">Downloading Hunspell…</string>
+    <string name="languages_hunspell_module_installing_sized_info">Downloading Hunspell: <xliff:g id="done" example="0.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="1.1 MB">%2$s</xliff:g></string>
+    <string name="languages_hunspell_module_metered_body">Hunspell is a separate download of about 1 MB.</string>
 
     <!-- State of a downloaded word list. %1$d is the number of words, %2$s its
          size on your device, for example "4 MB". -->

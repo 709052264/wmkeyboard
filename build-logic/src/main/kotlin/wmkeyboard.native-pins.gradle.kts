@@ -38,6 +38,7 @@ val ownSpecs = mapOf(
     "libwmdenoise.so" to Own("speech", false),
     "libwmsherpa.so" to Own("onnx", false),
     "libharper_jni.so" to Own("grammar", false),
+    "libwmhunspell.so" to Own("spell", false),
     "libwmtess.so" to Own("ocr", true),
 )
 
@@ -48,6 +49,7 @@ val ownDirs = mapOf(
     "core/voice/src/onnx/jniLibs" to false,
     "core/intelligence/src/main/jniLibs" to false,
     "core/intelligence/src/full/jniLibs" to true,
+    "core/prediction/src/main/jniLibs" to false,
 )
 
 /** A dependency's library: its gate, the module whose AAR holds it, a licence. Full flavour only. */

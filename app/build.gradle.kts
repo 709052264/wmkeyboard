@@ -476,6 +476,9 @@ android {
         // Offline Sherpa, fetched when Sherpa is first picked.
         dynamicFeatures += ":feature:onnx"
         dynamicFeatures += ":feature:grammar"
+        // Hunspell's library, behind spell checking against an imported
+        // .aff/.dic.
+        dynamicFeatures += ":feature:spell"
         dynamicFeatures += ":feature:ocr"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
         // assets that only phones with a listed chip fetch, once someone
@@ -1343,7 +1346,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:onnx, :feature:grammar and :feature:ocr modules.
+        // :feature:speech, :feature:onnx, :feature:grammar, :feature:spell and :feature:ocr modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

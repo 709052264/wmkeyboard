@@ -220,6 +220,8 @@ import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.CompositeWordSource
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.prediction.HunspellChecker
+import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
@@ -265,6 +267,7 @@ import com.wasimaster.wmkeyboard.core.prediction.Revision
 import com.wasimaster.wmkeyboard.core.prediction.SecondaryDictionary
 import com.wasimaster.wmkeyboard.core.prediction.SeedBigrams
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
+import com.wasimaster.wmkeyboard.core.prediction.WordChecker
 import com.wasimaster.wmkeyboard.core.prediction.SystemUserDictionary
 import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.prediction.WordFacts
@@ -5174,6 +5177,7 @@ open class WMKeyboardService : InputMethodService() {
                 englishSources = lang.isEnglish
                 primaryLanguageId = lang.id
                 customDictionary = customTries[lang.id] ?: PackedTrie.EMPTY
+                refreshWordChecker(this, lang.id)
                 ngramPack = loadNgramPack(lang.id)
                 val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
                 secondaryDictionaries = secondaryIds.filter { it != "en" }
@@ -8386,6 +8390,9 @@ open class WMKeyboardService : InputMethodService() {
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()
         summonJob?.cancel()
+        // Hunspell's dictionaries are native memory the process keeps otherwise.
+        hunspellChecker?.second?.close()
+        hunspellChecker = null
         pluginRuntime?.shutdown()
         pluginRuntime = null
         vocabSpeaker?.shutdown()
@@ -15242,6 +15249,9 @@ open class WMKeyboardService : InputMethodService() {
             userUnlocked,
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor(lang.id),
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor("en"),
+            // The Hunspell library arriving (fetched from the dictionary
+            // screen while the keyboard runs) is a reason to bind again.
+            HunspellRuntime.moduleReady,
         )
         if (onlyIfChanged && binding == engineBinding) return
         engineBinding = binding
@@ -15267,6 +15277,7 @@ open class WMKeyboardService : InputMethodService() {
         // Imported word lists are per language, so the active one follows the
         // mode: a French list never reaches English.
         engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
+        refreshWordChecker(engine, lang.id)
         engine.ngramPack = loadNgramPack(lang.id)
         // Secondary languages feed the strip alongside the primary. English
         // rides its bundled list (englishAsSecondary); every other language
@@ -15289,6 +15300,51 @@ open class WMKeyboardService : InputMethodService() {
 
     /** What [bindEngineToLayout] last bound the engine from. */
     private var engineBinding: List<Any?>? = null
+
+    /**
+     * The Hunspell checker the engine holds, keyed by what it was opened from
+     * ([HunspellRuntime.signatureOf]), so a re-bind over the same files keeps
+     * it instead of reading a large dictionary again. One language's at a time:
+     * a German dictionary is tens of megabytes of native memory.
+     */
+    private var hunspellChecker: Pair<String, HunspellChecker>? = null
+
+    /** The last [refreshWordChecker] run; each waits for the one before, so two never open at once. */
+    private var wordCheckerJob: Job? = null
+
+    /**
+     * Gives [engine] the Hunspell checker over [langId]'s imported `.aff` and
+     * `.dic`, or none. None is the keyboard as it was before Hunspell: no
+     * imported pair, a list switched off, or a build or install without the
+     * library (it is fetched from the language's dictionary screen, never from
+     * here). Opening reads both files, so it happens off the main thread and
+     * the engine checks without it until then.
+     */
+    private fun refreshWordChecker(engine: SuggestionEngine, langId: String) {
+        val previous = wordCheckerJob
+        wordCheckerJob = serviceScope.launch {
+            previous?.join()
+            val held = hunspellChecker
+            val next = withContext(Dispatchers.IO) {
+                val files = if (userUnlocked) CustomDictionaries.hunspellFiles(filesDir, langId) else emptyList()
+                val signature = HunspellRuntime.signatureOf(files)
+                when {
+                    files.isEmpty() -> null
+                    held?.first == signature -> held
+                    else -> HunspellRuntime.open(files)?.let { signature to it }
+                }
+            }
+            hunspellChecker = next
+            if (suggestionEngine === engine && _uiState.value.language.id == langId) {
+                engine.wordChecker = next?.second ?: WordChecker.NONE
+            } else if (engine.wordChecker === held?.second) {
+                engine.wordChecker = WordChecker.NONE
+            }
+            // Closed after the engine lets go of it; a call already inside
+            // finishes first, since closing takes the same lock.
+            if (held != null && held !== next) held.second.close()
+        }
+    }
 
     /**
      * A run of 🌐 presses in recently-used order (#311). [order] is snapshotted
@@ -46288,6 +46344,7 @@ open class WMKeyboardService : InputMethodService() {
         rebuilt.third?.let { engine.bengaliIndex = it }
         val lang = _uiState.value.language
         engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
+        refreshWordChecker(engine, lang.id)
         val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
         engine.secondaryDictionaries = secondaryIds.filter { it != "en" }
             .map { id -> SecondaryDictionary(id, customDictionaries[id] ?: PackedTrie.EMPTY) }

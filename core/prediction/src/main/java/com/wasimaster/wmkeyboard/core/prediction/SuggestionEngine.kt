@@ -246,6 +246,21 @@ class SuggestionEngine(
         }
 
     /**
+     * The spelling checker for the language being typed: Hunspell over the
+     * `.aff` and `.dic` the user imported for it, when the library is here,
+     * and [WordChecker.NONE] otherwise, which leaves every decision to the
+     * word lists exactly as before.
+     *
+     * A word it accepts is never autocorrected away and keeps the strip's
+     * corrections off, like a listed word; that is what lets German, Dutch,
+     * Hungarian and Finnish compounds stand. Its spellings of a word it does
+     * not accept join the strip on the background pass (see [suggest]).
+     * Outside the walk's [generation]: the walk never reads it.
+     */
+    @Volatile
+    var wordChecker: WordChecker = WordChecker.NONE
+
+    /**
      * True when English is a secondary language and the primary is not: the
      * bundled English list then participates at a fraction of its frequency
      * (it carries real frequencies, unlike the freq-1 [secondaryDictionaries]),
@@ -1774,7 +1789,46 @@ class SuggestionEngine(
     fun isKnownWord(word: String): Boolean {
         val lower = word.lowercase()
         return inDictionaries(lower) || userLexicon.contains(lower) ||
-            contacts.contains(lower) || apps.contains(lower)
+            contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
+    }
+
+    /**
+     * Whether [wordChecker] accepts [word] as typed, case and all: Hunspell
+     * knows German `Haus` and not `haus`. Short words are left to the lists,
+     * which answer them better than rules do.
+     */
+    private fun spellAccepted(word: String): Boolean {
+        val checker = wordChecker
+        if (checker === WordChecker.NONE || word.length < MIN_SPELL_CHECK_LENGTH) return false
+        return checker.accepts(word)
+    }
+
+    /**
+     * [wordChecker]'s spellings of [composing], which it does not accept,
+     * merged into [merged]. A spelling a list holds scores as that list word
+     * reached by one far substitution, so it ranks with the walk's own
+     * corrections; one no list holds (a compound, mostly) scores as an
+     * imported Hunspell stem the same distance away, below the counted words
+     * and above nothing. Each later spelling steps down a little, keeping
+     * Hunspell's own order. A word still on its way to a listed one is not
+     * asked about: the completions are what the strip wants then, and
+     * Hunspell's run takes up to a quarter of a second.
+     */
+    private fun spellCandidates(composing: String, lower: String, merged: HashMap<String, Double>) {
+        val checker = wordChecker
+        if (checker === WordChecker.NONE || composing.length < MIN_SPELL_CHECK_LENGTH) return
+        if (isLivePrefix(lower)) return
+        val sources = walkSources()
+        val unlisted = ln(CUSTOM_WORD_WEIGHT.toDouble()) + ln(1.0 + Hunspell.STEM_FREQUENCY) -
+            FuzzyBeamSearch.COST_SUB_FAR
+        checker.suggestions(composing, SPELL_SUGGESTIONS).forEachIndexed { i, spelling ->
+            // A split ("Donau dampfschiff") only where the user wants splits offered at all.
+            if (' ' in spelling && !autocorrectSplits) return@forEachIndexed
+            val listed = dictionaryScore(spelling.lowercase(), sources)
+            val score = (if (listed.isFinite()) listed - FuzzyBeamSearch.COST_SUB_FAR else unlisted) -
+                i * SPELL_SUGGESTION_STEP
+            merged.merge(spelling, score, ::maxOf)
+        }
     }
 
     /**
@@ -1911,6 +1965,15 @@ class SuggestionEngine(
 
         /** The further step down for each later ending. */
         private const val KLINGON_SUFFIX_STEP = 0.2
+
+        /** Shorter words are left to the word lists; see [spellAccepted]. */
+        private const val MIN_SPELL_CHECK_LENGTH = 3
+
+        /** How many of [wordChecker]'s spellings a word may add to the strip. */
+        private const val SPELL_SUGGESTIONS = 4
+
+        /** The step down between consecutive spellings, keeping Hunspell's order. */
+        private const val SPELL_SUGGESTION_STEP = 0.1
 
         /**
          * Log-score worth of one step of [rankOffsets]. One nat, the same
@@ -2414,6 +2477,9 @@ class SuggestionEngine(
      * @param phoneticSlots how many chips the strip shows, on a phonetic layout
      *        that mixes English in: the other script's best is pinned to the
      *        last of them rather than left somewhere off the end
+     * @param spellSuggestions whether [wordChecker] may add its spellings,
+     *        which can take a quarter of a second. Off wherever [allowRerank]
+     *        is, the synchronous main-thread call sites.
      */
     fun suggest(
         composing: String,
@@ -2428,6 +2494,7 @@ class SuggestionEngine(
         previousWord3: String? = null,
         phoneticSlots: Int = DEFAULT_PHONETIC_SLOTS,
         completionLanguage: String? = null,
+        spellSuggestions: Boolean = allowRerank,
     ): List<String> {
         if (composing.isEmpty()) {
             return nextWords(previousWord, previousWord2, limit, previousWord3)
@@ -2463,9 +2530,11 @@ class SuggestionEngine(
         val ambiguous = keys?.isAmbiguous == true
         // A typo the corpus kept is not known: the strip has to show the fix
         // the space bar is about to make (#244).
+        // A word the spelling checker accepts is known too, which is what
+        // keeps a made-up German compound from being offered corrections.
         val known = !ambiguous && (
             (inDictionaries(lower) || userLexicon.contains(lower)) && !typoShadowed(lower, touch, keys) ||
-                knownCompound(lower)
+                knownCompound(lower) || spellAccepted(composing)
             )
         val merged = HashMap<String, Double>()
 
@@ -2497,6 +2566,9 @@ class SuggestionEngine(
             // The same for a compound typed without its hyphen: "чтото" is
             // *что-то*, "wellpaid" is *well-paid*.
             hyphenReading(lower)?.let { (spelling, score) -> merged.merge(spelling, score, ::maxOf) }
+            // Hunspell's spellings, for a word it does not accept and no list
+            // leads to: a misspelt compound has nothing else to offer it.
+            if (!known && spellSuggestions) spellCandidates(composing, lower, merged)
         }
         // The prefix sources read the buffer literally, so they sit out an
         // ambiguous decode: `adg` is not the start of anybody's name, and
@@ -3938,7 +4010,7 @@ class SuggestionEngine(
         if (correctionStats.penalty(lower, fixed) != CorrectionStats.Penalty.NONE) return ordinary
         val knownTyped = inDictionaries(lower) ||
             userLexicon.isEstablished(lower, learnedWordMinCount) ||
-            contacts.contains(lower) || apps.contains(lower)
+            contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
         fun applied() = CorrectionDecision(
             apply = matchCase(word, fixed),
             // Two fixes is sure enough to act on and unsure enough to show the
@@ -4450,6 +4522,9 @@ class SuggestionEngine(
         if (known && !accentShadowed(lower, touch) && !typoShadowed(lower, touch, keys)) {
             return NO_CORRECTION
         }
+        // A word the spelling checker accepts stands, shadowed or not: its
+        // rules vouch for it where a frequency list only counted it.
+        if (spellAccepted(word)) return NO_CORRECTION
         // A verb form (-s, -ed, -ing) the list left out while keeping the verb (#395).
         if (!known && (englishSources || englishAsSecondary) &&
             Inflections.isVerbForm(lower) { inDictionaries(it) }

@@ -137,6 +137,17 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/tesseract-jni/build.sh
 
 The script fetches the pinned Tesseract4Android sources, builds all three ABIs and copies the stripped libraries into place. The **Tesseract native build** workflow on GitHub does the same and uploads the result. `native/tesseract-jni/README.md` has the JNI contract and the size measurements behind each build flag.
 
+## Rebuilding the Hunspell library
+
+Spell checking against an imported Hunspell `.aff` and `.dic` runs on upstream [Hunspell](https://github.com/hunspell/hunspell) 1.7.2, built with a small JNI bridge into `libwmhunspell.so` from `native/hunspell-jni/`. `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/HunspellNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/prediction/src/main/jniLibs/<abi>/`. Every edition has it: GitHub builds pin it for download (gate `spell`), Play builds ship it in the on-demand `:feature:spell` split, and F-Droid builds it from source through `native/build-lite-libs.sh`. Rebuild it only after you edit `native/hunspell-jni/`:
+
+```sh
+# Needs CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/hunspell-jni/build.sh
+```
+
+The script fetches Hunspell at its pinned commit, builds all three ABIs in about ten seconds and copies the stripped libraries into place. `native/hunspell-jni/README.md` has the JNI contract. Upstream Hunspell rather than nuspell: nuspell needs ICU4C, which the NDK only exposes from API 31.
+
 ## Running static analysis
 
 ```sh

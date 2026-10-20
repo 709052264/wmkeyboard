@@ -101,6 +101,9 @@ if (playStoreChannel) {
     // ONNX Runtime and the sherpa-onnx bridge behind Offline Sherpa, the same way.
     include(":feature:onnx")
     include(":feature:grammar")
+    // Hunspell's, the same way, behind spell checking against imported
+    // .aff/.dic dictionaries.
+    include(":feature:spell")
     include(":feature:ocr")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
     // wmkb.enableNpu=false (the same flag :core:config reads).

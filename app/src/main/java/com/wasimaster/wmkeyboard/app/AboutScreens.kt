@@ -253,6 +253,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/luaj/luaj",
         ),
     )
+    // Spell checking against an imported Hunspell dictionary, in every build:
+    // packaged, pinned for download, or a Play split. See native/hunspell-jni.
+    add(
+        Attribution(
+            "Hunspell",
+            R.string.about_bundled_hunspell_used,
+            "Copyright (C) 2002-2022 Németh László and Hunspell contributors",
+            "MPL-1.1", "mpl-1.1.txt",
+            "https://github.com/hunspell/hunspell",
+        ),
+    )
     if (BuildConfig.ENABLE_GRAMMAR) {
         add(
             Attribution(

@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     id("wmkeyboard.detekt")
@@ -37,6 +39,28 @@ android {
     }
     buildFeatures { compose = true }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
+}
+
+// Same channel flag :app reads. Play builds leave src/main/jniLibs (the
+// Hunspell library) out of this module, so out of the base APK: the
+// on-demand :feature:spell split packages the same directory instead. The
+// files stay here because native/hunspell-jni/build.sh and F-Droid's recipe
+// write and scan exactly this path. Through the new DSL's extension type for
+// the AGP 9 reason :core:intelligence explains.
+val playStoreChannel = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    (providers.gradleProperty("wmkb.enablePlayStore").orNull
+        ?: localProperties.getProperty("wmkb.enablePlayStore")
+        ?: System.getenv("WMKB_ENABLE_PLAY_STORE")
+        ?: "false").toBoolean()
+}
+if (playStoreChannel) {
+    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
+        getByName("main").jniLibs.setSrcDirs(emptyList<String>())
+    }
 }
 
 kotlin {
