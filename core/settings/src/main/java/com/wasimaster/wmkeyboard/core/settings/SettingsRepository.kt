@@ -5311,6 +5311,19 @@ data class CjkSettings(
     val spaceStepsCandidatesLanguages: Set<String> = emptySet(),
     /** Which region's vocabulary Traditional output should prefer. */
     val hanRegion: HanVariant.HanRegion = HanVariant.HanRegion.GENERIC,
+    /**
+     * The Chinese languages (`zh`, `yue`) whose conversion runs on the RIME
+     * engine (librime) instead of the built-in one, by language id. Empty by
+     * default: RIME needs a library and schema packs downloaded and compiled,
+     * and the built-in engine needs only its dictionary.
+     */
+    val rimeLanguages: Set<String> = emptySet(),
+    /**
+     * The RIME schema each typing method uses, by `RimeMethod` name
+     * (`PINYIN` to `rime_ice`). A method with no entry, or whose schema is not
+     * compiled, takes the first installed pack that offers one.
+     */
+    val rimeSchemas: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -10034,6 +10047,9 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_STEPS_CANDIDATES_LANGUAGES =
             stringSetPreferencesKey("space_steps_candidates_languages")
         private val CJK_HAN_REGION = stringPreferencesKey("cjk_han_region")
+        private val RIME_LANGUAGES = stringSetPreferencesKey("rime_languages")
+        // "METHOD=schema_id" entries.
+        private val RIME_SCHEMAS = stringSetPreferencesKey("rime_schemas")
         private val VI_STRICT_TONES = booleanPreferencesKey("vi_strict_tones")
         private val VI_RESTORE_MARKS = booleanPreferencesKey("vi_restore_marks")
         private val ONE_HANDED_MODE = stringPreferencesKey("one_handed_mode")
@@ -11829,6 +11845,11 @@ class SettingsRepository(private val context: Context) {
             hanRegion = p[CJK_HAN_REGION]
                 ?.let { runCatching { HanVariant.HanRegion.valueOf(it) }.getOrNull() }
                 ?: defaults.cjk.hanRegion,
+            rimeLanguages = p[RIME_LANGUAGES] ?: defaults.cjk.rimeLanguages,
+            rimeSchemas = p[RIME_SCHEMAS]
+                ?.mapNotNull { entry -> entry.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }
+                ?.toMap()
+                ?: defaults.cjk.rimeSchemas,
         )
 
     private fun readVietnamese(p: Preferences, defaults: KeyboardSettings) =
@@ -18925,6 +18946,18 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setCjkHanRegion(value: HanVariant.HanRegion) =
         editPrefs { it[CJK_HAN_REGION] = value.name }
+
+    /** Whether [languageId]'s conversion runs on RIME rather than the built-in engine. */
+    suspend fun setRimeLanguage(languageId: String, value: Boolean) = editPrefs { p ->
+        val current = p[RIME_LANGUAGES] ?: emptySet()
+        p[RIME_LANGUAGES] = if (value) current + languageId else current - languageId
+    }
+
+    /** The RIME schema [method] types through; null goes back to the default. */
+    suspend fun setRimeSchema(method: String, schemaId: String?) = editPrefs { p ->
+        val kept = (p[RIME_SCHEMAS] ?: emptySet()).filterNot { it.substringBefore('=') == method }.toSet()
+        p[RIME_SCHEMAS] = if (schemaId == null) kept else kept + "$method=$schemaId"
+    }
 
     suspend fun setOneHandedMode(value: OneHandedMode) =
         editPrefs { it[ONE_HANDED_MODE] = value.name }

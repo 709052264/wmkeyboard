@@ -117,6 +117,56 @@ Both languages plug in through one seam. A composer names its language in
 index builder and the spelling assets; the engine resolves a `PhoneticBackend`
 from it. Nothing in the engine or the service names Hindi.
 
+### Native conversion engines
+
+The CJK composers are Kotlin, and a native engine (RIME for Chinese today,
+Mozc for Japanese later) stands in for one of them rather than beside it.
+`LayoutSpec.resolvedComposer()` builds the layout's built-in composer, then
+asks `ConversionEngines` (`core/input/.../composer/ConversionEngines.kt`)
+whether a registered `ConversionEngine` replaces it for the layout's
+`ComposerType` and language. An engine answers from fields alone, because
+the service resolves a composer on every layout bind and settings emission;
+anything slower happens in the background, and the engine calls
+`ConversionEngines.changed()` when its answer moves. The service collects
+that signal and resolves its composer again between words.
+
+The replacement keeps the built-in composer as its `base` and delegates
+every question about *keys* to it: which characters the buffer takes,
+whether digits start it, what the composing region shows, what Enter and
+backspace do. The layout is unchanged, so its keys must behave exactly as
+before. Only conversion moves: `candidates`, `consumedForIndex` and
+`learnChoice`. When the engine cannot answer (still compiling, library
+dropped) the replacement converts with `base` instead, so typing never stops.
+
+RIME's half (`core/input/.../rime/`):
+
+- `RimeEngine` is the `ConversionEngine`. The service pushes the user's
+  choices into it from the settings collector, the way it fills `CjkConfig`.
+- `RimeRuntime` owns librime's one instance: readiness (storage unlocked,
+  library loaded, a compile that matches what is installed), compiling with
+  progress, and the single session. Composers reach the session through
+  `tryLock`, so a compile on a background thread never blocks a keystroke.
+- `RimeComposer` gives the session the whole reading, the shape the
+  `Composer` contract already has, and keeps it while the service picks its
+  way through it: a prefix pick leaves librime one segment further on, which
+  is how its user dictionary learns the whole phrase at the last pick. Spans
+  are librime's own `Candidate::end()`, mapped back to buffer characters
+  through `RimeKeys`, and looked up by index, so prefix commit stays exact.
+  Simplified and Traditional are librime filter switches, applied inside its
+  menu before any span is measured, never to a finished list.
+- `RimeStore` keeps the unpacked packs, imports and compiled tables under
+  `filesDir/rime`, in credential-protected storage beside the other learned
+  words. `restrictedToDirectBoot()` empties `rimeLanguages`, so a locked
+  phone types on the built-in composers.
+- Schema packs are ordinary `CjkDictPack`s (`RimeSchemaCatalog`), so download,
+  checksum and offline import are the CJK pack path unchanged.
+
+A Mozc engine would add a `ConversionEngine` for `ComposerType.ROMAJI` (and
+the flick and kana layouts that share it), a gate and a `:feature:` module
+like `rime`'s, and its own runtime. `RimeComposer`'s session mirror and
+`RimeKeys`' map back to buffer characters are the two parts written to be
+copied.
+
 ### Prediction
 
 `Trie` is frequency-weighted and serves prefix completions. `UserLexicon`

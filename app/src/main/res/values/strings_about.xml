@@ -183,6 +183,7 @@
     <string name="about_bundled_whisper_used">The speech recognition model, in TFLite versions that run on your device</string>
     <string name="about_bundled_whisper_android_used">The reference for the mel spectrogram and the tokenizer port</string>
     <string name="about_bundled_whisper_cpp_used">The engine that runs the faster Offline Whisper models on your device, and those models</string>
+    <string name="about_bundled_rime_used">The optional RIME engine for Chinese and Cantonese, with LevelDB, yaml-cpp, marisa-trie, OpenCC and Boost</string>
     <string name="about_bundled_executorch_used">The engine that runs the Offline Asr4All models on your device</string>
     <!-- Asr4All is a model name and is not translated. -->
     <string name="about_bundled_asr4all_used">The Offline Asr4All speech recognition models, downloaded on request. They may not be used for surveillance or profiling; dictation is allowed</string>

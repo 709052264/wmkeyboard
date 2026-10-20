@@ -1,0 +1,6 @@
+{
+  global:
+    Java_com_wasimaster_wmkeyboard_core_input_rime_RimeNative_*;
+  local:
+    *;
+};

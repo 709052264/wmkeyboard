@@ -20,8 +20,9 @@ import kotlinx.coroutines.flow.StateFlow
  * `:feature:litert`, `:feature:handwriting`, `:feature:speech` (the
  * whisper.cpp, ExecuTorch, Whistle and RNNoise libraries), `:feature:onnx`
  * (ONNX Runtime and the sherpa-onnx bridge), `:feature:grammar`
- * (Harper), `:feature:spell` (Hunspell), `:feature:ocr` (Tesseract) and
- * `:feature:npu` (the Qualcomm NPU runtime, when the build has it).
+ * (Harper), `:feature:spell` (Hunspell), `:feature:ocr` (Tesseract),
+ * `:feature:rime` (librime) and `:feature:npu` (the Qualcomm NPU runtime,
+ * when the build has it).
  * This directory replaces
  * `src/noplay/java` when `wmkb.enablePlayStore` is on, the same seam as
  * LlmDelivery and TranslateDelivery beside it, and each module here is
@@ -36,6 +37,7 @@ private const val ONNX_MODULE = "onnx"
 private const val GRAMMAR_MODULE = "grammar"
 private const val SPELL_MODULE = "spell"
 private const val OCR_MODULE = "ocr"
+private const val RIME_MODULE = "rime"
 private const val NPU_MODULE = "npu"
 private const val GOOGLE_HOME_MODULE = "googlehome"
 
@@ -53,7 +55,7 @@ fun installOnDemandDelivery(app: Application) {
     // it the gate stays the default, whose "installed" NpuRuntime then finds
     // no assets behind, which reads as no NPU: never reached anyway, because
     // NpuSupport offers no NPU when ENABLE_NPU is off.
-    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, ONNX_MODULE, GRAMMAR_MODULE, SPELL_MODULE, OCR_MODULE) +
+    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, ONNX_MODULE, GRAMMAR_MODULE, SPELL_MODULE, OCR_MODULE, RIME_MODULE) +
         listOfNotNull(
             NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU },
             // In the bundle exactly when the build links the Home APIs.
@@ -75,9 +77,10 @@ fun installOnDemandDelivery(app: Application) {
     FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
     FeatureModules.spell = gates.getValue(SPELL_MODULE)
     FeatureModules.ocr = gates.getValue(OCR_MODULE)
+    FeatureModules.rime = gates.getValue(RIME_MODULE)
     gates[NPU_MODULE]?.let { FeatureModules.npu = it }
     gates[GOOGLE_HOME_MODULE]?.let { FeatureModules.googleHome = it }
-    // The speech, onnx, grammar, spell and OCR splits hold bare native libraries for classes in
+    // The speech, onnx, grammar, spell, OCR and RIME splits hold bare native libraries for classes in
     // the base. A split installed after this process started is not on the
     // class loader's library path; SplitInstallHelper looks there as well.
     FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }

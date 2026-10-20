@@ -114,6 +114,13 @@ object FeatureModules {
     var ocr: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:rime`: librime, behind the optional RIME engine for Chinese
+     * (`:core:input`). The built-in composers need nothing from it.
+     */
+    @Volatile
+    var rime: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
      * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
      * unpacked into app storage by `NpuRuntime` in :core:intelligence.

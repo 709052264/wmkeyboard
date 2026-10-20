@@ -105,6 +105,9 @@ if (playStoreChannel) {
     // .aff/.dic dictionaries.
     include(":feature:spell")
     include(":feature:ocr")
+    // librime's library behind the optional RIME Chinese engine, the same
+    // way: :core:input leaves it out of the base APK on this channel.
+    include(":feature:rime")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
     // wmkb.enableNpu=false (the same flag :core:config reads).
     val local = java.util.Properties()

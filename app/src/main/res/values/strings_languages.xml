@@ -414,6 +414,55 @@
     <!-- %1$s is the name of the dictionary pack. -->
     <string name="languages_cjk_delete_desc">Delete <xliff:g id="pack" example="Pinyin">%1$s</xliff:g></string>
 
+    <!-- ===== RIME engine (librime) for Chinese and Cantonese =====
+         RIME is the engine's name and stays in Latin letters; schema names
+         such as luna_pinyin are ids and stay as they are. "Compile" is what
+         RIME calls deploying: building its schemas into fast tables. -->
+    <string name="languages_rime_group_title">Conversion engine</string>
+    <string name="languages_rime_group_info">The built-in engine converts with the dictionaries above. RIME is the open-source engine behind Weasel, Squirrel and Trime. It reads RIME schemas, learns the words you pick, and can type schemas you import yourself. It needs its own library and schema packs, which it compiles on the phone.</string>
+    <string name="languages_rime_engine_title">Engine</string>
+    <string name="languages_rime_engine_builtin">Built-in</string>
+    <string name="languages_rime_engine_rime">RIME</string>
+    <string name="languages_rime_engine_subtitle">With RIME, the layouts of this language convert through the RIME schema you pick for each. The keys stay the same.</string>
+    <!-- %1$s is a size such as 2.9 MB. -->
+    <string name="languages_rime_library_missing">RIME needs its library, about <xliff:g id="size" example="2.9 MB">%1$s</xliff:g>. The built-in engine types until it is here.</string>
+    <string name="languages_rime_library_missing_unsized">RIME needs its library. The built-in engine types until it is here.</string>
+    <!-- %1$s and %2$s are sizes such as 1.2 MB and 2.9 MB. -->
+    <string name="languages_rime_library_installing">Downloading the RIME library: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="2.9 MB">%2$s</xliff:g></string>
+    <string name="languages_rime_library_installing_unsized">Downloading the RIME library…</string>
+    <string name="languages_rime_library_failed">The RIME library did not download.</string>
+    <string name="languages_rime_status_title">RIME status</string>
+    <string name="languages_rime_status_off">Download a schema pack below. RIME starts when one is compiled.</string>
+    <string name="languages_rime_status_locked">RIME starts after you unlock the phone. Until then the built-in engine types.</string>
+    <string name="languages_rime_status_needs_library">Waiting for the RIME library.</string>
+    <string name="languages_rime_status_needs_deploy">The schemas changed and need to be compiled again.</string>
+    <string name="languages_rime_status_deploying_start">Getting ready to compile…</string>
+    <!-- %1$s is a schema name such as 朙月拼音. %2$d and %3$d count schemas. -->
+    <string name="languages_rime_status_deploying">Compiling <xliff:g id="schema" example="朙月拼音">%1$s</xliff:g>, <xliff:g id="done" example="2">%2$d</xliff:g> of <xliff:g id="total" example="6">%3$d</xliff:g>…</string>
+    <!-- %1$s lists the compiled schemas' names. -->
+    <string name="languages_rime_status_ready">Ready: <xliff:g id="schemas" example="朙月拼音, 注音">%1$s</xliff:g></string>
+    <!-- %1$s is the system's own error text, in English. -->
+    <string name="languages_rime_status_failed">Compiling failed: <xliff:g id="detail" example="out of space">%1$s</xliff:g></string>
+    <string name="languages_rime_deploy_action">Compile</string>
+    <string name="languages_rime_import_title">Import RIME schemas</string>
+    <string name="languages_rime_import_subtitle">A zip with .schema.yaml and .dict.yaml files, such as a schema from GitHub. They are compiled with the packs.</string>
+    <!-- %1$s lists the schema ids the zip brought. -->
+    <string name="languages_rime_import_done">Imported <xliff:g id="schemas" example="wubi86">%1$s</xliff:g>.</string>
+    <string name="languages_rime_import_failed">That zip has no RIME schema in it.</string>
+    <string name="languages_rime_imported_subtitle">Imported by you</string>
+    <!-- %1$s is the name of an imported zip. -->
+    <string name="languages_rime_remove_import_desc">Remove <xliff:g id="name" example="my_schema">%1$s</xliff:g></string>
+    <string name="languages_rime_method_info">Which compiled schema each kind of layout types through. Automatic takes the first downloaded pack that has one.</string>
+    <string name="languages_rime_method_auto">Automatic</string>
+    <string name="languages_rime_method_pinyin">Pinyin layouts</string>
+    <string name="languages_rime_method_t9">9-key Pinyin layout</string>
+    <string name="languages_rime_method_zhuyin">Zhuyin layout</string>
+    <string name="languages_rime_method_cangjie">Cangjie layout</string>
+    <string name="languages_rime_method_stroke">Stroke layout</string>
+    <string name="languages_rime_method_jyutping">Jyutping layout</string>
+    <string name="languages_rime_delete_all_title">Delete RIME data</string>
+    <string name="languages_rime_delete_all_subtitle">Removes the compiled schemas, your imported schemas and the words RIME learned from you. Downloaded packs stay and compile again.</string>
+
     <string name="languages_cjk_traditional_title">Traditional characters</string>
     <string name="languages_cjk_traditional_subtitle">The keyboard converts candidates to Traditional (繁體). With the phrase table pack, it converts word by word, so 头发 becomes 頭髮.</string>
     <!-- Info text for the Traditional characters toggle. The Chinese characters

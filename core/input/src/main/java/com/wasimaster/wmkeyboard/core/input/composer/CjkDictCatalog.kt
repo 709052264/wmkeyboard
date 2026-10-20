@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.input.composer
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
+import com.wasimaster.wmkeyboard.core.input.rime.RimeSchemaCatalog
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.input.R
 import java.io.File
@@ -159,11 +160,18 @@ object CjkDictCatalog {
         ),
     )
 
+    /**
+     * [packs] and the RIME engine's schema packs ([RimeSchemaCatalog]), which
+     * download, verify, import and sit on disk the same way but are offered
+     * on their own screen and never converted with by the built-in composers.
+     */
+    val allPacks: List<CjkDictPack> get() = packs + RimeSchemaCatalog.packs
+
     init {
-        check(packs.map { it.id }.toSet().size == packs.size) { "pack ids must be unique" }
+        check(allPacks.map { it.id }.toSet().size == allPacks.size) { "pack ids must be unique" }
     }
 
-    fun byId(id: String): CjkDictPack? = packs.firstOrNull { it.id == id }
+    fun byId(id: String): CjkDictPack? = allPacks.firstOrNull { it.id == id }
 
     /** [pack] and every available pack fetched [CjkDictPack.alongside] it. */
     fun withCompanions(pack: CjkDictPack): List<CjkDictPack> =
@@ -171,14 +179,14 @@ object CjkDictCatalog {
 
     /** The pack published as [name] (`pinyin_v2.tsv`), by the file name in the data repo. */
     fun byFileName(name: String): CjkDictPack? =
-        packs.firstOrNull { it.available && it.path.substringAfterLast('/') == name }
+        allPacks.firstOrNull { it.available && it.path.substringAfterLast('/') == name }
 
     /**
      * True for a name an older version of a pack was published under. Offline
      * language packs carry those too, for app versions that still pin them, and
      * this one passes over them: their bytes would fail its checksum.
      */
-    fun isLegacyFileName(name: String): Boolean = packs.any { name in it.legacyFileNames }
+    fun isLegacyFileName(name: String): Boolean = allPacks.any { name in it.legacyFileNames }
 
     fun forLang(langId: String): List<CjkDictPack> =
         packs.filter { it.langId == langId || langId in it.alsoLangIds }

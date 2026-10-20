@@ -52,6 +52,7 @@ import com.wasimaster.wmkeyboard.core.feedback.SoundStore
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
+import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
@@ -301,9 +302,22 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "languages",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(File(it.files, "dict"), File(it.files, "cjk_dicts")) },
+            pathsOf = { listOf(File(it.files, "dict"), File(it.files, "cjk_dicts"), File(it.files, "rime")) },
             itemsOf = { env ->
-                languageItems(env, File(env.roots.files, "dict")) +
+                // RIME's unpacked and compiled schemas, with the words it learned:
+                // one item, since they only make sense together.
+                val rime = File(env.roots.files, "rime").takeIf(File::isDirectory)?.let { dir ->
+                    StorageItem(
+                        id = dir.absolutePath,
+                        label = env.context.getString(R.string.storage_rime_label),
+                        detail = dir.name,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+                listOfNotNull(rime) +
+                    languageItems(env, File(env.roots.files, "dict")) +
                     childrenOf(File(env.roots.files, "cjk_dicts")).map { dir ->
                         // These are named after the input method rather than a
                         // language: `pinyin`, `jyutping`, `cangjie`.
@@ -325,6 +339,7 @@ internal object StorageCategories {
             clearOf = { env ->
                 emptyOut(File(env.roots.files, "dict"))
                 emptyOut(File(env.roots.files, "cjk_dicts"))
+                File(env.roots.files, "rime").deleteRecursively()
                 refreshWordlists(env)
             },
         ),
@@ -1174,6 +1189,7 @@ internal object StorageCategories {
     private fun refreshWordlists(env: StorageEnv) {
         WordlistDownloadManager.refresh(env.roots.files)
         CjkDictDownloadManager.refresh(env.roots.files)
+        RimeRuntime.recheck(env.context)
     }
 
     /**

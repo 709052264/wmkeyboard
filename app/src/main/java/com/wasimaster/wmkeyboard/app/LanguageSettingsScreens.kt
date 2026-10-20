@@ -72,6 +72,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinProfile
 import com.wasimaster.wmkeyboard.core.input.composer.DoublePinyinScheme
 import com.wasimaster.wmkeyboard.core.input.composer.PinyinFuzzy
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.input.rime.RimeSchemaCatalog
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.InputMethodKind
@@ -1439,6 +1440,12 @@ internal fun LanguageDetailScreen(
         CjkDictPackManager(langId, repository, settings, onNavigate)
     }
 
+    // Chinese and Cantonese can convert on RIME instead (librime): the
+    // engine choice, its library, schema packs, imports and compiling.
+    if (RimeSchemaCatalog.forLang(langId).isNotEmpty()) {
+        RimeEngineGroup(langId, repository, settings)
+    }
+
     // Removing the only language would leave nothing to type in, so it is only
     // offered when another language is enabled.
     if (settings.watch { it.enabledLanguages.size > 1 }) {
@@ -1977,7 +1984,7 @@ private fun CjkDictPackManager(
  * text follows the app's language: it is read only while the row is drawn.
  */
 @Composable
-private fun packStatusLabel(
+internal fun packStatusLabel(
     pack: CjkDictPack,
     status: CjkDictDownloadManager.DownloadStatus,
 ): String = when (status) {

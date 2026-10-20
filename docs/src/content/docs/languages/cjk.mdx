@@ -390,6 +390,42 @@ The other formats are compiled, and the keyboard can't read them:
 
 Each file can be at most 32 MB. That rules out the whole-corpus builds, such as [fcitx5-pinyin-sougou-dict](https://github.com/blackteahamburger/fcitx5-pinyin-sougou-dict), whose `sougou.dict.yaml` is over 400 MB: the import refuses it, and splitting it wouldn't help, because the keyboard reads every list into memory when it builds the Chinese table. That project's release also carries `sougou_dict.tar.gz`, the raw Sogou cell dictionaries it was built from. Convert the topics you actually type, such as computing, place names or medicine, and import those. A few thematic lists of a few megabytes each give most of the benefit and load fast.
 
+## The RIME engine
+
+<SettingsPath path="Languages & layouts / Chinese / Conversion engine / Engine" />
+
+Chinese and Cantonese can convert on [RIME](https://rime.im/) instead of the keyboard's own engine. RIME is the open-source engine behind Weasel on Windows, Squirrel on macOS, fcitx5-rime and ibus-rime on Linux, and Trime on Android. It reads RIME *schemas*: a schema says which keys spell which readings and which dictionary they look up, so anything written for those keyboards types here too, including schemas you find on GitHub or make yourself.
+
+**Engine** on a language's page picks **Built-in** or **RIME**, for that language alone, and Built-in is the default. The layouts don't change: Pinyin is still the Pinyin board, Zhuyin still has its bopomofo keys, and the keyboard turns them into the keys RIME's schemas expect (bopomofo onto the Dachen key map, Cangjie radicals onto their letters, strokes onto `h s p n z`). Only the conversion is RIME's: the candidates, how far each one reaches into what you typed, and what it learns from your picks.
+
+RIME needs three things before it takes over, and the group lists them as they arrive:
+
+1. **Its library**, about 3 MB. The Google Play edition fetches it from Play, the GitHub edition from the project's data repository, and the F-Droid edition from the same place once **Download feature libraries** is on under Privacy. Picking RIME asks for it, after the usual question on a metered connection.
+2. **A schema pack.** Each row downloads one, together with **RIME essentials** (punctuation, symbols, a word-frequency table and the Simplified and Traditional tables every schema uses). Each pack is checked against a SHA-256 built into the app, like the conversion dictionaries.
+3. **Compiling.** RIME turns schemas into fast lookup tables on the phone, which it calls *deploying*. The **RIME status** row starts it by itself as soon as a download finishes and shows each schema as it goes. **Compile** runs it again. Luna Pinyin takes seconds; Rime Ice, with its far bigger vocabulary, can take a minute or more and a few hundred megabytes of memory while it runs.
+
+Until all three are in place, and while a compile is running, the language keeps typing on the built-in engine, so switching never leaves you unable to type.
+
+| Pack | Schemas | Layout it serves | Licence of the data |
+|---|---|---|---|
+| Luna Pinyin (朙月拼音) | luna_pinyin and its Simplified, Taiwan and sentence variants, luna_quanpin, stroke | Pinyin, Stroke | LGPL-3.0 |
+| Rime Ice (雾凇拼音) | rime_ice, Double Pinyin schemes, t9 | Pinyin, T9 Pinyin | GPL-3.0 |
+| Bopomofo (注音) | bopomofo and its variants, terra_pinyin | Zhuyin | LGPL-3.0 |
+| Cangjie 5 (倉頡五代) | cangjie5, cangjie5_express | Cangjie | LGPL-3.0 |
+| Jyutping (粵拼) | jyut6ping3 | Cantonese Jyutping | CC BY 4.0 and ODbL |
+
+Each pack carries its upstream licence in a `licenses` folder inside the zip. The Rime Ice pack leaves out its Tencent word-vector list, the largest table, which would take minutes to compile on a phone. RIME's Lua plugin is not in this build either, so the Lua parts of Rime Ice (its date, calculator and correction scripts) are skipped and the rest of the schema works.
+
+**Which schema a layout uses.** Once something is compiled, a picker appears per kind of layout: **Pinyin layouts**, **9-key Pinyin layout**, **Zhuyin layout**, **Cangjie layout** and **Stroke layout** for Chinese, **Jyutping layout** for Cantonese. **Automatic** takes the first downloaded pack that serves the layout, in the order of the table above. Cangjie Quick has no RIME schema here and stays on the built-in engine.
+
+**Your own schemas.** **Import RIME schemas** takes a zip of `.schema.yaml` and `.dict.yaml` files, the way most schema projects publish them on GitHub. The folder inside the zip doesn't matter: the keyboard unpacks the files beside the first schema it finds. A file one of the packs already provides is kept as the pack has it, and so is RIME's own `default.yaml`. An imported schema compiles with the packs and shows up in every picker. The same zip also installs through **Import** on the [Storage](/reference/settings/about/) screen, or by opening it with the app, which recognises it by the schema inside. Each import gets its own row with a delete button.
+
+**Traditional characters** and **Regional wording** work here too: they switch on the matching filter inside the schema (Simplified, Traditional, Taiwan or Hong Kong forms), so a candidate is converted before the keyboard measures how much of your reading it covers. Cantonese stays in Traditional, as the built-in Jyutping dictionary is.
+
+**Learning.** RIME learns into its own user dictionary when you pick a candidate, and it learns whole phrases: picking 你好 and then 世界 for `nihaoshijie` teaches it 你好世界. Like the rest of the keyboard's learning, it learns nothing in incognito or a password field. **Delete RIME data** removes the compiled schemas, your imported ones and everything RIME learned; the downloaded packs stay and compile again.
+
+**Before the first unlock.** RIME's schemas and its user dictionary sit in the app's credential-protected storage, with your other learned words, so on a phone that has restarted and not been unlocked yet, Chinese types on the built-in engine. RIME takes over again after you unlock.
+
 ## Details & edge cases
 
 - **A Japanese word-list download exists but does nothing for typing.** Japanese has its own entry in the ordinary downloadable-dictionary catalog (see [Downloadable dictionaries](/languages/dictionaries/)), but because Japanese is a conversion input method, the regular suggestion engine never runs for it. That download currently has no effect on any of the three Japanese layouts. Korean's word list, by contrast, is fully active, since Korean isn't a conversion method.

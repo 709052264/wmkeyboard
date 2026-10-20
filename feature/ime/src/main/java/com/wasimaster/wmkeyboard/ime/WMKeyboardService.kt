@@ -694,6 +694,8 @@ import com.wasimaster.wmkeyboard.core.layout.deletesBackward
 import com.wasimaster.wmkeyboard.core.layout.opensAlternatesPopup
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
+import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngines
+import com.wasimaster.wmkeyboard.core.input.rime.RimeEngine
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
@@ -4101,6 +4103,14 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A conversion engine's answer changed (RIME finished deploying in
+        // Settings, or started after unlock, or stopped): resolve the layout's
+        // composer again, between words only, so a reading half typed under
+        // one engine is never handed to the other.
+        serviceScope.launch {
+            ConversionEngines.changes.drop(1).collect { reresolveComposer() }
+        }
+
         // A prebuilt phonetic index landed (#716): the language's backend is
         // built again, from the mapped table this time.
         serviceScope.launch {
@@ -4506,6 +4516,9 @@ open class WMKeyboardService : InputMethodService() {
                     settings.keyboardModes, currentPackage, currentModeFields, manualModeId,
                     currentFieldHint,
                 )
+                // Before the layout's composer is resolved below: whether a
+                // Chinese layout types through RIME is part of that answer.
+                RimeEngine.configure(this@WMKeyboardService, settings.cjk.rimeLanguages, settings.cjk.rimeSchemas)
                 // A field-scoped override (FORCE_ASCII, hintLocales) outlives
                 // settings emissions — otherwise saving any unrelated setting
                 // would drop the field back to a layout it cannot accept.
@@ -15043,6 +15056,19 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun activeLayoutSpec(settings: KeyboardSettings): LayoutSpec =
         resolveLayout(settings.customLayouts, fieldLayoutOverride ?: baseLayoutId(settings))
+
+    /**
+     * Resolves the bound layout's composer again after a [ConversionEngines]
+     * change. Skipped while a reading is composing: the buffer belongs to the
+     * composer that took it, and the next field or settings emission resolves
+     * again anyway.
+     */
+    private fun reresolveComposer() {
+        if (composing.isNotEmpty()) return
+        val state = _uiState.value
+        val composer = resolveLayout(state.settings.customLayouts, state.layoutId).resolvedComposer()
+        if (composer !== state.composer) _uiState.update { it.copy(composer = composer) }
+    }
 
     /**
      * The layout to type on before any field override: the one remembered for the

@@ -77,6 +77,11 @@
 # (Java_com_wasimaster_wmkeyboard_core_prediction_HunspellNative_*).
 -keep class com.wasimaster.wmkeyboard.core.prediction.HunspellNative { *; }
 
+# --- librime (JNI) -------------------------------------------------------------
+# libwmrime.so binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_input_rime_RimeNative_*).
+-keep class com.wasimaster.wmkeyboard.core.input.rime.RimeNative { *; }
+
 # The grammar lint models are decoded from JSON produced by that native code —
 # keep their serializers explicitly so a rules regression can never silently
 # break offline grammar checking.

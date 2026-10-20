@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds, from source, every native library the lite edition ships, into the
 # src/main/jniLibs directories of :core:language, :core:intelligence,
-# :core:prediction and :core:voice:
+# :core:prediction, :core:input and :core:voice:
 #
 #   Text engines        wm-engine-jni/build.sh    libwm_engine_jni.so
 #   Harper grammar      harper-jni/build.sh       libharper_jni.so
@@ -11,6 +11,7 @@
 #   Noise reduction     rnnoise-jni/build.sh      libwmdenoise.so
 #   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
+#   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #
 # libwmsherpa is linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -67,3 +68,4 @@ fi
 "$HERE/rnnoise-jni/build.sh"
 "$HERE/sherpa-onnx-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
+"$HERE/librime-jni/build.sh"

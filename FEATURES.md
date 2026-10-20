@@ -979,6 +979,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Resumable — .part file plus HTTP Range, with a preflight free-space check
     - Presence means valid — Atomic rename after verification, so a final file only exists if the download completed
     - Hot-swap token — A state token summarising which packs are on disk makes a finished download go live on the next field focus
+  - RIME engine `RARE` — Per language (Chinese, Cantonese), Engine = Built-in | RIME; with RIME the same layouts convert through librime 1.17.0 schemas. Built-in stays the default
+    - Own library on its own gate — `libwmrime.so` (native/librime-jni: librime, LevelDB, marisa-trie, OpenCC, yaml-cpp, Boost headers; 16 KB pages, reproducible) behind the `rime` gate: `:feature:rime` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in
+    - Schema packs — Luna Pinyin, Rime Ice, Bopomofo, Cangjie 5, Jyutping, plus RIME essentials, as checksum-pinned zips through the CJK pack path; each carries its upstream licence
+    - Your own schemas — A zip with a `.schema.yaml` imports from the RIME group, Storage's Import, or Open with; recognised by content
+    - Compiling with progress — RIME's deploy runs in the background as soon as a pack lands, schema by schema; the keyboard types on the built-in engine until it finishes
+    - Same keys — Zhuyin glyphs map onto the Dachen keys, Cangjie radicals onto letters, strokes onto h s p n z; a schema picker per kind of layout
+    - Exact prefix commit — Spans are librime's own candidate ends; Simplified, Traditional, Taiwan and Hong Kong forms are librime filter switches inside its menu
+    - Learns whole phrases — A pick goes to RIME's user dictionary; picking 你好 then 世界 teaches 你好世界. Not in incognito or password fields
+    - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
   - Candidate surface — The suggestion strip is replaced by ranked candidates while a buffer is composing
     - Expanded grid — Ranked to depth 128 for lattice methods so a tap in the wrapping grid still resolves
     - Prefix-consistency contract — candidates(b,100).take(12) must equal candidates(b,12) or strip and grid would disagree
@@ -2810,7 +2819,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Two GitHub builds** — From 0.6.3 a release publishes the standard build (full · English, on-demand libraries and languages) and the offline build (full · all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
 - **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
   - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
-  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Tesseract) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
+  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
   - Same gates as Play — Every library sits behind a `ModuleGate`, so the banners, `awaitInstalled` callers and `GatedLibrary` facades are unchanged; ML Kit's bundled text and barcode readers gained a `scanner` gate.
   - Loaded without ART double-registration — A dependency that loads its library itself is preloaded with a plain `dlopen` from `libwm_engine_jni.so`, so `JNI_OnLoad` runs once.
   - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.

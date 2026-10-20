@@ -138,6 +138,7 @@ Three languages, `zh`, `ja`, and `yue`, get an extra group named after themselve
 - Chinese only: **Date, time and numbers** (default **on**): `rq`, `sj` and `xq` offer the date, time and weekday, and `v` with a number offers it in Chinese numerals. See [Dates and numbers](/languages/cjk/#dates-and-numbers).
 - Chinese only: **Fuzzy Pinyin** (default **off**) matches confusable sounds. Turn it on and the eleven confusable groups appear individually below it: zh↔z, ch↔c, sh↔s, n↔l, r↔l, f↔h, an↔ang, en↔eng, in↔ing, ian↔iang and uan↔uang. All eleven are on to begin with, and a **Reset** row joins them as soon as you switch any one off. The six initial groups cost precision on every syllable that starts with those sounds; the five nasal endings are closer to a regional accent.
 - Chinese only: a **Double Pinyin** scheme list sits below that. Off is the default, meaning full Pinyin, and five two-key schemes follow (Microsoft, Sogou, Xiaohe, Ziranma and Pinyin++). All five ship their key tables, so all five are selectable. The last entry, **Custom**, types with a key table you write yourself.
+- Chinese and Cantonese: a separate **Conversion engine** group under the options picks **Built-in** or **RIME** for that language. With RIME it also holds the library download, one row per RIME schema pack, **RIME status** with **Compile**, **Import RIME schemas**, a schema picker per kind of layout and **Delete RIME data**. See [The RIME engine](/languages/cjk/#the-rime-engine).
 - Chinese only: **Custom Double Pinyin scheme** opens that table in a text editor, in fcitx's `sp.dat` format, with Copy, Paste, Import, Export and Start from a scheme in its menu. Picking Custom for the first time opens it on a copy of the scheme you had. Save applies it and switches the list to Custom. See [Your own scheme](/languages/cjk/#your-own-scheme).
 
 ## Options
@@ -186,6 +187,8 @@ Three languages, `zh`, `ja`, and `yue`, get an extra group named after themselve
 | Fuzzy Pinyin groups | Languages → *zh* → Chinese options | All eleven on |
 | Double Pinyin scheme | Languages → *zh* → Chinese options | Off (full Pinyin) |
 | Custom Double Pinyin scheme | Languages → *zh* → Chinese options | Empty |
+| Engine (Built-in / RIME) | Languages → *zh* or *yue* → Conversion engine | Built-in, per language |
+| RIME schema per layout (Pinyin, 9-key Pinyin, Zhuyin, Cangjie, Stroke, Jyutping) | Languages → *zh* or *yue* → Conversion engine | Automatic |
 
 Two related settings live outside this screen entirely: **where** a numeral choice gets typed, not just drawn, is <SettingsPath path="Layout & size / Numerals" />; custom word-list import is <SettingsPath path="Typing / Suggestions / Custom dictionaries" /> (also reachable from a language's own Dictionary group above).
 

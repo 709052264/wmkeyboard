@@ -22,6 +22,8 @@ import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
+import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
+import com.wasimaster.wmkeyboard.core.input.rime.RimeStore
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.ModelFormat
@@ -54,7 +56,9 @@ import java.util.zip.ZipFile
  * keeps them in, so a language pack (`wmkb-lang-de.zip`, holding the
  * language's word list, word pairs and emoji names) installs in one go. The
  * exception is a CleverKeys GIF pack, which is a zip that is itself the
- * thing installed ([OfflineGifPacks]).
+ * thing installed ([OfflineGifPacks]), a Yomichan dictionary, and a RIME
+ * schema zip of the user's own: any zip holding a `*.schema.yaml` that is
+ * not one of the published packs, unpacked whole for the RIME engine.
  *
  * Every file goes through the same code its download would: the same parse,
  * the same checksum where the download has one, the same place on disk. So
@@ -72,6 +76,9 @@ internal object OfflineImport {
         @StringRes val messageRes: Int,
         val args: List<String> = emptyList(),
     )
+
+    /** What marks a zip as RIME schemas: librime's schema file name. */
+    private const val RIME_SCHEMA_SUFFIX = ".schema.yaml"
 
     /** Names inside a language pack that are not for this app, and are passed over without comment. */
     private val IGNORED = listOf(
@@ -130,13 +137,14 @@ internal object OfflineImport {
 
     /**
      * Whether a zip with these entries is something this installs: a
-     * language pack (any entry [recognises]), a CleverKeys GIF pack or a
-     * Yomichan dictionary, the two zips installed whole.
+     * language pack (any entry [recognises]), a CleverKeys GIF pack, a
+     * Yomichan dictionary or RIME schemas, the three zips installed whole.
      */
     fun recognisesArchive(entryNames: List<String>): Boolean {
         val leaves = entryNames.map { it.substringAfterLast('/') }
         if (leaves.any(::recognises)) return true
         if (OfflineGifPacks.MANIFEST_NAME in leaves && OfflineGifPacks.DATABASE_NAME in leaves) return true
+        if (leaves.any { it.endsWith(RIME_SCHEMA_SUFFIX) }) return true
         return YomichanDictionaries.looksLikeDictionary(entryNames)
     }
 
@@ -167,17 +175,24 @@ internal object OfflineImport {
                     outcomes += failure(name, it)
                     return@forEachIndexed
                 }
-                // A handwriting pack is a zip ML Kit unpacks itself, so it is
-                // installed whole rather than opened here.
-                if (!isZip(staged) || InkPackImports.isPack(context, staged)) {
+                // A handwriting pack is a zip ML Kit unpacks itself, and a
+                // published RIME pack is checked against its pin whole, so
+                // both are installed as files rather than opened here.
+                if (!isZip(staged) || CjkDictCatalog.byFileName(name) != null || InkPackImports.isPack(context, staged)) {
                     files += staged
                     return@forEachIndexed
                 }
                 val isGifPack = runCatching { ZipFile(staged).use { OfflineGifPacks.isPack(it) } }.getOrDefault(false)
                 val isYomichan = !isGifPack &&
                     runCatching { ZipFile(staged).use { YomichanDictionaries.isDictionary(it) } }.getOrDefault(false)
+                val isRimeSchemas = !isGifPack && !isYomichan && runCatching {
+                    ZipFile(staged).use { zip -> zip.entries().asSequence().any { it.name.endsWith(RIME_SCHEMA_SUFFIX) } }
+                }.getOrDefault(false)
                 if (isGifPack) {
                     outcomes += installGifPack(context, name, staged)
+                } else if (isRimeSchemas) {
+                    outcomes += installRimeSchemas(context, name, staged)
+                    staged.delete()
                 } else if (isYomichan) {
                     outcomes += installYomichan(context, name, staged, onFile)
                     staged.delete()
@@ -193,6 +208,9 @@ internal object OfflineImport {
                 onFile(ink.joinToString(", ") { it.name })
                 outcomes += installInk(context, ink)
             }
+            // A RIME pack or schema zip changes what RIME compiles; the
+            // runtime notices and the RIME screen deploys again.
+            RimeRuntime.recheck(context)
             return outcomes
         } finally {
             staging.deleteRecursively()
@@ -439,6 +457,12 @@ internal object OfflineImport {
             }
         }
         Outcome(name, true, R.string.offline_import_yomichan_done, listOf(info.title, count(info.terms)))
+    }
+
+    /** A RIME schema zip of the user's own, for the RIME engine to compile on its next deploy. */
+    private fun installRimeSchemas(context: Context, name: String, zip: File): Outcome = attempt(name) {
+        val imported = RimeStore.import(context.filesDir, zip, name)
+        Outcome(name, true, R.string.offline_import_rime_done, listOf(imported.schemas.joinToString(", ").ifEmpty { imported.name }))
     }
 
     private fun installGifPack(context: Context, name: String, zip: File): Outcome = attempt(name) {
