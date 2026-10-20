@@ -4,8 +4,8 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
-import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.core.tools.AiToolCall
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull

@@ -6,13 +6,13 @@ import com.wasimaster.wmkeyboard.core.homeassistant.HaPhase
 import com.wasimaster.wmkeyboard.core.homeassistant.HaTokens
 import com.wasimaster.wmkeyboard.core.homeassistant.JvmHaHttp
 import com.wasimaster.wmkeyboard.core.homeassistant.OkHttpTransport
+import com.wasimaster.wmkeyboard.core.homeassistant.PhaseLog
+import com.wasimaster.wmkeyboard.core.homeassistant.withinTimeout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -40,22 +40,21 @@ class HaBackendTest {
         server.start()
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val backend = HaBackend("h1", account(server.url("/").toString()), OkHttpTransport(OkHttpClient()), JvmHaHttp(), scope)
+        val log = PhaseLog(scope, backend.phase)
         try {
-            runBlocking {
-                withTimeout(10_000) {
-                    backend.start()
-                    backend.phase.first { it == HaPhase.LIVE }
-                    val entities = backend.entities.first { it.size == 2 }
-                    assertEquals("h1", entities["light.kitchen"]!!.home)
-                    assertEquals("h1|light.kitchen", HomeRef.of(entities["light.kitchen"]!!))
-                    backend.registry.first { it.areas.isNotEmpty() }
-                    assertEquals("Kitchen", backend.registry.value.areaOf("light.kitchen")!!.name)
-                    backend.callService(HaActions.turnOn("light.kitchen"))
-                    val after = backend.entities.first { it["light.kitchen"]?.state == "on" }
-                    assertEquals("h1", after["light.kitchen"]!!.home)
-                    assertTrue(backend.isLive)
-                    assertEquals(server.url("/").toString().trimEnd('/') + "/history?entity_id=light.kitchen", backend.webUrl("light.kitchen"))
-                }
+            withinTimeout(log) {
+                backend.start()
+                backend.phase.first { it == HaPhase.LIVE }
+                val entities = backend.entities.first { it.size == 2 }
+                assertEquals("h1", entities["light.kitchen"]!!.home)
+                assertEquals("h1|light.kitchen", HomeRef.of(entities["light.kitchen"]!!))
+                backend.registry.first { it.areas.isNotEmpty() }
+                assertEquals("Kitchen", backend.registry.value.areaOf("light.kitchen")!!.name)
+                backend.callService(HaActions.turnOn("light.kitchen"))
+                val after = backend.entities.first { it["light.kitchen"]?.state == "on" }
+                assertEquals("h1", after["light.kitchen"]!!.home)
+                assertTrue(backend.isLive)
+                assertEquals(server.url("/").toString().trimEnd('/') + "/history?entity_id=light.kitchen", backend.webUrl("light.kitchen"))
             }
             // The same credential again keeps the connection; a different token restarts and clears.
             assertFalse(backend.update(account(server.url("/").toString())))

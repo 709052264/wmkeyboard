@@ -23177,7 +23177,7 @@ open class WMKeyboardService : InputMethodService() {
                 } else {
                     val map = rawKeyMapFor(keys, keyWidthPx)
                     val observations = swipes.flatMap { swipe ->
-                        duetSwipeSpan(word, swipe.points.first(), swipe.points.last(), map)
+                        duetSwipeSpan(word, swipe.points.first(), swipe.points.last(), map, keyWidthPx)
                             ?.let { handObservations(swipe.points, keys, keyWidthPx, it) }
                             .orEmpty()
                     }

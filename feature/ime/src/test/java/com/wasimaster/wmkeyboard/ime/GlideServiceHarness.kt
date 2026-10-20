@@ -1,16 +1,19 @@
 package com.wasimaster.wmkeyboard.ime
 
 import android.os.Handler
+import android.text.InputType
 import android.os.Looper
 import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.BaseInputConnection
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.OctopusWord
+import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +55,14 @@ internal const val GLIDE_KEY_WIDTH = 60f
 internal class GlideKeyboard(private val editor: InputConnection) : WMKeyboardService() {
     init { attachBaseContext(RuntimeEnvironment.getApplication()) }
     override fun getCurrentInputConnection(): InputConnection = editor
+
+    /**
+     * A plain text field, as an app's editor reports one. With none, the
+     * service takes the window for one with no editor at all (issue #58)
+     * and anything that reads the field first, Retype among them, stands down.
+     */
+    private val field = EditorInfo().apply { inputType = InputType.TYPE_CLASS_TEXT }
+    override fun getCurrentInputEditorInfo(): EditorInfo = field
 }
 
 /**
@@ -77,8 +88,14 @@ internal open class RecordingEditor(
     target: View = View(RuntimeEnvironment.getApplication()),
     initial: String = "",
     /** What sits behind the caret. A leading space here makes a trailing one unnecessary. */
-    private val after: String = "",
+    after: String = "",
 ) : BaseInputConnection(target, true) {
+
+    /** What the field holds behind the caret, less what a deletion took from its front. */
+    private val behind = StringBuilder(after)
+
+    /** The text behind the caret now. */
+    val textAfter: String get() = behind.toString()
 
     /** What the field holds in front of the caret, deletions and span replacements included. */
     val text = StringBuilder(initial)
@@ -132,9 +149,8 @@ internal open class RecordingEditor(
     }
 
     override fun deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean {
-        // Nothing is ever behind the caret in this harness, so only the
-        // lookbehind is honoured.
         text.setLength(text.length - beforeLength.coerceAtMost(text.length))
+        behind.delete(0, afterLength.coerceAtMost(behind.length))
         return true
     }
 
@@ -153,7 +169,7 @@ internal open class RecordingEditor(
 
     override fun getTextBeforeCursor(n: Int, flags: Int): CharSequence = text.takeLast(n)
 
-    override fun getTextAfterCursor(n: Int, flags: Int): CharSequence = after.take(n)
+    override fun getTextAfterCursor(n: Int, flags: Int): CharSequence = behind.take(n)
 
     /** The caret is always at the end here, so the span reaches it. */
     private fun replaceSpan(committed: String) {
@@ -323,7 +339,7 @@ internal fun glideKeyboard(
  * The stores `onCreate` attaches before a key can be typed, planted the way
  * the lock screen attaches them: in memory, backed by no file.
  *
- * Only the snippet store so far. A mark that ends a word takes a second look
+ * The snippet store and the user lexicon. A mark that ends a word takes a second look
  * for a pattern snippet about the mark itself, and that look asks the store
  * before anything else, so without it every test that types punctuation after
  * a word died on a `lateinit` (the second look came after those tests did).
@@ -332,9 +348,15 @@ internal fun glideKeyboard(
  * the phone is locked.
  */
 internal fun plantPersonalStores(service: WMKeyboardService) {
-    val field = WMKeyboardService::class.java.getDeclaredField("snippetStore")
+    plant(service, "snippetStore", SnippetStore(null))
+    // Learning a committed word asks whether the user already knows it.
+    plant(service, "userLexicon", UserLexicon(null))
+}
+
+private fun plant(service: WMKeyboardService, name: String, value: Any) {
+    val field = WMKeyboardService::class.java.getDeclaredField(name)
     field.isAccessible = true
-    field.set(service, SnippetStore(null))
+    field.set(service, value)
 }
 
 /**

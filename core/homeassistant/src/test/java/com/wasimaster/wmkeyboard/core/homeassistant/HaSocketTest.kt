@@ -84,12 +84,11 @@ class HaSocketTest {
                 }
             },
         )
+        val log = PhaseLog(scope, socket.phase)
         try {
-            runBlocking {
-                withTimeout(10_000) {
-                    socket.start()
-                    socket.phase.first { it == HaPhase.TOKEN_REJECTED }
-                }
+            withinTimeout(log) {
+                socket.start()
+                socket.phase.first { it == HaPhase.TOKEN_REJECTED }
             }
             assertTrue(rejected)
             assertFalse(socket.isLive)
@@ -104,12 +103,11 @@ class HaSocketTest {
     fun `nothing listening is unreachable`() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         val socket = HaSocket(OkHttpTransport(OkHttpClient()), scope, { HaUrl.parse("127.0.0.1:1") }, { "GOOD" })
+        val log = PhaseLog(scope, socket.phase)
         try {
-            runBlocking {
-                withTimeout(10_000) {
-                    socket.start()
-                    socket.phase.first { it == HaPhase.UNREACHABLE }
-                }
+            withinTimeout(log) {
+                socket.start()
+                socket.phase.first { it == HaPhase.UNREACHABLE }
             }
             val failed = runCatching { runBlocking { socket.send("ping") } }.exceptionOrNull()
             assertTrue(failed is HaNotConnectedException)
