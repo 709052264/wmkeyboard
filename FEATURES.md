@@ -2505,7 +2505,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## AI, voice, handwriting, scanning
 
-- **Search by meaning** `RARE` — the clipboard, notes, snippets, emoji and sticker search boxes also list what means the query, after the keyword matches, in 100+ languages, fully on device; off by default (AI screen)
+- **Search by meaning** `RARE` — the clipboard, notes, snippets, emoji and sticker search boxes also list what means the query, after the keyword matches, in 100+ languages, fully on device; the gallery's photos are searched by what they show; the AI can search clips, notes and snippets by meaning; off by default (AI screen)
   - EmbeddingGemma 2 (Apache-2.0) on the classic LiteRT interpreter — the litert gate shared with Whisper, the cutout and PaddleOCR; no ONNX Runtime, no sqlite-vec
     - LiteRT-LM bundles repacked once — external weight sections inlined, only the 128/256/512-token encoder and 70-token vision signatures kept (the classic interpreter prepares subgraph 0 at load), outputs bit-identical; published as the data repo's `models` release, SHA-256 pinned
     - Token embedder needs no interpreter — the int4 table is read straight from a mapped file (low nibble first × row scale × √512), exactly the bundle's graph
@@ -2519,6 +2519,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Stands-out ranking, not a fixed cutoff — a hit must be near the best, over the median by a margin, and over a floor; thresholds read off the model's scores on mixed-language texts and COCO photos
   - Untagged stickers tagged from their picture — nearest emoji names become trigger keywords for stickers-as-you-type, kept apart from the user's own and never written to the pack
   - Falls back silently — no model, no LiteRT (F-Droid), a slow first load: the box shows its keyword matches as before
+  - Gallery photo search (Text and pictures) — a search button in the gallery header ranks the library's photos by a typed description; photos indexed from MediaStore thumbnails, 32 per pass, pass after pass while the panel stays open, newest 3,000 kept; follows the photos permission (no access drops the index); no button without the pictures model, and none on Play (no library access)
+  - `search_memory` AI tool — the model's query against the clipboard, notes and snippets indexes, up to eight labelled excerpts; every hit re-checked against its store (marked or password-shaped clips, locked and trashed notes, deleted items dropped); offered only with the feature on and the text model present; starts on Ask
+    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchMemory`, so `:feature:tools` gains no dependency on `:core:intelligence`
+  - Storage row — About → Storage → Search by meaning lists the text model, the pictures model and the indexes with sizes; deleting the text model or the indexes turns the feature off, the pictures model alone drops it to Text
 
 - **AI writing actions** `RARE` — On-keyboard panel that runs prompts against the focused field's text; 8 shipped actions, user-extensible
   - Shipped action set `RARE` — 11 built-ins: Rewrite, Summarize, Translate, Improve, Formal, Shorter, Friendly, Fix grammar, Explain, Continue, Custom

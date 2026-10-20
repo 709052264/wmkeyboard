@@ -10429,8 +10429,16 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
             // Search opens the first tile, Assist sends the sentence, a code or value is kept.
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
-            // A caption, or words on a photo, can run over lines; Done finishes them.
-            CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
+            // A caption, or words on a photo, can run over lines; Done finishes
+            // them. A photo search is one line, and Enter hands the keys back.
+            CaptureTarget.GALLERY_TEXT -> {
+                val entry = state.galleryText
+                if (entry != null && entry.field == com.wasimaster.wmkeyboard.ime.gallery.GalleryTextField.SEARCH) {
+                    galleryTool.onTextEnter(entry)
+                } else {
+                    captureTyped("\n")
+                }
+            }
             // A title moves on to the place, a guest is added, a place is kept;
             // notes are free text, so Enter is a line break in them.
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
@@ -20943,13 +20951,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** What a clip is found by: its text (and a link's page title), a file's name. Pictures go to [MeaningSpace.CLIP_PICTURES]. */
-    private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? = when {
-        clip.kind.isTextual -> listOfNotNull(clip.linkPreview?.title?.takeIf { it.isNotBlank() }, clip.text)
-            .joinToString("\n")
-            .takeIf { it.isNotBlank() }
-        clip.kind == ClipKind.FILE -> clip.fileName?.takeIf { it.isNotBlank() }
-        else -> null
-    }
+    private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? =
+        com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall.clipText(clip)
 
     /**
      * The user's own stickers, by what they show; then, for the ones with no
@@ -34738,6 +34741,7 @@ open class WMKeyboardService : InputMethodService() {
         kdeConnect = settings.kdeConnect,
         homePrefs = settings.homeAssistant,
         homes = settings.homes(),
+        semantic = settings.semanticSearch,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -38546,10 +38550,37 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 override fun fileUri(file: File): Uri? =
                     runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+                override fun photoSearchReady(): Boolean = userUnlocked && meaningSearch.picturesReady
+                override fun indexPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) =
+                    indexMeaningPhotos(photos)
+                override fun searchPhotos(query: String, onHits: (List<Long>) -> Unit) =
+                    meaningSearch.query(MeaningSpace.PHOTOS, query, MeaningRank.PHOTO) { keys ->
+                        onHits(keys.mapNotNull(String::toLongOrNull))
+                    }
             },
         )
     }
     private val galleryTool by galleryToolDelegate
+
+    /**
+     * The gallery's photos into their index, a pass at a time, for as long
+     * as the panel stays open: each pass embeds a few dozen and the next one
+     * starts when it ends, until every photo is in. A closed panel, or a pass
+     * that changed nothing, ends it; the next opening carries on.
+     */
+    private fun indexMeaningPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) {
+        if (!userUnlocked) return
+        val items = photos.map { photo ->
+            MeaningSync.Item(
+                photo.id.toString(),
+                MeaningSearch.stampOf("${photo.id}:${photo.modifiedSec}:${photo.size}"),
+                photo.uri.toString(),
+            )
+        }
+        meaningSearch.index(MeaningSpace.PHOTOS, items) {
+            if (_uiState.value.panel == PanelMode.GALLERY && items.isNotEmpty()) indexMeaningPhotos(photos)
+        }
+    }
 
     /**
      * The Send files tool (#729). Built on first use, like [galleryTool]: by

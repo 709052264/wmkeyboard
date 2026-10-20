@@ -64,6 +64,13 @@ data class GalleryUi(
     val fieldTakesVideos: Boolean = false,
     /** Opened by the Send files tool to pick for a link (#729): Send hands the picks to it instead of the field. */
     val forLink: Boolean = false,
+    /**
+     * Whether the header offers a search: search by meaning is on with its
+     * pictures model on the phone. Without it the panel is the plain grid.
+     */
+    val searchAvailable: Boolean = false,
+    /** A search typed into the header; null while the grid is the album's. */
+    val search: GallerySearch? = null,
 ) {
     val selectedIds: Set<Long> get() = selection.mapTo(HashSet()) { it.id }
 
@@ -76,6 +83,13 @@ data class GalleryUi(
     val viewerItems: List<GalleryItem>
         get() = if (viewer?.fromSelection == true) selection else items
 }
+
+/**
+ * The photos search: [query] as typed, [pending] while the answer for it is
+ * still being worked out, and [showing] once [GalleryUi.items] holds what it
+ * found, best match first, instead of the album's rows.
+ */
+data class GallerySearch(val query: String, val pending: Boolean = false, val showing: Boolean = false)
 
 /** The viewer: which list it pages and where it is. */
 data class ViewerUi(
@@ -154,7 +168,7 @@ data class GalleryNotice(val kind: Kind, val count: Int = 0) {
 }
 
 /** What the panel's text box is for. */
-enum class GalleryTextField { CAPTION, LAYER }
+enum class GalleryTextField { CAPTION, LAYER, SEARCH }
 
 /**
  * The panel's text box while the keys type into it. [ref] is the text layer's
@@ -204,6 +218,12 @@ sealed interface GalleryAction {
     data object ToggleExpanded : GalleryAction
     data class SetExpanded(val on: Boolean) : GalleryAction
     data class Peek(val item: GalleryItem?) : GalleryAction
+
+    /** The header's search box takes the keys. */
+    data object SearchFocus : GalleryAction
+
+    /** Back to the album's own grid. */
+    data object ClearSearch : GalleryAction
 
     // Selection
     data class Toggle(val item: GalleryItem) : GalleryAction

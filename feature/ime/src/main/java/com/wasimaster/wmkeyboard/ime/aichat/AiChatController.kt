@@ -639,6 +639,7 @@ object AiChatController {
         seesImages = choice.provider != AiProvider.ON_DEVICE && AiClient.supportsImages(choice.provider),
         scanner = settings.scanner,
         ocrReaders = if (settings.scanner.ocrEngine == OcrEngine.ONLINE) OnlineOcr.rows(settings) else emptyList(),
+        semantic = settings.semanticSearch,
     )
 
     /**

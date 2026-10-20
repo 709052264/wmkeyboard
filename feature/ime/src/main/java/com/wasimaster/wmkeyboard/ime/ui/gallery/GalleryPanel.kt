@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,10 +56,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldLess
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.UnfoldMore
@@ -128,11 +131,18 @@ internal fun GalleryPanel(
         onClose = onClose,
         extraHeight = if (tall) screen else 0.dp,
         compact = typing != null,
-        compactHeight = if (typing?.field == GalleryTextField.LAYER) 300.dp else 200.dp,
+        compactHeight = when (typing?.field) {
+            GalleryTextField.LAYER -> 300.dp
+            // A row or two of what the search finds, over the keys.
+            GalleryTextField.SEARCH -> 240.dp
+            else -> 200.dp
+        },
         headerHidden = ui.viewer != null || ui.editor != null,
         headerActions = {
             if (typing?.field == GalleryTextField.CAPTION) {
-                TypingHeader(typing.text, act)
+                TypingHeader(typing.text, stringResource(R.string.ime_gallery_caption_hint), act)
+            } else if (typing?.field == GalleryTextField.SEARCH) {
+                TypingHeader(typing.text, stringResource(R.string.ime_gallery_search_hint), act, pending = ui.search?.pending == true)
             } else {
                 Header(ui, act) { overflow = !overflow }
             }
@@ -229,12 +239,25 @@ private fun RowScope.Header(ui: GalleryUi, act: (GalleryAction) -> Unit, onMore:
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         Spacer(Modifier.width(2.dp))
-        AlbumChip(ui.album, ui.albumsOpen) { act(GalleryAction.ToggleAlbums) }
-        GalleryFilter.entries.forEach { f ->
-            if (f == GalleryFilter.VIDEOS && !ui.albums.any { it.kind == AlbumKind.VIDEOS }) return@forEach
-            ToolPanelChip(stringResource(filterLabel(f)), selected = ui.filter == f) { act(GalleryAction.SetFilter(f)) }
+        val search = ui.search
+        if (search != null) {
+            // The query stays up top while its results are the grid: a tap
+            // types into it again, the cross gives the album back.
+            SearchChip(search.query, onClick = { act(GalleryAction.SearchFocus) }) { act(GalleryAction.ClearSearch) }
+        } else {
+            AlbumChip(ui.album, ui.albumsOpen) { act(GalleryAction.ToggleAlbums) }
+            GalleryFilter.entries.forEach { f ->
+                if (f == GalleryFilter.VIDEOS && !ui.albums.any { it.kind == AlbumKind.VIDEOS }) return@forEach
+                ToolPanelChip(stringResource(filterLabel(f)), selected = ui.filter == f) { act(GalleryAction.SetFilter(f)) }
+            }
         }
         Spacer(Modifier.width(2.dp))
+    }
+    if (ui.searchAvailable && ui.search == null) {
+        RoundButton(icon = Icons.Outlined.Search, description = stringResource(R.string.ime_gallery_search_desc), size = 34.dp) {
+            act(GalleryAction.SearchFocus)
+        }
+        Spacer(Modifier.width(4.dp))
     }
     RoundButton(
         icon = if (ui.expanded) Icons.Outlined.UnfoldLess else Icons.Outlined.UnfoldMore,
@@ -279,9 +302,12 @@ private fun OverflowRow(icon: androidx.compose.ui.graphics.vector.ImageVector, l
     }
 }
 
-/** While the caption has the keys, the header is the box and a Done. */
+/**
+ * While the caption or the search has the keys, the header is the box and a
+ * Done. [pending]: a search is still being answered.
+ */
 @Composable
-private fun RowScope.TypingHeader(text: String, act: (GalleryAction) -> Unit) {
+private fun RowScope.TypingHeader(text: String, placeholder: String, act: (GalleryAction) -> Unit, pending: Boolean = false) {
     val kb = LocalKbTheme.current
     val shape = kb.cardShape()
     Row(
@@ -296,16 +322,55 @@ private fun RowScope.TypingHeader(text: String, act: (GalleryAction) -> Unit) {
     ) {
         SearchQueryText(
             query = text,
-            placeholder = stringResource(R.string.ime_gallery_caption_hint),
+            placeholder = placeholder,
             active = true,
             textColor = kb.suggestionText,
             placeholderColor = kb.secondaryText,
             fontSize = 13.sp,
             modifier = Modifier.weight(1f),
         )
+        if (pending) {
+            Spacer(Modifier.width(6.dp))
+            CircularProgressIndicator(Modifier.size(14.dp), color = kb.secondaryText, strokeWidth = 1.5.dp)
+        }
     }
     ToolPanelChip(stringResource(R.string.ime_gallery_done), selected = true) { act(GalleryAction.TextDone) }
     Spacer(Modifier.width(4.dp))
+}
+
+/** A search's query, in place of the album and the filters, with a cross to end it. */
+@Composable
+private fun SearchChip(query: String, onClick: () -> Unit, onClear: () -> Unit) {
+    val kb = LocalKbTheme.current
+    Row(
+        Modifier
+            .clockChip(selected = true)
+            .clickable(onClick = onClick)
+            .padding(start = 8.dp, end = 4.dp, top = 3.dp, bottom = 3.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Search, contentDescription = null, tint = kb.chipActiveText, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(
+            query,
+            color = kb.chipActiveText,
+            fontSize = 13.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 180.dp),
+        )
+        Spacer(Modifier.width(2.dp))
+        Icon(
+            Icons.Outlined.Close,
+            contentDescription = stringResource(R.string.ime_gallery_search_clear_desc),
+            tint = kb.chipActiveText,
+            modifier = Modifier
+                .size(26.dp)
+                .clip(RoundedCornerShape(50))
+                .clickable(onClick = onClear)
+                .padding(5.dp),
+        )
+    }
 }
 
 @Composable

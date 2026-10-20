@@ -28,6 +28,18 @@ import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
+import com.wasimaster.wmkeyboard.core.notes.NoteFilter
+import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.semantic.Embeddings
+import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
+import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
+import com.wasimaster.wmkeyboard.core.settings.SemanticSearchSettings
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
+import com.wasimaster.wmkeyboard.core.tools.AiMemoryHit
+import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
+import com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
@@ -54,6 +66,8 @@ class KeyboardAiToolHost(
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
+    /** Search by meaning's settings, for the search_memory tool; null where the surface does not lend it. */
+    private val semantic: SemanticSearchSettings? = null,
 ) : AiToolHost {
 
     override val canTranslateOnDevice: Boolean get() = OfflineTranslation.available
@@ -241,6 +255,35 @@ class KeyboardAiToolHost(
 
     private fun releaseHomeLater() {
         Handler(Looper.getMainLooper()).postDelayed({ SmartHomeHub.release(SmartHomeHub.Reason.AI) }, RELEASE_DELAY_MS)
+    }
+
+    override val canSearchMemory: Boolean
+        get() = semantic?.enabled == true && SemanticModels.SUPPORTED && Embeddings.available(context)
+
+    /**
+     * The clipboard, notes and snippets as their files hold them now, against
+     * the indexes the keyboard's panels keep. Each store is opened the way the
+     * runner opens the notes: read from its file, never written.
+     */
+    override fun searchMemory(query: String): Result<List<AiMemoryHit>> = runCatching {
+        check(canSearchMemory) { "search by meaning is off" }
+        val files = context.filesDir
+        // No limits: a store opened with its defaults would prune a "never
+        // expire" history the first time it listed it.
+        val clips = ClipboardStore(
+            File(files, "clipboard/history.json"),
+            expiryMillis = 0L,
+            maxItems = 0,
+            sensitiveExpiryMillis = 0L,
+        ).items()
+        val notes = NoteStore(File(files, NoteStore.FILE_PATH)).items(NoteFilter(includeLocked = false))
+        val snippets = SnippetStore(File(files, "snippets/snippets.json")).items()
+        val recall = MemoryRecall(
+            embedQuery = { Embeddings.query(context, it) },
+            indexOf = { space -> VectorIndex.read(MeaningSearch.indexFile(context, space)) },
+        )
+        runBlocking { recall.search(query, MemoryRecall.Sources(clips, notes, snippets)) }
+            ?: error("the search-by-meaning model did not answer")
     }
 
     override val imageCount: Int get() = images.size

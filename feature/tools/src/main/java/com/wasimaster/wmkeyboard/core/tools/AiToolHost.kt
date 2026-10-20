@@ -62,6 +62,21 @@ interface AiToolHost {
     fun homeStates(query: String?): Result<String> =
         Result.failure(UnsupportedOperationException("no Home Assistant here"))
 
+    /**
+     * Whether [searchMemory] can answer: search by meaning is on and its
+     * model is on the phone. Without it the tool is not offered at all.
+     */
+    val canSearchMemory: Boolean get() = false
+
+    /**
+     * What the user keeps (clipboard history, notes, snippets) that means
+     * what [query] does, best first. Passwords and one-time codes on the
+     * clipboard, and locked or deleted notes, are never among them. Blocking:
+     * the query is embedded by the model's own process.
+     */
+    fun searchMemory(query: String): Result<List<AiMemoryHit>> =
+        Result.failure(UnsupportedOperationException("no search by meaning here"))
+
     /** How many pictures the user has sent in this conversation (#698). */
     val imageCount: Int get() = 0
 

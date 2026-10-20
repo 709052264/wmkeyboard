@@ -40,6 +40,12 @@ object MeaningRank {
     val PICTURE = Tuning(floor = 0.6f, fromBest = 0.06f, aboveMedian = 0.05f, smallSetBar = 0.65f)
 
     /**
+     * The phone's photos, for the gallery's search: the picture bar, with
+     * room for more of them, since a library holds many shots of one thing.
+     */
+    val PHOTO = PICTURE.copy(limit = 90)
+
+    /**
      * Emoji by their names. Short names all sit close to a short query, so the
      * bar is the median one, and only a handful are worth a place after the
      * keyword hits.

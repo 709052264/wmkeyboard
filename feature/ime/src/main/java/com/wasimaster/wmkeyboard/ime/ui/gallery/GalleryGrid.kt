@@ -117,7 +117,8 @@ internal fun GalleryGrid(
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val slop = LocalViewConfiguration.current.touchSlop
-    val camera = settings.cameraTile
+    // Search results are photos found, not the camera roll's head.
+    val camera = settings.cameraTile && ui.search?.showing != true
     val lead = if (camera) 1 else 0
     val latest by rememberUpdatedState(ui)
     val tap by rememberUpdatedState(settings.tapAction)
@@ -125,7 +126,9 @@ internal fun GalleryGrid(
     val cornerPx = with(density) { CORNER_HIT.toPx() }
 
     // Back to the top when the album or the filter changes.
-    LaunchedEffect(ui.album, ui.filter) { state.scrollToItem(0) }
+    // And when a search's answer, or a new answer, takes the grid.
+    val bestMatch = if (ui.search?.showing == true) ui.items.firstOrNull()?.id else null
+    LaunchedEffect(ui.album, ui.filter, ui.search?.showing, bestMatch) { state.scrollToItem(0) }
 
     // Pages in as the end comes near.
     LaunchedEffect(state) {
@@ -281,7 +284,7 @@ internal fun GalleryGrid(
         }
         if (ui.items.isEmpty() && !ui.loading) {
             Text(
-                stringResource(R.string.ime_gallery_empty_album),
+                stringResource(if (ui.search?.showing == true) R.string.ime_gallery_search_none else R.string.ime_gallery_empty_album),
                 color = kb.secondaryText,
                 fontSize = 13.sp,
                 modifier = Modifier.align(Alignment.Center).padding(24.dp),

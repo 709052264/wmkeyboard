@@ -58,6 +58,12 @@
     <string name="storage_glide_models_subtitle">FUTO Swipe, when it reads your glides</string>
     <string name="storage_ai_models_title">AI models</string>
     <string name="storage_ai_models_subtitle">Language models that run on your device</string>
+    <string name="storage_meaning_title">Search by meaning</string>
+    <string name="storage_meaning_subtitle">The model that finds things by what they mean, and the indexes it built from your things</string>
+    <string name="storage_meaning_text">Text model</string>
+    <string name="storage_meaning_pictures">Pictures model</string>
+    <string name="storage_meaning_index">Search indexes</string>
+    <string name="storage_meaning_index_detail">Built from your clipboard, notes, snippets, stickers and photos. Deleting them turns Search by meaning off.</string>
     <string name="storage_ocr_packs_title">Text scanner languages</string>
     <string name="storage_ocr_packs_subtitle">Tesseract data that the text scanner reads each language with</string>
     <string name="storage_addon_index_title">Add-on sources</string>

@@ -1,6 +1,6 @@
 ---
 title: "Search by meaning"
-description: "Find clips, notes, snippets, emoji and your own stickers by what your words mean, in any language, with a model that runs on the phone."
+description: "Find clips, notes, snippets, emoji, your own stickers and your photos by what your words mean, in any language, with a model that runs on the phone."
 sidebar:
   order: 13
 ---
@@ -19,9 +19,9 @@ Pick one of three:
 
 - **Off** (the default). Search works by letters only, as it always has, and nothing is downloaded.
 - **Text**, about 155 MB. Clips, notes, snippets and emoji are found by meaning.
-- **Text and pictures**, about 375 MB in all. Your own stickers and saved GIFs, and pictures in your clipboard history, are found by what they show as well.
+- **Text and pictures**, about 375 MB in all. Your own stickers and saved GIFs, pictures in your clipboard history, and the photos in the [gallery](/tools/gallery/#searching-your-photos), are found by what they show as well.
 
-Picking Text or Text and pictures starts the download. On mobile data it asks first, the same way every other model download does (see [Data saver](/privacy/data-saver/)). A banner under the choice shows the progress, says when the model is ready, and offers **Try again** if the download stopped. **Delete the model** removes the files and turns the feature off.
+Picking Text or Text and pictures starts the download. On mobile data it asks first, the same way every other model download does (see [Data saver](/privacy/data-saver/)). A banner under the choice shows the progress, says when the model is ready, and offers **Try again** if the download stopped. **Delete the model** removes the files and turns the feature off. The **Search by meaning** row under <SettingsPath path="About / Storage" /> shows the same files with their sizes, and the indexes built from your things beside them; deleting the text model or the indexes there turns the feature off too, and deleting only the pictures model leaves it on Text.
 
 On the GitHub edition the first download also fetches the LiteRT interpreter the model runs on, unless offline voice typing or the background remover already did. The Play Store edition gets the interpreter from Play. The F-Droid edition has no LiteRT interpreter, so it has no search by meaning and the choice is not shown.
 
@@ -36,6 +36,8 @@ Every match by meaning is listed after the matches by letters, best first, and o
 | [Snippets](/tools/snippets/#opening-the-panel) | each snippet's label, text and trigger, from every folder |
 | [Emoji](/emoji/picker/#searching-for-an-emoji) | each emoji's English name and keywords, so a query in any language reaches them |
 | [My stickers](/emoji/stickers/#searching-and-sending) (Text and pictures) | what each of your own stickers shows, in the pack chip you are on |
+| [Gallery](/tools/gallery/#searching-your-photos) (Text and pictures) | what each photo in your library shows. This box has no letter matches: a photo has no words to match. |
+| [AI tools](/tools/ai/#the-keyboards-own-tools) | the model's own question, through **Search your saved things by meaning**: clips, notes and snippets, never passwords, codes or locked notes |
 
 With **Text and pictures**, **Tag my stickers** (on by default) also gives each of your stickers that has no title and no keywords a few tags read off its picture: the emoji whose names fit it best, and the words of those names. A photo of a cat gets 🐈 and "cat", so it comes up [as you type](/emoji/stickers/#stickers-as-you-type) like a sticker you had tagged yourself. These tags are kept apart from yours and are never written into the pack.
 
@@ -44,13 +46,15 @@ With **Text and pictures**, **Tag my stickers** (on by default) also gives each 
 The model is [EmbeddingGemma 2](https://huggingface.co/google/embeddinggemma-2) by Google, released under the Apache 2.0 licence. It turns a piece of text, or a picture, into a list of numbers that places it among everything else by meaning, so texts and pictures about the same thing land close together whatever their language. The keyboard compares your query's numbers with each item's and lists the ones that stand out.
 
 - **Everything stays on the phone.** The model runs on the phone's processor. Your queries, your clips, notes, snippets and pictures, and the numbers made from them are never sent anywhere. The only network request is the download of the model itself.
-- **It learns in the background.** When you open the clipboard, notes, snippets or sticker panel, the keyboard works through what is new or changed since the last time, a few hundred texts or a few dozen pictures at a time, on a low-priority thread. Until an item has been read, it is found by letters only. Emoji come ready, because their numbers are part of the download.
+- **It learns in the background.** When you open the clipboard, notes, snippets, sticker or gallery panel, the keyboard works through what is new or changed since the last time, a few hundred texts or a few dozen pictures at a time, on a low-priority thread. The gallery keeps going a few dozen photos at a time for as long as its panel stays open, newest first. Until an item has been read, it is found by letters only, and the AI tool does not find it. Emoji come ready, because their numbers are part of the download.
 - **It keeps out of the keyboard's way.** The model runs in a process of its own and needs about 350 MB of memory while it is loaded. It lets that memory go a few minutes after the last search, and if Android needs the memory sooner it stops that process. Typing never waits for it.
 - **A query waits for you to pause.** The model reads your words a moment after you stop typing, so the matches by meaning arrive a little after the matches by letters. The first search after the model has been let go takes a few seconds more, while it loads.
 
 ## Details & edge cases
 
-- **Turning it off deletes what it learned.** The numbers made from your clipboard, notes and snippets live in the app's storage, out of backups. Turning the feature off deletes them. The model files stay until you press **Delete the model**.
+- **Turning it off deletes what it learned.** The numbers made from your clipboard, notes, snippets, stickers and photos live in the app's storage, out of backups. Turning the feature off deletes them. The model files stay until you press **Delete the model**.
+- **Photos follow the permission.** Your photos are read only with the [gallery's](/tools/gallery/#opening-it) access to them. Take that access away and the next time the gallery opens their numbers are deleted. The Play Store build has no access to the library, so it has no photo search.
+- **The AI only sees what is safe to read.** **Search your saved things by meaning** checks every match against the clipboard, notes and snippets as they are now: a clip marked or shaped like a password or a one-time code, a locked note, and anything in the trash or deleted are left out even when their numbers are still in the index. It starts on **Ask**, like the other tools that read your things, and it is only offered to the model while the feature is on and the text model is downloaded.
 - **Short queries are skipped.** A one-letter query is matched by letters only.
 - **Nothing that stands out, nothing listed.** Every text is a little like every other to the model, so an item is listed only when it is clearly closer to your query than the rest are. A query about something you have nothing on finds nothing by meaning.
 - **Long texts are read by their start.** Only about the first 200 words of a long note or clip are read.
