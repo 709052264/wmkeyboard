@@ -55,8 +55,11 @@ private const val DUET_STROKE_MIN_KEYS = 0.5f
  * where, and this is enough for the hand model, which drops any letter the
  * finger came nowhere near. Null when the word has a letter off [keys] or
  * is too short to hold a swipe.
+ *
+ * [start] and [end] are in pixels, as the stroke was drawn; [keys] holds its
+ * centres in key widths, so [keyWidthPx] brings the two to one scale.
  */
-internal fun duetSwipeSpan(word: String, start: GesturePoint, end: GesturePoint, keys: GlideKeyMap): String? {
+internal fun duetSwipeSpan(word: String, start: GesturePoint, end: GesturePoint, keys: GlideKeyMap, keyWidthPx: Float): String? {
     val letters = word.lowercase().codePoints().toArray()
     if (letters.size < 2) return null
     val at = IntArray(letters.size)
@@ -65,8 +68,8 @@ internal fun duetSwipeSpan(word: String, start: GesturePoint, end: GesturePoint,
         if (at[i] < 0) return null
     }
     fun distance(i: Int, p: GesturePoint): Float {
-        val dx = keys.keyX[at[i]] - p.x
-        val dy = keys.keyY[at[i]] - p.y
+        val dx = keys.keyX[at[i]] - p.x / keyWidthPx
+        val dy = keys.keyY[at[i]] - p.y / keyWidthPx
         return dx * dx + dy * dy
     }
     var best = Float.MAX_VALUE

@@ -110,10 +110,13 @@ class GlideCommitSpacingTest {
      * Reddens if the `spacedAfterCaret` early return leaves `commitGestureSpace`.
      */
     @Test
-    fun `the trailing space is skipped when the text after the caret already has one`() {
+    fun `the caret steps over the space already after it instead of typing a second`() {
+        // #662: the space that was there is taken from in front of the caret and
+        // put back behind it, so the next word starts after it, not before it.
         val run = glide(before = "hello", after = " there")
 
-        assertEquals(" $WORD", run.typed)
+        assertEquals("hello $WORD ", run.field)
+        assertEquals("there", run.after)
         assertTrue(RAN_SHORT, run.finished)
     }
 
@@ -203,6 +206,10 @@ class GlideCommitSpacingTest {
     private class Stroke(private val service: WMKeyboardService, private val editor: RecordingEditor) {
         /** Every commit the service made, in the order it made them. */
         val typed: String get() = editor.typed
+
+        /** The field in front of the caret, and behind it. */
+        val field: String get() = editor.text.toString()
+        val after: String get() = editor.textAfter
 
         /**
          * Whether the commit ran all the way to its last line, which publishes

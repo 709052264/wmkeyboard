@@ -43,7 +43,21 @@ internal object EngineNative {
             "libwm_engine_jni is not built for this machine: run native/wm-engine-jni/build-host.sh " +
                 "(needs cargo), or point -Dwmkeyboard.engine.lib at a build of it",
         )
-        System.load(host.absolutePath)
+        System.load(privateCopy(host).absolutePath)
+    }
+
+    /**
+     * A copy of [library] for this class loader alone. A JVM binds a native
+     * library to the first class loader that loads its path, and Robolectric
+     * gives every sandbox a loader of its own, so a second test class in the
+     * same JVM failed with "already loaded in another classloader". A copy
+     * at a fresh path is a fresh library to the JVM.
+     */
+    private fun privateCopy(library: File): File {
+        val copy = File.createTempFile("wm_engine_jni", "." + library.extension)
+        copy.deleteOnExit()
+        library.copyTo(copy, overwrite = true)
+        return copy
     }
 
     /** The host build under the repo's `native/wm-engine-jni/target`, release first. */

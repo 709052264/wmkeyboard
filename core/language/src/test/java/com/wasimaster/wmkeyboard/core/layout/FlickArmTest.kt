@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.layout
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,7 +45,8 @@ class FlickArmTest {
     }
 
     @Test
-    fun `an action key flicks its action arms and never its text`() {
+    fun `an action key flicks both its action arms and its text arms`() {
+        // #789: a special key takes text arms too, typed through a plain text key.
         val key = Key(
             "",
             action = KeyAction.Edit(TextEditAction.SELECT),
@@ -52,7 +54,7 @@ class FlickArmTest {
             flickActions = mapOf(FlickDirection.LEFT to left),
         )
         assertTrue(key.hasFlicks())
-        assertNull(key.flickArm(FlickDirection.UP))
+        assertNotNull(key.flickArm(FlickDirection.UP))
         assertTrue(key.flickKey(FlickDirection.LEFT)!!.flickArmRepeats())
     }
 

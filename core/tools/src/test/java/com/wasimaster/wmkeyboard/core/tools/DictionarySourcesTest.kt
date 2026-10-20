@@ -13,12 +13,17 @@ class DictionarySourcesTest {
 
     @Test
     fun `source list round-trips with order and switches`() {
+        // Every source, so decode has none missing to append: a reordered list with switches off comes back as it was.
         val choices = listOf(
             DictionarySourceChoice(DictionarySource.DICTIONARY_API),
             DictionarySourceChoice(DictionarySource.WIKTIONARY, enabled = false),
+            DictionarySourceChoice(DictionarySource.IMPORTED),
             DictionarySourceChoice(DictionarySource.VOCAB_PACKS),
+            DictionarySourceChoice(DictionarySource.OFFLINE_WORDNET, enabled = false),
             DictionarySourceChoice(DictionarySource.WIKTIONARY_REST, enabled = false),
+            DictionarySourceChoice(DictionarySource.OFFLINE_WIKTIONARY),
         )
+        assertEquals(DictionarySource.entries.size, choices.size)
         assertEquals(choices, DictionarySources.decode(DictionarySources.encode(choices)))
     }
 
