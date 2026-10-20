@@ -5402,7 +5402,7 @@ private fun RowScope.InlineEmojiChips(
  * read inside a graphics layer so the fade does not recompose the row.
  */
 @Composable
-private fun RowScope.LatinSuggestionChips(
+internal fun RowScope.LatinSuggestionChips(
     candidates: List<String>,
     enabled: Boolean,
     alpha: () -> Float,
@@ -5605,7 +5605,13 @@ private fun RowScope.LatinSuggestionChips(
                     // Hold, then slide (#790): up lifts the word, down sinks
                     // it, and far enough down never suggests it again. Only
                     // watched once the hold has fired, so a tap, a swipe
-                    // along the strip and a plain hold are untouched.
+                    // along the strip and a plain hold are untouched. The
+                    // hold opens the menu first, and the first full step of
+                    // a slide closes it: the two never answer together
+                    // (#843). A word already on the never-suggest list does
+                    // not slide; its menu's Allow again is the way back, and
+                    // a rank saved for a word that stays hidden changes
+                    // nothing anyone can see.
                     .pointerInput(suggestion, enabled) {
                         if (!enabled) return@pointerInput
                         val stepPx = RankSlideStep.toPx()
@@ -5627,7 +5633,7 @@ private fun RowScope.LatinSuggestionChips(
                                     // arrives consumed in every pass (#824).
                                     val event = awaitPointerEvent(PointerEventPass.Initial)
                                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                    if (anchorY.isNaN() && heldWord == suggestion) {
+                                    if (anchorY.isNaN() && heldWord == suggestion && !heldFacts.blacklisted) {
                                         anchorY = change.position.y
                                         held = heldFacts.rankSteps
                                     }
