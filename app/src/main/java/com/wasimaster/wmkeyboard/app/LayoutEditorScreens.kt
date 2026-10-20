@@ -5731,11 +5731,15 @@ internal fun KeyEditSheet(
     }
 
     // Issue #339: what a short flick towards each edge or corner types. Open
-    // on a key that has flicks, folded on one that has none.
+    // on a key that has flicks, folded on one that has none. Decided once per
+    // key (#850): a group that unfolds the moment its first arm is set draws
+    // its rows from another call site, and the remount would throw away the
+    // picker that arm was about to open.
     if (!isField && (key.action == KeyAction.Text || key.takesFlickActions())) {
+        val hadFlicks = remember(ref) { key.hasFlicks() }
         SettingsGroup(
             stringResource(R.string.layout_editor_key_section_flicks),
-            foldKey = if (key.hasFlicks()) null else "key_flicks",
+            foldKey = if (hadFlicks) null else "key_flicks",
         ) {
             item { FlickFields(key, ref, secondaryLayouts, keyboardModes, onChange) }
         }
@@ -6309,9 +6313,15 @@ private fun FlickFields(
             flickShift = it.flickShift - direction,
         )
     }
-    fun updateArm(direction: FlickDirection, change: (KeyAlternate) -> KeyAlternate) = onChange { k ->
-        val arm = k.flickActions[direction] ?: return@onChange k
-        k.copy(flickActions = k.flickActions + (direction to change(arm)))
+    // The arm a second question finishes (#850): the one already there when
+    // it is the same kind of action, so its label survives, else a new one.
+    fun finishArm(direction: FlickDirection, action: KeyAction, label: (String) -> String = { it }) = onChange { k ->
+        val old = k.flickActions[direction]?.takeIf { it.action::class == action::class } ?: KeyAlternate(action)
+        k.copy(
+            flickActions = (k.flickActions + (direction to old.copy(action = action, label = label(old.label)))).inFlickOrder(),
+            flick = k.flick - direction,
+            flickShift = k.flickShift - direction,
+        )
     }
     // Issue #410: the eight arms as a 3×3 pad with the key itself in the
     // middle, the way the keyboard draws them. Tap a cell to edit that arm in
@@ -6411,14 +6421,16 @@ private fun FlickFields(
             options = AlternateActionCatalog,
             onPick = { action ->
                 picking = null
-                setArm(direction, KeyAlternate(action))
-                // Half an answer until it names its operation, tool or layout.
+                // Half an answer until it names its operation, tool, layout or
+                // mode, so nothing is saved until it does (#850): the catalog's
+                // placeholder (Left, for a text-editing action) is not a choice,
+                // and backing out of the second question leaves the arm as it was.
                 when (action) {
                     is KeyAction.Edit -> pickingEditAt = direction
                     is KeyAction.Tool -> pickingToolAt = direction
                     is KeyAction.Layout -> pickingLayoutAt = direction
                     is KeyAction.Mode -> pickingModeAt = direction
-                    else -> Unit
+                    else -> setArm(direction, KeyAlternate(action))
                 }
             },
             onDismiss = { picking = null },
@@ -6431,7 +6443,7 @@ private fun FlickFields(
             onDismiss = { pickingEditAt = null },
             onPick = { op ->
                 pickingEditAt = null
-                updateArm(direction) { it.copy(action = KeyAction.Edit(op)) }
+                finishArm(direction, KeyAction.Edit(op))
             },
         )
     }
@@ -6444,7 +6456,7 @@ private fun FlickFields(
             onDismiss = { pickingToolAt = null },
             onPick = { picked ->
                 pickingToolAt = null
-                picked?.let { tool -> updateArm(direction) { it.copy(action = KeyAction.Tool(tool)) } }
+                picked?.let { tool -> finishArm(direction, KeyAction.Tool(tool)) }
             },
         )
     }
@@ -6456,9 +6468,7 @@ private fun FlickFields(
             onDismiss = { pickingLayoutAt = null },
             onPick = { picked ->
                 pickingLayoutAt = null
-                updateArm(direction) {
-                    it.copy(action = KeyAction.Layout(picked.id), label = it.label.ifBlank { picked.name })
-                }
+                finishArm(direction, KeyAction.Layout(picked.id)) { it.ifBlank { picked.name } }
             },
         )
     }
@@ -6470,9 +6480,7 @@ private fun FlickFields(
             onDismiss = { pickingModeAt = null },
             onPick = { picked ->
                 pickingModeAt = null
-                updateArm(direction) {
-                    it.copy(action = KeyAction.Mode(picked.id), label = it.label.ifBlank { picked.name })
-                }
+                finishArm(direction, KeyAction.Mode(picked.id)) { it.ifBlank { picked.name } }
             },
         )
     }
