@@ -41,7 +41,7 @@ impl AsRef<[u8]> for DictBytes {
 }
 
 pub static DICTS: LazyLock<Registry<Dict<DictBytes>>> = LazyLock::new(Registry::new);
-static PACKS: LazyLock<Registry<Pack<Mmap>>> = LazyLock::new(Registry::new);
+pub static PACKS: LazyLock<Registry<Pack<Mmap>>> = LazyLock::new(Registry::new);
 
 thread_local! {
     /// Per-thread scratch for the strings a call reads, so a lookup on the
@@ -59,7 +59,7 @@ fn map(path: &str) -> Option<Mmap> {
 
 /// UTF-16 to UTF-8 as Java's `String.toByteArray(UTF_8)` does it: a lone
 /// surrogate becomes `?`.
-fn java_utf8(units: &[u16], out: &mut Vec<u8>) {
+pub fn java_utf8(units: &[u16], out: &mut Vec<u8>) {
     out.clear();
     let mut buf = [0u8; 4];
     for c in char::decode_utf16(units.iter().copied()) {

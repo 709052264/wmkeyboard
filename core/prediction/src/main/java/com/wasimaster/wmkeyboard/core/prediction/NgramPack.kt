@@ -27,6 +27,9 @@ class NgramPack private constructor(private val packs: List<MappedNgramPack>) {
     /** No pack installed. Not "no trigrams" — a bigram-only pack is a real pack. */
     val isEmpty: Boolean get() = packs.isEmpty()
 
+    /** The packs' Rust handles, in order, for the Rust reranker. */
+    internal fun nativeHandles(): LongArray = LongArray(packs.size) { packs[it].nativeHandle }
+
     fun bigramCount(previous: String, next: String): Int {
         if (packs.isEmpty()) return 0
         val p = WordKey.of(previous)

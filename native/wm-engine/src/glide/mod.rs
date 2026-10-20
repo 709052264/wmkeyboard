@@ -1,0 +1,1402 @@
+//! The glide decoder: the Kotlin `GlideBeam` (core/gesture), line for line.
+//! A best-first lattice over the dictionary trie itself; see the Kotlin
+//! class for the model (the alignment, the bound, the loops and pauses, the
+//! shape channel), which is kept there with its measurements.
+//!
+//! Arithmetic follows the Kotlin types exactly: `Float` is `f32`, `Double`
+//! is `f64`, the same operations in the same order, logarithms through
+//! [`strict_math`], so a decode returns the same candidates with the same
+//! scores to the bit. The user's learned shapes are passed in by the caller
+//! ([`LearnedShapes`]); the vocabulary cap arrives as each source's minimum
+//! frequency, which the caller reads off its own rank tables.
+
+pub mod keymap;
+pub mod loops;
+pub mod workspace;
+
+use crate::fuzzy::{Tier, Walker};
+use crate::strict_math;
+use keymap::KeyMap;
+use loops::{is_joiner, is_non_word, LoopScan};
+use std::collections::HashMap;
+use workspace::{Workspace, MAX_IDEAL_POINTS, NO_LABEL, SAMPLE_POINTS, SHAPE_POINTS, SHORT_SAMPLES, UNREACHABLE};
+
+/// A touch point in pixels, with its time in milliseconds.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+    pub t: i64,
+}
+
+/// `GlideBeam.Tuning`. Defaults are the shipped ones.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Tuning {
+    pub sigma: f32,
+    pub max_point_cost: f32,
+    pub gap_weight: f32,
+    pub gap_window: f32,
+    pub shape_weight: f64,
+    pub repeat_cost: f32,
+    pub unlooped_repeat: f32,
+    pub dwell_full: f32,
+    pub unclaimed_dwell: f32,
+    pub loop_extent: f32,
+    pub loop_min_arc: f32,
+    pub loop_radius: f32,
+    pub wiggle_extent: f32,
+    pub wiggle_weight: f32,
+    pub loop_exclusion: f32,
+    pub unclaimed_loop: f32,
+    pub learned_shape_gain: f64,
+    pub shape_seeding: bool,
+    pub shape_channel: f64,
+    pub start_radius: f32,
+    pub end_radius: f32,
+    pub near_radius: f32,
+    pub vocabulary_rank: i32,
+    pub look_ahead_cost: f64,
+    pub look_ahead_budget: i32,
+    pub joiner_cost: f32,
+}
+
+impl Default for Tuning {
+    fn default() -> Self {
+        Tuning {
+            sigma: 0.42,
+            max_point_cost: 12.0,
+            gap_weight: 2.0,
+            gap_window: 14.0,
+            shape_weight: 2.5,
+            repeat_cost: 0.1,
+            unlooped_repeat: 0.4,
+            dwell_full: 3.0,
+            unclaimed_dwell: 2.0,
+            loop_extent: 0.8,
+            loop_min_arc: 1.0,
+            loop_radius: 0.6,
+            wiggle_extent: 0.0,
+            wiggle_weight: 0.0,
+            loop_exclusion: 1.5,
+            unclaimed_loop: 0.5,
+            learned_shape_gain: 0.15,
+            shape_seeding: false,
+            shape_channel: 45.0,
+            start_radius: 1.6,
+            end_radius: 1.6,
+            near_radius: 1.5,
+            vocabulary_rank: 0,
+            look_ahead_cost: 1.4,
+            look_ahead_budget: 48,
+            joiner_cost: 0.2,
+        }
+    }
+}
+
+const MIN_DWELL_FULL: f32 = 0.1;
+
+impl Tuning {
+    fn inv_two_sigma_sq(&self) -> f32 {
+        1.0 / (2.0 * self.sigma * self.sigma)
+    }
+    fn start_radius_sq(&self) -> f32 {
+        self.start_radius * self.start_radius
+    }
+    fn end_radius_sq(&self) -> f32 {
+        self.end_radius * self.end_radius
+    }
+    fn near_cost(&self) -> f32 {
+        self.near_radius * self.near_radius * self.inv_two_sigma_sq()
+    }
+    fn loop_radius_sq(&self) -> f32 {
+        self.loop_radius * self.loop_radius
+    }
+    fn start_slack(&self) -> f32 {
+        (self.start_radius - Tuning::default().start_radius).max(0.0)
+    }
+    fn end_slack(&self) -> f32 {
+        (self.end_radius - Tuning::default().end_radius).max(0.0)
+    }
+    fn dwell_scale(&self) -> f32 {
+        if self.dwell_full > MIN_DWELL_FULL {
+            self.dwell_full
+        } else {
+            MIN_DWELL_FULL
+        }
+    }
+}
+
+/// `GlideBeam.Candidate`, the word in UTF-16.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Candidate {
+    pub word: Vec<u16>,
+    pub score: f64,
+    pub shape_cost: f64,
+    pub tier: Tier,
+    pub ahead: i32,
+}
+
+/// `GlideBeam.Alignment`.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Alignment {
+    pub keys: Vec<i32>,
+    pub x: Vec<f32>,
+    pub y: Vec<f32>,
+    pub samples: Vec<i32>,
+    pub chars: Vec<i32>,
+    pub sample_count: i32,
+}
+
+/// One weighted trie for the decoder, with the vocabulary cap as the least
+/// frequency a word in it may have (0 for none).
+pub struct Source<'a> {
+    pub walker: &'a dyn Walker,
+    pub log_weight: f64,
+    pub tier: Tier,
+    pub min_frequency: i32,
+}
+
+/// The user's own drawn shapes per word, quantised as the shape store keeps
+/// them; empty for a word they have never glided.
+pub type LearnedShapes = HashMap<Vec<u16>, Vec<Vec<i8>>>;
+
+const MIN_STROKE_LENGTH: f32 = 0.5;
+const MIN_SAMPLES: usize = 3;
+const MIN_WORD_LENGTH: i32 = 2;
+const MIN_LOOKAHEAD_PREFIX: i32 = 3;
+const MAX_WORD_LENGTH: i32 = 24;
+const MIN_SHAPE_SPREAD: f32 = 1e-4;
+const SHAPE_BYTE_LIMIT: i32 = 127;
+const DWELL_RADIUS: f32 = 0.8;
+const DWELL_TIE: f32 = 0.25;
+const END_LOOP_REACH: f32 = 0.5;
+pub const MAX_POPS: usize = 2000;
+pub const RESULT_K: usize = 8;
+const EPS: f64 = 1e-9;
+/// `GlideShapeStore.QUANT`.
+pub const SHAPE_QUANT: f32 = 10.0;
+
+fn ln1p(v: i32) -> f64 {
+    strict_math::ln1p_count(v)
+}
+
+fn by_score(a: &Candidate, b: &Candidate) -> std::cmp::Ordering {
+    b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word))
+}
+
+fn is_high(u: u16) -> bool {
+    (0xD800..0xDC00).contains(&u)
+}
+
+fn is_low(u: u16) -> bool {
+    (0xDC00..0xE000).contains(&u)
+}
+
+/// The code points of a UTF-16 word with each one's starting offset,
+/// unpaired surrogates as themselves, as `codePointAt` walks it.
+fn code_points(word: &[u16]) -> Vec<(i32, usize)> {
+    let mut out = Vec::with_capacity(word.len());
+    let mut at = 0;
+    while at < word.len() {
+        let u = word[at];
+        if is_high(u) && at + 1 < word.len() && is_low(word[at + 1]) {
+            let cp = 0x10000 + (((u as i32) - 0xD800) << 10) + ((word[at + 1] as i32) - 0xDC00);
+            out.push((cp, at));
+            at += 2;
+        } else {
+            out.push((u as i32, at));
+            at += 1;
+        }
+    }
+    out
+}
+
+/// What [`Decoder::decode_ranked`] leaves for [`Decoder::finish`]: the
+/// readings and the guesses before the shape channel.
+pub struct Ranked {
+    pub read: Vec<Candidate>,
+    pub guesses: Vec<Candidate>,
+    pub look_ahead: usize,
+    pub limit: usize,
+}
+
+pub struct Decoder {
+    pub tuning: Tuning,
+    pub ws: Workspace,
+    scan: LoopScan,
+}
+
+impl Decoder {
+    pub fn new(tuning: Tuning) -> Decoder {
+        Decoder { tuning, ws: Workspace::new(), scan: LoopScan::default() }
+    }
+
+    /// `decode`, all of it: when the caller has its learned shapes at hand.
+    #[allow(clippy::too_many_arguments)]
+    pub fn decode(
+        &mut self,
+        path: &[Point],
+        keys: &KeyMap,
+        key_width: f32,
+        sources: &[Source],
+        limit: usize,
+        shapes: Option<&LearnedShapes>,
+        look_ahead: usize,
+    ) -> Vec<Candidate> {
+        match self.decode_ranked(path, keys, key_width, sources, limit, look_ahead) {
+            None => Vec::new(),
+            Some(ranked) => self.finish(ranked, keys, shapes),
+        }
+    }
+
+    /// The walk, up to the shape channel: the ranked readings and guesses,
+    /// or `None` when the stroke or the request is not a decode at all. The
+    /// workspace keeps what [`Decoder::finish`] needs, so the two are called
+    /// in turn on the same decoder.
+    pub fn decode_ranked(
+        &mut self,
+        path: &[Point],
+        keys: &KeyMap,
+        key_width: f32,
+        sources: &[Source],
+        limit: usize,
+        look_ahead: usize,
+    ) -> Option<Ranked> {
+        if path.len() < MIN_SAMPLES || key_width <= 0.0 {
+            return None;
+        }
+        if keys.key_count() == 0 || sources.is_empty() || limit == 0 {
+            return None;
+        }
+        if !self.resample(path, key_width) {
+            return None;
+        }
+        self.ws.prepare_keys(keys.key_count());
+        self.build_costs(keys);
+        self.build_dwell(keys);
+        if self.ws.arc_step <= 0.0 {
+            return None;
+        }
+        self.build_loops(path, key_width, keys);
+        self.build_remain(keys);
+
+        let k = (limit * 2).max(RESULT_K);
+        let mut results: HashMap<Vec<u16>, Candidate> = HashMap::new();
+        let mut ahead: Option<HashMap<Vec<u16>, Candidate>> =
+            if look_ahead > 0 && !self.ends_on_loop() { Some(HashMap::new()) } else { None };
+        let mut budget = self.tuning.look_ahead_budget;
+        let mut floor = f64::NEG_INFINITY;
+        let mut ordered: Vec<&Source> = sources.iter().collect();
+        let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
+        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
+        for src in ordered {
+            if root_bound(src) < floor - EPS {
+                continue;
+            }
+            floor = self.search_one(src, keys, k, &mut results, floor, ahead.as_mut(), &mut budget);
+        }
+        let mut read: Vec<Candidate> = results.into_values().collect();
+        read.sort_by(by_score);
+        let guesses = ahead.map(|a| a.into_values().collect()).unwrap_or_default();
+        Some(Ranked { read, guesses, look_ahead, limit })
+    }
+
+    /// The shape channel over a [`Ranked`] walk, the learned-shape seeding
+    /// left to the caller (it is off by default), and the guesses merged in.
+    pub fn finish(&mut self, ranked: Ranked, keys: &KeyMap, shapes: Option<&LearnedShapes>) -> Vec<Candidate> {
+        let Ranked { read, guesses, look_ahead, limit } = ranked;
+        let mut read = self.rescore_shape(read, keys, shapes);
+        read.truncate(limit);
+        if guesses.is_empty() {
+            return read;
+        }
+        let read_words: std::collections::HashSet<&Vec<u16>> = read.iter().map(|c| &c.word).collect();
+        let guesses: Vec<Candidate> = guesses.into_iter().filter(|g| !read_words.contains(&g.word)).collect();
+        let mut completions = self.rescore_shape(guesses, keys, shapes);
+        completions.truncate(look_ahead);
+        let mut all = read;
+        all.extend(completions);
+        all.sort_by(by_score);
+        all
+    }
+
+    /// `sampleShape`: the stroke as the shape store keeps one.
+    pub fn sample_shape(&mut self, path: &[Point], key_width: f32) -> Option<Vec<i8>> {
+        if path.len() < MIN_SAMPLES || key_width <= 0.0 {
+            return None;
+        }
+        if !self.resample(path, key_width) {
+            return None;
+        }
+        self.drawn_shape();
+        let mut out = vec![0i8; 2 * SHAPE_POINTS];
+        quantise(&self.ws.drawn_shape_x, &self.ws.drawn_shape_y, &mut out);
+        Some(out)
+    }
+
+    /// The drawn stroke quantised, after a decode, for the learned-shape
+    /// seeding the caller does.
+    pub fn drawn_shape8(&mut self) -> Vec<i8> {
+        self.drawn_shape();
+        let mut out = vec![0i8; 2 * SHAPE_POINTS];
+        quantise(&self.ws.drawn_shape_x, &self.ws.drawn_shape_y, &mut out);
+        out
+    }
+
+    /// `align`: where `word`'s keys landed along the stroke.
+    pub fn align(&mut self, word: &[u16], path: &[Point], keys: &KeyMap, key_width: f32) -> Option<Alignment> {
+        if path.len() < MIN_SAMPLES || key_width <= 0.0 || keys.key_count() == 0 {
+            return None;
+        }
+        let mut visits: Vec<usize> = Vec::new();
+        let mut starts: Vec<i32> = Vec::new();
+        let mut previous = -1;
+        for (cp, start) in code_points(word) {
+            let key = keys.key_index(cp);
+            if key < 0 {
+                if is_joiner(cp) {
+                    continue;
+                }
+                return None;
+            }
+            if key == previous {
+                continue;
+            }
+            if visits.len() >= MAX_IDEAL_POINTS {
+                return None;
+            }
+            visits.push(key as usize);
+            starts.push(start as i32);
+            previous = key;
+        }
+        let count = visits.len();
+        if count < 2 {
+            return None;
+        }
+        if !self.resample(path, key_width) {
+            return None;
+        }
+        if self.ws.arc_step <= 0.0 {
+            return None;
+        }
+        self.ws.prepare_keys(keys.key_count());
+        self.build_costs(keys);
+        self.build_loops(path, key_width, keys);
+
+        let n = self.ws.samples;
+        let key_count = keys.key_count();
+        let step = self.ws.arc_step;
+        let mut back = vec![0i32; count * n];
+        let mut prev = vec![0f32; n];
+        let mut cur = vec![0f32; n];
+        prev[0] = self.ws.point_cost[visits[0]];
+        for v in prev.iter_mut().skip(1) {
+            *v = UNREACHABLE;
+        }
+        for m in 1..count {
+            let key = visits[m];
+            let span = keys.distance(visits[m - 1], key);
+            let expected = span / step;
+            let lo = 1.max((expected - self.tuning.gap_window) as i32);
+            let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
+            let lead = self.anchor_lead(0, visits[m - 1] as i32, self.tuning.start_slack(), keys);
+            let tail = self.anchor_lead(n - 1, key as i32, self.tuning.end_slack(), keys);
+            cur[0] = UNREACHABLE;
+            for j in 1..n {
+                let mut best = UNREACHABLE;
+                let mut from: i32 = -1;
+                let arc_j = self.ws.arc_at[j];
+                let ease_j = if j == n - 1 { tail } else { 0.0 };
+                let mut i = 0.max(j as i32 - hi);
+                let to = j as i32 - lo;
+                while i <= to {
+                    let before = prev[i as usize];
+                    if before < UNREACHABLE {
+                        let gap = arc_j - self.ws.arc_at[i as usize] - span;
+                        let v = before + self.gap_charge(gap, if i == 0 { lead + ease_j } else { ease_j });
+                        if v < best {
+                            best = v;
+                            from = i;
+                        }
+                    }
+                    i += 1;
+                }
+                cur[j] = if from < 0 { UNREACHABLE } else { best + self.ws.point_cost[j * key_count + key] };
+                back[m * n + j] = from;
+            }
+            std::mem::swap(&mut prev, &mut cur);
+        }
+        if prev[n - 1] >= UNREACHABLE {
+            return None;
+        }
+        let mut x = vec![0f32; count];
+        let mut y = vec![0f32; count];
+        let mut samples = vec![0i32; count];
+        let mut j = n - 1;
+        for m in (0..count).rev() {
+            x[m] = self.ws.path_x[j];
+            y[m] = self.ws.path_y[j];
+            samples[m] = j as i32;
+            if m > 0 {
+                j = back[m * n + j] as usize;
+            }
+        }
+        Some(Alignment {
+            keys: visits.iter().map(|&k| k as i32).collect(),
+            x,
+            y,
+            samples,
+            chars: starts,
+            sample_count: n as i32,
+        })
+    }
+
+    // ---- the walk ----
+
+    #[allow(clippy::too_many_arguments)]
+    fn search_one(
+        &mut self,
+        src: &Source,
+        keys: &KeyMap,
+        k: usize,
+        results: &mut HashMap<Vec<u16>, Candidate>,
+        floor_in: f64,
+        mut ahead: Option<&mut HashMap<Vec<u16>, Candidate>>,
+        budget: &mut i32,
+    ) -> f64 {
+        let mut floor = floor_in;
+        let walker = src.walker;
+        let n = self.ws.samples;
+        let key_count = keys.key_count();
+        let min_frequency = src.min_frequency;
+        let tuning = self.tuning.clone();
+
+        self.ws.reset();
+        let root = walker.root();
+        self.ws.push(root, -1, NO_LABEL, -1, 0, 0.0, 0.0, src.log_weight + ln1p(walker.max_subtree(root)), 0);
+
+        let mut pops = 0;
+        let mut children = std::mem::take(&mut self.ws.children);
+        while self.ws.heap_size() > 0 && pops < MAX_POPS {
+            let s = self.ws.pop_best();
+            if self.ws.bound[s] < floor - EPS {
+                break;
+            }
+            pops += 1;
+
+            let node = self.ws.node[s];
+            let length = self.ws.length[s];
+            let extra = self.ws.extra[s];
+            let last_key = self.ws.last_key[s];
+
+            let at_end = last_key >= 0
+                && self.ws.end_key[last_key as usize]
+                && self.ws.cols[self.ws.column_of(s) + n - 1] < UNREACHABLE;
+            if at_end {
+                let total = self.ws.cols[self.ws.column_of(s) + n - 1];
+                let shape = total + extra + self.unclaimed_dwell(s, keys) + self.unclaimed_loop(s);
+                if length >= MIN_WORD_LENGTH && walker.is_word(node) && walker.frequency(node) >= min_frequency {
+                    let score = src.log_weight + ln1p(walker.frequency(node)) - tuning.shape_weight * shape as f64;
+                    if score > floor - EPS || results.len() < k {
+                        let word = self.ws.materialize(s);
+                        if !(src.tier == Tier::Dictionary && is_non_word(&word)) {
+                            emit(word, score, shape as f64, src.tier, results);
+                            if results.len() >= k {
+                                floor = kth_best(results, k, &mut self.ws.score_scratch);
+                            }
+                        }
+                    }
+                }
+                if let Some(ahead) = ahead.as_deref_mut() {
+                    if *budget > 0 && length >= MIN_LOOKAHEAD_PREFIX {
+                        self.look_ahead(src, node, s, shape, min_frequency, ahead, budget);
+                    }
+                }
+            }
+            if length >= MAX_WORD_LENGTH || length as usize >= n {
+                continue;
+            }
+
+            walker.children_into(node, &mut children);
+            let via = self.ws.via_label[s];
+            let pending_high = if is_high(via) { Some(via) } else { None };
+            for &(label, child) in children.iter() {
+                let subtree = walker.max_subtree(child);
+                if subtree < min_frequency {
+                    continue;
+                }
+                let code_point: i32;
+                if let Some(high) = pending_high {
+                    if !is_low(label) {
+                        continue;
+                    }
+                    code_point = 0x10000 + (((high as i32) - 0xD800) << 10) + ((label as i32) - 0xDC00);
+                } else if is_high(label) {
+                    if !self.descend_silent(src, subtree, s, child, label, extra, floor) {
+                        break;
+                    }
+                    continue;
+                } else {
+                    code_point = label as i32;
+                }
+
+                let key = keys.key_index(code_point);
+                if key < 0 && length > 0 && is_joiner(code_point) && !is_joiner(self.ws.via_label[s] as i32) {
+                    let cost = extra + tuning.joiner_cost;
+                    if !self.descend_silent(src, subtree, s, child, label, cost, floor) {
+                        break;
+                    }
+                    continue;
+                }
+                if key < 0 || key as usize >= key_count || !self.ws.near_key[key as usize] {
+                    continue;
+                }
+                if length == 0 && !self.ws.start_key[key as usize] {
+                    continue;
+                }
+                let repeat = length > 0 && code_point == self.ws.letter_cp[s];
+
+                let min_col: f32;
+                let mut child_extra = extra;
+                if repeat {
+                    min_col = self.ws.floor_cost[s];
+                    child_extra += self.repeat_charge(last_key as usize);
+                } else {
+                    let prev_column = if length == 0 { None } else { Some(self.ws.column_of(s)) };
+                    min_col = self.advance(prev_column, key as usize, last_key, keys);
+                    if min_col >= UNREACHABLE {
+                        continue;
+                    }
+                }
+
+                let bound = src.log_weight + ln1p(subtree) - tuning.shape_weight * (min_col + child_extra) as f64;
+                if bound < floor - EPS {
+                    continue;
+                }
+                let Some(id) =
+                    self.ws.push(child, s as i32, label, key, length + 1, child_extra, min_col, bound, code_point)
+                else {
+                    break;
+                };
+                if repeat {
+                    self.ws.copy_column(s, id);
+                } else {
+                    self.ws.store_scratch(id);
+                }
+            }
+        }
+        self.ws.children = children;
+        floor
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn descend_silent(&mut self, src: &Source, subtree: i32, s: usize, child: u32, label: u16, extra: f32, floor: f64) -> bool {
+        let bound = src.log_weight + ln1p(subtree) - self.tuning.shape_weight * (self.ws.floor_cost[s] + extra) as f64;
+        if bound < floor - EPS {
+            return true;
+        }
+        let (last_key, length, floor_cost, letter_cp) =
+            (self.ws.last_key[s], self.ws.length[s], self.ws.floor_cost[s], self.ws.letter_cp[s]);
+        let Some(id) = self.ws.push(child, s as i32, label, last_key, length, extra, floor_cost, bound, letter_cp) else {
+            return false;
+        };
+        self.ws.copy_column(s, id);
+        true
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn look_ahead(
+        &mut self,
+        src: &Source,
+        node: u32,
+        s: usize,
+        shape: f32,
+        min_frequency: i32,
+        ahead: &mut HashMap<Vec<u16>, Candidate>,
+        budget: &mut i32,
+    ) {
+        let walker = src.walker;
+        let best = walker.max_subtree(node);
+        if best < min_frequency || best <= walker.frequency(node) {
+            return;
+        }
+        *budget -= 1;
+        let prefix = self.ws.materialize(s);
+        let mut word = prefix.clone();
+        let mut at = node;
+        let mut steps = 0;
+        let mut children = std::mem::take(&mut self.ws.look_ahead_children);
+        while steps < MAX_WORD_LENGTH {
+            if walker.is_word(at) && walker.frequency(at) == best {
+                break;
+            }
+            walker.children_into(at, &mut children);
+            let next = children.iter().find(|&&(_, c)| walker.max_subtree(c) == best).copied();
+            let Some((label, child)) = next else {
+                self.ws.look_ahead_children = children;
+                return;
+            };
+            word.push(label);
+            at = child;
+            steps += 1;
+        }
+        self.ws.look_ahead_children = children;
+        if steps == 0 || word.len() <= prefix.len() {
+            return;
+        }
+        if src.tier == Tier::Dictionary && is_non_word(&word) {
+            return;
+        }
+        let extra = (word.len() - prefix.len()) as i32;
+        let score =
+            src.log_weight + ln1p(best) - self.tuning.shape_weight * shape as f64 - self.tuning.look_ahead_cost * extra as f64;
+        let replace = match ahead.get(&word) {
+            None => true,
+            Some(existing) => score > existing.score,
+        };
+        if replace {
+            ahead.insert(word.clone(), Candidate { word, score, shape_cost: shape as f64, tier: src.tier, ahead: extra });
+        }
+    }
+
+    fn advance(&mut self, prev_column: Option<usize>, key: usize, prev_key: i32, keys: &KeyMap) -> f32 {
+        let n = self.ws.samples;
+        let key_count = keys.key_count();
+        let Some(prev_column) = prev_column else {
+            self.ws.scratch[0] = self.ws.point_cost[key];
+            for j in 1..n {
+                self.ws.scratch[j] = UNREACHABLE;
+            }
+            let remain = self.ws.remain[key];
+            return if remain >= UNREACHABLE { UNREACHABLE } else { self.ws.scratch[0] + remain };
+        };
+        let step = self.ws.arc_step;
+        let span = keys.distance(prev_key as usize, key);
+        let expected = span / step;
+        let lo = 1.max((expected - self.tuning.gap_window) as i32);
+        let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
+        let lead = self.anchor_lead(0, prev_key, self.tuning.start_slack(), keys);
+        let tail = self.anchor_lead(n - 1, key as i32, self.tuning.end_slack(), keys);
+
+        self.ws.scratch[0] = UNREACHABLE;
+        let mut best = UNREACHABLE;
+        for j in 1..n {
+            let from = 0.max(j as i32 - hi);
+            let to = j as i32 - lo;
+            let arc_j = self.ws.arc_at[j];
+            let ease_j = if j == n - 1 { tail } else { 0.0 };
+            let mut best_prev = UNREACHABLE;
+            let mut i = from;
+            while i <= to {
+                let at = self.ws.cols[prev_column + i as usize];
+                if at < UNREACHABLE {
+                    let travelled = arc_j - self.ws.arc_at[i as usize];
+                    let gap = travelled - span;
+                    let v = at + self.gap_charge(gap, if i == 0 { lead + ease_j } else { ease_j });
+                    if v < best_prev {
+                        best_prev = v;
+                    }
+                }
+                i += 1;
+            }
+            let value = if best_prev >= UNREACHABLE { UNREACHABLE } else { best_prev + self.ws.point_cost[j * key_count + key] };
+            self.ws.scratch[j] = value;
+            let rest = self.ws.remain[j * key_count + key];
+            if value < UNREACHABLE && rest < UNREACHABLE && value + rest < best {
+                best = value + rest;
+            }
+        }
+        best
+    }
+
+    fn build_remain(&mut self, keys: &KeyMap) {
+        let n = self.ws.samples;
+        let key_count = keys.key_count();
+        let step = self.ws.arc_step;
+        for k in 0..key_count {
+            if self.ws.near_key[k] {
+                let c = self.ws.near_count;
+                self.ws.near_list[c] = k;
+                self.ws.near_count += 1;
+            }
+        }
+        let count = self.ws.near_count;
+        let last = (n - 1) * key_count;
+        for k in 0..key_count {
+            self.ws.remain[last + k] = if self.ws.end_key[k] { 0.0 } else { UNREACHABLE };
+        }
+        let (start_slack, end_slack) = (self.tuning.start_slack(), self.tuning.end_slack());
+        for j in (0..n - 1).rev() {
+            let base = j * key_count;
+            let arc_j = self.ws.arc_at[j];
+            for a in 0..key_count {
+                self.ws.remain[base + a] = UNREACHABLE;
+            }
+            for x in 0..count {
+                let from = self.ws.near_list[x];
+                let lead = if j == 0 { self.anchor_lead(0, from as i32, start_slack, keys) } else { 0.0 };
+                let mut best = UNREACHABLE;
+                for y in 0..count {
+                    let to = self.ws.near_list[y];
+                    let span = keys.distance(from, to);
+                    let expected = span / step;
+                    let lo = 1.max((expected - self.tuning.gap_window) as i32);
+                    let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
+                    let end = (n as i32 - 1).min(j as i32 + hi);
+                    let mut i = j as i32 + lo;
+                    while i <= end {
+                        let iu = i as usize;
+                        let rest = self.ws.remain[iu * key_count + to];
+                        if rest < UNREACHABLE {
+                            let gap = self.ws.arc_at[iu] - arc_j - span;
+                            let ease = if iu == n - 1 { lead + self.anchor_lead(n - 1, to as i32, end_slack, keys) } else { lead };
+                            let v = self.gap_charge(gap, ease) + self.ws.point_cost[iu * key_count + to] + rest;
+                            if v < best {
+                                best = v;
+                            }
+                        }
+                        i += 1;
+                    }
+                }
+                self.ws.remain[base + from] = best;
+            }
+        }
+    }
+
+    // ---- per-decode preparation ----
+
+    fn resample(&mut self, path: &[Point], key_width: f32) -> bool {
+        let mut total_px = 0f32;
+        for i in 1..path.len() {
+            total_px += distance(&path[i - 1], &path[i]);
+        }
+        if total_px / key_width < MIN_STROKE_LENGTH {
+            return false;
+        }
+        let n = if total_px / key_width >= workspace::LONG_STROKE { SAMPLE_POINTS } else { SHORT_SAMPLES };
+        self.ws.samples = n;
+        let step = total_px / (n - 1) as f32;
+        self.ws.arc_step = step / key_width;
+        let arc_step = self.ws.arc_step;
+        for j in 0..n {
+            self.ws.arc_at[j] = j as f32 * arc_step;
+        }
+        self.ws.collapsed_samples = 0;
+        let first = path[0];
+        self.ws.path_x[0] = first.x / key_width;
+        self.ws.path_y[0] = first.y / key_width;
+        self.ws.path_t[0] = first.t;
+        let mut out = 1;
+        let mut index = 0;
+        let (mut cx, mut cy, mut ct) = (first.x, first.y, first.t);
+        let mut accumulated = 0f32;
+        while out < n - 1 && index + 1 < path.len() {
+            let next = path[index + 1];
+            let segment = ((next.x - cx) * (next.x - cx) + (next.y - cy) * (next.y - cy)).sqrt();
+            if accumulated + segment >= step && segment > 0.0 {
+                let fraction = (step - accumulated) / segment;
+                cx += fraction * (next.x - cx);
+                cy += fraction * (next.y - cy);
+                ct += ((next.t - ct) as f32 * fraction) as i64;
+                self.ws.path_x[out] = cx / key_width;
+                self.ws.path_y[out] = cy / key_width;
+                self.ws.path_t[out] = ct;
+                out += 1;
+                accumulated = 0.0;
+            } else {
+                accumulated += segment;
+                cx = next.x;
+                cy = next.y;
+                ct = next.t;
+                index += 1;
+            }
+        }
+        let last = path[path.len() - 1];
+        while out < n {
+            self.ws.path_x[out] = last.x / key_width;
+            self.ws.path_y[out] = last.y / key_width;
+            self.ws.path_t[out] = last.t;
+            out += 1;
+        }
+        true
+    }
+
+    fn build_costs(&mut self, keys: &KeyMap) {
+        let n = self.ws.samples;
+        let key_count = keys.key_count();
+        let inv = self.tuning.inv_two_sigma_sq();
+        let max_point_cost = self.tuning.max_point_cost;
+        let near_cost = self.tuning.near_cost();
+        for i in 0..n {
+            let base = i * key_count;
+            let (px, py) = (self.ws.path_x[i], self.ws.path_y[i]);
+            for k in 0..key_count {
+                let dx = px - keys.key_x[k];
+                let dy = py - keys.key_y[k];
+                let scaled = (dx * dx + dy * dy) * inv;
+                self.ws.point_cost[base + k] = if scaled > max_point_cost { max_point_cost } else { scaled };
+                if scaled <= near_cost {
+                    self.ws.near_key[k] = true;
+                }
+            }
+        }
+        let (x0, y0, xn, yn) = (self.ws.path_x[0], self.ws.path_y[0], self.ws.path_x[n - 1], self.ws.path_y[n - 1]);
+        anchor_mask(x0, y0, keys, &mut self.ws.start_key, self.tuning.start_radius_sq());
+        anchor_mask(xn, yn, keys, &mut self.ws.end_key, self.tuning.end_radius_sq());
+        self.anchor_slack(0, self.tuning.start_slack(), true, keys);
+        self.anchor_slack(n - 1, self.tuning.end_slack(), false, keys);
+    }
+
+    fn anchor_slack(&mut self, j: usize, slack: f32, start: bool, keys: &KeyMap) {
+        if slack <= 0.0 {
+            return;
+        }
+        let key_count = keys.key_count();
+        let base = j * key_count;
+        let inv = self.tuning.inv_two_sigma_sq();
+        let max_point_cost = self.tuning.max_point_cost;
+        for k in 0..key_count {
+            let dx = self.ws.path_x[j] - keys.key_x[k];
+            let dy = self.ws.path_y[j] - keys.key_y[k];
+            let past = (dx * dx + dy * dy).sqrt() - slack;
+            let scaled = if past > 0.0 { past * past * inv } else { 0.0 };
+            self.ws.point_cost[base + k] = if scaled > max_point_cost { max_point_cost } else { scaled };
+            let masked = if start { self.ws.start_key[k] } else { self.ws.end_key[k] };
+            if masked {
+                self.ws.near_key[k] = true;
+            }
+        }
+    }
+
+    fn anchor_lead(&self, j: usize, key: i32, slack: f32, keys: &KeyMap) -> f32 {
+        if slack <= 0.0 || key < 0 {
+            return 0.0;
+        }
+        let dx = self.ws.path_x[j] - keys.key_x[key as usize];
+        let dy = self.ws.path_y[j] - keys.key_y[key as usize];
+        let d = (dx * dx + dy * dy).sqrt();
+        if d < slack {
+            d
+        } else {
+            slack
+        }
+    }
+
+    fn gap_charge(&self, gap: f32, ease: f32) -> f32 {
+        let over = (if gap < 0.0 { -gap } else { gap }) - ease;
+        if over > 0.0 {
+            self.tuning.gap_weight * over
+        } else {
+            0.0
+        }
+    }
+
+    fn build_dwell(&mut self, keys: &KeyMap) {
+        if self.tuning.unclaimed_dwell <= 0.0 {
+            return;
+        }
+        let n = self.ws.samples;
+        let span = (self.ws.path_t[n - 1] - self.ws.path_t[0]) as f32;
+        if span <= 0.0 {
+            return;
+        }
+        let even_step = span / (n - 1) as f32;
+        let dwell_scale = self.tuning.dwell_scale();
+        let mut run_end: i32 = -1;
+        for j in 1..n {
+            let step = (self.ws.path_t[j] - self.ws.path_t[j - 1]) as f32;
+            let lingering = ((step / even_step) - 1.0) / dwell_scale;
+            if lingering <= 0.0 {
+                continue;
+            }
+            let score = if lingering > 1.0 { 1.0 } else { lingering };
+            self.record_pause(j, score, run_end);
+            run_end = j as i32;
+        }
+        for p in 0..self.ws.pause_count {
+            let j = self.ws.pause_at[p];
+            let (x, y) = (self.ws.path_x[j], self.ws.path_y[j]);
+            self.place_pause(p, x, y, keys);
+        }
+    }
+
+    fn place_pause(&mut self, p: usize, x: f32, y: f32, keys: &KeyMap) {
+        let mut nearest_sq = f32::MAX;
+        for k in 0..keys.key_count() {
+            let dx = x - keys.key_x[k];
+            let dy = y - keys.key_y[k];
+            let d = dx * dx + dy * dy;
+            if d < nearest_sq {
+                nearest_sq = d;
+            }
+        }
+        let reach = DWELL_RADIUS.min(nearest_sq.sqrt() + DWELL_TIE);
+        self.ws.pause_x[p] = x;
+        self.ws.pause_y[p] = y;
+        self.ws.pause_reach_sq[p] = reach * reach;
+    }
+
+    fn record_pause(&mut self, j: usize, score: f32, run_end: i32) {
+        let count = self.ws.pause_count;
+        if count > 0 && run_end == j as i32 - 1 {
+            if score > self.ws.pause_score[count - 1] {
+                self.ws.pause_score[count - 1] = score;
+                self.ws.pause_at[count - 1] = j;
+            }
+            return;
+        }
+        self.ws.pause_at[count] = j;
+        self.ws.pause_score[count] = score;
+        self.ws.pause_count = count + 1;
+    }
+
+    fn unclaimed_dwell(&self, s: usize, keys: &KeyMap) -> f32 {
+        let weight = self.tuning.unclaimed_dwell;
+        if weight <= 0.0 || self.ws.pause_count == 0 {
+            return 0.0;
+        }
+        let mut charge = 0f32;
+        for p in 0..self.ws.pause_count {
+            let (px, py, reach_sq) = (self.ws.pause_x[p], self.ws.pause_y[p], self.ws.pause_reach_sq[p]);
+            let mut claimed = false;
+            let mut cur = s as i32;
+            while cur >= 0 && !claimed {
+                let key = self.ws.last_key[cur as usize];
+                if key >= 0 {
+                    let dx = px - keys.key_x[key as usize];
+                    let dy = py - keys.key_y[key as usize];
+                    claimed = dx * dx + dy * dy <= reach_sq;
+                }
+                cur = self.ws.parent[cur as usize];
+            }
+            if !claimed {
+                charge += self.ws.pause_score[p];
+            }
+        }
+        weight * charge
+    }
+
+    // ---- loops ----
+
+    fn build_loops(&mut self, path: &[Point], key_width: f32, keys: &KeyMap) {
+        self.ws.loop_count = 0;
+        let found = self.scan.find(path, key_width, &self.tuning);
+        for w in 0..found {
+            let is_loop = self.scan.window_is_loop[w];
+            let (from, to) = (self.scan.window_from[w], self.scan.window_to[w]);
+            let e = self.record_loop(from, to, if is_loop { 1.0 } else { 0.0 }, keys);
+            if !is_loop {
+                self.record_wiggle(e, keys);
+            }
+        }
+        if self.ws.loop_count > 0 {
+            self.exclude_neighbours(keys);
+            self.collapse_arc();
+        }
+    }
+
+    fn ends_on_loop(&self) -> bool {
+        let last = self.ws.samples - 1;
+        for e in (0..self.ws.loop_count).rev() {
+            if self.ws.loop_score[e] <= 0.0 || self.ws.loop_key[e] < 0 {
+                continue;
+            }
+            return self.ws.arc_at[last] - self.ws.arc_at[self.ws.loop_to[e]] <= END_LOOP_REACH;
+        }
+        false
+    }
+
+    fn record_wiggle(&mut self, e: usize, keys: &KeyMap) {
+        let p = self.ws.pause_count;
+        if self.tuning.unclaimed_dwell <= 0.0 || self.tuning.wiggle_weight <= 0.0 {
+            return;
+        }
+        if p >= self.ws.samples {
+            return;
+        }
+        self.ws.pause_at[p] = (self.ws.loop_from[e] + self.ws.loop_to[e]) / 2;
+        self.ws.pause_score[p] = self.tuning.wiggle_weight;
+        let (x, y) = (self.ws.loop_x[e], self.ws.loop_y[e]);
+        self.place_pause(p, x, y, keys);
+        self.ws.pause_count = p + 1;
+    }
+
+    fn exclude_neighbours(&mut self, keys: &KeyMap) {
+        let charge = self.tuning.loop_exclusion;
+        if charge <= 0.0 {
+            return;
+        }
+        let key_count = keys.key_count();
+        let cap = self.tuning.max_point_cost;
+        for e in 0..self.ws.loop_count {
+            let own = self.ws.loop_key[e];
+            if own < 0 {
+                continue;
+            }
+            for j in self.ws.loop_from[e] + 1..self.ws.loop_to[e] {
+                let base = j * key_count;
+                for k in 0..key_count {
+                    if k as i32 != own {
+                        let c = self.ws.point_cost[base + k] + charge;
+                        self.ws.point_cost[base + k] = if cap < c { cap } else { c };
+                    }
+                }
+            }
+        }
+    }
+
+    fn record_loop(&mut self, from: usize, to: usize, score: f32, keys: &KeyMap) -> usize {
+        self.scan.measure(from, to);
+        let (cx, cy, length, chord) = (self.scan.centre_x, self.scan.centre_y, self.scan.length, self.scan.chord);
+        let last = self.ws.samples - 1;
+        let to_sample = self.scan.fine_step / self.ws.arc_step;
+        let mut a = last.min((from as f32 * to_sample + 0.5) as i32 as usize);
+        let mut b = last.min((to as f32 * to_sample + 0.5) as i32 as usize);
+        if b <= a {
+            if a < last {
+                b = a + 1;
+            } else {
+                a = b - 1;
+            }
+        }
+        let e = self.ws.loop_count;
+        self.ws.loop_from[e] = a;
+        self.ws.loop_to[e] = b;
+        self.ws.loop_shrink[e] = if length > 0.0 { chord / length } else { 1.0 };
+        self.ws.loop_x[e] = cx;
+        self.ws.loop_y[e] = cy;
+        self.ws.loop_score[e] = score;
+        self.ws.loop_count = e + 1;
+        let own = self.scan.nearest_key(cx, cy, keys, self.tuning.loop_radius_sq());
+        self.ws.loop_key[e] = own;
+        if own >= 0 && score > self.ws.key_loop[own as usize] {
+            self.ws.key_loop[own as usize] = score;
+        }
+        e
+    }
+
+    fn collapse_arc(&mut self) {
+        let n = self.ws.samples;
+        let step = self.ws.arc_step;
+        let mut removed = 0f32;
+        let mut e = 0;
+        self.ws.arc_at[0] = 0.0;
+        for j in 1..n {
+            if e < self.ws.loop_count && j > self.ws.loop_from[e] && j <= self.ws.loop_to[e] {
+                let a = self.ws.loop_from[e];
+                let shrink = self.ws.loop_shrink[e];
+                self.ws.arc_at[j] = self.ws.arc_at[a] + (j - a) as f32 * step * shrink;
+                if j == self.ws.loop_to[e] {
+                    removed += (j - a) as f32 * step * (1.0 - shrink);
+                    e += 1;
+                }
+            } else {
+                self.ws.arc_at[j] = self.ws.arc_at[j - 1] + step;
+            }
+        }
+        self.ws.collapsed_samples = (removed / step).ceil() as i32;
+    }
+
+    fn repeat_charge(&self, key: usize) -> f32 {
+        (self.tuning.repeat_cost + self.tuning.unlooped_repeat) * (1.0 - self.ws.key_loop[key])
+    }
+
+    fn unclaimed_loop(&self, s: usize) -> f32 {
+        let weight = self.tuning.unclaimed_loop;
+        if weight <= 0.0 || self.ws.loop_count == 0 {
+            return 0.0;
+        }
+        let mut charge = 0f32;
+        for e in 0..self.ws.loop_count {
+            let own = self.ws.loop_key[e];
+            if self.ws.loop_score[e] <= 0.0 || own < 0 {
+                continue;
+            }
+            let mut claimed = false;
+            let mut cur = s as i32;
+            while cur >= 0 && !claimed {
+                let parent = self.ws.parent[cur as usize];
+                let c = cur as usize;
+                if parent >= 0
+                    && self.ws.letter_cp[c] == self.ws.letter_cp[parent as usize]
+                    && self.ws.length[c] == self.ws.length[parent as usize] + 1
+                {
+                    claimed = self.ws.last_key[c] == own;
+                }
+                cur = parent;
+            }
+            if !claimed {
+                charge += self.ws.loop_score[e];
+            }
+        }
+        weight * charge
+    }
+
+    // ---- shape channel ----
+
+    fn rescore_shape(&mut self, ranked: Vec<Candidate>, keys: &KeyMap, shapes: Option<&LearnedShapes>) -> Vec<Candidate> {
+        let weight = self.tuning.shape_channel;
+        if weight <= 0.0 || ranked.is_empty() {
+            return ranked;
+        }
+        self.drawn_shape();
+        normalise_in_place(&mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
+        let learned = shapes.filter(|_| self.tuning.learned_shape_gain > 0.0);
+        let mut rescored = Vec::with_capacity(ranked.len());
+        for candidate in ranked {
+            let distance = if candidate.ahead > 0 {
+                let keep = candidate.word.len().saturating_sub(candidate.ahead as usize);
+                self.shape_distance(&candidate.word[..keep], keys)
+            } else {
+                self.shape_distance(&candidate.word, keys)
+                    .map(|ideal| self.learned_distance(&candidate.word, ideal, learned))
+            };
+            rescored.push(match distance {
+                None => candidate,
+                Some(d) => Candidate { score: candidate.score - weight * d, ..candidate },
+            });
+        }
+        rescored.sort_by(by_score);
+        rescored
+    }
+
+    fn shape_distance(&mut self, word: &[u16], keys: &KeyMap) -> Option<f64> {
+        let mut count = 0usize;
+        let mut previous = -1;
+        for (cp, _) in code_points(word) {
+            let key = keys.key_index(cp);
+            if key < 0 {
+                if is_joiner(cp) {
+                    continue;
+                }
+                return None;
+            }
+            if key == previous {
+                continue;
+            }
+            if count >= MAX_IDEAL_POINTS {
+                return None;
+            }
+            self.ws.ideal_x[count] = keys.key_x[key as usize];
+            self.ws.ideal_y[count] = keys.key_y[key as usize];
+            count += 1;
+            previous = key;
+        }
+        if count < 2 {
+            return None;
+        }
+        let count = self.with_anchor_leads(count);
+        let (ix, iy) = (self.ws.ideal_x, self.ws.ideal_y);
+        resample_polyline(&ix, &iy, count, &mut self.ws.ideal_shape_x, &mut self.ws.ideal_shape_y);
+        normalise_in_place(&mut self.ws.ideal_shape_x, &mut self.ws.ideal_shape_y);
+        let mut sum = 0f64;
+        for j in 0..SHAPE_POINTS {
+            let dx = self.ws.drawn_shape_x[j] - self.ws.ideal_shape_x[j];
+            let dy = self.ws.drawn_shape_y[j] - self.ws.ideal_shape_y[j];
+            sum += (dx * dx + dy * dy).sqrt() as f64;
+        }
+        Some(sum / SHAPE_POINTS as f64)
+    }
+
+    fn with_anchor_leads(&mut self, count: usize) -> usize {
+        let mut size = count;
+        let start = self.tuning.start_slack();
+        if start > 0.0 && size < MAX_IDEAL_POINTS {
+            for p in (1..=size).rev() {
+                self.ws.ideal_x[p] = self.ws.ideal_x[p - 1];
+                self.ws.ideal_y[p] = self.ws.ideal_y[p - 1];
+            }
+            size += 1;
+            let (x, y) = (self.ws.path_x[0], self.ws.path_y[0]);
+            self.reach_toward(1, 0, x, y, start);
+        }
+        let end = self.tuning.end_slack();
+        if end > 0.0 && size < MAX_IDEAL_POINTS {
+            let last = self.ws.samples - 1;
+            let (x, y) = (self.ws.path_x[last], self.ws.path_y[last]);
+            self.reach_toward(size - 1, size, x, y, end);
+            size += 1;
+        }
+        size
+    }
+
+    fn reach_toward(&mut self, from: usize, into: usize, x: f32, y: f32, reach: f32) {
+        let (fx, fy) = (self.ws.ideal_x[from], self.ws.ideal_y[from]);
+        let dx = x - fx;
+        let dy = y - fy;
+        let d = (dx * dx + dy * dy).sqrt();
+        let t = if d <= reach { 1.0 } else { reach / d };
+        self.ws.ideal_x[into] = fx + dx * t;
+        self.ws.ideal_y[into] = fy + dy * t;
+    }
+
+    fn learned_distance(&mut self, word: &[u16], ideal: f64, shapes: Option<&LearnedShapes>) -> f64 {
+        let Some(shapes) = shapes else { return ideal };
+        let Some(stored) = shapes.get(word).filter(|s| !s.is_empty()) else {
+            return ideal;
+        };
+        let n = SHAPE_POINTS;
+        let mut own = f64::MAX;
+        for shape in stored {
+            for j in 0..n {
+                self.ws.learned_shape_x[j] = shape[2 * j] as f32 / SHAPE_QUANT;
+                self.ws.learned_shape_y[j] = shape[2 * j + 1] as f32 / SHAPE_QUANT;
+            }
+            normalise_in_place(&mut self.ws.learned_shape_x, &mut self.ws.learned_shape_y);
+            let mut sum = 0f64;
+            for j in 0..n {
+                let dx = self.ws.drawn_shape_x[j] - self.ws.learned_shape_x[j];
+                let dy = self.ws.drawn_shape_y[j] - self.ws.learned_shape_y[j];
+                sum += (dx * dx + dy * dy).sqrt() as f64;
+            }
+            own = java_min(own, sum / n as f64);
+        }
+        java_max(java_min(ideal, own), ideal - self.tuning.learned_shape_gain)
+    }
+
+    fn drawn_shape(&mut self) {
+        if self.ws.samples == SHAPE_POINTS {
+            self.ws.drawn_shape_x.copy_from_slice(&self.ws.path_x[..SHAPE_POINTS]);
+            self.ws.drawn_shape_y.copy_from_slice(&self.ws.path_y[..SHAPE_POINTS]);
+        } else {
+            let (px, py) = (self.ws.path_x, self.ws.path_y);
+            resample_polyline(&px, &py, self.ws.samples, &mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
+        }
+    }
+}
+
+fn java_min(a: f64, b: f64) -> f64 {
+    if a.is_nan() || b.is_nan() {
+        f64::NAN
+    } else if a == b {
+        if a.is_sign_negative() { a } else { b }
+    } else if a < b {
+        a
+    } else {
+        b
+    }
+}
+
+fn java_max(a: f64, b: f64) -> f64 {
+    if a.is_nan() || b.is_nan() {
+        f64::NAN
+    } else if a == b {
+        if a.is_sign_negative() { b } else { a }
+    } else if a > b {
+        a
+    } else {
+        b
+    }
+}
+
+fn distance(a: &Point, b: &Point) -> f32 {
+    let dx = b.x - a.x;
+    let dy = b.y - a.y;
+    (dx * dx + dy * dy).sqrt()
+}
+
+fn quantise(xs: &[f32], ys: &[f32], out: &mut [i8]) {
+    for j in 0..SHAPE_POINTS {
+        out[2 * j] = ((xs[j] * SHAPE_QUANT) as i32).clamp(-SHAPE_BYTE_LIMIT, SHAPE_BYTE_LIMIT) as i8;
+        out[2 * j + 1] = ((ys[j] * SHAPE_QUANT) as i32).clamp(-SHAPE_BYTE_LIMIT, SHAPE_BYTE_LIMIT) as i8;
+    }
+}
+
+fn normalise_in_place(xs: &mut [f32], ys: &mut [f32]) {
+    let n = SHAPE_POINTS;
+    let (mut cx, mut cy) = (0f32, 0f32);
+    for j in 0..n {
+        cx += xs[j];
+        cy += ys[j];
+    }
+    cx /= n as f32;
+    cy /= n as f32;
+    let mut spread = 0f32;
+    for j in 0..n {
+        let dx = xs[j] - cx;
+        let dy = ys[j] - cy;
+        spread += dx * dx + dy * dy;
+    }
+    let root = (spread / n as f32).sqrt();
+    let scale = if root > MIN_SHAPE_SPREAD { root } else { 1.0 };
+    for j in 0..n {
+        xs[j] = (xs[j] - cx) / scale;
+        ys[j] = (ys[j] - cy) / scale;
+    }
+}
+
+fn resample_polyline(xs: &[f32], ys: &[f32], count: usize, out_x: &mut [f32], out_y: &mut [f32]) {
+    let n = SHAPE_POINTS;
+    let mut total = 0f32;
+    for i in 1..count {
+        let dx = xs[i] - xs[i - 1];
+        let dy = ys[i] - ys[i - 1];
+        total += (dx * dx + dy * dy).sqrt();
+    }
+    if total <= 0.0 {
+        for j in 0..n {
+            out_x[j] = xs[0];
+            out_y[j] = ys[0];
+        }
+        return;
+    }
+    let step = total / (n - 1) as f32;
+    out_x[0] = xs[0];
+    out_y[0] = ys[0];
+    let mut out = 1;
+    let mut index = 0;
+    let (mut cx, mut cy) = (xs[0], ys[0]);
+    let mut accumulated = 0f32;
+    while out < n - 1 && index + 1 < count {
+        let (nx, ny) = (xs[index + 1], ys[index + 1]);
+        let segment = ((nx - cx) * (nx - cx) + (ny - cy) * (ny - cy)).sqrt();
+        if accumulated + segment >= step && segment > 0.0 {
+            let fraction = (step - accumulated) / segment;
+            cx += fraction * (nx - cx);
+            cy += fraction * (ny - cy);
+            out_x[out] = cx;
+            out_y[out] = cy;
+            out += 1;
+            accumulated = 0.0;
+        } else {
+            accumulated += segment;
+            cx = nx;
+            cy = ny;
+            index += 1;
+        }
+    }
+    while out < n {
+        out_x[out] = xs[count - 1];
+        out_y[out] = ys[count - 1];
+        out += 1;
+    }
+}
+
+fn anchor_mask(x: f32, y: f32, keys: &KeyMap, out: &mut [bool], radius_sq: f32) {
+    for k in 0..keys.key_count() {
+        let dx = x - keys.key_x[k];
+        let dy = y - keys.key_y[k];
+        out[k] = dx * dx + dy * dy <= radius_sq;
+    }
+}
+
+fn emit(word: Vec<u16>, score: f64, shape_cost: f64, tier: Tier, results: &mut HashMap<Vec<u16>, Candidate>) {
+    let replace = match results.get(&word) {
+        None => true,
+        Some(existing) => score > existing.score,
+    };
+    if replace {
+        results.insert(word.clone(), Candidate { word, score, shape_cost, tier, ahead: 0 });
+    }
+}
+
+fn kth_best(results: &HashMap<Vec<u16>, Candidate>, k: usize, scores: &mut Vec<f64>) -> f64 {
+    let size = results.len();
+    if size < k {
+        return f64::NEG_INFINITY;
+    }
+    scores.clear();
+    scores.extend(results.values().map(|c| c.score));
+    scores.sort_by(f64::total_cmp);
+    scores[size - k]
+}

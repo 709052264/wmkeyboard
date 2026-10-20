@@ -24,6 +24,9 @@ import java.io.File
  */
 class MappedNgramPack private constructor(private val handle: Long) {
 
+    /** The Rust pack, for the Rust code that reads it ([NgramReranker]). */
+    internal val nativeHandle: Long get() = handle
+
     fun bigramCount(first: String, second: String): Int =
         PredictionNative.ngramBigramCount(handle, first, second)
 

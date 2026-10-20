@@ -142,4 +142,68 @@ internal object PredictionNative {
 
     /** `[childStart, labels, targets, frequency, maxSubtree, isWord, longArrayOf(version)]`. */
     external fun lexExportTrie(handle: Long): Array<Any>
+
+    /**
+     * The context reranker over [candidates] (keys, as the stores file them):
+     * their new order as indices, or null when none had any evidence.
+     * [seeds] holds the bundled count of `prev candidate`, [recent] whether
+     * the conversation holds it; [skip] is the word two back when the
+     * previous word is one no store knows.
+     */
+    @Suppress("LongParameterList")
+    external fun rerank(
+        lexicon: Long,
+        packs: LongArray,
+        prev: String,
+        prev2: String?,
+        prev3: String?,
+        skip: String?,
+        candidates: Array<String>,
+        seeds: IntArray,
+        recent: BooleanArray,
+    ): IntArray?
+
+    // The stores autocorrect learns from: CorrectionMemory (cm*) and
+    // CorrectionStats (cs*). Spellings arrive folded.
+    external fun cmNew(): Long
+    external fun cmClose(handle: Long)
+    external fun cmLoad(handle: Long, json: String)
+    external fun cmResetForReload(handle: Long)
+    external fun cmFinishReload(handle: Long)
+    external fun cmTeach(handle: Long, typed: String, fixed: String, layout: String, habits: Boolean)
+    external fun cmUnteach(handle: Long, typed: String, fixed: String)
+
+    /** `[String fixed, IntArray(count)]`, or null. */
+    external fun cmFixFor(handle: Long, typed: String): Array<Any>?
+    external fun cmForget(handle: Long, typed: String)
+
+    /** `[Array<String> typed, Array<String> fixed, IntArray counts]`, most used first. */
+    external fun cmPairs(handle: Long): Array<Any>
+    external fun cmPairCount(handle: Long): Int
+    external fun cmVersion(handle: Long): Int
+
+    /** `[subKeys, subValues, insertKeys, insertValues, deleteKeys, deleteValues, spaceKeys, spaceValues]`. */
+    external fun cmHabits(handle: Long, layout: String): Array<Any>
+
+    /** `[Array<String> keys, IntArray counts]`, one layout's or (null) every layout's summed. */
+    external fun cmHabitCounts(handle: Long, layout: String?): Array<Any>
+    external fun cmClear(handle: Long, deleted: Boolean)
+    external fun cmPrepareSave(handle: Long): String?
+    external fun cmMarkUnsaved(handle: Long)
+
+    external fun csNew(): Long
+    external fun csClose(handle: Long)
+    external fun csLoad(handle: Long, json: String)
+    external fun csReload(handle: Long, json: String)
+    external fun csSetMemory(handle: Long, ordinal: Int)
+    external fun csRecordRevert(handle: Long, key: String, deliberate: Boolean)
+    external fun csEndFieldSession(handle: Long)
+    external fun csRecordKept(handle: Long, key: String)
+
+    /** The [CorrectionStats.Penalty] ordinal. */
+    external fun csPenalty(handle: Long, key: String): Int
+    external fun csConfidenceMultiplier(handle: Long): Double
+    external fun csClear(handle: Long, deleted: Boolean)
+    external fun csPrepareSave(handle: Long): String?
+    external fun csMarkUnsaved(handle: Long)
 }

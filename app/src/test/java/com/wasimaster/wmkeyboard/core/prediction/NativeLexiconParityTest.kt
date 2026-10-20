@@ -4,7 +4,9 @@ import com.wasimaster.wmkeyboard.core.prediction.reference.KotlinUserLexicon
 import java.io.File
 import kotlin.random.Random
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -113,6 +115,37 @@ class NativeLexiconParityTest {
 
     private fun parsed(file: File): JsonElement = json.parseToJsonElement(file.readText())
 
+    /**
+     * The two files as JSON values, with the first difference named on
+     * failure. The two set-valued fields are compared as sets: Kotlin wrote
+     * them in hash order, the Rust store writes them sorted.
+     */
+    private fun assertSameFile(what: String, kotlin: File, rust: File) {
+        fun canonical(e: JsonElement): JsonElement = JsonObject(
+            (e as JsonObject).mapValues { (field, value) ->
+                if (field in SET_FIELDS && value is JsonArray) JsonArray(value.sortedBy { it.toString() }) else value
+            },
+        )
+        val k = canonical(parsed(kotlin))
+        val r = canonical(parsed(rust))
+        if (k == r) return
+        val ko = k as JsonObject
+        val ro = r as JsonObject
+        for (field in (ko.keys + ro.keys).toSortedSet()) {
+            val kv = ko[field]
+            val rv = ro[field]
+            if (kv == rv) continue
+            if (kv is JsonObject && rv is JsonObject) {
+                for (key in (kv.keys + rv.keys).toSortedSet()) {
+                    if (kv[key] != rv[key]) {
+                        assertEquals("$what: $field[$key]", kv[key].toString(), rv[key].toString())
+                    }
+                }
+            }
+            assertEquals("$what: $field", kv.toString().take(400), rv.toString().take(400))
+        }
+    }
+
     @Test
     fun randomOperationsAgreeStepByStep() {
         var steps = 0
@@ -187,7 +220,7 @@ class NativeLexiconParityTest {
                         kotlin.save()
                         rust.save()
                         if (kFile.exists() || rFile.exists()) {
-                            assertEquals("seed $seed step $step: the saved files", parsed(kFile), parsed(rFile))
+                            assertSameFile("seed $seed step $step: the saved files", kFile, rFile)
                         }
                     }
                     18 -> if (random.nextInt(5) == 0) {
@@ -248,7 +281,7 @@ class NativeLexiconParityTest {
             }
             kotlin.save()
             rust.save()
-            assertEquals("round $round: the saved files", parsed(kFile), parsed(rFile))
+            assertSameFile("round $round: the saved files", kFile, rFile)
         }
         assertTrue("compaction should have run", kotlin.wordCount() < 12000)
         assertSame("after compaction", kotlin, rust, listOf("w0x1", "w11x5", "n3", "z") + kotlin.allWords().take(20).map { it.first })
@@ -292,10 +325,14 @@ class NativeLexiconParityTest {
             kotlin.save()
             rust.save()
             if (kFile.readText() != text || rFile.readText() != text) {
-                assertEquals("$name: rewritten", parsed(kFile), parsed(rFile))
+                assertSameFile("$name: rewritten", kFile, rFile)
             }
             assertSame("$name: crossed", KotlinUserLexicon(rFile), UserLexicon(kFile), sample + "fresh")
         }
         println("migration: ${files.size} old files read identically")
+    }
+
+    private companion object {
+        val SET_FIELDS = setOf("casePinned", "addedByHand")
     }
 }

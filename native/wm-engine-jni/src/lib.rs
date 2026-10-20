@@ -10,8 +10,14 @@
 //!   dictionaries and `.wmng` n-gram packs.
 //! - [`fuzzy`]: `PredictionNative` again, the fuzzy correction walk over
 //!   those dictionaries and the user lexicon.
+//! - [`glide`]: `PredictionNative` again, the glide decoder behind
+//!   `GlideBeam`.
 //! - [`lexicon`]: `PredictionNative` again, the user lexicon behind
 //!   `UserLexicon`.
+//! - [`rerank`]: `PredictionNative` again, the context reranker behind
+//!   `NgramReranker`.
+//! - [`corrections`]: `PredictionNative` again, the stores autocorrect
+//!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -23,10 +29,13 @@
 //! - Data that outlives a call (a mapped dictionary, a decoder) stays here
 //!   behind a [`handles::Registry`] handle.
 
+mod corrections;
 mod dict;
 mod fuzzy;
+mod glide;
 mod guard;
 mod handles;
 mod kernels;
 mod lexicon;
+mod rerank;
 mod transliteration;

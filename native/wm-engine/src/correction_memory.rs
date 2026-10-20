@@ -12,6 +12,7 @@
 //! "generation"}`.
 
 use crate::fuzzy::EditHabits;
+use crate::user_lexicon::cmp_utf16;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 
@@ -69,33 +70,56 @@ pub struct CorrectionMemory {
     habits: HashMap<String, HashMap<String, i32>>,
     generation: i64,
     dirty: bool,
+    /// Bumped on every change, as the Kotlin store's `version` (an `Int`).
+    version: i32,
 }
 
-/// One step of an alignment of what was typed onto what was meant.
+/// One layout's habit shrinks as the Kotlin `EditHabits` is built from
+/// them: substitution keys `typed << 16 | intended`, the others by unit.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct HabitExport {
+    pub sub_keys: Vec<i32>,
+    pub sub_values: Vec<f64>,
+    pub insert_keys: Vec<u16>,
+    pub insert_values: Vec<f64>,
+    pub delete_keys: Vec<u16>,
+    pub delete_values: Vec<f64>,
+    pub space_keys: Vec<u16>,
+    pub space_values: Vec<f64>,
+}
+
+impl HabitExport {
+    pub fn is_empty(&self) -> bool {
+        self.sub_keys.is_empty() && self.insert_keys.is_empty() && self.delete_keys.is_empty() && self.space_keys.is_empty()
+    }
+}
+
+/// One step of an alignment of what was typed onto what was meant, in
+/// UTF-16 units as the Kotlin `EditOps` counts them.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Op {
-    Match(char),
+    Match(u16),
     /// `typed` stood where `intended` was meant.
     Sub {
-        typed: char,
-        intended: char,
+        typed: u16,
+        intended: u16,
     },
     /// `intended` was meant and never typed.
-    Ins(char),
+    Ins(u16),
     /// A stray keypress.
-    Del(char),
+    Del(u16),
     /// The pair was meant the other way round: `first` then `second`.
     Swap {
-        first: char,
-        second: char,
+        first: u16,
+        second: u16,
     },
 }
 
-fn swappable(t: &[char], m: &[char], i: usize, j: usize) -> bool {
+fn swappable(t: &[u16], m: &[u16], i: usize, j: usize) -> bool {
     i > 1 && j > 1 && t[i - 1] == m[j - 2] && t[i - 2] == m[j - 1] && t[i - 1] != t[i - 2]
 }
 
-fn table(t: &[char], m: &[char]) -> Vec<Vec<usize>> {
+fn table(t: &[u16], m: &[u16]) -> Vec<Vec<usize>> {
     let (n, w) = (t.len(), m.len());
     let mut d = vec![vec![0usize; w + 1]; n + 1];
     for (i, row) in d.iter_mut().enumerate() {
@@ -107,9 +131,7 @@ fn table(t: &[char], m: &[char]) -> Vec<Vec<usize>> {
     for i in 1..=n {
         for j in 1..=w {
             let cost = usize::from(t[i - 1] != m[j - 1]);
-            let mut best = (d[i - 1][j] + 1)
-                .min(d[i][j - 1] + 1)
-                .min(d[i - 1][j - 1] + cost);
+            let mut best = (d[i - 1][j] + 1).min(d[i][j - 1] + 1).min(d[i - 1][j - 1] + cost);
             if swappable(t, m, i, j) {
                 best = best.min(d[i - 2][j - 2] + 1);
             }
@@ -119,10 +141,9 @@ fn table(t: &[char], m: &[char]) -> Vec<Vec<usize>> {
     d
 }
 
-/// Edit distance, adjacent swaps counting one.
+/// Edit distance in UTF-16 units, adjacent swaps counting one.
 pub fn distance(typed: &str, intended: &str) -> usize {
-    let t: Vec<char> = typed.chars().collect();
-    let m: Vec<char> = intended.chars().collect();
+    let (t, m) = (units(typed), units(intended));
     if t.is_empty() {
         return m.len();
     }
@@ -135,9 +156,11 @@ pub fn distance(typed: &str, intended: &str) -> usize {
 /// The cheapest alignment of `typed` onto `intended`, left to right, ties
 /// broken match, swap, substitution, deletion, insertion.
 pub fn align(typed: &str, intended: &str) -> Vec<Op> {
-    let t: Vec<char> = typed.chars().collect();
-    let m: Vec<char> = intended.chars().collect();
-    let d = table(&t, &m);
+    align_units(&units(typed), &units(intended))
+}
+
+pub fn align_units(t: &[u16], m: &[u16]) -> Vec<Op> {
+    let d = table(t, m);
     let (mut i, mut j) = (t.len(), m.len());
     let mut ops = Vec::new();
     while i > 0 || j > 0 {
@@ -145,18 +168,12 @@ pub fn align(typed: &str, intended: &str) -> Vec<Op> {
             ops.push(Op::Match(t[i - 1]));
             i -= 1;
             j -= 1;
-        } else if swappable(&t, &m, i, j) && d[i][j] == d[i - 2][j - 2] + 1 {
-            ops.push(Op::Swap {
-                first: m[j - 2],
-                second: m[j - 1],
-            });
+        } else if swappable(t, m, i, j) && d[i][j] == d[i - 2][j - 2] + 1 {
+            ops.push(Op::Swap { first: m[j - 2], second: m[j - 1] });
             i -= 2;
             j -= 2;
         } else if i > 0 && j > 0 && d[i][j] == d[i - 1][j - 1] + 1 {
-            ops.push(Op::Sub {
-                typed: t[i - 1],
-                intended: m[j - 1],
-            });
+            ops.push(Op::Sub { typed: t[i - 1], intended: m[j - 1] });
             i -= 1;
             j -= 1;
         } else if i > 0 && d[i][j] == d[i - 1][j] + 1 {
@@ -171,20 +188,20 @@ pub fn align(typed: &str, intended: &str) -> Vec<Op> {
     ops
 }
 
+const SPACE: u16 = b' ' as u16;
+
 fn habit_key(op: Op) -> Option<String> {
+    let text = |prefix: &str, units: &[u16]| format!("{prefix}:{}", String::from_utf16_lossy(units));
     match op {
         Op::Match(_) => None,
-        Op::Sub {
-            typed,
-            intended: ' ',
-        } => Some(format!("space:{typed}")),
-        Op::Sub { typed: ' ', .. } => None,
-        Op::Sub { typed, intended } => Some(format!("sub:{typed}{intended}")),
-        Op::Ins(' ') => Some("nospace".into()),
-        Op::Ins(c) => Some(format!("ins:{c}")),
-        Op::Del(' ') => None,
-        Op::Del(c) => Some(format!("del:{c}")),
-        Op::Swap { first, second } => Some(format!("swap:{first}{second}")),
+        Op::Sub { typed, intended: SPACE } => Some(text("space", &[typed])),
+        Op::Sub { typed: SPACE, .. } => None,
+        Op::Sub { typed, intended } => Some(text("sub", &[typed, intended])),
+        Op::Ins(SPACE) => Some("nospace".into()),
+        Op::Ins(c) => Some(text("ins", &[c])),
+        Op::Del(SPACE) => None,
+        Op::Del(c) => Some(text("del", &[c])),
+        Op::Swap { first, second } => Some(text("swap", &[first, second])),
     }
 }
 
@@ -242,12 +259,6 @@ impl LearnedHabits {
     }
 }
 
-fn unit(c: char) -> Option<u16> {
-    let mut buf = [0u16; 2];
-    let units = c.encode_utf16(&mut buf);
-    (units.len() == 1).then(|| units[0])
-}
-
 impl EditHabits for LearnedHabits {
     fn deletion(&self, typed: u16) -> f64 {
         self.deletes.get(&typed).copied().unwrap_or(0.0)
@@ -269,151 +280,192 @@ impl CorrectionMemory {
         self.dirty
     }
 
+    pub fn version(&self) -> i32 {
+        self.version
+    }
+
+    fn changed(&mut self) {
+        self.dirty = true;
+        self.version = self.version.wrapping_add(1);
+    }
+
     /// The user turned `original` into `revised` by hand. Callers gate
-    /// with [`accepts`] first.
+    /// with [`accepts`] first. Folds both by trimming and lower-casing, as
+    /// WMK Desktop types them; the phone folds itself and calls
+    /// [`CorrectionMemory::teach_keys`].
     pub fn teach(&mut self, original: &str, revised: &str, layout: &str, kind: Kind) {
-        let typed = original.trim().to_lowercase();
-        let fixed = revised.trim().to_lowercase();
+        let layout = if layout.trim().is_empty() { "" } else { layout };
+        self.teach_keys(&original.trim().to_lowercase(), &revised.trim().to_lowercase(), layout, kind);
+    }
+
+    /// `teach` over folded spellings; `layout` empty for none.
+    pub fn teach_keys(&mut self, typed: &str, fixed: &str, layout: &str, kind: Kind) {
         if typed.is_empty() || fixed.is_empty() || typed == fixed {
             return;
         }
         let generation = self.generation;
-        let list = self.pairs.entry(typed.clone()).or_default();
-        match list.iter_mut().find(|s| s.fixed == fixed) {
-            Some(s) => {
-                s.count = (s.count + 1).min(MAX_COUNT);
-                s.gen = generation;
+        let list = self.pairs.entry(typed.to_string()).or_default();
+        match list.iter().position(|s| s.fixed == fixed) {
+            Some(at) => {
+                let count = (list[at].count + 1).min(MAX_COUNT);
+                list[at] = Stored { fixed: fixed.to_string(), count, gen: generation };
             }
-            None => list.push(Stored {
-                fixed: fixed.clone(),
-                count: 1,
-                gen: generation,
-            }),
+            None => list.push(Stored { fixed: fixed.to_string(), count: 1, gen: generation }),
         }
-        list.sort_by_key(|s| std::cmp::Reverse(s.count));
+        // Stable, most used first, as Kotlin's sortByDescending.
+        list.sort_by(|a, b| b.count.cmp(&a.count));
         list.truncate(MAX_FIXES_PER_TYPED);
         if self.pairs.len() > MAX_PAIRS {
-            if let Some(oldest) = self
+            // The longest untouched, ties by the spelling.
+            let oldest = self
                 .pairs
                 .iter()
-                .min_by_key(|(_, l)| l.iter().map(|s| s.gen).max().unwrap_or(0))
-                .map(|(k, _)| k.clone())
-            {
+                .min_by(|a, b| {
+                    let ga = a.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
+                    let gb = b.1.iter().map(|s| s.gen).max().unwrap_or(i64::MIN);
+                    ga.cmp(&gb).then_with(|| cmp_utf16(a.0, b.0))
+                })
+                .map(|(k, _)| k.clone());
+            if let Some(oldest) = oldest {
                 self.pairs.remove(&oldest);
             }
         }
-        if kind == Kind::PairAndHabits && !layout.trim().is_empty() {
+        if kind == Kind::PairAndHabits && !layout.is_empty() {
             let counts = self.habits.entry(layout.to_string()).or_default();
-            for op in align(&typed, &fixed) {
+            for op in align_units(&units(typed), &units(fixed)) {
                 if let Some(k) = habit_key(op) {
                     let n = counts.entry(k).or_insert(0);
                     *n = (*n + 1).min(MAX_COUNT);
                 }
             }
-            if counts.values().sum::<i32>() >= HABIT_WINDOW {
+            if counts.values().fold(0i32, |a, &b| a.wrapping_add(b)) >= HABIT_WINDOW {
                 counts.retain(|_, n| {
                     *n /= 2;
                     *n > 0
                 });
             }
         }
-        self.dirty = true;
+        self.changed();
     }
 
     /// The user undid a taught fix: one count off.
     pub fn unteach(&mut self, typed: &str, fixed: &str) {
-        let k = typed.to_lowercase();
-        let f = fixed.to_lowercase();
-        let Some(list) = self.pairs.get_mut(&k) else {
+        self.unteach_keys(&typed.to_lowercase(), &fixed.to_lowercase());
+    }
+
+    pub fn unteach_keys(&mut self, typed: &str, fixed: &str) {
+        let generation = self.generation;
+        let Some(list) = self.pairs.get_mut(typed) else {
             return;
         };
-        let Some(at) = list.iter().position(|s| s.fixed == f) else {
+        let Some(at) = list.iter().position(|s| s.fixed == fixed) else {
             return;
         };
         if list[at].count <= 1 {
             list.remove(at);
         } else {
-            list[at].count -= 1;
-            list[at].gen = self.generation;
+            list[at] = Stored { fixed: list[at].fixed.clone(), count: list[at].count - 1, gen: generation };
         }
         if list.is_empty() {
-            self.pairs.remove(&k);
+            self.pairs.remove(typed);
         }
-        self.dirty = true;
+        self.changed();
     }
 
     /// The fix taught for `typed`, when one clearly leads.
     pub fn fix_for(&self, typed: &str) -> Option<Taught> {
-        let list = self.pairs.get(&typed.to_lowercase())?;
+        self.fix_for_key(&typed.to_lowercase())
+    }
+
+    pub fn fix_for_key(&self, typed: &str) -> Option<Taught> {
+        let list = self.pairs.get(typed)?;
         let top = list.first()?;
         if let Some(runner) = list.get(1) {
             if top.count < runner.count * DOMINANCE {
                 return None;
             }
         }
-        Some(Taught {
-            fixed: top.fixed.clone(),
-            count: top.count,
-        })
+        Some(Taught { fixed: top.fixed.clone(), count: top.count })
     }
 
     pub fn forget(&mut self, typed: &str) {
-        if self.pairs.remove(&typed.to_lowercase()).is_some() {
-            self.dirty = true;
+        self.forget_key(&typed.to_lowercase());
+    }
+
+    pub fn forget_key(&mut self, typed: &str) {
+        if self.pairs.remove(typed).is_some() {
+            self.changed();
         }
     }
 
-    /// Every taught pair, most used first.
+    /// Every taught pair, most used first, then by the typed spelling.
     pub fn pairs(&self) -> Vec<(String, Taught)> {
         let mut out: Vec<(String, Taught)> = self
             .pairs
             .iter()
-            .flat_map(|(t, l)| {
-                l.iter().map(move |s| {
-                    (
-                        t.clone(),
-                        Taught {
-                            fixed: s.fixed.clone(),
-                            count: s.count,
-                        },
-                    )
-                })
-            })
+            .flat_map(|(t, l)| l.iter().map(move |s| (t.clone(), Taught { fixed: s.fixed.clone(), count: s.count })))
             .collect();
-        out.sort_by(|a, b| b.1.count.cmp(&a.1.count).then_with(|| a.0.cmp(&b.0)));
+        out.sort_by(|a, b| b.1.count.cmp(&a.1.count).then_with(|| cmp_utf16(&a.0, &b.0)));
         out
+    }
+
+    pub fn pair_count(&self) -> usize {
+        self.pairs.values().map(Vec::len).sum()
     }
 
     /// The shrinks for `layout`, empty until it has taught enough slips.
     pub fn habits_for(&self, layout: &str) -> LearnedHabits {
+        let export = self.habit_export(layout);
         let mut out = LearnedHabits::default();
+        for (i, &k) in export.sub_keys.iter().enumerate() {
+            out.subs.insert(((k >> 16) as u16, k as u16), export.sub_values[i]);
+        }
+        for (i, &k) in export.insert_keys.iter().enumerate() {
+            out.inserts.insert(k, export.insert_values[i]);
+        }
+        for (i, &k) in export.delete_keys.iter().enumerate() {
+            out.deletes.insert(k, export.delete_values[i]);
+        }
+        out
+    }
+
+    /// `buildHabits`: the layout's counts as shrinks, nothing until it has
+    /// taught [`WARMUP`] slips. Keys in UTF-16 order.
+    pub fn habit_export(&self, layout: &str) -> HabitExport {
+        let mut out = HabitExport::default();
         let Some(counts) = self.habits.get(layout) else {
             return out;
         };
-        if counts.values().sum::<i32>() < WARMUP {
+        if counts.values().fold(0i32, |a, &b| a.wrapping_add(b)) < WARMUP {
             return out;
         }
-        for (k, &n) in counts {
-            let s = shrink(n);
-            let Some((kind, arg)) = k.split_once(':') else {
+        let mut keys: Vec<&String> = counts.keys().collect();
+        keys.sort_by(|a, b| cmp_utf16(a, b));
+        for key in keys {
+            let s = shrink(counts[key]);
+            if s <= 0.0 {
+                continue;
+            }
+            let Some((kind, arg)) = key.split_once(':') else {
                 continue;
             };
-            let cs: Vec<char> = arg.chars().collect();
-            match (kind, cs.as_slice()) {
+            let arg = units(arg);
+            match (kind, arg.as_slice()) {
                 ("sub", [a, b]) => {
-                    if let (Some(a), Some(b)) = (unit(*a), unit(*b)) {
-                        out.subs.insert((a, b), s);
-                    }
+                    out.sub_keys.push(((*a as i32) << 16) | *b as i32);
+                    out.sub_values.push(s);
                 }
                 ("ins", [c]) => {
-                    if let Some(c) = unit(*c) {
-                        out.inserts.insert(c, s);
-                    }
+                    out.insert_keys.push(*c);
+                    out.insert_values.push(s);
                 }
                 ("del", [c]) => {
-                    if let Some(c) = unit(*c) {
-                        out.deletes.insert(c, s);
-                    }
+                    out.delete_keys.push(*c);
+                    out.delete_values.push(s);
+                }
+                ("space", [c]) => {
+                    out.space_keys.push(*c);
+                    out.space_values.push(s);
                 }
                 _ => {}
             }
@@ -421,116 +473,214 @@ impl CorrectionMemory {
         out
     }
 
-    pub fn clear(&mut self) {
+    /// A layout's raw habit counts, or every layout's summed when `layout`
+    /// is `None`, in key order: what the viewer summarises.
+    pub fn habit_counts(&self, layout: Option<&str>) -> Vec<(String, i32)> {
+        let mut merged: HashMap<String, i32> = HashMap::new();
+        match layout {
+            Some(layout) => {
+                if let Some(counts) = self.habits.get(layout) {
+                    merged = counts.clone();
+                }
+            }
+            None => {
+                for counts in self.habits.values() {
+                    for (k, &n) in counts {
+                        let m = merged.entry(k.clone()).or_insert(0);
+                        *m = m.wrapping_add(n);
+                    }
+                }
+            }
+        }
+        let mut out: Vec<(String, i32)> = merged.into_iter().collect();
+        out.sort_by(|a, b| cmp_utf16(&a.0, &b.0));
+        out
+    }
+
+    /// `clear`: `deleted` is whether the caller's delete of the file worked.
+    pub fn clear_with(&mut self, deleted: bool) {
         self.pairs.clear();
         self.habits.clear();
+        self.version = self.version.wrapping_add(1);
+        self.dirty = !deleted;
+    }
+
+    pub fn clear(&mut self) {
+        self.clear_with(false);
+    }
+
+    /// `reload`'s first half: everything dropped, the clock back to zero.
+    pub fn reset_for_reload(&mut self) {
+        self.pairs.clear();
+        self.habits.clear();
+        self.generation = 0;
+    }
+
+    /// `reload`'s end: memory is the file again.
+    pub fn finish_reload(&mut self) {
+        self.dirty = false;
+        self.version = self.version.wrapping_add(1);
+    }
+
+    /// `save`'s first half: when anything changed, ages the store a
+    /// generation, expires stale pairs and returns the file's text.
+    pub fn prepare_save(&mut self) -> Option<String> {
+        if !self.dirty {
+            return None;
+        }
+        Some(self.to_json())
+    }
+
+    pub fn mark_unsaved(&mut self) {
         self.dirty = true;
     }
 
     /// The file's text, ageing pairs untouched for a long time.
     pub fn to_json(&mut self) -> String {
         self.generation += 1;
-        let generation = self.generation;
-        self.pairs.retain(|_, list| {
-            list.retain_mut(|s| {
-                if generation - s.gen <= EXPIRE_GENERATIONS {
-                    return true;
-                }
-                if s.count > 1 {
-                    s.count -= 1;
-                    s.gen = generation;
-                    return true;
-                }
-                false
-            });
-            !list.is_empty()
-        });
+        self.expire_stale_pairs();
         self.dirty = false;
-        let mut pairs = Map::new();
+        let mut root = Map::new();
         let mut keys: Vec<&String> = self.pairs.keys().collect();
-        keys.sort();
-        for k in keys {
-            let list: Vec<Value> = self.pairs[k]
-                .iter()
-                .map(|s| json!({"fixed": s.fixed, "count": s.count, "gen": s.gen}))
-                .collect();
-            pairs.insert(k.clone(), Value::Array(list));
+        keys.sort_by(|a, b| cmp_utf16(a, b));
+        if !keys.is_empty() {
+            let mut pairs = Map::new();
+            for k in keys {
+                let list: Vec<Value> =
+                    self.pairs[k].iter().map(|s| json!({"fixed": s.fixed, "count": s.count, "gen": s.gen})).collect();
+                pairs.insert(k.clone(), Value::Array(list));
+            }
+            root.insert("pairs".into(), Value::Object(pairs));
         }
-        let mut habits = Map::new();
-        for (layout, counts) in &self.habits {
-            let m: Map<String, Value> = counts.iter().map(|(k, n)| (k.clone(), json!(n))).collect();
-            habits.insert(layout.clone(), Value::Object(m));
+        if !self.habits.is_empty() {
+            let mut layouts: Vec<&String> = self.habits.keys().collect();
+            layouts.sort_by(|a, b| cmp_utf16(a, b));
+            let mut habits = Map::new();
+            for layout in layouts {
+                let counts = &self.habits[layout];
+                let mut ks: Vec<&String> = counts.keys().collect();
+                ks.sort_by(|a, b| cmp_utf16(a, b));
+                habits.insert(layout.clone(), Value::Object(ks.into_iter().map(|k| (k.clone(), json!(counts[k]))).collect()));
+            }
+            root.insert("habits".into(), Value::Object(habits));
         }
-        json!({"pairs": pairs, "habits": habits, "generation": self.generation}).to_string()
+        if self.generation != 0 {
+            root.insert("generation".into(), json!(self.generation));
+        }
+        Value::Object(root).to_string()
     }
 
+    fn expire_stale_pairs(&mut self) {
+        let generation = self.generation;
+        self.pairs.retain(|_, list| {
+            let kept: Vec<Stored> = list
+                .iter()
+                .filter_map(|s| {
+                    if generation - s.gen <= EXPIRE_GENERATIONS {
+                        Some(s.clone())
+                    } else if s.count > 1 {
+                        Some(Stored { fixed: s.fixed.clone(), count: s.count - 1, gen: generation })
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            *list = kept;
+            !list.is_empty()
+        });
+    }
+
+    /// A store read from its file, strictly as kotlinx reads it: a value of
+    /// the wrong type, or a stored fix missing a field, loads nothing.
     pub fn from_json(text: &str) -> CorrectionMemory {
         let mut out = CorrectionMemory::new();
-        let Ok(v) = serde_json::from_str::<Value>(text) else {
-            return out;
-        };
-        if let Some(pairs) = v.get("pairs").and_then(Value::as_object) {
-            for (typed, list) in pairs {
-                let mut clean: Vec<Stored> = list
-                    .as_array()
-                    .into_iter()
-                    .flatten()
-                    .filter_map(|s| {
-                        let fixed = s.get("fixed")?.as_str()?.to_string();
-                        let count = s.get("count")?.as_i64()? as i32;
-                        (count > 0 && !fixed.is_empty()).then(|| Stored {
-                            fixed,
-                            count,
-                            gen: s.get("gen").and_then(Value::as_i64).unwrap_or(0),
-                        })
-                    })
-                    .collect();
-                if !clean.is_empty() {
-                    clean.sort_by_key(|s| std::cmp::Reverse(s.count));
-                    out.pairs.insert(typed.clone(), clean);
-                }
-            }
-        }
-        if let Some(habits) = v.get("habits").and_then(Value::as_object) {
-            for (layout, counts) in habits {
-                let clean: HashMap<String, i32> = counts
-                    .as_object()
-                    .into_iter()
-                    .flatten()
-                    .filter_map(|(k, n)| Some((k.clone(), n.as_i64()? as i32)))
-                    .filter(|(_, n)| *n > 0)
-                    .collect();
-                if !clean.is_empty() {
-                    out.habits.insert(layout.clone(), clean);
-                }
-            }
-        }
-        out.generation = v.get("generation").and_then(Value::as_i64).unwrap_or(0);
+        out.load_json(text);
         out
     }
+
+    /// Reads `text` into this store (after a reset, on a reload).
+    pub fn load_json(&mut self, text: &str) {
+        let Some((pairs, habits, generation)) = parse_snapshot(text) else {
+            return;
+        };
+        for (typed, list) in pairs {
+            let mut clean: Vec<Stored> = list.into_iter().filter(|s| s.count > 0 && !s.fixed.is_empty()).collect();
+            if !clean.is_empty() {
+                clean.sort_by(|a, b| b.count.cmp(&a.count));
+                self.pairs.insert(typed, clean);
+            }
+        }
+        for (layout, counts) in habits {
+            let clean: HashMap<String, i32> = counts.into_iter().filter(|(_, n)| *n > 0).collect();
+            if !clean.is_empty() {
+                self.habits.insert(layout, clean);
+            }
+        }
+        self.generation = generation;
+    }
+}
+
+type ParsedPairs = Vec<(String, Vec<Stored>)>;
+type ParsedHabits = Vec<(String, Vec<(String, i32)>)>;
+
+fn parse_snapshot(text: &str) -> Option<(ParsedPairs, ParsedHabits, i64)> {
+    let v: Value = serde_json::from_str(text).ok()?;
+    let root = v.as_object()?;
+    let mut pairs = Vec::new();
+    let mut habits = Vec::new();
+    let mut generation = 0;
+    for (field, value) in root {
+        match field.as_str() {
+            "pairs" => {
+                for (typed, list) in value.as_object()? {
+                    let mut stored = Vec::new();
+                    for s in list.as_array()? {
+                        let s = s.as_object()?;
+                        stored.push(Stored {
+                            fixed: s.get("fixed")?.as_str()?.to_string(),
+                            count: i32::try_from(s.get("count")?.as_i64()?).ok()?,
+                            gen: s.get("gen")?.as_i64()?,
+                        });
+                    }
+                    pairs.push((typed.clone(), stored));
+                }
+            }
+            "habits" => {
+                for (layout, counts) in value.as_object()? {
+                    let mut c = Vec::new();
+                    for (k, n) in counts.as_object()? {
+                        c.push((k.clone(), i32::try_from(n.as_i64()?).ok()?));
+                    }
+                    habits.push((layout.clone(), c));
+                }
+            }
+            "generation" => generation = value.as_i64()?,
+            _ => {}
+        }
+    }
+    Some((pairs, habits, generation))
+}
+
+fn units(s: &str) -> Vec<u16> {
+    s.encode_utf16().collect()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn u(c: char) -> u16 {
+        c as u16
+    }
+
     #[test]
     fn alignment_names_the_slip() {
         assert_eq!(
-            vec![
-                Op::Match('t'),
-                Op::Swap {
-                    first: 'h',
-                    second: 'e'
-                }
-            ],
+            vec![Op::Match(u('t')), Op::Swap { first: u('h'), second: u('e') }],
             align("teh", "the")
         );
         assert_eq!(1, distance("t3st", "test"));
-        assert!(align("amibtomake", "ami tomake").contains(&Op::Sub {
-            typed: 'b',
-            intended: ' '
-        }));
+        assert!(align("amibtomake", "ami tomake").contains(&Op::Sub { typed: u('b'), intended: u(' ') }));
     }
 
     #[test]

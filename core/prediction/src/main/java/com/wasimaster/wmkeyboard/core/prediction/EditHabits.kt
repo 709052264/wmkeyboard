@@ -113,6 +113,18 @@ class EditHabits internal constructor(
          * one evening's slips are not a hand. */
         const val WARMUP = 8
 
+        /**
+         * A model from its four shrink maps: [CorrectionMemory] builds one
+         * from the Rust store's tables, and the reference store in :app's
+         * tests from its own counts.
+         */
+        fun of(
+            subs: Map<Int, Double>,
+            inserts: Map<Char, Double>,
+            deletes: Map<Char, Double>,
+            spaceSlips: Map<Char, Double>,
+        ): EditHabits = EditHabits(subs, inserts, deletes, spaceSlips)
+
         /** The shrink [count] sightings earn, saturating towards [MAX_SHRINK]. */
         fun shrink(count: Int): Double =
             if (count <= 0) 0.0 else MAX_SHRINK * count / (count + PIVOT)

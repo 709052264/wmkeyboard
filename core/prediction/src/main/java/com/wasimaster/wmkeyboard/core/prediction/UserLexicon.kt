@@ -31,6 +31,9 @@ class UserLexicon(private val storageFile: File?) {
         NativeHandles.track(this, it, PredictionNative::lexClose)
     }
 
+    /** The Rust store, for the Rust code that reads it ([NgramReranker], the fuzzy walk). */
+    internal val nativeHandle: Long get() = native
+
     private val snapshotFile = storageFile?.let(::SnapshotFile)
 
     /** The trie the Kotlin walks read, copied out of Rust when it changes. */

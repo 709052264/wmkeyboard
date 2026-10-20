@@ -8,6 +8,7 @@
 //! caller's business; [`CorrectionStats::to_json`] and
 //! [`CorrectionStats::from_json`] are the text.
 
+use crate::user_lexicon::cmp_utf16;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
 
@@ -120,12 +121,18 @@ impl CorrectionStats {
     /// deliberate undo (a backspace on the fix, the undo chip) earns the
     /// in-process block.
     pub fn record_revert(&mut self, typed: &str, fixed: &str, deliberate: bool) {
+        self.record_revert_key(&key(typed, fixed), deliberate);
+    }
+
+    /// The `_key` methods take the pair key as the phone builds it
+    /// (`typed.lowercase() NUL fixed.lowercase()`, Kotlin's lower-casing).
+    pub fn record_revert_key(&mut self, k: &str, deliberate: bool) {
         self.reverted += 1;
         self.bump_fired();
         if self.memory == UndoMemory::Off {
             return;
         }
-        let k = key(typed, fixed);
+        let k = k.to_string();
         if deliberate || self.memory == UndoMemory::Strict {
             self.session_rejected.insert(k.clone(), self.tick);
         }
@@ -147,7 +154,7 @@ impl CorrectionStats {
             if let Some(oldest) = self
                 .pairs
                 .iter()
-                .min_by_key(|(_, p)| p.gen)
+                .min_by(|a, b| a.1.gen.cmp(&b.1.gen).then_with(|| cmp_utf16(a.0, b.0)))
                 .map(|(k, _)| k.clone())
             {
                 self.pairs.remove(&oldest);
@@ -180,11 +187,15 @@ impl CorrectionStats {
 
     /// The user let the correction of `typed` into `fixed` stand.
     pub fn record_kept(&mut self, typed: &str, fixed: &str) {
+        self.record_kept_key(&key(typed, fixed));
+    }
+
+    pub fn record_kept_key(&mut self, k: &str) {
         self.bump_fired();
         if self.memory == UndoMemory::Off {
             return;
         }
-        let k = key(typed, fixed);
+        let k = k.to_string();
         if self.session_blocked(&k) {
             return;
         }
@@ -217,14 +228,17 @@ impl CorrectionStats {
 
     /// How strongly this exact correction is disfavored.
     pub fn penalty(&self, typed: &str, fixed: &str) -> Penalty {
+        self.penalty_key(&key(typed, fixed))
+    }
+
+    pub fn penalty_key(&self, k: &str) -> Penalty {
         if self.memory == UndoMemory::Off {
             return Penalty::None;
         }
-        let k = key(typed, fixed);
-        if self.session_blocked_now(&k) {
+        if self.session_blocked_now(k) {
             return Penalty::Blocked;
         }
-        let Some(stat) = self.pairs.get(&k) else {
+        let Some(stat) = self.pairs.get(k) else {
             return Penalty::None;
         };
         if stat.count < BLOCK_AT {
@@ -302,10 +316,37 @@ impl CorrectionStats {
     }
 
     pub fn clear(&mut self) {
+        self.clear_with(false);
+    }
+
+    /// `clear`: `deleted` is whether the caller's delete of the file worked.
+    pub fn clear_with(&mut self, deleted: bool) {
         self.pairs.clear();
         self.session_rejected.clear();
         self.fired = 0;
         self.reverted = 0;
+        self.dirty = !deleted;
+    }
+
+    /// `reload`: the persisted counts dropped and read again; the session's
+    /// blocks and the generation stay until the file says otherwise.
+    pub fn reload_json(&mut self, text: &str) {
+        self.pairs.clear();
+        self.fired = 0;
+        self.reverted = 0;
+        self.load_json(text);
+        self.dirty = false;
+    }
+
+    /// `save`'s first half: the file's text when anything changed.
+    pub fn prepare_save(&mut self) -> Option<String> {
+        if !self.dirty {
+            return None;
+        }
+        Some(self.to_json())
+    }
+
+    pub fn mark_unsaved(&mut self) {
         self.dirty = true;
     }
 
@@ -313,62 +354,68 @@ impl CorrectionStats {
     pub fn to_json(&mut self) -> String {
         self.generation += 1;
         let generation = self.generation;
+        // A pair untouched this long loses a count and starts a new period,
+        // its progress towards forgiveness reset with it.
         self.pairs.retain(|_, p| {
             if generation - p.gen > EXPIRE_GENERATIONS {
                 if p.count <= 1 {
                     return false;
                 }
-                p.count -= 1;
-                p.gen = generation;
+                *p = PairStat { count: p.count - 1, gen: generation, kept: 0 };
             }
             true
         });
         self.dirty = false;
-        let mut pairs = Map::new();
+        let mut root = Map::new();
         let mut keys: Vec<&String> = self.pairs.keys().collect();
-        keys.sort();
-        for k in keys {
-            let p = self.pairs[k];
-            pairs.insert(
-                k.clone(),
-                json!({"count": p.count, "gen": p.gen, "kept": p.kept}),
-            );
+        keys.sort_by(|a, b| cmp_utf16(a, b));
+        if !keys.is_empty() {
+            let mut pairs = Map::new();
+            for k in keys {
+                let p = self.pairs[k];
+                let mut stat = Map::new();
+                stat.insert("count".into(), json!(p.count));
+                stat.insert("gen".into(), json!(p.gen));
+                if p.kept != 0 {
+                    stat.insert("kept".into(), json!(p.kept));
+                }
+                pairs.insert(k.clone(), Value::Object(stat));
+            }
+            root.insert("pairs".into(), Value::Object(pairs));
         }
-        json!({
-            "pairs": pairs,
-            "fired": self.fired,
-            "reverted": self.reverted,
-            "generation": self.generation,
-        })
-        .to_string()
+        if self.fired != 0 {
+            root.insert("fired".into(), json!(self.fired));
+        }
+        if self.reverted != 0 {
+            root.insert("reverted".into(), json!(self.reverted));
+        }
+        if self.generation != 0 {
+            root.insert("generation".into(), json!(self.generation));
+        }
+        Value::Object(root).to_string()
     }
 
-    /// Reads the phone's file; anything unreadable is an empty store.
     pub fn from_json(text: &str) -> CorrectionStats {
         let mut out = CorrectionStats::new();
-        let Ok(v) = serde_json::from_str::<Value>(text) else {
-            return out;
-        };
-        let int = |v: &Value, k: &str| v.get(k).and_then(Value::as_i64).unwrap_or(0);
-        if let Some(pairs) = v.get("pairs").and_then(Value::as_object) {
-            for (k, p) in pairs {
-                let count = int(p, "count") as i32;
-                if count > 0 && k.contains('\u{0}') {
-                    out.pairs.insert(
-                        k.clone(),
-                        PairStat {
-                            count,
-                            gen: int(p, "gen"),
-                            kept: int(p, "kept") as i32,
-                        },
-                    );
-                }
-            }
-        }
-        out.fired = int(&v, "fired") as i32;
-        out.reverted = int(&v, "reverted") as i32;
-        out.generation = int(&v, "generation");
+        out.load_json(text);
         out
+    }
+
+    /// Reads `text` into this store as kotlinx reads the phone's file: every
+    /// pair as stored, and nothing at all when a value has the wrong type or
+    /// a pair lacks its count or generation.
+    pub fn load_json(&mut self, text: &str) {
+        let Some((pairs, fired, reverted, generation)) = parse_snapshot(text) else {
+            return;
+        };
+        self.pairs.extend(pairs);
+        if let Some(fired) = fired {
+            self.fired = fired;
+        } else {
+            self.fired = 0;
+        }
+        self.reverted = reverted.unwrap_or(0);
+        self.generation = generation.unwrap_or(0);
     }
 }
 
@@ -456,4 +503,32 @@ mod tests {
         assert_eq!((1, 1), back.counts());
         assert_eq!(0, CorrectionStats::from_json("nonsense").counts().0);
     }
+}
+
+type ParsedStats = (Vec<(String, PairStat)>, Option<i32>, Option<i32>, Option<i64>);
+
+fn parse_snapshot(text: &str) -> Option<ParsedStats> {
+    let v: Value = serde_json::from_str(text).ok()?;
+    let int = |v: &Value| i32::try_from(v.as_i64()?).ok();
+    let mut pairs = Vec::new();
+    let (mut fired, mut reverted, mut generation) = (None, None, None);
+    for (field, value) in v.as_object()? {
+        match field.as_str() {
+            "pairs" => {
+                for (k, p) in value.as_object()? {
+                    let p = p.as_object()?;
+                    let kept = match p.get("kept") {
+                        None => 0,
+                        Some(v) => int(v)?,
+                    };
+                    pairs.push((k.clone(), PairStat { count: int(p.get("count")?)?, gen: p.get("gen")?.as_i64()?, kept }));
+                }
+            }
+            "fired" => fired = Some(int(value)?),
+            "reverted" => reverted = Some(int(value)?),
+            "generation" => generation = Some(value.as_i64()?),
+            _ => {}
+        }
+    }
+    Some((pairs, fired, reverted, generation))
 }

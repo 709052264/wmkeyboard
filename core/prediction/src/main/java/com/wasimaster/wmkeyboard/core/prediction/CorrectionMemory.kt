@@ -1,8 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
 import com.wasimaster.wmkeyboard.core.util.SnapshotFile
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
@@ -32,6 +31,11 @@ import java.io.File
  * hand that changes is followed. Storage follows the personal-store contract
  * (`learning/learned_corrections.json`): nullable file for a locked device,
  * dirty-flag save on dismissal, [reload] for edits the settings app made.
+ *
+ * The store, its rules and its file format are Rust (`wm-engine`'s
+ * `correction_memory`, which WMK Desktop runs too, through [PredictionNative]'s
+ * `cm*` calls); this class folds the spellings ([WordKey]), keeps the file,
+ * and turns the counts into [EditHabits] and the viewer's [Habit] list.
  */
 class CorrectionMemory(private val storageFile: File?) {
 
@@ -46,28 +50,14 @@ class CorrectionMemory(private val storageFile: File?) {
 
     class Habit(val kind: HabitKind, val from: Char?, val to: Char?, val count: Int)
 
-    @Serializable
-    private data class Stored(val fixed: String, val count: Int, val gen: Long)
+    private val native: Long = PredictionNative.cmNew().also {
+        NativeHandles.track(this, it, PredictionNative::cmClose)
+    }
 
-    @Serializable
-    private data class Snapshot(
-        val pairs: Map<String, List<Stored>> = emptyMap(),
-        /** layout id -> habit key -> count; see [habitKey]. */
-        val habits: Map<String, Map<String, Int>> = emptyMap(),
-        val generation: Long = 0L,
-    )
-
-    private val pairs = HashMap<String, ArrayList<Stored>>()
-    private val habits = HashMap<String, HashMap<String, Int>>()
-    private var generation = 0L
-    private var dirty = false
     private val snapshotFile = storageFile?.let(::SnapshotFile)
-    private val json = Json { ignoreUnknownKeys = true }
 
     /** Bumped on every change; the engine's caches key on it. */
-    @Volatile
-    var version: Int = 0
-        private set
+    val version: Int get() = PredictionNative.cmVersion(native)
 
     init {
         load()
@@ -80,27 +70,11 @@ class CorrectionMemory(private val storageFile: File?) {
      * revised form may hold one space (a fat-fingered space bar put back).
      * Callers gate with [accepts] first; this only records.
      */
-    @Synchronized
     fun teach(original: String, revised: String, layoutId: String, kind: Kind) {
-        val typed = WordKey.of(original)
-        val fixed = WordKey.of(revised)
-        if (typed.isEmpty() || fixed.isEmpty() || typed == fixed) return
-        val list = pairs.getOrPut(typed) { ArrayList(1) }
-        val at = list.indexOfFirst { it.fixed == fixed }
-        if (at >= 0) {
-            val was = list[at]
-            list[at] = Stored(fixed, (was.count + 1).coerceAtMost(MAX_COUNT), generation)
-        } else {
-            list.add(Stored(fixed, 1, generation))
-        }
-        list.sortByDescending { it.count }
-        while (list.size > MAX_FIXES_PER_TYPED) list.removeAt(list.size - 1)
-        if (pairs.size > MAX_PAIRS) {
-            val oldest = pairs.entries.minByOrNull { e -> e.value.maxOf { it.gen } }?.key
-            if (oldest != null) pairs.remove(oldest)
-        }
-        if (kind == Kind.PAIR_AND_HABITS && layoutId.isNotBlank()) learnHabits(typed, fixed, layoutId)
-        changed()
+        PredictionNative.cmTeach(
+            native, WordKey.of(original), WordKey.of(revised),
+            layoutId.takeIf { it.isNotBlank() }.orEmpty(), kind == Kind.PAIR_AND_HABITS,
+        )
     }
 
     /**
@@ -108,48 +82,35 @@ class CorrectionMemory(private val storageFile: File?) {
      * it has none. The penalty in [CorrectionStats] stops it firing at once;
      * this is what keeps the viewer honest about it.
      */
-    @Synchronized
     fun unteach(typed: String, fixed: String) {
-        val key = WordKey.of(typed)
-        val list = pairs[key] ?: return
-        val at = list.indexOfFirst { it.fixed == WordKey.of(fixed) }
-        if (at < 0) return
-        val was = list[at]
-        if (was.count <= 1) list.removeAt(at) else list[at] = Stored(was.fixed, was.count - 1, generation)
-        if (list.isEmpty()) pairs.remove(key)
-        changed()
+        PredictionNative.cmUnteach(native, WordKey.of(typed), WordKey.of(fixed))
     }
 
     /**
-     * The fix the user has taught for [typed], or null.
-     *
-     * When the same spelling has been fixed different ways, only a fix that
-     * clearly dominates the others ([DOMINANCE]) is named: a spelling the user
-     * means two things by is not one autocorrect can make for them.
+     * The fix the user has taught for [typed], or null. When the same
+     * spelling has been fixed different ways, only a fix that clearly
+     * dominates the others ([DOMINANCE]) is named.
      */
-    @Synchronized
-    fun fixFor(typed: String): Taught? {
-        val list = pairs[WordKey.of(typed)] ?: return null
-        val top = list.firstOrNull() ?: return null
-        val runnerUp = list.getOrNull(1)
-        if (runnerUp != null && top.count < runnerUp.count * DOMINANCE) return null
-        return Taught(top.fixed, top.count)
-    }
+    fun fixFor(typed: String): Taught? =
+        PredictionNative.cmFixFor(native, WordKey.of(typed))?.let { Taught(it[0] as String, (it[1] as IntArray)[0]) }
 
     /** Forgets everything taught about [typed]. */
-    @Synchronized
     fun forget(typed: String) {
-        if (pairs.remove(WordKey.of(typed)) != null) changed()
+        PredictionNative.cmForget(native, WordKey.of(typed))
     }
 
     /** Every taught pair, most-used first, for the viewer. */
-    @Synchronized
-    fun pairs(): List<Pair<String, Taught>> =
-        pairs.flatMap { (typed, list) -> list.map { typed to Taught(it.fixed, it.count) } }
-            .sortedWith(compareByDescending<Pair<String, Taught>> { it.second.count }.thenBy { it.first })
+    fun pairs(): List<Pair<String, Taught>> {
+        val parts = PredictionNative.cmPairs(native)
+        @Suppress("UNCHECKED_CAST")
+        val typed = parts[0] as Array<String>
+        @Suppress("UNCHECKED_CAST")
+        val fixed = parts[1] as Array<String>
+        val counts = parts[2] as IntArray
+        return List(typed.size) { typed[it] to Taught(fixed[it], counts[it]) }
+    }
 
-    @Synchronized
-    fun pairCount(): Int = pairs.values.sumOf { it.size }
+    fun pairCount(): Int = PredictionNative.cmPairCount(native)
 
     /**
      * The shrink model for [layoutId], or [EditHabits.NONE] until that layout
@@ -157,11 +118,10 @@ class CorrectionMemory(private val storageFile: File?) {
      */
     @Synchronized
     fun habitsFor(layoutId: String): EditHabits {
-        // The keyboard asks on every settings emission, and a toggle write in
-        // the settings app (same process) paid this rebuild on the main thread
-        // each time. [version] moves on every change to [habits], so the last
-        // answer stands until it does — and comes back as the same instance,
-        // which the engine's setter skips.
+        // The keyboard asks on every settings emission. [version] moves on
+        // every change, so the last answer stands until it does, and comes
+        // back as the same instance, which the engine's setter skips.
+        val version = version
         habitsMemo?.let { if (it.layoutId == layoutId && it.version == version) return it.habits }
         return buildHabits(layoutId).also { habitsMemo = HabitsMemo(layoutId, version, it) }
     }
@@ -171,152 +131,77 @@ class CorrectionMemory(private val storageFile: File?) {
     private var habitsMemo: HabitsMemo? = null
 
     private fun buildHabits(layoutId: String): EditHabits {
-        val counts = habits[layoutId] ?: return EditHabits.NONE
-        if (counts.values.sum() < EditHabits.WARMUP) return EditHabits.NONE
-        val subs = HashMap<Int, Double>()
-        val inserts = HashMap<Char, Double>()
-        val deletes = HashMap<Char, Double>()
-        val spaceSlips = HashMap<Char, Double>()
-        for ((key, n) in counts) {
-            val shrink = EditHabits.shrink(n)
-            if (shrink <= 0.0) continue
-            val colon = key.indexOf(':')
-            if (colon < 0) continue
-            val kind = key.substring(0, colon)
-            val arg = key.substring(colon + 1)
-            when (kind) {
-                KEY_SUB -> if (arg.length == 2) subs[EditHabits.pack(arg[0], arg[1])] = shrink
-                KEY_INS -> if (arg.length == 1) inserts[arg[0]] = shrink
-                KEY_DEL -> if (arg.length == 1) deletes[arg[0]] = shrink
-                KEY_SPACE -> if (arg.length == 1) spaceSlips[arg[0]] = shrink
-            }
-        }
-        if (subs.isEmpty() && inserts.isEmpty() && deletes.isEmpty() && spaceSlips.isEmpty()) {
+        val parts = PredictionNative.cmHabits(native, layoutId)
+        val subKeys = parts[0] as IntArray
+        val subValues = parts[1] as DoubleArray
+        val insertKeys = parts[2] as CharArray
+        val insertValues = parts[3] as DoubleArray
+        val deleteKeys = parts[4] as CharArray
+        val deleteValues = parts[5] as DoubleArray
+        val spaceKeys = parts[6] as CharArray
+        val spaceValues = parts[7] as DoubleArray
+        if (subKeys.isEmpty() && insertKeys.isEmpty() && deleteKeys.isEmpty() && spaceKeys.isEmpty()) {
             return EditHabits.NONE
         }
-        return EditHabits(subs, inserts, deletes, spaceSlips)
+        return EditHabits.of(
+            subKeys.indices.associate { subKeys[it] to subValues[it] },
+            insertKeys.indices.associate { insertKeys[it] to insertValues[it] },
+            deleteKeys.indices.associate { deleteKeys[it] to deleteValues[it] },
+            spaceKeys.indices.associate { spaceKeys[it] to spaceValues[it] },
+        )
     }
 
     /** This hand's slips on [layoutId], most frequent first, for the viewer. */
-    @Synchronized
-    fun habitSummary(layoutId: String): List<Habit> {
-        val counts = habits[layoutId] ?: return emptyList()
-        return summarise(counts)
-    }
+    fun habitSummary(layoutId: String): List<Habit> = summarise(PredictionNative.cmHabitCounts(native, layoutId))
 
     /** This hand's slips across every layout, summed, for a viewer with no layout in mind. */
-    @Synchronized
-    fun habitSummary(): List<Habit> {
-        val merged = HashMap<String, Int>()
-        for (counts in habits.values) {
-            for ((key, n) in counts) merged[key] = (merged[key] ?: 0) + n
-        }
-        return summarise(merged)
-    }
+    fun habitSummary(): List<Habit> = summarise(PredictionNative.cmHabitCounts(native, null))
 
-    private fun summarise(counts: Map<String, Int>): List<Habit> =
-        counts.mapNotNull { (key, n) -> habitOf(key, n) }
-            .sortedWith(compareByDescending<Habit> { it.count }.thenBy { it.kind.ordinal })
+    private fun summarise(parts: Array<Any>): List<Habit> {
+        @Suppress("UNCHECKED_CAST")
+        val keys = parts[0] as Array<String>
+        val counts = parts[1] as IntArray
+        return keys.indices.mapNotNull { habitOf(keys[it], counts[it]) }
+            .sortedWith(
+                compareByDescending<Habit> { it.count }
+                    .thenBy { it.kind.ordinal }
+                    .thenBy { it.from?.code ?: -1 }
+                    .thenBy { it.to?.code ?: -1 },
+            )
+    }
 
     fun save() {
         val file = snapshotFile ?: return
-        val (ticket, snapshot) = synchronized(this) {
-            if (!dirty) return
-            generation++
-            expireStalePairs()
-            dirty = false
-            file.ticket() to Snapshot(
-                pairs = pairs.mapValues { it.value.toList() },
-                habits = habits.mapValues { it.value.toMap() },
-                generation = generation,
-            )
+        val (ticket, json) = synchronized(this) {
+            val json = PredictionNative.cmPrepareSave(native) ?: return
+            file.ticket() to json
         }
-        // Encoded and written outside the lock, so the store stays usable while
-        // the file goes to disk. A failed write makes the store dirty again, so
-        // the next save retries rather than assuming it landed.
-        if (!file.write(ticket) { json.encodeToString(snapshot) }) markUnsaved()
-    }
-
-    @Synchronized
-    private fun markUnsaved() {
-        dirty = true
+        // Written outside the lock; a failed write makes the store dirty
+        // again, so the next save retries.
+        if (!file.write(ticket) { json }) PredictionNative.cmMarkUnsaved(native)
     }
 
     @Synchronized
     fun reload() {
         snapshotFile?.supersede()
-        pairs.clear()
-        habits.clear()
-        generation = 0L
+        PredictionNative.cmResetForReload(native)
         load()
-        dirty = false
-        version++
+        PredictionNative.cmFinishReload(native)
     }
 
     @Synchronized
     fun clear() {
-        pairs.clear()
-        habits.clear()
-        version++
         // The delete is the write; stay dirty only if it failed, so the next
         // save overwrites the stale file with the empty snapshot.
-        dirty = snapshotFile?.delete() == false
-    }
-
-    private fun changed() {
-        dirty = true
-        version++
-    }
-
-    private fun learnHabits(typed: String, fixed: String, layoutId: String) {
-        val counts = habits.getOrPut(layoutId) { HashMap() }
-        for (op in EditOps.align(typed, fixed)) {
-            val key = habitKey(op) ?: continue
-            counts[key] = ((counts[key] ?: 0) + 1).coerceAtMost(MAX_COUNT)
-        }
-        // Halving counters: an exponential window with no timestamps, the same
-        // trick CorrectionStats plays with its fired/reverted pair.
-        if (counts.values.sum() >= HABIT_WINDOW) {
-            val it = counts.entries.iterator()
-            while (it.hasNext()) {
-                val e = it.next()
-                val halved = e.value / 2
-                if (halved <= 0) it.remove() else e.setValue(halved)
-            }
-        }
-    }
-
-    /** A pair nobody has fixed in [EXPIRE_GENERATIONS] saves loses a count. */
-    private fun expireStalePairs() {
-        val stale = pairs.keys.toList()
-        for (typed in stale) {
-            val list = pairs[typed] ?: continue
-            val kept = ArrayList<Stored>(list.size)
-            for (s in list) {
-                when {
-                    generation - s.gen <= EXPIRE_GENERATIONS -> kept.add(s)
-                    s.count > 1 -> kept.add(Stored(s.fixed, s.count - 1, generation))
-                }
-            }
-            if (kept.isEmpty()) pairs.remove(typed) else pairs[typed] = kept
-        }
+        val failed = snapshotFile?.delete() == false
+        PredictionNative.cmClear(native, !failed)
     }
 
     private fun load() {
         val file = storageFile ?: return
         if (!file.exists()) return
-        runCatching {
-            val snapshot = json.decodeFromString<Snapshot>(file.readText())
-            for ((typed, list) in snapshot.pairs) {
-                val clean = list.filter { it.count > 0 && it.fixed.isNotEmpty() }
-                if (clean.isNotEmpty()) pairs[typed] = ArrayList(clean.sortedByDescending { it.count })
-            }
-            for ((layout, counts) in snapshot.habits) {
-                val clean = counts.filterValues { it > 0 }
-                if (clean.isNotEmpty()) habits[layout] = HashMap(clean)
-            }
-            generation = snapshot.generation
-        }
+        val text = runCatching { file.readText() }.getOrNull() ?: return
+        PredictionNative.cmLoad(native, text)
     }
 
     companion object {
@@ -342,20 +227,6 @@ class CorrectionMemory(private val storageFile: File?) {
             if (r.startsWith(o)) return false
             val limit = if (o.length >= LONG_WORD_LENGTH) MAX_EDITS_LONG else MAX_EDITS
             return EditOps.distance(o, r) <= limit
-        }
-
-        /** The habit a single alignment step records, or null for a match or
-         * a step this model does not price. */
-        internal fun habitKey(op: EditOps.Op): String? = when (op) {
-            is EditOps.Op.Match -> null
-            is EditOps.Op.Sub -> when {
-                op.intended == ' ' -> "$KEY_SPACE:${op.typed}"
-                op.typed == ' ' -> null
-                else -> "$KEY_SUB:${op.typed}${op.intended}"
-            }
-            is EditOps.Op.Ins -> if (op.intended == ' ') KEY_NOSPACE else "$KEY_INS:${op.intended}"
-            is EditOps.Op.Del -> if (op.typed == ' ') null else "$KEY_DEL:${op.typed}"
-            is EditOps.Op.Swap -> "$KEY_SWAP:${op.first}${op.second}"
         }
 
         private fun habitOf(key: String, count: Int): Habit? {
