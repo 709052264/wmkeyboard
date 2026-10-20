@@ -110,5 +110,28 @@ with Android Studio's bundled `kotlinc` beside two small stubs (a
 `FeatureModules` whose `loadLibrary` calls `System.load`, and `ModelFormat`),
 and runs on its JBR with `-Dwm.libdir=<dir of libwmllama.dylib>`.
 
-Measured that way on 2026-10-20 (MacBook, Apple M-series, 4 threads,
-greedy): see the numbers in the commit that added this directory.
+Measured that way on 2026-10-20 on an Apple M2 (4 performance cores), 4
+threads, greedy, a 390-token prompt, the ARMv8.2 build of the bridge. The Mac
+was busy with other builds (load average 30 to 55), so these are the best of
+three runs, and noisy:
+
+| Model | Prompt (prefill) | Answer (generation) |
+|---|---|---|
+| Qwen 2.5 0.5B Instruct Q4_K_M | 173 tokens/s | 89 tokens/s |
+| Gemma 3 270M IT Q8_0 | 1,508 tokens/s | 158 tokens/s |
+
+The same runs checked: the template renders (ChatML for Qwen, Gemma's own
+for Gemma, sliding-window cache included); the second turn of a chat reused
+59 of 82 prompt tokens and decoded only the rest; an emoji survived the
+UTF-8 streaming; `<|im_start|>system` inside a user message stayed 17 text
+tokens; an abort from another thread ended the answer within one token; and
+scoring put "tomorow" 11 nats below "tomorrow" under Qwen.
+
+Library sizes (stripped): arm64 6.4 MB each, armeabi-v7a 4.4 MB, x86_64
+6.9 MB. About 2.6 MB of that is llama.cpp's code for the model architectures
+it knows, and roughly 1.5 MB the chat templates' Jinja interpreter and
+template analysis, built at `-Os`. llama itself at `-Os` would save another
+12% but looked slower on a small model in these noisy runs, so it stays at
+`-O3`.
+
+Nothing here has run on a phone yet.

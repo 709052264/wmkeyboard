@@ -50,11 +50,11 @@ set(GGML_CPU_KLEIDIAI        OFF CACHE BOOL "" FORCE)
 
 add_subdirectory("${LLAMA_SRC}" llama EXCLUDE_FROM_ALL)
 
-# llama.cpp's model code (every architecture it knows) and the chat-template
-# code are most of the library, and neither is where the time goes: the
-# matrix maths is ggml's, which keeps -O3. Built for size, they come out
-# much smaller for no measurable loss (README.md has the numbers).
-target_compile_options(llama PRIVATE -Os)
+# The chat-template code (Jinja interpreter, template analysis) is a good part
+# of the library and runs once per prompt, so it is built for size. llama's
+# own code stays at -O3 with ggml: it builds the graph for every token, and
+# an -Os build of it looked slower on a small model (README.md), for 12% off
+# the library.
 target_compile_options(llama-common PRIVATE -Os)
 
 add_library(wmllama SHARED llamacpp_jni.cpp)
