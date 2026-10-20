@@ -11,12 +11,14 @@
 #   Swipe glide
 #   Noise reduction     rnnoise-jni/build.sh      libwmdenoise.so
 #   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
+#   Neural suggestions  indicxlit-jni/build.sh    libwmxlit.so
+#   (IndicXlit)                                    (both into core/voice/src/onnx/jniLibs)
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
 #                       (into core/intelligence/src/bergamot/jniLibs)
 #
-# libwmsherpa is linked against a stub of ONNX Runtime built from source
+# libwmsherpa and libwmxlit are linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
 # on the phone from Maven Central after the F-Droid download opt-in.
 #
@@ -70,6 +72,7 @@ fi
 "$HERE/executorch-jni/build.sh"
 "$HERE/rnnoise-jni/build.sh"
 "$HERE/sherpa-onnx-jni/build.sh"
+"$HERE/indicxlit-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
 "$HERE/librime-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"

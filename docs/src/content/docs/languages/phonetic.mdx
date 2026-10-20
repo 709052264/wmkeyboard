@@ -49,6 +49,36 @@ In the first two layers the words before count too: one spelling can stand for s
 None of this is part of autocorrect, and the autocorrect toggle doesn't control it. The known-spellings list has its own switch, <SettingsPath path="Languages & layouts / your language / Spellings / Use known spellings" />, and so does a space committing a dictionary word instead of the rules' spelling: **Correct to dictionary words** in the same group.
 :::
 
+## Neural suggestions
+
+<SettingsPath path="Languages & layouts / your language / Suggestion strip / Neural suggestions" />
+
+The three layers above know the words their lists know and the spellings their rules expect. Loose spellings fall between them: `valobashi`, `bhalobasi` and `bhalobaashi` are all ভালোবাসি to anyone who reads Bangla. **Neural suggestions** adds a fourth source for that, IndicXlit, a transliteration model by [AI4Bharat](https://github.com/AI4Bharat/IndicXlit) that learned from millions of romanized words how people write 21 Indic languages in Latin letters. It is off by default, and it is the same switch on every language that has it: Bangla, Hindi, Urdu, Assamese, Marathi, Gujarati, Punjabi, Odia, Tamil, Telugu, Kannada and Malayalam.
+
+Turned on, the strip shows up to three of the model's readings right after the word the space bar writes. Readings that are in the language's word list come first. The word the space bar writes never changes, and the model never corrects anything by itself: its readings are only offered, and a tap writes one. So it helps most when you scroll or glance past the first word, and costs nothing when the first word was already right.
+
+Measured on held-out words, the right word in the first four places of the strip:
+
+| Language | Without | With |
+|---|---:|---:|
+| Bangla, chat spellings the known-spellings list doesn't have | 52% | 80% |
+| Hindi, chat spellings the known-spellings list doesn't have | 88% | 93% |
+| Bangla, Aksharantar test words | 30% | 80% |
+| Hindi, Aksharantar test words | 55% | 84% |
+| Urdu | 43% | 73% |
+| Marathi | 60% | 86% |
+| Gujarati | 58% | 87% |
+| Punjabi | 55% | 75% |
+| Odia | 33% | 66% |
+| Tamil | 39% | 81% |
+| Telugu | 57% | 90% |
+| Kannada | 51% | 89% |
+| Malayalam | 32% | 77% |
+
+The other languages were measured on 2,000 words of the Aksharantar test set each, with the language's word list installed. Aksharantar spells long vowels doubled (`aa`, `ee`), which Avro reads differently from most of these layouts, so Bangla's Aksharantar row starts low; the chat rows are the fairer picture for Bangla.
+
+The model is one download of 13&nbsp;MB, shared by every language, from the data repository's `models` release on GitHub, checked against a SHA-256 built into the app. It also needs ONNX Runtime, the same part [Offline Sherpa](/tools/sherpa/) runs on, about 33&nbsp;MB, which the Google Play build gets from Play and the other builds from Maven Central. Turning the setting on starts both downloads; the row under it shows how far they are and starts them again after a failure. Everything runs on the phone, on a thread of its own, and nothing you type leaves it. A reading that takes longer than the strip can wait for appears a moment later, while you are still on the word.
+
 ## What each language does
 
 ### Marathi, Gujarati and Punjabi

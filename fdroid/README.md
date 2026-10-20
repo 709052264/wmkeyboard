@@ -122,8 +122,10 @@ generator imports.
 From the release after 0.6.2, two more come from the same script:
 `native/rnnoise-jni` (RNNoise, plain C, into `core/voice/src/main/jniLibs`)
 and `native/sherpa-onnx-jni` (sherpa-onnx, CMake, into
-`core/voice/src/onnx/jniLibs`). The next entry's `scandelete` needs
-`core/voice/src/onnx/jniLibs` added. sherpa-onnx's CMake fetches its own
+`core/voice/src/onnx/jniLibs`), and with them `native/indicxlit-jni`
+(IndicXlit's search for the phonetic layouts' neural suggestions, two C++
+files, plain clang, into the same directory). The next entry's `scandelete`
+needs `core/voice/src/onnx/jniLibs` added. sherpa-onnx's CMake fetches its own
 dependencies (kaldi-native-fbank, kaldi-decoder, simple-sentencepiece,
 OpenFst and others) at the versions its pinned tag names. Its bridge links
 against a stub of ONNX Runtime compiled from `ort_stub.c` and the runtime's

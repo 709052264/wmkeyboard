@@ -623,6 +623,15 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "IndicXlit",
+            R.string.about_bundled_indicxlit_used,
+            "Copyright (c) 2022 AI4Bhārat",
+            "MIT", "mit-indicxlit.txt",
+            "https://github.com/AI4Bharat/IndicXlit",
+        ),
+    )
+    add(
+        Attribution(
             "ibus-avro",
             R.string.about_bundled_avro_used,
             "Copyright (C) OmicronLab",

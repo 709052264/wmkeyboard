@@ -195,7 +195,7 @@
     <!-- Parakeet and Moonshine are model names and are not translated. -->
     <string name="about_bundled_parakeet_used">The Offline Parakeet speech recognition model, downloaded on request</string>
     <string name="about_bundled_moonshine_used">The Offline Moonshine speech recognition model, downloaded on request</string>
-    <string name="about_bundled_onnxruntime_used">The runtime behind Offline Sherpa, downloaded from Maven Central when Sherpa is first used</string>
+    <string name="about_bundled_onnxruntime_used">The runtime behind Offline Sherpa and Neural suggestions, downloaded from Maven Central when either is first used</string>
     <string name="about_bundled_sherpa_used">Offline Sherpa\'s speech recognition toolkit, and k2-fsa\'s streaming models it downloads on request</string>
     <string name="about_bundled_vosk_used">Offline Sherpa\'s Bengali and Russian models, downloaded on request</string>
     <string name="about_bundled_kroko_used">Offline Sherpa\'s German and Spanish models, downloaded on request</string>
@@ -208,6 +208,7 @@
     <!-- X11 is the window system of Linux; keysym is its word for a key's character. -->
     <string name="about_bundled_keysyms_used">The table of X11 keysym names, to read Linux keyboard layouts</string>
     <string name="about_bundled_keyman_used">The key grids for 862 layouts, mostly for languages no other keyboard covers</string>
+    <string name="about_bundled_indicxlit_used">The model behind Neural suggestions on the Indic phonetic layouts, downloaded when they are turned on</string>
     <string name="about_bundled_avro_used">Desktop Avro\'s dictionary, suffixes, autocorrect and search rules, behind the Avro candidate list</string>
     <string name="about_bundled_khipro_used">The rules of the Khipro Bangla layout</string>
     <string name="about_bundled_futo_layouts_used">The key grids of the layouts converted from FUTO Keyboard\'s layout files</string>

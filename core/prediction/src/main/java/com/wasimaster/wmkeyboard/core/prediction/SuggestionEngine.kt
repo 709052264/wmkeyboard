@@ -3295,6 +3295,27 @@ class SuggestionEngine(
     }
 
     /**
+     * [strip], a phonetic layout's list for a word typed on [languageId], with
+     * a neural model's [readings] of that word joined in after the reading a
+     * space commits; see [NeuralReadings]. The readings are put in the form
+     * the language's word lists use, and any the user blacklisted or the
+     * offensive filter holds back are left out. [strip] itself when
+     * [languageId] has no phonetic scheme.
+     */
+    fun withNeuralReadings(languageId: String, strip: List<String>, readings: List<String>): List<String> {
+        if (readings.isEmpty()) return strip
+        val backend = phoneticBackend(languageId) ?: return strip
+        val scheme = backend.scheme
+        val words = readings.map(scheme.normalize).filterNot(::suppressed)
+        return NeuralReadings.merge(
+            strip,
+            words,
+            isNative = { w -> w.isNotEmpty() && w.all { scheme.isNative(it) || it == '\u200C' || it == '\u200D' } },
+            isListed = { backend.index.frequencyOf(it) > 0 },
+        )
+    }
+
+    /**
      * The layout's own words for the strip: [phoneticSuggestions], or — with
      * the candidate list folded into the strip — its head (what a space
      * commits) followed by the candidate list in Avro's order.
