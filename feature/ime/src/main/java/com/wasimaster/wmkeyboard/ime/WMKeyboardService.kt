@@ -1555,6 +1555,28 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var duetShownComplete = true
 
+    /**
+     * A chip that splits the last swipe off a two-thumb word (#832): "car pet"
+     * for a word that came out "carpet" because the next word's swipe began
+     * before the space. [head] is what the word read before that swipe, or
+     * null when the chip follows a Backspace that took the swipe out ([chip]
+     * then reads "↪ pet", and the head is the word as it now stands). [tail]
+     * is the swipe read on its own. [committed] says the merged word was
+     * already typed by the all-thumbs-up pause, so a pick replaces it.
+     */
+    private class DuetSplit(
+        val chip: String,
+        val head: String?,
+        val tail: String,
+        val swipe: GlideToken.Swipe,
+        val keys: List<KeyCenter>,
+        val keyWidthPx: Float,
+        val committed: Boolean = false,
+    )
+
+    /** The split chip on offer, or null; see [DuetSplit]. */
+    private var duetSplit: DuetSplit? = null
+
     private var composing = StringBuilder()
         set(value) {
             // A word the user came back to and edited in the buffer ends here,
@@ -1588,6 +1610,8 @@ open class WMKeyboardService : InputMethodService() {
                 duetWord.clear()
                 allUpArmed = false
                 reopenedWord = null
+                // The word the chip would split is over (#832).
+                duetSplit = null
             }
             // Any wholesale replacement (commit, field change, re-arm from the
             // field) invalidates the per-character tap positions: a re-armed
@@ -22917,6 +22941,20 @@ open class WMKeyboardService : InputMethodService() {
         // edit in the service. A live buffer keeps its region, which is the
         // one the ordinary pick is *supposed* to replace.
         if (composing.isEmpty()) ic.finishComposingText()
+        // The two-thumb split chip (#832): only while the word it splits is
+        // still the one open, or still the one the pause just typed.
+        duetSplit?.takeIf { it.chip == suggestion }?.let { split ->
+            duetSplit = null
+            val live = if (split.committed) {
+                composing.isEmpty() && lastGestureWord != null && stripReplacesGestureWord
+            } else {
+                duetWord.active
+            }
+            if (live) {
+                splitOffLastSwipe(ic, split)
+                return
+            }
+        }
         // A word picked off a Retype's strip (#791) goes in at the caret like
         // any other pick, below. One of the swipe's other readings teaches the
         // stroke what picking it right after the swipe would have.
@@ -25489,9 +25527,11 @@ open class WMKeyboardService : InputMethodService() {
             // Nothing could be shown at all: the gestures were the whole word.
             return composing.isEmpty()
         }
+        val removed = duetWord.snapshot().lastOrNull() as? GlideToken.Swipe
         duetWord.removeLast()
         if (duetWord.active) {
-            redecodeDuet(commit = false)
+            // The swipe just taken out can come back as the next word (#832).
+            redecodeDuet(commit = false, backspaced = removed)
             return true
         }
         // The setter ends the gestures and any decode of them.
@@ -25779,6 +25819,8 @@ open class WMKeyboardService : InputMethodService() {
         if (duetWord.active && duetShownGeneration != duetGeneration) settleDuet(ic)
         val word = composing.toString()
         val alternates = duetShownAlternates
+        // The split the word was offering stays on offer once it is typed (#832).
+        val split = duetSplit?.takeIf { it.head != null }
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
         val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
         if (undoable) {
@@ -25789,13 +25831,17 @@ open class WMKeyboardService : InputMethodService() {
             // its way from the commit above, for an undo to take back (#741).
             // Only while the strip shows this word's alternates may a pick
             // there replace it; otherwise it offers the next word (#175).
-            stripReplacesGestureWord = alternates.isNotEmpty()
+            stripReplacesGestureWord = alternates.isNotEmpty() || split != null
         }
         commitGestureSpace(ic, state)
         if (undoable) armRevertGuard()
-        if (undoable && alternates.isNotEmpty()) {
-            glideReadings.remember(word, alternates)
-            _uiState.update { it.copy(suggestions = alternates) }
+        if (undoable && (alternates.isNotEmpty() || split != null)) {
+            if (alternates.isNotEmpty()) glideReadings.remember(word, alternates)
+            val committed = split?.let {
+                DuetSplit(it.chip, it.head, it.tail, it.swipe, it.keys, it.keyWidthPx, committed = true)
+            }
+            duetSplit = committed
+            _uiState.update { it.copy(suggestions = withSplitChip(alternates, committed)) }
         } else {
             refreshSuggestions()
         }
@@ -25850,12 +25896,22 @@ open class WMKeyboardService : InputMethodService() {
      * reading in the composing region with the rest on the strip. [commit]
      * then types it at once, for #595 in ordinary glide.
      */
-    private fun redecodeDuet(commit: Boolean) {
+    private fun redecodeDuet(commit: Boolean, backspaced: GlideToken.Swipe? = null) {
         val tokens = duetWord.snapshot()
         val keys = duetWord.keys
         val keyWidthPx = duetWord.keyWidthPx
         val lone = duetWord.loneSwipe()
         val literal = duetWord.literal()
+        // The split chip (#832): the word without its last swipe, and that
+        // swipe on its own. Only under two-thumb typing, and only when the
+        // last gesture is a swipe with something in front of it.
+        duetSplit = null
+        val twoThumb = _uiState.value.settings.gesture.twoThumbGlide
+        val headWord = duetWord.copy().takeIf {
+            !commit && twoThumb && backspaced == null && tokens.size >= 2 && tokens.last() is GlideToken.Swipe
+        }?.also { it.removeLast() }
+        val lastSwipe = tokens.lastOrNull() as? GlideToken.Swipe
+        val offerBack = backspaced?.takeIf { twoThumb && !commit }
         // The other thumb is still drawing a stroke, whose preview is on
         // screen: this tap joins the word under it, and the stroke's next
         // preview already reads it in. Clearing that preview here, and putting
@@ -25870,7 +25926,31 @@ open class WMKeyboardService : InputMethodService() {
         if (!strokeLive) clearGlidePreview()
         duetJob = serviceScope.launch {
             val shown = withContext(Dispatchers.Default) { readDuet(tokens, lone, keys, keyWidthPx, literal) }
+            val split = withContext(Dispatchers.Default) {
+                when {
+                    offerBack != null -> loneSwipeWord(offerBack.points, keys, keyWidthPx)?.let { tail ->
+                        DuetSplit("↪ $tail", null, tail, offerBack, keys, keyWidthPx)
+                    }
+                    headWord != null && lastSwipe != null -> {
+                        val head = if (headWord.active) {
+                            readDuet(
+                                headWord.snapshot(), headWord.loneSwipe(), keys, keyWidthPx, headWord.literal(),
+                            )?.word
+                        } else {
+                            headWord.typedText()
+                        }
+                        val tail = loneSwipeWord(lastSwipe.points, keys, keyWidthPx)
+                        if (head.isNullOrEmpty() || tail.isNullOrEmpty()) {
+                            null
+                        } else {
+                            DuetSplit("$head $tail", head, tail, lastSwipe, keys, keyWidthPx)
+                        }
+                    }
+                    else -> null
+                }
+            }
             if (generation != duetGeneration) return@launch
+            duetSplit = split
             val ic = currentInputConnection ?: return@launch
             if (commit && shown?.complete != true) {
                 // #595 in ordinary glide, where the lift *is* the word's end:
@@ -25899,13 +25979,86 @@ open class WMKeyboardService : InputMethodService() {
             when {
                 commit -> commitDuet(ic)
                 strokeLive && _uiState.value.glideWord != null -> Unit
-                shown.complete -> _uiState.update { it.copy(suggestions = shown.alternates) }
+                shown.complete -> _uiState.update { it.copy(suggestions = withSplitChip(shown.alternates, split)) }
+                // Two words that make none together: the split is the offer.
+                split != null -> _uiState.update { it.copy(suggestions = listOf(split.chip)) }
                 // Nothing finishes yet: the strip offers what the start on
                 // screen completes to, as it does for typed letters, rather
                 // than going blank until a gesture makes a word (#678).
                 else -> refreshSuggestions()
             }
         }
+    }
+
+    /** [swipe] read on its own, as a one-swipe word is; off the main thread. */
+    private fun loneSwipeWord(swipe: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float): String? =
+        glideDecode(swipe, keys, keyWidthPx, guessAhead = false).words.firstOrNull()
+
+    /**
+     * [words] with the split chip after the merged reading and the one beside
+     * it (#832): offered every time, never the word a Space would type.
+     */
+    private fun withSplitChip(words: List<String>, split: DuetSplit?): List<String> {
+        if (split == null || split.chip in words) return words
+        return words.toMutableList().apply { add(minOf(2, size), split.chip) }
+    }
+
+    /**
+     * Splits the last swipe off a two-thumb word (#832): the head goes in as
+     * written, with the gesture space, and the swipe starts the next word,
+     * open and composing, so taps and swipes join it and its own word end
+     * types it. After the all-thumbs-up pause the merged word and its space
+     * come back out first, and what they taught is taken back the way a pick
+     * over a gesture word takes it back.
+     */
+    private fun splitOffLastSwipe(ic: InputConnection, split: DuetSplit) {
+        val state = _uiState.value
+        val shift = duetShift
+        ic.beginBatchEdit()
+        if (split.committed) {
+            val merged = lastGestureWord
+            val len = merged?.let { glideCommitLength(ic, it) } ?: 0
+            if (merged == null || len <= 0) {
+                ic.endBatchEdit()
+                return
+            }
+            ic.deleteSurroundingText(len, 0)
+            learningBuffer.drop(merged)
+            unlearnHand()
+            syncPreviousWordFromField(ic)
+        }
+        lastGestureWord = null
+        lastGestureStroke = null
+        lastRevertible = null
+        stripReplacesGestureWord = false
+        val raw = split.head ?: composing.toString()
+        val head = if (split.head == null) {
+            raw
+        } else {
+            when (shift) {
+                ShiftState.CAPS_LOCK -> raw.uppercaseKeepingLength()
+                ShiftState.ON -> raw.replaceFirstChar { it.uppercase() }
+                ShiftState.OFF -> raw
+            }
+        }
+        // The setter ends the gestures and any read of them still running.
+        composing = StringBuilder(head)
+        updateComposingText(ic)
+        commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+        commitGestureSpace(ic, state)
+        // A letter's worth of word already follows that space: the next Space
+        // ends the new word rather than confirming this one's space.
+        pendingWordSpace = false
+        allUpSpace = null
+        // The tail is its own word, in lower case unless caps lock is on.
+        duetShift = if (shift == ShiftState.CAPS_LOCK) ShiftState.CAPS_LOCK else ShiftState.OFF
+        duetWord.clear()
+        duetWord.addSwipe(split.swipe.points, split.keys, split.keyWidthPx)
+        allUpArmed = true
+        ic.endBatchEdit()
+        redecodeDuet(commit = false)
+        // After the pause every thumb is already up: the new word's pause starts now.
+        if (split.committed) onAllThumbsUp()
     }
 
     /** Puts [shown] in the composing region as the reading of [generation]. */
