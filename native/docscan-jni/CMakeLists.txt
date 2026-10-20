@@ -18,5 +18,9 @@ target_link_options(wmdocscan PRIVATE
     -Wl,--icf=all
     -Wl,--exclude-libs,ALL
     -Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/jni.map
+    # Stripped at the link, so the build id is a hash of the bytes that ship.
+    # Linked unstripped, it hashed symbol and debug sections that still carry
+    # a trace of the build machine, and two builds differed in nothing else.
+    -Wl,--strip-all
     -Wl,--build-id=sha1
     -Wl,-z,max-page-size=16384)

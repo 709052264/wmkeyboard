@@ -44,10 +44,13 @@ third-party file compiled in is Android's `cpufeatures` (Apache-2.0, in
 OpenCV's `3rdparty/`). `zlib` comes from the platform (`libz.so`), as does
 `libjnigraphics.so` for the bitmap access.
 
-Two things keep the build reproducible. Every path of the build machine is
-mapped out with `-ffile-prefix-map`, and OpenCV's build-information string,
-which would otherwise carry the machine's compiler paths and which OpenCV's
-startup keeps alive, is replaced with a fixed line after configuring.
+Three things keep the build reproducible. Every path of the build machine is
+mapped out with `-ffile-prefix-map`. OpenCV's build-information string, which
+would otherwise carry the machine's compiler paths and which OpenCV's startup
+keeps alive, is replaced with a fixed line after configuring. And the library
+is stripped at the link (`--strip-all`), so its build id hashes only the bytes
+that ship: linked unstripped, two builds from different source paths came out
+identical except for those 20 bytes.
 
 ## Contract with Kotlin
 
