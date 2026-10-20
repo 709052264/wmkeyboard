@@ -56,7 +56,7 @@ Web search and image search are two separate tool screens, reached from **Tools 
 - **Results for each search**: a slider from 1 to 20, defaulting to **8**. ("Each search uses one API request either way," the app notes.) 20 is the most the Brave and Tavily APIs give for one request.
 - **Show the answer from the search engine**: web search only, on by default. Shows the box described above when the engine sends an answer. On Tavily the answer costs no extra credits.
 - **Open results in the browser**: web search only, off by default. A tap on a result opens it in your browser, and the button beside it inserts the link.
-- **Advanced search**: in the **Tavily** group, shown once Tavily is in the list, off by default. Tavily's deeper search, which picks the parts of each page that match your query more closely, for 2 credits a search instead of 1.
+- **Advanced search**: on Tavily's own screen (press its row on the list), off by default. Tavily's deeper search, which picks the parts of each page that match your query more closely, for 2 credits a search instead of 1.
 - **Results per row**: image search only, and 3 by default. How many image results sit side by side, from 2 to 5. Fewer columns means bigger previews, which is easier to judge before you send one.
 
 The settings page's own caption: "Web and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows 'via Brave'." That attribution is a small **"via Brave"** label inside the search bar, at its right end (just before the **✕** when there's a search to clear). It reads **"via Tavily"** while Tavily answers, and a SearXNG instance, being your own server, gets no label.
@@ -161,9 +161,9 @@ Drag a source to change the order, and switch one off to never ask it. With ever
 
 ### Offline dictionaries
 
-<SettingsPath path="Tools / Dictionary / Offline dictionaries" />
+<SettingsPath path="Tools / Dictionary / Dictionary sources" />
 
-Two whole English dictionaries you can keep on the phone, so the tool defines ordinary words like "house" with no connection at all, and in the [build with no internet permission](/development/building/#a-build-with-no-internet-permission). Each row has a download button; once the dictionary is in, the row shows its size on the phone and a delete button.
+Press **Wiktionary (offline)** or **Open English WordNet** on the source list to open its screen, where it is downloaded. Two whole English dictionaries you can keep on the phone, so the tool defines ordinary words like "house" with no connection at all, and in the [build with no internet permission](/development/building/#a-build-with-no-internet-permission). Each row has a download button; once the dictionary is in, the row shows its size on the phone and a delete button.
 
 | Dictionary | What it holds | Download | License |
 |---|---|---|---|
@@ -174,13 +174,13 @@ Both hold single words only. Phrases such as "ice cream" or "look after" are not
 
 Each takes about 14 MB on the phone once installed. A look-up reads a few kilobytes of that file; it does not load the dictionary into memory. Neither file is read before the phone is unlocked for the first time after a restart.
 
-The **Import a dictionary** row under them takes a `.wmdict.gz` file fetched elsewhere: **Get the files** lists both download links, to open in a browser on any device, and **Import** installs the file. See [Using it without internet](/privacy/offline/).
+The **Import a dictionary** row on each screen takes a `.wmdict.gz` file fetched elsewhere: **Get the files** lists both download links, to open in a browser on any device, and **Import** installs the file. See [Using it without internet](/privacy/offline/).
 
 ### Imported dictionaries
 
-<SettingsPath path="Tools / Dictionary / Imported dictionaries" />
+<SettingsPath path="Tools / Dictionary / Dictionary sources" />
 
-The dictionaries made for Yomichan and its successor Yomitan, the pop-up dictionaries that language learners use in their browser. There are hundreds of them: Japanese ones such as JMdict and Jitendex with readings, pitch accent and frequency lists, and Chinese, Korean and Wiktionary-based dictionaries for many other languages. **Get the files** opens the Yomitan wiki's list of dictionaries. Download a dictionary's `.zip` there, then tap **Import** and pick it. Any of the app's other **Import** rows takes it too; see [Using it without internet](/privacy/offline/).
+Press **Imported dictionaries** on the source list to open its screen. The dictionaries made for Yomichan and its successor Yomitan, the pop-up dictionaries that language learners use in their browser. There are hundreds of them: Japanese ones such as JMdict and Jitendex with readings, pitch accent and frequency lists, and Chinese, Korean and Wiktionary-based dictionaries for many other languages. **Get the files** opens the Yomitan wiki's list of dictionaries. Download a dictionary's `.zip` there, then tap **Import** and pick it. Any of the app's other **Import** rows takes it too; see [Using it without internet](/privacy/offline/).
 
 - A large dictionary takes some minutes to import, and the import line shows how far it has got. On the phone it takes about as much space as the dictionary's text unpacked, so a big Japanese dictionary needs a few hundred megabytes free while it imports.
 - Each imported dictionary gets a row with its number of entries, its size, its languages, its version and its attribution. The switch turns it off without deleting it. The arrows set the order its entries are shown in, and the bin deletes it.
@@ -201,10 +201,9 @@ The dictionaries made for Yomichan and its successor Yomitan, the pop-up diction
 - **Show translations**: on by default. Shows the word in other languages under its definitions. See [Translations](#translations) above.
 - **Translate into**: the languages of those translations, in order. With none picked, your keyboard languages other than English.
 - **Dictionary sources**: a [provider list](/tools/providers/): drag to reorder, switch a source off, remove one, or add it back with **Add a provider**. See [Dictionary sources](#dictionary-sources) above.
-- **Offline dictionaries**: download, delete or import the two offline dictionaries. See [Offline dictionaries](#offline-dictionaries) above.
-- **Imported dictionaries**: import Yomichan and Yomitan dictionaries, switch them on and off, order and delete them. See [Imported dictionaries](#imported-dictionaries) above.
+- Each source's own screen, opened by pressing its row: **Vocabulary packs** links to the packs, the two offline dictionaries download, delete or import there (see [Offline dictionaries](#offline-dictionaries) above), and **Imported dictionaries** imports, orders and deletes Yomichan and Yomitan dictionaries (see [Imported dictionaries](#imported-dictionaries) above).
 - **Look up in other apps**: the [Look up](/tools/look-up/#options) card's selection menu entry, its style for a tapped word, and how it sends words to AnkiDroid.
-- **Servers** (F-Droid build only): the addresses of kaikki.org, Wiktionary and the Free Dictionary API, for a mirror or a copy you host yourself.
+- **Servers** (F-Droid build only): on the screens of Wiktionary, Wiktionary definitions and the Free Dictionary API, the address each is called at, for a mirror or a copy you host yourself.
 
 The settings page's caption: "Definitions come from the sources below, in their order. The keyboard sends the word that you look up to an online source only when you use the tool." [Power saving](/typing/power-saving/)'s "Background network" toggle overrides this row. While that toggle is on, auto-lookup is forced off whatever you've set here. A look-up nobody explicitly asked for is exactly what it exists to stop.
 

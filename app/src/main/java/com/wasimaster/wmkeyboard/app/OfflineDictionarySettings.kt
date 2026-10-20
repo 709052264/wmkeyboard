@@ -41,7 +41,11 @@ import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryPack
  * the tool asks, and in what order, is the source list above.
  */
 @Composable
-internal fun OfflineDictionariesGroup(settings: LiveSettings) {
+internal fun OfflineDictionariesGroup(
+    settings: LiveSettings,
+    /** The packs to list: one source's own on its provider screen. */
+    packs: List<OfflineDictionaryPack> = OfflineDictionaryCatalog.entries,
+) {
     val context = LocalContext.current
     val filesDir = context.filesDir
     val states by OfflineDictionaryDownloads.states.collectAsState()
@@ -64,7 +68,7 @@ internal fun OfflineDictionariesGroup(settings: LiveSettings) {
         stringResource(R.string.tooldetail_dictionary_offline_group),
         info = stringResource(R.string.tooldetail_dictionary_offline_info),
     ) {
-        for (pack in OfflineDictionaryCatalog.entries) {
+        for (pack in packs) {
             item {
                 OfflineDictionaryRow(
                     pack = pack,
@@ -85,7 +89,7 @@ internal fun OfflineDictionariesGroup(settings: LiveSettings) {
             OfflineImportRow(
                 title = stringResource(R.string.tooldetail_dictionary_offline_import_title),
                 subtitle = stringResource(R.string.tooldetail_dictionary_offline_import_subtitle),
-                links = OfflineDictionaryCatalog.entries.map { OfflineLink(it.name, it.url) },
+                links = packs.map { OfflineLink(it.name, it.url) },
                 onImported = { OfflineDictionaryDownloads.refresh(filesDir) },
             )
         }

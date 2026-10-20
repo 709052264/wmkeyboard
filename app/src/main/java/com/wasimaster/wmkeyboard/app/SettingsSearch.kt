@@ -1783,8 +1783,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_count_title, R.string.tooldetail_search_count_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_answer_title, R.string.tooldetail_search_answer_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_open_browser_title, R.string.tooldetail_search_open_browser_subtitle),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
+    // On Tavily's own screen, opened from its row on the list.
+    providerEntry(ProviderTool.SEARCH, ProviderTypes.TAVILY, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_select_all_title, R.string.tooldetail_ocr_select_all_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_engine_title),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_packs_header),

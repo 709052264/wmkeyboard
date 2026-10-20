@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryCatalog
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
@@ -309,7 +310,7 @@ private fun providerSetup(row: ResolvedProvider): String =
  * A kind with nothing of its own draws nothing.
  */
 @Composable
-@Suppress("UNUSED_PARAMETER", "detekt.CyclomaticComplexMethod")
+@Suppress("UNUSED_PARAMETER", "detekt.CyclomaticComplexMethod", "detekt.LongMethod")
 internal fun ProviderOwnSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
@@ -335,10 +336,46 @@ internal fun ProviderOwnSettings(
         ProviderTypes.BERGAMOT.id -> if (BergamotTranslator.available) BergamotModelManager(settings)
         ProviderTypes.NLLB.id -> if (NllbTranslator.available) NllbModelManager(settings)
         ProviderTypes.DEEPL.id -> DeepLWriteSettingsGroup(repository, settings)
+        // ---- Media, search and words: groups the tools' pages drew under their lists.
+        ProviderTypes.OFFLINE_GIFS.id -> OfflineGifPacksGroup()
+        ProviderTypes.TAVILY.id -> TavilySettings(repository, settings)
+        ProviderTypes.VOCAB_PACKS.id -> SettingsGroup {
+            // The packs source is only as good as the packs installed (#665).
+            item {
+                NavRow(
+                    R.string.tooldetail_dictionary_packs_title,
+                    stringResource(R.string.tooldetail_dictionary_packs_subtitle),
+                    onClick = { onNavigate("vocab/packs") },
+                )
+            }
+        }
+        ProviderTypes.OFFLINE_WIKTIONARY.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.WIKTIONARY))
+        ProviderTypes.OFFLINE_WORDNET.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.OEWN))
+        ProviderTypes.IMPORTED_DICTIONARIES.id -> ImportedDictionariesGroup()
         // ---- AI: the model on the phone, and the headers a service is sent with (#648).
         ProviderTypes.ON_DEVICE_AI.id -> LocalLlmModelManager(repository, settings)
         else -> if (tool == ProviderTool.AI) {
             AiProviders.of(type.id)?.takeIf { it != AiProvider.ON_DEVICE }?.let { AiProviderHeadersGroup(repository, settings, it) }
+        }
+    }
+}
+
+/** Tavily's search depth. */
+@Composable
+private fun TavilySettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(
+        stringResource(R.string.tooldetail_tavily_group),
+        info = stringResource(R.string.tooldetail_tavily_info),
+    ) {
+        item {
+            ToggleSetting(
+                R.string.tooldetail_tavily_advanced_title,
+                stringResource(R.string.tooldetail_tavily_advanced_subtitle),
+                settings.watch { it.webSearch.tavilyAdvanced },
+                info = stringResource(R.string.tooldetail_tavily_advanced_info),
+                default = SettingsDefaults.webSearch.tavilyAdvanced,
+            ) { scope.launch { repository.setSearchTavilyAdvanced(it) } }
         }
     }
 }

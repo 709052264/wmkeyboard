@@ -85,8 +85,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
-import com.wasimaster.wmkeyboard.core.settings.providerChain
-import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
@@ -1273,25 +1271,12 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.dictionaryAutoLookup,
                     ) { scope.launch { repository.setDictionaryAutoLookup(it) } }
                 }
-                // The packs source is only as good as the packs installed, and
-                // this list's switch alone said nothing about where they come
-                // from (#665).
-                item {
-                    NavRow(
-                        R.string.tooldetail_dictionary_packs_title,
-                        stringResource(R.string.tooldetail_dictionary_packs_subtitle),
-                        onClick = { onNavigate("vocab/packs") },
-                    )
-                }
-                serverItems(
-                    repository,
-                    settings,
-                    endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
-                )
             }
-            DictionaryTranslationsGroup(repository, settings)
             // Where the tool looks, in the order it asks: a provider is only
             // asked when those above it did not know the word or were unreachable.
+            // The packs' screen link, the offline dictionaries' downloads, the
+            // imported dictionaries (#765) and the server addresses are on the
+            // sources' own screens.
             ProvidersGroup(
                 repository,
                 settings,
@@ -1299,10 +1284,7 @@ internal fun ToolDetailSettings(
                 titleRes = R.string.tooldetail_dictionary_sources_title,
                 info = stringResource(R.string.tooldetail_dictionary_sources_info),
             )
-            // The words the packs above do not know, with no network (#665).
-            OfflineDictionariesGroup(settings)
-            // Yomichan / Yomitan dictionaries, in any language (#765).
-            ImportedDictionariesGroup()
+            DictionaryTranslationsGroup(repository, settings)
             // The same look-up as a card over other apps (#765).
             LookupSettingsGroup(repository, settings, onNavigate)
         }
@@ -2127,19 +2109,6 @@ internal fun ToolDetailSettings(
                 // Categories were fetched with the old key; they are not the new key's answer.
                 onChanged = { MediaCategoryCache.clear() },
             )
-            if (BuildConfig.ENABLE_FDROID && tool == ToolbarTool.GIF) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(
-                        ServiceEndpoint.KLIPY,
-                        ServiceEndpoint.GIPHY,
-                        ServiceEndpoint.GIFCITIES,
-                        ServiceEndpoint.WAYBACK_MACHINE,
-                    ))
-                }
-            }
             if (tool == ToolbarTool.STICKER) {
                 // Decides which rows the suggest group holds; the rows read
                 // everything else.
@@ -2366,7 +2335,6 @@ internal fun ToolDetailSettings(
                         }
                     }
                 }
-                OfflineGifPacksGroup()
             }
             // Resolved out here: the group builder lambda is not composable.
             val stickerOption = stringResource(R.string.tooldetail_media_send_sticker_option)
@@ -2467,30 +2435,8 @@ internal fun ToolDetailSettings(
                 ProviderTool.SEARCH,
                 info = stringResource(R.string.tooldetail_search_providers_info),
             )
-            if (BuildConfig.ENABLE_FDROID) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH, ServiceEndpoint.TAVILY))
-                }
-            }
-            // Tavily's own option, once Tavily is in the list.
-            val tavilyListed = settings.watch { it.providerChain(ProviderTool.SEARCH).has(ProviderTypes.TAVILY.id) }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_tavily_group),
-                info = stringResource(R.string.tooldetail_tavily_info),
-            ) {
-                item(visible = tavilyListed) {
-                    ToggleSetting(
-                        R.string.tooldetail_tavily_advanced_title,
-                        stringResource(R.string.tooldetail_tavily_advanced_subtitle),
-                        settings.watch { it.webSearch.tavilyAdvanced },
-                        info = stringResource(R.string.tooldetail_tavily_advanced_info),
-                        default = SettingsDefaults.webSearch.tavilyAdvanced,
-                    ) { scope.launch { repository.setSearchTavilyAdvanced(it) } }
-                }
-            }
+            // Tavily's advanced search and the F-Droid server addresses are on
+            // those providers' own screens.
             SettingsGroup(stringResource(R.string.tooldetail_search_results_group)) {
                 item {
                     ToggleSetting(
@@ -2958,7 +2904,6 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyCacheHours.toFloat(),
                     ) { scope.launch { repository.setCurrencyCacheHours(it.toInt()) } }
                 }
-                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR, ServiceEndpoint.FRANKFURTER, ServiceEndpoint.ER_API))
             }
             // Where rates come from, best first; the next is asked when one fails.
             ProvidersGroup(
@@ -3005,7 +2950,6 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoCacheMinutes.toFloat(),
                         ) { scope.launch { repository.setCryptoCacheMinutes(it.toInt()) } }
                     }
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.COINBASE, ServiceEndpoint.COINGECKO))
                     item { CryptoCoinPicker(repository, settings) }
                 }
             }

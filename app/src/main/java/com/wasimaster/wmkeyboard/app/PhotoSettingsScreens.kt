@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.app
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
-import com.wasimaster.wmkeyboard.config.BuildConfig
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
@@ -43,7 +42,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.settings.stopsBackgroundWork
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -115,11 +113,7 @@ fun PhotoServicesScreen(
                 PhotoCache.clear()
             },
         )
-        if (BuildConfig.ENABLE_FDROID) {
-            SettingsGroup(stringResource(R.string.servers_group_title), info = stringResource(R.string.servers_group_info)) {
-                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.UNSPLASH, ServiceEndpoint.PEXELS))
-            }
-        }
+        // Unsplash's and Pexels' F-Droid server addresses are on their own screens.
         HighContrastNote(settings)
     }
 }
