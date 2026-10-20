@@ -120,6 +120,21 @@ class LiveWpmPrivacyTest {
     }
 
     @Test
+    fun `the keyboard going away clears the speed and starts the meter over`() {
+        // #827: the hide is where the closing field's speed is let go of (#796).
+        val service = keyboard()
+        plantWindowStores(service)
+        service.freshPair()
+        service.onFinishInputView(true)
+        assertEquals("the readout goes with the window", 0, shown())
+        pass(KEY_MS)
+        assertEquals("and nothing puts it back", 0, shown())
+        // A meter that kept the two words before the hide would read the
+        // first word after it.
+        service.freshPair()
+    }
+
+    @Test
     fun `the same field restarting keeps its speed`() {
         val service = keyboard()
         service.freshPair()
