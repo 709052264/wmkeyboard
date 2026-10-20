@@ -107,6 +107,11 @@ class NetworkCallSitesTest {
             // Opens the socket for SmbSink, which holds the log row and counts
             // every frame through the traffic callback it hands in.
             "sink/smb/Smb2Client.kt" to "logged by SmbSink",
+            // JvmHaHttp, for tests and plain-JVM hosts; the keyboard hands the
+            // Home Assistant code its metered ToolHaHttp instead.
+            "homeassistant/HaHttp.kt" to "JvmHaHttp is test-only",
+            // Coil over MediaStore content URIs; nothing here touches the network.
+            "gallery/GalleryThumbs.kt" to "content URIs only",
         ).mapKeys { (key, _) ->
             // Written short above; matched against the full source path.
             key.replace("core/kdeconnect/", "core/kdeconnect/src/main/java/com/wasimaster/wmkeyboard/core/kdeconnect/")

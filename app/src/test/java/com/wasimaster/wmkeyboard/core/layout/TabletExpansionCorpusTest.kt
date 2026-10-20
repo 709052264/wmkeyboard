@@ -56,7 +56,7 @@ class TabletExpansionCorpusTest {
 
     @Test
     fun `the corpus is the whole shipped set`() {
-        assertEquals("built-ins plus hand-authored assets", 35 + 839, handAuthored.size)
+        assertEquals("built-ins plus hand-authored assets", 35 + 1_102, handAuthored.size)
         assertTrue(
             "converted Keyman grids are missing from the corpus",
             corpus.size - handAuthored.size > 800,
@@ -127,6 +127,11 @@ class TabletExpansionCorpusTest {
                 // Gboard+ English puts flick arms on its bottom row; Gboard+
                 // Hebrew has no shift key (its shifted page is English).
                 "en_gboard_plus", "he_gboard_plus", "he_gboard_plus_swipe_safe",
+                // Tatoeba languages in Arabic script, built from the Arabic
+                // template, which has no shift key either.
+                "acm", "afb", "ajp", "apc", "arq", "ayl", "chg", "klj", "ota", "qxq", "sdh",
+                // Samsung's alphabet-order Bangla grid has no shift key.
+                "bn_samsung",
             ) + keypads,
             declined,
         )

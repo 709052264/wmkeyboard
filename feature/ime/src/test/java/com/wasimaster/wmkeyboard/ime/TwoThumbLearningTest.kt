@@ -68,8 +68,9 @@ class TwoThumbLearningTest {
         service.onKey(space)
         drain(service)
         assertEquals("fixture: the stroke reads as the word", "qwerty ", editor.text.toString())
-        System.err.println("DBG1 entries=" + buffer(service).drain().joinToString { "${it.word}/${it.origin}/ctx=${it.contextOnly}" } + " allowed=" + field<Any?>(service, "learningAllowed"))
-        assertEquals(WordOrigin.DUET, buffer(service).originOf("qwerty"))
+        // originOf() answers only for a word the caret went back into; a word
+        // just committed is still an ordinary queued entry.
+        assertEquals(WordOrigin.DUET, buffer(service).drain().lastOrNull { it.word == "qwerty" }?.origin)
     }
 
     @Test

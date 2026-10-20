@@ -91,6 +91,7 @@ import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -39225,7 +39226,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The Send protocol's client: gated by the internet permission, logged as the tool's traffic. */
     private val sendHttpClient: okhttp3.OkHttpClient by lazy {
         okhttp3.OkHttpClient.Builder()
-            .addInterceptor(com.wasimaster.wmkeyboard.core.net.InternetGate)
+            .addInterceptor(InternetGate)
             .addNetworkInterceptor(com.wasimaster.wmkeyboard.core.net.NetLogInterceptor(com.wasimaster.wmkeyboard.core.netlog.NetSource.SEND))
             .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)

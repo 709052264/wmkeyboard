@@ -33,9 +33,10 @@ object Ct2Native {
     /**
      * A 64-bit process: armeabi-v7a carries a stub that refuses to load (see
      * native/ctranslate2-jni/stub.c), since 600 MB of weights is more than a
-     * 32-bit process can count on.
+     * 32-bit process can count on. False on a plain JVM, whose android.jar
+     * throws "not mocked" (the settings search index asks this in unit tests).
      */
-    val supported: Boolean get() = Process.is64Bit()
+    val supported: Boolean get() = runCatching { Process.is64Bit() }.getOrDefault(false)
 
     /** Whether [context]'s phone has the memory for the model, by [MIN_TOTAL_RAM]. */
     fun enoughMemory(context: Context): Boolean {

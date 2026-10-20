@@ -63,8 +63,14 @@ internal object SettingsAssistantSession {
     /**
      * Where a run is collected, and the dispatcher it asks the model on. Only
      * the JVM tests (#828) set these, to run both on one test dispatcher.
+     * Made on first use, so that reading [current] needs no main looper.
      */
-    internal var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var scopeOrNull: CoroutineScope? = null
+    internal var scope: CoroutineScope
+        get() = scopeOrNull ?: CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).also { scopeOrNull = it }
+        set(value) {
+            scopeOrNull = value
+        }
     internal var io: CoroutineDispatcher = Dispatchers.IO
 
     private var job: Job? = null

@@ -234,7 +234,7 @@ class AmbiguousLayoutTest {
 
     @Test
     fun theLanguageKeypadsShip() {
-        assertEquals(315, languageKeypads.size)
+        assertEquals(444, languageKeypads.size)
     }
 
     @Test

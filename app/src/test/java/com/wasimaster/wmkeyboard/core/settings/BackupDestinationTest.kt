@@ -43,7 +43,7 @@ class BackupDestinationTest {
         // Stored as ids, so renaming an enum constant must not silently move
         // every user's backups back to the default.
         assertEquals(
-            listOf("folder", "webdav", "drive", "s3", "dropbox", "onedrive", "ftp", "sftp", "smb", "git", "imap"),
+            listOf("folder", "webdav", "drive", "s3", "dropbox", "onedrive", "ftp", "sftp", "smb", "git", "imap", "nearby"),
             BackupDestination.entries.map { it.id },
         )
         assertEquals(
