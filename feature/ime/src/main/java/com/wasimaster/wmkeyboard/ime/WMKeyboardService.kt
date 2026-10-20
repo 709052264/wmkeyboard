@@ -2950,6 +2950,52 @@ open class WMKeyboardService : InputMethodService() {
     private var deferredWordSpace = false
 
     /**
+     * No space (#851) asked for the next glided or swiped word to join the
+     * one before it: it gets no leading space. Spent by that word; a space,
+     * Enter, a backspace or the caret moving calls it off.
+     */
+    private var glueNextWord = false
+
+    /**
+     * The No space action (#851), Nintype's spaceless key. The first of these
+     * that applies:
+     *  - the keyboard has just put a space after a word (a glide or a pick):
+     *    that space comes back out;
+     *  - a space is owed to the next letter after a closing mark: it is
+     *    not owed any more;
+     *  - a word is being typed, a two-thumb word included: it ends the way
+     *    Space would end it, as written and without autocorrect, since the
+     *    pieces glued this way are seldom dictionary words, and without the
+     *    space.
+     * Any of them leaves the next glided word to join on with no space. A
+     * space the user typed is never taken back, and with none of the above it
+     * does nothing.
+     */
+    private fun noSpace() {
+        val ic = currentInputConnection ?: return
+        val state = _uiState.value
+        when {
+            composing.isNotEmpty() -> {
+                allUpArmed = false
+                commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
+                pendingWordSpace = false
+            }
+            pendingWordSpace -> {
+                if (ic.getTextBeforeCursor(1, 0)?.toString() != " ") return
+                ic.deleteSurroundingText(1, 0)
+                pendingWordSpace = false
+                // The word is the user's to edit letter by letter now: a
+                // backspace takes one letter, not the glided word whole.
+                lastGestureWord = null
+                lastRevertible = null
+            }
+            deferredWordSpace -> deferredWordSpace = false
+            else -> return
+        }
+        glueNextWord = true
+    }
+
+    /**
      * Whether the colon that opened the inline emoji query took a space back on
      * its way in, so a completed shortcode can hand it to the emoji.
      *
@@ -12664,6 +12710,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onDelete() {
+        glueNextWord = false
         // A word being corrected is not finished: the all-thumbs-up pause
         // waits for the next letter before it types anything (#676).
         allUpArmed = false
@@ -13859,6 +13906,9 @@ open class WMKeyboardService : InputMethodService() {
      * the composing region.
      */
     private fun restartSuggestionsAtCursor(ic: InputConnection, newSelStart: Int) {
+        // The caret went somewhere: the next word is not the one No space
+        // meant to join on (#851).
+        glueNextWord = false
         scheduleRecentBar()
         // The caret settling where a Retype left it (#791): the strip stays on
         // the word that was taken out, rather than predicting past it.
@@ -14629,6 +14679,7 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun onSpace() {
+        glueNextWord = false
         // Ahead of the input-connection check: every keyboard-owned field must
         // take a space — or spend the press — even in a window that has no
         // editor focused at all. A typing test scores space as the word
@@ -14888,6 +14939,7 @@ open class WMKeyboardService : InputMethodService() {
         heldShift: Boolean = false,
     ) {
         val state = _uiState.value
+        glueNextWord = false
         // Enter belongs to whichever keyboard-owned field has the keys, and
         // never to the app behind the panel.
         if (captureEnter()) return
@@ -26486,6 +26538,11 @@ open class WMKeyboardService : InputMethodService() {
      * the field is the user's (#184).
      */
     private fun commitGestureLeadingSpace(ic: InputConnection, state: KeyboardUiState) {
+        // No space asked for this word to join the one before it (#851).
+        if (glueNextWord) {
+            glueNextWord = false
+            return
+        }
         if (!state.settings.gesture.autoSpaceBeforeGlide) return
         val before = ic.getTextBeforeCursor(QUOTE_CONTEXT_CHARS, 0)?.toString().orEmpty()
         if (spacesBeforeGlidedWord(before, state.fieldKind)) ic.commitText(" ", 1)
@@ -41702,6 +41759,13 @@ open class WMKeyboardService : InputMethodService() {
             if (action == TextEditAction.BACKSPACE) onDelete() else onForwardDelete()
             return
         }
+        // Before the composing text is committed below: the word still being
+        // typed is the one it ends without a space (#851).
+        if (action == TextEditAction.NO_SPACE) {
+            if (haptic) vibrate()
+            noSpace()
+            return
+        }
         // Before the composing text is committed below: a word still being
         // typed is the word to retype.
         if (action == TextEditAction.RETYPE_WORD) {
@@ -41770,7 +41834,9 @@ open class WMKeyboardService : InputMethodService() {
                 purgeAfterPasswordPaste()
             }
             // Handled above, before the composing text was committed.
-            TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD -> Unit
+            TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD,
+            TextEditAction.NO_SPACE,
+            -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
             // shift too and extend to the end.
@@ -41934,6 +42000,8 @@ open class WMKeyboardService : InputMethodService() {
             // the box it would reach behind the panel, which is the focus
             // switch's job now (#665), so it does nothing here.
             TextEditAction.RETYPE_WORD -> true
+            // A box of the keyboard's own adds no spaces to take back.
+            TextEditAction.NO_SPACE -> true
             else -> false
         }
         if (handled && haptic) vibrate()
