@@ -247,10 +247,11 @@ half-space and supplementary letters are all in the port.
   words and String ordering. Logarithms go through `strict_math::log`, a
   transcription of fdlibm that matches `StrictMath.log` bit for bit over
   3.4M inputs; the platform `ln` (Apple libm, bionic) differs from it in
-  about 1% of results. On the aarch64 JVM `Math.log`, `exp` and `pow` equal
-  `StrictMath` (8M samples), so the Kotlin side needs no change. On x86_64
-  HotSpot `Math.log` may be an intrinsic that is not fdlibm; parity tests
-  there could see a last-bit tie differ, which CI would show.
+  about 1% of results. The Kotlin walk calls `StrictMath.log` too, so the
+  two agree on every runtime; on the aarch64 JVM the evals run on,
+  `Math.log`, `exp` and `pow` already equal `StrictMath` (8M samples), so
+  that switch changed no number there. x86_64 HotSpot's `Math.log` is an
+  intrinsic that need not be fdlibm, which is why the switch was made.
 - Parity: `NativeFuzzyParityTest` (`:app`), the prediction eval's 2,000 typo
   cases and 2,000 clean words over the bundled English list, through the
   plain walk, touch evidence, learned habits, every edit budget, mapped and

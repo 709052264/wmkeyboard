@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.core.prediction
 
 import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.math.ln
 
 /**
  * Trie-guided fuzzy search: corrections and completions in one best-first
@@ -29,6 +28,15 @@ import kotlin.math.ln
  * [NativeEngine.useNative] allows; see [NativeFuzzySearch]. The two return
  * the same candidates, scores and edit counts (`NativeFuzzyParityTest`).
  */
+/**
+ * The natural log as fdlibm computes it, which `StrictMath` guarantees on
+ * every Java runtime and `wm-engine`'s `strict_math::log` reproduces bit for
+ * bit. `Math.log` may be a CPU-specific intrinsic that rounds the odd result
+ * differently, and one ulp is enough to reorder two candidates, so the
+ * Kotlin and Rust walks would disagree on some machine.
+ */
+private fun ln(x: Double): Double = StrictMath.log(x)
+
 class FuzzyBeamSearch {
 
     /** One weighted trie participating in a search. */
