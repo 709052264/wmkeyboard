@@ -33,8 +33,8 @@
 //! a character outside the BMP takes two edges.
 
 use crate::freq_codec;
+use crate::java_heap::JavaHeap;
 use std::cmp::Ordering;
-use std::collections::BinaryHeap;
 
 pub const MAGIC: u32 = 0x574D_4443;
 pub const VERSION: u16 = 3;
@@ -605,29 +605,64 @@ impl<B: AsRef<[u8]>> Dict<B> {
         Some(node)
     }
 
+    /// [`Dict::node_for`] over UTF-16 units as Kotlin holds them, lone
+    /// surrogates included.
+    pub fn node_for_units(&self, word: &[u16]) -> Option<u32> {
+        let mut node = Self::ROOT;
+        for &unit in word {
+            node = self.child(node, unit)?;
+        }
+        Some(node)
+    }
+
     pub fn frequency_of(&self, word: &str) -> i32 {
         self.node_for(word).map_or(0, |node| self.frequency(node))
+    }
+
+    pub fn frequency_of_units(&self, word: &[u16]) -> i32 {
+        self.node_for_units(word).map_or(0, |node| self.frequency(node))
     }
 
     pub fn contains(&self, word: &str) -> bool {
         self.frequency_of(word) > 0
     }
 
-    /// Up to `limit` completions of `prefix`, best frequency first, ties
-    /// alphabetical. Empty for an empty prefix: [`Dict::top`] is the
-    /// whole-dictionary walk, asked for by name.
+    /// Up to `limit` completions of `prefix`, best frequency first. Empty
+    /// for an empty prefix: [`Dict::top`] is the whole-dictionary walk,
+    /// asked for by name. Equal frequencies come out in the order the
+    /// phone's `TrieCompleter` gives them (see [`Dict::complete_units`]).
     pub fn complete(&self, prefix: &str, limit: usize) -> Vec<Suggestion> {
-        if prefix.is_empty() || limit == 0 {
-            return Vec::new();
-        }
-        match self.node_for(prefix) {
-            None => Vec::new(),
-            Some(node) => self.from(node, prefix.encode_utf16().collect(), limit),
-        }
+        let units: Vec<u16> = prefix.encode_utf16().collect();
+        Self::suggestions(self.complete_units(&units, limit))
     }
 
     /// The `limit` highest-frequency words in the whole dictionary.
     pub fn top(&self, limit: usize) -> Vec<Suggestion> {
+        Self::suggestions(self.top_units(limit))
+    }
+
+    fn suggestions(found: Vec<(Vec<u16>, i32)>) -> Vec<Suggestion> {
+        found
+            .into_iter()
+            .map(|(text, frequency)| Suggestion { word: String::from_utf16_lossy(&text), frequency })
+            .collect()
+    }
+
+    /// [`Dict::complete`] in UTF-16, exactly as Kotlin's
+    /// `TrieCompleter.complete` walks a `MappedTrie`: the same frontier, the
+    /// same pushes in the same order, popped by [`JavaHeap`], so even words
+    /// with equal frequencies come out in the same order.
+    pub fn complete_units(&self, prefix: &[u16], limit: usize) -> Vec<(Vec<u16>, i32)> {
+        if prefix.is_empty() || limit == 0 {
+            return Vec::new();
+        }
+        match self.node_for_units(prefix) {
+            None => Vec::new(),
+            Some(node) => self.from(node, prefix.to_vec(), limit),
+        }
+    }
+
+    pub fn top_units(&self, limit: usize) -> Vec<(Vec<u16>, i32)> {
         if limit == 0 {
             return Vec::new();
         }
@@ -638,39 +673,25 @@ impl<B: AsRef<[u8]>> Dict<B> {
     /// frequency a subtree can still hold, so a word is emitted only once no
     /// unopened branch can outrank it, and the walk stays near `limit` in
     /// cost however big the dictionary.
-    fn from(&self, node: u32, text: Vec<u16>, limit: usize) -> Vec<Suggestion> {
-        let mut results = Vec::with_capacity(limit);
-        let mut heap = BinaryHeap::new();
-        heap.push(Frontier {
-            priority: self.max_subtree(node),
-            node: Some(node),
-            text,
-        });
-        while let Some(f) = heap.pop() {
-            if results.len() >= limit {
-                break;
-            }
+    fn from(&self, node: u32, text: Vec<u16>, limit: usize) -> Vec<(Vec<u16>, i32)> {
+        let mut results = Vec::with_capacity(limit.min(self.word_count as usize));
+        let mut heap = JavaHeap::new(|a: &Frontier, b: &Frontier| b.priority.cmp(&a.priority));
+        let mut children = Vec::new();
+        heap.push(Frontier { priority: self.max_subtree(node), node: Some(node), text });
+        while results.len() < limit {
+            let Some(f) = heap.pop() else { break };
             match f.node {
-                None => results.push(Suggestion {
-                    word: String::from_utf16_lossy(&f.text),
-                    frequency: f.priority,
-                }),
+                None => results.push((f.text, f.priority)),
                 Some(node) => {
                     if self.is_word(node) {
-                        heap.push(Frontier {
-                            priority: self.frequency(node),
-                            node: None,
-                            text: f.text.clone(),
-                        });
+                        heap.push(Frontier { priority: self.frequency(node), node: None, text: f.text.clone() });
                     }
-                    for (label, child) in self.children(node) {
-                        let mut text = f.text.clone();
+                    self.children_into(node, &mut children);
+                    for &(label, child) in &children {
+                        let mut text = Vec::with_capacity(f.text.len() + 1);
+                        text.extend_from_slice(&f.text);
                         text.push(label);
-                        heap.push(Frontier {
-                            priority: self.max_subtree(child),
-                            node: Some(child),
-                            text,
-                        });
+                        heap.push(Frontier { priority: self.max_subtree(child), node: Some(child), text });
                     }
                 }
             }
@@ -682,6 +703,14 @@ impl<B: AsRef<[u8]>> Dict<B> {
     /// index, never per keystroke.
     pub fn entries(&self) -> Vec<(String, i32)> {
         let mut out = Vec::with_capacity(self.word_count as usize);
+        self.for_each_entry(|text, frequency| out.push((String::from_utf16_lossy(text), frequency)));
+        out
+    }
+
+    /// Calls `f` with every word (UTF-16) and its frequency, in the order
+    /// Kotlin's `MappedTrie.entries` lists them: depth first, children by
+    /// label.
+    pub fn for_each_entry(&self, mut f: impl FnMut(&[u16], i32)) {
         let mut text: Vec<u16> = Vec::new();
         let mut edge_stack = vec![self.child_start(0)];
         let mut end_stack = vec![edge_stack[0] + self.child_count(0)];
@@ -693,7 +722,7 @@ impl<B: AsRef<[u8]>> Dict<B> {
                 let child = Self::edge_child(edge);
                 text.push(self.edge_label(edge));
                 if self.is_word(child) {
-                    out.push((String::from_utf16_lossy(&text), self.freq(child)));
+                    f(&text, self.freq(child));
                 }
                 let start = self.child_start(child as usize);
                 edge_stack.push(start);
@@ -704,33 +733,16 @@ impl<B: AsRef<[u8]>> Dict<B> {
                 text.pop();
             }
         }
-        out
     }
 }
 
-/// A heap entry: a subtree to open, or (`node == None`) a word to emit at
-/// its exact frequency. Highest priority first; among equals the
-/// alphabetically earlier text, so the order is stable.
-#[derive(PartialEq, Eq)]
+/// A frontier entry: a subtree to open, or (`node == None`) a word to emit
+/// at its exact frequency. Ordered by priority alone, highest first, as
+/// `TrieCompleter`'s queue is; ties fall to the heap's own order.
 struct Frontier {
     priority: i32,
     node: Option<u32>,
     text: Vec<u16>,
-}
-
-impl Ord for Frontier {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.priority
-            .cmp(&other.priority)
-            .then_with(|| other.text.cmp(&self.text))
-            .then_with(|| self.node.is_none().cmp(&other.node.is_none()))
-    }
-}
-
-impl PartialOrd for Frontier {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
 }
 
 #[cfg(test)]

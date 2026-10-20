@@ -17,8 +17,9 @@ import java.io.OutputStream
  *
  * **Word ids are ranks in UTF-8 byte order.** Everything cheap about the reader
  * follows from that one property: a follower run sorted by id is also sorted
- * alphabetically, so [MappedNgramPack] can binary-search a run *by string* and
- * never look a candidate up in the vocabulary at all.
+ * alphabetically, so the reader (`wm-engine`'s `wmng::Pack`, behind
+ * [MappedNgramPack]) can binary-search a run *by string* and never look a
+ * candidate up in the vocabulary at all.
  *
  * Layout, big-endian throughout to match [PackedTrieCodec]:
  * ```

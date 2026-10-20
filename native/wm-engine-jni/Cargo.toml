@@ -13,6 +13,9 @@ crate-type = ["cdylib"]
 [dependencies]
 wm-engine = { path = "../wm-engine" }
 jni = "0.21"
+# The dictionaries and n-gram packs are read in place: mapped here, behind a
+# handle, never copied onto the Java heap.
+memmap2 = "0.9"
 
 [profile.release]
 lto = true

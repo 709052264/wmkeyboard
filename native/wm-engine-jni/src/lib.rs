@@ -6,6 +6,8 @@
 //!   engines, romanizers, Bijoy and graphemes.
 //! - [`kernels`]: `NativeEngine` (core/language), CPU features, the
 //!   scalar switch and the data-parallel kernels.
+//! - [`dict`]: `PredictionNative` (core/prediction), the mapped `.wmdict`
+//!   dictionaries and `.wmng` n-gram packs.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -17,6 +19,7 @@
 //! - Data that outlives a call (a mapped dictionary, a decoder) stays here
 //!   behind a [`handles::Registry`] handle.
 
+mod dict;
 mod guard;
 mod handles;
 mod kernels;

@@ -362,6 +362,14 @@ impl<B: AsRef<[u8]>> Pack<B> {
     }
 
     pub fn bigram_count(&self, first: &str, second: &str) -> i32 {
+        self.bigram_count_bytes(first.as_bytes(), second.as_bytes())
+    }
+
+    /// The `_bytes` lookups take the words as UTF-8 bytes, which is what the
+    /// file compares; the JNI bridge encodes Kotlin's strings the way
+    /// `String.toByteArray(UTF_8)` does (a lone surrogate as `?`), so a
+    /// lookup finds what the Kotlin reader found.
+    pub fn bigram_count_bytes(&self, first: &[u8], second: &[u8]) -> i32 {
         let (start, end) = self.bigram_run(first);
         if start >= end {
             return 0;
@@ -373,6 +381,10 @@ impl<B: AsRef<[u8]>> Pack<B> {
     }
 
     pub fn trigram_count(&self, first: &str, second: &str, third: &str) -> i32 {
+        self.trigram_count_bytes(first.as_bytes(), second.as_bytes(), third.as_bytes())
+    }
+
+    pub fn trigram_count_bytes(&self, first: &[u8], second: &[u8], third: &[u8]) -> i32 {
         let (start, end) = self.trigram_run(first, second);
         if start >= end {
             return 0;
@@ -385,12 +397,20 @@ impl<B: AsRef<[u8]>> Pack<B> {
 
     /// The `limit` likeliest words after `first`, best first, ties alphabetical.
     pub fn next_words(&self, first: &str, limit: usize) -> Vec<String> {
+        self.next_words_bytes(first.as_bytes(), limit)
+    }
+
+    pub fn next_words_bytes(&self, first: &[u8], limit: usize) -> Vec<String> {
         let run = self.bigram_run(first);
         self.best_followers(run, self.bigram_follower_off, self.bigram_count_off, limit)
     }
 
     /// The `limit` likeliest words after `first second`.
     pub fn next_words_after(&self, first: &str, second: &str, limit: usize) -> Vec<String> {
+        self.next_words_after_bytes(first.as_bytes(), second.as_bytes(), limit)
+    }
+
+    pub fn next_words_after_bytes(&self, first: &[u8], second: &[u8], limit: usize) -> Vec<String> {
         let run = self.trigram_run(first, second);
         self.best_followers(
             run,
@@ -414,7 +434,10 @@ impl<B: AsRef<[u8]>> Pack<B> {
 
     /// Rank of `word` in the vocabulary, or `None`.
     pub fn id_of(&self, word: &str) -> Option<usize> {
-        let query = word.as_bytes();
+        self.id_of_bytes(word.as_bytes())
+    }
+
+    pub fn id_of_bytes(&self, query: &[u8]) -> Option<usize> {
         let mut lo = 0isize;
         let mut hi = self.vocab_count as isize - 1;
         while lo <= hi {
@@ -441,8 +464,8 @@ impl<B: AsRef<[u8]>> Pack<B> {
         Some((start, end))
     }
 
-    fn bigram_run(&self, head: &str) -> (usize, usize) {
-        match self.id_of(head) {
+    fn bigram_run(&self, head: &[u8]) -> (usize, usize) {
+        match self.id_of_bytes(head) {
             None => (0, 0),
             Some(id) => (
                 be_u32(self.b(), self.bigram_run_off + id * 4) as usize,
@@ -451,8 +474,8 @@ impl<B: AsRef<[u8]>> Pack<B> {
         }
     }
 
-    fn trigram_run(&self, first: &str, second: &str) -> (usize, usize) {
-        let (Some(first_id), Some(second_id)) = (self.id_of(first), self.id_of(second)) else {
+    fn trigram_run(&self, first: &[u8], second: &[u8]) -> (usize, usize) {
+        let (Some(first_id), Some(second_id)) = (self.id_of_bytes(first), self.id_of_bytes(second)) else {
             return (0, 0);
         };
         match self.context_rank(((first_id as u64) << 24) | second_id as u64) {
@@ -493,9 +516,8 @@ impl<B: AsRef<[u8]>> Pack<B> {
         follower_off: usize,
         start: usize,
         end: usize,
-        word: &str,
+        query: &[u8],
     ) -> Option<usize> {
-        let query = word.as_bytes();
         let mut lo = start as isize;
         let mut hi = end as isize - 1;
         while lo <= hi {

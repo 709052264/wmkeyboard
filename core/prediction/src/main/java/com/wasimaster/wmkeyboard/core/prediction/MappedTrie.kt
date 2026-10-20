@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
@@ -19,6 +20,12 @@ import java.nio.channels.FileChannel
  *
  * All reads use absolute [ByteBuffer] gets, which do not touch the buffer's
  * position, so a single instance is safe to share across threads.
+ *
+ * The word-level queries ([frequencyOf], [contains], [complete], [entries])
+ * run in Rust, `wm-engine`'s `wmdict::Dict` (which WMK Desktop runs too),
+ * over its own mapping of the same file, through [PredictionNative]. The
+ * node-level [TrieWalker] methods stay here until the walks that use them
+ * move too (native/RUST_NEON_PLAN.md).
  */
 class MappedTrie private constructor(
     private val buf: ByteBuffer,
@@ -43,6 +50,9 @@ class MappedTrie private constructor(
     private val maxSubtreeOff: Int,
     private val isWordOff: Int,
 ) : WordSource, TrieWalker {
+
+    /** The Rust reader over the same file ([PredictionNative]). */
+    private var native: Long = 0L
 
     private val cachedCount: Int = minOf(nodeCount, CACHE_NODES)
     private val childStartCache: IntArray = IntArray(cachedCount)
@@ -149,17 +159,6 @@ class MappedTrie private constructor(
 
     override fun vocabularySize(): Int = rankFloors.vocabularySize()
 
-    /** Node reached by walking [word] from the root, or -1 if absent. */
-    private fun nodeFor(word: String): Int {
-        var node = 0
-        for (ch in word) {
-            val edge = childEdge(node, ch)
-            if (edge < 0) return -1
-            node = edgeChild(edge)
-        }
-        return node
-    }
-
     /** Edge index of [node]'s child labelled [ch], or -1. Binary search — the
      * edges of a node are contiguous and sorted by label. */
     private fun childEdge(node: Int, ch: Char): Int {
@@ -177,50 +176,33 @@ class MappedTrie private constructor(
         return -1
     }
 
-    override fun frequencyOf(word: String): Int {
-        val node = nodeFor(word)
-        return if (node >= 0 && isWord(node)) freq(node) else 0
-    }
+    override fun frequencyOf(word: String): Int = PredictionNative.dictFrequencyOf(native, word)
 
     override fun contains(word: String): Boolean = frequencyOf(word) > 0
 
-    override fun complete(prefix: String, limit: Int): List<Suggestion> =
-        TrieCompleter.complete(this, prefix, limit)
+    /**
+     * Up to [limit] completions of [prefix], best first, in exactly the order
+     * [TrieCompleter.complete] gives them, ties included.
+     */
+    override fun complete(prefix: String, limit: Int): List<Suggestion> {
+        if (prefix.isEmpty() || limit <= 0) return emptyList()
+        val frequencies = IntArray(minOf(limit, wordCount.coerceAtLeast(1)))
+        val words = PredictionNative.dictComplete(native, prefix, frequencies.size, frequencies)
+        return List(words.size) { Suggestion(words[it], frequencies[it]) }
+    }
 
     /**
-     * Every `(word, frequency)` entry, by iterative depth-first walk. Used by
-     * consumers that need the flat list (gesture lexicon, phonetic indexes) —
-     * this materialises strings on the heap, so call it only to build another
-     * index, never per keystroke.
+     * Every `(word, frequency)` entry, depth first with children in label
+     * order. Used by consumers that need the flat list (gesture lexicon,
+     * phonetic indexes): it materialises strings on the heap, so call it only
+     * to build another index, never per keystroke.
      */
     fun entries(): List<Pair<String, Int>> {
-        val out = ArrayList<Pair<String, Int>>(wordCount)
-        val text = StringBuilder()
-        // Stack of edge cursors: edgeStack[depth] is the next edge to try at
-        // that depth, endStack[depth] the one past its last. Both are resolved
-        // once on the way in, so the walk never asks for a childStart twice.
-        val endStack = ArrayList<Int>()
-        val edgeStack = ArrayList<Int>()
-        edgeStack.add(childStart(0))
-        endStack.add(edgeStack[0] + childCount(0))
-        while (endStack.isNotEmpty()) {
-            val depth = endStack.size - 1
-            val edge = edgeStack[depth]
-            if (edge < endStack[depth]) {
-                edgeStack[depth] = edge + 1
-                val child = edgeChild(edge)
-                text.append(edgeLabel(edge))
-                if (isWord(child)) out.add(text.toString() to freq(child))
-                val start = childStart(child)
-                edgeStack.add(start)
-                endStack.add(start + childCount(child))
-            } else {
-                endStack.removeAt(depth)
-                edgeStack.removeAt(depth)
-                if (text.isNotEmpty()) text.setLength(text.length - 1)
-            }
-        }
-        return out
+        val pair = PredictionNative.dictEntries(native)
+        @Suppress("UNCHECKED_CAST")
+        val words = pair[0] as Array<String>
+        val frequencies = pair[1] as IntArray
+        return List(words.size) { words[it] to frequencies[it] }
     }
 
     companion object {
@@ -245,12 +227,19 @@ class MappedTrie private constructor(
                 val buf = RandomAccessFile(file, "r").use { raf ->
                     raf.channel.map(FileChannel.MapMode.READ_ONLY, 0, raf.length())
                 }
-                fromBuffer(buf, file.length())
+                fromBuffer(buf, file.length())?.takeIf { it.openNative(file) }
             } catch (_: IOException) {
                 null
             } catch (_: IllegalArgumentException) {
                 null
             }
+        }
+
+        /** False when the Rust reader refuses a file this one accepted. */
+        private fun MappedTrie.openNative(file: File): Boolean {
+            native = PredictionNative.dictOpen(file.absolutePath)
+            NativeHandles.track(this, native, PredictionNative::dictClose)
+            return native != 0L
         }
 
         private fun fromBuffer(buf: ByteBuffer, length: Long): MappedTrie? {

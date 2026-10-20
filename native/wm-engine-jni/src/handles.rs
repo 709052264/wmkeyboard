@@ -41,6 +41,7 @@ impl<T> Registry<T> {
         self.write().remove(&handle).is_some()
     }
 
+    #[cfg(test)]
     pub fn len(&self) -> usize {
         self.objects.read().unwrap_or_else(|e| e.into_inner()).len()
     }

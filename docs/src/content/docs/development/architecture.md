@@ -230,6 +230,12 @@ exception instead of killing the keyboard. Data that outlives a call, such as
 a mapped dictionary, stays in Rust behind a `handles::Registry` handle.
 Calls are batched, one crossing per query or per array.
 
+The dictionary and n-gram readers moved first. `MappedTrie`'s word queries
+and all of `MappedNgramPack` are Rust, over a mapping that stays in the
+library behind a handle; `NativeHandles` closes it once the Kotlin object
+that held it is unreachable, because the IME replaces a dictionary by
+dropping the reference rather than closing it.
+
 ### Emoji search
 
 The catalog is a TSV asset (`emoji/catalog.tsv`) with English and Bangla

@@ -123,7 +123,44 @@ Leaves first; Kotlin keeps the orchestration until the end.
 Each step keeps the Kotlin implementation until a parity test shows identical
 output on the real dictionaries and on the glide eval sets, then deletes it.
 
-Status: not started.
+### Step 1: the readers (done)
+
+`MappedTrie`'s word-level queries (`frequencyOf`, `contains`, `complete`,
+`entries`) and the whole of `MappedNgramPack` run in Rust: `wmdict::Dict`
+and `wmng::Pack` over a `memmap2` mapping in `wm-engine-jni/src/dict.rs`,
+behind `PredictionNative` handles that `NativeHandles` closes once the
+Kotlin object is unreachable. The Kotlin reader code for those queries is
+deleted. `MappedTrie` still maps the file in Kotlin too, for the node-level
+`TrieWalker` methods the fuzzy walk, glide and the coverage checks read
+node by node; those go when the walks move (steps 2 and 4).
+
+- Completion order: `TrieCompleter` pops a `PriorityQueue` ordered by
+  frequency alone, so equal frequencies come out in heap order. `Dict::complete`
+  now uses `java_heap::JavaHeap` with the same pushes in the same order, so
+  ties match too, and WMK Desktop gets the phone's order.
+- N-gram strings are looked up as Kotlin's `toByteArray(UTF_8)` encodes them
+  (a lone surrogate as `?`), through the new `*_bytes` methods.
+- Parity: `NativeReaderParityTest` (`:app`). Against `PackedTrie`/`TrieCompleter`
+  and against the n-gram counts the packs were built from, on the bundled
+  en and bn lists, a 296k-word synthetic list with non-BMP, lone-surrogate
+  and Hangul words, and (with `PARITY_DOWNLOADS`) the data repo's en, ko and
+  th lists at the Large cap and the en and bn n-gram packs. Before the
+  deletion it also ran the Kotlin readers on the same files. Every query
+  agreed: 1.29M completions, every word's frequency, every entry in order,
+  every vocabulary id, count and follower list.
+- Size: libwm_engine_jni arm64-v8a 1,114,720 -> 1,177,680 B (+62,960),
+  armeabi-v7a 784,728 -> 831,264 (+46,536), x86_64 1,245,760 -> 1,311,984
+  (+66,224).
+- Latency (`MappedTrieLatencyBench`, `PredictionLatencyBench`, two runs each,
+  load average 3.5-4.3 with other sessions running): `frequencyOf` p50 0.75
+  -> 0.42-0.54 us, `complete(3, 10)` p50 3.6-8.3 -> 5.1-5.3 us (p99 14-35 ->
+  10-11 us), `contains` 0.21-0.29 -> 0.38 us; a whole keystroke
+  (suggest + autocorrect) p50 0.404-0.457 -> 0.409-0.427 ms, unchanged.
+  `pack.bigramCount` is about 1 us against Kotlin's sub-microsecond, because
+  the Kotlin reader's head cache is gone; it moves inside Rust with
+  `NgramReranker` in step 2.
+
+Status: step 1 done; steps 2-5 not started.
 
 ## Rules for every step
 
