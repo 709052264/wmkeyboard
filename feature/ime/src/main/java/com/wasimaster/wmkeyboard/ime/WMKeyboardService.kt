@@ -227,9 +227,12 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.CompositeWordSource
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.prediction.DivvunChecker
+import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.HunspellChecker
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
@@ -4147,6 +4150,15 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             KhiproGlideDownloads.completions.collect {
                 if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+            }
+        }
+
+        // A GiellaLT speller downloaded, imported or deleted from the
+        // language's screen goes live (or away) without a language switch.
+        serviceScope.launch {
+            DivvunSpellerDownloads.completions.collect { langId ->
+                val engine = suggestionEngine
+                if (engine != null && _uiState.value.language.id == langId) refreshWordChecker(engine, langId)
             }
         }
 
@@ -8476,6 +8488,8 @@ open class WMKeyboardService : InputMethodService() {
         // Hunspell's dictionaries are native memory the process keeps otherwise.
         hunspellChecker?.second?.close()
         hunspellChecker = null
+        divvunChecker?.second?.close()
+        divvunChecker = null
         indicXlit?.shutdown()
         indicXlit = null
         pluginRuntime?.shutdown()
@@ -15407,8 +15421,9 @@ open class WMKeyboardService : InputMethodService() {
             userUnlocked,
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor(lang.id),
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor("en"),
-            // The Hunspell library arriving (fetched from the dictionary
-            // screen while the keyboard runs) is a reason to bind again.
+            // The spelling libraries arriving (fetched from the dictionary
+            // screen while the keyboard runs) are a reason to bind again;
+            // Hunspell's and divvunspell's share one module.
             HunspellRuntime.moduleReady,
         )
         if (onlyIfChanged && binding == engineBinding) return
@@ -15467,40 +15482,67 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var hunspellChecker: Pair<String, HunspellChecker>? = null
 
+    /**
+     * The GiellaLT speller the engine holds, keyed the same way
+     * ([DivvunRuntime.signatureOf]). Also one language's at a time: the
+     * archive is mapped, not read, but a North Sámi one is 80 MB of address
+     * space and page cache.
+     */
+    private var divvunChecker: Pair<String, DivvunChecker>? = null
+
+    /** What [refreshWordChecker] last gave the engine, so a stale run can tell whether it is still there. */
+    private var engineWordChecker: WordChecker? = null
+
     /** The last [refreshWordChecker] run; each waits for the one before, so two never open at once. */
     private var wordCheckerJob: Job? = null
 
     /**
-     * Gives [engine] the Hunspell checker over [langId]'s imported `.aff` and
-     * `.dic`, or none. None is the keyboard as it was before Hunspell: no
-     * imported pair, a list switched off, or a build or install without the
-     * library (it is fetched from the language's dictionary screen, never from
-     * here). Opening reads both files, so it happens off the main thread and
-     * the engine checks without it until then.
+     * Gives [engine] the spelling checkers for [langId]: Hunspell over its
+     * imported `.aff` and `.dic`, and the GiellaLT speller downloaded or
+     * imported for it, either, both (one [WordChecker.of] the two) or none.
+     * None is the keyboard as it was before them: no imported pair or
+     * speller, a list switched off, or a build or install without the
+     * libraries (fetched from the language's dictionary screen, never from
+     * here). Opening reads files, so it happens off the main thread and the
+     * engine checks without them until then.
      */
     private fun refreshWordChecker(engine: SuggestionEngine, langId: String) {
         val previous = wordCheckerJob
         wordCheckerJob = serviceScope.launch {
             previous?.join()
-            val held = hunspellChecker
-            val next = withContext(Dispatchers.IO) {
+            val heldHunspell = hunspellChecker
+            val heldDivvun = divvunChecker
+            val (nextHunspell, nextDivvun) = withContext(Dispatchers.IO) {
                 val files = if (userUnlocked) CustomDictionaries.hunspellFiles(filesDir, langId) else emptyList()
                 val signature = HunspellRuntime.signatureOf(files)
-                when {
+                val hunspell = when {
                     files.isEmpty() -> null
-                    held?.first == signature -> held
+                    heldHunspell?.first == signature -> heldHunspell
                     else -> HunspellRuntime.open(files)?.let { signature to it }
                 }
+                val spellerSignature = if (userUnlocked) DivvunRuntime.signatureOf(filesDir, langId) else ""
+                val divvun = when {
+                    spellerSignature.isEmpty() -> null
+                    heldDivvun?.first == spellerSignature -> heldDivvun
+                    else -> DivvunRuntime.open(filesDir, cacheDir, langId)?.let { spellerSignature to it }
+                }
+                hunspell to divvun
             }
-            hunspellChecker = next
+            hunspellChecker = nextHunspell
+            divvunChecker = nextDivvun
+            val held = engineWordChecker
             if (suggestionEngine === engine && _uiState.value.language.id == langId) {
-                engine.wordChecker = next?.second ?: WordChecker.NONE
-            } else if (engine.wordChecker === held?.second) {
+                val next = WordChecker.of(listOfNotNull(nextHunspell?.second, nextDivvun?.second))
+                engine.wordChecker = next
+                engineWordChecker = next
+            } else if (held != null && engine.wordChecker === held) {
                 engine.wordChecker = WordChecker.NONE
+                engineWordChecker = null
             }
-            // Closed after the engine lets go of it; a call already inside
+            // Closed after the engine lets go of them; a call already inside
             // finishes first, since closing takes the same lock.
-            if (held != null && held !== next) held.second.close()
+            if (heldHunspell != null && heldHunspell !== nextHunspell) heldHunspell.second.close()
+            if (heldDivvun != null && heldDivvun !== nextDivvun) heldDivvun.second.close()
         }
     }
 

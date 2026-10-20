@@ -178,6 +178,16 @@ Japanese handwriting in this build, which has no ML Kit; the next entry's
 has it. The models it reads (the Tegaki project's, LGPL 2.1) are not in the
 APK or the library: they are CJK pack downloads from the data repository.
 
+From the release after 0.6.2 the script also builds `native/divvunspell-jni`
+(Divvun's divvunspell, which checks words against GiellaLT's speller archives)
+into `core/prediction/src/main/jniLibs`, beside Hunspell's library, so the
+path that entry already scandeletes covers it. It is a Rust crate like Harper,
+with one difference: divvunspell and its archive reader (box-format, and
+box-format's fastvlq) are git dependencies, fetched by Cargo from GitHub at
+the commits `Cargo.lock` pins, because crates.io's last divvunspell release is
+from 2023. The spellers themselves are never in the APK or the library: the
+phone downloads them from GiellaLT's own releases, or the user imports them.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

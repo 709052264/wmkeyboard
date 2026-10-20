@@ -76,6 +76,8 @@
 # libwmhunspell.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_prediction_HunspellNative_*).
 -keep class com.wasimaster.wmkeyboard.core.prediction.HunspellNative { *; }
+# libwmdivvun.so the same way (..._DivvunNative_*).
+-keep class com.wasimaster.wmkeyboard.core.prediction.DivvunNative { *; }
 
 # --- librime (JNI) -------------------------------------------------------------
 # libwmrime.so binds by the mangled Java name

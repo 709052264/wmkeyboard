@@ -255,6 +255,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Language › Dictionaries row and module banner for a language with an imported pair; never fetched from the keyboard itself
     - No library, no pair, or a list switched off: the word lists decide alone, exactly as before
     - The main thread waits at most 15 ms for Hunspell's lock and otherwise answers as if it were absent; answers cached per word
+  - GiellaLT spellers `RARE` — divvunspell checks words against GiellaLT finite-state spellers (.bhfst) for North Sámi, Greenlandic, Faroese and other morphologically rich languages, where no word list holds every form
+    - Same WordChecker seam as Hunspell: an accepted word is never autocorrected, a rejected one gets the speller's spellings on the background pass, ranked as Hunspell's are; a language with both uses both (WordChecker.of)
+    - Ten pinned downloads (GiellaLT versioned releases: se, sma, smj, smn, sms, kl, fo, olo, fkv, vep), URL + SHA-256 + licence per entry; the .pkt.tar.zst is verified, then unpacked by the library
+    - Import of the user's own .bhfst, .zhfst or GiellaLT .pkt.tar.zst, recognised by content; installed only once it opens, the old speller kept until then
+    - Language › Dictionaries row for every keyboard language GiellaLT builds a speller for (94); Import where only nightly builds exist
+    - libwmdivvun.so shares the spell gate and :feature:spell split with Hunspell; built from source on F-Droid (native/divvunspell-jni, Rust, divvunspell pinned by commit)
+    - The main thread waits at most 15 ms for a check (a cold memory-mapped walk can take longer) and otherwise answers no; the walk finishes and is cached
+    - No library or no speller: the word lists decide alone, exactly as before
   - Three trie implementations behind one interface `uncommon` — Mutable node trie, heap-packed CSR trie, mapped trie
     - WordSource and TrieWalker split — The walker gives node-level access so fuzzy search steers its own traversal
     - One shared branch-and-bound completer — TrieCompleter replaces three parallel copies of the same loop
@@ -2876,7 +2884,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Two GitHub builds** — From 0.6.3 a release publishes the standard build (English, on-demand libraries and languages) and the offline build (all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
 - **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
   - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
-  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime, Mozc) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
+  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, divvunspell, Tesseract, librime, Mozc) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
   - Same gates as Play — Every library sits behind a `ModuleGate`, so the banners, `awaitInstalled` callers and `GatedLibrary` facades are unchanged; ML Kit's bundled text and barcode readers gained a `scanner` gate.
   - Loaded without ART double-registration — A dependency that loads its library itself is preloaded with a plain `dlopen` from `libwm_engine_jni.so`, so `JNI_OnLoad` runs once.
   - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.

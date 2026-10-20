@@ -1,0 +1,200 @@
+Third-party code in the GiellaLT speller library
+================================================
+
+GiellaLT spellers run in a native library (libwmdivvun.so, built from
+native/divvunspell-jni) on Divvun's divvunspell, released by UiT The Arctic
+University of Norway and its contributors under MIT OR Apache-2.0, and the
+Rust crates listed below. Each crate remains under its own licence; the SPDX
+licence expression from its Cargo metadata is listed beside it. "A OR B"
+means the crate is offered under either licence at the user's option; this
+app receives every crate under the permissive option of its expression.
+
+Two C libraries are compiled in through their -sys crates: Zstandard
+(zstd-sys; BSD-3-Clause, offered with GPL-2.0-only as an alternative) and
+liblzma from XZ Utils (lzma-sys; 0BSD and public domain). The licence texts
+accompany each crate's source at https://crates.io/crates/<name>, and
+divvunspell's at https://github.com/divvun/divvunspell. The Apache-2.0 text
+is bundled in this app (apache-2.0.txt).
+
+The spellers themselves are not part of the app. The phone downloads them
+from GiellaLT's own releases, or the user imports them; each is under the
+licence of the language repository it is built from (GPL-3.0 or LGPL-3.0
+for the ones the app offers), with its source at
+https://github.com/giellalt/lang-<code>.
+
+This is the complete set of crates compiled into the Android library.
+
+Crate                                     Licence (SPDX)
+-----                                     --------------
+aho-corasick 1.1.5                        Unlicense OR MIT
+allocator-api2 0.2.21                     MIT OR Apache-2.0
+anyhow 1.0.104                            MIT OR Apache-2.0
+arrayvec 0.7.8                            MIT OR Apache-2.0
+async-channel 2.5.0                       Apache-2.0 OR MIT
+async-fs 2.2.0                            Apache-2.0 OR MIT
+async-lock 3.4.2                          Apache-2.0 OR MIT
+async-task 4.7.1                          Apache-2.0 OR MIT
+async-walkdir 2.2.0                       Apache-2.0
+atomic-waker 1.1.2                        Apache-2.0 OR MIT
+bitflags 2.13.2                           MIT OR Apache-2.0
+blake3 1.8.7                              CC0-1.0 OR Apache-2.0 OR Apache-2.0 WITH LLVM-exception
+block-buffer 0.12.1                       MIT OR Apache-2.0
+blocking 1.7.0                            Apache-2.0 OR MIT
+borsh 1.8.1                               MIT OR Apache-2.0
+box-format 0.4.0                          Apache-2.0 OR MIT
+box-fst 0.1.0                             Apache-2.0 OR MIT
+bstr 1.13.1                               MIT OR Apache-2.0
+bumpalo 3.20.3                            MIT OR Apache-2.0
+byteorder 1.5.0                           Unlicense OR MIT
+bytes 1.12.1                              MIT
+cc 1.9.0                                  MIT OR Apache-2.0
+cesu8 1.1.0                               Apache-2.0/MIT
+cfg-if 1.0.5                              MIT OR Apache-2.0
+cfg_aliases 0.2.2                         MIT
+cmov 0.5.4                                Apache-2.0 OR MIT
+combine 4.6.9                             MIT
+concurrent-queue 2.5.0                    Apache-2.0 OR MIT
+constant_time_eq 0.4.2                    CC0-1.0 OR MIT-0 OR Apache-2.0
+crc32fast 1.5.3                           MIT OR Apache-2.0
+crossbeam-deque 0.8.8                     MIT OR Apache-2.0
+crossbeam-epoch 0.9.21                    MIT OR Apache-2.0
+crossbeam-utils 0.8.23                    MIT OR Apache-2.0
+crypto-common 0.2.2                       MIT OR Apache-2.0
+ctutils 0.4.3                             Apache-2.0 OR MIT
+digest 0.11.3                             MIT OR Apache-2.0
+divvun-fst 1.0.0-beta.13                  MIT OR Apache-2.0
+eieio 1.0.0                               MIT
+either 1.19.0                             MIT OR Apache-2.0
+equivalent 1.0.3                          Apache-2.0 OR MIT
+errno 0.3.14                              MIT OR Apache-2.0
+event-listener 5.4.2                      Apache-2.0 OR MIT
+event-listener-strategy 0.5.4             Apache-2.0 OR MIT
+fastrand 2.5.0                            Apache-2.0 OR MIT
+fastvint 1.0.0                            Apache-2.0 OR MIT
+filetime 0.2.29                           MIT/Apache-2.0
+find-msvc-tools 0.1.15                    MIT OR Apache-2.0
+flate2 1.1.10                             MIT OR Apache-2.0
+foldhash 0.1.5                            Zlib
+foldhash 0.2.0                            Zlib
+fs_extra 1.3.0                            MIT
+futures 0.3.34                            MIT OR Apache-2.0
+futures-channel 0.3.34                    MIT OR Apache-2.0
+futures-core 0.3.34                       MIT OR Apache-2.0
+futures-executor 0.3.34                   MIT OR Apache-2.0
+futures-io 0.3.34                         MIT OR Apache-2.0
+futures-lite 2.6.1                        Apache-2.0 OR MIT
+futures-macro 0.3.34                      MIT OR Apache-2.0
+futures-sink 0.3.34                       MIT OR Apache-2.0
+futures-task 0.3.34                       MIT OR Apache-2.0
+futures-util 0.3.34                       MIT OR Apache-2.0
+getrandom 0.4.3                           MIT OR Apache-2.0
+globset 0.4.20                            Unlicense OR MIT
+globwalk 0.9.1                            MIT
+hashbrown 0.15.5                          MIT OR Apache-2.0
+hashbrown 0.16.1                          MIT OR Apache-2.0
+hashbrown 0.17.1                          MIT OR Apache-2.0
+hex 0.4.3                                 MIT OR Apache-2.0
+hybrid-array 0.4.15                       MIT OR Apache-2.0
+ignore 0.4.33                             Unlicense OR MIT
+indexmap 2.14.2                           Apache-2.0 OR MIT
+iref 1.4.3                                MIT/Apache-2.0
+itertools 0.14.0                          MIT OR Apache-2.0
+itoa 1.0.18                               MIT OR Apache-2.0
+jni 0.21.1                                MIT/Apache-2.0
+jni-sys 0.3.1                             MIT OR Apache-2.0
+jni-sys 0.4.1                             MIT OR Apache-2.0
+jni-sys-macros 0.4.1                      MIT OR Apache-2.0
+jobserver 0.1.35                          MIT OR Apache-2.0
+language-tags 0.3.2                       MIT/Apache-2.0
+libc 0.2.191                              MIT OR Apache-2.0
+linux-raw-sys 0.12.1                      Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+lock_api 0.4.14                           MIT OR Apache-2.0
+log 0.4.34                                MIT OR Apache-2.0
+lru 0.17.0                                MIT
+lzma-sys 0.1.20                           MIT/Apache-2.0
+matches 0.1.10                            MIT
+memchr 2.8.3                              Unlicense OR MIT
+memmap2 0.7.1                             MIT OR Apache-2.0
+memmap2 0.9.11                            MIT OR Apache-2.0
+mmap-io 0.9.6                             Apache-2.0
+once_cell 1.21.4                          MIT OR Apache-2.0
+os_str_bytes 2.4.0                        MIT OR Apache-2.0
+parking 2.2.1                             Apache-2.0 OR MIT
+parking_lot 0.12.5                        MIT OR Apache-2.0
+parking_lot_core 0.9.12                   MIT OR Apache-2.0
+pathdiff 0.2.3                            MIT/Apache-2.0
+pathos 0.3.0                              Apache-2.0 OR MIT
+pct-str 1.2.0                             MIT OR Apache-2.0
+percent-encoding 2.3.2                    MIT OR Apache-2.0
+pin-project-lite 0.2.17                   Apache-2.0 OR MIT
+piper 0.2.5                               MIT OR Apache-2.0
+pkg-config 0.3.34                         MIT OR Apache-2.0
+proc-macro2 1.0.107                       MIT OR Apache-2.0
+quote 1.0.47                              MIT OR Apache-2.0
+rayon-core 1.13.0                         MIT OR Apache-2.0
+regex-automata 0.4.18                     MIT OR Apache-2.0
+regex-syntax 0.8.11                       MIT OR Apache-2.0
+relative-path 2.0.2                       MIT OR Apache-2.0
+rustix 1.1.5                              Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT
+same-file 1.0.6                           Unlicense/MIT
+scopeguard 1.2.0                          MIT OR Apache-2.0
+serde 1.0.229                             MIT OR Apache-2.0
+serde-xml-rs 0.6.0                        MIT
+serde_core 1.0.229                        MIT OR Apache-2.0
+serde_derive 1.0.229                      MIT OR Apache-2.0
+serde_json 1.0.154                        MIT OR Apache-2.0
+shlex 2.0.1                               MIT OR Apache-2.0
+simd-adler32 0.3.10                       MIT
+slab 0.4.12                               MIT
+smallvec 1.16.3                           MIT OR Apache-2.0
+smol_str 0.3.7                            MIT OR Apache-2.0
+string-interner 0.19.0                    MIT/Apache-2.0
+strsim 0.11.1                             MIT
+syn 2.0.119                               MIT OR Apache-2.0
+syn 3.0.9                                 MIT OR Apache-2.0
+sysinfo 0.37.2                            MIT
+tar 0.4.46                                MIT OR Apache-2.0
+tempfile 3.27.0                           MIT OR Apache-2.0
+thiserror 1.0.69                          MIT OR Apache-2.0
+thiserror 2.0.21                          MIT OR Apache-2.0
+thiserror-impl 1.0.69                     MIT OR Apache-2.0
+thiserror-impl 2.0.21                     MIT OR Apache-2.0
+tokio 1.54.0                              MIT
+tokio-macros 2.7.2                        MIT
+tokio-util 0.7.20                         MIT
+tracing 0.1.44                            MIT
+tracing-attributes 0.1.31                 MIT
+tracing-core 0.1.36                       MIT
+typenum 1.20.1                            MIT OR Apache-2.0
+unic-char-property 0.9.0                  MIT/Apache-2.0
+unic-char-range 0.9.0                     MIT/Apache-2.0
+unic-common 0.9.0                         MIT/Apache-2.0
+unic-emoji-char 0.9.0                     MIT/Apache-2.0
+unic-normal 0.9.0                         MIT/Apache-2.0
+unic-segment 0.9.0                        MIT/Apache-2.0
+unic-ucd 0.9.0                            MIT/Apache-2.0
+unic-ucd-age 0.9.0                        MIT/Apache-2.0
+unic-ucd-bidi 0.9.0                       MIT/Apache-2.0
+unic-ucd-block 0.9.0                      MIT/Apache-2.0
+unic-ucd-case 0.9.0                       MIT/Apache-2.0
+unic-ucd-category 0.9.0                   MIT/Apache-2.0
+unic-ucd-common 0.9.0                     MIT/Apache-2.0
+unic-ucd-hangul 0.9.0                     MIT/Apache-2.0
+unic-ucd-ident 0.9.0                      MIT/Apache-2.0
+unic-ucd-name 0.9.0                       MIT/Apache-2.0
+unic-ucd-name_aliases 0.9.0               MIT/Apache-2.0
+unic-ucd-normal 0.9.0                     MIT/Apache-2.0
+unic-ucd-segment 0.9.0                    MIT/Apache-2.0
+unic-ucd-version 0.9.0                    MIT/Apache-2.0
+unicode-ident 1.0.27                      (MIT OR Apache-2.0) AND Unicode-3.0
+utf8-decode 1.0.1                         MIT/Apache-2.0
+walkdir 2.5.0                             Unlicense/MIT
+xml-rs 0.8.29                             MIT
+xz2 0.1.7                                 MIT/Apache-2.0
+zip 6.0.0                                 MIT
+zlib-rs 0.6.8                             Zlib
+zmij 1.0.23                               MIT
+zopfli 0.8.4                              Apache-2.0
+zstd 0.13.3                               MIT
+zstd-safe 7.3.0                           BSD-3-Clause
+zstd-sys 2.1.2+zstd.1.5.7                 BSD-3-Clause

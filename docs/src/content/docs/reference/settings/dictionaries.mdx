@@ -82,9 +82,37 @@ A word list holds words, while a Hunspell dictionary also holds the rules that m
 - A word Hunspell accepts is never autocorrected, and the strip offers no corrections for it, the same as a word in a list.
 - For a word Hunspell rejects, and that no list word starts with, Hunspell's own spellings join the suggestions. One a list knows ranks with the other corrections; one only Hunspell knows (a compound, mostly) ranks below the counted words.
 
-The language's **Dictionaries** section shows a **Hunspell spell checking** row once it has such a dictionary. The library is about 1 MB and is not part of every install: where it is missing, the row carries a **Download** banner, and the keyboard spells with the word list alone until it arrives. On an F-Droid install the banner asks you to turn on library downloads under <SettingsPath path="Privacy / Downloads" /> first. Switching the list off under **Custom dictionaries** turns its Hunspell checking off too, and deleting the list deletes the two files.
+The language's **Dictionaries** section shows a **Hunspell spell checking** row once it has such a dictionary. The library comes in one download of about 4 MB with the [GiellaLT speller](#giellalt-spellers) engine and is not part of every install: where it is missing, the row carries a **Download** banner, and the keyboard spells with the word list alone until it arrives. On an F-Droid install the banner asks you to turn on library downloads under <SettingsPath path="Privacy / Downloads" /> first. Switching the list off under **Custom dictionaries** turns its Hunspell checking off too, and deleting the list deletes the two files.
 
 Only dictionaries imported with this version or later have their `.aff` and `.dic` kept. Import an older one again to use it with Hunspell.
+
+### GiellaLT spellers
+
+For many minority languages there is no Hunspell dictionary worth the name, because a word can take hundreds of forms. [GiellaLT](https://giellalt.github.io/), the language technology group at UiT The Arctic University of Norway, builds finite-state spellers for about 150 of them, North Sámi, Greenlandic and Faroese among them. A speller is one archive that knows every inflected and compound form the language allows. The keyboard checks words with it through [divvunspell](https://github.com/divvun/divvunspell), the engine Divvun's own keyboards use, and it works the same way as Hunspell checking:
+
+- A word the speller accepts is never autocorrected, and the strip offers no corrections for it.
+- For a word it rejects, and that no list word starts with, the speller's spellings join the suggestions, ranked the way Hunspell's are.
+
+A language GiellaLT builds a speller for has a **GiellaLT speller** row in its **Dictionaries** section. Where GiellaLT has made a versioned release, the row has a **Download** button that fetches that exact release from GiellaLT's GitHub and checks it against a fixed SHA-256 before unpacking it. The row gives the download size, the space the speller takes once unpacked and its licence. These are the ones it downloads:
+
+| Language | Release | Download | On the phone | Licence |
+| --- | --- | --- | --- | --- |
+| North Sámi | 4.5.2 | 10.6 MB | 79 MB | GPL-3.0 |
+| South Sámi | 4.7.0 | 2.8 MB | 25 MB | GPL-3.0 |
+| Lule Sámi | 4.5.1 | 7.9 MB | 87 MB | GPL-3.0 |
+| Inari Sámi | 1.2.1 | 6.6 MB | 62 MB | GPL-3.0 |
+| Skolt Sámi | 1.0.2 | 14.6 MB | 107 MB | LGPL-3.0 |
+| Greenlandic | 1.0.3 | 11.8 MB | 94 MB | GPL-3.0 |
+| Faroese | 1.3.1 | 4.4 MB | 34 MB | GPL-3.0 |
+| Livvi Karelian | 0.1.4 (pre-release) | 1.1 MB | 9 MB | LGPL-3.0 |
+| Kven | 0.2.1 (pre-release) | 2.6 MB | 28 MB | LGPL-3.0 |
+| Veps | 0.1.2 (pre-release) | 0.2 MB | 3 MB | LGPL-3.0 |
+
+Every other language GiellaLT builds for has only nightly builds, which are replaced on every change and so cannot be pinned. Its row has **Import** instead, and so do the rows above. Import takes a `.bhfst` speller, an older `.zhfst` one, or the whole `.pkt.tar.zst` package from a GiellaLT release page (`github.com/giellalt/lang-<code>/releases`, the `noarch-mobile` file). The app recognises the file by its contents, not its name, unpacks it if needed, and installs it only if it opens; a speller that was already there stays until the new one has. "That file is not a speller" means it is none of the three; "That speller would not open" means it is damaged or made for a newer divvunspell.
+
+The library is part of the same download as Hunspell's, about 4 MB, and the row carries the same **Download** banner until it is on the phone; on an F-Droid install, turn on library downloads under <SettingsPath path="Privacy / Downloads" /> first. A language that has both an imported Hunspell dictionary and a speller uses both: a word either accepts stands, and their spellings take turns on the strip. To stop using a speller, delete it from the row or swipe the row. The keyboard picks up a new or deleted speller straight away.
+
+The spellers are GiellaLT's work and stay under their own licences, mostly GPL-3.0 or LGPL-3.0; the app only downloads them. Irish has a versioned GiellaLT release too, but its repository states no licence yet, so it is offered for import only.
 
 Lists are additive, so several can sit under one language, and for English and Bangla they stack on top of the bundled dictionary rather than replacing it. That's a different mechanism from the downloadable wordlists reached from a language's own Dictionary section, which *do* replace the built-in English or Bangla list. See [Downloadable dictionaries](/languages/dictionaries/) for that pipeline, its size tiers, and the full list of every available wordlist.
 

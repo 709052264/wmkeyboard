@@ -14,6 +14,7 @@
 #   Neural suggestions  indicxlit-jni/build.sh    libwmxlit.so
 #   (IndicXlit)                                    (both into core/voice/src/onnx/jniLibs)
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
+#   GiellaLT spellers   divvunspell-jni/build.sh  libwmdivvun.so
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #   Mozc (Japanese)     mozc-jni/build.sh         libwmmozc.so
 #                       (into core/input/src/mozc/jniLibs; Bazel, through
@@ -83,6 +84,7 @@ fi
 "$HERE/sherpa-onnx-jni/build.sh"
 "$HERE/indicxlit-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
+"$HERE/divvunspell-jni/build.sh"
 "$HERE/librime-jni/build.sh"
 "$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"
