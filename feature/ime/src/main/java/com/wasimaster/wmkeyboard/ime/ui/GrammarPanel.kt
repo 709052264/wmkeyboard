@@ -920,95 +920,97 @@ private fun GrammarFilterPicker(
     // of twenty kinds unfolded at once would be a scroll with no landmarks.
     var expanded by remember { mutableStateOf<GrammarCategory?>(null) }
     Popup(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .widthIn(min = 220.dp, max = 280.dp)
-                .heightIn(max = 260.dp)
-                .clip(kb.menuShape())
-                .background(kb.popup)
-                .popupBorder(kb, kb.menuShape())
-                .verticalScroll(rememberScrollState())
-                .padding(vertical = 4.dp),
-        ) {
-            GrammarCategory.entries.forEach { category ->
-                val kinds = GrammarLintKind.of(category)
-                val shown = kinds.count { it !in hidden }
-                val open = expanded == category
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onCategory(category, shown < kinds.size) }
-                        .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        Modifier
-                            .size(7.dp)
-                            .background(category.color(kb.dark), CircleShape),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        stringResource(category.labelRes),
-                        color = kb.suggestionText,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f),
-                    )
-                    FilterCount(kinds.sumOf { countByKind[it] ?: 0 })
-                    FilterMark(shown = shown, total = kinds.size)
-                    IconHint(stringResource(R.string.ime_grammar_filter_expand_desc)) {
-                        Icon(
-                            if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                            contentDescription = stringResource(R.string.ime_grammar_filter_expand_desc),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .clickable { expanded = if (open) null else category }
-                                .padding(4.dp)
-                                .size(16.dp),
-                            tint = kb.secondaryText,
+        IconHintHost {
+            Column(
+                modifier = Modifier
+                    .widthIn(min = 220.dp, max = 280.dp)
+                    .heightIn(max = 260.dp)
+                    .clip(kb.menuShape())
+                    .background(kb.popup)
+                    .popupBorder(kb, kb.menuShape())
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 4.dp),
+            ) {
+                GrammarCategory.entries.forEach { category ->
+                    val kinds = GrammarLintKind.of(category)
+                    val shown = kinds.count { it !in hidden }
+                    val open = expanded == category
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onCategory(category, shown < kinds.size) }
+                            .padding(start = 12.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(
+                            Modifier
+                                .size(7.dp)
+                                .background(category.color(kb.dark), CircleShape),
                         )
-                    }
-                }
-                if (open) {
-                    kinds.forEach { kind ->
-                        val kindShown = kind !in hidden
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onKind(kind, !kindShown) }
-                                .padding(start = 27.dp, end = 32.dp, top = 6.dp, bottom = 6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                stringResource(kind.labelRes),
-                                color = kb.suggestionText,
-                                fontSize = 12.sp,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f),
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            stringResource(category.labelRes),
+                            color = kb.suggestionText,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f),
+                        )
+                        FilterCount(kinds.sumOf { countByKind[it] ?: 0 })
+                        FilterMark(shown = shown, total = kinds.size)
+                        IconHint(stringResource(R.string.ime_grammar_filter_expand_desc)) {
+                            Icon(
+                                if (open) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                                contentDescription = stringResource(R.string.ime_grammar_filter_expand_desc),
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .clickable { expanded = if (open) null else category }
+                                    .padding(4.dp)
+                                    .size(16.dp),
+                                tint = kb.secondaryText,
                             )
-                            FilterCount(countByKind[kind] ?: 0)
-                            FilterMark(shown = if (kindShown) 1 else 0, total = 1)
+                        }
+                    }
+                    if (open) {
+                        kinds.forEach { kind ->
+                            val kindShown = kind !in hidden
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onKind(kind, !kindShown) }
+                                    .padding(start = 27.dp, end = 32.dp, top = 6.dp, bottom = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    stringResource(kind.labelRes),
+                                    color = kb.suggestionText,
+                                    fontSize = 12.sp,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                FilterCount(countByKind[kind] ?: 0)
+                                FilterMark(shown = if (kindShown) 1 else 0, total = 1)
+                            }
                         }
                     }
                 }
-            }
-            if (hidden.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.ime_grammar_filter_show_all_action),
-                    color = kb.accent,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        // One write, not one per category: four edits of the
-                        // same key would be four settings emissions for a
-                        // button whose whole job is "back to the default".
-                        .clickable { onShowAll() }
-                        .padding(horizontal = 14.dp, vertical = 8.dp),
-                )
+                if (hidden.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.ime_grammar_filter_show_all_action),
+                        color = kb.accent,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            // One write, not one per category: four edits of the
+                            // same key would be four settings emissions for a
+                            // button whose whole job is "back to the default".
+                            .clickable { onShowAll() }
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                    )
+                }
             }
         }
     }

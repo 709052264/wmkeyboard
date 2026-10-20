@@ -2198,111 +2198,113 @@ private fun ClipFullTextPopup(
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
-        GlassPopupBackdrop(kb, FrostSurface.MENUS)
-        Surface(
-            shape = kb.menuShape(),
-            color = kb.popupFill(FrostSurface.MENUS),
-            border = kb.popupSurfaceBorder(),
-            shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .widthIn(max = ClipFullTextMaxWidth)
-                .fillMaxWidth()
-                .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
-        ) {
-            Column(modifier = Modifier.padding(top = 10.dp)) {
-                Text(
-                    pluralStringResource(R.plurals.ime_clip_character_count, length, length),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = kb.popupText.copy(alpha = 0.6f),
-                    modifier = Modifier.padding(horizontal = 14.dp),
-                )
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = ClipFullTextMaxHeight),
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-                ) {
-                    items(chunks) { chunk ->
-                        // Links in the accent colour (#472), so an address
-                        // stands out of a long clip.
-                        val accent = kb.accent
-                        val shown = remember(chunk, accent, plainLinks) {
-                            if (plainLinks) AnnotatedString(chunk) else withLinksMarked(chunk, accent)
-                        }
-                        Text(shown, fontSize = 13.sp, lineHeight = 18.sp, color = kb.popupText)
-                    }
-                }
-                // The icons at the end, under the thumb, the way Chrome's menu
-                // row sits (#612), with Paste last.
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 4.dp, end = 4.dp, bottom = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val tint = kb.popupText
-                    // Scrolls rather than squeezing Paste off a narrow screen
-                    // when a clip offers every action at once.
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        Row(
-                            modifier = Modifier.horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
-                            actions.onPick?.let {
-                                ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
+        IconHintHost {
+            GlassPopupBackdrop(kb, FrostSurface.MENUS)
+            Surface(
+                shape = kb.menuShape(),
+                color = kb.popupFill(FrostSurface.MENUS),
+                border = kb.popupSurfaceBorder(),
+                shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .widthIn(max = ClipFullTextMaxWidth)
+                    .fillMaxWidth()
+                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+            ) {
+                Column(modifier = Modifier.padding(top = 10.dp)) {
+                    Text(
+                        pluralStringResource(R.plurals.ime_clip_character_count, length, length),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = kb.popupText.copy(alpha = 0.6f),
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                    )
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = ClipFullTextMaxHeight),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                    ) {
+                        items(chunks) { chunk ->
+                            // Links in the accent colour (#472), so an address
+                            // stands out of a long clip.
+                            val accent = kb.accent
+                            val shown = remember(chunk, accent, plainLinks) {
+                                if (plainLinks) AnnotatedString(chunk) else withLinksMarked(chunk, accent)
                             }
-                            actions.onReorder?.let {
-                                ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
-                            }
-                            actions.onJump?.let {
-                                ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
-                            }
-                            actions.onKeepOnly?.let {
-                                ClipTextActionIcon(Icons.Outlined.ContentCopy, stringResource(R.string.ime_clip_keep_only), tint, it)
-                            }
-                            actions.onEdit?.let {
-                                ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
-                            }
-                            actions.onTags?.let {
-                                ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
-                            }
-                            actions.onQr?.let {
-                                ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
-                            }
-                            actions.onOpenLink?.let {
-                                ClipTextActionIcon(
-                                    Icons.AutoMirrored.Outlined.OpenInNew,
-                                    stringResource(R.string.ime_clip_open_link),
-                                    tint,
-                                    it,
-                                )
-                            }
-                            actions.onExtractParts?.let {
-                                ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
-                            }
-                            actions.onTogglePin?.let {
-                                ClipTextActionIcon(
-                                    if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                    stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
-                                    tint,
-                                    it,
-                                )
-                            }
-                            actions.onDelete?.let {
-                                ClipTextActionIcon(
-                                    Icons.Outlined.Delete,
-                                    stringResource(CommonR.string.common_delete),
-                                    MaterialTheme.colorScheme.error,
-                                    it,
-                                )
-                            }
+                            Text(shown, fontSize = 13.sp, lineHeight = 18.sp, color = kb.popupText)
                         }
                     }
-                    TextButton(onClick = onPaste) {
-                        Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                    // The icons at the end, under the thumb, the way Chrome's menu
+                    // row sits (#612), with Paste last.
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 4.dp, end = 4.dp, bottom = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val tint = kb.popupText
+                        // Scrolls rather than squeezing Paste off a narrow screen
+                        // when a clip offers every action at once.
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                ClipTextActionIcon(Icons.Outlined.Info, stringResource(R.string.ime_clip_details_desc), tint, actions.onInfo)
+                                actions.onPick?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
+                                }
+                                actions.onReorder?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+                                }
+                                actions.onJump?.let {
+                                    ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                                }
+                                actions.onKeepOnly?.let {
+                                    ClipTextActionIcon(Icons.Outlined.ContentCopy, stringResource(R.string.ime_clip_keep_only), tint, it)
+                                }
+                                actions.onEdit?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
+                                }
+                                actions.onTags?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+                                }
+                                actions.onQr?.let {
+                                    ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
+                                }
+                                actions.onOpenLink?.let {
+                                    ClipTextActionIcon(
+                                        Icons.AutoMirrored.Outlined.OpenInNew,
+                                        stringResource(R.string.ime_clip_open_link),
+                                        tint,
+                                        it,
+                                    )
+                                }
+                                actions.onExtractParts?.let {
+                                    ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
+                                }
+                                actions.onTogglePin?.let {
+                                    ClipTextActionIcon(
+                                        if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                                        stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
+                                        tint,
+                                        it,
+                                    )
+                                }
+                                actions.onDelete?.let {
+                                    ClipTextActionIcon(
+                                        Icons.Outlined.Delete,
+                                        stringResource(CommonR.string.common_delete),
+                                        MaterialTheme.colorScheme.error,
+                                        it,
+                                    )
+                                }
+                            }
+                        }
+                        TextButton(onClick = onPaste) {
+                            Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }

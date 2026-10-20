@@ -139,96 +139,98 @@ private fun WordCardWindow(card: WordCard, growth: PopupGrowth, onAction: (WordC
     val dismiss = { onAction(WordCardAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
-        GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .popupScrim(growth)
-                .pointerInput(Unit) { detectTapGestures { dismiss() } },
-            contentAlignment = Alignment.Center,
-        ) {
-            Surface(
-                shape = kb.menuShape(),
-                color = kb.popupFill(FrostSurface.MENUS),
-                border = kb.popupSurfaceBorder(),
-                shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
+        IconHintHost {
+            GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
+            Box(
                 modifier = Modifier
-                    .padding(12.dp)
-                    .popupGrow(growth)
-                    .fillMaxWidth(0.94f)
-                    .fillMaxHeight(0.94f)
-                    // Taps inside the card must not reach the scrim.
-                    .pointerInput(Unit) { detectTapGestures { } }
-                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+                    .fillMaxSize()
+                    .popupScrim(growth)
+                    .pointerInput(Unit) { detectTapGestures { dismiss() } },
+                contentAlignment = Alignment.Center,
             ) {
-                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = card.word,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = kb.popupText,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconHint(stringResource(R.string.ime_word_card_close_desc)) {
-                            IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
-                                Icon(
-                                    Icons.Outlined.Close,
-                                    contentDescription = stringResource(R.string.ime_word_card_close_desc),
-                                    tint = kb.popupText,
-                                    modifier = Modifier.size(18.dp),
-                                )
+                Surface(
+                    shape = kb.menuShape(),
+                    color = kb.popupFill(FrostSurface.MENUS),
+                    border = kb.popupSurfaceBorder(),
+                    shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .popupGrow(growth)
+                        .fillMaxWidth(0.94f)
+                        .fillMaxHeight(0.94f)
+                        // Taps inside the card must not reach the scrim.
+                        .pointerInput(Unit) { detectTapGestures { } }
+                        .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = card.word,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = kb.popupText,
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconHint(stringResource(R.string.ime_word_card_close_desc)) {
+                                IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
+                                    Icon(
+                                        Icons.Outlined.Close,
+                                        contentDescription = stringResource(R.string.ime_word_card_close_desc),
+                                        tint = kb.popupText,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                }
                             }
                         }
-                    }
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .verticalScroll(rememberScrollState()),
-                    ) {
-                        SectionTitle(stringResource(R.string.ime_word_card_sources_title), kb.popupText)
-                        WordSources(card, kb.popupText, animate)
-                        Spacer(Modifier.size(8.dp))
-                        Spelling(card, onAction, kb.popupText, animate)
-                        if (showsWeight) {
-                            SectionTitle(stringResource(R.string.ime_word_card_weight_title), kb.popupText)
-                            Stepper(
-                                value = if (weight == 0) {
-                                    stringResource(R.string.ime_word_card_weight_none)
-                                } else {
-                                    NumberFormat.getIntegerInstance().format(weight)
-                                },
-                                level = weight,
-                                canLower = weight > 0,
-                                canRaise = weight < UserLexicon.MAX_COUNT,
-                                onLower = { weight = (weight - weightStep(weight - 1)).coerceAtLeast(0) },
-                                onRaise = {
-                                    weight = (weight + weightStep(weight)).coerceAtMost(UserLexicon.MAX_COUNT)
-                                },
-                                color = kb.popupText,
-                                animate = animate,
-                            )
-                            Hint(stringResource(R.string.ime_word_card_weight_hint), kb.popupText)
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .verticalScroll(rememberScrollState()),
+                        ) {
+                            SectionTitle(stringResource(R.string.ime_word_card_sources_title), kb.popupText)
+                            WordSources(card, kb.popupText, animate)
+                            Spacer(Modifier.size(8.dp))
+                            Spelling(card, onAction, kb.popupText, animate)
+                            if (showsWeight) {
+                                SectionTitle(stringResource(R.string.ime_word_card_weight_title), kb.popupText)
+                                Stepper(
+                                    value = if (weight == 0) {
+                                        stringResource(R.string.ime_word_card_weight_none)
+                                    } else {
+                                        NumberFormat.getIntegerInstance().format(weight)
+                                    },
+                                    level = weight,
+                                    canLower = weight > 0,
+                                    canRaise = weight < UserLexicon.MAX_COUNT,
+                                    onLower = { weight = (weight - weightStep(weight - 1)).coerceAtLeast(0) },
+                                    onRaise = {
+                                        weight = (weight + weightStep(weight)).coerceAtMost(UserLexicon.MAX_COUNT)
+                                    },
+                                    color = kb.popupText,
+                                    animate = animate,
+                                )
+                                Hint(stringResource(R.string.ime_word_card_weight_hint), kb.popupText)
+                            }
+                            if (showsOffset) {
+                                SectionTitle(stringResource(R.string.ime_word_card_offset_title), kb.popupText)
+                                Stepper(
+                                    value = if (offset == 0) {
+                                        stringResource(R.string.ime_word_card_offset_normal)
+                                    } else {
+                                        stringResource(R.string.ime_word_card_offset_value, offset)
+                                    },
+                                    level = offset,
+                                    canLower = offset > WordRanks.MIN_STEPS,
+                                    canRaise = offset < WordRanks.MAX_STEPS,
+                                    onLower = { offset-- },
+                                    onRaise = { offset++ },
+                                    color = kb.popupText,
+                                    animate = animate,
+                                )
+                                Hint(stringResource(R.string.ime_word_card_offset_hint), kb.popupText)
+                            }
                         }
-                        if (showsOffset) {
-                            SectionTitle(stringResource(R.string.ime_word_card_offset_title), kb.popupText)
-                            Stepper(
-                                value = if (offset == 0) {
-                                    stringResource(R.string.ime_word_card_offset_normal)
-                                } else {
-                                    stringResource(R.string.ime_word_card_offset_value, offset)
-                                },
-                                level = offset,
-                                canLower = offset > WordRanks.MIN_STEPS,
-                                canRaise = offset < WordRanks.MAX_STEPS,
-                                onLower = { offset-- },
-                                onRaise = { offset++ },
-                                color = kb.popupText,
-                                animate = animate,
-                            )
-                            Hint(stringResource(R.string.ime_word_card_offset_hint), kb.popupText)
-                        }
+                        Actions(card, onAction, done, animate)
                     }
-                    Actions(card, onAction, done, animate)
                 }
             }
         }

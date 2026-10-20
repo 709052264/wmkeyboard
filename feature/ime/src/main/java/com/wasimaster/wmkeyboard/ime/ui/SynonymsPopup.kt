@@ -93,67 +93,69 @@ private fun SynonymsWindow(sheet: SynonymsSheet, growth: PopupGrowth, onAction: 
     val dismiss = { onAction(SynonymAction.Dismiss) }
 
     Popup(onDismissRequest = dismiss) {
-        GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .popupScrim(growth)
-                .pointerInput(Unit) { detectTapGestures { dismiss() } },
-            contentAlignment = Alignment.Center,
-        ) {
-            Surface(
-                shape = kb.menuShape(),
-                color = kb.popupFill(FrostSurface.MENUS),
-                border = kb.popupSurfaceBorder(),
-                shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
+        IconHintHost {
+            GlassPopupBackdrop(LocalKbTheme.current, FrostSurface.MENUS)
+            Box(
                 modifier = Modifier
-                    .padding(12.dp)
-                    .popupGrow(growth)
-                    // As tall as its list, and no taller than the keyboard:
-                    // the box it is centred in is the keyboard window.
-                    .fillMaxWidth(0.94f)
-                    // Taps inside the sheet must not reach the scrim.
-                    .pointerInput(Unit) { detectTapGestures { } }
-                    .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+                    .fillMaxSize()
+                    .popupScrim(growth)
+                    .pointerInput(Unit) { detectTapGestures { dismiss() } },
+                contentAlignment = Alignment.Center,
             ) {
-                Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.ime_synonyms_title, sheet.word),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = kb.popupText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconHint(stringResource(R.string.ime_synonyms_close_desc)) {
-                            IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
-                                Icon(
-                                    Icons.Outlined.Close,
-                                    contentDescription = stringResource(R.string.ime_synonyms_close_desc),
-                                    tint = kb.popupText,
-                                    modifier = Modifier.size(18.dp),
-                                )
-                            }
-                        }
-                    }
-                    when (val status = sheet.status) {
-                        SynonymsStatus.Loading -> Loading(kb.popupText)
-                        is SynonymsStatus.Found -> Found(sheet, status, kb, onAction)
-                        SynonymsStatus.NotFound ->
-                            Message(stringResource(R.string.ime_synonyms_not_found, sheet.word), kb.popupText)
-                        SynonymsStatus.Failed -> {
-                            Message(stringResource(R.string.ime_synonyms_failed), kb.popupText)
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = { onAction(SynonymAction.Retry) }) {
-                                    Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                                    Spacer(Modifier.width(6.dp))
-                                    Text(stringResource(R.string.ime_synonyms_retry))
+                Surface(
+                    shape = kb.menuShape(),
+                    color = kb.popupFill(FrostSurface.MENUS),
+                    border = kb.popupSurfaceBorder(),
+                    shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .popupGrow(growth)
+                        // As tall as its list, and no taller than the keyboard:
+                        // the box it is centred in is the keyboard window.
+                        .fillMaxWidth(0.94f)
+                        // Taps inside the sheet must not reach the scrim.
+                        .pointerInput(Unit) { detectTapGestures { } }
+                        .frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(R.string.ime_synonyms_title, sheet.word),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = kb.popupText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f),
+                            )
+                            IconHint(stringResource(R.string.ime_synonyms_close_desc)) {
+                                IconButton(onClick = dismiss, modifier = Modifier.size(32.dp)) {
+                                    Icon(
+                                        Icons.Outlined.Close,
+                                        contentDescription = stringResource(R.string.ime_synonyms_close_desc),
+                                        tint = kb.popupText,
+                                        modifier = Modifier.size(18.dp),
+                                    )
                                 }
                             }
                         }
-                        SynonymsStatus.NoSources ->
-                            Message(stringResource(R.string.ime_synonyms_no_sources), kb.popupText)
+                        when (val status = sheet.status) {
+                            SynonymsStatus.Loading -> Loading(kb.popupText)
+                            is SynonymsStatus.Found -> Found(sheet, status, kb, onAction)
+                            SynonymsStatus.NotFound ->
+                                Message(stringResource(R.string.ime_synonyms_not_found, sheet.word), kb.popupText)
+                            SynonymsStatus.Failed -> {
+                                Message(stringResource(R.string.ime_synonyms_failed), kb.popupText)
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    TextButton(onClick = { onAction(SynonymAction.Retry) }) {
+                                        Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(stringResource(R.string.ime_synonyms_retry))
+                                    }
+                                }
+                            }
+                            SynonymsStatus.NoSources ->
+                                Message(stringResource(R.string.ime_synonyms_no_sources), kb.popupText)
+                        }
                     }
                 }
             }

@@ -25495,87 +25495,89 @@ private fun LanguageCarouselPopup(
         popupPositionProvider = popupPosition,
         onDismissRequest = onDismiss,
     ) {
-        PopupNoWindowAnimation()
-        GlassPopupBackdrop(kb, FrostSurface.MENUS)
-        Surface(
-            modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
-            shape = kb.menuShape(),
-            color = kb.popupFill(FrostSurface.MENUS),
-            border = kb.popupSurfaceBorder(),
-            shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
-        ) {
-            Row(
-                modifier = Modifier.height(IntrinsicSize.Min),
-                verticalAlignment = Alignment.CenterVertically,
+        IconHintHost {
+            PopupNoWindowAnimation()
+            GlassPopupBackdrop(kb, FrostSurface.MENUS)
+            Surface(
+                modifier = Modifier.frostGlass(kb, kb.menuShape(), FrostSurface.MENUS),
+                shape = kb.menuShape(),
+                color = kb.popupFill(FrostSurface.MENUS),
+                border = kb.popupSurfaceBorder(),
+                shadowElevation = elevationFor(kb.menuShapeKind, 8.dp),
             ) {
                 Row(
-                    modifier = Modifier
-                        .widthIn(max = CarouselMaxWidthDp.dp)
-                        .onSizeChanged { viewportWidth = it.width }
-                        .horizontalScroll(scrollState)
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
+                    modifier = Modifier.height(IntrinsicSize.Min),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    for ((index, layoutId) in enabledLayoutIds.withIndex()) {
-                        val selected = layoutId == currentLayoutId
-                        val dragged = index == highlightIndex
-                        val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
-                        Text(
-                            text = label,
-                            fontFamily = layoutLabelFont(label, layoutId, customLayouts),
-                            color = if (selected) kb.popupSelectedText else kb.popupText,
-                            fontWeight = if (selected || dragged) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 15.sp,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .onPlaced {
-                                    chipBounds[index] =
-                                        it.positionInParent().x.roundToInt() to it.size.width
-                                }
-                                .padding(horizontal = 2.dp)
-                                .height(PickerRowHeightDp.dp)
-                                .background(
-                                    if (dragged || (selected && highlightIndex == null)) {
-                                        kb.pressedKey
-                                    } else {
-                                        Color.Transparent
-                                    },
-                                    RoundedCornerShape(kb.popupRadiusDp.dp),
-                                )
-                                .clip(RoundedCornerShape(kb.popupRadiusDp.dp))
-                                .clickable { onPick(layoutId) }
-                                .padding(horizontal = 12.dp)
-                                .wrapContentHeight(Alignment.CenterVertically),
-                        )
+                    Row(
+                        modifier = Modifier
+                            .widthIn(max = CarouselMaxWidthDp.dp)
+                            .onSizeChanged { viewportWidth = it.width }
+                            .horizontalScroll(scrollState)
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        for ((index, layoutId) in enabledLayoutIds.withIndex()) {
+                            val selected = layoutId == currentLayoutId
+                            val dragged = index == highlightIndex
+                            val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
+                            Text(
+                                text = label,
+                                fontFamily = layoutLabelFont(label, layoutId, customLayouts),
+                                color = if (selected) kb.popupSelectedText else kb.popupText,
+                                fontWeight = if (selected || dragged) FontWeight.Bold else FontWeight.Normal,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                modifier = Modifier
+                                    .onPlaced {
+                                        chipBounds[index] =
+                                            it.positionInParent().x.roundToInt() to it.size.width
+                                    }
+                                    .padding(horizontal = 2.dp)
+                                    .height(PickerRowHeightDp.dp)
+                                    .background(
+                                        if (dragged || (selected && highlightIndex == null)) {
+                                            kb.pressedKey
+                                        } else {
+                                            Color.Transparent
+                                        },
+                                        RoundedCornerShape(kb.popupRadiusDp.dp),
+                                    )
+                                    .clip(RoundedCornerShape(kb.popupRadiusDp.dp))
+                                    .clickable { onPick(layoutId) }
+                                    .padding(horizontal = 12.dp)
+                                    .wrapContentHeight(Alignment.CenterVertically),
+                            )
+                        }
                     }
-                }
-                VerticalDivider(
-                    modifier = Modifier.fillMaxHeight().padding(vertical = 8.dp),
-                    color = kb.popupText.copy(alpha = 0.15f),
-                )
-                if (onLanguageSettings != null) {
-                    IconHint(stringResource(R.string.ime_language_picker_language_settings)) {
+                    VerticalDivider(
+                        modifier = Modifier.fillMaxHeight().padding(vertical = 8.dp),
+                        color = kb.popupText.copy(alpha = 0.15f),
+                    )
+                    if (onLanguageSettings != null) {
+                        IconHint(stringResource(R.string.ime_language_picker_language_settings)) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = stringResource(R.string.ime_language_picker_language_settings),
+                                tint = kb.popupText,
+                                modifier = Modifier
+                                    .clickable { onLanguageSettings() }
+                                    .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                                    .size(22.dp),
+                            )
+                        }
+                    }
+                    IconHint(stringResource(R.string.ime_language_picker_other_keyboards)) {
                         Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = stringResource(R.string.ime_language_picker_language_settings),
+                            imageVector = Icons.Outlined.Keyboard,
+                            contentDescription = stringResource(R.string.ime_language_picker_other_keyboards),
                             tint = kb.popupText,
                             modifier = Modifier
-                                .clickable { onLanguageSettings() }
-                                .padding(start = 12.dp, top = 8.dp, bottom = 8.dp)
+                                .clickable { onOtherKeyboards() }
+                                .padding(horizontal = 12.dp, vertical = 8.dp)
                                 .size(22.dp),
                         )
                     }
-                }
-                IconHint(stringResource(R.string.ime_language_picker_other_keyboards)) {
-                    Icon(
-                        imageVector = Icons.Outlined.Keyboard,
-                        contentDescription = stringResource(R.string.ime_language_picker_other_keyboards),
-                        tint = kb.popupText,
-                        modifier = Modifier
-                            .clickable { onOtherKeyboards() }
-                            .padding(horizontal = 12.dp, vertical = 8.dp)
-                            .size(22.dp),
-                    )
                 }
             }
         }
@@ -30454,107 +30456,109 @@ internal fun ClipInfoPopup(
         popupPositionProvider = rememberAboveAnchorPopup(),
         onDismissRequest = onDismiss,
     ) {
-        Surface(
-            shape = kb.menuShape(),
-            color = kb.popup,
-            border = kb.popupSurfaceBorder(),
-            shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .widthIn(min = 220.dp, max = 320.dp)
-                    .padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+        IconHintHost {
+            Surface(
+                shape = kb.menuShape(),
+                color = kb.popup,
+                border = kb.popupSurfaceBorder(),
+                shadowElevation = elevationFor(kb.menuShapeKind, 6.dp),
             ) {
-                ClipInfoRow(
-                    stringResource(R.string.ime_clip_info_copied),
-                    "$relative\n$exact",
-                    kb.popupText,
-                )
-                edited?.let {
-                    ClipInfoRow(stringResource(R.string.ime_clip_info_edited), it, kb.popupText)
-                }
-                item.sourceApp?.let {
-                    ClipInfoRow(stringResource(R.string.ime_clip_info_from), it, kb.popupText)
-                }
-                ClipInfoRow(stringResource(R.string.ime_clip_info_type), typeLabel, kb.popupText)
-                sizeLabel?.let {
-                    ClipInfoRow(stringResource(R.string.ime_clip_info_size), it, kb.popupText)
-                }
-                if (item.sensitive) {
+                Column(
+                    modifier = Modifier
+                        .widthIn(min = 220.dp, max = 320.dp)
+                        .padding(start = 12.dp, end = 4.dp, top = 10.dp, bottom = 2.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     ClipInfoRow(
-                        stringResource(R.string.ime_clip_info_private),
-                        stringResource(R.string.ime_clip_info_private_detail),
+                        stringResource(R.string.ime_clip_info_copied),
+                        "$relative\n$exact",
                         kb.popupText,
                     )
-                }
-                // The same row of icons the full text has (#612), at the end
-                // under the thumb, rather than a column of worded buttons as
-                // tall again as the details over it.
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    val tint = kb.popupText
-                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        Row(
-                            modifier = Modifier.horizontalScroll(rememberScrollState()),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            onViewText?.let {
-                                ClipTextActionIcon(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.ime_clip_view_text), tint, it)
-                            }
-                            onPick?.let {
-                                ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
-                            }
-                            onReorder?.let {
-                                ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
-                            }
-                            onJump?.let {
-                                ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
-                            }
-                            onTags?.let {
-                                ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
-                            }
-                            onEdit?.let {
-                                ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
-                            }
-                            onOpenLink?.let {
-                                ClipTextActionIcon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.ime_clip_open_link), tint, it)
-                            }
-                            onView?.let {
-                                ClipTextActionIcon(Icons.Outlined.Visibility, stringResource(R.string.ime_clip_view_image), tint, it)
-                            }
-                            onExtractText?.let {
-                                ClipTextActionIcon(Icons.Outlined.TextFields, stringResource(R.string.ime_clip_extract_text), tint, it)
-                            }
-                            onExtractParts?.let {
-                                ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
-                            }
-                            onSendSticker?.let {
-                                ClipTextActionIcon(Icons.Outlined.EmojiEmotions, stringResource(R.string.ime_clip_send_as_sticker), tint, it)
-                            }
-                            onTogglePin?.let {
-                                ClipTextActionIcon(
-                                    if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                                    stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
-                                    tint,
-                                    it,
-                                )
-                            }
-                            onDelete?.let {
-                                ClipTextActionIcon(
-                                    Icons.Outlined.Delete,
-                                    stringResource(CommonR.string.common_delete),
-                                    MaterialTheme.colorScheme.error,
-                                    it,
-                                )
+                    edited?.let {
+                        ClipInfoRow(stringResource(R.string.ime_clip_info_edited), it, kb.popupText)
+                    }
+                    item.sourceApp?.let {
+                        ClipInfoRow(stringResource(R.string.ime_clip_info_from), it, kb.popupText)
+                    }
+                    ClipInfoRow(stringResource(R.string.ime_clip_info_type), typeLabel, kb.popupText)
+                    sizeLabel?.let {
+                        ClipInfoRow(stringResource(R.string.ime_clip_info_size), it, kb.popupText)
+                    }
+                    if (item.sensitive) {
+                        ClipInfoRow(
+                            stringResource(R.string.ime_clip_info_private),
+                            stringResource(R.string.ime_clip_info_private_detail),
+                            kb.popupText,
+                        )
+                    }
+                    // The same row of icons the full text has (#612), at the end
+                    // under the thumb, rather than a column of worded buttons as
+                    // tall again as the details over it.
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        val tint = kb.popupText
+                        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                            Row(
+                                modifier = Modifier.horizontalScroll(rememberScrollState()),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                onViewText?.let {
+                                    ClipTextActionIcon(Icons.AutoMirrored.Outlined.Article, stringResource(R.string.ime_clip_view_text), tint, it)
+                                }
+                                onPick?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Checklist, stringResource(R.string.ime_clip_select), tint, it)
+                                }
+                                onReorder?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Reorder, stringResource(R.string.ime_clip_reorder), tint, it)
+                                }
+                                onJump?.let {
+                                    ClipTextActionIcon(Icons.Outlined.History, stringResource(R.string.ime_clip_show_in_history), tint, it)
+                                }
+                                onTags?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Sell, stringResource(R.string.ime_clip_tags), tint, it)
+                                }
+                                onEdit?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Edit, stringResource(R.string.ime_clip_edit), tint, it)
+                                }
+                                onOpenLink?.let {
+                                    ClipTextActionIcon(Icons.AutoMirrored.Outlined.OpenInNew, stringResource(R.string.ime_clip_open_link), tint, it)
+                                }
+                                onView?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Visibility, stringResource(R.string.ime_clip_view_image), tint, it)
+                                }
+                                onExtractText?.let {
+                                    ClipTextActionIcon(Icons.Outlined.TextFields, stringResource(R.string.ime_clip_extract_text), tint, it)
+                                }
+                                onExtractParts?.let {
+                                    ClipTextActionIcon(Icons.Outlined.ContentCut, stringResource(R.string.ime_clip_extract_parts), tint, it)
+                                }
+                                onSendSticker?.let {
+                                    ClipTextActionIcon(Icons.Outlined.EmojiEmotions, stringResource(R.string.ime_clip_send_as_sticker), tint, it)
+                                }
+                                onTogglePin?.let {
+                                    ClipTextActionIcon(
+                                        if (item.pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                                        stringResource(if (item.pinned) R.string.ime_clip_unpin else R.string.ime_clip_pin),
+                                        tint,
+                                        it,
+                                    )
+                                }
+                                onDelete?.let {
+                                    ClipTextActionIcon(
+                                        Icons.Outlined.Delete,
+                                        stringResource(CommonR.string.common_delete),
+                                        MaterialTheme.colorScheme.error,
+                                        it,
+                                    )
+                                }
                             }
                         }
-                    }
-                    if (onPaste != null) {
-                        TextButton(onClick = onPaste) {
-                            Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                        if (onPaste != null) {
+                            TextButton(onClick = onPaste) {
+                                Text(stringResource(CommonR.string.common_paste), fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
