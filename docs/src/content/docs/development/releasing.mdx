@@ -138,8 +138,10 @@ resource IDs (`-Pwmkb.emitResourceIds` on the first build,
 `-Pwmkb.stableResourceIds` on the second) and cuts it into one signed
 resource-only APK per language with `.github/scripts/language-packs.sh`. It
 collects the project's own libraries that the standard APK pins
-(`.github/scripts/collect-natives.sh`), and the `fdroid` job does the same for
-the ones F-Droid's build compiled from source. Before the release goes public,
+(`.github/scripts/collect-natives.sh`, which searches every jniLibs directory
+`native/gates.json` names), and the `fdroid` job does the same for the ones
+F-Droid's build compiled from source, after checking that the APK pins, and
+does not package, every library the table has F-Droid build. Before the release goes public,
 the publish job uploads every one of them to the `natives` release of
 `wasi-master/wmkeyboard-data`, named `<sha256>-<library>` and never replaced.
 That upload needs a `DATA_REPO_TOKEN` secret with `contents: write` on the data
@@ -495,7 +497,8 @@ instead.
    goes without (Tesseract in `:core:intelligence`'s `src/tesseract/jniLibs`,
    Whistle in `:core:voice`'s `src/whistle/jniLibs`, the LLM module's
    placeholders). The rest, the text engines, Harper, whisper.cpp, ExecuTorch
-   and the others `native/build-fdroid-libs.sh` lists, ship in its build too.
+   and every other library `native/gates.json` gives an `fdroidBuild`
+   script, ship in its build too.
    The recipe deletes all of them before the source scan, then its `build:`
    step runs `native/build-fdroid-libs.sh` (or `build-lite-libs.sh`, its old
    name, which the copied recipe entries still call), which compiles them from
@@ -618,7 +621,8 @@ The rules that follow from this:
   `native/` map every such path away and pin every tool: the NDK in the
   recipe, Rust and `cargo-ndk` in `harper-jni/build.sh`, and the commits of
   whisper.cpp, ExecuTorch and PyTorch in theirs. A new native library joins
-  `native/build-fdroid-libs.sh` the same way, or stays out of the F-Droid build.
+  the F-Droid build the same way, through the `fdroidBuild` script of its entry
+  in `native/gates.json`, or has none and stays out of it.
 - **Build it from a real clone.** AGP writes the commit hash into
   `META-INF/version-control-info.textproto`. From a git worktree or a
   tarball it cannot read the repository and writes `NO_VALID_GIT_FOUND`

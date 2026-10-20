@@ -367,7 +367,8 @@ announce nor explore.
   file on the GPU or CPU.
 - **Native libraries delivered on demand.** A native library behind an
   optional feature sits behind a `ModuleGate`
-  (`core/common/.../modules/FeatureModules.kt`), and its facade loads it
+  (`core/common/.../modules/ModuleGate.kt`, one per gate in the generated
+  `FeatureModules`), and its facade loads it
   through `FeatureModules.loadLibrary` or a `GatedLibrary`. Each channel
   backs the gates differently. On Play they are Play Feature Delivery
   modules. On GitHub and F-Droid builds, `NativeDelivery` backs them: the
@@ -384,5 +385,39 @@ announce nor explore.
     `libwm_engine_jni.so` that puts the library in the class loader's
     namespace under its soname.
 
-  To deliver one more library, give it a gate and a pin, and call `preload`
-  before its dependency's first class loads when the dependency loads it.
+  To deliver one more library, add it to a gate in `native/gates.json` (see
+  below), and call `preload` before its dependency's first class loads when
+  the dependency loads it.
+
+### Adding a native gate
+
+Every gate is one entry in `native/gates.json`, and nothing else lists them.
+The build reads it to generate `FeatureModules`, to wire Play delivery and
+native delivery, to write the pins and the R8 keep rules, and to include the
+Play module; `native/gates.py` reads it for the release and F-Droid scripts.
+An entry has:
+
+- `id`: the gate's name in `pins.tsv` and its Play module, `:feature:<id>`.
+- `property` and `doc`: the `FeatureModules` property and its KDoc. Leave
+  them out for a gate whose facade keeps its own gate type (`llm`,
+  `translate`).
+- `play`: `split` for a Play module that only carries the libraries, `module`
+  for one with its own build file, or nothing for no Play module (`scanner`).
+- `libraries`: the project's own `.so` files, each with the jniLibs `dir` it
+  is committed in, the `fdroidBuild` script that makes it from source,
+  `abis` when it is not built for all three, and the JNI classes to `keep`
+  when it binds by mangled name.
+- `maven`: libraries read out of a vendor's AAR, with its `module`, a
+  `catalog` alias when the app does not depend on that AAR, a `licence` when
+  the download needs one, and a finer `gate` when a chip needs only some
+  of them (`npu-V79`).
+- `google`, `enabledBy`, `neverPackaged`: built on a Google SDK (left out of
+  F-Droid's build), switched on by a flag, never packaged into an APK.
+
+Then give the library a directory of its own (`src/<id>/jniLibs` in the core
+module that loads it) so that its Play split carries nothing else. A
+`split` gate also needs `feature/<id>/`, which holds a build file that only
+applies `wmkeyboard.native-split` and a manifest copied from another split,
+plus a `<id>_module_title` string in `:app`. F-Droid's recipe is the one place
+the table does not reach: the next fdroiddata entry's `scandelete` needs the
+new directory, which `python3 native/gates.py scandelete` lists.

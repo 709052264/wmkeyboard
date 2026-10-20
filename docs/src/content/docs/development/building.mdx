@@ -229,6 +229,10 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 
 The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP, KleidiCV or any other accelerator that downloads a binary at configure time. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
 
+## Adding a native library
+
+Each library above belongs to a gate in `native/gates.json`, which records where its `.so` files are committed, which script builds them for F-Droid and which classes R8 must keep. The Gradle build and the release scripts read that file and keep no list of their own, so a new library or a new gate is one entry there. The fields and the few files a new Play split still needs are in [architecture](/development/architecture/#adding-a-native-gate). `python3 native/gates.py fdroid-scripts` prints the scripts `native/build-fdroid-libs.sh` will run, in order.
+
 ## Running static analysis
 
 ```sh
