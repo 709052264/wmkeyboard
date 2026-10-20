@@ -1,0 +1,216 @@
+{
+  "$comment": "Every on-demand native gate, in one place. Read by build-logic (FeatureModules, the Play splits, settings includes, dynamicFeatures, native pins, proguard keeps, the core modules' jniLibs) and by native/gates.py for the shell side (collect-natives.sh, release.yml, build-fdroid-libs.sh). How to add a gate: docs/src/content/docs/development/architecture.md, 'Adding a native gate'.",
+  "abis": ["arm64-v8a", "armeabi-v7a", "x86_64"],
+  "base": [
+    {
+      "name": "libwm_engine_jni.so",
+      "dir": "core/language/src/main/jniLibs",
+      "fdroidBuild": "native/wm-engine-jni/build.sh"
+    }
+  ],
+  "gates": [
+    {
+      "id": "llm",
+      "play": "module",
+      "google": true,
+      "maven": [
+        { "name": "liblitertlm_jni.so", "module": "com.google.ai.edge.litertlm:litertlm-android" }
+      ]
+    },
+    {
+      "id": "translate",
+      "play": "module",
+      "google": true,
+      "maven": [
+        { "name": "libtranslate_jni.so", "module": "com.google.mlkit:translate" },
+        { "name": "liblanguage_id_l2c_jni.so", "module": "com.google.mlkit:language-id" }
+      ]
+    },
+    {
+      "id": "litert",
+      "property": "litert",
+      "doc": "`:feature:litert`: the LiteRT interpreter, shared by offline Whisper dictation (`:core:voice`) and the sticker editor's own background remover (`:core:content`).",
+      "play": "module",
+      "google": true,
+      "maven": [
+        { "name": "libtensorflowlite_jni.so", "module": "com.google.ai.edge.litert:litert" }
+      ]
+    },
+    {
+      "id": "handwriting",
+      "property": "handwriting",
+      "doc": "`:feature:handwriting`: ML Kit's digital-ink recogniser.",
+      "play": "module",
+      "google": true,
+      "maven": [
+        { "name": "libdigitalink.so", "module": "com.google.mlkit:digital-ink-recognition" }
+      ]
+    },
+    {
+      "id": "speech",
+      "property": "speech",
+      "doc": "`:feature:speech`: the whisper.cpp and Whistle native libraries behind the GGML Whisper models and Whistle (`:core:voice`). Only the libraries move; their Kotlin stays in the base.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmwhispercpp.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh" },
+        { "name": "libwmwhispercpp_v82.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
+        { "name": "libwmwhistle.so", "dir": "core/voice/src/whistle/jniLibs", "abis": ["arm64-v8a"] },
+        { "name": "libwmdenoise.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/rnnoise-jni/build.sh" }
+      ]
+    },
+    {
+      "id": "executorch",
+      "property": "executorch",
+      "doc": "`:feature:executorch`: the app's ExecuTorch runtime (`libwmexecutorch`), shared by Asr4All, Parakeet and Moonshine dictation and the FUTO Swipe glide engine (`:core:voice`). Its own gate so that turning on the glide engine does not also fetch whisper.cpp and Whistle.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmexecutorch.so", "dir": "core/voice/src/executorch/jniLibs", "fdroidBuild": "native/executorch-jni/build.sh" }
+      ]
+    },
+    {
+      "id": "onnx",
+      "property": "onnx",
+      "doc": "`:feature:onnx`: Microsoft's ONNX Runtime and the sherpa-onnx bridge built on it (`libwmsherpa`), behind the Sherpa voice engine (`:core:voice`). Outside Play the runtime is read straight out of Microsoft's AAR on Maven Central, never mirrored. Other ONNX models can ride the same runtime later; only sherpa-onnx's bridge is specific.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmsherpa.so", "dir": "core/voice/src/onnx/jniLibs", "fdroidBuild": "native/sherpa-onnx-jni/build.sh" },
+        { "name": "libwmxlit.so", "dir": "core/voice/src/onnx/jniLibs", "fdroidBuild": "native/indicxlit-jni/build.sh" }
+      ],
+      "maven": [
+        { "name": "libonnxruntime.so", "module": "com.microsoft.onnxruntime:onnxruntime-android", "catalog": "onnxruntime-android" }
+      ]
+    },
+    {
+      "id": "grammar",
+      "property": "grammar",
+      "doc": "`:feature:grammar`: the Harper grammar library (`:core:intelligence`).",
+      "play": "split",
+      "libraries": [
+        { "name": "libharper_jni.so", "dir": "core/intelligence/src/main/jniLibs", "fdroidBuild": "native/harper-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.grammar.HarperNative"] }
+      ]
+    },
+    {
+      "id": "spell",
+      "property": "spell",
+      "doc": "`:feature:spell`: the Hunspell library behind spell checking against an imported `.aff` and `.dic` (`:core:prediction`).",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmhunspell.so", "dir": "core/prediction/src/main/jniLibs", "fdroidBuild": "native/hunspell-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.prediction.HunspellNative"] },
+        { "name": "libwmdivvun.so", "dir": "core/prediction/src/main/jniLibs", "fdroidBuild": "native/divvunspell-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.prediction.DivvunNative"] },
+        { "name": "libwmvoikko.so", "dir": "native/voikko-jni/jniLibs", "fdroidBuild": "native/voikko-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.prediction.VoikkoNative"] }
+      ]
+    },
+    {
+      "id": "ocr",
+      "property": "ocr",
+      "doc": "`:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`).",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmtess.so", "dir": "core/intelligence/src/tesseract/jniLibs" }
+      ]
+    },
+    {
+      "id": "rime",
+      "property": "rime",
+      "doc": "`:feature:rime`: librime, behind the optional RIME engine for Chinese (`:core:input`). The built-in composers need nothing from it.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmrime.so", "dir": "core/input/src/main/jniLibs", "fdroidBuild": "native/librime-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.input.rime.RimeNative"] }
+      ]
+    },
+    {
+      "id": "mozc",
+      "property": "mozc",
+      "doc": "`:feature:mozc`: Google's Mozc converter, behind the optional Mozc engine for Japanese (`:core:input`). Its dictionary is a separate download; the built-in Japanese composer needs neither.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmmozc.so", "dir": "core/input/src/mozc/jniLibs", "fdroidBuild": "native/mozc-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.input.mozc.MozcNative"] }
+      ]
+    },
+    {
+      "id": "bergamot",
+      "property": "bergamot",
+      "doc": "`:feature:bergamot`: Mozilla's Bergamot translator behind the translate tool's free on-device engine (`:core:intelligence`). Only the library moves; the models are downloaded per language direction.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmbergamot.so", "dir": "core/intelligence/src/bergamot/jniLibs", "fdroidBuild": "native/bergamot-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.BergamotNative"] }
+      ]
+    },
+    {
+      "id": "ct2",
+      "property": "ct2",
+      "doc": "`:feature:ct2`: CTranslate2, the runtime of the translate tool's NLLB engine (`:core:intelligence`). Only the library moves; the model is a separate 630 MB download.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmct2.so", "dir": "core/intelligence/src/ct2/jniLibs", "fdroidBuild": "native/ctranslate2-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.translate.Ct2Native"] }
+      ]
+    },
+    {
+      "id": "zinnia",
+      "property": "zinnia",
+      "doc": "`:feature:zinnia`: zinnia, the offline recogniser behind Chinese and Japanese handwriting where ML Kit's is not in the build or not picked (`:core:intelligence`). Its models are separate downloads.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmzinnia.so", "dir": "core/intelligence/src/zinnia/jniLibs", "fdroidBuild": "native/zinnia-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.handwriting.ZinniaNative"] }
+      ]
+    },
+    {
+      "id": "llama",
+      "property": "llama",
+      "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`). LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmllama.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.localllm.LlamaNative"] },
+        { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "docscan",
+      "property": "docscan",
+      "doc": "`:feature:docscan`: the built-in document scanner's library (OpenCV's core and imgproc, `:core:intelligence`), behind the scanner tool where Google's scanner is missing or switched off.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmdocscan.so", "dir": "core/intelligence/src/docscan/jniLibs", "fdroidBuild": "native/docscan-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.docscan.DocScanNative"] }
+      ]
+    },
+    {
+      "id": "npu",
+      "property": "npu",
+      "doc": "`:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and the QNN libraries) behind Compute = NPU for on-device AI. Assets only, unpacked into app storage by `NpuRuntime` in :core:intelligence.",
+      "play": "module",
+      "google": true,
+      "enabledBy": { "flag": "wmkb.enableNpu", "env": "WMKB_ENABLE_NPU", "default": true, "buildConfig": "ENABLE_NPU" },
+      "neverPackaged": true,
+      "maven": [
+        { "name": "libLiteRtDispatch_Qualcomm.so", "module": "com.google.ai.edge.litert:litert-npu-runtime-qualcomm", "catalog": "litert-npu-runtime-qualcomm", "licence": "qualcomm" },
+        { "name": "libQnnSystem.so", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtp.so", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV79Stub.so", "gate": "npu-V79", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV79Skel.so", "gate": "npu-V79", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV81Stub.so", "gate": "npu-V81", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" },
+        { "name": "libQnnHtpV81Skel.so", "gate": "npu-V81", "module": "com.qualcomm.qti:qnn-runtime", "catalog": "qnn-runtime", "licence": "qualcomm" }
+      ]
+    },
+    {
+      "id": "googlehome",
+      "property": "googleHome",
+      "doc": "`:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every other build either compiles it in or has no Google Home at all.",
+      "play": "module",
+      "google": true,
+      "enabledBy": {
+        "flag": "wmkb.enableGoogleHome", "env": "WMKB_ENABLE_GOOGLE_HOME", "default": false, "buildConfig": "ENABLE_GOOGLE_HOME",
+        "requiresDir": "feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home"
+      }
+    },
+    {
+      "id": "scanner",
+      "property": "scanner",
+      "doc": "ML Kit's bundled text recogniser and barcode reader behind the scanner tool. Never a Play module: Play builds use the play-services twins, whose models come from Play services. Only [NativeDelivery] backs it, on a build that leaves the two libraries out of the APK.",
+      "google": true,
+      "maven": [
+        { "name": "libmlkit_google_ocr_pipeline.so", "module": "com.google.mlkit:text-recognition-bundled-common" },
+        { "name": "libbarhopper_v3.so", "module": "com.google.mlkit:barcode-scanning" }
+      ]
+    }
+  ]
+}
