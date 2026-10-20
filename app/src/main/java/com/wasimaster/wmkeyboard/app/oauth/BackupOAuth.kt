@@ -237,7 +237,7 @@ object BackupOAuth {
     internal fun returnToApp(activity: Activity) {
         val manager = activity.getSystemService(ActivityManager::class.java)
         val task = runCatching {
-            manager?.appTasks?.firstOrNull { it.taskInfo.baseActivity?.packageName == activity.packageName }
+            manager?.appTasks?.firstOrNull { it.taskInfo?.baseActivity?.packageName == activity.packageName }
         }.getOrNull()
         if (task != null && runCatching { task.moveToFront() }.isSuccess) return
         activity.packageManager.getLaunchIntentForPackage(activity.packageName)

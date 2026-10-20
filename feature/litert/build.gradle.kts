@@ -21,9 +21,7 @@ plugins {
 android {
     namespace = "com.wasimaster.wmkeyboard.litertfeature"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
     defaultConfig {
         minSdk = 24

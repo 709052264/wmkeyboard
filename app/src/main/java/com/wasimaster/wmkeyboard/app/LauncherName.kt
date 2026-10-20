@@ -124,6 +124,6 @@ internal object LauncherName {
     private fun rootedAt(context: Context, alias: String): Boolean =
         context.getSystemService(ActivityManager::class.java)?.appTasks.orEmpty().any { task ->
             // A task that finishes between the listing and the read throws.
-            runCatching { task.taskInfo.baseIntent.component?.className == alias }.getOrDefault(false)
+            runCatching { task.taskInfo?.baseIntent?.component?.className == alias }.getOrDefault(false)
         }
 }

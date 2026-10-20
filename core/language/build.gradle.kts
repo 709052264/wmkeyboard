@@ -20,9 +20,7 @@ kover {
 android {
     namespace = "com.wasimaster.wmkeyboard.language"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
     defaultConfig {
         minSdk = 24

@@ -221,9 +221,7 @@ android {
 
     namespace = "com.wasimaster.wmkeyboard"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version = release(37)
     }
 
     defaultConfig {
@@ -1466,8 +1464,8 @@ if (docShots) {
             // AGP 9 no longer mirrors an extra Java directory into Kotlin.
             variant.hostTests[com.android.build.api.variant.HostTestBuilder.UNIT_TEST_TYPE]?.sources?.let {
                 it.kotlin?.addStaticSourceDirectory("src/docShots/java")
-                // robolectric.properties pins sdk=34: compileSdk is the minor
-                // level 36.1 and Robolectric has no android-all jar for it.
+                // robolectric.properties pins sdk=34, a level with a
+                // long-settled android-all jar.
                 it.resources?.addStaticSourceDirectory("src/docShots/resources")
             }
         }
