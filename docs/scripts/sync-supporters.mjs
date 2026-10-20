@@ -9,7 +9,9 @@
  *                                       with no internet permission; names,
  *                                       kinds and dates only
  *
- * Run it before a release so the APK carries an up-to-date list:
+ * The release workflow runs it before each APK and bundle build, so a release
+ * carries everyone up to that build. Run it by hand to refresh the committed
+ * copies:
  *
  *   node scripts/sync-supporters.mjs
  */

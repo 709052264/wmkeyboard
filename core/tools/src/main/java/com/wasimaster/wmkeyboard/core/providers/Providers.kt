@@ -56,6 +56,13 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * to "server" sends its clips to.
      */
     VOICE("voice", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_voice),
+
+    /**
+     * The grammar tool's checkers: Harper on the phone, and LanguageTool
+     * servers. A check goes to the first row that is on and knows the
+     * keyboard's language, and on to the next when that one cannot answer.
+     */
+    GRAMMAR("grammar", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_grammar),
     ;
 
     /**
@@ -147,8 +154,13 @@ data class CredentialSpec(
      * [ProviderCredential.extra] under [PATH]; blank works it out.
      */
     val path: Boolean = false,
+    /**
+     * An account name that goes with the key: LanguageTool Premium signs a
+     * request with both. Stored in [ProviderCredential.extra] under [USERNAME].
+     */
+    val username: Boolean = false,
 ) {
-    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path
+    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username
 
     /** The engine [stored] names, else the default; null for a kind with no engines. */
     fun engine(stored: String): FrontEndEngine? =
@@ -157,6 +169,9 @@ data class CredentialSpec(
     companion object {
         /** The [ProviderCredential.extra] key a [path] is kept under. */
         const val PATH = "path"
+
+        /** The [ProviderCredential.extra] key a [username] is kept under. */
+        const val USERNAME = "username"
     }
 }
 
@@ -630,6 +645,29 @@ object ProviderTypes {
         CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, path = true), multiInstance = true, selfHosted = true,
     )
 
+    // ---- Grammar.
+
+    private val GRAMMAR = setOf(ProviderTool.GRAMMAR)
+
+    /** The bundled engine: English only, and nothing leaves the phone. */
+    val HARPER = ProviderType(
+        "harper", GRAMMAR, R.string.core_tools_provider_harper, R.string.core_tools_provider_harper_desc,
+        onDevice = true, freeSoftware = true,
+    )
+
+    /**
+     * A LanguageTool server: the public API when the address is blank, a
+     * self-hosted one (LanguageTool is LGPL and ships a server) when it is
+     * not. A username and key together are a Premium account. Free software,
+     * but not [selfHosted]: most people use the public one, and it reads
+     * the text.
+     */
+    val LANGUAGETOOL = ProviderType(
+        "languagetool", GRAMMAR, R.string.core_tools_provider_languagetool, R.string.core_tools_provider_languagetool_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.OPTIONAL, username = true),
+        multiInstance = true, freeSoftware = true,
+    )
+
     /** Voice type id → the engine id dictation stores and runs. */
     val VOICE_ENGINES: Map<String, String> by lazy {
         mapOf(
@@ -664,6 +702,7 @@ object ProviderTypes {
         VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
         SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, TRANSCRIPTION_SERVER,
+        HARPER, LANGUAGETOOL,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

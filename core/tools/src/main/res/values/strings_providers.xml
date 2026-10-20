@@ -147,4 +147,11 @@
     <string name="core_tools_provider_omnilingual_desc">Meta\'s one model for 1,600 languages, hundreds of them with no other voice typing, on the phone. Each phrase arrives at the pause after it.</string>
     <string name="core_tools_provider_transcription_server">Transcription server</string>
     <string name="core_tools_provider_transcription_server_desc">A server that speaks OpenAI\'s audio transcription API: speaches, whisper.cpp\'s server, LocalAI, Groq or OpenAI. Each clip is sent to it when you stop speaking.</string>
+
+    <!-- Grammar as a provider list -->
+    <string name="core_tools_provider_tool_grammar">Grammar check</string>
+    <string name="core_tools_provider_harper" translatable="false">Harper</string>
+    <string name="core_tools_provider_harper_desc">The grammar engine built into the keyboard. English only, and nothing you type leaves the phone.</string>
+    <string name="core_tools_provider_languagetool" translatable="false">LanguageTool</string>
+    <string name="core_tools_provider_languagetool_desc">Grammar, spelling and style in more than 30 languages. Your text is sent to a LanguageTool server to be checked: the public one at api.languagetool.org unless you enter your own.</string>
 </resources>

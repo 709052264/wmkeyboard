@@ -1,0 +1,291 @@
+{
+ "software": {
+  "name": "LanguageTool",
+  "version": "6.9-SNAPSHOT",
+  "buildDate": "2026-09-01 15:16:00 +0000",
+  "apiVersion": 1,
+  "premium": true,
+  "premiumHint": "You might be missing errors only the Premium version can find. Contact us at support<at>languagetoolplus.com.",
+  "status": ""
+ },
+ "warnings": {
+  "incompleteResults": false
+ },
+ "language": {
+  "name": "English (US)",
+  "code": "en-US",
+  "detectedLanguage": {
+   "name": "English (US)",
+   "code": "en-US",
+   "confidence": 1.0,
+   "source": "ngram"
+  }
+ },
+ "matches": [
+  {
+   "message": "The pronoun ‘He’ is usually used with a third-person or a past tense verb.",
+   "shortMessage": "Agreement error",
+   "replacements": [
+    {
+     "value": "goes"
+    },
+    {
+     "value": "went"
+    }
+   ],
+   "offset": 6,
+   "length": 2,
+   "context": {
+    "text": "😀 He go to teh store. Its a nice day",
+    "offset": 6,
+    "length": 2
+   },
+   "sentence": "😀 He go to teh store.",
+   "type": {
+    "typeName": "Other"
+   },
+   "rule": {
+    "id": "HE_VERB_AGR",
+    "subId": "1",
+    "sourceFile": "grammar.xml",
+    "description": "Agreement error: Non-third person/past tense verb with 'he/she/it' or a pronoun",
+    "issueType": "grammar",
+    "urls": [
+     {
+      "value": "https://languagetool.org/insights/post/grammar-subject-verb-agreement/#1-singular-subjects-must-go-with-singular-verbs-and-plural-subjects-with-plural-verbs"
+     }
+    ],
+    "category": {
+     "id": "GRAMMAR",
+     "name": "Grammar"
+    },
+    "isPremium": false,
+    "confidence": 0.58
+   },
+   "ignoreForIncompleteSentence": true,
+   "contextForSureMatch": -1
+  },
+  {
+   "message": "Possible spelling mistake found.",
+   "shortMessage": "Spelling mistake",
+   "replacements": [
+    {
+     "value": "the"
+    },
+    {
+     "value": "ten"
+    },
+    {
+     "value": "tea"
+    },
+    {
+     "value": "tech"
+    },
+    {
+     "value": "Ted"
+    },
+    {
+     "value": "TeX"
+    },
+    {
+     "value": "tee"
+    },
+    {
+     "value": "eh"
+    },
+    {
+     "value": "tel"
+    },
+    {
+     "value": "TEF"
+    },
+    {
+     "value": "BEH"
+    },
+    {
+     "value": "GEH"
+    },
+    {
+     "value": "NEH"
+    },
+    {
+     "value": "Neh"
+    },
+    {
+     "value": "TAH"
+    },
+    {
+     "value": "TBH"
+    },
+    {
+     "value": "TCH"
+    },
+    {
+     "value": "TEB"
+    },
+    {
+     "value": "TEC"
+    },
+    {
+     "value": "TED"
+    },
+    {
+     "value": "TEE"
+    },
+    {
+     "value": "TEI"
+    },
+    {
+     "value": "TEL"
+    },
+    {
+     "value": "TEM"
+    },
+    {
+     "value": "TEP"
+    },
+    {
+     "value": "TEQ"
+    },
+    {
+     "value": "TER"
+    },
+    {
+     "value": "TES"
+    },
+    {
+     "value": "TEU"
+    },
+    {
+     "value": "TEV"
+    },
+    {
+     "value": "TH"
+    },
+    {
+     "value": "TLH"
+    },
+    {
+     "value": "TSH"
+    },
+    {
+     "value": "TVH"
+    },
+    {
+     "value": "Te"
+    },
+    {
+     "value": "Tet"
+    },
+    {
+     "value": "Tex"
+    },
+    {
+     "value": "Th"
+    },
+    {
+     "value": "heh"
+    },
+    {
+     "value": "meh"
+    }
+   ],
+   "offset": 12,
+   "length": 3,
+   "context": {
+    "text": "😀 He go to teh store. Its a nice day",
+    "offset": 12,
+    "length": 3
+   },
+   "sentence": "😀 He go to teh store.",
+   "type": {
+    "typeName": "UnknownWord"
+   },
+   "rule": {
+    "id": "MORFOLOGIK_RULE_EN_US",
+    "description": "Possible spelling mistake",
+    "issueType": "misspelling",
+    "category": {
+     "id": "TYPOS",
+     "name": "Possible Typo"
+    },
+    "isPremium": false,
+    "confidence": 0.68
+   },
+   "ignoreForIncompleteSentence": false,
+   "contextForSureMatch": 0
+  },
+  {
+   "message": "Did you mean “it's” (short for ‘it is’) instead of ‘its’ (possessive pronoun)?",
+   "shortMessage": "Possible typo",
+   "replacements": [
+    {
+     "value": "It's"
+    }
+   ],
+   "offset": 23,
+   "length": 3,
+   "context": {
+    "text": "😀 He go to teh store. Its a nice day",
+    "offset": 23,
+    "length": 3
+   },
+   "sentence": "Its a nice day",
+   "type": {
+    "typeName": "Other"
+   },
+   "rule": {
+    "id": "IT_IS",
+    "subId": "37",
+    "sourceFile": "grammar.xml",
+    "description": "its vs. it's",
+    "issueType": "misspelling",
+    "urls": [
+     {
+      "value": "https://languagetool.org/insights/post/word-choice-its/"
+     }
+    ],
+    "category": {
+     "id": "TYPOS",
+     "name": "Possible Typo"
+    },
+    "isPremium": false,
+    "confidence": 0.81
+   },
+   "ignoreForIncompleteSentence": true,
+   "contextForSureMatch": -1
+  }
+ ],
+ "sentenceRanges": [
+  [
+   0,
+   22
+  ],
+  [
+   23,
+   37
+  ]
+ ],
+ "extendedSentenceRanges": [
+  {
+   "from": 0,
+   "to": 22,
+   "detectedLanguages": [
+    {
+     "language": "en",
+     "rate": 1.0
+    }
+   ]
+  },
+  {
+   "from": 23,
+   "to": 37,
+   "detectedLanguages": [
+    {
+     "language": "en",
+     "rate": 1.0
+    }
+   ]
+  }
+ ]
+}

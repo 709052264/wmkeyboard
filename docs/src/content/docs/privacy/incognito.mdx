@@ -53,7 +53,7 @@ turn off, so you get a toast instead: `This field is always incognito`.
 
 ## What incognito pauses
 
-Turning incognito on does seven things:
+Turning incognito on does eight things:
 
 1. **Pauses clipboard capture.** Nothing you copy joins clipboard history
    while it's on.
@@ -82,17 +82,23 @@ Turning incognito on does seven things:
    [AI memory](/tools/ai-memory/) stops too: an AI action or a chat in an
    incognito field neither reads the saved facts nor saves new ones, and a
    chat started in incognito never touches memory, even after it ends.
-7. **Shows a badge.** A small icon appears next to the toolbar, and the
+7. **Keeps the text away from LanguageTool.** With
+   [LanguageTool](/smart/grammar/#checkers-harper-and-languagetool) switched
+   on for Grammar check, nothing typed in incognito is sent to its server.
+   Harper, on the phone, still checks English, and the panel says why
+   nothing else does. No switch here either.
+8. **Shows a badge.** A small icon appears next to the toolbar, and the
    Incognito tool itself lights up as active, so you can tell at a glance
    that it's on.
 
-The first four of those seven answer to switches of their own, tucked away
+The first four of those eight answer to switches of their own, tucked away
 from the Privacy screen under <SettingsPath path="Tools / Incognito" />.
 **Pause learning** covers the lexicon, the emoji history and the typing
 counters together, and **Pause clipboard capture** covers the clipboard. Both
 are on by default. Turn both off there and flipping "Incognito mode" on
-Privacy still blocks smart replies, still pauses AI history and AI memory, and still shows
-the badge. Those three are the effects neither switch can reach, because they
+Privacy still blocks smart replies, still pauses AI history and AI memory, still
+keeps the text from LanguageTool, and still shows the badge. Those four are the
+effects neither switch can reach, because they
 follow incognito unconditionally. The [one-time-code chip](/smart/one-time-codes/)
 and the "you just copied a code" chip keep working in incognito: reading a
 code out of a notification or offering back what you just copied records
@@ -172,10 +178,10 @@ the keys or on a physical keyboard with the keys hidden:
 - **Voice dictation, entirely.** Tap the voice tool in a password field and
   you get `You cannot use voice typing in a password field` instead of a
   recording. That's a hard block rather than a hidden strip.
-- **The AI actions and DeepL Write.** Both send the field's text to a
-  server, so in a password field no AI action runs and the Grammar panel has
-  no DeepL Write button. Nothing goes out even if you have a cloud provider
-  set up.
+- **The AI actions, DeepL Write and LanguageTool.** All three send the
+  field's text to a server, so in a password field no AI action runs, the
+  Grammar panel has no DeepL Write button, and Grammar check never asks
+  LanguageTool. Nothing goes out even if you have a cloud provider set up.
 
 What a secure field does *not* switch off is character entry itself.
 Transliteration composing still runs in password fields. That's the

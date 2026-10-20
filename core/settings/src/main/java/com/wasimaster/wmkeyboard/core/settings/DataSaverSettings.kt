@@ -178,6 +178,15 @@ data class DataSaverSettings(
      * on a metered connection. Asked, like [downloads].
      */
     val fileSend: MeteredPolicy = MeteredPolicy.ASK,
+    /**
+     * Grammar checks sent to a LanguageTool server: the field's text, a few
+     * kilobytes, again after each pause in typing. Allowed by default like
+     * [cloudAi], since the user switched LanguageTool on themself. Offered
+     * two answers, like the background rows: a check runs on every pause, so
+     * there is no one moment to ask at. Held, the grammar tool uses Harper
+     * where it can and says so where it cannot.
+     */
+    val cloudGrammar: MeteredPolicy = MeteredPolicy.ALLOW,
 
     /**
      * With no connection, or with the server not answering, dictation, the AI
@@ -207,7 +216,7 @@ data class DataSaverSettings(
         get() = listOf(
             linkPreviews, dictionaryLookup, photoBackgrounds, weatherChip,
             currencyRates, addonRefresh, mediaSearch, webSearch, animatedEmoji,
-            downloads, cloudAi, cloudVoice, fileSend,
+            downloads, cloudAi, cloudVoice, fileSend, cloudGrammar,
             vocabAudio,
         ).any { it != MeteredPolicy.ALLOW }
 }
@@ -242,6 +251,9 @@ enum class MeteredFeature {
 
     /** A file going up to a Send instance or coming down from a link (#729). */
     FILE_SEND,
+
+    /** The field's text sent to a LanguageTool server for a grammar check. */
+    CLOUD_GRAMMAR,
 }
 
 /** What may happen to one [MeteredFeature] right now. */
@@ -282,6 +294,7 @@ data class DataSaverStatus(
         MeteredFeature.VOCAB_AUDIO -> settings.vocabAudio
         MeteredFeature.CLOUD_VOICE -> settings.cloudVoice
         MeteredFeature.FILE_SEND -> settings.fileSend
+        MeteredFeature.CLOUD_GRAMMAR -> settings.cloudGrammar
     }
 
     fun decide(feature: MeteredFeature): MeteredDecision = when {

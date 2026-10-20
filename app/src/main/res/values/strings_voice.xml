@@ -11,7 +11,8 @@
     <string name="voice_enabled_title">Use voice typing</string>
     <string name="voice_enabled_subtitle">Off removes the microphone from the whole keyboard</string>
     <string name="voice_enabled_info">When this is off, the keyboard never opens the microphone. The Voice tool goes from the toolbar, the toolbox and the shortcuts, the boxes of the keyboard itself lose their microphone button, and the collapsed bar does not show. The recognition engines and the Whisper models are not loaded, so voice typing uses no memory. Your voice settings stay as they are for when you turn it on again.</string>
-    <string name="voice_engine_group">Engine</string>
+    <!-- The group of the voice language settings: which language, and which engine for each. -->
+    <string name="voice_languages_group">Languages</string>
     <string name="voice_engine_title">Recognition engine</string>
     <string name="voice_engines_list_info">Dictation uses the first engine on this list that is on and can run on this phone. A language can still have an engine of its own, under Engine for each language. The first transcription server on the list is the one those languages send their clips to. If nothing on the list can run, the phone\'s recognizer is used.</string>
     <string name="voice_engine_subtitle">How the keyboard turns speech into text</string>
@@ -76,7 +77,19 @@
     <string name="voice_translate_title">Translate to English</string>
     <string name="voice_denoise_title">Reduce background noise</string>
     <string name="voice_denoise_subtitle">Clean up the microphone before an offline model hears it</string>
-    <string name="voice_denoise_info">RNNoise, a small noise-removal network, takes steady background sound such as a fan, traffic or a busy café out of the audio before an offline engine (Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual) hears it. It runs on the phone and adds about 10 ms. The system recognizer and the transcription server get the microphone as it is. In a quiet room it gains nothing, so it is off by default.</string>
+    <string name="voice_denoise_info">Takes background sound such as traffic, a busy café or a fan out of the microphone\'s audio before an offline engine (Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa, Omnilingual) hears it. Light is RNNoise, a tiny network that adds about 10 ms. Strong is DPDFNet, a DeepFilterNet model on ONNX Runtime: a 9 MB download, more work for the phone and 40 ms of delay, but it is the one that helps recognition. On noisy test recordings Light cost Whisper words, and Strong won some back. Without its model, Strong runs as Light. The system recognizer and the transcription server get the microphone as it is. Off by default.</string>
+    <string name="voice_denoise_off">Off</string>
+    <string name="voice_denoise_light">Light</string>
+    <string name="voice_denoise_strong">Strong</string>
+    <string name="voice_denoise_off_desc">The microphone as it is</string>
+    <string name="voice_denoise_light_desc">RNNoise: tiny and quick. Quieter audio, though recognition can suffer</string>
+    <string name="voice_denoise_strong_desc">DeepFilterNet (DPDFNet): cleans traffic and chatter too, and helps recognition most. Downloads 9 MB</string>
+    <string name="voice_denoise_model_title">Strong noise model</string>
+    <!-- %1$s is a file size, e.g. "8.8 MB". -->
+    <string name="voice_denoise_model_ready">Downloaded, <xliff:g id="size" example="8.8 MB">%1$s</xliff:g></string>
+    <!-- %1$s is a file size, e.g. "8.8 MB". -->
+    <string name="voice_denoise_model_missing"><xliff:g id="size" example="8.8 MB">%1$s</xliff:g> to download. Until then Strong runs as Light</string>
+    <string name="voice_denoise_strong_not_in_build">This build has no ONNX Runtime, so Strong runs as Light</string>
     <string name="voice_translate_subtitle">Speak any language and type its English translation</string>
     <!-- The transcription server engine (#286). Any server that speaks OpenAI's audio transcription API. -->
     <string name="voice_server_group">Transcription server</string>

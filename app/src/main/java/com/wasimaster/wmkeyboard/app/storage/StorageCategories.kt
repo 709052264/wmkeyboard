@@ -83,6 +83,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
+import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -253,6 +254,7 @@ internal object StorageCategories {
     /** The ExecuTorch engines' items among them: one per model, the catalog id after this prefix. */
     private const val ET_ITEM_PREFIX = "et:"
     private const val MMS_ITEM_PREFIX = "mms:"
+    private const val DENOISE_ITEM_ID = "denoise"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
@@ -432,7 +434,7 @@ internal object StorageCategories {
                     WhisperStore.rootDir(it.files),
                     WhistleModelStore.rootDir(it.files),
                 ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
-                    MmsVoices.rootDir(it.files)
+                    MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -463,7 +465,17 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     }
-                } + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
+                } + listOfNotNull(
+                    // Reduce background noise's Strong model, downloaded or part-way.
+                    StrongDenoise.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = DENOISE_ITEM_ID,
+                            label = "DPDFNet",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
+                ) + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
                     // Read back's offline voices, one folder per language code.
                     StorageItem(
                         id = MMS_ITEM_PREFIX + dir.name,
@@ -476,6 +488,8 @@ internal object StorageCategories {
             deleteOne = { env, item ->
                 if (item.id == WHISTLE_ITEM_ID) {
                     WhistleModelDownloadManager.delete(env.roots.files)
+                } else if (item.id == DENOISE_ITEM_ID) {
+                    StrongDenoise.delete(env.roots.files)
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
@@ -497,6 +511,7 @@ internal object StorageCategories {
                 WhistleModelDownloadManager.delete(env.roots.files)
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
                 emptyOut(MmsVoices.rootDir(env.roots.files))
+                StrongDenoise.delete(env.roots.files)
             },
         ),
         StorageCategory(

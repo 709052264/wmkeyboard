@@ -467,6 +467,12 @@ object LegacyProviders {
             ProviderTool.PHOTO_TRANSLATE -> ProviderChain()
             ProviderTool.AI -> aiChain(s.storedAi, env, ::has)
             ProviderTool.VOICE -> voiceChain(s.storedWhisper, ::has)
+            // Harper alone, as before the list. LanguageTool is listed so it
+            // can be found, but off: it sends the text away, so it waits
+            // until the user switches it on.
+            ProviderTool.GRAMMAR -> ProviderChain(
+                listOf(entry(ProviderTypes.HARPER), entry(ProviderTypes.LANGUAGETOOL, on = false)),
+            )
         }
     }
 

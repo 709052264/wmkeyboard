@@ -300,8 +300,8 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val usingWhisper = whisperEnabled && engine == "whisper"
     val etEngine = com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.byId(engine)?.takeIf { it.runtimeShipped }
     // Every engine something can send dictation to: a row of the list, on or
-    // off, or a language's own choice. Each gets its model manager or setup,
-    // not only the default one, or a language set to Whisper has no model.
+    // off, or a language's own choice. Their models and setup are on each
+    // engine's own screen; here they only decide whether denoise applies.
     val engines = settings.watch { s ->
         s.resolveProviders(ProviderTool.VOICE, all = true).mapNotNull { ProviderTypes.VOICE_ENGINES[it.typeId] }.toSet() +
             s.whisper.voiceByLang.values.map { VoiceChoiceRef.parse(it).engine }
@@ -310,7 +310,6 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     val whistleListed = whistleEnabled && "whistle" in engines
     val etListed = engines.mapNotNull { com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.byId(it) }
         .filter { it.runtimeShipped }
-    val serverListed = ProviderTypes.ENGINE_SERVER in engines
     // The master switch (#578). Off, the rest of the screen is about something
     // the keyboard no longer does, so it goes; the values stay stored.
     val voiceOn = settings.watch { it.voiceBar.enabled }
@@ -337,23 +336,11 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         titleRes = R.string.voice_engine_title,
         info = stringResource(R.string.voice_engine_info) + "\n\n" + stringResource(R.string.voice_engines_list_info),
     )
-    run {
-        SettingsGroup(stringResource(R.string.voice_engine_group)) {
-            // What the phone's recognizer does only matters while it can be used.
-            if (ProviderTypes.ENGINE_SYSTEM in engines) {
-                item {
-                    ToggleSetting(
-                        R.string.voice_system_on_device_title,
-                        stringResource(R.string.voice_system_on_device_subtitle),
-                        settings.watch { it.whisper.systemOnDevice },
-                        info = stringResource(R.string.voice_system_info) + "\n\n" + stringResource(R.string.voice_system_on_device_info),
-                        default = SettingsDefaults.whisper.systemOnDevice,
-                    ) { scope.launch { repository.setVoiceSystemOnDevice(it) } }
-                }
-            }
-            item { VoiceLanguageRow(repository, settings) }
-            item { VoiceEngineLanguagesRow(repository, settings) }
-        }
+    // The system recognizer's own switch, the engines' models and the
+    // servers' options are on each engine's screen, opened from its row.
+    SettingsGroup(stringResource(R.string.voice_languages_group)) {
+        item { VoiceLanguageRow(repository, settings) }
+        item { VoiceEngineLanguagesRow(repository, settings) }
     }
     SettingsGroup(stringResource(R.string.voice_dictation_group)) {
         item {
@@ -440,6 +427,72 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ) { scope.launch { repository.setVoiceTypingMode(it) } }
         }
         item {
+            // Interactive and plain typing chain sessions whatever this says,
+            // so it is drawn off rather than hidden: a missing row would read
+            // as chaining being gone, when it is in fact forced on.
+            val chainingForced =
+                typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_BLOCK
+            ToggleSetting(
+                R.string.voice_continuous_title,
+                stringResource(R.string.voice_continuous_subtitle),
+                settings.watch { it.voiceContinuous } || chainingForced,
+                enabled = !chainingForced,
+                default = SettingsDefaults.voiceContinuous,
+            ) { scope.launch { repository.setVoiceContinuous(it) } }
+        }
+        item {
+            val offLabel = stringResource(R.string.voice_silence_stop_off)
+            val secondsFormat = stringResource(R.string.voice_silence_stop_seconds)
+            SliderSetting(
+                R.string.voice_silence_stop_title,
+                subtitle = stringResource(R.string.voice_silence_stop_subtitle),
+                value = settings.watch { it.voiceBar.silenceStopMs }.toFloat(),
+                range = 0f..VoiceSilenceStopRange.last.toFloat(),
+                display = { picked ->
+                    val ms = (picked / 250f).roundToInt() * 250
+                    if (ms == 0) offLabel else secondsFormat.format(ms / 1000f)
+                },
+                info = stringResource(R.string.voice_silence_stop_info),
+                default = SettingsDefaults.voiceBar.silenceStopMs.toFloat(),
+            ) { picked ->
+                scope.launch { repository.setVoiceSilenceStopMs((picked / 250f).roundToInt() * 250) }
+            }
+        }
+        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
+            ToggleSetting(
+                R.string.voice_punctuation_title,
+                stringResource(R.string.voice_punctuation_subtitle),
+                settings.watch { it.voiceSpokenPunctuation },
+                default = SettingsDefaults.voiceSpokenPunctuation,
+            ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
+        }
+        // Plain voice typing is the words exactly as said, so it is never
+        // tidied (#499) and the row goes with the punctuation one above.
+        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
+            ToggleSetting(
+                R.string.voice_ai_tidy_title,
+                stringResource(R.string.voice_ai_tidy_subtitle),
+                settings.watch { it.voiceBar.aiTidy },
+                info = stringResource(R.string.voice_ai_tidy_info),
+                default = SettingsDefaults.voiceBar.aiTidy,
+            ) { scope.launch { repository.setVoiceAiTidy(it) } }
+        }
+    }
+    // What most people never change: kept in reach, out of the way.
+    SettingsGroup(
+        stringResource(R.string.tooldetail_advanced_group),
+        foldKey = "voice_advanced",
+        foldSummary = {
+            listOf(
+                R.string.voice_hold_picks_title,
+                R.string.voice_resume_title,
+                R.string.voice_pause_media_title,
+                R.string.voice_mic_switch_title,
+                R.string.voice_engine_picker_title,
+            ).map { stringResource(it) }.joinToString(", ")
+        },
+    ) {
+        item {
             ToggleSetting(
                 R.string.voice_hold_picks_title,
                 stringResource(R.string.voice_hold_picks_subtitle),
@@ -525,67 +578,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 }
             }
         }
-        item {
-            // Interactive and plain typing chain sessions whatever this says,
-            // so it is drawn off rather than hidden: a missing row would read
-            // as chaining being gone, when it is in fact forced on.
-            val chainingForced =
-                typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_BLOCK
-            ToggleSetting(
-                R.string.voice_continuous_title,
-                stringResource(R.string.voice_continuous_subtitle),
-                settings.watch { it.voiceContinuous } || chainingForced,
-                enabled = !chainingForced,
-                default = SettingsDefaults.voiceContinuous,
-            ) { scope.launch { repository.setVoiceContinuous(it) } }
-        }
-        item {
-            val offLabel = stringResource(R.string.voice_silence_stop_off)
-            val secondsFormat = stringResource(R.string.voice_silence_stop_seconds)
-            SliderSetting(
-                R.string.voice_silence_stop_title,
-                subtitle = stringResource(R.string.voice_silence_stop_subtitle),
-                value = settings.watch { it.voiceBar.silenceStopMs }.toFloat(),
-                range = 0f..VoiceSilenceStopRange.last.toFloat(),
-                display = { picked ->
-                    val ms = (picked / 250f).roundToInt() * 250
-                    if (ms == 0) offLabel else secondsFormat.format(ms / 1000f)
-                },
-                info = stringResource(R.string.voice_silence_stop_info),
-                default = SettingsDefaults.voiceBar.silenceStopMs.toFloat(),
-            ) { picked ->
-                scope.launch { repository.setVoiceSilenceStopMs((picked / 250f).roundToInt() * 250) }
-            }
-        }
         // Only the offline engines record the audio themselves, so only they
         // can have it cleaned first.
         if (whisperListed || whistleListed || etListed.isNotEmpty()) item {
-            ToggleSetting(
-                R.string.voice_denoise_title,
-                stringResource(R.string.voice_denoise_subtitle),
-                settings.watch { it.whisper.denoise },
-                info = stringResource(R.string.voice_denoise_info),
-                default = SettingsDefaults.whisper.denoise,
-            ) { scope.launch { repository.setVoiceDenoise(it) } }
-        }
-        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
-            ToggleSetting(
-                R.string.voice_punctuation_title,
-                stringResource(R.string.voice_punctuation_subtitle),
-                settings.watch { it.voiceSpokenPunctuation },
-                default = SettingsDefaults.voiceSpokenPunctuation,
-            ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
-        }
-        // Plain voice typing is the words exactly as said, so it is never
-        // tidied (#499) and the row goes with the punctuation one above.
-        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {
-            ToggleSetting(
-                R.string.voice_ai_tidy_title,
-                stringResource(R.string.voice_ai_tidy_subtitle),
-                settings.watch { it.voiceBar.aiTidy },
-                info = stringResource(R.string.voice_ai_tidy_info),
-                default = SettingsDefaults.voiceBar.aiTidy,
-            ) { scope.launch { repository.setVoiceAiTidy(it) } }
+            VoiceDenoiseSetting(repository, settings, scope)
         }
     }
     // The group shows for the engines that read it (#305): Whistle takes it as
@@ -593,7 +589,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // (#440). Where only LiteRT graphs run, Whisper has no way to take a hint.
     // asr4all, Sherpa and Omnilingual have no way to take one either.
     if ((!usingWhisper || WhisperCatalog.cppAvailable) && etEngine == null) {
-        SettingsGroup(stringResource(R.string.voice_bias_group)) {
+        SettingsGroup(stringResource(R.string.voice_bias_group), foldKey = "voice_bias") {
             item {
                 ToggleSetting(
                     R.string.voice_bias_personal_title,
@@ -613,22 +609,6 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             }
         }
     }
-    if (whisperListed) {
-        SettingsGroup(stringResource(R.string.voice_offline_group)) {
-            item {
-                ToggleSetting(
-                    R.string.voice_translate_title,
-                    stringResource(R.string.voice_translate_subtitle),
-                    settings.watch { it.whisper.translate },
-                    default = SettingsDefaults.whisper.translate,
-                ) { scope.launch { repository.setWhisperTranslate(it) } }
-            }
-        }
-        WhisperModelManager(repository, settings)
-    }
-    if (whistleListed) WhistleModelManager(settings)
-    for (et in etListed) EtModelManager(et, settings)
-    if (serverListed) VoiceServerSettings(repository, settings)
 }
 
 /**
@@ -638,7 +618,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
  * on the list above; the docs page carries the recipes.
  */
 @Composable
-private fun VoiceServerSettings(repository: SettingsRepository, settings: LiveSettings) {
+internal fun VoiceServerSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     SettingsGroup(stringResource(R.string.voice_server_group)) {
         item {

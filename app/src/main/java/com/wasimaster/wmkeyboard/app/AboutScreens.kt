@@ -644,6 +644,17 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://huggingface.co/facebook/mms-tts",
             ),
         )
+        // Reduce background noise at Strong: the model the phone downloads
+        // on request, run by sherpa-onnx's streaming denoiser.
+        add(
+            Attribution(
+                "DPDFNet",
+                R.string.about_bundled_dpdfnet_used,
+                "Daniel Rika, Nino Sapir and Ido Gus, Ceva",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/ceva-ip/DPDFNet",
+            ),
+        )
         add(
             Attribution(
                 "Omnilingual ASR",

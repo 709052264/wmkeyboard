@@ -149,4 +149,20 @@ object SherpaNative {
         lengthScale: Float,
         noiseScaleW: Float,
     ): FloatArray?
+
+    // Speech enhancement: a streaming DPDFNet denoiser (the Strong level of
+    // Reduce background noise, [com.wasimaster.wmkeyboard.core.voice.StrongDenoise]).
+    // A handle belongs to the one capture thread using it, not [dispatcher];
+    // it shares nothing with the recognizer. Output trails input by [delay]
+    // samples, which the bridge drops at the start and brings out at
+    // [nativeDenoiseFinish]; [keep] of the input is mixed back under it.
+    @JvmStatic external fun nativeDenoiser(model: String, threads: Int, delay: Int, keep: Float): Long
+
+    @JvmStatic external fun nativeDenoiserFree(denoiser: Long)
+
+    /** [count] samples of [samples] (16 kHz, [-1, 1]) in; what is ready out, denoised. */
+    @JvmStatic external fun nativeDenoise(denoiser: Long, samples: FloatArray, count: Int): FloatArray
+
+    /** The clip's last samples, and the denoiser reset for the next clip. */
+    @JvmStatic external fun nativeDenoiseFinish(denoiser: Long): FloatArray
 }

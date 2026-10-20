@@ -196,6 +196,17 @@ internal fun DataSaverSettingsScreen(
             ) { scope.launch { repository.setDataSaverCloudVoice(it) } }
         }
         item {
+            // Two answers: a check runs on every pause in typing, with no one
+            // moment to ask at. See DataSaverSettings.cloudGrammar.
+            policyRow(
+                R.string.datasaver_grammar_title,
+                R.string.datasaver_grammar_subtitle,
+                settings.watch { it.dataSaver.cloudGrammar },
+                SettingsDefaults.dataSaver.cloudGrammar,
+                background = true,
+            ) { scope.launch { repository.setDataSaverCloudGrammar(it) } }
+        }
+        item {
             policyRow(
                 R.string.datasaver_send_title,
                 R.string.datasaver_send_subtitle,
