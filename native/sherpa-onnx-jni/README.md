@@ -58,9 +58,12 @@ downloader as the ExecuTorch engines.
 
 | ABI | Size |
 |---|---|
-| arm64-v8a | about 2.2 MB |
-| armeabi-v7a | about 1.4 MB |
-| x86_64 | about 2.3 MB |
+| arm64-v8a | about 3.1 MB |
+| armeabi-v7a | about 2.1 MB |
+| x86_64 | about 3.3 MB |
+
+The offline recognizer behind Omnilingual added about 0.9 MB to each: its
+model factory links every offline model type sherpa-onnx knows.
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.
