@@ -425,6 +425,9 @@
     <string name="tooldetail_handwriting_stylus_info">This helps to reject the palm while you write with a stylus. Even with this setting off, the keyboard ignores finger touches for a short time after stylus strokes, so a resting palm does not draw.</string>
     <string name="tooldetail_handwriting_auto_space_title">Automatic space</string>
     <string name="tooldetail_handwriting_auto_space_subtitle">Put a space between words that you write one after another</string>
+    <string name="tooldetail_handwriting_zinnia_title">Offline recogniser for Chinese and Japanese</string>
+    <string name="tooldetail_handwriting_zinnia_subtitle">Read Chinese and Japanese with zinnia instead of Google ML Kit</string>
+    <string name="tooldetail_handwriting_zinnia_info">zinnia is a small open-source recogniser with models from the Tegaki project. It reads one character at a time and is less accurate than ML Kit, but needs nothing from Google. Builds without ML Kit, such as the F-Droid one, always use it. Simplified or Traditional Chinese follows the Traditional characters switch in Chinese settings.</string>
     <string name="tooldetail_handwriting_pause_title">Recognition pause</string>
     <string name="tooldetail_handwriting_pause_subtitle">How long after the last stroke the keyboard waits before it recognizes the word</string>
     <string name="tooldetail_handwriting_pause_info">A shorter pause feels faster, but it can cut multi-stroke letters and Bengali conjuncts in half. A longer pause gives you more time between strokes. Gboard uses about half a second.</string>
@@ -436,7 +439,7 @@
     <string name="tooldetail_handwriting_full_screen_automatic_label">Stylus</string>
     <string name="tooldetail_handwriting_full_screen_automatic_desc">A stylus writes and a finger keeps using the app. Start each run of writing over a text field. Needs Android\'s own setting for writing in text fields with a stylus</string>
     <string name="tooldetail_handwriting_models_header">Recognition models</string>
-    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device with Google ML Kit. Each language needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 26 MB. After that, handwriting works offline.</string>
+    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device, with Google ML Kit or, for Chinese and Japanese, zinnia. Each language needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 52 MB. After that, handwriting works offline.</string>
     <string name="tooldetail_handwriting_languages_title">Languages and layouts</string>
     <string name="tooldetail_handwriting_languages_subtitle">Add a language to get its handwriting model here</string>
 

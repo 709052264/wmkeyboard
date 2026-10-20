@@ -198,6 +198,7 @@ import com.wasimaster.wmkeyboard.core.gesture.SwipeModel
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadException
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingRecognizerCache
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import android.Manifest
@@ -4669,6 +4670,18 @@ open class WMKeyboardService : InputMethodService() {
                 CjkConfig.doublePinyin = settings.cjk.pinyinDoublePinyin
                 CjkConfig.traditionalOutput = settings.cjk.traditionalOutput
                 if (settings.cjk.traditionalOutput) loadHanVariantTables()
+                // Chinese and Japanese handwriting reads through ML Kit or
+                // zinnia, and Chinese through zinnia picks its model by the
+                // Traditional switch above, so either change can move the
+                // panel to another model: re-check it while ink is taken.
+                HandwritingModels.preferZinnia = settings.handwritingZinnia
+                _uiState.value.let { ui ->
+                    if ((ui.panel == PanelMode.HANDWRITING || keyboardHandwriteActive(ui)) &&
+                        hwLanguageTag() != ui.handwriting.languageTag
+                    ) {
+                        refreshHandwritingStatus()
+                    }
+                }
                 CjkConfig.lazyJyutping = settings.cjk.jyutpingLazy
                 CjkConfig.looseKanaMarks = settings.cjk.kanaLooseMarks
                 HanVariant.region = settings.cjk.hanRegion
@@ -30044,10 +30057,12 @@ open class WMKeyboardService : InputMethodService() {
     // ---- handwriting ----
 
     /**
-     * The ink model to recognize against. ML Kit covers most but not all of the
-     * keyboard's languages, so a language it cannot recognize hands over to the
-     * first enabled one it can — writing something is better than a panel that
-     * offers a download which could never succeed.
+     * The ink model to recognize against. ML Kit and zinnia between them cover
+     * most but not all of the keyboard's languages (in F-Droid's build, only
+     * Chinese and Japanese), so a language neither can recognize hands over to
+     * the first enabled one that can — writing something is better than a
+     * panel that offers a download which could never succeed. With none at
+     * all, the tag has no model and the panel says so.
      */
     private fun hwLanguageTag(): String {
         val state = _uiState.value
@@ -30068,25 +30083,23 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Letter-area swipes are drawing handwriting (rather than gliding a word):
-     * a build with ML Kit, gesture typing on with the swipe action set to HANDWRITE, on
-     * the letter layer with no panel open.
+     * gesture typing on with the swipe action set to HANDWRITE, on the letter
+     * layer with no panel open.
      */
     private fun swipeHandwriteActive(state: KeyboardUiState): Boolean =
-        BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-            !state.layouts.handwriting &&
+        !state.layouts.handwriting &&
             state.settings.gestureTyping &&
             state.settings.letterSwipeAction == LetterSwipeAction.HANDWRITE &&
             state.layoutMode == LayoutMode.LETTERS &&
             state.panel == PanelMode.NONE
 
     /**
-     * The active layout is a handwriting one and its canvas is on screen: full
-     * build, letters layer, no panel over it. No gesture setting is involved;
-     * picking the layout is the opt-in.
+     * The active layout is a handwriting one and its canvas is on screen:
+     * letters layer, no panel over it. No gesture setting is involved; picking
+     * the layout is the opt-in.
      */
     private fun handwritingLayoutActive(state: KeyboardUiState): Boolean =
-        BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-            state.layouts.handwriting &&
+        state.layouts.handwriting &&
             state.layoutMode == LayoutMode.LETTERS &&
             state.panel == PanelMode.NONE
 
@@ -30101,7 +30114,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!keyboardHandwriteActive(state)) return
         if (state.handwriting.status != HandwritingStatus.READY) {
             // CHECKING/DOWNLOADING resolve on their own; only nag once the
-            // absence is confirmed.
+            // absence is confirmed. UNSUPPORTED has nothing to download, and
+            // the canvas of a writing layout already says so.
             if (state.handwriting.status == HandwritingStatus.NEED_MODEL ||
                 state.handwriting.status == HandwritingStatus.ERROR
             ) {
@@ -30156,10 +30170,19 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         serviceScope.launch {
+            // No recogniser in this build reads any of the enabled languages
+            // (F-Droid's build without Chinese or Japanese): nothing to fetch.
+            if (!HandwritingModels.hasModel(tag)) {
+                _uiState.update {
+                    if (it.handwriting.languageTag != tag) return@update it
+                    it.copy(handwriting = it.handwriting.copy(status = HandwritingStatus.UNSUPPORTED))
+                }
+                return@launch
+            }
             val downloaded = HandwritingModels.isDownloaded(tag)
-            // Read off ML Kit's shipped manifest, so the "needs a download of
-            // about N" line quotes this language's real size rather than one
-            // rounded figure for all 126 of them.
+            // Read off ML Kit's shipped manifest (or zinnia's pinned pack
+            // size), so the "needs a download of about N" line quotes this
+            // language's real size rather than one rounded figure for all.
             val size = HandwritingModelSizes.installedBytes(applicationContext, tag)
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
@@ -30229,10 +30252,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             hwDownloadJob = null
             hwDownloadNotify = null
+            // A failure the user can act on (library downloads switched off)
+            // says what to do; any other says only that it failed.
+            val failure = (result.exceptionOrNull() as? HandwritingDownloadException)?.message
+                ?: getString(R.string.ime_service_handwriting_download_error)
             if (result.isSuccess) {
                 notify.done()
             } else {
-                notify.failed(getString(R.string.ime_service_handwriting_download_error))
+                notify.failed(failure)
             }
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
@@ -30243,7 +30270,7 @@ open class WMKeyboardService : InputMethodService() {
                         it.handwriting.copy(
                             status = HandwritingStatus.ERROR,
                             download = null,
-                            errorMessage = getString(R.string.ime_service_handwriting_download_error),
+                            errorMessage = failure,
                         )
                     },
                 )

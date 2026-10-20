@@ -5,6 +5,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcData
 import com.wasimaster.wmkeyboard.core.input.rime.RimeSchemaCatalog
+import com.wasimaster.wmkeyboard.core.input.zinnia.ZinniaData
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.input.R
 import java.io.File
@@ -163,11 +164,12 @@ object CjkDictCatalog {
 
     /**
      * [packs], the RIME engine's schema packs ([RimeSchemaCatalog]) and the
-     * Mozc engine's dictionary ([MozcData]), which download, verify, import
-     * and sit on disk the same way but are offered in their engine's own
-     * group and never converted with by the built-in composers.
+     * Mozc engine's dictionary ([MozcData]) and zinnia's handwriting models
+     * ([ZinniaData]), which download, verify, import and sit on disk the same
+     * way but are offered in their engine's own group and never converted
+     * with by the built-in composers.
      */
-    val allPacks: List<CjkDictPack> get() = packs + RimeSchemaCatalog.packs + MozcData.packs
+    val allPacks: List<CjkDictPack> get() = packs + RimeSchemaCatalog.packs + MozcData.packs + ZinniaData.packs
 
     init {
         check(allPacks.map { it.id }.toSet().size == allPacks.size) { "pack ids must be unique" }

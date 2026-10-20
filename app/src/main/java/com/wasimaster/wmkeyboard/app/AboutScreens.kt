@@ -265,6 +265,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/hunspell/hunspell",
         ),
     )
+    // Chinese and Japanese handwriting without ML Kit, in every build:
+    // packaged, pinned for download, or a Play split. See native/zinnia-jni.
+    add(
+        Attribution(
+            "zinnia",
+            R.string.about_bundled_zinnia_used,
+            "Copyright (c) 2005-2007, Taku Kudo",
+            "BSD-3-Clause", "bsd-zinnia.txt",
+            "https://github.com/taku910/zinnia",
+        ),
+    )
     if (BuildConfig.ENABLE_GRAMMAR) {
         add(
             Attribution(
@@ -821,6 +832,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright 2010-2021 Google Inc.",
         "BSD-3-Clause", "bsd-3-clause.txt",
         "https://github.com/google/mozc",
+    ))
+    add(Attribution(
+        "Tegaki handwriting models",
+        R.string.about_pack_tegaki_used,
+        "Copyright the Tegaki and Tomoe project contributors",
+        "LGPL-2.1", "lgpl-2.1-tegaki.txt",
+        "https://github.com/tegaki/tegaki",
     ))
     add(Attribution(
         "rime-cantonese & CC-Canto",

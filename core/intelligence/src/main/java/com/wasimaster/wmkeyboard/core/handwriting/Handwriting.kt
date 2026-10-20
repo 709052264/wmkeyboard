@@ -2,10 +2,12 @@ package com.wasimaster.wmkeyboard.core.handwriting
 
 import android.content.Context
 import android.os.SystemClock
+import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.modules.NotInBuild
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
@@ -24,6 +26,13 @@ data class HwPoint(val x: Float, val y: Float, val t: Long)
 
 /** A finished stroke: the points between one touch-down and its release. */
 data class HwStroke(val points: List<HwPoint>)
+
+/**
+ * A model download that failed for a reason the user can act on, with the
+ * sentence to show them: the panel puts [message] where it would otherwise
+ * say only that the download failed.
+ */
+class HandwritingDownloadException(message: String) : IOException(message)
 
 /**
  * How far a model download has got. ML Kit reports nothing at all — it hands
@@ -78,9 +87,16 @@ internal data class InkTag(val tag: String) {
 }
 
 /**
- * ML Kit Digital Ink model catalog and download management. Shared by the
- * IME (recognition, in-panel download) and the settings app (model manager),
- * so both always agree on which models exist and their language tags.
+ * Handwriting model catalog and download management. Shared by the IME
+ * (recognition, in-panel download) and the settings app (model manager), so
+ * both always agree on which models exist and their language tags.
+ *
+ * Two recognisers sit behind it. ML Kit's Digital Ink reads 126 of the
+ * keyboard's languages wherever the build carries it. zinnia
+ * ([ZinniaModels], tags starting `zinnia-`) reads Chinese and Japanese only,
+ * and takes them where ML Kit is not in the build (F-Droid's), where ML Kit
+ * has no model (Cantonese), or where the user picked it ([preferZinnia]).
+ * Every function here takes either kind of tag.
  *
  * Nothing here imports ML Kit. Those calls sit behind [InkRuntime], reached
  * by reflection, because on Play the library ships in an on-demand module
@@ -98,6 +114,23 @@ object HandwritingModels {
     private val allIdentifiers: List<InkTag> by lazy { InkModelTags.ALL.map(::InkTag) }
 
     private val allTags: Set<String> by lazy { InkModelTags.ALL.toSet() }
+
+    /**
+     * Whether this build carries ML Kit's recogniser at all, here or on its
+     * way as a Play module. False in F-Droid's build, where every language
+     * zinnia cannot read has no handwriting.
+     */
+    val mlKitInBuild: Boolean get() = FeatureModules.handwriting !== NotInBuild
+
+    /**
+     * Chinese and Japanese write through zinnia even though ML Kit is here:
+     * the Handwriting tool's "Offline recogniser for Chinese and Japanese"
+     * switch, pushed in by whoever reads settings (the keyboard's settings
+     * collector, the tool's settings screen). Moot without ML Kit, where
+     * zinnia is the only recogniser those languages have.
+     */
+    @Volatile
+    var preferZinnia: Boolean = false
 
     /** Where the recogniser's module stands. Always installed outside Play. */
     val moduleState: StateFlow<ModuleState> get() = FeatureModules.handwriting.state
@@ -158,12 +191,25 @@ object HandwritingModels {
 
     /**
      * The recognition model tag for one of the keyboard's languages, or null
-     * when ML Kit has no model for it. Among a language's variants: the one
-     * matching the language's own locale wins, then the bare tag, then one
-     * written in the language's own script — that last step is what keeps
-     * Sanskrit on `sa-Deva-IN` rather than the romanised `sa-Latn`.
+     * when neither recogniser has a model for it: zinnia's for Chinese and
+     * Japanese when it is the one to use (see the class comment), ML Kit's
+     * otherwise. [zinniaPicked] is the user's switch; the settings screen
+     * passes the value it shows, the keyboard leaves it to [preferZinnia].
      */
-    fun tagFor(language: LanguageDef): String? {
+    fun tagFor(language: LanguageDef, zinniaPicked: Boolean = preferZinnia): String? {
+        val mlKit = if (mlKitInBuild) mlKitTagFor(language) else null
+        val zinnia = ZinniaModels.tagFor(language, CjkConfig.traditionalOutput) ?: return mlKit
+        return if (zinniaPicked || mlKit == null) zinnia else mlKit
+    }
+
+    /**
+     * ML Kit's tag for [language], or null when it has no model for it.
+     * Among a language's variants: the one matching the language's own
+     * locale wins, then the bare tag, then one written in the language's own
+     * script — that last step is what keeps Sanskrit on `sa-Deva-IN` rather
+     * than the romanised `sa-Latn`.
+     */
+    private fun mlKitTagFor(language: LanguageDef): String? {
         val subtag = SUBTAG_ALIASES[language.id] ?: language.id
         val candidates = allIdentifiers.filter { it.language == subtag }
         if (candidates.isEmpty()) return null
@@ -180,19 +226,28 @@ object HandwritingModels {
             ?: candidates.minByOrNull { it.tag.length }?.tag
     }
 
-    /** The recognition model tag for a language id; falls back to the id itself. */
+    /**
+     * The recognition model tag for a language id; falls back to the id
+     * itself, which [hasModel] then answers no for.
+     */
     fun tagForLangId(langId: String): String =
-        tagFor(LanguageRegistry.byId(langId)) ?: if (langId == "en") "en-US" else langId
+        tagFor(LanguageRegistry.byId(langId)) ?: if (langId == "en" && mlKitInBuild) "en-US" else langId
 
     /**
      * The models worth offering: one per language the user actually types in,
-     * skipping the ones ML Kit cannot recognize. This is what the settings
+     * skipping the ones no recogniser can read. This is what the settings
      * screen lists, so enabling a language is all it takes for its model to
-     * show up there.
+     * show up there. Chinese through zinnia lists both its models, since the
+     * Traditional output switch picks between them at writing time.
      */
-    fun modelsFor(languages: List<LanguageDef>): List<HandwritingLanguage> =
-        languages.distinctBy { it.id }.mapNotNull { language ->
-            tagFor(language)?.let { HandwritingLanguage(it, language.displayName) }
+    fun modelsFor(languages: List<LanguageDef>, zinniaPicked: Boolean = preferZinnia): List<HandwritingLanguage> =
+        languages.distinctBy { it.id }.flatMap { language ->
+            val tag = tagFor(language, zinniaPicked) ?: return@flatMap emptyList()
+            if (ZinniaModels.isTag(tag)) {
+                ZinniaModels.tagsFor(language).map { HandwritingLanguage(it, ZinniaModels.displayName(it)) }
+            } else {
+                listOf(HandwritingLanguage(tag, language.displayName))
+            }
         }.distinctBy { it.tag }
 
     /**
@@ -201,9 +256,14 @@ object HandwritingModels {
      * the model is called `no` and `fil-Latn`.
      */
     fun shortLabel(tag: String): String =
-        (languageForTag(tag)?.id ?: tag.substringBefore('-')).uppercase()
+        if (ZinniaModels.isTag(tag)) {
+            ZinniaModels.shortLabel(tag)
+        } else {
+            (languageForTag(tag)?.id ?: tag.substringBefore('-')).uppercase()
+        }
 
-    fun displayName(tag: String): String = languageForTag(tag)?.displayName ?: tag
+    fun displayName(tag: String): String =
+        if (ZinniaModels.isTag(tag)) ZinniaModels.displayName(tag) else languageForTag(tag)?.displayName ?: tag
 
     private fun languageForTag(tag: String): LanguageDef? {
         val subtag = tag.substringBefore('-')
@@ -242,14 +302,16 @@ object HandwritingModels {
      */
     private const val STATUS_TIMEOUT_MS = 60_000L
 
-    /** Whether ML Kit has a model for [tag] at all. */
-    fun hasModel(tag: String): Boolean = tag in allTags
+    /** Whether a recogniser in this build has a model for [tag] at all. */
+    fun hasModel(tag: String): Boolean =
+        if (ZinniaModels.isTag(tag)) ZinniaModels.packFor(tag) != null else mlKitInBuild && tag in allTags
 
     /**
      * Whether [tag]'s model is on the device. False on Play until the
      * recogniser's module is here, since there is nothing to ask.
      */
     suspend fun isDownloaded(tag: String): Boolean {
+        if (ZinniaModels.isTag(tag)) return ZinniaModels.isDownloaded(tag)
         if (!hasModel(tag)) return false
         val engine = runtime() ?: return false
         engine.prepare()
@@ -281,6 +343,7 @@ object HandwritingModels {
         tag: String,
         onProgress: (HandwritingDownloadProgress) -> Unit = {},
     ) {
+        if (ZinniaModels.isTag(tag)) return ZinniaModels.download(context, tag, onProgress)
         require(hasModel(tag)) { "No model for $tag" }
         // Packs imported from another device (#666) are served off disk, so
         // that download needs neither the network nor the permission for it.
@@ -379,6 +442,7 @@ object HandwritingModels {
     }
 
     suspend fun delete(tag: String) {
+        if (ZinniaModels.isTag(tag)) return ZinniaModels.delete(tag)
         if (!hasModel(tag)) return
         val engine = runtime() ?: return
         engine.prepare()
@@ -389,19 +453,20 @@ object HandwritingModels {
 data class HandwritingLanguage(val tag: String, val displayName: String)
 
 /**
- * A recognizer for the active language. Holds one ML Kit recognizer at a
- * time; switching languages closes the old one. All calls are main-thread
- * safe — ML Kit runs recognition on its own executor.
+ * A recognizer for the active language. Holds one recognizer at a time, ML
+ * Kit's or zinnia's; switching languages closes the old one. All calls are
+ * main-thread safe — ML Kit runs recognition on its own executor, zinnia on
+ * the default dispatcher.
  */
 class HandwritingRecognizerCache {
 
     private var recognizer: InkRuntime.Recognizer? = null
     private var recognizerTag: String? = null
 
-    private fun recognizerFor(engine: InkRuntime, tag: String): InkRuntime.Recognizer? {
+    private fun recognizerFor(tag: String, open: () -> InkRuntime.Recognizer?): InkRuntime.Recognizer? {
         if (recognizerTag == tag) return recognizer
         close()
-        recognizer = engine.recognizer(tag) ?: return null
+        recognizer = open() ?: return null
         recognizerTag = tag
         return recognizer
     }
@@ -422,10 +487,13 @@ class HandwritingRecognizerCache {
         maxCandidates: Int = 4,
     ): List<String> {
         if (strokes.isEmpty()) return emptyList()
-        val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
-        HandwritingModels.prepare(engine)
-        val recognizer = recognizerFor(engine, tag)
-            ?: error("No recognizer for $tag")
+        val recognizer = if (ZinniaModels.isTag(tag)) {
+            recognizerFor(tag) { ZinniaModels.recognizer(tag) }
+        } else {
+            val engine = HandwritingModels.runtimeForRecognition() ?: error("Handwriting runtime is not here")
+            HandwritingModels.prepare(engine)
+            recognizerFor(tag) { engine.recognizer(tag) }
+        } ?: error("No recognizer for $tag")
         return recognizer.recognize(strokes, preContext, writingAreaWidth, writingAreaHeight)
             .filter { it.isNotEmpty() }
             .distinct()

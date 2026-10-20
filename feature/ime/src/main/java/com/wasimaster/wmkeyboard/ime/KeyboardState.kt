@@ -1036,8 +1036,12 @@ data class LauncherDetailUi(
     val loading: Boolean = true,
 )
 
-/** Readiness of the handwriting panel's recognition model. */
-enum class HandwritingStatus { CHECKING, NEED_MODEL, DOWNLOADING, READY, ERROR }
+/**
+ * Readiness of the handwriting panel's recognition model. UNSUPPORTED: no
+ * recogniser in this build reads any enabled language (F-Droid's build reads
+ * only Chinese and Japanese), so there is nothing to download either.
+ */
+enum class HandwritingStatus { CHECKING, NEED_MODEL, DOWNLOADING, READY, ERROR, UNSUPPORTED }
 
 /**
  * Handwriting panel state, owned by the service (it runs recognition).

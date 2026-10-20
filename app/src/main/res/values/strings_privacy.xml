@@ -13,7 +13,7 @@
     <!-- Handwriting models: download and delete one model per language.    -->
     <!-- ================================================================== -->
 
-    <string name="privacy_handwriting_none_info">None of the languages you turned on has an ML Kit handwriting model. Add a language on the Languages screen. The model of that language then shows here.</string>
+    <string name="privacy_handwriting_none_info">None of the languages you turned on has a handwriting model in this version of the app. Add a language on the Languages screen. The model of that language then shows here.</string>
 
     <!-- Row subtitles. Each one says what the model of that language is doing. -->
     <string name="privacy_handwriting_status_checking">Checking…</string>

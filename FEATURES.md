@@ -717,7 +717,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting instead of glide (letter-area swipe drawing) | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING); also needs a downloaded ML Kit digital-ink model, so a network fetch on first use |
+| Handwriting instead of glide (letter-area swipe drawing) | a downloaded model for the language: ML Kit digital ink, or zinnia for Chinese and Japanese (the only one in the F-Droid build), so a network fetch on first use |
 | TalkBack gesture pass-through for spacebar slide / backspace swipe / glide / handwriting | needs the 'WM Keyboard gestures' accessibility service granted by the user |
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
@@ -1724,7 +1724,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - The F-Droid build has 4 fewer — Handwriting, OCR, QR scan and Doc scan are compiled out
+    - The F-Droid build has 3 fewer — OCR, QR scan and Doc scan are compiled out; Handwriting stays, with zinnia reading Chinese and Japanese
     - Doc scan also needs Play services — PlayServices.available gate, since the scanner UI lives in Play services
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
@@ -1770,7 +1770,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Numpad — 4×4 numeric keypad panel over any field
     - Phone or calculator digit order — 1 2 3 top by default; calculator style puts 7 8 9 on top
     - Backspace repeats on hold — Enter sends a normal Enter key
-  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition
+  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition, zinnia for Chinese and Japanese without it
     - Per-language model manager — Catalog read from ML Kit itself, filtered to enabled languages; 8-26MB each, sized from ML Kit's own shipped manifest
     - Measured download progress — Bytes counted off disk against the manifest size; stall notice at 20s, gives up and cleans up at 90s; panel download button doubles as cancel
     - Language chip on the canvas — Only shown when two or more enabled languages have a model
@@ -2205,7 +2205,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting tool and handwrite-with-swipes | not in the F-Droid build (ML Kit digital ink); each language model is an 8-26MB download |
+| Handwriting tool and handwrite-with-swipes | every build; the F-Droid build reads only Chinese and Japanese (zinnia, no ML Kit); each language model is an 8-26MB ML Kit download or a 26-52MB zinnia one |
 | Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
 | QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
 | Document scanner | not in the F-Droid build, and hidden entirely when Google Play services is unavailable |
@@ -2759,6 +2759,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - One speaker for everything — `VocabSpeaker` asks `SpeechOut` before the platform synthesiser, so vocabulary cards, Look up and selection Read aloud also use a downloaded voice; recordings still play first
   - Rides the `onnx` gate — same runtime download as Offline Sherpa; voices on the Storage screen under Voice models
 - **Handwriting** — ML Kit digital-ink recognition on a full-width canvas, or drawn straight on the letter keys
+  - zinnia for Chinese and Japanese `RARE` — Taku Kudo's BSD recogniser (native/zinnia-jni, `libwmzinnia.so`, ~450 KB arm64, gate `zinnia`, `:feature:zinnia` on Play) with the Tegaki project's LGPL models: Japanese 6,420 characters, Simplified Chinese 6,763 (GB 2312), Traditional Chinese 11,853 (Big5)
+    - Takes over where ML Kit is not in the build (F-Droid: the only recogniser, so other languages get a "Chinese and Japanese only" panel note), for Cantonese (ML Kit has no model; Traditional), or with Handwriting > Offline recogniser for Chinese and Japanese (off by default, shown only where ML Kit is in the build)
+    - Chinese model follows Traditional characters — Simplified with it off, Traditional with it on; the model list shows both
+    - Models are CJK packs — pinned SHA-256, resumable download through CjkDictDownloadManager, offline import by file name, never listed on the language dictionary screens; one Download button fetches the library first, then the model
+    - Line segmentation — ink cut at horizontal gaps, a late stroke over an earlier character joins it; every joining of up to six pieces (three per character) is read and the best average zinnia score wins, so 硍 is not read as 石艮 and two characters written apart are two
+    - Fit to the training box — each character scaled by its own bounding box to the Tegaki models' 1000-unit square (longer side 820, centred at 500,490), with a floor of 30% of the canvas height so a lone dot stays small
+    - Desktop-verified JNI — on the models' own training characters, jittered and resampled: top 1 93-99%, top 4 99-100%, two-character lines 92-100%
   - Model catalog read from the library, not hardcoded `RARE` — ML Kit's own identifier table minus autodraw/emoji/shape/gesture models, filtered to enabled languages
     - 32 script codes mapped for variant selection — keeps Sanskrit on sa-Deva-IN rather than the romanised sa-Latn
     - Subtag aliases — nb→no, tl→fil
@@ -2837,7 +2844,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 |---|---|
 | On-device LLM provider and its whole model catalog | not in the F-Droid build (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent there |
 | Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
-| Handwriting panel and handwrite-with-swipes | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
+| Handwriting panel and handwrite-with-swipes | every build; without ML Kit (F-Droid) only Chinese and Japanese, through zinnia |
 | Text scan (OCR) and QR/barcode scanner | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
 | Document scanner | not in the F-Droid build, and additionally requires Google Play services — the tool is hidden when Play services is absent |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
@@ -2845,7 +2852,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence; GGUF models also need the llama.cpp library (a Play split or a GitHub native download) |
 | NPU under Compute | Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
-| Handwriting language models | one-time network download per language through ML Kit |
+| Handwriting language models | one-time network download per language through ML Kit, or from the data repository for zinnia's Chinese and Japanese models (plus the zinnia library: a Play split, or a native download after the F-Droid opt-in) |
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |
 | System speech recognition without the on-device language pack | sends audio to the OS recognizer service; the on-device model download itself needs network |
 | Camera tool, OCR and QR scanner | need the CAMERA runtime permission (shared trampoline) |
