@@ -82,8 +82,9 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     }.toSet()
 
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
-    // Sherpa, ExecuTorch (shared with the FUTO Swipe glide engine) for the others.
-    if (engine == EtEngine.SHERPA) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch)
+    // Sherpa and Omnilingual, ExecuTorch (shared with the FUTO Swipe glide
+    // engine) for the others.
+    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch)
 
     SettingsGroup(
         stringResource(
@@ -92,6 +93,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.PARAKEET -> R.string.voice_parakeet_group
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_group
                 EtEngine.SHERPA -> R.string.voice_sherpa_group
+                EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_group
             },
         ),
         info = stringResource(
@@ -100,6 +102,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.PARAKEET -> R.string.voice_parakeet_model_info
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_model_info
                 EtEngine.SHERPA -> R.string.voice_sherpa_model_info
+                EtEngine.OMNILINGUAL -> R.string.voice_omnilingual_model_info
             },
         ),
     ) {

@@ -2,7 +2,10 @@
 
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) runs Offline Sherpa's
 streaming Zipformer transducers, Silero VAD and the English online
-punctuation model. Kotlin entry points: `SherpaNative` and `SherpaEngine` in
+punctuation model, and Offline Omnilingual's model (Meta's Omnilingual ASR
+300M CTC) on its offline recognizer, with Silero cutting the audio into
+phrases. Kotlin entry points: `SherpaNative`, `SherpaEngine` and
+`OmnilingualEngine` in
 `core/voice/src/main/java/com/wasimaster/wmkeyboard/core/voice/sherpa/`.
 
 The bridge is a thin JNI layer over sherpa-onnx's C API, which is linked in
