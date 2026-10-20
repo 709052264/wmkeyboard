@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.ime
 
 import android.os.Looper
+import android.view.inputmethod.ExtractedText
+import android.view.inputmethod.ExtractedTextRequest
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -25,6 +27,40 @@ class RecentWordBarTest {
     }
     private val space = Key(" ", action = KeyAction.Space)
 
+    /**
+     * An editor that says where its caret is, as real ones do: the bar's
+     * read waits for the caret echo when the two disagree (#839).
+     */
+    private class ExtractingEditor(initial: String) : RecordingEditor(initial = initial) {
+        /** A range a pick selected to write over, or null with the caret at the end. */
+        private var selected: IntRange? = null
+
+        override fun getExtractedText(request: ExtractedTextRequest?, flags: Int): ExtractedText =
+            ExtractedText().also {
+                it.text = text.toString()
+                it.startOffset = 0
+                it.selectionStart = text.length
+                it.selectionEnd = text.length
+            }
+
+        override fun setSelection(start: Int, end: Int): Boolean {
+            selected = if (start == end && end == text.length) null else start until end
+            return true
+        }
+
+        override fun commitText(text: CharSequence?, newCursorPosition: Int): Boolean {
+            val range = selected ?: return super.commitText(text, newCursorPosition)
+            commits += text?.toString().orEmpty()
+            this.text.replace(range.first, range.last + 1, text?.toString().orEmpty())
+            selected = null
+            return true
+        }
+    }
+
+    /** Each keyboard's editor and the caret it last reported. */
+    private val editors = HashMap<GlideKeyboard, RecordingEditor>()
+    private val carets = HashMap<GlideKeyboard, Int>()
+
     private fun keyboard(
         settings: KeyboardSettings,
         initial: String,
@@ -33,19 +69,31 @@ class RecentWordBarTest {
     ): Pair<GlideKeyboard, RecordingEditor> {
         val (service, editor) = glideKeyboard(
             state = glideReadyState(settings = settings, secureField = secure, fieldKind = kind, fieldNoSuggestions = false),
-            editor = RecordingEditor(initial = initial),
+            editor = ExtractingEditor(initial),
         )
         val end = initial.length
         service.onUpdateSelection(end, end, end, end, -1, -1)
+        editors[service] = editor
+        carets[service] = end
         return service to editor
     }
 
     private fun idle() = shadowOf(Looper.getMainLooper()).idle()
 
+    /** The editor's echo of an edit: its caret moved from where it was to the end. */
+    private fun GlideKeyboard.echo() {
+        val from = carets.getValue(this)
+        val end = editors.getValue(this).text.length
+        onUpdateSelection(from, from, end, end, -1, -1)
+        carets[this] = end
+        idle()
+    }
+
     private fun GlideKeyboard.typeWord(word: String) {
         word.forEach { onText(it.toString()) }
         onKey(space)
         idle()
+        echo()
     }
 
     private fun GlideKeyboard.words(): List<String> = uiState.value.recentBar.map { it.word }
@@ -57,6 +105,7 @@ class RecentWordBarTest {
             .apply { isAccessible = true }
             .invoke(this, entry.start, word, replacement)
         idle()
+        echo()
     }
 
     @Test
@@ -122,6 +171,7 @@ class RecentWordBarTest {
             .apply { isAccessible = true }
             .invoke(service, first.start, "that", "what")
         idle()
+        service.echo()
         assertEquals("what that now ", editor.text.toString())
     }
 }

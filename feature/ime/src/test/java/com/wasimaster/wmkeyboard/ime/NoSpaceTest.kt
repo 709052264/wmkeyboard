@@ -36,7 +36,8 @@ class NoSpaceTest {
 
     private fun GlideKeyboard.glide(word: String) {
         onGesture(straightStroke(), glideKeyGrid(), GLIDE_KEY_WIDTH, GlideVerdict.Word(word))
-        settle { uiState.value.suggestions.isNotEmpty() }
+        // The strip is already full from an earlier glide: wait for this one.
+        TwoThumbKit.drain(this)
     }
 
     private fun GlideKeyboard.noSpace() = onTextEdit(TextEditAction.NO_SPACE, haptic = false)
