@@ -320,6 +320,10 @@
     <string name="layout_editor_flick_field_hint">Blank: no flick in this direction</string>
     <string name="layout_editor_flick_set_hint">A flick this way types %1$s</string>
     <string name="layout_editor_flick_add_subtitle_action">A short swipe from the key in any of eight directions types something or does an action, such as moving the cursor</string>
+    <!-- Under a modifier key's flick pad (#838): what giving it an arm takes over. -->
+    <string name="layout_editor_flick_takes_modifier_drag">With an arm here, a swipe off this key is the arm, not a drag onto a letter for its combination. Clear the arms to have the drag back.</string>
+    <!-- Under the ?123 or ABC key's flick pad (#838). -->
+    <string name="layout_editor_flick_takes_layer_peek">With an arm here, a swipe off this key is the arm, not the drag that peeks at the other layer. Holding it still, for a chord or the number pad, works either way. Clear the arms to have the peek back.</string>
     <string name="layout_editor_flick_caption_action">Tap a cell of the pad to set what a swipe that way types, or tap its bolt for an action. A tap on the key still does what the key does.</string>
     <string name="layout_editor_flick_action_none">No flick this way. Tap to choose an action.</string>
     <string name="layout_editor_flick_action_set">A flick this way does this: %1$s</string>

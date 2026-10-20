@@ -5823,7 +5823,10 @@ internal fun KeyEditSheet(
                 // A new action takes the old one's label and icon with it
                 // (issue #769): a Del key turned into Ctrl kept saying Del.
                 // Left blank, the key draws what the keyboard draws for the
-                // action it now has. Typing text keeps its label.
+                // action it now has. Typing text keeps its label. The old
+                // key's text arms go too (#838): since #789 an action key
+                // types them, so a letter's arms left on the Shift it became
+                // would start typing under it.
                 val changed = !(catalog.firstOrNull { o -> o.matches(action) }?.matches(key.action) ?: false)
                 onChange {
                     val relabel = changed && action != KeyAction.Text
@@ -5833,6 +5836,8 @@ internal fun KeyEditSheet(
                         label = if (relabel) "" else it.label,
                         shiftLabel = if (relabel) null else it.shiftLabel,
                         icon = if (relabel) null else it.icon,
+                        flick = if (relabel) emptyMap() else it.flick,
+                        flickShift = if (relabel) emptyMap() else it.flickShift,
                     )
                 }
                 pickingAction = false
@@ -6298,6 +6303,14 @@ private fun FlickFields(
     CaptionText(
         stringResource(if (typesText) R.string.layout_editor_flick_caption else R.string.layout_editor_flick_caption_action),
     )
+    // What an arm here takes over (#838): the fixed rules from the gestures
+    // page, said where the arm is being given rather than discovered later.
+    val takesOver = when {
+        key.action == KeyAction.Shift || key.action is KeyAction.Mod -> R.string.layout_editor_flick_takes_modifier_drag
+        key.action == KeyAction.Symbols || key.action == KeyAction.Letters -> R.string.layout_editor_flick_takes_layer_peek
+        else -> 0
+    }
+    if (takesOver != 0) CaptionText(stringResource(takesOver))
     // Issue #410: a key that is all swipes, with nothing in the middle. The
     // switch empties the centre; turning it off gives the centre the first
     // text arm back, so the key types something on a tap again.

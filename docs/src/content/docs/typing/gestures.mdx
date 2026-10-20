@@ -119,7 +119,9 @@ Flicks belong to keys, not to the edges of the keyboard. A swipe down off the bo
 
 The special keys take arms too: <KeyCap>Enter</KeyCap>, <KeyCap>Shift</KeyCap>, <KeyCap>?123</KeyCap>, <KeyCap>ABC</KeyCap>, the globe, the emoji key and the rest, everything but the space bar and a key set to repeat. An arm on one of them types text or runs an action, and the tap is still the key's own. <KeyCap>Enter</KeyCap> with `?` on its flick up types one `?`, without sending and without a new line. <KeyCap>⌫</KeyCap> takes arms and keeps its swipe and its repeat: forward delete on its flick up is the usual one, and it repeats while your finger stays out on the arm. A direction with an arm belongs to the arm, the delete swipe keeps the others, and a press held still until the repeat starts is a hold, not a flick.
 
-Where two gestures could claim the same swipe, the rule is fixed rather than guessed:
+Changing a key's action in the layout editor clears its text arms, so a letter turned into <KeyCap>Shift</KeyCap> doesn't keep typing the letter's arms. Flicks off the edges stay a key's own, and the space bar takes no arms: its swipes move the cursor, switch language, open the touchpad and hide the keyboard.
+
+Where two gestures could claim the same swipe, the rule is fixed rather than guessed, and the layout editor says so under the flick pad of a key where an arm takes something over:
 
 - **An arm on <KeyCap>Shift</KeyCap>, <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> or <KeyCap>Meta</KeyCap> replaces [dragging from that key](#dragging-from-a-modifier-key).** On a key with arms the swipe is the arm; a modifier key without arms keeps the drag.
 - **An arm on <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> replaces the drag that peeks at the other layer.** Holding <KeyCap>?123</KeyCap> still and tapping a key, the [symbol chord](#chords-with-123), is a hold and not a swipe, so it works either way. So do the other still holds: <KeyCap>?123</KeyCap> held for the number pad and the globe held for the language picker.
