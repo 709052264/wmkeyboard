@@ -92,15 +92,22 @@ class GlidePreviewGate {
      * The word a lift should type: the one on screen while the finished
      * stroke still ranks it within [GlidePreviewSteadiness.margin] of its own
      * leader, and that leader otherwise.
+     *
+     * [shownAtLift] is the word that was on screen when the finger lifted.
+     * The lift retires the previews, and this gate with them, before the
+     * finished stroke is decoded, so a caller reads [shown] first and passes
+     * it here (#816): asked after the reset, the gate had nothing on screen
+     * and the lift took the leader, whatever the user had been shown.
      */
     fun commit(
         words: List<String>,
         scores: List<Double>,
         steadiness: GlidePreviewSteadiness,
+        shownAtLift: String? = shown,
     ): String? {
         val leader = words.firstOrNull() ?: return null
         if (steadiness == GlidePreviewSteadiness.OFF) return leader
-        val held = shown ?: return leader
+        val held = shownAtLift ?: return leader
         if (held.equals(leader, ignoreCase = true)) return leader
         val at = words.indexOfFirst { it.equals(held, ignoreCase = true) }
         if (at < 0) return leader

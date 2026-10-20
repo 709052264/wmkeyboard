@@ -11285,9 +11285,11 @@ open class WMKeyboardService : InputMethodService() {
         verdict: GlideVerdict,
         shift: ShiftState,
     ) {
-        // Retires every preview from this stroke, in flight or queued.
+        // Retires every preview from this stroke, in flight or queued, once
+        // the word on screen is read: the lift owes it the word (#816).
         gestureGeneration.incrementAndGet()
         gestureJob?.cancel()
+        val shownAtLift = previewGate.shown
         clearGlidePreview()
         if (verdict is GlideVerdict.Cancel) return
         val chosen = (verdict as? GlideVerdict.Word)?.word
@@ -11299,7 +11301,7 @@ open class WMKeyboardService : InputMethodService() {
                     glideDecode(segment, keys, keyWidthPx, guessAhead = last)
                 }
                 val picked = chosen?.takeIf { last }
-                    ?: previewGate.commit(reading.words, reading.scores, steadiness)
+                    ?: previewGate.commit(reading.words, reading.scores, steadiness, shownAtLift.takeIf { last })
                     ?: reading.words.firstOrNull()
                     ?: continue
                 val word = glideCased(picked, shift, verdict.caseAt(index), segment, keys, keyWidthPx)
@@ -25875,10 +25877,12 @@ open class WMKeyboardService : InputMethodService() {
         }
 
         val shiftAtGesture = shiftForGlide(state.shiftState, verdict.caseAt(0))
-        // Retires every preview from this stroke, in flight or queued.
+        // Retires every preview from this stroke, in flight or queued, once
+        // the word on screen is read: the lift owes it the word (#816).
         gestureGeneration.incrementAndGet()
         suggestionJob?.cancel()
         gestureJob?.cancel()
+        val shownAtLift = previewGate.shown
         clearGlidePreview()
         // A quick flick straight up off a key carrying a word takes that word.
         // Asked here, at the lift: a flick is over in a tenth of a second, so
@@ -25935,7 +25939,7 @@ open class WMKeyboardService : InputMethodService() {
             // near its own leader, so what was shown is what gets typed.
             val picked = chosen
                 ?: previewGate.commit(
-                    candidates, reading.scores, state.settings.gesture.previewSteadiness,
+                    candidates, reading.scores, state.settings.gesture.previewSteadiness, shownAtLift,
                 )
                 ?: candidates.first()
             val drawn = reading.guesses[picked]
@@ -43659,15 +43663,17 @@ open class WMKeyboardService : InputMethodService() {
         verdict: GlideVerdict,
         shift: ShiftState,
     ) {
-        // Retires every preview from this stroke, in flight or queued.
+        // Retires every preview from this stroke, in flight or queued, once
+        // the word on screen is read: the lift owes it the word (#816).
         gestureGeneration.incrementAndGet()
         gestureJob?.cancel()
+        val shownAtLift = previewGate.shown
         clearGlidePreview()
         val steadiness = _uiState.value.settings.gesture.previewSteadiness
         gestureJob = serviceScope.launch {
             val reading = withContext(Dispatchers.Default) { glideDecode(points, keys, keyWidthPx) }
             val picked = (verdict as? GlideVerdict.Word)?.word
-                ?: previewGate.commit(reading.words, reading.scores, steadiness)
+                ?: previewGate.commit(reading.words, reading.scores, steadiness, shownAtLift)
                 ?: reading.words.firstOrNull()
                 ?: return@launch
             val word = glideCased(picked, shift, verdict.caseAt(0), points, keys, keyWidthPx)
