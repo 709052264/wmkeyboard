@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.smarthome
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
@@ -58,7 +59,8 @@ class HomeHttp(val client: OkHttpClient) {
         return exchange(Request.Builder().url(url).post(body), headers, timeoutMs)
     }
 
-    private suspend fun exchange(builder: Request.Builder, headers: Map<String, String>, timeoutMs: Long): HomeReply = runInterruptible {
+    // On IO whatever the caller's context: a sign-in finishing on an activity's scope is on the main thread.
+    private suspend fun exchange(builder: Request.Builder, headers: Map<String, String>, timeoutMs: Long): HomeReply = runInterruptible(Dispatchers.IO) {
         headers.forEach { (k, v) -> builder.header(k, v) }
         val timed = client.newBuilder().callTimeout(timeoutMs, TimeUnit.MILLISECONDS).build()
         timed.newCall(builder.build()).execute().use { response ->
@@ -71,7 +73,7 @@ class HomeHttp(val client: OkHttpClient) {
      * caller is cancelled. Blocking inside; cancellation closes the socket.
      * Throws [HomeHttpException] when the stream is refused.
      */
-    suspend fun listen(url: String, headers: Map<String, String>, onEvent: (SseEvent) -> Unit) = runInterruptible {
+    suspend fun listen(url: String, headers: Map<String, String>, onEvent: (SseEvent) -> Unit) = runInterruptible(Dispatchers.IO) {
         val builder = Request.Builder().url(url).get().header("Accept", "text/event-stream").header("Cache-Control", "no-cache")
         headers.forEach { (k, v) -> builder.header(k, v) }
         val streaming = client.newBuilder().readTimeout(0, TimeUnit.MILLISECONDS).callTimeout(0, TimeUnit.MILLISECONDS).build()

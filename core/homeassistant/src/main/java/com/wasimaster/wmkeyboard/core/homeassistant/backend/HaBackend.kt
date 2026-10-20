@@ -17,6 +17,7 @@ import com.wasimaster.wmkeyboard.core.homeassistant.HaTokens
 import com.wasimaster.wmkeyboard.core.homeassistant.HaTransport
 import com.wasimaster.wmkeyboard.core.homeassistant.HaUrl
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -249,7 +250,7 @@ class HaBackend(
     private suspend fun pollRest() {
         while (socket?.isLive != true) {
             restAnswers = try {
-                val map = runInterruptible { rest.states() }.associate { it.entityId to it.copy(home = key) }
+                val map = runInterruptible(Dispatchers.IO) { rest.states() }.associate { it.entityId to it.copy(home = key) }
                 if (map.isNotEmpty()) {
                     val before = _entities.value
                     _entities.value = map
@@ -290,7 +291,7 @@ class HaBackend(
         if (!current.expiresWithin(now())) return current.accessToken
         val base = activeUrl() ?: return current.accessToken
         return try {
-            val refreshed = runInterruptible { HaAuth.refresh(http, base, current, now()) }
+            val refreshed = runInterruptible(Dispatchers.IO) { HaAuth.refresh(http, base, current, now()) }
             tokens = refreshed
             onTokens(refreshed)
             refreshed.accessToken
@@ -325,7 +326,7 @@ class HaBackend(
                 // Fell over between the check and the send; REST below.
             }
         }
-        runInterruptible { rest.callService(call) }
+        runInterruptible(Dispatchers.IO) { rest.callService(call) }
         // Over REST nothing streams the result back: read it, so the tile is not left claiming.
         if (restJob?.isActive == true) scope.launch { runCatching { states() } }
     }
@@ -336,10 +337,10 @@ class HaBackend(
             try {
                 s.states()
             } catch (_: HaNotConnectedException) {
-                runInterruptible { rest.states() }
+                runInterruptible(Dispatchers.IO) { rest.states() }
             }
         } else {
-            runInterruptible { rest.states() }
+            runInterruptible(Dispatchers.IO) { rest.states() }
         }
         val map = list.associate { it.entityId to it.copy(home = key) }
         if (map.isNotEmpty()) _entities.value = map
@@ -356,10 +357,10 @@ class HaBackend(
                 // REST below.
             }
         }
-        return runInterruptible { rest.conversation(text, language, agent, conversationId) }
+        return runInterruptible(Dispatchers.IO) { rest.conversation(text, language, agent, conversationId) }
     }
 
-    override suspend fun snapshot(entityId: String): ByteArray = runInterruptible { rest.cameraSnapshot(entityId).bytes }
+    override suspend fun snapshot(entityId: String): ByteArray = runInterruptible(Dispatchers.IO) { rest.cameraSnapshot(entityId).bytes }
 
     private companion object {
         const val CHANGE_BUFFER = 256
