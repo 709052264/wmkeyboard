@@ -2,8 +2,19 @@
 
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) runs Offline Sherpa's
 streaming Zipformer transducers, Silero VAD and the English online
-punctuation model. Kotlin entry points: `SherpaNative` and `SherpaEngine` in
+punctuation model. Kotlin entry points: `SherpaNative`, `SherpaEngine` and
+`OmnilingualEngine` in
 `core/voice/src/main/java/com/wasimaster/wmkeyboard/core/voice/sherpa/`.
+
+Offline Omnilingual's model (Meta's Omnilingual ASR 300M CTC) runs on ONNX
+Runtime's C++ API directly (`omnilingual_jni.cpp`), with sherpa-onnx's Silero
+cutting the audio into phrases. sherpa-onnx's offline recognizer decodes the
+same model, but the model has no language conditioning and spells in
+whichever script it thinks it hears (macOS's Hindi voice came back in Urdu
+letters), and the recognizer offers no way to steer that. The bridge follows
+sherpa-onnx's preprocessing (the raw waveform, normalised to zero mean and
+unit variance) and does the greedy CTC pick itself, over the tokens
+`OmnilingualScriptMask` flags for the dictation's scripts.
 
 The same library reads text aloud with Meta's MMS-TTS voices
 (`vits_jni.cpp`, driven by `core.voice.speech.MmsSpeech`). That part is not
@@ -65,7 +76,7 @@ downloader as the ExecuTorch engines.
 |---|---|
 | arm64-v8a | about 2.2 MB |
 | armeabi-v7a | about 1.5 MB |
-| x86_64 | about 2.3 MB |
+| x86_64 | about 2.4 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.

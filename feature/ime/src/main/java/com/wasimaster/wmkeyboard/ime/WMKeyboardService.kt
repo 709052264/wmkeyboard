@@ -677,6 +677,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.moonshine.MoonshineEngine
 import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
@@ -8856,8 +8857,13 @@ open class WMKeyboardService : InputMethodService() {
         if (asr4allJob?.isActive != true && EtNative.isOpen) {
             serviceScope.launch(EtNative.dispatcher) { if (asr4allJob?.isActive != true) EtNative.release() }
         }
-        if (asr4allJob?.isActive != true && SherpaEngine.isOpen) {
-            serviceScope.launch(SherpaNative.dispatcher) { if (asr4allJob?.isActive != true) SherpaEngine.release() }
+        if (asr4allJob?.isActive != true && (SherpaEngine.isOpen || OmnilingualEngine.isOpen)) {
+            serviceScope.launch(SherpaNative.dispatcher) {
+                if (asr4allJob?.isActive != true) {
+                    SherpaEngine.release()
+                    OmnilingualEngine.release()
+                }
+            }
         }
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OfflineTranslation.release()
@@ -28360,7 +28366,7 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }
-        val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine == EtEngine.SHERPA
+        val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine?.onnx == true
         val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
             onDevice == OnDeviceVoice.Whistle
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
@@ -28371,8 +28377,8 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         if (sherpa && !SherpaNative.moduleReady) {
-            // Sherpa's runtime is its own part, ONNX Runtime and the bridge
-            // (:feature:onnx on Play, the onnx gate elsewhere).
+            // Sherpa's and Omnilingual's runtime is its own part, ONNX Runtime
+            // and the bridge (:feature:onnx on Play, the onnx gate elsewhere).
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) SherpaNative.requestModule()
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
@@ -28639,26 +28645,37 @@ open class WMKeyboardService : InputMethodService() {
     private fun etCoversVoice(engine: EtEngine): Boolean =
         engine.runtimeShipped && voiceLanguageIds().all(engine::supports)
 
-    /** Whether [engine] decodes while the user speaks rather than when the clip ends. */
-    private fun liveEngine(engine: EtEngine): Boolean = engine == EtEngine.ASR4ALL || engine == EtEngine.SHERPA
+    /**
+     * Whether [engine] decodes while the user speaks rather than when the clip
+     * ends. Omnilingual counts: it decodes each phrase at the pause after it.
+     */
+    private fun liveEngine(engine: EtEngine): Boolean =
+        engine == EtEngine.ASR4ALL || engine == EtEngine.SHERPA || engine == EtEngine.OMNILINGUAL
 
     /** The one thread [engine]'s model calls run on. */
     private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher =
-        if (engine == EtEngine.SHERPA) SherpaNative.dispatcher else EtNative.dispatcher
+        if (engine.onnx) SherpaNative.dispatcher else EtNative.dispatcher
 
     /**
-     * A fresh streaming utterance on [model]. Sherpa ends it by itself after
-     * the pause set in "Stop after a pause". On [liveDispatcher] only.
+     * A fresh streaming utterance on [model]. Sherpa and Omnilingual end it by
+     * themselves after the pause set in "Stop after a pause". On
+     * [liveDispatcher] only.
      */
     private fun newLiveStream(model: EtModel): VoiceStream = when (model.engine) {
         EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
+        EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(
+            filesDir,
+            model,
+            _uiState.value.settings.voiceBar.silenceStopMs,
+            voiceLanguageIds(),
+        )
         else -> Asr4AllEngine.newStream(filesDir, model)
     }
 
     /**
-     * Frees a streaming utterance nobody will finish. Only Sherpa's holds
-     * native memory (asr4all's is the heap's), and it is closed on Sherpa's
-     * own thread, after the feeding job's last call.
+     * Frees a streaming utterance nobody will finish. Only Sherpa's and
+     * Omnilingual's hold native memory (asr4all's is the heap's), and they are
+     * closed on their own thread, after the feeding job's last call.
      */
     private fun dropLiveCapture(capture: Asr4AllCapture?) {
         val stream = capture?.stream as? AutoCloseable ?: return
@@ -28668,7 +28685,7 @@ open class WMKeyboardService : InputMethodService() {
     /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL, EtEngine.SHERPA -> newLiveStream(model).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model).run {
             feed(pcm)
             finish()
         }
@@ -29901,7 +29918,7 @@ open class WMKeyboardService : InputMethodService() {
         if (status == VoiceStatus.TRANSCRIBING) WhisperCpp.abort()
         asr4allJob?.cancel()
         asr4allJob = null
-        // Sherpa's stream holds native memory; asr4all's is the heap's.
+        // Sherpa's and Omnilingual's streams hold native memory; asr4all's is the heap's.
         dropLiveCapture(asr4allCapture)
         asr4allCapture = null
         // Its live words are settled below with the recognizer's partial.

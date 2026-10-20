@@ -289,8 +289,8 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // No library off arm64 or where F-Droid stripped it, so nothing to offer there (#548).
     val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped
     // The engines whose models download file by file: the ExecuTorch ones
-    // behind Asr4All (#289), Parakeet and Moonshine, and Sherpa on ONNX
-    // Runtime, each wherever its own runtime is.
+    // behind Asr4All (#289), Parakeet and Moonshine, and Sherpa and
+    // Omnilingual on ONNX Runtime, each wherever its own runtime is.
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     // The default engine: the first on the voice list that can run.
@@ -591,7 +591,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
     // The group shows for the engines that read it (#305): Whistle takes it as
     // keywords (#548), and offline Whisper's whisper.cpp models as their prompt
     // (#440). Where only LiteRT graphs run, Whisper has no way to take a hint.
-    // asr4all and Sherpa have no way to take one either.
+    // asr4all, Sherpa and Omnilingual have no way to take one either.
     if ((!usingWhisper || WhisperCatalog.cppAvailable) && etEngine == null) {
         SettingsGroup(stringResource(R.string.voice_bias_group)) {
             item {

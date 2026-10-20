@@ -14,6 +14,8 @@ endif()
 # Static, recognition only: no TTS, diarization, audio I/O, servers or tools.
 # Speech out (vits_jni.cpp) runs MMS VITS voices on ONNX Runtime directly:
 # sherpa-onnx's TTS would link espeak-ng (GPL-3.0) for phonemes they never use.
+# The Omnilingual model (omnilingual_jni.cpp) runs on it directly as well, so
+# its logits can be held to one script before the CTC pick.
 set(BUILD_SHARED_LIBS                      OFF CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_C_API               ON  CACHE BOOL "" FORCE)
 set(SHERPA_ONNX_ENABLE_JNI                 OFF CACHE BOOL "" FORCE)
@@ -31,7 +33,7 @@ set(SHERPA_ONNX_USE_PRE_INSTALLED_ONNXRUNTIME_IF_AVAILABLE ON CACHE BOOL "" FORC
 
 add_subdirectory("${SHERPA_SRC}" sherpa-onnx EXCLUDE_FROM_ALL)
 
-add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp)
+add_library(wmsherpa SHARED sherpa_jni.cpp vits_jni.cpp omnilingual_jni.cpp)
 target_include_directories(wmsherpa PRIVATE "${SHERPA_SRC}" "$ENV{SHERPA_ONNXRUNTIME_INCLUDE_DIR}")
 target_link_libraries(wmsherpa PRIVATE sherpa-onnx-c-api log)
 target_compile_options(wmsherpa PRIVATE -fvisibility=hidden -ffunction-sections -fdata-sections)

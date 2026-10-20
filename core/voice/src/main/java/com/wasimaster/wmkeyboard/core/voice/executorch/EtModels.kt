@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import java.io.File
 import java.security.MessageDigest
@@ -34,11 +35,22 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
         "sherpa", "sherpa",
         setOf("en", "bn", "ru", "ko", "fr", "de", "es", "zh", "ar", "id", "ja", "th", "vi"),
     ),
+
+    /**
+     * Meta's Omnilingual ASR, 300M CTC, on the same sherpa-onnx runtime: one
+     * model for 1,600-odd languages, every keyboard language among them
+     * listed in [OmnilingualLanguages]. It decodes a whole phrase at a time,
+     * so Silero cuts the audio at each pause and the phrase before it goes in.
+     */
+    OMNILINGUAL("omnilingual", "omnilingual", OmnilingualLanguages.codes),
     ;
+
+    /** Whether the engine runs on ONNX Runtime (the `onnx` gate) rather than ExecuTorch. */
+    val onnx: Boolean get() = this == SHERPA || this == OMNILINGUAL
 
     /** Whether this build has the runtime the engine needs, counting a module not fetched yet. */
     val runtimeShipped: Boolean
-        get() = if (this == SHERPA) SherpaNative.shipped else EtNative.shipped
+        get() = if (onnx) SherpaNative.shipped else EtNative.shipped
 
     /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
     fun supports(languageId: String): Boolean =
@@ -110,9 +122,9 @@ object EtCatalog {
     private const val ASR4ALL_META = "executorch/xnnpack_int8/metadata.json"
 
     /**
-     * Silero VAD v4 (MIT), which hears where a Sherpa phrase ends. Kept beside
-     * each Sherpa model rather than once, so deleting a model never breaks
-     * another.
+     * Silero VAD v4 (MIT), which hears where a Sherpa phrase ends and cuts
+     * Omnilingual's audio into phrases. Kept beside each model rather than
+     * once, so deleting a model never breaks another.
      */
     private val SILERO_VAD = EtFile(
         "silero_vad.onnx", 1_807_522L, "a35ebf52fd3ce5f1469b2a36158dba761bc47b973ea3382b3186ca15b1f5af28",
@@ -338,6 +350,18 @@ object EtCatalog {
             ),
             languages = setOf("en"),
             punctuation = true,
+        ),
+        // Meta's Omnilingual ASR 300M CTC (Apache-2.0), int8, exported for
+        // sherpa-onnx by k2-fsa. No language to choose: it tells them apart.
+        EtModel(
+            "omnilingual-300m", EtEngine.OMNILINGUAL, "300m-ctc", "Omnilingual ASR 300M", 300,
+            "csukuangfj/sherpa-onnx-omnilingual-asr-1600-languages-300M-ctc-int8-2025-11-12",
+            "6abf1ece20cd2308bdb7d13cd78ec1c44fa4c094",
+            listOf(
+                EtFile("tokens.txt", 86_423L, "a7a044c52cb29cbe8b0dc1953e92cefd4ca16b0ed968177b6beab21f9a7d0b31"),
+                SILERO_VAD,
+                EtFile("model.int8.onnx", 365_352_120L, "e7c4e54ee4c4c47829cc6667d5d00ed8ea7bef1dcfeef0fce766f77752a2726c"),
+            ),
         ),
     )
 

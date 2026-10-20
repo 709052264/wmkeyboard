@@ -50,7 +50,7 @@ object SherpaNative {
             .asCoroutineDispatcher()
     }
 
-    // Recognizer: a streaming transducer. Paths are the model's files; 0 when
+    // Streaming recognizer: a transducer. Paths are the model's files; 0 when
     // they will not load. [trailingSilence] is the pause, in seconds, after
     // which the recognizer's own endpoint fires.
     @JvmStatic external fun nativeRecognizer(
@@ -85,6 +85,40 @@ object SherpaNative {
     @JvmStatic external fun nativeVadFeed(vad: Long, samples: FloatArray, count: Int): Boolean
 
     @JvmStatic external fun nativeVadReset(vad: Long)
+
+    // Silero as a segmenter: it keeps each phrase between pauses of at least
+    // [minSilence] seconds, and past [maxSpeech] seconds of talk it settles
+    // for a much shorter pause. Fed with [nativeVadFeed]; the phrases come out
+    // oldest first, null when there is none.
+    @JvmStatic external fun nativeSegmenter(
+        model: String,
+        threshold: Float,
+        minSilence: Float,
+        minSpeech: Float,
+        maxSpeech: Float,
+    ): Long
+
+    @JvmStatic external fun nativeVadSegment(vad: Long): FloatArray?
+
+    /** The clip is over: speech still going on becomes a last phrase. */
+    @JvmStatic external fun nativeVadFlush(vad: Long)
+
+    // Meta's Omnilingual ASR CTC model on ONNX Runtime, a whole phrase at a time.
+    @JvmStatic external fun nativeOmnilingual(model: String, tokens: String, threads: Int): Long
+
+    @JvmStatic external fun nativeOmnilingualFree(model: Long)
+
+    /**
+     * The first [count] samples of a phrase (16 kHz mono, in [-1, 1]) as text,
+     * UTF-8. [allowed] flags the token ids that may come out (see
+     * [OmnilingualScriptMask]); null lets the model write any of them.
+     */
+    @JvmStatic external fun nativeOmnilingualDecode(
+        model: Long,
+        samples: FloatArray,
+        count: Int,
+        allowed: BooleanArray?,
+    ): ByteArray
 
     // Online punctuation: CNN-BiLSTM over BPE pieces, punctuation and capitals.
     @JvmStatic external fun nativePunctuation(model: String, vocab: String): Long
