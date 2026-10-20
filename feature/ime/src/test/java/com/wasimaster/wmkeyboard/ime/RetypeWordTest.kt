@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime
 
+import android.view.inputmethod.ExtractedText
+import android.view.inputmethod.ExtractedTextRequest
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -14,12 +16,52 @@ import org.robolectric.RobolectricTestRunner
 @RunWith(RobolectricTestRunner::class)
 class RetypeWordTest {
 
+    /** An editor that says where its caret is, as most do: Retype wants proof before it deletes (#844). */
+    private class ExtractingEditor(initial: String) : RecordingEditor(initial = initial) {
+        override fun getExtractedText(request: ExtractedTextRequest?, flags: Int): ExtractedText =
+            ExtractedText().also {
+                it.text = text.toString()
+                it.startOffset = 0
+                it.selectionStart = text.length
+                it.selectionEnd = text.length
+            }
+    }
+
     /** A service over [initial], told its caret sits at the end of it. */
-    private fun keyboard(initial: String): Pair<GlideKeyboard, RecordingEditor> {
-        val (service, editor) = glideKeyboard(editor = RecordingEditor(initial = initial))
+    private fun keyboard(initial: String, extracting: Boolean = true): Pair<GlideKeyboard, RecordingEditor> {
+        val editor = if (extracting) ExtractingEditor(initial) else RecordingEditor(initial = initial)
+        val (service, _) = glideKeyboard(editor = editor)
         val end = initial.length
         service.onUpdateSelection(end, end, end, end, -1, -1)
         return service to editor
+    }
+
+    @Test
+    fun `an editor that will not say where its caret is keeps its text`() {
+        val (service, editor) = keyboard("hello form ", extracting = false)
+        service.retype()
+        assertEquals("hello form ", editor.text.toString())
+    }
+
+    @Test
+    fun `a stale caret leaves the field alone`() {
+        val (service, editor) = keyboard("hello form ")
+        // The editor moved on with no echo: the keyboard still thinks 11.
+        editor.text.insert(0, "oh ")
+        service.retype()
+        assertEquals("oh hello form ", editor.text.toString())
+    }
+
+    @Test
+    fun `a strip refresh still waiting does not replace the offer`() {
+        val (service, _) = keyboard("hello ")
+        "form".forEach { service.onText(it.toString()) }
+        service.onKey(com.wasimaster.wmkeyboard.core.layout.Key(" ", action = com.wasimaster.wmkeyboard.core.layout.KeyAction.Space))
+        val end = "hello form ".length
+        service.onUpdateSelection(end, end, end, end, -1, -1)
+        service.retype()
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
+        assertEquals("form", service.uiState.value.suggestions.first())
     }
 
     private fun GlideKeyboard.retype() = onTextEdit(TextEditAction.RETYPE_WORD, haptic = false)
@@ -76,9 +118,10 @@ class RetypeWordTest {
     @Test
     fun `picking the word back puts it where it was`() {
         val (service, editor) = keyboard("hello form ")
+        service.spaceIsOurs()
         service.retype()
         service.onSuggestionTapped("form")
-        assertTrue(editor.text.toString(), editor.text.toString().startsWith("hello form"))
+        assertEquals("hello form ", editor.text.toString())
     }
 
     @Test

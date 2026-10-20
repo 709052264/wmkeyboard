@@ -124,6 +124,7 @@
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>
     <string name="offline_import_cutout_done">Background remover model</string>
     <string name="offline_import_native_done">Feature library %1$s</string>
+    <string name="offline_import_gesture_library_done">Google\'s gesture library. Pick it under Typing › Gestures › Glide engine to use it</string>
     <string name="offline_import_language_pack_done">Interface language %1$s</string>
     <string name="offline_import_khipro_glide_done">Khipro spellings, for gliding on the Khipro layout</string>
     <string name="offline_import_phonetic_index_done">Phonetic index for %1$s</string>

@@ -8,9 +8,11 @@ import android.view.View
 import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import com.wasimaster.wmkeyboard.core.emoji.EmojiUsage
 import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.prediction.LanguageMixConfidence
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.OctopusWord
 import com.wasimaster.wmkeyboard.core.prediction.UserLexicon
@@ -351,6 +353,23 @@ internal fun plantPersonalStores(service: WMKeyboardService) {
     plant(service, "snippetStore", SnippetStore(null))
     // Learning a committed word asks whether the user already knows it.
     plant(service, "userLexicon", UserLexicon(null))
+}
+
+/**
+ * What `onFinishInputView` reaches that only `onCreate` builds (#827), so a
+ * test can put the keyboard away.
+ *
+ * The window's lifecycle owner is the one the hide itself reaches, before it
+ * settles anything else: without it the hide stops at `lifecycleOwner.onPause()`
+ * with an `UninitializedPropertyAccessException`. The two stores are only
+ * saved afterwards, on the persist dispatcher, where a missing one prints a
+ * stack trace on a worker thread and fails nothing; planted, nothing is
+ * printed. Backed by no file, as on the lock screen, so nothing is written.
+ */
+internal fun plantWindowStores(service: WMKeyboardService) {
+    plant(service, "lifecycleOwner", KeyboardViewLifecycleOwner())
+    plant(service, "languageMixConfidence", LanguageMixConfidence(null))
+    plant(service, "emojiUsage", EmojiUsage(null))
 }
 
 private fun plant(service: WMKeyboardService, name: String, value: Any) {

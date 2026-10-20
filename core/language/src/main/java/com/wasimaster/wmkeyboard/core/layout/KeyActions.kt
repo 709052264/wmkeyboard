@@ -577,8 +577,8 @@ fun KeyAction.fallbackLabel(): String = when (this) {
     // unlabelled one falls back to, and it is deliberately not the layer's key,
     // which is an identifier and can be any length.
     is KeyAction.LayerSwitch -> "▤"
-    // The editor writes the mode's name onto the key when it is picked, as it
-    // does a layout's; this is the glyph an unlabelled one gets.
+    // The board draws the mode's current name over this (#821, see
+    // modeBindingLabel); the glyph is for a face drawn without the modes to hand.
     is KeyAction.Mode -> "◐"
     is KeyAction.SwitchInputMethod -> "⌨"
     // A field is not a key: the cell draws its component, and the editor draws
@@ -804,6 +804,7 @@ private fun TextEditAction.fallbackGlyph(): String = when (this) {
     TextEditAction.DOC_END -> "⇲"
     TextEditAction.CUT -> "✂"
     TextEditAction.RETYPE_WORD -> "↺"
+    TextEditAction.NO_SPACE -> "⁀"
 }
 
 /**

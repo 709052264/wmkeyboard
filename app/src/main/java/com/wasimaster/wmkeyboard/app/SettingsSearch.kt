@@ -2246,6 +2246,12 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.home_ai_title,
             "ai",
         ),
+        entry(
+            R.string.toolai_hub_settings_assistant_title,
+            R.string.toolai_hub_settings_assistant_subtitle,
+            R.string.home_ai_title,
+            "ai",
+        ),
         entry(R.string.semantic_mode_title, R.string.semantic_mode_subtitle, R.string.home_ai_title, "ai")
             .takeIf { com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED },
         entry(R.string.semantic_tag_stickers_title, R.string.semantic_tag_stickers_subtitle, R.string.home_ai_title, "ai")

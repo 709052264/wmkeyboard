@@ -40,6 +40,24 @@ Reproducible from two pinned inputs, both checked by hash:
 
 Word order, comments, coverage and the file format are untouched; only the
 numbers change.
+
+Comparing the ranking evals before and after a change to this list (#837):
+the frequency-sampled suites draw their cases from the dictionary, so pin the
+case set to the old list with WM_EVAL_SAMPLE_DICT (see EvalSampling in the
+app's eval tests) and run them with each list in place. Measured for this
+rescale (13dae189e) in #837, on one fixed case set where noted:
+
+  * DuetBeamEvalTest top1, cases from the new list, CLEAN/LIGHT/TYPICAL/
+    SLOPPY/LOOPED: old .8367/.8333/.8067/.7667/.7600, new .8367/.8267/.8033/
+    .7633/.7600. From the old list: CLEAN-TYPICAL identical, SLOPPY .7733 to
+    .7667, LOOPED .7900 to .7867. Every lost case decodes a word en_full
+    rates more common (tops to stop, nest to best).
+  * Glide on the same cases: top1 within .0067 per level, one loss
+    (patty to party).
+  * RerankGainTest, same cases by construction: contextful cold .8167 to
+    .8800 before, .8850 to .9067 after; warm .8233 to .9083 before, .8883
+    to .9233 after.
+  * GlideBeamTest 38/38 after.
 """
 
 import argparse

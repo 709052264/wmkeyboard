@@ -29,6 +29,7 @@ Each screen that downloads something has an import row with two buttons:
 | Text recognition data <Flavor edition="google" /> | <SettingsPath path="Tools / Text scan (OCR) / Language data" />, below the languages | `<language>.traineddata`, or PaddleOCR's `ocr_det_fp16.tflite`, `ocr_rec_fp16.tflite` and `keys_v5.txt` for Chinese and Japanese |
 | GIF packs | <SettingsPath path="Tools / GIFs / Offline GIF packs" /> | A CleverKeys GIF pack zip |
 | Offline dictionaries for the Dictionary tool | <SettingsPath path="Tools / Dictionary / Offline dictionaries" /> | `wiktionary.wmdict.gz` or `oewn.wmdict.gz` |
+| Google's gesture library, which you bring yourself (not in the Google Play version) | <SettingsPath path="Typing / Gestures / Gesture library" /> | `libjni_latinime.so` or `libjni_latinimegoogle.so`, only the [pinned builds](/typing/glide-typing/#googles-gesture-library), told by name or by checksum |
 | Anything above, plus AI models and the background remover | <SettingsPath path="About / Storage / Import downloaded files" /> | Any of these |
 
 The Storage row takes every kind of file, so it is the one to use for a folder of mixed downloads. It is also the only way in for an on-device AI model other than the AI model screen's own import, and for the sticker editor's background remover (`u2netp.tflite`).

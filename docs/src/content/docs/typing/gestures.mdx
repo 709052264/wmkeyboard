@@ -119,10 +119,12 @@ Flicks belong to keys, not to the edges of the keyboard. A swipe down off the bo
 
 The special keys take arms too: <KeyCap>Enter</KeyCap>, <KeyCap>Shift</KeyCap>, <KeyCap>?123</KeyCap>, <KeyCap>ABC</KeyCap>, the globe, the emoji key and the rest, everything but the space bar and a key set to repeat. An arm on one of them types text or runs an action, and the tap is still the key's own. <KeyCap>Enter</KeyCap> with `?` on its flick up types one `?`, without sending and without a new line. <KeyCap>⌫</KeyCap> takes arms and keeps its swipe and its repeat: forward delete on its flick up is the usual one, and it repeats while your finger stays out on the arm. A direction with an arm belongs to the arm, the delete swipe keeps the others, and a press held still until the repeat starts is a hold, not a flick.
 
-Where two gestures could claim the same swipe, the rule is fixed rather than guessed:
+Changing a key's action in the layout editor clears its text arms, so a letter turned into <KeyCap>Shift</KeyCap> doesn't keep typing the letter's arms. Flicks off the edges stay a key's own, and the space bar takes no arms: its swipes move the cursor, switch language, open the touchpad and hide the keyboard.
+
+Where two gestures could claim the same swipe, the rule is fixed rather than guessed, and the layout editor says so under the flick pad of a key where an arm takes something over:
 
 - **An arm on <KeyCap>Shift</KeyCap>, <KeyCap>Ctrl</KeyCap>, <KeyCap>Alt</KeyCap> or <KeyCap>Meta</KeyCap> replaces [dragging from that key](#dragging-from-a-modifier-key).** On a key with arms the swipe is the arm; a modifier key without arms keeps the drag.
-- **An arm on <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> replaces the drag that peeks at the other layer.** Holding <KeyCap>?123</KeyCap> still and tapping a key, the [symbol chord](#chords-with-123), is a hold and not a swipe, so it works either way.
+- **An arm on <KeyCap>?123</KeyCap> or <KeyCap>ABC</KeyCap> replaces the drag that peeks at the other layer.** Holding <KeyCap>?123</KeyCap> still and tapping a key, the [symbol chord](#chords-with-123), is a hold and not a swipe, so it works either way. So do the other still holds: <KeyCap>?123</KeyCap> held for the number pad and the globe held for the language picker.
 - **A key with text arms gives up [Swipe down to type the hint](#swiping-down-on-a-key-for-its-hint).** Its own down arm, if it has one, is what a swipe down types.
 - **A capital stays out-and-back.** On a top-row letter with an up arm, a flick up types the arm, and swiping out to it and back again types the arm's capital, the same as any other arm.
 - **Glide typing never starts on a special key**, so arms there cannot cost you a word. On a letter, the arm and the glide share the swipe by the reach rules above.
@@ -194,7 +196,7 @@ Each step costs a certain amount of leftward travel. In Words mode the cost shri
 
 While the highlight is up the swipe is still undoable: dragging back to the right shrinks it a step at a time, and dragging all the way back to where the swipe started leaves the text alone entirely. The gesture retraces its own steps, so a word that cost a short pull on the shrinking curve gives itself back for the same short pull.
 
-Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change.
+Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
 ### Holding delete to clear words
 

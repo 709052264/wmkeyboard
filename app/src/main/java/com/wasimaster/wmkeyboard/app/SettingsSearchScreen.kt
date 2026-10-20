@@ -684,14 +684,21 @@ internal fun SettingsSearchScreen(
     // they left (#92 is about coming back to the *same* results).
     var historyText by rememberSaveable { mutableStateOf(picks.history.encode()) }
     val history = remember(historyText) { SearchHistory.decode(historyText) }
-    val results = remember(query, corpus, history) {
-        corpus?.let { rankSettings(query, it.index, it.vocabulary, history) } ?: SearchResults.EMPTY
+    // With the Settings assistant turned off (#830), its result would lead
+    // to a row that is not there, and its button to nothing.
+    val assistant = settings.watch { it.appUi.settingsAssistant }
+    val results = remember(query, corpus, history, assistant) {
+        corpus?.let { c ->
+            val index = if (assistant) c.index else c.index.filterNot { it.titleRes == R.string.settings_assistant_title }
+            rankSettings(query, index, c.vocabulary, history)
+        } ?: SearchResults.EMPTY
     }
     val tokens = remember(query, corpus) {
         corpus?.let { searchTokens(query, it.vocabulary) }.orEmpty()
     }
     val recent = remember(corpus, history) {
         corpus?.let { c -> history.recent(RECENT_PICKS_SHOWN).mapNotNull(c.byKey::get) }.orEmpty()
+            .filter { assistant || it.titleRes != R.string.settings_assistant_title }
     }
     // Whether this is the screen being come back to from a result rather than
     // opened. A plain array rather than state: it is read once, here, and its
@@ -770,7 +777,7 @@ internal fun SettingsSearchScreen(
                     }
                 },
                 actions = {
-                    if (onAsk != null) {
+                    if (onAsk != null && assistant) {
                         IconButton(onClick = {
                             keyboard?.hide()
                             onAsk(query)

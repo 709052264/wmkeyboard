@@ -2414,6 +2414,12 @@ private fun SettingsNavGraph(
         // locking the list has to lock a deep link straight into one
         // conversation, or it locks nothing.
         composable("settings_assistant") {
+            // Turned off (#830): a link or a back stack that still names the
+            // route opens nothing, and the assistant sends nothing.
+            if (!settings.watch { it.appUi.settingsAssistant }) {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+                return@composable
+            }
             LockedRoute("ai_chat", onCancel = { navController.popBackStack() }) {
                 com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantScreen(
                     settings = settings,

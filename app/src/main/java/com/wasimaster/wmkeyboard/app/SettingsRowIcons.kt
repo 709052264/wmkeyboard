@@ -41,6 +41,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AltRoute
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AlternateEmail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Anchor
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Animation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Assistant
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Architecture
@@ -423,6 +424,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
+        put(R.string.toolai_hub_settings_assistant_title) { Icons.Outlined.Assistant }
         put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }
         put(R.string.semantic_tag_stickers_title) { Icons.Outlined.Sell }
         put(R.string.semantic_delete_title) { Icons.Outlined.Delete }
@@ -1048,6 +1050,8 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_steadiness_title) { Icons.Outlined.Anchor }
         put(R.string.typing_glide_lookahead_title) { Icons.Outlined.FastForward }
         put(R.string.typing_glide_engine_title) { Icons.Outlined.Psychology }
+        put(R.string.typing_glide_library_title) { Icons.Outlined.Extension }
+        put(R.string.typing_glide_library_remove_title) { Icons.Outlined.Extension }
         put(R.string.typing_glide_commit_color_title) { Icons.Outlined.Palette }
         put(R.string.typing_glide_commit_scope_title) { Icons.Outlined.Tune }
         put(R.string.typing_letter_swipe_action_title) { Icons.Outlined.Draw }

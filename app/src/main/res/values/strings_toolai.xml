@@ -570,5 +570,7 @@
     <string name="toolai_hub_button_group_title">Chat button</string>
     <string name="toolai_hub_chat_button_everywhere_title">Chat button on every screen</string>
     <string name="toolai_hub_chat_button_everywhere_subtitle">Show the button that opens the AI chat on every settings screen, not only this one</string>
+    <string name="toolai_hub_settings_assistant_title">Offer the Settings assistant</string>
+    <string name="toolai_hub_settings_assistant_subtitle">Off hides it from search and the AI screens, and it sends nothing</string>
     <string name="toolai_ai_chat_fab_desc">Chat with the AI</string>
 </resources>

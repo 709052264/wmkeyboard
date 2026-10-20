@@ -379,6 +379,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - QWERTY by fit, not by name — Per-axis least-squares fit of the grid's 26 letters onto the models' training frame; a letter off its row (AZERTY, QWERTZ, Dvorak, Colemak) or any non-English language falls back to GlideBeam per stroke
     - Licence-gated download — 3.9 MB from a pinned Hugging Face revision, SHA-256 checked, after the FUTO Model Weights License is accepted; "powered by FUTO Swipe" under the setting and in About
     - Own ExecuTorch gate — libwmexecutorch moved to an `executorch` delivery gate (Play :feature:executorch), shared with Asr4All, Parakeet and Moonshine, so the glide engine never fetches whisper.cpp
+  - Google's gesture library, user-imported `RARE` — Third glide engine (Typing > Gestures > Glide engine > Google's gesture library): Google's proprietary `libjni_latinime.so`, the build HeliBoard loads, imported by the user and never shipped, hosted or downloaded by the project; any language with one letter per key
+    - Pinned by hash — one SHA-256 per ABI (arm64-v8a, armeabi-v7a, x86_64, x86, HeliBoard's pins); staged into a read-only file before the first byte is written, hashed again before every load, stored in noBackupFilesDir; the Verify downloaded files switch does not relax it
+    - Import paths — Gesture library row (system file picker, Import / Replace / Remove) and the offline import, which recognises it by name (`libjni_latinime.so`, `libjni_latinimegoogle.so`) or by checksum
+    - Exact JNI surface — stub classes in `com.android.inputmethod.latin` / `.keyboard` declaring all 31 natives JNI_OnLoad registers, descriptors checked against AOSP's registration tables; R8 keeps every member
+    - Library-written dictionaries — the language's commonest 120,000 words, AOSP 0..255 log-scale probabilities, filled into an on-memory v4 (format 403) dictionary and flushed by the library itself, cached by word-set fingerprint; personal words added in memory
+    - Same pipeline after the decode — candidates go through the blacklist, context reranker, casing and ambiguity picker; GlideBeam reads every stroke until the library loads and the dictionary is built
+    - Crash probation — a marker around the load, the dictionary build and each process's first stroke; a process that dies inside one leaves the library off until Try again
+    - Compiled out of Play — `src/nouserlib` stands in for the loader on the Play channel (Play forbids loading code from outside Play); quality not measured on a phone
   - Per-language glide readiness gate `RARE` — Glide enables itself only where it can decode honestly; measured, not flagged
     - Coverage measurement — Top 1500 words per word source; grid must be able to spell 90% of them
     - Converting-layout block — Off on Avro, Hangul, Vietnamese and every CJK conversion layout — a stroke there spells a reading, not a word
@@ -737,6 +745,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
 | FUTO Swipe glide engine | English on a QWERTY layout; the licence accepted and the 3.9 MB models downloaded (network); the ExecuTorch runtime on the phone (fetched on first use where the build leaves it out). Any other case reads with the built-in decoder |
+| Google's gesture library glide engine | the user imports Google's `libjni_latinime.so` themselves, one of the pinned builds for the phone's ABI; not in the Google Play build; a word list for the language (the dictionary is built on the phone). Until then the built-in decoder reads every stroke |
 | Volume keys as cursor control | no permission, but only active while the input view is shown |
 
 ## Languages, scripts, layouts, transliteration

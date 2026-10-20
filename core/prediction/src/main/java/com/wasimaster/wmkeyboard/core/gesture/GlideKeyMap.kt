@@ -34,6 +34,7 @@ class GlideKeyMap private constructor(
     val keyY: FloatArray,
     private val codePoints: IntArray,
     private val keyOf: IntArray,
+    private val primary: IntArray,
 ) {
 
     /** How many distinct keys the grid has — the width of the decoder's masks. */
@@ -86,6 +87,13 @@ class GlideKeyMap private constructor(
     /** Index of the key that produces [ch], or -1 — always -1 for a surrogate. */
     fun keyIndex(ch: Char): Int = keyIndex(ch.code)
 
+    /**
+     * The character [key] was first reported with, lowercased: its base label
+     * in the caller's priority order. What a decoder that wants one code per
+     * key (AOSP's gesture library) labels the key with.
+     */
+    fun primaryCodePoint(key: Int): Int = primary[key]
+
     companion object {
 
         /**
@@ -104,6 +112,7 @@ class GlideKeyMap private constructor(
             val xs = ArrayList<Float>(keys.size)
             val ys = ArrayList<Float>(keys.size)
             val byCodePoint = LinkedHashMap<Int, Int>(keys.size * 2)
+            val primary = ArrayList<Int>(keys.size)
             for (key in keys) {
                 val x = key.x / keyWidth
                 val y = key.y / keyWidth
@@ -118,13 +127,14 @@ class GlideKeyMap private constructor(
                     index = xs.size
                     xs.add(x)
                     ys.add(y)
+                    primary.add(Character.toLowerCase(key.codePoint))
                 }
                 byCodePoint.putIfAbsent(Character.toLowerCase(key.codePoint), index)
             }
             val sorted = byCodePoint.keys.sorted()
             val codePoints = IntArray(sorted.size) { sorted[it] }
             val keyOf = IntArray(sorted.size) { byCodePoint.getValue(sorted[it]) }
-            return GlideKeyMap(xs.toFloatArray(), ys.toFloatArray(), codePoints, keyOf)
+            return GlideKeyMap(xs.toFloatArray(), ys.toFloatArray(), codePoints, keyOf, primary.toIntArray())
         }
 
         /**

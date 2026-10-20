@@ -20,6 +20,7 @@ import java.io.IOException
 import java.util.Collections
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -59,8 +60,19 @@ internal object SettingsAssistantSession {
         data class Setting(override val id: Int, val entryKey: String) : Item
     }
 
-    // Lazy so that reading [current] does not need a main looper (unit tests).
-    private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
+    /**
+     * Where a run is collected, and the dispatcher it asks the model on. Only
+     * the JVM tests (#828) set these, to run both on one test dispatcher.
+     * Made on first use, so that reading [current] needs no main looper.
+     */
+    private var scopeOrNull: CoroutineScope? = null
+    internal var scope: CoroutineScope
+        get() = scopeOrNull ?: CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate).also { scopeOrNull = it }
+        set(value) {
+            scopeOrNull = value
+        }
+    internal var io: CoroutineDispatcher = Dispatchers.IO
+
     private var job: Job? = null
 
     /**
@@ -143,8 +155,50 @@ internal object SettingsAssistantSession {
     fun linkedKey(url: String): String? =
         if (url.startsWith(SettingRefs.LINK_SCHEME)) refs.keyFor(url) else null
 
+    /**
+     * What a question needs from outside the session: the rows that can answer
+     * it, Data Saver's word on one, the app's strings, and the answer itself.
+     * The app's is [AppOutside]; the JVM tests (#828), which have no Context,
+     * stand in their own.
+     */
+    internal interface Outside {
+        fun choices(settings: KeyboardSettings): List<ModelChoice>
+
+        fun decision(settings: KeyboardSettings, choice: ModelChoice): MeteredDecision
+
+        /** String [res], formatted with [arg] when it takes one (null when it takes none). */
+        fun text(res: Int, arg: Any?): String
+
+        /** Asks [choice] for run [seq]; blocks until it has answered. */
+        fun answer(choice: ModelChoice, settings: () -> KeyboardSettings, index: List<SettingsSearchEntry>, seq: Int): String
+    }
+
+    private class AppOutside(private val app: Context) : Outside {
+        override fun choices(settings: KeyboardSettings) = SettingsAssistantSession.choices(app, settings)
+
+        override fun decision(settings: KeyboardSettings, choice: ModelChoice) =
+            AiChatController.cloudAiDecision(app, settings, choice)
+
+        override fun text(res: Int, arg: Any?): String = if (arg == null) app.getString(res) else app.getString(res, arg)
+
+        override fun answer(choice: ModelChoice, settings: () -> KeyboardSettings, index: List<SettingsSearchEntry>, seq: Int) =
+            SettingsAssistantSession.run(app, choice, settings, index, seq)
+    }
+
     fun send(
         context: Context,
+        text: String,
+        settings: () -> KeyboardSettings,
+        index: List<SettingsSearchEntry>,
+        noProvider: String,
+        failure: (String) -> String,
+    ) {
+        send(AppOutside(context.applicationContext), text, settings, index, noProvider, failure)
+    }
+
+    /** [send], asking through [outside]. */
+    internal fun send(
+        outside: Outside,
         text: String,
         settings: () -> KeyboardSettings,
         index: List<SettingsSearchEntry>,
@@ -154,8 +208,7 @@ internal object SettingsAssistantSession {
         val question = text.trim()
         if (question.isEmpty() || _busy.value) return
         add { Item.User(it, question) }
-        val app = context.applicationContext
-        val choice = current(choices(app, settings()), settings())
+        val choice = current(outside.choices(settings()), settings())
         if (choice == null) {
             add { Item.Reply(it, noProvider, failed = true) }
             return
@@ -164,13 +217,13 @@ internal object SettingsAssistantSession {
         // keeps: held, nothing is sent, not even a documentation search.
         val granted = meteredAsked
         meteredAsked = false
-        val decision = if (granted) MeteredDecision.ALLOWED else AiChatController.cloudAiDecision(app, settings(), choice)
+        val decision = if (granted) MeteredDecision.ALLOWED else outside.decision(settings(), choice)
         if (decision != MeteredDecision.ALLOWED) {
             meteredAsked = decision == MeteredDecision.ASK
             val held = if (meteredAsked) {
-                app.getString(com.wasimaster.wmkeyboard.R.string.settings_assistant_metered_ask)
+                outside.text(com.wasimaster.wmkeyboard.R.string.settings_assistant_metered_ask, null)
             } else {
-                app.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_error_metered_blocked)
+                outside.text(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_error_metered_blocked, null)
             }
             add { Item.Reply(it, held, failed = true) }
             return
@@ -180,7 +233,7 @@ internal object SettingsAssistantSession {
         val seq = ++runSeq
         job = scope.launch {
             val answer = runCatching {
-                withContext(Dispatchers.IO) { run(app, choice, settings, index, seq) }
+                withContext(io) { outside.answer(choice, settings, index, seq) }
             }
             // A stopped or cleared run says nothing more, and leaves the busy
             // state to the run that replaced it.
@@ -194,7 +247,7 @@ internal object SettingsAssistantSession {
                 // (#828): "No connection", not the resolver's raw message, and
                 // the wording for an HTTP status the provider sent no text for.
                 reply == null -> add {
-                    val reason = answer.exceptionOrNull()?.let { t -> ToolHttp.friendlyMessage(app, t) }.orEmpty()
+                    val reason = answer.exceptionOrNull()?.let { t -> ToolHttp.friendlyMessage(t, outside::text) }.orEmpty()
                     Item.Reply(it, failure(reason), failed = true)
                 }
                 reply.isNotBlank() -> add { Item.Reply(it, reply) }
@@ -216,6 +269,13 @@ internal object SettingsAssistantSession {
         refs.clear()
     }
 
+    /** [clear], and forgets a Data Saver ask and a model pick too, so one JVM test (#828) starts where no other left it. */
+    internal fun resetForTest() {
+        clear()
+        meteredAsked = false
+        _chosen.value = null
+    }
+
     /** Cards with an Apply or an Undo still writing; a second press on one is ignored. */
     private val writing: MutableSet<Int> = Collections.synchronizedSet(HashSet())
 
@@ -228,16 +288,36 @@ internal object SettingsAssistantSession {
      * with a note, and no Undo for a change that never happened.
      */
     suspend fun apply(id: Int, repository: SettingsRepository) {
+        apply(id, storeOf(repository))
+    }
+
+    /**
+     * Where Apply and Undo read the stored settings and write one: the
+     * [SettingsRepository] in the app, a fake in the JVM tests (#828).
+     */
+    internal interface Store {
+        suspend fun stored(): KeyboardSettings
+
+        suspend fun write(setting: AssistantSetting, value: String)
+    }
+
+    private fun storeOf(repository: SettingsRepository) = object : Store {
+        override suspend fun stored() = repository.settings.first()
+
+        override suspend fun write(setting: AssistantSetting, value: String) = setting.write(repository, value)
+    }
+
+    internal suspend fun apply(id: Int, store: Store) {
         if (!writing.add(id)) return
         try {
             val change = change(id) ?: return
-            val refusal = AssistantProposals.applyRefusal(change.proposal, repository.settings.first())
+            val refusal = AssistantProposals.applyRefusal(change.proposal, store.stored())
             if (refusal != null) {
                 val stale = refusal == AssistantRefusal.CHANGED_SINCE
                 replace(change.copy(proposal = if (stale) change.proposal.copy(state = AssistantProposal.State.STALE) else change.proposal, note = refusal))
                 return
             }
-            if (!wrote { change.proposal.setting.write(repository, change.proposal.to) }) {
+            if (!wrote { store.write(change.proposal.setting, change.proposal.to) }) {
                 replace(change.copy(note = AssistantRefusal.WRITE_FAILED))
                 return
             }
@@ -249,15 +329,19 @@ internal object SettingsAssistantSession {
 
     /** Puts proposal [id] back, unless the setting has been changed since it was applied. */
     suspend fun undo(id: Int, repository: SettingsRepository) {
+        undo(id, storeOf(repository))
+    }
+
+    internal suspend fun undo(id: Int, store: Store) {
         if (!writing.add(id)) return
         try {
             val change = change(id) ?: return
-            val refusal = AssistantProposals.undoRefusal(change.proposal, repository.settings.first())
+            val refusal = AssistantProposals.undoRefusal(change.proposal, store.stored())
             if (refusal != null) {
                 replace(change.copy(note = refusal))
                 return
             }
-            if (!wrote { change.proposal.setting.write(repository, change.proposal.from) }) {
+            if (!wrote { store.write(change.proposal.setting, change.proposal.from) }) {
                 replace(change.copy(note = AssistantRefusal.WRITE_FAILED))
                 return
             }
@@ -291,33 +375,7 @@ internal object SettingsAssistantSession {
         seq: Int,
     ): String {
         val live = { seq == runSeq }
-        val tools = AssistantTools(
-            index = index,
-            settings = settings,
-            refs = refs,
-            host = object : AssistantTools.Host {
-                override fun show(entry: SettingsSearchEntry) {
-                    // A stopped run puts no card in the chat, least of all one
-                    // the user has just cleared.
-                    if (!live()) return
-                    // Once per question: a model that shows the same row twice
-                    // in one answer should not stack two cards.
-                    val sinceAsked = _items.value.takeLastWhile { it !is Item.User }
-                    if (sinceAsked.any { it is Item.Setting && it.entryKey == entry.key }) return
-                    add { Item.Setting(it, entry.key) }
-                }
-
-                override fun propose(setting: AssistantSetting, from: String, to: String): Int {
-                    if (!live()) return -1
-                    var made = 0
-                    add { id ->
-                        made = id
-                        Item.Change(id, AssistantProposal(id, setting, from, to))
-                    }
-                    return made
-                }
-            },
-        )
+        val tools = AssistantTools(index = index, settings = settings, refs = refs, host = host(seq))
         val turns = _items.value.mapNotNull { item ->
             when (item) {
                 is Item.User -> AiClient.ChatTurn(AiClient.ChatRole.USER, item.text)
@@ -410,6 +468,33 @@ internal object SettingsAssistantSession {
             _items.value.drop(before).any { it is Item.Setting || it is Item.Change }
         if (!pointed && live()) hits.firstOrNull()?.let { best -> add { Item.Setting(it, best.key) } }
         return answer
+    }
+
+    /** What the tools of run [seq] put in the chat: nothing, once that run is over. */
+    internal fun host(seq: Int): AssistantTools.Host = object : AssistantTools.Host {
+        override fun show(entry: SettingsSearchEntry) {
+            // A stopped run puts no card in the chat, least of all one
+            // the user has just cleared.
+            if (seq != runSeq) return
+            // Once per question: a model that shows the same row twice
+            // in one answer should not stack two cards.
+            val sinceAsked = _items.value.takeLastWhile { it !is Item.User }
+            if (sinceAsked.any { it is Item.Setting && it.entryKey == entry.key }) return
+            add { Item.Setting(it, entry.key) }
+        }
+
+        override fun propose(setting: AssistantSetting, from: String, to: String): Int =
+            if (seq != runSeq) -1 else SettingsAssistantSession.propose(setting, from, to)
+    }
+
+    /** Puts a proposal card in the chat and returns its id; the tests (#828) seed one with it. */
+    internal fun propose(setting: AssistantSetting, from: String, to: String): Int {
+        var made = 0
+        add { id ->
+            made = id
+            Item.Change(id, AssistantProposal(id, setting, from, to))
+        }
+        return made
     }
 
     private fun change(id: Int): Item.Change? = _items.value.firstOrNull { it.id == id } as? Item.Change

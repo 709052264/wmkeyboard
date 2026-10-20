@@ -71,6 +71,8 @@
     <string name="ime_textedit_doc_start_desc">Move to the start of the text</string>
     <!-- Takes the word behind the cursor out so it can be typed again, and offers it back on the suggestion strip (#791). -->
     <string name="ime_textedit_retype_word_desc">Retype word</string>
+    <!-- Takes back the space the keyboard added after a word, or ends the word without one (#851). -->
+    <string name="ime_textedit_no_space_desc">No space</string>
     <string name="ime_textedit_doc_end_desc">Move to the end of the text</string>
     <string name="ime_textedit_select_word_desc">Select the word</string>
     <string name="ime_textedit_select_line_desc">Select the line</string>

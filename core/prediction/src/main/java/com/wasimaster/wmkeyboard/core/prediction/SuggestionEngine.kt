@@ -10,7 +10,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
-import com.wasimaster.wmkeyboard.core.gesture.NeuralGlide
+import com.wasimaster.wmkeyboard.core.gesture.GlideDecoder
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
@@ -1079,15 +1079,16 @@ class SuggestionEngine(
     private var deepGlideBeam = GlideBeam(glideTuning.copy(vocabularyRank = 0))
 
     /**
-     * The neural glide engine the user picked in place of [glideBeam] (FUTO
-     * Swipe, English on QWERTY), or null for the built-in decoder. The
-     * keyboard service sets it before each decode from the setting, the
-     * language and whether the models are here, so it is null whenever the
-     * engine does not apply; [glide] still falls back to [glideBeam] for a
-     * stroke it cannot read (a layout that is not QWERTY, a model error).
+     * The glide engine the user picked in place of [glideBeam] (FUTO Swipe
+     * for English on QWERTY, or Google's gesture library they imported), or
+     * null for the built-in decoder. The keyboard service sets it before each
+     * decode from the setting, the language and whether the engine's files
+     * are here, so it is null whenever the engine does not apply; [glide]
+     * still falls back to [glideBeam] for a stroke it cannot read (a layout
+     * that is not QWERTY, a dictionary still being built, a model error).
      */
     @Volatile
-    var neuralGlide: NeuralGlide? = null
+    var externalGlide: GlideDecoder? = null
 
     /**
      * The two-thumb decoder (issue #638), on the same stroke weights as
@@ -1269,15 +1270,15 @@ class SuggestionEngine(
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
-            (walkSources() + glideTriggerSources() + glideContractionSources())
+            (walkSources() + glideTriggerSources() + glideContractionSources() + glideApostropheSources())
                 .let { all -> if (tiers == null) all else all.filter { it.tier in tiers } }
         } else {
             romanization.walkSources()
         }
         if (sources.isEmpty()) return emptyList()
-        // The neural engine reads Latin spellings only, so never on a
-        // phonetic layout, where the answer is the romanization's own.
-        val neural = neuralGlide?.takeIf { romanization.isEmpty }?.decode(
+        // The other engines read the layout's own spellings only, so never
+        // on a phonetic layout, where the answer is the romanization's own.
+        val neural = externalGlide?.takeIf { romanization.isEmpty }?.decode(
             path = path,
             keys = keys,
             keyWidth = keyWidth,
@@ -1288,7 +1289,8 @@ class SuggestionEngine(
         )
         if (neural != null) {
             return finishGlide(
-                neural, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+                withApostrophes(neural, romanization), romanization, limit,
+                previousWord, previousWord2, previousWord3, recentWords,
             )
         }
         val decoded = (if (deep) deepGlideBeam else glideBeam).decode(
@@ -1307,7 +1309,8 @@ class SuggestionEngine(
             lookAhead = if (romanization.isEmpty) lookAhead else 0,
         )
         return finishGlide(
-            decoded, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+            withApostrophes(decoded, romanization), romanization, limit,
+            previousWord, previousWord2, previousWord3, recentWords,
         )
     }
 
@@ -1339,7 +1342,7 @@ class SuggestionEngine(
     ): List<GlideBeam.Candidate> {
         val romanization = glideRomanization
         val sources = if (romanization.isEmpty) {
-            walkSources() + glideTriggerSources() + glideContractionSources()
+            walkSources() + glideTriggerSources() + glideContractionSources() + glideApostropheSources()
         } else {
             romanization.walkSources()
         }
@@ -1355,7 +1358,8 @@ class SuggestionEngine(
         )
         if (partial) return decoded.take(limit)
         return finishGlide(
-            decoded, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+            withApostrophes(decoded, romanization), romanization, limit,
+            previousWord, previousWord2, previousWord3, recentWords,
         )
     }
 
@@ -1736,6 +1740,54 @@ class SuggestionEngine(
     /** [glideContractionSources]' trie, with the [generation] it was built at. */
     @Volatile
     private var glideContractions: Pair<Long, WordSource>? = null
+
+    /**
+     * The user's own words with an apostrophe in them, in the walk without it
+     * (#854). A word saved as *Jenny's* could only be glided through an
+     * apostrophe key, while the contractions #451 and #784 read without one;
+     * a saved name's possessive is no more ambiguous than *doesn't*. So
+     * `jennys` stands in the walk at *Jenny's*'s count, and a reading of it
+     * is handed back as *Jenny's* ([withApostrophes]).
+     *
+     * Only where the bare spelling is no word of its own, in any list or in
+     * the lexicon: `its` against *it's* and `were` against *we're* stay the
+     * coin tosses the docs say they are, and keep their own key.
+     */
+    private fun glideApostropheSources(): List<FuzzyBeamSearch.WalkSource> =
+        apostropheFree().trie.walkers().map {
+            FuzzyBeamSearch.WalkSource(it, LOG_USER_WORD_WEIGHT, FuzzyBeamSearch.Tier.USER)
+        }
+
+    /** [glideApostropheSources]' trie and the words it stands for, by the state it was built from. */
+    private class ApostropheFree(val stamp: Pair<Long, Long>, val trie: WordSource, val words: Map<String, String>)
+
+    @Volatile
+    private var apostropheFreeCache: ApostropheFree? = null
+
+    private fun apostropheFree(): ApostropheFree {
+        val stamp = generation.get() to userLexicon.mutationCount()
+        apostropheFreeCache?.takeIf { it.stamp == stamp }?.let { return it }
+        val words = HashMap<String, String>()
+        val entries = ArrayList<Pair<String, Int>>()
+        for ((word, count) in userLexicon.allWords()) {
+            if (word.none(WordContext::isApostrophe)) continue
+            val bare = word.filterNot(WordContext::isApostrophe).lowercase()
+            if (bare.length < 2 || bare.none { it.isLetter() }) continue
+            if (inDictionaries(bare) || userLexicon.contains(bare)) continue
+            if (words.putIfAbsent(bare, word) == null) entries += bare to count.coerceAtLeast(1)
+        }
+        return ApostropheFree(stamp, if (entries.isEmpty()) PackedTrie.EMPTY else PackedTrie.of(entries), words)
+            .also { apostropheFreeCache = it }
+    }
+
+    /** [decoded] with each reading of an apostrophe-free stand-in spelled as the word it stands for (#854). */
+    private fun withApostrophes(decoded: List<GlideBeam.Candidate>, romanization: RomanizedIndex): List<GlideBeam.Candidate> {
+        if (!romanization.isEmpty) return decoded
+        val words = apostropheFreeCache?.words?.takeIf { it.isNotEmpty() } ?: return decoded
+        return decoded.map { c ->
+            words[c.word.lowercase()]?.let { GlideBeam.Candidate(it, c.score, c.shapeCost, c.tier, c.ahead) } ?: c
+        }
+    }
 
     /** [glideTriggers] as walk sources, at the user tier. */
     private fun glideTriggerSources(): List<FuzzyBeamSearch.WalkSource> =

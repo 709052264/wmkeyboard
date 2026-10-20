@@ -49,10 +49,8 @@ class SuggestionHoldCallbacks(
      */
     val onRankSlide: (word: String, steps: Int, block: Boolean) -> Unit = { _, _, _ -> },
     /**
-     * What a recent-bar word could be instead (#787), asked when its chip is
-     * tapped: [back] counts words back from the caret, 0 for the newest.
+     * A recent-bar word's alternative was picked (#787, #842): put
+     * [replacement] where [word] stands, the occurrence that starts at [start].
      */
-    val recentOffers: (back: Int, word: String) -> List<String> = { _, _ -> emptyList() },
-    /** One of those was picked: put [replacement] where that word stands. */
-    val onRecentPick: (back: Int, word: String, replacement: String) -> Unit = { _, _, _ -> },
+    val onRecentPick: (start: Int, word: String, replacement: String) -> Unit = { _, _, _ -> },
 )

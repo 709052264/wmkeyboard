@@ -1567,6 +1567,14 @@ enum class GlideLookAhead(
  * ExecuTorch runtime are not on the phone yet, falls back to the built-in
  * decoder.
  *
+ * [GOOGLE_LIBRARY] is Google's proprietary gesture typing library
+ * (`libjni_latinime.so`), which the user imports themselves and the app
+ * accepts only as one of the builds pinned by SHA-256 in `LatinImePins`; it
+ * reads strokes against dictionaries built from the user's own lists, in any
+ * language. Until it is imported and loaded, while the language's dictionary
+ * is being built, and in the Google Play build (which may not load it), the
+ * built-in decoder reads every stroke. Not measured on a phone.
+ *
  * Measured 2026-10-20 on 5,000 real swipes from FUTO's MIT test set (the
  * shipped English list, words it holds): top-1 .801 built-in against .957
  * FUTO Swipe, top-4 .937 against .993. The built-in decoder stays the default
@@ -1575,6 +1583,7 @@ enum class GlideLookAhead(
 enum class GlideEngine(@StringRes val labelRes: Int) {
     BUILT_IN(R.string.core_settings_glide_engine_built_in_label),
     FUTO_SWIPE(R.string.core_settings_glide_engine_futo_label),
+    GOOGLE_LIBRARY(R.string.core_settings_glide_engine_google_label),
 }
 
 /**
@@ -6367,6 +6376,12 @@ data class AppUiSettings(
      */
     val aiChatButtonEverywhere: Boolean = false,
     /**
+     * Whether the Settings assistant (#788) is offered at all (#830). Off, its
+     * search button, its rows and its search result are gone, its route opens
+     * nothing, and so it sends nothing anywhere. On by default, as it shipped.
+     */
+    val settingsAssistant: Boolean = true,
+    /**
      * How a settings row offers a web link to itself (#646): not at all, on a
      * long press, or as a small link button beside the reset and the "?". Off
      * by default; it is for people who send other people to a setting.
@@ -10098,6 +10113,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("settings_keyboard_preview_button")
         private val SETTINGS_AI_CHAT_BUTTON_EVERYWHERE =
             booleanPreferencesKey("settings_ai_chat_button_everywhere")
+        private val SETTINGS_ASSISTANT = booleanPreferencesKey("settings_assistant")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
@@ -11885,6 +11901,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.appUi.keyboardPreviewButton,
             aiChatButtonEverywhere = p[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE]
                 ?: defaults.appUi.aiChatButtonEverywhere,
+            settingsAssistant = p[SETTINGS_ASSISTANT] ?: defaults.appUi.settingsAssistant,
             settingLinks = p[SETTINGS_SETTING_LINKS]
                 ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingLinks,
@@ -18960,6 +18977,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.aiChatButtonEverywhere]. */
     suspend fun setAiChatButtonEverywhere(value: Boolean) =
         editPrefs { it[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE] = value }
+
+    /** See [AppUiSettings.settingsAssistant]. */
+    suspend fun setSettingsAssistant(value: Boolean) =
+        editPrefs { it[SETTINGS_ASSISTANT] = value }
 
     /** See [AppUiSettings.settingLinks]. */
     suspend fun setSettingLinks(value: SettingLinkMode) =

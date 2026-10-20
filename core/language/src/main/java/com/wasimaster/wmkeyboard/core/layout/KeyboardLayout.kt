@@ -955,11 +955,12 @@ const val MinRowHeightScale = 0.4f
 const val MaxRowHeightScale = 2.5f
 
 /**
- * The flick arms this key actually types, which is [Key.flick] only on a key
- * that commits text (issue #547). An action key — Undo, a tool, a layer
- * switch — keeps whatever arms it had before its action was changed, since the
- * file still says so, but no flick gesture is wired to it, so nothing may draw
- * or reserve one either.
+ * The flick arms this key actually types: [Key.flick] on a key that commits
+ * text (issue #547) and, since #789, on any key that [takesFlickActions], so
+ * Enter can type `?` on its flick up. A key whose arms are not read (the space
+ * bar, a repeating key) draws and reserves none. The layout editor drops a
+ * key's text arms when its action changes (#838), so a letter turned into an
+ * action key does not bring the letter's arms along.
  */
 val Key.activeFlick: Map<FlickDirection, String>
     get() = if (action == KeyAction.Text || action is KeyAction.KeymanKey || takesFlickActions()) flick else emptyMap()

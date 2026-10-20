@@ -547,6 +547,7 @@ import com.wasimaster.wmkeyboard.ime.CaptureTarget
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import com.wasimaster.wmkeyboard.ime.CaptureVoiceAction
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.RecentBarWord
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
@@ -588,6 +589,7 @@ import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
 import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.flickKey
 import com.wasimaster.wmkeyboard.core.layout.asKanaVariantKey
+import com.wasimaster.wmkeyboard.core.layout.withModeNames
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
@@ -5153,10 +5155,6 @@ private fun RowScope.StripWords(
                 }
             }
         }
-        // The recent-word bar (#787), ahead of the live words.
-        if (state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar) {
-            RecentWordBar(state.recentBar, suggestionHold)
-        }
         LatinSuggestionChips(
             // One slot, so the word sits centred across the whole strip
             // rather than in the first of three (see [glideStripOnly]).
@@ -5404,7 +5402,7 @@ private fun RowScope.InlineEmojiChips(
  * read inside a graphics layer so the fade does not recompose the row.
  */
 @Composable
-private fun RowScope.LatinSuggestionChips(
+internal fun RowScope.LatinSuggestionChips(
     candidates: List<String>,
     enabled: Boolean,
     alpha: () -> Float,
@@ -5607,7 +5605,13 @@ private fun RowScope.LatinSuggestionChips(
                     // Hold, then slide (#790): up lifts the word, down sinks
                     // it, and far enough down never suggests it again. Only
                     // watched once the hold has fired, so a tap, a swipe
-                    // along the strip and a plain hold are untouched.
+                    // along the strip and a plain hold are untouched. The
+                    // hold opens the menu first, and the first full step of
+                    // a slide closes it: the two never answer together
+                    // (#843). A word already on the never-suggest list does
+                    // not slide; its menu's Allow again is the way back, and
+                    // a rank saved for a word that stays hidden changes
+                    // nothing anyone can see.
                     .pointerInput(suggestion, enabled) {
                         if (!enabled) return@pointerInput
                         val stepPx = RankSlideStep.toPx()
@@ -5629,7 +5633,7 @@ private fun RowScope.LatinSuggestionChips(
                                     // arrives consumed in every pass (#824).
                                     val event = awaitPointerEvent(PointerEventPass.Initial)
                                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                    if (anchorY.isNaN() && heldWord == suggestion) {
+                                    if (anchorY.isNaN() && heldWord == suggestion && !heldFacts.blacklisted) {
                                         anchorY = change.position.y
                                         held = heldFacts.rankSteps
                                     }
@@ -5886,6 +5890,15 @@ private fun RowScope.LatinSuggestionChips(
                         label = stringResource(R.string.ime_word_menu_synonyms, held),
                         icon = Icons.Outlined.SwapHoriz,
                     ) { act(WordMenuAction.Synonyms(held)) }
+                }
+                // About the caret's word too, like the search above: take it
+                // back out and type it again (#844), with no binding needed.
+                val retypable = heldFacts.retypable
+                if (retypable != null) {
+                    WordMenuRow(
+                        label = stringResource(R.string.ime_word_menu_retype, retypable),
+                        icon = Icons.AutoMirrored.Outlined.Undo,
+                    ) { act(WordMenuAction.Retype(retypable)) }
                 }
                 // Always offered: the card carries every action above but
                 // Synonyms too, so a menu trimmed to this one item still
@@ -12620,6 +12633,7 @@ internal fun fullBleedHiddenRows(
         (if (state.settings.rows.dictionaryBarEnabled) DictionaryRowHeight else 0.dp) +
         // Avro's candidate row rides above the strip, so it hides with it.
         (if (phoneticCandidateBarShown(state)) PhoneticCandidateRowHeight else 0.dp) +
+        (if (recentRowShown(state)) RecentRowHeight else 0.dp) +
         // The macro row is state-driven, so unlike the on-demand tools row it
         // can be counted: whether it is on screen is in the ui state this
         // function already has.
@@ -13331,6 +13345,9 @@ private fun KeyboardBody(
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
                                 // directly over the strip it belongs to.
+                                // The recent words (#814), in their own row so
+                                // the strip keeps its width.
+                                if (recentRowShown(state)) RecentWordRow(state.recentBar, suggestionHold)
                                 if (phoneticCandidateBarShown(state)) PhoneticCandidateBar(state, onSuggestion)
                                 WithNetActivityDot(
                                     state.settings.networkLog.showOnKeyboard,
@@ -21323,7 +21340,11 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     trails[stroke.slot].add(change.position.x, change.position.y, change.uptimeMillis, trailMs)
                 }
                 val keys = stroke.keys
-                if (keys != null && change.uptimeMillis - stroke.lastPreviewMs >= PREVIEW_INTERVAL_MS &&
+                // Each preview now reads the whole word (#849), so two thumbs
+                // drawing at once share the one-finger rate between them
+                // rather than doubling it.
+                val drawing = strokes.values.count { it.swiping && !it.ignored }.coerceAtLeast(1)
+                if (keys != null && change.uptimeMillis - stroke.lastPreviewMs >= PREVIEW_INTERVAL_MS * drawing &&
                     stroke.points.size >= PREVIEW_MIN_POINTS
                 ) {
                     stroke.lastPreviewMs = change.uptimeMillis
@@ -21826,6 +21847,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #340: the keys that stand in for 小゛゜ while the reading ends in a
     // kana that has one of those forms.
     val kanaVariantKeys = state.kanaVariantReady
+    // Mode keys draw their mode's name as it is now, looked up by id (#821),
+    // and a mode that is gone draws as gone (#835).
+    val modeNames = state.settings.keyboardModes.associate { it.id to it.name }
     // Fancy Text: every digit key holds the digit's styled forms.
     val fancyDigits = fancyStyleFor(state) != null
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols &&
@@ -22092,7 +22116,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             if (kanaVariantKeys && rowKey.kanaVariantWhileComposing) {
                 mapped = mapped.asKanaVariantKey()
             }
-            mapped
+            mapped.withModeNames(modeNames)
         }
     }
     return base.copy(rows = rewritten)
@@ -27989,22 +28013,41 @@ private fun Modifier.pointerInputKey(
         // that runs an action (issue #549), on a text key or an action key
         // alike. One pointer owns the whole gesture (like space/backspace) so
         // the cross popup can track the live direction; a long press still
-        // opens the alternates popup.
+        // opens the alternates popup. A still hold is not a flick, so the
+        // holds ?123 and the globe have without arms keep working with them
+        // (#820): the symbol chord, the number pad and the language picker.
         Modifier.pointerInput(
             key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease, alternates,
             keyRepeat, textEditing, vibrateOnRepeat, soundOnRepeat, flickDistanceDp, swipeOnlyTapPeeks,
-            restGate, chordGate,
+            restGate, chordGate, symbolsLongPressNumpad,
         ) {
             val slopPx = flickDistanceDp.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             val hasArm: (FlickDirection) -> Boolean = { key.flickArm(it) != null }
+            val chordTrigger = key.action == KeyAction.Symbols
+            // What a still hold does when the key has no alternates to open.
+            val numpadHold = key.action == KeyAction.Symbols && symbolsLongPressNumpad
+            val pickerHold = key.action == KeyAction.LanguageSwitch
             awaitEachGesture {
                 val down = awaitFirstDown()
                 setPressed(true)
                 onKeyPress()
-                // A ?123 held for a chord (#754) holds its own press back now.
-                chordGate?.otherDown()
+                // ?123 is a chord's trigger (#754), armed or not; any other
+                // key held for one holds its own press back now.
+                var chordLabels: Job? = null
+                if (chordTrigger && chordGate?.active == true) {
+                    chordGate.triggerDown(down.id)
+                    chordLabels = scope.launch {
+                        delay(CHORD_LABEL_DELAY_MS)
+                        chordGate.showLabels(down.id)
+                    }
+                } else if (!chordTrigger) {
+                    chordGate?.otherDown()
+                }
+                // The number pad or the language picker opened on the hold:
+                // the lift is that hold's, not a tap.
+                var holdRan = false
                 var dir: FlickDirection? = null
                 // The finger went out to [dir] and came back more than halfway:
                 // the lift types the arm's capital, FlickBoard's swipe-and-return.
@@ -28022,15 +28065,30 @@ private fun Modifier.pointerInputKey(
                 // the gesture has done its typing and the lift adds nothing.
                 var armRepeat: Job? = null
                 var armRepeated = false
-                val longJob = if (key.opensAlternatesPopup()) {
+                val longJob = if (key.opensAlternatesPopup() || numpadHold || pickerHold) {
                     scope.launch {
                         delay(longPressDelayMs.toLong())
-                        // A thumb resting while the other types (#737).
-                        if (dir == null && restGate?.quiets(down.id) != true) {
+                        // A thumb resting while the other types (#737), or a
+                        // ?123 whose partner has landed: the chord's press.
+                        if (dir == null && restGate?.quiets(down.id) != true &&
+                            !(chordGate?.isTrigger(down.id) == true && chordGate.partnerLanded)
+                        ) {
                             restGate?.longPressed(down.id)
-                            longFired = true
                             if (hapticOnLongPress) onKeyPress()
-                            openAlternates()
+                            when {
+                                key.opensAlternatesPopup() -> {
+                                    longFired = true
+                                    openAlternates()
+                                }
+                                numpadHold -> {
+                                    holdRan = true
+                                    onKey(key.copy(action = KeyAction.Numpad))
+                                }
+                                else -> {
+                                    holdRan = true
+                                    openLanguagePicker()
+                                }
+                            }
                         }
                     }
                 } else {
@@ -28083,9 +28141,11 @@ private fun Modifier.pointerInputKey(
                         dir = resolved
                         setFlickDirection(dir)
                         // Committing to a flick arm cancels the pending long
-                        // press, and says so under the finger.
+                        // press, and the chord a still ?123 would have been,
+                        // and says so under the finger.
                         if (dir != null) {
                             longJob?.cancel()
+                            chordLabels?.cancel()
                             onKeyHaptic()
                         }
                         armRepeat?.cancel()
@@ -28110,6 +28170,9 @@ private fun Modifier.pointerInputKey(
                 }
                 longJob?.cancel()
                 armRepeat?.cancel()
+                chordLabels?.cancel()
+                // ?123 let go after a chord ran: the chord's, not a tap (#754).
+                val chorded = chordTrigger && chordGate?.triggerUp(down.id) == true
                 setPressed(false)
                 onKeyRelease()
                 setFlickDirection(null)
@@ -28124,6 +28187,8 @@ private fun Modifier.pointerInputKey(
                 val capital = dir?.takeIf { returned }?.let { key.flickShiftedText(it) }
                 when {
                     armRepeated -> Unit
+                    chorded && chosen == null -> Unit
+                    holdRan && chosen == null -> if (hapticOnLongPressRelease) onKeyPress()
                     chosen != null && capital != null -> onKey(chosen.copy(output = capital, shiftLabel = capital))
                     chosen != null -> onKey(chosen)
                     // The long press already opened alternates; release commits
@@ -31170,72 +31235,79 @@ internal fun signedRank(steps: Int): String = when {
     else -> "0"
 }
 
+/** Height of the recent-word row (#814): a touch target's worth, since every word in it is one. */
+internal val RecentRowHeight = 48.dp
+
+/** Whether the recent-word row is up: it has words, the setting is on and the strip is showing. */
+internal fun recentRowShown(state: KeyboardUiState): Boolean =
+    state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar &&
+        !state.settings.toolbarBehavior.stripHidden
+
 /**
- * The recent-word bar (#787): the last words written, newest on the right,
- * each a chip that opens what else it could have been. A pick replaces that
- * occurrence where it stands; the live words to the right are untouched.
+ * The recent-word row (#787, #814, #842): the last words written, newest on
+ * the right, each followed by what else it could have been. It sits over the
+ * strip in a row of its own, so the live suggestions keep their full width,
+ * and the alternatives are on screen from the start: one tap on one replaces
+ * that word where it stands. Scrolls sideways when the words outgrow it,
+ * starting at the newest.
  */
 @Composable
-private fun RecentWordBar(words: List<String>, hold: SuggestionHoldCallbacks) {
+internal fun RecentWordRow(words: List<RecentBarWord>, hold: SuggestionHoldCallbacks) {
     val kb = LocalKbTheme.current
+    val scroll = rememberScrollState()
+    LaunchedEffect(words) { scroll.scrollTo(scroll.maxValue) }
     Row(
-        modifier = Modifier.padding(start = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(RecentRowHeight)
+            .horizontalScroll(scroll)
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        words.forEachIndexed { index, word ->
-            val back = words.lastIndex - index
-            var offers by remember(word, back) { mutableStateOf<List<String>?>(null) }
-            Box {
-                Box(
-                    modifier = Modifier
-                        .widthIn(max = 88.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(kb.chip)
-                        .clickable(onClickLabel = stringResource(R.string.ime_recent_word_open_desc)) {
-                            offers = hold.recentOffers(back, word)
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        word,
-                        color = kb.chipText,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+        words.forEachIndexed { index, recent ->
+            // Keyed on the place, not the spelling: two copies of a word are
+            // two entries, and a pick must reach the one it was drawn for.
+            key(recent.start) {
+                if (index > 0) {
+                    VerticalDivider(
+                        modifier = Modifier.height(20.dp).padding(horizontal = 4.dp),
+                        thickness = SuggestionDividerWidth,
+                        color = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
-                val shown = offers
-                if (shown != null) {
-                    DropdownMenu(
-                        expanded = true,
-                        onDismissRequest = { offers = null },
-                        properties = MenuPopupProperties,
+                Text(
+                    recent.word,
+                    color = kb.keyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                )
+                for (offer in recent.offers) {
+                    val replace = stringResource(R.string.ime_recent_word_replace_desc, recent.word, offer)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .widthIn(min = 48.dp)
+                            .padding(vertical = 6.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(kb.chip)
+                            .clickable(role = Role.Button, onClickLabel = replace) {
+                                hold.onRecentPick(recent.start, recent.word, offer)
+                            }
+                            .padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        if (shown.isEmpty()) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.ime_recent_word_nothing)) },
-                                onClick = { offers = null },
-                                enabled = false,
-                            )
-                        }
-                        for (offer in shown) {
-                            DropdownMenuItem(
-                                text = { Text(offer) },
-                                onClick = {
-                                    offers = null
-                                    hold.onRecentPick(back, word, offer)
-                                },
-                            )
-                        }
+                        Text(
+                            offer,
+                            color = kb.chipText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                        )
                     }
                 }
             }
         }
-        VerticalDivider(
-            modifier = Modifier.height(20.dp),
-            thickness = SuggestionDividerWidth,
-            color = MaterialTheme.colorScheme.outlineVariant,
-        )
     }
 }

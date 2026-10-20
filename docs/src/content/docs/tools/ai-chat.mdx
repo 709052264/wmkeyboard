@@ -123,6 +123,8 @@ It runs on any model the [AI chat](#picking-the-model) can use: a cloud or self-
 
 On an on-device model the assistant searches the settings for your question itself before the model starts, so the model has the matching rows in front of it even if it never asks for a search, and it skips the documentation search. If its answer still names no setting, the closest match is shown as a card anyway. Answers are slower than on a cloud model, since each one is worked out on the phone, but nothing leaves it.
 
+Don't want it? Turn off <SettingsPath path="AI / Offer the Settings assistant" />. The button on the search screen, both of its rows and its search result go, and it sends nothing anywhere; turn it back on from the same row, which search still finds. Your providers and keys stay as they are.
+
 The conversation is kept only while the app is running and is never saved. With a cloud or self-hosted provider, an empty conversation names it and says what goes to it. What it sends to the provider is your messages, its own answers, the setting titles, places and the few values above, and any documentation it looked up; no key, address or other secret is readable through it, and the app lock covers it like the rest of AI.
 
 ## Chatting over another app
