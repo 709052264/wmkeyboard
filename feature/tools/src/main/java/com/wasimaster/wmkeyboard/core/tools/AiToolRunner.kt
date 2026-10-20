@@ -26,6 +26,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.core.vocab.VocabIndexCache
 import com.wasimaster.wmkeyboard.core.vocab.VocabLanguages
@@ -295,6 +296,7 @@ class AiToolRunner(
         AiTools.CALCULATE -> calculate(call)
         AiTools.CALENDAR_EVENTS -> calendarEvents(call)
         AiTools.SEARCH_NOTES -> searchNotes(call)
+        AiTools.SEARCH_SNIPPETS -> searchSnippets(call)
         AiTools.SEARCH_CLIPBOARD -> searchClipboard(call)
         AiTools.CURRENT_LOCATION -> currentLocation(call)
         AiTools.ADD_CALENDAR_EVENT -> addCalendarEvent(call)
@@ -731,6 +733,23 @@ class AiToolRunner(
         }
         val meaning = byMeaning.takeIf { it.isNotEmpty() }?.let { "Close in meaning:\n" + AiMeaningFormat.format(it) }
         return AiToolResult(call, listOf(words, meaning.orEmpty()).filter { it.isNotBlank() }.joinToString("\n\n"))
+    }
+
+    /**
+     * Snippets matching the model's words, or the newest ones, each read as
+     * written: a template is never expanded. With search by meaning on,
+     * snippets that mean what the query does follow, minus the ones the
+     * words already found. The store is opened like the notes: read, never
+     * written.
+     */
+    private fun searchSnippets(call: AiToolCall): AiToolResult {
+        if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
+        val query = call.argument("query").orEmpty()
+        val snippets = SnippetStore(File(context.filesDir, SnippetStore.FILE_PATH)).items()
+        val found = AiSnippetSearch.byWords(snippets, query)
+        val byMeaning = host?.takeIf { query.isNotBlank() && it.canSearchByMeaning }
+            ?.snippetsByMeaning(query)?.getOrNull().orEmpty()
+        return AiToolResult(call, AiSnippetSearch.answer(found, byMeaning, snippets))
     }
 
     /**

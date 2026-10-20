@@ -259,6 +259,10 @@ The same **Panel columns** setting also sits on the Text expansion screen, under
 
 Beyond that, there's nothing global to configure about expansion. There's no on/off switch separate from the tool. How matching works is set per snippet instead, on the editor screen: word or pattern, how far back a pattern may reach, and whether it expands on its own or asks first. The nearest thing to a group switch is a [folder](#folders), which arms and disarms everything filed in it together. Having no pattern snippets at all is what keeps the matching machinery out of the typing path entirely.
 
+## Asking the AI about them
+
+The [AI chat](/tools/ai/) can look through your snippets with **Read your snippets**, one of the [keyboard's own tools](/tools/ai/#the-keyboards-own-tools): ask it for "my bank details snippet" or "what do I type for my address?" and it reads back the matching snippets' names, triggers and text. A template is read as you wrote it, so the model sees `{date}` rather than today's date, and `{clip}` never hands it your clipboard. With [Search by meaning](/smart/search-by-meaning/) on, it also finds snippets that say the same thing in other words. Like the other tools that read your things, it asks you first each time unless you set it to **Run**.
+
 ## Snippet packs and backups
 
 Someone can package a set of snippets as an installable addon: a `.wmsnippets.json` file up to 4&nbsp;MB. You can preview it before installing, so you see the actual snippets it contains rather than installing blind. Installing a pack adds its snippets alongside anything you already have, in a [folder](#folders) of its own named after the pack. That's what lets you silence a whole pack with one switch, find it again in six months, and see at a glance which snippets are yours. If the pack file declares folders of its own they're flattened into the pack's folder, since folders are one level deep.

@@ -2,18 +2,21 @@ package com.wasimaster.wmkeyboard.core.tools
 
 /**
  * What search by meaning hands the AI tools: clips for `search_clipboard`,
- * notes for the meaning half of `search_notes`. The search itself is the
- * keyboard module's (search by meaning lives there), lent through
- * [AiToolHost.searchClipboard] and [AiToolHost.notesByMeaning]; the words the
- * model reads are made here.
+ * notes and snippets for the meaning halves of `search_notes` and
+ * `search_snippets`. The search itself is the keyboard module's (search by
+ * meaning lives there), lent through [AiToolHost.searchClipboard],
+ * [AiToolHost.notesByMeaning] and [AiToolHost.snippetsByMeaning]; the words
+ * the model reads are made here.
  */
 enum class AiMeaningSource(val label: String) {
     CLIPBOARD("clipboard"),
     NOTE("note"),
+    SNIPPET("snippet"),
 }
 
 /**
- * One thing found. [title] is a note's title, null for a clip; [text] is
+ * One thing found. [title] is a note's title or a snippet's name, null for a
+ * clip; [text] is
  * already cut short and on one line; [score] is the cosine the match was
  * ranked by, best near 1; [id] is the item's id in its store, so a caller can
  * tell a meaning match from one it already found by words.

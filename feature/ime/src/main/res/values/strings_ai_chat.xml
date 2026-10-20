@@ -163,6 +163,7 @@
     <string name="ime_ai_tool_calculate_done">Worked out %1$s</string>
     <string name="ime_ai_tool_name_calendar_events">Your calendar</string>
     <string name="ime_ai_tool_name_search_notes">Your notes</string>
+    <string name="ime_ai_tool_name_search_snippets">Your snippets</string>
     <string name="ime_ai_tool_name_search_clipboard">Your clipboard</string>
     <string name="ime_ai_tool_name_current_location">Your location</string>
     <string name="ime_ai_tool_name_add_calendar_event">Add to calendar</string>
@@ -177,6 +178,9 @@
     <string name="ime_ai_tool_calendar_events_done">Read your calendar for %1$s</string>
     <string name="ime_ai_tool_search_notes_running">Searching your notes for “%1$s”…</string>
     <string name="ime_ai_tool_search_notes_done">Searched your notes for “%1$s”</string>
+    <!-- %1$s is what the model searched for. -->
+    <string name="ime_ai_tool_search_snippets_running">Searching your snippets for “%1$s”…</string>
+    <string name="ime_ai_tool_search_snippets_done">Searched your snippets for “%1$s”</string>
     <!-- %1$s is what the model searched for. -->
     <string name="ime_ai_tool_search_clipboard_running">Looking through your clipboard for “%1$s”…</string>
     <string name="ime_ai_tool_search_clipboard_done">Looked through your clipboard for “%1$s”</string>

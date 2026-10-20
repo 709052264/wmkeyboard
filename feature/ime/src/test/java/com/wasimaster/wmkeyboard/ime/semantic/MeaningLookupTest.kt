@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.ime.semantic
 import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
+import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningFormat
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningHit
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningSource
@@ -13,7 +14,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Search by meaning for search_clipboard and search_notes, and the words the
+ * Search by meaning for search_clipboard, search_notes and search_snippets, and the words the
  * model reads, with a fake embedder: four axes stand for four topics, so which
  * items a query lands on is known in advance, and what is left out is left out
  * by the filters.
@@ -34,6 +35,8 @@ class MeaningLookupTest {
     private val locked = Note(id = 11, title = "Teeth", body = "insurance number 0042", locked = true)
     private val trashed = Note(id = 12, body = "old dentist, closed now", deletedAt = 5)
 
+    private val dentistReply = Snippet(id = 20, label = "Dentist reply", text = "Booked for {date:EEEE}, see you then", trigger = "dent")
+
     private fun indexes(): Map<MeaningSpace, VectorIndex> {
         val clips = VectorIndex(4).apply {
             put("1", 0, v(0.95f, 0f, 0f, 0.31f))
@@ -49,7 +52,12 @@ class MeaningLookupTest {
             put("11", 0, dentist)
             put("12", 0, dentist)
         }
-        return mapOf(MeaningSpace.CLIPS to clips, MeaningSpace.NOTES to notes)
+        val snippets = VectorIndex(4).apply {
+            put("20", 0, v(0.92f, 0f, 0f, 0.39f))
+            // Deleted from the snippets since it was indexed.
+            put("21", 0, dentist)
+        }
+        return mapOf(MeaningSpace.CLIPS to clips, MeaningSpace.NOTES to notes, MeaningSpace.SNIPPETS to snippets)
     }
 
     private fun recall(embedder: (String) -> FloatArray? = { dentist }): MeaningLookup {
@@ -83,6 +91,16 @@ class MeaningLookupTest {
         assertTrue(clipsOnly.isNotEmpty() && clipsOnly.all { it.source == AiMeaningSource.CLIPBOARD })
         val notesOnly = recall().search("dentist", MeaningLookup.Sources(notes = sources.notes))!!
         assertEquals(listOf(AiMeaningSource.NOTE), notesOnly.map { it.source })
+    }
+
+    @Test
+    fun `the snippets search reads only live snippets, by id, their template as written`() = runBlocking {
+        val hits = recall().search("dentist", MeaningLookup.Sources(snippets = listOf(dentistReply)))!!
+        assertEquals(1, hits.size)
+        assertEquals(AiMeaningSource.SNIPPET, hits[0].source)
+        assertEquals("Dentist reply", hits[0].title)
+        assertEquals("Booked for {date:EEEE}, see you then", hits[0].text)
+        assertEquals("20", hits[0].id)
     }
 
     @Test
