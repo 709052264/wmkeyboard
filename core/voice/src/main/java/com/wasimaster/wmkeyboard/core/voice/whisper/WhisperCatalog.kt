@@ -14,8 +14,8 @@ import java.io.IOException
  * reads `message` falls back to its own generic text rather than printing a
  * resource id at the user.
  *
- * Declared here, in the flavour-independent source set, so the lite build sees
- * it too — the Whisper engine itself only exists in the full flavour.
+ * Declared here beside the catalog rather than with the engine, which every
+ * caller reaches through [WhisperEngine.AVAILABLE] first.
  */
 class WhisperException(
     @StringRes val messageRes: Int,
@@ -222,7 +222,7 @@ data class WhisperModel(
 object WhisperCatalog {
 
     /**
-     * Whether this device runs [WhisperFormat.GGML] models: a full build with a
+     * Whether this device runs [WhisperFormat.GGML] models: a build with a
      * whisper.cpp library for its ABI. Read once, before [models], which is
      * built from it. Where it is false the catalog is exactly the LiteRT one.
      */
@@ -464,7 +464,7 @@ object WhisperCatalog {
             ),
         )
     }.filter { model ->
-        // Lite has no LiteRT, so only whisper.cpp's models can run there.
+        // F-Droid's build has no LiteRT, so only whisper.cpp's models can run there.
         model.ggml || WhisperEngine.AVAILABLE
     }.map { model ->
         // Beside whisper.cpp's models of the same sizes, the LiteRT graphs need

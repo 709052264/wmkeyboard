@@ -21,7 +21,7 @@ emoji search and a 75+ tool toolbox that all run on the phone and never phone ho
 <a href="https://supportkori.com/wasimaster"><img src="https://img.shields.io/badge/SupportKori-Donate-FFDD00?style=flat-square&logo=data%3Aimage/svg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiByeD0iNS41IiBmaWxsPSIjRkZERDAwIi8%2BPGNpcmNsZSBjeD0iOC44IiBjeT0iOC4yIiByPSIxLjgiIGZpbGw9IiMxMDE4MjgiLz48Y2lyY2xlIGN4PSIxNS4yIiBjeT0iOC4yIiByPSIxLjgiIGZpbGw9IiMxMDE4MjgiLz48cGF0aCBkPSJNMy40IDkuOGMuMiA1LjUgMy44IDkuMiA4LjYgOS4yczguNC0zLjcgOC42LTkuMmMuMS0uOC0uNi0xLjQtMS40LTEuMy0uOC4xLTEuMy44LTEuNCAxLjUtLjIgMy44LTIuNiA2LjMtNS44IDYuM3MtNS42LTIuNS01LjgtNi4zYy0uMS0uNy0uNi0xLjQtMS40LTEuNS0uOC0uMS0xLjUuNS0xLjQgMS4zeiIgZmlsbD0iIzEwMTgyOCIvPjwvc3ZnPg%3D%3D&labelColor=101828" alt="Support on SupportKori"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-1f6feb?style=flat-square&logo=spdx&logoColor=white" alt="MIT license"></a>
 
-<a href="#install">Install</a> · <a href="#the-tour">Tour</a> · <a href="#languages">Languages</a> · <a href="#privacy">Privacy</a> · <a href="#editions">Editions</a> · <a href="#faq">FAQ</a> · <a href="#build-it-yourself">Build</a> · <a href="https://wmkeyboard.pages.dev"><b>Read the docs</b></a>
+<a href="#install">Install</a> · <a href="#the-tour">Tour</a> · <a href="#languages">Languages</a> · <a href="#privacy">Privacy</a> · <a href="#builds">Builds</a> · <a href="#faq">FAQ</a> · <a href="#build-it-yourself">Build</a> · <a href="https://wmkeyboard.pages.dev"><b>Read the docs</b></a>
 
 <br>
 
@@ -137,7 +137,7 @@ work in airplane mode.
 |---|---|
 | **Text** | Clipboard with history, pins, search and screenshot capture. Snippets with `{date}` and `{clip}` variables. Text expansion. Undo and redo. Selection mode. A trackpad. Fancy text. |
 | **Numbers** | A calculator in the suggestion strip. Unit and currency conversion. Calendars. |
-| **Words** | Dictionary and Wikipedia lookup. Translate, on device in the Full edition. Grammar check with Harper, fully offline. Vocabulary practice. |
+| **Words** | Dictionary and Wikipedia lookup. Translate, on device too. Grammar check with Harper, fully offline. Vocabulary practice. |
 | **Camera** | Text scan (OCR, ML Kit or Tesseract for 100+ languages). QR and barcode. Document scanner. |
 | **Phone** | Media controls. An app launcher. KDE Connect. Flashlight. One-time codes caught from notifications. |
 | **Voice** | Android's recogniser with a continuous mode, or offline Whisper with a catalog of 29 models. |
@@ -167,9 +167,9 @@ learning behave identically with the radio off.
 - Every tool that touches the network says so on its own settings page and stays off until you
   open it. A network activity log shows every request the keyboard has made.
 - Backups can be encrypted with a passphrase and written wherever you point them.
-- The one exception worth naming: handwriting and the scanners in the Full edition are built on
-  Google's ML Kit, which reports its own diagnostics to Google. The Lite edition carries no
-  Google library at all, and a build flag can remove the internet permission entirely.
+- The one exception worth naming: handwriting and the scanners are built on Google's ML Kit,
+  which reports its own diagnostics to Google. The F-Droid build carries no Google library at
+  all, and the offline build has no internet permission.
 
 [Privacy at a glance](https://wmkeyboard.pages.dev/privacy/overview/) · [Network policy](https://wmkeyboard.pages.dev/privacy/network/) · [Your data on device](https://wmkeyboard.pages.dev/privacy/data/)
 
@@ -210,27 +210,27 @@ Entries marked `RARE` there are things few or no mainstream keyboards ship. Ther
 
 </details>
 
-## Editions
+## Builds
 
-One codebase, two APKs. Everything about typing, prediction, themes, languages and privacy is
-identical. What differs is which on-device machine learning ships in the box.
+One app, three builds. Everything about typing, prediction, themes, languages and privacy is
+identical. Up to 0.6.2 there were two editions, Full and Lite; from 0.6.3 there is no Lite, and
+the optional feature libraries download the first time a feature needs them instead.
 
-| | Full | Lite |
-|---|:---:|:---:|
-| Handwriting, text scan, QR and document scanner | ✓ | |
-| Grammar check (Harper) | ✓ | |
-| Offline Whisper dictation | ✓ | |
-| On-device local LLM | ✓ | |
-| Google libraries on the compile classpath | ML Kit, LiteRT | none |
-| APK, `arm64-v8a`, English UI | 85 MB | 12 MB |
-| APK, `arm64-v8a`, all 48 UI languages | 132 MB | 57 MB |
-| On Google Play | ✓ | |
-| On F-Droid | | ✓ |
+| | Standard | F-Droid | Offline |
+|---|:---:|:---:|:---:|
+| Where | Google Play, GitHub | F-Droid | GitHub |
+| Handwriting, text scan, QR and document scanner | ✓ | | ✓ |
+| Grammar check (Harper) | ✓ | ✓ | ✓ |
+| Offline Whisper (whisper.cpp), Asr4All, Parakeet, Moonshine | ✓ | ✓ | ✓ |
+| Whisper on LiteRT, Whistle, on-device local LLM | ✓ | | ✓ |
+| Google libraries on the compile classpath | ML Kit, LiteRT | none | ML Kit, LiteRT |
+| Feature libraries | downloaded on first use | downloaded once you allow it | in the APK |
+| Internet permission | ✓ | ✓ | |
 
-Sizes are from 0.5.12 and drift with dependencies. The UI-language choice only affects the
-words the settings app shows you. Every layout and dictionary is in both.
+The UI-language choice only affects the words the settings app shows you. Every layout and
+dictionary is in every build.
 
-[Full vs Lite](https://wmkeyboard.pages.dev/start/editions/)
+[Which build you have](https://wmkeyboard.pages.dev/start/editions/)
 
 ## Install
 
@@ -241,13 +241,15 @@ words the settings app shows you. Every layout and dictionary is in both.
 <a href="https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/wasi-master/wmkeyboard"><img src="https://raw.githubusercontent.com/ImranR98/Obtainium/main/assets/graphics/badge_obtainium.png" alt="Get it on Obtainium" height="72"></a>
 </p>
 
-- **Google Play** carries the Full edition. Play delivers the heavier on-device parts (the local
+- **Google Play** carries the standard build. Play delivers the heavier on-device parts (the local
   LLM runtime, the translation engine, handwriting, the offline-voice interpreter) the first time
   you use them, so the install stays small, and updates it like any other app.
-- **F-Droid** carries the Lite edition, built from source as one APK per CPU architecture and
-  checked byte-for-byte against the matching `-fdroid.apk` on the GitHub release.
-- **GitHub releases** carry both editions, each in English-only and all-languages builds, for
-  `arm64-v8a`, `armeabi-v7a`, `x86_64` and a universal APK. Almost every phone made since 2017
+- **F-Droid** carries its own build, without Google's libraries, built from source as one APK
+  per CPU architecture and checked byte-for-byte against the matching `-fdroid.apk` on the
+  GitHub release.
+- **GitHub releases** carry the standard build for `arm64-v8a`, `armeabi-v7a`, `x86_64` and a
+  universal APK, which fetches its other UI languages and feature libraries on demand, and the
+  offline build for `arm64-v8a` and universal. Almost every phone made since 2017
   wants `arm64-v8a`. A `SHA256SUMS.txt` sits next to them.
 - **Obtainium** tracks the GitHub releases and updates you automatically. The release APKs also
   carry their own update check, which asks GitHub and shows a card on the Home screen.
@@ -276,11 +278,12 @@ background fetch, and it is off by default. <a href="https://wmkeyboard.pages.de
 </details>
 
 <details>
-<summary><b>Full or Lite?</b></summary>
+<summary><b>Which build?</b></summary>
 <br>
-Lite if you are short on storage or do not need handwriting, scanning, grammar check, offline
-Whisper or the local LLM. Full for everything. They share a package name and a signing key, so
-installing one over the other keeps all your data.
+The standard one, from Play or GitHub, unless you want F-Droid's (no Google library at all, at
+the cost of handwriting, the scanners and the local LLM) or the offline one (no internet
+permission, everything inside a much larger APK). The GitHub and F-Droid builds share a signing
+key, so installing one over the other keeps all your data.
 </details>
 
 <details>
@@ -362,11 +365,11 @@ provisions its own toolchain through Foojay on the first build. Android Studio's
 well as `JAVA_HOME`.
 
 ```bash
-./gradlew assembleFullIntlDebug   # every feature, every UI language
+./gradlew assembleIntlDebug       # every UI language
 ```
 
 ```bash
-./gradlew assembleLiteEnDebug     # fewer tools, English UI, small
+./gradlew assembleEnDebug -Pwmkb.enableFdroid=true   # what F-Droid builds, English UI
 ```
 
 ```bash
@@ -377,7 +380,7 @@ well as `JAVA_HOME`.
 ./gradlew staticAnalysis          # detekt + Android Lint, 20+ minutes
 ```
 
-The task name is the edition, then the UI-language build, then the build type. Two flags in
+The task name is the UI-language build, then the build type. Two flags in
 `local.properties` matter: the build channel (Play versus direct download), which decides
 whether the ML models and LLM runtime ship inside the APK or download on demand, and a
 no-internet switch that strips the permission entirely.
@@ -453,7 +456,7 @@ the same files.
 
 - [Harper](https://github.com/Automattic/harper) for offline grammar checking, bridged from Rust.
 - [whisper.cpp](https://github.com/ggml-org/whisper.cpp) and whisper-android for offline dictation.
-- Google ML Kit and LiteRT for handwriting, scanning, on-device translation and the local LLM runtime, in the Full edition.
+- Google ML Kit and LiteRT for handwriting, scanning, on-device translation and the local LLM runtime, in every build but F-Droid's.
 - [Tesseract](https://github.com/tesseract-ocr/tesseract) and Leptonica for OCR beyond the languages ML Kit covers.
 - [Gemoji](https://github.com/github/gemoji), [KEmoji](https://invent.kde.org/libraries/kemoji) and Unicode CLDR for emoji names and keywords. [Noto](https://notofonts.github.io/) for fonts and animated emoji.
 - [Keyman](https://keyman.com) for the keyboard import format, and [Khipro](https://khipro.khiproteam.com/) for the Bangla layout of the same name.

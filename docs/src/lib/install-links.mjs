@@ -33,6 +33,6 @@ export const INSTALL_SOURCES = [
 		icon: 'github',
 		url: 'https://github.com/wasi-master/wmkeyboard/releases/latest',
 		listed: true,
-		note: 'Signed APKs, Full and Lite.',
+		note: 'Signed APKs: standard and offline.',
 	},
 ];

@@ -12,8 +12,8 @@ import kotlinx.serialization.json.jsonPrimitive
  * Cactus Whistle, the third dictation engine (#548): one small model for seven
  * languages, run by Cactus's Needle engine through `native/whistle-jni`.
  *
- * The library ships in the full flavour's `jniLibs` for arm64 only, so lite
- * builds and other ABIs simply fail to load it and [available] is false; there
+ * The library ships in `src/whistle/jniLibs` for arm64 only, so F-Droid's
+ * build (which deletes it) and other ABIs simply fail to load it and [available] is false; there
  * is no stub to keep in step. Play builds carry it in the on-demand
  * `:feature:speech` split with whisper.cpp and ExecuTorch, so [shipped] says
  * whether the build has it and [available] whether it is loaded. The engine is process-global and holds one

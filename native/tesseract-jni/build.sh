@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds libwmtess.so for every ABI the app ships and copies it into
-# core/intelligence/src/full/jniLibs/<abi>/. Needs NDK r29, CMake 3.22+ and
+# core/intelligence/src/tesseract/jniLibs/<abi>/. Needs NDK r29, CMake 3.22+ and
 # Ninja. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk/29.0.14206865 native/tesseract-jni/build.sh
@@ -43,7 +43,7 @@ for abi in "${ABIS[@]}"; do
         -DCMAKE_BUILD_TYPE=MinSizeRel \
         -DT4A_CPP="$T4A_CPP"
     "$CMAKE" --build "$out"
-    dest=$REPO/core/intelligence/src/full/jniLibs/$abi
+    dest=$REPO/core/intelligence/src/tesseract/jniLibs/$abi
     mkdir -p "$dest"
     "$STRIP" --strip-unneeded -o "$dest/libwmtess.so" "$out/libwmtess.so"
     echo "$abi: $(wc -c < "$dest/libwmtess.so") bytes"

@@ -2041,7 +2041,7 @@ sealed interface KdeAction {
     data object OpenSettings : KdeAction
     data object OpenDevices : KdeAction
 
-    /** Open the QR scanner for a computer's pairing code (full builds). */
+    /** Open the QR scanner for a computer's pairing code (not on F-Droid). */
     data object ScanPairCode : KdeAction
 }
 

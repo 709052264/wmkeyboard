@@ -20,7 +20,7 @@ WM Keyboard reads what kind of field you've tapped into, email or phone number o
 
 Every field an app gives you carries an `EditorInfo` with a type, the same information Android's own keyboards read. WM Keyboard turns that into one of eight `FieldKind` values: `TEXT`, `EMAIL`, `URI`, `NUMBER`, `PHONE`, `DATE`, `TIME`, `DATETIME`. Five of them (`NUMBER`, `PHONE`, `DATE`, `TIME`, `DATETIME`) are numeric-pad kinds and get a dedicated keypad instead of the letter layouts. The other three (`TEXT`, `EMAIL`, `URI`) keep the letters and adjust individual keys, covered below.
 
-This detection is automatic and isn't a setting you can turn off. It runs on every field focus, for every app, on both editions.
+This detection is automatic and isn't a setting you can turn off. It runs on every field focus, for every app, in every build.
 
 A password field is a separate signal entirely. It doesn't get its own `FieldKind`: a masked text field reports `FieldKind.TEXT` identically to an ordinary prose box. That's deliberate, because the privacy behavior a password needs (suggestions off, nothing learned, clipboard cleaned up) applies just as much to a numeric PIN field as to a text one. Instead there's a second, independent flag, `secureField`, computed alongside `FieldKind` from the field's password variation, or from its PIN variation on a numeric field. A 4-digit PIN box shows both firing together: it's `FieldKind.NUMBER`, so it gets the numeric keypad, and `secureField = true`, so it gets every privacy rule below.
 
@@ -136,6 +136,6 @@ Two related things exist, but neither is a correction for a misreporting app:
 - **The suggestion strip is force-emptied a second time**, independent of the strip-hiding check above, as a backstop specifically for secure fields.
 - **The email/URL key swap has no toggle.** It's derived purely from field kind and layout mode (letters layer only), so there's nothing to turn off short of the field itself not being an email or URL field.
 - **A custom layout can override any of the five numeric keypads** by defining its own `NUMBER`/`PHONE`/`DATE`/`TIME`/`DATETIME` layer. Anything it doesn't define falls back to the shared ones described above.
-- **No edition split.** Field-kind detection, the key swaps, the five keypads and every secure-field behavior on this page work identically on the full and lite builds.
+- **No build differences.** Field-kind detection, the key swaps, the five keypads and every secure-field behavior on this page work identically in every build.
 
 For symbol-page cycling and how a keyboard mode can bind itself to a field kind, see [Modes & the symbol row](/typing/modes/). For the paste-time clipboard purge in full, see [Clipboard manager](/tools/clipboard/).

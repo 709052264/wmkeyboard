@@ -1,18 +1,18 @@
 ---
 /**
- * Edition availability pill. WM Keyboard ships in two flavors:
- * `full` (ML Kit, Whisper, local LLM, …) and `lite`.
+ * Build availability pill. Every build has the same features except
+ * F-Droid's, which carries none of Google's SDKs (ML Kit, LiteRT, LiteRT-LM).
  *
  * Usage:
- *   <Flavor edition="full" />   → “Full edition only”
- *   <Flavor edition="both" />   → “All editions”
+ *   <Flavor edition="google" />  → “Not on F-Droid”
+ *   <Flavor edition="fdroid" />  → “F-Droid build”
+ *   <Flavor edition="all" />     → “Every build”
  */
 interface Props {
-	edition: 'full' | 'lite' | 'both';
+	edition: 'google' | 'fdroid' | 'all';
 }
 const { edition } = Astro.props;
-const label =
-	edition === 'full' ? 'Full edition only' : edition === 'lite' ? 'Lite edition only' : 'All editions';
+const label = edition === 'google' ? 'Not on F-Droid' : edition === 'fdroid' ? 'F-Droid build' : 'Every build';
 ---
 
 <span class:list={['flavor', edition]}>{label}</span>
@@ -27,17 +27,17 @@ const label =
 		letter-spacing: 0.02em;
 		vertical-align: middle;
 	}
-	.full {
+	.google {
 		background: linear-gradient(135deg, rgba(76, 141, 246, 0.2), rgba(139, 92, 246, 0.2));
 		border: 1px solid var(--wm-violet);
 		color: var(--sl-color-white);
 	}
-	.lite {
+	.fdroid {
 		border: 1px solid var(--sl-color-gray-4);
 		background: var(--sl-color-gray-6);
 		color: var(--sl-color-gray-2);
 	}
-	.both {
+	.all {
 		border: 1px solid var(--sl-color-green, #2f9e69);
 		background: rgba(47, 158, 105, 0.12);
 		color: var(--sl-color-white);

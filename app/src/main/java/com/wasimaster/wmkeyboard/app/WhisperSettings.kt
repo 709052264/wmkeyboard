@@ -91,8 +91,8 @@ private const val WHISPER_METERED_CONFIRM_BYTES = 150_000_000L
  * language, and that is what [WhisperRoutingCard] edits.
  *
  * Download state lives in [WhisperDownloadManager], so navigating away or
- * rotating never loses an in-flight download. Shown only in the full flavor
- * (gated by the caller).
+ * rotating never loses an in-flight download. Shown only where Whisper can
+ * run (gated by the caller).
  */
 @Composable
 internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveSettings) {

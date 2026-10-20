@@ -642,8 +642,8 @@ enum class KeyboardAlignment { LEFT, CENTER, RIGHT }
 
 /**
  * Whether the offline Whisper dictation engine can run in this build: on
- * LiteRT (full builds) or on whisper.cpp (any edition with its library, lite
- * included, #440). False only where neither is there, as on F-Droid, which
+ * LiteRT (every build but F-Droid's) or on whisper.cpp (any build with its
+ * library, #440). False only where neither is there, as on F-Droid, which
  * strips the prebuilt libraries — settings hide the engine option and the IME
  * never routes dictation through it.
  */
@@ -653,7 +653,7 @@ fun isWhisperEnabled(): Boolean =
 
 /**
  * Backend for the AI tool — cloud APIs (bring your own key), a self-hosted
- * server, or a model running entirely on this device (full builds only).
+ * server, or a model running entirely on this device (not on F-Droid).
  */
 enum class AiProvider(@StringRes val labelRes: Int) {
     ANTHROPIC(R.string.core_settings_ai_provider_anthropic_label),
@@ -724,7 +724,7 @@ enum class LocalLlmBackend(@StringRes val labelRes: Int) {
 enum class QrEccLevel { L, M, Q, H }
 
 /**
- * What reads the text in the scan text tool (full builds). ML Kit reads only
+ * What reads the text in the scan text tool (not on F-Droid). ML Kit reads only
  * Latin script; Tesseract reads most scripts but needs each language's data
  * downloaded first.
  */
@@ -775,8 +775,8 @@ data class TranslateSettings(
      * apps; and a shared key would be billed per character with no cap once
      * it is out of the APK. On the device, the first translation offers the
      * module and the model instead of fetching anything unasked. The other
-     * builds keep Online: lite has no ML Kit, and a GitHub or F-Droid user
-     * has always had it.
+     * builds keep Online: F-Droid's has no ML Kit, and a GitHub user has
+     * always had it.
      */
     val engine: TranslateEngine =
         if (BuildConfig.ENABLE_PLAY_STORE) TranslateEngine.ON_DEVICE else TranslateEngine.ONLINE,
@@ -1248,7 +1248,7 @@ enum class TransliterationHintMode { OFF, ADDED, CLUSTER }
 /**
  * What a swipe across the letter keys does. TYPE_WORDS is the classic glide
  * decoder; HANDWRITE turns the same swipe into a handwriting stroke fed to the
- * ML Kit recognizer (full builds only — needs a downloaded handwriting model).
+ * ML Kit recognizer (not on F-Droid — needs a downloaded handwriting model).
  * SELECT_KEY (#658) types one key per touch: the finger slides to the key it
  * meant, lighting each key it is over, and the lift types only that one.
  */
@@ -3139,7 +3139,7 @@ data class KeyboardSettings(
      * [ScannerSettings], [GifSettings], [WebSearchSettings]). A field past 245
      * does not fail to compile, it fails to load. So: recount before adding a
      * flat field, prefer nesting regardless, and trust
-     * `testFullDebugUnitTest` over a green compile.
+     * `testDebugUnitTest` over a green compile.
      *
      * At this headroom the cheapest move for a whole new feature is often not
      * to come here at all. Something the IME never reads can hang off
@@ -13069,8 +13069,8 @@ class SettingsRepository(private val context: Context) {
             provider = p[AI_PROVIDER]
                 ?.let { runCatching { AiProvider.valueOf(it) }.getOrNull() }
                 // On-device models exist only where the engine does. A value
-                // restored from a full-build backup would otherwise open the
-                // model downloader on lite, which reaches Hugging Face for a
+                // restored from another build's backup would otherwise open the
+                // model downloader on F-Droid's, which reaches Hugging Face for a
                 // model nothing there can run.
                 ?.takeUnless { it == AiProvider.ON_DEVICE && !BuildConfig.ENABLE_LOCAL_LLM }
                 ?: defaults.ai.provider,

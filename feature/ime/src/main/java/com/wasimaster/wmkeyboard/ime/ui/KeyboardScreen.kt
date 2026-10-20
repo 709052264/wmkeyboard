@@ -15628,7 +15628,7 @@ internal fun panelLayerDragMode(source: Key?, current: LayoutMode): LayoutMode? 
 // the JIT got to it — every keystroke right after an install or an update —
 // it ran in the slow one. A plain function pays for the width on its own
 // frame, once per call, and leaves the composable narrow. The dex method
-// check in :app (`checkDexMethodsFullIntlFast`) is what notices a new one.
+// check in :app (`checkDexMethodsIntlFast`) is what notices a new one.
 
 private fun KeyboardUiState.withSettings(settings: KeyboardSettings): KeyboardUiState = copy(settings = settings)
 
@@ -17248,7 +17248,7 @@ private fun KeyRows(
         state
     }
     // Letter-area swipes are drawing handwriting rather than gliding a word
-    // (full builds only). Capture arms whenever the mode is selected; the
+    // (not on F-Droid). Capture arms whenever the mode is selected; the
     // service decides whether the drawn ink recognizes or prompts a download.
     // A handwriting layout (#557) has its own canvas above the keys and no
     // letters to swipe across, so neither the swipe ink nor glide applies.

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Builds libwmwhistle.so (whistle_jni.cpp linked against Cactus's prebuilt
-# libneedle.a) and copies it into core/voice/src/full/jniLibs/arm64-v8a/.
+# libneedle.a) and copies it into core/voice/src/whistle/jniLibs/arm64-v8a/.
 # One source file, so it calls the NDK's clang directly: no CMake, no Ninja.
 # See README.md.
 #
@@ -18,7 +18,7 @@ BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
 # (README.md), and there is no x86_64 archive. Other ABIs simply have no
 # library, and WhistleEngine reports itself unavailable there.
 abi=arm64-v8a
-dest=$REPO/core/voice/src/full/jniLibs/$abi
+dest=$REPO/core/voice/src/whistle/jniLibs/$abi
 mkdir -p "$dest"
 out=$(mktemp -d)
 "$BIN/aarch64-linux-android24-clang++" \

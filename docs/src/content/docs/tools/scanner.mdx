@@ -12,7 +12,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 
-Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="full" />: all three only ship in the full build. The QR and document scanners run on Google ML Kit; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language.
+Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="google" />: F-Droid's build has none of the three. The QR and document scanners run on Google ML Kit; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language.
 
 <PhoneFrame caption="Text scan (OCR): a full-bleed camera view with recognized words ready to tap.">
   {/* shot: tools/ocr-viewfinder */}
@@ -130,6 +130,6 @@ Once you're back in your app, each captured page is inserted exactly like a Came
 - The trigger words in [Options](#options) are what make a standalone `ocr`, `scan` or `docscan` surface a chip into the matching tool. [Smart chips](/smart/chips/) covers that mechanism in full.
 - Open any of the three from Settings → **Tools** → **Scanners**, or by typing its keyword as described above.
 
-## Why full only
+## Why not on F-Droid
 
-OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. QR/barcode scanning depends on ML Kit's barcode-scanning library. Document scanning depends on Google Play services' document scanner module. All three are compiled into the full build and left out of lite entirely, rather than hidden behind a toggle, so the Scanners group doesn't appear in the lite toolbox or toolbar at all. See [Full vs Lite](/start/editions/) if you're deciding between builds.
+OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. QR/barcode scanning depends on ML Kit's barcode-scanning library. Document scanning depends on Google Play services' document scanner module. All three are Google's, so the F-Droid build leaves them out entirely, rather than hiding them behind a toggle, and the Scanners group doesn't appear in its toolbox or toolbar at all. See [Which build you have](/start/editions/) if you're deciding between builds.

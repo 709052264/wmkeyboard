@@ -9,9 +9,9 @@ beside the system recognizer and offline Whisper. Kotlin entry point:
 [@Guillermode20](https://github.com/Guillermode20) in PR #548.
 
 The built `libwmwhistle.so` is committed under
-`core/voice/src/full/jniLibs/arm64-v8a/`, so the app builds without an NDK.
-Being under `src/full` keeps it out of lite builds; F-Droid builds lite and
-`scandelete`s both that directory and `prebuilt/`. Rebuild after you change
+`core/voice/src/whistle/jniLibs/arm64-v8a/`, so the app builds without an NDK.
+F-Droid `scandelete`s both that directory and `prebuilt/`, so its build has no
+Whistle. Rebuild after you change
 anything here:
 
 ```sh

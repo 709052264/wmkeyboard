@@ -11,7 +11,7 @@ The built libraries are committed under `core/intelligence/src/bergamot/jniLibs/
 a directory of their own so that the Play split `:feature:bergamot` carries
 nothing else. GitHub builds pin them for download (native gate `bergamot`),
 F-Droid deletes the committed copies and builds them with this script (through
-`native/build-lite-libs.sh`), and Play ships them in the split. Rebuild after
+`native/build-fdroid-libs.sh`), and Play ships them in the split. Rebuild after
 you change anything here:
 
 ```sh

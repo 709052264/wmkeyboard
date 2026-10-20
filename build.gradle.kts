@@ -36,14 +36,14 @@ plugins {
     alias(libs.plugins.kover)
 }
 
-// Coverage, merged across every module's full-flavour debug unit tests. The
+// Coverage, merged across every module's debug unit tests. The
 // tests mostly live in :app and exercise :core:* classes, so only the merged
 // report says anything useful about a library module.
 //
 //   ./gradlew koverHtmlReportUnit     build/reports/kover/htmlUnit/index.html
 //   ./gradlew koverXmlReportUnit      build/reports/kover/reportUnit.xml
 //
-// The plain koverHtmlReport would run every variant's tests (lite, release,
+// The plain koverHtmlReport would run every variant's tests (en, release,
 // fast…), several times the work for the same classes.
 dependencies {
     kover(project(":app"))
@@ -84,7 +84,7 @@ dependencyAnalysis {
 
 // One entry point for every analyser, so CI and humans run the same thing:
 //   ./gradlew staticAnalysis
-// Type-resolution detekt (detektFullDebug) is deliberately included instead of
+// Type-resolution detekt (detektDebug) is deliberately included instead of
 // the source-only `detekt` task — the rules that find real bugs (nullability,
 // unreachable code, ignored return values) need a resolved classpath.
 // Everything that guards the converted Keyman layouts:
@@ -96,32 +96,32 @@ dependencyAnalysis {
 //
 // Two things are deliberately absent. The whole-corpus sweep needs a 78 MB
 // checkout and skips without one:
-//   KEYMAN_CORPUS=<checkout> ./gradlew :core:keyman:testFullDebugUnitTest
+//   KEYMAN_CORPUS=<checkout> ./gradlew :core:keyman:testDebugUnitTest
 // And KeymanConversionParityTest lives in :app, because it reads the committed
 // assets; :app's suite is large enough to want running on its own, so it is not
 // pulled in here:
-//   ./gradlew :app:testFullIntlDebugUnitTest --tests '*KeymanConversionParityTest*'
+//   ./gradlew :app:testIntlDebugUnitTest --tests '*KeymanConversionParityTest*'
 // Every unit test in the project, under one name.
 //
 // This exists because :app and the library modules no longer agree on what a
 // variant is called. :app carries the `languages` flavour dimension and the
-// libraries do not, so :app's suite is testFullIntlDebugUnitTest while theirs
-// are still testFullDebugUnitTest. An unqualified `./gradlew
-// testFullDebugUnitTest` therefore runs the libraries and silently skips the
+// libraries do not, so :app's suite is testIntlDebugUnitTest while theirs
+// are testDebugUnitTest. An unqualified `./gradlew testDebugUnitTest`
+// therefore runs the libraries and silently skips the
 // ~560 tests in :app, which is the sort of quiet hole that only shows up as a
 // bug in production. Run this instead.
 tasks.register("unitTests") {
     group = "verification"
     description = "Runs every module's unit tests, :app included, across the two variant naming schemes."
-    dependsOn(":app:testFullIntlDebugUnitTest")
+    dependsOn(":app:testIntlDebugUnitTest")
     // Only the library modules. `:core` and `:feature` are bare containers
     // with no build file and no tasks, and `:tools:dictc` is a plain JVM tool
-    // whose task is `test`, so neither takes a flavoured task name.
+    // whose task is `test`, so neither takes an Android task name.
     dependsOn(
         subprojects
             .filter { it.buildFile.exists() }
             .filter { it.path.startsWith(":core:") || it.path.startsWith(":feature:") }
-            .map { "${it.path}:testFullDebugUnitTest" },
+            .map { "${it.path}:testDebugUnitTest" },
     )
     // The architecture rules: a plain JVM module, so plain `test`.
     dependsOn(":tools:architecture:test")
@@ -131,9 +131,9 @@ tasks.register("keymanCheck") {
     group = "verification"
     description = "Runs the Keyman engine, converter, package and seam tests."
     dependsOn(
-        ":core:keyman:testFullDebugUnitTest",
-        ":core:language:testFullDebugUnitTest",
-        ":feature:ime:testFullDebugUnitTest",
+        ":core:keyman:testDebugUnitTest",
+        ":core:language:testDebugUnitTest",
+        ":feature:ime:testDebugUnitTest",
     )
 }
 
@@ -144,19 +144,16 @@ tasks.register("staticAnalysis") {
     // app sources (see tools/dictc/build.gradle.kts), so analysing it would
     // report the same five files twice.
     dependsOn(
-        ":app:lintFullIntlDebug",
-        ":app:detektFullDebug",
-        // The lite flavour compiles a different set of sources (the stubs in
-        // src/lite replace the ML Kit / LiteRT implementations), so it needs its
-        // own pass — a bug in a stub is invisible to the full-flavour run.
-        ":app:detektLiteDebug",
-        ":app:detektFullDebugUnitTest",
+        ":app:lintIntlDebug",
+        ":app:detektDebug",
+        ":app:detektDebugUnitTest",
     )
     // Per-module detekt (registered by the wmkeyboard.detekt convention
     // plugin): each module analyses its own sources against its own compile
-    // classpath. :core:config is absent — it has no Kotlin sources. Lite
-    // passes only where lite compiles different code (flavored modules);
-    // everywhere else the two variants' sources are identical.
+    // classpath. :core:config is absent — it has no Kotlin sources.
+    // F-Droid's stand-ins (src/nogoogle) are not in this run: they compile
+    // only with -Pwmkb.enableFdroid=true, so analyse them with
+    // `./gradlew staticAnalysis -Pwmkb.enableFdroid=true`.
     val detektModules = listOf(
         ":core:common", ":core:language", ":core:input", ":core:keyman", ":core:prediction",
         ":core:emoji", ":core:theme", ":core:icons", ":core:tools",
@@ -164,6 +161,5 @@ tasks.register("staticAnalysis") {
         ":core:feedback", ":core:plugins", ":core:intelligence",
         ":feature:tools", ":feature:addons", ":feature:ime",
     )
-    dependsOn(detektModules.map { "$it:detektFullDebug" })
-    dependsOn(listOf(":core:voice", ":core:intelligence", ":feature:ime").map { "$it:detektLiteDebug" })
+    dependsOn(detektModules.map { "$it:detektDebug" })
 }

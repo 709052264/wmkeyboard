@@ -1858,8 +1858,8 @@ internal fun TypingGesturesSettings(
                 default = SettingsDefaults.gestureTyping,
             ) { scope.launch { repository.setGestureTyping(it) } }
         }
-        // What a letter swipe does — glide a word, handwrite it (full builds
-        // only: it needs the ML Kit handwriting model), or slide to one key and
+        // What a letter swipe does — glide a word, handwrite it (not on
+        // F-Droid: it needs the ML Kit handwriting model), or slide to one key and
         // type it on the lift (#658). Only relevant once letter swipes are
         // switched on above.
         item(visible = glideOn) {

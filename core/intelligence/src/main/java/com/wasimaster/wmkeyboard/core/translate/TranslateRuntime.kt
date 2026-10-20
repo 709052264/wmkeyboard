@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
  * - Play builds: in the on-demand `:feature:translate` module, downloaded the
  *   first time somebody asks for on-device translation. ML Kit's translator is
  *   about 16 MB of native code per ABI, and most installs never turn it on.
- * - Every other full build: compiled straight into `:core:intelligence` (the
+ * - Every other build but F-Droid's: compiled straight into `:core:intelligence` (the
  *   `src/translatebridge` source directory), where Play's delivery does not
  *   exist to fetch it later.
  *
@@ -84,8 +84,8 @@ sealed interface TranslateModuleState {
 /**
  * Whether the runtime's home is present on this install, and how to fetch it
  * when it is not. The default says "always present", which is correct for
- * every channel except Play: sideload full builds embed the bridge, and lite
- * builds never reach this code. Play builds swap in a SplitInstall-backed gate
+ * every channel except Play: sideloaded builds embed the bridge, and F-Droid's
+ * never reaches this code. Play builds swap in a SplitInstall-backed gate
  * at startup — see `installTranslateDelivery` in `:app`.
  *
  * A flow rather than the LLM gate's bare boolean, because this module is asked

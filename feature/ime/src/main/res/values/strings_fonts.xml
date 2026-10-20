@@ -47,8 +47,8 @@
     <string name="ime_font_script_piqad_label">Klingon pIqaD</string>
 
     <!--
-      Scanner panels. The lite build of the app leaves out the text and QR code
-      scanners, so these messages fill the panel in place of the camera.
+      Scanner panels. The F-Droid build of the app leaves out the text and QR
+      code scanners, so these messages fill the panel in place of the camera.
     -->
     <string name="ime_scanner_ocr_unavailable_info">This version of the app does not have text scanning.</string>
     <string name="ime_scanner_qr_unavailable_info">This version of the app does not have QR code scanning.</string>

@@ -63,7 +63,7 @@ class OnboardingDiscoverTest {
     }
 
     @Test
-    fun `whisper is dropped on lite builds`() {
+    fun `whisper is dropped on builds without it`() {
         val ids = features(depth = PersonaDepth.POWER, whisper = false).map { it.id }
         assertFalse("whisper" in ids)
         assertTrue("modes" in ids)

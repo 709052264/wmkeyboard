@@ -1,6 +1,6 @@
 ---
-title: "Full vs Lite"
-description: "What the Full edition adds over Lite, why the download is bigger, and how to tell which one you have."
+title: "Which build you have"
+description: "The standard, offline and F-Droid builds, what the F-Droid build leaves out, and how to tell which one you have."
 sidebar:
   order: 4
 ---
@@ -10,74 +10,75 @@ import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard builds as two APKs from the same source. <Flavor edition="full" /> bundles Google's on-device machine learning for handwriting and scanning, the LiteRT runtimes behind its original Whisper models and a local AI model, and the Whistle voice engine. <Flavor edition="lite" /> drops those for a much smaller download. The open-source engines are in both: grammar checking (Harper), offline Whisper on whisper.cpp, and offline Asr4All, Parakeet and Moonshine. Everything else (typing, prediction, themes, languages, privacy) is identical between them.
+WM Keyboard is one app built from one source tree. Up to 0.6.2 it came in two editions, Full and Lite. From 0.6.3 there is no Lite: every build has the same features, and what differs is where the larger parts come from.
 
-<PhoneFrame caption="The Tools panel on a Full build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear.">
-  <Shot id="start/editions-toolbox-full" alt="The Tools panel on a Full build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear." />
+- **Standard**, from GitHub and Google Play. Feature libraries such as the handwriting recogniser or the offline voice engines are not in the APK. Each one downloads the first time its feature is used, from Play on a Play install and from the project's own data repository otherwise.
+- **Offline**, from GitHub. The same app with no internet permission at all. Every feature library and every interface language is built in, because it could never fetch them.
+- **F-Droid.** The standard build without Google's SDKs (ML Kit, LiteRT and LiteRT-LM), which F-Droid does not accept. Its feature libraries download only after you agree to it under Privacy, since that skips F-Droid's own checks.
+
+<PhoneFrame caption="The Tools panel on a standard build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear.">
+  <Shot id="start/editions-toolbox-full" alt="The Tools panel on a standard build: Handwriting, Text scan, QR & barcode, Document scanner and Grammar check all appear." />
 </PhoneFrame>
 
-## What Lite leaves out
+## What the F-Droid build leaves out
 
-Both flavors come from one Gradle flavor dimension (`capabilities`) that flips five build flags. Lite ships with four of them off, which hides exactly four tools from the toolbox:
+The F-Droid build is compiled with one switch on, `wmkb.enableFdroid`, which leaves Google's SDKs out and puts small stand-ins where the code called them. That hides four tools from the toolbox:
 
-| Tool | What it does | <Flavor edition="lite" /> |
+| Tool | What it does | <Flavor edition="fdroid" /> |
 |---|---|---|
 | Handwriting | Write words by hand (finger or S Pen) with on-device recognition | Not available |
 | Text scan (OCR) | Point the camera at printed text and type it | Not available |
 | QR & barcode scanner | Scan a QR code or barcode and insert its text | Not available |
 | Document scanner | Scan a document with Google's scanner and send it as an image | Not available |
 
-There's no toggle to flip in Lite. The setting never renders at all. The same check hides these tools everywhere they could otherwise show up: the toolbox panel, the Tools settings screen, [settings search](/reference/settings/), the hardware-keyboard tool shortcuts, and the onboarding tool picker. Grammar check is in both editions, and so is the Harper spell checker under Android's system spell-checker settings. A build made without the Harper library, which is what F-Droid builds, switches that spell checker off and shows the grammar tool as not in this build.
+There's no toggle to flip. The setting never renders at all. The same check hides these tools everywhere they could otherwise show up: the toolbox panel, the Tools settings screen, [settings search](/reference/settings/), the hardware-keyboard tool shortcuts, and the onboarding tool picker. Grammar check is in every build, and so is the Harper spell checker under Android's system spell-checker settings, because F-Droid compiles Harper from source.
 
-The document scanner has a second condition on top of the flavor. It's an activity inside Google Play services rather than this app's own code, so the same check drops it on a Full build running on a phone without Play services. Text scan and QR scanning stay on such a phone, because their models are in the APK.
+The document scanner has a second condition on top of that. It's an activity inside Google Play services rather than this app's own code, so the same check drops it on a standard build running on a phone without Play services. Text scan and QR scanning stay on such a phone, because their models come with the app.
 
-Handwriting carries one nuance of its own. Even on Full, its "Handwrite" option under **What a swipe does** (draw letters instead of gliding) is Full-only, because handwriting a swipe needs the same recognition model. The choice itself appears once you've turned on gesture typing, and Lite still offers its other two options.
+Handwriting carries one nuance of its own. Its "Handwrite" option under **What a swipe does** (draw letters instead of gliding) needs the same recognition model, so the F-Droid build doesn't offer it. The choice itself appears once you've turned on gesture typing, and the F-Droid build still offers its other two options.
 
-<PhoneFrame caption="The same panel on a Lite build: those four tiles are gone, not grayed out.">
+<PhoneFrame caption="The same panel on the F-Droid build: those four tiles are gone, not grayed out.">
   {/* shot: start/editions-toolbox-lite */}
 </PhoneFrame>
 
 See [Handwriting](/tools/handwriting/), [Scanner](/tools/scanner/), and [Grammar check](/smart/grammar/) for what each tool does in detail.
 
-## Full-only extras beyond the toolbox
+## Other parts the F-Droid build lacks
 
-Two more features are partly or wholly Full-only without being toolbox tools of their own. Both are options nested inside tools that exist in both editions:
+A few more features sit inside tools that every build has:
 
-- **Offline voice engines.** The [Voice typing](/tools/voice/) tool's "Recognition engine" choice is in both editions. Both offer [offline Whisper](/tools/whisper/) with its whisper.cpp models, [offline Asr4All](/tools/asr4all/), English dictation that writes the words while you speak, [offline Parakeet](/tools/parakeet/) for 25 European languages and [offline Moonshine](/tools/moonshine/), a small quick English model. Full adds Whisper's older LiteRT models and, on a 64-bit ARM phone, [offline Whistle](/tools/whistle/), a small model for seven languages. The system recognizer stays the default in both until you switch it.
-- **On-device local LLM.** The [AI writing tools](/tools/ai/) provider list leaves "On your device" out of **Add a provider** unless the Full flags are set, leaving the nine kinds that reach a server: Anthropic (Claude), OpenAI, Gemini, xAI (Grok), DeepSeek, Brave Answers, Ollama, LM Studio and an OpenAI-compatible service for anything else that speaks the OpenAI chat-completions shape. On Full, on-device is a tenth kind beside them.
+- **Offline voice engines.** Every build offers [offline Whisper](/tools/whisper/) with its whisper.cpp models, [offline Asr4All](/tools/asr4all/), English dictation that writes the words while you speak, [offline Parakeet](/tools/parakeet/) for 25 European languages and [offline Moonshine](/tools/moonshine/), a small quick English model. The F-Droid build lacks Whisper's older LiteRT models and [offline Whistle](/tools/whistle/), whose library F-Droid can't build from source. The system recognizer stays the default everywhere until you switch it.
+- **On-device local LLM.** The [AI writing tools](/tools/ai/) provider list leaves "On your device" out of **Add a provider** in the F-Droid build, leaving the nine kinds that reach a server: Anthropic (Claude), OpenAI, Gemini, xAI (Grok), DeepSeek, Brave Answers, Ollama, LM Studio and an OpenAI-compatible service for anything else that speaks the OpenAI chat-completions shape. Elsewhere on-device is a tenth kind beside them.
+- **Smaller pieces.** The sticker editor's one-tap background remover, ML Kit's on-device translator (Bergamot, the open-source one, is in every build), Google Home in the smart home tool, the NPU as a compute choice, and search by meaning.
 
-## Why the download is smaller
+## Why the download is small
 
-The build's own comment on the flavor split calls it out directly: Lite removes the ML Kit native libraries for low-storage devices. That covers the handwriting and scanning libraries specifically. The LiteRT and LiteRT-LM runtimes behind Whisper's LiteRT models and the local LLM are also Full-only native dependencies and add to the same gap. The engines both editions carry are small by comparison: on a 64-bit ARM phone about 2.4 MB for Harper, 3.3 MB for whisper.cpp (two builds for different processors) and 3.8 MB for the ExecuTorch runtime behind Asr4All, Parakeet and Moonshine.
+None of the builds that can reach the internet carry their feature libraries in the APK. On Play each arrives as an on-demand part the first time its feature is used: the LiteRT-LM runtime, ML Kit's translator, the LiteRT interpreter behind offline Whisper, the sticker editor's own background remover and the scanner's PaddleOCR reader, ML Kit's handwriting recogniser, the whisper.cpp, ExecuTorch and Whistle libraries behind the other offline voice engines, the Tesseract library behind the scanner's offline reader, and the Harper library behind the grammar tool and the spell checker. GitHub's standard build fetches the same libraries itself, checked against a hash the APK carries, and so does the F-Droid build once you allow it.
 
-On the Play Store build some of that library code is not in the initial install either: the LiteRT-LM runtime, ML Kit's translator, the LiteRT interpreter behind offline Whisper, the sticker editor's own background remover and the scanner's PaddleOCR reader, ML Kit's handwriting recogniser, the whisper.cpp, ExecuTorch and Whistle libraries behind the other offline voice engines (whisper.cpp models, Asr4All, Parakeet, Moonshine, Whistle), the Tesseract library behind the scanner's offline reader, and the Harper library behind the grammar tool and the spell checker each arrive as an on-demand part the first time the feature is used.
+Most of what that saves is runtime *library code*, not language data. The biggest models these features use (handwriting recognition per language, Whisper's transcription graphs, LLM weights) download on demand into app storage in every build, so none of those sit in the APK either.
 
-Most of what gets cut is runtime *library code*, not language data. The biggest models these features use (handwriting recognition per language, Whisper's transcription graphs, LLM weights) download on demand into app storage on Full, so none of those sit in the APK.
+The offline build is the exception, and much larger: it can never download anything, so all of it is inside. Figures shift as dependencies update; see [Installation](/start/installation/#choosing-a-build).
 
-Two do ship inside it, though. The direct-download builds pull in ML Kit's bundled text-recognition and barcode-scanning libraries, which carry their models with them, so OCR and QR scanning work on a phone with no Google services at all. Play builds swap both for the unbundled versions, which fetch their models through Play services instead. Either way it's a Full-only dependency, so Lite carries neither the libraries nor the models.
+## Privacy doesn't change between builds
 
-Measuring the real 0.3.0 release APKs tells the same story, with a smaller gap than that code comment's rough number. On `arm64-v8a`, Full lands at 63.2 MB and Lite at 8.25 MB, so about 55 MB apart rather than 100. Figures shift as dependencies update, same as noted on [Installation](/start/installation/#choosing-an-edition).
+The F-Droid build is a build with fewer Google parts, not a more private one. Every feature it lacks already runs on-device and says so in its own settings caption. Handwriting recognition "runs fully on your device with Google ML Kit." Text scan says "no photo and no text leaves your device, and it works offline." Document scanning says "the processing runs on your device." Whisper "runs fully on your device across many languages and sends no audio anywhere." The on-device AI caption says the text you run an action on "stays on your device." The privacy policy the About screen opens does differ, because ML Kit reports usage to Google and the F-Droid build has no ML Kit to do so.
 
-## Privacy doesn't change between editions
-
-Lite is a smaller build, not a more private one. Every Full-only feature already runs on-device and says so in its own settings caption. Handwriting recognition "runs fully on your device with Google ML Kit." Text scan says "no photo and no text leaves your device, and it works offline." Document scanning says "the processing runs on your device." Whisper "runs fully on your device across many languages and sends no audio anywhere." The on-device AI caption says the text you run an action on "stays on your device." Everything Full adds follows the same offline-first posture as the rest of the keyboard.
-
-## Telling which edition you have
+## Telling which build you have
 
 <SettingsPath path="About / App / Version" />
 
-<PhoneFrame caption="Settings → About → Version names the flavor, build type, and version code.">
-  <Shot id="start/editions-about-version" alt="Settings → About → Version names the flavor, build type, and version code." />
+<PhoneFrame caption="Settings → About → Version names the build, build type, store and version code.">
+  <Shot id="start/editions-about-version" alt="Settings → About → Version names the build, build type, store and version code." />
 </PhoneFrame>
 
-The Version row reads the build's own flavor name, so it shows "Full build (release) · code …" or "Lite build (release) · code …" alongside the version number. There's a quicker visual check, though. Open the toolbox. If Handwriting, Text scan, QR & barcode scanner and Document scanner are all there, you're on Full. If they're missing, you're on Lite.
+The Version row shows "Standard build (release) · code …", or "Offline build" for the offline one, with " · F-Droid" or " · Play Store" after the build type when the app came from a store. There's a quicker visual check for F-Droid's, though. Open the toolbox. If Handwriting, Text scan, QR & barcode scanner and Document scanner are all there, you're not on the F-Droid build.
 
-## Switching editions
+## Switching builds
 
-There's no in-app switch between editions. Which one you have depends entirely on which APK you installed. Both flavors share a package name and a release signing configuration, so installing the other edition's APK over your current install is a normal app update rather than a conflicting package. Your settings, themes, learned words and the rest of the app's data stay in place automatically. See [Installation](/start/installation/) for the build commands for each flavor.
+There's no in-app switch. Which build you have depends on which APK you installed. They share a package name and the release signing key (F-Droid publishes its build with the project's own signature, from 0.5.10 on), so installing another build over your current one is a normal app update. Your settings, themes, learned words and the rest of the app's data stay in place. A GitHub install from 0.6.2 or earlier that was Lite moves onto the standard build at its next update.
 
 ## Details & edge cases
 
-- Toggling a Lite build's settings never leaves Handwriting, OCR, QR or Doc scan "enabled but hidden" in some special sense. All four are still listed among the keyboard's default enabled tools internally. They just never pass the supported-tool check that decides what renders, and that is true on either build.
-- Build release APKs for both editions on different machines without sharing a signing keystore and the packages carry different signatures. Installing one over the other then fails the way any mismatched-signature update does (see [Installation → Details & edge cases](/start/installation/#details--edge-cases)).
-- Exported debug logs stamp which flavor produced them, which is useful context if you're sharing one for a bug report.
+- In the F-Droid build, Handwriting, OCR, QR and Doc scan are never "enabled but hidden" in some special sense. All four are still listed among the keyboard's default enabled tools internally. They just never pass the supported-tool check that decides what renders, and that is true in any build.
+- Build release APKs on different machines without sharing a signing keystore and the packages carry different signatures. Installing one over the other then fails the way any mismatched-signature update does (see [Installation → Details & edge cases](/start/installation/#details--edge-cases)).
+- Exported debug logs stamp which language build (`intl` or `en`) produced them, which the bug-report bot needs to read the crash trace.

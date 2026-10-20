@@ -15,7 +15,7 @@ The built libraries are committed under `core/prediction/src/main/jniLibs/`,
 so the app builds without an NDK. GitHub builds leave them out of the APK and
 pin them (gate `spell`), Play builds ship them in the on-demand
 `:feature:spell` split, and F-Droid deletes the committed copies and builds
-them with this script through `native/build-lite-libs.sh`, as does the
+them with this script through `native/build-fdroid-libs.sh`, as does the
 release workflow for the reference APK F-Droid compares against. The script
 maps the build machine's paths out of the library, so two builds with the
 same NDK come out byte for byte the same. Rebuild after you change anything

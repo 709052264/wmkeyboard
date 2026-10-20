@@ -18,7 +18,7 @@ import kotlinx.serialization.json.jsonArray
  * lowercase name so a stored list reads `"panel":"emoji"`.
  *
  * [shipped] is whether the panel's tool exists in this build. Handwriting is
- * the one that can be missing: lite builds have no recognizer, so its panel
+ * the one that can be missing: F-Droid's build has no recognizer, so its panel
  * hides from the gallery and the layout editor's tabs there. The flag also lets
  * the next panel define its layout ahead of its tool, as the trackpad's was
  * (issue #39).

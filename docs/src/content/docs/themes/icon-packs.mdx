@@ -104,7 +104,7 @@ A related setting worth knowing about: <SettingsPath path="Tools" /> has **Color
 
 - **Deleting a pack cleans up after itself.** Along with the pack's own files, deleting it drops any per-slot override pinned to it, so those slots go back to the built-in icon right away rather than pointing at something that no longer exists. Installing a different pack under the same id later doesn't bring the old per-slot choices back. You'd pick them again from the slot picker.
 - **Deleting the active pack turns off the "active pack" setting** as well as removing it from the list. Any slot that was relying on it, and wasn't separately overridden, reverts to the built-in icon.
-- **No edition restriction.** Icon packs work the same way on both editions of the app; nothing here is limited to one.
+- **No build differences.** Icon packs work the same way in every build; nothing here is limited to one.
 - **Icon packs travel with backups.** They're one of the sections you can choose to include in a full settings export (off by default, since the SVGs add to the file size), so a restore on another phone can bring your custom icons along too.
 - **Replacing a slot's icon replaces its file.** Put a PNG on a slot that held an SVG and the SVG is removed, so the slot never has two files and an export never carries the one you replaced.
 - **A pack's own `slots` list is advisory, not authoritative.** The app looks at what's actually inside the archive and keeps anything that matches a slot it recognizes, so a pack assembled by hand still installs correctly even if its manifest is out of date.

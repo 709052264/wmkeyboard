@@ -29,7 +29,7 @@ import org.junit.Test
  * JUnit 4 honours even for a test picked by name (issue #640):
  *
  * ```
- * WM_DUET_EVAL=1 ./gradlew :app:testFullIntlDebugUnitTest --tests "*DuetBeamEvalTest"
+ * WM_DUET_EVAL=1 ./gradlew :app:testIntlDebugUnitTest --tests "*DuetBeamEvalTest"
  * ```
  */
 class DuetBeamEvalTest {

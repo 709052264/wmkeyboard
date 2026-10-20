@@ -24,10 +24,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Read by the model downloaders to ask "is this connection metered?"
          before pulling hundreds of megabytes. Declared here rather than
-         inherited from a dependency: the full flavour picks it up transitively
-         from ML Kit, but the lite flavour ships without those libraries, so
-         without this line ConnectivityManager.isActiveNetworkMetered throws a
-         SecurityException on lite builds. -->
+         inherited from a dependency: most builds pick it up transitively
+         from ML Kit, but F-Droid's ships without those libraries, so without
+         this line ConnectivityManager.isActiveNetworkMetered throws a
+         SecurityException there. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- KDE Connect (issue #285) finds computers by broadcast and mDNS, and
          most phones silently drop both for an app that does not hold a
@@ -310,8 +310,8 @@
              This line asks Play to fetch the OCR and barcode models at
              install time instead, so the scanner tools work on first open.
              Harmless everywhere else: the bundled artifacts in sideload
-             builds carry their models and nothing reads this entry, and lite
-             builds ship no ML Kit at all.
+             builds carry their models and nothing reads this entry, and
+             F-Droid's ships no ML Kit at all.
         -->
         <meta-data
             android:name="com.google.mlkit.vision.DEPENDENCIES"

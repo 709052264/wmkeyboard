@@ -59,7 +59,7 @@ A tool that a future group forgets to claim still shows. It would fall into a tr
 
 A tune icon marks the tools with settings beyond the switch. Six are toggle-only here, because their real options live somewhere else: **Settings** (shortcut), **[Statistics](/reference/settings/statistics/)** (a shortcut too, whose page only links to the Statistics screen), **Themes**, **Sound & haptics**, **One-handed mode**, and **[Resize](/tools/resize/)**, whose values are all sliders under <SettingsPath path="Layout & size" /> anyway.
 
-<Flavor edition="lite" /> hides the **Scanners** group entirely. Text scan, QR scan, and Document scanner are all unavailable, so the group has nothing left to show and doesn't render. **Panels** shrinks by two rows when Handwriting and Grammar check drop out, but it keeps its name and the rest of its tools. See [Lite edition](#lite-edition) below for the complete gating rule.
+<Flavor edition="fdroid" /> hides the **Scanners** group entirely. Text scan, QR scan, and Document scanner are all unavailable, so the group has nothing left to show and doesn't render. **Panels** shrinks by a row when Handwriting drops out, but it keeps its name and the rest of its tools. See [F-Droid build](#f-droid-build) below for the complete gating rule.
 
 ## Opening a tool's own screen
 
@@ -82,9 +82,9 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 
 | Tool | What's there | Notes |
 |---|---|---|
-| Voice typing | Recognition engine choice, the Whisper model manager, and the transcription server | Default engine is **System recognizer**. **Offline Whisper** is offered only <Flavor edition="full" />, and switching to it reveals a **Translate to English** toggle (off by default) and the model list. **Transcription server** is offered in every edition, and reveals **Server address**, **Endpoint path** (empty by default), **Model**, **API key**, **Send the keyboard language** (on by default) and a **Test the server** button, plus a **Per language** group once two or more languages are enabled. Full details: [Voice typing](/tools/voice/), [Offline voice (Whisper)](/tools/whisper/), [Transcription server](/tools/transcription-server/). |
-| AI writing tools | An AI providers list (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave Answers, Ollama, LM Studio, OpenAI-compatible services, On your device), each row with its own key, address and model, an **In use** choice, a local-model manager when On your device is listed, plus the action list, the changes view and the history | On your device is the only kind not offered on <Flavor edition="lite" />. See [AI tools](/tools/ai/). |
-| AI reply | Replies per run, length, emoji, what the drafts should know about you, reply language, how much conversation is sent, how screenshots are read, whether the copies it used are cleared afterwards, and whether drafts are kept in the AI history | Borrows the AI tool's provider and key. Reading a screenshot on the device is <Flavor edition="full" />. See [AI reply](/tools/ai-reply/). |
+| Voice typing | Recognition engine choice, the Whisper model manager, and the transcription server | Default engine is **System recognizer**. **Offline Whisper** is offered wherever one of its two engines is in the build, and switching to it reveals a **Translate to English** toggle (off by default) and the model list. **Transcription server** is offered in every build, and reveals **Server address**, **Endpoint path** (empty by default), **Model**, **API key**, **Send the keyboard language** (on by default) and a **Test the server** button, plus a **Per language** group once two or more languages are enabled. Full details: [Voice typing](/tools/voice/), [Offline voice (Whisper)](/tools/whisper/), [Transcription server](/tools/transcription-server/). |
+| AI writing tools | An AI providers list (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave Answers, Ollama, LM Studio, OpenAI-compatible services, On your device), each row with its own key, address and model, an **In use** choice, a local-model manager when On your device is listed, plus the action list, the changes view and the history | On your device is the only kind not offered on <Flavor edition="fdroid" />. See [AI tools](/tools/ai/). |
+| AI reply | Replies per run, length, emoji, what the drafts should know about you, reply language, how much conversation is sent, how screenshots are read, whether the copies it used are cleared afterwards, and whether drafts are kept in the AI history | Borrows the AI tool's provider and key. Reading a screenshot on the device is <Flavor edition="google" />. See [AI reply](/tools/ai-reply/). |
 | Handwriting | A recognition-model manager, one entry per typed language | Each model is an on-demand ML Kit download, roughly 8&nbsp;MB to 26&nbsp;MB depending on the language. See [Handwriting](/tools/handwriting/). |
 | Snippets | Full add/edit/delete list, plus import and export | Stored as a JSON file the tool manages itself. See [Snippets & text expansion](/tools/snippets/). |
 | Weather | A location picker with Use my location, a Fahrenheit toggle (off by default), and Fetch the forecast as you type (on by default, off in the F-Droid edition) | See [Instruments](/tools/instruments/). |
@@ -97,19 +97,18 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 | Stickers | A "Sticker packs" row alongside the tool's own settings, and a **Suggest while typing** group: **Offer your stickers as you type** (on by default), **Where they show** (Tray, On the strip or One chip, default **Tray**; the tray's place is set under Rows & bars) and **After you send one** (Remove the typed text or Keep the typed text, default **Remove**) and **Hold to see them bigger** (on by default: hold a sticker in the tray to see it large, slide to see the others) | **Also a separate screen.** See [Stickers](/emoji/stickers/) and [Stickers as you type](/emoji/stickers/#stickers-as-you-type). |
 | Media controls | A "Music players" row, plus a notification-access row that reports the grant | **Also a separate screen.** The picker lists every installed app, players first. See [Media controls](/tools/media/#which-apps-count-as-music). |
 
-## Lite edition
+## F-Droid build
 
-<Flavor edition="lite" /> hides five tools completely. There's no settings row anywhere, not even a switch you can't turn on.
+<Flavor edition="fdroid" /> hides four tools completely. There's no settings row anywhere, not even a switch you can't turn on.
 
 - Handwriting
 - Text scan (OCR)
 - QR & barcode scanner
 - Document scanner
-- Grammar check
 
-Two more flags narrow what's *inside* a tool without removing the tool itself. The **On your device** AI provider chip and the whole **Offline Whisper** engine option are both full-only. AI writing tools and Voice typing still exist on lite, and still have a settings row, with fewer choices on it. Lite ships 80 of the 85 tools.
+Grammar check stays: F-Droid compiles Harper from source. Two more flags narrow what's *inside* a tool without removing the tool itself. The **On your device** AI provider chip and Whisper's LiteRT models are both left out, since they run on Google's LiteRT. AI writing tools and Voice typing still exist there, and still have a settings row, with fewer choices on it.
 
-One tool is gated by the device rather than the build. **Document scanner** is a Google Play services activity, so it's hidden on any phone without Play services, even on <Flavor edition="full" />. Text scan and QR scan stay, since their models are in the APK.
+One tool is gated by the device rather than the build. **Document scanner** is a Google Play services activity, so it's hidden on any phone without Play services, in any build. Text scan and QR scan stay, since their models are in the APK.
 
 ## Every tool's guide page
 
@@ -172,7 +171,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 - **A tool hidden from the toolbox can still be pinned.** If it is already on the toolbar it stays there. Drag it off the bar and it unpins without landing in the grid, since the grid no longer takes it; turn **Show in toolbox** back on to see it there again.
 - **The tune icon is a hint, not a guarantee of depth.** Some tools with a tune icon add only one or two settings past the shared Turn on, Icon colour and Keyword shortcut rows. The icon means "there's at least one more setting," not "there's a lot here."
 - **A tool's icon colour override survives disabling and re-enabling it.** Turning a tool off and back on doesn't reset any customisation made on its detail screen.
-- **Build-gated tools leave no trace.** A tool hidden by the lite edition never appears as a disabled row: not in this list, not in settings search, not in the toolbox. The five lite-hidden tools are absent, and so is Document scanner on a device with no Play services.
+- **Build-gated tools leave no trace.** A tool hidden by the F-Droid build never appears as a disabled row: not in this list, not in settings search, not in the toolbox. The four tools it hides are absent, and so is Document scanner on a device with no Play services.
 - **Rows here get the same restore button as everywhere else.** Any switch or colour you've moved off its shipped value grows a small reset icon. See [putting one setting back](/reference/settings/#putting-one-setting-back) for how it behaves.
 
 ## Related pages
@@ -180,4 +179,4 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 - [The toolbar](/tools/overview/): pinning, dragging, toolbox groups, direct boot, and the hardware leader key.
 - [Appearance](/reference/settings/appearance/): toolbar display options such as height, labels and grid size, plus where pinning itself is configured.
 - [Smart chips](/smart/chips/): keyword chips, including the "Tool keywords" toggle that turns this screen's per-tool trigger words on or off globally.
-- [Full vs Lite](/start/editions/): the complete edition comparison, tools included.
+- [Which build you have](/start/editions/): the complete edition comparison, tools included.

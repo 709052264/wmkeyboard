@@ -107,7 +107,7 @@ internal class GithubAppUpdater(
     override val switchingToAllLanguages: StateFlow<Boolean> = GithubUpdateManager.switching
 
     override val canSwitchToAllLanguages: Boolean =
-        BuildConfig.FLAVOR_languages == ReleaseAssets.LANGUAGES_EN && !BuildConfig.LANGUAGE_PACKS
+        BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN && !BuildConfig.LANGUAGE_PACKS
 
     override val sourceNameRes: Int = R.string.update_source_github
 

@@ -270,7 +270,7 @@ That's a different mechanism from the whole-app [config backup](/privacy/backup/
 ## Details & edge cases
 
 - Snippets aren't available before you've unlocked your device once after a restart. The snippet file lives in credential-encrypted storage, so this tool sits out any lock-screen or pre-unlock typing until then.
-- Ships the same way in both the full and lite editions: there's no edition gating on this tool.
+- Ships the same way in every build: there's no build gating on this tool.
 - The 500-snippet and 20,000-character limits above are enforced only on import. Adding snippets one at a time from the editor screen has no equivalent cap.
 - Because the panel re-reads the snippet file only when you open it, a snippet you just added in Settings won't appear if you already had the panel open. Close and reopen the panel (or switch to another panel and back) to pick it up. Triggers themselves are refreshed whenever you tap into a text field, so a snippet you just saved starts expanding straight away even if you never open the panel.
 - `{uuid}` generates a new value on every insertion, including inserting the same snippet twice in a row. It isn't fixed per snippet.

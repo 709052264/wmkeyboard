@@ -2,7 +2,7 @@ import com.android.build.api.variant.AndroidComponentsExtension
 import org.gradle.api.artifacts.VersionCatalogsExtension
 
 // Packages the Qualcomm NPU runtime behind Compute = NPU for on-device AI
-// (#804) as assets of the full flavour: LiteRT's dispatch library from
+// (#804) as assets: LiteRT's dispatch library from
 // com.google.ai.edge.litert:litert-npu-runtime-qualcomm, and from Qualcomm's
 // com.qualcomm.qti:qnn-runtime only the files the chips in NpuSupport need.
 // Never the whole QNN AAR, which is 75 MB of every Hexagon generation, and
@@ -10,7 +10,7 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 // catalog NPU build arrives compiled). Applied by :core:intelligence outside
 // Play and by the on-demand :feature:npu split on Play, and only where the
 // wmkb.enableNpu flag allows it: the QNN libraries are Qualcomm's licence, so
-// never in F-Droid or lite.
+// never in F-Droid.
 //
 // The AARs are resolved as files from their own configuration, never as
 // dependencies: as dependencies AGP would package all of their native
@@ -45,7 +45,6 @@ for (alias in listOf("litert-npu-runtime-qualcomm", "qnn-runtime")) {
 // own variant's, which one shared task could not have.
 extensions.getByType(AndroidComponentsExtension::class.java).apply {
     onVariants(selector().all()) { variant ->
-        if (variant.productFlavors.none { it.second == "full" }) return@onVariants
         val task = tasks.register(
             "npuRuntimeAssets${variant.name.replaceFirstChar { it.uppercase() }}",
             NpuRuntimeAssets::class.java,

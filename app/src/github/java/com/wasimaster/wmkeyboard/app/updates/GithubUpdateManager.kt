@@ -87,14 +87,14 @@ internal object GithubUpdateManager {
         // screen that started it, which is the whole reason to notify at all.
         scope.launch { _state.collect { UpdateNotifications.render(app, it) } }
         scope.launch {
-            ApkStaging.sweep(app, BuildConfig.RELEASE_VERSION_CODE, BuildConfig.FLAVOR_languages)
+            ApkStaging.sweep(app, BuildConfig.RELEASE_VERSION_CODE, BuildConfig.FLAVOR)
             ApkInstall.abandonStale(app, keepSessionId = prefs.sessionId)
             val known = GithubUpdateChecker.decodeCandidate(prefs.knownCandidate)
             // A move to every language is still on only while this is the
             // English-only build and the offer really is the other one. Once
             // the new build runs, the same record reads as finished.
             val switchingNow = prefs.languageSwitch &&
-                BuildConfig.FLAVOR_languages == ReleaseAssets.LANGUAGES_EN &&
+                BuildConfig.FLAVOR == ReleaseAssets.LANGUAGES_EN &&
                 known != null && isAllLanguages(known)
             val stale = known == null ||
                 known.versionCode < BuildConfig.RELEASE_VERSION_CODE ||
@@ -154,14 +154,14 @@ internal object GithubUpdateManager {
     ) {
         val outcome = newChecker(context).check(
             installedVersionCode = BuildConfig.RELEASE_VERSION_CODE,
-            // The two flavour names on their own. BuildConfig.FLAVOR is the
-            // pair run together ("fullIntl"), which no asset name contains.
-            flavor = BuildConfig.FLAVOR_capabilities,
+            // The edition token every published name still carries, and the
+            // languages flavour on its own (see ReleaseAssets.STANDARD_FLAVOR).
+            flavor = ReleaseAssets.STANDARD_FLAVOR,
             supportedAbis = Build.SUPPORTED_ABIS?.toList().orEmpty(),
             includePrereleases = prefs.includePrereleases,
             storedEtag = prefs.etag,
             onEtag = { prefs.etag = it },
-            languages = BuildConfig.FLAVOR_languages,
+            languages = BuildConfig.FLAVOR,
         )
         prefs.lastCheckAt = System.currentTimeMillis()
         when (outcome) {
@@ -223,7 +223,7 @@ internal object GithubUpdateManager {
     private fun runSwitchCheck(context: Context, prefs: UpdatePrefs) {
         val outcome = newChecker(context).check(
             installedVersionCode = BuildConfig.RELEASE_VERSION_CODE,
-            flavor = BuildConfig.FLAVOR_capabilities,
+            flavor = ReleaseAssets.STANDARD_FLAVOR,
             supportedAbis = Build.SUPPORTED_ABIS?.toList().orEmpty(),
             includePrereleases = prefs.includePrereleases,
             storedEtag = prefs.etag,
@@ -492,7 +492,7 @@ internal object GithubUpdateManager {
             // the offer it came from is finished with.
             candidate = null
             prefs.clearCandidate()
-            ApkStaging.sweep(app, BuildConfig.RELEASE_VERSION_CODE, BuildConfig.FLAVOR_languages)
+            ApkStaging.sweep(app, BuildConfig.RELEASE_VERSION_CODE, BuildConfig.FLAVOR)
         }
         _state.value = outcome.state
     }

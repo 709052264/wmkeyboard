@@ -489,7 +489,7 @@ internal fun ToolsSettings(
  * A tool group's fold key, taken from the name of its title resource.
  *
  * Not the numeric id, which a build can renumber, and not the group's index,
- * which the lite flavor can shift by dropping a whole group. The key is
+ * which the F-Droid build can shift by dropping a whole group. The key is
  * joined to the screen route and saved in `AppUiSettings.advancedOpen`, so a
  * key that moves would reopen the wrong group.
  */
@@ -589,7 +589,7 @@ private val ConnectPanels = setOf(
  *
  * The last group is the safety net: a tool added to the enum but forgotten
  * here still gets a settings entry, because this menu is the only path to a
- * tool's own options. Tools this build cannot provide (the lite flavor) are
+ * tool's own options. Tools this build cannot provide (F-Droid's has fewer) are
  * filtered out, and a group left empty by that is dropped.
  *
  * This is the grouping every tool picker uses. The Tools screen alone can

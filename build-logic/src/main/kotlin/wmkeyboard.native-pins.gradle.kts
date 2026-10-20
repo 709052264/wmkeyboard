@@ -27,37 +27,38 @@ val localProperties = Properties().apply {
 fun prop(name: String, env: String, default: String): String =
     providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: System.getenv(env) ?: default
 
-/** Our own libraries: name to gate, and whether only the full flavour has it. */
-data class Own(val gate: String, val fullOnly: Boolean)
-
-val ownSpecs = mapOf(
-    "libwmwhispercpp.so" to Own("speech", false),
-    "libwmwhispercpp_v82.so" to Own("speech", false),
-    "libwmexecutorch.so" to Own("executorch", false),
-    "libwmwhistle.so" to Own("speech", true),
-    "libwmdenoise.so" to Own("speech", false),
-    "libwmsherpa.so" to Own("onnx", false),
-    "libharper_jni.so" to Own("grammar", false),
-    "libwmhunspell.so" to Own("spell", false),
-    "libwmtess.so" to Own("ocr", true),
-    "libwmrime.so" to Own("rime", false),
-    "libwmbergamot.so" to Own("bergamot", false),
+/** Our own libraries: name to gate. */
+val ownSpecs: Map<String, String> = mapOf(
+    "libwmwhispercpp.so" to "speech",
+    "libwmwhispercpp_v82.so" to "speech",
+    "libwmexecutorch.so" to "executorch",
+    "libwmwhistle.so" to "speech",
+    "libwmdenoise.so" to "speech",
+    "libwmsherpa.so" to "onnx",
+    "libharper_jni.so" to "grammar",
+    "libwmhunspell.so" to "spell",
+    "libwmtess.so" to "ocr",
+    "libwmrime.so" to "rime",
+    "libwmbergamot.so" to "bergamot",
 )
 
 /** Where the build keeps them; F-Droid's recipe builds and scans the same paths. */
-val ownDirs = mapOf(
-    "core/voice/src/main/jniLibs" to false,
-    "core/voice/src/full/jniLibs" to true,
-    "core/voice/src/executorch/jniLibs" to false,
-    "core/voice/src/onnx/jniLibs" to false,
-    "core/intelligence/src/main/jniLibs" to false,
-    "core/intelligence/src/full/jniLibs" to true,
-    "core/prediction/src/main/jniLibs" to false,
-    "core/input/src/main/jniLibs" to false,
-    "core/intelligence/src/bergamot/jniLibs" to false,
+val ownDirs = listOf(
+    "core/voice/src/main/jniLibs",
+    "core/voice/src/whistle/jniLibs",
+    "core/voice/src/executorch/jniLibs",
+    "core/voice/src/onnx/jniLibs",
+    "core/intelligence/src/main/jniLibs",
+    "core/intelligence/src/tesseract/jniLibs",
+    "core/prediction/src/main/jniLibs",
+    "core/input/src/main/jniLibs",
+    "core/intelligence/src/bergamot/jniLibs",
 )
 
-/** A dependency's library: its gate, the module whose AAR holds it, a licence. Full flavour only. */
+/**
+ * A dependency's library: its gate, the module whose AAR holds it, a licence.
+ * Google's SDKs are not in F-Droid's build, so neither are their pins.
+ */
 data class Dep(val gate: String, val module: String, val licence: String = "")
 
 val dependencySpecs = mapOf(
@@ -72,8 +73,8 @@ val dependencySpecs = mapOf(
 
 // The Qualcomm NPU runtime (#804), when this build offers the NPU at all. Keep
 // in step with NpuSupport.runtimeLibraries: arm64 only, the chips it lists.
-val npuEnabled = prop("wmkb.enableNpu", "WMKB_ENABLE_NPU", "true").toBoolean() &&
-    !prop("wmkb.enableFdroid", "WMKB_ENABLE_FDROID", "false").toBoolean()
+val fdroidChannel = prop("wmkb.enableFdroid", "WMKB_ENABLE_FDROID", "false").toBoolean()
+val npuEnabled = prop("wmkb.enableNpu", "WMKB_ENABLE_NPU", "true").toBoolean() && !fdroidChannel
 val npuSpecs = if (!npuEnabled) emptyMap() else mapOf(
     "libLiteRtDispatch_Qualcomm.so" to Dep("npu", "com.google.ai.edge.litert:litert-npu-runtime-qualcomm", "qualcomm"),
     "libQnnSystem.so" to Dep("npu", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
@@ -123,27 +124,24 @@ run {
 val artifactType = Attribute.of("artifactType", String::class.java)
 
 extensions.getByType(ApplicationAndroidComponentsExtension::class.java).onVariants { variant ->
-    val full = variant.productFlavors.any { it.second == "full" }
     val task = tasks.register(
         "nativePins${variant.name.replaceFirstChar { it.uppercase() }}",
         NativePinsTask::class.java,
     ) {
         val own = ArrayList<String>()
-        for ((dir, fullDir) in ownDirs) {
-            if (fullDir && !full) continue
+        for (dir in ownDirs) {
             for (abi in pinAbis) {
                 val abiDir = rootProject.file("$dir/$abi")
                 for (file in abiDir.listFiles().orEmpty().sortedBy { it.name }) {
-                    val spec = ownSpecs[file.name] ?: continue
-                    if (spec.fullOnly && !full) continue
-                    own += listOf(spec.gate, abi, file.name, file.path).joinToString("\t")
+                    val gate = ownSpecs[file.name] ?: continue
+                    own += listOf(gate, abi, file.name, file.path).joinToString("\t")
                     ownFiles.from(file)
                 }
             }
         }
         ownLibraries.set(own)
         abis.set(pinAbis)
-        val deps = onnxSpecs + if (full) dependencySpecs + npuSpecs else emptyMap()
+        val deps = onnxSpecs + if (fdroidChannel) emptyMap() else dependencySpecs + npuSpecs
         mavenLibraries.set(deps.map { (name, dep) -> listOf(name, dep.gate, dep.module, dep.licence).joinToString("\t") })
         // The raw AARs of this variant's own runtime classpath: the exact
         // versions whose Java code the APK carries, so the pinned library is

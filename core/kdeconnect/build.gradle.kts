@@ -8,16 +8,15 @@ plugins {
 }
 
 // Coverage for the root's merged report (`./gradlew koverHtmlReportUnit`):
-// this module's full-flavour debug unit tests.
+// this module's debug unit tests.
 kover {
     currentProject {
-        createVariant("unit") { add("fullDebug") }
+        createVariant("unit") { add("debug") }
     }
 }
 
-// The KDE Connect protocol engine (issue #285). An Android library because
-// every module here carries the `capabilities` dimension, but nothing under
-// src/main touches an Android class: it is java.net, javax.net.ssl,
+// The KDE Connect protocol engine (issue #285). An Android library like the
+// modules around it, but nothing under src/main touches an Android class: it is java.net, javax.net.ssl,
 // java.security and coroutines, so the whole protocol — TLS handshakes and
 // pairing included — runs in plain JVM unit tests, two engines on localhost.
 android {
@@ -29,11 +28,6 @@ android {
         minSdk = 24
     }
 
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

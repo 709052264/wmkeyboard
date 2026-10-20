@@ -12,15 +12,15 @@ plugins {
 }
 
 // Coverage for the root's merged report (`./gradlew koverHtmlReportUnit`):
-// this module's full-flavour debug unit tests.
+// this module's debug unit tests.
 kover {
     currentProject {
-        createVariant("unit") { add("fullDebug") }
+        createVariant("unit") { add("debug") }
     }
 }
 
 // Same channel flag :app reads. It decides where the LiteRT interpreter that
-// runs Whisper lives: non-Play full builds compile src/whisperbridge (and the
+// runs Whisper lives: non-Play builds compile src/whisperbridge (and the
 // litert dependency) straight into this module; Play builds leave both out of
 // the base APK — the on-demand :feature:litert module carries them instead,
 // so the interpreter only reaches devices that use offline dictation. See
@@ -37,6 +37,20 @@ val playStoreChannel = run {
         ?: "false").toBoolean()
 }
 
+// F-Droid's build carries no Google artifact, so no LiteRT and no
+// src/whisperbridge: WhisperEngine.AVAILABLE is false there. See the same
+// flag in :core:intelligence.
+val googleSdks = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    !(providers.gradleProperty("wmkb.enableFdroid").orNull
+        ?: localProperties.getProperty("wmkb.enableFdroid")
+        ?: System.getenv("WMKB_ENABLE_FDROID")
+        ?: "false").toBoolean()
+}
+
 android {
     namespace = "com.wasimaster.wmkeyboard.voice"
     compileSdk {
@@ -46,11 +60,6 @@ android {
         minSdk = 24
     }
 
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -59,9 +68,10 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Play builds leave src/main/jniLibs (whisper.cpp, RNNoise) and
-// src/full/jniLibs (Whistle) out of this module, so out of the base APK: the
-// on-demand :feature:speech split packages the same directories instead, and
+// Play builds leave src/main/jniLibs (whisper.cpp, RNNoise) out of this
+// module, so out of the base APK, and never add src/whistle/jniLibs
+// (Whistle, below): the on-demand :feature:speech split packages the same
+// directories instead, and
 // :feature:executorch packages src/executorch/jniLibs (ExecuTorch), which
 // every other build adds below. The files stay here because the native build scripts and
 // F-Droid's recipe write and scan exactly these paths.
@@ -73,7 +83,6 @@ android {
 if (playStoreChannel) {
     extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
         getByName("main").jniLibs.setSrcDirs(emptyList<String>())
-        getByName("full").jniLibs.setSrcDirs(emptyList<String>())
     }
 }
 
@@ -89,7 +98,7 @@ androidComponents {
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,
         // which a flavour folder cannot be.
-        if (!playStoreChannel && variant.flavorName == "full") {
+        if (!playStoreChannel && googleSdks) {
             variant.sources.kotlin?.addStaticSourceDirectory("src/whisperbridge/java")
         }
         // ExecuTorch rides its own gate, `executorch`, and Offline Sherpa's
@@ -99,6 +108,7 @@ androidComponents {
         if (!playStoreChannel) {
             variant.sources.jniLibs?.addStaticSourceDirectory("src/executorch/jniLibs")
             variant.sources.jniLibs?.addStaticSourceDirectory("src/onnx/jniLibs")
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/whistle/jniLibs")
         }
     }
 }
@@ -125,7 +135,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons)
     testImplementation(libs.junit)
-    if (!playStoreChannel) {
-        "fullImplementation"(libs.litert)
+    if (!playStoreChannel && googleSdks) {
+        implementation(libs.litert)
     }
 }

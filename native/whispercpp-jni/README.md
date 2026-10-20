@@ -12,9 +12,9 @@ languages being dictated in, an initial prompt, beam search, text while it
 decodes, stopping part way, and clips past 30 seconds.
 
 The built libraries are committed under `core/voice/src/main/jniLibs/`, so the
-app builds without an NDK, and both editions, full and lite, carry them.
+app builds without an NDK, and every build carries them.
 F-Droid deletes the committed copies and builds them with this script
-(through `native/build-lite-libs.sh`), and so does the release workflow for
+(through `native/build-fdroid-libs.sh`), and so does the release workflow for
 the reference APK F-Droid compares against; the script maps the build
 machine's paths out of the libraries so the two builds match. Rebuild after
 you change anything here:

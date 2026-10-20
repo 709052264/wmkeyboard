@@ -19,7 +19,7 @@ WM Keyboard's tests span three runners: plain JVM unit tests, Compose and instru
 
 It needs a Rust toolchain (`cargo` on the PATH or in `~/.cargo/bin`, from [rustup](https://rustup.rs)): the transliteration tests reach the text engines through JNI, so the test tasks of `:core:language` and `:app` first build `native/wm-engine-jni` for the machine they run on. Rust is not needed for an APK, which carries the committed `.so` files.
 
-`unitTests` is a task in the root build, and it exists because a bare flavored task name no longer reaches the whole project. `:app` carries the `languages` flavour dimension and the library modules do not, so `:app`'s suite is `testFullIntlDebugUnitTest` while every `core/*` and `feature/*` module still declares `testFullDebugUnitTest`. Running the bare `testFullDebugUnitTest` therefore runs the libraries and silently skips all of `:app`, which is most of the tests. `unitTests` depends on both spellings. Swap in `testLiteDebugUnitTest` (or `:app:testLiteIntlDebugUnitTest`) to run a suite against the `lite` flavor. See [building from source](/development/building/) for what the flavors change.
+`unitTests` is a task in the root build, and it exists because no single task name reaches the whole project. `:app` carries the `languages` flavour dimension and the library modules do not, so `:app`'s suite is `testIntlDebugUnitTest` while every `core/*` and `feature/*` module declares `testDebugUnitTest`. Running the bare `testDebugUnitTest` therefore runs the libraries and silently skips all of `:app`, which is most of the tests. `unitTests` depends on both spellings. Add `-Pwmkb.enableFdroid=true` to run the suites against F-Droid's build. See [building from source](/development/building/) for what that changes.
 
 Almost all of it lives in one place:
 
@@ -33,7 +33,7 @@ Almost all of it lives in one place:
 | `core/keyman` | 10 |
 | `core/theme` | 9 |
 | `core/common` | 8 |
-| `core/intelligence` | 6 (three in `src/testFull/`, full-flavor only) |
+| `core/intelligence` | 6 |
 | `core/emoji` | 2 |
 | `core/input` | 1 |
 | `tools/architecture` | 1 (the [architecture rules](#architecture-rules)) |
@@ -47,7 +47,7 @@ Almost all of it lives in one place:
 ./gradlew koverXmlReportUnit      # build/reports/kover/reportUnit.xml
 ```
 
-[Kover](https://github.com/Kotlin/kotlinx-kover) runs the full-flavor debug unit tests of every module and merges them into one report. The merge is the point. Most tests live in `:app` and exercise `core/*` classes, so a single module's own report would say a library is barely tested when `:app` covers it thoroughly. Generated code (resource ids, `BuildConfig`, serializers, Compose's singletons) and `@Preview` functions are left out. Use the `Unit` tasks rather than the plain `koverHtmlReport`, which runs every variant's tests (lite, release, fast) over the same classes.
+[Kover](https://github.com/Kotlin/kotlinx-kover) runs the debug unit tests of every module and merges them into one report. The merge is the point. Most tests live in `:app` and exercise `core/*` classes, so a single module's own report would say a library is barely tested when `:app` covers it thoroughly. Generated code (resource ids, `BuildConfig`, serializers, Compose's singletons) and `@Preview` functions are left out. Use the `Unit` tasks rather than the plain `koverHtmlReport`, which runs every variant's tests (en, release, fast) over the same classes.
 
 ## Testing flows
 
@@ -61,7 +61,7 @@ Code that publishes a `Flow` or `StateFlow` is tested with [Turbine](https://git
 
 `tools/architecture` is a test-only JVM module that reads the whole source tree with [Konsist](https://docs.konsist.lemonappdev.com/). It checks rules that compile fine when broken, pass every other test, and cost something later. `unitTests` runs it with everything else:
 
-- **Lite stubs offer what main code uses of the full flavor.** `src/main` compiles against whichever flavor is being built, so a name it uses has to exist in both. The rule fails on a stub with no full file at the same path, a stub declaring something the full flavor doesn't, and main code naming a top-level declaration or an object member that only the full flavor declares. Locally a lite build is the only other thing that would notice, and that is almost never run.
+- **F-Droid stubs offer what main code uses of the google sources.** `src/main` compiles against `src/google` or, in F-Droid's build, `src/nogoogle`, so a name it uses has to exist in both. The rule fails on a stub with no google file at the same path, a stub declaring something the google side doesn't, and main code naming a top-level declaration or an object member that only the google side declares. Locally an F-Droid build is the only other thing that would notice, and that is almost never run.
 - **Key composables never take `KeyboardUiState`.** `KeyRow`, `KeyCell`, `KeyButton` and `KeyContent` take a resolved `KeyVisual`. Taking the whole state would make every key recompose on every keystroke (see [Performance tooling](/development/performance/#why-does-a-composable-recompose)).
 - **Nothing launches on `GlobalScope`.**
 - **Every Robolectric test runs on a pinned SDK**, through its source set's `robolectric.properties` or its own `@Config(sdk = …)`. `compileSdk` is the minor level 36.1, for which Robolectric has no runtime.
@@ -128,7 +128,7 @@ Performance has a page of its own: [Performance tooling](/development/performanc
 
 ## Details & edge cases
 
-- **The unit-test task name is flavor-specific, not module-specific.** `testFullDebugUnitTest` runs against the `full` flavor's dependency set (ML Kit, Whisper, and the rest). If you're chasing a bug that only reproduces in the `lite` build, you need `testLiteDebugUnitTest`, not a different module scope. And in `:app` alone the name carries the language flavour too, so it is `testFullIntlDebugUnitTest` there.
+- **The build switch is a property, not a task name.** `testDebugUnitTest` runs against the standard dependency set (ML Kit, LiteRT, and the rest). If you're chasing a bug that only reproduces in the F-Droid build, add `-Pwmkb.enableFdroid=true`, not a different module scope. And in `:app` alone the name carries the language flavour, so it is `testIntlDebugUnitTest` there.
 - **A green JVM suite doesn't mean the feature works on a phone.** The `SvgParserAndroidTest` story above is the concrete example: the JVM's XML stack silently tolerated a call Android's SAX parser rejects outright. If a class calls into an Android or platform API rather than pure Kotlin, treat JVM-green as provisional until it has also run on a device.
 - **`app` is where almost everything lives, tests included.** If you're adding tests for new logic and the surrounding code is in `app/src/main`, its test belongs in `app/src/test` alongside the rest. That isn't an oversight. It matches where about two thirds of the existing suite already sits.
 - Static analysis (`./gradlew staticAnalysis`, lint plus detekt) is a separate gate from either test suite. It's covered on the [building from source](/development/building/) page, not here.

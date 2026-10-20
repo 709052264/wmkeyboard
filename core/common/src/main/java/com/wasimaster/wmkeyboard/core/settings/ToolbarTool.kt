@@ -361,7 +361,7 @@ val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
 /**
  * What a starter set gains when part of it cannot run on this device.
  *
- * Handwriting and text scanning are the pair that goes missing — the lite
+ * Handwriting and text scanning are the pair that goes missing — the F-Droid
  * build ships neither, and the document scanner beside them needs Google
  * services — and a "recommended" set that quietly arrives two tools short is
  * a worse set rather than a smaller one. Both stand-ins run anywhere: an

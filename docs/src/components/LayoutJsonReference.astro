@@ -278,7 +278,7 @@ const tablesAfterActions = tables.slice(3);
 		<summary>Tools <span class="count">{s.enums.ToolbarTool.length}</span></summary>
 		<p>
 			The <code>"tool"</code> of a <code>{'{"type": "tool"}'}</code> action. A tool this build does not have, such as a
-			scanner on the lite build, makes the key do nothing.
+			scanner on the F-Droid build, makes the key do nothing.
 		</p>
 		<ul class="chips">
 			{s.enums.ToolbarTool.map((e) => (
@@ -325,7 +325,7 @@ const tablesAfterActions = tables.slice(3);
 							<tr>
 								<td>
 									<code>{p.value}</code>
-									{p.fullOnly && <span class="def">full build only</span>}
+									{p.fullOnly && <span class="def">not on F-Droid</span>}
 								</td>
 								<td>
 									{kinds.length === 0

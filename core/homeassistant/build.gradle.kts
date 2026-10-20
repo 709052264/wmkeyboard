@@ -8,18 +8,17 @@ plugins {
 }
 
 // Coverage for the root's merged report (`./gradlew koverHtmlReportUnit`):
-// this module's full-flavour debug unit tests.
+// this module's debug unit tests.
 kover {
     currentProject {
-        createVariant("unit") { add("fullDebug") }
+        createVariant("unit") { add("debug") }
     }
 }
 
 // The Home Assistant client: REST, the WebSocket API with its compressed
 // entity stream, OAuth, the service catalogue per domain, state formatting
-// and icon mapping. An Android library because every module here carries the
-// `capabilities` dimension, but nothing under src/main touches an Android
-// class, so the whole protocol runs in plain JVM unit tests against OkHttp's
+// and icon mapping. An Android library like the modules around it, but
+// nothing under src/main touches an Android class, so the whole protocol runs in plain JVM unit tests against OkHttp's
 // MockWebServer. The keyboard module adds the Android glue (mDNS, token
 // storage, the panel) on top.
 android {
@@ -31,11 +30,6 @@ android {
         minSdk = 24
     }
 
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

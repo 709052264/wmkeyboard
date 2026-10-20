@@ -10,7 +10,7 @@ import java.io.File
 /**
  * House rules the compiler cannot see, checked by reading the sources with
  * Konsist. Each one is here because breaking it compiles, passes every other
- * test, and costs something real later: a lite build that no longer builds, a
+ * test, and costs something real later: an F-Droid build that no longer builds, a
  * key grid that recomposes on every keystroke, a dictionary compiler that
  * quietly drops a file.
  *
@@ -29,42 +29,43 @@ class ArchitectureTest {
         sources("app/src") + sources("core") + sources("feature") + sources("tools")
     }
 
-    // ---- flavours ---------------------------------------------------------
+    // ---- F-Droid stand-ins ------------------------------------------------
 
     /**
-     * A `src/lite` stub stands in for `src/full` code, and `src/main` compiles
-     * against whichever flavour is being built. So a name `src/main` uses has to
-     * exist in both, or one flavour stops compiling; locally nothing notices
-     * until a lite build runs, which is almost never.
+     * A `src/nogoogle` stub stands in for `src/google` code (the classes that
+     * call ML Kit directly) in F-Droid's build, and `src/main` compiles against
+     * whichever of the two the build picked. So a name `src/main` uses has to
+     * exist in both, or one build stops compiling; locally nothing notices
+     * until an F-Droid build runs, which is almost never.
      *
-     * Checked per module, over each flavour's whole source set rather than file
-     * against file: the full side may split what a stub keeps in one file, and
-     * carries helpers of its own that only full code calls, which is fine.
-     * What is not fine:
-     *  - a stub file with no full file at the same path;
-     *  - a stub declaring something the full flavour does not (the stub has
+     * Checked per module, over each side's whole source set rather than file
+     * against file: the google side may split what a stub keeps in one file,
+     * and carries helpers of its own that only google code calls, which is
+     * fine. What is not fine:
+     *  - a stub file with no google file at the same path;
+     *  - a stub declaring something the google side does not (the stub has
      *    drifted from the API it stands in for);
-     *  - `src/main` naming something only the full flavour declares. That is
+     *  - `src/main` naming something only the google side declares. That is
      *    read textually: a top-level name as a word, an object's member as
      *    `Object.member`. A class's instance members are not checked, since a
      *    call through a variable cannot be traced to its class by reading.
      */
     @Test
-    fun `lite stubs offer what main code uses of the full flavour`() {
+    fun `F-Droid stubs offer what main code uses of the google sources`() {
         val problems = mutableListOf<String>()
-        val stubs = trackedFiles { "/src/lite/java/" in it && it.endsWith(".kt") }
+        val stubs = trackedFiles { "/src/nogoogle/java/" in it && it.endsWith(".kt") }
         val main = trackedFiles { path -> path.endsWith(".kt") && MAIN_SOURCE.containsMatchIn(path) }
             .joinToString("\n") { code(File(root, it).readText()) }
-        for ((module, lites) in stubs.groupBy { it.substringBefore("/src/lite/java/") }) {
-            val fulls = trackedFiles { it.startsWith("$module/src/full/java/") && it.endsWith(".kt") }
-            lites.map { it.replace("/src/lite/java/", "/src/full/java/") }
+        for ((module, nogoogle) in stubs.groupBy { it.substringBefore("/src/nogoogle/java/") }) {
+            val google = trackedFiles { it.startsWith("$module/src/google/java/") && it.endsWith(".kt") }
+            nogoogle.map { it.replace("/src/nogoogle/java/", "/src/google/java/") }
                 .filterNot { File(root, it).isFile }
-                .forEach { problems += "$it: missing, though the lite stub at the same path stands in for it" }
-            val liteApi = lites.flatMap(::api).toSet()
-            val fullApi = fulls.flatMap(::api).toSet()
-            (liteApi - fullApi).forEach { problems += "$module: the lite flavour declares ${it.label}, the full one does not" }
-            (fullApi - liteApi).filter { it.usedIn(main) }
-                .forEach { problems += "$module: main code uses ${it.label}, which only the full flavour declares" }
+                .forEach { problems += "$it: missing, though the F-Droid stub at the same path stands in for it" }
+            val stubApi = nogoogle.flatMap(::api).toSet()
+            val googleApi = google.flatMap(::api).toSet()
+            (stubApi - googleApi).forEach { problems += "$module: src/nogoogle declares ${it.label}, src/google does not" }
+            (googleApi - stubApi).filter { it.usedIn(main) }
+                .forEach { problems += "$module: main code uses ${it.label}, which only src/google declares" }
         }
         assertTrue(problems.joinToString("\n"), problems.isEmpty())
     }

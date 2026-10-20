@@ -31,13 +31,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -53,8 +46,6 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Both flavours: the base carries these libraries in full and lite
-        // alike off Play. Whistle is full only, as it is off Play.
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/executorch/jniLibs")
     }
 }

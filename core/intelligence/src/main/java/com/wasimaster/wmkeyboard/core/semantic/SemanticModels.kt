@@ -25,13 +25,10 @@ object SemanticModels {
     const val RELEASE_TAG = "models"
 
     /**
-     * Whether this build can run the model at all. The F-Droid build, and
-     * any build without the full feature set, has no LiteRT interpreter, so
-     * it never offers a download it could not use.
+     * Whether this build can run the model at all. F-Droid's build has no
+     * LiteRT interpreter, so it never offers a download it could not use.
      */
-    val SUPPORTED: Boolean =
-        com.wasimaster.wmkeyboard.config.BuildConfig.FLAVOR == "full" &&
-            !com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_FDROID
+    val SUPPORTED: Boolean = com.wasimaster.wmkeyboard.config.BuildConfig.GOOGLE_SDKS
 
     enum class Pack { TEXT, PICTURES }
 

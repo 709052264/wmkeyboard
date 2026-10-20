@@ -3,13 +3,14 @@
 Tesseract 5.5.1 and Leptonica 1.85.0 behind a five-function JNI surface, for
 the text scanner. Kotlin entry point:
 `com.wasimaster.wmkeyboard.core.ocr.TesseractNative` (in
-`core/intelligence/src/full`). ML Kit keeps reading Latin script; this covers
+`core/intelligence/src/main`). ML Kit keeps reading Latin script; this covers
 the scripts it cannot (issue #306).
 
 The prebuilt `libwmtess.so` files are committed under
-`core/intelligence/src/full/jniLibs/<abi>/`, so the app builds without an NDK.
-Being under `src/full` keeps them out of lite builds; F-Droid builds lite and
-already `scandelete`s that directory. Rebuild after you change anything here:
+`core/intelligence/src/tesseract/jniLibs/<abi>/`, so the app builds without an
+NDK. A directory of its own lets Play's `:feature:ocr` split carry it alone.
+F-Droid `scandelete`s it and does not rebuild it, so its build has no
+Tesseract and the scanner's offline reads stay unavailable there. Rebuild after you change anything here:
 
 ```sh
 # Needs NDK r29 (29.0.14206865), CMake 3.22+ and Ninja.

@@ -273,7 +273,7 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
 
-    // Whether the one-tap cutout is even a thing in this build. False in lite,
+    // Whether the one-tap cutout is even a thing in this build. False on F-Droid,
     // where the brushes are the whole story and a disabled button would only
     // raise a question the screen cannot answer.
     val cutoutSupported = SubjectCutout.supported

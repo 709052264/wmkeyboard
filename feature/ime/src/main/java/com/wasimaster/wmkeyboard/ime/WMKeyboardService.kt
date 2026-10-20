@@ -3173,7 +3173,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Bumped on every stroke/undo/clear so in-flight recognitions go stale. */
     private var hwGeneration = 0
     private var hwCanvasSize = IntSize.Zero
-    /** True while letter-area swipes are armed for handwriting (full builds). */
+    /** True while letter-area swipes are armed for handwriting (not on F-Droid). */
     private var hwKeyboardArmed = false
 
     /** The blacklist as last purged from the learning stores. */
@@ -8728,8 +8728,8 @@ open class WMKeyboardService : InputMethodService() {
         if (panel != PanelMode.EMOJI) UnicodeNames.release()
         // The OCR engine's loaded language pack: tens of megabytes of native
         // memory. The scanner panel frees it when it closes, so this is the
-        // backstop for the panel never getting the chance — and the lite build
-        // has no engine, where it is a no-op.
+        // backstop for the panel never getting the chance — and a no-op where
+        // the library never loaded.
         if (panel != PanelMode.OCR) TesseractOcr.release()
         // Harper's rule sets, one per dialect, built on the first lint and
         // until now never freed — and the spell-checker service lints in this
@@ -26306,7 +26306,7 @@ open class WMKeyboardService : InputMethodService() {
      * run — the toolbar's set is about what the strip shows, and a layout that
      * had to keep a tool on the strip to reach it from a key would be paying
      * twice for the same thing. Everything the *device* decides still applies:
-     * a lite build and an unusable tool both come out as a key that does
+     * a tool the build lacks and an unusable tool both come out as a key that does
      * nothing, exactly as they do on the toolbar.
      *
      * No focus ring: that is for a physical keyboard ([openToolByKey]). A
@@ -26346,7 +26346,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The dispatch itself, once the caller's own gating has passed, plus the two
-     * tests every caller shares: a lite build ships fewer tools than the enum
+     * tests every caller shares: F-Droid's build ships fewer tools than the enum
      * lists, and a search tool loses its key the moment it is cleared.
      */
     private fun runTool(tool: ToolbarTool) {
@@ -29957,7 +29957,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Letter-area swipes are drawing handwriting (rather than gliding a word):
-     * full build, gesture typing on with the swipe action set to HANDWRITE, on
+     * a build with ML Kit, gesture typing on with the swipe action set to HANDWRITE, on
      * the letter layer with no panel open.
      */
     private fun swipeHandwriteActive(state: KeyboardUiState): Boolean =
@@ -30328,7 +30328,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Android saw a stylus start writing over a text field and offers us the
-     * session. Taken only in the full build, with the stylus mode picked and
+     * session. Taken only in a build with ML Kit, with the stylus mode picked and
      * the model on the phone: the platform then routes stylus events to the
      * ink window over the whole screen while fingers keep reaching the app,
      * which is exactly the split the stylus mode promises.

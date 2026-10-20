@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
  * Skipped unless asked for:
  *
  * ```
- * ./gradlew :core:kdeconnect:testFullDebugUnitTest --tests "*InteropTest*" -Pkde.interop=1
+ * ./gradlew :core:kdeconnect:testDebugUnitTest --tests "*InteropTest*" -Pkde.interop=1
  * ```
  *
  * It needs KDE Connect running locally with its `kdeconnect-cli` on the PATH as

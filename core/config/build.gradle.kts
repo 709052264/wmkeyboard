@@ -8,10 +8,10 @@ plugins {
 }
 
 // Coverage for the root's merged report (`./gradlew koverHtmlReportUnit`):
-// this module's full-flavour debug unit tests.
+// this module's debug unit tests.
 kover {
     currentProject {
-        createVariant("unit") { add("fullDebug") }
+        createVariant("unit") { add("debug") }
     }
 }
 
@@ -39,7 +39,14 @@ fun flag(propertyName: String, envName: String): Boolean =
         ?: "false").toBoolean()
 
 /**
- * Whether full builds carry the Qualcomm NPU runtime for on-device AI (#804).
+ * Whether the build carries Google's SDKs: every channel but F-Droid.
+ * :core:intelligence, :core:voice, :core:content and :feature:ime read the
+ * same flag to choose their src/google or src/nogoogle sources.
+ */
+val googleSdks: Boolean = !flag("wmkb.enableFdroid", "WMKB_ENABLE_FDROID")
+
+/**
+ * Whether the build carries the Qualcomm NPU runtime for on-device AI (#804).
  * On unless switched off, and never in the F-Droid build: the QNN libraries
  * are Qualcomm's own licence. :core:intelligence, :app and settings.gradle.kts
  * read the same two properties to decide what gets packaged.
@@ -82,37 +89,24 @@ android {
         // at startup means the in-app log screen is unreachable. Off by default;
         // build with -Pwmkb.enableCrashScreen=true.
         buildConfigField("Boolean", "ENABLE_CRASH_SCREEN", "${flag("wmkb.enableCrashScreen", "WMKB_ENABLE_CRASH_SCREEN")}")
+        // The features built on Google's SDKs (ML Kit, LiteRT, LiteRT-LM):
+        // every build has them except F-Droid's, which may carry no Google
+        // artifact (fdroid/README.md). Grammar is Harper, open source, so it
+        // is in every build.
+        buildConfigField("Boolean", "GOOGLE_SDKS", "$googleSdks")
+        buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "$googleSdks")
+        buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "$googleSdks")
+        buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
+        buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "$googleSdks")
+        buildConfigField("Boolean", "ENABLE_WHISPER", "$googleSdks")
+        // The NPU as a Compute choice for on-device AI: see npuRuntime above.
+        buildConfigField("Boolean", "ENABLE_NPU", "$npuRuntime")
+        // The Google Home APIs: their SDK is left out of F-Droid's build, and
+        // the grant only works for a signing certificate that has an OAuth
+        // client, so each channel says whether it carries one.
+        buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${googleSdks && flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME") && googleHomeSdk}")
     }
 
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") {
-            dimension = "capabilities"
-            buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "true")
-            buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "true")
-            buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
-            buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "true")
-            // The NPU as a Compute choice for on-device AI: see npuRuntime above.
-            buildConfigField("Boolean", "ENABLE_NPU", "$npuRuntime")
-            // The Google Home APIs: their SDK is a full-only dependency, and
-            // the grant only works for a signing certificate that has an
-            // OAuth client, so each channel says whether it carries one.
-            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "${flag("wmkb.enableGoogleHome", "WMKB_ENABLE_GOOGLE_HOME") && googleHomeSdk}")
-        }
-        create("lite") {
-            dimension = "capabilities"
-            buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "false")
-            buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "false")
-            // Harper is open source and needs no Play services, so lite has it
-            // too; only the ML Kit and LiteRT features stay full-only.
-            buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
-            buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
-            buildConfigField("Boolean", "ENABLE_WHISPER", "false")
-            buildConfigField("Boolean", "ENABLE_NPU", "false")
-            buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "false")
-        }
-    }
     buildFeatures { buildConfig = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

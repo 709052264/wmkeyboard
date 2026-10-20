@@ -15,7 +15,7 @@ import org.junit.runner.RunWith
  * gap between the two is what the profile is worth; if it closes, the profile
  * has stopped covering what start-up runs.
  *
- *     ./gradlew :benchmark:connectedFullIntlBenchmarkReleaseAndroidTest \
+ *     ./gradlew :benchmark:connectedIntlBenchmarkReleaseAndroidTest \
  *         -Pwmkb.benchmark=true \
  *         -Pandroid.testInstrumentationRunnerArguments.class=com.wasimaster.wmkeyboard.benchmark.StartupBenchmark
  */

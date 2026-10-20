@@ -36,8 +36,8 @@ done
 task_for() {
   # :app carries the languages dimension on top of capabilities; the library
   # modules only the latter.
-  if [ "$1" = app ]; then echo ":app:compileFullIntlDebugKotlin"
-  else echo ":${1//\//:}:compileFullDebugKotlin"; fi
+  if [ "$1" = app ]; then echo ":app:compileIntlDebugKotlin"
+  else echo ":${1//\//:}:compileDebugKotlin"; fi
 }
 
 if [ "$build" = 1 ]; then
@@ -54,7 +54,7 @@ for m in "${modules[@]}"; do
     continue
   fi
   echo "== $m"
-  # One directory per variant under metrics/ (fullDebug/), JSON inside.
+  # One directory per variant under metrics/ (debug/), JSON inside.
   for json in "$metrics"/*/*-module.json "$metrics"/*-module.json; do
     [ -f "$json" ] || continue
     # One flat JSON object; print the counts that matter, in a fixed order.

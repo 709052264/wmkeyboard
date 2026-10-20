@@ -109,7 +109,7 @@ Neither is a one-way door: the Spacebar & keys page later offers the same choice
 | A good middle | 22: those eight plus themes, dictionary, fancy text, translate, autocorrect, snippets, one-handed, split, text editing, trackpad, handwriting, text scan, undo and redo | Adds Emoji, Typing feedback and Spacebar & keys |
 | Show me everything | 37: those 22 plus Wikipedia, vocabulary, power saving, keyboard modes, numpad, special symbols, calculator, unit converter, currency, password generator, calendar, weather, media controls, apps and hide keyboard | Adds Your tools, and Tool setup when calendar, weather or compass is among them |
 
-A set that can't run in full on your phone gets topped up rather than left short. Part of it may be unavailable, because a Lite build has no handwriting and no text scan, or because the phone has no Google services. Wikipedia and power saving then come in behind whatever's missing, so a "recommended" set never quietly arrives two tools smaller.
+A set that can't run in full on your phone gets topped up rather than left short. Part of it may be unavailable, because the F-Droid build has no handwriting and no text scan, or because the phone has no Google services. Wikipedia and power saving then come in behind whatever's missing, so a "recommended" set never quietly arrives two tools smaller.
 
 **How private should it be?**
 
@@ -152,5 +152,5 @@ The wizard isn't a one-shot. <SettingsPath path="About / Run setup again" /> rep
 - Whether the wizard appears has nothing to do with whether the keyboard is enabled. A "have you finished onboarding" flag drives it, not a check of Android's input-method state. Enable and select WM Keyboard entirely from system Settings, without ever opening the app, and the wizard still appears on first launch. Its Welcome page just already shows the "done" state and lets you move straight past it.
 - A restore from the Welcome page is the only way to skip the wizard that keeps the everything-enabled tool default when the backup has it. Skip and Finish otherwise replace it, as the next point says.
 - Skipping the wizard early still lands a sane tool set. Finishing it, or skipping over the untouched everything-enabled default, replaces that default with the recommended set. Answer "keep it simple" first and you get the smaller essential set instead.
-- On a Lite build, the Tools page doesn't offer handwriting, OCR, QR/barcode scanning, document scanning, or grammar checking as options at all, since those features aren't built into that edition. See [Full vs Lite](/start/editions/).
+- On the F-Droid build, the Tools page doesn't offer handwriting, OCR, QR/barcode scanning or document scanning as options at all, since those features aren't built into that edition. See [Which build you have](/start/editions/).
 - Installing over an existing WM Keyboard install (same signing key) keeps the wizard from running again. `onboardingDone` is a regular setting, so it carries over like any other. A clean reinstall, or a new phone with no settings backup, shows the wizard again. See [Installation](/start/installation/) for what does and doesn't carry over.

@@ -16,11 +16,11 @@
     <string name="about_whats_new_subtitle">What changed in <xliff:g id="version" example="0.6.2">%1$s</xliff:g></string>
     <!--
       Subtitle of the version row.
-      %1$s = build flavour name, %2$s = build type name,
+      %1$s = edition name (Standard or Offline, not translated), %2$s = build type name,
       %3$s = store name with its separator, or empty,
       %4$d = the numeric version code.
     -->
-    <string name="about_version_subtitle"><xliff:g id="flavour" example="Full">%1$s</xliff:g> build (<xliff:g id="build_type" example="release">%2$s</xliff:g><xliff:g id="channel" example=" · Play Store">%3$s</xliff:g>) · code <xliff:g id="version_code" example="3">%4$d</xliff:g></string>
+    <string name="about_version_subtitle"><xliff:g id="flavour" example="Standard">%1$s</xliff:g> build (<xliff:g id="build_type" example="release">%2$s</xliff:g><xliff:g id="channel" example=" · Play Store">%3$s</xliff:g>) · code <xliff:g id="version_code" example="3">%4$d</xliff:g></string>
     <string name="about_licence_title">Licence</string>
     <string name="about_source_title">Source code</string>
     <!-- The switch that renames the launcher entry (#140). The names in quotes are app_name_short and app_name. -->

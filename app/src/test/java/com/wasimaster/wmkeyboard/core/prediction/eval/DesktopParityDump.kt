@@ -24,7 +24,7 @@ import org.junit.Test
  *     PARITY_DATA=<a data dir holding dict/<lang>/main.wmdict and ngrams.wmng>
  *     PARITY_QUERIES=<file, one query a line> PARITY_OUT=<file>
  *     PARITY_SECONDARY=bn_rom [PARITY_RERANK=1] [PARITY_LEXICON=<json>] \
- *     ./gradlew :app:testFullEnDebugUnitTest --tests '*DesktopParityDump*' --rerun
+ *     ./gradlew :app:testEnDebugUnitTest --tests '*DesktopParityDump*' --rerun
  *
  * `--rerun`, because Gradle does not count the environment as an input and
  * would otherwise call the test up to date and leave PARITY_OUT as it was.

@@ -94,7 +94,7 @@ class ApngStickerTest {
      * the result can be looked at. Runs only when both variables are set.
      *
      * `WM_APNG_IN=sticker.png WM_APNG_OUT=sticker.webp ./gradlew
-     * :feature:ime:testFullDebugUnitTest --tests '*ApngStickerTest' --rerun`
+     * :feature:ime:testDebugUnitTest --tests '*ApngStickerTest' --rerun`
      */
     @Test
     fun `converts the file named in the environment`() {

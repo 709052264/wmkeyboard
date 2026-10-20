@@ -77,16 +77,6 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 			<p>For phones without the Play Store, or if you'd rather skip it. The app checks for its own updates.</p>
 			<form class="wm-inst-pick" id="wm-inst-pick" aria-label="Which app file">
 				<fieldset>
-					<legend>Version</legend>
-					<label><input type="radio" name="ed" value="lite" checked /><span>Lite<small data-size></small></span></label>
-					<label><input type="radio" name="ed" value="full" /><span>Full<small data-size></small></span></label>
-				</fieldset>
-				<fieldset>
-					<legend>Menus</legend>
-					<label><input type="radio" name="lang" value="en" checked /><span>English<small data-size></small></span></label>
-					<label><input type="radio" name="lang" value="intl" /><span>Any language<small data-size></small></span></label>
-				</fieldset>
-				<fieldset>
 					<legend>Phone</legend>
 					<label><input type="radio" name="abi" value="arm64-v8a" checked /><span>Most<small data-size></small></span></label>
 					<label><input type="radio" name="abi" value="armeabi-v7a" /><span>Older<small data-size></small></span></label>
@@ -125,10 +115,6 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 
 	/** One line each, so the choice reads without the installation page. */
 	const HINTS: Record<string, string> = {
-		lite: 'Lite has everything except handwriting and camera scanning.',
-		full: 'Full adds handwriting and text, QR and document scanning.',
-		en: 'Menus in English. You can still type in every language.',
-		intl: 'Menus in 48 languages besides English.',
 		'arm64-v8a': '',
 		'armeabi-v7a': 'For phones from before about 2017.',
 		universal: 'Works on any phone, at a bigger download.',
@@ -159,15 +145,17 @@ const icon = (id: string) => BRAND_PATHS[id as keyof typeof BRAND_PATHS];
 		let assets: Asset[] = [];
 
 		const mb = (bytes: number) => `${Math.round(bytes / 1e6)} MB`;
-		const picked = () => Object.fromEntries(new FormData(form)) as Record<'ed' | 'lang' | 'abi', string>;
-		// `-lite-en-arm64-v8a.apk` never matches the `-lite-en-nointernet-arm64-v8a.apk` beside it.
-		const assetFor = (c: Record<string, string>) =>
-			assets.find((a) => a.name.endsWith(`-${c.ed}-${c.lang}-${c.abi}.apk`));
+		const picked = () => Object.fromEntries(new FormData(form)) as Record<'abi', string>;
+		// GitHub publishes one standard build per CPU, `-full-en-<abi>.apk`: `full` is the
+		// old edition token every published name keeps, and the app fetches its other
+		// menu languages itself. The suffix never matches the offline
+		// `-full-intl-nointernet-<abi>.apk` beside it.
+		const assetFor = (c: Record<string, string>) => assets.find((a) => a.name.endsWith(`-full-en-${c.abi}.apk`));
 
 		/** Point the button at the one file the form describes, and price every other choice beside it. */
 		function update() {
 			const choice = picked();
-			hint.textContent = [HINTS[choice.ed], HINTS[choice.lang], HINTS[choice.abi]].filter(Boolean).join(' ');
+			hint.textContent = HINTS[choice.abi] ?? '';
 			form.querySelectorAll<HTMLInputElement>('input').forEach((input) => {
 				const other = assetFor({ ...choice, [input.name]: input.value });
 				const tag = input.parentElement!.querySelector('[data-size]')!;

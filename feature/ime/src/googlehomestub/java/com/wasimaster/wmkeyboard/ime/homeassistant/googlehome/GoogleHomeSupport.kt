@@ -10,9 +10,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * The lite flavour carries no Home APIs: a Google Home row can never be
- * added, and one restored from a backup stays unavailable. Same shape as the
- * full flavour's, so the settings app and the hub compile either way.
+ * A build without the Home APIs SDK (a checkout that lacks it, or F-Droid's):
+ * a Google Home row can never be added, and one restored from a backup stays
+ * unavailable. Same shape as the real one, so the settings app and the hub
+ * compile either way.
  */
 object GoogleHomeSupport {
     const val AVAILABLE = false

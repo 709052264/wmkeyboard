@@ -134,7 +134,7 @@ Editing a built-in set doesn't overwrite the shipped version. Your edit is store
 - **Leaving Name blank on save doesn't leave the set unnamed.** It falls back to the built-in's own name when you're editing a shipped set, or "My set" for a brand-new one.
 - **Saving a set also enables it.** If the set you just saved or created wasn't already checked in the picker, saving checks it for you so it shows up in the row right away.
 - **`symbolRowActiveSetId` isn't a row on this screen.** It's the ID of whichever set the row's picker chip currently shows, and it's runtime state. It defaults to Punctuation and isn't editable from Rows & bars directly. Picking a set from the row on the keyboard updates it, *unless* the active keyboard mode pins its own symbol sets. Then the pick is session-only and doesn't overwrite this global value.
-- **No edition differences.** The symbol row, row order and symbol sets all work identically on the full and lite builds.
+- **No build differences.** The symbol row, row order and symbol sets all work identically in every build.
 
 ## Related pages
 

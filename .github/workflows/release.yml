@@ -117,31 +117,35 @@ jobs:
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         # One variant per Gradle call. All four at once shared one Kotlin
-        # daemon and ran it out of heap at 4 GB (0.5.13, compileFullEnRelease
-        # and compileLiteEnRelease side by side), after 0.5.8 had already
+        # daemon and ran it out of heap at 4 GB (0.5.13, two compiles side by
+        # side), after 0.5.8 had already
         # needed the 4 GB. In turn, each compile and R8 pass has the daemons to
         # itself; the daemons stay warm between calls, and the modules below
         # :app are built once.
         #
-        # Two builds from 0.6.3. GitHub publishes one standard build, full ·
+        # Two builds from 0.6.3. GitHub publishes one standard build, in
         # English, which fetches its feature libraries (native delivery) and its
         # other interface languages (language packs) on demand, and the offline
         # build below. The all-languages build is made here only to cut the
         # language packs from: compiled with the English build's resource IDs,
-        # so each pack's strings have the IDs the English APK asks for. Lite is
-        # F-Droid's edition and no longer published here.
+        # so each pack's strings have the IDs the English APK asks for.
         run: |
           ids="$PWD/build/resource-ids.txt"
           mkdir -p build
-          ./gradlew assembleFullEnRelease "-Pwmkb.emitResourceIds=$ids" \
+          ./gradlew assembleEnRelease "-Pwmkb.emitResourceIds=$ids" \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
-          ./gradlew assembleFullIntlRelease "-Pwmkb.stableResourceIds=$ids" \
+          ./gradlew assembleIntlRelease "-Pwmkb.stableResourceIds=$ids" \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
-      # Versioned filenames (wmkeyboard-0.3.0-vc7-full-arm64-v8a.apk) so APKs
-      # from different releases can sit in the same Downloads folder without
-      # the browser calling them duplicates. vc = versionCode, which moves even
-      # when the name does not (a re-cut of the same versionName).
+      # Versioned filenames (wmkeyboard-0.6.3-vc370-full-en-arm64-v8a.apk) so
+      # APKs from different releases can sit in the same Downloads folder
+      # without the browser calling them duplicates. vc = versionCode, which
+      # moves even when the name does not (a re-cut of the same versionName).
+      #
+      # `full` is the edition token from when there were two (full, lite). The
+      # app has no such flavour since 0.6.3, but every install already out
+      # there only parses names that carry it (ReleaseAssets), so every
+      # published name keeps it.
       - name: Collect artifacts
         # The language packs are signed here, before the keystore is wiped.
         env:
@@ -152,11 +156,11 @@ jobs:
           version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           mkdir -p dist
-          find app/build/outputs/apk/fullEn -name '*-release.apk' | while read -r apk; do
-            name=$(basename "$apk" .apk)   # app-full-arm64-v8a-release
+          find app/build/outputs/apk/en -name '*-release.apk' | while read -r apk; do
+            name=$(basename "$apk" .apk)   # app-en-arm64-v8a-release
             name=${name#app-}
             name=${name%-release}
-            cp "$apk" "dist/wmkeyboard-${version}-vc${code}-${name}.apk"
+            cp "$apk" "dist/wmkeyboard-${version}-vc${code}-full-${name}.apk"
           done
           # The baseline profile, as dex metadata the installer compiles with.
           # The in-app updater stages it beside the APK, so a GitHub update is
@@ -167,13 +171,11 @@ jobs:
           # carry the same dex, so they share one.
           for meta in app/build/outputs/apk/*/release/output-metadata.json; do
             dir=$(dirname "$meta")
-            variant=$(basename "$(dirname "$dir")")   # fullIntl
-            capability=${variant%%[A-Z]*}             # full
-            language=$(echo "${variant#"$capability"}" | tr '[:upper:]' '[:lower:]')
+            language=$(basename "$(dirname "$dir")")   # intl
             jq -r '.baselineProfiles[]? | "\(.minApi) \(.baselineProfiles[0])"' "$meta" \
               | while read -r api dm; do
                 if [ -f "$dir/$dm" ]; then
-                  cp "$dir/$dm" "dist/wmkeyboard-${version}-vc${code}-${capability}-${language}-api${api}.dm"
+                  cp "$dir/$dm" "dist/wmkeyboard-${version}-vc${code}-full-${language}-api${api}.dm"
                 else
                   echo "::warning::No dex metadata at $dir/$dm"
                 fi
@@ -187,26 +189,22 @@ jobs:
           # Four now rather than two. The two language builds are separate R8
           # runs, so their maps are not interchangeable even though the Kotlin
           # that went in was identical.
-          # full · all languages too: the offline build is that variant with
+          # The all-languages one too: the offline build is that variant with
           # a different manifest, and the retrace workflow uses this map for it.
-          for capability in full; do
-            for language in Intl En; do
-              lower=$(echo "$language" | tr '[:upper:]' '[:lower:]')
-              map="app/build/outputs/mapping/${capability}${language}Release/mapping.txt"
-              if [ ! -f "$map" ]; then
-                echo "::error::No R8 mapping at $map"
-                exit 1
-              fi
-              gzip -9c "$map" \
-                > "dist/wmkeyboard-${version}-vc${code}-${capability}-${lower}-mapping.txt.gz"
-            done
+          for language in intl en; do
+            map="app/build/outputs/mapping/${language}Release/mapping.txt"
+            if [ ! -f "$map" ]; then
+              echo "::error::No R8 mapping at $map"
+              exit 1
+            fi
+            gzip -9c "$map" \
+              > "dist/wmkeyboard-${version}-vc${code}-full-${language}-mapping.txt.gz"
           done
-          # Native symbols, full only: lite sets debugSymbolLevel NONE. Both
-          # language builds carry the same .so files, but each variant writes
-          # its own zip and the release grid links them separately.
-          for language in En; do
-            lower=$(echo "$language" | tr '[:upper:]' '[:lower:]')
-            syms="app/build/outputs/native-debug-symbols/full${language}Release/native-debug-symbols.zip"
+          # Native symbols. Both language builds carry the same .so files, but
+          # each variant writes its own zip and the release grid links them
+          # separately.
+          for lower in en; do
+            syms="app/build/outputs/native-debug-symbols/${lower}Release/native-debug-symbols.zip"
             if [ -f "$syms" ]; then
               cp "$syms" "dist/wmkeyboard-${version}-vc${code}-full-${lower}-native-symbols.zip"
             else
@@ -215,12 +213,12 @@ jobs:
           done
           # The language packs, cut from the all-languages universal APK and
           # signed with the release key the app checks them against.
-          intl=$(find app/build/outputs/apk/fullIntl -name '*-universal-release.apk' | head -1)
-          [ -n "$intl" ] || { echo "::error::No full · all languages universal APK"; exit 1; }
+          intl=$(find app/build/outputs/apk/intl -name '*-universal-release.apk' | head -1)
+          [ -n "$intl" ] || { echo "::error::No all-languages universal APK"; exit 1; }
           .github/scripts/language-packs.sh "$intl" dist "$version" "$code"
           # The libraries the standard build fetches from the data repository,
           # as the publish job uploads them there.
-          standard=$(find app/build/outputs/apk/fullEn -name '*-universal-release.apk' | head -1)
+          standard=$(find app/build/outputs/apk/en -name '*-universal-release.apk' | head -1)
           .github/scripts/collect-natives.sh "$standard" natives
           # nullglob: with no symbols zip, a literal `*.zip` would reach
           # sha256sum and fail the step under the runner's `bash -e`.
@@ -250,8 +248,8 @@ jobs:
   # points at this file through `Binaries:` (fdroid/com.wasimaster.wmkeyboard.yml).
   #
   # It has to be the build F-Droid makes, byte for byte, and since 0.6.0 that
-  # build compiles the lite edition's native libraries (Harper, whisper.cpp,
-  # ExecuTorch) from source with the NDK, Rust and CMake rather than taking
+  # build compiles its native libraries (Harper, whisper.cpp, ExecuTorch and
+  # the rest native/build-fdroid-libs.sh lists) from source with the NDK, Rust and CMake rather than taking
   # the committed ones. So the APK is not built here with Gradle: F-Droid's own
   # `fdroid build` makes it, from fdroidserver master inside F-Droid's
   # buildserver image, from the recipe in this repo with one entry for this
@@ -361,8 +359,8 @@ jobs:
           unzip -p "$out" META-INF/version-control-info.textproto | grep -q "revision: \"$GITHUB_SHA\"" \
             || { echo "::error::$out does not record commit $GITHUB_SHA"; exit 1; }
           # The typing engine must be in it, built from source, for this ABI
-          # and no other. The lite edition's other engines are built from
-          # source too, but delivered on demand: pinned, not packaged.
+          # and no other. Its other engines are built from source too, but
+          # delivered on demand: pinned, not packaged.
           abi='${{ matrix.abi }}'
           unzip -l "$out" | grep -q "lib/$abi/libwm_engine_jni.so" \
             || { echo "::error::$out has no $abi libwm_engine_jni.so"; exit 1; }
@@ -402,7 +400,7 @@ jobs:
           retention-days: 30
 
   # The offline build: no INTERNET permission (#292), for people who want a
-  # keyboard that cannot reach the network at all. full · all languages, with
+  # keyboard that cannot reach the network at all. All languages, with
   # every feature library and translation built in, since it could never
   # fetch them; models still come in through Import. One of GitHub's two
   # builds from 0.6.3, beside the standard one. Installs over the standard
@@ -462,7 +460,7 @@ jobs:
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: |
-          ./gradlew assembleFullIntlRelease \
+          ./gradlew assembleIntlRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
       - name: Wipe keystore
@@ -482,13 +480,14 @@ jobs:
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
           mkdir -p dist
-          for variant in full-intl:fullIntl; do
+          # The published names keep the `full` edition token (see the apks job).
+          for variant in full-intl:intl; do
             name=${variant%%:*}
             gradle=${variant##*:}
             for abi in arm64-v8a universal; do
-              apk=$(find app/build/outputs/apk -name "app-${name}-${abi}-release.apk" | head -1)
+              apk=$(find app/build/outputs/apk -name "app-${gradle}-${abi}-release.apk" | head -1)
               if [ -z "$apk" ]; then
-                echo "::error::No app-${name}-${abi}-release.apk under app/build/outputs/apk"
+                echo "::error::No app-${gradle}-${abi}-release.apk under app/build/outputs/apk"
                 exit 1
               fi
               perms=$("$aapt2" dump permissions "$apk")
@@ -553,10 +552,7 @@ jobs:
       # The `en` language build, by its real name. Play translates the app
       # strings itself and injects them into the bundle at upload, so the 48
       # translations in the repo, which were recovered from Play to begin with,
-      # would only be handed back to it. `bundleFullRelease` still exists as an
-      # alias in app/build.gradle.kts and builds the same thing, but it mirrors
-      # the AAB to bundle/fullRelease/ as well, and this job has no use for a
-      # second 60 MB copy.
+      # would only be handed back to it.
       - name: Build AAB
         env:
           RELEASE_STORE_FILE: release.keystore
@@ -575,7 +571,7 @@ jobs:
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
-        run: ./gradlew bundleFullEnRelease --stacktrace
+        run: ./gradlew bundleEnRelease --stacktrace
 
       - name: Wipe keystore
         if: always()
@@ -589,13 +585,13 @@ jobs:
       # no way to reach it, and neither has the retrace bot. So it goes to the
       # release like the others.
       #
-      # `fullEnRelease` and not `fullRelease`: the AAB above is the `en` build
-      # by its real name, and the mapping has to come from the same R8 run.
+      # `enRelease`: the AAB above is the `en` build, and the mapping has to
+      # come from the same R8 run.
       - name: Collect the Play mapping
         run: |
           version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
-          map=app/build/outputs/mapping/fullEnRelease/mapping.txt
+          map=app/build/outputs/mapping/enRelease/mapping.txt
           if [ ! -f "$map" ]; then
             echo "::error::No R8 mapping at $map"
             exit 1
@@ -615,7 +611,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: play-bundle
-          path: app/build/outputs/bundle/fullEnRelease/*.aab
+          path: app/build/outputs/bundle/enRelease/*.aab
           retention-days: 30
 
   # Uploads the AAB to the Play *internal* track via fastlane; promoting to
@@ -837,8 +833,8 @@ jobs:
           echo "announce=$announce" >> "$GITHUB_OUTPUT"
 
       # Announce the new release on the Telegram community in the
-      # announcements and releases topic (#19), linking the full English arm64 APK
-      # and attaching the lite English one (Full is over the 50 MB bot upload cap).
+      # announcements and releases topic (#19), linking the standard English
+      # arm64 APK (telegram_release.py says what it attaches).
       # Once per release: not when this run only updated a published one.
       - name: Announce on Telegram
         if: steps.release.outputs.announce == 'true'

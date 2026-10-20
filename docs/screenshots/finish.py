@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Turns the JVM-rendered settings shots into docs assets, and puts them on the pages.
 
-    ./gradlew :app:testFullEnDebugUnitTest -Pwmkb.docShots=true [-Pwmkb.docShots.only=<regex>]
+    ./gradlew :app:testEnDebugUnitTest -Pwmkb.docShots=true [-Pwmkb.docShots.only=<regex>]
     python3 docs/screenshots/finish.py [ids or regexes...] [--no-pages] [--dry-run]
 
 For every `<id>.light.png` / `<id>.dark.png` under app/build/docshots/ (from

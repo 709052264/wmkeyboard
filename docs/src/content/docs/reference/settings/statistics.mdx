@@ -169,6 +169,6 @@ The row carries an info button repeating the privacy terms. The counts stay on y
 - **The settings screen only ever reads the file.** It never saves, so opening Statistics can't race the keyboard into losing counts. Deleting works the other way round. The file is emptied, then a counter is bumped that tells the keyboard to drop its in-memory copy instead of writing the old numbers back over your deletion.
 - **A fresh install starts from zero.** The counts live in the app's own storage, so uninstalling takes them with it. A backup that includes the statistics section is the only thing that carries them to a new phone.
 - **The typing speed on the spacebar is separate.** <SettingsPath path="Typing / Gestures / Typing speed on the spacebar" /> shows your speed over the last few words while you type. It keeps nothing, so it works with these statistics off and in incognito. See [Switching languages](/languages/switching/#typing-speed-on-the-spacebar).
-- **Nothing here is edition-gated.** Counting, the level, the achievements, the heatmap, the charts and the delete action work identically on full and lite builds.
+- **Nothing here is build-gated.** Counting, the level, the achievements, the heatmap, the charts and the delete action work identically in every build.
 
 See [Privacy at a glance](/privacy/overview/) for what does and doesn't leave the device. [Incognito & secure fields](/privacy/incognito/) covers exactly when the pause kicks in, and [About & diagnostics](/reference/settings/about/) covers the rest of the About tree.

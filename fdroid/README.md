@@ -16,21 +16,23 @@ that would have been a comment is written down here instead.
 
 ## Why each field is what it is
 
-**`gradle: [lite]`** — the lite flavour. Every proprietary dependency in the
-tree (ML Kit, LiteRT, Play in-app updates, `play-services-auth`) is declared
-`fullImplementation` or sits behind the `enablePlayStore`/`enableGms` flags, so
-this variant has no Google artifact on its compile classpath at all.
+**`gradle: [lite]`** — the old `lite` flavour, which no longer exists. Up to
+0.6.2 `:app` had a `capabilities` dimension (`full`, `lite`) and F-Droid built
+`lite`. From 0.6.3 F-Droid builds the standard app with `wmkb.enableFdroid=true`
+(see `gradleprops`), which leaves every proprietary dependency (ML Kit, LiteRT,
+LiteRT-LM, the Google Home APIs) off the compile classpath and swaps in the
+`src/nogoogle` stand-ins for the classes that call ML Kit directly. Play in-app
+updates and `play-services-auth` sit behind the `enablePlayStore`/`enableGms`
+flags as before.
 
-It names one flavour although `:app` has had two dimensions since 0.5.10, and
-that is deliberate. fdroidserver turns the list into `assembleLiteRelease`,
-which AGP no longer registers, so `app/build.gradle.kts` registers it as an
-alias: it builds `assembleLiteIntlRelease`, the `lite` build with all 48
-interface languages, and mirrors the APK to `app/build/outputs/apk/lite/release/`,
-the only flavoured directory fdroidserver will look in for a recipe that says
-`lite`. The alternative, listing `lite` and `intl`, is a merge request to
-fdroiddata that has to land before their bot writes the next entry, because
-`AutoUpdateMode` copies the previous entry as it stands and a build of the old
-list fails.
+fdroidserver turns the list into `assembleLiteRelease`, which AGP does not
+register, so `app/build.gradle.kts` registers it as an alias: it builds
+`assembleIntlRelease`, the build with all 48 interface languages, and mirrors
+the APK to `app/build/outputs/apk/lite/release/`, the only flavoured directory
+fdroidserver will look in for a recipe that says `lite`. The alias stays until
+a merge request to fdroiddata switches the list to `intl` (which builds
+`assembleIntlRelease` and looks in `apk/intl/release/` with no help), because
+`AutoUpdateMode` copies the previous entry as it stands.
 
 **`gradleprops`** — the first two default to `false` when `local.properties` is
 absent, which it is in a clean checkout; they are stated anyway so the recipe
@@ -90,13 +92,15 @@ after the colon. That is its output; leave it.
 
 **`scandelete`, `build`, `ndk` and `sudo`**: the native libraries, from 0.6.0
 built from source. `scandelete` removes every prebuilt `.so` and `.a` in the
-tree before the source scan. Some belong to variants this build never
-produces: the Tesseract and Whistle libraries under
-`core/intelligence/src/full/` and `core/voice/src/full/`, the Cactus archive
+tree before the source scan. Some are ones this build cannot make from source
+and goes without: the Tesseract and Whistle libraries (under
+`core/intelligence/src/full/` and `core/voice/src/full/` up to 0.6.2, and from
+0.6.3 under `core/intelligence/src/tesseract/` and `core/voice/src/whistle/`),
+the Cactus archive
 Whistle links (`native/whistle-jni/prebuilt`, which has no source to build
 from), and the LLM module's ABI placeholders. The other directories,
 `src/main/jniLibs` of `:core:intelligence`, `:core:voice` and
-`:core:language`, hold what lite itself ships since 0.6.0: Harper's grammar
+`:core:language`, hold what this build itself ships since 0.6.0: Harper's grammar
 engine, whisper.cpp for Offline Whisper, the selective ExecuTorch build behind
 Offline Asr4All, Parakeet and Moonshine, and, from the release after 0.6.0,
 the text engines (Avro, Khipro, Bijoy, Hindi, Urdu and the Indic languages),
@@ -107,8 +111,9 @@ From the release after 0.6.2 the ExecuTorch library lives apart, in
 FUTO Swipe glide engine), and the next entry's `scandelete` needs that path
 added.
 
-Up to 0.5.14 lite carried none of them, so deleting was the whole story. Now
-`build` puts them back: `../native/build-lite-libs.sh` runs after the scan and
+Up to 0.5.14 this build carried none of them, so deleting was the whole
+story. Now `build` puts them back: `../native/build-lite-libs.sh` runs after
+the scan and
 before Gradle, and compiles all of them from source into the directories the
 scan emptied (`native/wm-engine-jni` and `native/harper-jni` with Rust and
 `cargo ndk`, `native/whispercpp-jni` and `native/executorch-jni` with CMake). whisper.cpp,
@@ -153,7 +158,7 @@ every phone, about 16 MB more than an arm64 phone uses. Each entry sets
 `wmkb.abi`, which makes Gradle package that ABI's libraries alone and stamp
 its versionCode (`wmkb.versionCode * 10 + digit`: 1 armeabi-v7a, 2
 arm64-v8a, 3 x86_64; `abiDigits` in `app/build.gradle.kts`), and
-`WMKB_ABIS` in `build`, which makes `native/build-lite-libs.sh` compile that
+`WMKB_ABIS` in `build`, which makes `native/build-fdroid-libs.sh` compile that
 ABI alone, so ExecuTorch builds once per entry instead of three times. The
 F-Droid client installs the highest code a phone can run, which is why
 arm64-v8a sits above armeabi-v7a.
@@ -377,3 +382,27 @@ trailing space before a folded line break, so the string parses back with single
 spaces and no newlines. Keep any long value free of real line breaks — an
 earlier `AntiFeatures` description was written as a `|-` block and every wrap
 point became a literal `\n` in the middle of a sentence.
+
+## The next merge request to fdroiddata
+
+The entries above are for released commits and stay as they are. The first
+release with the 0.6.3 build changes needs one merge request before F-Droid's
+bot copies the last entry forward, because these paths moved or appeared:
+
+- `scandelete` gains `core/intelligence/src/tesseract/jniLibs`,
+  `core/voice/src/whistle/jniLibs`, `core/voice/src/executorch/jniLibs`,
+  `core/voice/src/onnx/jniLibs` and `core/input/src/main/jniLibs`, and loses the
+  two `src/full/jniLibs` lines, which no longer exist. A prebuilt `.so` the
+  list misses fails the scan.
+- `build` may call `../native/build-fdroid-libs.sh`. `build-lite-libs.sh` is
+  kept as a wrapper, so the copied entries keep working either way.
+- `gradle` may become `[intl]`. `assembleLiteRelease` is kept as an alias, so
+  `[lite]` keeps working too.
+- `gradleprops` already carries `wmkb.enableFdroid=true`, which is now what
+  keeps Google's SDKs out; nothing to change.
+
+The F-Droid build fetches its feature libraries on demand (native delivery)
+only after the user turns on **Download feature libraries** under Privacy,
+which says it skips F-Droid's checks. The libraries it pins are the ones this
+recipe compiled, so a download only matches when the published file is
+byte for byte the same build.

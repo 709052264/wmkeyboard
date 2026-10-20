@@ -15,7 +15,7 @@ has downloaded the new AAR:
 
     python3 tools/handwriting/gen_ink_models.py
 
-InkModelTagsTest (testFull in :core:intelligence) fails when the constant and
+InkModelTagsTest (in :core:intelligence) fails when the constant and
 the library disagree.
 """
 
@@ -28,7 +28,7 @@ import zipfile
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CATALOG = os.path.join(ROOT, "gradle", "libs.versions.toml")
 TARGET = os.path.join(
-    ROOT, "core", "intelligence", "src", "full", "java",
+    ROOT, "core", "intelligence", "src", "main", "java",
     "com", "wasimaster", "wmkeyboard", "core", "handwriting", "InkModelTags.kt",
 )
 
