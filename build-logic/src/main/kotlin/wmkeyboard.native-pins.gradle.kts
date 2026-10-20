@@ -35,6 +35,8 @@ val ownSpecs = mapOf(
     "libwmwhispercpp_v82.so" to Own("speech", false),
     "libwmexecutorch.so" to Own("speech", false),
     "libwmwhistle.so" to Own("speech", true),
+    "libwmdenoise.so" to Own("speech", false),
+    "libwmsherpa.so" to Own("onnx", false),
     "libharper_jni.so" to Own("grammar", false),
     "libwmtess.so" to Own("ocr", true),
 )
@@ -43,6 +45,7 @@ val ownSpecs = mapOf(
 val ownDirs = mapOf(
     "core/voice/src/main/jniLibs" to false,
     "core/voice/src/full/jniLibs" to true,
+    "core/voice/src/onnx/jniLibs" to false,
     "core/intelligence/src/main/jniLibs" to false,
     "core/intelligence/src/full/jniLibs" to true,
 )
@@ -75,13 +78,21 @@ val npuSpecs = if (!npuEnabled) emptyMap() else mapOf(
     "libQnnHtpV81Skel.so" to Dep("npu-V81", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
 )
 
+// Microsoft's ONNX Runtime behind Offline Sherpa, in every build: MIT, read
+// out of its own AAR on Maven Central, so it needs no licence dialog. The
+// wmkeyboard.onnxruntime convention packages it into :core:voice; the
+// exclude below takes it out again.
+val onnxSpecs = mapOf(
+    "libonnxruntime.so" to Dep("onnx", "com.microsoft.onnxruntime:onnxruntime-android"),
+)
+
 val pinAbis = listOf("arm64-v8a", "armeabi-v7a", "x86_64")
 
 // None of them goes into the APK. Our own libraries reach :app from the core
 // modules' jniLibs, the dependencies' from their AARs; one exclude list covers
 // both, and the NPU runtime is never packaged here at all.
 extensions.getByType(ApplicationExtension::class.java).packaging.jniLibs.excludes +=
-    (ownSpecs.keys + dependencySpecs.keys).map { "**/$it" }
+    (ownSpecs.keys + dependencySpecs.keys + onnxSpecs.keys).map { "**/$it" }
 
 // The NPU runtime is not a dependency of the app, so its two AARs are resolved
 // here as files, the way the wmkeyboard.npu-runtime convention takes them.
@@ -90,9 +101,13 @@ val npuAars = configurations.create("nativePinsNpu") {
     isCanBeResolved = true
     isTransitive = false
 }
-if (npuEnabled) {
+// ONNX Runtime is not a dependency either; its AAR rides the same
+// configuration, so one artifact view covers both.
+run {
     val catalog = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
-    for (alias in listOf("litert-npu-runtime-qualcomm", "qnn-runtime")) {
+    val aliases = listOf("onnxruntime-android") +
+        if (npuEnabled) listOf("litert-npu-runtime-qualcomm", "qnn-runtime") else emptyList()
+    for (alias in aliases) {
         val module = catalog.findLibrary(alias).get().get()
         dependencies.add(npuAars.name, "${module.module.group}:${module.module.name}:${module.versionConstraint.requiredVersion}@aar")
     }
@@ -121,7 +136,7 @@ extensions.getByType(ApplicationAndroidComponentsExtension::class.java).onVarian
         }
         ownLibraries.set(own)
         abis.set(pinAbis)
-        val deps = if (full) dependencySpecs + npuSpecs else emptyMap()
+        val deps = onnxSpecs + if (full) dependencySpecs + npuSpecs else emptyMap()
         mavenLibraries.set(deps.map { (name, dep) -> listOf(name, dep.gate, dep.module, dep.licence).joinToString("\t") })
         // The raw AARs of this variant's own runtime classpath: the exact
         // versions whose Java code the APK carries, so the pinned library is

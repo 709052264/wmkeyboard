@@ -114,6 +114,19 @@ the scripts compile with, and `sudo` installs CMake, Ninja, make and a host comp
 for ExecuTorch's flatbuffers tools, and the two Python modules the code
 generator imports.
 
+From the release after 0.6.2, two more come from the same script:
+`native/rnnoise-jni` (RNNoise, plain C, into `core/voice/src/main/jniLibs`)
+and `native/sherpa-onnx-jni` (sherpa-onnx, CMake, into
+`core/voice/src/onnx/jniLibs`). The next entry's `scandelete` needs
+`core/voice/src/onnx/jniLibs` added. sherpa-onnx's CMake fetches its own
+dependencies (kaldi-native-fbank, kaldi-decoder, simple-sentencepiece,
+OpenFst and others) at the versions its pinned tag names. Its bridge links
+against a stub of ONNX Runtime compiled from `ort_stub.c` and the runtime's
+headers, cloned at a pinned tag; no ONNX Runtime binary is in the tree or the
+build. The runtime itself is Microsoft's MIT-licensed AAR on Maven Central,
+read on the phone after the download opt-in, like every other delivered
+library.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

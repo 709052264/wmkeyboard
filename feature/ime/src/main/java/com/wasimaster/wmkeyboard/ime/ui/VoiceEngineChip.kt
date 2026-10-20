@@ -154,6 +154,7 @@ internal fun voiceEngineName(engine: String): String = stringResource(
         "asr4all" -> R.string.ime_voice_engine_asr4all
         "parakeet" -> R.string.ime_voice_engine_parakeet
         "moonshine" -> R.string.ime_voice_engine_moonshine
+        "sherpa" -> R.string.ime_voice_engine_sherpa
         "server" -> R.string.ime_voice_engine_server
         else -> R.string.ime_voice_engine_system
     },

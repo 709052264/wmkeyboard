@@ -472,6 +472,9 @@ android {
         // scanner's offline reader. Library files only: their Kotlin stays
         // in the base.
         dynamicFeatures += ":feature:speech"
+        // ONNX Runtime (~33 MB on arm64) and the sherpa-onnx bridge behind
+        // Offline Sherpa, fetched when Sherpa is first picked.
+        dynamicFeatures += ":feature:onnx"
         dynamicFeatures += ":feature:grammar"
         dynamicFeatures += ":feature:ocr"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
@@ -1340,7 +1343,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:grammar and :feature:ocr modules.
+        // :feature:speech, :feature:onnx, :feature:grammar and :feature:ocr modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

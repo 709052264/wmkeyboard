@@ -2,7 +2,6 @@ package com.wasimaster.wmkeyboard.core.voice
 
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
-import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperLanguages
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
@@ -13,7 +12,7 @@ import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import java.io.File
 
 /**
- * One engine, and for Whisper and the ExecuTorch engines one model, that can
+ * One engine, and for Whisper, the ExecuTorch engines and Sherpa one model, that can
  * take dictation in a language now. [modelLabel] is the model's own name and
  * is never translated; the engine's name is a string resource the UI owns.
  */
@@ -51,7 +50,7 @@ object VoiceChoices {
         languageId = languageId,
         whistleReady = WhistleEngine.shipped && WhistleModelStore.isDownloaded(filesDir),
         whisperModels = if (whisperEnabled) WhisperStore.downloadedModels(filesDir) else emptyList(),
-        etModels = if (EtNative.shipped) EtEngine.entries.flatMap { EtStore.downloaded(filesDir, it) } else emptyList(),
+        etModels = EtEngine.entries.filter { it.runtimeShipped }.flatMap { EtStore.downloaded(filesDir, it) },
         serverConfigured = serverConfigured,
     )
 
@@ -72,7 +71,7 @@ object VoiceChoices {
         }
         for (engine in EtEngine.entries) {
             if (!engine.supports(languageId)) continue
-            etModels.filter { it.engine == engine }
+            etModels.filter { it.engine == engine && it.supports(languageId) }
                 .sortedByDescending { it.millions }
                 .forEach { add(VoiceChoice(engine.id, it.id, it.label)) }
         }

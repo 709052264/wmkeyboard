@@ -8,6 +8,12 @@
 #   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
 #   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
 #   Moonshine
+#   Noise reduction     rnnoise-jni/build.sh      libwmdenoise.so
+#   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
+#
+# libwmsherpa is linked against a stub of ONNX Runtime built from source
+# headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
+# on the phone from Maven Central after the F-Droid download opt-in.
 #
 # F-Droid's recipe deletes the committed copies of these libraries before its
 # source scan and runs this script in their place (fdroid/README.md), and the
@@ -57,3 +63,5 @@ fi
 "$HERE/harper-jni/build.sh"
 "$HERE/whispercpp-jni/build.sh"
 "$HERE/executorch-jni/build.sh"
+"$HERE/rnnoise-jni/build.sh"
+"$HERE/sherpa-onnx-jni/build.sh"

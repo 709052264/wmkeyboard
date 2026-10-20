@@ -59,7 +59,7 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Play builds leave src/main/jniLibs (whisper.cpp and ExecuTorch) and
+// Play builds leave src/main/jniLibs (whisper.cpp, ExecuTorch, RNNoise) and
 // src/full/jniLibs (Whistle) out of this module, so out of the base APK:
 // the on-demand :feature:speech split packages the same directories
 // instead. The files stay here because the native build scripts and
@@ -76,6 +76,13 @@ if (playStoreChannel) {
     }
 }
 
+// Offline Sherpa's libraries: libwmsherpa (native/sherpa-onnx-jni) from
+// src/onnx/jniLibs, and Microsoft's libonnxruntime.so out of its AAR. Kept
+// apart from src/main/jniLibs because they ride their own gate, `onnx`: on
+// Play the on-demand :feature:onnx split packages both instead, so this
+// module carries neither there.
+if (!playStoreChannel) apply(plugin = "wmkeyboard.onnxruntime")
+
 androidComponents {
     onVariants { variant ->
         // Static-source-dir mechanism rather than a flavour folder for the
@@ -83,6 +90,9 @@ androidComponents {
         // which a flavour folder cannot be.
         if (!playStoreChannel && variant.flavorName == "full") {
             variant.sources.kotlin?.addStaticSourceDirectory("src/whisperbridge/java")
+        }
+        if (!playStoreChannel) {
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/onnx/jniLibs")
         }
     }
 }

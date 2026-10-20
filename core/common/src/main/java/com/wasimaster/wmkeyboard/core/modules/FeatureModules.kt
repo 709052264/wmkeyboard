@@ -88,6 +88,16 @@ object FeatureModules {
     @Volatile
     var speech: ModuleGate = AlwaysInstalled
 
+    /**
+     * `:feature:onnx`: Microsoft's ONNX Runtime and the sherpa-onnx bridge
+     * built on it (`libwmsherpa`), behind the Sherpa voice engine
+     * (`:core:voice`). Outside Play the runtime is read straight out of
+     * Microsoft's AAR on Maven Central, never mirrored. Other ONNX models can
+     * ride the same runtime later; only sherpa-onnx's bridge is specific.
+     */
+    @Volatile
+    var onnx: ModuleGate = AlwaysInstalled
+
     /** `:feature:grammar`: the Harper grammar library (`:core:intelligence`). */
     @Volatile
     var grammar: ModuleGate = AlwaysInstalled

@@ -592,6 +592,10 @@ object ProviderTypes {
         "moonshine", VOICE, R.string.core_tools_provider_moonshine, R.string.core_tools_provider_moonshine_desc,
         onDevice = true, freeSoftware = true,
     )
+    val SHERPA = ProviderType(
+        "sherpa", VOICE, R.string.core_tools_provider_sherpa, R.string.core_tools_provider_sherpa_desc,
+        onDevice = true, freeSoftware = true,
+    )
 
     /** Anything that speaks OpenAI's `/audio/transcriptions`: speaches, whisper.cpp's server, Groq. */
     val TRANSCRIPTION_SERVER = ProviderType(
@@ -608,6 +612,7 @@ object ProviderTypes {
             ASR4ALL.id to "asr4all",
             PARAKEET.id to "parakeet",
             MOONSHINE.id to "moonshine",
+            SHERPA.id to "sherpa",
             TRANSCRIPTION_SERVER.id to ENGINE_SERVER,
         )
     }
@@ -630,7 +635,7 @@ object ProviderTypes {
         HOME_ASSISTANT, GOOGLE_HOME, SMARTTHINGS, HUE, OPENHAB, TUYA, SWITCHBOT,
         VISION_OCR, RENS,
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
-        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, TRANSCRIPTION_SERVER,
+        SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, TRANSCRIPTION_SERVER,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

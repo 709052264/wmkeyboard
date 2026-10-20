@@ -5679,6 +5679,13 @@ data class WhisperSettings(
     /** Force Whisper to translate speech to English instead of transcribing verbatim. */
     val translate: Boolean = false,
     /**
+     * RNNoise in front of the on-device engines (Whisper, Whistle, the
+     * ExecuTorch engines, Sherpa): steady background noise taken out of the
+     * microphone's audio before a model hears it. The system recognizer and
+     * the transcription server get the audio as it is.
+     */
+    val denoise: Boolean = false,
+    /**
      * The transcription server's API root for the "server" engine, e.g.
      * `http://192.168.1.10:8000/v1`. Any server that speaks OpenAI's
      * `/audio/transcriptions` works; see `TranscriptionClient.endpoint`.
@@ -10389,6 +10396,7 @@ class SettingsRepository(private val context: Context) {
         private val WHISPER_MODEL_ID = stringPreferencesKey("whisper_model_id")
         private val WHISPER_MODEL_BY_LANG = stringPreferencesKey("whisper_model_by_lang")
         private val WHISPER_TRANSLATE = booleanPreferencesKey("whisper_translate")
+        private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
         private val VOICE_SERVER_KEY = stringPreferencesKey("voice_server_key")
         private val VOICE_SERVER_MODEL = stringPreferencesKey("voice_server_model")
@@ -12581,6 +12589,7 @@ class SettingsRepository(private val context: Context) {
             modelByLang = p[WHISPER_MODEL_BY_LANG]?.let { decodeWhisperModelByLang(it) }
                 ?: defaults.whisper.modelByLang,
             translate = p[WHISPER_TRANSLATE] ?: defaults.whisper.translate,
+            denoise = p[VOICE_DENOISE] ?: defaults.whisper.denoise,
             serverUrl = p[VOICE_SERVER_URL] ?: defaults.whisper.serverUrl,
             serverKey = p[VOICE_SERVER_KEY] ?: defaults.whisper.serverKey,
             serverModel = p[VOICE_SERVER_MODEL] ?: defaults.whisper.serverModel,
@@ -13961,6 +13970,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWhisperTranslate(value: Boolean) =
         editPrefs { it[WHISPER_TRANSLATE] = value }
+
+    suspend fun setVoiceDenoise(value: Boolean) =
+        editPrefs { it[VOICE_DENOISE] = value }
 
     suspend fun setVoiceServerUrl(value: String) =
         editPrefs { it[VOICE_SERVER_URL] = value.trim().trimEnd('/') }

@@ -681,6 +681,8 @@ fun availableVoiceEngines(): Set<String> = buildSet {
         add("parakeet")
         add("moonshine")
     }
+    // sherpa-onnx on ONNX Runtime, the `onnx` gate.
+    if (com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.shipped) add("sherpa")
 }
 
 /**

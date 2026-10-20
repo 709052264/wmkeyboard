@@ -58,6 +58,7 @@ import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
@@ -937,6 +938,38 @@ internal fun SpeechModuleBanner(settings: LiveSettings) {
             onConfirm = {
                 metered = false
                 WhisperCpp.requestModule()
+            },
+            onDismiss = { metered = false },
+        )
+    }
+    if (blocked) MeteredBlockedDialog(onDismiss = { blocked = false })
+}
+
+/**
+ * ONNX Runtime and the sherpa-onnx bridge (`:feature:onnx` on Play, the `onnx`
+ * gate elsewhere), on an install that has not fetched them. Nothing where the
+ * APK carries them. The same banner and questions as [SpeechModuleBanner].
+ */
+@Composable
+internal fun OnnxModuleBanner(settings: LiveSettings) {
+    val context = LocalContext.current
+    val module by SherpaNative.moduleState.collectAsState()
+    if (module == ModuleState.Installed) return
+    var metered by remember { mutableStateOf(false) }
+    var blocked by remember { mutableStateOf(false) }
+    WhisperModuleBanner(module) {
+        when (downloadDecisionNow(context, settings.value)) {
+            MeteredDecision.ALLOWED -> SherpaNative.requestModule()
+            MeteredDecision.ASK -> metered = true
+            MeteredDecision.BLOCKED -> blocked = true
+        }
+    }
+    if (metered) {
+        MeteredDownloadDialog(
+            detail = stringResource(R.string.models_whisper_module_metered_body),
+            onConfirm = {
+                metered = false
+                SherpaNative.requestModule()
             },
             onDismiss = { metered = false },
         )

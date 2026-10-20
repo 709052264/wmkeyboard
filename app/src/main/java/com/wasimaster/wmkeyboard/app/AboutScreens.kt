@@ -62,7 +62,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.app.updates.AllLanguagesRow
 import com.wasimaster.wmkeyboard.app.updates.KeepEnglishOnlyRow
@@ -425,6 +427,67 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright (c) 2024 Useful Sensors",
                 "MIT", "mit-moonshine.txt",
                 "https://github.com/moonshine-ai/moonshine",
+            ),
+        )
+    }
+    if (VoiceDenoise.shipped) {
+        add(
+            Attribution(
+                "RNNoise",
+                R.string.about_bundled_rnnoise_used,
+                "Copyright (c) 2017 Mozilla, (c) 2007-2017 Jean-Marc Valin, (c) 2005-2017 Xiph.Org Foundation",
+                "BSD-3-Clause", "bsd-rnnoise.txt",
+                "https://github.com/xiph/rnnoise",
+            ),
+        )
+    }
+    if (SherpaNative.shipped) {
+        // Offline Sherpa: Microsoft's runtime, fetched from Maven Central,
+        // k2-fsa's toolkit built into the bridge, and the weights it
+        // downloads, each under its own licence.
+        add(
+            Attribution(
+                "ONNX Runtime",
+                R.string.about_bundled_onnxruntime_used,
+                "Copyright (c) Microsoft Corporation",
+                "MIT", "mit-onnxruntime.txt",
+                "https://github.com/microsoft/onnxruntime",
+            ),
+        )
+        add(
+            Attribution(
+                "sherpa-onnx",
+                R.string.about_bundled_sherpa_used,
+                "Copyright (c) 2022-2026 Xiaomi Corporation",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/k2-fsa/sherpa-onnx",
+            ),
+        )
+        add(
+            Attribution(
+                "Vosk models",
+                R.string.about_bundled_vosk_used,
+                "Copyright Alpha Cephei Inc.",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://alphacephei.com/vosk/models",
+            ),
+        )
+        add(
+            Attribution(
+                "Kroko ASR community models",
+                R.string.about_bundled_kroko_used,
+                "Copyright Banafo",
+                "CC-BY-SA-4.0", "cc-by-sa-4.0.txt",
+                "https://huggingface.co/Banafo/Kroko-ASR",
+            ),
+        )
+        add(
+            Attribution(
+                "Silero VAD",
+                R.string.about_bundled_silero_used,
+                "Copyright (c) 2020-present Silero Team",
+                "MIT", "mit-silero-vad.txt",
+                "https://github.com/snakers4/silero-vad",
             ),
         )
     }

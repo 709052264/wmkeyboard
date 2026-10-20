@@ -1,12 +1,16 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import java.io.File
 import java.security.MessageDigest
 
 /**
- * The dictation engines that run on [EtNative]. [id] is the value the
- * Recognition engine setting stores; [dirName] is the folder under `filesDir`.
- * [languages] are the base language codes the engine transcribes.
+ * The dictation engines whose models are downloaded file by file from
+ * Hugging Face: the ones that run on [EtNative], and Sherpa, which runs on
+ * ONNX Runtime ([SherpaNative]) but keeps its models the same way. [id] is the
+ * value the Recognition engine setting stores; [dirName] is the folder under
+ * `filesDir`. [languages] are the base language codes some model of the
+ * engine transcribes; each [EtModel] can narrow that.
  */
 enum class EtEngine(val id: String, val dirName: String, val languages: Set<String>) {
     ASR4ALL("asr4all", "asr4all", setOf("en")),
@@ -20,7 +24,21 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
         ),
     ),
     MOONSHINE("moonshine", "moonshine", setOf("en")),
+
+    /**
+     * Sherpa: k2-fsa's sherpa-onnx running streaming Zipformer transducers,
+     * one model per language (one covers eight), decoded while the user
+     * speaks, with Silero to hear the end of a phrase.
+     */
+    SHERPA(
+        "sherpa", "sherpa",
+        setOf("en", "bn", "ru", "ko", "fr", "de", "es", "zh", "ar", "id", "ja", "th", "vi"),
+    ),
     ;
+
+    /** Whether this build has the runtime the engine needs, counting a module not fetched yet. */
+    val runtimeShipped: Boolean
+        get() = if (this == SHERPA) SherpaNative.shipped else EtNative.shipped
 
     /** Whether [languageId] (a keyboard language id such as `en_GB` or `de`) is one this engine transcribes. */
     fun supports(languageId: String): Boolean =
@@ -31,8 +49,15 @@ enum class EtEngine(val id: String, val dirName: String, val languages: Set<Stri
     }
 }
 
-/** One file of a model: where it lives in the repo, and what it must be. */
-class EtFile(val path: String, val bytes: Long, val sha256: String) {
+/** A Hugging Face repo at a pinned revision. */
+class EtSource(val repo: String, val revision: String)
+
+/**
+ * One file of a model: where it lives in the repo, and what it must be.
+ * [from] names another repo for a file the model's own repo does not have,
+ * such as the Silero VAD every Sherpa model carries.
+ */
+class EtFile(val path: String, val bytes: Long, val sha256: String, val from: EtSource? = null) {
     val name: String get() = path.substringAfterLast('/')
 }
 
@@ -51,12 +76,31 @@ class EtModel(
     val repo: String,
     val revision: String,
     val files: List<EtFile>,
+    /** The languages this model transcribes, when narrower than its engine's. */
+    val languages: Set<String>? = null,
+    /**
+     * A helper rather than a dictation model: Sherpa's punctuation model.
+     * Never a choice of its own; kept on the device, it punctuates.
+     */
+    val punctuation: Boolean = false,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
-    fun url(file: EtFile): String = "https://huggingface.co/$repo/resolve/$revision/${file.path}"
+    fun url(file: EtFile): String {
+        val source = file.from
+        return if (source != null) {
+            "https://huggingface.co/${source.repo}/resolve/${source.revision}/${file.path}"
+        } else {
+            "https://huggingface.co/$repo/resolve/$revision/${file.path}"
+        }
+    }
 
     fun file(name: String): EtFile = files.first { it.name == name }
+
+    /** Whether [languageId] (`en_GB`, `bn`) is one this model transcribes. */
+    fun supports(languageId: String): Boolean =
+        !punctuation && languageId.trim().lowercase().substringBefore('-').substringBefore('_') in
+            (languages ?: engine.languages)
 }
 
 /** Every model the ExecuTorch engines can download. */
@@ -64,6 +108,16 @@ object EtCatalog {
 
     private const val ASR4ALL_PTE = "executorch/xnnpack_int8/asr_encoder.pte"
     private const val ASR4ALL_META = "executorch/xnnpack_int8/metadata.json"
+
+    /**
+     * Silero VAD v4 (MIT), which hears where a Sherpa phrase ends. Kept beside
+     * each Sherpa model rather than once, so deleting a model never breaks
+     * another.
+     */
+    private val SILERO_VAD = EtFile(
+        "silero_vad.onnx", 1_807_522L, "a35ebf52fd3ce5f1469b2a36158dba761bc47b973ea3382b3186ca15b1f5af28",
+        from = EtSource("csukuangfj/vad", "fba88cd2e921609e7675c3aaf51e0b9b295da4bc"),
+    )
 
     val models: List<EtModel> = listOf(
         // Small files first in each list: a bad connection fails before the big one.
@@ -127,9 +181,170 @@ object EtCatalog {
                 ),
             ),
         ),
+        // Sherpa (sherpa-onnx on ONNX Runtime): streaming Zipformer
+        // transducers, one per language unless said otherwise. Each carries
+        // its own copy of Silero VAD (2 MB), so a model is whole on its own.
+        // k2-fsa's 20M-parameter English Zipformer (Apache-2.0), int8.
+        EtModel(
+            "sherpa-en-small", EtEngine.SHERPA, "en-20m", "Zipformer English Small", 20,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17",
+            "d42f2d9f7ca24806fb667456a18a9f1b60f70d16",
+            listOf(
+                EtFile("tokens.txt", 5_048L, "49e3c2646595fd907228b3c6787069658f67b17377c60aeb8619c4551b2316fb"),
+                EtFile("joiner-epoch-99-avg-1.int8.onnx", 259_572L, "e085d73b593cf9b0707f370dbd656d58327d3fe36d80d849202ef81df02cb01e"),
+                EtFile("decoder-epoch-99-avg-1.int8.onnx", 539_499L, "21e2a2acd961b3ac72f55be2f10f1a285e1b0b0ba010d7c0b6eab141411b163c"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-99-avg-1.int8.onnx", 42_845_182L, "3810755ce7c3ab26b42a8bcf39d191308fa27fb0f53358823ba46141d03b7eb3"),
+            ),
+            languages = setOf("en"),
+        ),
+        // k2-fsa's English Zipformer trained on LibriSpeech and GigaSpeech (Apache-2.0), int8.
+        EtModel(
+            "sherpa-en", EtEngine.SHERPA, "en", "Zipformer English", 70,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26",
+            "672fbf1b30579d6585301139bb363f42a0ad4a24",
+            listOf(
+                EtFile("tokens.txt", 5_048L, "49e3c2646595fd907228b3c6787069658f67b17377c60aeb8619c4551b2316fb"),
+                EtFile("joiner-epoch-99-avg-1-chunk-16-left-128.int8.onnx", 259_335L, "d944208d660d67c8d72cd2acaeac971fa5ceb8c80e76c1968148846fedd6e297"),
+                EtFile("decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx", 1_307_236L, "98da299f471e38bb4e1a8df579b8cc9122d6039576a77e357b3c60f17dd83b02"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx", 71_083_163L, "563fde436d16cf7607cf408cd6b30909819d03162652ef389c2450ced3f45ac1"),
+            ),
+            languages = setOf("en"),
+        ),
+        // Alpha Cephei's small streaming Bengali model (Apache-2.0), converted by k2-fsa.
+        EtModel(
+            "sherpa-bn", EtEngine.SHERPA, "bn", "Vosk Bengali", 23,
+            "csukuangfj2/sherpa-onnx-streaming-zipformer-bn-vosk-2026-02-09",
+            "a7c3c1547450a7c546c876be9ca8a6ab54464423",
+            listOf(
+                EtFile("tokens.txt", 6_252L, "6f3a4d64d7da07e7dd7f3fd679e07607be3ec149d1b807726dbb8bbcc80a9fe1"),
+                EtFile("joiner.onnx", 1_026_462L, "1df7319f4f9c36d7130cacaf629e1d52e904070e7a14bca9d4f209edeb162da6"),
+                EtFile("decoder.onnx", 2_093_080L, "fc03e8ca154593b95748198a56de115d4e6048d97c41692f93dfefb05f3693b4"),
+                SILERO_VAD,
+                EtFile("encoder.onnx", 90_994_145L, "779f2412d6fa56f76be9fe71349cdf3edd10434ae9b1fc5e49834fb904320516"),
+            ),
+            languages = setOf("bn"),
+        ),
+        // Alpha Cephei's small streaming Russian model (Apache-2.0), int8.
+        EtModel(
+            "sherpa-ru", EtEngine.SHERPA, "ru", "Vosk Russian Small", 26,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-small-ru-vosk-int8-2025-08-16",
+            "31fa603e4f31279c6e1f7600fed13dc4312663ab",
+            listOf(
+                EtFile("tokens.txt", 6_388L, "93bbbc0bae6b78c0bbb743d4aa9fded3bb5ff3aac5f0200e3a769a5a05e0fdf6"),
+                EtFile("joiner.int8.onnx", 259_417L, "b55784b071ab7512eab4c7c44e4f5478284ef33c83562cc6a249b972515a31e5"),
+                EtFile("decoder.onnx", 2_093_080L, "89b3088a9e20e1ef7f2e85ce1a3478afe6a9c4ac57369cabcc4beb8e95328ea0"),
+                SILERO_VAD,
+                EtFile("encoder.int8.onnx", 26_214_060L, "e0db705e94ec35d803b1df4f40cda23d064e1142977c80ab288430b109777a9d"),
+            ),
+            languages = setOf("ru"),
+        ),
+        // k2-fsa's Korean Zipformer (Apache-2.0), int8.
+        EtModel(
+            "sherpa-ko", EtEngine.SHERPA, "ko", "Zipformer Korean", 73,
+            "k2-fsa/sherpa-onnx-streaming-zipformer-korean-2024-06-16",
+            "ba6078bca4daf3f0dd37f79d0ab505af71df14a6",
+            listOf(
+                EtFile("tokens.txt", 60_246L, "016bdf0965029263b7ad01b742366ee542ef0bef38261510e8176ff6f2e9e668"),
+                EtFile("joiner-epoch-99-avg-1.int8.onnx", 2_581_421L, "128b80a66a1f718488af8560f9d15895109b99ff3e573f0a0130e03774ef1ced"),
+                EtFile("decoder-epoch-99-avg-1.int8.onnx", 2_844_692L, "68ea197936aabd249f38b53a87c775422bca64428ad4427d0e6e8092593e71fb"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-99-avg-1.int8.onnx", 126_968_852L, "8d0b1aa24fbedd4e3948564ab7facd151b8ce9b0c48fc987c541de2de3af5697"),
+            ),
+            languages = setOf("ko"),
+        ),
+        // A French Zipformer trained on Common Voice and others (Apache-2.0), int8.
+        EtModel(
+            "sherpa-fr", EtEngine.SHERPA, "fr", "Zipformer French", 73,
+            "shaojieli/sherpa-onnx-streaming-zipformer-fr-2023-04-14",
+            "3db9565d9633758d6b87b9a7b3dc09ebfb6b2c73",
+            listOf(
+                EtFile("tokens.txt", 4_819L, "37fb3f2a7bcb85e5fff3f1f66be04e6fbb05077a22f56d177fe85704e945fb31"),
+                EtFile("joiner-epoch-29-avg-9-with-averaged-model.int8.onnx", 259_572L, "fc2f3bb851a15a532c6f2422d53eecd1ca949f12b0897e07a852021c30481711"),
+                EtFile("decoder-epoch-29-avg-9-with-averaged-model.int8.onnx", 1_307_157L, "e72b2b9ed36355bd0dd43433f7dd258e7226ab54c9ef42b28c73ebb785805623"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-29-avg-9-with-averaged-model.int8.onnx", 126_655_903L, "47a94a7fdc8dff63d708be4ea0535747640224467f91e238311f1ddbdd09327e"),
+            ),
+            languages = setOf("fr"),
+        ),
+        // Banafo's Kroko community model for German (CC-BY-SA-4.0).
+        EtModel(
+            "sherpa-de", EtEngine.SHERPA, "de", "Kroko German", 18,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-de-kroko-2025-08-06",
+            "887db3d083240198c2d2b99fb66cfcfe6948ced8",
+            listOf(
+                EtFile("tokens.txt", 5_606L, "86e8370994ff2c01149ba8c4f8709aa93cdc18914b27a717e291e96faf39a6eb"),
+                EtFile("joiner.onnx", 336_817L, "28356bff070aea51ab1d725a3278e81d19f9300f860d3248a7014292264df15a"),
+                EtFile("decoder.onnx", 617_489L, "94a29592b403c53fa2231b478637da1ab4abcef7f5e46e432098416a4a3ed562"),
+                SILERO_VAD,
+                EtFile("encoder.onnx", 70_091_557L, "6e83993d6967ec7a3498b055b7e85ace85b5d64d1b1e8773cb29a43a11f5edb5"),
+            ),
+            languages = setOf("de"),
+        ),
+        // Banafo's Kroko community model for Spanish (CC-BY-SA-4.0).
+        EtModel(
+            "sherpa-es", EtEngine.SHERPA, "es", "Kroko Spanish", 39,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-es-kroko-2025-08-06",
+            "20cf7a4921613397841d31168796cade5b866585",
+            listOf(
+                EtFile("tokens.txt", 6_385L, "1be5e0a58e05d06d327df4c6b7b5e4f8aba01da6981eb016fcaceafc6a56680f"),
+                EtFile("joiner.onnx", 336_817L, "dae35df88d676e320fcdb99217328e66dcf722bf11b0f2459e14ddb5b982ded5"),
+                EtFile("decoder.onnx", 617_488L, "d4ce176b94b25f7acc88717bc3f704fcf5d6e131aaac2e0cabab3885541181ee"),
+                SILERO_VAD,
+                EtFile("encoder.onnx", 154_878_102L, "2d9f5ef87d1a5257f8a6687e21501c56f3aa2fcbfcfab9364dcc4ce4e06ae81b"),
+            ),
+            languages = setOf("es"),
+        ),
+        // k2-fsa's Mandarin Zipformer (Apache-2.0), int8.
+        EtModel(
+            "sherpa-zh", EtEngine.SHERPA, "zh", "Zipformer Chinese", 160,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-zh-int8-2025-06-30",
+            "ad658fa0201659a09ea3c176129a191c77ecae8f",
+            listOf(
+                EtFile("tokens.txt", 20_628L, "6193c7ea1c96d0d9a1e9652789b40d13a8a913b434a5451e93158f5a09fd6652"),
+                EtFile("joiner.int8.onnx", 1_033_416L, "b34584dc6f561089e1d747fedebb3765f2caa72c927ef54d7ca55e5ae40a814b"),
+                EtFile("decoder.onnx", 5_165_083L, "06522ad63cec0fdf6809f4e1db9bb4f7d710c34582e3b35db62ac60eccafac7e"),
+                SILERO_VAD,
+                EtFile("encoder.int8.onnx", 161_141_793L, "5ac51e27981bb4dab01bb9be4958453ba50c3b61c063ddda0eab23fd3671aa4f"),
+            ),
+            languages = setOf("zh"),
+        ),
+        // k2-fsa's eight-language Zipformer (Apache-2.0), int8 encoder and joiner.
+        EtModel(
+            "sherpa-multi", EtEngine.SHERPA, "multi", "Zipformer ar en id ja ru th vi zh", 300,
+            "csukuangfj/sherpa-onnx-streaming-zipformer-ar_en_id_ja_ru_th_vi_zh-2025-02-10",
+            "c6726c1147387ad2a11148b33973135d92a55e6c",
+            listOf(
+                EtFile("tokens.txt", 195_244L, "784f24950f6bcce1b0021035632dd60fd4617ecd8ca0581ab57d7b39d77ba5ab"),
+                EtFile("joiner-epoch-75-avg-11-chunk-16-left-128.int8.onnx", 8_257_421L, "db88e3172323551abaa99b91b18fb422a27ea4a834fd0db10389f9478816f917"),
+                EtFile("decoder-epoch-75-avg-11-chunk-16-left-128.onnx", 33_837_085L, "7ebc63f34b21c8efb4a41a5a2eee7fe1448829ce0230ecc5369e67fc14d90d48"),
+                SILERO_VAD,
+                EtFile("encoder-epoch-75-avg-11-chunk-16-left-128.int8.onnx", 296_583_597L, "f9001ed7a9e46d0294438c1a30cd7c72d1cc4bdd4e7880edbcda36f67081e32e"),
+            ),
+            languages = setOf("ar", "en", "id", "ja", "ru", "th", "vi", "zh"),
+        ),
+        // The sherpa-onnx project's online punctuation model for English:
+        // punctuation and capitals in one pass. Not on k2-fsa's own Hugging
+        // Face; this copy is the same bytes as their GitHub release, pinned by
+        // hash like everything else.
+        EtModel(
+            "sherpa-punct-en", EtEngine.SHERPA, "punct-en", "Punctuation (English)", 7,
+            "brady-pplx/sherpa-onnx-online-punct-en-2024-08-06",
+            "29a49a07620ef067e6fa40580da620c11db07b83",
+            listOf(
+                EtFile("bpe.vocab", 149_430L, "e118b7ad88c54db562517df49e1cffd4836d166c34fb190fd311d7f34eb238f5"),
+                EtFile("model.int8.onnx", 7_490_500L, "9d611f445fe4a46186080fe161be6059d87d72eb88d3a8cb00c1a06e83a6067e"),
+            ),
+            languages = setOf("en"),
+            punctuation = true,
+        ),
     )
 
     fun byId(id: String): EtModel? = models.firstOrNull { it.id == id }
+
+    /** Sherpa's punctuation model, which every English Sherpa model uses once it is downloaded. */
+    val sherpaPunctuation: EtModel get() = models.first { it.engine == EtEngine.SHERPA && it.punctuation }
 
     fun forEngine(engine: EtEngine): List<EtModel> = models.filter { it.engine == engine }
 }
@@ -150,11 +365,19 @@ object EtStore {
     fun isDownloaded(filesDir: File, model: EtModel): Boolean =
         model.files.all { f -> file(filesDir, model, f).let { it.isFile && it.length() == f.bytes } }
 
+    /** The dictation models of [engine] on the device; never a helper such as punctuation. */
     fun downloaded(filesDir: File, engine: EtEngine): List<EtModel> =
-        EtCatalog.forEngine(engine).filter { isDownloaded(filesDir, it) }
+        EtCatalog.forEngine(engine).filter { !it.punctuation && isDownloaded(filesDir, it) }
 
-    /** The model an engine dictates with: the largest one on the device, since that is the one kept on purpose. */
-    fun active(filesDir: File, engine: EtEngine): EtModel? = downloaded(filesDir, engine).maxByOrNull { it.millions }
+    /**
+     * The model an engine dictates with: the largest one on the device that
+     * transcribes every one of [languageIds], since that is the one kept on
+     * purpose. Any language when [languageIds] is empty.
+     */
+    fun active(filesDir: File, engine: EtEngine, languageIds: List<String> = emptyList()): EtModel? =
+        downloaded(filesDir, engine)
+            .filter { model -> languageIds.all(model::supports) }
+            .maxByOrNull { it.millions }
 
     fun bytesOnDisk(filesDir: File, model: EtModel): Long =
         dir(filesDir, model).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
