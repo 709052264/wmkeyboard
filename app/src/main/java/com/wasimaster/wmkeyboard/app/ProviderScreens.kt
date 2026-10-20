@@ -177,7 +177,7 @@ internal fun ProvidersGroup(
         }
     }
     fun chain(): ProviderChain = settings.value.providerChain(tool, env)
-    fun open(row: ResolvedProvider) {
+    fun openRow(row: ResolvedProvider) {
         // A kind a newer build added: nothing to open, only to remove.
         if (row.type == null) removing = row else navigate(providerRoute(tool, row.key))
     }
@@ -208,7 +208,7 @@ internal fun ProvidersGroup(
                         save(ProviderEdits.setChain(tool, chain().withOnOrder(ordered.map { it.key })))
                     },
                     onToggle = ::toggle,
-                    onOpen = ::open,
+                    onOpen = ::openRow,
                     onRemove = { row -> removing = row },
                 )
             }
@@ -233,7 +233,7 @@ internal fun ProvidersGroup(
                         row = row,
                         tool = tool,
                         onToggle = { toggle(row, it) },
-                        onOpen = { open(row) },
+                        onOpen = { openRow(row) },
                         onRemove = { removing = row },
                     )
                 }
