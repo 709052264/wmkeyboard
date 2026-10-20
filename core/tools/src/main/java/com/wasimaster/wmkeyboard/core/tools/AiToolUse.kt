@@ -536,6 +536,7 @@ object AiTools {
             param(
                 "data",
                 "The service's settings as a JSON object, such as {\"brightness_pct\": 40} or {\"temperature\": 21}. " +
+                    "For a fan the states list with speeds, set_percentage takes {\"speed\": 1} for its first speed. " +
                     "Leave it out for a plain on or off.",
                 required = false,
             ),
