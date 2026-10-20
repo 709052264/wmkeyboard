@@ -10529,8 +10529,47 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The focus switch on a tool's field (#665): the keys go to the app's
+     * field, or come back to the tool's. Everything a key can do follows it
+     * at once — typing, Backspace, Enter, the caret keys, undo and redo,
+     * paste, a glide — because every one of those asks
+     * [KeyboardUiState.captureTarget], and that is the one place this answers.
+     */
+    fun onCaptureFocusSwitch() {
+        val state = _uiState.value
+        val key = state.panelFieldKey() ?: return
+        if (state.panelFieldTarget()?.handsKeysToApp != true) return
+        vibrate()
+        if (state.captureHandedToApp) {
+            takeCaptureKeysBack()
+            return
+        }
+        // A dictation into the field would land nowhere once it lets go.
+        if (state.voice.field == key) endFieldVoice()
+        captureComposition = null
+        _uiState.update { it.copy(captureToApp = key, captureSuggestions = emptyList()) }
+    }
+
+    /**
+     * The tool's field takes the keys back from the app's field (#665). A
+     * word still composing over there is settled first, the way it is when
+     * any tool opens: the keys are about to stop reaching it.
+     */
+    private fun takeCaptureKeysBack() {
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        lastGestureWord = null
+        _uiState.update { it.copy(captureToApp = null) }
+    }
+
     /** The caret put where a tap landed in the field's text. */
     fun onCaptureCaretTap(index: Int) {
+        // A tap on a tool field that handed its keys to the app is a tap to
+        // type there again (#665); the caret stays where it was left.
+        if (_uiState.value.captureHandedToApp) {
+            takeCaptureKeysBack()
+            return
+        }
         val state = _uiState.value
         val target = state.captureTarget() ?: return
         if (!target.movableCaret) return
@@ -10548,6 +10587,10 @@ open class WMKeyboardService : InputMethodService() {
      * one that moves; equal, it is just the caret.
      */
     fun onCaptureSelect(anchor: Int, caret: Int) {
+        if (_uiState.value.captureHandedToApp) {
+            takeCaptureKeysBack()
+            return
+        }
         val state = _uiState.value
         val target = state.captureTarget() ?: return
         if (!target.movableCaret) return
@@ -10917,6 +10960,15 @@ open class WMKeyboardService : InputMethodService() {
                 .map { Triple(it.captureKey(), it.captureBuffer(), it.captureCaretIndex()) }
                 .distinctUntilChanged()
                 .collect { refreshCaptureSuggestions() }
+        }
+        // The focus switch (#665) is about the box it was pressed on: once the
+        // tool has no box focused (a search closed, an edit saved), the mark
+        // goes, so the box opens with the keys next time.
+        serviceScope.launch {
+            _uiState
+                .map { it.panelFieldKey() == null && it.captureToApp != null }
+                .distinctUntilChanged()
+                .collect { stale -> if (stale) _uiState.update { it.copy(captureToApp = null) } }
         }
     }
 
@@ -26576,6 +26628,8 @@ open class WMKeyboardService : InputMethodService() {
                 // A fresh open reads the text again (see [scanForLearning]).
                 learnFromText = if (next == PanelMode.LEARN_FROM_TEXT) LearnFromTextUi() else null,
                 textEditSelecting = false,
+                // Every tool's fields open with the keys (#665).
+                captureToApp = null,
                 emojiSearchActive = false,
                 emojiQuery = "",
                 emojiResults = emptyList(),
@@ -31671,6 +31725,7 @@ open class WMKeyboardService : InputMethodService() {
             onKdeKey = ::onKdeSpecialKey,
             onKdeSend = ::kdeSendComposed,
             onVoice = ::onCaptureVoice,
+            onFocusSwitch = ::onCaptureFocusSwitch,
         )
     }
 
@@ -41304,9 +41359,10 @@ open class WMKeyboardService : InputMethodService() {
      * box from walking the caret in the app behind the panel. Paste joined
      * them in #434: the keys are typing into the box, so a Paste key means
      * the box too, and the Translate tool's text is the one people paste.
-     * The rest (copy, cut, the selection actions) still act on that app,
-     * which is what the text-editing panel is for and what Find and replace
-     * needs; the field's own selection bar copies and cuts its text.
+     * Select all, copy and cut followed in #612. Every action a key can run
+     * goes to the box while it has the keys; to act on the app's text with
+     * a tool open, the focus switch on the box hands the keys over (#665),
+     * and this returns false for all of them until it takes them back.
      */
     private fun captureTextEdit(
         action: TextEditAction,
@@ -41370,6 +41426,10 @@ open class WMKeyboardService : InputMethodService() {
                 onCaptureSelectionAction(if (action == TextEditAction.CUT) CaptureSelectionAction.CUT else CaptureSelectionAction.COPY)
                 return true
             }
+            // Retyping takes a word out of the app's text; with the keys in
+            // the box it would reach behind the panel, which is the focus
+            // switch's job now (#665), so it does nothing here.
+            TextEditAction.RETYPE_WORD -> true
             else -> false
         }
         if (handled && haptic) vibrate()

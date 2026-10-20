@@ -1545,6 +1545,11 @@ fun KeyboardScreen(
                 anchor = bodyState.captureAnchorIndex(),
                 onSelect = capture.onSelect,
                 onSelectionAction = capture.onSelectionAction,
+                // The focus switch (#665), on every field that can let go of the keys.
+                toApp = bodyState.captureHandedToApp,
+                onFocusSwitch = capture.onFocusSwitch.takeIf {
+                    bodyState.panelFieldTarget()?.handsKeysToApp == true
+                },
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
@@ -12827,7 +12832,9 @@ private const val ShortLandscapeMaxHeightDp = 480
  * draws [TypingTestStrip] in it, and the word card's spelling bar *is* it.
  */
 internal fun captureStripShown(state: KeyboardUiState): Boolean {
-    val target = state.captureTarget() ?: return false
+    // The tool's field, keys or not: the focus switch (#665) leaves the row
+    // standing, empty, rather than resizing the panel on every press.
+    val target = state.panelFieldTarget() ?: return false
     return target.takesWords &&
         target != CaptureTarget.TYPING_TEST &&
         target != CaptureTarget.WORD_SPELL &&
@@ -13979,9 +13986,12 @@ private fun KeyboardBody(
                         )
                     }
                 }
+                // Collapsed over the key rows while the focus switch sends the
+                // keys to the app's field (#665), like any tool whose box lets go.
                 PanelMode.CALCULATOR -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_calculator),
                     onClose = { onPanelChange(PanelMode.CALCULATOR) },
+                    compact = state.captureHandedToApp,
                 ) { CalculatorPanel(state, onToolInsert, converter) }
                 // The converters open at the calculator's height too (#665): their
                 // keypad is the flexible part and shrinks to fit under the unit
@@ -13989,10 +13999,12 @@ private fun KeyboardBody(
                 PanelMode.UNIT_CONVERT -> FullBleedTool(
                     state, stringResource(R.string.ime_unit_convert_title),
                     onClose = { onPanelChange(PanelMode.UNIT_CONVERT) },
+                    compact = state.captureHandedToApp,
                 ) { UnitConverterPanel(state, onToolInsert, converter, onToolPrefillConsumed) }
                 PanelMode.CURRENCY -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_currency),
                     onClose = { onPanelChange(PanelMode.CURRENCY) },
+                    compact = state.captureHandedToApp,
                 ) {
                     CurrencyPanel(
                         state = state,
@@ -17265,9 +17277,12 @@ private fun KeyRows(
     val glideInCapture = state.captureTarget()?.takesWords == true &&
         state.captureTarget() != CaptureTarget.TYPING_TEST &&
         state.settings.gestureTyping
+    // A tool whose field sent its keys to the app's field (#665) glides into
+    // that field, as the keys do with no panel open.
+    val glideIntoApp = state.captureHandedToApp && state.settings.gestureTyping
     val gestureEnabled = !handwriteSwipe && !slideSelect && !state.layouts.handwriting &&
         (
-            glideInTest || glideInCapture ||
+            glideInTest || glideInCapture || glideIntoApp ||
                 (state.settings.gestureTyping && state.panel == PanelMode.NONE)
             ) &&
         state.layoutMode == LayoutMode.LETTERS &&
@@ -17623,7 +17638,7 @@ private fun KeyRows(
     // box: its selection actions take select all, copy, cut, paste and undo.
     val keysInBox = state.keysTakenByKeyboard
     val fingerSwipesOn = gesture.multiFingerSwipes && !state.typingTestActive &&
-        (state.panel == PanelMode.NONE || keysInBox)
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
@@ -22564,11 +22579,14 @@ internal fun barClipboardSearching(state: KeyboardUiState): Boolean =
  * to type into it. Asked by the body, which draws them, and by
  * [FullBleedTool], which has to leave them room.
  */
-internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.captureTarget()) {
+internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
     // No field of the keyboard's own: the keys stay under the clipboard only
     // when it is stacked over them (#414), and then they type into the app.
     null -> clipboardStacked(state)
-    CaptureTarget.CALC, CaptureTarget.CONVERTER, CaptureTarget.WORD_SPELL -> false
+    // Their own keypads type into them; the key rows come up only while the
+    // focus switch has sent the keys to the app's field (#665).
+    CaptureTarget.CALC, CaptureTarget.CONVERTER -> state.captureHandedToApp
+    CaptureTarget.WORD_SPELL -> false
     // The emoji and clipboard panels reroute their search pills;
     // the rest are only ever up with their own panel open.
     CaptureTarget.EMOJI_SEARCH, CaptureTarget.KAOMOJI_SEARCH,

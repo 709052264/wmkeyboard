@@ -3877,6 +3877,14 @@ data class KeyboardUiState(
     val recentBar: List<String> = emptyList(),
     /** The focused keyboard-owned field's undo history, while it has one (#665). */
     val captureUndo: CaptureUndoMark? = null,
+    /**
+     * The tool field whose keys the focus switch handed to the app's field
+     * (#665), as its [panelFieldKey], or null while every tool field keeps
+     * the keys it took. Keyed to the field rather than a plain flag, so moving
+     * to another box of the tool, or opening another tool, gives that box the
+     * keys again without anything having to remember to clear this.
+     */
+    val captureToApp: String? = null,
 ) {
     /**
      * Whether incognito is in force right now, from either source: the
@@ -4219,7 +4227,7 @@ data class KeyboardUiState(
      * room for them.
      */
     val clipboardTakesKeys: Boolean
-        get() = when (captureTarget()) {
+        get() = when (panelFieldTarget()) {
             CaptureTarget.CLIPBOARD_SEARCH, CaptureTarget.CLIP_EDIT,
             CaptureTarget.CLIP_JOINER, CaptureTarget.CLIP_BASE, CaptureTarget.CLIP_APPEND,
             -> panel == PanelMode.CLIPBOARD
@@ -4246,12 +4254,26 @@ data class KeyboardUiState(
      * Which keyboard-owned field has the keys, or null when they belong to the
      * app behind the keyboard.
      *
-     * **The one ladder.** Every path that has to know — typed text, backspace,
-     * forward delete, space, enter, glide, the suggestion strip, the Keyman
-     * seam — asks this instead of re-deriving it, and the order here is the
-     * order `processTypedText` always used, so nothing changes hands.
+     * **The one gate.** Every path that has to know — typed text, backspace,
+     * forward delete, space, enter, the caret keys, undo and redo, paste,
+     * glide, the suggestion strip, the Keyman seam — asks this instead of
+     * re-deriving it. So the focus switch (#665) only has to answer here for
+     * every one of those to follow it at once: a tool field whose keys were
+     * handed to the app's field is no target at all, and the keys go where
+     * they go with no panel open.
      */
-    fun captureTarget(): CaptureTarget? = when {
+    fun captureTarget(): CaptureTarget? = if (captureHandedToApp) null else panelFieldTarget()
+
+    /**
+     * The open tool's focused field, whether or not it has the keys right now:
+     * what the panel draws as its field and lays itself out around. Differs
+     * from [captureTarget] only while the focus switch has sent the keys to
+     * the app's field (#665).
+     *
+     * **The ladder.** The order here is the order `processTypedText` always
+     * used, so nothing changes hands.
+     */
+    fun panelFieldTarget(): CaptureTarget? = when {
         typingTestActive -> CaptureTarget.TYPING_TEST
         aiCustomInputActive -> CaptureTarget.AI_CUSTOM
         aiChatComposing -> CaptureTarget.AI_CHAT
@@ -4327,13 +4349,26 @@ data class KeyboardUiState(
      * A plugin has one box per widget, so its id is part of the key; everything
      * else is one buffer per target.
      */
-    fun captureKey(): String? = when (val target = captureTarget()) {
+    fun captureKey(): String? = fieldKey(captureTarget())
+
+    /** [captureKey] for [panelFieldTarget]: the tool's focused field, keys or not. */
+    fun panelFieldKey(): String? = fieldKey(panelFieldTarget())
+
+    private fun fieldKey(target: CaptureTarget?): String? = when (target) {
         null -> null
         CaptureTarget.PLUGIN -> "PLUGIN:${pluginFocusedInput}"
         // Three of Combine's boxes share the target; each keeps its own caret.
         CaptureTarget.CLIP_BASE -> "CLIP_BASE:${clipCombine?.focused}"
         else -> target.name
     }
+
+    /**
+     * The focus switch (#665) has the open tool's field typing into the app's
+     * field instead. Null-checked first, so the ladder is only walked while
+     * the switch has been used.
+     */
+    val captureHandedToApp: Boolean
+        get() = captureToApp != null && captureToApp == panelFieldKey()
 
     /** What is in the focused keyboard-owned buffer right now. */
     fun captureBuffer(): String = when (captureTarget()) {

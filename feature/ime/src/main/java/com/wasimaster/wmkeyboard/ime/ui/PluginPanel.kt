@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -234,8 +235,17 @@ private fun RunningPlugin(
     }
     val ringed = state.focusedIndex(FocusRegion.RESULTS)?.let { leaves.getOrNull(it) }
     val style = rememberKeyboardPluginStyle(kb)
-    val host = remember(state, onInputFocus, onPaste) { KeyboardInputHost(state, onInputFocus, onPaste) }
+    // A box whose keys the focus switch sent to the app's field (#665) draws
+    // as unfocused, and pressing it takes them back.
+    val caretHandle = LocalCaptureCaret.current
+    val reclaim = caretHandle.onFocusSwitch?.takeIf { caretHandle.toApp }
+    val host = remember(state, onInputFocus, onPaste, reclaim) { KeyboardInputHost(state, onInputFocus, onPaste, reclaim) }
     Column(modifier = Modifier.fillMaxSize()) {
+        if (state.pluginTypingActive) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.End) {
+                FieldFocusSwitch(caretHandle)
+            }
+        }
         if (panel.busy) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().height(2.dp),
@@ -317,12 +327,16 @@ private class KeyboardInputHost(
     private val state: KeyboardUiState,
     private val focus: (String?) -> Unit,
     private val paste: (String) -> Unit,
+    /** The focus switch, while it has the focused box's keys with the app's field (#665). */
+    private val reclaim: (() -> Unit)?,
 ) : PluginInputHost {
     override fun value(id: String): String = state.pluginInputs[id].orEmpty()
 
-    override fun isFocused(id: String): Boolean = state.pluginFocusedInput == id
+    override fun isFocused(id: String): Boolean = state.pluginFocusedInput == id && !state.captureHandedToApp
 
-    override fun onFocus(id: String) = focus(id)
+    override fun onFocus(id: String) {
+        if (reclaim != null && state.pluginFocusedInput == id) reclaim.invoke() else focus(id)
+    }
 
     override fun onPaste(id: String) = paste(id)
 

@@ -1,7 +1,25 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Input
+import androidx.compose.material.icons.outlined.SwapVert
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
+import com.wasimaster.wmkeyboard.ime.R
 
 /**
  * The keyboard's own text fields, as the UI sees them (#161).
@@ -30,6 +48,13 @@ data class CaptureCaretHandle(
     val onSelect: (Int, Int) -> Unit = { _, _ -> },
     /** The selection bar's Cut, Copy, Paste and Select all. */
     val onSelectionAction: (CaptureSelectionAction) -> Unit = {},
+    /**
+     * The focus switch (#665) has sent this field's keys to the app's field:
+     * the field draws no caret, and a tap on it takes the keys back.
+     */
+    val toApp: Boolean = false,
+    /** The focus switch itself, or null where the field cannot let go of the keys. */
+    val onFocusSwitch: (() -> Unit)? = null,
 ) {
     val selectionStart: Int get() = minOf(at, anchor)
     val selectionEnd: Int get() = maxOf(at, anchor)
@@ -77,4 +102,47 @@ data class CaptureCallbacks(
     val onKdeSend: (Boolean) -> Unit = {},
     /** The microphone on the field's strip, and the line it shows while dictating (#353). */
     val onVoice: (com.wasimaster.wmkeyboard.ime.CaptureVoiceAction) -> Unit = {},
+    /** The focus switch on the field (#665): its keys to the app's field, or back. */
+    val onFocusSwitch: () -> Unit = {},
 )
+
+/**
+ * The focus switch (#665): one button, the same on every tool that has a
+ * field of its own, that says where the keys go — the tool's field or the
+ * app's field behind the keyboard — and flips it. Every key action follows
+ * it, because the service routes them all through one gate.
+ *
+ * Filled while the keys go to the app, so a glance at the tool says which
+ * field is taking them; the tool's field also loses its caret and dims.
+ * Drawn by [SearchQueryText] and [ClipEditText] for the field that has the
+ * keys, so a panel gets it by drawing its field, not by placing it.
+ */
+@Composable
+internal fun FieldFocusSwitch(handle: CaptureCaretHandle, modifier: Modifier = Modifier) {
+    val onSwitch = handle.onFocusSwitch ?: return
+    val kb = LocalKbTheme.current
+    val description = stringResource(
+        if (handle.toApp) R.string.ime_capture_focus_to_field_desc else R.string.ime_capture_focus_to_app_desc,
+    )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .padding(start = 4.dp)
+            .size(28.dp)
+            .clip(CircleShape)
+            .frostGlass(kb, CircleShape, FrostSurface.CHIPS)
+            .background(if (handle.toApp) kb.chipActive else kb.chip)
+            // The service buzzes for this press itself.
+            .clickable(onClickLabel = description) { onSwitch() },
+    ) {
+        Icon(
+            if (handle.toApp) Icons.AutoMirrored.Outlined.Input else Icons.Outlined.SwapVert,
+            contentDescription = description,
+            tint = if (handle.toApp) kb.chipActiveText else kb.chipText,
+            modifier = Modifier.size(16.dp),
+        )
+    }
+}
+
+/** How much a tool field fades while its keys go to the app's field (#665). */
+internal const val FieldToAppAlpha = 0.5f
