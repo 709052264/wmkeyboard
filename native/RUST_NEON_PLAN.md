@@ -159,6 +159,10 @@ node by node; those go when the walks move (steps 2 and 4).
   `pack.bigramCount` is about 1 us against Kotlin's sub-microsecond, because
   the Kotlin reader's head cache is gone; it moves inside Rust with
   `NgramReranker` in step 2.
+- Evals: the `core.prediction.eval` family run before (041a6921a) and after
+  gives byte-identical `metrics.json` and `context_miss.json` and the same
+  report lines: top1 0.8195, top3 0.9300, MRR 0.8741, autocorrect precision
+  0.9853, recall 0.7015, false corrections 0.
 
 Status: step 1 done; steps 2-5 not started.
 
