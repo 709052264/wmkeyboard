@@ -176,8 +176,9 @@ class HaSocket(
             failPending(HaNotConnectedException())
             when (outcome) {
                 Outcome.AUTH_FAILED -> {
-                    _phase.value = HaPhase.TOKEN_REJECTED
+                    // The owner hears first: whoever watches the phase may act on it at once.
                     events.onTokenRejected()
+                    _phase.value = HaPhase.TOKEN_REJECTED
                     return
                 }
                 Outcome.NO_ADDRESS, Outcome.NO_TOKEN -> {
