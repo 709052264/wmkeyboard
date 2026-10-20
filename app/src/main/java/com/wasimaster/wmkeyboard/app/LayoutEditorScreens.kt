@@ -4243,7 +4243,14 @@ internal fun EditorGrid(
                                 continue
                             }
                             val sidePad = sidePadFor(row, gridWeight)
-                            Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+                            // No spacing between the cells: each takes half the
+                            // 3dp gap on either side as an inset instead, as the
+                            // keyboard and EditorBand do (#846). Spaced, a row's
+                            // gaps came out of the width the weights share, so a
+                            // key 12 wide drew narrower than 12 keys 1 wide with
+                            // their 11 gaps, and rows of different counts did
+                            // not line up.
+                            Row {
                                 if (sidePad > 0.01f) Spacer(Modifier.weight(sidePad))
                                 row.forEachIndexed { c, cellKey ->
                                     // Keyed on the key, not its seat, so a key a
@@ -4260,6 +4267,7 @@ internal fun EditorGrid(
                                             face = KeyFace(enterSlot, spaceText, hintsOn),
                                             modifier = Modifier
                                                 .weight(cellKey.width)
+                                                .padding(horizontal = 1.5.dp)
                                                 .then(cellModifier(KeyRef(r, c)))
                                                 .seatGlide(glideActive),
                                         ) { onSelect(KeyRef(r, c)) }
