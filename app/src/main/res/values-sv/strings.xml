@@ -4366,7 +4366,7 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Endast %1$s</string>
     <string name="netlog_filter_remove_desc">Visa allt igen</string>
-    <string name="netlog_invisible_body">Tre Google-delar av appen gör egna förfrågningar, utanför koden som fyller denna logg. ML Kit (handskrift, textskanning, QR-skanning, dekalutklipp och översättning på enheten, endast fullständig utgåva) rapporterar användning till Google. Play-tjänster laddar ner typsnitt efter namn. Play Butik-versioner frågar Play Butik om uppdateringar och delar på begäran.</string>
+    <string name="netlog_invisible_body">Tre Google-delar av appen gör egna förfrågningar, utanför koden som fyller denna logg. ML Kit (handskrift, textskanning, QR-skanning, dekalutklipp och översättning på enheten, inte i F-Droid-versionen) rapporterar användning till Google. Play-tjänster laddar ner typsnitt efter namn. Play Butik-versioner frågar Play Butik om uppdateringar och delar på begäran.</string>
     <string name="netlog_invisible_link">Läs vad var och en skickar</string>
     <string name="netlog_invisible_title">Vad den här skärmen inte kan se</string>
     <string name="netlog_keep_info">Loggen sparar upp till 2 000 rader och 30 dagars totaler, endast på din enhet. Varje rad innehåller funktionen, servern, adressen utan dess sökfråga, storleken, resultatet och tiden. Den sparar aldrig vad du skrivit, sökt eller skickat, och den sparar aldrig API-nycklar. Säkerhetskopior inkluderar inte detta.</string>

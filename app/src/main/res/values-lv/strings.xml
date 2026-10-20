@@ -4367,7 +4367,7 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Tikai %1$s</string>
     <string name="netlog_filter_remove_desc">Rādīt visu vēlreiz</string>
-    <string name="netlog_invisible_body">Trīs lietotnes Google daļas veic savus pieprasījumus ārpus koda, kas aizpilda šo žurnālu. ML Kit (rokraksts, teksta skenēšana, QR skenēšana, uzlīmju izgriešana un tulkošana ierīcē, tikai pilnajā versijā) ziņo Google par lietojumu. Play pakalpojumi lejupielādē fontus pēc nosaukuma. Play veikala būvējumi vaicā Play veikalam par atjauninājumiem un pēc pieprasījuma pieejamām daļām.</string>
+    <string name="netlog_invisible_body">Trīs lietotnes Google daļas veic savus pieprasījumus ārpus koda, kas aizpilda šo žurnālu. ML Kit (rokraksts, teksta skenēšana, QR skenēšana, uzlīmju izgriešana un tulkošana ierīcē, nav F-Droid versijā) ziņo Google par lietojumu. Play pakalpojumi lejupielādē fontus pēc nosaukuma. Play veikala būvējumi vaicā Play veikalam par atjauninājumiem un pēc pieprasījuma pieejamām daļām.</string>
     <string name="netlog_invisible_link">Lasīt, ko katrs sūta</string>
     <string name="netlog_invisible_title">Ko šis ekrāns nevar redzēt</string>
     <string name="netlog_keep_info">Žurnāls saglabā līdz 2000 rindu un 30 dienu kopsavilkumus tikai jūsu ierīcē. Katrā rindā ir funkcija, serveris, adrese bez vaicājuma, izmērs, rezultāts un laiks. Tas nekad nesaglabā to, ko esat ierakstījis, meklējis vai nosūtījis, un tajā nekad nav API atslēgu. Dublējumkopijās tas nav iekļauts.</string>

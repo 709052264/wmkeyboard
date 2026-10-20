@@ -4356,7 +4356,7 @@
     <string name="netlog_filter_incognito">시크릿 모드</string>
     <string name="netlog_filter_only">%1$s만</string>
     <string name="netlog_filter_remove_desc">모두 다시 표시</string>
-    <string name="netlog_invisible_body">앱의 세 가지 Google 구성 요소는 이 로그를 채우는 코드 외부에서 자체적으로 요청을 수행합니다. ML Kit(필기, 텍스트 스캔, QR 스캔, 스티커 잘라내기 및 기기 내 번역, 전체 버전만 해당)는 Google에 사용량을 보고합니다. Play 서비스는 이름으로 글꼴을 다운로드합니다. Play 스토어 빌드는 Play 스토어에 업데이트 및 주문형 구성 요소를 요청합니다.</string>
+    <string name="netlog_invisible_body">앱의 세 가지 Google 구성 요소는 이 로그를 채우는 코드 외부에서 자체적으로 요청을 수행합니다. ML Kit(필기, 텍스트 스캔, QR 스캔, 스티커 잘라내기 및 기기 내 번역, F-Droid 버전에는 없음)는 Google에 사용량을 보고합니다. Play 서비스는 이름으로 글꼴을 다운로드합니다. Play 스토어 빌드는 Play 스토어에 업데이트 및 주문형 구성 요소를 요청합니다.</string>
     <string name="netlog_invisible_link">각 항목이 무엇을 전송하는지 읽기</string>
     <string name="netlog_invisible_title">이 화면에서 볼 수 없는 것</string>
     <string name="netlog_keep_info">로그는 기기에만 최대 2,000개의 행과 30일간의 합계를 보관합니다. 각 행에는 기능, 서버, 쿼리를 제외한 주소, 크기, 결과 및 시간이 포함됩니다. 사용자가 입력, 검색 또는 전송한 내용은 절대 저장하지 않으며 API 키도 저장하지 않습니다. 백업에는 포함되지 않습니다.</string>

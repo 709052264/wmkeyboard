@@ -4362,7 +4362,7 @@
     <string name="netlog_filter_incognito">גלישה בסתר</string>
     <string name="netlog_filter_only">רק %1$s</string>
     <string name="netlog_filter_remove_desc">הצג הכל שוב</string>
-    <string name="netlog_invisible_body">שלושה רכיבי Google באפליקציה מבצעים בקשות משלהם, מחוץ לקוד שממלא את היומן הזה. ML Kit (כתב יד, סריקת טקסט, סריקת QR, גזירת מדבקות ותרגום במכשיר, במהדורה מלאה בלבד) מדווח על שימוש ל-Google. שירותי Play מורידים גופנים לפי שם. גרסאות Play Store שואלות את ה-Play Store לגבי עדכונים ורכיבים לפי דרישה.</string>
+    <string name="netlog_invisible_body">שלושה רכיבי Google באפליקציה מבצעים בקשות משלהם, מחוץ לקוד שממלא את היומן הזה. ML Kit (כתב יד, סריקת טקסט, סריקת QR, גזירת מדבקות ותרגום במכשיר, לא בגרסת F-Droid) מדווח על שימוש ל-Google. שירותי Play מורידים גופנים לפי שם. גרסאות Play Store שואלות את ה-Play Store לגבי עדכונים ורכיבים לפי דרישה.</string>
     <string name="netlog_invisible_link">קרא מה כל אחד שולח</string>
     <string name="netlog_invisible_title">מה מסך זה אינו יכול לראות</string>
     <string name="netlog_keep_info">היומן שומר עד 2,000 שורות ו-30 ימים של סיכומים, במכשיר שלך בלבד. כל שורה מכילה את התכונה, השרת, הכתובת ללא השאילתה שלה, הגודל, התוצאה והזמן. הוא לעולם לא שומר את מה שהקלדת, חיפשת או שלחת, והוא לעולם לא שומר מפתחות API. גיבויים לא כוללים אותו.</string>

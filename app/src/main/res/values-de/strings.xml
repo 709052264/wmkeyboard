@@ -4362,7 +4362,7 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Nur %1$s</string>
     <string name="netlog_filter_remove_desc">Alles wieder anzeigen</string>
-    <string name="netlog_invisible_body">Drei Google-Komponenten der App führen ihre eigenen Anfragen außerhalb des Codes aus, der dieses Protokoll füllt. ML Kit (Handschrifterkennung, Textscan, QR-Scanning, Sticker-Freistellungen und geräteinterne Übersetzung, nur in der Vollversion) meldet die Nutzung an Google. Play-Dienste laden Schriftarten nach Namen. Play-Store-Builds fragen den Play Store nach Updates und on-demand Komponenten.</string>
+    <string name="netlog_invisible_body">Drei Google-Komponenten der App führen ihre eigenen Anfragen außerhalb des Codes aus, der dieses Protokoll füllt. ML Kit (Handschrifterkennung, Textscan, QR-Scanning, Sticker-Freistellungen und geräteinterne Übersetzung, nicht in der F-Droid-Version) meldet die Nutzung an Google. Play-Dienste laden Schriftarten nach Namen. Play-Store-Builds fragen den Play Store nach Updates und on-demand Komponenten.</string>
     <string name="netlog_invisible_link">Lesen, was jeder sendet</string>
     <string name="netlog_invisible_title">Was dieser Bildschirm nicht sehen kann</string>
     <string name="netlog_keep_info">Das Protokoll speichert bis zu 2.000 Zeilen und 30 Tage an Summen, nur auf Ihrem Gerät. Jede Zeile enthält die Funktion, den Server, die Adresse ohne Abfrage, die Größe, das Ergebnis und die Zeit. Es speichert niemals, was Sie getippt, gesucht oder gesendet haben, und es speichert niemals API-Schlüssel. Backups enthalten diese Daten nicht.</string>

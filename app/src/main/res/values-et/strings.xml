@@ -4368,7 +4368,7 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Ainult %1$s</string>
     <string name="netlog_filter_remove_desc">Näita kõike uuesti</string>
-    <string name="netlog_invisible_body">Kolm Google\'i rakenduse osa teevad oma päringuid väljaspool koodi, mis seda logi täidab. ML Kit (käekiri, tekstiskannimine, QR-skannimine, kleebiste väljalõiked ja seadmesisene tõlge, ainult täisversioonis) teatab kasutamisest Google\'ile. Play teenused laadivad fonte nime järgi. Play poe ehitused küsivad Play poest värskendusi ja nõudmisel osasid.</string>
+    <string name="netlog_invisible_body">Kolm Google\'i rakenduse osa teevad oma päringuid väljaspool koodi, mis seda logi täidab. ML Kit (käekiri, tekstiskannimine, QR-skannimine, kleebiste väljalõiked ja seadmesisene tõlge, F-Droidi versioonis puudub) teatab kasutamisest Google\'ile. Play teenused laadivad fonte nime järgi. Play poe ehitused küsivad Play poest värskendusi ja nõudmisel osasid.</string>
     <string name="netlog_invisible_link">Loe, mida igaüks saadab</string>
     <string name="netlog_invisible_title">Mida see ekraan ei näe</string>
     <string name="netlog_keep_info">Logi säilitab kuni 2000 rida ja 30 päeva koondandmeid ainult teie seadmes. Iga rida sisaldab funktsiooni, serverit, aadressi ilma päringuta, suurust, tulemust ja aega. See ei salvesta kunagi seda, mida tippisite, otsisite või saatsite, ega salvesta API-võtmeid. Varukoopiad ei sisalda seda.</string>

@@ -4357,7 +4357,7 @@
     <string name="netlog_filter_incognito">Inkognitó</string>
     <string name="netlog_filter_only">Csak %1$s</string>
     <string name="netlog_filter_remove_desc">Minden megjelenítése újra</string>
-    <string name="netlog_invisible_body">Az alkalmazás három Google-összetevője saját kéréseket indít, a naplót kitöltő kódon kívül. Az ML Kit (kézírás, szövegbeolvasás, QR-kód beolvasás, matricakivágások és eszközön belüli fordítás, csak a teljes kiadásban) jelenti a használatot a Google-nak. A Play-szolgáltatások név szerint töltenek le betűtípusokat. A Play Áruház-buildek frissítésekről és igény szerinti részekről kérdezik a Play Áruházat.</string>
+    <string name="netlog_invisible_body">Az alkalmazás három Google-összetevője saját kéréseket indít, a naplót kitöltő kódon kívül. Az ML Kit (kézírás, szövegbeolvasás, QR-kód beolvasás, matricakivágások és eszközön belüli fordítás, az F-Droid kiadásban nincs) jelenti a használatot a Google-nak. A Play-szolgáltatások név szerint töltenek le betűtípusokat. A Play Áruház-buildek frissítésekről és igény szerinti részekről kérdezik a Play Áruházat.</string>
     <string name="netlog_invisible_link">Olvassa el, mit küld az egyes elemek</string>
     <string name="netlog_invisible_title">Amit ez a képernyő nem lát</string>
     <string name="netlog_keep_info">A napló legfeljebb 2000 sort és 30 napnyi összesítést tárol, kizárólag az eszközön. Minden sor tartalmazza a funkciót, a szervert, a lekérdezés nélküli címet, a méretet, az eredményt és az időt. Soha nem tárolja azt, amit beírt, keresett vagy elküldött, és soha nem tárol API-kulcsokat. A biztonsági mentések nem tartalmazzák.</string>

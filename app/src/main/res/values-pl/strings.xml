@@ -4363,7 +4363,7 @@
     <string name="netlog_filter_incognito">Tryb incognito</string>
     <string name="netlog_filter_only">Tylko %1$s</string>
     <string name="netlog_filter_remove_desc">Pokaż wszystko ponownie</string>
-    <string name="netlog_invisible_body">Trzy komponenty Google w aplikacji wykonują własne żądania, poza kodem, który wypełnia ten dziennik. ML Kit (rozpoznawanie pisma ręcznego, skanowanie tekstu, skanowanie kodów QR, wycinanie naklejek i tłumaczenie na urządzeniu, tylko w pełnej wersji) zgłasza użycie do Google. Usługi Play pobierają czcionki według nazwy. Kompilacje ze Sklepu Play pytają Sklep Play o aktualizacje i części na żądanie.</string>
+    <string name="netlog_invisible_body">Trzy komponenty Google w aplikacji wykonują własne żądania, poza kodem, który wypełnia ten dziennik. ML Kit (rozpoznawanie pisma ręcznego, skanowanie tekstu, skanowanie kodów QR, wycinanie naklejek i tłumaczenie na urządzeniu, brak w wersji F-Droid) zgłasza użycie do Google. Usługi Play pobierają czcionki według nazwy. Kompilacje ze Sklepu Play pytają Sklep Play o aktualizacje i części na żądanie.</string>
     <string name="netlog_invisible_link">Przeczytaj, co wysyła każdy z nich</string>
     <string name="netlog_invisible_title">Czego ten ekran nie widzi</string>
     <string name="netlog_keep_info">Dziennik przechowuje do 2000 wierszy i 30 dni sumarycznych danych, wyłącznie na Twoim urządzeniu. Każdy wiersz zawiera funkcję, serwer, adres bez zapytania, rozmiar, wynik i czas. Nigdy nie przechowuje tego, co wpisałeś, wyszukałeś lub wysłałeś, ani kluczy API. Kopie zapasowe go nie obejmują.</string>
