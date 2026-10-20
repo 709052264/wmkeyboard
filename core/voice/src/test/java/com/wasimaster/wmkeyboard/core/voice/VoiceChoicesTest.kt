@@ -68,4 +68,20 @@ class VoiceChoicesTest {
             assertTrue(model.id, model.files.all { it.sha256.length == 64 })
         }
     }
+
+    @Test fun omnilingualReachesLanguagesNoOtherEngineDoes() {
+        val omni = EtCatalog.forEngine(EtEngine.OMNILINGUAL).single()
+        val yoruba = VoiceChoices.forLanguage("yo", false, emptyList(), listOf(parakeet, omni), false)
+        assertEquals(listOf("system", "omnilingual:${omni.id}"), yoruba.map { it.key })
+        for (language in listOf("en_GB", "hi", "bn", "sw", "ta", "ar", "fa", "zh", "nus-Latn", "ckb")) {
+            assertTrue(language, omni.supports(language))
+        }
+        // Not in its list, or written by it in another script than the keyboard's.
+        for (language in listOf("gd", "sa", "ber", "crh", "mni", "tcy")) {
+            assertFalse(language, omni.supports(language))
+        }
+        val names = omni.files.map { it.name }
+        assertEquals(listOf("tokens.txt", "silero_vad.onnx", "model.int8.onnx"), names)
+        assertTrue(omni.files.all { it.sha256.length == 64 })
+    }
 }

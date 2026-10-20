@@ -7048,16 +7048,16 @@ private const val AddingAlternate = -1
 private val AlternateActionCatalog: List<KeyActionOption> =
     KeyActionCatalog.filterNot { it.matches(KeyAction.Text) || it.matches(KeyAction.None) }
 
+/** [this] label, or none when it is only some mode's name, which the board looks up for itself (#821). */
+private fun String.unlessModeName(modes: List<KeyboardMode>): String =
+    takeUnless { label -> modes.any { it.name == label } }.orEmpty()
+
 /**
  * What a chip calls an alternate: the tool's name, the action's name from the
  * catalog, or — for an action a hand-written layout chose that the picker does
  * not list — the glyph the popup will draw.
  */
 @Composable
-/** [this] label, or none when it is only some mode's name, which the board looks up for itself (#821). */
-private fun String.unlessModeName(modes: List<KeyboardMode>): String =
-    takeUnless { label -> modes.any { it.name == label } }.orEmpty()
-
 internal fun actionAlternateName(
     alternate: KeyAlternate,
     secondaryLayouts: List<LayoutSpec>,

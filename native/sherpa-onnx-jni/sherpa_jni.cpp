@@ -1,6 +1,8 @@
 // JNI surface for sherpa-onnx's C API: a streaming transducer recognizer,
-// Silero voice activity detection and the online punctuation model. Kotlin
-// side: com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.
+// Silero voice activity detection (as a speech flag, or cutting the audio into
+// phrases for the Omnilingual model in omnilingual_jni.cpp) and the online
+// punctuation model. Kotlin side:
+// com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.
 //
 // ONNX Runtime is not linked in. This library names libonnxruntime.so as a
 // dependency and the dynamic linker finds it by soname, so Kotlin loads
@@ -44,11 +46,40 @@ private:
 };
 
 // Silero VAD reads fixed windows; the microphone delivers whatever it has.
+// A detector that [keeps] its segments hands them out one by one (the
+// Omnilingual engine decodes each); one that does not drops them, since only
+// whether someone is speaking is wanted.
 struct Vad {
     const SherpaOnnxVoiceActivityDetector* detector = nullptr;
     std::vector<float> pending;
     int32_t window = 512;
+    bool keep = false;
 };
+
+Vad* newVad(JNIEnv* env, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech,
+            jfloat maxSpeech, bool keep) {
+    Chars path(env, model);
+    SherpaOnnxVadModelConfig config;
+    std::memset(&config, 0, sizeof(config));
+    config.silero_vad.model = path.get();
+    config.silero_vad.threshold = threshold;
+    config.silero_vad.min_silence_duration = minSilence;
+    config.silero_vad.min_speech_duration = minSpeech;
+    config.silero_vad.window_size = 512;
+    // Past this much speech without a pause, the detector takes a much
+    // shorter pause as the end, so no segment grows without limit.
+    config.silero_vad.max_speech_duration = maxSpeech;
+    config.sample_rate = 16000;
+    config.num_threads = 1;
+    config.provider = "cpu";
+    const SherpaOnnxVoiceActivityDetector* detector =
+        SherpaOnnxCreateVoiceActivityDetector(&config, keep ? 60.0f : 30.0f);
+    if (!detector) return nullptr;
+    auto* vad = new Vad();
+    vad->detector = detector;
+    vad->keep = keep;
+    return vad;
+}
 
 const SherpaOnnxOnlineRecognizer* recognizer(jlong h) {
     return reinterpret_cast<const SherpaOnnxOnlineRecognizer*>(h);
@@ -150,23 +181,15 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeEndpoint(JNI
 JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVad(
     JNIEnv* env, jclass, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech) {
-    Chars path(env, model);
-    SherpaOnnxVadModelConfig config;
-    std::memset(&config, 0, sizeof(config));
-    config.silero_vad.model = path.get();
-    config.silero_vad.threshold = threshold;
-    config.silero_vad.min_silence_duration = minSilence;
-    config.silero_vad.min_speech_duration = minSpeech;
-    config.silero_vad.window_size = 512;
-    config.silero_vad.max_speech_duration = 300.0f;
-    config.sample_rate = 16000;
-    config.num_threads = 1;
-    config.provider = "cpu";
-    const SherpaOnnxVoiceActivityDetector* detector = SherpaOnnxCreateVoiceActivityDetector(&config, 30.0f);
-    if (!detector) return 0;
-    auto* vad = new Vad();
-    vad->detector = detector;
-    return reinterpret_cast<jlong>(vad);
+    return reinterpret_cast<jlong>(newVad(env, model, threshold, minSilence, minSpeech, 300.0f, false));
+}
+
+// A detector that keeps what it hears as segments, each a phrase between
+// pauses of at least [minSilence] seconds, read with nativeVadSegment.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeSegmenter(
+    JNIEnv* env, jclass, jstring model, jfloat threshold, jfloat minSilence, jfloat minSpeech, jfloat maxSpeech) {
+    return reinterpret_cast<jlong>(newVad(env, model, threshold, minSilence, minSpeech, maxSpeech, true));
 }
 
 JNIEXPORT void JNICALL
@@ -177,8 +200,8 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadFree(JNIE
     delete vad;
 }
 
-// Feeds n samples; true while the detector hears speech. Finished segments
-// are dropped as they complete: only the state is wanted, never the audio.
+// Feeds n samples; true while the detector hears speech. A detector that
+// does not keep its segments drops them as they complete.
 JNIEXPORT jboolean JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadFeed(
     JNIEnv* env, jclass, jlong h, jfloatArray samples, jint n) {
@@ -192,7 +215,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadFeed(
     while (vad->pending.size() - at >= static_cast<size_t>(vad->window)) {
         SherpaOnnxVoiceActivityDetectorAcceptWaveform(vad->detector, vad->pending.data() + at, vad->window);
         at += vad->window;
-        while (!SherpaOnnxVoiceActivityDetectorEmpty(vad->detector)) {
+        while (!vad->keep && !SherpaOnnxVoiceActivityDetectorEmpty(vad->detector)) {
             SherpaOnnxVoiceActivityDetectorPop(vad->detector);
         }
     }
@@ -206,6 +229,37 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadReset(JNI
     if (!vad) return;
     SherpaOnnxVoiceActivityDetectorReset(vad->detector);
     vad->pending.clear();
+}
+
+// The oldest finished segment's samples, taken off the queue; null when
+// there is none.
+JNIEXPORT jfloatArray JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadSegment(JNIEnv* env, jclass, jlong h) {
+    auto* vad = reinterpret_cast<Vad*>(h);
+    if (!vad || SherpaOnnxVoiceActivityDetectorEmpty(vad->detector)) return nullptr;
+    const SherpaOnnxSpeechSegment* segment = SherpaOnnxVoiceActivityDetectorFront(vad->detector);
+    jfloatArray out = nullptr;
+    if (segment) {
+        out = env->NewFloatArray(segment->n);
+        if (out && segment->n > 0) env->SetFloatArrayRegion(out, 0, segment->n, segment->samples);
+        SherpaOnnxDestroySpeechSegment(segment);
+    }
+    SherpaOnnxVoiceActivityDetectorPop(vad->detector);
+    return out;
+}
+
+// The clip is over: the samples short of a window go in padded with
+// silence, and speech still going on becomes a last segment.
+JNIEXPORT void JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadFlush(JNIEnv*, jclass, jlong h) {
+    auto* vad = reinterpret_cast<Vad*>(h);
+    if (!vad) return;
+    if (!vad->pending.empty()) {
+        vad->pending.resize(static_cast<size_t>(vad->window), 0.0f);
+        SherpaOnnxVoiceActivityDetectorAcceptWaveform(vad->detector, vad->pending.data(), vad->window);
+        vad->pending.clear();
+    }
+    SherpaOnnxVoiceActivityDetectorFlush(vad->detector);
 }
 
 JNIEXPORT jlong JNICALL

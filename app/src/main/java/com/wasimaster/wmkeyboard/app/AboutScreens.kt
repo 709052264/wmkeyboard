@@ -646,6 +646,15 @@ private val bundledAttributions: List<Attribution> = buildList {
         )
         add(
             Attribution(
+                "Omnilingual ASR",
+                R.string.about_bundled_omnilingual_used,
+                "Copyright 2025 (c) Meta Platforms, Inc. and affiliates",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://github.com/facebookresearch/omnilingual-asr",
+            ),
+        )
+        add(
+            Attribution(
                 "Silero VAD",
                 R.string.about_bundled_silero_used,
                 "Copyright (c) 2020-present Silero Team",

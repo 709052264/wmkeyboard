@@ -204,12 +204,13 @@
     <!-- Parakeet and Moonshine are model names and are not translated. -->
     <string name="about_bundled_parakeet_used">The Offline Parakeet speech recognition model, downloaded on request</string>
     <string name="about_bundled_moonshine_used">The Offline Moonshine speech recognition model, downloaded on request</string>
-    <string name="about_bundled_onnxruntime_used">The runtime behind Offline Sherpa and Neural suggestions, downloaded from Maven Central when either is first used</string>
-    <string name="about_bundled_sherpa_used">Offline Sherpa\'s speech recognition toolkit, and k2-fsa\'s streaming models it downloads on request</string>
+    <string name="about_bundled_onnxruntime_used">The runtime behind Offline Sherpa, Offline Omnilingual and Neural suggestions, downloaded from Maven Central when one of them is first used</string>
+    <string name="about_bundled_sherpa_used">Offline Sherpa\'s and Offline Omnilingual\'s speech recognition toolkit, and k2-fsa\'s streaming models Sherpa downloads on request</string>
     <string name="about_bundled_vosk_used">Offline Sherpa\'s Bengali and Russian models, downloaded on request</string>
     <string name="about_bundled_kroko_used">Offline Sherpa\'s German and Spanish models, downloaded on request</string>
     <string name="about_bundled_mms_used">The offline voices Read back and the speaker buttons download on request</string>
-    <string name="about_bundled_silero_used">The voice detector Offline Sherpa downloads with each model, to hear where a phrase ends</string>
+    <string name="about_bundled_silero_used">The voice detector Offline Sherpa and Offline Omnilingual download with each model, to hear where a phrase ends</string>
+    <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise, in front of the offline voice engines</string>
     <string name="about_bundled_whistle_used">The Offline Whistle speech recognition engine and its model, which run on your device</string>
     <string name="about_bundled_unicode_used">The emoji catalogue, names, keywords and skin tone sequences, and the levels of the common Chinese characters (Unihan kTGH)</string>
