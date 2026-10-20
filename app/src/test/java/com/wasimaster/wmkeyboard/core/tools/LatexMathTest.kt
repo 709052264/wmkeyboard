@@ -91,7 +91,8 @@ class LatexMathTest {
         assertEquals(Scripts(Atom("f", italic = true), Atom("′"), null), LatexMath.parse("f'"))
         assertEquals(Scripts(Atom("f", italic = true), Atom("′′"), null), LatexMath.parse("f''"))
         assertEquals("x′²", LatexMath.plain("x'^2"))
-        assertEquals("x′ᵢ", LatexMath.plain("x'_i"))
+        // Written out, the index comes first; drawn, the two stack.
+        assertEquals("xᵢ′", LatexMath.plain("x'_i"))
     }
 
     @Test
@@ -779,7 +780,9 @@ class LatexMathTest {
             "\\sqrt[".repeat(20_000),
             "\\overset{".repeat(20_000),
         )
+        val slow = ArrayList<String>()
         for (latex in hostile) {
+            val start = System.nanoTime()
             try {
                 LatexMath.plain(latex)
                 LatexMath.inline(latex)
@@ -787,7 +790,13 @@ class LatexMathTest {
             } catch (e: Throwable) {
                 throw AssertionError("${latex.take(20)}… threw", e)
             }
+            val ms = (System.nanoTime() - start) / 1_000_000
+            println("${latex.take(16)}… (${latex.length} chars): $ms ms")
+            // Linear work on at most 200,000 characters: anything slower than
+            // this is a quadratic path, not a slow machine.
+            if (ms > 3_000) slow += "${latex.take(16)}… $ms ms"
         }
+        assertTrue(slow.joinToString(), slow.isEmpty())
     }
 
     @Test(timeout = 10_000)

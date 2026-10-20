@@ -81,8 +81,11 @@ internal class MathTypesetter(
     fun layout(latex: String, display: Boolean): MathBox {
         val key = (if (display) "D" else "T") + latex
         cache[key]?.let { return it }
-        val box = runCatching { node(LatexMath.parse(latex), if (display) DISPLAY else TEXT) }
+        val laid = runCatching { node(LatexMath.parse(latex), if (display) DISPLAY else TEXT) }
             .getOrElse { glyphs(latex, TEXT, italic = false, bold = false, mono = true) }
+        // `\!` takes width away; a formula of nothing else must not come back
+        // narrower than nothing, which no canvas or placeholder can be sized to.
+        val box = if (laid.width >= 0f) laid else MathBox(0f, laid.ascent, laid.descent, listOf(MathPart(laid, 0f, 0f)))
         cache[key] = box
         return box
     }

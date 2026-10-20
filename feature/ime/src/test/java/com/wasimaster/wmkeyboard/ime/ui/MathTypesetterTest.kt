@@ -3,7 +3,6 @@ package com.wasimaster.wmkeyboard.ime.ui
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.createFontFamilyResolver
@@ -45,11 +44,16 @@ class MathTypesetterTest {
         draw(box)
     }
 
+    /**
+     * Runs every draw call of [box]. On a bare canvas: Robolectric's legacy
+     * graphics cannot allocate a bitmap, and what matters here is that the
+     * paths and text calls go through, not the pixels.
+     */
     private fun draw(box: MathBox) {
-        val w = (box.width + 20).toInt().coerceIn(1, 4000)
-        val h = (box.ascent + box.descent + 20).toInt().coerceIn(1, 4000)
-        val canvas = Canvas(ImageBitmap(w, h))
-        CanvasDrawScope().draw(density, LayoutDirection.Ltr, canvas, Size(w.toFloat(), h.toFloat())) {
+        val w = (box.width + 20).coerceIn(1f, 4000f)
+        val h = (box.ascent + box.descent + 20).coerceIn(1f, 4000f)
+        val canvas = Canvas(android.graphics.Canvas())
+        CanvasDrawScope().draw(density, LayoutDirection.Ltr, canvas, Size(w, h)) {
             box.draw(this, 10f, 10f + box.ascent, Color.Black)
         }
     }

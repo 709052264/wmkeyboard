@@ -480,7 +480,7 @@ object LatexMath {
                         depth--
                     }
                 }
-                "pmod" -> Row(listOf(Space(0.5f), Atom("("), Atom("mod", Kind.OP), Space(0.3f), argument(), Atom(")")))
+                "pmod" -> Row(listOf(Space(0.5f), Atom("(", Kind.OPEN), Atom("mod", Kind.OP), Space(0.3f), argument(), Atom(")", Kind.CLOSE)))
                 "bmod", "mod" -> Atom("mod", Kind.BIN)
                 "boxed", "displaystyle", "textstyle", "scriptstyle", "scriptscriptstyle", "mathop" ->
                     if (name == "boxed" || name == "mathop") argument() else null
@@ -569,7 +569,7 @@ object LatexMath {
                 } else if (style == "it") {
                     node.copy(italic = true)
                 } else {
-                    node.copy(text = node.text.map { alphabet(it, style) }.joinToString(""), italic = false)
+                    node.copy(text = alphabet(node.text, style), italic = false)
                 }
             }
             is Row -> Row(node.items.map { restyle(it, style) })
@@ -582,33 +582,51 @@ object LatexMath {
         }
     }
 
-    /** [c] in a maths alphabet, keeping the letters that have their own BMP code point. */
-    private fun alphabet(c: Char, style: String): String {
-        val (upper, lower, exceptions) = ALPHABETS[style] ?: return c.toString()
-        exceptions[c]?.let { return it.toString() }
-        val cp = when (c) {
-            in 'A'..'Z' -> upper + (c - 'A')
-            in 'a'..'z' -> if (lower < 0) return c.toString() else lower + (c - 'a')
-            else -> return c.toString()
+    /** [text] in a maths alphabet, keeping the letters that have their own BMP code point. */
+    private fun alphabet(text: String, style: String): String {
+        val (upper, lower, exceptions) = ALPHABETS[style] ?: return text
+        val out = StringBuilder(text.length * 2)
+        for (c in text) {
+            val exception = exceptions[c]
+            when {
+                exception != null -> out.append(exception)
+                c in 'A'..'Z' -> out.appendCodePoint(upper + (c - 'A'))
+                c in 'a'..'z' && lower >= 0 -> out.appendCodePoint(lower + (c - 'a'))
+                else -> out.append(c)
+            }
         }
-        return String(Character.toChars(cp))
+        return out.toString()
     }
 
     private fun row(items: List<Node>): Node {
         // Neighbouring runs of the same kind and face are one run: fewer pieces
-        // to measure, and a number stays one number.
+        // to measure, and a number stays one number. Each run is built once,
+        // not copied a letter at a time, so a long one stays linear.
         val merged = ArrayList<Node>()
-        for (n in items) {
-            val last = merged.lastOrNull()
-            if (n is Atom && last is Atom && n.kind == Kind.ORD && last.kind == Kind.ORD &&
-                n.italic == last.italic && n.bold == last.bold && !n.large && !last.large &&
-                n.text.none { it == ' ' } && last.text.none { it == ' ' }
-            ) {
-                merged[merged.lastIndex] = last.copy(text = last.text + n.text)
-            } else {
-                merged += n
-            }
+        var run: Atom? = null
+        val text = StringBuilder()
+        fun close() {
+            val r = run ?: return
+            merged += if (text.length == r.text.length) r else r.copy(text = text.toString())
+            run = null
+            text.setLength(0)
         }
+        for (n in items) {
+            if (n is Atom && n.kind == Kind.ORD && !n.large && ' ' !in n.text) {
+                val r = run
+                if (r != null && r.italic == n.italic && r.bold == n.bold) {
+                    text.append(n.text)
+                    continue
+                }
+                close()
+                run = n
+                text.append(n.text)
+                continue
+            }
+            close()
+            merged += n
+        }
+        close()
         return when (merged.size) {
             0 -> EMPTY
             1 -> merged[0]
