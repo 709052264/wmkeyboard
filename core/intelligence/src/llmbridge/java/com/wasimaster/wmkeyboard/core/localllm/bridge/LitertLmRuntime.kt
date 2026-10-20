@@ -453,14 +453,14 @@ class LitertLmRuntime : LlmRuntime {
         e: Throwable,
     ): IOException {
         val loadedBackend = loadedKey?.backend
-        val verdictKey = loadedVerdictKey ?: verdictKey(context, modelFile)
+        val blamed = loadedVerdictKey ?: verdictKey(context, modelFile)
         releaseLocked()
         if (loadedBackend == "gpu") {
             // GPU init succeeded but generation blew up — usually GPU
             // memory, which is far tighter than system RAM. Blacklist
             // this model on GPU so the retry runs on CPU without the
             // user having to work out that the backend was the problem.
-            gpuVerdicts.markFailed(context, verdictKey)
+            gpuVerdicts.markFailed(context, blamed)
             return IOException(
                 context.getString(R.string.core_intel_llm_engine_error_gpu),
                 e,
@@ -471,7 +471,7 @@ class LitertLmRuntime : LlmRuntime {
             // prompt longer than the window the build was compiled for fails
             // this way too, and that says nothing about the next prompt. A
             // native crash on the NPU is still remembered, by the attempt file.
-            npuVerdicts.markFailed(context, verdictKey, persist = false)
+            npuVerdicts.markFailed(context, blamed, persist = false)
             return IOException(
                 context.getString(R.string.core_intel_llm_engine_error_npu),
                 e,
