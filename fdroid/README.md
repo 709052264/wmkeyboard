@@ -159,6 +159,17 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 entry's `scandelete` needs that path added. Nothing is fetched at configure
 time: no KleidiAI, no OpenSSL, no web UI.
 
+The NLLB translation engine adds `native/ctranslate2-jni` (OpenNMT's
+CTranslate2 and Google's SentencePiece at pinned tags, CMake, CPU only with
+ruy for every matrix product, no BLAS, no OpenMP) into
+`core/intelligence/src/ct2/jniLibs`; the next entry's `scandelete` needs that
+path added. The script clones abseil at the tag SentencePiece's own CMake
+would fetch, so configuring touches no network, and makes one edit to
+CTranslate2's `thread_pool.cc` (bionic has no `pthread_setaffinity_np`).
+armeabi-v7a gets a stub that only refuses to load. The NLLB-200 model itself
+(CC BY-NC 4.0) is not in the APK or the library: the phone fetches it from
+Hugging Face after the user accepts that licence, like FUTO Swipe's weights.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

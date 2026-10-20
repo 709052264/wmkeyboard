@@ -138,6 +138,14 @@ object FeatureModules {
     var bergamot: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:ct2`: CTranslate2, the runtime of the translate tool's NLLB
+     * engine (`:core:intelligence`). Only the library moves; the model is a
+     * separate 630 MB download.
+     */
+    @Volatile
+    var ct2: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models
      * (`:core:intelligence`). LiteRT-LM, the default runtime, has its own
      * gate (`LlmModule`); only a GGUF model asks for this one.

@@ -90,6 +90,7 @@ import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
 import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -37234,6 +37235,7 @@ open class WMKeyboardService : InputMethodService() {
                         translating = true,
                         error = null,
                         meteredAsk = false,
+                        licenceAsk = false,
                     ),
                 )
             }
@@ -37599,7 +37601,16 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
-        _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, error = null)) }
+        // NLLB's weights come under a non-commercial licence, shown on the
+        // panel before the first download; pressing again is agreeing to it.
+        if (OfflineTranslation.needsLicence(ui.missingModels)) {
+            if (!ui.licenceAsk) {
+                _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, licenceAsk = true, error = null)) }
+                return
+            }
+            NativeConsent.set(NativeConsent.NLLB, true)
+        }
+        _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, licenceAsk = false, error = null)) }
         if (ui.moduleMissing) {
             OnDeviceTranslator.requestModule()
             return

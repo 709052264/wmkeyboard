@@ -1528,6 +1528,12 @@ data class TranslateUi(
      * press of the same button is the yes.
      */
     val meteredAsk: Boolean = false,
+    /**
+     * The download needs a licence agreed to first (NLLB-200's weights,
+     * CC BY-NC 4.0), and the panel is showing it. The next press of the same
+     * button is the yes.
+     */
+    val licenceAsk: Boolean = false,
     /** The on-device models' states, mirrored here while the panel is open. */
     val models: Map<String, com.wasimaster.wmkeyboard.core.translate.OfflineModelState> = emptyMap(),
     /**

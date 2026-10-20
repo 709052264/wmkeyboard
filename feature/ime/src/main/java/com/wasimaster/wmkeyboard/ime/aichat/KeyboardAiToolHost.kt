@@ -77,7 +77,7 @@ class KeyboardAiToolHost(
 
     override val canTranslateOnDevice: Boolean get() = OfflineTranslation.available
 
-    /** ML Kit, then Bergamot, where the phone has them: the first that has the pair answers. */
+    /** ML Kit, then Bergamot, then NLLB, where the phone has them: the first that has the pair answers. */
     override fun translateOnDevice(text: String, target: String, source: String): Result<Translation> {
         val result = runBlocking {
             OfflineTranslation.translateAny(

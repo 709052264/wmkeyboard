@@ -1,0 +1,7 @@
+{
+  global:
+    JNI_OnLoad;
+    Java_com_wasimaster_wmkeyboard_core_translate_Ct2Native_*;
+  local:
+    *;
+};

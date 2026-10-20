@@ -161,6 +161,19 @@ The script fetches the revision of `mozilla/translations` that Firefox ships (on
 
 The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's public Remote Settings collection `translations-models-v2` and writes `BergamotCatalog.kt` with each file's address, size and SHA-256. Run it to move to Mozilla's newer models, then review the diff. `native/bergamot-jni/README.md` has the JNI contract and the reasons behind each build flag.
 
+## Rebuilding the CTranslate2 library
+
+The NLLB-200 translation engine runs on OpenNMT's [CTranslate2](https://github.com/OpenNMT/CTranslate2) with Google's [SentencePiece](https://github.com/google/sentencepiece) for tokens, built with a small JNI bridge into `libwmct2.so` from `native/ctranslate2-jni/`. `Ct2Native.kt` beside `BergamotNative.kt` is the Kotlin entry point, and `NllbTranslator.kt` drives it. The prebuilt `.so` files sit under `core/intelligence/src/ct2/jniLibs/<abi>/`, a directory of their own for the Play split. GitHub builds pin it for download (gate `ct2`), Play builds ship it in the on-demand `:feature:ct2` split, and F-Droid builds it from source through `native/build-fdroid-libs.sh`. Rebuild it only after you edit `native/ctranslate2-jni/` or move the pins in `build.sh`:
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/ctranslate2-jni/build.sh
+```
+
+The script fetches CTranslate2 and SentencePiece at pinned tags, with CTranslate2's ruy, spdlog and cpu_features submodules and the abseil tag SentencePiece's own CMake would fetch, so configuring needs no network. Every matrix product runs on ruy, int8 and float alike, with no BLAS and no OpenMP; ruy picks the dot-product kernels on the phones that have them. arm64-v8a and x86_64 build for Android 7 (API 24). armeabi-v7a gets `stub.c`, since 600 MB of weights is more than a 32-bit process can count on. A build takes a few minutes per ABI.
+
+The model is not in the library. `NllbTranslator.FILES` pins the four files of one Hugging Face revision by size and SHA-256. `native/ctranslate2-jni/README.md` has the JNI contract, the desktop test and the measurements behind the memory floor.
+
 ## Rebuilding the llama.cpp library
 
 GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:

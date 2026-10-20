@@ -225,6 +225,22 @@ class ProviderFrameworkTest {
     }
 
     @Test
+    fun `NLLB comes after the other device engines, and only where it can run`() {
+        val s = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ON_DEVICE))
+        assertEquals(
+            listOf("mlkit", "bergamot", "nllb", "google_translate"),
+            ids(s.providerChain(ProviderTool.TRANSLATE, github.copy(bergamot = true, nllb = true))),
+        )
+        assertEquals(
+            listOf("bergamot", "nllb", "google_translate"),
+            ids(s.providerChain(ProviderTool.TRANSLATE, fdroid.copy(bergamot = true, nllb = true))),
+        )
+        // A 32-bit phone, too little memory, or no internet: no NLLB.
+        assertFalse(ProviderCatalog.runnable(ProviderTypes.NLLB, github))
+        assertTrue(ProviderCatalog.runnable(ProviderTypes.NLLB, github.copy(nllb = true)))
+    }
+
+    @Test
     fun `a saved translate list gains a new device engine after the ones it has`() {
         val known = ProviderTypes.serving(ProviderTool.TRANSLATE).map { it.id } - "bergamot"
         val withMlKit = ProviderChain(

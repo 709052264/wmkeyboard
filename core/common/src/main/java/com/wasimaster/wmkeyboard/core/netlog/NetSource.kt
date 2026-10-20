@@ -84,7 +84,10 @@ enum class NetSource(
     DOWNLOAD_GLIDE("download_glide"),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
 
-    /** A Bergamot translation model, from Mozilla's Firefox Translations servers. */
+    /**
+     * An on-device translation model: a Bergamot direction from Mozilla's
+     * Firefox Translations servers, or the NLLB model from Hugging Face.
+     */
     DOWNLOAD_TRANSLATE("download_translate", ToolbarTool.TRANSLATE),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
 

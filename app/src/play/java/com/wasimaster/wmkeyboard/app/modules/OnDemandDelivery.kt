@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.StateFlow
  * ExecuTorch runtime), `:feature:onnx` (ONNX Runtime and the sherpa-onnx
  * bridge), `:feature:grammar` (Harper), `:feature:spell` (Hunspell),
  * `:feature:ocr` (Tesseract), `:feature:rime` (librime), `:feature:mozc`
- * (Mozc), `:feature:bergamot` (Mozilla's translator), `:feature:llama`
+ * (Mozc), `:feature:bergamot` (Mozilla's translator), `:feature:ct2`
+ * (CTranslate2, for the NLLB translator), `:feature:llama`
  * (llama.cpp, for GGUF models) and `:feature:npu` (the Qualcomm NPU runtime,
  * when the build has it).
  * This directory replaces
@@ -44,6 +45,7 @@ private const val OCR_MODULE = "ocr"
 private const val RIME_MODULE = "rime"
 private const val MOZC_MODULE = "mozc"
 private const val BERGAMOT_MODULE = "bergamot"
+private const val CT2_MODULE = "ct2"
 private const val LLAMA_MODULE = "llama"
 private const val NPU_MODULE = "npu"
 private const val GOOGLE_HOME_MODULE = "googlehome"
@@ -62,7 +64,7 @@ fun installOnDemandDelivery(app: Application) {
     // it the gate stays the default, whose "installed" NpuRuntime then finds
     // no assets behind, which reads as no NPU: never reached anyway, because
     // NpuSupport offers no NPU when ENABLE_NPU is off.
-    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, EXECUTORCH_MODULE, ONNX_MODULE, GRAMMAR_MODULE, SPELL_MODULE, OCR_MODULE, RIME_MODULE, MOZC_MODULE, BERGAMOT_MODULE, LLAMA_MODULE) +
+    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, EXECUTORCH_MODULE, ONNX_MODULE, GRAMMAR_MODULE, SPELL_MODULE, OCR_MODULE, RIME_MODULE, MOZC_MODULE, BERGAMOT_MODULE, CT2_MODULE, LLAMA_MODULE) +
         listOfNotNull(
             NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU },
             // In the bundle exactly when the build links the Home APIs.
@@ -88,13 +90,14 @@ fun installOnDemandDelivery(app: Application) {
     FeatureModules.rime = gates.getValue(RIME_MODULE)
     FeatureModules.mozc = gates.getValue(MOZC_MODULE)
     FeatureModules.bergamot = gates.getValue(BERGAMOT_MODULE)
+    FeatureModules.ct2 = gates.getValue(CT2_MODULE)
     FeatureModules.llama = gates.getValue(LLAMA_MODULE)
     gates[NPU_MODULE]?.let { FeatureModules.npu = it }
     gates[GOOGLE_HOME_MODULE]?.let { FeatureModules.googleHome = it }
-    // Licence agreements (FUTO Swipe's model weights) persist here too; Play
+    // Licence agreements (FUTO Swipe's and NLLB's model weights) persist here too; Play
     // has no pins, so nothing else in NativeDelivery applies.
     NativeConsent.attach(app, needOptIn = false)
-    // The speech, executorch, onnx, grammar, spell, OCR, RIME, Mozc, Bergamot and llama splits hold bare native libraries for classes in
+    // The speech, executorch, onnx, grammar, spell, OCR, RIME, Mozc, Bergamot, CTranslate2 and llama splits hold bare native libraries for classes in
     // the base. A split installed after this process started is not on the
     // class loader's library path; SplitInstallHelper looks there as well.
     FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }

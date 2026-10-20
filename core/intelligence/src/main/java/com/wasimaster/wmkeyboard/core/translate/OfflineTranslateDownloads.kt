@@ -53,3 +53,22 @@ fun BergamotTranslator.downloadNotified(context: Context, key: String, title: St
         }.distinctUntilChanged(),
     )
 }
+
+/** The same for the NLLB model or its library ([NllbTranslator.ENGINE_KEY]). */
+fun NllbTranslator.downloadNotified(context: Context, key: String, title: String) {
+    download(context, key)
+    DownloadNotifications.watch(
+        context = context,
+        key = DownloadKeys.translateModel(key),
+        title = title,
+        flow = models.map { states ->
+            when (val state = states[key]) {
+                is OfflineModelState.Downloading -> DownloadProgress.Running(state.bytes, state.totalBytes)
+                OfflineModelState.Downloaded -> DownloadProgress.Done
+                is OfflineModelState.Missing ->
+                    if (state.failed) DownloadProgress.Failed(null) else DownloadProgress.Gone
+                null -> DownloadProgress.Gone
+            }
+        }.distinctUntilChanged(),
+    )
+}
