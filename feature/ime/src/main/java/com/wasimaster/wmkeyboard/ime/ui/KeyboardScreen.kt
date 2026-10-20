@@ -588,6 +588,7 @@ import com.wasimaster.wmkeyboard.core.layout.AlternateEntry
 import com.wasimaster.wmkeyboard.core.layout.alternateEntries
 import com.wasimaster.wmkeyboard.core.layout.flickKey
 import com.wasimaster.wmkeyboard.core.layout.asKanaVariantKey
+import com.wasimaster.wmkeyboard.core.layout.withModeNames
 import com.wasimaster.wmkeyboard.core.layout.clipboardAlternate
 import com.wasimaster.wmkeyboard.core.layout.FlickDirection
 import com.wasimaster.wmkeyboard.core.layout.Key
