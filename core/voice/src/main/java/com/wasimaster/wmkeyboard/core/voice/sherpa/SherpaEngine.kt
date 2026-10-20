@@ -100,6 +100,8 @@ object SherpaEngine {
         if (recognizer != 0L) SherpaNative.nativeRecognizerFree(recognizer)
         recognizer = 0L
         recognizerDir = null
+        // Omnilingual's gigabyte goes back first.
+        OmnilingualEngine.release()
         fun part(prefix: String) = model.files.first { it.name.startsWith(prefix) }.let { EtStore.file(filesDir, model, it) }.path
         val handle = SherpaNative.nativeRecognizer(
             part("encoder"),

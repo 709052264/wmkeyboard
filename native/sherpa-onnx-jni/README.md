@@ -2,7 +2,10 @@
 
 [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx) runs Offline Sherpa's
 streaming Zipformer transducers, Silero VAD and the English online
-punctuation model. Kotlin entry points: `SherpaNative` and `SherpaEngine` in
+punctuation model, and Offline Omnilingual's model (Meta's Omnilingual ASR
+300M CTC) on its offline recognizer, with Silero cutting the audio into
+phrases. Kotlin entry points: `SherpaNative`, `SherpaEngine` and
+`OmnilingualEngine` in
 `core/voice/src/main/java/com/wasimaster/wmkeyboard/core/voice/sherpa/`.
 
 The same library reads text aloud with Meta's MMS-TTS voices
@@ -63,9 +66,9 @@ downloader as the ExecuTorch engines.
 
 | ABI | Size |
 |---|---|
-| arm64-v8a | about 2.2 MB |
-| armeabi-v7a | about 1.5 MB |
-| x86_64 | about 2.3 MB |
+| arm64-v8a | about 3.1 MB |
+| armeabi-v7a | about 2.1 MB |
+| x86_64 | about 3.3 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.
