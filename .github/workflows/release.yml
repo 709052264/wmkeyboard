@@ -123,24 +123,36 @@ jobs:
         # itself; the daemons stay warm between calls, and the modules below
         # :app are built once.
         #
-        # The `languages` flavour changes only which res/values-xx are packaged,
-        # but Gradle still gives each variant its own Kotlin compilation of :app.
+        # Two builds from 0.6.3. GitHub publishes one standard build, full ·
+        # English, which fetches its feature libraries (native delivery) and its
+        # other interface languages (language packs) on demand, and the offline
+        # build below. The all-languages build is made here only to cut the
+        # language packs from: compiled with the English build's resource IDs,
+        # so each pack's strings have the IDs the English APK asks for. Lite is
+        # F-Droid's edition and no longer published here.
         run: |
-          for variant in FullIntl FullEn LiteIntl LiteEn; do
-            ./gradlew "assemble${variant}Release" \
-              -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
-          done
+          ids="$PWD/build/resource-ids.txt"
+          mkdir -p build
+          ./gradlew assembleFullEnRelease "-Pwmkb.emitResourceIds=$ids" \
+            -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
+          ./gradlew assembleFullIntlRelease "-Pwmkb.stableResourceIds=$ids" \
+            -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
       # Versioned filenames (wmkeyboard-0.3.0-vc7-full-arm64-v8a.apk) so APKs
       # from different releases can sit in the same Downloads folder without
       # the browser calling them duplicates. vc = versionCode, which moves even
       # when the name does not (a re-cut of the same versionName).
       - name: Collect artifacts
+        # The language packs are signed here, before the keystore is wiped.
+        env:
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
           version=$(grep '^wmkb.versionName=' gradle.properties | cut -d= -f2)
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           mkdir -p dist
-          find app/build/outputs/apk -name '*-release.apk' | while read -r apk; do
+          find app/build/outputs/apk/fullEn -name '*-release.apk' | while read -r apk; do
             name=$(basename "$apk" .apk)   # app-full-arm64-v8a-release
             name=${name#app-}
             name=${name%-release}
@@ -175,7 +187,9 @@ jobs:
           # Four now rather than two. The two language builds are separate R8
           # runs, so their maps are not interchangeable even though the Kotlin
           # that went in was identical.
-          for capability in full lite; do
+          # full · all languages too: the offline build is that variant with
+          # a different manifest, and the retrace workflow uses this map for it.
+          for capability in full; do
             for language in Intl En; do
               lower=$(echo "$language" | tr '[:upper:]' '[:lower:]')
               map="app/build/outputs/mapping/${capability}${language}Release/mapping.txt"
@@ -190,7 +204,7 @@ jobs:
           # Native symbols, full only: lite sets debugSymbolLevel NONE. Both
           # language builds carry the same .so files, but each variant writes
           # its own zip and the release grid links them separately.
-          for language in Intl En; do
+          for language in En; do
             lower=$(echo "$language" | tr '[:upper:]' '[:lower:]')
             syms="app/build/outputs/native-debug-symbols/full${language}Release/native-debug-symbols.zip"
             if [ -f "$syms" ]; then
@@ -199,6 +213,15 @@ jobs:
               echo "::warning::No native debug symbols at $syms"
             fi
           done
+          # The language packs, cut from the all-languages universal APK and
+          # signed with the release key the app checks them against.
+          intl=$(find app/build/outputs/apk/fullIntl -name '*-universal-release.apk' | head -1)
+          [ -n "$intl" ] || { echo "::error::No full · all languages universal APK"; exit 1; }
+          .github/scripts/language-packs.sh "$intl" dist "$version" "$code"
+          # The libraries the standard build fetches from the data repository,
+          # as the publish job uploads them there.
+          standard=$(find app/build/outputs/apk/fullEn -name '*-universal-release.apk' | head -1)
+          .github/scripts/collect-natives.sh "$standard" natives
           # nullglob: with no symbols zip, a literal `*.zip` would reach
           # sha256sum and fail the step under the runner's `bash -e`.
           shopt -s nullglob
@@ -212,6 +235,12 @@ jobs:
         with:
           name: release-apks
           path: dist/
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: natives-standard
+          path: natives/
           retention-days: 30
 
   # The reference APK for F-Droid's reproducible build. F-Droid builds each tag
@@ -331,14 +360,23 @@ jobs:
             || { echo "::error::$out is not signed with the key AllowedAPKSigningKeys pins"; exit 1; }
           unzip -p "$out" META-INF/version-control-info.textproto | grep -q "revision: \"$GITHUB_SHA\"" \
             || { echo "::error::$out does not record commit $GITHUB_SHA"; exit 1; }
-          # The lite edition's own engines must be in it, built from source,
-          # for this ABI and no other.
+          # The typing engine must be in it, built from source, for this ABI
+          # and no other. The lite edition's other engines are built from
+          # source too, but delivered on demand: pinned, not packaged.
           abi='${{ matrix.abi }}'
-          libs="libwm_engine_jni.so libharper_jni.so libwmwhispercpp.so libwmexecutorch.so"
+          unzip -l "$out" | grep -q "lib/$abi/libwm_engine_jni.so" \
+            || { echo "::error::$out has no $abi libwm_engine_jni.so"; exit 1; }
+          libs="libharper_jni.so libwmwhispercpp.so libwmexecutorch.so"
           [ "$abi" = arm64-v8a ] && libs="$libs libwmwhispercpp_v82.so"
+          pins=$(unzip -p "$out" assets/native/pins.tsv)
           for lib in $libs; do
-            unzip -l "$out" | grep -q "lib/$abi/$lib" \
-              || { echo "::error::$out has no $abi $lib"; exit 1; }
+            if unzip -l "$out" | grep -q "lib/$abi/$lib"; then
+              echo "::error::$out packages $lib, which it should deliver on demand"; exit 1
+            fi
+            echo "$pins" | grep -qP "\t$abi\t$lib\t" \
+              || { echo "::error::$out does not pin $abi $lib"; exit 1; }
+            ls dist/fdroid-natives-$abi/*-"$lib" >/dev/null \
+              || { echo "::error::the build left no $lib for the natives release"; exit 1; }
           done
           others=$(unzip -Z1 "$out" 'lib/*' | grep -v "^lib/$abi/" || true)
           [ -z "$others" ] || { echo "::error::$out carries another ABI's code:"; echo "$others"; exit 1; }
@@ -357,12 +395,18 @@ jobs:
           path: dist-ref/
           retention-days: 30
 
-  # The build with no INTERNET permission (#292), for people who want a
-  # keyboard that cannot reach the network at all. Two of the four: full · all
-  # languages, because everything full adds over lite (the bundled scanners,
-  # the grammar checker, an imported local model) runs on the device, and lite ·
-  # English, the smallest, for a phone short on space or memory (#490). Both
-  # install over the regular builds and back. arm64-v8a and universal only.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: natives-fdroid-${{ matrix.abi }}
+          path: dist/fdroid-natives-${{ matrix.abi }}/
+          retention-days: 30
+
+  # The offline build: no INTERNET permission (#292), for people who want a
+  # keyboard that cannot reach the network at all. full · all languages, with
+  # every feature library and translation built in, since it could never
+  # fetch them; models still come in through Import. One of GitHub's two
+  # builds from 0.6.3, beside the standard one. Installs over the standard
+  # build and back. arm64-v8a and universal only.
   #
   # Its own runner, like `fdroid`: wmkb.noInternet is a project-wide flag, so
   # it cannot share a Gradle invocation with the four regular builds, and a
@@ -418,7 +462,7 @@ jobs:
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
         run: |
-          ./gradlew assembleFullIntlRelease assembleLiteEnRelease \
+          ./gradlew assembleFullIntlRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
       - name: Wipe keystore
@@ -438,7 +482,7 @@ jobs:
           code=$(grep '^wmkb.versionCode=' gradle.properties | cut -d= -f2)
           aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
           mkdir -p dist
-          for variant in full-intl:fullIntl lite-en:liteEn; do
+          for variant in full-intl:fullIntl; do
             name=${variant%%:*}
             gradle=${variant##*:}
             for abi in arm64-v8a universal; do
@@ -657,6 +701,50 @@ jobs:
         with:
           name: offline-apks
           path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: natives-*
+          merge-multiple: true
+          path: natives
+
+      # Native delivery: the standard build and the F-Droid build fetch the
+      # project's own feature libraries from the data repository's `natives`
+      # release, by hash. Files are content-addressed and never replaced, so
+      # one that is already there is skipped, and an unchanged library costs
+      # nothing. Done before the app release goes public, so no published APK
+      # ever points at a file that is not there yet. Needs DATA_REPO_TOKEN, a
+      # token with contents: write on wasi-master/wmkeyboard-data.
+      - name: Publish feature libraries to the data repository
+        env:
+          GH_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
+          DATA_REPO: wasi-master/wmkeyboard-data
+        run: |
+          shopt -s nullglob
+          files=(natives/*)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "::error::No feature libraries to publish"
+            exit 1
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::DATA_REPO_TOKEN is not set; the release would point at libraries that do not exist"
+            exit 1
+          fi
+          gh release view natives --repo "$DATA_REPO" >/dev/null 2>&1 || \
+            gh release create natives --repo "$DATA_REPO" --title "Feature libraries" \
+              --notes "Native libraries WM Keyboard's GitHub and F-Droid builds download on demand, named <sha256>-<library>. Each file's hash is pinned in the app that downloads it. Never replaced: a new build of a library is a new name."
+          have=$(gh release view natives --repo "$DATA_REPO" --json assets -q '.assets[].name')
+          for f in "${files[@]}"; do
+            name=$(basename "$f")
+            hash=${name%%-*}
+            [ "$(sha256sum "$f" | cut -d' ' -f1)" = "$hash" ] || { echo "::error::$name does not hash to its name"; exit 1; }
+            if echo "$have" | grep -qxF "$name"; then
+              echo "have $name"
+            else
+              echo "uploading $name"
+              gh release upload natives --repo "$DATA_REPO" "$f"
+            fi
+          done
 
       # Only the manifest differs from the regular build of each, so R8 should
       # have renamed both the same way, and the retrace workflow, which reads

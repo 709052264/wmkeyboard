@@ -30,8 +30,14 @@ import java.util.Locale
  */
 internal object AppLanguage {
 
-    /** Every interface language this install can show, English first. */
+    /**
+     * Every interface language this install can show, English first. The
+     * standard GitHub build lists every language but carries English alone,
+     * and can only add another on Android 11 and up (language packs), so
+     * below that it offers English.
+     */
     val available: List<String> = BuildConfig.APP_LOCALES.split(',').filter { it.isNotBlank() }
+        .let { if (BuildConfig.LANGUAGE_PACKS && !LanguagePackDownloads.active) listOf("en") else it }
 
     /** False on an English-only build, where the picker would have one entry. */
     val canChoose: Boolean get() = available.size > 1
@@ -69,8 +75,13 @@ internal object AppLanguage {
     fun select(context: Context, tag: String?) {
         val activity = context.findActivity()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.getSystemService(LocaleManager::class.java)?.applicationLocales =
-                if (tag == null) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
+            val apply = {
+                context.getSystemService(LocaleManager::class.java)?.applicationLocales =
+                    if (tag == null) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(tag)
+            }
+            // The standard GitHub build fetches the language's pack first, so
+            // the screen the system recreates is already in it.
+            if (activity != null && LanguagePackDownloads.active) fetchAppLanguage(activity, tag) { apply() } else apply()
             return
         }
         prefs(context).edit().apply {

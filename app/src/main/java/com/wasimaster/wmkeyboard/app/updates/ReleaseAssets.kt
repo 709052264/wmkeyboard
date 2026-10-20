@@ -53,6 +53,9 @@ internal object ReleaseAssets {
      */
     const val UNIVERSAL = "universal"
 
+    /** The `capabilities` flavour of the standard build, which every install moves onto. */
+    const val STANDARD_FLAVOR = "full"
+
     /** The `languages` flavour that carries English only. GitHub is the only place it ships. */
     const val LANGUAGES_EN = "en"
 
@@ -154,11 +157,16 @@ internal object ReleaseAssets {
         supportedAbis: List<String>,
         languages: String = LANGUAGES_EN,
     ): GithubAsset? {
-        val ours = release.assets.mapNotNull { asset ->
+        fun matching(wantFlavor: String, wantLanguages: String) = release.assets.mapNotNull { asset ->
             parseAssetName(asset.name)
-                ?.takeIf { it.flavor == flavor && it.languages == languages }
+                ?.takeIf { it.flavor == wantFlavor && it.languages == wantLanguages }
                 ?.let { it to asset }
         }
+        // From 0.6.3 GitHub publishes one build, the standard one (full ·
+        // English, which fetches its other languages and feature libraries).
+        // A lite or all-languages install moves onto it rather than stopping
+        // at the last release that carried its own variant.
+        val ours = matching(flavor, languages).ifEmpty { matching(STANDARD_FLAVOR, LANGUAGES_EN) }
         if (ours.isEmpty()) return null
         for (abi in supportedAbis) {
             ours.firstOrNull { it.first.abi == abi }?.let { return it.second }

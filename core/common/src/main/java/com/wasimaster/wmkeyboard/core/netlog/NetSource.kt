@@ -99,6 +99,9 @@ enum class NetSource(
      * LiteRT's and Qualcomm's straight from their Maven repositories.
      */
     DOWNLOAD_NATIVE("download_native"),
+
+    /** An interface language pack the standard GitHub build fetches when its language is picked. */
+    DOWNLOAD_LANGUAGE("download_language"),
     ADDONS("addons"),
     KEYMAN("keyman"),
     SIGNAL_STICKERS("signal_stickers", ToolbarTool.STICKER),

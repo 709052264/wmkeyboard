@@ -1,6 +1,6 @@
 ---
 title: "Installation"
-description: "Install from Google Play or F-Droid, download a release APK, or build from source, pick Full or Lite, and install it on your device."
+description: "Install from Google Play or F-Droid, download the standard or offline APK from GitHub, or build from source, and install it on your device."
 sidebar:
   order: 1
 ---
@@ -29,31 +29,31 @@ Its privacy policy is [Privacy policy (Google Play edition)](/privacy/policy/).
 
 ## Downloading a release APK
 
-Every release ships sixteen APKs on the [GitHub releases page](https://github.com/wasi-master/wmkeyboard/releases). There are three things to pick: the edition (Full or Lite), the languages the app's own screens are written in (all of them or English only), and your CPU architecture. The release page puts the common answer first, so most people take the starred cell and stop reading.
+Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyboard/releases) has two builds, **standard** and **offline**. Most people want standard. The release page puts it first.
 
 <Steps>
 
 1. Open the latest release on GitHub.
 
-2. Pick your edition. Full carries every feature. Lite is much smaller. See [Choosing an edition](#choosing-an-edition) below.
+2. Take the **standard** build, unless you want a keyboard that can never reach the network.
 
-3. Pick your languages. `all` has the app's own text in 48 languages besides English. `en` has English alone and is about 41 MB smaller. This is only about the words the app shows you, on its settings screens and its panels. What you can type is identical either way: every layout and every dictionary is in both. See [Choosing a language build](#choosing-a-language-build) below.
+   **Standard** carries the keyboard and English, and fetches the rest when you use it. Features that need their own code (offline voice typing, grammar checking, the scanner, handwriting, on-device translation and on-device AI) download it the first time you use them. On Android 11 and later, the app's own screens download another language when you pick it, about 1.3 MB each. On Android 7 to 10, the standard build's screens stay in English. Every download is checked against a checksum built into the app.
 
-4. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size.
+   **Offline** has the internet permission removed and everything built in: all 48 interface languages and every feature library. Anything that downloads stops working, including its own update check, though language packs, models and GIF packs fetched on another device can be [imported instead](/privacy/offline/). See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
 
-   If you want a keyboard that cannot reach the network at all, take the `nointernet` APK instead. It is Full with every language, in `arm64-v8a` and `universal`, with the internet permission removed. Anything that downloads stops working, including its own update check, though language packs, models and GIF packs fetched on another device can be [imported instead](/privacy/offline/). See [A build with no internet permission](/development/building/#a-build-with-no-internet-permission).
+3. Pick your CPU architecture. Almost every phone made since 2017 is `arm64-v8a`. Older or budget devices are `armeabi-v7a`. Emulators and a few tablets are `x86_64`. The `universal` APK holds all three and works anywhere, at several times the download size. The offline build comes in `arm64-v8a` and `universal`.
 
-5. Download the APK to your device.
+4. Download the APK to your device.
 
-6. Optional: verify the download against `SHA256SUMS.txt` from the same release. Run `sha256sum <file>` on a computer, or use a checksum app on the phone. Compare the result to the line for your file.
+5. Optional: verify the download against `SHA256SUMS.txt` from the same release. Run `sha256sum <file>` on a computer, or use a checksum app on the phone. Compare the result to the line for your file.
 
-7. Open the APK to install it.
+6. Open the APK to install it.
 
 </Steps>
 
-The release page carries the real size of every file next to its link, so check there rather than here. As a rough guide on `arm64-v8a`, Full in English is around 67 MB and Lite in English around 12 MB, and the all-languages build of either adds about 41 MB on top.
+The release page carries the real size of every file next to its link, so check there rather than here.
 
-That 41 MB does not shrink with the architecture you pick, because the translations are stored uncompressed and every APK carries them whole. It is why Lite has a language choice at all: without one, the edition built to be small would stop being small.
+Up to 0.6.2, each release also had a Lite edition and an all-languages build of each edition. If you installed one of those from GitHub, the app's updater moves you to the standard build: your settings stay, and on Android 11 and later the app downloads your interface language again the first time it starts in it. The Lite edition is still what F-Droid builds.
 
 ## Building the APK yourself
 
@@ -88,32 +88,15 @@ The build produces one APK per CPU architecture only when `wmkb.splitApks` is on
 
 ## Choosing an edition
 
-Both editions are the same keyboard. Same layouts, same prediction, same themes, same tools. What differs is which on-device intelligence ships in the box:
+The GitHub builds and the Google Play copy are <Flavor edition="full" />. F-Droid builds <Flavor edition="lite" />, which leaves out the parts that come from Google: ML Kit's handwriting and scanners, the LiteRT runtimes behind the original Whisper models and the local AI model, and the Whistle voice engine. See [Full vs Lite](/start/editions/) for the complete comparison and how to tell which edition you're running.
 
-| | <Flavor edition="full" /> | <Flavor edition="lite" /> |
-|---|---|---|
-| Handwriting, OCR text scan, QR/barcode scanner, document scanner | Included | Not included |
-| Grammar check (Harper) | Included | Not included |
-| Offline Whisper voice dictation | Included | Not included |
-| On-device local LLM | Included | Not included |
+## Interface languages
 
-Lite leaves out the ML Kit and Harper native libraries those features need, so its APK is far smaller: 8.25 MB against 63.2 MB for Full on `arm64-v8a`. Exact numbers shift as dependencies update. Pick Lite if you're short on storage, or if you don't need handwriting, scanning, grammar checking, offline voice or the local LLM. It gets you everything else for a fraction of the download.
+This is about the words the app shows you, not the ones you type. Every layout, every dictionary and every prediction model is in every build.
 
-See [Full vs Lite](/start/editions/) for the complete feature comparison and how to tell which edition you're already running.
-
-## Choosing a language build
-
-This choice is about the words the app shows you, not the ones you type.
-
-**all** carries the app's own text in 48 languages besides English: its settings screens, its panels, its button labels. It follows your phone's language on its own, and you can give the app a language of its own under Settings, then Apps, then WM Keyboard, then Language, on Android 13 and up.
-
-**en** carries English alone, and is about 41 MB smaller for it.
-
-Every layout, every dictionary and every prediction model is in both. Switching your typing language to Bengali works exactly the same in the English build. If you read the app's screens in English, `en` costs you nothing at all.
+The app's own text exists in 48 languages besides English. The offline build, F-Droid and the Google Play copy carry or fetch them on their own. The standard GitHub build carries English and downloads a language when you pick it under About, then App language, on Android 11 and later. You can also set it under Settings, then Apps, then WM Keyboard, then Language, on Android 13 and up.
 
 The translations are machine translations from Google Play, and nobody has read them line by line, so expect the occasional clumsy sentence. A string with no translation yet falls back to English. See [Languages overview](/languages/overview/) for the list and the caveats.
-
-You can move between the two later. They share a signing key and a version, so installing one over the other is an ordinary update and no setting is lost.
 
 ## Installing from the APK
 

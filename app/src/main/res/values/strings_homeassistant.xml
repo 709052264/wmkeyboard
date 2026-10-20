@@ -99,6 +99,8 @@
     <string name="gh_choose_button">Choose a home</string>
     <string name="gh_change_button">Change home</string>
     <string name="gh_revoke_note">To take the access back on Google\'s side, remove WM Keyboard under your Google account\'s third-party apps, or in the Google Home app\'s linked apps.</string>
+    <string name="gh_module_installing">Downloading the Google Home part of the keyboard. When it finishes, this screen reopens, and you can choose your home.</string>
+    <string name="gh_module_failed">The Google Home part did not download. Check the connection, then tap Choose a home again.</string>
     <string name="gh_unavailable">The Google Home APIs are not in this build, or Play services is missing on this phone.</string>
 
     <!-- Panel group -->

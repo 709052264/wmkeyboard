@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.homeassistant
 
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -492,6 +493,8 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onSave: (ProviderCredent
     val grant by GoogleHomeSupport.grants.collectAsState()
     val before = remember { GoogleHomeSupport.grants.value }
     val granted = draft.homeAccount().signedIn
+    // Play: the SDK is an on-demand module, fetched on the first tap of Choose.
+    val module by GoogleHomeSupport.moduleState.collectAsState()
     LaunchedEffect(grant) {
         val g = grant?.takeIf { it !== before } ?: return@LaunchedEffect
         if (draft.extra[HomeKeys.STRUCTURE_ID] != g.structureId || draft.extra[HomeKeys.GRANTED] != "1") {
@@ -506,6 +509,8 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onSave: (ProviderCredent
     Text(
         when {
             !GoogleHomeSupport.AVAILABLE -> stringResource(R.string.gh_unavailable)
+            module is ModuleState.Installing -> stringResource(R.string.gh_module_installing)
+            (module as? ModuleState.Missing)?.failed == true -> stringResource(R.string.gh_module_failed)
             granted -> stringResource(R.string.gh_granted, draft.extra[HomeKeys.INSTANCE_NAME].orEmpty())
             else -> stringResource(R.string.gh_choose_subtitle)
         },
@@ -516,7 +521,7 @@ private fun GoogleHomeExtras(draft: ProviderCredential, onSave: (ProviderCredent
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 24.dp)) {
         val activity = context.findActivity() as? ComponentActivity
         Button(
-            enabled = GoogleHomeSupport.AVAILABLE && activity != null,
+            enabled = GoogleHomeSupport.AVAILABLE && activity != null && module !is ModuleState.Installing,
             onClick = { activity?.let { GoogleHomeSupport.requestAccess(it, force = granted) } },
         ) { Text(stringResource(if (granted) R.string.gh_change_button else R.string.gh_choose_button)) }
         if (granted) {

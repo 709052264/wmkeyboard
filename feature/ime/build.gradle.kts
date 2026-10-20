@@ -82,11 +82,21 @@ android {
     // build that has them compiles the real GoogleHomeSupport. Without them
     // the full flavour uses the same stub lite does, so a checkout without
     // the SDK still builds. ENABLE_GOOGLE_HOME in :core:config follows suit.
+    //
+    // On Play the SDK is not linked here at all: it is the on-demand
+    // :feature:googlehome split, which compiles src/googlehome, and this
+    // module gets the facade that reaches it by reflection instead.
     sourceSets {
         getByName("full") {
-            val dir = if (googleHome) "src/googlehome/java" else "src/googlehomestub/java"
-            java.srcDir(dir)
-            kotlin.srcDir(dir)
+            val dirs = when {
+                googleHome && playStoreChannel -> listOf("src/googlehomeplay/java")
+                googleHome -> listOf("src/googlehome/java", "src/googlehomedirect/java")
+                else -> listOf("src/googlehomestub/java")
+            }
+            for (dir in dirs) {
+                java.srcDir(dir)
+                kotlin.srcDir(dir)
+            }
             // The Play services module request the Home APIs need; only with the SDK.
             if (googleHome) manifest.srcFile("src/googlehome/AndroidManifest.xml")
         }
@@ -183,7 +193,9 @@ dependencies {
     "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
     "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
     "fullImplementation"(libs.mlkit.document.scanner)
-    if (googleHome && googleHomeVersion != null) {
+    if (googleHome && playStoreChannel) {
+        // In :feature:googlehome; see the source sets above.
+    } else if (googleHome && googleHomeVersion != null) {
         "fullImplementation"("com.google.android.gms:play-services-home:$googleHomeVersion")
         "fullImplementation"("com.google.android.gms:play-services-home-types:$googleHomeVersion")
     } else if (googleHome && googleHomeAars) {

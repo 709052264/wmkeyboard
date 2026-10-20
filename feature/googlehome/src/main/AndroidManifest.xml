@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     On-demand delivery: the Google Home APIs SDK is fetched when a Google
+     Home is first added (GoogleHomeSupport in :feature:ime's src/googlehomeplay).
+
+     The SDK's own manifest declares the Play services ModuleDependencies
+     service. A split's components are merged into the base manifest marked
+     with this split's name, which would hide the base's own copy of that
+     service (src/googlehome/AndroidManifest.xml in :feature:ime) until the
+     split is installed, the same trap ML Kit's registrars hit. The base
+     declares it; this split removes its copy.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:dist="http://schemas.android.com/apk/distribution"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <dist:module
+        dist:instant="false"
+        dist:title="@string/googlehome_module_title">
+        <dist:delivery>
+            <dist:on-demand />
+        </dist:delivery>
+        <dist:fusing dist:include="true" />
+    </dist:module>
+
+    <application>
+        <service
+            android:name="com.google.android.gms.metadata.ModuleDependencies"
+            tools:node="remove" />
+    </application>
+
+</manifest>

@@ -331,15 +331,20 @@ android {
         // wizard page) offers, so it must name only languages this install can
         // actually show. `en` on Play still gets the full list: Play injects
         // its translations into the bundle at upload, and Android 13+ fetches
-        // the language split when the app language changes.
+        // the language split when the app language changes. So does `en` on
+        // GitHub, the standard build: it fetches each language as a pack from
+        // its release (LANGUAGE_PACKS), on Android 11 and up.
         create("intl") {
             dimension = "languages"
             buildConfigField("String", "APP_LOCALES", "\"$translatedLocales\"")
+            buildConfigField("Boolean", "LANGUAGE_PACKS", "false")
         }
         create("en") {
             dimension = "languages"
-            val shipped = if (playStoreChannel) translatedLocales else "en"
+            val packs = githubChannel && !noInternet
+            val shipped = if (playStoreChannel || packs) translatedLocales else "en"
             buildConfigField("String", "APP_LOCALES", "\"$shipped\"")
+            buildConfigField("Boolean", "LANGUAGE_PACKS", "$packs")
         }
     }
 
@@ -475,6 +480,11 @@ android {
         if (flag("wmkb.enableNpu", "WMKB_ENABLE_NPU", default = "true")) {
             dynamicFeatures += ":feature:npu"
         }
+        // The Google Home APIs SDK, fetched when a Google Home is first
+        // added. Included by settings.gradle.kts under the same conditions.
+        if (rootProject.findProject(":feature:googlehome") != null) {
+            dynamicFeatures += ":feature:googlehome"
+        }
     }
 
     // See the splitApks flag at the top of this file. Splits shape APK
@@ -526,6 +536,13 @@ android {
         // could only ever follow the system language. Generated rather than
         // hand-written so the list cannot drift from the locales that shipped.
         generateLocaleConfig = true
+        // Language packs (.github/scripts/language-packs.sh): the release
+        // writes the standard (English) build's resource IDs with
+        // -Pwmkb.emitResourceIds=<file> and compiles the all-languages build
+        // with -Pwmkb.stableResourceIds=<the same file>, so the strings cut
+        // out of the second one carry the IDs the first looks them up by.
+        providers.gradleProperty("wmkb.emitResourceIds").orNull?.let { additionalParameters += listOf("--emit-ids", it) }
+        providers.gradleProperty("wmkb.stableResourceIds").orNull?.let { additionalParameters += listOf("--stable-ids", it) }
     }
 
     // Android Lint. Severities live in config/lint/lint.xml — this block only

@@ -32,6 +32,8 @@
     <string name="about_launcher_shown_info">Turn this off to take the icon away. The keyboard keeps working, and these settings are still a tap away: the settings key on the keyboard, the keyboard\'s entry in Android\'s keyboard settings, or a settings link. The long-press shortcuts on the icon go with it. On Android 10 and newer, Android may put an icon back that opens the App info page instead, because it does that for every installed app with no icon of its own. Only apps that came with the phone escape it. To stop it for every app, run adb shell settings put global show_hidden_icon_apps_enabled 0 from a computer.</string>
     <!-- The in-app interface language picker (#322). -->
     <string name="about_app_language_title">App language</string>
+    <string name="app_language_pack_downloading">Downloading the language…</string>
+    <string name="app_language_pack_failed">The language did not download. The app stays in English. Check the connection, then pick the language again.</string>
     <string name="about_app_language_subtitle">The language of the menus and settings. Your typing languages are in Settings, then Languages</string>
     <!-- The option that follows the phone. %1$s is the phone's language, in that language. -->
     <string name="about_app_language_system">System default (<xliff:g id="language" example="English">%1$s</xliff:g>)</string>

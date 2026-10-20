@@ -109,6 +109,15 @@ if (playStoreChannel) {
         ?: System.getenv("WMKB_ENABLE_NPU")
         ?: "true").toBoolean()
     if (npuRuntime) include(":feature:npu")
+    // The Google Home APIs SDK (~22 MB of dex), when this build links it at
+    // all: the SDK unpacked under feature/ime/libs/googlehome and
+    // wmkb.enableGoogleHome on, the same two things :feature:ime checks.
+    val googleHome = file("feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home").isDirectory &&
+        (providers.gradleProperty("wmkb.enableGoogleHome").orNull
+            ?: local.getProperty("wmkb.enableGoogleHome")
+            ?: System.getenv("WMKB_ENABLE_GOOGLE_HOME")
+            ?: "false").toBoolean()
+    if (googleHome) include(":feature:googlehome")
 }
 // Macrobenchmarks and the baseline profile generator (-Pwmkb.benchmark=true).
 // Out of the ordinary build for two reasons. Applying the baselineprofile

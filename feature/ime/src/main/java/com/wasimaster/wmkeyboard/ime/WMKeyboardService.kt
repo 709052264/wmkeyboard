@@ -3826,6 +3826,9 @@ open class WMKeyboardService : InputMethodService() {
         // keyboard without a word to the user, so the crash record has to be
         // armed before anything that could crash runs.
         DebugLog.attach(this)
+        // The keyboard's own strings in a language the standard GitHub build
+        // downloaded (LanguagePackResources); nothing on other builds.
+        com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.attach(resources)
         lifecycleOwner = KeyboardViewLifecycleOwner()
         lifecycleOwner.onCreate()
         // The keyboard's window is edge to edge on every Android version, as

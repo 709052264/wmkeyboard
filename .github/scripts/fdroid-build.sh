@@ -101,4 +101,8 @@ apt-get install -qy sudo >/dev/null
 apk="$home_vagrant/tmp/${appid}_${code}.apk"
 [ -f "$apk" ] || { echo "fdroid build left no $apk"; ls -la "$home_vagrant/tmp"; exit 1; }
 cp "$apk" "/src/dist/fdroid-unsigned-$abi.apk"
-chmod a+r /src/dist/*
+# The libraries F-Droid's build compiled from source and left out of the APK
+# (native delivery), for the data repository's natives release: an F-Droid
+# install that opts in to library downloads fetches these exact bytes.
+(cd "$home_vagrant/build/$appid" && bash /src/.github/scripts/collect-natives.sh "$apk" "/src/dist/fdroid-natives-$abi")
+chmod -R a+r /src/dist

@@ -205,6 +205,13 @@
     *;
 }
 
+# --- Google Home bridge -------------------------------------------------------
+# GoogleHomeBridge is reached ONLY by reflection from the Play facade
+# (src/googlehomeplay in :feature:ime), out of the :feature:googlehome split.
+-keep class com.wasimaster.wmkeyboard.ime.homeassistant.googlehome.GoogleHomeBridge {
+    <init>();
+}
+
 # --- On-device translation bridge ---------------------------------------------
 # The same arrangement and the same reason: MlKitTranslateRuntime is reached
 # ONLY by reflection (OnDeviceTranslator's facade), from the base APK in

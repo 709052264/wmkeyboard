@@ -91,35 +91,31 @@ if [ "$have_apk" = true ]; then
 cat <<EOF
 ## Download
 
-There are two choices to make, and the second one is easy.
+Two builds. **Standard** is the one almost everyone wants. **Offline** is for
+a keyboard that can never reach the network.
 
-**full or lite?** **full** is the whole keyboard. **lite** leaves out ML Kit,
-LiteRT and the engines built on them (handwriting, OCR, document scanning,
-Whistle dictation and the local LLM) for a far smaller download. It keeps the
-grammar checker and offline dictation through whisper.cpp, Asr4All, Parakeet
-and Moonshine.
-
-**Which languages?** This is about the words the app *shows* you, on its
-settings screens and its panels. **all** has them in 48 languages besides
-English. **English** has English alone and is around 41 MB smaller. What you can
-*type* is identical: every layout and every dictionary is in both. You can swap
-one for the other later without uninstalling or losing a setting.
+**Standard** fetches what you use. The interface is English, and on Android 11
+or later the app downloads any other of its 48 languages when you pick it
+(about 1.3 MB each). Features that bring their own code, like offline voice
+typing, grammar checking, the scanner, handwriting, on-device translation and
+on-device AI, download it the first time you use them. Every download is
+checked against a checksum built into the app. What you can *type* is the same
+either way: every layout and every dictionary is there.
 
 Almost every phone sold since 2017 takes an **arm64-v8a** build, so start here:
 
-| arm64-v8a | all languages | English only |
-|:---|:---|:---|
-| **⭐ full** | **$(cell "${prefix}-full-intl-arm64-v8a.apk")** | **$(cell "${prefix}-full-en-arm64-v8a.apk")** |
-| **lite** | $(cell "${prefix}-lite-intl-arm64-v8a.apk") | $(cell "${prefix}-lite-en-arm64-v8a.apk") |
+| | arm64-v8a |
+|:---|:---|
+| **⭐ Standard** | **$(cell "${prefix}-full-en-arm64-v8a.apk")** |
 
 <details>
 <summary><b>Other architectures</b> (older 32-bit phones, emulators, ChromeOS, or if the above refuses to install)</summary>
 
-| Architecture | full · all | full · English | lite · all | lite · English |
-|:---|:---|:---|:---|:---|
-| armeabi-v7a<br><sub>Older 32-bit phones and watches</sub> | $(cell "${prefix}-full-intl-armeabi-v7a.apk") | $(cell "${prefix}-full-en-armeabi-v7a.apk") | $(cell "${prefix}-lite-intl-armeabi-v7a.apk") | $(cell "${prefix}-lite-en-armeabi-v7a.apk") |
-| x86_64<br><sub>Emulators, ChromeOS, x86 tablets</sub> | $(cell "${prefix}-full-intl-x86_64.apk") | $(cell "${prefix}-full-en-x86_64.apk") | $(cell "${prefix}-lite-intl-x86_64.apk") | $(cell "${prefix}-lite-en-x86_64.apk") |
-| universal<br><sub>All three in one file. Only if the others refuse to install</sub> | $(cell "${prefix}-full-intl-universal.apk") | $(cell "${prefix}-full-en-universal.apk") | $(cell "${prefix}-lite-intl-universal.apk") | $(cell "${prefix}-lite-en-universal.apk") |
+| Architecture | Standard |
+|:---|:---|
+| armeabi-v7a<br><sub>Older 32-bit phones and watches</sub> | $(cell "${prefix}-full-en-armeabi-v7a.apk") |
+| x86_64<br><sub>Emulators, ChromeOS, x86 tablets</sub> | $(cell "${prefix}-full-en-x86_64.apk") |
+| universal<br><sub>All three in one file. Only if the others refuse to install</sub> | $(cell "${prefix}-full-en-universal.apk") |
 
 </details>
 
@@ -129,34 +125,46 @@ EOF
 # carry neither file, and get no section rather than one saying "not built".
 if [ -f "$dist/${prefix}-full-intl-nointernet-arm64-v8a.apk" ] \
   || [ -f "$dist/${prefix}-full-intl-nointernet-universal.apk" ]; then
-# lite · English joined it after 0.5.13 (#490); a release without it gets the row
-# left out rather than two empty cells.
-lite_offline=''
-if [ -f "$dist/${prefix}-lite-en-nointernet-arm64-v8a.apk" ] \
-  || [ -f "$dist/${prefix}-lite-en-nointernet-universal.apk" ]; then
-  lite_offline="| **lite · English** | $(cell "${prefix}-lite-en-nointernet-arm64-v8a.apk") | $(cell "${prefix}-lite-en-nointernet-universal.apk") |"
-fi
 cat <<EOF
 <details>
-<summary><b>No internet permission</b> (a keyboard that cannot reach the network at all)</summary>
+<summary><b>Offline</b> (a keyboard that cannot reach the network at all)</summary>
 
-The regular builds with \`android.permission.INTERNET\` taken out of the
-manifest, so Android refuses every connection the app tries to make. Typing,
-prediction, gesture typing and the clipboard work as usual, and on full so do
-grammar checking, the scanners and a local AI model imported from a file. Anything
-that downloads (dictionary packs, voice and handwriting models, translation
-languages, GIFs, cloud backups) fails as it would with the phone offline, and
-the app cannot check for its own updates, so come back here for new versions.
-Language packs, voice models, OCR data and offline GIF packs fetched on another
-device can be imported instead
+The standard build with \`android.permission.INTERNET\` taken out of the
+manifest, so Android refuses every connection the app tries to make, and with
+everything it would otherwise download built in: all 48 interface languages and
+every feature library. Typing, prediction, gesture typing, the clipboard, grammar
+checking, the scanners and a local AI model imported from a file all work.
+Anything that downloads (dictionary packs, voice and handwriting models,
+translation languages, GIFs, cloud backups) fails as it would with the phone
+offline, and the app cannot check for its own updates, so come back here for new
+versions. Language packs, voice models, OCR data and offline GIF packs fetched
+on another device can be imported instead
 ([how](https://wmkeyboard.pages.dev/privacy/offline/)).
-Each is signed with the same key as the builds above and installs over them,
-and back, without losing a setting.
+Signed with the same key as the standard build, so either installs over the
+other without losing a setting.
 
 | | arm64-v8a | universal |
 |:---|:---|:---|
-| **full · all languages** | $(cell "${prefix}-full-intl-nointernet-arm64-v8a.apk") | $(cell "${prefix}-full-intl-nointernet-universal.apk") |
-${lite_offline}
+| **Offline** | $(cell "${prefix}-full-intl-nointernet-arm64-v8a.apk") | $(cell "${prefix}-full-intl-nointernet-universal.apk") |
+
+</details>
+
+EOF
+fi
+
+# The interface language packs the standard build downloads, for importing on
+# a phone that cannot fetch them itself. Listed, not described one by one.
+packs=$(cd "$dist" && ls ${prefix}-lang-*.apk 2>/dev/null | wc -l | tr -d ' ')
+if [ "$packs" -gt 0 ]; then
+pack_list=$(cd "$dist" && for f in ${prefix}-lang-*.apk; do echo "- [\`$f\`](${base}/$f) · $(size_of "$f")"; done)
+cat <<EOF
+<details>
+<summary><b>Interface language packs</b> ($packs, for importing by hand)</summary>
+
+The standard build downloads these itself when you pick a language. Each is
+signed with the release key and only works with this version.
+
+$pack_list
 
 </details>
 
@@ -182,15 +190,12 @@ fdroid_row() { # <abi> <digit> <who>
 fdroid_row arm64-v8a 2 'to most phones'
 fdroid_row armeabi-v7a 1 'to 32-bit phones'
 fdroid_row x86_64 3 'to x86 Chromebooks and tablets'
-row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **full · all languages**. Retraces a stack trace'
-row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **full · English**'
-row "${prefix}-lite-intl-mapping.txt.gz" 'R8 mapping, **lite · all languages**'
-row "${prefix}-lite-en-mapping.txt.gz" 'R8 mapping, **lite · English**'
-row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **no internet permission**. Only attached when it differs from full · all languages, which otherwise serves both'
-row "${prefix}-lite-en-nointernet-mapping.txt.gz" 'R8 mapping, **lite · English, no internet permission**. Only attached when it differs from lite · English'
+row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **standard build**. Retraces a stack trace'
+row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **offline build** (full · all languages, which it is apart from its manifest)'
+row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from full · all languages, which otherwise serves both'
 row "${prefix}-play-mapping.txt.gz" 'R8 mapping, **Play build**. The Play channel flags change what R8 renames, so this is the only one that reads a crash from a Play install'
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **full · all languages**'
-row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **full · English**'
+row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'
 
 if [ -n "$extras" ]; then
   # Name only what is in the block. Mappings and symbols were first attached in

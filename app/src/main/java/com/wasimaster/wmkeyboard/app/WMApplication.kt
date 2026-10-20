@@ -65,6 +65,13 @@ open class WMApplication : Application() {
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)
+        // Interface language packs (the standard GitHub build, Android 11+):
+        // loaded once here and added to every screen's resources as it is
+        // created, before it inflates a string. A no-op on every other build,
+        // which has no packs on disk.
+        com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.install(this)
+        com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.attach(resources)
+        registerActivityLifecycleCallbacks(LanguagePackAttacher)
         // The Play gates of the LiteRT interpreter (WhisperEngine,
         // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
         // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries.
@@ -117,4 +124,19 @@ open class WMApplication : Application() {
         // for anyone with no plugin that declares reminders.
         com.wasimaster.wmkeyboard.core.plugins.PluginReminderAlarms.rearmOnStart(this)
     }
+}
+
+/** Adds the language packs to each activity's resources before it creates anything. */
+private object LanguagePackAttacher : android.app.Application.ActivityLifecycleCallbacks {
+    override fun onActivityPreCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
+        com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.attach(activity.resources)
+    }
+
+    override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) = Unit
+    override fun onActivityStarted(activity: android.app.Activity) = Unit
+    override fun onActivityResumed(activity: android.app.Activity) = Unit
+    override fun onActivityPaused(activity: android.app.Activity) = Unit
+    override fun onActivityStopped(activity: android.app.Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) = Unit
+    override fun onActivityDestroyed(activity: android.app.Activity) = Unit
 }

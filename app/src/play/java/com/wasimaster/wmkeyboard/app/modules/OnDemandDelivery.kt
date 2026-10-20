@@ -34,6 +34,7 @@ private const val SPEECH_MODULE = "speech"
 private const val GRAMMAR_MODULE = "grammar"
 private const val OCR_MODULE = "ocr"
 private const val NPU_MODULE = "npu"
+private const val GOOGLE_HOME_MODULE = "googlehome"
 
 /**
  * Publishes a SplitInstall-backed gate for each module into [FeatureModules].
@@ -50,7 +51,11 @@ fun installOnDemandDelivery(app: Application) {
     // no assets behind, which reads as no NPU: never reached anyway, because
     // NpuSupport offers no NPU when ENABLE_NPU is off.
     val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE, OCR_MODULE) +
-        listOfNotNull(NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU })
+        listOfNotNull(
+            NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU },
+            // In the bundle exactly when the build links the Home APIs.
+            GOOGLE_HOME_MODULE.takeIf { BuildConfig.ENABLE_GOOGLE_HOME },
+        )
     val gates = modules.associateWith { PlayModuleGate(manager, it) }
     manager.registerListener { session: SplitInstallSessionState ->
         for (name in session.moduleNames()) gates[name]?.onSession(session)
@@ -66,6 +71,7 @@ fun installOnDemandDelivery(app: Application) {
     FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
     FeatureModules.ocr = gates.getValue(OCR_MODULE)
     gates[NPU_MODULE]?.let { FeatureModules.npu = it }
+    gates[GOOGLE_HOME_MODULE]?.let { FeatureModules.googleHome = it }
     // The speech, grammar and OCR splits hold bare native libraries for classes in
     // the base. A split installed after this process started is not on the
     // class loader's library path; SplitInstallHelper looks there as well.

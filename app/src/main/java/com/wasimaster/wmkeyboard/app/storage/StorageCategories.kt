@@ -606,6 +606,22 @@ internal object StorageCategories {
                 AddonStore.get(env.context).reload()
             },
         ),
+        // The standard GitHub build's interface languages, one pack per
+        // language for this version; a deleted one downloads again when the
+        // language is picked.
+        StorageCategory(
+            id = "language_packs",
+            title = R.string.storage_language_packs_title,
+            subtitle = R.string.storage_language_packs_subtitle,
+            icon = Icons.Outlined.Extension,
+            accent = Color(0xFF81C784),
+            group = StorageGroup.DOWNLOADS,
+            pathsOf = { roots -> listOf(File(roots.noBackupFiles, "langpacks")) },
+            clearOf = { env ->
+                emptyOut(File(env.roots.noBackupFiles, "langpacks"))
+                com.wasimaster.wmkeyboard.core.modules.LanguagePackResources.reload(env.context)
+            },
+        ),
         // Native delivery (GitHub and F-Droid builds): the libraries features
         // fetched the first time they were used. One row per library, named
         // after it rather than its hash directory; a deleted one downloads
@@ -628,6 +644,7 @@ internal object StorageCategories {
     )
 
     /** The delivered libraries on disk, with the pin each one answers. */
+    // (Interface language packs are listed by their own category below.)
     private fun installedLibraries(): List<Pair<NativePin, File>> {
         val store = NativeDelivery.store() ?: return emptyList()
         return NativeDelivery.pins().filter(store::installed).map { it to store.fileOf(it) }

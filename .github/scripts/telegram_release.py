@@ -3,7 +3,8 @@
 
 Posts release highlights, a changelog summary, and download links to the
 announcements topic of the WM Keyboard Telegram supergroup, and attaches
-the Lite arm64 APK (Full exceeds the Bot API's 50 MB upload cap).
+the standard arm64 APK, which fits the Bot API's 50 MB upload cap now that
+its feature libraries and interface languages download on demand.
 
 Usage:
     python3 .github/scripts/telegram_release.py \\
@@ -157,12 +158,12 @@ def build_announcement_message(
     if full_apk_name:
         full_url = f"https://github.com/{repo}/releases/download/{tag}/{full_apk_name}"
         size_label = f" ({format_size(full_apk_size)})" if full_apk_size else ""
-        downloads += f'• <a href="{full_url}">Download Full APK (arm64 · English)</a>{size_label}\n'
+        downloads += f'• <a href="{full_url}">Download the standard APK (arm64)</a>{size_label}\n'
 
     if has_attached_apk:
         downloads += (
-            "\n<i>Attached below: the Lite APK (arm64 · English). Only Lite is attached "
-            "because the Telegram Bot API caps uploads at 50 MB; get Full from the links above.</i>\n"
+            "\n<i>Attached below: the standard APK (arm64). For other phones and the "
+            "offline build, see the release page.</i>\n"
         )
 
     # Build changelog items from sections
@@ -413,7 +414,7 @@ def post_to_telegram(
 
 
 def find_apks(dist_dir: Path) -> tuple[Path | None, Path | None]:
-    """Find the full arm64 APK (for linking) and the lite arm64 APK (for attaching)."""
+    """Find the standard arm64 APK, which is both linked and attached."""
     if not dist_dir.exists() or not dist_dir.is_dir():
         return None, None
 
@@ -423,7 +424,8 @@ def find_apks(dist_dir: Path) -> tuple[Path | None, Path | None]:
     def pick(suffix: str) -> Path | None:
         return next(iter(sorted(dist_dir.glob(f"*{suffix}"))), None)
 
-    return pick("-full-en-arm64-v8a.apk"), pick("-lite-en-arm64-v8a.apk")
+    standard = pick("-full-en-arm64-v8a.apk")
+    return standard, standard
 
 
 def main() -> None:
@@ -463,8 +465,8 @@ def main() -> None:
     intro, sections = parse_release_notes(notes_content) if notes_content else ("", [])
 
     # 2. Find APKs
-    full_apk, lite_apk = find_apks(dist_dir)
-    apk_to_attach: Path | None = Path(args.apk) if args.apk else lite_apk
+    full_apk, attach_apk = find_apks(dist_dir)
+    apk_to_attach: Path | None = Path(args.apk) if args.apk else attach_apk
 
     full_apk_name = full_apk.name if full_apk else None
     full_apk_size = full_apk.stat().st_size if full_apk else None
@@ -488,7 +490,7 @@ def main() -> None:
         has_attached_apk=has_attached_apk,
     )
 
-    caption = f"WM Keyboard {version} (lite · arm64)" if has_attached_apk else ""
+    caption = f"WM Keyboard {version} (standard · arm64)" if has_attached_apk else ""
 
     if args.dry_run:
         print("=== DRY RUN MODE ===")

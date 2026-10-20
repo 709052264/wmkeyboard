@@ -97,7 +97,8 @@ internal object OfflineImport {
             leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
             PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
             OfflineDictionaries.recognises(leaf) ||
-            isNativeLibrary(leaf)
+            isNativeLibrary(leaf) ||
+            LanguagePackDownloads.isPackName(leaf)
     }
 
     /**
@@ -358,6 +359,16 @@ internal object OfflineImport {
             return attempt(name) {
                 if (CutoutModel.install(filesDir, file)) {
                     Outcome(name, true, R.string.offline_import_cutout_done)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        if (LanguagePackDownloads.isPackName(name)) {
+            return attempt(name) {
+                val qualifier = LanguagePackDownloads.import(context, file)
+                if (qualifier != null) {
+                    Outcome(name, true, R.string.offline_import_language_pack_done, listOf(qualifier))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
                 }

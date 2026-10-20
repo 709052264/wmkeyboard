@@ -84,14 +84,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
-/** The structure Google let the app into, as the consent flow reported it. */
-/**
- * One consent result. [stamp] makes each result its own value: picking the
- * same home again would otherwise build an equal grant, which a StateFlow
- * drops, and the editor waiting on it would never hear back.
- */
-data class GoogleHomeGrant(val structureId: String, val structureName: String, val account: String = "", val stamp: Long = 0)
-
 /**
  * The Google Home APIs, full flavour with the SDK present. One [HomeClient]
  * per process, built on first use with the device types and traits the
@@ -99,8 +91,7 @@ data class GoogleHomeGrant(val structureId: String, val structureName: String, v
  * [requestAccess]); the keyboard reads the granted structure through
  * [GoogleHomeBackend].
  */
-object GoogleHomeSupport {
-    const val AVAILABLE = true
+object GoogleHomeSdk {
 
     private val _grants = MutableStateFlow<GoogleHomeGrant?>(null)
     val grants: StateFlow<GoogleHomeGrant?> = _grants.asStateFlow()

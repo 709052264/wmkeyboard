@@ -114,6 +114,13 @@ object FeatureModules {
     var scanner: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every
+     * other build either compiles it in or has no Google Home at all.
+     */
+    @Volatile
+    var googleHome: ModuleGate = AlwaysInstalled
+
+    /**
      * How a native library is loaded. `System.loadLibrary` wherever the
      * library is in the base APK. Play swaps in SplitInstallHelper's, which
      * also finds a library in a split installed after this process started,

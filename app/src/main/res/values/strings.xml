@@ -35,6 +35,7 @@
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for
          on-device AI. NPU stays in English. -->
     <string name="npu_module_title">On-device AI on the NPU</string>
+    <string name="googlehome_module_title">Google Home</string>
     <!-- Shown in Settings › Notification access for the listener that the
          media-control tool and the one-time code chip share. It is the whole
          sentence the user reads before granting, so it names both features:
@@ -103,6 +104,7 @@
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>
     <string name="offline_import_cutout_done">Background remover model</string>
     <string name="offline_import_native_done">Feature library %1$s</string>
+    <string name="offline_import_language_pack_done">Interface language %1$s</string>
     <string name="offline_import_khipro_glide_done">Khipro spellings, for gliding on the Khipro layout</string>
     <string name="offline_import_phonetic_index_done">Phonetic index for %1$s</string>
     <string name="offline_import_dictionary_done">Offline dictionary %1$s, for the Dictionary tool</string>
