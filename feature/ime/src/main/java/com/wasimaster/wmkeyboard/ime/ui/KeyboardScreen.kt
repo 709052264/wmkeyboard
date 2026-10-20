@@ -27989,22 +27989,41 @@ private fun Modifier.pointerInputKey(
         // that runs an action (issue #549), on a text key or an action key
         // alike. One pointer owns the whole gesture (like space/backspace) so
         // the cross popup can track the live direction; a long press still
-        // opens the alternates popup.
+        // opens the alternates popup. A still hold is not a flick, so the
+        // holds ?123 and the globe have without arms keep working with them
+        // (#820): the symbol chord, the number pad and the language picker.
         Modifier.pointerInput(
             key, longPressDelayMs, hapticOnLongPress, hapticOnLongPressRelease, alternates,
             keyRepeat, textEditing, vibrateOnRepeat, soundOnRepeat, flickDistanceDp, swipeOnlyTapPeeks,
-            restGate, chordGate,
+            restGate, chordGate, symbolsLongPressNumpad,
         ) {
             val slopPx = flickDistanceDp.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             val hasArm: (FlickDirection) -> Boolean = { key.flickArm(it) != null }
+            val chordTrigger = key.action == KeyAction.Symbols
+            // What a still hold does when the key has no alternates to open.
+            val numpadHold = key.action == KeyAction.Symbols && symbolsLongPressNumpad
+            val pickerHold = key.action == KeyAction.LanguageSwitch
             awaitEachGesture {
                 val down = awaitFirstDown()
                 setPressed(true)
                 onKeyPress()
-                // A ?123 held for a chord (#754) holds its own press back now.
-                chordGate?.otherDown()
+                // ?123 is a chord's trigger (#754), armed or not; any other
+                // key held for one holds its own press back now.
+                var chordLabels: Job? = null
+                if (chordTrigger && chordGate?.active == true) {
+                    chordGate.triggerDown(down.id)
+                    chordLabels = scope.launch {
+                        delay(CHORD_LABEL_DELAY_MS)
+                        chordGate.showLabels(down.id)
+                    }
+                } else if (!chordTrigger) {
+                    chordGate?.otherDown()
+                }
+                // The number pad or the language picker opened on the hold:
+                // the lift is that hold's, not a tap.
+                var holdRan = false
                 var dir: FlickDirection? = null
                 // The finger went out to [dir] and came back more than halfway:
                 // the lift types the arm's capital, FlickBoard's swipe-and-return.
@@ -28022,15 +28041,30 @@ private fun Modifier.pointerInputKey(
                 // the gesture has done its typing and the lift adds nothing.
                 var armRepeat: Job? = null
                 var armRepeated = false
-                val longJob = if (key.opensAlternatesPopup()) {
+                val longJob = if (key.opensAlternatesPopup() || numpadHold || pickerHold) {
                     scope.launch {
                         delay(longPressDelayMs.toLong())
-                        // A thumb resting while the other types (#737).
-                        if (dir == null && restGate?.quiets(down.id) != true) {
+                        // A thumb resting while the other types (#737), or a
+                        // ?123 whose partner has landed: the chord's press.
+                        if (dir == null && restGate?.quiets(down.id) != true &&
+                            !(chordGate?.isTrigger(down.id) == true && chordGate.partnerLanded)
+                        ) {
                             restGate?.longPressed(down.id)
-                            longFired = true
                             if (hapticOnLongPress) onKeyPress()
-                            openAlternates()
+                            when {
+                                key.opensAlternatesPopup() -> {
+                                    longFired = true
+                                    openAlternates()
+                                }
+                                numpadHold -> {
+                                    holdRan = true
+                                    onKey(key.copy(action = KeyAction.Numpad))
+                                }
+                                else -> {
+                                    holdRan = true
+                                    openLanguagePicker()
+                                }
+                            }
                         }
                     }
                 } else {
@@ -28083,9 +28117,11 @@ private fun Modifier.pointerInputKey(
                         dir = resolved
                         setFlickDirection(dir)
                         // Committing to a flick arm cancels the pending long
-                        // press, and says so under the finger.
+                        // press, and the chord a still ?123 would have been,
+                        // and says so under the finger.
                         if (dir != null) {
                             longJob?.cancel()
+                            chordLabels?.cancel()
                             onKeyHaptic()
                         }
                         armRepeat?.cancel()
@@ -28110,6 +28146,9 @@ private fun Modifier.pointerInputKey(
                 }
                 longJob?.cancel()
                 armRepeat?.cancel()
+                chordLabels?.cancel()
+                // ?123 let go after a chord ran: the chord's, not a tap (#754).
+                val chorded = chordTrigger && chordGate?.triggerUp(down.id) == true
                 setPressed(false)
                 onKeyRelease()
                 setFlickDirection(null)
@@ -28124,6 +28163,8 @@ private fun Modifier.pointerInputKey(
                 val capital = dir?.takeIf { returned }?.let { key.flickShiftedText(it) }
                 when {
                     armRepeated -> Unit
+                    chorded && chosen == null -> Unit
+                    holdRan && chosen == null -> if (hapticOnLongPressRelease) onKeyPress()
                     chosen != null && capital != null -> onKey(chosen.copy(output = capital, shiftLabel = capital))
                     chosen != null -> onKey(chosen)
                     // The long press already opened alternates; release commits
