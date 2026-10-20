@@ -31488,15 +31488,18 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * A mode key (see [KeyAction.Mode]): picks the mode the way the Modes panel
-     * does, and a second press of the same key goes back to automatic. A key
-     * naming a mode that has since been deleted does nothing. No haptic here:
-     * the key press already gave one.
+     * A mode key (see [KeyAction.Mode]): a toggle against the mode that is on
+     * (#795, #834). When another mode is on, or none, it picks its mode the way
+     * the Modes panel does; when its mode is already on it goes back to
+     * automatic. So a press on a mode its app or field already chose leaves
+     * no hand pick behind to beat the field bindings that follow. A key naming
+     * a mode that has since been deleted does nothing. No haptic here: the key
+     * press already gave one.
      */
     private fun onModeKey(id: String) {
         val base = baseSettings ?: return
         if (id.isBlank() || base.keyboardModes.none { it.id == id }) return
-        applyManualMode(if (manualModeId == id) null else id)
+        applyManualMode(modeKeyPick(id, _uiState.value.activeModeId))
     }
 
     private fun applyManualMode(id: String?) {
@@ -48938,3 +48941,11 @@ private const val LOCATION_CLIP_CHARS = 4_000
 
 /** The most Read back reads in one go: a few minutes of speech. */
 private const val READ_BACK_MAX_CHARS = 4_000
+
+/**
+ * The hand pick a press on the mode key for [id] leaves (#834): none, back to
+ * automatic, when [id] is the mode already on, however it got there; else
+ * [id]. Against the mode that is on, not the hand pick, so a press on a mode a
+ * binding already chose never pins it.
+ */
+internal fun modeKeyPick(id: String, activeModeId: String?): String? = if (activeModeId == id) null else id
