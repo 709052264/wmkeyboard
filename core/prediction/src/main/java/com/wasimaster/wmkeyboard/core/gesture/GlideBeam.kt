@@ -1,10 +1,15 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.TrieWalker
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.ceil
-import kotlin.math.ln
 import kotlin.math.sqrt
+
+// fdlibm's log, as `wm-engine`'s `strict_math::log` computes it, so the Rust
+// decoder and this one score alike on every runtime.
+private fun ln(x: Double): Double = StrictMath.log(x)
 
 /**
  * Glide decoder: a best-first lattice over the dictionary trie itself.
@@ -78,8 +83,15 @@ import kotlin.math.sqrt
  * Scores are in the same log space as the typing beam
  * (`logWeight + ln(1 + frequency) - cost`), so `FuzzyBeamSearch.WalkSource`
  * weights carry over unchanged and a caller can build one source list for both.
+ *
+ * [decode], [align] and [sampleShape] run in Rust ([NativeGlide]) whenever
+ * [NativeEngine.useNative] allows and every trie has a Rust twin; this
+ * implementation is the fallback and the reference the parity test holds
+ * the Rust one to.
  */
 class GlideBeam(private val tuning: Tuning = Tuning()) {
+
+    private val nativeTuning: DoubleArray by lazy { NativeGlide.tuningArray(tuning) }
 
     /**
      * The decoder's weights, injectable so the harness can sweep them rather
@@ -566,6 +578,12 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
     ): List<Candidate> {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return emptyList()
         if (keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
+        if (NativeEngine.useNative) {
+            NativeGlide.decode(tuning, nativeTuning, path, keys, keyWidth, sources, limit, shapes, lookAhead)?.let {
+                nativeRuns.incrementAndGet()
+                return it
+            }
+        }
         if (!resample(path, keyWidth, ws)) return emptyList()
         ws.prepareKeys(keys.keyCount)
         buildCosts(keys, ws)
@@ -668,6 +686,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
      */
     fun sampleShape(path: List<GesturePoint>, keyWidth: Float, ws: GlideWorkspace): ByteArray? {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return null
+        if (NativeEngine.useNative) return NativeGlide.sampleShape(path, keyWidth)
         if (!resample(path, keyWidth, ws)) return null
         val out = ByteArray(2 * GlideWorkspace.SHAPE_POINTS)
         drawnShape(ws)
@@ -693,6 +712,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         ws: GlideWorkspace,
     ): Alignment? {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f || keys.keyCount == 0) return null
+        if (NativeEngine.useNative) return NativeGlide.align(nativeTuning, word, path, keys, keyWidth)
         val visits = IntArray(GlideWorkspace.MAX_IDEAL_POINTS)
         val starts = IntArray(GlideWorkspace.MAX_IDEAL_POINTS)
         var count = 0
@@ -2097,5 +2117,8 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         private const val EPS = 1e-9
 
         private fun ln1p(v: Int): Double = ln(1.0 + v)
+
+        /** Decodes that ran in Rust, for the tests that check the evals did. */
+        val nativeRuns = AtomicLong()
     }
 }

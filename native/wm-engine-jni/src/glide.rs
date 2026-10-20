@@ -130,8 +130,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 
 /// `found` as `glideDecode` returns it: `Object[] { String[] words,
 /// double[] [score, shapeCost] per word, int[] [user tier, ahead] per word
-/// plus `extra` }`.
-fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Option<jobjectArray> {
+/// plus `extra` }`, and `drawn` as a fourth element, a `byte[]`, when given.
+fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32], drawn: Option<&[i8]>) -> Option<jobjectArray> {
     let reals: Vec<f64> = found.iter().flat_map(|c| [c.score, c.shape_cost]).collect();
     let mut flags: Vec<i32> = found.iter().flat_map(|c| [(c.tier == Tier::User) as i32, c.ahead]).collect();
     flags.extend_from_slice(extra);
@@ -141,10 +141,15 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Opti
     env.set_double_array_region(&doubles, 0, &reals).ok()?;
     let ints = give_ints(env, &flags)?;
     let class = env.find_class("java/lang/Object").ok()?;
-    let out = env.new_object_array(3, &class, JObject::null()).ok()?;
+    let out = env.new_object_array(if drawn.is_some() { 4 } else { 3 }, &class, JObject::null()).ok()?;
     env.set_object_array_element(&out, 0, &words).ok()?;
     env.set_object_array_element(&out, 1, &doubles).ok()?;
     env.set_object_array_element(&out, 2, &ints).ok()?;
+    if let Some(drawn) = drawn {
+        let bytes: Vec<u8> = drawn.iter().map(|&b| b as u8).collect();
+        let array = env.byte_array_from_slice(&bytes).ok()?;
+        env.set_object_array_element(&out, 3, &array).ok()?;
+    }
     Some(out.into_raw())
 }
 
@@ -154,8 +159,8 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Opti
 /// `kinds` and `tiers` as for `fuzzySearch`; `minFrequencies` is each
 /// source's vocabulary cap. Phase 0 decodes outright; phase 1 stops before
 /// the shape channel and returns every word it will score, readings first
-/// (the int array's last slot then holds the reading count), for
-/// `glideFinish`. Null when the stroke is no decode at all.
+/// (the int array's last slot then holds the reading count) and the drawn
+/// stroke quantised for the seeding, for `glideFinish`. Null when the stroke is no decode at all.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_glideDecode(
@@ -226,13 +231,16 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let Some(ranked) = ranked else { return Some(null_mut()) };
         if phase == 0 {
             let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, None, None));
-            return give_candidates(env, &found, &[]);
+            return give_candidates(env, &found, &[], None);
         }
         let mut all: Vec<Candidate> = ranked.read.clone();
         all.extend(ranked.guesses.iter().cloned());
         let read_count = ranked.read.len() as i32;
+        // The seeding compares the stroke as the walk left the workspace,
+        // before the shape channel runs, so it is taken now.
+        let drawn = DECODER.with_borrow_mut(|decoder| decoder.drawn_shape8());
         PENDING.with_borrow_mut(|p| *p = Some((ranked, keys.clone())));
-        give_candidates(env, &all, &[read_count])
+        give_candidates(env, &all, &[read_count], Some(&drawn))
     })
 }
 
@@ -286,7 +294,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             Some(near)
         };
         let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, Some(&learned), near.as_deref()));
-        give_candidates(env, &found, &[])
+        give_candidates(env, &found, &[], None)
     })
 }
 

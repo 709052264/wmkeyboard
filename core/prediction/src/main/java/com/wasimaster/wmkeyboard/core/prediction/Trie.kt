@@ -57,6 +57,10 @@ class Trie : WordSource {
     private val root = Node()
     private val nodesById = ArrayList<Node>().apply { add(root) }
 
+    /** Bumped by every [insert] and [reinforce], so a copy can tell it is stale. */
+    var version = 0L
+        private set
+
     private fun newNode(): Node = Node().also { node ->
         node.id = nodesById.size
         nodesById.add(node)
@@ -71,6 +75,7 @@ class Trie : WordSource {
         node.isWord = true
         node.frequency = maxOf(node.frequency, frequency)
         bumpMaxSubtree(word, node.frequency)
+        version++
     }
 
     /** Bumps a word's frequency, inserting it if absent. */
@@ -83,6 +88,7 @@ class Trie : WordSource {
         node.isWord = true
         node.frequency += boost
         bumpMaxSubtree(word, node.frequency)
+        version++
     }
 
     /** Raise maxSubtreeFreq to [freq] along [word]'s path so it stays a valid upper bound. */
@@ -114,7 +120,10 @@ class Trie : WordSource {
     /** Walker over the live node graph. Mutation during a walk has the same
      * (pre-existing) hazard as mutation during [complete]; callers invalidate
      * on lexicon change. */
-    private inner class NodeWalker : TrieWalker {
+    internal inner class NodeWalker : TrieWalker {
+        /** The trie this walks, for code that keeps a copy of it elsewhere. */
+        val trie: Trie get() = this@Trie
+
         override fun child(node: Int, label: Char): Int =
             nodesById[node].children[label]?.id ?: -1
 

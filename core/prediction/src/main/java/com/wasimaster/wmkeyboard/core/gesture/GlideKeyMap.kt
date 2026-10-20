@@ -1,5 +1,8 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
+import com.wasimaster.wmkeyboard.core.prediction.PredictionNative
+
 /**
  * The letter grid a glide is drawn on: every character the layout can produce,
  * resolved to the key that produces it.
@@ -57,6 +60,13 @@ class GlideKeyMap private constructor(
 
     /** Distance between two keys in key widths. */
     fun distance(a: Int, b: Int): Float = distances[a * keyX.size + b]
+
+    /** The Rust copy of this map, for the glide decoder; made on first use and closed with the map. */
+    internal val nativeHandle: Long by lazy {
+        PredictionNative.glideKeyMapOpen(keyX, keyY, codePoints, keyOf).also {
+            NativeHandles.track(this, it, PredictionNative::glideKeyMapClose)
+        }
+    }
 
     /** True when [codePoint] is somewhere on the grid. */
     fun knows(codePoint: Int): Boolean = keyIndex(codePoint) >= 0
