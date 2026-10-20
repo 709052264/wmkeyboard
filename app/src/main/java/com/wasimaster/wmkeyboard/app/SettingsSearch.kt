@@ -1861,6 +1861,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_builtin_title, R.string.toolai_ai_builtin_subtitle),
     // The keyboard's own tools (#698), on their own screen, one row each.
+    // Named after the tool they let the AI use ("Translate", "Calculator"),
+    // so they sit under that tool's own page.
     *builtInToolText.values.map { text ->
         entry(
             text.title,
@@ -1868,6 +1870,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
             R.string.toolai_ai_builtin_screen_title,
             AI_BUILT_IN_TOOLS_ROUTE,
             screenParent = R.string.home_tools_title,
+            weight = EntryWeight.DETAIL,
         )
     }.toTypedArray(),
     entry(
