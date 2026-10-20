@@ -116,6 +116,22 @@ a recent phone's big cores should take roughly a second for a short
 sentence and an older one several; that is an estimate, not a measurement.
 `Ct2Native.MIN_TOTAL_RAM` (5.5 GB, a 6 GB phone) follows from the 1.25 GB.
 
+Beside Bergamot, on the pairs both have (the same desktop, Bergamot's own
+build of `native/bergamot-jni` with Mozilla's pinned models, load average
+about 240): Bergamot took 20 to 108 ms a sentence where NLLB took seconds,
+thirty to a hundred times faster. Into English the two read the same
+(Bengali, Hindi, Arabic and French each gave identical or equally good
+sentences). Out of English Bergamot was as good or better: NLLB's Arabic
+turned "this keyboard" into "these keys" and put "cancelled" in the active
+voice, both of which Bergamot got right, and its Hindi "I will be late" came
+out as "I will delay". NLLB's Bengali was the more natural of the two in one
+sentence. Swahili, which Bergamot lacks, came out of NLLB readable with one
+wrong word ("cancelled" as "rejected"). Hence the order in the translate
+list: Bergamot where it has the pair, NLLB for the rest.
+
+Two builds of all three ABIs from fresh clones in different directories
+came out byte for byte the same (NDK r29, CMake 4.x, macOS host).
+
 Not yet tried: a vocabulary restriction for the output layer (CTranslate2's
 `use_vmap`, keyed on source tokens, so it would need a target-script map
 built differently), which would cut the largest matrix and its packing
