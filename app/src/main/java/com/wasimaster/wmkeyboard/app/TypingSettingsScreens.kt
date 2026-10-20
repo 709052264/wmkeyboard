@@ -1947,8 +1947,12 @@ internal fun TypingGesturesSettings(
                 }
                 // The tapped-word pause, the one-letter floor, the space taken
                 // back and the band over the pause (#747): all-up only too.
+                // The first three follow the swiped-word pause until they are
+                // set (#841), so Reset shows only on one that was, and clears
+                // it rather than writing the number it shipped at.
                 item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
                     val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    val set = settings.watch { it.gesture.twoThumbTapPauseSet }
                     SliderSetting(
                         R.string.typing_two_thumb_tap_pause_title,
                         subtitle = stringResource(R.string.typing_two_thumb_tap_pause_subtitle),
@@ -1956,11 +1960,17 @@ internal fun TypingGesturesSettings(
                         range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
                         display = { msFormat.format(it.roundToInt()) },
                         info = stringResource(R.string.typing_two_thumb_tap_pause_info),
-                        default = SettingsDefaults.gesture.twoThumbTapPauseMs.toFloat(),
+                        default = settings.watch { it.gesture.twoThumbPauseMs }.toFloat(),
+                        onReset = if (set) {
+                            { scope.launch { repository.resetGestureTwoThumbTapPauseMs() } }
+                        } else {
+                            null
+                        },
                     ) { scope.launch { repository.setGestureTwoThumbTapPauseMs(it.roundToInt()) } }
                 }
                 item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
                     val msFormat = stringResource(R.string.typing_value_milliseconds)
+                    val set = settings.watch { it.gesture.twoThumbOneLetterPauseSet }
                     SliderSetting(
                         R.string.typing_two_thumb_one_letter_pause_title,
                         subtitle = stringResource(R.string.typing_two_thumb_one_letter_pause_subtitle),
@@ -1968,7 +1978,12 @@ internal fun TypingGesturesSettings(
                         range = TWO_THUMB_PAUSE_RANGE.first.toFloat()..TWO_THUMB_PAUSE_RANGE.last.toFloat(),
                         display = { msFormat.format(it.roundToInt()) },
                         info = stringResource(R.string.typing_two_thumb_one_letter_pause_info),
-                        default = SettingsDefaults.gesture.twoThumbOneLetterPauseMs.toFloat(),
+                        default = settings.watch { minOf(it.gesture.twoThumbPauseMs, it.gesture.twoThumbTapPauseMs) }.toFloat(),
+                        onReset = if (set) {
+                            { scope.launch { repository.resetGestureTwoThumbOneLetterPauseMs() } }
+                        } else {
+                            null
+                        },
                     ) { scope.launch { repository.setGestureTwoThumbOneLetterPauseMs(it.roundToInt()) } }
                 }
                 item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
@@ -1981,7 +1996,14 @@ internal fun TypingGesturesSettings(
                         range = TWO_THUMB_RETRACT_RANGE.first.toFloat()..TWO_THUMB_RETRACT_RANGE.last.toFloat(),
                         display = { if (it.roundToInt() == 0) off else msFormat.format(it.roundToInt()) },
                         info = stringResource(R.string.typing_two_thumb_retract_info),
-                        default = SettingsDefaults.gesture.twoThumbRetractWindowMs.toFloat(),
+                        default = settings.watch {
+                            (it.gesture.twoThumbPauseMs * 2).coerceIn(TWO_THUMB_RETRACT_RANGE)
+                        }.toFloat(),
+                        onReset = if (settings.watch { it.gesture.twoThumbRetractWindowSet }) {
+                            { scope.launch { repository.resetGestureTwoThumbRetractWindowMs() } }
+                        } else {
+                            null
+                        },
                     ) { scope.launch { repository.setGestureTwoThumbRetractWindowMs(it.roundToInt()) } }
                 }
                 item(visible = twoThumb && twoThumbWordEnd == TwoThumbWordEnd.ALL_UP) {
