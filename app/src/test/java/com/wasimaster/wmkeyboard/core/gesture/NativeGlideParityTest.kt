@@ -3,10 +3,14 @@
 
 package com.wasimaster.wmkeyboard.core.gesture
 
-import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.gesture.eval.DuetCorpus
 import com.wasimaster.wmkeyboard.core.gesture.eval.GlideGrid
 import com.wasimaster.wmkeyboard.core.gesture.eval.SwipeCorpus
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinCtcGlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinDuetBeam
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinDuetWorkspace
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideWorkspace
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
@@ -18,13 +22,13 @@ import kotlin.math.ln
 import kotlin.random.Random
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assume.assumeTrue
-import org.junit.Before
 import org.junit.Test
 
 /**
- * The Rust glide decoder behind [GlideBeam] reads every stroke the way the
- * Kotlin one does (native/RUST_NEON_PLAN.md step 4).
+ * The Rust glide decoders behind [GlideBeam], [DuetBeam] and [CtcGlideBeam]
+ * read every stroke the way the Kotlin ones they replaced did
+ * ([KotlinGlideBeam], [KotlinDuetBeam], [KotlinCtcGlideBeam], kept as the
+ * references; native/RUST_NEON_PLAN.md step 4).
  *
  * The gesture eval's corpus, every noise level plus one that dwells and
  * loops, decoded against the bundled English list (as a plain [Trie], which
@@ -46,11 +50,6 @@ class NativeGlideParityTest {
         const val CASES = 150
         const val LIMIT = 8
         val KEY_WIDTH = SwipeCorpus.KEY_WIDTH
-    }
-
-    @Before
-    fun native() {
-        assumeTrue("libwm_engine_jni is not built for this host", NativeEngine.loaded)
     }
 
     private fun entries(): List<Pair<String, Int>> {
@@ -77,19 +76,9 @@ class NativeGlideParityTest {
         candidates += expected.size
     }
 
-    private fun <T> kotlinSide(block: () -> T): T {
-        val before = NativeEngine.forceKotlin
-        NativeEngine.forceKotlin = true
-        try {
-            return block()
-        } finally {
-            NativeEngine.forceKotlin = before
-        }
-    }
-
     @Suppress("LongParameterList")
     private fun checkDecode(
-        beam: GlideBeam,
+        beams: Pair<GlideBeam, KotlinGlideBeam>,
         path: List<GesturePoint>,
         keys: GlideKeyMap,
         sources: List<FuzzyBeamSearch.WalkSource>,
@@ -97,18 +86,14 @@ class NativeGlideParityTest {
         lookAhead: Int,
         what: String,
     ) {
-        val ws = GlideWorkspace()
-        val expected = kotlinSide { beam.decode(path, keys, KEY_WIDTH, sources, ws, LIMIT, shapes, lookAhead) }
-        val runs = GlideBeam.nativeRuns.get()
-        val actual = beam.decode(path, keys, KEY_WIDTH, sources, ws, LIMIT, shapes, lookAhead)
-        assertEquals("$what: the decode did not run in Rust", runs + 1, GlideBeam.nativeRuns.get())
+        val expected = beams.second.decode(path, keys, KEY_WIDTH, sources, KotlinGlideWorkspace(), LIMIT, shapes, lookAhead)
+        val actual = beams.first.decode(path, keys, KEY_WIDTH, sources, GlideWorkspace(), LIMIT, shapes, lookAhead)
         same(expected, actual, what)
     }
 
-    private fun checkAlign(beam: GlideBeam, word: String, path: List<GesturePoint>, keys: GlideKeyMap, what: String) {
-        val ws = GlideWorkspace()
-        val expected = kotlinSide { beam.align(word, path, keys, KEY_WIDTH, ws) }
-        val actual = beam.align(word, path, keys, KEY_WIDTH, ws)
+    private fun checkAlign(beams: Pair<GlideBeam, KotlinGlideBeam>, word: String, path: List<GesturePoint>, keys: GlideKeyMap, what: String) {
+        val expected = beams.second.align(word, path, keys, KEY_WIDTH, KotlinGlideWorkspace())
+        val actual = beams.first.align(word, path, keys, KEY_WIDTH, GlideWorkspace())
         assertEquals("$what: align $word", expected == null, actual == null)
         if (expected == null || actual == null) return
         assertArrayEquals("$what: keys", expected.keys, actual.keys)
@@ -148,9 +133,9 @@ class NativeGlideParityTest {
 
         // The user's learned shapes: the first draw of every tenth word.
         val store = GlideShapeStore(null)
-        val shaping = GlideBeam()
+        val shaping = KotlinGlideBeam()
         for ((_, case) in cases.filterIndexed { i, _ -> i % 10 == 0 }) {
-            val shape = kotlinSide { shaping.sampleShape(case.path, KEY_WIDTH, GlideWorkspace()) } ?: continue
+            val shape = shaping.sampleShape(case.path, KEY_WIDTH, KotlinGlideWorkspace()) ?: continue
             store.learn(GlideShapeSample(layout, shape), case.intended)
         }
         val learned = store.forLayout(layout) ?: error("nothing learned")
@@ -164,7 +149,7 @@ class NativeGlideParityTest {
             "seeding" to default.copy(shapeSeeding = true),
         )
         for ((tuningName, tuning) in tunings) {
-            val beam = GlideBeam(tuning)
+            val beam = GlideBeam(tuning) to KotlinGlideBeam(tuning)
             for ((index, named) in cases.withIndex()) {
                 val (noise, case) = named
                 val what = "$tuningName/$noise #$index '${case.intended}'"
@@ -175,8 +160,8 @@ class NativeGlideParityTest {
                 checkDecode(beam, case.path, keys, all, learned, if (index % 3 == 0) 3 else 0, "$what shapes")
                 if (tuningName == "shipped" || tuningName == "wide anchors") {
                     checkAlign(beam, case.intended, case.path, keys, what)
-                    val shape = kotlinSide { beam.sampleShape(case.path, KEY_WIDTH, GlideWorkspace()) }
-                    assertArrayEquals("$what: sampled shape", shape, beam.sampleShape(case.path, KEY_WIDTH, GlideWorkspace()))
+                    val shape = beam.second.sampleShape(case.path, KEY_WIDTH, KotlinGlideWorkspace())
+                    assertArrayEquals("$what: sampled shape", shape, beam.first.sampleShape(case.path, KEY_WIDTH, GlideWorkspace()))
                 }
             }
         }
@@ -209,10 +194,10 @@ class NativeGlideParityTest {
             corpus.generate(entries, SwipeCorpus.Noise.TYPICAL, CASES, looping)
         val default = GlideBeam.Tuning()
         val beams = listOf(
-            "shipped" to DuetBeam(),
-            "capped" to DuetBeam(default.copy(vocabularyRank = 20_000)),
-            "wide anchors" to DuetBeam(default.copy(startRadius = default.startRadius + 0.6f, endRadius = default.endRadius + 0.6f)),
-        )
+            "shipped" to default,
+            "capped" to default.copy(vocabularyRank = 20_000),
+            "wide anchors" to default.copy(startRadius = default.startRadius + 0.6f, endRadius = default.endRadius + 0.6f),
+        ).map { (name, tuning) -> name to (DuetBeam(tuning) to KotlinDuetBeam(tuning)) }
         var count = 0
         for ((name, beam) in beams) {
             for ((index, case) in cases.withIndex()) {
@@ -226,10 +211,8 @@ class NativeGlideParityTest {
                 for ((tokens, clock) in listOf(case.tokens to "clocked", clockless to "clockless")) {
                     for (partial in listOf(false, true)) {
                         val what = "$name #$index '${case.intended}' $clock partial=$partial"
-                        val expected = kotlinSide { beam.decode(tokens, keys, KEY_WIDTH, sources, DuetWorkspace(), LIMIT, partial) }
-                        val runs = DuetBeam.nativeRuns.get()
-                        val actual = beam.decode(tokens, keys, KEY_WIDTH, sources, DuetWorkspace(), LIMIT, partial)
-                        assertEquals("$what: the decode did not run in Rust", runs + 1, DuetBeam.nativeRuns.get())
+                        val expected = beam.second.decode(tokens, keys, KEY_WIDTH, sources, KotlinDuetWorkspace(), LIMIT, partial)
+                        val actual = beam.first.decode(tokens, keys, KEY_WIDTH, sources, DuetWorkspace(), LIMIT, partial)
                         same(expected, actual, what)
                         count++
                     }
@@ -269,17 +252,16 @@ class NativeGlideParityTest {
         val words = entries.filter { (w, _) -> w.length >= 2 }.shuffled(random).take(CASES * 3).map { it.first } +
             listOf("email", "reread", "jennys", "duet")
         var count = 0
-        for (beam in listOf(CtcGlideBeam(), CtcGlideBeam(CtcGlideBeam.Scoring(lengthNorm = 0.4f, pruneBonus = 0.8f, freqWeight = 0.3f)))) {
+        val scorings = listOf(CtcGlideBeam.Scoring(), CtcGlideBeam.Scoring(lengthNorm = 0.4f, pruneBonus = 0.8f, freqWeight = 0.3f))
+        for (beam in scorings.map { CtcGlideBeam(it) to KotlinCtcGlideBeam(it) }) {
             for ((index, word) in words.withIndex()) {
                 val emissions = emissionsFor(word, random, if (index % 3 == 0) 1.5f else 0.4f)
                 if (emissions.steps == 0) continue
                 val sources = withUser(if (index % 2 == 0) trie else packed, user)
                 for ((width, rank) in listOf(100 to 0, 300 to 0, 100 to 20_000)) {
                     val what = "#$index '$word' width=$width rank=$rank"
-                    val expected = kotlinSide { beam.decode(emissions, sources, LIMIT, width, rank) }
-                    val runs = CtcGlideBeam.nativeRuns.get()
-                    val actual = beam.decode(emissions, sources, LIMIT, width, rank)
-                    assertEquals("$what: the decode did not run in Rust", runs + 1, CtcGlideBeam.nativeRuns.get())
+                    val expected = beam.second.decode(emissions, sources, LIMIT, width, rank)
+                    val actual = beam.first.decode(emissions, sources, LIMIT, width, rank)
                     same(expected, actual, what)
                     count++
                 }
