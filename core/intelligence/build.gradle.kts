@@ -2,6 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    // This module's jniLibs of on-demand gates, per channel (native/gates.json).
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
@@ -104,46 +106,8 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Play builds leave src/main/jniLibs (Harper) out of this module, so out of
-// the base APK, and never add src/tesseract/jniLibs (below): the on-demand
-// :feature:grammar and :feature:ocr splits package the same directories
-// instead. The files stay here because the native build scripts and
-// F-Droid's recipe write and scan exactly these paths.
-//
-// Through the new DSL's extension type, not the `android` accessor's
-// `sourceSets`: under AGP 9 that one is typed as the old API's
-// AndroidLibrarySourceSet, and the container's objects fail the cast at
-// configuration time.
-if (playStoreChannel) {
-    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
-        getByName("main").jniLibs.setSrcDirs(emptyList<String>())
-    }
-}
-
 androidComponents {
     onVariants { variant ->
-        // Bergamot's and Tesseract's libraries, every build off Play: each in
-        // a directory of its own so the on-demand :feature:bergamot and
-        // :feature:ocr splits carry them alone on Play. A build with native
-        // delivery pins them instead (wmkeyboard.native-pins).
-        if (!playStoreChannel) {
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/bergamot/jniLibs")
-            // CTranslate2's, the same way: :feature:ct2 carries it on Play.
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/ct2/jniLibs")
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/tesseract/jniLibs")
-            // llama.cpp's, the same way: :feature:llama carries it on Play.
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/llama/jniLibs")
-            // zinnia's, behind Chinese and Japanese handwriting without ML
-            // Kit: :feature:zinnia carries it on Play.
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/zinnia/jniLibs")
-            // The built-in document scanner's: :feature:docscan carries it on Play.
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/docscan/jniLibs")
-            // The sticker generator's MNN runtime: :feature:imagegen carries it on Play.
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/imagegen/jniLibs")
-            // And its NPU runner, arm64 only, wherever the Qualcomm runtime
-            // is: compiled against Qualcomm's QNN headers, so never F-Droid's.
-            if (npuRuntime) variant.sources.jniLibs?.addStaticSourceDirectory("src/imagegennpu/jniLibs")
-        }
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,
         // which a flavour folder cannot be.

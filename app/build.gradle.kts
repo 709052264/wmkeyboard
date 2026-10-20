@@ -8,6 +8,8 @@ import java.util.zip.ZipFile
 
 plugins {
     alias(libs.plugins.android.application)
+    // native/gates.json: the Play splits in dynamicFeatures, the JNI keep rules.
+    id("wmkeyboard.native-gates")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
     // Offline handwriting model imports (#666): rewrites three calls inside
@@ -448,76 +450,18 @@ android {
             }
         }
     }
-    // Play builds carry the LiteRT-LM runtime as an on-demand module instead
-    // of ~20 MB per ABI in every install; LocalLlmEngine requests it on first
-    // AI use. Channel-gated because Play Feature Delivery only exists on
-    // Play: sideload and F-Droid builds compile the same runtime code into
-    // :core:intelligence instead (see playStoreChannel there), so for them
-    // the module is not even part of the build graph.
-    if (playStoreChannel) {
-        dynamicFeatures += ":feature:llm"
-        // ML Kit's translator, the same way: ~16 MB per ABI that only the
-        // people who turn on-device translation on ever download.
-        dynamicFeatures += ":feature:translate"
-        // The LiteRT interpreter (~4 MB per ABI) behind offline Whisper and
-        // the sticker editor's own background remover, and ML Kit's ink
-        // recogniser (~6.5 MB per ABI) behind the handwriting tool.
-        dynamicFeatures += ":feature:litert"
-        dynamicFeatures += ":feature:handwriting"
-        // The whisper.cpp and Whistle libraries behind the
-        // offline voice engines other than LiteRT Whisper, Harper's behind
-        // the grammar tool and the spell checker, and Tesseract's behind the
-        // scanner's offline reader. Library files only: their Kotlin stays
-        // in the base.
-        dynamicFeatures += ":feature:speech"
-        // ONNX Runtime (~33 MB on arm64) and the sherpa-onnx bridge behind
-        // Offline Sherpa, fetched when Sherpa is first picked.
-        dynamicFeatures += ":feature:onnx"
-        // The ExecuTorch runtime (~3.8 MB on arm64) behind Asr4All,
-        // Parakeet, Moonshine and the FUTO Swipe glide engine.
-        dynamicFeatures += ":feature:executorch"
-        dynamicFeatures += ":feature:grammar"
-        // Hunspell's library, behind spell checking against an imported
-        // .aff/.dic.
-        dynamicFeatures += ":feature:spell"
-        dynamicFeatures += ":feature:ocr"
-        // librime (~4 MB per ABI) behind the optional RIME Chinese engine,
-        // fetched when someone picks RIME for a Chinese language.
-        dynamicFeatures += ":feature:rime"
-        // Mozc's converter (~3 MB per ABI) behind the optional Mozc Japanese
-        // engine; its dictionary is a separate CJK pack download.
-        dynamicFeatures += ":feature:mozc"
-        // Mozilla's Bergamot translator (~6.7 MB on arm64), behind the
-        // translate tool's free on-device engine; fetched with the first
-        // Firefox Translations model.
-        dynamicFeatures += ":feature:bergamot"
-        // CTranslate2 (~3 MB per ABI), the runtime of the translate tool's
-        // NLLB engine; fetched with the NLLB model.
-        dynamicFeatures += ":feature:ct2"
-        // zinnia (~0.45 MB on arm64), the offline Chinese and Japanese
-        // handwriting recogniser; fetched with its first model.
-        dynamicFeatures += ":feature:zinnia"
-        // llama.cpp (a few MB per ABI), the runtime for GGUF models; fetched
-        // when the first GGUF model is downloaded or used.
-        dynamicFeatures += ":feature:llama"
-        // The built-in document scanner (OpenCV core and imgproc, under 2 MB),
-        // fetched the first time the scanner tool runs without Google's.
-        dynamicFeatures += ":feature:docscan"
-        // The sticker generator's MNN runtime (a few MB per ABI) and, with the
-        // NPU, its arm64 runner; fetched when the generator first opens.
-        dynamicFeatures += ":feature:imagegen"
-        // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
-        // assets that only phones with a listed chip fetch, once someone
-        // picks NPU. Included by settings.gradle.kts under the same flag.
-        if (flag("wmkb.enableNpu", "WMKB_ENABLE_NPU", default = "true")) {
-            dynamicFeatures += ":feature:npu"
-        }
-        // The Google Home APIs SDK, fetched when a Google Home is first
-        // added. Included by settings.gradle.kts under the same conditions.
-        if (rootProject.findProject(":feature:googlehome") != null) {
-            dynamicFeatures += ":feature:googlehome"
-        }
-    }
+    // Play builds carry the native runtimes behind optional features as
+    // on-demand modules instead of in every install: LiteRT-LM (~20 MB per
+    // ABI), ML Kit's translator (~16 MB) and ink recogniser, the LiteRT
+    // interpreter, ONNX Runtime (~33 MB on arm64), the Qualcomm NPU runtime,
+    // the Google Home APIs, and the project's own libraries (whisper.cpp,
+    // ExecuTorch, Harper, Hunspell, Tesseract, librime, Mozc, Bergamot,
+    // CTranslate2, zinnia, llama.cpp, OpenCV), each fetched the first time its
+    // feature asks. Channel-gated because Play Feature Delivery only exists on
+    // Play: every other build compiles the same code into the base, so for
+    // them the modules are not even part of the build graph. The list is
+    // native/gates.json: the wmkeyboard.native-gates convention adds every
+    // `:feature:<gate>` module settings.gradle.kts included.
 
     // See the splitApks flag at the top of this file. Splits shape APK
     // assembly only — bundle<Variant> ignores this block entirely.
@@ -1386,9 +1330,8 @@ dependencies {
         // Its own line would need a new sed in the recipe, and so an
         // fdroiddata MR, before the next F-Droid build could pass.
         implementation(libs.play.app.update); implementation(libs.play.billing)
-        // SplitInstall + SplitCompat for the on-demand :feature:llm,
-        // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell, :feature:ocr, :feature:rime, :feature:mozc, :feature:bergamot, :feature:ct2, :feature:zinnia, :feature:llama, :feature:docscan and :feature:imagegen modules.
+        // SplitInstall + SplitCompat for the on-demand :feature:* modules
+        // (every gate of native/gates.json with a Play module).
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

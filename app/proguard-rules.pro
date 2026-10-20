@@ -63,71 +63,22 @@
 -keep class com.wasimaster.wmkeyboard.core.layout.KeyAction { *; }
 -keep class com.wasimaster.wmkeyboard.core.layout.KeyAction$* { *; }
 
-# --- Harper grammar engine (JNI) ---------------------------------------------
-# libharper_jni.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_grammar_HarperNative_*), so neither the
-# class name nor the external method names may be renamed or stripped.
--keep class com.wasimaster.wmkeyboard.core.grammar.HarperNative { *; }
+# --- Native gates (JNI) ------------------------------------------------------
+# Each library of native/gates.json that binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_grammar_HarperNative_* and so on) names
+# its JNI class there (`keep`), and the wmkeyboard.native-gates convention
+# generates one `-keep class ... { *; }` for each, so neither the class name
+# nor the external method names may be renamed or stripped. Every native
+# method of every class keeps its name regardless:
 -keepclasseswithmembernames,includedescriptorclasses class * {
     native <methods>;
 }
-
-# --- Hunspell (JNI) -----------------------------------------------------------
-# libwmhunspell.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_prediction_HunspellNative_*).
--keep class com.wasimaster.wmkeyboard.core.prediction.HunspellNative { *; }
-# libwmdivvun.so the same way (..._DivvunNative_*).
--keep class com.wasimaster.wmkeyboard.core.prediction.DivvunNative { *; }
-# libwmvoikko.so the same way (..._VoikkoNative_*).
--keep class com.wasimaster.wmkeyboard.core.prediction.VoikkoNative { *; }
 
 # --- Google's gesture library (user-imported libjni_latinime.so) ---------------
 # Its JNI_OnLoad RegisterNatives every method of these classes by name and
 # signature, and fails the whole load if one is missing, so even the natives
 # this app never calls must survive shrinking, under exactly these names.
 -keep class com.android.inputmethod.** { *; }
-
-# --- librime (JNI) -------------------------------------------------------------
-# libwmrime.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_input_rime_RimeNative_*).
--keep class com.wasimaster.wmkeyboard.core.input.rime.RimeNative { *; }
-
-# --- Mozc (JNI) ----------------------------------------------------------------
-# libwmmozc.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_input_mozc_MozcNative_*).
--keep class com.wasimaster.wmkeyboard.core.input.mozc.MozcNative { *; }
-
-# --- llama.cpp (JNI) ----------------------------------------------------------
-# libwmllama.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_localllm_LlamaNative_*).
--keep class com.wasimaster.wmkeyboard.core.localllm.LlamaNative { *; }
-
-# --- Document scanner (JNI) ---------------------------------------------------
-# libwmdocscan.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_docscan_DocScanNative_*).
--keep class com.wasimaster.wmkeyboard.core.docscan.DocScanNative { *; }
-
-# --- Sticker generator (JNI) --------------------------------------------------
-# libwmimagegen.so and libwmimagegen_qnn.so bind by the mangled Java names
-# (Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_*,
-# ..._QnnImageNative_*).
--keep class com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative { *; }
--keep class com.wasimaster.wmkeyboard.core.imagegen.QnnImageNative { *; }
-
-# --- Bergamot (JNI) -----------------------------------------------------------
-# libwmbergamot.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).
--keep class com.wasimaster.wmkeyboard.core.translate.BergamotNative { *; }
-
-# --- CTranslate2 (JNI) ---------------------------------------------------------
-# libwmct2.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_translate_Ct2Native_*).
--keep class com.wasimaster.wmkeyboard.core.translate.Ct2Native { *; }
-
-# --- zinnia (JNI) -------------------------------------------------------------
-# libwmzinnia.so binds by the mangled Java name
-# (Java_com_wasimaster_wmkeyboard_core_handwriting_ZinniaNative_*).
--keep class com.wasimaster.wmkeyboard.core.handwriting.ZinniaNative { *; }
 
 # The grammar lint models are decoded from JSON produced by that native code —
 # keep their serializers explicitly so a rules regression can never silently

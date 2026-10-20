@@ -587,7 +587,7 @@
     <string name="toolai_memory_enabled_info">The AI saves a fact when you tell it something that will still be true later, or when you ask it to remember something. Each save shows under the answer with Undo. The facts stay on this phone. Incognito fields and private chats never read or save memory, and facts that look like passwords, codes, card numbers or keys are refused. Turning this off stops reading and saving. The saved facts stay until you delete them.</string>
     <string name="toolai_memory_cloud_title">Use with cloud models</string>
     <string name="toolai_memory_cloud_subtitle">Send the saved facts with requests to the AI service in use, and let its chats save new ones</string>
-    <string name="toolai_memory_cloud_info">Off, only a model on this phone reads or saves memory. On, the facts picked for a request travel with it to the service you use, and that service's own privacy terms apply to them.</string>
+    <string name="toolai_memory_cloud_info">Off, only a model on this phone reads or saves memory. On, the facts picked for a request travel with it to the service you use, and that service\'s own privacy terms apply to them.</string>
     <string name="toolai_memory_list_title">Saved memories</string>
     <string name="toolai_memory_add_title">Add memory</string>
     <string name="toolai_memory_add_subtitle">Write a fact for the AI to know</string>

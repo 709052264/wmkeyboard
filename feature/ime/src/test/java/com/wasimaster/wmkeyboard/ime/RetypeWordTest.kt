@@ -102,6 +102,8 @@ class RetypeWordTest {
     @Test
     fun `only the copy at the caret goes, never an earlier one`() {
         val (service, editor) = keyboard("form and form ")
+        // The keyboard's space, so it goes too (#823 keeps a typed one).
+        service.spaceIsOurs()
         service.retype()
         assertEquals("form and ", editor.text.toString())
     }

@@ -231,7 +231,7 @@ The script fetches OpenCV at its pinned commit and builds the three ABIs one aft
 
 ## Rebuilding the sticker generator's libraries
 
-The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with only its CPU backend, under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.
+The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with only its CPU backend, under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen` in `native/gates.json`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.
 
 ```sh
 # Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
@@ -247,6 +247,10 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-qnn/build.sh
 ```
 
 `tools/imagegen/convert_sd.py` turns a Stable Diffusion 1.x or 2.x checkpoint into the bundle the app imports; see [Importing a model](/emoji/sticker-generator/#importing-a-model).
+
+## Adding a native library
+
+Each library above belongs to a gate in `native/gates.json`, which records where its `.so` files are committed, which script builds them for F-Droid and which classes R8 must keep. The Gradle build and the release scripts read that file and keep no list of their own, so a new library or a new gate is one entry there. The fields and the few files a new Play split still needs are in [architecture](/development/architecture/#adding-a-native-gate). `python3 native/gates.py fdroid-scripts` prints the scripts `native/build-fdroid-libs.sh` will run, in order.
 
 ## Running static analysis
 

@@ -2,6 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    // This module's jniLibs of on-demand gates, per channel (native/gates.json).
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
@@ -36,13 +38,7 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Same channel flag :app reads. Play builds leave src/main/jniLibs (the
-// Hunspell and divvunspell libraries) out of this module, so out of the base
-// APK: the on-demand :feature:spell split packages the same directory
-// instead. The files stay here because native/hunspell-jni/build.sh,
-// native/divvunspell-jni/build.sh and F-Droid's recipe
-// write and scan exactly this path. Through the new DSL's extension type for
-// the AGP 9 reason :core:intelligence explains.
+// Same channel flag :app reads.
 val playStoreChannel = run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")
@@ -53,12 +49,6 @@ val playStoreChannel = run {
         ?: System.getenv("WMKB_ENABLE_PLAY_STORE")
         ?: "false").toBoolean()
 }
-if (playStoreChannel) {
-    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
-        getByName("main").jniLibs.setSrcDirs(emptyList<String>())
-    }
-}
-
 // Google's gesture typing library is the user's own import, loaded from app
 // storage (core/gesture/latinime). Play forbids loading executable code that
 // did not come from Play, so its build compiles the loader out: src/nouserlib

@@ -373,8 +373,9 @@ jobs:
           abi='${{ matrix.abi }}'
           unzip -l "$out" | grep -q "lib/$abi/libwm_engine_jni.so" \
             || { echo "::error::$out has no $abi libwm_engine_jni.so"; exit 1; }
-          libs="libharper_jni.so libwmhunspell.so libwmdivvun.so libwmvoikko.so libwmwhispercpp.so libwmexecutorch.so libwmrime.so libwmmozc.so libwmdenoise.so libwmsherpa.so libwmxlit.so libwmbergamot.so libwmllama.so libwmdocscan.so libwmzinnia.so libwmct2.so libwmimagegen.so"
-          [ "$abi" = arm64-v8a ] && libs="$libs libwmwhispercpp_v82.so libwmllama_v82.so"
+          # Every gated library native/gates.json has F-Droid build from source, for this ABI.
+          libs=$(python3 native/gates.py fdroid-libs "$abi")
+          [ -n "$libs" ] || { echo "::error::native/gates.py listed no libraries for $abi"; exit 1; }
           pins=$(unzip -p "$out" assets/native/pins.tsv)
           for lib in $libs; do
             if unzip -l "$out" | grep -q "lib/$abi/$lib"; then

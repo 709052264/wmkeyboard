@@ -90,24 +90,10 @@ object NativeDelivery {
                 gates[name] = DownloadedModuleGate(name, gatePins, nativeStore, scope)
             }
         }
-        gate("speech")?.let { FeatureModules.speech = it }
-        gate("executorch")?.let { FeatureModules.executorch = it }
-        gate("onnx")?.let { FeatureModules.onnx = it }
-        gate("grammar")?.let { FeatureModules.grammar = it }
-        gate("spell")?.let { FeatureModules.spell = it }
-        gate("ocr")?.let { FeatureModules.ocr = it }
-        gate("docscan")?.let { FeatureModules.docscan = it }
-        gate("imagegen")?.let { FeatureModules.imagegen = it }
-        gate("bergamot")?.let { FeatureModules.bergamot = it }
-        gate("ct2")?.let { FeatureModules.ct2 = it }
-        gate("llama")?.let { FeatureModules.llama = it }
-        gate("litert")?.let { FeatureModules.litert = it }
-        gate("handwriting")?.let { FeatureModules.handwriting = it }
-        gate("zinnia")?.let { FeatureModules.zinnia = it }
-        gate("scanner")?.let { FeatureModules.scanner = it }
-        gate("npu")?.let { FeatureModules.npu = it }
-        gate("rime")?.let { FeatureModules.rime = it }
-        gate("mozc")?.let { FeatureModules.mozc = it }
+        // Every FeatureModules gate the pins name. The others (llm and
+        // translate, whose facades keep their own gate type, and the NPU's
+        // per-chip gates) are read through [gate].
+        for (name in FeatureModules.names) gate(name)?.let { FeatureModules.set(name, it) }
         FeatureModules.loadLibrary = { name ->
             val file = fileFor(name)
             if (file != null) System.load(file.path) else System.loadLibrary(name)

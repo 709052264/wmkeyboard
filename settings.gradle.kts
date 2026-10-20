@@ -67,88 +67,44 @@ include(":core:intelligence")
 include(":feature:tools")
 include(":feature:addons")
 include(":feature:ime")
-// Dynamic feature module, Play channel only: the on-demand home of the
-// LiteRT-LM runtime. :app adds it to `dynamicFeatures` behind the same flag,
-// and a dynamic-feature module that no app registers cannot resolve its own
-// `featureName`, so including it unconditionally breaks every non-Play build
-// the moment an unqualified task name (`assembleDebug`, and so the whole
-// of CI) fans out across every project. It is therefore in the build only
-// when the channel that consumes it is. Developers who want it in the IDE
+// The on-demand gates' Play modules (`:feature:<id>` for every gate of
+// native/gates.json with a `play` entry), Play channel only: :app adds the
+// same modules to `dynamicFeatures` (the wmkeyboard.native-gates convention).
+// A dynamic-feature module that no app registers cannot resolve its own
+// `featureName`, so including them unconditionally breaks every non-Play build
+// the moment an unqualified task name (`assembleDebug`, and so the whole of
+// CI) fans out across every project. They are therefore in the build only
+// when the channel that consumes them is. Developers who want them in the IDE
 // have wmkb.enablePlayStore=true in local.properties already, since that is
 // what building for Play needs.
-val playStoreChannel: Boolean = run {
-    val local = java.util.Properties()
-    file("local.properties").takeIf { it.exists() }?.inputStream()?.use(local::load)
-    // Same precedence as `flag()` in app/build.gradle.kts: -P, then
-    // local.properties, then the environment, then off.
-    (providers.gradleProperty("wmkb.enablePlayStore").orNull
-        ?: local.getProperty("wmkb.enablePlayStore")
-        ?: System.getenv("WMKB_ENABLE_PLAY_STORE")
-        ?: "false").toBoolean()
-}
-if (playStoreChannel) {
-    include(":feature:llm")
-    // The same arrangement for ML Kit's on-device translator.
-    include(":feature:translate")
-    // The LiteRT interpreter (offline Whisper, the sticker editor's own
-    // background remover) and ML Kit's ink recogniser, the same way.
-    include(":feature:litert")
-    include(":feature:handwriting")
-    // whisper.cpp and Whistle's native libraries, Harper's and
-    // Tesseract's: no code, only the .so files :core:voice and
-    // :core:intelligence leave out of the base APK on this channel.
-    include(":feature:speech")
-    // The ExecuTorch runtime, shared by three dictation engines and the FUTO
-    // Swipe glide engine, the same way.
-    include(":feature:executorch")
-    // ONNX Runtime and the sherpa-onnx bridge behind Offline Sherpa, the same way.
-    include(":feature:onnx")
-    include(":feature:grammar")
-    // Hunspell's, the same way, behind spell checking against imported
-    // .aff/.dic dictionaries.
-    include(":feature:spell")
-    include(":feature:ocr")
-    // librime's library behind the optional RIME Chinese engine, the same
-    // way: :core:input leaves it out of the base APK on this channel.
-    include(":feature:rime")
-    // Mozc's converter behind the optional Mozc Japanese engine, the same
-    // way, from :core:input's src/mozc/jniLibs.
-    include(":feature:mozc")
-    // Mozilla's Bergamot translator, the same way: the library alone, behind
-    // the translate tool's Firefox Translations engine.
-    include(":feature:bergamot")
-    // CTranslate2, the same way: the library alone, behind the translate
-    // tool's NLLB engine.
-    include(":feature:ct2")
-    // zinnia, the same way: the library alone, behind Chinese and Japanese
-    // handwriting where ML Kit's recogniser is not picked.
-    include(":feature:zinnia")
-    // llama.cpp, the same way: the library alone, behind GGUF models for
-    // on-device AI.
-    include(":feature:llama")
-    // The built-in document scanner's OpenCV library, the same way, behind
-    // the scanner tool where Google's scanner is missing or switched off.
-    include(":feature:docscan")
-    // The sticker generator's MNN library (and its NPU runner), the same way.
-    include(":feature:imagegen")
-    // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
-    // wmkb.enableNpu=false (the same flag :core:config reads).
-    val local = java.util.Properties()
-    file("local.properties").takeIf { it.exists() }?.inputStream()?.use(local::load)
-    val npuRuntime = (providers.gradleProperty("wmkb.enableNpu").orNull
-        ?: local.getProperty("wmkb.enableNpu")
-        ?: System.getenv("WMKB_ENABLE_NPU")
-        ?: "true").toBoolean()
-    if (npuRuntime) include(":feature:npu")
-    // The Google Home APIs SDK (~22 MB of dex), when this build links it at
-    // all: the SDK unpacked under feature/ime/libs/googlehome and
-    // wmkb.enableGoogleHome on, the same two things :feature:ime checks.
-    val googleHome = file("feature/ime/libs/googlehome/m2/com/google/android/gms/play-services-home").isDirectory &&
-        (providers.gradleProperty("wmkb.enableGoogleHome").orNull
-            ?: local.getProperty("wmkb.enableGoogleHome")
-            ?: System.getenv("WMKB_ENABLE_GOOGLE_HOME")
-            ?: "false").toBoolean()
-    if (googleHome) include(":feature:googlehome")
+val localProperties = java.util.Properties()
+file("local.properties").takeIf { it.exists() }?.inputStream()?.use(localProperties::load)
+
+// Same precedence as `flag()` in app/build.gradle.kts: -P, then
+// local.properties, then the environment, then the default.
+fun wmkbFlag(name: String, env: String, default: Boolean): Boolean =
+    (providers.gradleProperty(name).orNull
+        ?: localProperties.getProperty(name)
+        ?: System.getenv(env)
+        ?: default.toString()).toBoolean()
+
+if (wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE", default = false)) {
+    @Suppress("UNCHECKED_CAST")
+    val gates = (groovy.json.JsonSlurper().parse(file("native/gates.json")) as Map<String, Any?>)["gates"] as List<Map<String, Any?>>
+    for (gate in gates) {
+        if (gate["play"] == null) continue
+        // A gate the build switches off has no module either: the NPU
+        // runtime unless wmkb.enableNpu (the flag :core:config reads), the
+        // Google Home APIs unless their SDK is unpacked under
+        // feature/ime/libs/googlehome and wmkb.enableGoogleHome is on.
+        val by = gate["enabledBy"] as Map<*, *>?
+        if (by != null) {
+            val dir = by["requiresDir"] as String?
+            if (dir != null && !file(dir).isDirectory) continue
+            if (!wmkbFlag(by["flag"] as String, by["env"] as String, by["default"] as Boolean)) continue
+        }
+        include(":feature:${gate["id"]}")
+    }
 }
 // Macrobenchmarks and the baseline profile generator (-Pwmkb.benchmark=true).
 // Out of the ordinary build for two reasons. Applying the baselineprofile
@@ -156,15 +112,7 @@ if (playStoreChannel) {
 // configuration, analyser and `./gradlew tasks` then pays for. And this
 // module's tests install a release-like build over the app on whichever
 // device is connected, which nobody should get by running a task on a whim.
-val benchmarkBuild: Boolean = run {
-    val local = java.util.Properties()
-    file("local.properties").takeIf { it.exists() }?.inputStream()?.use(local::load)
-    (providers.gradleProperty("wmkb.benchmark").orNull
-        ?: local.getProperty("wmkb.benchmark")
-        ?: System.getenv("WMKB_BENCHMARK")
-        ?: "false").toBoolean()
-}
-if (benchmarkBuild) include(":benchmark")
+if (wmkbFlag("wmkb.benchmark", "WMKB_BENCHMARK", default = false)) include(":benchmark")
 // Host-side dictionary compiler: turns dictionaries-src/*.txt into the .wmdict
 // binary assets at build time, sharing the app's own trie/codec sources so the
 // written format can never drift from the reader.
