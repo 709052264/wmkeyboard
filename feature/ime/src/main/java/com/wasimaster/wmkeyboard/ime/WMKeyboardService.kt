@@ -25009,6 +25009,8 @@ open class WMKeyboardService : InputMethodService() {
         // nothing to preview. Counted whether or not a glide may run now, so a
         // lift is never lost to a field that changed under the finger.
         if (points.isEmpty()) {
+            // Every thumb up: no stroke is still being drawn.
+            if (keyWidthPx == DUET_PING_ALL_UP) liveDuetStrokes.clear()
             when (keyWidthPx) {
                 DUET_PING_DOWN -> onKeyboardTouch(down = true, onKeys = true)
                 DUET_PING_BAR_DOWN -> onKeyboardTouch(down = true)
@@ -25024,12 +25026,32 @@ open class WMKeyboardService : InputMethodService() {
         // the strip shows converted once the finger lifts (#580).
         if (state.composer === PinyinComposer) return
         syncGlideTriggers(state)
+        if (swipeJoinsWord(state)) noteLiveDuetStroke(points)
         gesturePreviews.trySend(
             GesturePreviewRequest(
                 points, keys, keyWidthPx, case, gestureGeneration.get(),
                 tokens = duetPreviewTokens(state, points, keys, keyWidthPx),
             ),
         )
+    }
+
+    /**
+     * Every two-thumb stroke still being drawn, by when it landed, with its
+     * latest points (#849). A preview of one thumb's stroke reads the whole
+     * word: the lifted gestures, then each of these in the order they began.
+     * Read with only its own stroke, a preview alternated between "the word
+     * plus thumb A" and "the word plus thumb B" while both thumbs moved, and
+     * the strip flipped back and forth with them.
+     */
+    private val liveDuetStrokes = java.util.TreeMap<Long, List<GesturePoint>>()
+
+    private fun noteLiveDuetStroke(points: List<GesturePoint>) {
+        val first = points.firstOrNull() ?: return
+        liveDuetStrokes[first.t] = points
+        // A stroke that ended without its lift reaching here (a tap after
+        // all, a stolen pointer) is dropped once it has gone quiet.
+        val newest = points.last().t
+        liveDuetStrokes.entries.removeAll { (_, live) -> newest - live.last().t > LIVE_STROKE_QUIET_MS }
     }
 
     /**
@@ -25077,6 +25099,11 @@ open class WMKeyboardService : InputMethodService() {
                 // the pill and the picker all show the same word: they are all
                 // built from this one list.
                 val steadied = steadyPreview(reading, gesture.previewSteadiness)
+                // The side slots held too (#849), for the strip alone: the
+                // pill, the picker and the lift all follow [steadied].
+                val strip = previewGate.steadySides(
+                    steadied.words, steadied.scores, gesture.previewSteadiness, SystemClock.elapsedRealtime(),
+                )
                 val floating = octopusForGlide(_uiState.value, steadied.words)
                 // Per-letter capitals need the decoder's placement of each
                 // word along the stroke, which is one small alignment a word
@@ -25092,7 +25119,7 @@ open class WMKeyboardService : InputMethodService() {
                 val expansions = glideExpansionsFor(_uiState.value, steadied.words)
                 _uiState.update {
                     it.copy(
-                        suggestions = steadied.words,
+                        suggestions = strip,
                         octopusGlide = floating,
                         glideWord = steadied.words.first(),
                         // Published raw and cased at the draw sites, through
@@ -25886,7 +25913,10 @@ open class WMKeyboardService : InputMethodService() {
                 DuetWord().takeIf { it.seed(composing, composingTouchFrame(), keys, keyWidthPx) } ?: return null
             else -> return null
         }
-        word.addSwipe(points, keys, keyWidthPx)
+        // The whole word: every stroke still down, this one among them, in
+        // the order they began (#849).
+        val live = liveDuetStrokes.values.ifEmpty { listOf(points) }
+        for (stroke in live) word.addSwipe(stroke, keys, keyWidthPx)
         return word.snapshot()
     }
 
@@ -25949,6 +25979,8 @@ open class WMKeyboardService : InputMethodService() {
          */
         verdict: GlideVerdict = GlideVerdict.Leader(),
     ) {
+        // This stroke is lifted: it joins the word's gestures, not the live ones.
+        points.firstOrNull()?.let { liveDuetStrokes.remove(it.t) }
         stopVoiceForManualInput()
         val state = _uiState.value
         if (!glideAllowed(state)) return

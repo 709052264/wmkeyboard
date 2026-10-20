@@ -123,6 +123,68 @@ class GlidePreviewGate {
     fun reset() {
         shown = null
         shownAt = 0L
+        sides.fill(null)
+        sidesAt.fill(0L)
+    }
+
+    /** The words in the strip's side slots (1 and 2), and when each arrived there (#849). */
+    private val sides = arrayOfNulls<String>(SIDE_SLOTS + 1)
+    private val sidesAt = LongArray(SIDE_SLOTS + 1)
+
+    /**
+     * [words], already led by [steady]'s pick, with each side slot of the
+     * strip held the way the leader is (#849): a word still in the reading
+     * keeps its slot while it is younger than the tier's hold, or while the
+     * word that would take the slot beats it by less than the tier's margin.
+     * A word gone from the reading leaves at once, as the leader does.
+     *
+     * Display only. [commit] never reads it, so a held side word cannot
+     * change what a lift types.
+     */
+    fun steadySides(
+        words: List<String>,
+        scores: List<Double>,
+        steadiness: GlidePreviewSteadiness,
+        now: Long,
+    ): List<String> {
+        if (steadiness == GlidePreviewSteadiness.OFF || words.size < 2) {
+            recordSides(words, now)
+            return words
+        }
+        val score = HashMap<String, Double>()
+        words.forEachIndexed { i, w -> scores.getOrNull(i)?.let { score.getOrPut(w) { it } } }
+        val out = words.toMutableList()
+        for (slot in 1..minOf(SIDE_SLOTS, out.lastIndex)) {
+            val held = sides[slot] ?: continue
+            if (out[slot].equals(held, ignoreCase = true)) continue
+            val at = out.indexOfFirst { it.equals(held, ignoreCase = true) }
+            // Gone from the reading, or now the leader or an earlier side word.
+            if (at < slot) continue
+            val young = now - sidesAt[slot] < steadiness.holdMs
+            val lead = (score[out[slot]] ?: 0.0) - (score[out[at]] ?: 0.0)
+            if (young || lead < steadiness.margin) {
+                val word = out[at]
+                out[at] = out[slot]
+                out[slot] = word
+            }
+        }
+        recordSides(out, now)
+        return out
+    }
+
+    private fun recordSides(words: List<String>, now: Long) {
+        for (slot in 1..SIDE_SLOTS) {
+            val word = words.getOrNull(slot)
+            if (word == null || !word.equals(sides[slot], ignoreCase = true)) {
+                sides[slot] = word
+                sidesAt[slot] = now
+            }
+        }
+    }
+
+    private companion object {
+        /** The strip's slots beside the centre one that [steadySides] holds. */
+        const val SIDE_SLOTS = 2
     }
 
     private fun adopt(word: String, now: Long) {

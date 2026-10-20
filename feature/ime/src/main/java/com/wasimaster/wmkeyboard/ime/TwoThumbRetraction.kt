@@ -4,6 +4,9 @@ import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_RETRACT_RANGE
 
+/** How long a live two-thumb stroke may go without a preview before it is taken as ended (#849). */
+internal const val LIVE_STROKE_QUIET_MS = 1500L
+
 /** How far back the word behind an all-thumbs-up space is read, space included (#747). */
 internal const val ALL_UP_RETRACT_LOOKBACK = 48
 

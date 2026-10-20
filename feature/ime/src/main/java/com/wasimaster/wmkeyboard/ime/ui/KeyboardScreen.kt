@@ -21340,7 +21340,11 @@ private suspend fun PointerInputScope.twoThumbGlide(
                     trails[stroke.slot].add(change.position.x, change.position.y, change.uptimeMillis, trailMs)
                 }
                 val keys = stroke.keys
-                if (keys != null && change.uptimeMillis - stroke.lastPreviewMs >= PREVIEW_INTERVAL_MS &&
+                // Each preview now reads the whole word (#849), so two thumbs
+                // drawing at once share the one-finger rate between them
+                // rather than doubling it.
+                val drawing = strokes.values.count { it.swiping && !it.ignored }.coerceAtLeast(1)
+                if (keys != null && change.uptimeMillis - stroke.lastPreviewMs >= PREVIEW_INTERVAL_MS * drawing &&
                     stroke.points.size >= PREVIEW_MIN_POINTS
                 ) {
                     stroke.lastPreviewMs = change.uptimeMillis

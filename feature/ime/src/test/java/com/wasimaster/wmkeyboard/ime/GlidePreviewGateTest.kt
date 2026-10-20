@@ -101,6 +101,31 @@ class GlidePreviewGateTest {
     }
 
     @Test
+    fun aSideWordKeepsItsSlotWhileItHoldsUp() {
+        // #849: the slots beside the centre one are held like the leader.
+        val gate = GlidePreviewGate()
+        gate.steadySides(listOf("some", "same", "sane"), scores(0.0, -1.0, -1.5), light, 0L)
+        val next = gate.steadySides(listOf("some", "sane", "same"), scores(0.0, -1.2, -1.3), light, 1_000L)
+        assertEquals(listOf("some", "same", "sane"), next)
+    }
+
+    @Test
+    fun aSideWordGoneFromTheReadingLeavesAtOnce() {
+        val gate = GlidePreviewGate()
+        gate.steadySides(listOf("some", "same", "sane"), scores(0.0, -1.0, -1.5), light, 0L)
+        val next = gate.steadySides(listOf("some", "sale", "sane"), scores(0.0, -1.0, -1.5), light, 10L)
+        assertEquals(listOf("some", "sale", "sane"), next)
+    }
+
+    @Test
+    fun aClearlyBetterChallengerTakesTheSlotOnceTheHoldIsOver() {
+        val gate = GlidePreviewGate()
+        gate.steadySides(listOf("some", "same", "sane"), scores(0.0, -1.0, -1.5), light, 0L)
+        val next = gate.steadySides(listOf("some", "sane", "same"), scores(0.0, -1.0, -9.0), light, 1_000L)
+        assertEquals(listOf("some", "sane", "same"), next)
+    }
+
+    @Test
     fun aLiftTakesTheLeaderOnceTheShownWordIsClearlyBeaten() {
         val gate = GlidePreviewGate()
         gate.steady(listOf("hello", "help"), scores(0.0, -2.0), light, 0L)
