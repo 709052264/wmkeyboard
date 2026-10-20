@@ -7,7 +7,8 @@ import java.io.File
  * The word list an eval draws its cases from (#837).
  *
  * The suites that sample words by frequency (DuetBeamEvalTest, the base half
- * of GlideRerankOracleTest, RerankHarmTest's neighbour filter) drew them from
+ * of GlideRerankOracleTest, RerankHarmTest's neighbour filter,
+ * GlideShiftDetourEvalTest) drew them from
  * the dictionary under test, so a dictionary change changed the cases too and
  * a before/after comparison measured two different exams. Set
  * [ENV] to a word list file and every case is drawn from that file instead,
