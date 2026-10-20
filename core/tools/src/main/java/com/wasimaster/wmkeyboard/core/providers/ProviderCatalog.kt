@@ -33,6 +33,8 @@ data class ProviderEnv(
     val onDeviceTranslate: Boolean,
     /** Bergamot can translate here: Android 9 or later, its library in reach, and a network to fetch models. */
     val bergamot: Boolean = false,
+    /** NLLB can translate here: a 64-bit phone with the memory for its model, and a network to fetch it. */
+    val nllb: Boolean = false,
     /** At least one offline GIF pack is imported. */
     val offlineGifPacks: Boolean,
     /** The Google Home APIs can run: the build carries them and Play services is on the phone. */
@@ -68,10 +70,15 @@ object ProviderEnvironment {
     var bergamot: Boolean = false
         private set
 
-    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false, bergamot: Boolean = false) {
+    @Volatile
+    var nllb: Boolean = false
+        private set
+
+    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false, bergamot: Boolean = false, nllb: Boolean = false) {
         this.onDeviceTranslate = onDeviceTranslate
         this.googleHome = googleHome
         this.bergamot = bergamot
+        this.nllb = nllb
     }
 
     /**
@@ -84,6 +91,7 @@ object ProviderEnvironment {
         offline = !InternetPermission.granted,
         onDeviceTranslate = onDeviceTranslate,
         bergamot = bergamot,
+        nllb = nllb,
         offlineGifPacks = lookAtDisk && OfflineGifPacks.hasPacks,
         // The build carries the Home APIs, and the phone has the Play services they run through.
         googleHome = googleHome && PlayServices.available,
@@ -103,6 +111,7 @@ object ProviderCatalog {
         env.offline && !type.onDevice -> false
         type === ProviderTypes.ML_KIT && !env.onDeviceTranslate -> false
         type === ProviderTypes.BERGAMOT && !env.bergamot -> false
+        type === ProviderTypes.NLLB && !env.nllb -> false
         type === ProviderTypes.GOOGLE_HOME && !env.googleHome -> false
         type === ProviderTypes.ON_DEVICE_AI && !env.onDeviceAi -> false
         ProviderTool.VOICE in type.serves -> ProviderTypes.VOICE_ENGINES[type.id] in env.voiceEngines

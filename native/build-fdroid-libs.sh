@@ -20,6 +20,8 @@
 #                       a pinned bazelisk)
 #   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
 #                       (into core/intelligence/src/bergamot/jniLibs)
+#   NLLB translate      ctranslate2-jni/build.sh  libwmct2.so
+#                       (into core/intelligence/src/ct2/jniLibs)
 #   llama.cpp (GGUF     llamacpp-jni/build.sh     libwmllama*.so
 #   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
 #
@@ -82,4 +84,5 @@ fi
 "$HERE/librime-jni/build.sh"
 "$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"
+"$HERE/ctranslate2-jni/build.sh"
 "$HERE/llamacpp-jni/build.sh"

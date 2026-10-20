@@ -319,6 +319,26 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/mozilla/translations/tree/main/inference",
         ),
     )
+    // The NLLB-200 engine's runtime, in every build: packaged, pinned for
+    // download, or a Play split. See native/ctranslate2-jni.
+    add(
+        Attribution(
+            "CTranslate2",
+            R.string.about_bundled_ct2_used,
+            "Copyright (c) 2018- SYSTRAN; Copyright (c) 2019- The OpenNMT Authors",
+            "MIT", "ct2-third-party.txt",
+            "https://github.com/OpenNMT/CTranslate2",
+        ),
+    )
+    add(
+        Attribution(
+            "SentencePiece, ruy, Abseil, spdlog and others",
+            R.string.about_bundled_ct2_libs_used,
+            "Copyright the respective authors",
+            "Apache-2.0 / MIT / BSD / zlib", "ct2-third-party.txt",
+            "https://github.com/google/sentencepiece",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.
@@ -731,6 +751,15 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright Mozilla Foundation",
         "MPL-2.0", "mpl-2.0.txt",
         "https://github.com/mozilla/translations",
+    ))
+    // Fetched from Hugging Face only after the user accepts this licence
+    // (NativeConsent.NLLB); the converted copy keeps Meta's terms.
+    add(Attribution(
+        "NLLB-200 (distilled 600M)",
+        R.string.about_pack_nllb_used,
+        "Copyright (c) Meta Platforms, Inc. and affiliates; CTranslate2 conversion by JustFrederik",
+        "CC BY-NC 4.0", "cc-by-nc-4.0.txt",
+        "https://huggingface.co/facebook/nllb-200-distilled-600M",
     ))
     add(Attribution(
         "Frequency wordlists",

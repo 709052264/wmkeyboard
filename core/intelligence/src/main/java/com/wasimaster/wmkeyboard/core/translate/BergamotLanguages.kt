@@ -99,9 +99,9 @@ object BergamotLanguages : OfflineLanguageTable {
 }
 
 /**
- * A rough idea of the language a text is in, for the Bergamot engine on a
- * phone without ML Kit's language identifier (F-Droid, and Play before its
- * module is here). It is a stand-in, not an identifier:
+ * A rough idea of the language a text is in, for the Bergamot and NLLB
+ * engines on a phone without ML Kit's language identifier (F-Droid, and
+ * Play before its module is here). It is a stand-in, not an identifier:
  *
  *  - most scripts belong to one language, or to a few told apart by a letter
  *    only one of them uses (Ukrainian ї, Urdu ے);
@@ -138,13 +138,15 @@ object ScriptLanguageGuess {
             Character.UnicodeScript.CYRILLIC -> cyrillic(text)
             Character.UnicodeScript.ARABIC -> arabic(text)
             Character.UnicodeScript.DEVANAGARI -> listOf(candidate("hi", 0.45f), candidate("mr", 0.35f))
+            Character.UnicodeScript.ETHIOPIC -> listOf(candidate("am", 0.45f), candidate("ti", 0.3f))
+            Character.UnicodeScript.TIBETAN -> listOf(candidate("bo", 0.45f), candidate("dz", 0.3f))
             else -> SINGLE[script]?.let { listOf(candidate(it, 0.9f * share)) }.orEmpty()
         }
     }
 
     private fun candidate(tag: String, confidence: Float) = OfflineTranslatePlan.Candidate(tag, confidence)
 
-    /** Scripts that, among the languages either engine has, belong to one. */
+    /** Scripts that, among the languages the engines have, belong to one. */
     private val SINGLE = mapOf(
         Character.UnicodeScript.HAN to "zh",
         Character.UnicodeScript.HANGUL to "ko",
@@ -160,6 +162,12 @@ object ScriptLanguageGuess {
         Character.UnicodeScript.TELUGU to "te",
         Character.UnicodeScript.GEORGIAN to "ka",
         Character.UnicodeScript.ARMENIAN to "hy",
+        // Only NLLB has these.
+        Character.UnicodeScript.KHMER to "km",
+        Character.UnicodeScript.LAO to "lo",
+        Character.UnicodeScript.MYANMAR to "my",
+        Character.UnicodeScript.SINHALA to "si",
+        Character.UnicodeScript.ORIYA to "or",
     )
 
     private fun cyrillic(text: String): List<OfflineTranslatePlan.Candidate> {

@@ -748,6 +748,7 @@ private fun TranslateActionRow(
                         moduleComing -> R.string.ime_translate_module_installing_action
                         downloading -> CommonR.string.common_cancel
                         translate.meteredAsk -> R.string.ime_metered_allow_action
+                        translate.licenceAsk -> R.string.ime_translate_nllb_licence_accept_action
                         else -> CommonR.string.common_download
                     },
                 ),
@@ -1099,6 +1100,11 @@ private fun TranslateDownloadOffer(translate: TranslateUi, modifier: Modifier = 
         when {
             translate.meteredAsk -> Text(
                 stringResource(R.string.ime_metered_ask_body),
+                color = kb.accent,
+                fontSize = 13.sp,
+            )
+            translate.licenceAsk -> Text(
+                stringResource(R.string.ime_translate_nllb_licence_body),
                 color = kb.accent,
                 fontSize = 13.sp,
             )

@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.Intent
+import android.net.Uri
 import android.text.format.Formatter
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Row
@@ -7,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,10 +33,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.translate.BergamotLanguages
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
@@ -268,6 +273,132 @@ internal fun BergamotModelManager(settings: LiveSettings) {
         )
     }
     if (blockedMetered) MeteredBlockedDialog { blockedMetered = false }
+}
+
+/**
+ * The NLLB-200 model: one row for the 630 MB model, and the CTranslate2
+ * library first where this build fetches it. The model's licence (CC BY-NC
+ * 4.0) is shown before the first download, and agreeing is remembered
+ * ([NllbTranslator.licenceAccepted]); the panel asks the same way.
+ */
+@Composable
+internal fun NllbModelManager(settings: LiveSettings) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val models by NllbTranslator.models.collectAsState()
+    LaunchedEffect(Unit) { NllbTranslator.refresh(context.applicationContext) }
+    val downloadDecision = rememberDownloadDecision(settings)
+    var confirmMetered by remember { mutableStateOf<String?>(null) }
+    var blockedMetered by remember { mutableStateOf(false) }
+    var asking by remember { mutableStateOf<String?>(null) }
+    val offerPermission = rememberNotificationPermissionOffer()
+    val modelName = stringResource(R.string.tooldetail_translate_nllb_model)
+    val label: (String) -> String = { key ->
+        if (key == NllbTranslator.MODEL_KEY) modelName else OfflineTranslation.NLLB_ENGINE_NAME
+    }
+    val start: (String) -> Unit = { key ->
+        offerPermission()
+        NllbTranslator.downloadNotified(
+            context = context.applicationContext,
+            key = key,
+            title = context.getString(CommonR.string.common_notify_download_translate, label(key)),
+        )
+    }
+    val ask: (String) -> Unit = { key ->
+        when {
+            !NllbTranslator.licenceAccepted -> asking = key
+            else -> when (downloadDecision()) {
+                MeteredDecision.ALLOWED -> start(key)
+                MeteredDecision.ASK -> confirmMetered = key
+                MeteredDecision.BLOCKED -> blockedMetered = true
+            }
+        }
+    }
+    val row: @Composable (String) -> Unit = { key ->
+        TranslateModelRow(
+            code = key,
+            name = label(key),
+            state = models[key],
+            sizeBytes = NllbTranslator.downloadBytes(key),
+            builtIn = false,
+            onDownload = { ask(key) },
+            onCancel = { NllbTranslator.cancelDownload(key) },
+            onDelete = { scope.launch { NllbTranslator.delete(context.applicationContext) } },
+        )
+    }
+    SettingsGroup(
+        stringResource(R.string.tooldetail_translate_nllb_group),
+        info = stringResource(R.string.tooldetail_translate_nllb_info),
+    ) {
+        if (models[NllbTranslator.ENGINE_KEY].let { it != null && it !is OfflineModelState.Downloaded }) {
+            item { row(NllbTranslator.ENGINE_KEY) }
+        }
+        item { row(NllbTranslator.MODEL_KEY) }
+    }
+    asking?.let { key ->
+        NllbLicenceDialog { accepted ->
+            asking = null
+            if (accepted) ask(key)
+        }
+    }
+    confirmMetered?.let { key ->
+        MeteredDownloadDialog(
+            detail = stringResource(
+                R.string.tooldetail_translate_model_metered_body,
+                label(key),
+                Formatter.formatShortFileSize(context, NllbTranslator.downloadBytes(key)),
+            ),
+            onConfirm = {
+                confirmMetered = null
+                start(key)
+            },
+            onDismiss = { confirmMetered = null },
+        )
+    }
+    if (blockedMetered) MeteredBlockedDialog { blockedMetered = false }
+}
+
+/**
+ * NLLB-200's licence, before the phone fetches the model. It comes from a
+ * Hugging Face repository under Meta's terms rather than from this project,
+ * so the user receives it under them and agrees here. [onDone] is called
+ * with whether they accepted.
+ */
+@Composable
+private fun NllbLicenceDialog(onDone: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = { onDone(false) },
+        title = { Text(stringResource(R.string.tooldetail_translate_nllb_licence_title)) },
+        text = {
+            Text(
+                stringResource(
+                    R.string.tooldetail_translate_nllb_licence_body,
+                    Formatter.formatShortFileSize(context, NllbTranslator.modelBytes),
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                NativeConsent.set(NativeConsent.NLLB, true)
+                onDone(true)
+            }) { Text(stringResource(R.string.tooldetail_translate_nllb_licence_accept)) }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = {
+                    NativeConsent.licenceUrls[NativeConsent.NLLB]?.let { url ->
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                            )
+                        }
+                    }
+                }) { Text(stringResource(R.string.tooldetail_translate_nllb_licence_view)) }
+                TextButton(onClick = { onDone(false) }) { Text(stringResource(CommonR.string.common_cancel)) }
+            }
+        },
+    )
 }
 
 /** Stands in for a model code in the metered confirm, for the module itself. */

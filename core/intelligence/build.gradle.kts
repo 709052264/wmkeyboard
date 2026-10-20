@@ -128,6 +128,8 @@ androidComponents {
         // delivery pins them instead (wmkeyboard.native-pins).
         if (!playStoreChannel) {
             variant.sources.jniLibs?.addStaticSourceDirectory("src/bergamot/jniLibs")
+            // CTranslate2's, the same way: :feature:ct2 carries it on Play.
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/ct2/jniLibs")
             variant.sources.jniLibs?.addStaticSourceDirectory("src/tesseract/jniLibs")
             // llama.cpp's, the same way: :feature:llama carries it on Play.
             variant.sources.jniLibs?.addStaticSourceDirectory("src/llama/jniLibs")

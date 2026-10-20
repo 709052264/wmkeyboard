@@ -117,6 +117,9 @@ if (playStoreChannel) {
     // Mozilla's Bergamot translator, the same way: the library alone, behind
     // the translate tool's Firefox Translations engine.
     include(":feature:bergamot")
+    // CTranslate2, the same way: the library alone, behind the translate
+    // tool's NLLB engine.
+    include(":feature:ct2")
     // llama.cpp, the same way: the library alone, behind GGUF models for
     // on-device AI.
     include(":feature:llama")

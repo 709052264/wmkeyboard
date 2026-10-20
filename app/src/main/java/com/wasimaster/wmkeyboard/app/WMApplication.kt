@@ -15,6 +15,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sink.BackupClients
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncWatcher
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
 /**
@@ -108,12 +109,14 @@ open class WMApplication : Application() {
             dropbox = BuildConfig.DROPBOX_APP_KEY,
             oneDrive = BuildConfig.ONEDRIVE_CLIENT_ID,
         )
-        // Whether the translate list can offer the on-device engines: ML Kit
-        // and Bergamot sit above the module that keeps the provider lists.
+        // Whether the translate list can offer the on-device engines: ML Kit,
+        // Bergamot and NLLB sit above the module that keeps the provider lists.
+        NllbTranslator.checkMemory(this)
         ProviderEnvironment.install(
             onDeviceTranslate = OnDeviceTranslator.AVAILABLE,
             googleHome = com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_GOOGLE_HOME,
             bergamot = BergamotTranslator.available,
+            nllb = NllbTranslator.available,
         )
         // Where the Dictionary tool's offline dictionaries live, for a
         // look-up from the keyboard or the AI tool alike. Only a path: before

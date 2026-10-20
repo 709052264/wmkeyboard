@@ -12,6 +12,7 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
@@ -1943,6 +1944,8 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
                 .takeIf { OnDeviceTranslator.AVAILABLE },
             toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_bergamot_group)
                 .takeIf { BergamotTranslator.available },
+            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_nllb_group)
+                .takeIf { NllbTranslator.available },
         )
     }
 

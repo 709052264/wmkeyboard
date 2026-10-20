@@ -531,10 +531,12 @@ object LegacyProviders {
         }
         // The phone's engines first, ML Kit before Bergamot where both run:
         // ML Kit was the one row before Bergamot came, and Bergamot is the
-        // on-device engine wherever ML Kit is not.
+        // on-device engine wherever ML Kit is not. NLLB last of the three:
+        // it covers what the others cannot, at seconds a sentence.
         val device = listOfNotNull(
             ProviderEntry(ProviderTypes.ML_KIT.id).takeIf { env.onDeviceTranslate },
             ProviderEntry(ProviderTypes.BERGAMOT.id).takeIf { env.bergamot },
+            ProviderEntry(ProviderTypes.NLLB.id).takeIf { env.nllb },
         )
         return ProviderChain(device + online)
     }
