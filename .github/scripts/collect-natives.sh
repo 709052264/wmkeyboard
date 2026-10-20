@@ -16,7 +16,10 @@ out=$2
 mkdir -p "$out"
 
 pins=$(unzip -p "$apk" assets/native/pins.tsv)
-dirs=(core/voice/src/main/jniLibs core/voice/src/whistle/jniLibs core/voice/src/executorch/jniLibs core/voice/src/onnx/jniLibs core/intelligence/src/main/jniLibs core/intelligence/src/tesseract/jniLibs core/intelligence/src/bergamot/jniLibs core/intelligence/src/zinnia/jniLibs core/intelligence/src/ct2/jniLibs core/intelligence/src/llama/jniLibs core/intelligence/src/docscan/jniLibs core/prediction/src/main/jniLibs core/input/src/main/jniLibs core/input/src/mozc/jniLibs native/voikko-jni/jniLibs)
+# Every jniLibs directory a library of native/gates.json lives in.
+dirs=()
+while IFS= read -r dir; do dirs+=("$dir"); done < <(python3 "$(dirname "$0")/../../native/gates.py" dirs)
+[ ${#dirs[@]} -gt 0 ] || { echo "::error::native/gates.py listed no jniLibs directories"; exit 1; }
 
 echo "$pins" | awk -F'\t' '!/^#/ && $6 == "data" {print $2 "\t" $3 "\t" $4}' | while IFS=$'\t' read -r abi name sha; do
     found=
