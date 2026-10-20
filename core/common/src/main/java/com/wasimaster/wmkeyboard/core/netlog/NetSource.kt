@@ -83,6 +83,9 @@ enum class NetSource(
     /** FUTO Swipe's glide models, when that glide engine is turned on. */
     DOWNLOAD_GLIDE("download_glide"),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
+
+    /** A Bergamot translation model, from Mozilla's Firefox Translations servers. */
+    DOWNLOAD_TRANSLATE("download_translate", ToolbarTool.TRANSLATE),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
 
     /** An offline dictionary for the Dictionary tool (#665). */

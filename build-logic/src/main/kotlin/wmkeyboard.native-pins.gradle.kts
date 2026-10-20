@@ -41,6 +41,7 @@ val ownSpecs = mapOf(
     "libwmhunspell.so" to Own("spell", false),
     "libwmtess.so" to Own("ocr", true),
     "libwmrime.so" to Own("rime", false),
+    "libwmbergamot.so" to Own("bergamot", false),
 )
 
 /** Where the build keeps them; F-Droid's recipe builds and scans the same paths. */
@@ -53,6 +54,7 @@ val ownDirs = mapOf(
     "core/intelligence/src/full/jniLibs" to true,
     "core/prediction/src/main/jniLibs" to false,
     "core/input/src/main/jniLibs" to false,
+    "core/intelligence/src/bergamot/jniLibs" to false,
 )
 
 /** A dependency's library: its gate, the module whose AAR holds it, a licence. Full flavour only. */

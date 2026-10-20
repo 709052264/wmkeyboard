@@ -168,6 +168,7 @@
     <string name="netlog_source_download_emoji">Emoji keyword downloads</string>
     <string name="netlog_source_download_whisper">Voice model downloads</string>
     <string name="netlog_source_download_llm">AI model downloads</string>
+    <string name="netlog_source_download_translate">Translation model downloads</string>
     <string name="netlog_source_download_vocab">Vocabulary downloads</string>
     <string name="netlog_source_download_dictionary">Offline dictionary downloads</string>
     <string name="netlog_source_download_font">Font downloads</string>

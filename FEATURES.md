@@ -1828,7 +1828,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Save to gallery — Off by default; writes to Pictures/WM Keyboard
 - **Online tools** `uncommon` — 8 tools in the Online group
   - Translate — Type-and-translate panel with its own search bar
-    - 63 languages — TranslateClient.languages; source is detected, or picked from the source chip for the visit
+    - 68 languages — TranslateClient.languages; source is detected, or picked from the source chip for the visit
     - Swap — Result becomes the text, its language the source, the detected language the new target
     - Two online providers behind one switch — Google's free public endpoint, or Cloud Translation v2 with your key
     - On-demand on Play — The translator's ~16 MB/ABI lives in the :feature:translate split, fetched through SplitInstall when an on-device engine is first picked; sideload builds compile the same bridge into :core:intelligence
@@ -1837,6 +1837,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Download offer in the panel — A query that needs a model turns the result area into the offer and the action row into Download/Cancel; retranslates the moment the models land
     - One model store for keyboard and settings — OnDeviceTranslator.models; progress read off the system DownloadManager row ML Kit enqueues, shade notification, data-saver ask
     - Source detection on device — Bundled ML Kit language-id; a weak answer falls back on the typed languages and shows as a guess ("French?")
+    - Second on-device engine: Bergamot `RARE` — Mozilla's bergamot-translator (the engine in Firefox Translations, MPL-2.0) on Marian + ruy, as libwmbergamot.so (~6.7 MB arm64; arm64-v8a and x86_64, Android 9+; a load-refusing stub on armeabi-v7a); no Google code, so it is the on-device engine of F-Droid and de-Googled phones. A `bergamot` row in the translate provider list beside ML Kit; with both, the list order (or Pick mode) decides, and a pair one engine has no models for goes on to the other
+    - Firefox Translations models per direction — 114 directions over 57 languages (incl. Traditional Chinese, Serbian, Uyghur, Basque), pinned by SHA-256 in the generated BergamotCatalog from Mozilla's Remote Settings collection translations-models-v2; zstd from Mozilla's attachment CDN, unpacked by the library, checked twice; 13.5–36.5 MB a direction, pivoting through English in one engine pass
+    - Library delivery — `bergamot` native gate: pinned download on GitHub, built from source by the F-Droid recipe (opt-in download), the :feature:bergamot split on Play, fetched with the first model
+    - Source without ML Kit — Script letters (Ukrainian ї, Urdu ے, kana) and common short words of 34 Latin-script languages, then the keyboard's languages; ML Kit's identifier is used where the phone has it
     - Line structure survives — Each line translated on its own, blank lines and indentation put back
     - Translators released with the panel — And on memory pressure; a loaded pair is tens of MB
     - Insert vs Replace text — Replace swaps the whole field's contents

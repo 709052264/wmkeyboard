@@ -209,6 +209,40 @@ class ProviderFrameworkTest {
     }
 
     @Test
+    fun `Bergamot is the on device row without ML Kit, and comes after it with`() {
+        val s = KeyboardSettings(translate = TranslateSettings(engine = TranslateEngine.ON_DEVICE))
+        assertEquals(
+            listOf("bergamot", "google_translate"),
+            ids(s.providerChain(ProviderTool.TRANSLATE, fdroid.copy(bergamot = true))),
+        )
+        assertEquals(
+            listOf("mlkit", "bergamot", "google_translate"),
+            ids(s.providerChain(ProviderTool.TRANSLATE, github.copy(bergamot = true))),
+        )
+        // Android 8 and older, or no internet: no Bergamot.
+        assertFalse(ProviderCatalog.runnable(ProviderTypes.BERGAMOT, github))
+        assertTrue(ProviderCatalog.runnable(ProviderTypes.BERGAMOT, github.copy(bergamot = true)))
+    }
+
+    @Test
+    fun `a saved translate list gains a new device engine after the ones it has`() {
+        val known = ProviderTypes.serving(ProviderTool.TRANSLATE).map { it.id } - "bergamot"
+        val withMlKit = ProviderChain(
+            listOf(ProviderEntry("mlkit"), ProviderEntry("deepl"), ProviderEntry("google_translate")),
+            known = known,
+        )
+        assertEquals(
+            listOf("mlkit", "bergamot", "deepl", "google_translate"),
+            ids(withMlKit.withNewTypes(ProviderTool.TRANSLATE)),
+        )
+        val onlineOnly = ProviderChain(listOf(ProviderEntry("google_translate")), known = known)
+        assertEquals(listOf("bergamot", "google_translate"), ids(onlineOnly.withNewTypes(ProviderTool.TRANSLATE)))
+        // Removed by the user after it existed: stays removed.
+        val removed = ProviderChain(listOf(ProviderEntry("google_translate")), known = known + "bergamot")
+        assertEquals(listOf("google_translate"), ids(removed.withNewTypes(ProviderTool.TRANSLATE)))
+    }
+
+    @Test
     fun `the user's own translation server still answers alone`() {
         val s = KeyboardSettings(
             translate = TranslateSettings(engine = TranslateEngine.ONLINE, server = TranslateServerSettings(url = "http://box:8080")),

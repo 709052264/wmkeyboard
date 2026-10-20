@@ -1,0 +1,185 @@
+package com.wasimaster.wmkeyboard.core.translate
+
+import android.content.Context
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+
+/**
+ * The on-device engines together, for the callers that do not care which one
+ * answers: the panel's model offer, the settings screens, the AI's translate
+ * tool. Two engines can sit on one phone:
+ *
+ *  - [Engine.ML_KIT], Google's, in builds that carry ML Kit;
+ *  - [Engine.BERGAMOT], Mozilla's, free software, in every build that can
+ *    fetch its models (Android 9 and later).
+ *
+ * Which one translates is the translate list's business (each is a row the
+ * user orders, switches off or picks); this object only routes a model key or
+ * an engine to the right one. Model keys do not collide: ML Kit's are
+ * language codes (`fr`), Bergamot's carry [BergamotTranslator.KEY_PREFIX].
+ */
+object OfflineTranslation {
+
+    /** An on-device engine, by the id its translate-list row has. */
+    enum class Engine(val id: String) {
+        ML_KIT("mlkit"),
+        BERGAMOT("bergamot"),
+    }
+
+    /** The engine whose translate-list row has [typeId], or null for an online row. */
+    fun engineOf(typeId: String?): Engine? = Engine.entries.firstOrNull { it.id == typeId }
+
+    /** Whether this build and phone have any on-device engine at all. */
+    val available: Boolean get() = OnDeviceTranslator.AVAILABLE || BergamotTranslator.available
+
+    /** The engines this build and phone have, in the order the default list puts them. */
+    val engines: List<Engine>
+        get() = listOfNotNull(
+            Engine.ML_KIT.takeIf { OnDeviceTranslator.AVAILABLE },
+            Engine.BERGAMOT.takeIf { BergamotTranslator.available },
+        )
+
+    /** Both engines' model states in one map. See the keys above. */
+    val models: Flow<Map<String, OfflineModelState>> =
+        combine(OnDeviceTranslator.models, BergamotTranslator.models) { mlKit, bergamot -> mlKit + bergamot }
+
+    /** Both engines' maps as they stand now. */
+    val modelsNow: Map<String, OfflineModelState>
+        get() = OnDeviceTranslator.models.value + BergamotTranslator.models.value
+
+    suspend fun translate(
+        engine: Engine,
+        context: Context,
+        text: String,
+        target: String,
+        sourceOverride: String = "",
+        hints: List<String> = emptyList(),
+    ): OfflineTranslateResult = when (engine) {
+        Engine.ML_KIT -> OnDeviceTranslator.translate(context, text, target, sourceOverride, hints)
+        Engine.BERGAMOT -> BergamotTranslator.translate(
+            context,
+            text,
+            target,
+            sourceOverride,
+            hints,
+            // ML Kit's identifier, where the phone has it, beats a guess
+            // from the script.
+            identified = if (sourceOverride.isBlank() && OnDeviceTranslator.AVAILABLE) {
+                OnDeviceTranslator.identify(context, text)
+            } else {
+                emptyList()
+            },
+        )
+    }
+
+    /**
+     * The first engine in [engines] order that translates, else the first
+     * answer worth showing: a pair that only needs its models is the one
+     * failure the user can fix, so it outranks the rest.
+     */
+    suspend fun translateAny(
+        context: Context,
+        text: String,
+        target: String,
+        sourceOverride: String = "",
+        hints: List<String> = emptyList(),
+        order: List<Engine> = engines,
+    ): OfflineTranslateResult {
+        var first: OfflineTranslateResult? = null
+        var fixable: OfflineTranslateResult? = null
+        for (engine in order) {
+            val result = translate(engine, context, text, target, sourceOverride, hints)
+            if (result is OfflineTranslateResult.Success) return result
+            if (first == null) first = result
+            if (fixable == null && result is OfflineTranslateResult.NeedsModels) fixable = result
+        }
+        return fixable ?: first
+            ?: OfflineTranslateResult.Failed(UnsupportedOperationException("No on-device translator on this phone"))
+    }
+
+    /** Re-reads both engines' models. */
+    suspend fun refresh(context: Context) {
+        if (OnDeviceTranslator.AVAILABLE) OnDeviceTranslator.refresh(context)
+        if (BergamotTranslator.available) BergamotTranslator.refresh(context)
+    }
+
+    /** Starts [key]'s download with its notification. [title] is the caller's words. */
+    fun downloadNotified(context: Context, key: String, title: String) {
+        if (BergamotTranslator.isBergamotKey(key)) {
+            BergamotTranslator.downloadNotified(context, key, title)
+        } else {
+            OnDeviceTranslator.downloadNotified(context, key, title)
+        }
+    }
+
+    fun cancelDownload(context: Context, key: String) {
+        if (BergamotTranslator.isBergamotKey(key)) {
+            BergamotTranslator.cancelDownload(context, key)
+        } else {
+            OnDeviceTranslator.cancelDownload(context, key)
+        }
+    }
+
+    /** Lets both engines' loaded models go. */
+    fun release() {
+        OnDeviceTranslator.release()
+        BergamotTranslator.release()
+    }
+
+    /**
+     * What [key] is called in an offer or a notification: a language for
+     * ML Kit, "French → English" for a Bergamot direction, [engineName] for
+     * Bergamot's library. [languageName] names a code.
+     */
+    fun label(key: String, languageName: (String) -> String, engineName: String): String {
+        if (key == BergamotTranslator.ENGINE_KEY) return engineName
+        val direction = BergamotTranslator.directionOf(key) ?: return languageName(key)
+        return "${languageName(direction.from)} → ${languageName(direction.to)}"
+    }
+
+    /** What fetching [key] costs, or ML Kit's round figure for one of its models. */
+    fun downloadBytes(key: String): Long =
+        if (BergamotTranslator.isBergamotKey(key)) {
+            BergamotTranslator.downloadBytes(key)
+        } else {
+            OfflineTranslateLanguages.APPROX_MODEL_BYTES
+        }
+
+    /**
+     * Whether some engine in [engines] reads or writes the picker code [code]
+     * on the device, for the panel's language menus.
+     */
+    fun supports(code: String, engines: Collection<Engine>): Boolean = engines.any { engine ->
+        when (engine) {
+            Engine.ML_KIT -> OfflineTranslateLanguages.modelCode(code) != null
+            Engine.BERGAMOT -> BergamotLanguages.modelCode(code)?.let { BergamotLanguages.reads(it) || BergamotLanguages.writes(it) } == true
+        }
+    }
+
+    /**
+     * Whether [code] needs no download on some engine in [engines]: English,
+     * an ML Kit model on the phone, or a Bergamot direction into or out of it.
+     */
+    fun ready(code: String, engines: Collection<Engine>, models: Map<String, OfflineModelState>): Boolean =
+        engines.any { engine -> state(code, engine, models) is OfflineModelState.Downloaded }
+
+    /** Whether [code]'s model is on its way on some engine in [engines]. */
+    fun coming(code: String, engines: Collection<Engine>, models: Map<String, OfflineModelState>): Boolean =
+        engines.any { engine -> state(code, engine, models) is OfflineModelState.Downloading }
+
+    private fun state(code: String, engine: Engine, models: Map<String, OfflineModelState>): OfflineModelState? =
+        when (engine) {
+            Engine.ML_KIT -> OfflineTranslateLanguages.modelCode(code)?.let { model ->
+                if (model == OfflineTranslateLanguages.PIVOT) OfflineModelState.Downloaded else models[model]
+            }
+            Engine.BERGAMOT -> BergamotLanguages.modelCode(code)?.let { model ->
+                if (model == BergamotLanguages.PIVOT) return@let OfflineModelState.Downloaded
+                val states = listOfNotNull(
+                    BergamotLanguages.direction(model, BergamotLanguages.PIVOT),
+                    BergamotLanguages.direction(BergamotLanguages.PIVOT, model),
+                ).map { models[BergamotTranslator.keyOf(it)] }
+                states.firstOrNull { it is OfflineModelState.Downloaded }
+                    ?: states.firstOrNull { it is OfflineModelState.Downloading }
+            }
+        }
+}

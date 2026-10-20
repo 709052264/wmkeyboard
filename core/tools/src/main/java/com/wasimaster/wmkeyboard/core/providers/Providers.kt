@@ -260,6 +260,16 @@ object ProviderTypes {
         R.string.core_tools_provider_mlkit, R.string.core_tools_provider_mlkit_desc,
         onDevice = true,
     )
+    /**
+     * Mozilla's Bergamot engine with the Firefox Translations models: on the
+     * phone like ML Kit, but free software that needs no Google services,
+     * so it is also the on-device engine of F-Droid and de-Googled phones.
+     */
+    val BERGAMOT = ProviderType(
+        "bergamot", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_bergamot, R.string.core_tools_provider_bergamot_desc,
+        onDevice = true, freeSoftware = true,
+    )
     val TRANSLATE_SERVER = ProviderType(
         "translate_server", setOf(ProviderTool.TRANSLATE),
         R.string.core_tools_provider_translate_server, R.string.core_tools_provider_translate_server_desc,
@@ -626,7 +636,7 @@ object ProviderTypes {
 
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
-        ML_KIT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
+        ML_KIT, BERGAMOT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, IMPORTED_DICTIONARIES,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,
@@ -758,11 +768,29 @@ data class ProviderChain(
      * Only kinds that need nothing set up, and never one the user removed.
      */
     fun withNewTypes(tool: ProviderTool): ProviderChain {
-        if (tool !in APPENDING || known.isEmpty()) return this
+        if (known.isEmpty()) return this
+        if (tool == ProviderTool.TRANSLATE) return withNewDeviceEngines()
+        if (tool !in APPENDING) return this
         val added = ProviderTypes.serving(tool)
             .filter { it.id !in known && it.credential.none && !it.multiInstance }
             .filter { type -> entries.none { it.typeId == type.id } }
         return if (added.isEmpty()) this else copy(entries = entries + added.map { ProviderEntry(it.id) })
+    }
+
+    /**
+     * A translate list saved before an on-device engine existed gains it
+     * right after the engines it already has (first, with none), switched
+     * on: the engine switch keeps it away from an Online translation, and
+     * at the end of the list Automatic would never reach it. Text sent to
+     * the phone goes nowhere, so this cannot break a "my server only" list.
+     */
+    private fun withNewDeviceEngines(): ProviderChain {
+        val added = ProviderTypes.serving(ProviderTool.TRANSLATE)
+            .filter { it.onDevice && it.id !in known }
+            .filter { type -> entries.none { it.typeId == type.id } }
+        if (added.isEmpty()) return this
+        val at = entries.indexOfLast { ProviderTypes.of(it.typeId)?.onDevice == true } + 1
+        return copy(entries = entries.take(at) + added.map { ProviderEntry(it.id) } + entries.drop(at))
     }
 
     // Not private: the serialization plugin hangs `serializer()` on the

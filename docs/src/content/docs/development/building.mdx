@@ -148,6 +148,19 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/hunspell-jni/build.sh
 
 The script fetches Hunspell at its pinned commit, builds all three ABIs in about ten seconds and copies the stripped libraries into place. `native/hunspell-jni/README.md` has the JNI contract. Upstream Hunspell rather than nuspell: nuspell needs ICU4C, which the NDK only exposes from API 31.
 
+## Rebuilding the Bergamot library
+
+On-device translation without Google runs on Mozilla's [bergamot-translator](https://github.com/mozilla/translations/tree/main/inference), the engine inside Firefox Translations, built with a small JNI bridge into `libwmbergamot.so` from `native/bergamot-jni/`. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/BergamotNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/bergamot/jniLibs/<abi>/`, a directory of their own so that the Play split carries nothing else. GitHub builds pin it for download (gate `bergamot`), Play builds ship it in the on-demand `:feature:bergamot` split, and F-Droid builds it from source through `native/build-lite-libs.sh`. Rebuild it only after you edit `native/bergamot-jni/` or move the pins in `build.sh`:
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/bergamot-jni/build.sh
+```
+
+The script fetches the revision of `mozilla/translations` that Firefox ships (only `inference/` and the five submodules the CPU library compiles), PCRE2 and zstd at pinned commits, and builds arm64-v8a and x86_64 for Android 9 (API 28), which Marian's path library needs. ARM runs Marian's integer maths on Google's ruy, the way Firefox's own ARM builds do; x86_64 uses intgemm's kernels, chosen at run time. armeabi-v7a gets `stub.c`, a library that refuses to load: Marian's NEON code needs AArch64, and Play wants the split to cover all three ABIs. A full build takes several minutes per engine ABI.
+
+The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's public Remote Settings collection `translations-models-v2` and writes `BergamotCatalog.kt` with each file's address, size and SHA-256. Run it to move to Mozilla's newer models, then review the diff. `native/bergamot-jni/README.md` has the JNI contract and the reasons behind each build flag.
+
 ## Running static analysis
 
 ```sh

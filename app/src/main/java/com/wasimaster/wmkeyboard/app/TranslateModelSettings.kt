@@ -32,7 +32,10 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.translate.BergamotLanguages
+import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
@@ -171,6 +174,102 @@ internal fun TranslateModelManager(settings: LiveSettings) {
     if (blockedMetered) MeteredBlockedDialog { blockedMetered = false }
 }
 
+/**
+ * Bergamot's models (Mozilla's Firefox Translations): one row per language
+ * direction, with what it costs to download, and the engine's own library
+ * first where this build fetches it. Grouped like ML Kit's list: what this
+ * user is likely to want, then a fold with the rest.
+ *
+ * State comes from [BergamotTranslator.models], which the keyboard reads too.
+ * A direction downloaded here fetches the library on the way if it is not
+ * here yet; nothing on this screen owns a download.
+ */
+@Composable
+internal fun BergamotModelManager(settings: LiveSettings) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val models by BergamotTranslator.models.collectAsState()
+    LaunchedEffect(Unit) { BergamotTranslator.refresh(context.applicationContext) }
+    val downloadDecision = rememberDownloadDecision(settings)
+    var confirmMetered by remember { mutableStateOf<String?>(null) }
+    var blockedMetered by remember { mutableStateOf(false) }
+    val offerPermission = rememberNotificationPermissionOffer()
+    val engineName = stringResource(R.string.tooldetail_translate_bergamot_engine)
+    val label: (String) -> String = { key -> OfflineTranslation.label(key, TranslateClient::languageName, engineName) }
+    val start: (String) -> Unit = { key ->
+        offerPermission()
+        OfflineTranslation.downloadNotified(
+            context = context.applicationContext,
+            key = key,
+            title = context.getString(CommonR.string.common_notify_download_translate, label(key)),
+        )
+    }
+    val ask: (String) -> Unit = { key ->
+        when (downloadDecision()) {
+            MeteredDecision.ALLOWED -> start(key)
+            MeteredDecision.ASK -> confirmMetered = key
+            MeteredDecision.BLOCKED -> blockedMetered = true
+        }
+    }
+    val wanted = settings.watch { s ->
+        (listOf(s.translateTargetLang) + s.enabledLanguages.map { it.id })
+            .mapNotNull { BergamotLanguages.modelCode(it) }
+            .filter { it != BergamotLanguages.PIVOT }
+            .toSet()
+    }
+    val (near, far) = BergamotLanguages.directions.partition { direction ->
+        val key = BergamotTranslator.keyOf(direction)
+        direction.from in wanted || direction.to in wanted ||
+            models[key].let { it is OfflineModelState.Downloaded || it is OfflineModelState.Downloading }
+    }
+    val row: @Composable (String) -> Unit = { key ->
+        TranslateModelRow(
+            code = key,
+            name = label(key),
+            state = models[key],
+            sizeBytes = BergamotTranslator.downloadBytes(key),
+            builtIn = false,
+            onDownload = { ask(key) },
+            onCancel = { OfflineTranslation.cancelDownload(context.applicationContext, key) },
+            onDelete = { scope.launch { BergamotTranslator.delete(context.applicationContext, key) } },
+        )
+    }
+    SettingsGroup(
+        stringResource(R.string.tooldetail_translate_bergamot_group),
+        info = stringResource(R.string.tooldetail_translate_bergamot_info),
+    ) {
+        // The library, on a build that downloads it: the one piece every
+        // direction needs. Gone from the list once it is here.
+        if (models[BergamotTranslator.ENGINE_KEY].let { it != null && it !is OfflineModelState.Downloaded }) {
+            item { row(BergamotTranslator.ENGINE_KEY) }
+        }
+        for (direction in near) item { row(BergamotTranslator.keyOf(direction)) }
+    }
+    if (far.isNotEmpty()) {
+        SettingsGroup(
+            stringResource(R.string.tooldetail_translate_bergamot_more_group),
+            foldKey = "translate_bergamot_more",
+        ) {
+            for (direction in far) item { row(BergamotTranslator.keyOf(direction)) }
+        }
+    }
+    confirmMetered?.let { key ->
+        MeteredDownloadDialog(
+            detail = stringResource(
+                R.string.tooldetail_translate_model_metered_body,
+                label(key),
+                Formatter.formatShortFileSize(context, BergamotTranslator.downloadBytes(key)),
+            ),
+            onConfirm = {
+                confirmMetered = null
+                start(key)
+            },
+            onDismiss = { confirmMetered = null },
+        )
+    }
+    if (blockedMetered) MeteredBlockedDialog { blockedMetered = false }
+}
+
 /** Stands in for a model code in the metered confirm, for the module itself. */
 private const val MODULE_CONFIRM = "\u0000module"
 
@@ -219,9 +318,10 @@ private fun TranslateModelRow(
     onDownload: () -> Unit,
     onCancel: () -> Unit,
     onDelete: () -> Unit,
+    sizeBytes: Long = OfflineTranslateLanguages.APPROX_MODEL_BYTES,
+    builtIn: Boolean = code == OfflineTranslateLanguages.PIVOT,
 ) {
     val context = LocalContext.current
-    val builtIn = code == OfflineTranslateLanguages.PIVOT
     val reduceMotion = LocalReduceMotion.current
     // What the model is in now, read at tap time by the actions below.
     val latest = rememberUpdatedState(state)
@@ -257,7 +357,7 @@ private fun TranslateModelRow(
                 stringResource(R.string.privacy_handwriting_status_failed)
             else -> stringResource(
                 R.string.privacy_handwriting_status_missing_sized,
-                Formatter.formatShortFileSize(context, OfflineTranslateLanguages.APPROX_MODEL_BYTES),
+                Formatter.formatShortFileSize(context, sizeBytes),
             )
         },
         trailing = {

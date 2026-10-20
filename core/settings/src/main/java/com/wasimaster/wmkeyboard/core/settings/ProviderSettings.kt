@@ -529,8 +529,14 @@ object LegacyProviders {
             if (has(ProviderTypes.LIBRETRANSLATE)) add(ProviderEntry(ProviderTypes.LIBRETRANSLATE.id, enabled = !server))
             add(ProviderEntry(ProviderTypes.GOOGLE_TRANSLATE.id, enabled = !server))
         }
-        if (!env.onDeviceTranslate) return ProviderChain(online)
-        return ProviderChain(listOf(ProviderEntry(ProviderTypes.ML_KIT.id)) + online)
+        // The phone's engines first, ML Kit before Bergamot where both run:
+        // ML Kit was the one row before Bergamot came, and Bergamot is the
+        // on-device engine wherever ML Kit is not.
+        val device = listOfNotNull(
+            ProviderEntry(ProviderTypes.ML_KIT.id).takeIf { env.onDeviceTranslate },
+            ProviderEntry(ProviderTypes.BERGAMOT.id).takeIf { env.bergamot },
+        )
+        return ProviderChain(device + online)
     }
 
     /**

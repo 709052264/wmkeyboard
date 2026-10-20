@@ -285,6 +285,26 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // On-device translation without Google, in every build: packaged, pinned
+    // for download, or a Play split. See native/bergamot-jni.
+    add(
+        Attribution(
+            "Bergamot translator",
+            R.string.about_bundled_bergamot_used,
+            "Copyright Mozilla Foundation, the University of Edinburgh and the Bergamot contributors",
+            "MPL-2.0", "mpl-2.0.txt",
+            "https://github.com/mozilla/translations",
+        ),
+    )
+    add(
+        Attribution(
+            "Marian NMT, ruy, SentencePiece, PCRE2, Zstandard and others",
+            R.string.about_bundled_bergamot_libs_used,
+            "Copyright the respective authors",
+            "MIT / Apache-2.0 / BSD / zlib", "bergamot-third-party.txt",
+            "https://github.com/mozilla/translations/tree/main/inference",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.
@@ -668,6 +688,13 @@ private val bundledAttributions: List<Attribution> = buildList {
  * exactly like the bundled components.
  */
 private val dataPackAttributions: List<Attribution> = buildList {
+    add(Attribution(
+        "Firefox Translations models",
+        R.string.about_pack_firefox_translations_used,
+        "Copyright Mozilla Foundation",
+        "MPL-2.0", "mpl-2.0.txt",
+        "https://github.com/mozilla/translations",
+    ))
     add(Attribution(
         "Frequency wordlists",
         R.string.about_pack_wordlists_used,

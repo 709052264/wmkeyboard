@@ -38,8 +38,9 @@ object TranslateClient {
 
     /**
      * The languages offered by the pickers: English and Bengali first, as they
-     * always were, then by name. Every language the on-device engine has a
-     * model for is here, plus the ones only the online services know.
+     * always were, then by name. Every language either on-device engine (ML
+     * Kit, Bergamot) has a model for is here, plus the ones only the online
+     * services know.
      */
     val languages: List<Pair<String, String>> = listOf(
         "en" to "English",
@@ -47,7 +48,10 @@ object TranslateClient {
         "af" to "Afrikaans",
         "sq" to "Albanian",
         "ar" to "Arabic",
+        "az" to "Azerbaijani",
+        "eu" to "Basque",
         "be" to "Belarusian",
+        "bs" to "Bosnian",
         "bg" to "Bulgarian",
         "ca" to "Catalan",
         "zh-CN" to "Chinese (Simplified)",
@@ -92,6 +96,7 @@ object TranslateClient {
         "pa" to "Punjabi",
         "ro" to "Romanian",
         "ru" to "Russian",
+        "sr" to "Serbian",
         "sk" to "Slovak",
         "sl" to "Slovenian",
         "es" to "Spanish",
@@ -103,6 +108,7 @@ object TranslateClient {
         "tr" to "Turkish",
         "uk" to "Ukrainian",
         "ur" to "Urdu",
+        "ug" to "Uyghur",
         "vi" to "Vietnamese",
         "cy" to "Welsh",
     )

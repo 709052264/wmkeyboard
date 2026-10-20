@@ -13,6 +13,8 @@
 #   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
+#   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
+#                       (into core/intelligence/src/bergamot/jniLibs)
 #
 # libwmsherpa is linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -70,3 +72,4 @@ fi
 "$HERE/sherpa-onnx-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
 "$HERE/librime-jni/build.sh"
+"$HERE/bergamot-jni/build.sh"

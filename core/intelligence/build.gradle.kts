@@ -111,6 +111,12 @@ if (playStoreChannel) {
 
 androidComponents {
     onVariants { variant ->
+        // Bergamot's library, every flavour off Play: in a directory of its
+        // own so the on-demand :feature:bergamot split carries it alone on Play.
+        // A build with native delivery pins it instead (wmkeyboard.native-pins).
+        if (!playStoreChannel) {
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/bergamot/jniLibs")
+        }
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,
         // which a flavour folder cannot be.

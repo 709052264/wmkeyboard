@@ -24,7 +24,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolHost
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.tools.Translation
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateResult
-import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
@@ -56,11 +56,12 @@ class KeyboardAiToolHost(
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
 ) : AiToolHost {
 
-    override val canTranslateOnDevice: Boolean get() = OnDeviceTranslator.AVAILABLE
+    override val canTranslateOnDevice: Boolean get() = OfflineTranslation.available
 
+    /** ML Kit, then Bergamot, where the phone has them: the first that has the pair answers. */
     override fun translateOnDevice(text: String, target: String, source: String): Result<Translation> {
         val result = runBlocking {
-            OnDeviceTranslator.translate(
+            OfflineTranslation.translateAny(
                 context = context.applicationContext,
                 text = text,
                 target = target,
@@ -73,7 +74,11 @@ class KeyboardAiToolHost(
         return when (result) {
             is OfflineTranslateResult.Success -> Result.success(Translation(text = result.text, detectedSource = result.source))
             is OfflineTranslateResult.NeedsModels -> failure(
-                "the on-device language models for ${result.missing.joinToString(", ")} are not downloaded",
+                "the on-device language models for ${
+                    result.missing.joinToString(", ") {
+                        OfflineTranslation.label(it, TranslateClient::languageName, "the Firefox Translations engine")
+                    }
+                } are not downloaded",
             )
             is OfflineTranslateResult.Unsupported -> failure("the on-device translator has no model for ${result.language}")
             OfflineTranslateResult.Undetermined -> failure("the on-device translator could not tell the text's language")

@@ -19,7 +19,7 @@ package com.wasimaster.wmkeyboard.core.translate
  *    `zh-TW` as a target is an online-only language rather than a quiet
  *    substitution of the wrong script.
  */
-object OfflineTranslateLanguages {
+object OfflineTranslateLanguages : OfflineLanguageTable {
 
     /** The language every model pivots through, and the one with no download. */
     const val PIVOT = "en"
@@ -67,7 +67,7 @@ object OfflineTranslateLanguages {
      * (`hi-Latn`, `ja-Latn`, …). Those are real detections of text the
      * translator would mangle, so they are refused rather than mapped.
      */
-    fun modelCode(tag: String): String? {
+    override fun modelCode(tag: String): String? {
         val parts = tag.trim().replace('_', '-').split('-').filter { it.isNotEmpty() }
         val primary = parts.firstOrNull()?.lowercase() ?: return null
         val rest = parts.drop(1).map { it.lowercase() }
@@ -83,7 +83,7 @@ object OfflineTranslateLanguages {
      * another script count: `sr-Latn` would be ordinary Serbian, but ML Kit has
      * no Serbian at all, and no Latin-script language is ever reported this way.
      */
-    fun isRomanized(tag: String): Boolean {
+    override fun isRomanized(tag: String): Boolean {
         val parts = tag.trim().replace('_', '-').lowercase().split('-')
         return parts.size >= 2 && parts[1] == "latn" && parts[0] in ROMANIZABLE
     }
@@ -103,6 +103,19 @@ object OfflineTranslateLanguages {
 
     /** The languages ML Kit's identifier reports a `-Latn` variant of. */
     private val ROMANIZABLE = setOf("ar", "bg", "el", "hi", "ja", "ru", "zh")
+}
+
+/**
+ * How one on-device engine names languages: ML Kit's table above, or
+ * Bergamot's ([BergamotLanguages]). What [OfflineTranslatePlan] needs to
+ * settle a source language for either.
+ */
+interface OfflineLanguageTable {
+    /** The engine's code for a picker code, a keyboard language or an identifier tag; null when it has none. */
+    fun modelCode(tag: String): String?
+
+    /** Whether [tag] is a language this engine reads in another script, typed in Latin letters. */
+    fun isRomanized(tag: String): Boolean
 }
 
 /** Where one language's model stands, as the panel and the settings list draw it. */
@@ -206,35 +219,37 @@ object OfflineTranslatePlan {
         candidates: List<Candidate>,
         hints: List<String>,
         target: String,
+        table: OfflineLanguageTable = OfflineTranslateLanguages,
     ): Source {
-        if (!override.isNullOrBlank()) return classify(override, guessed = false)
+        val classify = { tag: String, guessed: Boolean -> classify(tag, guessed, table) }
+        if (!override.isNullOrBlank()) return classify(override, false)
         val ranked = candidates
             .filter { it.tag.isNotBlank() && it.tag != UNDETERMINED }
             .sortedByDescending { it.confidence }
         val best = ranked.firstOrNull()
-        if (best != null && best.confidence >= CONFIDENT) return classify(best.tag, guessed = false)
+        if (best != null && best.confidence >= CONFIDENT) return classify(best.tag, false)
 
-        val hintCodes = hints.mapNotNull { OfflineTranslateLanguages.modelCode(it) }.distinct()
+        val hintCodes = hints.mapNotNull { table.modelCode(it) }.distinct()
         val agreed = ranked.firstOrNull { candidate ->
             candidate.confidence >= PLAUSIBLE &&
-                OfflineTranslateLanguages.modelCode(candidate.tag) in hintCodes
+                table.modelCode(candidate.tag) in hintCodes
         }
-        if (agreed != null) return classify(agreed.tag, guessed = false)
+        if (agreed != null) return classify(agreed.tag, false)
 
-        val targetCode = OfflineTranslateLanguages.modelCode(target)
+        val targetCode = table.modelCode(target)
         hintCodes.firstOrNull { it != targetCode }?.let { return Source.Known(it, guessed = true) }
         // Nothing to go on but a weak candidate: still better than refusing,
         // and marked as a guess for the same reason.
-        if (best != null && best.confidence >= PLAUSIBLE) return classify(best.tag, guessed = true)
+        if (best != null && best.confidence >= PLAUSIBLE) return classify(best.tag, true)
         return Source.Unknown
     }
 
-    private fun classify(tag: String, guessed: Boolean): Source {
-        val code = OfflineTranslateLanguages.modelCode(tag)
+    private fun classify(tag: String, guessed: Boolean, table: OfflineLanguageTable): Source {
+        val code = table.modelCode(tag)
         return if (code != null) {
             Source.Known(code, guessed)
         } else {
-            Source.Unreadable(tag, OfflineTranslateLanguages.isRomanized(tag))
+            Source.Unreadable(tag, table.isRomanized(tag))
         }
     }
 

@@ -172,6 +172,9 @@
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
+    <string name="about_bundled_bergamot_used">Translates on the device without Google services (native library, 64-bit Android 9 and later)</string>
+    <string name="about_bundled_bergamot_libs_used">Built into the Bergamot translator\'s native library</string>
+    <string name="about_pack_firefox_translations_used">Translation models for the Bergamot engine, downloaded per language direction from Mozilla</string>
     <string name="about_bundled_rust_crates_used">The libraries that the grammar library depends on</string>
     <string name="about_bundled_tesseract_used">Reads text in most scripts for the text scanner (native library)</string>
     <string name="about_bundled_leptonica_used">Prepares the photo for the text scanner (native library)</string>

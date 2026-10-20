@@ -593,6 +593,7 @@ import com.wasimaster.wmkeyboard.core.tools.Translation
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateResult
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
 import com.wasimaster.wmkeyboard.core.translate.downloadNotified
@@ -8668,7 +8669,7 @@ open class WMKeyboardService : InputMethodService() {
             serviceScope.launch(SherpaNative.dispatcher) { if (asr4allJob?.isActive != true) SherpaEngine.release() }
         }
         // Reloads on the next translation; the panel's state is untouched.
-        if (translateEngineLoaded) OnDeviceTranslator.release()
+        if (translateEngineLoaded) OfflineTranslation.release()
         // Vocabulary cards: read back from the pack files on demand.
         if (panel != PanelMode.VOCABULARY) vocabIndex?.releaseRecords()
         // Decoded app icons: megabytes of ARGB the package manager can hand back.
@@ -36986,9 +36987,9 @@ open class WMKeyboardService : InputMethodService() {
         return before + after
     }
 
-    /** The engine in force. A build without ML Kit has only the one. */
+    /** The engine in force. A build and phone with no on-device engine has only the one. */
     private fun translateEngine(settings: KeyboardSettings): TranslateEngine =
-        if (OnDeviceTranslator.AVAILABLE) settings.translate.engine else TranslateEngine.ONLINE
+        if (OfflineTranslation.available) settings.translate.engine else TranslateEngine.ONLINE
 
     /**
      * Translates the panel's typed query after a short debounce, so the
@@ -37073,9 +37074,19 @@ open class WMKeyboardService : InputMethodService() {
         var index = 0
         while (index < rows.size) {
             if (rows[index].type?.onDevice == true) {
-                val local = translateOnDevice(state, source, target, sourceLang)
+                // ML Kit or Bergamot, whichever this row is. A pair the first
+                // has no models for goes on to the next, so with both on the
+                // list the one that has the pair downloaded answers.
+                val engine = OfflineTranslation.engineOf(rows[index].typeId)
+                val local = engine?.let { translateOnDevice(state, source, target, sourceLang, it) }
                 if (local is OfflineTranslateResult.Success) return offlineTranslateUi(source, local)
-                if (offline == null) offline = local
+                // The first answer is kept, unless a later engine only needs
+                // its models: that is the one failure the panel can fix.
+                if (local != null &&
+                    (offline == null || (offline !is OfflineTranslateResult.NeedsModels && local is OfflineTranslateResult.NeedsModels))
+                ) {
+                    offline = local
+                }
                 index++
                 continue
             }
@@ -37113,22 +37124,29 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * [engine] alone, or with none named every on-device engine on the
+     * translate list in its order, the first that translates answering.
+     */
     private suspend fun translateOnDevice(
         state: KeyboardUiState,
         source: String,
         target: String,
         sourceLang: String,
+        engine: OfflineTranslation.Engine? = null,
     ): OfflineTranslateResult {
         translateEngineLoaded = true
-        return OnDeviceTranslator.translate(
-            context = applicationContext,
-            text = source,
-            target = target,
-            sourceOverride = sourceLang,
-            // What the identifier falls back on when a word or two is not
-            // enough to go by: the language being typed in, then the others.
-            hints = listOf(state.language.id) + state.settings.enabledLanguages.map { it.id },
-        )
+        // What the identifier falls back on when a word or two is not
+        // enough to go by: the language being typed in, then the others.
+        val hints = listOf(state.language.id) + state.settings.enabledLanguages.map { it.id }
+        if (engine != null) {
+            return OfflineTranslation.translate(engine, applicationContext, source, target, sourceLang, hints)
+        }
+        val order = TranslateProviders.rows(state.settings, TranslateEngine.ON_DEVICE)
+            .mapNotNull { OfflineTranslation.engineOf(it.typeId) }
+            .distinct()
+            .ifEmpty { OfflineTranslation.engines }
+        return OfflineTranslation.translateAny(applicationContext, source, target, sourceLang, hints, order)
     }
 
     /**
@@ -37145,7 +37163,7 @@ open class WMKeyboardService : InputMethodService() {
         target: String,
         sourceLang: String,
     ): (TranslateUi) -> TranslateUi {
-        val standIn = state.settings.dataSaver.offlineFallback && OnDeviceTranslator.AVAILABLE
+        val standIn = state.settings.dataSaver.offlineFallback && OfflineTranslation.available
         // Runs on the main thread (the translate job is the service's), so the
         // notice can be put up from here.
         if (standIn && !networkWatcher.state.value.online) {
@@ -37252,10 +37270,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun watchTranslateModels() {
         translateModelsJob?.cancel()
-        if (!OnDeviceTranslator.AVAILABLE) return
+        if (!OfflineTranslation.available) return
         translateModelsJob = serviceScope.launch {
             if (translateEngine(_uiState.value.settings) != TranslateEngine.ONLINE) {
-                launch { OnDeviceTranslator.refresh(applicationContext) }
+                launch { OfflineTranslation.refresh(applicationContext) }
             }
             // The engine's own module, where there is one to wait for (Play).
             // It landing is the same event as a model landing: whatever was
@@ -37270,7 +37288,7 @@ open class WMKeyboardService : InputMethodService() {
                     }
                 }
             }
-            OnDeviceTranslator.models.collect { models ->
+            OfflineTranslation.models.collect { models ->
                 val waitingOn = _uiState.value.translate.missingModels
                 _uiState.update { it.copy(translate = it.translate.copy(models = models)) }
                 if (waitingOn.isNotEmpty() && waitingOn.all { models[it] is OfflineModelState.Downloaded }) {
@@ -37290,7 +37308,7 @@ open class WMKeyboardService : InputMethodService() {
         translateModelsJob = null
         if (!translateEngineLoaded) return
         translateEngineLoaded = false
-        OnDeviceTranslator.release()
+        OfflineTranslation.release()
     }
 
     fun onTranslateTargetChange(code: String) {
@@ -37318,7 +37336,7 @@ open class WMKeyboardService : InputMethodService() {
             // module. Held only by data saver, in which case the panel's own
             // offer does the asking.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) OnDeviceTranslator.requestModule()
-            serviceScope.launch { OnDeviceTranslator.refresh(applicationContext) }
+            serviceScope.launch { OfflineTranslation.refresh(applicationContext) }
         }
         scheduleTranslate(immediate = true, engineOverride = engine, force = true)
     }
@@ -37359,7 +37377,7 @@ open class WMKeyboardService : InputMethodService() {
         if (ui.moduleMissing && ui.module is TranslateModuleState.Installing) return
         val running = ui.missingModels.filter { ui.models[it] is OfflineModelState.Downloading }
         if (running.isNotEmpty()) {
-            running.forEach { OnDeviceTranslator.cancelDownload(applicationContext, it) }
+            running.forEach { OfflineTranslation.cancelDownload(applicationContext, it) }
             return
         }
         when (dataSaverStatus.decide(MeteredFeature.DOWNLOADS)) {
@@ -37385,12 +37403,12 @@ open class WMKeyboardService : InputMethodService() {
         }
         for (code in ui.missingModels) {
             if (ui.models[code] is OfflineModelState.Downloaded) continue
-            OnDeviceTranslator.downloadNotified(
+            OfflineTranslation.downloadNotified(
                 context = this,
-                code = code,
+                key = code,
                 title = getString(
                     CommonR.string.common_notify_download_translate,
-                    TranslateClient.languageName(code),
+                    OfflineTranslation.label(code, TranslateClient::languageName, getString(R.string.ime_translate_bergamot_engine_name)),
                 ),
             )
         }

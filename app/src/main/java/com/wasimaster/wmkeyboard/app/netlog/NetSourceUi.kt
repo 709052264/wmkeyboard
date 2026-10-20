@@ -135,6 +135,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_WHISPER -> R.string.netlog_source_download_whisper to R.string.netlog_sent_download
     NetSource.DOWNLOAD_GLIDE -> R.string.netlog_source_download_glide to R.string.netlog_sent_download
     NetSource.DOWNLOAD_LLM -> R.string.netlog_source_download_llm to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_TRANSLATE -> R.string.netlog_source_download_translate to R.string.netlog_sent_download
     NetSource.DOWNLOAD_VOCAB -> R.string.netlog_source_download_vocab to R.string.netlog_sent_download
     NetSource.DOWNLOAD_DICTIONARY -> R.string.netlog_source_download_dictionary to R.string.netlog_sent_download
     NetSource.DOWNLOAD_FONT -> R.string.netlog_source_download_font to R.string.netlog_sent_download

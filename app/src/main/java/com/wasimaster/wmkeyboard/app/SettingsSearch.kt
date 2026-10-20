@@ -11,6 +11,8 @@ import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
+import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
 /**
@@ -1909,7 +1911,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
  * that lands on a row that is not there flashes nothing.
  */
 private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
-    if (!OnDeviceTranslator.AVAILABLE) {
+    if (!OfflineTranslation.available) {
         emptyList()
     } else {
         listOf(
@@ -1928,7 +1930,12 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
                 R.string.tooldetail_translate_only_downloaded_title,
                 R.string.tooldetail_translate_only_downloaded_subtitle,
             ),
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_models_group),
+        ) + listOfNotNull(
+            // Each engine's model list is drawn only where that engine runs.
+            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_models_group)
+                .takeIf { OnDeviceTranslator.AVAILABLE },
+            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_bergamot_group)
+                .takeIf { BergamotTranslator.available },
         )
     }
 

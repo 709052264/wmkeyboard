@@ -241,6 +241,7 @@
     <string name="search_kw_sticker_suggest_magnify">magnify zoom enlarge preview peek long press</string>
     <string name="search_kw_translate_engine">offline private internet airplane local device ml kit google model download cloud</string>
     <string name="search_kw_translate_models">offline translation model download delete storage ml kit google</string>
+    <string name="search_kw_translate_bergamot">offline translation model download delete storage firefox mozilla bergamot free fdroid degoogled</string>
     <string name="search_kw_translate_downloaded_first">order sort top offline model picker menu list</string>
     <string name="search_kw_translate_only_downloaded">hide filter offline model picker menu short</string>
 
