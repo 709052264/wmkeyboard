@@ -7675,6 +7675,7 @@ open class WMKeyboardService : InputMethodService() {
         if (undoCaretSnapBack(newSelStart, newSelEnd)) return
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        if (recentBarAwaitsEcho) scheduleRecentBar()
         noteTypedCaret(oldSelEnd, newSelStart, newSelEnd)
         // The space commit's echo is the first one with no composing region:
         // the letter echoes still queued ahead of it all carry the word's.
@@ -14266,9 +14267,14 @@ open class WMKeyboardService : InputMethodService() {
         if (hasSelection(ic) || isNullField()) return
         val engine = suggestionEngine
         if (composing.isNotEmpty()) {
-            val word = composing.toString()
+            // The word as the field shows it (#840): a transliterating
+            // composer's buffer is its keys, and Telex's `huowngs` put back
+            // is not the `hướng` that was taken out.
+            val keys = composing.toString()
+            val word = _uiState.value.composingPreview.ifEmpty { keys }
             val shown = _uiState.value.suggestions
                 .filterNot { it.equals(word, ignoreCase = true) }
+                .filterNot { it != word && it == keys && _uiState.value.composer.isTransliterating }
                 .filterNot { engine?.suppresses(it) == true }
             composing.setLength(0)
             duetWord.clear()
@@ -42946,6 +42952,24 @@ open class WMKeyboardService : InputMethodService() {
     private var recentBarPending = false
     private val recentBarHandler = Handler(Looper.getMainLooper())
 
+    /**
+     * A refresh found the caret unknown, as it is between an edit of the
+     * keyboard's own and the editor's echo of it (#839), and left the bar as
+     * it was; the echo reads it again.
+     */
+    private var recentBarAwaitsEcho = false
+
+    /**
+     * How long the word being typed is in the field (#817): what the
+     * composing region shows, not the keystrokes behind it. Telex shows
+     * `hướng` for the seven keys `huowngs`, and the keystroke count cut two
+     * characters too many off the text before it.
+     */
+    private fun composingShownLength(): Int {
+        if (composing.isEmpty()) return 0
+        return _uiState.value.composingPreview.length.takeIf { it > 0 } ?: composing.length
+    }
+
     /** Whether the bar may show at all in this field. */
     private fun recentBarAllowed(state: KeyboardUiState = _uiState.value): Boolean =
         state.settings.suggestionStrip.recentWordBar && state.allowsTypingIntelligence &&
@@ -42969,8 +42993,17 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun refreshRecentBar() {
+        recentBarAwaitsEcho = false
         val words = if (recentBarAllowed()) {
-            recentWordOccurrences()?.map { it.second }?.takeLast(RECENT_BAR_WORDS).orEmpty()
+            val found = recentWordOccurrences()
+            // Not "no words": the caret is not known until the echo of the
+            // keyboard's own edit, and an empty bar stayed empty until the
+            // next word was committed (#839).
+            if (found == null && expectedSelStart < 0 && currentInputConnection != null) {
+                recentBarAwaitsEcho = true
+                return
+            }
+            found?.map { it.second }?.takeLast(RECENT_BAR_WORDS).orEmpty()
         } else {
             emptyList()
         }
@@ -42997,7 +43030,7 @@ open class WMKeyboardService : InputMethodService() {
         val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull()
             ?: return null
         // The word in the composing region is not written yet.
-        val written = before.dropLast(composing.length.coerceAtMost(before.length))
+        val written = before.dropLast(composingShownLength().coerceAtMost(before.length))
         val origin = caret - before.length
         val found = ArrayList<Pair<Int, String>>()
         var i = 0
@@ -43065,7 +43098,7 @@ open class WMKeyboardService : InputMethodService() {
         val end = start + word.length
         val delta = replacement.length - word.length
         val typing = composing.isNotEmpty()
-        val composeStart = caret - composing.length
+        val composeStart = caret - composingShownLength()
         ic.beginBatchEdit()
         if (typing) ic.finishComposingText()
         ic.setSelection(start, end)
@@ -43085,7 +43118,10 @@ open class WMKeyboardService : InputMethodService() {
         val shifted = recentBarReplaced.entries.associate { (at, pair) -> (if (at > start) at + delta else at) to pair }
         recentBarReplaced.clear()
         recentBarReplaced.putAll(shifted)
-        recentBarReplaced[start] = replacement to (recentBarReplaced[start]?.takeIf { it.first == word }?.second ?: word)
+        // The spelling just replaced, so the same chip changes it back however
+        // many times it has changed (#842): the first one kept, `here` →
+        // `hear` → `here` offered nothing to undo the second pick with.
+        recentBarReplaced[start] = replacement to word
         scheduleRecentBar()
     }
 
