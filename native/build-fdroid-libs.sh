@@ -15,6 +15,9 @@
 #   (IndicXlit)                                    (both into core/voice/src/onnx/jniLibs)
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
 #   GiellaLT spellers   divvunspell-jni/build.sh  libwmdivvun.so
+#   Voikko (Finnish)    voikko-jni/build.sh       libwmvoikko.so
+#                       (into native/voikko-jni/jniLibs, which no APK
+#                       packages: pinned for download only)
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #   Mozc (Japanese)     mozc-jni/build.sh         libwmmozc.so
 #                       (into core/input/src/mozc/jniLibs; Bazel, through
@@ -87,6 +90,7 @@ fi
 "$HERE/indicxlit-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
 "$HERE/divvunspell-jni/build.sh"
+"$HERE/voikko-jni/build.sh"
 "$HERE/librime-jni/build.sh"
 "$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"

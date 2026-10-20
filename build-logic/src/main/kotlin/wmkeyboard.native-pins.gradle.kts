@@ -39,6 +39,7 @@ val ownSpecs: Map<String, String> = mapOf(
     "libharper_jni.so" to "grammar",
     "libwmhunspell.so" to "spell",
     "libwmdivvun.so" to "spell",
+    "libwmvoikko.so" to "spell",
     "libwmtess.so" to "ocr",
     "libwmdocscan.so" to "docscan",
     "libwmrime.so" to "rime",
@@ -66,6 +67,9 @@ val ownDirs = listOf(
     "core/intelligence/src/zinnia/jniLibs",
     "core/intelligence/src/llama/jniLibs",
     "core/intelligence/src/docscan/jniLibs",
+    // Voikko is built and kept in its own source tree, which no build
+    // packages into an APK: it is only ever pinned, or Play's split.
+    "native/voikko-jni/jniLibs",
 )
 
 /**

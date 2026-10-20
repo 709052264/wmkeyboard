@@ -17,9 +17,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.dictionaries.VoikkoDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
+import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,6 +39,9 @@ private enum class HunspellRowState {
 
     /** The module is here and the library would not load: a build made without it. */
     NOT_IN_BUILD,
+
+    /** The language has a Voikko dictionary, which checks it in Hunspell's place. */
+    VOIKKO,
 }
 
 /**
@@ -63,11 +68,15 @@ internal fun rememberHasHunspell(langId: String): Boolean {
 internal fun HunspellRow(langId: String, settings: LiveSettings) {
     val context = LocalContext.current
     val module by HunspellRuntime.moduleState.collectAsState()
-    val state by produceState<HunspellRowState?>(null, langId, module) {
+    // A Voikko download or delete changes which of the two checks the language.
+    val voikko by VoikkoDictionaryDownloads.states.collectAsState()
+    val state by produceState<HunspellRowState?>(null, langId, module, voikko[langId]) {
         value = withContext(Dispatchers.IO) {
             when {
                 CustomDictionaries.hunspellFiles(context.filesDir, langId).isEmpty() -> HunspellRowState.LIST_OFF
                 module != ModuleState.Installed -> HunspellRowState.MODULE_MISSING
+                VoikkoRuntime.hasDictionary(context.filesDir, langId) && VoikkoRuntime.available ->
+                    HunspellRowState.VOIKKO
                 // Loads the library, about 1 MB, which is why this is off the main thread.
                 HunspellRuntime.available -> HunspellRowState.ON
                 else -> HunspellRowState.NOT_IN_BUILD
@@ -92,6 +101,7 @@ internal fun HunspellRow(langId: String, settings: LiveSettings) {
                         when (state) {
                             HunspellRowState.LIST_OFF -> R.string.languages_hunspell_list_off_subtitle
                             HunspellRowState.NOT_IN_BUILD -> R.string.languages_hunspell_not_in_build_subtitle
+                            HunspellRowState.VOIKKO -> R.string.languages_hunspell_voikko_subtitle
                             else -> R.string.languages_hunspell_subtitle
                         },
                     ),

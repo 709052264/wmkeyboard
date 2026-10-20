@@ -159,6 +159,17 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
 
 divvunspell is a git dependency pinned to one commit in `Cargo.toml` and `Cargo.lock`, because crates.io's last release is from 2023. A cold build of the three ABIs takes about 25 minutes, nearly all of it link-time optimisation. `native/divvunspell-jni/README.md` has the JNI contract and a host check (`cargo run --release --example probe -- <archive> <words>`) that runs the same code on a Mac against real archives.
 
+## Rebuilding the Voikko library
+
+Finnish spell checking runs on [libvoikko](https://github.com/voikko/corevoikko) 4.3.3, VFST backend only, built with a small JNI bridge into `libwmvoikko.so` from `native/voikko-jni/`. `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/VoikkoNative.kt` is the Kotlin entry point. The prebuilt `.so` files sit in `native/voikko-jni/jniLibs/<abi>/`, a directory no module packages, so that libvoikko stays in its own GPL-licensed source tree and out of every APK: GitHub builds pin it for download with Hunspell's under the `spell` gate, Play builds add it to the `:feature:spell` split, F-Droid builds it from source through `native/build-fdroid-libs.sh`, and the offline build does without it. Rebuild only after you edit `native/voikko-jni/`:
+
+```sh
+# Needs CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/voikko-jni/build.sh
+```
+
+The script fetches corevoikko at the `rel-libvoikko-4.3.3` tag and builds the three ABIs in about 20 seconds with CMake, standing in for libvoikko's autotools build. `build.sh --host <dir>` builds the same library for the Mac or Linux machine instead, to test the JNI from a desktop JVM. The Finnish dictionary the app downloads is built from the signed voikko-fi 2.6 source release by `native/voikko-jni/build-dict.sh <out-dir>`, which needs foma (`brew install foma`) and gives the same zip every time. `native/voikko-jni/README.md` has the JNI contract, the licence reasoning and the desktop check.
+
 ## Rebuilding the Bergamot library
 
 On-device translation without Google runs on Mozilla's [bergamot-translator](https://github.com/mozilla/translations/tree/main/inference), the engine inside Firefox Translations, built with a small JNI bridge into `libwmbergamot.so` from `native/bergamot-jni/`. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/BergamotNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/bergamot/jniLibs/<abi>/`, a directory of their own so that the Play split carries nothing else. GitHub builds pin it for download (gate `bergamot`), Play builds ship it in the on-demand `:feature:bergamot` split, and F-Droid builds it from source through `native/build-fdroid-libs.sh`. Rebuild it only after you edit `native/bergamot-jni/` or move the pins in `build.sh`:

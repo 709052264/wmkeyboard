@@ -196,6 +196,16 @@ which F-Droid's build uses in place of Google's. The next entry's
 with the options in `native/docscan-jni/opencv.cmake`: IPP, KleidiCV, FastCV
 and the other prebuilt accelerators are off.
 
+From the release after 0.6.2 the script also builds `native/voikko-jni`
+(libvoikko 4.3.3 at a pinned commit, its VFST backend only, with a small
+JNI bridge, CMake) into `native/voikko-jni/jniLibs`: Voikko, which checks
+Finnish. That directory is not part of any module, so the APK never
+carries the library; it is pinned like the others and fetched behind the
+same opt-in. The next entry's `scandelete` needs that path added. The
+Finnish dictionary (voikko-fi, GPL 2+) is not in the APK or the library
+either: the phone downloads it from the data repository, where it sits
+beside the source tarball it is built from.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

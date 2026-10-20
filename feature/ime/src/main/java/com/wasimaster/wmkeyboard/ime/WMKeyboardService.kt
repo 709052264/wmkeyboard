@@ -228,6 +228,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.VoikkoDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.CompositeWordSource
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
@@ -235,6 +236,8 @@ import com.wasimaster.wmkeyboard.core.prediction.DivvunChecker
 import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.HunspellChecker
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
+import com.wasimaster.wmkeyboard.core.prediction.VoikkoChecker
+import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
@@ -4157,6 +4160,13 @@ open class WMKeyboardService : InputMethodService() {
         // language's screen goes live (or away) without a language switch.
         serviceScope.launch {
             DivvunSpellerDownloads.completions.collect { langId ->
+                val engine = suggestionEngine
+                if (engine != null && _uiState.value.language.id == langId) refreshWordChecker(engine, langId)
+            }
+        }
+        // The same for a Voikko dictionary.
+        serviceScope.launch {
+            VoikkoDictionaryDownloads.completions.collect { langId ->
                 val engine = suggestionEngine
                 if (engine != null && _uiState.value.language.id == langId) refreshWordChecker(engine, langId)
             }
@@ -8514,6 +8524,8 @@ open class WMKeyboardService : InputMethodService() {
         hunspellChecker = null
         divvunChecker?.second?.close()
         divvunChecker = null
+        voikkoChecker?.second?.close()
+        voikkoChecker = null
         indicXlit?.shutdown()
         indicXlit = null
         pluginRuntime?.shutdown()
@@ -15514,6 +15526,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var divvunChecker: Pair<String, DivvunChecker>? = null
 
+    /**
+     * The Voikko checker the engine holds, keyed the same way
+     * ([VoikkoRuntime.signatureOf]). Finnish only, so one at most.
+     */
+    private var voikkoChecker: Pair<String, VoikkoChecker>? = null
+
     /** What [refreshWordChecker] last gave the engine, so a stale run can tell whether it is still there. */
     private var engineWordChecker: WordChecker? = null
 
@@ -15524,6 +15542,8 @@ open class WMKeyboardService : InputMethodService() {
      * Gives [engine] the spelling checkers for [langId]: Hunspell over its
      * imported `.aff` and `.dic`, and the GiellaLT speller downloaded or
      * imported for it, either, both (one [WordChecker.of] the two) or none.
+     * A language with a Voikko dictionary (Finnish) is checked with Voikko in
+     * Hunspell's place: Hunspell is not even opened then.
      * None is the keyboard as it was before them: no imported pair or
      * speller, a list switched off, or a build or install without the
      * libraries (fetched from the language's dictionary screen, never from
@@ -15536,8 +15556,19 @@ open class WMKeyboardService : InputMethodService() {
             previous?.join()
             val heldHunspell = hunspellChecker
             val heldDivvun = divvunChecker
-            val (nextHunspell, nextDivvun) = withContext(Dispatchers.IO) {
-                val files = if (userUnlocked) CustomDictionaries.hunspellFiles(filesDir, langId) else emptyList()
+            val heldVoikko = voikkoChecker
+            val (nextHunspell, nextDivvun, nextVoikko) = withContext(Dispatchers.IO) {
+                val voikkoSignature = if (userUnlocked) VoikkoRuntime.signatureOf(filesDir, langId) else ""
+                val voikko = when {
+                    voikkoSignature.isEmpty() -> null
+                    heldVoikko?.first == voikkoSignature -> heldVoikko
+                    else -> VoikkoRuntime.open(filesDir, langId)?.let { voikkoSignature to it }
+                }
+                val files = if (userUnlocked && voikko == null) {
+                    CustomDictionaries.hunspellFiles(filesDir, langId)
+                } else {
+                    emptyList()
+                }
                 val signature = HunspellRuntime.signatureOf(files)
                 val hunspell = when {
                     files.isEmpty() -> null
@@ -15550,13 +15581,14 @@ open class WMKeyboardService : InputMethodService() {
                     heldDivvun?.first == spellerSignature -> heldDivvun
                     else -> DivvunRuntime.open(filesDir, cacheDir, langId)?.let { spellerSignature to it }
                 }
-                hunspell to divvun
+                Triple(hunspell, divvun, voikko)
             }
             hunspellChecker = nextHunspell
             divvunChecker = nextDivvun
+            voikkoChecker = nextVoikko
             val held = engineWordChecker
             if (suggestionEngine === engine && _uiState.value.language.id == langId) {
-                val next = WordChecker.of(listOfNotNull(nextHunspell?.second, nextDivvun?.second))
+                val next = WordChecker.of(listOfNotNull(nextVoikko?.second, nextHunspell?.second, nextDivvun?.second))
                 engine.wordChecker = next
                 engineWordChecker = next
             } else if (held != null && engine.wordChecker === held) {
@@ -15567,6 +15599,7 @@ open class WMKeyboardService : InputMethodService() {
             // finishes first, since closing takes the same lock.
             if (heldHunspell != null && heldHunspell !== nextHunspell) heldHunspell.second.close()
             if (heldDivvun != null && heldDivvun !== nextDivvun) heldDivvun.second.close()
+            if (heldVoikko != null && heldVoikko !== nextVoikko) heldVoikko.second.close()
         }
     }
 

@@ -287,6 +287,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/divvun/divvunspell",
         ),
     )
+    // Finnish spell checking, beside Hunspell in the same library module but
+    // never in an APK: downloaded or Play's split. See native/voikko-jni; the
+    // dictionary (voikko-fi, GPL 2+) is fetched, never shipped.
+    add(
+        Attribution(
+            "Voikko",
+            R.string.about_bundled_voikko_used,
+            "Copyright Harri Pitkänen, Hannu Väisänen, Teemu Likonen and Voikko contributors",
+            "MPL-1.1 OR GPL-2.0-or-later OR LGPL-2.1-or-later", "voikko.txt",
+            "https://github.com/voikko/corevoikko",
+        ),
+    )
     if (BuildConfig.ENABLE_GRAMMAR) {
         add(
             Attribution(
