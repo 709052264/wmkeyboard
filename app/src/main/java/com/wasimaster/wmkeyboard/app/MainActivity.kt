@@ -1909,6 +1909,21 @@ private fun SettingsNavGraph(
                 StickerPackScreen(packId, openPicker = true) { route -> navController.navigate(route) }
             }
         }
+        composable(
+            route = "$STICKER_GENERATOR_ROUTE?pack={pack}",
+            arguments = listOf(navArgument("pack") { type = NavType.StringType; nullable = true; defaultValue = null }),
+        ) { backStackEntry ->
+            // Opened from a pack (its id comes along) or from the keyboard's
+            // sticker panel, which passes the pack it is showing.
+            val packId = backStackEntry.arguments?.getString("pack")?.takeIf { it.isNotEmpty() }
+            SettingsScreen(
+                stringResource(R.string.stickergen_title),
+                { navController.popBackStack() },
+                route = STICKER_GENERATOR_ROUTE,
+            ) {
+                StickerGeneratorScreen(settings, packId) { route -> navController.navigate(route) }
+            }
+        }
         composable(STICKER_EDITOR_ROUTE) {
             // Captured once for this back-stack entry, so clearing the handoff
             // on the way out cannot make the exit animation pop a second time.

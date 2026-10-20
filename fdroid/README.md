@@ -196,6 +196,14 @@ which F-Droid's build uses in place of Google's. The next entry's
 with the options in `native/docscan-jni/opencv.cmake`: IPP, KleidiCV, FastCV
 and the other prebuilt accelerators are off.
 
+The script also builds `native/imagegen-jni` (MNN 3.6.1 at a pinned commit,
+CPU backend only, static) into `core/intelligence/src/imagegen/jniLibs`: the
+sticker generator's runtime. The next entry's `scandelete` needs that path
+and `core/intelligence/src/imagegennpu/jniLibs` added; the second holds the
+NPU runner, which is compiled against Qualcomm's QNN headers and never part of
+F-Droid's build, so it is only deleted. MNN's configure step downloads
+nothing: KleidiAI, the one option that fetches sources, is off.
+
 From the release after 0.6.2 the script also builds `native/voikko-jni`
 (libvoikko 4.3.3 at a pinned commit, its VFST backend only, with a small
 JNI bridge, CMake) into `native/voikko-jni/jniLibs`: Voikko, which checks

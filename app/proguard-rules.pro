@@ -107,6 +107,13 @@
 # (Java_com_wasimaster_wmkeyboard_core_docscan_DocScanNative_*).
 -keep class com.wasimaster.wmkeyboard.core.docscan.DocScanNative { *; }
 
+# --- Sticker generator (JNI) --------------------------------------------------
+# libwmimagegen.so and libwmimagegen_qnn.so bind by the mangled Java names
+# (Java_com_wasimaster_wmkeyboard_core_imagegen_ImageGenNative_*,
+# ..._QnnImageNative_*).
+-keep class com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative { *; }
+-keep class com.wasimaster.wmkeyboard.core.imagegen.QnnImageNative { *; }
+
 # --- Bergamot (JNI) -----------------------------------------------------------
 # libwmbergamot.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).

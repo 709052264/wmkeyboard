@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app.netlog
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
@@ -143,6 +144,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_CUTOUT -> R.string.netlog_source_download_cutout to R.string.netlog_sent_download
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
     NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_IMAGEGEN -> R.string.netlog_source_download_imagegen to R.string.netlog_sent_download
     NetSource.DOWNLOAD_XLIT -> R.string.netlog_source_download_xlit to R.string.netlog_sent_download
     NetSource.DOWNLOAD_VOICE_OUT -> R.string.netlog_source_download_voice_out to R.string.netlog_sent_download
     NetSource.DOWNLOAD_NATIVE -> R.string.netlog_source_download_native to R.string.netlog_sent_download
@@ -180,6 +182,7 @@ private fun ownerRoute(source: NetSource): String? = when (source) {
     NetSource.BACKUP -> "backup"
     NetSource.UPDATES -> "about"
     NetSource.DOWNLOAD_SEMANTIC -> "ai"
+    NetSource.DOWNLOAD_IMAGEGEN -> "sticker_generator"
     NetSource.SUPPORTERS -> "supporters"
     else -> null
 }
@@ -193,6 +196,7 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
     NetSource.DOWNLOAD_VOCAB -> Icons.Outlined.AutoStories
     NetSource.DOWNLOAD_CUTOUT -> Icons.Outlined.ContentCut
     NetSource.DOWNLOAD_SEMANTIC -> Icons.Outlined.ImageSearch
+    NetSource.DOWNLOAD_IMAGEGEN -> Icons.Outlined.AutoAwesome
     NetSource.ADDONS -> Icons.Outlined.Extension
     NetSource.LINK_IMPORT, NetSource.LINK_PREVIEW -> Icons.Outlined.Link
     NetSource.KEYMAN -> Icons.Outlined.Keyboard

@@ -1,0 +1,87 @@
+---
+title: "Sticker generator"
+description: "Describe a sticker and the phone draws it, offline: the models, what each phone gets, prompts in any language, the safety filter, and importing your own model."
+sidebar:
+  order: 5
+---
+
+import KeyCap from '@components/KeyCap.astro';
+import SettingsPath from '@components/SettingsPath.astro';
+
+The sticker generator draws stickers from a sentence you type. The model runs on the phone itself, so it works offline and the picture never goes anywhere until you send it. You pick a result, the background comes off, the [sticker editor](/emoji/stickers/#the-sticker-editor) opens on it, and from there it goes into one of your packs and out like any other sticker.
+
+Open it from <SettingsPath path="Tools / Stickers / Your stickers / Sticker packs / Create stickers" />, from **Create from a prompt** on a pack's page, or from the keyboard: in the sticker panel's **My stickers**, the sparkle chip beside the <KeyCap>+</KeyCap> chip opens it, saving into the pack the panel is showing.
+
+## Models, and what each phone gets
+
+Two models come with the app's catalog. Neither is in the APK: the phone downloads the one you pick, after you accept its licence.
+
+| Model | Download | How it draws | Runs on |
+|---|---|---|---|
+| **SDXS Dreamshaper** | about 880 MB, plus the 87 MB picture filter | one step, at 384 × 384 or 512 × 512 | every phone, on the processor |
+| **Stable Diffusion 1.5 (NPU)** | about 710 MB from Qualcomm, plus the picture filter | 20 steps with guidance, at 512 × 512 | Snapdragon 8 Gen 3, 8 Elite and 8 Elite Gen 5, on the neural processor |
+
+SDXS is the default everywhere. It was distilled to draw in a single step, and it draws clean, outlined cartoon subjects on a white background, which is what a sticker wants and what the background remover lifts cleanly. Measured on a computer and scaled to phones, one picture takes roughly:
+
+| Phone | 384 × 384 | 512 × 512 |
+|---|---|---|
+| Recent flagship (Snapdragon 8 Gen 3 or 8 Elite, Dimensity 9300, Tensor G4) | under 1.5 seconds | about 1 to 2 seconds |
+| Mid-range (Snapdragon 7 series, Dimensity 7000 series) | about 2 to 2.5 seconds | about 4 seconds |
+| Older or low-end | about 5 to 6 seconds | about 10 seconds |
+
+The first picture after the generator opens takes longer, because the model has to load. It then stays loaded for a few minutes, so the next prompts are fast. While loaded it takes one to two gigabytes of memory, in a process of its own: if Android needs that memory back it ends the generator, never the keyboard.
+
+**Stable Diffusion 1.5 (NPU)** is Qualcomm's own build of the original Stable Diffusion for each chip's neural processor, about 2.5 seconds a picture on an 8 Elite by Qualcomm's figures. It is offered only on the three chips above, and it uses the same Qualcomm runtime as [running AI models on the NPU](/tools/ai/#local-models). It is not better at stickers than SDXS. Choose it for what SDXS can't do: a negative prompt, a guidance strength and a step count. Its first picture also waits for the NPU runtime to download, if nothing has fetched it yet.
+
+The model rows show what is downloaded. The bin deletes a model; <SettingsPath path="About / Storage / Sticker generator" /> lists them too.
+
+## Writing a prompt
+
+Describe one subject: *a red panda drinking coffee*, *a happy avocado giving a thumbs up*. The style chips under the box add the look, so you don't have to type it. **Sticker** (the default) asks for a die-cut cartoon with bold outlines on white; the others are **Cartoon**, **Kawaii**, **Pixel art**, **3D**, **Line art**, **Emoji**, and **No style** for a prompt that already says how it should look.
+
+Under the box, a counter shows how many of the model's 75 tokens the prompt and its style take. The model reads no further than that. When a prompt runs past it, the words it won't read are named in red, so you know to shorten it, rather than finding out from a picture that ignored them.
+
+### Prompts in other languages
+
+The models understand English. A prompt in another language is translated first, and the English is shown under the box, where you can correct it before the next tap. The [on-device translators](/tools/translate/#on-device-translation) are asked first (Firefox Translations, NLLB-200, Google's), so with a model for your language downloaded nothing leaves the phone. Only if none of them can translate it does the prompt go to the online translators on your translate list. A prompt in Latin letters counts as English unless Google's language identifier, where the phone has it, is sure it isn't.
+
+### Improve with AI
+
+With an [AI provider](/tools/ai/) set up, **Improve with AI** asks it to rewrite your idea as a short, visual prompt: one subject, what it looks like and does, its colours. The rewrite replaces what you typed, so you can edit it or press Generate as is. This sends your prompt to that provider. The on-device AI model is not offered here, being too slow for a quick rewrite.
+
+## Generating
+
+**Generate** draws several pictures at once, each with its own seed, and each appears as soon as it is done. Flagships draw four, mid-range phones two, small phones one, and the NPU two; **Pictures per tap** under **Advanced** changes that. **Cancel** stops within a fraction of a second. With the NPU model, the pictures fade in as rough previews while the steps run.
+
+Tap a finished picture, then **Cut out and edit**. The background remover lifts the subject off the white, and the editor opens with it, ready to crop, erase or add a border before you save it into a pack. The sticker goes into the pack you came from; opened from elsewhere, into the last pack you used, the first pack, or a new **Generated** pack when there is none. The generated pictures themselves are scratch and are deleted when you leave the screen; only the ones you save are kept.
+
+### Advanced
+
+- **Size**: 384 × 384 is faster and plenty for a sticker; 512 × 512 is SDXS's own size and holds more detail.
+- **Seed**: the number every picture starts from. **Keep the seed** draws the same picture again for the same prompt, which helps when you are adjusting the wording; off, every tap tries new ones.
+- **Steps**, **Guidance** and the **Negative prompt** (what to leave out) appear only for a model that uses them: the NPU model, or a model you imported. SDXS draws in one step without guidance, so it has none of them.
+- **Remove the background**: on by default. Off, the editor opens on the picture as drawn. The F-Droid build has no background remover, so there the editor's eraser does the job.
+- **Safety filter**: see below.
+
+## The safety filter
+
+Every prompt is checked before anything is drawn, as typed and in its English translation, against a list of sexual terms, and a match is refused. With **Safety filter** on (the default), every picture then goes through an on-device classifier (Falconsai's NSFW detector, 87 MB, downloaded with the first model), and one it judges unsafe is never shown: its place says it was held back. Both checks run on the phone. A word list can refuse a harmless prompt that happens to contain one of its words; rephrase it.
+
+## Licences
+
+The models' weights come with their own licences, which you accept before the download: SDXS is under the CreativeML Open RAIL++-M licence, Qualcomm's Stable Diffusion 1.5 under the CreativeML Open RAIL-M licence and its NPU runtime under Qualcomm's. Both RAIL licences forbid using the model for illegal, harmful or deceptive content, and those restrictions carry over to whatever you make with it. SDXS comes from the project's data repository as an MNN conversion of [IDKiro/sdxs-512-dreamshaper](https://huggingface.co/IDKiro/sdxs-512-dreamshaper); Qualcomm's build comes straight from Qualcomm and is never copied by this project. See <SettingsPath path="About / Licenses" />.
+
+## Importing a model
+
+Any Stable Diffusion 1.x or 2.x checkpoint can be imported once it has been converted on a computer; the phone never converts one itself. The converter is `tools/imagegen/convert_sd.py` in the [source repository](https://github.com/wasi-master/WMKeyboard). With Python and a few packages:
+
+```sh
+pip install torch diffusers transformers safetensors onnx MNN
+python tools/imagegen/convert_sd.py my_model.safetensors my_model --name "My model" --steps 20 --guidance 7 --taesd
+```
+
+The source can be a `.safetensors` or `.ckpt` file, a diffusers folder, or a Hugging Face model id. Use `--steps 4 --scheduler lcm` for an LCM model, `--steps 1 --timesteps 999 --guidance 0` for a one-step model like SDXS or SD-Turbo, and `--taesd` to swap the model's image decoder for the much cheaper TAESD, which looks the same at sticker size. `--int8` halves the files at a small cost in faithfulness. The script calls MNN's converter library directly rather than its `mnnconvert` command, which reports every conversion to Alibaba Cloud.
+
+The output folder holds five files: `text_encoder.mnn`, `unet.mnn`, `vae_decoder.mnn`, `merges.txt` and `wmimage.json`. Copy them to the phone, zipped or not, then **Import a model** and pick the zip or all five files. The generator checks that each network loads and takes the inputs `wmimage.json` describes before it lists the model; a model that doesn't fit is turned away with the reason. Imported models run on the processor, like SDXS. A 4-step LCM model at 512 × 512 takes several seconds a picture on a flagship and about 20 on a mid-range phone; an ordinary 20-step model with guidance makes 40 full-size passes, which on a phone's processor means minutes a picture.
+
+The checkpoint's own licence still applies to an imported model.

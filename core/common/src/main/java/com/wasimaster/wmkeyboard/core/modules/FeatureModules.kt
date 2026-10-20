@@ -189,6 +189,16 @@ object FeatureModules {
     var zinnia: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:imagegen`: the sticker generator's runtimes
+     * (`:core:intelligence`): MNN on the CPU (`libwmimagegen`) and, where the
+     * build has the Qualcomm runtime, the arm64 runner that drives it
+     * (`libwmimagegen_qnn`). Only the libraries move; the models are separate
+     * downloads.
+     */
+    @Volatile
+    var imagegen: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
      * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
      * unpacked into app storage by `NpuRuntime` in :core:intelligence.

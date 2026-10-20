@@ -1,50 +1,12 @@
 package com.wasimaster.wmkeyboard.app.storage
 
-import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
-import com.wasimaster.wmkeyboard.core.modules.NativePin
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NetworkCheck
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SystemUpdate
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
-import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
-import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
-import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
-import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
-import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.LibraryBooks
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ShortText
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Android
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cached
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Terminal
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.STICKER_GENERATOR_ROUTE
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
@@ -53,38 +15,80 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.feedback.SoundStore
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
+import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Article
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.LibraryBooks
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ShortText
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.VolumeUp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Android
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoStories
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cached
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DocumentScanner
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NetworkCheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SystemUpdate
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Terminal
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.imagegen.ImageGenDownloads
+import com.wasimaster.wmkeyboard.core.imagegen.ImageGenImport
+import com.wasimaster.wmkeyboard.core.imagegen.ImageGenModels
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
-import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
-import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
+import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.modules.NativePin
+import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
 import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
-import com.wasimaster.wmkeyboard.core.settings.LockedSettings
 import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
 import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
+import com.wasimaster.wmkeyboard.core.settings.LockedSettings
 import com.wasimaster.wmkeyboard.core.settings.SemanticSearchMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.tools.PhotoBackgroundManager
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
+import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
+import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
+import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
+import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
+import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
-import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
-import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
+import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
@@ -632,6 +636,52 @@ internal object StorageCategories {
                 }
             },
             clearOf = { env -> turnMeaningOff(env) },
+        ),
+        // The sticker generator's models, catalog and imported, and the
+        // picture filter; all of it comes back with one download.
+        StorageCategory(
+            id = "sticker_models",
+            title = R.string.storage_stickergen_title,
+            subtitle = R.string.storage_stickergen_subtitle,
+            icon = Icons.Outlined.AutoAwesome,
+            accent = Color(0xFFEC407A),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = STICKER_GENERATOR_ROUTE,
+            pathsOf = { listOf(ImageGenModels.root(it.noBackupFiles)) },
+            itemsOf = { env ->
+                val catalog = ImageGenModels.Catalog.entries.mapNotNull { model ->
+                    val dir = ImageGenModels.dir(env.roots.noBackupFiles, model)
+                    if (childrenOf(dir).isEmpty()) return@mapNotNull null
+                    StorageItem(
+                        id = model.id,
+                        label = model.displayName,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+                val imported = ImageGenImport.installed(env.context).map { model ->
+                    val dir = File(ImageGenModels.importedRoot(env.roots.noBackupFiles), model.id)
+                    StorageItem(
+                        id = model.id,
+                        label = model.name,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+                catalog + imported
+            },
+            deleteOne = { env, item ->
+                val model = ImageGenModels.Catalog.byId(item.id)
+                if (model != null) ImageGenDownloads.delete(env.context, model) else ImageGenImport.delete(env.context, item.id)
+            },
+            clearOf = { env ->
+                ImageGenModels.Catalog.entries.forEach { ImageGenDownloads.cancel(it) }
+                ImageGenModels.root(env.roots.noBackupFiles).deleteRecursively()
+                ImageGenDownloads.refresh(env.context)
+            },
         ),
         StorageCategory(
             id = "ocr_packs",

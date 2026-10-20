@@ -21,6 +21,9 @@ val npuLibraries = listOf(
     "libLiteRtDispatch_Qualcomm.so",
     "libQnnSystem.so",
     "libQnnHtp.so",
+    // SM8650, Snapdragon 8 Gen 3.
+    "libQnnHtpV75Stub.so",
+    "libQnnHtpV75Skel.so",
     // SM8750, Snapdragon 8 Elite.
     "libQnnHtpV79Stub.so",
     "libQnnHtpV79Skel.so",

@@ -1471,6 +1471,14 @@
             android:process=":semantic"
             android:exported="false" />
 
+        <!-- The sticker generator: a diffusion model in a process of its own,
+             one to two gigabytes while loaded, let go after a few idle
+             minutes. Bound by ImageGen in :core:intelligence. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.core.imagegen.ImageGenService"
+            android:process=":imagegen"
+            android:exported="false" />
+
         <!-- Runs a sync pass between devices. Scheduled by SyncScheduler in
              :core:settings, which names this class as a string for the same
              reason as the backup job above. -->

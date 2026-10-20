@@ -1025,6 +1025,11 @@ internal fun GifPanel(
             onOpenRoute(stickerPackAddRoute(target))
         }
     }
+    // The sticker generator, into the same pack the add chip would pick; with
+    // several and none chosen, the generator asks.
+    val onCreate: () -> Unit = {
+        onOpenRoute(stickerGeneratorRoute(stickerAddTarget(state.stickerPacks, state.stickerPackId)))
+    }
     // The search box and the chip rows fold away while the results scroll
     // down, when the setting asks (see [MediaChrome]).
     val chrome = LocalMediaChrome.current
@@ -1092,6 +1097,7 @@ internal fun GifPanel(
                         onSelect = onSourceSelect,
                         focused = state.focusedIndex(FocusRegion.CHIPS),
                         onAdd = if (canAdd) onAdd else null,
+                        onCreate = if (canAdd) onCreate else null,
                     )
                 }
                 // The pack filter, from two packs up; with no source chips to sit
@@ -1102,6 +1108,7 @@ internal fun GifPanel(
                         selected = state.stickerPackId,
                         onSelect = onPackFilter,
                         onAdd = if (chips.isEmpty()) onAdd else null,
+                        onCreate = if (chips.isEmpty()) onCreate else null,
                     )
                 }
                 if (categoryRow) {
@@ -1315,6 +1322,13 @@ internal fun stickerPackAddRoute(packId: String): String =
     "sticker_pack/${android.net.Uri.encode(packId)}/add"
 
 /**
+ * Settings route of the sticker generator, saving into [packId] when there is
+ * one. The app's nav graph declares it as `sticker_generator?pack={pack}`.
+ */
+internal fun stickerGeneratorRoute(packId: String?): String =
+    if (packId == null) "sticker_generator" else "sticker_generator?pack=${android.net.Uri.encode(packId)}"
+
+/**
  * Which pack the add chip adds to, or null when the user has to say.
  *
  * The pack the grid is filtered to, if one is; otherwise the only pack there
@@ -1336,6 +1350,8 @@ private fun GifSourceChips(
     focused: Int? = null,
     /** Adds a sticker to a pack of your own: a [StickerAddChip] at the row's end. Null, none. */
     onAdd: (() -> Unit)? = null,
+    /** Opens the sticker generator: a second chip beside [onAdd]'s. */
+    onCreate: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     Row(
@@ -1367,12 +1383,17 @@ private fun GifSourceChips(
             )
         }
         if (onAdd != null) StickerAddChip(onAdd, verticalPadding = 4.dp)
+        if (onCreate != null) StickerAddChip(onCreate, verticalPadding = 4.dp, create = true)
     }
 }
 
-/** The chip that adds a sticker to one of your packs: a plus, as wide as it needs. */
+/**
+ * The chip that adds a sticker to one of your packs: a plus, as wide as it
+ * needs. With [create], the sparkle beside it that opens the sticker
+ * generator instead.
+ */
 @Composable
-private fun StickerAddChip(onAdd: () -> Unit, verticalPadding: Dp) {
+private fun StickerAddChip(onAdd: () -> Unit, verticalPadding: Dp, create: Boolean = false) {
     val kb = LocalKbTheme.current
     val shape = kb.chipShape()
     Box(
@@ -1386,8 +1407,8 @@ private fun StickerAddChip(onAdd: () -> Unit, verticalPadding: Dp) {
         contentAlignment = Alignment.Center,
     ) {
         Icon(
-            Icons.Outlined.Add,
-            contentDescription = stringResource(R.string.ime_sticker_add_desc),
+            if (create) Icons.Outlined.AutoAwesome else Icons.Outlined.Add,
+            contentDescription = stringResource(if (create) R.string.ime_sticker_create_desc else R.string.ime_sticker_add_desc),
             modifier = Modifier.size(16.dp),
             tint = kb.chipText,
         )
@@ -1460,6 +1481,7 @@ private fun StickerPackChips(
     selected: String?,
     onSelect: (String?) -> Unit,
     onAdd: (() -> Unit)?,
+    onCreate: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     Row(
@@ -1472,6 +1494,7 @@ private fun StickerPackChips(
     ) {
         val shape = kb.chipShape()
         if (onAdd != null) StickerAddChip(onAdd, verticalPadding = 2.dp)
+        if (onCreate != null) StickerAddChip(onCreate, verticalPadding = 2.dp, create = true)
         if (packs.size < 2) return@Row
         val allLabel = stringResource(R.string.ime_sticker_pack_all_label)
         val entries = listOf<Pair<String?, String>>(null to allLabel) + packs.map { it.id to it.name }

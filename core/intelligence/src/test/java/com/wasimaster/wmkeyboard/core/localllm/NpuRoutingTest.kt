@@ -45,7 +45,8 @@ class NpuRoutingTest {
         assertEquals("SM8750", NpuSupport.supportedSoc("SM8750", 36, "arm64-v8a"))
         assertEquals("SM8850", NpuSupport.supportedSoc("SM8850", 31, "arm64-v8a"))
         // A chip whose QNN libraries this build does not carry.
-        assertNull(NpuSupport.supportedSoc("SM8650", 36, "arm64-v8a"))
+        assertNull(NpuSupport.supportedSoc("SM8550", 36, "arm64-v8a"))
+        assertEquals("SM8650", NpuSupport.supportedSoc("SM8650", 36, "arm64-v8a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 30, "arm64-v8a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 36, "armeabi-v7a"))
         assertNull(NpuSupport.supportedSoc("SM8750", 36, null))
@@ -60,7 +61,8 @@ class NpuRoutingTest {
         assertTrue("libQnnHtpV81Skel.so" in NpuSupport.runtimeLibraries("SM8850"))
         assertTrue((sm8750 + NpuSupport.runtimeLibraries("SM8850")).none { "Prepare" in it })
         assertEquals(NpuSupport.DISPATCH_LIBRARY, sm8750.last())
-        assertTrue(NpuSupport.runtimeLibraries("SM8650").isEmpty())
+        assertTrue("libQnnHtpV75Skel.so" in NpuSupport.runtimeLibraries("SM8650"))
+        assertTrue(NpuSupport.runtimeLibraries("SM8550").isEmpty())
     }
 
     @Test

@@ -175,6 +175,7 @@
     <string name="netlog_source_download_font">Font downloads</string>
     <string name="netlog_source_download_cutout">Background remover download</string>
     <string name="netlog_source_download_semantic">Search by meaning download</string>
+    <string name="netlog_source_download_imagegen">Sticker generator download</string>
     <string name="netlog_source_download_xlit">Neural suggestions download</string>
     <string name="netlog_source_download_voice_out">Offline voice downloads</string>
     <string name="netlog_source_download_ocr">Text scanner language downloads</string>

@@ -21,11 +21,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -61,23 +56,29 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.content.R as ContentR
 import com.wasimaster.wmkeyboard.core.addons.AddonType
 import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileOpen
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Share
 import com.wasimaster.wmkeyboard.core.stickers.CustomSticker
 import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerImportResult
+import com.wasimaster.wmkeyboard.core.stickers.StickerKeywords
 import com.wasimaster.wmkeyboard.core.stickers.StickerPack
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackFile
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
-import com.wasimaster.wmkeyboard.core.stickers.StickerKeywords
 import com.wasimaster.wmkeyboard.core.stickers.whatsapp.WaStickersFile
 import com.wasimaster.wmkeyboard.core.util.readBytesCapped
 import com.wasimaster.wmkeyboard.core.util.requireInputStream
 import com.wasimaster.wmkeyboard.core.util.requireOutputStream
 import com.wasimaster.wmkeyboard.ime.ui.rememberMediaImageLoader
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 /**
  * One sticker pack's page, as flights name it.
@@ -201,6 +202,16 @@ internal fun StickerPacksScreen(onNavigate: (String) -> Unit) {
 
     RegisterAddFab(stringResource(R.string.import_sticker_pack_new_title)) { newPackName = "" }
     SettingsGroup {
+        item {
+            WmRow(
+                title = stringResource(R.string.stickergen_title),
+                subtitle = stringResource(R.string.stickergen_entry_subtitle),
+                icon = Icons.Outlined.AutoAwesome,
+                accent = routeAccent("sticker_packs"),
+                highlightKey = R.string.stickergen_title,
+                onClick = { onNavigate(STICKER_GENERATOR_ROUTE) },
+            )
+        }
         item { AddonStoreRow(AddonType.Stickers, onNavigate) }
         item {
             WmRow(
@@ -501,6 +512,16 @@ internal fun StickerPackScreen(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
                     )
                 },
+            )
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.stickergen_entry_title),
+                subtitle = stringResource(R.string.stickergen_entry_subtitle),
+                icon = Icons.Outlined.AutoAwesome,
+                accent = routeAccent("sticker_packs"),
+                enabled = !busy,
+                onClick = { onNavigate("$STICKER_GENERATOR_ROUTE?pack=${Uri.encode(packId)}") },
             )
         }
     }

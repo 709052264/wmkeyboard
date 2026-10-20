@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Settings › Stickers › Create stickers: on-device image generation from a prompt. -->
+    <string name="stickergen_title">Create stickers</string>
+    <string name="stickergen_entry_title">Create from a prompt</string>
+    <string name="stickergen_entry_subtitle">Describe a sticker and this phone draws it, offline</string>
+
+    <string name="stickergen_model_title">Model</string>
+    <string name="stickergen_model_info">The model runs on this phone, in a process of its own, and nothing you type leaves it unless the prompt needs an online translator. SDXS draws in one step on any phone. Stable Diffusion 1.5 (NPU) runs on the Snapdragon 8 Gen 3, 8 Elite and 8 Elite Gen 5 neural processors and takes a negative prompt and guidance.</string>
+    <string name="stickergen_model_sdxs">One step, every phone</string>
+    <string name="stickergen_model_npu">20 steps on the NPU, negative prompts</string>
+    <string name="stickergen_model_ready">%1$s · Downloaded</string>
+    <string name="stickergen_model_not_downloaded">%1$s · %2$s download</string>
+    <string name="stickergen_model_downloading">Downloading %1$s of %2$s</string>
+    <string name="stickergen_model_imported">Imported · %1$s</string>
+    <string name="stickergen_model_download">Download %1$s</string>
+    <string name="stickergen_model_delete">Delete %1$s</string>
+    <string name="stickergen_need_model">Download a model above first.</string>
+
+    <string name="stickergen_import_title">Import a model</string>
+    <string name="stickergen_import_subtitle">A converted model: a zip, or its five files picked together</string>
+    <string name="stickergen_importing">Checking the model…</string>
+    <string name="stickergen_import_ok">%1$s is ready.</string>
+    <string name="stickergen_import_missing">Not a sticker model: missing %1$s.</string>
+    <string name="stickergen_import_invalid">That model does not fit: %1$s.</string>
+    <string name="stickergen_import_failed">Could not import the model: %1$s</string>
+
+    <string name="stickergen_licence_title">%1$s licence</string>
+    <string name="stickergen_licence_body">The phone downloads this model (%1$s with the picture filter) from the project\'s data repository. Its weights are under the CreativeML OpenRAIL++-M licence, which you accept to use them: it forbids using the model for illegal, harmful or deceptive content, and those restrictions pass to anything you make with it.</string>
+    <string name="stickergen_licence_body_npu">The phone downloads Qualcomm AI Hub\'s build of Stable Diffusion 1.5 for this chip (%1$s with the picture filter) from Qualcomm, and Qualcomm\'s NPU runtime. The weights are under the CreativeML OpenRAIL-M licence, which forbids using the model for illegal, harmful or deceptive content, and the runtime under Qualcomm\'s licence. You accept both to use them.</string>
+    <string name="stickergen_licence_accept">Accept and download</string>
+    <string name="stickergen_licence_view">Read the licence</string>
+
+    <string name="stickergen_prompt_title">Prompt</string>
+    <string name="stickergen_prompt_label">Describe the sticker</string>
+    <string name="stickergen_prompt_placeholder">A corgi in a tiny astronaut suit</string>
+    <string name="stickergen_tokens">%1$d of %2$d tokens</string>
+    <string name="stickergen_tokens_ignored">Too long; the model does not read: %1$s</string>
+    <string name="stickergen_english_label">In English (from %1$s), edit if it is off</string>
+    <string name="stickergen_translate_failed">No translator could put this into English, so the model reads it as typed. It only understands English well.</string>
+    <string name="stickergen_prompt_blocked">That prompt asks for something the safety filter does not draw.</string>
+    <string name="stickergen_generate">Generate</string>
+    <string name="stickergen_rewrite">Improve with AI</string>
+    <string name="stickergen_rewriting">Improving…</string>
+    <string name="stickergen_rewrite_failed">The AI could not improve that prompt.</string>
+
+    <string name="stickergen_style_sticker">Sticker</string>
+    <string name="stickergen_style_cartoon">Cartoon</string>
+    <string name="stickergen_style_kawaii">Kawaii</string>
+    <string name="stickergen_style_pixel">Pixel art</string>
+    <string name="stickergen_style_3d">3D</string>
+    <string name="stickergen_style_line">Line art</string>
+    <string name="stickergen_style_emoji">Emoji</string>
+    <string name="stickergen_style_none">No style</string>
+
+    <string name="stickergen_status_translating">Reading the prompt…</string>
+    <string name="stickergen_status_starting">Starting…</string>
+    <string name="stickergen_status_loading">Loading the model…</string>
+    <string name="stickergen_status_drawing">Drawing %1$d of %2$d…</string>
+    <string name="stickergen_failed">The generator stopped: %1$s</string>
+
+    <string name="stickergen_results_title">Results</string>
+    <string name="stickergen_results_hint">Tap one to cut it out and save it to a pack.</string>
+    <string name="stickergen_cell_waiting">Waiting…</string>
+    <string name="stickergen_cell_blocked">Held back by the safety filter</string>
+    <string name="stickergen_cell_desc">Generated sticker</string>
+
+    <string name="stickergen_pick_title">Use this sticker?</string>
+    <string name="stickergen_pick_use">Cut out and edit</string>
+    <string name="stickergen_pick_busy">Removing the background…</string>
+    <string name="stickergen_save_failed">Could not save the sticker.</string>
+    <string name="stickergen_pack_name">Generated</string>
+
+    <string name="stickergen_advanced_title">Advanced</string>
+    <string name="stickergen_size_title">Size</string>
+    <string name="stickergen_variants_title">Pictures per tap</string>
+    <string name="stickergen_variants_auto">Auto (%1$d)</string>
+    <string name="stickergen_seed_label">Seed</string>
+    <string name="stickergen_seed_lock_title">Keep the seed</string>
+    <string name="stickergen_seed_lock_subtitle">The same prompt and seed draw the same picture; off, every tap tries a new one</string>
+    <string name="stickergen_steps_title">Steps</string>
+    <string name="stickergen_guidance_title">Guidance</string>
+    <string name="stickergen_default_value">Default (%1$d)</string>
+    <string name="stickergen_default_value_float">Default (%1$.1f)</string>
+    <string name="stickergen_negative_label">Negative prompt: what to leave out</string>
+    <string name="stickergen_no_guidance">This model draws in one step without guidance, so it has no negative prompt or step count to set.</string>
+    <string name="stickergen_cutout_title">Remove the background</string>
+    <string name="stickergen_cutout_subtitle">Lift the subject off the background before the editor opens</string>
+    <string name="stickergen_cutout_unsupported">This build has no background remover; the editor\'s eraser still works</string>
+    <string name="stickergen_safety_title">Safety filter</string>
+    <string name="stickergen_safety_subtitle">Check every picture with an on-device classifier and hold back unsafe ones. Prompts are always checked.</string>
+</resources>

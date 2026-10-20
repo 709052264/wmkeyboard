@@ -36,6 +36,16 @@ object NativeConsent {
     const val NLLB = "nllb"
     const val MMS = "mms"
 
+    /**
+     * The CreativeML OpenRAIL++-M licence of SDXS, the sticker generator's
+     * default model, and [OPENRAIL_M] the OpenRAIL-M one of Stable Diffusion
+     * 1.5 that Qualcomm's NPU builds keep. Both pass on the same use
+     * restrictions (their Attachment A) to whoever runs the weights, so the
+     * user agrees before the first download.
+     */
+    const val OPENRAIL_PP = "openrail++"
+    const val OPENRAIL_M = "creativeml-openrail-m"
+
     /** The licence page each licence id links to. */
     val licenceUrls: Map<String, String> = mapOf(
         QUALCOMM to "https://softwarecenter.qualcomm.com/api/download/software/licenses/ai_model_hub/v1/LICENSE.pdf",
@@ -45,6 +55,8 @@ object NativeConsent {
         // converted copy the app downloads (NllbTranslator) keeps.
         NLLB to "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
         MMS to "https://creativecommons.org/licenses/by-nc/4.0/",
+        OPENRAIL_PP to "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/blob/main/LICENSE.md",
+        OPENRAIL_M to "https://huggingface.co/spaces/CompVis/stable-diffusion-license",
     )
 
     private const val PREFS = "native_delivery"

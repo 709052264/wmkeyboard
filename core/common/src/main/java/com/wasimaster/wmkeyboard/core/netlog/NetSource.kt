@@ -108,6 +108,9 @@ enum class NetSource(
     /** EmbeddingGemma 2, the model behind search by meaning. */
     DOWNLOAD_SEMANTIC("download_semantic"),
 
+    /** The sticker generator's models and picture filter (data repository, or Qualcomm's bucket for NPU builds). */
+    DOWNLOAD_IMAGEGEN("download_imagegen"),
+
     /** IndicXlit, the neural readings on the Indic phonetic layouts. */
     DOWNLOAD_XLIT("download_xlit"),
 

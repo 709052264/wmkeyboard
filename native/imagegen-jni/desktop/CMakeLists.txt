@@ -1,0 +1,11 @@
+# Desktop build of the check CLI against a host MNN; see check.sh.
+cmake_minimum_required(VERSION 3.18)
+project(imagegen_cli CXX)
+set(CMAKE_CXX_STANDARD 17)
+add_executable(imagegen_cli imagegen_cli.cpp ../imagegen.cpp)
+target_include_directories(imagegen_cli PRIVATE ${MNN_SRC}/include)
+if(APPLE)
+  target_link_libraries(imagegen_cli PRIVATE -Wl,-force_load,${MNN_BUILD}/libMNN.a "-framework Foundation" "-framework Accelerate")
+else()
+  target_link_libraries(imagegen_cli PRIVATE -Wl,--whole-archive ${MNN_BUILD}/libMNN.a -Wl,--no-whole-archive pthread dl)
+endif()

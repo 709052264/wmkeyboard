@@ -2120,6 +2120,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         backupContents(R.string.backup_section_emoji_label, R.string.backup_include_emoji_subtitle),
         stickerPack(R.string.import_sticker_pack_new_title, 0),
         stickerPack(R.string.import_sticker_pack_import_title, R.string.import_sticker_pack_import_subtitle),
+        stickerPack(R.string.stickergen_title, R.string.stickergen_entry_subtitle),
         stickerPack(R.string.import_signal_row_title, R.string.import_signal_row_subtitle),
         stickerPack(R.string.import_whatsapp_row_title, R.string.import_whatsapp_row_subtitle),
         stickerPack(R.string.import_telegram_row_title, R.string.import_telegram_row_subtitle),

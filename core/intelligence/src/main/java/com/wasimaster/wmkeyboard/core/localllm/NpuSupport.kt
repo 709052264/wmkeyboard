@@ -19,10 +19,14 @@ object NpuSupport {
 
     /**
      * Chip -> the Hexagon tensor processor generation its QNN libraries are
-     * named after (`libQnnHtpV79Stub.so` and so on). SM8750 is the Snapdragon
-     * 8 Elite (Galaxy S25 series), SM8850 the 8 Elite Gen 5 (Galaxy S26 Ultra).
+     * named after (`libQnnHtpV79Stub.so` and so on). SM8650 is the Snapdragon
+     * 8 Gen 3 (Galaxy S24 series), SM8750 the 8 Elite (Galaxy S25 series),
+     * SM8850 the 8 Elite Gen 5 (Galaxy S26 Ultra). SM8650 is here for the
+     * sticker generator's NPU builds; no on-device AI model has one for it
+     * yet, so the AI panel still never picks the NPU there.
      */
     internal val HTP_ARCH = mapOf(
+        "SM8650" to "V75",
         "SM8750" to "V79",
         "SM8850" to "V81",
     )

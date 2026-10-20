@@ -118,6 +118,7 @@
 
     <!-- Search by meaning: downloading EmbeddingGemma 2, the model that
          finds clips, notes, snippets, emoji and stickers by what they mean. -->
+    <string name="core_intel_imagegen_module_error">The sticker generator\'s engine did not download. Check the connection, then try again.</string>
     <string name="core_intel_semantic_module_error">The search engine part did not download. Check the connection, then try again.</string>
     <!-- The data repository is set (Servers screen) to a host other than GitHub, where the model files are not published. -->
     <string name="core_intel_semantic_no_source">The model files are only published on GitHub. Set the data repository back to GitHub in Servers.</string>

@@ -27,6 +27,11 @@ val localProperties = Properties().apply {
 fun prop(name: String, env: String, default: String): String =
     providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: System.getenv(env) ?: default
 
+// Read before the lists below, which need it; npuEnabled further down says the same.
+fun npuEnabledForPins(): Boolean =
+    prop("wmkb.enableNpu", "WMKB_ENABLE_NPU", "true").toBoolean() &&
+        !prop("wmkb.enableFdroid", "WMKB_ENABLE_FDROID", "false").toBoolean()
+
 /** Our own libraries: name to gate. */
 val ownSpecs: Map<String, String> = mapOf(
     "libwmwhispercpp.so" to "speech",
@@ -49,7 +54,12 @@ val ownSpecs: Map<String, String> = mapOf(
     "libwmzinnia.so" to "zinnia",
     "libwmllama.so" to "llama",
     "libwmllama_v82.so" to "llama",
-)
+    "libwmimagegen.so" to "imagegen",
+) + if (npuEnabledForPins()) mapOf(
+    // The sticker generator's NPU runner rides its gate, not npu's: it is
+    // ours (MIT), and only useful with the Qualcomm runtime npu fetches.
+    "libwmimagegen_qnn.so" to "imagegen",
+) else emptyMap()
 
 /** Where the build keeps them; F-Droid's recipe builds and scans the same paths. */
 val ownDirs = listOf(
@@ -67,10 +77,11 @@ val ownDirs = listOf(
     "core/intelligence/src/zinnia/jniLibs",
     "core/intelligence/src/llama/jniLibs",
     "core/intelligence/src/docscan/jniLibs",
+    "core/intelligence/src/imagegen/jniLibs",
     // Voikko is built and kept in its own source tree, which no build
     // packages into an APK: it is only ever pinned, or Play's split.
     "native/voikko-jni/jniLibs",
-)
+) + if (npuEnabledForPins()) listOf("core/intelligence/src/imagegennpu/jniLibs") else emptyList()
 
 /**
  * A dependency's library: its gate, the module whose AAR holds it, a licence.
@@ -97,6 +108,8 @@ val npuSpecs = if (!npuEnabled) emptyMap() else mapOf(
     "libQnnSystem.so" to Dep("npu", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
     "libQnnHtp.so" to Dep("npu", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
     // One gate per Hexagon generation, so a phone fetches its own chip's pair.
+    "libQnnHtpV75Stub.so" to Dep("npu-V75", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
+    "libQnnHtpV75Skel.so" to Dep("npu-V75", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
     "libQnnHtpV79Stub.so" to Dep("npu-V79", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
     "libQnnHtpV79Skel.so" to Dep("npu-V79", "com.qualcomm.qti:qnn-runtime", "qualcomm"),
     "libQnnHtpV81Stub.so" to Dep("npu-V81", "com.qualcomm.qti:qnn-runtime", "qualcomm"),

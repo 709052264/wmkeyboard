@@ -333,6 +333,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // The sticker generator's runtime, in every build: packaged, pinned for
+    // download, or a Play split. See native/imagegen-jni.
+    add(
+        Attribution(
+            "MNN",
+            R.string.about_bundled_mnn_used,
+            "Copyright (C) 2018 Alibaba Group Holding Limited",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/alibaba/MNN",
+        ),
+    )
     // On-device translation without Google, in every build: packaged, pinned
     // for download, or a Play split. See native/bergamot-jni.
     add(
@@ -829,6 +840,38 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright Mozilla Foundation",
         "MPL-2.0", "mpl-2.0.txt",
         "https://github.com/mozilla/translations",
+    ))
+    // The sticker generator's models, fetched only after the user accepts
+    // their licences (NativeConsent.OPENRAIL_PP / OPENRAIL_M). SDXS is our MNN
+    // conversion in the data repository; the NPU build is Qualcomm's own,
+    // fetched from Qualcomm.
+    add(Attribution(
+        "SDXS-512-DreamShaper",
+        R.string.about_pack_sdxs_used,
+        "Copyright IDKiro (Yuda Song, Zehao Sun, Xuanwu Yin); distilled from DreamShaper 8 by Lykon; MNN conversion by WM Keyboard",
+        "CreativeML Open RAIL++-M", "creativeml-openrail-plus-plus-m.txt",
+        "https://huggingface.co/IDKiro/sdxs-512-dreamshaper",
+    ))
+    add(Attribution(
+        "TAESD",
+        R.string.about_pack_taesd_used,
+        "Copyright (c) 2023 Ollin Boer Bohan",
+        "MIT", "mit-taesd.txt",
+        "https://github.com/madebyollin/taesd",
+    ))
+    add(Attribution(
+        "Stable Diffusion v1.5 (Qualcomm AI Hub, w8a16)",
+        R.string.about_pack_sd15_npu_used,
+        "Copyright (c) 2022 Robin Rombach, Patrick Esser and contributors; compiled for Snapdragon by Qualcomm AI Hub",
+        "CreativeML Open RAIL-M", "creativeml-openrail-m.txt",
+        "https://huggingface.co/qualcomm/Stable-Diffusion-v1.5",
+    ))
+    add(Attribution(
+        "NSFW image detection (Falconsai)",
+        R.string.about_pack_nsfw_used,
+        "Copyright Falconsai; ViT-Base by Google; MNN conversion by WM Keyboard",
+        "Apache-2.0", "apache-2.0.txt",
+        "https://huggingface.co/Falconsai/nsfw_image_detection",
     ))
     // Fetched from Hugging Face only after the user accepts this licence
     // (NativeConsent.NLLB); the converted copy keeps Meta's terms.

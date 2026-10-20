@@ -44,6 +44,8 @@ it.
 | Translate, on-device models | `dl.google.com` (through Android's download manager), not in the F-Droid build | nothing you typed: the request names the language model | when you press Download for a language, in the panel or under Tools / Translate |
 | Translate, Firefox Translations models | `firefox-settings-attachments.cdn.mozilla.net`, Mozilla's server for the files Firefox downloads, 64-bit phones with Android 9 and later | nothing you typed: the request names the model file | when you press Download for a direction, in the panel or under Tools / Translate |
 | Translate, NLLB-200 model | `huggingface.co`, one fixed revision of a CTranslate2 conversion, 64-bit phones with 6 GB of memory or more | nothing you typed: the request names the model file | when you accept its licence and press Download, in the panel or under Tools / Translate |
+| [Sticker generator](/emoji/sticker-generator/), prompt translation | your online translators, the same as Translate above | the prompt, only when it isn't English and no on-device translator could handle it | when you press Generate |
+| [Sticker generator](/emoji/sticker-generator/), Improve with AI | your AI provider, as for the [AI tools](/tools/ai/) | the prompt, with an instruction to rewrite it | only when you press Improve with AI |
 | GIF search | `api.klipy.com`, `api.giphy.com`, and `gifcities.archive.org` with `web.archive.org` once GifCities is on | your search text, or nothing for the trending feed | immediately when you open the panel (trending), then live as you type |
 | Sticker search | same clients as GIF search | same | same |
 | Reporting a GIF or sticker result | none of the app's own | nothing: it builds a mail draft naming the provider, your search term, and the result's id and URL | only when you tap Report in the long-press menu, and only your mail app sends it |
@@ -193,6 +195,12 @@ what's already in the table above:
 - **`huggingface.co`** is the source for offline Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual speech models,
   the FUTO Swipe glide models, the NLLB-200 translation model and on-device AI models. Most are public. A couple of gated on-device models
   need your own Hugging Face account token.
+- **`qaihub-public-assets.s3.us-west-2.amazonaws.com`**, Qualcomm AI Hub's
+  public bucket, holds Stable Diffusion 1.5 compiled for each Snapdragon
+  NPU. The [sticker generator](/emoji/sticker-generator/) fetches the one zip
+  for your chip, about 710 MB, only when you pick that model and accept its
+  licence, on a Snapdragon 8 Gen 3, 8 Elite or 8 Elite Gen 5. The request
+  names the file and nothing about you.
 - **`fonts.gstatic.com`** serves Google's Noto animated emoji. Long-press an
   emoji that has an animated version and the keyboard fetches a small WebP
   to loop in the popup, then fetches the full GIF when you tap Send. Nothing
@@ -294,6 +302,8 @@ some are.
 | Text scanner models for Chinese and Japanese (PaddleOCR) <Flavor edition="google" /> | PPOCRv5-Android on GitHub, pinned to one commit | SHA-256 of each of the three files | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | On-device AI models | Hugging Face, per model | no checksum, a file-size floor only | Yes, at 500 MB. See [AI tools](/tools/ai/#local-models) |
 | [Search by meaning](/smart/search-by-meaning/) model (EmbeddingGemma 2) | the data repository's `models` release on GitHub, about 155 MB for text and 220 MB more for pictures. Fetched when you pick it, never on its own | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
+| [Sticker generator](/emoji/sticker-generator/) models: SDXS and the picture filter | the data repository's `models` release on GitHub, about 970 MB together. Fetched when you pick the model and accept its licence | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
+| [Sticker generator](/emoji/sticker-generator/) NPU model (Stable Diffusion 1.5) | Qualcomm AI Hub's bucket, `qaihub-public-assets.s3.us-west-2.amazonaws.com`, the zip for your chip from release 0.64.0 | SHA-256 and exact size of the zip before it is unpacked | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
 | [Neural suggestions](/languages/phonetic/#neural-suggestions) model (IndicXlit) | the data repository's `models` release on GitHub, 13 MB for every language at once. Fetched when you turn the setting on for a language, never on its own | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
 | Addons (themes, icon packs, plugins, sounds, layouts, sticker packs) | whichever repository you added | SHA-256 verified when the manifest supplies one, and mandatory for plugins specifically, since they run code | No |
 | [Signal sticker packs](/emoji/stickers/#signal-sticker-packs) | Signal's sticker storage, `cdn-ca.signal.org`. No Signal account is involved, and the request names the pack and nothing about you. The signalstickers.org gallery that the same screen links to opens in your browser, and the keyboard itself never contacts it | every file is checked against the key in the pack link (HMAC-SHA256) before it is opened, so a file that was changed on the way is refused | Yes. The pack preview asks before its first request while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |

@@ -55,7 +55,11 @@ open class WMApplication : Application() {
         // sync, no alarms, no second copy of anything the keyboard's process
         // owns. It needs the log, the network log, and the gate that says
         // where the LiteRT interpreter is.
-        if (com.wasimaster.wmkeyboard.core.semantic.EmbeddingService.isServiceProcess()) {
+        // The sticker generator's process is the same kind: the model, its
+        // runtime's gate, and the NPU runtime's.
+        if (com.wasimaster.wmkeyboard.core.semantic.EmbeddingService.isServiceProcess() ||
+            com.wasimaster.wmkeyboard.core.imagegen.ImageGenService.isServiceProcess()
+        ) {
             DebugLog.setBuildTag(BuildConfig.FLAVOR)
             DebugLog.attach(this)
             NetLog.attach(this)

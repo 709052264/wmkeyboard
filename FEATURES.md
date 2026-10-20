@@ -1620,6 +1620,21 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Never leaves the device — Excluded from pack export, the settings backup's sticker section, and cloud backup
     - Its own storage row — Listed separately under About › Storage so it can be deleted without losing stickers
   - New file name on every edit `RARE` — s1a2b3c4.webp → _1 → _2, because the shared image loader caches on path.
+- **Sticker generator** `RARE` — Type a prompt, the phone draws stickers offline; a picked one is cut out and opens in the sticker editor.
+  - Two catalog models `RARE` — SDXS-512 Dreamshaper (one step, every phone, MNN on the CPU) and Qualcomm AI Hub's Stable Diffusion 1.5 w8a16 on the Snapdragon 8 Gen 3 / 8 Elite / 8 Elite Gen 5 NPU (20 steps, guidance, negative prompt)
+    - Pinned downloads — SDXS from the data repository's models release, the NPU zip from Qualcomm's own bucket, both by SHA-256 and size; the zip is checked whole, unpacked, then deleted
+    - Licence consent first — CreativeML OpenRAIL++-M or OpenRAIL-M (and Qualcomm's for the NPU runtime) before the first byte
+  - Own process `uncommon` — ImageGenService in `:imagegen`; the model stays loaded between prompts, idles out after 3 minutes, and Android can end it without touching the keyboard
+    - Every network call separate — cancel lands within one UNet run; the encoded prompt is cached per model
+    - Several pictures per tap — four on flagships, two mid-range, one on small phones, two on the NPU; each streams in as it finishes, NPU steps with rough previews
+  - Exact CLIP tokenizer `uncommon` — byte-level BPE built from merges.txt alone, matching transformers' CLIPTokenizer; the 75-token limit shown as a counter, with the words past it named
+  - Prompts in any language — on-device translators first (Bergamot, NLLB, ML Kit), then the online translate list; the English is shown and editable
+  - Style chips — Sticker, Cartoon, Kawaii, Pixel art, 3D, Line art, Emoji, No style; Improve with AI rewrites the prompt through the user's AI provider
+  - Safety filter `uncommon` — a word list on the prompt and its translation, and Falconsai's NSFW classifier (MNN, 87 MB) on every picture; held-back pictures are never shown
+  - Advanced — size (384 or 512), pictures per tap, seed and keep-seed, and steps, guidance and negative prompt for the models that take them
+  - Import a converted model `RARE` — a zip or the five files of a bundle from tools/imagegen/convert_sd.py (any SD 1.x/2.x checkpoint, LCM and one-step models too); checked in the generator's process for loadable networks and matching shapes
+  - Native runtimes on their own gate — libwmimagegen (MNN 3.6.1, CPU only, every ABI) and libwmimagegen_qnn (arm64, opens Qualcomm's runtime by path); `imagegen` gate, `:feature:imagegen` on Play, MNN built from source on F-Droid
+  - Entry points — Sticker packs › Create stickers, a pack's Create from a prompt, and the sparkle chip beside + in the keyboard's My stickers
 - **Sticker editor** `RARE` — Crop, background removal and border for one sticker, all on the 512×512 canvas.
   - Four modes `RARE` — Crop (drag/pinch, 6× max zoom), Erase, Restore, Border.
     - Brush 8–96px with a preview ring — A ring the brush's size appears on mode switch or slider move and fades after 1.1s
@@ -2651,13 +2666,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Metered-connection confirmation above 500 MB
     - Orphan cleanup — directories left by models dropped from the catalog are reported with a one-tap Free up
   - Import your own model file `RARE` — any .litertlm or .task for LiteRT-LM, any GGUF for llama.cpp; a GGUF is told by its `GGUF` magic, so a file that lost its extension imports and gets `.gguf` back; Storage › Import files does the same and checks a catalog GGUF against its SHA-256
-  - Compute backend choice `RARE` — CPU (default) or GPU, plus NPU on SM8750 and SM8850 (issue #804)
+  - Compute backend choice `RARE` — CPU (default) or GPU, plus NPU on SM8750 and SM8850 (issue #804); SM8650's runtime is there for the sticker generator, with no AI model built for it yet
     - GPU failure falls back to CPU and is remembered per model file
     - NPU runs a model's ahead-of-time build for this chip — Gemma 3 1B and Gemma 3 270M have one; Download fetches it while Compute is NPU, a row offers the other build when Compute wants it
     - NPU falls back to the GPU, then the CPU — a model with no NPU build never tries it; a build that fails to start, or crashes the keyboard, stays off the NPU until a system or app update; a failed answer only for that session
-    - Qualcomm QNN runtime as compressed assets — LiteRT's dispatch library plus libQnnHtp, libQnnSystem and the V79/V81 stub and skel, about 14 MB instead of 50 as native libraries; unpacked into no-backup storage per app version
+    - Qualcomm QNN runtime as compressed assets — LiteRT's dispatch library plus libQnnHtp, libQnnSystem and the V75/V79/V81 stub and skel, about 14 MB instead of 50 as native libraries; unpacked into no-backup storage per app version
     - On Play the runtime is the on-demand :feature:npu split — requested when NPU is picked; until it arrives the model runs on the GPU or CPU
-    - GitHub edition: native delivery — Qualcomm's licence is accepted first (on the Compute row or Privacy › Downloads), then the shared QNN libraries and the chip's stub and skel are read out of qnn-runtime on Maven Central (gates npu and npu-V79/npu-V81)
+    - GitHub edition: native delivery — Qualcomm's licence is accepted first (on the Compute row or Privacy › Downloads), then the shared QNN libraries and the chip's stub and skel are read out of qnn-runtime on Maven Central (gates npu and npu-V75/npu-V79/npu-V81)
   - Context-window setting `RARE` — 5 presets 1024–16384 plus the model's own default; changing it reloads the model
     - No per-response ceiling on-device — the window bounds prompt and answer together
   - Engine lifecycle `RARE` — one cached engine rebuilt only when model file or backend changes

@@ -32,6 +32,9 @@
 #   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
 #   Document scanner    docscan-jni/build.sh      libwmdocscan.so
 #   (OpenCV)                                      (into core/intelligence/src/docscan/jniLibs)
+#   Sticker generator   imagegen-jni/build.sh     libwmimagegen.so
+#   (MNN)                                         (into core/intelligence/src/imagegen/jniLibs;
+#                                                 the NPU runner is never F-Droid's)
 #
 # libwmsherpa and libwmxlit are linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -98,3 +101,4 @@ fi
 "$HERE/zinnia-jni/build.sh"
 "$HERE/llamacpp-jni/build.sh"
 "$HERE/docscan-jni/build.sh"
+"$HERE/imagegen-jni/build.sh"

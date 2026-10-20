@@ -229,6 +229,25 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 
 The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP, KleidiCV or any other accelerator that downloads a binary at configure time. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
 
+## Rebuilding the sticker generator's libraries
+
+The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with only its CPU backend, under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-jni/build.sh
+```
+
+The build leaves out everything that downloads at configure time (KleidiAI), float16 kernels (never used: MNN's float16 path gives a wrong UNet output) and transformer fusion (it changes what a one-step model draws). `native/imagegen-jni/desktop/check.sh <bundle>` builds the same `imagegen.cpp` for the computer and compares each network's output with MNN's Python bindings on one model bundle.
+
+`libwmimagegen_qnn.so`, from `native/imagegen-qnn/`, runs Qualcomm AI Hub's Stable Diffusion context binaries on the Snapdragon NPU. It links nothing of Qualcomm's: it opens `libQnnHtp.so` and `libQnnSystem.so` by path from the directory the app's NPU runtime unpacks them into. It is compiled against the QNN API headers, which carry Qualcomm's notice, so `build.sh` fetches them from Qualcomm's own `geniex-qairt-plugin` repository at a pinned commit and never commits them; the library itself is arm64 only, sits under `core/intelligence/src/imagegennpu/jniLibs/`, rides the `imagegen` gate and split, and is left out of the F-Droid build with the rest of the NPU runtime.
+
+```sh
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/imagegen-qnn/build.sh
+```
+
+`tools/imagegen/convert_sd.py` turns a Stable Diffusion 1.x or 2.x checkpoint into the bundle the app imports; see [Importing a model](/emoji/sticker-generator/#importing-a-model).
+
 ## Running static analysis
 
 ```sh
