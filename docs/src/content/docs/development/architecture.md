@@ -200,6 +200,36 @@ own edge labels instead of an ASCII table. Learning is skipped for secure
 fields and in incognito mode. Everything is JSON on private storage, with
 one-tap clearing.
 
+### The native engine and the move to Rust
+
+Prediction is moving into `native/wm-engine`, the Rust crate that already
+holds the phonetic engines, so the phone and WMK Desktop run one
+implementation. The order and the rules are in `native/RUST_NEON_PLAN.md`:
+leaves first (the dictionary and n-gram readers, then the correction walk,
+the learning stores and the glide decoders), with `SuggestionEngine`'s
+orchestration staying in Kotlin. Each piece keeps its Kotlin copy until a
+parity test shows the Rust one gives identical output on the real
+dictionaries and the eval sets; then the Kotlin copy is deleted.
+
+`NativeEngine` (`core/language`, package `core.engine`) loads
+libwm_engine_jni once for every class that calls into it, on a device and in
+a JVM test alike. While a piece has both implementations, it asks
+`NativeEngine.useNative` which to run. The "Native prediction engine" setting
+(Typing, Automatic corrections) sets `NativeEngine.forceKotlin`, which turns
+the Rust side off for all of them at the next keystroke and pins the SIMD
+kernels to their scalar references. Tests and evals do the same with
+`WM_NATIVE=kotlin` in the environment.
+
+On the Rust side, `wm-engine`'s `kernels` module holds the data-parallel
+loops. Each has a scalar reference, an aarch64 NEON version on the stable
+intrinsics, and a dispatcher that reads the CPU features once at run time
+(`dotprod` and `fp16` are optional extensions), with a test comparing every
+SIMD version against the reference. In `wm-engine-jni`, every entry point
+runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
+exception instead of killing the keyboard. Data that outlives a call, such as
+a mapped dictionary, stays in Rust behind a `handles::Registry` handle.
+Calls are batched, one crossing per query or per array.
+
 ### Emoji search
 
 The catalog is a TSV asset (`emoji/catalog.tsv`) with English and Bangla

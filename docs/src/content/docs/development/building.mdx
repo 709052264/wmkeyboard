@@ -102,6 +102,8 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/wm-engine-jni/build.sh
 
 The JVM unit tests load a host build of the same library instead, which the Gradle test tasks of `:core:language` and `:app` make first through `native/wm-engine-jni/build-host.sh` (plain `cargo build --release`). That is the one place the Gradle build needs Rust: `cargo` on the PATH, or in `~/.cargo/bin`. The engines' own tests run with `cargo test` in `native/wm-engine`; see [testing](/development/testing/).
 
+The same library is where prediction is moving and where the SIMD kernels live (see [architecture](/development/architecture/)). Kernels use the stable `core::arch::aarch64` NEON intrinsics, so the pinned toolchain needs no nightly features. On arm64 the NEON paths run on the host too: an Apple silicon Mac checks them with `cargo test`, which compares each one against its scalar reference.
+
 ## Rebuilding the native grammar engine
 
 Both editions ship the grammar checker's native library.

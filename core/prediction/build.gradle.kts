@@ -69,6 +69,11 @@ kotlin {
     }
 }
 
+// Prediction is moving into the Rust engine (native/RUST_NEON_PLAN.md), so a
+// JVM test here reaches libwm_engine_jni through NativeEngine like :app's
+// do: the host build comes first. See the comment on the task in :core:language.
+tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }
+
 dependencies {
     api(project(":core:language"))
     api(project(":core:common"))

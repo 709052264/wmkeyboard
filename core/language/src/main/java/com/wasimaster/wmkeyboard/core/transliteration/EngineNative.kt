@@ -1,6 +1,6 @@
 package com.wasimaster.wmkeyboard.core.transliteration
 
-import java.io.File
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 
 /**
  * JNI surface of the text engines: libwm_engine_jni, built from
@@ -10,73 +10,15 @@ import java.io.File
  * [BijoyAnsi] and the rest) are facades over these calls and keep the
  * signatures the rest of the app always had.
  *
- * On a device the library is in the base APK, so `System.loadLibrary` finds
- * it. In a JVM unit test it is the host build `native/wm-engine-jni/build-host.sh`
- * makes, found by walking up from the test's working directory to
- * `settings.gradle.kts`; the Gradle test tasks of the modules that touch the
- * engine run that script first. `-Dwmkeyboard.engine.lib=<path>` or
- * `WM_ENGINE_LIB` name a library outright.
+ * [NativeEngine] loads the library, on a device and in a JVM test alike.
  *
  * Strings cross as they are; enums cross as ordinals in declaration order,
  * which the Rust side mirrors, so neither enum may be reordered on its own.
  * A panic inside an engine comes back as a [RuntimeException].
  */
 internal object EngineNative {
-    const val LIBRARY = "wm_engine_jni"
-
     init {
-        load()
-    }
-
-    private fun load() {
-        val explicit = System.getProperty("wmkeyboard.engine.lib") ?: System.getenv("WM_ENGINE_LIB")
-        if (!explicit.isNullOrEmpty()) {
-            System.load(explicit)
-            return
-        }
-        // ART reports itself as Dalvik; Robolectric runs on a desktop JVM.
-        if (System.getProperty("java.vm.name") == "Dalvik") {
-            System.loadLibrary(LIBRARY)
-            return
-        }
-        val host = hostLibrary() ?: error(
-            "libwm_engine_jni is not built for this machine: run native/wm-engine-jni/build-host.sh " +
-                "(needs cargo), or point -Dwmkeyboard.engine.lib at a build of it",
-        )
-        System.load(privateCopy(host).absolutePath)
-    }
-
-    /**
-     * A copy of [library] for this class loader alone. A JVM binds a native
-     * library to the first class loader that loads its path, and Robolectric
-     * gives every sandbox a loader of its own, so a second test class in the
-     * same JVM failed with "already loaded in another classloader". A copy
-     * at a fresh path is a fresh library to the JVM.
-     */
-    private fun privateCopy(library: File): File {
-        val copy = File.createTempFile("wm_engine_jni", "." + library.extension)
-        copy.deleteOnExit()
-        library.copyTo(copy, overwrite = true)
-        return copy
-    }
-
-    /** The host build under the repo's `native/wm-engine-jni/target`, release first. */
-    private fun hostLibrary(): File? {
-        val names = listOf("libwm_engine_jni.dylib", "libwm_engine_jni.so", "wm_engine_jni.dll")
-        var dir: File? = File("").absoluteFile
-        while (dir != null) {
-            if (File(dir, "settings.gradle.kts").isFile) {
-                for (profile in listOf("release", "debug")) {
-                    for (name in names) {
-                        val file = File(dir, "native/wm-engine-jni/target/$profile/$name")
-                        if (file.isFile) return file
-                    }
-                }
-                return null
-            }
-            dir = dir.parentFile
-        }
-        return null
+        NativeEngine.requireLoaded()
     }
 
     // Phonetic engines.

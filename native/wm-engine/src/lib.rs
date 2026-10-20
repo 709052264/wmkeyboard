@@ -51,6 +51,10 @@
 //!   Jyutping and Japanese romaji/kana conversion over one lattice decoder,
 //!   with the Simplified → Traditional tables and the user's pick history.
 //!
+//! - [`kernels`]: the data-parallel loops, each a scalar reference plus an
+//!   aarch64 NEON version picked at run time, with the parity tests between
+//!   them.
+//!
 //! Still Kotlin: Avro's dictionary walk, the phonetic strips, touch scoring
 //! and glide.
 //!
@@ -83,7 +87,9 @@ pub mod indic;
 pub mod indic_index;
 pub mod indic_profiles;
 pub mod indic_script;
+pub mod java_heap;
 pub mod kannada;
+pub mod kernels;
 pub mod khipro;
 pub mod khipro_romanizer;
 pub mod language_mix;

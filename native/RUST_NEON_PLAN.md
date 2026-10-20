@@ -31,6 +31,73 @@ per keystroke, stays in Kotlin unless Phase 2 moves it for desktop sharing.
 
 Status: not started.
 
+## Shared infrastructure
+
+Built first in Phase 2 (step 0), used by every Phase 1 kernel and every
+Phase 2 port. Status: done.
+
+**Kernels** live in `wm-engine/src/kernels/`, one file per kernel family
+(`dot.rs` is the first: `dot_f32`, `dot_rows_f32`, `dot_i8`). Each kernel has:
+
+- `scalar::name`, the reference: plain Rust, the definition of the result.
+  x86_64 and armv7 run it.
+- `neon::name` (and `dotprod::name`, `fp16::name` for the optional armv8.2
+  extensions): `#[target_feature(enable = ...)]` over stable
+  `core::arch::aarch64` intrinsics. `dotprod` and `fp16` are stable in the
+  pinned 1.98.1.
+- `name`, the dispatcher: asks `kernels::active()` and falls back to the
+  reference.
+- Tests comparing every SIMD version with the reference on seeded inputs
+  (`kernels::testing::Rng`) over `testing::LENGTHS`, which covers every
+  tail length, within a tolerance the file states. Integer kernels are exact.
+
+`kernels::detected()` probes once with `is_aarch64_feature_detected!`.
+`kernels::set_force_scalar` pins every kernel to its reference.
+
+**Parity helper**: `wm-engine/src/java_heap.rs` is a binary heap that pops
+in exactly `java.util.PriorityQueue`'s order, ties included (a
+transcription of OpenJDK's sift steps, checked against orders recorded on a
+JVM). The Kotlin walks order their frontiers by score alone, so equal scores
+come out in heap order; a Rust port that must match them line for line uses
+this instead of `std::collections::BinaryHeap`.
+
+**JNI** (`wm-engine-jni`), one module per Kotlin class:
+
+- `guard.rs`: `guarded` (every entry point's body runs in it: a panic is a
+  `RuntimeException` in Kotlin), `read_units`/`give_units` (strings as
+  UTF-16, lone surrogates intact, no modified-UTF-8 round trip),
+  `with_critical` (a primitive array pinned for a closure that makes no JNI
+  call), `give_ints`, `give_all_units`, `throw_state`.
+- `handles.rs`: `Registry<T>`, Rust objects behind `long` handles that are
+  never reused. Each call clones the `Arc`, so closing a handle while
+  another thread is mid-call cannot free what it reads; a closed handle
+  throws `IllegalStateException`.
+- `kernels.rs`: `NativeEngine.nativeCpuFeatures`, `setForceScalar`,
+  `nativeDotRows` (one query against a row-major matrix in one crossing:
+  the shape `VectorIndex.score` needs).
+
+**Kotlin**: `NativeEngine` (`core/language`, `core.engine`) loads the
+library once for every bridge (`EngineNative` now goes through it) and
+holds the switch. `NativeEngine.useNative` is what a migrated piece checks;
+`forceKotlin` turns every Rust path off and pins the kernels to scalar. It
+is set by the "Native prediction engine" setting (`suggestionStrip.nativePrediction`,
+Typing > Automatic corrections, default on; the IME pushes it on every
+settings change) and defaults from `WM_NATIVE=kotlin` (or
+`-Dwmkeyboard.native=kotlin` for a JVM started by hand), which is how the
+parity tests and evals run the Kotlin side.
+
+**Host builds**: every test task that can reach the library depends on
+`:core:language:buildHostEngine` (`build-host.sh`), now including
+`:core:prediction`'s. CI's unit-test job runs those tasks with the runner's
+cargo and caches the build (`Swatinem/rust-cache`), so `unitTests` and the
+glide and prediction evals load the real Rust code.
+
+**Adding a kernel**: a file under `kernels/` in the shape above, an entry
+point in `wm-engine-jni/src/kernels.rs` that pins its arrays with
+`with_critical`, a `NativeEngine` method that checks `useNative` (or
+`requireLoaded` when it has no Kotlin fallback), then rebuild the `.so`s
+with `build.sh` and report the size change.
+
 ## Phase 1: NEON kernels
 
 | Kernel | Today | Expected gain |
@@ -65,7 +132,9 @@ Status: not started.
   to an on-demand gate. Typing cannot wait for a download.
 - **NEON:** stable `core::arch::aarch64` intrinsics, not nightly `std::simd`.
   Runtime detection (`is_aarch64_feature_detected!`) for `dotprod` and `fp16`.
-  armv7 uses NEON as baseline; x86_64 and anything else get the scalar path.
+  armv7's NEON intrinsics are unstable in Rust, so armv7 runs the scalar
+  reference (built with the target's `+neon`, which LLVM may vectorise);
+  x86_64 and anything else get the scalar path too.
   Every kernel keeps a scalar reference implementation and a test comparing
   the two within a stated tolerance.
 - **JNI:** batch work per call, never one crossing per element. Primitive

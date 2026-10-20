@@ -93,6 +93,10 @@ cargo test
 
 Every phonetic engine, Khipro against its four upstream conformance tables, Bijoy ANSI for all three encodings, the grapheme helpers, the romanizers, the key maps and the word-list folds: 290 cases, mirrored from the Kotlin suites the package carried before the port. The JVM side keeps one smoke test, `EngineNativeTest` in `:core:language`, that calls each bridge entry point once to check that the library loads, that strings cross intact and that the enums' ordinals line up. A Khipro failure against a table is a disagreement with upstream: fix the interpreter, never the table.
 
+The same crate holds the SIMD kernels under `src/kernels/`. Each kernel's tests compare its NEON version against its scalar reference on seeded random inputs, over lengths that hit every tail case, within a tolerance the kernel states (exact for integer kernels). They run on an arm64 machine; elsewhere only the reference is built. `NativeEngineTest` in `:core:language` checks the shared bridge plumbing from the JVM: the library loads, the switch turns the fast path off and on, and a batched kernel call crosses arrays both ways.
+
+Prediction code that has both a Kotlin and a Rust implementation is compared by parity tests in `:app` that run both on the same input. To run any suite or eval on the Kotlin side alone, set `WM_NATIVE=kotlin` in the environment of the Gradle command. A `-Dwmkeyboard.native=kotlin` on the Gradle command line does not reach the forked test JVM; it works only for a test started some other way.
+
 The offline grammar tool is backed by a Rust crate (`native/harper-jni`, wrapping [Harper](https://github.com/automattic/harper)'s `harper-core`), and it carries its own host-side test suite, independent of Gradle:
 
 ```sh

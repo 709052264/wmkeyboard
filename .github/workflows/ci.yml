@@ -38,6 +38,15 @@ jobs:
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
+      # The test tasks build native/wm-engine-jni for this runner first
+      # (build-host.sh), so the JVM suites and the prediction and glide evals
+      # run the real Rust engine. The runner image has cargo; this keeps its
+      # build between runs.
+      - name: Cache the Rust engine's host build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: native/wm-engine-jni
+
       - name: Run unit tests
         # `unitTests` and not a bare testIntlDebugUnitTest: :app carries the
         # `languages` flavour and the library modules do not, so no single
