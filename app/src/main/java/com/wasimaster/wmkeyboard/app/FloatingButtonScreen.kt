@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.provider.Settings
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +50,7 @@ import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.fitsMenu
+import com.wasimaster.wmkeyboard.core.settings.gestureActions
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.readsScreen
 import com.wasimaster.wmkeyboard.ime.KeyboardControls
@@ -67,7 +69,7 @@ import kotlinx.coroutines.launch
 internal const val FloatingButtonRoute = "floating_button"
 
 /** Which gesture a picker is choosing for, or the quick menu's add. */
-private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, MENU_ADD }
+private enum class FloatingPick { TAP, DOUBLE_TAP, HOLD, TAP_TYPING, DOUBLE_TAP_TYPING, MENU_ADD }
 
 /**
  * Advanced › Floating button (#755): the one button over other apps that the
@@ -95,7 +97,7 @@ internal fun FloatingButtonSettingsScreen(
     val defaults = SettingsDefaults.summonButton
     val percentFormat = stringResource(R.string.typing_value_percent)
     val dpFormat = stringResource(R.string.typing_value_dp)
-    val menuOpens = FloatingAction.Menu in listOf(button.tap, button.doubleTap, button.hold)
+    val menuOpens = FloatingAction.Menu in button.gestureActions()
 
     SettingsGroup {
         item { FloatingButtonPreview(button) }
@@ -148,6 +150,32 @@ internal fun FloatingButtonSettingsScreen(
             NavRow(R.string.floating_button_hold_title, value = floatingActionLabel(button.hold)) {
                 picking = FloatingPick.HOLD
             }
+        }
+    }
+
+    // The same two gestures with the keyboard up (#626): one tap opens the
+    // keyboard, the next does something else, such as leaving the field.
+    // Only while the button stays on screen over the keyboard.
+    SettingsGroup(
+        stringResource(R.string.floating_button_typing_group),
+        info = stringResource(R.string.floating_button_typing_info),
+    ) {
+        item(visible = button.whileTyping) {
+            NavRow(
+                R.string.floating_button_tap_typing_title,
+                value = button.tapTyping?.let { floatingActionLabel(it, keyboardUp = true) }
+                    ?: stringResource(R.string.floating_button_same_as, stringResource(R.string.floating_button_tap_title)),
+            ) { picking = FloatingPick.TAP_TYPING }
+        }
+        item(visible = button.whileTyping) {
+            NavRow(
+                R.string.floating_button_double_tap_typing_title,
+                value = button.doubleTapTyping?.let { floatingActionLabel(it, keyboardUp = true) }
+                    ?: stringResource(
+                        R.string.floating_button_same_as,
+                        stringResource(R.string.floating_button_double_tap_title),
+                    ),
+            ) { picking = FloatingPick.DOUBLE_TAP_TYPING }
         }
     }
 
@@ -295,6 +323,8 @@ internal fun FloatingButtonSettingsScreen(
             FloatingPick.TAP -> R.string.floating_button_tap_title
             FloatingPick.DOUBLE_TAP -> R.string.floating_button_double_tap_title
             FloatingPick.HOLD -> R.string.floating_button_hold_title
+            FloatingPick.TAP_TYPING -> R.string.floating_button_tap_typing_title
+            FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_typing_title
             FloatingPick.MENU_ADD -> 0
         }
         FloatingActionPicker(
@@ -307,19 +337,31 @@ internal fun FloatingButtonSettingsScreen(
                 FloatingPick.TAP -> button.tap
                 FloatingPick.DOUBLE_TAP -> button.doubleTap
                 FloatingPick.HOLD -> button.hold
+                FloatingPick.TAP_TYPING -> button.tapTyping
+                FloatingPick.DOUBLE_TAP_TYPING -> button.doubleTapTyping
                 FloatingPick.MENU_ADD -> null
             },
+            sameAs = when (pick) {
+                FloatingPick.TAP_TYPING -> R.string.floating_button_tap_title
+                FloatingPick.DOUBLE_TAP_TYPING -> R.string.floating_button_double_tap_title
+                else -> null
+            },
+            keyboardUp = pick == FloatingPick.TAP_TYPING || pick == FloatingPick.DOUBLE_TAP_TYPING,
             forMenu = pick == FloatingPick.MENU_ADD,
             already = if (pick == FloatingPick.MENU_ADD) button.menu.toSet() else emptySet(),
             onDismiss = done,
             onPick = { action ->
                 done()
                 scope.launch {
-                    when (pick) {
-                        FloatingPick.TAP -> repository.setFloatingButtonTap(action)
-                        FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
-                        FloatingPick.HOLD -> repository.setFloatingButtonHold(action)
-                        FloatingPick.MENU_ADD -> repository.setFloatingButtonMenu(button.menu + action)
+                    // Only the keyboard-up gestures offer "Same as", the one null.
+                    when {
+                        pick == FloatingPick.TAP_TYPING -> repository.setFloatingButtonTapTyping(action)
+                        pick == FloatingPick.DOUBLE_TAP_TYPING -> repository.setFloatingButtonDoubleTapTyping(action)
+                        action == null -> Unit
+                        pick == FloatingPick.TAP -> repository.setFloatingButtonTap(action)
+                        pick == FloatingPick.DOUBLE_TAP -> repository.setFloatingButtonDoubleTap(action)
+                        pick == FloatingPick.HOLD -> repository.setFloatingButtonHold(action)
+                        else -> repository.setFloatingButtonMenu(button.menu + action)
                     }
                 }
             },
@@ -343,7 +385,7 @@ private fun styleLabel(style: FloatingButtonStyle): Int = when (style) {
 private fun FloatingButtonPreview(button: SummonButtonSettings) {
     val density = LocalDensity.current
     val colors = MaterialTheme.colorScheme
-    val slots = button.menu.takeIf { FloatingAction.Menu in listOf(button.tap, button.doubleTap, button.hold) }
+    val slots = button.menu.takeIf { FloatingAction.Menu in button.gestureActions() }
         .orEmpty()
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
         BoxWithConstraints(
@@ -467,7 +509,8 @@ private fun FloatingMenuEditor(items: List<FloatingAction>, onChange: (List<Floa
  * Picks what a gesture does, or what the quick menu gains: the button's own
  * actions first, then every tool, grouped as the Tools screen groups them.
  * [forMenu] leaves out what a menu slot cannot be ([fitsMenu]) and what the
- * menu [already] holds.
+ * menu [already] holds. With [sameAs], a keyboard-up gesture's picker (#626),
+ * the first row hands the gesture back to the one it names, as null.
  */
 @Composable
 private fun FloatingActionPicker(
@@ -476,7 +519,9 @@ private fun FloatingActionPicker(
     forMenu: Boolean,
     already: Set<FloatingAction>,
     onDismiss: () -> Unit,
-    onPick: (FloatingAction) -> Unit,
+    onPick: (FloatingAction?) -> Unit,
+    @StringRes sameAs: Int? = null,
+    keyboardUp: Boolean = false,
 ) {
     fun offered(action: FloatingAction) = (!forMenu || action.fitsMenu()) && action !in already
     val own = listOf(
@@ -489,10 +534,19 @@ private fun FloatingActionPicker(
     ).filter { (action, _) -> offered(action) }
         // Look up reads the screen, which the Play build cannot (#765).
         .filter { (action, _) -> action != FloatingAction.LookUp || ChannelFeatures.SCREEN_CONTEXT }
-    val ownRows = own.map { (action, subtitle) ->
+    val sameRow = sameAs?.let { gesture ->
+        PickerRow(
+            key = "same",
+            title = stringResource(R.string.floating_button_same_as, stringResource(gesture)),
+            subtitle = stringResource(R.string.floating_button_pick_same_subtitle),
+            selected = current == null,
+            onPick = { onPick(null) },
+        )
+    }
+    val ownRows = listOfNotNull(sameRow) + own.map { (action, subtitle) ->
         PickerRow(
             key = action.token,
-            title = floatingActionLabel(action),
+            title = floatingActionLabel(action, keyboardUp),
             subtitle = stringResource(subtitle),
             selected = current == action,
             leading = { Icon(floatingActionIcon(action), contentDescription = null) },

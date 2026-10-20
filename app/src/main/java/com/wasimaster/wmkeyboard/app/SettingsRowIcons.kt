@@ -749,6 +749,8 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
+        put(R.string.floating_button_tap_typing_title) { Icons.Outlined.TouchApp }
+        put(R.string.floating_button_double_tap_typing_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_menu_unreached_title) { Icons.Outlined.Apps }
         put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }

@@ -574,6 +574,8 @@
   {"title":"Tap","name":"floating_button_tap_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false},
   {"title":"Double tap","name":"floating_button_double_tap_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false},
   {"title":"Press and hold","name":"floating_button_hold_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false},
+  {"title":"Tap while open","name":"floating_button_tap_typing_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false},
+  {"title":"Double tap while open","name":"floating_button_double_tap_typing_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false},
   {"title":"Add an action","name":"floating_button_menu_add_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false,"description":"Up to %1$d actions"},
   {"title":"Show names","name":"floating_button_menu_labels_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false,"description":"Each action's name under its icon. Off, only the one under your finger is named"},
   {"title":"Reset the menu","name":"floating_button_menu_reset_title","route":"floating_button","screens":["Advanced","Floating button"],"screen":false,"description":"Voice typing, Ask AI, clipboard, emoji and the keyboard"},

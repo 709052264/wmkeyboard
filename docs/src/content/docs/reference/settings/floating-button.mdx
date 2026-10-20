@@ -25,6 +25,8 @@ A preview heads the screen: a sketch of a phone with the button on the side it r
 | Tap | Action | **Show keyboard** |
 | Double tap | Action | **Nothing** |
 | Press and hold | Action | **Quick menu** |
+| Tap while open *(shown only while Show while typing is on)* | Action | **Same as Tap** |
+| Double tap while open *(shown only while Show while typing is on)* | Action | **Same as Double tap** |
 | Quick menu | List of up to 8 actions | Voice, Ask AI about this screen, Clipboard, Emoji, Show keyboard |
 | Show names | Toggle | On |
 | Colours | Choice of 4 | **Auto** |
@@ -56,6 +58,16 @@ After those, every tool from the toolbar, grouped the way the Tools screen group
 The button's icon is the icon of whatever **Tap** does.
 
 With **Double tap** set to anything but **Nothing**, a single tap waits a moment before it runs, to be sure no second tap is coming. That wait is the reason it's off by default.
+
+### While the keyboard is open
+
+**Tap while open** and **Double tap while open** are the same two gestures for when the keyboard is on screen. Left at **Same as Tap** and **Same as Double tap**, they do whatever **Tap** and **Double tap** do. Pick something else and the button does that instead whenever the keyboard is open, so **Tap** can stay on **Show keyboard** and one tap brings the keyboard up while the next does something else. The button's icon follows: with the keyboard open it shows the icon of **Tap while open**. A double tap set only here doesn't make a tap with the keyboard closed wait. The two rows are shown only while **Show while typing** is on, since otherwise the button isn't there while you type.
+
+### Leaving a text field
+
+Android gives a keyboard no way to take the focus away from another app's text field. Closing the keyboard leaves the cursor blinking in it, and Back often takes several presses to get out. **Leave field** gets out in the apps that answer the Esc key, which include browsers' address bars: it presses Esc, closes the keyboard, and presses Esc a second time a moment later if the field still has the focus, because an address bar takes one Esc to drop its suggestions and another to let go. It's an action rather than a tool, so it's under **Other** in the list, not on the toolbar.
+
+Set **Tap while open** to **Leave field** and the button opens the keyboard with one tap and takes you out of the field with the next, even with the clipboard or another panel open. Apps that ignore Esc keep the cursor in the field, but the keyboard still closes. You can also bind **Leave field** to a flick or a key's long press.
 
 ## Quick menu
 

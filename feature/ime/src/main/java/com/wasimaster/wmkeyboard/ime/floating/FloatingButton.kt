@@ -29,6 +29,9 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
+import com.wasimaster.wmkeyboard.core.settings.doubleTapFor
+import com.wasimaster.wmkeyboard.core.settings.gestureActions
+import com.wasimaster.wmkeyboard.core.settings.tapFor
 import com.wasimaster.wmkeyboard.ime.KeyboardViewLifecycleOwner
 import com.wasimaster.wmkeyboard.ime.R
 import kotlin.math.abs
@@ -146,8 +149,8 @@ internal class FloatingButton(
         val resized = setting.sizeDp != this.setting.sizeDp
         this.setting = setting
         this.keyboardUp = keyboardUp
-        face.icon = floatingActionIcon(setting.tap, keyboardUp)
-        face.label = context.getString(floatingActionLabelRes(setting.tap, keyboardUp))
+        face.icon = floatingActionIcon(setting.tapFor(keyboardUp), keyboardUp)
+        face.label = context.getString(floatingActionLabelRes(setting.tapFor(keyboardUp), keyboardUp))
         face.style = setting.style
         face.sizeDp = setting.sizeDp
         menu.style = setting.style
@@ -706,7 +709,7 @@ internal class FloatingButton(
 
         private val singleTap = Runnable {
             pendingTap = false
-            fire(setting.tap)
+            fire(setting.tapFor(keyboardUp))
         }
 
         init {
@@ -803,17 +806,24 @@ internal class FloatingButton(
             return true
         }
 
+        /**
+         * A tap, or the second of a double tap. Both read the keyboard-up
+         * bindings while the keyboard is up (#626), so a double tap bound only
+         * there leaves a tap with the keyboard down as quick as one with no
+         * double tap at all.
+         */
         private fun tap() {
-            if (setting.doubleTap == FloatingAction.None) {
+            val doubleTap = setting.doubleTapFor(keyboardUp)
+            if (doubleTap == FloatingAction.None) {
                 haptic(HapticFeedbackConstants.VIRTUAL_KEY)
-                fire(setting.tap)
+                fire(setting.tapFor(keyboardUp))
                 return
             }
             if (pendingTap) {
                 removeCallbacks(singleTap)
                 pendingTap = false
                 haptic(HapticFeedbackConstants.VIRTUAL_KEY)
-                fire(setting.doubleTap)
+                fire(doubleTap)
             } else {
                 pendingTap = true
                 haptic(HapticFeedbackConstants.VIRTUAL_KEY)
@@ -896,7 +906,7 @@ internal class FloatingButton(
 
         override fun performClick(): Boolean {
             super.performClick()
-            fire(setting.tap)
+            fire(setting.tapFor(keyboardUp))
             return true
         }
 
@@ -918,17 +928,18 @@ internal class FloatingButton(
                     ),
                 )
             }
-            if (setting.doubleTap != FloatingAction.None) {
+            val doubleTap = setting.doubleTapFor(keyboardUp)
+            if (doubleTap != FloatingAction.None) {
                 info.addAction(
                     AccessibilityNodeInfo.AccessibilityAction(
                         R.id.floating_button_action_double_tap,
-                        context.getString(floatingActionLabelRes(setting.doubleTap, keyboardUp)),
+                        context.getString(floatingActionLabelRes(doubleTap, keyboardUp)),
                     ),
                 )
             }
             // Every menu slot straight from the button: a slide is no way in
             // for someone exploring by touch.
-            if (FloatingAction.Menu in listOf(setting.tap, setting.doubleTap, setting.hold)) {
+            if (FloatingAction.Menu in setting.gestureActions()) {
                 setting.menu.take(slotActions.size).forEachIndexed { i, action ->
                     info.addAction(
                         AccessibilityNodeInfo.AccessibilityAction(
@@ -942,7 +953,7 @@ internal class FloatingButton(
 
         override fun performAccessibilityAction(action: Int, arguments: Bundle?): Boolean {
             if (action == R.id.floating_button_action_double_tap) {
-                fire(setting.doubleTap)
+                fire(setting.doubleTapFor(keyboardUp))
                 return true
             }
             val slot = slotActions.indexOf(action)

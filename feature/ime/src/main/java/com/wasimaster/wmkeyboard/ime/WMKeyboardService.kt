@@ -8135,6 +8135,40 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * The Leave field action (#626): out of the field, not only the keyboard
+     * down. Nothing lets a keyboard take another app's focus away, but an
+     * Esc does it in the apps that answer one. A browser's address bar takes
+     * two: the first drops its suggestions, the second the focus. So one Esc,
+     * the keyboard put away, and a second Esc a moment later only if a real
+     * field of the same app is still bound, so an app that already let go is
+     * not sent a stray Esc that could shut a dialog behind it.
+     */
+    fun onLeaveField() {
+        val ic = currentInputConnection
+        if (ic == null || isNullField()) {
+            requestHideSelf(0)
+            return
+        }
+        commitComposing(ic, autocorrect = false)
+        sendEscape(ic)
+        val app = currentInputEditorInfo?.packageName
+        requestHideSelf(0)
+        serviceScope.launch {
+            delay(LEAVE_FIELD_SECOND_ESC_MS)
+            val still = currentInputConnection ?: return@launch
+            if (currentInputStarted && !isNullField() && currentInputEditorInfo?.packageName == app) {
+                sendEscape(still)
+            }
+        }
+    }
+
+    private fun sendEscape(ic: InputConnection) {
+        val time = SystemClock.uptimeMillis()
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_ESCAPE, 0))
+        ic.sendKeyEvent(shortcutEvent(time, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_ESCAPE, 0))
+    }
+
+    /**
      * The window is on screen again: the composition takes new state from here
      * on, starting with everything it missed while it was away. Called from
      * both doors, onStartInputView and onWindowShown, because either can be
@@ -26274,6 +26308,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
+            ToolbarTool.LEAVE_FIELD -> onLeaveField()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -47532,11 +47567,19 @@ open class WMKeyboardService : InputMethodService() {
          */
         private const val FLOATING_TOOL_WAIT_MS = 3_000L
 
+        /**
+         * How long Leave field (#626) gives the app to act on its first Esc
+         * before checking whether the field is still there for a second.
+         */
+        private const val LEAVE_FIELD_SECOND_ESC_MS = 150L
+
         /** How often [watchKeyguard] asks whether the lock screen is still up (#793). */
         private const val KEYGUARD_POLL_MS = 400L
 
         /** Tools the floating button runs without bringing the keyboard up: they have no panel. */
-        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS)
+        // Leave field acts on the field the keyboard was put away from; bringing
+        // the keyboard up to then put it away again would be all flicker.
+        private val FloatingToolsWithoutKeyboard = setOf(ToolbarTool.SETTINGS, ToolbarTool.LEAVE_FIELD)
 
         /**
          * How many silent recognizer sessions in a row wind an open microphone

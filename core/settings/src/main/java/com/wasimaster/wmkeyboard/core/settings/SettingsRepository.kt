@@ -9514,6 +9514,8 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_TAP = stringPreferencesKey("floating_button_tap")
         private val FLOATING_BUTTON_DOUBLE_TAP = stringPreferencesKey("floating_button_double_tap")
         private val FLOATING_BUTTON_HOLD = stringPreferencesKey("floating_button_hold")
+        private val FLOATING_BUTTON_TAP_TYPING = stringPreferencesKey("floating_button_tap_typing")
+        private val FLOATING_BUTTON_DOUBLE_TAP_TYPING = stringPreferencesKey("floating_button_double_tap_typing")
         private val FLOATING_BUTTON_MENU = stringPreferencesKey("floating_button_menu")
         private val FLOATING_BUTTON_MENU_LABELS = booleanPreferencesKey("floating_button_menu_labels")
         private val FLOATING_BUTTON_SIZE = intPreferencesKey("floating_button_size")
@@ -15548,6 +15550,9 @@ class SettingsRepository(private val context: Context) {
                 ?: if (aiOnly) FloatingAction.AskAi else d.tap,
             doubleTap = p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse) ?: d.doubleTap,
             hold = p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse) ?: d.hold,
+            // Unset, or a token this build no longer knows: the same as with the keyboard down.
+            tapTyping = p[FLOATING_BUTTON_TAP_TYPING]?.let(FloatingAction::parse) ?: d.tapTyping,
+            doubleTapTyping = p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse) ?: d.doubleTapTyping,
             menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu,
             menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
@@ -15617,6 +15622,22 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setFloatingButtonHold(value: FloatingAction) =
         editFloatingButton { it[FLOATING_BUTTON_HOLD] = value.token }
+
+    /** The tap while the keyboard is up (#626); null goes back to the same as the tap. */
+    suspend fun setFloatingButtonTapTyping(value: FloatingAction?) =
+        editFloatingButton {
+            if (value == null) it.remove(FLOATING_BUTTON_TAP_TYPING) else it[FLOATING_BUTTON_TAP_TYPING] = value.token
+        }
+
+    /** The double tap while the keyboard is up; null goes back to the same as the double tap. */
+    suspend fun setFloatingButtonDoubleTapTyping(value: FloatingAction?) =
+        editFloatingButton {
+            if (value == null) {
+                it.remove(FLOATING_BUTTON_DOUBLE_TAP_TYPING)
+            } else {
+                it[FLOATING_BUTTON_DOUBLE_TAP_TYPING] = value.token
+            }
+        }
 
     /** The quick menu's slots; an empty list is kept as an empty menu, not the default one. */
     suspend fun setFloatingButtonMenu(value: List<FloatingAction>) =
