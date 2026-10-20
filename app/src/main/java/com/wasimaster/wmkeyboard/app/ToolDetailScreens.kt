@@ -127,8 +127,6 @@ import com.wasimaster.wmkeyboard.core.tools.typingConfigLanguage
 import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
-import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
-import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -2080,6 +2078,21 @@ internal fun ToolDetailSettings(
                             }
                         }
                     }
+                }
+            }
+            // Who translates, in order: on the device, the user's own server,
+            // DeepL, LibreTranslate, Google. The engine switch above decides
+            // which part of the list a translation asks. Each on-device
+            // engine's models, DeepL Write and Google's server address are on
+            // those providers' own screens.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.TRANSLATE,
+                info = stringResource(R.string.tooldetail_translate_providers_info),
+            )
+            if (onDevice) {
+                SettingsGroup(stringResource(R.string.tooldetail_advanced_group), foldKey = "translate_advanced") {
                     // Both shape the panel's language menus, and only mean
                     // something where models do; the subtitles say which
                     // engine each one works with.
@@ -2101,27 +2114,6 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            if (OnDeviceTranslator.AVAILABLE) TranslateModelManager(settings)
-            if (BergamotTranslator.available) BergamotModelManager(settings)
-            if (NllbTranslator.available) NllbModelManager(settings)
-            // Who translates, in order: on the device, the user's own server,
-            // DeepL, LibreTranslate, Google. The engine switch above decides
-            // which part of the list a translation asks.
-            ProvidersGroup(
-                repository,
-                settings,
-                ProviderTool.TRANSLATE,
-                info = stringResource(R.string.tooldetail_translate_providers_info),
-            )
-            if (BuildConfig.ENABLE_FDROID) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TRANSLATE_GOOGLE, ServiceEndpoint.TRANSLATE_CLOUD))
-                }
-            }
-            DeepLWriteSettingsGroup(repository, settings)
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
             // Who the panel asks: KLIPY, GIPHY, Commons or another wiki,
@@ -3813,7 +3805,7 @@ private fun ToolKeywordSetting(
  * besides translating.
  */
 @Composable
-private fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+internal fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val defaults = SettingsDefaults.translate.deepl
     // What decides which rows the group holds; each row reads its own value.

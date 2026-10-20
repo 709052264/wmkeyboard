@@ -1714,7 +1714,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.providers_add_subtitle,
         keywords = R.string.search_kw_translate_server,
     ),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_deepl_write_title, R.string.tooldetail_deepl_write_subtitle),
+    providerEntry(ProviderTool.TRANSLATE, ProviderTypes.DEEPL, R.string.tooldetail_deepl_write_title, R.string.tooldetail_deepl_write_subtitle),
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */
@@ -1997,11 +1997,12 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
             ),
         ) + listOfNotNull(
             // Each engine's model list is drawn only where that engine runs.
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_models_group)
+            // On each engine's own screen, opened from its row on the list.
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.ML_KIT, R.string.tooldetail_translate_models_group)
                 .takeIf { OnDeviceTranslator.AVAILABLE },
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_bergamot_group)
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.BERGAMOT, R.string.tooldetail_translate_bergamot_group)
                 .takeIf { BergamotTranslator.available },
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_nllb_group)
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.NLLB, R.string.tooldetail_translate_nllb_group)
                 .takeIf { NllbTranslator.available },
         )
     }

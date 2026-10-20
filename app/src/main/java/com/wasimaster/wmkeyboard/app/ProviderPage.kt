@@ -25,6 +25,9 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
+import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
+import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
@@ -325,6 +328,11 @@ internal fun ProviderOwnSettings(
         ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id,
         -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let { EtModelManager(it, settings) }
         ProviderTypes.TRANSCRIPTION_SERVER.id -> VoiceServerSettings(repository, settings)
+        // ---- Translate: the model lists that sat above the list, and DeepL's own use besides translating.
+        ProviderTypes.ML_KIT.id -> if (OnDeviceTranslator.AVAILABLE) TranslateModelManager(settings)
+        ProviderTypes.BERGAMOT.id -> if (BergamotTranslator.available) BergamotModelManager(settings)
+        ProviderTypes.NLLB.id -> if (NllbTranslator.available) NllbModelManager(settings)
+        ProviderTypes.DEEPL.id -> DeepLWriteSettingsGroup(repository, settings)
         else -> Unit
     }
 }
