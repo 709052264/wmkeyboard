@@ -8,7 +8,6 @@ import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
-import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -18,41 +17,12 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * Play-channel delivery of the on-demand modules that share one gate type:
- * `:feature:litert`, `:feature:handwriting`, `:feature:speech` (the
- * whisper.cpp, Whistle and RNNoise libraries), `:feature:executorch` (the
- * ExecuTorch runtime), `:feature:onnx` (ONNX Runtime and the sherpa-onnx
- * bridge), `:feature:grammar` (Harper), `:feature:spell` (Hunspell),
- * `:feature:ocr` (Tesseract), `:feature:rime` (librime), `:feature:mozc`
- * (Mozc), `:feature:bergamot` (Mozilla's translator), `:feature:ct2`
- * (CTranslate2, for the NLLB translator), `:feature:zinnia` (the offline
- * Chinese and Japanese handwriting recogniser), `:feature:llama`
- * (llama.cpp, for GGUF models), `:feature:docscan` (the built-in document
- * scanner) and `:feature:npu` (the Qualcomm NPU runtime,
- * when the build has it).
- * This directory replaces
- * `src/noplay/java` when `wmkb.enablePlayStore` is on, the same seam as
- * LlmDelivery and TranslateDelivery beside it, and each module here is
- * driven exactly the way TranslateDelivery drives its own.
+ * every gate of native/gates.json with a `FeatureModules` property and a Play
+ * module (`FeatureModules.playModules`), each a `:feature:<name>` split. This
+ * directory replaces `src/noplay/java` when `wmkb.enablePlayStore` is on, the
+ * same seam as LlmDelivery and TranslateDelivery beside it, and each module
+ * here is driven exactly the way TranslateDelivery drives its own.
  */
-
-/** The splits' names: the last segment of each `:feature:*` project path. */
-private const val LITERT_MODULE = "litert"
-private const val HANDWRITING_MODULE = "handwriting"
-private const val SPEECH_MODULE = "speech"
-private const val EXECUTORCH_MODULE = "executorch"
-private const val ONNX_MODULE = "onnx"
-private const val GRAMMAR_MODULE = "grammar"
-private const val SPELL_MODULE = "spell"
-private const val OCR_MODULE = "ocr"
-private const val RIME_MODULE = "rime"
-private const val MOZC_MODULE = "mozc"
-private const val BERGAMOT_MODULE = "bergamot"
-private const val CT2_MODULE = "ct2"
-private const val ZINNIA_MODULE = "zinnia"
-private const val LLAMA_MODULE = "llama"
-private const val DOCSCAN_MODULE = "docscan"
-private const val NPU_MODULE = "npu"
-private const val GOOGLE_HOME_MODULE = "googlehome"
 
 /**
  * Publishes a SplitInstall-backed gate for each module into [FeatureModules].
@@ -64,17 +34,12 @@ private const val GOOGLE_HOME_MODULE = "googlehome"
  */
 fun installOnDemandDelivery(app: Application) {
     val manager = SplitInstallManagerFactory.create(app)
-    // :feature:npu is in the bundle only when wmkb.enableNpu is on. Without
-    // it the gate stays the default, whose "installed" NpuRuntime then finds
-    // no assets behind, which reads as no NPU: never reached anyway, because
-    // NpuSupport offers no NPU when ENABLE_NPU is off.
-    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, EXECUTORCH_MODULE, ONNX_MODULE, GRAMMAR_MODULE, SPELL_MODULE, OCR_MODULE, RIME_MODULE, MOZC_MODULE, BERGAMOT_MODULE, CT2_MODULE, ZINNIA_MODULE, LLAMA_MODULE, DOCSCAN_MODULE) +
-        listOfNotNull(
-            NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU },
-            // In the bundle exactly when the build links the Home APIs.
-            GOOGLE_HOME_MODULE.takeIf { BuildConfig.ENABLE_GOOGLE_HOME },
-        )
-    val gates = modules.associateWith { PlayModuleGate(manager, it) }
+    // A module switched off in this build is not in the bundle: :feature:npu
+    // without wmkb.enableNpu, :feature:googlehome unless the build links the
+    // Home APIs. Its gate stays the default; for the NPU, the "installed"
+    // NpuRuntime then finds no assets behind, which reads as no NPU: never
+    // reached anyway, because NpuSupport offers no NPU when ENABLE_NPU is off.
+    val gates = FeatureModules.playModules.associateWith { PlayModuleGate(manager, it) }
     manager.registerListener { session: SplitInstallSessionState ->
         for (name in session.moduleNames()) gates[name]?.onSession(session)
         if (session.status() == SplitInstallSessionStatus.INSTALLED) {
@@ -83,29 +48,14 @@ fun installOnDemandDelivery(app: Application) {
             SplitCompat.install(app)
         }
     }
-    FeatureModules.litert = gates.getValue(LITERT_MODULE)
-    FeatureModules.handwriting = gates.getValue(HANDWRITING_MODULE)
-    FeatureModules.speech = gates.getValue(SPEECH_MODULE)
-    FeatureModules.executorch = gates.getValue(EXECUTORCH_MODULE)
-    FeatureModules.onnx = gates.getValue(ONNX_MODULE)
-    FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
-    FeatureModules.spell = gates.getValue(SPELL_MODULE)
-    FeatureModules.ocr = gates.getValue(OCR_MODULE)
-    FeatureModules.rime = gates.getValue(RIME_MODULE)
-    FeatureModules.mozc = gates.getValue(MOZC_MODULE)
-    FeatureModules.bergamot = gates.getValue(BERGAMOT_MODULE)
-    FeatureModules.ct2 = gates.getValue(CT2_MODULE)
-    FeatureModules.zinnia = gates.getValue(ZINNIA_MODULE)
-    FeatureModules.llama = gates.getValue(LLAMA_MODULE)
-    FeatureModules.docscan = gates.getValue(DOCSCAN_MODULE)
-    gates[NPU_MODULE]?.let { FeatureModules.npu = it }
-    gates[GOOGLE_HOME_MODULE]?.let { FeatureModules.googleHome = it }
+    for ((name, gate) in gates) FeatureModules.set(name, gate)
     // Licence agreements (FUTO Swipe's and NLLB's model weights) persist here too; Play
     // has no pins, so nothing else in NativeDelivery applies.
     NativeConsent.attach(app, needOptIn = false)
-    // The speech, executorch, onnx, grammar, spell, OCR, RIME, Mozc, Bergamot, CTranslate2, zinnia, llama and docscan splits hold bare native libraries for classes in
-    // the base. A split installed after this process started is not on the
-    // class loader's library path; SplitInstallHelper looks there as well.
+    // The library-only splits (`"play": "split"` in native/gates.json) hold
+    // bare native libraries for classes in the base. A split installed after
+    // this process started is not on the class loader's library path;
+    // SplitInstallHelper looks there as well.
     FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }
 }
 

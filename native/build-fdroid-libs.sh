@@ -1,37 +1,16 @@
 #!/usr/bin/env bash
 # Builds, from source, every native library F-Droid's build ships, into the
-# src/main/jniLibs directories of :core:language, :core:intelligence,
-# :core:prediction, :core:input and :core:voice:
+# jniLibs directories the app's modules package them from. Which libraries,
+# which script builds each and where it writes are native/gates.json: every
+# library there with an `fdroidBuild` script (the text engines' first, from
+# `base`, then each gate's in table order), each script run once.
 #
-#   Text engines        wm-engine-jni/build.sh    libwm_engine_jni.so
-#   Harper grammar      harper-jni/build.sh       libharper_jni.so
-#   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
-#   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
-#   Moonshine, FUTO                                (into core/voice/src/executorch/jniLibs)
-#   Swipe glide
-#   Noise reduction     rnnoise-jni/build.sh      libwmdenoise.so
-#   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
-#   Neural suggestions  indicxlit-jni/build.sh    libwmxlit.so
-#   (IndicXlit)                                    (both into core/voice/src/onnx/jniLibs)
-#   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
-#   GiellaLT spellers   divvunspell-jni/build.sh  libwmdivvun.so
-#   Voikko (Finnish)    voikko-jni/build.sh       libwmvoikko.so
-#                       (into native/voikko-jni/jniLibs, which no APK
-#                       packages: pinned for download only)
-#   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
-#   Mozc (Japanese)     mozc-jni/build.sh         libwmmozc.so
-#                       (into core/input/src/mozc/jniLibs; Bazel, through
-#                       a pinned bazelisk)
-#   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
-#                       (into core/intelligence/src/bergamot/jniLibs)
-#   NLLB translate      ctranslate2-jni/build.sh  libwmct2.so
-#                       (into core/intelligence/src/ct2/jniLibs)
-#   zinnia handwriting  zinnia-jni/build.sh       libwmzinnia.so
-#   (Chinese, Japanese)                            (into core/intelligence/src/zinnia/jniLibs)
-#   llama.cpp (GGUF     llamacpp-jni/build.sh     libwmllama*.so
-#   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
-#   Document scanner    docscan-jni/build.sh      libwmdocscan.so
-#   (OpenCV)                                      (into core/intelligence/src/docscan/jniLibs)
+#   python3 native/gates.py fdroid-scripts     lists them in that order
+#
+# The two prebuilt exceptions, Tesseract (libwmtess.so) and Whistle
+# (libwmwhistle.so), have no script there: they come from their own workflows.
+# Voikko's script writes into native/voikko-jni/jniLibs, which no APK
+# packages: it is pinned for download only.
 #
 # libwmsherpa and libwmxlit are linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -81,20 +60,10 @@ if ! command -v rustup >/dev/null 2>&1; then
     rm -f "$init"
 fi
 
-"$HERE/wm-engine-jni/build.sh"
-"$HERE/harper-jni/build.sh"
-"$HERE/whispercpp-jni/build.sh"
-"$HERE/executorch-jni/build.sh"
-"$HERE/rnnoise-jni/build.sh"
-"$HERE/sherpa-onnx-jni/build.sh"
-"$HERE/indicxlit-jni/build.sh"
-"$HERE/hunspell-jni/build.sh"
-"$HERE/divvunspell-jni/build.sh"
-"$HERE/voikko-jni/build.sh"
-"$HERE/librime-jni/build.sh"
-"$HERE/mozc-jni/build.sh"
-"$HERE/bergamot-jni/build.sh"
-"$HERE/ctranslate2-jni/build.sh"
-"$HERE/zinnia-jni/build.sh"
-"$HERE/llamacpp-jni/build.sh"
-"$HERE/docscan-jni/build.sh"
+scripts=$(python3 "$HERE/gates.py" fdroid-scripts)
+[ -n "$scripts" ] || { echo "native/gates.py listed no build scripts" >&2; exit 1; }
+for script in $scripts; do
+    # Called as before the table, $HERE/<dir>/build.sh: each script maps its
+    # own directory out of its output, so its path must not change.
+    "$HERE/${script#native/}"
+done

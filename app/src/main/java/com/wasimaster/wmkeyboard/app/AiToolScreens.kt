@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
@@ -48,11 +47,9 @@ import com.wasimaster.wmkeyboard.core.tools.orderedAiActions
 import com.wasimaster.wmkeyboard.core.tools.visibleAiActions
 import androidx.compose.ui.platform.LocalContext
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
-import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.aiRows
-import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.settings.AiToolRoundsRange
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
@@ -132,6 +129,16 @@ internal fun AiHubSettings(
                 subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
                 route = "settings_assistant",
                 onClick = { onNavigate("settings_assistant") },
+            )
+        }
+    }
+    SettingsGroup(stringResource(R.string.toolai_memory_group_title)) {
+        item {
+            NavRow(
+                title = R.string.toolai_memory_screen_title,
+                subtitle = stringResource(R.string.toolai_memory_nav_subtitle),
+                route = "ai_memory",
+                onClick = { onNavigate("ai_memory") },
             )
         }
     }
@@ -223,21 +230,8 @@ internal fun AiToolSettings(
             }
         }
     }
-    // The on-device row stands for whichever model is downloaded and picked here.
-    if (settings.watch { s -> s.resolveProviders(ProviderTool.AI, all = true).any { it.typeId == ProviderTypes.ON_DEVICE_AI.id } }) {
-        LocalLlmModelManager(repository, settings)
-    }
-    // Every provider reached over HTTP can take extra headers (#648); these
-    // are the ones for the kind in use.
-    if (rows.isNotEmpty() && aiProvider != AiProvider.ON_DEVICE) AiProviderHeadersGroup(repository, settings, aiProvider)
-    ServerFieldsGroup(
-        repository,
-        settings,
-        endpoints = listOf(
-            ServiceEndpoint.ANTHROPIC, ServiceEndpoint.OPENAI, ServiceEndpoint.GEMINI,
-            ServiceEndpoint.XAI, ServiceEndpoint.DEEPSEEK, ServiceEndpoint.BRAVE_SEARCH,
-        ),
-    )
+    // The on-device model manager, each service's extra headers and its
+    // F-Droid server address are on that provider's own screen.
     SettingsGroup(stringResource(R.string.toolai_ai_output_title)) {
         if (aiProvider != AiProvider.ON_DEVICE) {
             item {

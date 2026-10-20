@@ -463,6 +463,13 @@ bot copies the last entry forward, because these paths moved or appeared:
   `core/voice/src/onnx/jniLibs` and `core/input/src/main/jniLibs`, and loses the
   two `src/full/jniLibs` lines, which no longer exist. A prebuilt `.so` the
   list misses fails the scan.
+- From that entry on, `scandelete` is generated rather than hand-kept:
+  `python3 native/gates.py scandelete` prints every jniLibs directory that
+  `native/gates.json` names (the text engines' and every gate's, prebuilt or
+  built from source), and `feature/llm/src/main/jniLibs`, the LLM module's
+  placeholders, comes on top. A new gate in the table therefore reaches the
+  recipe only through the next merge request; the entries above stay pinned to
+  their commits as they are.
 - `build` may call `../native/build-fdroid-libs.sh`. `build-lite-libs.sh` is
   kept as a wrapper, so the copied entries keep working either way.
 - `gradle` may become `[intl]`. `assembleLiteRelease` is kept as an alias, so

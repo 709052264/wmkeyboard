@@ -35,7 +35,7 @@ sealed interface ModuleState {
 /**
  * Whether a module's home is present on this install, and how to fetch it
  * when it is not. Play builds swap a SplitInstall-backed gate into
- * [FeatureModules] at startup (see `installOnDemandDelivery` in `:app`);
+ * `FeatureModules` at startup (see `installOnDemandDelivery` in `:app`);
  * everywhere else the default [AlwaysInstalled] is the truth.
  */
 interface ModuleGate {
@@ -74,143 +74,12 @@ object NotInBuild : ModuleGate {
 }
 
 /**
- * The on-demand modules, one gate each. A `var` per module rather than a map
- * keyed by name so that a facade cannot ask for a module that does not exist.
+ * How the modules' code reaches what a module holds. `FeatureModules`, the
+ * object with one gate per module, is generated from native/gates.json into
+ * this package (the wmkeyboard.feature-modules convention) and forwards its
+ * [loadLibrary], [awaitInstalled] and [load] here.
  */
-object FeatureModules {
-
-    /**
-     * `:feature:litert`: the LiteRT interpreter, shared by offline Whisper
-     * dictation (`:core:voice`) and the sticker editor's own background
-     * remover (`:core:content`).
-     */
-    @Volatile
-    var litert: ModuleGate = AlwaysInstalled
-
-    /** `:feature:handwriting`: ML Kit's digital-ink recogniser. */
-    @Volatile
-    var handwriting: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:speech`: the whisper.cpp and Whistle native libraries behind
-     * the GGML Whisper models and Whistle (`:core:voice`). Only the libraries
-     * move; their Kotlin stays in the base.
-     */
-    @Volatile
-    var speech: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:executorch`: the app's ExecuTorch runtime (`libwmexecutorch`),
-     * shared by Asr4All, Parakeet and Moonshine dictation and the FUTO Swipe
-     * glide engine (`:core:voice`). Its own gate so that turning on the glide
-     * engine does not also fetch whisper.cpp and Whistle.
-     */
-    @Volatile
-    var executorch: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:onnx`: Microsoft's ONNX Runtime and the sherpa-onnx bridge
-     * built on it (`libwmsherpa`), behind the Sherpa voice engine
-     * (`:core:voice`). Outside Play the runtime is read straight out of
-     * Microsoft's AAR on Maven Central, never mirrored. Other ONNX models can
-     * ride the same runtime later; only sherpa-onnx's bridge is specific.
-     */
-    @Volatile
-    var onnx: ModuleGate = AlwaysInstalled
-
-    /** `:feature:grammar`: the Harper grammar library (`:core:intelligence`). */
-    @Volatile
-    var grammar: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:spell`: the Hunspell library behind spell checking against an
-     * imported `.aff` and `.dic` (`:core:prediction`).
-     */
-    @Volatile
-    var spell: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:bergamot`: Mozilla's Bergamot translator behind the translate
-     * tool's free on-device engine (`:core:intelligence`). Only the library
-     * moves; the models are downloaded per language direction.
-     */
-    @Volatile
-    var bergamot: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:ct2`: CTranslate2, the runtime of the translate tool's NLLB
-     * engine (`:core:intelligence`). Only the library moves; the model is a
-     * separate 630 MB download.
-     */
-    @Volatile
-    var ct2: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models
-     * (`:core:intelligence`). LiteRT-LM, the default runtime, has its own
-     * gate (`LlmModule`); only a GGUF model asks for this one.
-     */
-    @Volatile
-    var llama: ModuleGate = AlwaysInstalled
-
-    /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
-    @Volatile
-    var ocr: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:docscan`: the built-in document scanner's library (OpenCV's
-     * core and imgproc, `:core:intelligence`), behind the scanner tool where
-     * Google's scanner is missing or switched off.
-     */
-    @Volatile
-    var docscan: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:rime`: librime, behind the optional RIME engine for Chinese
-     * (`:core:input`). The built-in composers need nothing from it.
-     */
-    @Volatile
-    var rime: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:mozc`: Google's Mozc converter, behind the optional Mozc
-     * engine for Japanese (`:core:input`). Its dictionary is a separate
-     * download; the built-in Japanese composer needs neither.
-     */
-    @Volatile
-    var mozc: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:zinnia`: zinnia, the offline recogniser behind Chinese and
-     * Japanese handwriting where ML Kit's is not in the build or not picked
-     * (`:core:intelligence`). Its models are separate downloads.
-     */
-    @Volatile
-    var zinnia: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
-     * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
-     * unpacked into app storage by `NpuRuntime` in :core:intelligence.
-     */
-    @Volatile
-    var npu: ModuleGate = AlwaysInstalled
-
-    /**
-     * ML Kit's bundled text recogniser and barcode reader behind the scanner
-     * tool. Never a Play module: Play builds use the play-services twins,
-     * whose models come from Play services. Only [NativeDelivery] backs it,
-     * on a build that leaves the two libraries out of the APK.
-     */
-    @Volatile
-    var scanner: ModuleGate = AlwaysInstalled
-
-    /**
-     * `:feature:googlehome`: the Google Home APIs SDK, Play builds only. Every
-     * other build either compiles it in or has no Google Home at all.
-     */
-    @Volatile
-    var googleHome: ModuleGate = AlwaysInstalled
+internal object ModuleLoading {
 
     /**
      * How a native library is loaded. `System.loadLibrary` wherever the
@@ -227,10 +96,10 @@ object FeatureModules {
      * that means to the user. A cancelled caller leaves the download running:
      * Play owns it, and the next caller finds it further along.
      */
-    suspend fun ModuleGate.awaitInstalled(onProgress: (bytes: Long, totalBytes: Long) -> Unit = { _, _ -> }): Boolean {
-        if (installed) return true
-        requestInstall()
-        val settled = state.first { current ->
+    suspend fun awaitInstalled(gate: ModuleGate, onProgress: (bytes: Long, totalBytes: Long) -> Unit): Boolean {
+        if (gate.installed) return true
+        gate.requestInstall()
+        val settled = gate.state.first { current ->
             if (current is ModuleState.Installing) onProgress(current.bytes, current.totalBytes)
             current == ModuleState.Installed || (current is ModuleState.Missing && current.failed)
         }

@@ -79,6 +79,19 @@
     <string name="ftools_ai_tool_pc_failed">The text could not be sent to the computer: %1$s</string>
     <!-- A picture tool named a picture that is not there. %1$s is what the model wrote, %2$d how many pictures there are. -->
     <string name="ftools_ai_tool_no_picture">There is no picture \"%1$s\". The user has sent %2$d. Name one by its number, from 1.</string>
+    <!-- AI memory. The remember tool refused a fact that looks like a password, a code, a card number or a key. -->
+    <string name="ftools_ai_tool_memory_secret">Not saved: this looks like a secret. Never save passwords, PINs, one-time codes, card or account numbers, keys or tokens. Do not try again.</string>
+    <!-- %1$d is the longest a memory may be, in characters. -->
+    <string name="ftools_ai_tool_memory_too_long">Not saved: a memory is one short fact of at most %1$d characters. Save the part that matters.</string>
+    <string name="ftools_ai_tool_memory_empty">Not saved: the fact was empty.</string>
+    <string name="ftools_ai_tool_memory_full">Not saved: the memory is full. Tell the user they can delete old memories in Settings › AI › Memory.</string>
+    <!-- %1$s is the number the model gave. -->
+    <string name="ftools_ai_tool_memory_no_such">There is no memory number %1$s. Use a number from the list in your instructions, or save the fact without one.</string>
+    <string name="ftools_ai_tool_memory_unreadable">The memory cannot be read on this phone right now, so nothing was saved or deleted.</string>
+    <!-- %1$s is what the model asked to forget. -->
+    <string name="ftools_ai_tool_memory_none_match">No memory matches \"%1$s\". Nothing was deleted.</string>
+    <!-- %1$d is how many memories match; a list of them follows. -->
+    <string name="ftools_ai_tool_memory_many_match">%1$d memories match, which is too many to delete by words. Call forget once for each one to delete, with its number:</string>
 
     <!-- Why a tool call failed, as the AI chat and the AI panel show it under
          the answer. Unlike the strings above, these are for the user. -->
@@ -114,6 +127,15 @@
     <string name="ftools_ai_tool_reason_no_writable_calendar">No calendar to add to</string>
     <string name="ftools_ai_tool_reason_calendar_refused">The calendar refused the event</string>
     <string name="ftools_ai_tool_reason_locked">Unlock the phone first</string>
+    <!-- AI memory, for the user: why a save or a delete did not happen. -->
+    <string name="ftools_ai_tool_reason_memory_secret">Not saved: it looked like a password, code or card number</string>
+    <string name="ftools_ai_tool_reason_memory_too_long">Not saved: too long for a memory</string>
+    <string name="ftools_ai_tool_reason_memory_empty">Not saved: nothing to save</string>
+    <string name="ftools_ai_tool_reason_memory_full">Not saved: memory is full</string>
+    <string name="ftools_ai_tool_reason_memory_no_such">No such memory</string>
+    <string name="ftools_ai_tool_reason_memory_unreadable">Memory cannot be read right now</string>
+    <string name="ftools_ai_tool_reason_memory_none_match">No memory matched</string>
+    <string name="ftools_ai_tool_reason_memory_many_match">Too many memories matched</string>
     <string name="ftools_ai_tool_reason_no_location_access">No access to your location</string>
     <string name="ftools_ai_tool_reason_location_off">Location is off</string>
     <string name="ftools_ai_tool_reason_no_fix">Could not find the location</string>

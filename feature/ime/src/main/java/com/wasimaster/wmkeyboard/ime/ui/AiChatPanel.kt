@@ -434,6 +434,7 @@ private fun Transcript(
                         onCopy = { copy(index, it) },
                         onReport = { onChat(AiChatAction.Report(index)) },
                         onChat = onChat,
+                        onUndoMemory = { use -> onChat(AiChatAction.UndoMemory(index, use)) },
                     )
                 }
             }
@@ -463,6 +464,7 @@ private fun MessageBubble(
     onCopy: (String) -> Unit,
     onReport: () -> Unit,
     onChat: (AiChatAction) -> Unit,
+    onUndoMemory: (Int) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val fromUser = message.role == AiChatMessage.ROLE_USER
@@ -493,7 +495,7 @@ private fun MessageBubble(
                 }
                 // What the answer was built on, over the answer.
                 if (message.toolUses.isNotEmpty()) {
-                    ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp))
+                    ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp), onUndoMemory)
                 }
                 when {
                     message.failed -> Text(message.error, color = kb.accent, fontSize = 13.sp, lineHeight = 18.sp)
@@ -616,6 +618,8 @@ private fun ToolUses(
     colors: ChatMarkdownColors,
     onChat: (AiChatAction) -> Unit,
     modifier: Modifier = Modifier,
+    /** Undo for a memory save; only a stored answer has one to take back. */
+    onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     ChatToolUses(
@@ -629,6 +633,7 @@ private fun ToolUses(
         // shows the buttons.
         onApproval = { onChat(AiChatAction.ToolApproval(it)) },
         animate = LocalKbTheme.current.motion.any,
+        onUndoMemory = onUndoMemory,
     )
 }
 

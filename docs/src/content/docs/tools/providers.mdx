@@ -7,26 +7,40 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Some tools can get the same thing from more than one service. GIFs can come from KLIPY, GIPHY, Wikimedia Commons, GifCities or packs on your phone. Each of these tools keeps a **Providers** list at the top of its settings page, and every list works the same way, much like the locations of [backups](/privacy/backup/).
+Some tools can get the same thing from more than one service. GIFs can come from KLIPY, GIPHY, Wikimedia Commons, GifCities or packs on your phone. Each of these tools keeps a **Providers** list near the top of its settings page, and every list works the same way, much like the locations of [backups](/privacy/backup/).
 
 ## The list
 
-Each row is one provider: its place in the order, its logo, its name, what it is using (your key, the key in this build, a server address, or files on the phone), and a switch. A long name or address wraps onto a second line rather than being cut off.
+The providers that are **on** come first, in the order the tool asks them. Each row shows its place in the order, its logo, its name, a line saying what it is set up with (your key, the key in this build, a server address, a model, or files on the phone), a chevron, and its switch behind a thin rule.
 
-- **Drag the number** at the start of a row (the grip under it) to change the order. The tool asks the providers in this order. With TalkBack, the row's actions include **Move up** and **Move down**.
-- **Switch a row off** to skip it without losing its setup.
-- **Tap a row** to open the provider's setup: its key, its server address, a model, an engine, or a nickname. A provider with nothing to set up shows what it is.
-- **Remove**, at the bottom of that sheet, takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
-- **Add a provider** opens a sheet of every kind this build can use, in the same order on every build. A kind that needs nothing typed in is added at once. The rest open the setup first.
-- **Reset to default** appears once you have changed the list, and puts it back to the list this build starts with.
+- **Drag the number** at the start of a row (the grip under it) to change the order. Only the providers that are on move, since the tool asks no other. With TalkBack, the row's actions include **Move up** and **Move down**.
+- **Press a row** to open that provider's own screen. Everything the provider has is there, see below.
+- **Switch a row off** to skip it without losing its setup. It moves down to the providers that are off.
+- **Add a provider**, under the list, opens a sheet of every kind this build can use, in the same order on every build. A kind that needs nothing typed in is added at once. The rest open the setup first.
+
+The providers that are **off** sit under the list, each folded to its name, a short description and a switch. When they run in more than one kind of place they are sorted under **On the phone**, **Online services** and **Your own servers**. Press one to set it up before you switch it on.
+
+**List settings**, a fold at the end, holds how the tool uses its list (see below), **Two of the same provider** when a kind is on the list twice, and **Reset to default** once you have changed the list.
 
 A row with a problem says what it needs in red: an API key, a server address, a model name, or an imported GIF pack. Such a row is skipped until it is fixed.
+
+## A provider's own screen
+
+Pressing a row opens a screen for that one provider, with its description and tags at the top:
+
+- **Use this provider**: the same switch as on the row.
+- **Setup**: its key, its server address, a model, an engine, a nickname, or a sign-in. The line under it says what is set now, and a press opens the setup sheet with its **Test** button. A provider with nothing to set up has no such row.
+- The provider's **own settings**, where it has any: a voice engine's models, the on-device AI model, the translation models, the offline GIF packs, the offline dictionaries, DeepL Write, Tavily's advanced search. On the F-Droid build the provider's server address is here too.
+- **Shared with**: the other tools that list the same provider and use its setup.
+- **Remove** takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
+
+A problem shows as a banner at the top with a **Set up** button. A search result or a link can open a provider's screen before it is on the list; the banner then offers to **Add** it.
 
 Rows show the service's own logo where the app carries one. The logos are small vector drawings from [Simple Icons](https://simpleicons.org/) or from each project's own repository, and are in the app itself, so drawing them never reaches the network. A one-colour logo is lightened on a dark theme when the brand's colour is close to black, and a logo whose colours would vanish on one theme (KLIPY, Lingva, Tavily) sits on a small plate of its own.
 
 ## Shared keys and servers
 
-A provider is set up once, and every tool that lists it uses the same setup. A KLIPY key added on the GIF page also works for stickers. The setup sheet says which other tools use it, under **Also used by**. Edit it on either page and both change.
+A provider is set up once, and every tool that lists it uses the same setup. A KLIPY key added on the GIF page also works for stickers. The provider's screen says which other tools use it, under **Shared with**. Edit it on either page and both change.
 
 Server kinds can be added more than once, each with its own address and nickname: two Wikimedia wikis, say. When you add one on another tool's page, the add sheet offers the servers you already set up, under **Use**, so you don't type the address twice.
 
@@ -36,7 +50,7 @@ A service you set up with a key can also be added a second time, with another ke
 
 This works on the GIF, sticker, translate, web and image search, online text scanning, photo translation and AI lists. Background photos, currency rates and the word sources ask a service by its name, so they keep one of each.
 
-When a list asks **One at a time**, the second one is simply the next provider down. On the GIF and sticker lists in **Tabs** or **Mixed**, and on any list set to **Choose in the panel**, a setting called **Two of the same provider** appears as soon as one kind is on the list twice:
+When a list asks **One at a time**, the second one is simply the next provider down. On the GIF and sticker lists in **Tabs** or **Mixed**, and on any list set to **Choose in the panel**, a setting called **Two of the same provider** appears in **List settings** as soon as one kind is on the list twice:
 
 - **As backups** (the default for a second key): they act as one provider, with one chip and one entry in the panel. The first is asked, and the next only when it fails, for example when a key runs out of quota.
 - **Separately**: each one is its own provider, with its own chip, its own entry in the panel, and its own share of a mixed grid. Two servers of one kind, like two Wikimedia wikis, start out this way.

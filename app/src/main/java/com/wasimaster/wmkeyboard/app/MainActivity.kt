@@ -179,6 +179,7 @@ import com.wasimaster.wmkeyboard.core.perf.JankMonitor
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ThemeMode
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -803,9 +804,11 @@ private fun SettingsNavHost(
     val openChat: () -> Unit = remember(navController) {
         { navController.navigate("ai_chat") { launchSingleTop = true } }
     }
+    val navigate: (String) -> Unit = remember(navController) { { route -> navController.navigate(route) } }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
+            LocalSettingsNavigate provides navigate,
             LocalSharedTransition provides if (twoPane) null else shared,
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
@@ -2204,6 +2207,33 @@ private fun SettingsNavGraph(
                 }
             }
         }
+        // One provider of a tool's list: its switch, its setup and whatever
+        // else it has (models, packs, its own options), off the tool's page.
+        composable(PROVIDER_PAGE_ROUTE) { backStackEntry ->
+            val tool = backStackEntry.arguments?.getString("tool")?.let(ProviderTool::of)
+            val key = backStackEntry.arguments?.getString("key")
+            if (tool != null && !key.isNullOrEmpty()) {
+                val head = providerPageHead(settings, tool, key)
+                SettingsScreen(
+                    head.title,
+                    { navController.popBackStack() },
+                    route = providerRoute(tool, key),
+                    icon = { ProviderTile(head.type) },
+                    accent = providerHostAccent(tool, settings),
+                    iconTile = false,
+                    subtitle = head.subtitle,
+                    subtitleMaxLines = 3,
+                ) {
+                    ProviderPage(
+                        repository,
+                        settings,
+                        tool,
+                        key,
+                        onBack = { navController.popBackStack() },
+                    ) { route -> navController.navigate(route) }
+                }
+            }
+        }
         composable("accessibility") {
             SettingsScreen(
                 stringResource(R.string.home_accessibility_title),
@@ -2406,6 +2436,15 @@ private fun SettingsNavGraph(
                 route = "ai_history",
             ) {
                 AiHistoryScreen(repository, settings)
+            }
+        }
+        composable("ai_memory") {
+            SettingsScreen(
+                stringResource(R.string.toolai_memory_screen_title),
+                { navController.popBackStack() },
+                route = "ai_memory",
+            ) {
+                AiMemoryScreen(repository, settings)
             }
         }
         // The two chat destinations draw their own scaffold rather than going

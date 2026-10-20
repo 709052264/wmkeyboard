@@ -218,6 +218,20 @@ class AiChatStore(private val storageFile: File?) {
     }
 
     /**
+     * Puts [message] in place of the one at [index], leaving the order and
+     * the conversation's time alone: a change to a message already answered,
+     * such as an AI memory save taken back under it.
+     */
+    @Synchronized
+    fun replaceMessage(conversationId: Long, index: Int, message: AiChatMessage) {
+        val at = conversations.indexOfFirst { it.id == conversationId }
+        if (at < 0) return
+        val old = conversations[at]
+        if (index !in old.messages.indices) return
+        conversations[at] = old.copy(messages = old.messages.toMutableList().also { it[index] = message })
+    }
+
+    /**
      * Cuts the conversation back to before the message at [index], returning
      * the messages that went. How "edit and send again" and "write this answer
      * again" make room: the message and everything after it leave together, so

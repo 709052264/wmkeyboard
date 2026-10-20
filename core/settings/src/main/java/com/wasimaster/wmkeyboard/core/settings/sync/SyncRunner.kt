@@ -262,7 +262,10 @@ object SyncRunner {
         var count = 0
         val bundleSections = LinkedHashMap<ConfigBackup.Section, JsonElement>()
         for ((sectionId, changes) in result.changes) {
-            val section = ConfigBackup.Section.entries.firstOrNull { syncId(it) == sectionId } ?: continue
+            // A section sync never carries is never applied, whatever another
+            // device's file holds.
+            val section = ConfigBackup.Section.entries
+                .firstOrNull { syncId(it) == sectionId }?.takeIf { it.syncable } ?: continue
             count += changes.size
             if (section == ConfigBackup.Section.SETTINGS) {
                 val put = JsonObject(changes.filterValues { it != null }.mapValues { it.value!! })

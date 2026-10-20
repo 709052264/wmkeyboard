@@ -79,6 +79,9 @@ Turning incognito on does eight things:
    on, nothing is recorded while incognito is: not the text you send, not
    the answer. This one has no switch of its own, because a record of what
    you wrote in incognito is the exact thing incognito exists to prevent.
+   [AI memory](/tools/ai-memory/) stops too: an AI action or a chat in an
+   incognito field neither reads the saved facts nor saves new ones, and a
+   chat started in incognito never touches memory, even after it ends.
 7. **Keeps the text away from LanguageTool.** With
    [LanguageTool](/smart/grammar/#checkers-harper-and-languagetool) switched
    on for Grammar check, nothing typed in incognito is sent to its server.
@@ -93,9 +96,9 @@ from the Privacy screen under <SettingsPath path="Tools / Incognito" />.
 **Pause learning** covers the lexicon, the emoji history and the typing
 counters together, and **Pause clipboard capture** covers the clipboard. Both
 are on by default. Turn both off there and flipping "Incognito mode" on
-Privacy still blocks smart replies, still pauses AI history, still keeps the
-text from LanguageTool, and still shows the badge. Those four are the effects
-neither switch can reach, because they
+Privacy still blocks smart replies, still pauses AI history and AI memory, still
+keeps the text from LanguageTool, and still shows the badge. Those four are the
+effects neither switch can reach, because they
 follow incognito unconditionally. The [one-time-code chip](/smart/one-time-codes/)
 and the "you just copied a code" chip keep working in incognito: reading a
 code out of a notification or offering back what you just copied records

@@ -26,6 +26,10 @@
     <!-- Title of the colour picker dialog. %1$s is the name of the tool, for example "Clipboard". -->
     <!-- Heading of the options group. Many tools use this one heading. -->
     <string name="tooldetail_options_group">Options</string>
+    <!-- Heading of the fold that holds a screen's less used settings. Many screens use this one heading. -->
+    <string name="tooldetail_advanced_group">Advanced</string>
+    <!-- Heading of the fold at the end of every tool's page: show in toolbox, icon colour, press and hold. -->
+    <string name="tooldetail_toolbar_group">Toolbar and toolbox</string>
 
     <!-- Rows that send the user to a bigger settings screen. -->
     <string name="tooldetail_layout_nav_title">All layout and size settings</string>

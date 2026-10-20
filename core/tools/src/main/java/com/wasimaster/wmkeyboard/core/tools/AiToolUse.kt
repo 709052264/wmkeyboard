@@ -165,6 +165,13 @@ data class AiToolActivity(
     val awaitingApproval: Boolean = false,
     /** The call's arguments in full, for the approval card. Empty once it has run. */
     val details: String = "",
+    /**
+     * What a [AiTools.REMEMBER] call kept, for the chat's "Saved to memory"
+     * line and its Undo. Null for every other call, and for a save that
+     * changed nothing. Defaulted, so a stored message from before memory
+     * still decodes.
+     */
+    val memory: AiMemoryNote? = null,
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -235,6 +242,25 @@ data class AiToolActivity(
 }
 
 /**
+ * One memory a `remember` call added or changed, as the chat keeps it under
+ * the answer: enough to show the fact and to take the save back.
+ *
+ * [before] and [beforeCategory] are the memory as it was when the call
+ * changed one already kept; both empty, and [added] true, when the call made
+ * a new one, which Undo then deletes. [undone] is set once the user pressed
+ * Undo, so the line stops offering it.
+ */
+@Serializable
+data class AiMemoryNote(
+    val id: Long,
+    val text: String,
+    val added: Boolean = true,
+    val before: String = "",
+    val beforeCategory: String = "",
+    val undone: Boolean = false,
+)
+
+/**
  * Where one of the keyboard's own tools sits on the settings screen, which is
  * also a rough measure of what it touches: [INFO] reads the outside world,
  * [DATA] reads the user's own, [PICTURE] works on a picture the user sent, and
@@ -303,6 +329,8 @@ object AiTools {
     const val HOME_ASSISTANT_STATES = "home_assistant_states"
     const val READ_IMAGE_TEXT = "read_image_text"
     const val REVERSE_IMAGE_SEARCH = "reverse_image_search"
+    const val REMEMBER = "remember"
+    const val FORGET = "forget"
 
     /**
      * The tools whose description ends with today's date, since a model has
@@ -341,6 +369,36 @@ object AiTools {
             "Use it on a link the user gave you, or on a result from $WEB_SEARCH.",
         parameters = schema(
             "url" to "The full address of the page, including https://.",
+        ),
+    )
+
+    /**
+     * Keep one fact about the user in the AI's memory. Not one of [builtIns]:
+     * it has no Run / Ask / Off of its own, since the memory switches on
+     * Settings › AI › Memory decide whether a chat has it at all, and a save
+     * is shown in the chat with an Undo rather than asked about first.
+     */
+    val remember = AiToolSpec(
+        name = REMEMBER,
+        description = "Save one short fact about the user to your memory, which lasts between conversations. " +
+            "Only for what will still be true and useful later. Never a password, code, card number or key.",
+        parameters = schema(
+            param(
+                "fact",
+                "The fact, about the user in the third person, such as 'Lives in Dhaka' or 'Prefers short answers'.",
+            ),
+            param("id", "The number of a saved memory this fact replaces, when that fact has changed.", type = "integer", required = false),
+            param("category", "One word for the kind of fact, such as work, family, food or preference.", required = false),
+        ),
+    )
+
+    /** Delete memories the user wants gone; see [remember]. */
+    val forget = AiToolSpec(
+        name = FORGET,
+        description = "Delete memories the user asks you to forget. Give the memory's number, or words from it.",
+        parameters = schema(
+            param("id", "The number of the memory to delete.", type = "integer", required = false),
+            param("match", "Words from the memory to delete, when you do not have its number.", required = false),
         ),
     )
 
@@ -561,7 +619,7 @@ object AiTools {
         policies[tool.name] ?: tool.defaultPolicy
 
     /** Every name the keyboard's own tools answer to, which no MCP tool may take. */
-    val reservedNames: Set<String> by lazy { setOf(WEB_SEARCH, WEB_FETCH) + builtIns.map { it.name } }
+    val reservedNames: Set<String> by lazy { setOf(WEB_SEARCH, WEB_FETCH, REMEMBER, FORGET) + builtIns.map { it.name } }
 
     /** The enabled tools, in the order a model sees them. */
     fun enabled(search: Boolean, fetch: Boolean): List<AiToolSpec> = buildList {
@@ -596,6 +654,8 @@ object AiTools {
         HOME_ASSISTANT -> (call.argument("request") ?: listOfNotNull(call.argument("action"), call.argument("entity_id")).joinToString(" ").ifEmpty { null })
             ?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         HOME_ASSISTANT_STATES -> call.argument("query")
+        REMEMBER -> call.argument("fact")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
+        FORGET -> call.argument("match") ?: call.argument("id")
         else -> null
     }.orEmpty()
 

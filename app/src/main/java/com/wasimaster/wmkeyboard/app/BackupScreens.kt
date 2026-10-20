@@ -150,6 +150,7 @@ internal fun sectionLabelRes(section: ConfigBackup.Section): Int = when (section
     ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label
     ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label
     ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label
+    ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label
 }
 internal fun sectionLabel(context: Context, section: ConfigBackup.Section): String =
     context.getString(sectionLabelRes(section))
@@ -177,6 +178,7 @@ internal fun sectionLabelLowercase(context: Context, section: ConfigBackup.Secti
             ConfigBackup.Section.NOTES -> R.string.backup_section_notes_label_lowercase
             ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label_lowercase
             ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label_lowercase
+            ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label_lowercase
         },
     )
 @PluralsRes
@@ -197,6 +199,7 @@ private fun sectionCountPlural(section: ConfigBackup.Section): Int = when (secti
     ConfigBackup.Section.NOTES -> R.plurals.backup_section_notes_count
     ConfigBackup.Section.CLOCK -> R.plurals.backup_section_clock_count
     ConfigBackup.Section.KAOMOJI -> R.plurals.backup_section_kaomoji_count
+    ConfigBackup.Section.AI_MEMORY -> R.plurals.backup_section_ai_memory_count
 }
 /** "3 themes", "1 snippet": the count line shown per section on import. */
 internal fun sectionSummary(context: Context, section: ConfigBackup.Section, count: Int): String =
@@ -666,6 +669,11 @@ private val SECTION_ROWS = listOf(
     SectionRow(ConfigBackup.Section.NOTES, R.string.backup_include_notes_subtitle, R.string.backup_include_notes_info),
     SectionRow(ConfigBackup.Section.CLOCK, R.string.backup_include_clock_subtitle, R.string.backup_include_clock_info),
     SectionRow(ConfigBackup.Section.KAOMOJI, R.string.backup_include_kaomoji_subtitle),
+    SectionRow(
+        ConfigBackup.Section.AI_MEMORY,
+        R.string.backup_include_ai_memory_subtitle,
+        R.string.backup_include_ai_memory_info,
+    ),
 )
 
 /**
@@ -684,9 +692,12 @@ private fun SettingsGroupScope.sectionRows(
     settingsIncluded: Boolean = false,
     secretsEnabled: Boolean = true,
     @StringRes secretsSubtitle: Int = R.string.backup_include_secrets_subtitle,
+    /** Only the sections sync may carry: for the sync list. */
+    syncOnly: Boolean = false,
     onToggle: (ConfigBackup.Section, Boolean) -> Unit,
 ) {
     for (row in SECTION_ROWS) {
+        if (syncOnly && !row.section.syncable) continue
         item {
             ToggleSetting(
                 sectionLabelRes(row.section),
@@ -1137,7 +1148,8 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
     val personal = settings.watch { s ->
         ConfigBackup.Section.DICTIONARY.id in s.autoBackup.sections ||
             ConfigBackup.Section.CLIPBOARD.id in s.autoBackup.sections ||
-            ConfigBackup.Section.SWIPE.id in s.autoBackup.sections
+            ConfigBackup.Section.SWIPE.id in s.autoBackup.sections ||
+            ConfigBackup.Section.AI_MEMORY.id in s.autoBackup.sections
     }
 
     fun resync() = scope.launch { AutoBackupScheduler.sync(context, repository.settings.first().autoBackup) }
@@ -1451,6 +1463,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
             sections = { it.autoBackup.sync.sectionSet },
             defaults = SyncSettings.DEFAULT_SECTIONS,
             secrets = null,
+            syncOnly = true,
         ) { section, on ->
             scope.launch {
                 val current = repository.settings.first().autoBackup.sync.sectionSet

@@ -43,6 +43,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Autorenew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Home
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Hub
@@ -527,6 +528,7 @@ internal object SettingsRouteIcons {
         "ai" to { Icons.Outlined.AutoAwesome },
         "ai_actions" to { Icons.Outlined.AutoAwesome },
         "ai_history" to { Icons.Outlined.History },
+        "ai_memory" to { Icons.Outlined.Psychology },
         "ai_chat" to { Icons.AutoMirrored.Outlined.Chat },
         "settings_assistant" to { Icons.Outlined.Assistant },
         "ai_mcp" to { Icons.Outlined.Hub },

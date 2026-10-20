@@ -464,6 +464,7 @@ internal fun AiChatScreen(
                             messages = messages,
                             index = index,
                         ),
+                        onUndoMemory = { use -> AiChatController.undoMemory(context, activeId, index, use) },
                     )
                 }
                 if (messages.isEmpty() && run == null && draftAttachment.isNotEmpty()) {
@@ -693,6 +694,7 @@ private fun MessageBubble(
     onRegenerate: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onReport: (() -> Unit)? = null,
+    onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val fromUser = message.role == AiChatMessage.ROLE_USER
     val context = LocalContext.current
@@ -727,7 +729,7 @@ private fun MessageBubble(
                         message.failed -> MaterialTheme.colorScheme.onErrorContainer
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     }
-                    ToolUses(message.toolUses, ink, copy, Modifier.padding(bottom = 4.dp))
+                    ToolUses(message.toolUses, ink, copy, Modifier.padding(bottom = 4.dp), onUndoMemory)
                 }
                 if (message.failed) {
                     Text(
@@ -814,6 +816,7 @@ private fun ToolUses(
     ink: Color,
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val uriHandler = LocalUriHandler.current
     ChatToolUses(
@@ -831,6 +834,7 @@ private fun ToolUses(
         // The same controller runs the keyboard's chat, so a question asked
         // here is the one asked there; either screen can answer it (#573).
         onApproval = { AiChatController.answerTool(it) },
+        onUndoMemory = onUndoMemory,
     )
 }
 

@@ -521,6 +521,7 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
@@ -34287,8 +34288,13 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        val incognito = _uiState.value.incognitoOn
         aiJob = serviceScope.launch {
-            val system = AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty(), draft = draft)
+            val memory = aiMemoryFor(settings, onDevice, incognito, listOf(instruction, transcript, draft))
+            val system = withAiMemory(
+                AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty(), draft = draft),
+                memory,
+            )
             val config = AiClient.config(settings.ai)
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
@@ -34723,11 +34729,13 @@ open class WMKeyboardService : InputMethodService() {
             AiChatAction.Send -> aiChatSend()
             AiChatAction.Stop -> AiChatController.stop(this)
             AiChatAction.Retry -> aiChatChoice()?.let {
-                AiChatController.retry(this, state.settings, chat.conversationId, it)
+                AiChatController.retry(this, state.settings, chat.conversationId, it, incognito = state.incognitoOn)
             }
             AiChatAction.Regenerate -> aiChatChoice()?.let {
-                AiChatController.regenerate(this, state.settings, chat.conversationId, it)
+                AiChatController.regenerate(this, state.settings, chat.conversationId, it, incognito = state.incognitoOn)
             }
+            is AiChatAction.UndoMemory ->
+                AiChatController.undoMemory(this, chat.conversationId, action.messageIndex, action.useIndex)
             AiChatAction.EditLast -> {
                 val taken = AiChatController.editLast(this, chat.conversationId) ?: return
                 _uiState.update {
@@ -34965,7 +34973,10 @@ open class WMKeyboardService : InputMethodService() {
         // chat opened and left leaves no row behind.
         val id = chat.conversationId.takeIf { it >= 0 && store.get(it) != null }
             ?: store.newConversation(System.currentTimeMillis(), ephemeral = state.incognitoOn).id
-        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images)
+        AiChatController.send(
+            this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images,
+            incognito = state.incognitoOn,
+        )
         chatPictureFrom.clear()
         _uiState.update {
             it.copy(
@@ -35036,6 +35047,34 @@ open class WMKeyboardService : InputMethodService() {
         runAi(ai.action, instruction, instruction, generated = true)
     }
 
+    /**
+     * The AI memory a keyboard AI run is handed, as a block for its system
+     * prompt, or empty: see [AiMemoryRecall] for who gets it. [about] is what
+     * the run is about, for picking the closest facts when there are many.
+     * Off the main thread, since picking may embed the request.
+     */
+    private suspend fun aiMemoryFor(
+        settings: KeyboardSettings,
+        onDevice: Boolean,
+        incognito: Boolean,
+        about: List<String>,
+    ): String = withContext(Dispatchers.IO) {
+        val query = about.filter { it.isNotBlank() }.joinToString("\n")
+        val recall = AiMemoryRecall.recall(this@WMKeyboardService, settings, onDevice, incognito, query)
+        AiMemoryRecall.promptTail(recall, forChat = false, withTools = false)
+    }
+
+    /**
+     * [system] with [memory] in front of it. In front, not after: an action's
+     * prompt ends on what to reply with, and that has to stay the last word.
+     */
+    private fun withAiMemory(system: String, memory: String): String =
+        if (memory.isBlank()) system else memory.trim() + "\n\n" + system
+
+    /** Whether the AI panel's next run goes to the phone's own model. */
+    private fun aiRunsOnDevice(settings: KeyboardSettings, offlineFirst: Boolean): Boolean =
+        settings.ai.provider == AiProvider.ON_DEVICE || offlineFirst
+
     private fun runAi(
         action: AiActionSpec,
         source: String,
@@ -35101,7 +35140,7 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 emptyList()
             }
-            val system = when {
+            val framed = when {
                 // Writing from nothing: the request rides in the user message,
                 // so the system prompt only has to frame it. No injection guard
                 // here by design, which is why the callers only reach this with
@@ -35110,6 +35149,17 @@ open class WMKeyboardService : InputMethodService() {
                 action.askEachRun -> AiPrompts.customPrompt(instruction)
                 else -> AiPrompts.systemPrompt(action, settings.ai.translateTo)
             }
+            // Read, never written: an action's input is the field's text,
+            // which may be anyone's words, so nothing in it is taken as a fact
+            // about the user. A fall back to the phone's model keeps what the
+            // server was allowed, which is never more.
+            val memory = aiMemoryFor(
+                settings,
+                onDevice = aiRunsOnDevice(settings, offlineFirst),
+                incognito = _uiState.value.incognitoOn,
+                about = listOf(instruction, source),
+            )
+            val system = withAiMemory(framed, memory)
             val config = AiClient.config(settings.ai)
             var fellBack = offlineFirst
             val result = withContext(Dispatchers.IO) {

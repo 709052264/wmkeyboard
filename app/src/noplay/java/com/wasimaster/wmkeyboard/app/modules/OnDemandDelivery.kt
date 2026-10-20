@@ -25,10 +25,6 @@ import com.wasimaster.wmkeyboard.core.transliteration.NativeLinker
 fun installOnDemandDelivery(app: Application) {
     NativeDelivery.install(app, needOptIn = BuildConfig.ENABLE_FDROID, dlopen = NativeLinker::dlopen)
     if (!BuildConfig.GOOGLE_SDKS) {
-        FeatureModules.litert = NotInBuild
-        FeatureModules.handwriting = NotInBuild
-        FeatureModules.scanner = NotInBuild
-        FeatureModules.npu = NotInBuild
-        FeatureModules.googleHome = NotInBuild
+        for (name in FeatureModules.googleRuntimes) FeatureModules.set(name, NotInBuild)
     }
 }

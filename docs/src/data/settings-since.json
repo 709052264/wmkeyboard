@@ -8,6 +8,7 @@
 		"ai": "0.6.2",
 		"ai_mcp": "0.6.0",
 		"ai_mcp_edit/{serverId}": "0.6.0",
+		"ai_memory": "0.6.3",
 		"ai_reply_tones": "0.6.0",
 		"ai_tools": "0.6.1",
 		"automation": "0.5.12",
@@ -35,6 +36,7 @@
 		"notifications": "0.5.7",
 		"plugin_ide": "0.5.7",
 		"plugin_ide/{draftId}": "0.5.7",
+		"provider/{tool}/{key}": "0.6.3",
 		"rows/symbol": "0.5.9",
 		"selection_macros/actions": "0.5.8",
 		"selection_macros/ai": "0.5.8",
@@ -682,7 +684,11 @@
 		"voice_server_language_title": "0.5.11",
 		"voice_silence_stop_title": "0.5.14",
 		"voice_strip_language_title": "0.6.0",
-		"voice_system_on_device_title": "0.6.0"
+		"voice_system_on_device_title": "0.6.0",
+		"toolai_memory_screen_title": "0.6.3",
+		"toolai_memory_enabled_title": "0.6.3",
+		"toolai_memory_cloud_title": "0.6.3",
+		"toolai_memory_delete_all_title": "0.6.3"
 	},
 	"modes": {}
 }

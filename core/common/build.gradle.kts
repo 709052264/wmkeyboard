@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    // FeatureModules, one gate per entry of native/gates.json.
+    id("wmkeyboard.feature-modules")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
