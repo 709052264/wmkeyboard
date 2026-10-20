@@ -43,6 +43,8 @@ Meta's larger MMS-1B model was measured too and was more accurate (6.4% for Hind
 
 **No language to choose.** The model has no way to be told the language, so it guesses from the sound. A dictation that listens for several languages at once works the same way, as long as Omnilingual knows all of them.
 
+**Letters from the wrong script.** With no language to go on, the model sometimes spells a word with another script's letters for the same sounds: Hindi can come out in Urdu script, and with some voices an English word turns up in Arabic letters. Clear speech close to the microphone helps; a language with an engine of its own avoids it.
+
 **Scripts.** It writes each language in the script it was trained on. Languages it only writes in a different script than the keyboard's are left out of its list, so they go to another engine: Crimean Tatar (Cyrillic, not Latin), Manipuri (Bengali, not Meetei Mayek), Tulu (Malayalam, not Kannada) and a few others.
 
 **No words to listen for.** The model takes no list of names or terms, so **Words to listen for** does not show while it is the engine.
