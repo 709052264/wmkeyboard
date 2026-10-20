@@ -4356,7 +4356,7 @@
     <string name="netlog_filter_incognito">Ẩn danh</string>
     <string name="netlog_filter_only">Chỉ %1$s</string>
     <string name="netlog_filter_remove_desc">Hiển thị lại tất cả</string>
-    <string name="netlog_invisible_body">Ba thành phần Google của ứng dụng thực hiện các yêu cầu riêng, nằm ngoài mã nguồn điền vào nhật ký này. ML Kit (nhận dạng chữ viết tay, quét văn bản, quét mã QR, cắt nhãn dán và dịch trên thiết bị, chỉ dành cho bản đầy đủ) báo cáo việc sử dụng cho Google. Dịch vụ Play tải xuống phông chữ theo tên. Các bản dựng từ Cửa hàng Play yêu cầu Cửa hàng Play cập nhật và các thành phần theo yêu cầu.</string>
+    <string name="netlog_invisible_body">Ba thành phần Google của ứng dụng thực hiện các yêu cầu riêng, nằm ngoài mã nguồn điền vào nhật ký này. ML Kit (nhận dạng chữ viết tay, quét văn bản, quét mã QR, cắt nhãn dán và dịch trên thiết bị, không có trong bản F-Droid) báo cáo việc sử dụng cho Google. Dịch vụ Play tải xuống phông chữ theo tên. Các bản dựng từ Cửa hàng Play yêu cầu Cửa hàng Play cập nhật và các thành phần theo yêu cầu.</string>
     <string name="netlog_invisible_link">Đọc những gì mỗi mục gửi đi</string>
     <string name="netlog_invisible_title">Những gì màn hình này không thể thấy</string>
     <string name="netlog_keep_info">Nhật ký lưu giữ tối đa 2.000 hàng và tổng số liệu trong 30 ngày, chỉ trên thiết bị của bạn. Mỗi hàng chứa tính năng, máy chủ, địa chỉ không bao gồm truy vấn, kích thước, kết quả và thời gian. Nó không bao giờ lưu giữ những gì bạn đã nhập, tìm kiếm hoặc gửi, và không bao giờ lưu giữ khóa API. Các bản sao lưu không bao gồm dữ liệu này.</string>

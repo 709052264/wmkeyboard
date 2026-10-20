@@ -4367,7 +4367,7 @@
     <string name="netlog_filter_incognito">Brez beleženja zgodovine</string>
     <string name="netlog_filter_only">Samo %1$s</string>
     <string name="netlog_filter_remove_desc">Prikaži vse znova</string>
-    <string name="netlog_invisible_body">Tri Googlovi deli aplikacije pošiljajo lastne zahteve zunaj kode, ki polni ta dnevnik. ML Kit (rokopis, optično branje besedila, branje QR kod, izrezovanje nalepk in prevajanje v napravi, samo polna različica) poroča o uporabi Googlu. Storitve Play prenašajo pisave po imenu. Aplikacije iz Trgovine Play poizvedujejo v Trgovini Play glede posodobitev in delov na zahtevo.</string>
+    <string name="netlog_invisible_body">Tri Googlovi deli aplikacije pošiljajo lastne zahteve zunaj kode, ki polni ta dnevnik. ML Kit (rokopis, optično branje besedila, branje QR kod, izrezovanje nalepk in prevajanje v napravi, ni v različici za F-Droid) poroča o uporabi Googlu. Storitve Play prenašajo pisave po imenu. Aplikacije iz Trgovine Play poizvedujejo v Trgovini Play glede posodobitev in delov na zahtevo.</string>
     <string name="netlog_invisible_link">Preberite, kaj vsak od njih pošlje</string>
     <string name="netlog_invisible_title">Česar ta zaslon ne vidi</string>
     <string name="netlog_keep_info">Dnevnik hrani do 2000 vrstic in 30 dni seštevkov, samo v vaši napravi. Vsaka vrstica vsebuje funkcijo, strežnik, naslov brez poizvedbe, velikost, rezultat in čas. Nikoli ne hrani tega, kar ste vtipkali, iskali ali poslali, in nikoli ne hrani ključev API. Varnostne kopije ga ne vključujejo.</string>

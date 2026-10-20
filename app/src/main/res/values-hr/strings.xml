@@ -4369,7 +4369,7 @@
     <string name="netlog_filter_incognito">Anonimno</string>
     <string name="netlog_filter_only">Samo %1$s</string>
     <string name="netlog_filter_remove_desc">Prikaži sve ponovno</string>
-    <string name="netlog_invisible_body">Tri Googleova dijela aplikacije šalju vlastite zahtjeve, izvan koda koji popunjava ovaj zapisnik. ML Kit (rukopis, skeniranje teksta, QR skeniranje, izrezivanje naljepnica i prijevod na uređaju, samo u punom izdanju) izvještava Google o upotrebi. Play usluge preuzimaju fontove po imenu. Izdanja iz Trgovine Play pitaju Trgovinu Play o ažuriranjima i dijelovima na zahtjev.</string>
+    <string name="netlog_invisible_body">Tri Googleova dijela aplikacije šalju vlastite zahtjeve, izvan koda koji popunjava ovaj zapisnik. ML Kit (rukopis, skeniranje teksta, QR skeniranje, izrezivanje naljepnica i prijevod na uređaju, nije u F-Droid izdanju) izvještava Google o upotrebi. Play usluge preuzimaju fontove po imenu. Izdanja iz Trgovine Play pitaju Trgovinu Play o ažuriranjima i dijelovima na zahtjev.</string>
     <string name="netlog_invisible_link">Pročitaj što svatko šalje</string>
     <string name="netlog_invisible_title">Što ovaj zaslon ne može vidjeti</string>
     <string name="netlog_keep_info">Zapisnik čuva do 2000 redaka i 30 dana ukupnih podataka, samo na vašem uređaju. Svaki redak sadrži značajku, poslužitelj, adresu bez upita, veličinu, rezultat i vrijeme. Nikada ne pohranjuje ono što ste upisali, pretražili ili poslali, i nikada ne pohranjuje API ključeve. Sigurnosne kopije ga ne uključuju.</string>

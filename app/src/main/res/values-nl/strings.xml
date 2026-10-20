@@ -4363,7 +4363,7 @@
     <string name="netlog_filter_incognito">Incognitovenster</string>
     <string name="netlog_filter_only">Alleen %1$s</string>
     <string name="netlog_filter_remove_desc">Alles weer tonen</string>
-    <string name="netlog_invisible_body">Drie Google-onderdelen van de app doen hun eigen verzoeken, buiten de code om die dit logboek vult. ML Kit (handschrift, tekstscannen, QR-scannen, sticker-uitsnijdingen en vertaling op het apparaat, alleen volledige editie) rapporteert het gebruik aan Google. Play-services downloadt lettertypen op naam. Play Store-builds vragen de Play Store om updates en onderdelen op aanvraag.</string>
+    <string name="netlog_invisible_body">Drie Google-onderdelen van de app doen hun eigen verzoeken, buiten de code om die dit logboek vult. ML Kit (handschrift, tekstscannen, QR-scannen, sticker-uitsnijdingen en vertaling op het apparaat, niet in de F-Droid-versie) rapporteert het gebruik aan Google. Play-services downloadt lettertypen op naam. Play Store-builds vragen de Play Store om updates en onderdelen op aanvraag.</string>
     <string name="netlog_invisible_link">Lees wat iedereen verstuurt</string>
     <string name="netlog_invisible_title">Wat dit scherm niet kan zien</string>
     <string name="netlog_keep_info">Het logboek bewaart maximaal 2.000 rijen en 30 dagen aan totalen, alleen op uw apparaat. Elke rij bevat de functie, de server, het adres zonder query, de grootte, het resultaat en de tijd. Het bevat nooit wat u hebt getypt, gezocht of verzonden, en het bevat nooit API-sleutels. Back-ups bevatten dit niet.</string>

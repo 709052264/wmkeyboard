@@ -4352,7 +4352,7 @@
     <string name="netlog_filter_incognito">无痕模式</string>
     <string name="netlog_filter_only">仅 %1$s</string>
     <string name="netlog_filter_remove_desc">再次显示所有内容</string>
-    <string name="netlog_invisible_body">应用中的三个 Google 组件会自行发起请求，这些请求不在填充此日志的代码范围内。ML Kit（手写、文本扫描、二维码扫描、贴纸剪裁和设备端翻译，仅限完整版）会向 Google 报告使用情况。Play 服务会按名称下载字体。Play 商店构建版本会向 Play 商店查询更新和按需组件。</string>
+    <string name="netlog_invisible_body">应用中的三个 Google 组件会自行发起请求，这些请求不在填充此日志的代码范围内。ML Kit（手写、文本扫描、二维码扫描、贴纸剪裁和设备端翻译，F-Droid 版不含）会向 Google 报告使用情况。Play 服务会按名称下载字体。Play 商店构建版本会向 Play 商店查询更新和按需组件。</string>
     <string name="netlog_invisible_link">查看每个请求发送的内容</string>
     <string name="netlog_invisible_title">此屏幕无法看到的内容</string>
     <string name="netlog_keep_info">日志最多保留 2,000 行和 30 天的总计数据，且仅保存在您的设备上。每一行记录包含功能、服务器、不带查询参数的地址、大小、结果和时间。它绝不会保存您输入、搜索或发送的内容，也绝不会保存 API 密钥。备份不包含此数据。</string>

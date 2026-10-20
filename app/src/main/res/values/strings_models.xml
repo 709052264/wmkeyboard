@@ -194,6 +194,7 @@
 
     <!-- Errors while the app imports a model file that the user selected. -->
     <string name="models_llm_import_error_no_name">The app cannot read the name of the file.</string>
+    <string name="models_llm_import_error_gguf_only">This build runs GGUF models only. LiteRT-LM files (.litertlm, .task) need the Google Play or GitHub build.</string>
     <string name="models_llm_import_error_not_a_model">This is not a model file. The app needs a .litertlm file, a .task file or a GGUF file.</string>
     <!-- %1$s is the size of the file the user selected. -->
     <string name="models_llm_import_error_no_space">There is not enough storage for this file of <xliff:g id="size" example="2.6 GB">%1$s</xliff:g>.</string>

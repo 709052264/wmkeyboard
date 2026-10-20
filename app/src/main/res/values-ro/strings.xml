@@ -4367,7 +4367,7 @@
     <string name="netlog_filter_incognito">Incognito</string>
     <string name="netlog_filter_only">Doar %1$s</string>
     <string name="netlog_filter_remove_desc">Afișează totul din nou</string>
-    <string name="netlog_invisible_body">Trei componente Google ale aplicației fac propriile cereri, în afara codului care completează acest jurnal. ML Kit (scris de mână, scanare text, scanare QR, decupaje de stickere și traducere pe dispozitiv, doar în ediția completă) raportează utilizarea către Google. Serviciile Play descarcă fonturi după nume. Construcțiile din Play Store întreabă Play Store despre actualizări și componente la cerere.</string>
+    <string name="netlog_invisible_body">Trei componente Google ale aplicației fac propriile cereri, în afara codului care completează acest jurnal. ML Kit (scris de mână, scanare text, scanare QR, decupaje de stickere și traducere pe dispozitiv, lipsesc din versiunea F-Droid) raportează utilizarea către Google. Serviciile Play descarcă fonturi după nume. Construcțiile din Play Store întreabă Play Store despre actualizări și componente la cerere.</string>
     <string name="netlog_invisible_link">Citește ce trimite fiecare</string>
     <string name="netlog_invisible_title">Ce nu poate vedea acest ecran</string>
     <string name="netlog_keep_info">Jurnalul păstrează până la 2.000 de rânduri și 30 de zile de totaluri, doar pe dispozitivul tău. Fiecare rând conține funcția, serverul, adresa fără interogare, dimensiunea, rezultatul și ora. Nu conține niciodată ceea ce ai tastat, căutat sau trimis și nu conține niciodată chei API. Backup-urile nu îl includ.</string>

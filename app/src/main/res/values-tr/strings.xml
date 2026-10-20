@@ -4356,7 +4356,7 @@
     <string name="netlog_filter_incognito">Gizli</string>
     <string name="netlog_filter_only">Sadece %1$s</string>
     <string name="netlog_filter_remove_desc">Her şeyi tekrar göster</string>
-    <string name="netlog_invisible_body">Uygulamanın üç Google parçası, bu günlüğü dolduran kodun dışında kendi isteklerini yapar. ML Kit (el yazısı, metin tarama, QR tarama, çıkartma kesimleri ve cihaz içi çeviri, yalnızca tam sürümde) kullanımı Google\'a bildirir. Play hizmetleri yazı tiplerini isme göre indirir. Play Store yapıları, güncellemeler ve isteğe bağlı parçalar hakkında Play Store\'a soru sorar.</string>
+    <string name="netlog_invisible_body">Uygulamanın üç Google parçası, bu günlüğü dolduran kodun dışında kendi isteklerini yapar. ML Kit (el yazısı, metin tarama, QR tarama, çıkartma kesimleri ve cihaz içi çeviri, F-Droid sürümünde yok) kullanımı Google\'a bildirir. Play hizmetleri yazı tiplerini isme göre indirir. Play Store yapıları, güncellemeler ve isteğe bağlı parçalar hakkında Play Store\'a soru sorar.</string>
     <string name="netlog_invisible_link">Her birinin ne gönderdiğini okuyun</string>
     <string name="netlog_invisible_title">Bu ekranın göremedikleri</string>
     <string name="netlog_keep_info">Günlük, yalnızca cihazınızda 2.000 satıra ve 30 günlük toplamlara kadar veri tutar. Her satır özelliği, sunucuyu, sorgusu olmayan adresi, boyutu, sonucu ve zamanı içerir. Yazdığınız, aradığınız veya gönderdiğiniz hiçbir şeyi ve API anahtarlarını asla tutmaz. Yedeklemeler bunu içermez.</string>
