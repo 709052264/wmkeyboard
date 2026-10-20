@@ -231,7 +231,51 @@ node by node; those go when the walks move (steps 2 and 4).
   report lines: top1 0.8195, top3 0.9300, MRR 0.8741, autocorrect precision
   0.9853, recall 0.7015, false corrections 0.
 
-Status: step 1 done; steps 2-5 not started.
+### Step 2: the correction walk (walk done; deletion waits on step 3)
+
+`FuzzyBeamSearch.search` runs in Rust (`wm-engine`'s `fuzzy::search_units`,
+JNI `PredictionNative.fuzzySearch`, one crossing per search) whenever every
+trie it is given has a Rust twin: a `MappedTrie` is one, a `PackedTrie` gets
+a copy of its codec bytes on first walk (`NativeFuzzySearch`), and an empty
+trie is skipped. `KeyProximity` and `EditHabits` cross once by handle; the
+touch frame and the key sets cross as arrays per search. Touch scoring,
+ambiguous keys and their multi-unit spellings, learned habits, accents, the
+half-space and supplementary letters are all in the port.
+
+- Exactness: the Rust walk reproduces `BeamWorkspace`'s heap, push order,
+  merge rule, k-th-best floor, `Math.max` and `coerceIn` semantics, UTF-16
+  words and String ordering. Logarithms go through `strict_math::log`, a
+  transcription of fdlibm that matches `StrictMath.log` bit for bit over
+  3.4M inputs; the platform `ln` (Apple libm, bionic) differs from it in
+  about 1% of results. On the aarch64 JVM `Math.log`, `exp` and `pow` equal
+  `StrictMath` (8M samples), so the Kotlin side needs no change. On x86_64
+  HotSpot `Math.log` may be an intrinsic that is not fdlibm; parity tests
+  there could see a last-bit tie differ, which CI would show.
+- Parity: `NativeFuzzyParityTest` (`:app`), the prediction eval's 2,000 typo
+  cases and 2,000 clean words over the bundled English list, through the
+  plain walk, touch evidence, learned habits, every edit budget, mapped and
+  in-memory twins and a user tier together, T9 frames, a nukta key, accents,
+  half-spaces and Osage letters: 17,494 searches, 122,693 candidates, every
+  score, edit cost, count, tier and accent bit-identical.
+- Evals: the `core.prediction.eval` family (whose engine walks a
+  `PackedTrie` twin and skips its empty lexicon, so it runs in Rust) gives
+  byte-identical `metrics.json`, `context_miss.json` and report lines.
+- Latency (`PredictionLatencyBench`, two runs per side, load average 2.2-2.6):
+  keystroke (suggest + autocorrect) p50 0.442/0.449 -> 0.318/0.322 ms, p99
+  0.649/0.656 -> 0.466/0.475 ms; octopus keystroke p50 0.508/0.560 ->
+  0.348/0.346 ms.
+- Size: arm64-v8a 1,177,680 -> 1,285,552 B (+107,872), armeabi-v7a 831,264
+  -> 923,592 (+92,328), x86_64 1,311,984 -> 1,439,552 (+127,568): the walk,
+  and the accent fold tables it is the first JNI caller of.
+- Not deleted yet: the Kotlin walk still serves any search with a non-empty
+  `Trie` (the user lexicon, the system personal dictionary), which has no
+  Rust twin until step 3. `KeyProximity` stays in Kotlin for its other
+  readers (glide, autocorrect's space-slip and digit checks).
+  `NgramReranker` needs the lexicon's counts and moves with step 3.
+  `FrequencyCodec` was ported earlier (`freq_codec`); its Kotlin file is one
+  of the five `:tools:dictc` shares and stays.
+
+Status: steps 1 and 2's walk done; step 3 next.
 
 ## Rules for every step
 

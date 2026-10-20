@@ -196,7 +196,10 @@ those sources. Corrections come from `FuzzyBeamSearch`, one best-first walk
 down the tries themselves rather than Norvig generate-and-test: only strings
 the dictionary can actually reach are ever considered, which is what makes
 two-edit corrections affordable and lets substitutions come from a script's
-own edge labels instead of an ASCII table. Learning is skipped for secure
+own edge labels instead of an ASCII table. The walk runs in Rust whenever every
+trie it covers has a Rust twin (mapped and in-memory dictionaries do; the
+learned lexicon does not yet), with the Kotlin walk as the fallback and as
+the reference the parity test holds it to. Learning is skipped for secure
 fields and in incognito mode. Everything is JSON on private storage, with
 one-tap clearing.
 
