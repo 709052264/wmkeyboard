@@ -231,7 +231,7 @@ node by node; those go when the walks move (steps 2 and 4).
   report lines: top1 0.8195, top3 0.9300, MRR 0.8741, autocorrect precision
   0.9853, recall 0.7015, false corrections 0.
 
-### Step 2: the correction walk (walk done; deletion waits on step 3)
+### Step 2: the correction walk (walk done)
 
 `FuzzyBeamSearch.search` runs in Rust (`wm-engine`'s `fuzzy::search_units`,
 JNI `PredictionNative.fuzzySearch`, one crossing per search) whenever every
@@ -276,7 +276,64 @@ half-space and supplementary letters are all in the port.
   `FrequencyCodec` was ported earlier (`freq_codec`); its Kotlin file is one
   of the five `:tools:dictc` shares and stays.
 
-Status: steps 1 and 2's walk done; step 3 next.
+### Step 3: the user lexicon and the learning stores (done)
+
+`UserLexicon`, `NgramReranker`, `CorrectionMemory` and `CorrectionStats` are
+facades over `wm-engine` (`user_lexicon`, `rerank`, `correction_memory`,
+`correction_stats`; JNI `lexicon.rs`, `rerank.rs`, `corrections.rs`). The
+Kotlin implementations are deleted from production and kept under
+`app/src/test/.../prediction/reference/` as the parity oracles. The lexicon's
+trie crosses to the fuzzy walk and the reranker by handle (`LexiconTrie`),
+so every production trie now has a Rust twin.
+
+- What stays in Kotlin: Unicode case folding (`WordKey.of`) and the
+  learnability gate (`WordContext.isLearnableWord`). A load is two phases:
+  Rust parses the file, Kotlin judges and folds each word, Rust builds. The
+  reranker's caller folds the context and candidates the same way, and the
+  correction stores take keys already folded.
+- Ties made deterministic first (dfda1e508): wherever the Kotlin stores let
+  `HashMap` iteration order pick a winner (trie children, follower and pair
+  eviction, compaction), they now break ties by the word, and the Rust port
+  matches that. Java's hash order is not portable, so this is the one
+  behaviour change of the step. It moves one glide eval line: in
+  `finished-stroke-guess.txt` eager mode, top1 0.943 -> 0.942 and one new
+  hijack (where -> when) in four lines of the report, and 0.327 -> 0.325 in
+  the fifth. The Kotlin stores at dfda1e508 give that same file byte for
+  byte, so the Rust port itself moves nothing. Every other glide eval
+  report and the whole `core.prediction.eval` family are byte-identical.
+- File formats: the Rust stores read and write the same JSON. The parity
+  tests save from both sides, compare the files as JSON values, cross-load
+  each side's file, and load old and damaged files into both (both
+  skip-store namings, files from before each additive field, junk words
+  saved before the gate, the old 200-count marker, damaged correction
+  files).
+- Parity: `NativeLexiconParityTest` (random runs of every lexicon operation
+  with every query, the trie node by node, compared after each step;
+  compaction; old files), `NativeCorrectionsParityTest` (runs past every cap,
+  expiry and halving window; old and damaged files), `NativeRerankParityTest`
+  (strips over a lexicon trained on sentences drawn from the bundled English
+  list, with capitals, the skip-gram backoff, recent-word bags and repeats).
+  The existing `UserLexiconTest`, `CorrectionMemoryTest`,
+  `CorrectionStatsTest` and `NgramRerankerTest` pass unchanged, as does the
+  rest of the `core.prediction` package (951 tests).
+- Latency (`PredictionLatencyBench`, two runs per side, load average
+  2.8-3.3): keystroke p50 0.330/0.321 ms, p99 0.490/0.482 ms, against
+  0.318/0.322 and 0.466/0.475 at step 2: unchanged within noise. The bench
+  has no learned words, so it measures the crossing, not a busy lexicon.
+- Size: arm64-v8a 1,285,552 -> 1,887,872 B (+602,320). Over a third of
+  that is `core::slice::sort`'s stable sort instantiated once per
+  comparator (121 copies in the step's code, 208 KB before stripping); the
+  stores sort their exports, saves and evictions by distinct keys. Routing
+  them through a few shared sort-key types would get most of it back.
+
+### Step 2 follow-up: the Kotlin walk
+
+Production tries are now all `MappedTrie`, `PackedTrie` or `LexiconTrie`, all
+with Rust twins; only tests build a plain `Trie`. The Kotlin walk stays
+until a plain `Trie` gets a twin too (written through `PackedTrie.of` and the
+codec, as a `PackedTrie`'s is), then moves to the test oracles.
+
+Status: steps 1 to 3 done; step 4 (glide) in progress.
 
 ## Rules for every step
 

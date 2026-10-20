@@ -197,9 +197,9 @@ down the tries themselves rather than Norvig generate-and-test: only strings
 the dictionary can actually reach are ever considered, which is what makes
 two-edit corrections affordable and lets substitutions come from a script's
 own edge labels instead of an ASCII table. The walk runs in Rust whenever every
-trie it covers has a Rust twin (mapped and in-memory dictionaries do; the
-learned lexicon does not yet), with the Kotlin walk as the fallback and as
-the reference the parity test holds it to. Learning is skipped for secure
+trie it covers has a Rust twin (every dictionary the keyboard opens and the
+learned lexicon do; a plain `Trie` built in a test does not), with the Kotlin
+walk as the fallback and as the reference the parity test holds it to. Learning is skipped for secure
 fields and in incognito mode. Everything is JSON on private storage, with
 one-tap clearing.
 
@@ -219,7 +219,7 @@ libwm_engine_jni once for every class that calls into it, on a device and in
 a JVM test alike. While a piece has both implementations, it asks
 `NativeEngine.useNative` which to run. The "Native prediction engine" setting
 (Typing, Automatic corrections) sets `NativeEngine.forceKotlin`, which turns
-the Rust side off for all of them at the next keystroke and pins the SIMD
+the Rust side off for every piece that still has both at the next keystroke and pins the SIMD
 kernels to their scalar references. Tests and evals do the same with
 `WM_NATIVE=kotlin` in the environment.
 
@@ -238,6 +238,16 @@ and all of `MappedNgramPack` are Rust, over a mapping that stays in the
 library behind a handle; `NativeHandles` closes it once the Kotlin object
 that held it is unreachable, because the IME replaces a dictionary by
 dropping the reference rather than closing it.
+
+The learning stores followed. `UserLexicon`, `NgramReranker`,
+`CorrectionMemory` and `CorrectionStats` are thin Kotlin classes over Rust
+stores that read and write the same JSON files as before. Two things stay in
+Kotlin because they lean on the JVM's Unicode tables: folding a word to its
+key (`WordKey.of`) and deciding whether a word may be learned at all
+(`WordContext.isLearnableWord`). Loading a file is therefore two steps: Rust
+parses it, Kotlin judges and folds each word, Rust builds the store. The old
+Kotlin stores live on under `app/src/test/.../prediction/reference/` as the
+references the parity tests compare against.
 
 ### Emoji search
 
