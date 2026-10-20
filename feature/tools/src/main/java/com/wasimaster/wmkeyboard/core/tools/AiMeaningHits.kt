@@ -1,30 +1,32 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 /**
- * What the `search_saved_items` tool reads back: things the user keeps on the
- * phone, found by what a query means. The search itself is the keyboard
- * module's (search by meaning lives there), lent through
- * [AiToolHost.searchSaved]; the words the model reads are made here.
+ * What search by meaning hands the AI tools: clips for `search_clipboard`,
+ * notes for the meaning half of `search_notes`. The search itself is the
+ * keyboard module's (search by meaning lives there), lent through
+ * [AiToolHost.searchClipboard] and [AiToolHost.notesByMeaning]; the words the
+ * model reads are made here.
  */
-enum class AiSavedSource(val label: String) {
+enum class AiMeaningSource(val label: String) {
     CLIPBOARD("clipboard"),
     NOTE("note"),
-    SNIPPET("snippet"),
 }
 
 /**
- * One thing found. [title] is a note's title or a snippet's name, null for a
- * clip; [text] is already cut short and on one line; [score] is the cosine
- * the match was ranked by, best near 1.
+ * One thing found. [title] is a note's title, null for a clip; [text] is
+ * already cut short and on one line; [score] is the cosine the match was
+ * ranked by, best near 1; [id] is the item's id in its store, so a caller can
+ * tell a meaning match from one it already found by words.
  */
-data class AiSavedHit(
-    val source: AiSavedSource,
+data class AiMeaningHit(
+    val source: AiMeaningSource,
     val title: String?,
     val text: String,
     val score: Float,
+    val id: String? = null,
 )
 
-object AiSavedFormat {
+object AiMeaningFormat {
 
     /** The most hits one answer lists: enough to choose from, short enough for a small model. */
     const val MAX_HITS = 8
@@ -32,13 +34,13 @@ object AiSavedFormat {
     /** How much of one item the model is shown. */
     const val EXCERPT_CHARS = 280
 
-    const val NOTHING = "Nothing the user saved matches that."
+    const val NOTHING = "Nothing on the clipboard matches that."
 
     /**
      * [hits] as the model reads them, best first: a numbered line each, its
      * source in brackets, a title when it has one, and the excerpt.
      */
-    fun format(hits: List<AiSavedHit>): String {
+    fun format(hits: List<AiMeaningHit>): String {
         if (hits.isEmpty()) return NOTHING
         return hits.take(MAX_HITS).mapIndexed { k, hit ->
             val title = hit.title?.takeIf { it.isNotBlank() }?.let { "${oneLine(it, TITLE_CHARS)}: " }.orEmpty()

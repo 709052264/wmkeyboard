@@ -582,10 +582,10 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_search_notes_running,
         R.string.ime_ai_tool_search_notes_done,
     ),
-    AiTools.SEARCH_SAVED to ToolLabels(
-        R.string.ime_ai_tool_name_search_saved,
-        R.string.ime_ai_tool_search_saved_running,
-        R.string.ime_ai_tool_search_saved_done,
+    AiTools.SEARCH_CLIPBOARD to ToolLabels(
+        R.string.ime_ai_tool_name_search_clipboard,
+        R.string.ime_ai_tool_search_clipboard_running,
+        R.string.ime_ai_tool_search_clipboard_done,
     ),
     AiTools.CURRENT_LOCATION to ToolLabels(
         R.string.ime_ai_tool_name_current_location,

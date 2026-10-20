@@ -146,7 +146,7 @@ class AiToolRunner(
         AiTools.OPEN_APP -> host?.canOpenApps == true
         AiTools.SEND_TO_PC -> host?.canSendToPc == true && settings.kdeConnect.enabled
         AiTools.HOME_ASSISTANT, AiTools.HOME_ASSISTANT_STATES -> host?.canControlHome == true
-        AiTools.SEARCH_SAVED -> host?.canSearchSaved == true
+        AiTools.SEARCH_CLIPBOARD -> host?.canSearchByMeaning == true
         // Only with a picture in the chat, and the reader only for a model
         // that cannot look at the picture itself.
         AiTools.READ_IMAGE_TEXT -> host.let { it != null && it.imageCount > 0 && it.canReadImageText && !it.modelSeesImages }
@@ -295,7 +295,7 @@ class AiToolRunner(
         AiTools.CALCULATE -> calculate(call)
         AiTools.CALENDAR_EVENTS -> calendarEvents(call)
         AiTools.SEARCH_NOTES -> searchNotes(call)
-        AiTools.SEARCH_SAVED -> searchSaved(call)
+        AiTools.SEARCH_CLIPBOARD -> searchClipboard(call)
         AiTools.CURRENT_LOCATION -> currentLocation(call)
         AiTools.ADD_CALENDAR_EVENT -> addCalendarEvent(call)
         AiTools.ADD_NOTE -> addNote(call)
@@ -710,31 +710,39 @@ class AiToolRunner(
         return AiToolResult(call, "Added to the calendar \"${target.name.ifBlank { target.account }}\": $summary.")
     }
 
-    /** Notes matching the model's words, or the newest ones; a locked note's text stays hidden. */
+    /**
+     * Notes matching the model's words, or the newest ones; a locked note's
+     * text stays hidden. With search by meaning on, notes that mean what the
+     * query does follow, minus the ones the words already found.
+     */
     private fun searchNotes(call: AiToolCall): AiToolResult {
         if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
+        val query = call.argument("query").orEmpty()
         val store = NoteStore(File(context.filesDir, NoteStore.FILE_PATH))
-        val found = store.search(call.argument("query").orEmpty()).take(MAX_NOTES)
-        if (found.isEmpty()) return AiToolResult(call, "No notes found.")
-        return AiToolResult(
-            call,
-            found.joinToString("\n\n") { note ->
-                val body = if (note.locked) "[locked: its text is hidden]" else note.body.take(NOTE_CHARS)
-                note.displayTitle() + "\n" + body.trim()
-            },
-        )
+        val found = store.search(query).take(MAX_NOTES)
+        val byWords = found.map { it.id.toString() }.toSet()
+        val byMeaning = host?.takeIf { query.isNotBlank() && it.canSearchByMeaning }
+            ?.notesByMeaning(query)?.getOrNull().orEmpty()
+            .filter { it.id !in byWords }
+        if (found.isEmpty() && byMeaning.isEmpty()) return AiToolResult(call, "No notes found.")
+        val words = found.joinToString("\n\n") { note ->
+            val body = if (note.locked) "[locked: its text is hidden]" else note.body.take(NOTE_CHARS)
+            note.displayTitle() + "\n" + body.trim()
+        }
+        val meaning = byMeaning.takeIf { it.isNotEmpty() }?.let { "Close in meaning:\n" + AiMeaningFormat.format(it) }
+        return AiToolResult(call, listOf(words, meaning.orEmpty()).filter { it.isNotBlank() }.joinToString("\n\n"))
     }
 
     /**
-     * Search by meaning over the clipboard, notes and snippets, through the
-     * keyboard module's indexes. What the model reads is shaped by
-     * [AiSavedFormat]; what may be found at all is the host's to decide.
+     * Search by meaning over the clipboard history, through the keyboard
+     * module's index. What the model reads is shaped by [AiMeaningFormat];
+     * what may be found at all is the host's to decide.
      */
-    private fun searchSaved(call: AiToolCall): AiToolResult {
+    private fun searchClipboard(call: AiToolCall): AiToolResult {
         val query = call.argument("query") ?: return missing(call, "query")
         if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
-        val hits = requireNotNull(host).searchSaved(query).getOrThrow()
-        return AiToolResult(call, AiSavedFormat.format(hits))
+        val hits = requireNotNull(host).searchClipboard(query).getOrThrow()
+        return AiToolResult(call, AiMeaningFormat.format(hits))
     }
 
     /**

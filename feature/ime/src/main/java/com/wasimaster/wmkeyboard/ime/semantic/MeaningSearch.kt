@@ -280,7 +280,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
          */
         fun indexDir(context: Context): File = File(context.noBackupFilesDir, "semantic/index")
 
-        /** [space]'s index, read by [SavedItemSearch] as well. */
+        /** [space]'s index, read by [MeaningLookup] as well. */
         fun indexFile(context: Context, space: MeaningSpace): File = File(indexDir(context), space.fileName + ".vec")
 
         /** A stamp for a text in [space]; the model version is folded in. */
