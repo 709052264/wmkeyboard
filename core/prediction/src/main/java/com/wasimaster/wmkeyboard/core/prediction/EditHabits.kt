@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
+
 /**
  * How much cheaper the fuzzy walk should price the slips this user actually
  * makes, learned from the typos they fixed by hand ([CorrectionMemory]).
@@ -42,6 +44,19 @@ class EditHabits internal constructor(
 
     val isEmpty: Boolean
         get() = subKeys.isEmpty() && insertKeys.isEmpty() && deleteKeys.isEmpty() && spaceSlipKeys.isEmpty()
+
+    /**
+     * These tables in Rust, for the native correction walk; 0 when there is
+     * nothing to price. Made on first use and released with this object.
+     */
+    internal val nativeHandle: Long by lazy {
+        if (subKeys.isEmpty() && insertKeys.isEmpty() && deleteKeys.isEmpty()) {
+            0L
+        } else {
+            PredictionNative.habitsOpen(subKeys, subValues, insertKeys, insertValues, deleteKeys, deleteValues)
+                .also { NativeHandles.track(this, it, PredictionNative::habitsClose) }
+        }
+    }
 
     /** Shrink for reading [typed] as a slip for [intended]; 0 when unknown. */
     fun substitution(typed: Char, intended: Char): Double {

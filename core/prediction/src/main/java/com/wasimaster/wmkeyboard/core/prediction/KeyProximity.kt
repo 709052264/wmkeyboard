@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.engine.NativeHandles
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
@@ -15,7 +16,17 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
  * and below (the phone grid is only half-key staggered, so i-1..i+1 covers every
  * touching key).
  */
-class KeyProximity private constructor(rows: List<String>) {
+class KeyProximity private constructor(private val rows: List<String>) {
+
+    /**
+     * The same model in Rust, for the native correction walk, made on first
+     * use and released with this object ([NativeFuzzySearch]).
+     */
+    internal val nativeHandle: Long by lazy {
+        PredictionNative.proximityOpen(rows.toTypedArray()).also {
+            NativeHandles.track(this, it, PredictionNative::proximityClose)
+        }
+    }
 
     /**
      * Hand per key, by column against the widest row. Built once with

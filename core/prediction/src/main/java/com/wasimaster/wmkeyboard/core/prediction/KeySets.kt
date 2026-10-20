@@ -55,6 +55,10 @@ class KeySets private constructor(private val sets: Array<String>) {
             ?.toTypedArray()
     }
 
+    /** Every keystroke's letters and [spellingsAt], for the native walk ([NativeFuzzySearch]). */
+    internal val rawSets: Array<String> get() = sets
+    internal val rawSpellings: Array<Array<String>?> get() = spellings
+
     /** Whether keystroke [pos] could have meant [label]. */
     fun accepts(pos: Int, label: Char): Boolean = at(pos)?.contains(label) == true
 

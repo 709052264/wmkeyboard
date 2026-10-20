@@ -1,5 +1,7 @@
 //! Trie-guided fuzzy search: corrections and completions in one best-first
-//! walk. A port of the Kotlin `FuzzyBeamSearch` (core/prediction).
+//! walk. The Kotlin `FuzzyBeamSearch` (core/prediction), line for line: the
+//! phone runs this through JNI, and the parity tests hold the two to the
+//! same candidates, scores and edit counts.
 //!
 //! Instead of generating every edit of the typed word and probing the
 //! dictionary, the walk descends the trie itself, so only words the
@@ -15,12 +17,15 @@
 //! overestimates, so pruning against the K-th best never loses a top-K word.
 //!
 //! Text is UTF-16 code units throughout, as the dictionaries store it and as
-//! the Kotlin walk reads it. Touch scoring and ambiguous (T9) keys, which
-//! only an on-screen keyboard has, are left out; the learned edit habits are
-//! a parameter ([`EditHabits`]).
+//! the Kotlin walk reads it. Logarithms are [`strict_math::log`], fdlibm's,
+//! which is what the JVM's `Math.log` returns on the machines the evals run
+//! on; the platform `ln` rounds about one value in a hundred differently.
+//! Touch evidence ([`TouchScoring`]), ambiguous keys ([`KeySets`]) and the
+//! learned slip habits ([`EditHabits`]) are optional parameters.
 
 use crate::accents;
 use crate::proximity::KeyProximity;
+use crate::strict_math;
 use crate::wmdict::Dict;
 use std::collections::HashMap;
 
@@ -31,7 +36,8 @@ pub trait Walker {
         0
     }
     fn child(&self, node: u32, label: u16) -> Option<u32>;
-    /// Every `(label, child)` of `node` into `out`, cleared first.
+    /// Every `(label, child)` of `node` into `out`, cleared first, in the
+    /// order the Kotlin walker of the same trie lists them.
     fn children_into(&self, node: u32, out: &mut Vec<(u16, u32)>);
     fn is_word(&self, node: u32) -> bool;
     fn frequency(&self, node: u32) -> i32;
@@ -58,7 +64,7 @@ impl<B: AsRef<[u8]>> Walker for Dict<B> {
 }
 
 /// How a learned slip habit shrinks an edit's price: 0 for none, up to 1.
-/// The Kotlin `EditHabits`; [`NO_HABITS`] until correction memory is ported.
+/// The Kotlin `EditHabits`.
 pub trait EditHabits {
     fn deletion(&self, _typed: u16) -> f64 {
         0.0
@@ -75,6 +81,147 @@ pub struct NoHabits;
 impl EditHabits for NoHabits {}
 pub const NO_HABITS: NoHabits = NoHabits;
 
+/// Habits as the Kotlin `EditHabits` stores them: sorted keys and their
+/// shrinks, looked up by binary search. Substitution keys are
+/// `typed << 16 | intended`.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct HabitTables {
+    pub sub_keys: Vec<i32>,
+    pub sub_values: Vec<f64>,
+    pub insert_keys: Vec<u16>,
+    pub insert_values: Vec<f64>,
+    pub delete_keys: Vec<u16>,
+    pub delete_values: Vec<f64>,
+}
+
+fn lookup<K: Ord>(keys: &[K], values: &[f64], key: K) -> f64 {
+    keys.binary_search(&key).ok().and_then(|i| values.get(i).copied()).unwrap_or(0.0)
+}
+
+impl EditHabits for HabitTables {
+    fn deletion(&self, typed: u16) -> f64 {
+        lookup(&self.delete_keys, &self.delete_values, typed)
+    }
+    fn substitution(&self, typed: u16, meant: u16) -> f64 {
+        lookup(&self.sub_keys, &self.sub_values, ((typed as i32) << 16) | meant as i32)
+    }
+    fn insertion(&self, meant: u16) -> f64 {
+        lookup(&self.insert_keys, &self.insert_values, meant)
+    }
+}
+
+/// The layout's key centres, for touch evidence: the Kotlin `KeyTouchModel`.
+/// Positions are in key widths, as `f32`, the way taps arrive.
+#[derive(Clone, Debug, PartialEq)]
+pub struct TouchModel {
+    /// In the order the Kotlin model lists them, which decides ties in
+    /// [`TouchModel::best_key`].
+    keys: Vec<(u16, f32, f32)>,
+    index: HashMap<u16, usize>,
+    sigma: f64,
+}
+
+impl TouchModel {
+    pub const SIGMA: f64 = 0.5;
+
+    pub fn new(keys: Vec<(u16, f32, f32)>, sigma: f64) -> TouchModel {
+        let mut index = HashMap::with_capacity(keys.len());
+        for (i, &(key, _, _)) in keys.iter().enumerate() {
+            // A Kotlin map holds a key once; its centre is the last one put.
+            index.insert(key, i);
+        }
+        TouchModel { keys, index, sigma }
+    }
+
+    pub fn knows(&self, key: u16) -> bool {
+        self.index.contains_key(&key)
+    }
+
+    /// ln P(tap at `p` | key), up to a constant: `-(d^2) / (2 sigma^2)`.
+    pub fn log_likelihood(&self, p: (f32, f32), key: u16) -> f64 {
+        let Some(&i) = self.index.get(&key) else {
+            return f64::NEG_INFINITY;
+        };
+        let (_, cx, cy) = self.keys[i];
+        let dx = (p.0 - cx) as f64;
+        let dy = (p.1 - cy) as f64;
+        -(dx * dx + dy * dy) / (2.0 * self.sigma * self.sigma)
+    }
+
+    /// The key a tap most likely meant: the nearest centre, the first listed
+    /// on a tie.
+    pub fn best_key(&self, p: (f32, f32)) -> Option<u16> {
+        let mut best = None;
+        let mut best_score = f64::NEG_INFINITY;
+        for &(key, cx, cy) in &self.keys {
+            let dx = (p.0 - cx) as f64;
+            let dy = (p.1 - cy) as f64;
+            let score = -(dx * dx + dy * dy);
+            if score > best_score {
+                best_score = score;
+                best = Some(key);
+            }
+        }
+        best
+    }
+}
+
+/// One keystroke's touch evidence: the model and the tap of each typed
+/// character (`None` where unknown: hardware keys, pasted text).
+pub struct TouchScoring<'a> {
+    pub model: &'a TouchModel,
+    pub points: Vec<Option<(f32, f32)>>,
+    best_log_likelihoods: Vec<f64>,
+}
+
+impl<'a> TouchScoring<'a> {
+    pub fn new(model: &'a TouchModel, points: Vec<Option<(f32, f32)>>) -> TouchScoring<'a> {
+        let best_log_likelihoods = points
+            .iter()
+            .map(|p| match p.and_then(|p| model.best_key(p).map(|best| (p, best))) {
+                Some((p, best)) => model.log_likelihood(p, best),
+                None => f64::NEG_INFINITY,
+            })
+            .collect();
+        TouchScoring { model, points, best_log_likelihoods }
+    }
+
+    fn point(&self, pos: usize) -> Option<(f32, f32)> {
+        self.points.get(pos).copied().flatten()
+    }
+}
+
+/// The letters each keystroke could have meant, on a keyboard with several
+/// on a key: the Kotlin `KeySets`. `spellings[pos]` lists the members a word
+/// list spells in several units (क़ as क + nukta), already normalised by the
+/// caller.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct KeySets {
+    sets: Vec<Vec<u16>>,
+    spellings: Vec<Option<Vec<Vec<u16>>>>,
+    ambiguous: bool,
+}
+
+impl KeySets {
+    pub fn new(sets: Vec<Vec<u16>>, spellings: Vec<Option<Vec<Vec<u16>>>>) -> KeySets {
+        let ambiguous = sets.iter().any(|s| s.len() > 1);
+        KeySets { sets, spellings, ambiguous }
+    }
+
+    pub fn is_ambiguous(&self) -> bool {
+        self.ambiguous
+    }
+
+    /// Keystroke `pos`'s set, or `None` where it could only mean one letter.
+    pub fn at(&self, pos: usize) -> Option<&[u16]> {
+        self.sets.get(pos).filter(|s| s.len() > 1).map(Vec::as_slice)
+    }
+
+    pub fn spellings_at(&self, pos: usize) -> Option<&[Vec<u16>]> {
+        self.spellings.get(pos).and_then(|s| s.as_deref())
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Tier {
     Dictionary,
@@ -86,6 +233,24 @@ pub struct WalkSource<'a> {
     pub walker: &'a dyn Walker,
     pub log_weight: f64,
     pub tier: Tier,
+}
+
+/// A candidate with its word as UTF-16, as the phone holds it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Candidate {
+    pub word: Vec<u16>,
+    pub score: f64,
+    pub edit_cost: f64,
+    pub edits: u32,
+    /// Characters appended beyond the typed length by completion.
+    pub completed_chars: u32,
+    pub tier: Tier,
+    /// Best score from dictionary-tier sources (-inf when none).
+    pub dict_score: f64,
+    /// Best score from user-tier sources (-inf when none).
+    pub user_score: f64,
+    /// Letters read as their accented form; not edits.
+    pub accents: u32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -106,7 +271,7 @@ pub struct ScoredCandidate {
 }
 
 pub fn ln(x: f64) -> f64 {
-    x.ln()
+    strict_math::log(x)
 }
 
 /// Two keys swapped across the hands: the ordinary racing-hands slip.
@@ -152,6 +317,12 @@ pub const MAX_EDIT_COST: f64 = 2.0;
 pub const SECOND_EDIT_SURCHARGE: f64 = 2.0;
 /// Autocorrect wants a deeper list than the strip shows.
 pub const AUTOCORRECT_K: usize = 8;
+/// Cap on the rank cost an off-centre tap adds to an exact match.
+pub const MATCH_CAP: f64 = 1.0;
+/// Edits allowed on top of key ambiguity.
+pub const AMBIGUOUS_MAX_EDITS: u32 = 1;
+/// Extra cost on any edit taken while decoding ambiguous keystrokes.
+pub const AMBIGUOUS_EDIT_SURCHARGE: f64 = 6.0;
 /// No learned habit prices an edit under the adjacent-slip tier.
 pub fn habit_floor() -> f64 {
     cost_sub_adjacent()
@@ -171,12 +342,25 @@ pub fn default_max_edits(typed_len: usize) -> u32 {
     }
 }
 
+/// The Kotlin walk's `ln1p(v)`, which is `ln(1.0 + v)`.
 fn ln1p(v: i32) -> f64 {
-    (1.0 + v as f64).ln()
+    strict_math::ln1p_count(v)
+}
+
+/// `Double.coerceIn(lo, hi)`.
+fn coerce_in(v: f64, lo: f64, hi: f64) -> f64 {
+    if v < lo {
+        lo
+    } else if v > hi {
+        hi
+    } else {
+        v
+    }
 }
 
 /// Pooled state store and index heap: the search allocates nothing per
-/// keystroke beyond emitted words when a workspace is reused.
+/// keystroke beyond emitted words when a workspace is reused. The heap is
+/// `BeamWorkspace`'s, so states of equal bound pop in the same order.
 #[derive(Default)]
 pub struct Workspace {
     node: Vec<u32>,
@@ -191,6 +375,7 @@ pub struct Workspace {
     bound: Vec<f64>,
     heap: Vec<u32>,
     children: Vec<(u16, u32)>,
+    scores: Vec<f64>,
 }
 
 impl Workspace {
@@ -212,6 +397,7 @@ impl Workspace {
         self.heap.clear();
     }
 
+    /// `pushRecord`: a state that is linked into a word but never expanded.
     #[allow(clippy::too_many_arguments)]
     fn record(
         &mut self,
@@ -230,15 +416,17 @@ impl Workspace {
         self.pos.push(pos as u16);
         self.cost.push(cost);
         self.edit_cost.push(edit);
+        // Kotlin stores these as bytes too.
         self.edits.push(edits as u8);
-        self.comp.push(comp.min(255) as u8);
-        self.accents.push(accents.min(255) as u8);
+        self.comp.push(comp as u8);
+        self.accents.push(accents as u8);
         self.parent.push(parent);
         self.via.push(via);
         self.bound.push(0.0);
         id
     }
 
+    /// `pushState`: a record scheduled for expansion by its bound.
     #[allow(clippy::too_many_arguments)]
     fn state(
         &mut self,
@@ -255,11 +443,10 @@ impl Workspace {
     ) {
         let id = self.record(node, pos, cost, edit, edits, comp, accents, parent, via);
         self.bound[id as usize] = bound;
-        // Max-heap on bound.
         self.heap.push(id as u32);
         let mut i = self.heap.len() - 1;
         while i > 0 {
-            let up = (i - 1) / 2;
+            let up = (i - 1) >> 1;
             if self.bound[self.heap[up] as usize] >= self.bound[self.heap[i] as usize] {
                 break;
             }
@@ -270,20 +457,20 @@ impl Workspace {
 
     fn pop(&mut self) -> usize {
         let top = self.heap[0];
-        let last = self.heap.pop().unwrap();
+        let last = self.heap.pop().expect("pop on an empty heap");
         if !self.heap.is_empty() {
             self.heap[0] = last;
             let mut i = 0;
             let n = self.heap.len();
             loop {
-                let l = i * 2 + 1;
-                if l >= n {
+                let left = i * 2 + 1;
+                if left >= n {
                     break;
                 }
-                let r = l + 1;
-                let mut best = l;
-                if r < n && self.bound[self.heap[r] as usize] > self.bound[self.heap[l] as usize] {
-                    best = r;
+                let right = left + 1;
+                let mut best = left;
+                if right < n && self.bound[self.heap[right] as usize] > self.bound[self.heap[left] as usize] {
+                    best = right;
                 }
                 if self.bound[self.heap[i] as usize] >= self.bound[self.heap[best] as usize] {
                     break;
@@ -295,8 +482,9 @@ impl Workspace {
         top as usize
     }
 
-    /// The word for state `s`, from its parent chain.
-    fn materialize(&self, s: usize) -> String {
+    /// The word for state `s`, from its parent chain, one unit at a time
+    /// (a surrogate pair's halves arrive leaf first).
+    fn materialize(&self, s: usize) -> Vec<u16> {
         let mut units = Vec::new();
         let mut cur = s as i32;
         while cur >= 0 {
@@ -307,7 +495,7 @@ impl Workspace {
             cur = self.parent[cur as usize];
         }
         units.reverse();
-        String::from_utf16_lossy(&units)
+        units
     }
 }
 
@@ -319,12 +507,19 @@ fn discounted(base: f64, shrink: f64) -> f64 {
     if shrink <= 0.0 {
         base
     } else {
-        habit_floor().max(base * (1.0 - shrink))
+        // Kotlin's maxOf(Double, Double) is Math.max.
+        let floor = habit_floor();
+        let v = base * (1.0 - shrink);
+        if v.is_nan() {
+            v
+        } else {
+            floor.max(v)
+        }
     }
 }
 
-/// The search: up to `max(limit * 2, AUTOCORRECT_K)` candidates, best first
-/// (ties by the word).
+/// The search over strings, for callers that hold `str`: up to
+/// `max(limit * 2, AUTOCORRECT_K)` candidates, best first (ties by the word).
 #[allow(clippy::too_many_arguments)]
 pub fn search(
     sources: &[WalkSource],
@@ -336,354 +531,312 @@ pub fn search(
     habits: &dyn EditHabits,
 ) -> Vec<ScoredCandidate> {
     let typed: Vec<u16> = typed.encode_utf16().collect();
+    let max_edits = max_edits.unwrap_or_else(|| default_max_edits(typed.len()));
+    search_units(sources, &typed, proximity, limit, ws, max_edits, None, habits, None)
+        .into_iter()
+        .map(|c| ScoredCandidate {
+            word: String::from_utf16_lossy(&c.word),
+            score: c.score,
+            edit_cost: c.edit_cost,
+            edits: c.edits,
+            completed_chars: c.completed_chars,
+            tier: c.tier,
+            dict_score: c.dict_score,
+            user_score: c.user_score,
+            accents: c.accents,
+        })
+        .collect()
+}
+
+/// `FuzzyBeamSearch.search`: up to `max(limit * 2, AUTOCORRECT_K)`
+/// candidates for `typed`, best score first, ties by the word in UTF-16
+/// order.
+#[allow(clippy::too_many_arguments)]
+pub fn search_units(
+    sources: &[WalkSource],
+    typed: &[u16],
+    proximity: &KeyProximity,
+    limit: usize,
+    ws: &mut Workspace,
+    max_edits: u32,
+    touch: Option<&TouchScoring>,
+    habits: &dyn EditHabits,
+    keys: Option<&KeySets>,
+) -> Vec<Candidate> {
     if typed.is_empty() || limit == 0 {
         return Vec::new();
     }
-    let max_edits = max_edits.unwrap_or_else(|| default_max_edits(typed.len()));
     let k = (limit * 2).max(AUTOCORRECT_K);
-    let mut results: HashMap<String, ScoredCandidate> = HashMap::new();
+    let ambiguous = keys.is_some_and(KeySets::is_ambiguous);
+    let edits = if ambiguous { max_edits.min(AMBIGUOUS_MAX_EDITS) } else { max_edits };
+    let mut results: HashMap<Vec<u16>, Candidate> = HashMap::new();
     let mut floor = f64::NEG_INFINITY;
-    // Heaviest source first: its emissions raise the floor early.
+    // Heaviest source first: its emissions raise the floor early. A stable
+    // sort, as Kotlin's sortedByDescending is.
     let mut ordered: Vec<&WalkSource> = sources.iter().collect();
     if ordered.len() > 1 {
-        ordered.sort_by(|a, b| {
-            let ka = a.log_weight + ln1p(a.walker.max_subtree(a.walker.root()));
-            let kb = b.log_weight + ln1p(b.walker.max_subtree(b.walker.root()));
-            kb.partial_cmp(&ka).unwrap_or(std::cmp::Ordering::Equal)
-        });
+        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
     }
+    let walk = Walk { typed, proximity, max_edits: edits, k, touch, habits, keys, ambiguous };
     for src in ordered {
-        let root_bound = src.log_weight + ln1p(src.walker.max_subtree(src.walker.root()));
-        if root_bound < floor - EPS {
+        if root_bound(src) < floor - EPS {
             continue;
         }
-        floor = search_one(
-            src,
-            &typed,
-            proximity,
-            max_edits,
-            k,
-            &mut results,
-            floor,
-            ws,
-            habits,
-        );
+        floor = walk.one(src, &mut results, floor, ws);
     }
-    let mut out: Vec<ScoredCandidate> = results.into_values().collect();
-    out.sort_by(|a, b| {
-        b.score
-            .partial_cmp(&a.score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.word.cmp(&b.word))
-    });
+    let mut out: Vec<Candidate> = results.into_values().collect();
+    out.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
     out.truncate(k);
     out
 }
 
-#[allow(clippy::too_many_arguments)]
-fn search_one(
-    src: &WalkSource,
-    typed: &[u16],
-    proximity: &KeyProximity,
+fn root_bound(src: &WalkSource) -> f64 {
+    src.log_weight + ln1p(src.walker.max_subtree(src.walker.root()))
+}
+
+/// One search's fixed inputs.
+struct Walk<'a> {
+    typed: &'a [u16],
+    proximity: &'a KeyProximity,
     max_edits: u32,
     k: usize,
-    results: &mut HashMap<String, ScoredCandidate>,
-    floor_in: f64,
-    ws: &mut Workspace,
-    habits: &dyn EditHabits,
-) -> f64 {
-    let mut floor = floor_in;
-    let w = src.walker;
-    let n = typed.len();
-    ws.reset();
-    let root = w.root();
-    ws.state(
-        root,
-        0,
-        0.0,
-        0.0,
-        0,
-        0,
-        0,
-        -1,
-        NO_LABEL,
-        src.log_weight + ln1p(w.max_subtree(root)),
-    );
-    let mut pops = 0;
-    let mut children = std::mem::take(&mut ws.children);
-    macro_rules! push {
-        ($node:expr, $pos:expr, $cost:expr, $edit:expr, $edits:expr, $comp:expr, $acc:expr, $parent:expr, $via:expr) => {{
-            let node = $node;
-            let cost = $cost;
-            let bound = src.log_weight + ln1p(w.max_subtree(node)) - cost;
-            if bound >= floor - EPS {
-                ws.state(
-                    node, $pos, cost, $edit, $edits, $comp, $acc, $parent, $via, bound,
-                );
-            }
-        }};
-    }
-    while !ws.heap.is_empty() && pops < MAX_POPS {
-        let s = ws.pop();
-        if ws.bound[s] < floor - EPS {
-            break;
-        }
-        pops += 1;
-        let node = ws.node[s];
-        let pos = ws.pos[s] as usize;
-        let cost = ws.cost[s];
-        let edit = ws.edit_cost[s];
-        let edits = ws.edits[s] as u32;
-        let comp = ws.comp[s] as u32;
-        let acc = ws.accents[s] as u32;
-        let parent = s as i32;
+    touch: Option<&'a TouchScoring<'a>>,
+    habits: &'a dyn EditHabits,
+    keys: Option<&'a KeySets>,
+    ambiguous: bool,
+}
 
-        if pos == n {
-            if w.is_word(node) {
-                let score = src.log_weight + ln1p(w.frequency(node)) - cost;
-                if score > floor - EPS || results.len() < k {
-                    emit(
-                        ws.materialize(s),
-                        score,
-                        edit,
-                        edits,
-                        comp,
-                        acc,
-                        src.tier,
-                        results,
-                    );
-                    if results.len() >= k {
-                        floor = kth_best(results, k);
-                    }
+impl Walk<'_> {
+    /// Rank cost of consuming `expected` as itself: zero without touch
+    /// data, else the likelihood gap to the tap's best key, capped.
+    fn match_cost(&self, pos: usize, expected: u16) -> f64 {
+        let Some(touch) = self.touch else { return 0.0 };
+        let Some(p) = touch.point(pos) else { return 0.0 };
+        if !touch.model.knows(expected) {
+            return 0.0;
+        }
+        let best = touch.best_log_likelihoods.get(pos).copied().unwrap_or(f64::NEG_INFINITY);
+        if best == f64::NEG_INFINITY {
+            return 0.0;
+        }
+        coerce_in(best - touch.model.log_likelihood(p, expected), 0.0, MATCH_CAP)
+    }
+
+    /// Cost of reading `expected` as a slip for `label`.
+    fn substitution_cost(&self, pos: usize, expected: u16, label: u16) -> f64 {
+        let point = self.touch.and_then(|t| t.point(pos).map(|p| (t, p)));
+        match point {
+            Some((touch, p)) if touch.model.knows(expected) && touch.model.knows(label) => {
+                let gap = touch.model.log_likelihood(p, expected) - touch.model.log_likelihood(p, label);
+                cost_sub_adjacent() + coerce_in(gap, 0.0, cost_sub_far() - cost_sub_adjacent())
+            }
+            _ => {
+                if self.proximity.are_adjacent(expected, label) {
+                    cost_sub_adjacent()
+                } else {
+                    cost_sub_far()
                 }
             }
-            // Completion: free on a clean prefix, charged after an edit.
-            let step = if edits > 0 {
-                cost_completion_after_edit()
-            } else {
-                COMPLETION_STEP
-            };
+        }
+    }
+
+    fn one(&self, src: &WalkSource, results: &mut HashMap<Vec<u16>, Candidate>, floor_in: f64, ws: &mut Workspace) -> f64 {
+        let mut floor = floor_in;
+        let w = src.walker;
+        let typed = self.typed;
+        let n = typed.len();
+        ws.reset();
+        let root = w.root();
+        ws.state(root, 0, 0.0, 0.0, 0, 0, 0, -1, NO_LABEL, src.log_weight + ln1p(w.max_subtree(root)));
+        let mut pops = 0;
+        let mut children = std::mem::take(&mut ws.children);
+        macro_rules! push {
+            ($node:expr, $pos:expr, $cost:expr, $edit:expr, $edits:expr, $comp:expr, $acc:expr, $parent:expr, $via:expr) => {{
+                let node = $node;
+                let cost = $cost;
+                let bound = src.log_weight + ln1p(w.max_subtree(node)) - cost;
+                if !(bound < floor - EPS) {
+                    ws.state(node, $pos, cost, $edit, $edits, $comp, $acc, $parent, $via, bound);
+                }
+            }};
+        }
+        while !ws.heap.is_empty() && pops < MAX_POPS {
+            let s = ws.pop();
+            if ws.bound[s] < floor - EPS {
+                break;
+            }
+            pops += 1;
+            let node = ws.node[s];
+            let pos = ws.pos[s] as usize;
+            let cost = ws.cost[s];
+            let edit = ws.edit_cost[s];
+            let edits = ws.edits[s] as u32;
+            let comp = ws.comp[s] as u32;
+            let acc = ws.accents[s] as u32;
+            let parent = s as i32;
+
+            if pos == n {
+                if w.is_word(node) {
+                    let score = src.log_weight + ln1p(w.frequency(node)) - cost;
+                    if score > floor - EPS || results.len() < self.k {
+                        emit(ws.materialize(s), score, edit, edits, comp, acc, src.tier, results);
+                        if results.len() >= self.k {
+                            floor = kth_best(results, self.k, &mut ws.scores);
+                        }
+                    }
+                }
+                // Completion: free on a clean prefix, charged after an edit.
+                let step = if edits > 0 { cost_completion_after_edit() } else { COMPLETION_STEP };
+                w.children_into(node, &mut children);
+                for &(label, child) in &children {
+                    push!(child, n, cost + step, edit, edits, comp + 1, acc, parent, label);
+                }
+                continue;
+            }
+
+            let expected = typed[pos];
+            let key_set = self.keys.and_then(|k| k.at(pos));
             w.children_into(node, &mut children);
-            for &(label, child) in &children {
-                push!(
-                    child,
-                    n,
-                    cost + step,
-                    edit,
-                    edits,
-                    comp + 1,
-                    acc,
-                    parent,
-                    label
-                );
+            // A half-space the word is spelled with and the typing left out.
+            if expected != ZWNJ {
+                if let Some(joined) = find(&children, ZWNJ) {
+                    push!(joined, pos, cost + cost_accent(), edit, edits, comp, acc + 1, parent, ZWNJ);
+                }
             }
-            continue;
-        }
-
-        let expected = typed[pos];
-        w.children_into(node, &mut children);
-        // A half-space the word is spelled with and the typing left out.
-        if expected != ZWNJ {
-            if let Some(joined) = find(&children, ZWNJ) {
-                push!(
-                    joined,
-                    pos,
-                    cost + cost_accent(),
-                    edit,
-                    edits,
-                    comp,
-                    acc + 1,
-                    parent,
-                    ZWNJ
-                );
-            }
-        }
-        // The typed character itself.
-        if let Some(matched) = find(&children, expected) {
-            push!(
-                matched,
-                pos + 1,
-                cost,
-                edit,
-                edits,
-                comp,
-                acc,
-                parent,
-                expected
-            );
-        }
-        // The same key with its accent left off.
-        for &(label, child) in &children {
-            if accents::is_accent_of(label, expected) {
-                push!(
-                    child,
-                    pos + 1,
-                    cost + cost_accent(),
-                    edit,
-                    edits,
-                    comp,
-                    acc + 1,
-                    parent,
-                    label
-                );
-            }
-        }
-
-        if edits < max_edits && edit < MAX_EDIT_COST {
-            let surcharge = if edits + 1 >= 2 {
-                SECOND_EDIT_SURCHARGE
-            } else {
-                0.0
-            };
-            // Deletion: the typed character was an extra keypress.
-            let doubled = (pos + 1 < n && typed[pos + 1] == expected)
-                || (pos > 0 && typed[pos - 1] == expected);
-            let del = discounted(
-                if doubled {
-                    cost_delete_doubled()
-                } else {
-                    cost_deletion()
-                },
-                habits.deletion(expected),
-            );
-            if edit + del <= MAX_EDIT_COST {
-                push!(
-                    node,
-                    pos + 1,
-                    cost + del + surcharge,
-                    edit + del,
-                    edits + 1,
-                    comp,
-                    acc,
-                    parent,
-                    NO_LABEL
-                );
-            }
-            for &(label, child) in &children {
-                let accented = accents::is_accent_of(label, expected);
-                if label != expected && !accented {
-                    let base = if proximity.are_adjacent(expected, label) {
-                        cost_sub_adjacent()
-                    } else {
-                        cost_sub_far()
-                    };
-                    let sub = discounted(base, habits.substitution(expected, label));
-                    if edit + sub <= MAX_EDIT_COST {
+            match key_set {
+                None => {
+                    // The typed character itself.
+                    if let Some(matched) = find(&children, expected) {
+                        push!(matched, pos + 1, cost + self.match_cost(pos, expected), edit, edits, comp, acc, parent, expected);
+                    }
+                    // The same key with its accent left off.
+                    for &(label, child) in &children {
+                        if !accents::is_accent_of(label, expected) {
+                            continue;
+                        }
                         push!(
                             child,
                             pos + 1,
-                            cost + sub + surcharge,
-                            edit + sub,
-                            edits + 1,
+                            cost + self.match_cost(pos, expected) + cost_accent(),
+                            edit,
+                            edits,
                             comp,
-                            acc,
+                            acc + 1,
                             parent,
                             label
                         );
                     }
                 }
-                // Insertion: the word has `label` here and the typing missed it.
-                let adjacent = proximity.are_adjacent(expected, label)
-                    || (pos > 0
-                        && (typed[pos - 1] == label
-                            || proximity.are_adjacent(typed[pos - 1], label)));
-                let ins = discounted(
-                    if adjacent {
-                        cost_insert_adjacent()
-                    } else {
-                        cost_insert_far()
-                    },
-                    habits.insertion(label),
-                );
-                if edit + ins <= MAX_EDIT_COST {
-                    push!(
-                        child,
-                        pos,
-                        cost + ins + surcharge,
-                        edit + ins,
-                        edits + 1,
-                        comp,
-                        acc,
-                        parent,
-                        label
-                    );
+                Some(set) => {
+                    // Every letter on the pressed key matches, free and unedited.
+                    for &(label, child) in &children {
+                        if !set.contains(&label) {
+                            continue;
+                        }
+                        push!(child, pos + 1, cost + self.match_cost(pos, label), edit, edits, comp, acc, parent, label);
+                    }
+                    // A letter on the key a word list spells in several units.
+                    if let Some(spellings) = self.keys.and_then(|k| k.spellings_at(pos)) {
+                        'spelled: for spelled in spellings {
+                            let mut at = node;
+                            let mut link = parent;
+                            for &unit in &spelled[..spelled.len() - 1] {
+                                match w.child(at, unit) {
+                                    None => continue 'spelled,
+                                    Some(next) => at = next,
+                                }
+                                link = ws.record(at, pos, cost, edit, edits, comp, acc, link, unit);
+                            }
+                            let last_unit = spelled[spelled.len() - 1];
+                            if let Some(last) = w.child(at, last_unit) {
+                                push!(last, pos + 1, cost + self.match_cost(pos, spelled[0]), edit, edits, comp, acc, link, last_unit);
+                            }
+                        }
+                    }
                 }
             }
-            // Transposition of the next two typed characters, priced by hand.
-            let transpose = if pos + 1 < n && proximity.same_hand(typed[pos], typed[pos + 1]) {
-                cost_transposition_same_hand()
-            } else {
-                cost_transposition()
-            };
-            if pos + 1 < n && typed[pos] != typed[pos + 1] && edit + transpose <= MAX_EDIT_COST {
-                if let Some(first) = find(&children, typed[pos + 1]) {
-                    if let Some(second) = w.child(first, typed[pos]) {
-                        let link = ws.record(
-                            first,
-                            pos + 1,
-                            cost,
-                            edit,
-                            edits,
-                            comp,
-                            acc,
-                            parent,
-                            typed[pos + 1],
+
+            if edits < self.max_edits && edit < MAX_EDIT_COST {
+                let surcharge = (if edits + 1 >= 2 { SECOND_EDIT_SURCHARGE } else { 0.0 })
+                    + if self.ambiguous { AMBIGUOUS_EDIT_SURCHARGE } else { 0.0 };
+                // Deletion: the typed character was an extra keypress.
+                let doubled = (pos + 1 < n && typed[pos + 1] == expected) || (pos > 0 && typed[pos - 1] == expected);
+                let del = discounted(
+                    if doubled { cost_delete_doubled() } else { cost_deletion() },
+                    self.habits.deletion(expected),
+                );
+                if edit + del <= MAX_EDIT_COST {
+                    push!(node, pos + 1, cost + del + surcharge, edit + del, edits + 1, comp, acc, parent, NO_LABEL);
+                }
+                for &(label, child) in &children {
+                    let on_key = key_set.is_some_and(|set| set.contains(&label));
+                    let accented = key_set.is_none() && accents::is_accent_of(label, expected);
+                    if label != expected && !on_key && !accented {
+                        let sub = discounted(
+                            self.substitution_cost(pos, expected, label),
+                            self.habits.substitution(expected, label),
                         );
-                        push!(
-                            second,
-                            pos + 2,
-                            cost + transpose + surcharge,
-                            edit + transpose,
-                            edits + 1,
-                            comp,
-                            acc,
-                            link,
-                            typed[pos]
-                        );
+                        if edit + sub <= MAX_EDIT_COST {
+                            push!(child, pos + 1, cost + sub + surcharge, edit + sub, edits + 1, comp, acc, parent, label);
+                        }
+                    }
+                    // Insertion: the word has `label` here and the typing missed it.
+                    let adjacent = self.proximity.are_adjacent(expected, label)
+                        || (pos > 0 && (typed[pos - 1] == label || self.proximity.are_adjacent(typed[pos - 1], label)));
+                    let ins = discounted(
+                        if adjacent { cost_insert_adjacent() } else { cost_insert_far() },
+                        self.habits.insertion(label),
+                    );
+                    if edit + ins <= MAX_EDIT_COST {
+                        push!(child, pos, cost + ins + surcharge, edit + ins, edits + 1, comp, acc, parent, label);
+                    }
+                }
+                // Transposition of the next two typed characters, priced by hand.
+                let transpose = if pos + 1 < n && self.proximity.same_hand(typed[pos], typed[pos + 1]) {
+                    cost_transposition_same_hand()
+                } else {
+                    cost_transposition()
+                };
+                let next_unambiguous = self.keys.and_then(|k| k.at(pos + 1)).is_none();
+                if pos + 1 < n
+                    && typed[pos] != typed[pos + 1]
+                    && key_set.is_none()
+                    && next_unambiguous
+                    && edit + transpose <= MAX_EDIT_COST
+                {
+                    if let Some(first) = find(&children, typed[pos + 1]) {
+                        if let Some(second) = w.child(first, typed[pos]) {
+                            let link = ws.record(first, pos + 1, cost, edit, edits, comp, acc, parent, typed[pos + 1]);
+                            push!(second, pos + 2, cost + transpose + surcharge, edit + transpose, edits + 1, comp, acc, link, typed[pos]);
+                        }
                     }
                 }
             }
         }
+        ws.children = children;
+        floor
     }
-    ws.children = children;
-    floor
 }
 
 #[allow(clippy::too_many_arguments)]
 fn emit(
-    word: String,
+    word: Vec<u16>,
     score: f64,
     edit_cost: f64,
     edits: u32,
     completed: u32,
     accents: u32,
     tier: Tier,
-    results: &mut HashMap<String, ScoredCandidate>,
+    results: &mut HashMap<Vec<u16>, Candidate>,
 ) {
     let existing = results.get(&word);
-    let dict_score =
-        existing
-            .map_or(f64::NEG_INFINITY, |e| e.dict_score)
-            .max(if tier == Tier::Dictionary {
-                score
-            } else {
-                f64::NEG_INFINITY
-            });
-    let user_score =
-        existing
-            .map_or(f64::NEG_INFINITY, |e| e.user_score)
-            .max(if tier == Tier::User {
-                score
-            } else {
-                f64::NEG_INFINITY
-            });
+    let mine_dict = if tier == Tier::Dictionary { score } else { f64::NEG_INFINITY };
+    let mine_user = if tier == Tier::User { score } else { f64::NEG_INFINITY };
+    let dict_score = java_max(existing.map_or(f64::NEG_INFINITY, |e| e.dict_score), mine_dict);
+    let user_score = java_max(existing.map_or(f64::NEG_INFINITY, |e| e.user_score), mine_user);
     let next = match existing {
-        Some(e) if score <= e.score => ScoredCandidate {
-            dict_score,
-            user_score,
-            ..e.clone()
-        },
-        _ => ScoredCandidate {
+        Some(e) if !(score > e.score) => Candidate { dict_score, user_score, ..e.clone() },
+        _ => Candidate {
             word: word.clone(),
             score,
             edit_cost,
@@ -698,13 +851,31 @@ fn emit(
     results.insert(word, next);
 }
 
-fn kth_best(results: &HashMap<String, ScoredCandidate>, k: usize) -> f64 {
-    if results.len() < k {
+/// Kotlin's `maxOf(Double, Double)`, which is `Math.max`: NaN wins, and
+/// 0.0 beats -0.0.
+fn java_max(a: f64, b: f64) -> f64 {
+    if a.is_nan() || b.is_nan() {
+        f64::NAN
+    } else if a == b {
+        if a.is_sign_negative() { b } else { a }
+    } else if a > b {
+        a
+    } else {
+        b
+    }
+}
+
+/// The k-th best score so far: every score sorted ascending (as
+/// `DoubleArray.sort`), then the one k from the top.
+fn kth_best(results: &HashMap<Vec<u16>, Candidate>, k: usize, buf: &mut Vec<f64>) -> f64 {
+    let count = results.len();
+    if count < k {
         return f64::NEG_INFINITY;
     }
-    let mut scores: Vec<f64> = results.values().map(|c| c.score).collect();
-    scores.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-    scores[scores.len() - k]
+    buf.clear();
+    buf.extend(results.values().map(|c| c.score));
+    buf.sort_by(f64::total_cmp);
+    buf[count - k]
 }
 
 #[cfg(test)]

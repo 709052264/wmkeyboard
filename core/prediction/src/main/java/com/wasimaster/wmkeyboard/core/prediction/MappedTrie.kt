@@ -54,6 +54,9 @@ class MappedTrie private constructor(
     /** The Rust reader over the same file ([PredictionNative]). */
     private var native: Long = 0L
 
+    /** [native], for the Rust walks that read this dictionary ([NativeFuzzySearch]). */
+    internal val nativeHandle: Long get() = native
+
     private val cachedCount: Int = minOf(nodeCount, CACHE_NODES)
     private val childStartCache: IntArray = IntArray(cachedCount)
     private val childCountCache: IntArray = IntArray(cachedCount)

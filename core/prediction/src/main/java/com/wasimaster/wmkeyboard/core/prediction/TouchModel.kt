@@ -38,6 +38,13 @@ class KeyTouchModel(
     private val keysArray: CharArray = centers.keys.toCharArray()
     private val centersArray: Array<TouchPoint> = Array(keysArray.size) { centers[keysArray[it]]!! }
 
+    /** The keys in the order [bestKey] tries them, their centres as x, y pairs, and sigma: for [NativeFuzzySearch]. */
+    internal val keyOrder: CharArray get() = keysArray
+    internal val centerPairs: FloatArray by lazy {
+        FloatArray(keysArray.size * 2) { if (it % 2 == 0) centersArray[it / 2].x else centersArray[it / 2].y }
+    }
+    internal val sigmaValue: Double get() = sigma
+
     fun knows(ch: Char): Boolean = centers.containsKey(ch)
 
     /** Where [ch]'s key is drawn, in key widths, or null off the model. */

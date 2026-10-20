@@ -37,6 +37,18 @@ pub fn guarded<T>(env: &mut JNIEnv, fallback: T, f: impl FnOnce(&mut JNIEnv) -> 
     }
 }
 
+/// The object behind `$handle` in `$registry`, or (from the enclosing
+/// body) `None` with an `IllegalStateException` thrown.
+macro_rules! object {
+    ($env:expr, $registry:expr, $handle:expr) => {
+        match $registry.get($handle) {
+            Some(object) => object,
+            None => return $crate::guard::throw_state($env, "wm-engine: closed or unknown handle"),
+        }
+    };
+}
+pub(crate) use object;
+
 /// Throws `IllegalStateException(message)` and returns `None`, for a body
 /// to bail out with: `return throw_state(env, "closed")`.
 pub fn throw_state<T>(env: &mut JNIEnv, message: &str) -> Option<T> {

@@ -103,6 +103,7 @@ pub mod predict;
 pub mod proximity;
 pub mod punjabi;
 pub mod sexp;
+pub mod strict_math;
 pub mod tamil;
 pub mod telugu;
 pub mod unicode;

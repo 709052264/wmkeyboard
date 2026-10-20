@@ -30,6 +30,11 @@ impl KeyProximity {
             .iter()
             .map(|r| r.as_ref().encode_utf16().collect())
             .collect();
+        KeyProximity::of_rows_units(&rows)
+    }
+
+    /// From rows of UTF-16 units, as the Kotlin model reads its rows.
+    pub fn of_rows_units(rows: &[Vec<u16>]) -> KeyProximity {
         let width = rows.iter().map(Vec::len).max().unwrap_or(0);
         let split = width.div_ceil(2);
         let mut hands = HashMap::new();

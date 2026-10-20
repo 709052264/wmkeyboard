@@ -13,7 +13,7 @@ use std::fs::File;
 use std::ptr::null_mut;
 use std::sync::LazyLock;
 
-use jni::objects::{JClass, JIntArray, JObject, JObjectArray, JString};
+use jni::objects::{JByteArray, JClass, JIntArray, JObject, JObjectArray, JString};
 use jni::sys::{jint, jlong, jobjectArray, jstring};
 use jni::JNIEnv;
 use memmap2::Mmap;
@@ -21,10 +21,26 @@ use memmap2::Mmap;
 use wm_engine::wmdict::Dict;
 use wm_engine::wmng::Pack;
 
-use crate::guard::{give_all_units, give_ints, give_units, guarded, read, read_units, throw_state};
+use crate::guard::{give_all_units, give_ints, give_units, guarded, object, read, read_units};
 use crate::handles::Registry;
 
-static DICTS: LazyLock<Registry<Dict<Mmap>>> = LazyLock::new(Registry::new);
+/// A dictionary's bytes: a mapped file, or a copy of a heap trie the app
+/// built (`PackedTrie`), serialised by the Kotlin codec.
+pub enum DictBytes {
+    Mapped(Mmap),
+    Owned(Vec<u8>),
+}
+
+impl AsRef<[u8]> for DictBytes {
+    fn as_ref(&self) -> &[u8] {
+        match self {
+            DictBytes::Mapped(map) => map,
+            DictBytes::Owned(bytes) => bytes,
+        }
+    }
+}
+
+pub static DICTS: LazyLock<Registry<Dict<DictBytes>>> = LazyLock::new(Registry::new);
 static PACKS: LazyLock<Registry<Pack<Mmap>>> = LazyLock::new(Registry::new);
 
 thread_local! {
@@ -54,15 +70,6 @@ fn java_utf8(units: &[u16], out: &mut Vec<u8>) {
     }
 }
 
-macro_rules! object {
-    ($env:expr, $registry:expr, $handle:expr) => {
-        match $registry.get($handle) {
-            Some(object) => object,
-            None => return throw_state($env, "wm-engine: closed or unknown handle"),
-        }
-    };
-}
-
 // ---- .wmdict ----------------------------------------------------------------
 
 /// `dictOpen(path)`: a handle, or 0 when the file is missing or is not a
@@ -75,7 +82,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 ) -> jlong {
     guarded(&mut env, 0, |env| {
         let path = read(env, &path)?;
-        Some(map(&path).and_then(Dict::open).map_or(0, |dict| DICTS.insert(dict)))
+        let bytes = map(&path).map(DictBytes::Mapped);
+        Some(bytes.and_then(Dict::open).map_or(0, |dict| DICTS.insert(dict)))
+    })
+}
+
+/// `dictFromBytes(bytes)`: a handle on a copy of `.wmdict` bytes the app
+/// wrote in memory, or 0 when they are not a file this reader trusts.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_dictFromBytes(
+    mut env: JNIEnv,
+    _class: JClass,
+    bytes: JByteArray,
+) -> jlong {
+    guarded(&mut env, 0, |env| {
+        let bytes = env.convert_byte_array(&bytes).ok()?;
+        Some(Dict::open(DictBytes::Owned(bytes)).map_or(0, |dict| DICTS.insert(dict)))
     })
 }
 

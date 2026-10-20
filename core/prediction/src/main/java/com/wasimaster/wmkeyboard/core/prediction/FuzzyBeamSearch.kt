@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.ln
 
 /**
@@ -21,6 +23,11 @@ import kotlin.math.ln
  * `sourceLogWeight + ln(1 + maxSubtree(node)) - cost`, which only ever
  * overestimates, so pruning against the current K-th best emitted score never
  * loses a top-K word.
+ *
+ * The same walk runs in Rust (`wm-engine`'s `fuzzy` module, which WMK Desktop
+ * shares) whenever every trie in [search] has a Rust twin and
+ * [NativeEngine.useNative] allows; see [NativeFuzzySearch]. The two return
+ * the same candidates, scores and edit counts (`NativeFuzzyParityTest`).
  */
 class FuzzyBeamSearch {
 
@@ -79,6 +86,13 @@ class FuzzyBeamSearch {
         keys: KeySets? = null,
     ): List<ScoredCandidate> {
         if (typed.isEmpty() || limit <= 0) return emptyList()
+        if (NativeEngine.useNative) {
+            NativeFuzzySearch.search(sources, typed.toString(), proximity, limit, maxEdits, touch, habits, keys)
+                ?.let {
+                    nativeRuns.incrementAndGet()
+                    return it
+                }
+        }
         val k = maxOf(limit * 2, AUTOCORRECT_K)
         // Typo correction stacked on key ambiguity is speculation squared, and
         // it is what makes the frontier explode: a three-way key already fans
@@ -587,6 +601,12 @@ class FuzzyBeamSearch {
         const val MAX_POPS = 4096
 
         private const val EPS = 1e-9
+
+        /**
+         * Searches that ran in Rust in this process: public for the parity
+         * tests in :app, which have to know which side answered.
+         */
+        val nativeRuns = AtomicLong()
 
         fun defaultMaxEdits(typedLength: Int): Int = if (typedLength >= 5) 2 else 1
 

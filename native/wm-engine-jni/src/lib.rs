@@ -8,6 +8,8 @@
 //!   scalar switch and the data-parallel kernels.
 //! - [`dict`]: `PredictionNative` (core/prediction), the mapped `.wmdict`
 //!   dictionaries and `.wmng` n-gram packs.
+//! - [`fuzzy`]: `PredictionNative` again, the fuzzy correction walk over
+//!   those dictionaries.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -20,6 +22,7 @@
 //!   behind a [`handles::Registry`] handle.
 
 mod dict;
+mod fuzzy;
 mod guard;
 mod handles;
 mod kernels;
