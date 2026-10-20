@@ -14254,8 +14254,9 @@ open class WMKeyboardService : InputMethodService() {
      * when the caret is no longer where the keyboard last saw it: a stale
      * offset would take the wrong characters out.
      *
-     * The word and that one space go, and the caret is left where the word
-     * began. The strip then offers the word itself first, so one tap puts it
+     * The word goes, and the caret is left where the word began. The space
+     * goes with it only when the keyboard put it there ([pendingWordSpace]);
+     * one the user typed stays, after the caret (#823). The strip then offers the word itself first, so one tap puts it
      * back, then whatever else its swipe read ([glideReadings]); a tapped word
      * has nothing more to offer, and nothing is made up for it. The word is
      * deleted the way a backspace swipe deletes one, so it is dropped from
@@ -14291,7 +14292,9 @@ open class WMKeyboardService : InputMethodService() {
         val at = expectedSelStart
         if (at < 0 || !caretStillAt(ic, at)) return
         val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
-        val body = if (before.endsWith(' ') && !before.endsWith("  ")) before.dropLast(1) else before
+        val trailing = before.endsWith(' ') && !before.endsWith("  ")
+        val body = if (trailing) before.dropLast(1) else before
+        val keepSpace = trailing && !pendingWordSpace
         var from = body.length
         while (from > 0 && isComposingWordChar(body[from - 1])) from--
         val word = body.substring(from)
@@ -14305,7 +14308,13 @@ open class WMKeyboardService : InputMethodService() {
         clearCaretWord()
         revision?.expectDelete(length, 0)
         noteDeletedForLearning(start, at)
+        ic.beginBatchEdit()
         ic.deleteSurroundingText(length, 0)
+        // Put back in front of the caret, so the word typed again lands
+        // before it as the old one stood.
+        if (keepSpace) ic.commitText(" ", 0)
+        ic.endBatchEdit()
+        pendingWordSpace = false
         lastGestureWord = null
         lastRevertible = null
         clearSwapOffer()
