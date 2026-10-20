@@ -2531,8 +2531,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Untagged stickers tagged from their picture — nearest emoji names become trigger keywords for stickers-as-you-type, kept apart from the user's own and never written to the pack
   - Falls back silently — no model, no LiteRT (F-Droid), a slow first load: the box shows its keyword matches as before
   - Gallery photo search (Text and pictures) — a search button in the gallery header ranks the library's photos by a typed description; photos indexed from MediaStore thumbnails, 32 per pass, pass after pass while the panel stays open, newest 3,000 kept; follows the photos permission (no access drops the index); no button without the pictures model, and none on Play (no library access)
-  - `search_saved_items` AI tool — the model's query against the clipboard, notes and snippets indexes, up to eight labelled excerpts; every hit re-checked against its store (marked or password-shaped clips, locked and trashed notes, deleted items dropped); offered only with the feature on and the text model present; starts on Ask
-    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchSaved`, so `:feature:tools` gains no dependency on `:core:intelligence`
+  - `search_clipboard` AI tool — the model's query against the clipboard index, up to eight excerpts; every hit re-checked against the store (marked or password-shaped clips and deleted ones dropped); offered only with the feature on and the text model present; starts on Ask
+  - `search_notes` meaning half — with the feature on, notes that mean the query follow the word matches under "Close in meaning", minus the ones the words found; locked and trashed notes never
+    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchClipboard` / `notesByMeaning`, so `:feature:tools` gains no dependency on `:core:intelligence`
   - Storage row — About → Storage → Search by meaning lists the text model, the pictures model and the indexes with sizes; deleting the text model or the indexes turns the feature off, the pictures model alone drops it to Text
 
 - **AI writing actions** `RARE` — On-keyboard panel that runs prompts against the focused field's text; 8 shipped actions, user-extensible

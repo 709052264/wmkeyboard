@@ -63,18 +63,22 @@ interface AiToolHost {
         Result.failure(UnsupportedOperationException("no Home Assistant here"))
 
     /**
-     * Whether [searchSaved] can answer: search by meaning is on and its
-     * model is on the phone. Without it the tool is not offered at all.
+     * Whether [searchClipboard] and [notesByMeaning] can answer: search by
+     * meaning is on and its model is on the phone. Without it
+     * `search_clipboard` is not offered and `search_notes` matches words only.
      */
-    val canSearchSaved: Boolean get() = false
+    val canSearchByMeaning: Boolean get() = false
 
     /**
-     * What the user keeps (clipboard history, notes, snippets) that means
-     * what [query] does, best first. Passwords and one-time codes on the
-     * clipboard, and locked or deleted notes, are never among them. Blocking:
-     * the query is embedded by the model's own process.
+     * Clipboard history that means what [query] does, best first. Passwords
+     * and one-time codes are never among it. Blocking: the query is embedded
+     * by the model's own process.
      */
-    fun searchSaved(query: String): Result<List<AiSavedHit>> =
+    fun searchClipboard(query: String): Result<List<AiMeaningHit>> =
+        Result.failure(UnsupportedOperationException("no search by meaning here"))
+
+    /** Notes that mean what [query] does, best first; never a locked or deleted one. Blocking. */
+    fun notesByMeaning(query: String): Result<List<AiMeaningHit>> =
         Result.failure(UnsupportedOperationException("no search by meaning here"))
 
     /** How many pictures the user has sent in this conversation (#698). */

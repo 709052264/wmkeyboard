@@ -6,15 +6,14 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
-import com.wasimaster.wmkeyboard.core.snippets.Snippet
-import com.wasimaster.wmkeyboard.core.tools.AiSavedFormat
-import com.wasimaster.wmkeyboard.core.tools.AiSavedHit
-import com.wasimaster.wmkeyboard.core.tools.AiSavedSource
+import com.wasimaster.wmkeyboard.core.tools.AiMeaningFormat
+import com.wasimaster.wmkeyboard.core.tools.AiMeaningHit
+import com.wasimaster.wmkeyboard.core.tools.AiMeaningSource
 
 /**
- * The `search_saved_items` tool's search: one query against the clipboard, notes
- * and snippets indexes [MeaningSearch] keeps, each item checked against its
- * store as it is now.
+ * Search by meaning for the AI tools: one query against the clipboard or the
+ * notes index [MeaningSearch] keeps (`search_clipboard`, and the meaning half
+ * of `search_notes`), each item checked against its store as it is now.
  *
  * The indexes are only as fresh as the last time their panel opened, so
  * the stores are the word on what may be read: a clip that has since been
@@ -26,7 +25,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiSavedSource
  *
  * Pure apart from what it is handed, so a test can give it a fake embedder.
  */
-internal class SavedItemSearch(
+internal class MeaningLookup(
     /** The query as a unit vector, or null when the model could not answer. */
     private val embedQuery: suspend (String) -> FloatArray?,
     private val indexOf: (MeaningSpace) -> VectorIndex,
@@ -36,41 +35,35 @@ internal class SavedItemSearch(
     class Sources(
         val clips: List<ClipItem> = emptyList(),
         val notes: List<Note> = emptyList(),
-        val snippets: List<Snippet> = emptyList(),
     )
 
     /**
-     * What [query] finds, best first, at most [AiSavedFormat.MAX_HITS]; an
+     * What [query] finds, best first, at most [AiMeaningFormat.MAX_HITS]; an
      * empty list for a query too short to mean anything, null when the model
      * did not answer.
      */
-    suspend fun search(query: String, sources: Sources): List<AiSavedHit>? {
+    suspend fun search(query: String, sources: Sources): List<AiMeaningHit>? {
         val q = query.trim()
         if (q.length < MIN_QUERY_LENGTH) return emptyList()
         val vector = embedQuery(q) ?: return null
 
         val clips = sources.clips.filter(::readable).associateBy { it.id.toString() }
         val notes = sources.notes.filter(::readable).associateBy { it.id.toString() }
-        val snippets = sources.snippets.associateBy { it.id.toString() }
 
-        val hits = ArrayList<AiSavedHit>()
+        val hits = ArrayList<AiMeaningHit>()
         for (hit in found(MeaningSpace.CLIPS, vector, clips.keys)) {
             val clip = clips.getValue(hit.key)
             val text = clipText(clip) ?: continue
-            hits += AiSavedHit(AiSavedSource.CLIPBOARD, null, AiSavedFormat.excerpt(text), hit.score)
+            hits += AiMeaningHit(AiMeaningSource.CLIPBOARD, null, AiMeaningFormat.excerpt(text), hit.score, hit.key)
         }
         for (hit in found(MeaningSpace.NOTES, vector, notes.keys)) {
             val note = notes.getValue(hit.key)
             val body = note.body.ifBlank { note.tags.joinToString(", ") }
-            hits += AiSavedHit(AiSavedSource.NOTE, note.title.ifBlank { null }, AiSavedFormat.excerpt(body), hit.score)
-        }
-        for (hit in found(MeaningSpace.SNIPPETS, vector, snippets.keys)) {
-            val snippet = snippets.getValue(hit.key)
-            hits += AiSavedHit(AiSavedSource.SNIPPET, snippet.label.ifBlank { null }, AiSavedFormat.excerpt(snippet.text), hit.score)
+            hits += AiMeaningHit(AiMeaningSource.NOTE, note.title.ifBlank { null }, AiMeaningFormat.excerpt(body), hit.score, hit.key)
         }
         // Each space was thresholded on its own, against its own crowd; across
         // them the raw cosine is the fairest order there is.
-        return hits.sortedByDescending { it.score }.take(AiSavedFormat.MAX_HITS)
+        return hits.sortedByDescending { it.score }.take(AiMeaningFormat.MAX_HITS)
     }
 
     private fun found(space: MeaningSpace, vector: FloatArray, live: Set<String>): List<MeaningRank.Hit> {

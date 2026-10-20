@@ -221,9 +221,9 @@
     <string name="toolai_ai_builtin_calendar_events_title">Read your calendar</string>
     <string name="toolai_ai_builtin_calendar_events_subtitle">Lists your events for the days the model asks about. Needs the calendar tool\'s access.</string>
     <string name="toolai_ai_builtin_search_notes_title">Read your notes</string>
-    <string name="toolai_ai_builtin_search_notes_subtitle">Searches your notes and reads the ones that match. A locked note\'s text stays hidden.</string>
-    <string name="toolai_ai_builtin_search_saved_title">Search your saved things by meaning</string>
-    <string name="toolai_ai_builtin_search_saved_subtitle">Finds clipboard history, notes and snippets that mean what the model asks about. Passwords, codes and locked notes stay out. Needs Search by meaning.</string>
+    <string name="toolai_ai_builtin_search_notes_subtitle">Searches your notes and reads the ones that match. With Search by meaning on, it also finds notes that say the same thing in other words. A locked note\'s text stays hidden.</string>
+    <string name="toolai_ai_builtin_search_clipboard_title">Search your clipboard</string>
+    <string name="toolai_ai_builtin_search_clipboard_subtitle">Finds the clips in your clipboard history that mean what the model asks about. Passwords and codes stay out. Needs Search by meaning.</string>
     <string name="toolai_ai_builtin_current_location_title">Your location</string>
     <string name="toolai_ai_builtin_current_location_subtitle">Reads where your phone is, at the precision the location tool shares, with the address if you have that on</string>
     <string name="toolai_ai_builtin_add_calendar_event_title">Add to your calendar</string>
