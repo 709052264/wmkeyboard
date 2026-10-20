@@ -45,6 +45,9 @@ object LocalLlmEngine {
 
     private fun runtime(context: Context): LlmRuntime {
         runtime?.let { return it }
+        if (!BuildConfig.ENABLE_LITERT_LM) {
+            throw IOException(context.getString(R.string.core_intel_llm_litert_unavailable))
+        }
         if (!LlmModule.gate.installed()) {
             LlmModule.gate.requestInstall()
             throw IOException(context.getString(R.string.core_intel_llm_module_downloading))

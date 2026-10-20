@@ -99,6 +99,7 @@
     <!-- ================================================================== -->
 
     <string name="core_intel_llm_module_downloading">The AI part of the keyboard is downloading. Try again in a moment.</string>
+    <string name="core_intel_llm_litert_unavailable">This build runs GGUF models only. Pick a GGUF model under On-device AI.</string>
     <string name="core_intel_llm_module_restart">The AI part just finished installing. Close and reopen the keyboard to use it.</string>
 
     <!-- Scan text tool: downloading the language data Tesseract reads with. -->

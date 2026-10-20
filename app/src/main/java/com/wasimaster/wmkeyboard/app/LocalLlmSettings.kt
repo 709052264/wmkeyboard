@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -874,6 +875,9 @@ private fun importModel(context: Context, uri: android.net.Uri) {
     val fileName = File(reportedName).name
     val extension = fileName.substringAfterLast('.', "").lowercase()
     val known = ModelFormat.entries.any { it.extension == extension }
+    require(!known || extension == ModelFormat.GGUF.extension || BuildConfig.ENABLE_LITERT_LM) {
+        context.getString(R.string.models_llm_import_error_gguf_only)
+    }
     val dir = LocalLlmStore.customDir(context.filesDir).apply { mkdirs() }
     val free = android.os.StatFs(dir.path).availableBytes
     require(size < 0 || free > size + 64L * 1024 * 1024) {

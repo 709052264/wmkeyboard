@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.localllm
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.intelligence.R
 
 /**
@@ -134,7 +135,15 @@ object LocalLlmCatalog {
 
     const val TOKEN_URL = "https://huggingface.co/settings/tokens"
 
-    val models: List<LocalLlmModel> = listOf(
+    /**
+     * The rows this build can run: every one where LiteRT-LM is present, the
+     * GGUF ones alone in F-Droid's build, which carries no Google artifact.
+     */
+    val models: List<LocalLlmModel> by lazy {
+        if (BuildConfig.ENABLE_LITERT_LM) allModels else allModels.filter { it.runtime == LocalLlmRuntime.LLAMA_CPP }
+    }
+
+    private val allModels: List<LocalLlmModel> = listOf(
         LocalLlmModel(
             id = "gemma4-e2b",
             displayName = "Gemma 4 E2B",

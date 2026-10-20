@@ -367,7 +367,7 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
-    if (BuildConfig.ENABLE_LOCAL_LLM) {
+    if (BuildConfig.ENABLE_LITERT_LM) {
         add(
             Attribution(
                 "LiteRT-LM",
@@ -822,7 +822,7 @@ private val dataPackAttributions: List<Attribution> = buildList {
             "https://github.com/PaddlePaddle/PaddleOCR",
         ))
     }
-    if (BuildConfig.ENABLE_LOCAL_LLM) {
+    if (BuildConfig.ENABLE_LITERT_LM) {
         add(Attribution(
             "On-device AI models (Gemma, Qwen, SmolLM2)",
             R.string.about_pack_llm_used,
