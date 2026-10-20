@@ -157,7 +157,6 @@ import com.wasimaster.wmkeyboard.core.tools.TypingStatsMath
 import com.wasimaster.wmkeyboard.ime.ui.LiveWpmReadout
 import com.wasimaster.wmkeyboard.core.tools.ContactPhones
 import com.wasimaster.wmkeyboard.core.emoji.AnimatedEmoji
-import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.emoji.EmojiCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
@@ -4765,9 +4764,6 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.autocorrectSplits = settings.suggestionStrip.autocorrectSplits
                 suggestionEngine?.digitSlipCorrections =
                     settings.numberRow && settings.suggestionStrip.numberRowCorrections
-                // Process-wide, read on every call by each piece of prediction
-                // that has both a Kotlin and a Rust implementation.
-                NativeEngine.forceKotlin = !settings.suggestionStrip.nativePrediction
                 suggestionEngine?.apostropheFixes = settings.autoText.apostrophe
                 pushRegister(settings)
                 // Chinese Pinyin options the composer reads at call time (it stays a

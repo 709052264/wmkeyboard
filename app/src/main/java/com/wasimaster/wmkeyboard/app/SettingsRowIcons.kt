@@ -934,7 +934,6 @@ internal object SettingsRowIcons {
         put(R.string.languages_ansi_allowed_title) { Icons.Outlined.FontDownload }
         put(R.string.languages_ansi_version_title) { Icons.Outlined.Numbers }
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
-        put(R.string.typing_native_prediction_title) { Icons.Outlined.Memory }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
         put(R.string.typing_learn_threshold_title) { Icons.Outlined.School }
         put(R.string.typing_new_word_sightings_title) { Icons.Outlined.LibraryAdd }

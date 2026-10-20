@@ -9057,14 +9057,6 @@ data class SuggestionStripSettings(
      */
     val autocorrectSplits: Boolean = true,
     /**
-     * Run the parts of prediction that have moved to Rust (`native/wm-engine`)
-     * there, and the SIMD kernels with NEON. Off forces the Kotlin copy of
-     * every part that still has one, and the kernels' scalar references: the
-     * escape hatch while the move is under way (native/RUST_NEON_PLAN.md).
-     * The IME pushes it into `NativeEngine.forceKotlin`.
-     */
-    val nativePrediction: Boolean = true,
-    /**
      * Languages that have turned the fixed-spelling map off, keyed by
      * [com.wasimaster.wmkeyboard.core.script.LanguageDef.id]. Absent means on,
      * so the map works out of the box and only an explicit opt-out disables it.
@@ -9837,7 +9829,6 @@ class SettingsRepository(private val context: Context) {
         private val NUMBER_ROW_CORRECTIONS = booleanPreferencesKey("number_row_corrections")
         private val NUMBER_PREDICTION = booleanPreferencesKey("number_prediction")
         private val AUTOCORRECT_SPLITS = booleanPreferencesKey("autocorrect_splits")
-        private val NATIVE_PREDICTION = booleanPreferencesKey("native_prediction")
         private val REGISTER_PRIORS = booleanPreferencesKey("register_priors")
         private val TIMING_SIGNAL_STRENGTH = floatPreferencesKey("timing_signal_strength")
         private val CONTACT_SUGGESTIONS = booleanPreferencesKey("contact_suggestions")
@@ -12288,8 +12279,6 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.numberPrediction,
             autocorrectSplits = p[AUTOCORRECT_SPLITS]
                 ?: defaults.suggestionStrip.autocorrectSplits,
-            nativePrediction = p[NATIVE_PREDICTION]
-                ?: defaults.suggestionStrip.nativePrediction,
             spellingMapOffLangs = p[SPELLING_MAP_OFF_LANGS]
                 ?: defaults.suggestionStrip.spellingMapOffLangs,
             phoneticSiblingsOffLangs = p[PHONETIC_SIBLINGS_OFF_LANGS]
@@ -17729,9 +17718,6 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutocorrectSplits(value: Boolean) =
         editPrefs { it[AUTOCORRECT_SPLITS] = value }
-
-    suspend fun setNativePrediction(value: Boolean) =
-        editPrefs { it[NATIVE_PREDICTION] = value }
 
     suspend fun setAutoSpaceAfterSuggestion(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_SUGGESTION] = value }
