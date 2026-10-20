@@ -134,8 +134,8 @@ internal data class AssistantProposal(
     enum class State { PROPOSED, APPLIED, UNDONE, STALE, DISMISSED }
 }
 
-/** Why an Apply or an Undo did nothing. */
-internal enum class AssistantRefusal { NOT_PROPOSED, CHANGED_SINCE, INVALID }
+/** Why an Apply or an Undo did nothing. [WRITE_FAILED]: the setting could not be saved. */
+internal enum class AssistantRefusal { NOT_PROPOSED, CHANGED_SINCE, INVALID, WRITE_FAILED }
 
 /**
  * The rules for acting on a proposal, apart from any screen or coroutine, so

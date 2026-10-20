@@ -12,9 +12,11 @@ import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiThinking
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
+import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
 import java.io.IOException
+import java.util.Collections
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -167,7 +170,13 @@ internal object SettingsAssistantSession {
             answer.exceptionOrNull()?.let { if (it is CancellationException) return@launch }
             val reply = answer.getOrNull()
             when {
-                reply == null -> add { Item.Reply(it, failure(answer.exceptionOrNull()?.message.orEmpty()), failed = true) }
+                // The words the rest of the app uses for the same failure
+                // (#828): "No connection", not the resolver's raw message, and
+                // the wording for an HTTP status the provider sent no text for.
+                reply == null -> add {
+                    val reason = answer.exceptionOrNull()?.let { t -> ToolHttp.friendlyMessage(app, t) }.orEmpty()
+                    Item.Reply(it, failure(reason), failed = true)
+                }
                 reply.isNotBlank() -> add { Item.Reply(it, reply) }
             }
         }
@@ -187,31 +196,65 @@ internal object SettingsAssistantSession {
         refs.clear()
     }
 
-    /** Applies proposal [id] if it may still be applied; see [AssistantProposals.applyRefusal]. */
-    suspend fun apply(id: Int, settings: KeyboardSettings, repository: SettingsRepository) {
-        val change = change(id) ?: return
-        val refusal = AssistantProposals.applyRefusal(change.proposal, settings)
-        if (refusal != null) {
-            val stale = refusal == AssistantRefusal.CHANGED_SINCE
-            replace(change.copy(proposal = if (stale) change.proposal.copy(state = AssistantProposal.State.STALE) else change.proposal, note = refusal))
-            return
+    /** Cards with an Apply or an Undo still writing; a second press on one is ignored. */
+    private val writing: MutableSet<Int> = Collections.synchronizedSet(HashSet())
+
+    /**
+     * Applies proposal [id] if it may still be applied; see
+     * [AssistantProposals.applyRefusal]. Checked against the stored settings,
+     * not a screen's snapshot of them (#828): a snapshot that has not caught
+     * up with another write would let Apply overwrite it. Marked applied only
+     * once the write has landed, so a failed write leaves the card as it was,
+     * with a note, and no Undo for a change that never happened.
+     */
+    suspend fun apply(id: Int, repository: SettingsRepository) {
+        if (!writing.add(id)) return
+        try {
+            val change = change(id) ?: return
+            val refusal = AssistantProposals.applyRefusal(change.proposal, repository.settings.first())
+            if (refusal != null) {
+                val stale = refusal == AssistantRefusal.CHANGED_SINCE
+                replace(change.copy(proposal = if (stale) change.proposal.copy(state = AssistantProposal.State.STALE) else change.proposal, note = refusal))
+                return
+            }
+            if (!wrote { change.proposal.setting.write(repository, change.proposal.to) }) {
+                replace(change.copy(note = AssistantRefusal.WRITE_FAILED))
+                return
+            }
+            replace(change.copy(proposal = change.proposal.copy(state = AssistantProposal.State.APPLIED), note = null))
+        } finally {
+            writing.remove(id)
         }
-        // Marked first, so a second press while the write is in flight is a
-        // proposal already applied, not a second write.
-        replace(change.copy(proposal = change.proposal.copy(state = AssistantProposal.State.APPLIED), note = null))
-        change.proposal.setting.write(repository, change.proposal.to)
     }
 
     /** Puts proposal [id] back, unless the setting has been changed since it was applied. */
-    suspend fun undo(id: Int, settings: KeyboardSettings, repository: SettingsRepository) {
-        val change = change(id) ?: return
-        val refusal = AssistantProposals.undoRefusal(change.proposal, settings)
-        if (refusal != null) {
-            replace(change.copy(note = refusal))
-            return
+    suspend fun undo(id: Int, repository: SettingsRepository) {
+        if (!writing.add(id)) return
+        try {
+            val change = change(id) ?: return
+            val refusal = AssistantProposals.undoRefusal(change.proposal, repository.settings.first())
+            if (refusal != null) {
+                replace(change.copy(note = refusal))
+                return
+            }
+            if (!wrote { change.proposal.setting.write(repository, change.proposal.from) }) {
+                replace(change.copy(note = AssistantRefusal.WRITE_FAILED))
+                return
+            }
+            replace(change.copy(proposal = change.proposal.copy(state = AssistantProposal.State.UNDONE), note = null))
+        } finally {
+            writing.remove(id)
         }
-        replace(change.copy(proposal = change.proposal.copy(state = AssistantProposal.State.UNDONE), note = null))
-        change.proposal.setting.write(repository, change.proposal.from)
+    }
+
+    /** Runs [write], false when it threw; a cancellation still cancels. */
+    private suspend fun wrote(write: suspend () -> Unit): Boolean = try {
+        write()
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+        false
     }
 
     fun dismiss(id: Int) {

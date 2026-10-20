@@ -245,6 +245,7 @@ internal fun SettingsAssistantScreen(
                     item(key = "intro") {
                         Intro(
                             hasProvider = choice != null,
+                            cloud = choice?.takeIf { it.provider != AiProvider.ON_DEVICE }?.let { choiceLabel(it) },
                             reduceMotion = reduceMotion,
                             onOpenAiSettings = onOpenAiSettings,
                             onStarter = { starter -> if (choice != null && !busy) send(starter) else draft = starter },
@@ -295,8 +296,8 @@ internal fun SettingsAssistantScreen(
                                 index.firstOrNull { it.titleRes == item.proposal.setting.titleRes }
                             },
                             settings = settings,
-                            onApply = { scope.launch { SettingsAssistantSession.apply(item.id, settings.value, repository) } },
-                            onUndo = { scope.launch { SettingsAssistantSession.undo(item.id, settings.value, repository) } },
+                            onApply = { scope.launch { SettingsAssistantSession.apply(item.id, repository) } },
+                            onUndo = { scope.launch { SettingsAssistantSession.undo(item.id, repository) } },
                             onDismiss = { SettingsAssistantSession.dismiss(item.id) },
                             modifier = arrive,
                         )
@@ -518,6 +519,8 @@ private fun choiceLabel(choice: ModelChoice): String =
 @Composable
 private fun Intro(
     hasProvider: Boolean,
+    /** The cloud or self-hosted row answering, by name, or null on an on-device model. */
+    cloud: String?,
     reduceMotion: Boolean,
     onOpenAiSettings: () -> Unit,
     onStarter: (String) -> Unit,
@@ -531,6 +534,14 @@ private fun Intro(
             style = MaterialTheme.typography.bodyMedium,
             color = colors.onSurfaceVariant,
         )
+        // What leaves the phone, said before anything does (#828).
+        if (cloud != null) {
+            Text(
+                stringResource(R.string.settings_assistant_cloud_notice, cloud),
+                style = MaterialTheme.typography.bodySmall,
+                color = colors.onSurfaceVariant,
+            )
+        }
         if (!hasProvider) {
             FilledTonalButton(onClick = onOpenAiSettings) {
                 Text(stringResource(R.string.settings_assistant_set_up_ai))
@@ -688,6 +699,7 @@ private fun ChangeCard(
             }
             ChangeValues(shown(proposal.setting, proposal.from), shown(proposal.setting, proposal.to))
             val status = when {
+                item.note == AssistantRefusal.WRITE_FAILED -> R.string.settings_assistant_write_failed
                 item.note == AssistantRefusal.CHANGED_SINCE && proposal.state == AssistantProposal.State.APPLIED ->
                     R.string.settings_assistant_undo_refused
                 item.note == AssistantRefusal.CHANGED_SINCE -> R.string.settings_assistant_stale
