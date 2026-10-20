@@ -16915,10 +16915,15 @@ open class WMKeyboardService : InputMethodService() {
      * Enter still fires the field's action. The read is skipped outright for
      * a user with no triggers.
      *
-     * A field that composes gets this path for one shape only: a trigger that
-     * opens with a digit (#554). A word-initial digit commits literally
-     * (`3pm`), so `123` never reaches the buffer and [commitComposing] has
-     * nothing to match; every other trigger was already looked up there.
+     * A field that composes gets this path for one shape only: a trigger
+     * whose word opens with a digit (#554, #815). A word-initial digit commits
+     * literally (`3pm`), so `123`, or the `1` of `#1` typed on the number pad,
+     * never reaches the buffer and [commitComposing] has nothing to match;
+     * every other trigger was already looked up there.
+     *
+     * In a number, phone, date or time field this is the only path, and a
+     * snippet expands there only when its text is what the field takes
+     * ([snippetFitsField]); one with letters in it is left as typed.
      */
     private fun tryUncomposedTrigger(
         ic: InputConnection,
@@ -16928,15 +16933,19 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isNotEmpty() || secureFieldRefusesSnippets(state) || state.nullField) return false
         if (state.composer.isTransliterating || state.composer.isConversion) return false
         val digitLedOnly = state.composesForSuggestions
-        if (digitLedOnly && !snippetStore.hasDigitLedTriggers()) return false
-        val prefixes = !digitLedOnly && snippetStore.hasPrefixTriggers()
+        val prefixes = snippetStore.hasPrefixTriggers()
+        if (digitLedOnly && !snippetStore.hasDigitLedTriggers() && !prefixes) return false
         if (snippetStore.expandingTriggers().isEmpty() && !prefixes) return false
         val read = ic.getTextBeforeCursor(UNCOMPOSED_TRIGGER_LOOKBACK, 0)?.toString() ?: return false
         val run = read.substring(read.indexOfLast { it.isWhitespace() } + 1)
         if (run.isEmpty()) return false
-        if (digitLedOnly && !run[0].isDigit()) return false
-        val wordStart = run.indexOfLast { !isComposingWordChar(it) } + 1
+        // A trigger's word as the snippets index spells one, digits included,
+        // so `#1` is the lead-in `#` and the word `1` (#815).
+        val wordStart = run.indexOfLast { !SnippetMatcher.isTriggerWordChar(it) } + 1
         val word = run.substring(wordStart)
+        // In a field that composes, the buffer already matched every trigger
+        // whose word opens with a letter.
+        if (digitLedOnly && word.firstOrNull()?.isDigit() != true) return false
         // The run as a plain trigger first, then its last word finishing a
         // prefix trigger (`:shrug`, `gr db`), the same order the buffer uses.
         val consumed: String
@@ -16952,12 +16961,13 @@ open class WMKeyboardService : InputMethodService() {
             consumed = before.takeLast(hit.prefix.length) + word
             snippet = hit.snippet
         }
-        stopVoiceForManualInput()
         val expanded = SnippetStore.expandWithCursor(
             snippet.text,
             context = snippetContext(ic),
             casing = SnippetStore.casingFor(snippet, consumed),
         )
+        if (!snippetFitsField(expanded.text, state.fieldKind)) return false
+        stopVoiceForManualInput()
         ic.beginBatchEdit()
         ic.deleteSurroundingText(consumed.length, 0)
         commitSplitAtCaret(ic, expanded.text, expanded.cursorOffset)
@@ -17373,8 +17383,9 @@ open class WMKeyboardService : InputMethodService() {
         // [tryPatternExpansion] stays out of, for the same reason. A composing
         // buffer holding an input spelling (Avro, Pinyin) is not a trigger and
         // not a word a pattern can read.
+        // The number pad over a text field still has the strip (#815).
         val allowed = snippetChipField(state) && !state.secureField &&
-            !state.fieldNoSuggestions && state.panel == PanelMode.NONE &&
+            !state.fieldNoSuggestions && (state.panel == PanelMode.NONE || state.panel == PanelMode.NUMPAD) &&
             !state.composer.isTransliterating && !state.composer.isConversion
         if (!allowed) {
             publishSnippetOffer(null)
@@ -17448,7 +17459,9 @@ open class WMKeyboardService : InputMethodService() {
             // The gate was read before the sleep; a panel opening or a field
             // turning out to be secure does not cancel this job.
             val still = _uiState.value
-            if (still.panel != PanelMode.NONE || still.secureField || still.fieldNoSuggestions) {
+            if ((still.panel != PanelMode.NONE && still.panel != PanelMode.NUMPAD) || still.secureField ||
+                still.fieldNoSuggestions
+            ) {
                 publishSnippetOffer(null)
                 return@launch
             }
