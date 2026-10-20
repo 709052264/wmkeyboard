@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.tools.AiClient
