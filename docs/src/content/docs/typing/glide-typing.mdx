@@ -217,6 +217,31 @@ Picking it asks you to accept the FUTO Model Weights License, then downloads the
 
 FUTO Swipe only reads English on a QWERTY layout. Another language, another layout (AZERTY, QWERTZ, Dvorak, Colemak and the rest all move some letter to another row), a phonetic layout such as Avro, and any swipe before the models are on the phone all go to the built-in decoder, with nothing to switch. Three of the built-in decoder's features don't apply while FUTO Swipe reads a swipe: [finishing long words early](#finishing-a-long-word-early), the marks in the next section (a loop for a doubled letter, a pause or wiggle for a letter), and the shapes [your swipe style](#what-a-swipe-teaches) keeps. The model reads timing and shape from the stroke for itself. Two-thumb words are always read by the built-in decoder.
 
+## Google's gesture library
+
+The third choice under **Glide engine** is **Google's gesture library (imported)**. This is the closed-source glide engine from Google's own keyboard, the same file HeliBoard and other open keyboards based on AOSP can load. WM Keyboard doesn't include it, host it or download it, because it belongs to Google and isn't licensed for anyone else to hand out. You bring the file yourself.
+
+The file is called `libjni_latinime.so`. GApps packages (the bundles of Google apps that custom Android builds install separately) carry it as `libjni_latinimegoogle.so`, usually inside a folder or zip called "swypelibs"; rename it or not, the keyboard accepts either name. There is one build for each processor type, and the keyboard takes only the exact builds HeliBoard accepts, checked by their SHA-256:
+
+| Processor (ABI) | SHA-256 |
+|---|---|
+| arm64-v8a | `b1049983e6ac5cfc6d1c66e38959751044fad213dff0637a6cf1d2a2703e754f` |
+| armeabi-v7a | `442a2a8bfcb25489564bc9433a916fa4dc0dba9000fe6f6f03f5939b985091e6` |
+| x86_64 | `c882e12e6d48dd946e0b644c66868a720bd11ac3fecf152000e21a3d5abd59c9` |
+| x86 | `bd946d126c957b5a6dea3bafa07fa36a27950b30e2b684dffc60746d0a1c7ad8` |
+
+Almost every phone sold in the last several years is arm64-v8a, and the **Gesture library** row names the one your phone needs. Any other file is refused with a reason: a build for another processor says which one it is, and anything else is "not a build this keyboard knows". The check is strict on purpose. The library is machine code that runs inside the keyboard, written against one exact set of entry points, and a different build would crash it or behave in ways nobody has looked at. Turning off **Verify downloaded files** in Privacy doesn't relax it. Import a file only from a source you trust.
+
+To set it up, pick **Google's gesture library (imported)** under **Glide engine**, tap **Import** on the **Gesture library** row and choose the file in the system file picker. The Storage screen's import (<SettingsPath path="About / Storage / Import downloaded files" />) also recognises it, by its name or by its checksum if it was renamed on the way; see [Importing instead of downloading](/privacy/offline/#importing-instead-of-downloading). The file is copied into the keyboard's private storage, read-only, and it is never backed up. It loads the next time you swipe. Android can't unload a library, so replacing one that is already running takes effect after the keyboard restarts. **Remove gesture library** deletes the file and the dictionaries built for it.
+
+The library needs a dictionary in its own format. The keyboard builds one on the phone from the word lists of the language you're typing in, its commonest 120,000 words, and has the library write it so the format is always the library's own. That takes a few seconds the first time and is kept for later; a new or changed word list triggers a rebuild. Words you have added or the keyboard learned from you go into it as well. Until the dictionary is ready, and in a language with no word list, swipes are read by the built-in decoder as usual. The words it returns then go through the keyboard's own blocked-words list, context reranking, capitals and ambiguity picker, the same as with the other engines.
+
+It works in any language whose layout has one letter per key; HeliBoard notes that keys with several letters or the same letter twice confuse it. As with FUTO Swipe, [finishing long words early](#finishing-a-long-word-early), the marks in the next section and the shapes [your swipe style](#what-a-swipe-teaches) keeps don't apply while it reads a swipe, and two-thumb words stay with the built-in decoder.
+
+If the keyboard closes while the library is loading, building a dictionary or reading its first swipe, it is switched off and the row says so. **Try again** turns it back on. Nobody has yet measured how well it reads swipes on this keyboard, so the built-in decoder stays the default.
+
+The Google Play version can't load it at all. Play doesn't allow an app to run code that didn't come from Play, so that build leaves the import out and the choice doesn't appear.
+
 ## Marking a letter as you glide
 
 Some words are the same stroke. "good" and "god" are: the o is one key and your finger crosses it one time, so the shape of the path has nothing to say about which word you meant. So are "write", "wire" and "wrote", which all draw the same straight line along the top row of a QWERTY keyboard. Without a mark, the commoner word wins on frequency alone. There are two kinds of mark you can make on a key, and they mean different things:
@@ -317,7 +342,9 @@ This is also the one way a swipe can teach a capital. A capital the *keyboard* c
 | Offer a full search while proofreading | Off | Puts a small search button on the suggestion strip when the cursor lands inside a swiped word whose stroke is still kept, for searching that stroke against every word list. Tap it to search, hold it to dismiss. The same search is always available from a held word on the strip; this only saves the hold. See [Going back to a misread swipe](#going-back-to-a-misread-swipe). |
 | Finish long words early | Off | Off, When sure or Eager. Lets a swipe be read as a word it has only started, and lifting types it. A word you have drawn in full is never overtaken by a longer one unless the longer one is clearly likelier; under Prefer my words and Only my words the guess is always one of your own words. See [Finishing a long word early](#finishing-a-long-word-early). |
 | Color the word a lift will type | When sure | Never, When sure, Any early word or Always. Which word on the strip and in the preview gets the strip's own colour, meaning "this is what a lift types", not just bold. |
-| Glide engine | Built-in | Built-in or FUTO Swipe (English, QWERTY). FUTO Swipe reads English swipes on a QWERTY layout with FUTO's neural models, downloaded under their own licence; everything else stays on the built-in decoder. See [The FUTO Swipe engine](#the-futo-swipe-engine). |
+| Glide engine | Built-in | Built-in, FUTO Swipe (English, QWERTY) or Google's gesture library (imported). FUTO Swipe reads English swipes on a QWERTY layout with FUTO's neural models, downloaded under their own licence. Google's gesture library reads every language once you import the file yourself. Everything else stays on the built-in decoder. See [The FUTO Swipe engine](#the-futo-swipe-engine) and [Google's gesture library](#googles-gesture-library). |
+| Gesture library | | Imports Google's `libjni_latinime.so` through the file picker, if it is one of the pinned builds for your phone, and shows whether it is loaded. Appears while Google's gesture library is the engine or a file is imported. Not in the Google Play version. See [Google's gesture library](#googles-gesture-library). |
+| Remove gesture library | | Deletes the imported library and the dictionaries built for it. |
 
 ### Advanced tuning
 

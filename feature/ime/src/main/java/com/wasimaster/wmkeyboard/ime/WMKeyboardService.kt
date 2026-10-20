@@ -193,6 +193,9 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
 import com.wasimaster.wmkeyboard.core.gesture.NeuralGlide
+import com.wasimaster.wmkeyboard.core.gesture.GlideDecoder
+import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeGlide
+import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeLibrary
 import com.wasimaster.wmkeyboard.core.gesture.SwipeEmissions
 import com.wasimaster.wmkeyboard.core.gesture.SwipeModel
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
@@ -24162,14 +24165,54 @@ open class WMKeyboardService : InputMethodService() {
     private var futoGlide: Pair<FutoSwipeModel, NeuralGlide>? = null
 
     /**
-     * The neural glide engine for the next decode, or null for the built-in
-     * one: the user picked FUTO Swipe, the language is English, and the models
-     * and the ExecuTorch runtime are on the phone. Whether the layout is
-     * QWERTY is the engine's own question, asked of each stroke's key map.
+     * Google's gesture library engine, made once the library has loaded into
+     * this process; it keeps its dictionaries under noBackupFilesDir.
      */
-    private fun neuralGlideNow(): NeuralGlide? {
+    @Volatile
+    private var latinImeGlide: LatinImeGlide? = null
+
+    /** Whether this process has started loading the library; [LatinImeLibrary.load] runs once either way. */
+    @Volatile
+    private var latinImeLoading = false
+
+    /**
+     * The glide engine for the next decode, or null for the built-in one.
+     * FUTO Swipe when the user picked it, the language is English, and the
+     * models and the ExecuTorch runtime are on the phone; whether the layout
+     * is QWERTY is the engine's own question, asked of each stroke's key map.
+     * Google's gesture library when the user picked it and imported it, in
+     * any language: it loads here, on the first stroke after a keyboard
+     * start, and answers null for every stroke until its dictionary for the
+     * language is built.
+     */
+    private fun glideEngineNow(): GlideDecoder? {
         val state = _uiState.value
-        if (state.settings.gesture.engine != GlideEngine.FUTO_SWIPE || !state.language.isEnglish) return null
+        return when (state.settings.gesture.engine) {
+            GlideEngine.BUILT_IN -> null
+            GlideEngine.FUTO_SWIPE -> if (state.language.isEnglish) futoGlideNow() else null
+            GlideEngine.GOOGLE_LIBRARY -> latinImeGlideNow(state.language.id)
+        }
+    }
+
+    private fun latinImeGlideNow(languageId: String): GlideDecoder? {
+        // The library and its dictionaries live in credential-encrypted
+        // storage, which does not exist before the first unlock.
+        if (!LatinImeLibrary.supported || !userUnlocked) return null
+        if (!LatinImeLibrary.isLoaded) {
+            // Hashing and loading the file takes a moment: off the stroke,
+            // which the built-in decoder reads meanwhile.
+            if (!latinImeLoading) {
+                latinImeLoading = true
+                serviceScope.launch(Dispatchers.IO) { LatinImeLibrary.load(noBackupFilesDir) }
+            }
+            return null
+        }
+        val glide = latinImeGlide ?: LatinImeGlide(noBackupFilesDir).also { latinImeGlide = it }
+        glide.language = LatinImeGlide.aospLocale(languageId)
+        return glide
+    }
+
+    private fun futoGlideNow(): NeuralGlide? {
         val model = FutoSwipe.model(filesDir) ?: return null
         futoGlide?.let { (loaded, glide) -> if (loaded === model) return glide }
         val glide = NeuralGlide(
@@ -24206,7 +24249,7 @@ open class WMKeyboardService : InputMethodService() {
         guessAhead: Boolean = true,
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
-        engine.neuralGlide = neuralGlideNow()
+        engine.externalGlide = glideEngineNow()
         val policy = sandboxPolicy()
         val gesture = _uiState.value.settings.gesture
         // The lift decodes exactly what the previews decoded (#121). This used
@@ -24384,7 +24427,7 @@ open class WMKeyboardService : InputMethodService() {
         rejected: String,
         slots: Int,
     ): List<String> = withContext(Dispatchers.Default) {
-        engine.neuralGlide = neuralGlideNow()
+        engine.externalGlide = glideEngineNow()
         engine.glide(
             path = stroke.points,
             keys = keyMapFor(stroke.keys, stroke.keyWidthPx),

@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 class NeuralGlide(
     private val model: SwipeModel,
     private val beam: CtcGlideBeam = CtcGlideBeam(),
-) {
+) : GlideDecoder {
     private var frameKeys: GlideKeyMap? = null
     private var frame: SwipeFrame? = null
 
@@ -34,14 +34,14 @@ class NeuralGlide(
      * asks for by undoing a glide.
      */
     @Synchronized
-    fun decode(
+    override fun decode(
         path: List<GesturePoint>,
         keys: GlideKeyMap,
         keyWidth: Float,
         sources: List<FuzzyBeamSearch.WalkSource>,
         limit: Int,
-        deep: Boolean = false,
-        vocabularyRank: Int = 0,
+        deep: Boolean,
+        vocabularyRank: Int,
     ): List<GlideBeam.Candidate>? {
         if (sources.isEmpty() || path.size < MIN_POINTS || keyWidth <= 0f) return null
         if (strokeLength(path) / keyWidth < MIN_STROKE_KEYS) return null

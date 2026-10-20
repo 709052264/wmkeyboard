@@ -81,6 +81,12 @@
 # libwmvoikko.so the same way (..._VoikkoNative_*).
 -keep class com.wasimaster.wmkeyboard.core.prediction.VoikkoNative { *; }
 
+# --- Google's gesture library (user-imported libjni_latinime.so) ---------------
+# Its JNI_OnLoad RegisterNatives every method of these classes by name and
+# signature, and fails the whole load if one is missing, so even the natives
+# this app never calls must survive shrinking, under exactly these names.
+-keep class com.android.inputmethod.** { *; }
+
 # --- librime (JNI) -------------------------------------------------------------
 # libwmrime.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_input_rime_RimeNative_*).

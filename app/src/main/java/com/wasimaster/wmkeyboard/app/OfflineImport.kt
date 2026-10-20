@@ -19,6 +19,8 @@ import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
+import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeLibrary
+import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImePins
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
@@ -108,6 +110,7 @@ internal object OfflineImport {
             PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
             OfflineDictionaries.recognises(leaf) ||
             isNativeLibrary(leaf) ||
+            (LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf)) ||
             LanguagePackDownloads.isPackName(leaf)
     }
 
@@ -392,6 +395,22 @@ internal object OfflineImport {
                     Outcome(name, true, R.string.offline_import_language_pack_done, listOf(qualifier))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        // Google's gesture library, the user's own file: told by its name, or
+        // by its hash for a .so renamed on the way. Only the pinned builds.
+        if (LatinImeLibrary.supported &&
+            (LatinImePins.isLibraryName(name) || (name.endsWith(".so") && LatinImeLibrary.isPinned(file)))
+        ) {
+            return attempt(name) {
+                when (val result = LatinImeLibrary.import(context.noBackupFilesDir, file)) {
+                    LatinImeLibrary.ImportResult.Installed -> Outcome(name, true, R.string.offline_import_gesture_library_done)
+                    is LatinImeLibrary.ImportResult.OtherAbi -> Outcome(
+                        name, false, R.string.typing_glide_library_result_other_abi,
+                        listOf(result.abi, LatinImeLibrary.processAbi()),
+                    )
+                    else -> Outcome(name, false, R.string.offline_import_mismatch)
                 }
             }
         }

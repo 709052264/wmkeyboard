@@ -59,6 +59,17 @@ if (playStoreChannel) {
     }
 }
 
+// Google's gesture typing library is the user's own import, loaded from app
+// storage (core/gesture/latinime). Play forbids loading executable code that
+// did not come from Play, so its build compiles the loader out: src/nouserlib
+// stands in and refuses every import and load. A static source dir, not a
+// flavour folder, for the AGP 9 reason the channel seams in :app give.
+androidComponents {
+    onVariants { variant ->
+        variant.sources.kotlin?.addStaticSourceDirectory(if (playStoreChannel) "src/nouserlib/java" else "src/userlib/java")
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)

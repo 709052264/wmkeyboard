@@ -10,7 +10,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
-import com.wasimaster.wmkeyboard.core.gesture.NeuralGlide
+import com.wasimaster.wmkeyboard.core.gesture.GlideDecoder
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
@@ -1079,15 +1079,16 @@ class SuggestionEngine(
     private var deepGlideBeam = GlideBeam(glideTuning.copy(vocabularyRank = 0))
 
     /**
-     * The neural glide engine the user picked in place of [glideBeam] (FUTO
-     * Swipe, English on QWERTY), or null for the built-in decoder. The
-     * keyboard service sets it before each decode from the setting, the
-     * language and whether the models are here, so it is null whenever the
-     * engine does not apply; [glide] still falls back to [glideBeam] for a
-     * stroke it cannot read (a layout that is not QWERTY, a model error).
+     * The glide engine the user picked in place of [glideBeam] (FUTO Swipe
+     * for English on QWERTY, or Google's gesture library they imported), or
+     * null for the built-in decoder. The keyboard service sets it before each
+     * decode from the setting, the language and whether the engine's files
+     * are here, so it is null whenever the engine does not apply; [glide]
+     * still falls back to [glideBeam] for a stroke it cannot read (a layout
+     * that is not QWERTY, a dictionary still being built, a model error).
      */
     @Volatile
-    var neuralGlide: NeuralGlide? = null
+    var externalGlide: GlideDecoder? = null
 
     /**
      * The two-thumb decoder (issue #638), on the same stroke weights as
@@ -1275,9 +1276,9 @@ class SuggestionEngine(
             romanization.walkSources()
         }
         if (sources.isEmpty()) return emptyList()
-        // The neural engine reads Latin spellings only, so never on a
-        // phonetic layout, where the answer is the romanization's own.
-        val neural = neuralGlide?.takeIf { romanization.isEmpty }?.decode(
+        // The other engines read the layout's own spellings only, so never
+        // on a phonetic layout, where the answer is the romanization's own.
+        val neural = externalGlide?.takeIf { romanization.isEmpty }?.decode(
             path = path,
             keys = keys,
             keyWidth = keyWidth,

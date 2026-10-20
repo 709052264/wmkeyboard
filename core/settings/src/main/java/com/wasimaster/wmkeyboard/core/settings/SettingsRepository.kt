@@ -1567,6 +1567,14 @@ enum class GlideLookAhead(
  * ExecuTorch runtime are not on the phone yet, falls back to the built-in
  * decoder.
  *
+ * [GOOGLE_LIBRARY] is Google's proprietary gesture typing library
+ * (`libjni_latinime.so`), which the user imports themselves and the app
+ * accepts only as one of the builds pinned by SHA-256 in `LatinImePins`; it
+ * reads strokes against dictionaries built from the user's own lists, in any
+ * language. Until it is imported and loaded, while the language's dictionary
+ * is being built, and in the Google Play build (which may not load it), the
+ * built-in decoder reads every stroke. Not measured on a phone.
+ *
  * Measured 2026-10-20 on 5,000 real swipes from FUTO's MIT test set (the
  * shipped English list, words it holds): top-1 .801 built-in against .957
  * FUTO Swipe, top-4 .937 against .993. The built-in decoder stays the default
@@ -1575,6 +1583,7 @@ enum class GlideLookAhead(
 enum class GlideEngine(@StringRes val labelRes: Int) {
     BUILT_IN(R.string.core_settings_glide_engine_built_in_label),
     FUTO_SWIPE(R.string.core_settings_glide_engine_futo_label),
+    GOOGLE_LIBRARY(R.string.core_settings_glide_engine_google_label),
 }
 
 /**
