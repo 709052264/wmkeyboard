@@ -131,4 +131,18 @@ object LocalLlmEngine {
     fun release() {
         runtime?.release()
     }
+
+    /**
+     * Cheap: whether a GPU engine has come and gone in this process, which is
+     * when its memory can outlive it. Say yes before paying for
+     * [strandedGpuMemoryKb].
+     */
+    fun gpuMemoryMayBeStranded(): Boolean = runtime?.gpuMemoryMayBeStranded() == true
+
+    /**
+     * Graphics memory left behind by GPU engines that are gone, in KB; 0 when
+     * none is. Only the process ending gives it back. Reads the process's
+     * memory maps — never on the main thread.
+     */
+    fun strandedGpuMemoryKb(): Long = runtime?.strandedGpuMemoryKb() ?: 0L
 }

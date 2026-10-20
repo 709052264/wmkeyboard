@@ -62,6 +62,9 @@ open class WMApplication : Application() {
         // The network activity log, before anything in this process can make
         // a request. Cheap: it reads two small files, or waits for the unlock.
         NetLog.attach(this)
+        // Lets the keyboard tell whether a screen of this app is up before it
+        // recycles the process the two share. One callback registration.
+        com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)
         // The Play gates of the LiteRT interpreter (WhisperEngine,
         // LocalSubjectCutout), ML Kit's ink recogniser (HandwritingModels) and
         // the whisper.cpp, ExecuTorch, Whistle, Harper and Tesseract libraries.

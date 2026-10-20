@@ -1,6 +1,8 @@
 package com.wasimaster.wmkeyboard.core.localllm.bridge
 
 import android.content.Context
+import android.os.Build
+import android.os.Debug
 import com.google.ai.edge.litertlm.Backend
 import com.google.ai.edge.litertlm.Content
 import com.google.ai.edge.litertlm.Contents
@@ -63,8 +65,40 @@ class LitertLmRuntime : LlmRuntime {
      */
     private val sessionConversations = ArrayList<Conversation>()
 
-    /** Model paths whose GPU init already failed once — go straight to CPU. */
+    /**
+     * [gpuKey]s of models that failed on the GPU — go straight to CPU. Kept on
+     * disk as well ([GPU_FAILED_FILE]): the IME process is restarted all day,
+     * and a list that died with it sent every new process back to the GPU to
+     * fail the same way, stranding another few GB each time (CPH2481, Mali-G57:
+     * 2.2 GB of GL memory held by an idle keyboard after one failure).
+     */
     private val gpuFallback = mutableSetOf<String>()
+
+    /** Whether [gpuFallback] has been read back from disk in this process. */
+    private var gpuVerdictsLoaded = false
+
+    /**
+     * The [gpuKey] whose GPU engine has not answered yet, mirrored in
+     * [GPU_ATTEMPT_FILE]. A native crash in the GPU driver kills the process
+     * before any catch runs, so the only trace it leaves is that file still
+     * being there when the next process loads the verdicts.
+     */
+    private var gpuUnproven: String? = null
+
+    /**
+     * Process graphics memory in KB before the first GPU engine was built, or
+     * -1 before that. The yardstick for [strandedGpuMemoryKb].
+     */
+    @Volatile
+    private var gpuBaselineKb = -1L
+
+    /** A GPU engine has been torn down, or failed to build, in this process. */
+    @Volatile
+    private var gpuReleased = false
+
+    /** A GPU engine is the loaded one right now. */
+    @Volatile
+    private var gpuLoaded = false
 
     /**
      * Model paths that could not take a picture (#234): no vision encoder in
@@ -98,7 +132,7 @@ class LitertLmRuntime : LlmRuntime {
                 val conversation = newConversation(activeEngine, system)
                 // Done after this call; close it on the next drain.
                 retiredConversations.add(conversation)
-                return runMessage(conversation, user, onPartial)
+                return runMessage(conversation, user, onPartial).also { confirmGpu() }
             } catch (e: Throwable) {
                 throw generationFailure(context, modelFile, e)
             }
@@ -141,6 +175,7 @@ class LitertLmRuntime : LlmRuntime {
                 )
                 val answer = runContents(conversation, contents, onPartial)
                 visionProven += modelFile.path
+                confirmGpu()
                 return answer
             } catch (e: Throwable) {
                 if (modelFile.path !in visionProven) {
@@ -219,6 +254,7 @@ class LitertLmRuntime : LlmRuntime {
                         message = ChatReplay.replayMessage(history, user)
                     }
                     val raw = runMessage(active, message, onPartial)
+                    confirmGpu()
                     history.add(ChatReplay.Turn(fromUser = true, text = user))
                     history.add(ChatReplay.Turn(fromUser = false, text = stripThink(raw)))
                     return raw
@@ -404,7 +440,7 @@ class LitertLmRuntime : LlmRuntime {
             // memory, which is far tighter than system RAM. Blacklist
             // this model on GPU so the retry runs on CPU without the
             // user having to work out that the backend was the problem.
-            gpuFallback += modelFile.path
+            markGpuFailed(context, modelFile)
             return IOException(
                 context.getString(R.string.core_intel_llm_engine_error_gpu),
                 e,
@@ -430,6 +466,96 @@ class LitertLmRuntime : LlmRuntime {
         }
     }
 
+    override fun gpuMemoryMayBeStranded(): Boolean = gpuReleased && !gpuLoaded
+
+    /**
+     * Graphics memory this process holds above what it held before its first
+     * GPU engine, while no GPU engine is loaded. Deleting the engine does not
+     * give it back on every driver: on Mali the OpenCL context LiteRT made
+     * outlives the engine with its buffers in it, and only the process ending
+     * returns them. Reads smaps and memtrack, tens of ms — off the main thread.
+     */
+    override fun strandedGpuMemoryKb(): Long {
+        if (!gpuMemoryMayBeStranded() || gpuBaselineKb < 0) return 0L
+        return (graphicsKb() - gpuBaselineKb).coerceAtLeast(0L)
+    }
+
+    private fun graphicsKb(): Long = runCatching {
+        val info = Debug.MemoryInfo()
+        Debug.getMemoryInfo(info)
+        info.getMemoryStat("summary.graphics")?.toLongOrNull()
+    }.getOrNull() ?: 0L
+
+    /**
+     * Identifies a model on this phone as it is now. A system update (a new
+     * GPU driver), an app update (a new runtime) or a redownloaded file each
+     * deserve a fresh try on the GPU, so they are part of the key.
+     */
+    private fun gpuKey(context: Context, modelFile: File): String =
+        "${gpuKeyPrefix(context)}${modelFile.length()}|${modelFile.path}"
+
+    /** The part of a [gpuKey] that is the same for every model until an update. */
+    private fun gpuKeyPrefix(context: Context): String {
+        val installed = installStamp ?: runCatching {
+            context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        }.getOrDefault(0L).also { installStamp = it }
+        return "${Build.FINGERPRINT}|$installed|"
+    }
+
+    /** When this install was last updated; fixed for the life of the process. */
+    private var installStamp: Long? = null
+
+    /**
+     * Reads the GPU verdicts back once per process, turning an attempt the
+     * last process never finished into a failure. Verdicts from before the
+     * last system or app update are dropped, which is what gives the GPU its
+     * fresh try. Lock held.
+     */
+    private fun loadGpuVerdicts(context: Context) {
+        if (gpuVerdictsLoaded) return
+        gpuVerdictsLoaded = true
+        val dir = context.noBackupFilesDir
+        val current = gpuKeyPrefix(context)
+        val stored = runCatching { File(dir, GPU_FAILED_FILE).readLines() }.getOrNull()
+            ?.filter { it.isNotBlank() }
+            .orEmpty()
+        gpuFallback += stored.filter { it.startsWith(current) }
+        val attempt = File(dir, GPU_ATTEMPT_FILE)
+        val crashed = runCatching { attempt.readText().trim() }.getOrNull()
+        if (!crashed.isNullOrEmpty() && crashed.startsWith(current)) gpuFallback += crashed
+        if (gpuFallback.size != stored.size || !stored.containsAll(gpuFallback)) saveGpuVerdicts(context)
+        runCatching { attempt.delete() }
+    }
+
+    private fun saveGpuVerdicts(context: Context) {
+        runCatching {
+            File(context.noBackupFilesDir, GPU_FAILED_FILE)
+                .writeText(gpuFallback.joinToString("\n"))
+        }
+    }
+
+    /** This model does not run on this GPU; remembered across processes. Lock held. */
+    private fun markGpuFailed(context: Context, modelFile: File) {
+        gpuFallback += gpuKey(context, modelFile)
+        saveGpuVerdicts(context)
+        gpuUnproven = null
+        runCatching { File(context.noBackupFilesDir, GPU_ATTEMPT_FILE).delete() }
+    }
+
+    /**
+     * The loaded GPU engine has answered, or was let go of in an orderly way:
+     * either way the process survived it, so the next one has nothing to
+     * blame on the GPU. Lock held.
+     */
+    private fun confirmGpu() {
+        if (gpuUnproven == null) return
+        gpuUnproven = null
+        attemptFile?.let { runCatching { it.delete() } }
+    }
+
+    /** [GPU_ATTEMPT_FILE] in this app's no-backup dir, once a context has been seen. */
+    private var attemptFile: File? = null
+
     private fun obtainEngine(
         context: Context,
         modelFile: File,
@@ -437,7 +563,9 @@ class LitertLmRuntime : LlmRuntime {
         contextTokens: Int,
         vision: Boolean = false,
     ): Engine {
-        val wantGpu = backend == LocalLlmBackend.GPU && modelFile.path !in gpuFallback
+        loadGpuVerdicts(context)
+        val gpuId = if (backend == LocalLlmBackend.GPU) gpuKey(context, modelFile) else null
+        val wantGpu = gpuId != null && gpuId !in gpuFallback
         // The context size is part of the key, not just the config: it is baked
         // into the loaded engine, so a cached one built at the old size would
         // quietly ignore a change until the process restarted.
@@ -454,13 +582,23 @@ class LitertLmRuntime : LlmRuntime {
         releaseLocked()
 
         if (wantGpu) {
+            if (gpuBaselineKb < 0) gpuBaselineKb = graphicsKb()
+            // Written before the native code runs: if the driver takes the
+            // process down, the file is all the next one has to go on.
+            val attempt = File(context.noBackupFilesDir, GPU_ATTEMPT_FILE)
+            attemptFile = attempt
+            gpuUnproven = gpuId
+            runCatching { attempt.writeText(gpuId!!) }
             try {
                 return buildEngine(context, modelFile, Backend.GPU(), contextTokens, vision).also {
                     engine = it
                     loadedKey = key
+                    gpuLoaded = true
                 }
             } catch (_: Throwable) {
-                gpuFallback += modelFile.path
+                // Whatever it allocated before failing may be stranded too.
+                gpuReleased = true
+                markGpuFailed(context, modelFile)
             }
         }
         return buildEngine(context, modelFile, Backend.CPU(), contextTokens, vision).also {
@@ -518,6 +656,12 @@ class LitertLmRuntime : LlmRuntime {
          * of a small context window, so more would crowd out the answer.
          */
         const val MAX_IMAGES = 3
+
+        /** One [gpuKey] per line: models that failed on this phone's GPU. */
+        const val GPU_FAILED_FILE = "litertlm-gpu-failed"
+
+        /** The [gpuKey] of a GPU engine that has not answered yet. */
+        const val GPU_ATTEMPT_FILE = "litertlm-gpu-attempt"
     }
 
     /** Closes conversations that are done. Lock held. */
@@ -538,6 +682,13 @@ class LitertLmRuntime : LlmRuntime {
         }
         sessionConversations.clear()
         runCatching { engine?.close() }
+        if (loadedKey?.backend == "gpu") {
+            gpuReleased = true
+            // Torn down by this code, not by a crash. A failure that led here
+            // is recorded by the caller straight after.
+            confirmGpu()
+        }
+        gpuLoaded = false
         engine = null
         loadedKey = null
         engineEpoch++

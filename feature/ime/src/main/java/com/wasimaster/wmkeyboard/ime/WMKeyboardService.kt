@@ -449,6 +449,7 @@ import com.wasimaster.wmkeyboard.ime.ui.hardwareKeysToggleable
 import com.wasimaster.wmkeyboard.core.tools.page
 import com.wasimaster.wmkeyboard.core.tools.step
 import com.wasimaster.wmkeyboard.core.util.PlayServices
+import com.wasimaster.wmkeyboard.core.util.StartedActivities
 import com.wasimaster.wmkeyboard.core.util.lowercaseKeepingLength
 import com.wasimaster.wmkeyboard.core.util.uppercaseKeepingLength
 import com.wasimaster.wmkeyboard.core.util.runCancellable
@@ -511,6 +512,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.ModelTier
 import com.wasimaster.wmkeyboard.core.localllm.VisionUnsupportedException
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
@@ -6802,6 +6804,9 @@ open class WMKeyboardService : InputMethodService() {
         // Back on screen inside the idle window: whatever is still loaded stays.
         idleReleaseJob?.cancel()
         idleReleaseJob = null
+        // And the process it is drawing in.
+        gpuRecycleJob?.cancel()
+        gpuRecycleJob = null
         onScreenAgain()
         lifecycleOwner.onResume()
         // Starts the media-session listener the toolbar's auto-pin needs, and
@@ -8347,6 +8352,9 @@ open class WMKeyboardService : InputMethodService() {
         // and before [reshowPinned], which either brings the keyboard back —
         // and [startInputView] disarms it — or leaves it away for good.
         scheduleIdleRelease()
+        // A GPU model that failed leaves its memory behind until the process
+        // ends; with the keyboard gone, now is when to end it.
+        scheduleGpuRecycle()
         // Last: everything above has settled the field the keyboard is
         // leaving, and a pinned keyboard is about to be asked back.
         reshowPinned()
@@ -8680,7 +8688,53 @@ open class WMKeyboardService : InputMethodService() {
             delay(IDLE_RELEASE_MS)
             releaseHeavyEngines(onScreen = false)
             DebugLog.i("ime", "idle: released the heavy engines")
+            // A GPU engine released just now may have kept its memory too.
+            recycleIfGpuStranded()
         }
+    }
+
+    /** Pending [recycleIfGpuStranded]; see [scheduleGpuRecycle]. */
+    private var gpuRecycleJob: Job? = null
+
+    /**
+     * Arms [recycleIfGpuStranded] for shortly after the keyboard hides, when a
+     * GPU model engine has come and gone in this process. Free otherwise: one
+     * volatile read.
+     */
+    private fun scheduleGpuRecycle() {
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        gpuRecycleJob?.cancel()
+        gpuRecycleJob = serviceScope.launch {
+            delay(GPU_RECYCLE_DELAY_MS)
+            recycleIfGpuStranded()
+        }
+    }
+
+    /**
+     * Ends this process when a GPU model engine that is gone left its memory
+     * behind. On Mali the OpenCL context LiteRT made outlives the engine, and
+     * after one failed run on a CPH2481 (Helio G99) the idle keyboard held
+     * 2.2 GB of GL memory while the phone swapped itself to a crawl; nothing
+     * short of the process ending gives it back. The system binds the
+     * keyboard again on the next field, and [persistentSurface] already plans
+     * for a show landing in a new process.
+     *
+     * Only with the keyboard away, no screen of the app started (they share
+     * this process) and no model download running, and only after the stores
+     * are on disk.
+     */
+    private suspend fun recycleIfGpuStranded() {
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        if (keyboardVisible || StartedActivities.count > 0 || LocalLlmDownloadManager.isBusy) return
+        val strandedKb = withContext(Dispatchers.Default) { LocalLlmEngine.strandedGpuMemoryKb() }
+        if (strandedKb < GPU_STRANDED_KB) return
+        DebugLog.i("ime", "recycling the process: ${strandedKb / 1024} MB of GPU memory left by the model")
+        withContext(persistDispatcher) {
+            saveLearningStores()
+            clipboardStore.save()
+        }
+        if (keyboardVisible || StartedActivities.count > 0) return
+        android.os.Process.killProcess(android.os.Process.myPid())
     }
 
     override fun onLowMemory() {
@@ -47762,6 +47816,19 @@ fun compositionCannotPrecedeCaret(
  * down is not holding a language model.
  */
 private const val IDLE_RELEASE_MS = 120_000L
+
+/**
+ * How long the keyboard stays hidden before a process holding stranded GPU
+ * memory is recycled: past a field-to-field hop, well short of the minutes a
+ * swapping phone is unusable for.
+ */
+private const val GPU_RECYCLE_DELAY_MS = 5_000L
+
+/**
+ * Stranded graphics memory worth a process restart. The keyboard's own window
+ * accounts for tens of MB; a model's buffers for hundreds to thousands.
+ */
+private const val GPU_STRANDED_KB = 256L * 1024
 
 /**
  * How much text a direct up or down step in a one-line field reads to find

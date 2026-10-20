@@ -68,4 +68,8 @@ object LocalLlmEngine {
     }
 
     fun release() = Unit
+
+    fun gpuMemoryMayBeStranded(): Boolean = false
+
+    fun strandedGpuMemoryKb(): Long = 0L
 }

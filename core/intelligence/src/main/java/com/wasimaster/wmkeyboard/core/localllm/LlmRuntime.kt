@@ -59,6 +59,12 @@ interface LlmRuntime {
     /** Contract of [LocalLlmEngine.release]. */
     fun release()
 
+    /** Contract of [LocalLlmEngine.gpuMemoryMayBeStranded]. */
+    fun gpuMemoryMayBeStranded(): Boolean
+
+    /** Contract of [LocalLlmEngine.strandedGpuMemoryKb]. */
+    fun strandedGpuMemoryKb(): Long
+
     /** Contract of [LocalLlmEngine.ChatSession], minus the facade wrapper. */
     interface Chat {
         fun sendMessage(user: String, onPartial: ((String) -> Unit)?): String
