@@ -101,6 +101,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TransliterationHintMode
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.io.File
@@ -2040,6 +2041,8 @@ private fun PhoneticStripGroup(
     val candidateListOn = settings.watch {
         it.suggestionStrip.phoneticCandidateListFor(langId) != PhoneticCandidateList.OFF
     }
+    val neuralOn = settings.watch { it.suggestionStrip.neuralPhoneticFor(langId) }
+    val neuralLeads = settings.watch { langId in it.suggestionStrip.neuralLeadsLangs }
     SettingsGroup(stringResource(R.string.languages_phonetic_strip_title)) {
         item {
             ToggleSetting(
@@ -2115,6 +2118,28 @@ private fun PhoneticStripGroup(
                 ) { scope.launch { repository.setPhoneticCandidateList(langId, it) } }
             }
             item(visible = candidateListOn) { AvroDictionaryRow() }
+        }
+        // IndicXlit's readings after the one the space bar writes: a small
+        // neural network, one download shared by every language it writes.
+        if (IndicXlitModels.supports(langId)) {
+            item {
+                NeuralPhoneticToggle(langId, languageName, settings, neuralOn) { on ->
+                    scope.launch { repository.setNeuralPhonetic(langId, on) }
+                }
+            }
+            item(visible = neuralOn) { NeuralPhoneticModelRow(settings) }
+            // Only where it measured worth the swap it makes (IndicXlitModels.LEADS).
+            if (IndicXlitModels.canLead(langId)) {
+                item(visible = neuralOn) {
+                    ToggleSetting(
+                        R.string.languages_neural_leads_title,
+                        stringResource(R.string.languages_neural_leads_subtitle),
+                        neuralLeads,
+                        info = stringResource(R.string.languages_neural_leads_info, languageName),
+                        default = langId in SettingsDefaults.suggestionStrip.neuralLeadsLangs,
+                    ) { scope.launch { repository.setNeuralLeads(langId, it) } }
+                }
+            }
         }
     }
 }

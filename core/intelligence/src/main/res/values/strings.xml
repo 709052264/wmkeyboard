@@ -120,4 +120,8 @@
     <!-- The data repository is set (Servers screen) to a host other than GitHub, where the model files are not published. -->
     <string name="core_intel_semantic_no_source">The model files are only published on GitHub. Set the data repository back to GitHub in Servers.</string>
 
+    <!-- Neural suggestions on the phonetic layouts: downloading IndicXlit and
+         the ONNX Runtime part that runs it. -->
+    <string name="core_intel_xlit_module_error">The part that runs the model did not download. Check the connection, then try again.</string>
+
 </resources>

@@ -142,6 +142,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_CUTOUT -> R.string.netlog_source_download_cutout to R.string.netlog_sent_download
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
     NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_XLIT -> R.string.netlog_source_download_xlit to R.string.netlog_sent_download
     NetSource.DOWNLOAD_NATIVE -> R.string.netlog_source_download_native to R.string.netlog_sent_download
     NetSource.DOWNLOAD_LANGUAGE -> R.string.netlog_source_download_language to R.string.netlog_sent_download
     NetSource.ADDONS -> R.string.netlog_source_addons to R.string.netlog_sent_addons
@@ -168,7 +169,7 @@ private fun ownerRoute(source: NetSource): String? = when (source) {
     NetSource.PHOTOS -> "photos"
     NetSource.SYNONYMS -> "typing/suggestions"
     NetSource.MEDIA_IMAGES -> "emoji"
-    NetSource.DOWNLOAD_WORDLIST, NetSource.DOWNLOAD_NGRAM, NetSource.DOWNLOAD_CJK -> "languages"
+    NetSource.DOWNLOAD_WORDLIST, NetSource.DOWNLOAD_NGRAM, NetSource.DOWNLOAD_CJK, NetSource.DOWNLOAD_XLIT -> "languages"
     NetSource.DOWNLOAD_EMOJI -> "emojikeywords"
     NetSource.DOWNLOAD_FONT -> "fonts"
     NetSource.ADDONS, NetSource.LINK_IMPORT -> "addons"
@@ -185,7 +186,7 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
     NetSource.PHOTOS -> Icons.Outlined.Photo
     NetSource.MEDIA_IMAGES -> Icons.Outlined.Image
     NetSource.DOWNLOAD_WORDLIST, NetSource.DOWNLOAD_NGRAM -> Icons.Outlined.Language
-    NetSource.DOWNLOAD_CJK -> Icons.Outlined.Translate
+    NetSource.DOWNLOAD_CJK, NetSource.DOWNLOAD_XLIT -> Icons.Outlined.Translate
     NetSource.DOWNLOAD_FONT -> Icons.Outlined.FontDownload
     NetSource.DOWNLOAD_VOCAB -> Icons.Outlined.AutoStories
     NetSource.DOWNLOAD_CUTOUT -> Icons.Outlined.ContentCut

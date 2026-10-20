@@ -3295,6 +3295,62 @@ class SuggestionEngine(
     }
 
     /**
+     * [strip], a phonetic layout's list for a word typed on [languageId], with
+     * a neural model's [readings] of that word joined in after the reading a
+     * space commits; see [NeuralReadings]. The readings are put in the form
+     * the language's word lists use, and any the user blacklisted or the
+     * offensive filter holds back are left out. [strip] itself when
+     * [languageId] has no phonetic scheme.
+     *
+     * With [lead] (the language's setting that lets the model choose the space
+     * bar's word), a listed reading also takes the first place from a head
+     * that is not a known word, unless the spelling map has an entry for
+     * [composing]: see [NeuralReadings.leader].
+     */
+    fun withNeuralReadings(
+        languageId: String,
+        strip: List<String>,
+        readings: List<String>,
+        composing: String = "",
+        lead: Boolean = false,
+    ): List<String> {
+        if (readings.isEmpty()) return strip
+        val backend = phoneticBackend(languageId) ?: return strip
+        val scheme = backend.scheme
+        val words = readings.map(scheme.normalize).filterNot(::suppressed)
+        return NeuralReadings.merge(
+            strip,
+            words,
+            isNative = { w -> w.isNotEmpty() && w.all { scheme.isNative(it) || it == '\u200C' || it == '\u200D' } },
+            isListed = { knownPhoneticWord(backend, it) },
+            lead = lead && composing.isNotEmpty() && !backend.spellings.contains(composing),
+        )
+    }
+
+    /**
+     * What a space writes for [composing] in place of [head], the reading it
+     * was about to commit: the reading [withNeuralReadings] would have led the
+     * strip with, or null to keep [head]. [readings] is asked for only when
+     * the model could change anything (a native [head] that is not a known
+     * word, and no spelling map entry), since getting them may mean waiting.
+     * For the commit that comes before the strip was drawn with the model's
+     * answer, so both agree.
+     */
+    fun neuralCommit(languageId: String, composing: String, head: String, readings: () -> List<String>): String? {
+        if (composing.isEmpty() || head.isEmpty()) return null
+        val backend = phoneticBackend(languageId) ?: return null
+        if (backend.spellings.contains(composing) || knownPhoneticWord(backend, head)) return null
+        val scheme = backend.scheme
+        if (!head.all { scheme.isNative(it) || it == '\u200C' || it == '\u200D' }) return null
+        val words = readings().map(scheme.normalize).filterNot(::suppressed)
+        return NeuralReadings.leader(head, words) { knownPhoneticWord(backend, it) }
+    }
+
+    /** In [backend]'s word list, or one of the user's own words. */
+    private fun knownPhoneticWord(backend: PhoneticBackend, word: String): Boolean =
+        backend.index.frequencyOf(word) > 0 || userLexicon.contains(word)
+
+    /**
      * The layout's own words for the strip: [phoneticSuggestions], or — with
      * the candidate list folded into the strip — its head (what a space
      * commits) followed by the candidate list in Avro's order.
