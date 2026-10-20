@@ -43396,7 +43396,18 @@ open class WMKeyboardService : InputMethodService() {
         val strip = _uiState.value.suggestions
         parts.forEachIndexed { i, part ->
             if (part.none { it.isLetter() }) return@forEachIndexed
-            val offers = if (i == parts.lastIndex) strip.filterNot { it.equals(part, ignoreCase = true) } else emptyList()
+            // One word for one word: a strip pair ("here now") or the join of
+            // the word before with this one ("herenow") is about two words,
+            // and put in place of this one alone it would double the first.
+            val before = recentPending.lastOrNull()?.first ?: recentEntries.lastOrNull()?.word
+            val offers = if (i == parts.lastIndex) {
+                strip.filterNot {
+                    it.equals(part, ignoreCase = true) || it.any(Char::isWhitespace) ||
+                        (before != null && it.equals(before + part, ignoreCase = true))
+                }
+            } else {
+                emptyList()
+            }
             recentPending += part to offers
         }
     }
@@ -43439,11 +43450,17 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val read = recentRead()
-        if (read == null) {
+        // Measured from a caret the editor has moved past, every place the
+        // read gives is off by the same amount, and the words would be taken
+        // for rewritten and dropped. The keyboard's own settings fields
+        // report the caret a beat late, which on the phone left the row
+        // empty. So a read the editor does not vouch for waits for its echo.
+        val stale = currentInputConnection?.let { !caretStillAt(it, expectedSelStart) } == true
+        if (read == null || stale) {
             // Not "no words": the caret is not known until the echo of the
             // keyboard's own edit, and an empty bar stayed empty until the
             // next word was committed (#839).
-            if (expectedSelStart < 0 && currentInputConnection != null) recentBarAwaitsEcho = true
+            if ((expectedSelStart < 0 || stale) && currentInputConnection != null) recentBarAwaitsEcho = true
             return
         }
         // The words written since the last read are the newest in the field.
