@@ -21009,7 +21009,7 @@ open class WMKeyboardService : InputMethodService() {
 
     /** What a clip is found by: its text (and a link's page title), a file's name. Pictures go to [MeaningSpace.CLIP_PICTURES]. */
     private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? =
-        com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall.clipText(clip)
+        com.wasimaster.wmkeyboard.ime.semantic.SavedItemSearch.clipText(clip)
 
     /**
      * The user's own stickers, by what they show; then, for the ones with no

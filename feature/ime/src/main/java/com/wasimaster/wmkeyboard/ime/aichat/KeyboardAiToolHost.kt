@@ -37,9 +37,9 @@ import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.settings.SemanticSearchSettings
 import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
-import com.wasimaster.wmkeyboard.core.tools.AiMemoryHit
+import com.wasimaster.wmkeyboard.core.tools.AiSavedHit
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
-import com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall
+import com.wasimaster.wmkeyboard.ime.semantic.SavedItemSearch
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -71,7 +71,7 @@ class KeyboardAiToolHost(
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
-    /** Search by meaning's settings, for the search_memory tool; null where the surface does not lend it. */
+    /** Search by meaning's settings, for the search_saved_items tool; null where the surface does not lend it. */
     private val semantic: SemanticSearchSettings? = null,
 ) : AiToolHost {
 
@@ -298,7 +298,7 @@ class KeyboardAiToolHost(
         Handler(Looper.getMainLooper()).postDelayed({ SmartHomeHub.release(SmartHomeHub.Reason.AI) }, RELEASE_DELAY_MS)
     }
 
-    override val canSearchMemory: Boolean
+    override val canSearchSaved: Boolean
         get() = semantic?.enabled == true && SemanticModels.SUPPORTED && Embeddings.available(context)
 
     /**
@@ -306,8 +306,8 @@ class KeyboardAiToolHost(
      * the indexes the keyboard's panels keep. Each store is opened the way the
      * runner opens the notes: read from its file, never written.
      */
-    override fun searchMemory(query: String): Result<List<AiMemoryHit>> = runCatching {
-        check(canSearchMemory) { "search by meaning is off" }
+    override fun searchSaved(query: String): Result<List<AiSavedHit>> = runCatching {
+        check(canSearchSaved) { "search by meaning is off" }
         val files = context.filesDir
         // No limits: a store opened with its defaults would prune a "never
         // expire" history the first time it listed it.
@@ -319,11 +319,11 @@ class KeyboardAiToolHost(
         ).items()
         val notes = NoteStore(File(files, NoteStore.FILE_PATH)).items(NoteFilter(includeLocked = false))
         val snippets = SnippetStore(File(files, "snippets/snippets.json")).items()
-        val recall = MemoryRecall(
+        val recall = SavedItemSearch(
             embedQuery = { Embeddings.query(context, it) },
             indexOf = { space -> VectorIndex.read(MeaningSearch.indexFile(context, space)) },
         )
-        runBlocking { recall.search(query, MemoryRecall.Sources(clips, notes, snippets)) }
+        runBlocking { recall.search(query, SavedItemSearch.Sources(clips, notes, snippets)) }
             ?: error("the search-by-meaning model did not answer")
     }
 

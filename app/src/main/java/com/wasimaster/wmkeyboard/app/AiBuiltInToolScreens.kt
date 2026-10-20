@@ -92,9 +92,9 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
         R.string.toolai_ai_builtin_search_notes_title,
         R.string.toolai_ai_builtin_search_notes_subtitle,
     ),
-    AiTools.SEARCH_MEMORY to BuiltInToolText(
-        R.string.toolai_ai_builtin_search_memory_title,
-        R.string.toolai_ai_builtin_search_memory_subtitle,
+    AiTools.SEARCH_SAVED to BuiltInToolText(
+        R.string.toolai_ai_builtin_search_saved_title,
+        R.string.toolai_ai_builtin_search_saved_subtitle,
     ),
     AiTools.CURRENT_LOCATION to BuiltInToolText(
         R.string.toolai_ai_builtin_current_location_title,
@@ -196,7 +196,7 @@ internal fun AiBuiltInToolSettings(
                     AiTools.SEND_TO_PC -> kdeOn
                     AiTools.HOME_ASSISTANT, AiTools.HOME_ASSISTANT_STATES -> haOn
                     AiTools.CURRENT_LOCATION -> locationBuilt
-                    AiTools.SEARCH_MEMORY -> meaningReady
+                    AiTools.SEARCH_SAVED -> meaningReady
                     else -> true
                 }
                 item(visible = shown, key = tool.name) {

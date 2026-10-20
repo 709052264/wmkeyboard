@@ -1,12 +1,12 @@
 package com.wasimaster.wmkeyboard.core.tools
 
 /**
- * What the `search_memory` tool reads back: things the user keeps on the
+ * What the `search_saved_items` tool reads back: things the user keeps on the
  * phone, found by what a query means. The search itself is the keyboard
  * module's (search by meaning lives there), lent through
- * [AiToolHost.searchMemory]; the words the model reads are made here.
+ * [AiToolHost.searchSaved]; the words the model reads are made here.
  */
-enum class AiMemorySource(val label: String) {
+enum class AiSavedSource(val label: String) {
     CLIPBOARD("clipboard"),
     NOTE("note"),
     SNIPPET("snippet"),
@@ -17,14 +17,14 @@ enum class AiMemorySource(val label: String) {
  * clip; [text] is already cut short and on one line; [score] is the cosine
  * the match was ranked by, best near 1.
  */
-data class AiMemoryHit(
-    val source: AiMemorySource,
+data class AiSavedHit(
+    val source: AiSavedSource,
     val title: String?,
     val text: String,
     val score: Float,
 )
 
-object AiMemoryFormat {
+object AiSavedFormat {
 
     /** The most hits one answer lists: enough to choose from, short enough for a small model. */
     const val MAX_HITS = 8
@@ -38,7 +38,7 @@ object AiMemoryFormat {
      * [hits] as the model reads them, best first: a numbered line each, its
      * source in brackets, a title when it has one, and the excerpt.
      */
-    fun format(hits: List<AiMemoryHit>): String {
+    fun format(hits: List<AiSavedHit>): String {
         if (hits.isEmpty()) return NOTHING
         return hits.take(MAX_HITS).mapIndexed { k, hit ->
             val title = hit.title?.takeIf { it.isNotBlank() }?.let { "${oneLine(it, TITLE_CHARS)}: " }.orEmpty()
