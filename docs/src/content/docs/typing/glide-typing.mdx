@@ -204,6 +204,8 @@ The apostrophe is the one piece of punctuation left out of this, because contrac
 
 The contractions that are *not* ambiguous are swiped without it. Draw `doesnt`, `isnt`, `wasnt` or `shouldnt` and the keyboard reads the stroke as the contraction and writes "doesn't", the same repair **Fix missing apostrophes** makes when you type. This holds for every contraction in that repair's table, whether or not the word list has the bare spelling, and it goes away when that setting is off. Where the bare spelling is a rarer word of its own, such as `ill`, `cant` or `wont`, the stroke is weighed as the contraction it is far more often drawn for, so drawing `ill` gives "I'll".
 
+Words you saved yourself with an apostrophe in them work the same way: save "Jenny's" and drawing `jennys` gives "Jenny's", no apostrophe key needed. That holds only where the spelling without the apostrophe is not a word in its own right.
+
 ## The FUTO Swipe engine
 
 Everything above describes the keyboard's own decoder, which reads every language and layout. For English on a QWERTY layout there is a second one to choose from. **Glide engine** (<SettingsPath path="Typing / Gestures" />, **Built-in** by default) can be set to **FUTO Swipe**, which reads a swipe with two small neural networks published by FUTO: an encoder that reads the stroke and an English QWERTY decoder that turns it into letters, trained on about a million swipes people drew on real phones. The keyboard then spells words out of your own word lists from those letters, the same lists, added words and learned words the built-in decoder uses, and the result goes through the same context reranking, ambiguity picker and alternates on the strip.
