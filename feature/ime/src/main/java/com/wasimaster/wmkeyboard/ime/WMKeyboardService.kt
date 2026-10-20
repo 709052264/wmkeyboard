@@ -6848,6 +6848,30 @@ open class WMKeyboardService : InputMethodService() {
             }
             _uiState.update { it.copy(fieldIncognito = fieldIncognito) }
         }
+        // The same for what kind of field it is (#845). With a physical
+        // keyboard the keys stay hidden and startInputView never runs, so
+        // these described the last field the keys were shown in: a password
+        // field reached that way was composed, autocorrected on Enter,
+        // learned and counted, and a plain field after a password or email
+        // one got no typing help. The hardware gate, learning, statistics,
+        // the recent-word bar and the live speed all read them. The layouts
+        // for the kind wait for the keys to come up, where startInputView
+        // works the rest out.
+        val secure = attribute.isSecureField()
+        val kind = attribute.fieldKind()
+        val nullField = attribute.isNullClass()
+        val noSuggestions = attribute.suppressesSuggestions(
+            (baseSettings ?: _uiState.value.settings).suggestionSources.inAllFields,
+        )
+        _uiState.value.let { s ->
+            if (s.secureField != secure || s.fieldKind != kind || s.nullField != nullField ||
+                s.fieldNoSuggestions != noSuggestions
+            ) {
+                _uiState.update {
+                    it.copy(secureField = secure, fieldKind = kind, nullField = nullField, fieldNoSuggestions = noSuggestions)
+                }
+            }
+        }
         // A forced show that outlived its summon does not get to follow the
         // user onto a screen with no field.
         dropStaleForcedShow(attribute)
