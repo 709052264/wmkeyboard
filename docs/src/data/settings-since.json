@@ -35,6 +35,7 @@
 		"notifications": "0.5.7",
 		"plugin_ide": "0.5.7",
 		"plugin_ide/{draftId}": "0.5.7",
+		"provider/{tool}/{key}": "0.6.3",
 		"rows/symbol": "0.5.9",
 		"selection_macros/actions": "0.5.8",
 		"selection_macros/ai": "0.5.8",
