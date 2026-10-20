@@ -159,7 +159,9 @@ object LatexMath {
     /** Punctuation that may follow a display formula on its closing line, and is dropped. */
     private const val TRAILING = ".,;:"
 
-    private val DISPLAY_ENV =Regex("""\\begin\{(equation\*?|align\*?|aligned|gather\*?|gathered|multline\*?|eqnarray\*?|cases|[pbBvV]?matrix|split)}.*""")
+    // `\}` escaped: Android's ICU refuses a bare `}` that the JVM accepts, and
+    // this object would then fail to load on a phone while every test passed.
+    private val DISPLAY_ENV = Regex("""\\begin\{(equation\*?|align\*?|aligned|gather\*?|gathered|multline\*?|eqnarray\*?|cases|[pbBvV]?matrix|split)\}.*""")
 
     // ------------------------------------------------------------------ parsing
 

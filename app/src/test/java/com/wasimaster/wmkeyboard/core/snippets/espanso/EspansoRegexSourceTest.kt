@@ -25,6 +25,9 @@ class EspansoRegexSourceTest {
     private val sources = listOf(
         "core/content/src/main/java/com/wasimaster/wmkeyboard/core/snippets/espanso",
         "core/content/src/main/java/com/wasimaster/wmkeyboard/core/snippets",
+        // A single file: LaTeX patterns are full of braces, and this one
+        // shipped a bare `}` that crashed every chat answer on a phone (#811).
+        "core/tools/src/main/java/com/wasimaster/wmkeyboard/core/tools/LatexMath.kt",
     )
 
     /** Walks up from the test's working directory to the repository root. */
@@ -42,8 +45,12 @@ class EspansoRegexSourceTest {
         val out = ArrayList<Pair<String, String>>()
         for (path in sources) {
             val dir = File(root, path)
-            if (!dir.isDirectory) continue
-            for (file in dir.listFiles().orEmpty()) {
+            val files = when {
+                dir.isFile -> listOf(dir)
+                dir.isDirectory -> dir.listFiles().orEmpty().toList()
+                else -> continue
+            }
+            for (file in files) {
                 if (file.extension != "kt") continue
                 // Only the triple-quoted form, which is how every pattern here
                 // is written; a quoted one would need its own unescaping.
