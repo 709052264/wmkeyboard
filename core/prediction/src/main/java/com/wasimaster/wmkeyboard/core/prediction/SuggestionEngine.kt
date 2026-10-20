@@ -248,13 +248,15 @@ class SuggestionEngine(
 
     /**
      * The spelling checker for the language being typed: Hunspell over the
-     * `.aff` and `.dic` the user imported for it, when the library is here,
-     * and [WordChecker.NONE] otherwise, which leaves every decision to the
-     * word lists exactly as before.
+     * `.aff` and `.dic` the user imported for it, a GiellaLT speller
+     * downloaded or imported for it, or both, when the library is here, and
+     * [WordChecker.NONE] otherwise, which leaves every decision to the word
+     * lists exactly as before.
      *
      * A word it accepts is never autocorrected away and keeps the strip's
      * corrections off, like a listed word; that is what lets German, Dutch,
-     * Hungarian and Finnish compounds stand. Its spellings of a word it does
+     * Hungarian and Finnish compounds stand, and North Sámi or Greenlandic
+     * inflections. Its spellings of a word it does
      * not accept join the strip on the background pass (see [suggest]).
      * Outside the walk's [generation]: the walk never reads it.
      */

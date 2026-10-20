@@ -254,7 +254,10 @@ Builds:
       - core/language/src/main/jniLibs
       - core/prediction/src/main/jniLibs
       - core/intelligence/src/bergamot/jniLibs
+      - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/llama/jniLibs
+      - core/intelligence/src/zinnia/jniLibs
+      - core/intelligence/src/docscan/jniLibs
     build: WMKB_ABIS=armeabi-v7a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -290,7 +293,10 @@ Builds:
       - core/language/src/main/jniLibs
       - core/prediction/src/main/jniLibs
       - core/intelligence/src/bergamot/jniLibs
+      - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/llama/jniLibs
+      - core/intelligence/src/zinnia/jniLibs
+      - core/intelligence/src/docscan/jniLibs
     build: WMKB_ABIS=arm64-v8a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -326,7 +332,10 @@ Builds:
       - core/language/src/main/jniLibs
       - core/prediction/src/main/jniLibs
       - core/intelligence/src/bergamot/jniLibs
+      - core/intelligence/src/ct2/jniLibs
       - core/intelligence/src/llama/jniLibs
+      - core/intelligence/src/zinnia/jniLibs
+      - core/intelligence/src/docscan/jniLibs
     build: WMKB_ABIS=x86_64 ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:

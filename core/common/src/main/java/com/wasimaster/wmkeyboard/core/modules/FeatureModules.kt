@@ -138,6 +138,14 @@ object FeatureModules {
     var bergamot: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:ct2`: CTranslate2, the runtime of the translate tool's NLLB
+     * engine (`:core:intelligence`). Only the library moves; the model is a
+     * separate 630 MB download.
+     */
+    @Volatile
+    var ct2: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models
      * (`:core:intelligence`). LiteRT-LM, the default runtime, has its own
      * gate (`LlmModule`); only a GGUF model asks for this one.
@@ -148,6 +156,14 @@ object FeatureModules {
     /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
     @Volatile
     var ocr: ModuleGate = AlwaysInstalled
+
+    /**
+     * `:feature:docscan`: the built-in document scanner's library (OpenCV's
+     * core and imgproc, `:core:intelligence`), behind the scanner tool where
+     * Google's scanner is missing or switched off.
+     */
+    @Volatile
+    var docscan: ModuleGate = AlwaysInstalled
 
     /**
      * `:feature:rime`: librime, behind the optional RIME engine for Chinese
@@ -163,6 +179,14 @@ object FeatureModules {
      */
     @Volatile
     var mozc: ModuleGate = AlwaysInstalled
+
+    /**
+     * `:feature:zinnia`: zinnia, the offline recogniser behind Chinese and
+     * Japanese handwriting where ML Kit's is not in the build or not picked
+     * (`:core:intelligence`). Its models are separate downloads.
+     */
+    @Volatile
+    var zinnia: ModuleGate = AlwaysInstalled
 
     /**
      * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and

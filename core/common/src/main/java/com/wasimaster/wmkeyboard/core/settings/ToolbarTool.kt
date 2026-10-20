@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
-import com.wasimaster.wmkeyboard.core.util.PlayServices
 
 // Extracted from SettingsRepository.kt so the low-level modules (icons, tools,
 // media) can reference these types without depending on the settings module —
@@ -153,6 +152,11 @@ enum class ToolbarTool {
     // Action-only, like [CLIPBOARD_SEARCH]: meant for the floating button's
     // tap while the keyboard is up, a flick or a key.
     LEAVE_FIELD,
+    // Reads the typed text aloud: the selection, or the field around the
+    // caret, in the keyboard's language. A downloaded MMS voice reads it
+    // offline when there is one, the phone's own voice otherwise. A second
+    // tap stops it.
+    READ_BACK,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -264,24 +268,22 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
-    ToolbarTool.RECENT_COPIES,
+    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
     else -> tool !in CursorTools && tool !in ClipboardTools
 }
 
+// Handwriting is in every build: where ML Kit's recogniser is not
+// (F-Droid's), zinnia still reads Chinese and Japanese, and the panel says
+// so for any other language.
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
-    !BuildConfig.ENABLE_ML_KIT_HANDWRITING && tool == ToolbarTool.HANDWRITING -> false
-    !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool in setOf(
-        ToolbarTool.OCR, ToolbarTool.QR_SCAN, ToolbarTool.DOC_SCAN
-    ) -> false
+    !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool in setOf(ToolbarTool.OCR, ToolbarTool.QR_SCAN) -> false
     !BuildConfig.ENABLE_GRAMMAR && tool == ToolbarTool.GRAMMAR -> false
-    // The only tool that is not this app's own code: the scanner is an
-    // activity inside Play services, so on a device without it the tool can
-    // do nothing but apologise. OCR and QR stay — their models are in the
-    // APK and run with no Play services at all.
-    !PlayServices.available && tool == ToolbarTool.DOC_SCAN -> false
+    // The document scanner is offered everywhere: Google's (an activity
+    // inside Play services) where it can run, the built-in OpenCV one
+    // everywhere else, F-Droid's build and phones without Play services.
     else -> true
 }
 
@@ -380,7 +382,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
+    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.

@@ -5,15 +5,17 @@ plugins {
     id("com.android.dynamic-feature")
 }
 
-// The on-demand home of the Hunspell library, Play builds only: :app lists
-// this module in `dynamicFeatures` when wmkb.enablePlayStore is on, and no
-// other build references it at all. Every other channel packages the same
-// file in the base APK from :core:prediction, or pins it for download. The
-// module has no code: HunspellNative stays in :core:prediction and loads the
-// library through FeatureModules.loadLibrary once Play has installed this
-// split. It packages :core:prediction's src/main/jniLibs in place, which
-// :core:prediction drops from itself on this channel. About 1.1 MB on arm64,
-// used only where a language has an imported .aff/.dic.
+// The on-demand home of the spelling libraries, Hunspell's and divvunspell's,
+// Play builds only: :app lists this module in `dynamicFeatures` when
+// wmkb.enablePlayStore is on, and no other build references it at all. Every
+// other channel packages the same files in the base APK from :core:prediction,
+// or pins them for download. The module has no code: HunspellNative and
+// DivvunNative stay in :core:prediction and load their libraries through
+// FeatureModules.loadLibrary once Play has installed this split. It packages
+// :core:prediction's src/main/jniLibs in place, which :core:prediction drops
+// from itself on this channel. About 4 MB on arm64 (1.1 Hunspell, 2.8
+// divvunspell), used only where a language has an imported .aff/.dic or a
+// GiellaLT speller.
 android {
     namespace = "com.wasimaster.wmkeyboard.spellfeature"
     compileSdk {

@@ -90,6 +90,7 @@ import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
 import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -197,6 +198,7 @@ import com.wasimaster.wmkeyboard.core.gesture.SwipeModel
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadException
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingRecognizerCache
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import android.Manifest
@@ -225,9 +227,12 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCapitals
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
 import com.wasimaster.wmkeyboard.core.dictionaries.KhiproGlideDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.PhoneticIndexDownloads
+import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.CompositeWordSource
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
+import com.wasimaster.wmkeyboard.core.prediction.DivvunChecker
+import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.HunspellChecker
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
@@ -4148,6 +4153,15 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A GiellaLT speller downloaded, imported or deleted from the
+        // language's screen goes live (or away) without a language switch.
+        serviceScope.launch {
+            DivvunSpellerDownloads.completions.collect { langId ->
+                val engine = suggestionEngine
+                if (engine != null && _uiState.value.language.id == langId) refreshWordChecker(engine, langId)
+            }
+        }
+
         // A freshly landed n-gram pack goes live without waiting for a
         // language switch — but only when it is the active language's.
         serviceScope.launch {
@@ -4668,6 +4682,18 @@ open class WMKeyboardService : InputMethodService() {
                 CjkConfig.doublePinyin = settings.cjk.pinyinDoublePinyin
                 CjkConfig.traditionalOutput = settings.cjk.traditionalOutput
                 if (settings.cjk.traditionalOutput) loadHanVariantTables()
+                // Chinese and Japanese handwriting reads through ML Kit or
+                // zinnia, and Chinese through zinnia picks its model by the
+                // Traditional switch above, so either change can move the
+                // panel to another model: re-check it while ink is taken.
+                HandwritingModels.preferZinnia = settings.handwritingZinnia
+                _uiState.value.let { ui ->
+                    if ((ui.panel == PanelMode.HANDWRITING || keyboardHandwriteActive(ui)) &&
+                        hwLanguageTag() != ui.handwriting.languageTag
+                    ) {
+                        refreshHandwritingStatus()
+                    }
+                }
                 CjkConfig.lazyJyutping = settings.cjk.jyutpingLazy
                 CjkConfig.looseKanaMarks = settings.cjk.kanaLooseMarks
                 HanVariant.region = settings.cjk.hanRegion
@@ -8311,6 +8337,7 @@ open class WMKeyboardService : InputMethodService() {
         // reaching TalkBack.
         KeyboardPassthrough.publishRegion(null)
         stopReadAloud()
+        stopReadBack()
         vocabProgress.save()
         // Nothing is showing a vocabulary card once the window is gone; the
         // nudges only need the triggers, which stay. The next card reads the
@@ -8461,6 +8488,8 @@ open class WMKeyboardService : InputMethodService() {
         // Hunspell's dictionaries are native memory the process keeps otherwise.
         hunspellChecker?.second?.close()
         hunspellChecker = null
+        divvunChecker?.second?.close()
+        divvunChecker = null
         indicXlit?.shutdown()
         indicXlit = null
         pluginRuntime?.shutdown()
@@ -10429,8 +10458,16 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
             // Search opens the first tile, Assist sends the sentence, a code or value is kept.
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
-            // A caption, or words on a photo, can run over lines; Done finishes them.
-            CaptureTarget.GALLERY_TEXT -> captureTyped("\n")
+            // A caption, or words on a photo, can run over lines; Done finishes
+            // them. A photo search is one line, and Enter hands the keys back.
+            CaptureTarget.GALLERY_TEXT -> {
+                val entry = state.galleryText
+                if (entry != null && entry.field == com.wasimaster.wmkeyboard.ime.gallery.GalleryTextField.SEARCH) {
+                    galleryTool.onTextEnter(entry)
+                } else {
+                    captureTyped("\n")
+                }
+            }
             // A title moves on to the place, a guest is added, a place is kept;
             // notes are free text, so Enter is a line break in them.
             CaptureTarget.CALENDAR_TITLE, CaptureTarget.CALENDAR_LOCATION, CaptureTarget.CALENDAR_GUEST ->
@@ -15384,8 +15421,9 @@ open class WMKeyboardService : InputMethodService() {
             userUnlocked,
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor(lang.id),
             _uiState.value.settings.suggestionStrip.wordPairsEnabledFor("en"),
-            // The Hunspell library arriving (fetched from the dictionary
-            // screen while the keyboard runs) is a reason to bind again.
+            // The spelling libraries arriving (fetched from the dictionary
+            // screen while the keyboard runs) are a reason to bind again;
+            // Hunspell's and divvunspell's share one module.
             HunspellRuntime.moduleReady,
         )
         if (onlyIfChanged && binding == engineBinding) return
@@ -15444,40 +15482,67 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var hunspellChecker: Pair<String, HunspellChecker>? = null
 
+    /**
+     * The GiellaLT speller the engine holds, keyed the same way
+     * ([DivvunRuntime.signatureOf]). Also one language's at a time: the
+     * archive is mapped, not read, but a North Sámi one is 80 MB of address
+     * space and page cache.
+     */
+    private var divvunChecker: Pair<String, DivvunChecker>? = null
+
+    /** What [refreshWordChecker] last gave the engine, so a stale run can tell whether it is still there. */
+    private var engineWordChecker: WordChecker? = null
+
     /** The last [refreshWordChecker] run; each waits for the one before, so two never open at once. */
     private var wordCheckerJob: Job? = null
 
     /**
-     * Gives [engine] the Hunspell checker over [langId]'s imported `.aff` and
-     * `.dic`, or none. None is the keyboard as it was before Hunspell: no
-     * imported pair, a list switched off, or a build or install without the
-     * library (it is fetched from the language's dictionary screen, never from
-     * here). Opening reads both files, so it happens off the main thread and
-     * the engine checks without it until then.
+     * Gives [engine] the spelling checkers for [langId]: Hunspell over its
+     * imported `.aff` and `.dic`, and the GiellaLT speller downloaded or
+     * imported for it, either, both (one [WordChecker.of] the two) or none.
+     * None is the keyboard as it was before them: no imported pair or
+     * speller, a list switched off, or a build or install without the
+     * libraries (fetched from the language's dictionary screen, never from
+     * here). Opening reads files, so it happens off the main thread and the
+     * engine checks without them until then.
      */
     private fun refreshWordChecker(engine: SuggestionEngine, langId: String) {
         val previous = wordCheckerJob
         wordCheckerJob = serviceScope.launch {
             previous?.join()
-            val held = hunspellChecker
-            val next = withContext(Dispatchers.IO) {
+            val heldHunspell = hunspellChecker
+            val heldDivvun = divvunChecker
+            val (nextHunspell, nextDivvun) = withContext(Dispatchers.IO) {
                 val files = if (userUnlocked) CustomDictionaries.hunspellFiles(filesDir, langId) else emptyList()
                 val signature = HunspellRuntime.signatureOf(files)
-                when {
+                val hunspell = when {
                     files.isEmpty() -> null
-                    held?.first == signature -> held
+                    heldHunspell?.first == signature -> heldHunspell
                     else -> HunspellRuntime.open(files)?.let { signature to it }
                 }
+                val spellerSignature = if (userUnlocked) DivvunRuntime.signatureOf(filesDir, langId) else ""
+                val divvun = when {
+                    spellerSignature.isEmpty() -> null
+                    heldDivvun?.first == spellerSignature -> heldDivvun
+                    else -> DivvunRuntime.open(filesDir, cacheDir, langId)?.let { spellerSignature to it }
+                }
+                hunspell to divvun
             }
-            hunspellChecker = next
+            hunspellChecker = nextHunspell
+            divvunChecker = nextDivvun
+            val held = engineWordChecker
             if (suggestionEngine === engine && _uiState.value.language.id == langId) {
-                engine.wordChecker = next?.second ?: WordChecker.NONE
-            } else if (engine.wordChecker === held?.second) {
+                val next = WordChecker.of(listOfNotNull(nextHunspell?.second, nextDivvun?.second))
+                engine.wordChecker = next
+                engineWordChecker = next
+            } else if (held != null && engine.wordChecker === held) {
                 engine.wordChecker = WordChecker.NONE
+                engineWordChecker = null
             }
-            // Closed after the engine lets go of it; a call already inside
+            // Closed after the engine lets go of them; a call already inside
             // finishes first, since closing takes the same lock.
-            if (held != null && held !== next) held.second.close()
+            if (heldHunspell != null && heldHunspell !== nextHunspell) heldHunspell.second.close()
+            if (heldDivvun != null && heldDivvun !== nextDivvun) heldDivvun.second.close()
         }
     }
 
@@ -20943,13 +21008,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** What a clip is found by: its text (and a link's page title), a file's name. Pictures go to [MeaningSpace.CLIP_PICTURES]. */
-    private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? = when {
-        clip.kind.isTextual -> listOfNotNull(clip.linkPreview?.title?.takeIf { it.isNotBlank() }, clip.text)
-            .joinToString("\n")
-            .takeIf { it.isNotBlank() }
-        clip.kind == ClipKind.FILE -> clip.fileName?.takeIf { it.isNotBlank() }
-        else -> null
-    }
+    private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? =
+        com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall.clipText(clip)
 
     /**
      * The user's own stickers, by what they show; then, for the ones with no
@@ -26466,6 +26526,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
+            ToolbarTool.READ_BACK -> toggleReadBack()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -30038,10 +30099,12 @@ open class WMKeyboardService : InputMethodService() {
     // ---- handwriting ----
 
     /**
-     * The ink model to recognize against. ML Kit covers most but not all of the
-     * keyboard's languages, so a language it cannot recognize hands over to the
-     * first enabled one it can — writing something is better than a panel that
-     * offers a download which could never succeed.
+     * The ink model to recognize against. ML Kit and zinnia between them cover
+     * most but not all of the keyboard's languages (in F-Droid's build, only
+     * Chinese and Japanese), so a language neither can recognize hands over to
+     * the first enabled one that can — writing something is better than a
+     * panel that offers a download which could never succeed. With none at
+     * all, the tag has no model and the panel says so.
      */
     private fun hwLanguageTag(): String {
         val state = _uiState.value
@@ -30062,25 +30125,23 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Letter-area swipes are drawing handwriting (rather than gliding a word):
-     * a build with ML Kit, gesture typing on with the swipe action set to HANDWRITE, on
-     * the letter layer with no panel open.
+     * gesture typing on with the swipe action set to HANDWRITE, on the letter
+     * layer with no panel open.
      */
     private fun swipeHandwriteActive(state: KeyboardUiState): Boolean =
-        BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-            !state.layouts.handwriting &&
+        !state.layouts.handwriting &&
             state.settings.gestureTyping &&
             state.settings.letterSwipeAction == LetterSwipeAction.HANDWRITE &&
             state.layoutMode == LayoutMode.LETTERS &&
             state.panel == PanelMode.NONE
 
     /**
-     * The active layout is a handwriting one and its canvas is on screen: full
-     * build, letters layer, no panel over it. No gesture setting is involved;
-     * picking the layout is the opt-in.
+     * The active layout is a handwriting one and its canvas is on screen:
+     * letters layer, no panel over it. No gesture setting is involved; picking
+     * the layout is the opt-in.
      */
     private fun handwritingLayoutActive(state: KeyboardUiState): Boolean =
-        BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-            state.layouts.handwriting &&
+        state.layouts.handwriting &&
             state.layoutMode == LayoutMode.LETTERS &&
             state.panel == PanelMode.NONE
 
@@ -30095,7 +30156,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!keyboardHandwriteActive(state)) return
         if (state.handwriting.status != HandwritingStatus.READY) {
             // CHECKING/DOWNLOADING resolve on their own; only nag once the
-            // absence is confirmed.
+            // absence is confirmed. UNSUPPORTED has nothing to download, and
+            // the canvas of a writing layout already says so.
             if (state.handwriting.status == HandwritingStatus.NEED_MODEL ||
                 state.handwriting.status == HandwritingStatus.ERROR
             ) {
@@ -30150,10 +30212,19 @@ open class WMKeyboardService : InputMethodService() {
             )
         }
         serviceScope.launch {
+            // No recogniser in this build reads any of the enabled languages
+            // (F-Droid's build without Chinese or Japanese): nothing to fetch.
+            if (!HandwritingModels.hasModel(tag)) {
+                _uiState.update {
+                    if (it.handwriting.languageTag != tag) return@update it
+                    it.copy(handwriting = it.handwriting.copy(status = HandwritingStatus.UNSUPPORTED))
+                }
+                return@launch
+            }
             val downloaded = HandwritingModels.isDownloaded(tag)
-            // Read off ML Kit's shipped manifest, so the "needs a download of
-            // about N" line quotes this language's real size rather than one
-            // rounded figure for all 126 of them.
+            // Read off ML Kit's shipped manifest (or zinnia's pinned pack
+            // size), so the "needs a download of about N" line quotes this
+            // language's real size rather than one rounded figure for all.
             val size = HandwritingModelSizes.installedBytes(applicationContext, tag)
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
@@ -30223,10 +30294,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             hwDownloadJob = null
             hwDownloadNotify = null
+            // A failure the user can act on (library downloads switched off)
+            // says what to do; any other says only that it failed.
+            val failure = (result.exceptionOrNull() as? HandwritingDownloadException)?.message
+                ?: getString(R.string.ime_service_handwriting_download_error)
             if (result.isSuccess) {
                 notify.done()
             } else {
-                notify.failed(getString(R.string.ime_service_handwriting_download_error))
+                notify.failed(failure)
             }
             _uiState.update {
                 if (it.handwriting.languageTag != tag) return@update it
@@ -30237,7 +30312,7 @@ open class WMKeyboardService : InputMethodService() {
                         it.handwriting.copy(
                             status = HandwritingStatus.ERROR,
                             download = null,
-                            errorMessage = getString(R.string.ime_service_handwriting_download_error),
+                            errorMessage = failure,
                         )
                     },
                 )
@@ -34738,6 +34813,7 @@ open class WMKeyboardService : InputMethodService() {
         kdeConnect = settings.kdeConnect,
         homePrefs = settings.homeAssistant,
         homes = settings.homes(),
+        semantic = settings.semanticSearch,
     )
 
     private fun aiActionLabel(spec: AiActionSpec): String =
@@ -35352,6 +35428,8 @@ open class WMKeyboardService : InputMethodService() {
                 dataSaverStatus.decide(MeteredFeature.VOCAB_AUDIO) == MeteredDecision.ALLOWED
         }
         val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        // The speaker is shared: this word ends Read back's reading.
+        if (_uiState.value.readingBack) _uiState.update { it.copy(readingBack = false) }
         speaker.speak(word.word, url, settings.ttsRate, settings.ttsPitch, settings.accent.locale)
     }
 
@@ -36045,19 +36123,32 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Doc-scan tool: hand off to ML Kit's full-screen scanner activity
-     * (edge detection, crop, filters — all Google's UI). The scanned pages
-     * come back through [DocScanActivity.consumePendingPages] in
-     * [onStartInputView], once the target app has focus again.
+     * Doc-scan tool: hand off to a full-screen scanner activity. ML Kit's
+     * (edge detection, crop, filters — all Google's UI) where Play services
+     * can run it and the user has not picked the built-in one; the built-in
+     * OpenCV scanner ([com.wasimaster.wmkeyboard.app.PageScanActivity])
+     * everywhere else. Either way the
+     * scanned pages come back through [DocScanActivity.consumePendingPages]
+     * in [onStartInputView], once the target app has focus again.
      */
     fun onDocScanStart() {
-        if (!BuildConfig.ENABLE_ML_KIT_SCANNERS) return
         vibrate()
         _uiState.update { it.copy(panel = PanelMode.NONE) }
+        val google = BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available &&
+            !_uiState.value.settings.scanner.docBuiltIn
         startActivity(
-            Intent(this, DocScanActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            if (google) {
+                Intent(this, DocScanActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            } else {
+                // Its library may still need fetching; it asks the way data
+                // saver says to, which only the keyboard knows.
+                com.wasimaster.wmkeyboard.app.PageScanActivity.intent(
+                    this,
+                    dataSaverStatus.decide(MeteredFeature.DOWNLOADS),
+                )
+            },
         )
     }
 
@@ -37230,6 +37321,7 @@ open class WMKeyboardService : InputMethodService() {
                         translating = true,
                         error = null,
                         meteredAsk = false,
+                        licenceAsk = false,
                     ),
                 )
             }
@@ -37595,7 +37687,16 @@ open class WMKeyboardService : InputMethodService() {
                 return
             }
         }
-        _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, error = null)) }
+        // NLLB's weights come under a non-commercial licence, shown on the
+        // panel before the first download; pressing again is agreeing to it.
+        if (OfflineTranslation.needsLicence(ui.missingModels)) {
+            if (!ui.licenceAsk) {
+                _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, licenceAsk = true, error = null)) }
+                return
+            }
+            NativeConsent.set(NativeConsent.NLLB, true)
+        }
+        _uiState.update { it.copy(translate = it.translate.copy(meteredAsk = false, licenceAsk = false, error = null)) }
         if (ui.moduleMissing) {
             OnDeviceTranslator.requestModule()
             return
@@ -38546,10 +38647,37 @@ open class WMKeyboardService : InputMethodService() {
                 }
                 override fun fileUri(file: File): Uri? =
                     runCatching { FileProvider.getUriForFile(this@WMKeyboardService, clipboardFileProviderAuthority, file) }.getOrNull()
+                override fun photoSearchReady(): Boolean = userUnlocked && meaningSearch.picturesReady
+                override fun indexPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) =
+                    indexMeaningPhotos(photos)
+                override fun searchPhotos(query: String, onHits: (List<Long>) -> Unit) =
+                    meaningSearch.query(MeaningSpace.PHOTOS, query, MeaningRank.PHOTO) { keys ->
+                        onHits(keys.mapNotNull(String::toLongOrNull))
+                    }
             },
         )
     }
     private val galleryTool by galleryToolDelegate
+
+    /**
+     * The gallery's photos into their index, a pass at a time, for as long
+     * as the panel stays open: each pass embeds a few dozen and the next one
+     * starts when it ends, until every photo is in. A closed panel, or a pass
+     * that changed nothing, ends it; the next opening carries on.
+     */
+    private fun indexMeaningPhotos(photos: List<com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem>) {
+        if (!userUnlocked) return
+        val items = photos.map { photo ->
+            MeaningSync.Item(
+                photo.id.toString(),
+                MeaningSearch.stampOf("${photo.id}:${photo.modifiedSec}:${photo.size}"),
+                photo.uri.toString(),
+            )
+        }
+        meaningSearch.index(MeaningSpace.PHOTOS, items) {
+            if (_uiState.value.panel == PanelMode.GALLERY && items.isNotEmpty()) indexMeaningPhotos(photos)
+        }
+    }
 
     /**
      * The Send files tool (#729). Built on first use, like [galleryTool]: by
@@ -41111,6 +41239,8 @@ open class WMKeyboardService : InputMethodService() {
             else -> Locale.getDefault()
         }
         val vocab = _uiState.value.settings.vocabulary
+        // The speaker is shared: this reading ends Read back's.
+        if (_uiState.value.readingBack) _uiState.update { it.copy(readingBack = false) }
         setSpeaking(true)
         speaker.speak(offer.text, null, vocab.ttsRate, vocab.ttsPitch, locale) {
             // The engine calls back on its own thread.
@@ -41121,6 +41251,48 @@ open class WMKeyboardService : InputMethodService() {
     private fun stopReadAloud() {
         vocabSpeaker?.stop()
         if (_uiState.value.selectionMacros?.speaking == true) setSpeaking(false)
+    }
+
+    /**
+     * Read back: the selection, or else the whole field, read aloud in the
+     * keyboard's language; tapped while reading, it stops. A downloaded MMS
+     * voice reads it when there is one for the language, the phone's own
+     * voice otherwise (see [VocabSpeaker]). Never a password field.
+     */
+    private fun toggleReadBack() {
+        val state = _uiState.value
+        if (state.readingBack) {
+            stopReadBack()
+            return
+        }
+        if (state.secureField) return
+        val text = (selectedFieldText() ?: readBackFieldText())?.take(READ_BACK_MAX_CHARS)
+        if (text.isNullOrBlank()) return
+        val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        if (state.selectionMacros?.speaking == true) setSpeaking(false)
+        val vocab = state.settings.vocabulary
+        _uiState.update { it.copy(readingBack = true) }
+        speaker.speak(text, null, vocab.ttsRate, vocab.ttsPitch, Locale.forLanguageTag(state.language.localeTag)) {
+            // The engine calls back on its own thread.
+            serviceScope.launch { _uiState.update { it.copy(readingBack = false) } }
+        }
+    }
+
+    /** The field's text for Read back: all of it when the editor hands it over, else a window around the caret. */
+    private fun readBackFieldText(): String? {
+        val ic = currentInputConnection ?: return null
+        val whole = runCatching { ic.getExtractedText(ExtractedTextRequest(), 0)?.text?.toString() }.getOrNull()
+        val text = whole ?: runCatching {
+            ic.getTextBeforeCursor(READ_BACK_MAX_CHARS, 0)?.toString().orEmpty() +
+                ic.getTextAfterCursor(READ_BACK_MAX_CHARS, 0)?.toString().orEmpty()
+        }.getOrNull()
+        return text?.takeIf { it.isNotBlank() }
+    }
+
+    private fun stopReadBack() {
+        if (!_uiState.value.readingBack) return
+        vocabSpeaker?.stop()
+        _uiState.update { it.copy(readingBack = false) }
     }
 
     /**
@@ -48758,3 +48930,6 @@ private const val LOCATION_FIELD_CHARS = 2_000
 /** Recent clips the Found tab reads, newest first, and how much of each. */
 private const val LOCATION_CLIPS = 10
 private const val LOCATION_CLIP_CHARS = 4_000
+
+/** The most Read back reads in one go: a few minutes of speech. */
+private const val READ_BACK_MAX_CHARS = 4_000

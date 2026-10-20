@@ -173,7 +173,7 @@
     <string name="ime_handwriting_stylus_hint">Write with your stylus over a text field</string>
     <!-- Shown in place of the writing area of a handwriting layout in a
          build without the recognizer (F-Droid's). -->
-    <string name="ime_handwriting_layout_full_only_info">This version of the app does not have handwriting. Use the globe key to change to a different layout.</string>
+    <string name="ime_handwriting_unsupported_info">This version of the app reads handwriting in Chinese and Japanese only. Add one of them in Languages to write here.</string>
 
     <!-- Camera panel. -->
     <string name="ime_camera_permission_body">The camera tool needs permission to use the camera. The app takes a photo only when you press the shutter.</string>
@@ -301,6 +301,9 @@
     <string name="ime_translate_downloaded_desc">Downloaded</string>
     <string name="ime_translate_all_languages_label">All languages</string>
     <string name="ime_translate_all_languages_info">Also the languages to download</string>
+    <!-- Shown above the download button before the NLLB-200 model's first download; the button then reads ime_translate_nllb_licence_accept_action. -->
+    <string name="ime_translate_nllb_licence_body">NLLB-200 comes from Hugging Face under Meta\'s licence for it, Creative Commons Attribution-NonCommercial 4.0: for non-commercial use only, with no warranty. Press again to accept it and download.</string>
+    <string name="ime_translate_nllb_licence_accept_action">Accept and download</string>
     <string name="ime_translate_need_models_body">To translate on the device, download: <xliff:g id="languages" example="Bengali, German">%1$s</xliff:g>. About <xliff:g id="size" example="60 MB">%2$s</xliff:g>.</string>
     <!-- Names the Bergamot engine's own library in the download offer, beside model names like "French → English". -->
     <string name="ime_translate_bergamot_engine_name">Firefox Translations engine</string>

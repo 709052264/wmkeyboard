@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -12,6 +13,7 @@ import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
 import android.os.Process
+import android.util.Size
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import java.io.File
 
@@ -113,6 +115,14 @@ class EmbeddingService : Service() {
      * can read (an animated sticker's first frame is read; a Lottie one is not).
      */
     private fun decode(input: String): Bitmap? = runCatching {
+        // A photo in the phone's library has a thumbnail the system already
+        // made: reading it is a small file instead of a whole camera JPEG,
+        // and it comes the right way up.
+        if (input.startsWith("content://media/") && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            runCatching { contentResolver.loadThumbnail(Uri.parse(input), Size(THUMBNAIL_SIDE, THUMBNAIL_SIDE), null) }
+                .getOrNull()
+                ?.let { return@runCatching it }
+        }
         val open = {
             if (input.startsWith("content://")) contentResolver.openInputStream(Uri.parse(input)) else File(input).inputStream()
         }
@@ -147,6 +157,9 @@ class EmbeddingService : Service() {
 
         /** The vision tower, only ever used by an indexing pass, goes sooner. */
         private const val VISION_IDLE_MS = 20_000L
+
+        /** The library thumbnail asked for; still more than the tower looks at. */
+        private const val THUMBNAIL_SIDE = 512
 
         /** Pictures are decoded down to about this side; the tower sees a few hundred pixels at most. */
         private const val DECODE_SIDE = 1024

@@ -255,6 +255,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Language › Dictionaries row and module banner for a language with an imported pair; never fetched from the keyboard itself
     - No library, no pair, or a list switched off: the word lists decide alone, exactly as before
     - The main thread waits at most 15 ms for Hunspell's lock and otherwise answers as if it were absent; answers cached per word
+  - GiellaLT spellers `RARE` — divvunspell checks words against GiellaLT finite-state spellers (.bhfst) for North Sámi, Greenlandic, Faroese and other morphologically rich languages, where no word list holds every form
+    - Same WordChecker seam as Hunspell: an accepted word is never autocorrected, a rejected one gets the speller's spellings on the background pass, ranked as Hunspell's are; a language with both uses both (WordChecker.of)
+    - Ten pinned downloads (GiellaLT versioned releases: se, sma, smj, smn, sms, kl, fo, olo, fkv, vep), URL + SHA-256 + licence per entry; the .pkt.tar.zst is verified, then unpacked by the library
+    - Import of the user's own .bhfst, .zhfst or GiellaLT .pkt.tar.zst, recognised by content; installed only once it opens, the old speller kept until then
+    - Language › Dictionaries row for every keyboard language GiellaLT builds a speller for (94); Import where only nightly builds exist
+    - libwmdivvun.so shares the spell gate and :feature:spell split with Hunspell; built from source on F-Droid (native/divvunspell-jni, Rust, divvunspell pinned by commit)
+    - The main thread waits at most 15 ms for a check (a cold memory-mapped walk can take longer) and otherwise answers no; the walk finishes and is cached
+    - No library or no speller: the word lists decide alone, exactly as before
   - Three trie implementations behind one interface `uncommon` — Mutable node trie, heap-packed CSR trie, mapped trie
     - WordSource and TrieWalker split — The walker gives node-level access so fuzzy search steers its own traversal
     - One shared branch-and-bound completer — TrieCompleter replaces three parallel copies of the same loop
@@ -717,7 +725,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting instead of glide (letter-area swipe drawing) | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING); also needs a downloaded ML Kit digital-ink model, so a network fetch on first use |
+| Handwriting instead of glide (letter-area swipe drawing) | a downloaded model for the language: ML Kit digital ink, or zinnia for Chinese and Japanese (the only one in the F-Droid build), so a network fetch on first use |
 | TalkBack gesture pass-through for spacebar slide / backspace swipe / glide / handwriting | needs the 'WM Keyboard gestures' accessibility service granted by the user |
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
@@ -1724,8 +1732,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - The F-Droid build has 4 fewer — Handwriting, OCR, QR scan and Doc scan are compiled out
-    - Doc scan also needs Play services — PlayServices.available gate, since the scanner UI lives in Play services
+    - The F-Droid build has 2 fewer — OCR and QR scan are compiled out; Handwriting stays, with zinnia reading Chinese and Japanese
+    - Doc scan is everywhere — Google's scanner where Play services runs it, the built-in OpenCV scanner elsewhere
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
   - Panel key capture `uncommon` — Input-taking panels reroute keystrokes into their own field
@@ -1770,7 +1778,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Numpad — 4×4 numeric keypad panel over any field
     - Phone or calculator digit order — 1 2 3 top by default; calculator style puts 7 8 9 on top
     - Backspace repeats on hold — Enter sends a normal Enter key
-  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition
+  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition, zinnia for Chinese and Japanese without it
     - Per-language model manager — Catalog read from ML Kit itself, filtered to enabled languages; 8-26MB each, sized from ML Kit's own shipped manifest
     - Measured download progress — Bytes counted off disk against the manifest size; stall notice at 20s, gives up and cleans up at 90s; panel download button doubles as cancel
     - Language chip on the canvas — Only shown when two or more enabled languages have a model
@@ -1837,7 +1845,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Insert automatically — Off by default; types the value the instant it's spotted
     - Link details preview — Off by default; force-disabled by power saving's background-network toggle
     - Pinch to zoom with a percentage pill — Pill shows above roughly 1.05x
-  - Document scanner `uncommon` — Hands off to Google's scanner UI
+  - Document scanner `uncommon` — Google's scanner UI, or the built-in OpenCV scanner where Google's can't run
     - Pages inserted one at a time — JPEG, same path as a camera-tool photo
     - Gallery import allowed — Alongside the camera capture
     - Save to gallery — Off by default; writes to Pictures/WM Keyboard
@@ -1855,6 +1863,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Second on-device engine: Bergamot `RARE` — Mozilla's bergamot-translator (the engine in Firefox Translations, MPL-2.0) on Marian + ruy, as libwmbergamot.so (~6.7 MB arm64; arm64-v8a and x86_64, Android 9+; a load-refusing stub on armeabi-v7a); no Google code, so it is the on-device engine of F-Droid and de-Googled phones. A `bergamot` row in the translate provider list beside ML Kit; with both, the list order (or Pick mode) decides, and a pair one engine has no models for goes on to the other
     - Firefox Translations models per direction — 114 directions over 57 languages (incl. Traditional Chinese, Serbian, Uyghur, Basque), pinned by SHA-256 in the generated BergamotCatalog from Mozilla's Remote Settings collection translations-models-v2; zstd from Mozilla's attachment CDN, unpacked by the library, checked twice; 13.5–36.5 MB a direction, pivoting through English in one engine pass
     - Library delivery — `bergamot` native gate: pinned download on GitHub, built from source by the F-Droid recipe (opt-in download), the :feature:bergamot split on Play, fetched with the first model
+    - Third on-device engine: NLLB-200 `RARE` — Meta's No Language Left Behind (distilled 600M, int8, CC BY-NC 4.0 weights) on OpenNMT's CTranslate2 (MIT) + SentencePiece, as libwmct2.so (~2.7 MB arm64; arm64-v8a and x86_64, a load-refusing stub on armeabi-v7a); ruy for every GEMM, no BLAS, no OpenMP. One 630 MB model for 200 languages, any direction, no English pivot; an `nllb` row after `bergamot` in the translate list, so Automatic takes Bergamot when it has the pair downloaded, else NLLB when its model is here. 64-bit phones with 6 GB of memory or more (about 1.25 GB while translating, released when the panel closes); seconds per sentence
+    - NLLB model download — four files from one pinned Hugging Face revision (JustFrederik/nllb-200-distilled-600M-ct2-int8), each checked by size and SHA-256, resumable; the CC BY-NC 4.0 licence is shown first (settings dialog, or the panel's "Accept and download" second press) and remembered as the `nllb` NativeConsent licence; app picker codes mapped to FLORES-200 codes (macrolanguages to NLLB's variety: ar→arb, fa→pes, ms→zsm, sw→swh…). Library delivery — `ct2` native gate, :feature:ct2 split on Play, built from source by the F-Droid recipe
+    - Translate picker grew 68 → 127 languages: every language NLLB-200 reads that Google's online service also has (Amharic, Armenian, Hausa, Khmer, Yoruba, Zulu…)
     - Source without ML Kit — Script letters (Ukrainian ї, Urdu ے, kana) and common short words of 34 Latin-script languages, then the keyboard's languages; ML Kit's identifier is used where the phone has it
     - Line structure survives — Each line translated on its own, blank lines and indentation put back
     - Translators released with the panel — And on memory pressure; a loaded pair is tens of MB
@@ -2202,10 +2213,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting tool and handwrite-with-swipes | not in the F-Droid build (ML Kit digital ink); each language model is an 8-26MB download |
+| Handwriting tool and handwrite-with-swipes | every build; the F-Droid build reads only Chinese and Japanese (zinnia, no ML Kit); each language model is an 8-26MB ML Kit download or a 26-52MB zinnia one |
 | Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
 | QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
-| Document scanner | not in the F-Droid build, and hidden entirely when Google Play services is unavailable |
+| Document scanner | every build: Google's scanner with Play services, the built-in OpenCV scanner without (its library is an on-demand download, about 2.5 MB) |
 | Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source) |
 | AI On-device provider and its 8-model catalog | not in the F-Droid build; 2 of the 8 models need a Hugging Face token and licence acceptance |
 | AI cloud providers (Claude, OpenAI, Gemini, Grok, DeepSeek, Brave) | needs the user's own API key — no built-in or proxied key for any of them |
@@ -2505,7 +2516,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## AI, voice, handwriting, scanning
 
-- **Search by meaning** `RARE` — the clipboard, notes, snippets, emoji and sticker search boxes also list what means the query, after the keyword matches, in 100+ languages, fully on device; off by default (AI screen)
+- **Search by meaning** `RARE` — the clipboard, notes, snippets, emoji and sticker search boxes also list what means the query, after the keyword matches, in 100+ languages, fully on device; the gallery's photos are searched by what they show; the AI can search clips, notes and snippets by meaning; off by default (AI screen)
   - EmbeddingGemma 2 (Apache-2.0) on the classic LiteRT interpreter — the litert gate shared with Whisper, the cutout and PaddleOCR; no ONNX Runtime, no sqlite-vec
     - LiteRT-LM bundles repacked once — external weight sections inlined, only the 128/256/512-token encoder and 70-token vision signatures kept (the classic interpreter prepares subgraph 0 at load), outputs bit-identical; published as the data repo's `models` release, SHA-256 pinned
     - Token embedder needs no interpreter — the int4 table is read straight from a mapped file (low nibble first × row scale × √512), exactly the bundle's graph
@@ -2519,6 +2530,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Stands-out ranking, not a fixed cutoff — a hit must be near the best, over the median by a margin, and over a floor; thresholds read off the model's scores on mixed-language texts and COCO photos
   - Untagged stickers tagged from their picture — nearest emoji names become trigger keywords for stickers-as-you-type, kept apart from the user's own and never written to the pack
   - Falls back silently — no model, no LiteRT (F-Droid), a slow first load: the box shows its keyword matches as before
+  - Gallery photo search (Text and pictures) — a search button in the gallery header ranks the library's photos by a typed description; photos indexed from MediaStore thumbnails, 32 per pass, pass after pass while the panel stays open, newest 3,000 kept; follows the photos permission (no access drops the index); no button without the pictures model, and none on Play (no library access)
+  - `search_memory` AI tool — the model's query against the clipboard, notes and snippets indexes, up to eight labelled excerpts; every hit re-checked against its store (marked or password-shaped clips, locked and trashed notes, deleted items dropped); offered only with the feature on and the text model present; starts on Ask
+    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchMemory`, so `:feature:tools` gains no dependency on `:core:intelligence`
+  - Storage row — About → Storage → Search by meaning lists the text model, the pictures model and the indexes with sizes; deleting the text model or the indexes turns the feature off, the pictures model alone drops it to Text
 
 - **AI writing actions** `RARE` — On-keyboard panel that runs prompts against the focused field's text; 8 shipped actions, user-extensible
   - Shipped action set `RARE` — 11 built-ins: Rewrite, Summarize, Translate, Improve, Formal, Shorter, Friendly, Fix grammar, Explain, Continue, Custom
@@ -2745,7 +2760,20 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Punctuation and case — Capitals-only output from audiobook-trained models is lowered; the English online punctuation model (CNN-BiLSTM) punctuates and capitalises the finished phrase once downloaded
   - Its own gate — `FeatureModules.onnx`: `:feature:onnx` on Play, libonnxruntime.so read out of Microsoft's AAR on Maven Central elsewhere, bundled in the offline build; `libwmsherpa.so` links only a build-time stub of the runtime, so F-Droid builds it from source
 - **Reduce background noise** `uncommon` — RNNoise (v0.1.1, BSD) in `WhisperRecorder` in front of every on-device engine: 16 kHz raised to 48 kHz by a polyphase sinc filter, denoised in 10 ms frames, brought back down; the level ring keeps the raw microphone, the silence stop and the clip get the cleaned audio. Rides the speech gate (`libwmdenoise.so`, ~130 KB); off by default; never for the system recognizer or the server
+- **Read back and offline voices** `RARE` — A `READ_BACK` tool reads the selection, or the whole field (up to 4,000 characters), aloud in the keyboard's language; lit while reading, a second tap stops; never a password field
+  - Meta MMS-TTS voices — 1,132 languages (`assets/speech/mms_tts.tsv`, from `native/sherpa-onnx-jni/mms_tts_catalog.py`), one VITS model per language from one pinned revision of an ONNX conversion on Hugging Face, every file SHA-256 checked; about 114 MB each; voices needing uroman left out
+  - Licence gate — CC-BY-NC-4.0 weights fetched by the phone after `NativeConsent.MMS` is given in a dialog before the first download; credit on the tool page and in About
+  - VITS on ONNX Runtime directly — `vits_jni.cpp` in libwmsherpa runs the network through ORT's C++ API (sherpa-onnx's own TTS would link espeak-ng, GPL-3.0); the character frontend (lower-case, unknown characters dropped, blank id 0 interleaved) is Kotlin (`MmsTokens`), and text is cut at sentence marks of a dozen scripts so the first sentence plays while the rest is made (`SpeechOut`, float `AudioTrack`)
+  - One speaker for everything — `VocabSpeaker` asks `SpeechOut` before the platform synthesiser, so vocabulary cards, Look up and selection Read aloud also use a downloaded voice; recordings still play first
+  - Rides the `onnx` gate — same runtime download as Offline Sherpa; voices on the Storage screen under Voice models
 - **Handwriting** — ML Kit digital-ink recognition on a full-width canvas, or drawn straight on the letter keys
+  - zinnia for Chinese and Japanese `RARE` — Taku Kudo's BSD recogniser (native/zinnia-jni, `libwmzinnia.so`, ~450 KB arm64, gate `zinnia`, `:feature:zinnia` on Play) with the Tegaki project's LGPL models: Japanese 6,420 characters, Simplified Chinese 6,763 (GB 2312), Traditional Chinese 11,853 (Big5)
+    - Takes over where ML Kit is not in the build (F-Droid: the only recogniser, so other languages get a "Chinese and Japanese only" panel note), for Cantonese (ML Kit has no model; Traditional), or with Handwriting > Offline recogniser for Chinese and Japanese (off by default, shown only where ML Kit is in the build)
+    - Chinese model follows Traditional characters — Simplified with it off, Traditional with it on; the model list shows both
+    - Models are CJK packs — pinned SHA-256, resumable download through CjkDictDownloadManager, offline import by file name, never listed on the language dictionary screens; one Download button fetches the library first, then the model
+    - Line segmentation — ink cut at horizontal gaps, a late stroke over an earlier character joins it; every joining of up to six pieces (three per character) is read and the best average zinnia score wins, so 硍 is not read as 石艮 and two characters written apart are two
+    - Fit to the training box — each character scaled by its own bounding box to the Tegaki models' 1000-unit square (longer side 820, centred at 500,490), with a floor of 30% of the canvas height so a lone dot stays small
+    - Desktop-verified JNI — on the models' own training characters, jittered and resampled: top 1 93-99%, top 4 99-100%, two-character lines 92-100%
   - Model catalog read from the library, not hardcoded `RARE` — ML Kit's own identifier table minus autodraw/emoji/shape/gesture models, filtered to enabled languages
     - 32 script codes mapped for variant selection — keeps Sanskrit on sa-Deva-IN rather than the romanised sa-Latn
     - Subtag aliases — nb→no, tl→fil
@@ -2790,6 +2818,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Pinch to zoom with a percentage pill above 1.05x
     - Rescan re-arms the decoder
   - Document scanner `RARE` — hands off to Play services' GmsDocumentScanner (edge detection, crop, cleanup) through an invisible trampoline activity
+    - Built-in scanner (PageScanActivity) `RARE` — OpenCV core + imgproc as libwmdocscan.so (~2.4 MB arm64), no Google code: what F-Droid, de-Googled phones and a failed Google scanner get, and a per-tool "Use the built-in scanner" switch elsewhere
+      - Live page outline in the viewfinder — CameraX ImageAnalysis at 640×480, every 120 ms, same 4:3 frame as preview and photo
+      - Detection — four edge maps (median-scaled Canny, gentle Canny, per-colour-channel Canny, Otsu region) → convex hulls → quads with plausible corners whose sides the edges follow; a side on the frame border counts only beside two real ones
+      - Draggable corners with a loupe, red outline and disabled Crop while the corners cross; swap between found corners and the whole picture
+      - Flattened page with Original, Colour (default), Grey and Black and white; quarter turns; Add page / Done for multi-page scans
+      - Clean-up — paper light measured per channel on a grid from unsaturated pixels only, so coloured boxes survive and shadows lift; B/W = local threshold plus a level, solid dark areas kept
+      - Library delivery — `docscan` native gate: pinned download on GitHub, built from source by the F-Droid recipe (opt-in download), the :feature:docscan split on Play; prompt on the scanner screen and a banner on the tool page
+      - Desktop check — native/docscan-jni/desktop/check.sh runs the same docscan.cpp on photos on a Mac
     - Gallery import allowed alongside the camera
     - Pages come back as JPEGs and are committed one at a time when the IME regains the field
     - Pending-page directory trimmed to the 8 newest
@@ -2824,15 +2860,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 |---|---|
 | On-device LLM provider and its whole model catalog | not in the F-Droid build (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent there |
 | Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
-| Handwriting panel and handwrite-with-swipes | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
+| Handwriting panel and handwrite-with-swipes | every build; without ML Kit (F-Droid) only Chinese and Japanese, through zinnia |
 | Text scan (OCR) and QR/barcode scanner | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
-| Document scanner | not in the F-Droid build, and additionally requires Google Play services — the tool is hidden when Play services is absent |
+| Document scanner | every build and phone: Google's scanner where Play services can run it, the built-in OpenCV scanner (on-demand library) everywhere else |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence; GGUF models also need the llama.cpp library (a Play split or a GitHub native download) |
 | NPU under Compute | Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
-| Handwriting language models | one-time network download per language through ML Kit |
+| Handwriting language models | one-time network download per language through ML Kit, or from the data repository for zinnia's Chinese and Japanese models (plus the zinnia library: a Play split, or a native download after the F-Droid opt-in) |
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |
 | System speech recognition without the on-device language pack | sends audio to the OS recognizer service; the on-device model download itself needs network |
 | Camera tool, OCR and QR scanner | need the CAMERA runtime permission (shared trampoline) |
@@ -2856,7 +2892,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Two GitHub builds** — From 0.6.3 a release publishes the standard build (English, on-demand libraries and languages) and the offline build (all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
 - **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
   - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
-  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime, Mozc) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
+  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, divvunspell, Tesseract, librime, Mozc) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
   - Same gates as Play — Every library sits behind a `ModuleGate`, so the banners, `awaitInstalled` callers and `GatedLibrary` facades are unchanged; ML Kit's bundled text and barcode readers gained a `scanner` gate.
   - Loaded without ART double-registration — A dependency that loads its library itself is preloaded with a plain `dlopen` from `libwm_engine_jni.so`, so `JNI_OnLoad` runs once.
   - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.

@@ -46,6 +46,8 @@
     <string name="core_tools_provider_mlkit_desc">Translates on the phone with Google\'s ML Kit. Your text stays on the phone. Each language needs a model download first.</string>
     <string name="core_tools_provider_bergamot">On device (Firefox Translations)</string>
     <string name="core_tools_provider_bergamot_desc">Translates on the phone with Mozilla\'s Bergamot engine and the Firefox Translations models. Free software, no Google services, and your text stays on the phone. Each direction (French to English, English to French) is its own download of 14 to 37 MB. Needs a 64-bit phone with Android 9 or later.</string>
+    <string name="core_tools_provider_nllb">On device (NLLB-200)</string>
+    <string name="core_tools_provider_nllb_desc">Translates on the phone with Meta\'s NLLB-200 model on CTranslate2: 200 languages, between any two of them, for the pairs the other engines cannot do. One download of 630 MB, and a sentence takes a few seconds. Your text stays on the phone. The model is licensed for non-commercial use only (CC BY-NC 4.0). Needs a 64-bit phone with 6 GB of memory or more.</string>
     <string name="core_tools_provider_translate_server">Your translation server</string>
     <string name="core_tools_provider_translate_server_desc">A server that answers OpenAI chat requests: llama.cpp, Ollama, LM Studio, vLLM or a gateway.</string>
     <string name="core_tools_provider_deepl" translatable="false">DeepL</string>

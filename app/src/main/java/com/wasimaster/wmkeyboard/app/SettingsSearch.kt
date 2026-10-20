@@ -11,7 +11,9 @@ import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
+import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 
@@ -1227,7 +1229,7 @@ private fun SearchStrings.expanderRows(): List<SettingsSearchEntry> {
 }
 
 /** Rows on the tool pages, from Emoji through One-handed mode. */
-private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
+private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNotNull(
     toolEntry(ToolbarTool.EMOJI, R.string.tooldetail_emoji_all_title, R.string.tooldetail_emoji_all_subtitle, weight = EntryWeight.MIRROR),
     toolEntry(
         ToolbarTool.CLIPBOARD,
@@ -1613,6 +1615,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOf(
         R.string.tooldetail_handwriting_auto_space_title,
         R.string.tooldetail_handwriting_auto_space_subtitle,
     ),
+    toolEntry(
+        ToolbarTool.HANDWRITING,
+        R.string.tooldetail_handwriting_zinnia_title,
+        R.string.tooldetail_handwriting_zinnia_subtitle,
+    ).takeIf { HandwritingModels.mlKitInBuild },
     toolEntry(ToolbarTool.HANDWRITING, R.string.tooldetail_handwriting_pause_title, R.string.tooldetail_handwriting_pause_subtitle),
     toolEntry(ToolbarTool.HANDWRITING, R.string.panel_layout_row_title, R.string.panel_layout_row_subtitle),
     toolEntry(
@@ -1696,7 +1703,7 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
     )
 }
 
-private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
+private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNotNull(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_packs_title, R.string.tooldetail_sticker_packs_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_title, R.string.tooldetail_sticker_suggest_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_style_title),
@@ -1740,6 +1747,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_auto_title, R.string.tooldetail_qr_scan_auto_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_haptics_title, R.string.tooldetail_qr_scan_haptics_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_preview_title, R.string.tooldetail_qr_scan_preview_subtitle),
+    // A choice only where Google's scanner can run; elsewhere the built-in one is all there is.
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_builtin_title, R.string.tooldetail_doc_scan_builtin_subtitle)
+        .takeIf { googleDocScanner },
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_gallery_title, R.string.tooldetail_doc_scan_gallery_subtitle),
     toolEntry(
         ToolbarTool.VOICE,
@@ -1943,6 +1953,8 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
                 .takeIf { OnDeviceTranslator.AVAILABLE },
             toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_bergamot_group)
                 .takeIf { BergamotTranslator.available },
+            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_nllb_group)
+                .takeIf { NllbTranslator.available },
         )
     }
 

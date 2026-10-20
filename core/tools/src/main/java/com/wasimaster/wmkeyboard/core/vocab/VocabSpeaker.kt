@@ -5,13 +5,15 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import com.wasimaster.wmkeyboard.core.voice.speech.SpeechOut
 import java.util.Locale
 
 /**
  * The speaker button's voice: Wiktionary's recording when one is offered,
- * the platform's speech synthesiser otherwise — and also whenever the
- * recording fails to play, because a speaker button that stays silent reads
- * as a bug.
+ * else a downloaded MMS voice for the language ([SpeechOut], offline), else
+ * the platform's speech synthesiser. The synthesisers also step in whenever
+ * the recording fails to play, because a speaker button that stays silent
+ * reads as a bug.
  *
  * One instance per process side (the keyboard service owns one, a settings
  * screen creates one for its lifetime). The synthesiser is created lazily
@@ -27,6 +29,10 @@ class VocabSpeaker(context: Context) {
     private var ttsReady = false
     private var ttsFailed = false
     private var pending: (() -> Unit)? = null
+    private val offline = lazy { SpeechOut(appContext) }
+
+    /** Counts offline readings, so a stopped one ending late cannot finish the next. */
+    @Volatile private var offlineRun = 0
 
     /**
      * Told when the current utterance or recording ends, or fails. Called on
@@ -76,6 +82,9 @@ class VocabSpeaker(context: Context) {
     }
 
     private fun speakSynthesised(word: String, rate: Float, pitch: Float, locale: Locale) {
+        // The user downloaded that voice on purpose; it has no pitch to set.
+        val run = ++offlineRun
+        if (offline.value.speak(word, locale, rate) { if (run == offlineRun) finished() }) return
         if (ttsFailed) {
             finished()
             return
@@ -124,6 +133,8 @@ class VocabSpeaker(context: Context) {
         onDone = null
         runCatching { player?.takeIf { it.isPlaying }?.stop() }
         runCatching { tts?.takeIf { ttsReady }?.stop() }
+        offlineRun++
+        if (offline.isInitialized()) offline.value.stop()
     }
 
     /** Releases the player and the synthesiser; the owner's teardown calls this. */
@@ -134,6 +145,7 @@ class VocabSpeaker(context: Context) {
         runCatching { tts?.shutdown() }
         tts = null
         ttsReady = false
+        if (offline.isInitialized()) offline.value.release()
     }
 
     private companion object {

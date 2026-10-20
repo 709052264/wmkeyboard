@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QueryStats
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Terminal
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
@@ -67,6 +68,9 @@ import com.wasimaster.wmkeyboard.core.plugins.PluginStore
 import com.wasimaster.wmkeyboard.core.prediction.CustomDictionaries
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.LockedSettings
+import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
+import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
+import com.wasimaster.wmkeyboard.core.settings.SemanticSearchMode
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.stickers.CutoutModel
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
@@ -78,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -247,6 +252,7 @@ internal object StorageCategories {
 
     /** The ExecuTorch engines' items among them: one per model, the catalog id after this prefix. */
     private const val ET_ITEM_PREFIX = "et:"
+    private const val MMS_ITEM_PREFIX = "mms:"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
@@ -425,7 +431,8 @@ internal object StorageCategories {
                 listOf(
                     WhisperStore.rootDir(it.files),
                     WhistleModelStore.rootDir(it.files),
-                ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) }
+                ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
+                    MmsVoices.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -456,6 +463,14 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     }
+                } + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
+                    // Read back's offline voices, one folder per language code.
+                    StorageItem(
+                        id = MMS_ITEM_PREFIX + dir.name,
+                        label = "MMS voice (${dir.name})",
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                    )
                 }
             },
             deleteOne = { env, item ->
@@ -464,6 +479,8 @@ internal object StorageCategories {
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
+                } else if (item.id.startsWith(MMS_ITEM_PREFIX)) {
+                    item.files.forEach { it.deleteRecursively() }
                 } else {
                     // The selection goes first: the keyboard must never be pointed
                     // at a model file that is about to disappear.
@@ -479,6 +496,7 @@ internal object StorageCategories {
                 WhisperDownloadManager.refresh(env.roots.files)
                 WhistleModelDownloadManager.delete(env.roots.files)
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
+                emptyOut(MmsVoices.rootDir(env.roots.files))
             },
         ),
         StorageCategory(
@@ -539,6 +557,66 @@ internal object StorageCategories {
                 emptyOut(LocalLlmStore.modelsDir(env.roots.files))
                 LocalLlmDownloadManager.refresh(env.roots.files)
             },
+        ),
+        // Search by meaning: EmbeddingGemma's two packs, and the indexes built
+        // from the user's own things with it. The indexes are what make the
+        // models useful and nothing without them, so they go together, and
+        // deleting the text pack turns the feature off: a mode left on with
+        // no model behind it would offer a download nobody asked for.
+        StorageCategory(
+            id = "meaning_models",
+            title = R.string.storage_meaning_title,
+            subtitle = R.string.storage_meaning_subtitle,
+            icon = Icons.Outlined.Search,
+            accent = Color(0xFF7E57C2),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "ai",
+            pathsOf = { listOf(File(it.noBackupFiles, "semantic")) },
+            itemsOf = { env ->
+                val models = SemanticModels.Pack.entries.mapNotNull { pack ->
+                    val files = SemanticModels.parts(pack).flatMap { part ->
+                        listOf(SemanticModels.file(env.roots.noBackupFiles, part), SemanticModels.partFile(env.roots.noBackupFiles, part))
+                    }.filter { it.isFile }
+                    if (files.isEmpty()) return@mapNotNull null
+                    StorageItem(
+                        id = pack.name,
+                        label = env.context.getString(
+                            if (pack == SemanticModels.Pack.TEXT) R.string.storage_meaning_text else R.string.storage_meaning_pictures,
+                        ),
+                        bytes = files.sumOf { diskUsage(it, env.roots.blockSize) },
+                        files = files,
+                    )
+                }
+                val indexDir = File(env.roots.noBackupFiles, "semantic/index")
+                val index = if (childrenOf(indexDir).isEmpty()) emptyList() else listOf(
+                    StorageItem(
+                        id = MEANING_INDEX_ITEM,
+                        label = env.context.getString(R.string.storage_meaning_index),
+                        detail = env.context.getString(R.string.storage_meaning_index_detail),
+                        bytes = diskUsage(indexDir, env.roots.blockSize),
+                        files = listOf(indexDir),
+                        directory = true,
+                    ),
+                )
+                models + index
+            },
+            deleteOne = { env, item ->
+                when (item.id) {
+                    // Copies of private text, rebuilt from the stores; the
+                    // keyboard holds them in memory too, so only turning the
+                    // feature off makes them go for good.
+                    MEANING_INDEX_ITEM -> turnMeaningOff(env)
+                    SemanticModels.Pack.TEXT.name -> turnMeaningOff(env)
+                    else -> {
+                        SemanticDownloads.delete(env.context, SemanticModels.Pack.PICTURES)
+                        env.repository.updateSemanticSearch { s ->
+                            if (s.mode == SemanticSearchMode.TEXT_AND_PICTURES) s.copy(mode = SemanticSearchMode.TEXT) else s
+                        }
+                    }
+                }
+            },
+            clearOf = { env -> turnMeaningOff(env) },
         ),
         StorageCategory(
             id = "ocr_packs",
@@ -704,6 +782,21 @@ internal object StorageCategories {
             },
         ),
     )
+
+    /** The storage row's name for search by meaning's indexes, beside its packs. */
+    private const val MEANING_INDEX_ITEM = "meaning_index"
+
+    /**
+     * Search by meaning off, its models and indexes gone. The setting goes
+     * first, so the keyboard drops the indexes it holds in memory rather than
+     * saving them back; the files are deleted here too, for a keyboard that
+     * is not running.
+     */
+    private suspend fun turnMeaningOff(env: StorageEnv) {
+        env.repository.updateSemanticSearch { it.copy(mode = SemanticSearchMode.OFF) }
+        SemanticDownloads.delete(env.context, SemanticModels.Pack.TEXT)
+        File(env.roots.noBackupFiles, "semantic").deleteRecursively()
+    }
 
     /** The delivered libraries on disk, with the pin each one answers. */
     // (Interface language packs are listed by their own category below.)

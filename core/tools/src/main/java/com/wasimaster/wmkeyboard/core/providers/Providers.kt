@@ -270,6 +270,19 @@ object ProviderTypes {
         R.string.core_tools_provider_bergamot, R.string.core_tools_provider_bergamot_desc,
         onDevice = true, freeSoftware = true,
     )
+
+    /**
+     * Meta's NLLB-200 on CTranslate2: on the phone too, one 630 MB model for
+     * 200 languages in any direction, for the pairs Bergamot has no model
+     * for. Slower and far larger than Bergamot, so it comes after it. The
+     * engine is free software; the weights are CC BY-NC 4.0, so not
+     * [freeSoftware].
+     */
+    val NLLB = ProviderType(
+        "nllb", setOf(ProviderTool.TRANSLATE),
+        R.string.core_tools_provider_nllb, R.string.core_tools_provider_nllb_desc,
+        onDevice = true,
+    )
     val TRANSLATE_SERVER = ProviderType(
         "translate_server", setOf(ProviderTool.TRANSLATE),
         R.string.core_tools_provider_translate_server, R.string.core_tools_provider_translate_server_desc,
@@ -636,7 +649,7 @@ object ProviderTypes {
 
     val all: List<ProviderType> = listOf(
         KLIPY, GIPHY, COMMONS, GIFCITIES, OFFLINE_GIFS, STICKER_PACKS,
-        ML_KIT, BERGAMOT, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
+        ML_KIT, BERGAMOT, NLLB, TRANSLATE_SERVER, DEEPL, LIBRETRANSLATE, MOZHI, SIMPLYTRANSLATE, LINGVA, TRANSLITE, GOOGLE_TRANSLATE,
         VOCAB_PACKS, WIKTIONARY, WIKTIONARY_REST, DICTIONARY_API, OFFLINE_WIKTIONARY, OFFLINE_WORDNET, IMPORTED_DICTIONARIES,
         DATAMUSE, SIMILAR_WORDS,
         SEARXNG, TAVILY, BRAVE,

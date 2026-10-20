@@ -8403,6 +8403,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
+    ToolbarTool.READ_BACK -> R.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8604,6 +8605,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
+    // Lit while it reads, so the second tap reads as Stop.
+    ToolbarTool.READ_BACK -> state.readingBack
 }
 
 /**
@@ -13678,16 +13681,12 @@ private fun KeyboardBody(
                 PanelMode.SOUND_HAPTICS -> SoundHapticsPanel(state, onSoundHaptic, onOpenRoute)
                 PanelMode.NUMPAD -> NumpadPanelHost(state, panelCallbacks)
                 PanelMode.CANDIDATES -> CandidateGridPanel(state, onCandidate, suggestionHold.onCandidateAdjust)
-                PanelMode.HANDWRITING -> if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
-                    HandwritingPanelHost(
-                        state, panelCallbacks,
-                        onStroke = onHandwritingStroke,
-                        onUndoStroke = onHandwritingUndo,
-                        onDownloadModel = onHandwritingDownload,
-                    )
-                } else {
-                    onPanelChange(PanelMode.SNIPPETS)
-                }
+                PanelMode.HANDWRITING -> HandwritingPanelHost(
+                    state, panelCallbacks,
+                    onStroke = onHandwritingStroke,
+                    onUndoStroke = onHandwritingUndo,
+                    onDownloadModel = onHandwritingDownload,
+                )
                 PanelMode.CAMERA -> CameraPanel(
                     state = state,
                     onSend = onCameraSend,
@@ -17247,13 +17246,12 @@ private fun KeyRows(
     } else {
         state
     }
-    // Letter-area swipes are drawing handwriting rather than gliding a word
-    // (not on F-Droid). Capture arms whenever the mode is selected; the
-    // service decides whether the drawn ink recognizes or prompts a download.
+    // Letter-area swipes are drawing handwriting rather than gliding a word.
+    // Capture arms whenever the mode is selected; the service decides
+    // whether the drawn ink recognizes or prompts a download.
     // A handwriting layout (#557) has its own canvas above the keys and no
     // letters to swipe across, so neither the swipe ink nor glide applies.
-    val handwriteSwipe = BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-        !state.layouts.handwriting &&
+    val handwriteSwipe = !state.layouts.handwriting &&
         state.settings.gestureTyping &&
         state.settings.letterSwipeAction == LetterSwipeAction.HANDWRITE &&
         state.layoutMode == LayoutMode.LETTERS &&

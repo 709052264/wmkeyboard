@@ -7,7 +7,7 @@ sidebar:
 
 import SettingsPath from '@components/SettingsPath.astro';
 
-Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa's speech toolkit, on your phone. Its models are streaming Zipformer transducers: they decode while you speak, so the words go into the field as you say them, the way the phone's own recognizer does it, and nothing waits for the end of the phrase. Each language has its own model, and one covers eight at once. Once a model is downloaded, no audio leaves the phone. A language with no model on the phone uses the system recognizer instead.
+Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa's speech toolkit, on your phone. Its models are streaming Zipformer transducers: they decode while you speak, so the words go into the field as you say them, the way the phone's own recognizer does it, and nothing waits for the end of the phrase. Each language has its own model, and one covers eight at once. Once a model is downloaded, no audio leaves the phone. The same runtime also reads text aloud: see [Read back and offline voices](/tools/read-back/). A language with no model on the phone uses the system recognizer instead.
 
 ## Setting it up
 

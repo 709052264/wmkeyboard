@@ -1036,8 +1036,12 @@ data class LauncherDetailUi(
     val loading: Boolean = true,
 )
 
-/** Readiness of the handwriting panel's recognition model. */
-enum class HandwritingStatus { CHECKING, NEED_MODEL, DOWNLOADING, READY, ERROR }
+/**
+ * Readiness of the handwriting panel's recognition model. UNSUPPORTED: no
+ * recogniser in this build reads any enabled language (F-Droid's build reads
+ * only Chinese and Japanese), so there is nothing to download either.
+ */
+enum class HandwritingStatus { CHECKING, NEED_MODEL, DOWNLOADING, READY, ERROR, UNSUPPORTED }
 
 /**
  * Handwriting panel state, owned by the service (it runs recognition).
@@ -1528,6 +1532,12 @@ data class TranslateUi(
      * press of the same button is the yes.
      */
     val meteredAsk: Boolean = false,
+    /**
+     * The download needs a licence agreed to first (NLLB-200's weights,
+     * CC BY-NC 4.0), and the panel is showing it. The next press of the same
+     * button is the yes.
+     */
+    val licenceAsk: Boolean = false,
     /** The on-device models' states, mirrored here while the panel is open. */
     val models: Map<String, com.wasimaster.wmkeyboard.core.translate.OfflineModelState> = emptyMap(),
     /**
@@ -3572,6 +3582,8 @@ data class KeyboardUiState(
      */
     val fieldContentMimeTypes: List<String> = emptyList(),
     val secureField: Boolean = false,
+    /** Read back is reading the field aloud; its tool stays lit until it ends or is tapped again. */
+    val readingBack: Boolean = false,
     /**
      * The device lock screen (keyguard) is showing. Refreshed on each field
      * start from [android.app.KeyguardManager]. Only the "hide toolbar &

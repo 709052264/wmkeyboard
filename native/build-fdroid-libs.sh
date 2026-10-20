@@ -14,14 +14,21 @@
 #   Neural suggestions  indicxlit-jni/build.sh    libwmxlit.so
 #   (IndicXlit)                                    (both into core/voice/src/onnx/jniLibs)
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
+#   GiellaLT spellers   divvunspell-jni/build.sh  libwmdivvun.so
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #   Mozc (Japanese)     mozc-jni/build.sh         libwmmozc.so
 #                       (into core/input/src/mozc/jniLibs; Bazel, through
 #                       a pinned bazelisk)
 #   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
 #                       (into core/intelligence/src/bergamot/jniLibs)
+#   NLLB translate      ctranslate2-jni/build.sh  libwmct2.so
+#                       (into core/intelligence/src/ct2/jniLibs)
+#   zinnia handwriting  zinnia-jni/build.sh       libwmzinnia.so
+#   (Chinese, Japanese)                            (into core/intelligence/src/zinnia/jniLibs)
 #   llama.cpp (GGUF     llamacpp-jni/build.sh     libwmllama*.so
 #   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
+#   Document scanner    docscan-jni/build.sh      libwmdocscan.so
+#   (OpenCV)                                      (into core/intelligence/src/docscan/jniLibs)
 #
 # libwmsherpa and libwmxlit are linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -79,7 +86,11 @@ fi
 "$HERE/sherpa-onnx-jni/build.sh"
 "$HERE/indicxlit-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
+"$HERE/divvunspell-jni/build.sh"
 "$HERE/librime-jni/build.sh"
 "$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"
+"$HERE/ctranslate2-jni/build.sh"
+"$HERE/zinnia-jni/build.sh"
 "$HERE/llamacpp-jni/build.sh"
+"$HERE/docscan-jni/build.sh"

@@ -84,6 +84,7 @@
     <string name="fonts_tool_clipboard_desc">Paste from the clipboard history</string>
     <string name="fonts_tool_clipboard_search_desc">Open the clipboard with its search ready to type into</string>
     <string name="fonts_tool_recent_copies_desc">Show your latest copies in a row on the suggestion strip, until you type</string>
+    <string name="fonts_tool_read_back_desc">Read the selection, or everything in the field, aloud in the keyboard\'s language. Tap again to stop</string>
     <string name="fonts_tool_leave_field_desc">Press Esc to leave the text field, then hide the keyboard. Works in apps that answer Esc, such as a browser\'s address bar</string>
     <string name="fonts_tool_snippets_desc">Insert saved text snippets</string>
     <string name="fonts_tool_text_edit_desc">Cursor, selection and clipboard controls</string>
@@ -130,7 +131,7 @@
     <string name="fonts_tool_image_search_desc">Search for images from the keyboard. Press an image to send it</string>
     <string name="fonts_tool_ocr_desc">Point the camera at printed text and type it. You select only the words you need</string>
     <string name="fonts_tool_qr_scan_desc">Scan a QR code or a barcode and insert its text</string>
-    <string name="fonts_tool_doc_scan_desc">Scan a document with the Google scanner and send it as an image</string>
+    <string name="fonts_tool_doc_scan_desc">Scan a document and send it as an image</string>
     <string name="fonts_tool_voice_desc">Type text with your voice, in any language the speech recognizer of your device supports</string>
     <!-- Harper is the name of the grammar checker that runs on the device. -->
     <string name="fonts_tool_grammar_desc">Check the text you write for grammar problems. Harper does this offline</string>

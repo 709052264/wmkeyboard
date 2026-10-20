@@ -32,6 +32,9 @@ internal enum class MeaningSpace(val fileName: String, val pictures: Boolean = f
     SNIPPETS("snippets"),
     EMOJI("emoji"),
     STICKERS("stickers", pictures = true),
+
+    /** The phone's photos, for the gallery panel's search; only with the photos permission. */
+    PHOTOS("photos", pictures = true),
 }
 
 /**
@@ -81,12 +84,13 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
     @Volatile var stickerTagsVersion: Int = 0
         private set
 
-    private val indexDir: File get() = File(context.noBackupFilesDir, "semantic/index")
-
     /** Whether a query can be answered at all now. Cheap: a few file checks. */
     val enabled: Boolean get() = settings.enabled && unlocked && Embeddings.available(context)
 
     private val picturesEnabled: Boolean get() = enabled && settings.pictures && Embeddings.picturesAvailable(context)
+
+    /** Whether pictures can be searched now, for the gallery's search box. Cheap, like [enabled]. */
+    val picturesReady: Boolean get() = picturesEnabled
 
     /** From the settings collector. Off deletes every index; they are copies of private text. */
     fun configure(next: SemanticSearchSettings, userUnlocked: Boolean) {
@@ -102,7 +106,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
             stickerTagsVersion++
             scope.launch(worker) {
                 indexes.clear()
-                indexDir.deleteRecursively()
+                indexDir(context).deleteRecursively()
             }
         }
         if (!next.pictures && stickerTags.isNotEmpty()) {
@@ -240,7 +244,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
 
     /** On [worker]. */
     private fun indexOf(space: MeaningSpace): VectorIndex =
-        indexes.getOrPut(space) { VectorIndex.read(File(indexDir, space.fileName + ".vec")) }
+        indexes.getOrPut(space) { VectorIndex.read(indexFile(context, space)) }
 
     /** On [worker]: the emoji vectors come downloaded, not indexed here. */
     private fun loadEmoji() {
@@ -251,7 +255,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
     }
 
     private fun save(space: MeaningSpace, index: VectorIndex) {
-        runCatching { index.write(File(indexDir, space.fileName + ".vec")) }
+        runCatching { index.write(indexFile(context, space)) }
     }
 
     companion object {
@@ -269,6 +273,15 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
 
         /** Words of an emoji's name shorter than this are not tags ("of", "a"). */
         private const val MIN_TAG_WORD = 3
+
+        /**
+         * Where the indexes live: derived from the user's own things, so not
+         * backed up, and deleted with the feature.
+         */
+        fun indexDir(context: Context): File = File(context.noBackupFilesDir, "semantic/index")
+
+        /** [space]'s index, read by [MemoryRecall] as well. */
+        fun indexFile(context: Context, space: MeaningSpace): File = File(indexDir(context), space.fileName + ".vec")
 
         /** A stamp for a text in [space]; the model version is folded in. */
         fun stampOf(text: String): Long = MeaningSync.stampOf(text, SemanticModels.VERSION)

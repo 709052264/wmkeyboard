@@ -12,7 +12,7 @@ import KeyCap from '@components/KeyCap.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard ships 88 tools (panels, sensors, generators, and one-tap actions), but only a handful sit on the toolbar at once. The rest wait one tap away in the toolbox, and you decide which is which by dragging tools between the two.
+WM Keyboard ships 89 tools (panels, sensors, generators, and one-tap actions), but only a handful sit on the toolbar at once. The rest wait one tap away in the toolbox, and you decide which is which by dragging tools between the two.
 
 <PhoneFrame caption="The toolbar's default row (Emoji, Clipboard, Settings) with the toolbox grid open below it.">
   <Shot id="tools/toolbar-and-toolbox" alt="The toolbar's default row (Emoji, Clipboard, Settings) with the toolbox grid open below it." />
@@ -119,7 +119,7 @@ While the toolbox is open, the toolbar shows a magnifier at its far end, after y
 
 <SettingsPath path="Tools" />
 
-All 88 tools have a settings screen under `Settings → Tools`, each with its own **Enabled** switch plus whatever options it carries.
+All 89 tools have a settings screen under `Settings → Tools`, each with its own **Enabled** switch plus whatever options it carries.
 
 **Colorful tool icons** sits at the top of that screen and is on by default. It tints each tool's icon with the tool's own accent color, in the toolbox grid and down this settings list. The pinned row on the keyboard itself is the exception: those icons always take the theme's toolbar-icon color, so the bar stays one color whatever this is set to. Turn the setting off and the toolbox falls back to that same plain foreground color.
 
@@ -180,9 +180,9 @@ To back out of any open panel:
 
 **Direct boot** is the window right after a restart, before you've entered your PIN or pattern for the first time. The keyboard can't reach its stored data yet. Some tools work anyway.
 
-WM Keyboard exposes 50 of its 88 tools during that window: everything that's pure arithmetic, a sensor reading, or a control over the keyboard's own on-screen state. That's Emoji, Text editing, Trackpad, Numpad, Symbols, One-handed, Split, Floating, Keep on screen, Resize, Hide keyboard, Appearance, Autocorrect, Sound & haptics, Incognito, Selection actions, English words, Find & replace, Text repeat, Modes, Fancy text, Secondary layout, Language, Undo, Redo, Power saving, Calculator, Unit converter, Password generator, QR generator, Flashlight, Compass, Level, Moon phase, Copy, Cut, and all fourteen cursor tools. Paste is the one clipboard button left out: the clipboard itself is credential-encrypted, so before the first unlock the button would be there and do nothing.
+WM Keyboard exposes 50 of its 89 tools during that window: everything that's pure arithmetic, a sensor reading, or a control over the keyboard's own on-screen state. That's Emoji, Text editing, Trackpad, Numpad, Symbols, One-handed, Split, Floating, Keep on screen, Resize, Hide keyboard, Appearance, Autocorrect, Sound & haptics, Incognito, Selection actions, English words, Find & replace, Text repeat, Modes, Fancy text, Secondary layout, Language, Undo, Redo, Power saving, Calculator, Unit converter, Password generator, QR generator, Flashlight, Compass, Level, Moon phase, Copy, Cut, and all fourteen cursor tools. Paste is the one clipboard button left out: the clipboard itself is credential-encrypted, so before the first unlock the button would be there and do nothing.
 
-The other 38 sit it out until you unlock. That covers anything backed by a file on disk (Clipboard, Snippets, Notes, Camera, downloaded speech or AI models), anything that needs a credential or the network (Translate, the online searches, AI, the paired computers of KDE Connect, the signed-in homes of the Smart home tool, Send files), anything that reads a content provider behind the lock screen (Calendar), and anything that has to launch a separate activity (Settings, Statistics, the document scanner). None of it is a toggle. The split is automatic, and it only applies before that first unlock.
+The other 39 sit it out until you unlock. That covers anything backed by a file on disk (Clipboard, Snippets, Notes, Camera, Read back, downloaded speech or AI models), anything that needs a credential or the network (Translate, the online searches, AI, the paired computers of KDE Connect, the signed-in homes of the Smart home tool, Send files), anything that reads a content provider behind the lock screen (Calendar), and anything that has to launch a separate activity (Settings, Statistics, the document scanner). None of it is a toggle. The split is automatic, and it only applies before that first unlock.
 
 **Hide toolbar & clipboard on lock screen** under <SettingsPath path="Appearance / Toolbar" /> is a different thing, and it's off by default. It hides the *entire* toolbar rather than filtering it, any time the screen is locked, including long after you've unlocked the phone once since the last restart. Turn it on if you'd rather not have a pinned tool or the suggestion strip visible while you reply to a notification from the lock screen. Everything comes back the moment you unlock, even in the text box the keyboard was open in when the screen turned off, and even when a fingerprint unlocks the phone straight from a dark screen.
 
@@ -221,15 +221,15 @@ The leader is one switch in a broader hardware-keyboard group. Arrow-key navigat
 ## Details & edge cases
 
 - A tool that's disabled under <SettingsPath path="Tools" /> disappears from the toolbar, the toolbox, *and* its hardware leader-key letter all at once, since there's a single switch, not three.
-- Four tools need libraries the F-Droid build leaves out, so they are <Flavor edition="google" />: Handwriting, QR scan, and Document scanner need ML Kit, and OCR needs ML Kit and Tesseract. Grammar needs Harper's, which F-Droid compiles from source, so it stays. A build-gated tool gets no settings row at all, so you never meet a switch that won't turn on.
-- **Document scanner** has a second gate on top of that one: it's an activity inside Google Play services, not this app's own code, so it's hidden on any device without Play services, in any build. OCR and QR scan stay put there, since their models ship in the APK and run with no Play services at all.
+- Two tools need libraries the F-Droid build leaves out, so they are <Flavor edition="google" />: QR scan needs ML Kit, and OCR needs ML Kit and Tesseract. Handwriting stays there with zinnia, an open-source recogniser for Chinese and Japanese only. Grammar needs Harper's, which F-Droid compiles from source, so it stays. A build-gated tool gets no settings row at all, so you never meet a switch that won't turn on.
+- **Document scanner** is in every build and on every phone. It opens Google's scanner, an activity inside Google Play services, where that can run, and the keyboard's own [built-in scanner](/tools/scanner/#scanning-a-document) everywhere else, F-Droid's build included.
 - **Reset toolbox order** puts the grid back in the order it shipped in, after a confirmation. It sits under <SettingsPath path="Appearance / Toolbar" /> right below Reset pinned tools, and only appears once you have actually dragged something. It leaves the pinned row and which tools are enabled alone. **Reset pinned tools** is the mirror of it.
 - Toolbar reordering is per-installation, not per-language. Pinning a tool applies everywhere, not only while a particular language is active. A keyboard mode's own toolbar override is the one exception. See [above](#pinning-and-reordering).
 - The toolbox shows only tools that are both enabled *and* not already pinned, so enabling a tool that's already pinned won't create a second entry in the toolbox.
 - A tool pinned to the toolbar stays a member of its folder but isn't shown inside it. Unpin it and it is back in the folder. A folder whose tools are all pinned or hidden disappears from the grid until one of them comes back.
 - The search lists results only. While it is open you can tap a result or hold it for its settings, but nothing can be dragged in a filtered grid.
 - With paging on, a drag reorders within the page you're holding it over. The pages don't flip under your finger, so moving a tool to another page means dragging it onto the toolbar first, then off again on the page you want. Dragging up onto the toolbar to pin works from any page.
-- The pill layout's arrow follows what the tool actually does, not what kind of tool it is. **Document scanner** gets one because it opens Google's full-screen scanner, and **Settings** gets one because it opens the settings app, even though neither is a keyboard panel.
+- The pill layout's arrow follows what the tool actually does, not what kind of tool it is. **Document scanner** gets one because it opens a full-screen scanner, and **Settings** gets one because it opens the settings app, even though neither is a keyboard panel.
 - Tool icon colors only apply in the toolbox and the settings list, and only when **Colorful tool icons** is on. With it off, those icons use the theme's plain foreground color, whatever per-tool override you've set.
 
 {/* shot: tools/toolbox-drag-reorder is an anim candidate for a future pass; the still above covers the reduced-motion case. */}

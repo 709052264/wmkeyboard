@@ -127,6 +127,7 @@ import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
 import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -1920,6 +1921,17 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingAutoSpace,
                     ) { scope.launch { repository.setHandwritingAutoSpace(it) } }
                 }
+                // Only a choice where ML Kit is in the build: without it
+                // zinnia is all Chinese and Japanese have.
+                item(visible = HandwritingModels.mlKitInBuild) {
+                    ToggleSetting(
+                        R.string.tooldetail_handwriting_zinnia_title,
+                        stringResource(R.string.tooldetail_handwriting_zinnia_subtitle),
+                        settings.watch { it.handwritingZinnia },
+                        info = stringResource(R.string.tooldetail_handwriting_zinnia_info),
+                        default = SettingsDefaults.handwritingZinnia,
+                    ) { scope.launch { repository.setHandwritingZinnia(it) } }
+                }
                 item {
                     SliderSetting(
                         R.string.tooldetail_handwriting_pause_title,
@@ -2039,7 +2051,8 @@ internal fun ToolDetailSettings(
         ToolbarTool.TRANSLATE -> {
             // The engine row and the model lists exist only where an engine
             // does: ML Kit in builds that carry it, Bergamot on Android 9 and
-            // later in every build that can fetch its models.
+            // later in every build that can fetch its models, NLLB on 64-bit
+            // phones with the memory for it.
             val onDevice = OfflineTranslation.available
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
@@ -2089,6 +2102,7 @@ internal fun ToolDetailSettings(
             }
             if (OnDeviceTranslator.AVAILABLE) TranslateModelManager(settings)
             if (BergamotTranslator.available) BergamotModelManager(settings)
+            if (NllbTranslator.available) NllbModelManager(settings)
             // Who translates, in order: on the device, the user's own server,
             // DeepL, LibreTranslate, Google. The engine switch above decides
             // which part of the list a translation asks.
@@ -2614,10 +2628,25 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.DOC_SCAN -> {
+            val builtIn = settings.watch { it.scanner.docBuiltIn }
+            DocScanModuleBanner(settings, builtIn)
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
-                info = stringResource(R.string.tooldetail_doc_scan_info),
+                info = stringResource(
+                    if (googleDocScanner) R.string.tooldetail_doc_scan_info else R.string.tooldetail_doc_scan_builtin_info,
+                ),
             ) {
+                // Only a choice where Google's scanner can run at all.
+                if (googleDocScanner) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_doc_scan_builtin_title,
+                            stringResource(R.string.tooldetail_doc_scan_builtin_subtitle),
+                            settings.watch { it.scanner.docBuiltIn },
+                            default = SettingsDefaults.scanner.docBuiltIn,
+                        ) { scope.launch { repository.setDocScanBuiltIn(it) } }
+                    }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_doc_scan_gallery_title,
@@ -3162,6 +3191,7 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.TEXT_REPEAT -> TextRepeatToolSettings(repository, settings)
+        ToolbarTool.READ_BACK -> ReadBackToolSettings(settings)
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
@@ -4106,20 +4136,21 @@ private fun handwritingControlOf(status: String): Int = when (status) {
 
 /**
  * Download/delete state for the handwriting model of every language the user
- * types in — drawn from ML Kit's full ink catalogue, then narrowed to the
- * enabled languages so the list is only ever as long as it is useful. Status
- * is re-read from ML Kit's model manager after every action.
+ * types in — drawn from ML Kit's full ink catalogue and zinnia's three
+ * models, then narrowed to the enabled languages so the list is only ever as
+ * long as it is useful. Status is re-read after every action.
  */
 @Composable
 private fun HandwritingModelManager(settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val enabledLanguages = settings.watch { it.enabledLanguages }
-    val languages = remember(enabledLanguages) {
-        HandwritingModels.modelsFor(enabledLanguages)
+    val zinnia = settings.watch { it.handwritingZinnia }
+    val languages = remember(enabledLanguages, zinnia) {
+        HandwritingModels.modelsFor(enabledLanguages, zinnia)
     }
     val missing = remember(enabledLanguages, languages) {
         enabledLanguages.distinctBy { it.id }
-            .filter { HandwritingModels.tagFor(it) == null }
+            .filter { HandwritingModels.tagFor(it, zinnia) == null }
     }
     val context = LocalContext.current
     val startDownload = rememberDownloadStarter()

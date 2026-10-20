@@ -171,10 +171,16 @@
     <string name="about_bundled_lottie_used">Draws animated Telegram stickers</string>
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
+    <string name="about_bundled_opencv_used">Finds, flattens and cleans up pages in the built-in document scanner (native library)</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
+    <string name="about_bundled_zinnia_used">Reads Chinese and Japanese handwriting on the device without Google services (native library)</string>
+    <string name="about_bundled_divvunspell_used">Checks spelling against GiellaLT finite-state spellers for Sámi, Greenlandic, Faroese and other languages (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
     <string name="about_bundled_bergamot_used">Translates on the device without Google services (native library, 64-bit Android 9 and later)</string>
     <string name="about_bundled_bergamot_libs_used">Built into the Bergamot translator\'s native library</string>
+    <string name="about_bundled_ct2_used">Runs the NLLB-200 translation model on the device (native library, 64-bit phones)</string>
+    <string name="about_bundled_ct2_libs_used">Built into the CTranslate2 native library</string>
+    <string name="about_pack_nllb_used">The translation model for the NLLB engine, 200 languages, downloaded from Hugging Face after you accept its non-commercial licence</string>
     <string name="about_pack_firefox_translations_used">Translation models for the Bergamot engine, downloaded per language direction from Mozilla</string>
     <string name="about_bundled_rust_crates_used">The libraries that the grammar library depends on</string>
     <string name="about_bundled_tesseract_used">Reads text in most scripts for the text scanner (native library)</string>
@@ -201,6 +207,7 @@
     <string name="about_bundled_sherpa_used">Offline Sherpa\'s speech recognition toolkit, and k2-fsa\'s streaming models it downloads on request</string>
     <string name="about_bundled_vosk_used">Offline Sherpa\'s Bengali and Russian models, downloaded on request</string>
     <string name="about_bundled_kroko_used">Offline Sherpa\'s German and Spanish models, downloaded on request</string>
+    <string name="about_bundled_mms_used">The offline voices Read back and the speaker buttons download on request</string>
     <string name="about_bundled_silero_used">The voice detector Offline Sherpa downloads with each model, to hear where a phrase ends</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise, in front of the offline voice engines</string>
     <string name="about_bundled_whistle_used">The Offline Whistle speech recognition engine and its model, which run on your device</string>
@@ -233,6 +240,7 @@
     <string name="about_pack_cedict_used">The Chinese Pinyin conversion dictionary</string>
     <!-- dictionary_oss is the name of the file inside mozc. -->
     <string name="about_pack_mozc_used">The Japanese kana to kanji conversion dictionary (dictionary_oss)</string>
+    <string name="about_pack_tegaki_used">The Chinese and Japanese handwriting models zinnia reads with, downloaded per language</string>
     <string name="about_pack_cantonese_used">The Cantonese Jyutping conversion dictionary</string>
     <string name="about_pack_stroke_used">The stroke sequence input for Chinese</string>
     <!-- kCangjie is the name of the field inside the Unihan database. -->

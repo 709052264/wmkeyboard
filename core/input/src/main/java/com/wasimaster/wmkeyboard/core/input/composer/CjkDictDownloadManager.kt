@@ -233,6 +233,22 @@ object CjkDictDownloadManager {
         activeJob?.cancel()
     }
 
+    /**
+     * Stops [pack]: its download if it is the one running (which, like
+     * [cancel], also empties the queue behind it), or only its place in the
+     * queue otherwise, leaving the running download alone. The partial file
+     * stays for a later resume.
+     */
+    fun cancel(pack: CjkDictPack) {
+        if (pack.id == activeId) {
+            activeJob?.cancel()
+            return
+        }
+        if (waiting.removeIf { it.second.id == pack.id }) {
+            set(pack.id, DownloadStatus.NotDownloaded)
+        }
+    }
+
     fun delete(filesDir: File, pack: CjkDictPack) {
         waiting.removeIf { it.second.id == pack.id }
         if (pack.id == activeId) cancel()

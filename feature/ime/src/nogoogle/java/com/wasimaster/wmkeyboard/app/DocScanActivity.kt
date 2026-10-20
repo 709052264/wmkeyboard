@@ -5,15 +5,16 @@ import androidx.activity.ComponentActivity
 import java.io.File
 
 /**
- * F-Droid stand-in for the doc-scan trampoline. The tool is hidden in that
- * build (no ML Kit), so this never launches a scanner — it exists so
- * the manifest entry and the IME's page pickup keep compiling.
+ * F-Droid stand-in for the Google scanner's trampoline. This build has no ML
+ * Kit, so the keyboard always opens the built-in [PageScanActivity] instead
+ * and never this; it exists so the manifest entry and the keyboard's page
+ * pickup keep compiling.
  */
 class DocScanActivity : ComponentActivity() {
 
     companion object {
-        /** F-Droid's build never produces scanned pages. */
-        fun consumePendingPages(): List<File> = emptyList()
+        /** Hands over (and clears) whatever the built-in scanner produced. */
+        fun consumePendingPages(): List<File> = DocScanPages.consume()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

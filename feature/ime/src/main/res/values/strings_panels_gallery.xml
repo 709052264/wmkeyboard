@@ -44,6 +44,10 @@
 
     <!-- Send bar -->
     <string name="ime_gallery_caption_hint">Add a caption</string>
+    <string name="ime_gallery_search_hint">Search your photos by what they show</string>
+    <string name="ime_gallery_search_desc">Search photos</string>
+    <string name="ime_gallery_search_clear_desc">Clear the search</string>
+    <string name="ime_gallery_search_none">No photo shows that yet. Photos are searchable once they are indexed, a few dozen at a time while this panel is open.</string>
     <string name="ime_gallery_remove_desc">Remove from the selection</string>
     <string name="ime_gallery_sending">Sending %1$d of %2$d</string>
     <string name="ime_gallery_size_estimate">about %1$s</string>

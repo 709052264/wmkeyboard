@@ -14,6 +14,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,6 +26,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.semantic.Embeddings
+import com.wasimaster.wmkeyboard.core.semantic.SemanticDownloads
+import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
 import com.wasimaster.wmkeyboard.core.tools.AiCalendarMode
 import com.wasimaster.wmkeyboard.core.tools.DeviceCalendar
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -87,6 +91,10 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
     AiTools.SEARCH_NOTES to BuiltInToolText(
         R.string.toolai_ai_builtin_search_notes_title,
         R.string.toolai_ai_builtin_search_notes_subtitle,
+    ),
+    AiTools.SEARCH_MEMORY to BuiltInToolText(
+        R.string.toolai_ai_builtin_search_memory_title,
+        R.string.toolai_ai_builtin_search_memory_subtitle,
     ),
     AiTools.CURRENT_LOCATION to BuiltInToolText(
         R.string.toolai_ai_builtin_current_location_title,
@@ -170,6 +178,9 @@ internal fun AiBuiltInToolSettings(
     val kdeOn = settings.watch { it.kdeConnect.enabled }
     val haOn = settings.watch { it.homeAssistant.enabled && it.homes().isNotEmpty() }
     val locationBuilt = remember { LocationAccess.declared(context) }
+    val meaningOn = settings.watch { it.semanticSearch.enabled }
+    val meaningStates by SemanticDownloads.states.collectAsState()
+    val meaningReady = remember(meaningOn, meaningStates) { meaningOn && SemanticModels.SUPPORTED && Embeddings.available(context) }
     val calendarAddOn = settings.watch { s ->
         AiTools.builtIn(AiTools.ADD_CALENDAR_EVENT)?.let { AiTools.policyOf(it, s.ai.toolPolicies) } != McpToolPolicy.OFF
     }
@@ -185,6 +196,7 @@ internal fun AiBuiltInToolSettings(
                     AiTools.SEND_TO_PC -> kdeOn
                     AiTools.HOME_ASSISTANT, AiTools.HOME_ASSISTANT_STATES -> haOn
                     AiTools.CURRENT_LOCATION -> locationBuilt
+                    AiTools.SEARCH_MEMORY -> meaningReady
                     else -> true
                 }
                 item(visible = shown, key = tool.name) {

@@ -159,6 +159,43 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 entry's `scandelete` needs that path added. Nothing is fetched at configure
 time: no KleidiAI, no OpenSSL, no web UI.
 
+The NLLB translation engine adds `native/ctranslate2-jni` (OpenNMT's
+CTranslate2 and Google's SentencePiece at pinned tags, CMake, CPU only with
+ruy for every matrix product, no BLAS, no OpenMP) into
+`core/intelligence/src/ct2/jniLibs`; the next entry's `scandelete` needs that
+path added. The script clones abseil at the tag SentencePiece's own CMake
+would fetch, so configuring touches no network, and makes one edit to
+CTranslate2's `thread_pool.cc` (bionic has no `pthread_setaffinity_np`).
+armeabi-v7a gets a stub that only refuses to load. The NLLB-200 model itself
+(CC BY-NC 4.0) is not in the APK or the library: the phone fetches it from
+Hugging Face after the user accepts that licence, like FUTO Swipe's weights.
+
+The same release adds `native/zinnia-jni` (zinnia, Taku Kudo's BSD-licensed
+handwriting recogniser, at a pinned commit, four C++ files and CMake) into
+`core/intelligence/src/zinnia/jniLibs`. It is what reads Chinese and
+Japanese handwriting in this build, which has no ML Kit; the next entry's
+`scandelete` needs that path added, and the copy of the recipe here already
+has it. The models it reads (the Tegaki project's, LGPL 2.1) are not in the
+APK or the library: they are CJK pack downloads from the data repository.
+
+From the release after 0.6.2 the script also builds `native/divvunspell-jni`
+(Divvun's divvunspell, which checks words against GiellaLT's speller archives)
+into `core/prediction/src/main/jniLibs`, beside Hunspell's library, so the
+path that entry already scandeletes covers it. It is a Rust crate like Harper,
+with one difference: divvunspell and its archive reader (box-format, and
+box-format's fastvlq) are git dependencies, fetched by Cargo from GitHub at
+the commits `Cargo.lock` pins, because crates.io's last divvunspell release is
+from 2023. The spellers themselves are never in the APK or the library: the
+phone downloads them from GiellaLT's own releases, or the user imports them.
+
+From the release after 0.6.2 the script also builds `native/docscan-jni`
+(OpenCV 4.14.0 at a pinned commit, only its core and imgproc modules, static)
+into `core/intelligence/src/docscan/jniLibs`: the built-in document scanner,
+which F-Droid's build uses in place of Google's. The next entry's
+`scandelete` needs that path added. OpenCV's configure step downloads nothing
+with the options in `native/docscan-jni/opencv.cmake`: IPP, KleidiCV, FastCV
+and the other prebuilt accelerators are off.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

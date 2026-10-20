@@ -105,7 +105,6 @@ import com.wasimaster.wmkeyboard.core.settings.OctopusDuringGlide
 import com.wasimaster.wmkeyboard.core.settings.OctopusFlickSensitivity
 import com.wasimaster.wmkeyboard.core.settings.OctopusPlacement
 import com.wasimaster.wmkeyboard.core.settings.OctopusSettings
-import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
 import kotlinx.coroutines.CoroutineScope
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
@@ -1867,13 +1866,11 @@ internal fun TypingGesturesSettings(
                 title = R.string.typing_letter_swipe_action_title,
                 subtitle = stringResource(R.string.typing_letter_swipe_action_subtitle),
                 info = stringResource(R.string.typing_letter_swipe_action_info),
-                options = listOfNotNull(
+                options = listOf(
                     LetterSwipeAction.TYPE_WORDS to
                         stringResource(R.string.typing_letter_swipe_type_words_label),
-                    (
-                        LetterSwipeAction.HANDWRITE to
-                            stringResource(R.string.typing_letter_swipe_handwrite_label)
-                        ).takeIf { BuildConfig.ENABLE_ML_KIT_HANDWRITING },
+                    LetterSwipeAction.HANDWRITE to
+                        stringResource(R.string.typing_letter_swipe_handwrite_label),
                     LetterSwipeAction.SELECT_KEY to
                         stringResource(R.string.typing_letter_swipe_select_key_label),
                 ),
@@ -2210,9 +2207,7 @@ internal fun TypingGesturesSettings(
             }
             // Handwrite-with-swipes only: window after a drawn stroke in which a
             // tap is grabbed as an ink dot rather than typing.
-            if (BuildConfig.ENABLE_ML_KIT_HANDWRITING &&
-                swipeAction == LetterSwipeAction.HANDWRITE
-            ) {
+            if (swipeAction == LetterSwipeAction.HANDWRITE) {
                 item {
                     val offLabel = stringResource(CommonR.string.common_off)
                     val msFormat = stringResource(R.string.typing_value_milliseconds)

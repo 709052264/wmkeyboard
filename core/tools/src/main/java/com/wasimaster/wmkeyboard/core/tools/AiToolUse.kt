@@ -289,6 +289,7 @@ object AiTools {
     const val CALCULATE = "calculate"
     const val CALENDAR_EVENTS = "calendar_events"
     const val SEARCH_NOTES = "search_notes"
+    const val SEARCH_MEMORY = "search_memory"
     const val CURRENT_LOCATION = "current_location"
     const val ADD_CALENDAR_EVENT = "add_calendar_event"
     const val ADD_NOTE = "add_note"
@@ -425,6 +426,14 @@ object AiTools {
             "Search the user's notes for words in their title, tags or text, and read the ones that match.",
             param("query", "Words to look for. Leave it out for the most recent notes.", required = false),
         ),
+        // Search by meaning over what the user keeps: offered only once its
+        // model is on the phone and the feature is on (see AiToolRunner).
+        data(
+            SEARCH_MEMORY,
+            "Find what the user saved on this phone by what it means, not only by its words: " +
+                "their clipboard history, notes and snippets. Returns the closest matches, each with where it came from.",
+            param("query", "What to look for, in any language, such as 'the dentist's address' or 'our trip in March'."),
+        ),
         data(
             CURRENT_LOCATION,
             "Where the user's phone is now: its coordinates and, when it can be found, the address.",
@@ -527,6 +536,7 @@ object AiTools {
             param(
                 "data",
                 "The service's settings as a JSON object, such as {\"brightness_pct\": 40} or {\"temperature\": 21}. " +
+                    "For a fan the states list with speeds, set_percentage takes {\"speed\": 1} for its first speed. " +
                     "Leave it out for a plain on or off.",
                 required = false,
             ),
@@ -565,7 +575,7 @@ object AiTools {
         CONVERT_UNITS -> conversion(call, "value")
         CALCULATE -> call.argument("expression")
         CALENDAR_EVENTS -> call.argument("from")?.let { from -> call.argument("to")?.let { "$from – $it" } ?: from }
-        SEARCH_NOTES -> call.argument("query")
+        SEARCH_NOTES, SEARCH_MEMORY -> call.argument("query")
         ADD_NOTE -> call.argument("title")
         ADD_CALENDAR_EVENT -> call.argument("title")
         SET_ALARM -> call.argument("time")

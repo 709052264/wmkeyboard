@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.homeassistant.HaDomains
+import com.wasimaster.wmkeyboard.core.homeassistant.HaEntity
 import com.wasimaster.wmkeyboard.core.homeassistant.HaServiceCall
 import com.wasimaster.wmkeyboard.core.homeassistant.HaStateFormat
 import com.wasimaster.wmkeyboard.core.homeassistant.backend.HomeAccount
@@ -28,9 +29,25 @@ import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.ime.AppCatalog
 import com.wasimaster.wmkeyboard.ime.homeassistant.SmartHomeHub
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
+import com.wasimaster.wmkeyboard.core.notes.NoteFilter
+import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.semantic.Embeddings
+import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
+import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
+import com.wasimaster.wmkeyboard.core.settings.SemanticSearchSettings
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
+import com.wasimaster.wmkeyboard.core.tools.AiMemoryHit
+import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
+import com.wasimaster.wmkeyboard.ime.semantic.MemoryRecall
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.doubleOrNull
+import kotlin.math.roundToInt
 
 /**
  * What the keyboard module lends the AI's tools (#698), for the keyboard's AI
@@ -54,11 +71,13 @@ class KeyboardAiToolHost(
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
+    /** Search by meaning's settings, for the search_memory tool; null where the surface does not lend it. */
+    private val semantic: SemanticSearchSettings? = null,
 ) : AiToolHost {
 
     override val canTranslateOnDevice: Boolean get() = OfflineTranslation.available
 
-    /** ML Kit, then Bergamot, where the phone has them: the first that has the pair answers. */
+    /** ML Kit, then Bergamot, then NLLB, where the phone has them: the first that has the pair answers. */
     override fun translateOnDevice(text: String, target: String, source: String): Result<Translation> {
         val result = runBlocking {
             OfflineTranslation.translateAny(
@@ -178,11 +197,12 @@ class KeyboardAiToolHost(
                     ?: error("No device has the id $wanted. Call home_assistant_states for the ids.")
                 val native = HomeRef.native(ref)
                 val service = action.trim()
-                val call = if ('.' in service) {
+                val asked = if ('.' in service) {
                     HaServiceCall(service.substringBefore('.'), service.substringAfter('.'), native, data)
                 } else {
                     HaServiceCall(native.substringBefore('.'), service, native, data)
                 }
+                val call = fanSpeed(asked, states[ref])
                 SmartHomeHub.callService(HomeRef.home(ref), call)
                 val hub = SmartHomeHub.state.value
                 val name = states[ref]?.let { hub.registryOf(it).nameOf(it) } ?: native
@@ -221,7 +241,10 @@ class KeyboardAiToolHost(
                     .map { e ->
                         val registry = hub.registryOf(e)
                         val home = hub.home(e.home)?.name?.takeIf { several && it.isNotBlank() }
-                        listOfNotNull(home, registry.areaOf(e.entityId)?.name, registry.nameOf(e)).joinToString(" / ") + ": " + format.state(e) + " (" + e.entityId + ")"
+                        val speeds = speedCount(e)?.let { n ->
+                            if (e.isOn) ", speed ${speedOf(e, n)} of $n" else ", $n speeds"
+                        }.orEmpty()
+                        listOfNotNull(home, registry.areaOf(e.entityId)?.name, registry.nameOf(e)).joinToString(" / ") + ": " + format.state(e) + speeds + " (" + e.entityId + ")"
                     }
                     .toList()
                 if (rows.isEmpty()) "Nothing matched." else rows.joinToString("\n")
@@ -230,6 +253,38 @@ class KeyboardAiToolHost(
             }
         }
     }
+
+    /**
+     * A fan's speed the way a model says it. "Speed 1" arrives as
+     * `{"speed": 1}`, often with a `set_speed` action, but every home takes a
+     * percentage; a fan with a few speeds gets that speed's own percentage,
+     * which each backend turns back into the speed.
+     */
+    private fun fanSpeed(call: HaServiceCall, entity: HaEntity?): HaServiceCall {
+        if (call.domain != "fan") return call
+        val service = if (call.service in SPEED_SERVICES) "set_percentage" else call.service
+        val speed = SPEED_KEYS.firstNotNullOfOrNull { (call.data[it] as? JsonPrimitive)?.doubleOrNull }
+            ?: return call.copy(service = service)
+        val count = entity?.let(::speedCount)
+            ?: error("This fan has no numbered speeds. Set it with a percentage from 0 to 100 instead.")
+        require(speed in 0.0..count.toDouble()) { "This fan's speeds run from 1 to $count, and 0 turns it off." }
+        val data = buildJsonObject {
+            call.data.forEach { (k, v) -> if (k !in SPEED_KEYS) put(k, v) }
+            // Rounded down: Home Assistant rounds a percentage up to a speed,
+            // so 67 % on a three-speed fan would be its third.
+            put("percentage", (speed * PERCENT / count).toInt())
+        }
+        return call.copy(service = service, data = data)
+    }
+
+    /** How many speeds a fan has, from its percentage step; null for one that takes any percentage. */
+    private fun speedCount(e: HaEntity): Int? {
+        if (e.domain != "fan" || e.percentageStep <= 1.0) return null
+        return (PERCENT / e.percentageStep).roundToInt().takeIf { it in 1..MAX_SPEEDS }
+    }
+
+    private fun speedOf(e: HaEntity, count: Int): Int =
+        ((e.percentage ?: 0) * count / PERCENT).roundToInt().coerceIn(0, count)
 
     private suspend fun holdHome(settings: HomeAssistantSettings) = kotlinx.coroutines.withContext(Dispatchers.Main) {
         SmartHomeHub.attach(context)
@@ -241,6 +296,35 @@ class KeyboardAiToolHost(
 
     private fun releaseHomeLater() {
         Handler(Looper.getMainLooper()).postDelayed({ SmartHomeHub.release(SmartHomeHub.Reason.AI) }, RELEASE_DELAY_MS)
+    }
+
+    override val canSearchMemory: Boolean
+        get() = semantic?.enabled == true && SemanticModels.SUPPORTED && Embeddings.available(context)
+
+    /**
+     * The clipboard, notes and snippets as their files hold them now, against
+     * the indexes the keyboard's panels keep. Each store is opened the way the
+     * runner opens the notes: read from its file, never written.
+     */
+    override fun searchMemory(query: String): Result<List<AiMemoryHit>> = runCatching {
+        check(canSearchMemory) { "search by meaning is off" }
+        val files = context.filesDir
+        // No limits: a store opened with its defaults would prune a "never
+        // expire" history the first time it listed it.
+        val clips = ClipboardStore(
+            File(files, "clipboard/history.json"),
+            expiryMillis = 0L,
+            maxItems = 0,
+            sensitiveExpiryMillis = 0L,
+        ).items()
+        val notes = NoteStore(File(files, NoteStore.FILE_PATH)).items(NoteFilter(includeLocked = false))
+        val snippets = SnippetStore(File(files, "snippets/snippets.json")).items()
+        val recall = MemoryRecall(
+            embedQuery = { Embeddings.query(context, it) },
+            indexOf = { space -> VectorIndex.read(MeaningSearch.indexFile(context, space)) },
+        )
+        runBlocking { recall.search(query, MemoryRecall.Sources(clips, notes, snippets)) }
+            ?: error("the search-by-meaning model did not answer")
     }
 
     override val imageCount: Int get() = images.size
@@ -281,6 +365,10 @@ class KeyboardAiToolHost(
         /** How long the link stays held after a send, for the text to go out. */
         const val RELEASE_DELAY_MS = 5_000L
         private const val MAX_STATE_ROWS = 60
+        private const val PERCENT = 100.0
+        private const val MAX_SPEEDS = 20
+        private val SPEED_KEYS = listOf("speed", "fan_speed")
+        private val SPEED_SERVICES = setOf("set_speed", "set_fan_speed")
         private val QUIET_STATES = setOf("off", "unavailable", "unknown", "idle", "closed", "locked", "standby", "not_home", "docked", "disarmed")
     }
 }

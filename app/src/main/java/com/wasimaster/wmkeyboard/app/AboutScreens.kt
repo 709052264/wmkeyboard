@@ -265,6 +265,28 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/hunspell/hunspell",
         ),
     )
+    // Chinese and Japanese handwriting without ML Kit, in every build:
+    // packaged, pinned for download, or a Play split. See native/zinnia-jni.
+    add(
+        Attribution(
+            "zinnia",
+            R.string.about_bundled_zinnia_used,
+            "Copyright (c) 2005-2007, Taku Kudo",
+            "BSD-3-Clause", "bsd-zinnia.txt",
+            "https://github.com/taku910/zinnia",
+        ),
+    )
+    // GiellaLT spellers, in the same library module as Hunspell. See
+    // native/divvunspell-jni; the spellers are fetched, never shipped.
+    add(
+        Attribution(
+            "divvunspell",
+            R.string.about_bundled_divvunspell_used,
+            "Copyright UiT The Arctic University of Norway and divvunspell contributors",
+            "MIT OR Apache-2.0", "divvunspell-third-party.txt",
+            "https://github.com/divvun/divvunspell",
+        ),
+    )
     if (BuildConfig.ENABLE_GRAMMAR) {
         add(
             Attribution(
@@ -317,6 +339,38 @@ private val bundledAttributions: List<Attribution> = buildList {
             "Copyright the respective authors",
             "MIT / Apache-2.0 / BSD / zlib", "bergamot-third-party.txt",
             "https://github.com/mozilla/translations/tree/main/inference",
+        ),
+    )
+    // The NLLB-200 engine's runtime, in every build: packaged, pinned for
+    // download, or a Play split. See native/ctranslate2-jni.
+    add(
+        Attribution(
+            "CTranslate2",
+            R.string.about_bundled_ct2_used,
+            "Copyright (c) 2018- SYSTRAN; Copyright (c) 2019- The OpenNMT Authors",
+            "MIT", "ct2-third-party.txt",
+            "https://github.com/OpenNMT/CTranslate2",
+        ),
+    )
+    add(
+        Attribution(
+            "SentencePiece, ruy, Abseil, spdlog and others",
+            R.string.about_bundled_ct2_libs_used,
+            "Copyright the respective authors",
+            "Apache-2.0 / MIT / BSD / zlib", "ct2-third-party.txt",
+            "https://github.com/google/sentencepiece",
+        ),
+    )
+    // The built-in document scanner, in every build: packaged, pinned for
+    // download, or a Play split. Only OpenCV's core and imgproc modules, with
+    // Android's cpufeatures; see native/docscan-jni.
+    add(
+        Attribution(
+            "OpenCV",
+            R.string.about_bundled_opencv_used,
+            "Copyright (C) 2000-2022 Intel Corporation, 2009-2011 Willow Garage Inc., 2015-2023 OpenCV Foundation and others",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/opencv/opencv",
         ),
     )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
@@ -566,6 +620,18 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://huggingface.co/Banafo/Kroko-ASR",
             ),
         )
+        // Speech out (Read back, the speaker buttons) on the same runtime:
+        // Meta's MMS voices, which the phone fetches after the user accepts
+        // their non-commercial licence.
+        add(
+            Attribution(
+                "MMS-TTS voices",
+                R.string.about_bundled_mms_used,
+                "Copyright Meta Platforms, Inc.; ONNX conversion by Will Wade",
+                "CC-BY-NC-4.0", "cc-by-nc-4.0.txt",
+                "https://huggingface.co/facebook/mms-tts",
+            ),
+        )
         add(
             Attribution(
                 "Silero VAD",
@@ -732,6 +798,15 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "MPL-2.0", "mpl-2.0.txt",
         "https://github.com/mozilla/translations",
     ))
+    // Fetched from Hugging Face only after the user accepts this licence
+    // (NativeConsent.NLLB); the converted copy keeps Meta's terms.
+    add(Attribution(
+        "NLLB-200 (distilled 600M)",
+        R.string.about_pack_nllb_used,
+        "Copyright (c) Meta Platforms, Inc. and affiliates; CTranslate2 conversion by JustFrederik",
+        "CC BY-NC 4.0", "cc-by-nc-4.0.txt",
+        "https://huggingface.co/facebook/nllb-200-distilled-600M",
+    ))
     add(Attribution(
         "Frequency wordlists",
         R.string.about_pack_wordlists_used,
@@ -780,6 +855,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright 2010-2021 Google Inc.",
         "BSD-3-Clause", "bsd-3-clause.txt",
         "https://github.com/google/mozc",
+    ))
+    add(Attribution(
+        "Tegaki handwriting models",
+        R.string.about_pack_tegaki_used,
+        "Copyright the Tegaki and Tomoe project contributors",
+        "LGPL-2.1", "lgpl-2.1-tegaki.txt",
+        "https://github.com/tegaki/tegaki",
     ))
     add(Attribution(
         "rime-cantonese & CC-Canto",

@@ -72,6 +72,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.QR_GEN -> Color(0xFF26A69A)
     ToolbarTool.PASSWORD_GEN -> Color(0xFFEF5350)
     ToolbarTool.TEXT_REPEAT -> Color(0xFF7E57C2)
+    ToolbarTool.READ_BACK -> Color(0xFF26A69A)
     ToolbarTool.TYPING_TEST -> Color(0xFFFF7043)
     // Trophy gold: the screen it opens is levels and achievements.
     ToolbarTool.STATISTICS -> Color(0xFFFFA000)

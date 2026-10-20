@@ -84,7 +84,10 @@ enum class NetSource(
     DOWNLOAD_GLIDE("download_glide"),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
 
-    /** A Bergamot translation model, from Mozilla's Firefox Translations servers. */
+    /**
+     * An on-device translation model: a Bergamot direction from Mozilla's
+     * Firefox Translations servers, or the NLLB model from Hugging Face.
+     */
     DOWNLOAD_TRANSLATE("download_translate", ToolbarTool.TRANSLATE),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
 
@@ -104,6 +107,9 @@ enum class NetSource(
 
     /** IndicXlit, the neural readings on the Indic phonetic layouts. */
     DOWNLOAD_XLIT("download_xlit"),
+
+    /** Meta's MMS voices, which read text aloud offline (Read back, the speaker buttons). */
+    DOWNLOAD_VOICE_OUT("download_voice_out", ToolbarTool.READ_BACK),
 
     /**
      * A native library a GitHub or F-Droid build fetches the first time a
