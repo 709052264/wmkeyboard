@@ -772,6 +772,7 @@
     <string name="ime_clip_open_link">Open link</string>
     <string name="ime_clip_view_image">View</string>
     <string name="ime_clip_extract_text">Extract text</string>
+    <string name="ime_clip_translate_image">Translate</string>
     <string name="ime_clip_extract_parts">Extract</string>
     <string name="ime_clip_extract_links">Links</string>
     <string name="ime_clip_extract_places">Places</string>

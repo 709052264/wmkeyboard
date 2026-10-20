@@ -29,7 +29,9 @@ import androidx.activity.result.contract.ActivityResultContracts
  *
  * The QR scanner borrows it to read a code off a saved picture: one photo,
  * parked in a queue of its own ([consumeQr]) so the gallery tool, which
- * sends whatever lands in [consume], never sees it.
+ * sends whatever lands in [consume], never sees it. The camera tool does the
+ * same to translate or search a photo already on the phone (#807), in its
+ * own queue too ([consumeCamera]).
  */
 class GalleryPickActivity : ComponentActivity() {
 
@@ -45,11 +47,15 @@ class GalleryPickActivity : ComponentActivity() {
         private const val EXTRA_FILES = "files"
         private const val EXTRA_LIMIT = "limit"
         private const val EXTRA_QR = "qr"
+        private const val EXTRA_CAMERA = "camera"
 
         private val pending = ArrayDeque<Picked>()
 
         @Volatile
         private var qrPending: Uri? = null
+
+        @Volatile
+        private var cameraPending: Uri? = null
 
         /** Hands over (and clears) the picture last picked for the QR scanner. */
         fun consumeQr(): Uri? = synchronized(pending) { qrPending.also { qrPending = null } }
@@ -58,6 +64,16 @@ class GalleryPickActivity : ComponentActivity() {
         fun qrIntent(context: Context): Intent =
             Intent(context, GalleryPickActivity::class.java)
                 .putExtra(EXTRA_QR, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+
+        /** Hands over (and clears) the picture last picked for the camera tool. */
+        fun consumeCamera(): Uri? = synchronized(pending) { cameraPending.also { cameraPending = null } }
+
+        /** One photo for the camera tool's confirm step; see [consumeCamera]. */
+        fun cameraIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_CAMERA, true)
                 .putExtra(EXTRA_LIMIT, 1)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
@@ -106,7 +122,7 @@ class GalleryPickActivity : ComponentActivity() {
         if (savedInstanceState != null) return
         val launched = runCatching {
             when {
-                intent.getBooleanExtra(EXTRA_QR, false) ->
+                intent.getBooleanExtra(EXTRA_QR, false) || intent.getBooleanExtra(EXTRA_CAMERA, false) ->
                     single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 intent.getBooleanExtra(EXTRA_FILES, false) -> documents.launch(arrayOf("*/*"))
                 multiple != null -> multiple?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -127,6 +143,11 @@ class GalleryPickActivity : ComponentActivity() {
     private fun deliver(uris: List<Uri>) {
         if (intent.getBooleanExtra(EXTRA_QR, false)) {
             uris.firstOrNull()?.let { synchronized(pending) { qrPending = it } }
+            finish()
+            return
+        }
+        if (intent.getBooleanExtra(EXTRA_CAMERA, false)) {
+            uris.firstOrNull()?.let { synchronized(pending) { cameraPending = it } }
             finish()
             return
         }

@@ -3817,6 +3817,13 @@ data class KeyboardUiState(
      * [cameraSearchOnly].
      */
     val ocrImage: String? = null,
+    /**
+     * The picture the camera's confirm step opens on instead of a capture: the
+     * file of an image clip whose Translate was pressed in the clipboard panel
+     * (#807). The photo is translated as soon as it is up, and the back button
+     * returns to the clipboard. Cleared on every panel change, like [ocrImage].
+     */
+    val cameraImage: String? = null,
     val translate: TranslateUi = TranslateUi(),
     val grammar: GrammarUi = GrammarUi(),
     val wiki: WikiUi = WikiUi.Idle,

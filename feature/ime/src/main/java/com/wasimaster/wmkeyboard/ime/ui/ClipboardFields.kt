@@ -165,6 +165,7 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clipOcrAvailable
+import com.wasimaster.wmkeyboard.core.tools.PhotoTranslate
 
 /**
  * The clipboard panel's components, each in the cell its panel layout gives it
@@ -199,6 +200,8 @@ data class ClipboardPanelActions(
     val onViewImage: (ClipItem) -> Unit = {},
     /** An image clip's Extract text: the OCR panel, reading the picture (#371). */
     val onExtractText: (ClipItem) -> Unit = {},
+    /** An image clip's Translate: the camera's confirm step, translating the picture (#807). */
+    val onTranslateImage: (ClipItem) -> Unit = {},
     /** The height bar let go: how many dp taller than the keyboard the panel opens (#414). */
     val onPanelHeight: (Int) -> Unit = {},
     /** The header's keyboard button: stack the panel over the live keys, or back (#414). */
@@ -1680,6 +1683,8 @@ private fun ClipboardHistory(
     val gridItems = session.gridItems
     val emptySlots = session.emptySlots
     val clipboard = state.settings.clipboard
+    // Image clips offer Translate while a photo translation server is on (#807).
+    val photoTranslate = remember(state.settings) { PhotoTranslate.rows(state.settings).isNotEmpty() }
     val columns = if (session.list) 1 else clipboard.gridColumns.coerceIn(ClipGridColumnsRange)
     // 0 is the view's own: six lines on a card, three in a row, where a list
     // is for scanning many clips.
@@ -1811,6 +1816,7 @@ private fun ClipboardHistory(
                     holdDelete = !clipboard.swipeToDelete || !clipboard.cardButtons,
                     holdPin = !clipboard.cardButtons,
                     ocr = session.ocr,
+                    photoTranslate = photoTranslate,
                     entities = session.perClip[item.id].orEmpty(),
                     icons = session.entityIcons && picked == null,
                     typeTag = clipboard.typeTags,
@@ -1991,6 +1997,8 @@ private class ClipHold(
     val holdDelete: Boolean,
     val holdPin: Boolean,
     val ocr: Boolean,
+    /** Translate on a picture (#807): a photo translation server is on. */
+    val photoTranslate: Boolean = false,
     val entities: List<ClipEntity> = emptyList(),
     val icons: Boolean = false,
     /** Whether a rich-text clip wears its "Rich text" tag (#414). */
@@ -2127,6 +2135,9 @@ private fun ClipHoldPopup(
         } else null,
         onView = if (image) {
             { onDismiss(); callbacks.actions.onViewImage(item) }
+        } else null,
+        onTranslateImage = if (image && hold.photoTranslate) {
+            { onDismiss(); callbacks.actions.onTranslateImage(item) }
         } else null,
         onExtractText = if (image && hold.ocr) {
             { onDismiss(); callbacks.actions.onExtractText(item) }

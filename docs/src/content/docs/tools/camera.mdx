@@ -27,6 +27,7 @@ The viewfinder fills the width of the panel and behaves like any camera app:
 - **Flash**: a chip on the bottom-left, shown only if the active lens reports a flash unit. Tapping it cycles Off → Auto → On.
 - **Self-timer**: the next chip over, cycling Off → 3s → 10s → Off. Once it's running, a large countdown digit appears at the center of the frame, with a feedback tick each second, before the shutter fires on its own.
 - **Front/back switch**: bottom-right, and only shown if the device has both a front and a back camera. [Start with the selfie camera](#options) below decides which one the tool opens on.
+- **Pick a photo**: the picture button beside it opens Android's photo picker, and the photo you choose lands on the confirm step as if you had just taken it. It's there while the confirm step has something to do with a photo besides sending it: a server under [Translate photos](#translating-a-photo), the [Search button](#search-by-photo-options), or a camera opened from image search.
 - **Shutter**: the button in the middle. Tap it to take the photo, or let the self-timer run out.
 
 ### What you see is what you get
@@ -57,6 +58,9 @@ If you took the photo with the front camera and [Mirror selfies](#options) is on
 Pointed the camera at a menu or a sign in another language? Add a [Rens](https://git.maid.zone/stuff/rens) server under <SettingsPath path="Tools / Camera / Translate photos" />, and the confirm step gets a **Translate** button. Rens is a free front end to Google Lens: your own server, or [a public one](https://git.maid.zone/stuff/rens#instances).
 
 - **What it does.** The photo goes to the server, which has Google Lens translate the text in it, and comes back as a new picture with the translated text drawn over the original. It replaces the photo on screen, so **Send** sends the translated one. **Retake** starts again.
+- **Keeping it without sending.** A translated photo has two round buttons at the top right: **Copy** puts the picture on the clipboard, and **Save to the gallery** writes it to `Pictures/WM Keyboard`, whether or not [Save to the gallery](#options) is on.
+- **A photo you already have.** Tap **Pick a photo** in the viewfinder and choose one, then **Translate**. A picture you copied is quicker still: press and hold it in the [clipboard panel](/tools/clipboard/) and tap **Translate**. The camera opens on that picture and translates it at once, without needing the camera permission, and its back button returns to the clipboard.
+- **Only some of the text.** Lens translates every word it finds. To translate one line, read the photo with [Text scan](/tools/scanner/#scanning-text-ocr) instead, keep the words you want, and tap **Translate** there.
 - **Which language.** The language the [Translate](/tools/translate/) tool translates into. Lens detects the language of the photo.
 - **More than one server.** **Translate photos** is a [provider list](/tools/providers/): the next server is asked when one fails. With **How to use them** on **Choose in the panel**, a chip at the top right of the photo picks the server.
 - **Privacy.** Rens strips the photo's metadata and renames it before it passes the photo on, so Google sees the server and not your phone. The server still sees the photo.

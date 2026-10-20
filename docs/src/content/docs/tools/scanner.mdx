@@ -45,6 +45,7 @@ After a capture, the recognized words appear as tappable chips grouped by line:
 
 - With **Start with everything selected** on (the default), every word starts selected and tapping a chip deselects it, so you can trim the capture down to what you need. Turn it off and chips start empty, so you tap to pick words one at a time instead.
 - **Copy** and **Insert** act on whatever's currently selected.
+- **Translate** opens the [Translate](/tools/translate/) tool on the selected words, translated straight away into its language. Pick only the line you need first, and only that line is translated.
 - **Scan again** discards the capture and returns to the viewfinder. A select-all/deselect-all toggle flips every chip at once.
 
 PaddleOCR finds each line of text first and then reads the lines one by one, so a line that's tilted, or a column of vertical Japanese, comes out in reading order: rows top to bottom, then columns right to left. Each line becomes one chip, since Chinese and Japanese put no spaces between words.

@@ -161,6 +161,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Block
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowDropDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
@@ -13676,11 +13677,18 @@ private fun KeyboardBody(
                     onSend = onCameraSend,
                     onRequestPermission = onCameraPermissionRequest,
                     // Toggling the open panel closes it; opened from image
-                    // search, back goes back there.
+                    // search, back goes back there, and from a clip (#807), to the clipboard.
                     onClose = {
-                        onPanelChange(if (state.cameraSearchOnly) PanelMode.IMAGE_SEARCH else PanelMode.CAMERA)
+                        onPanelChange(
+                            when {
+                                state.cameraSearchOnly -> PanelMode.IMAGE_SEARCH
+                                state.cameraImage != null -> PanelMode.CLIPBOARD
+                                else -> PanelMode.CAMERA
+                            },
+                        )
                     },
                     location = toolHold.location,
+                    photo = toolHold.photo,
                 )
                 PanelMode.OCR -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
                     OcrPanel(
@@ -13689,6 +13697,7 @@ private fun KeyboardBody(
                         onRequestPermission = onCameraPermissionRequest,
                         // Opened on a clip's picture (#371), back goes back to the clipboard.
                         onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                        onTranslate = toolHold.photo.onTranslateText,
                     )
                 } else {
                     onPanelChange(PanelMode.SNIPPETS)
@@ -29524,6 +29533,8 @@ data class ToolHoldCallbacks(
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
     /** The caret magnifier (discussion #303); here for the same reason as [dictionaryBar]. */
     val caretMagnifier: CaretMagnifierSeam = CaretMagnifierSeam(),
+    /** The camera's and the text scanner's copy, save and translate (#807); same reason as [dictionaryBar]. */
+    val photo: PhotoCallbacks = PhotoCallbacks(),
     /**
      * The GIF and sticker panels' height bar let go: how many dp taller than
      * the keyboard the emoji, GIF and sticker panels open. Here for the same
@@ -30398,6 +30409,8 @@ internal fun ClipInfoPopup(
     onView: (() -> Unit)? = null,
     /** Reads the text in an image clip; null for any other, or with the OCR tool off (#371). */
     onExtractText: (() -> Unit)? = null,
+    /** Translates the text in an image clip; null for any other, or with no photo translation server (#807). */
+    onTranslateImage: (() -> Unit)? = null,
     /** The links, numbers and codes found in a clip; null for a clip with none (#472). */
     onExtractParts: (() -> Unit)? = null,
     /** Shows the clip's whole text; null for a clip with none, or one kept hidden (#414). */
@@ -30527,6 +30540,10 @@ internal fun ClipInfoPopup(
                                 }
                                 onView?.let {
                                     ClipTextActionIcon(Icons.Outlined.Visibility, stringResource(R.string.ime_clip_view_image), tint, it)
+                                }
+                                // Before Extract text, as #807 asks.
+                                onTranslateImage?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Translate, stringResource(R.string.ime_clip_translate_image), tint, it)
                                 }
                                 onExtractText?.let {
                                     ClipTextActionIcon(Icons.Outlined.TextFields, stringResource(R.string.ime_clip_extract_text), tint, it)

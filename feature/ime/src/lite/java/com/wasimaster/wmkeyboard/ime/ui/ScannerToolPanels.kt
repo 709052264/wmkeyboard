@@ -23,6 +23,7 @@ internal fun OcrPanel(
     onInsert: (String) -> Unit,
     onRequestPermission: () -> Unit,
     onClose: () -> Unit,
+    onTranslate: (String) -> Unit = {},
 ) = UnavailablePanel(state, stringResource(R.string.ime_scanner_ocr_unavailable_info))
 
 @Composable

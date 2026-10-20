@@ -54,6 +54,9 @@ import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Cameraswitch
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashAuto
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashOn
@@ -106,7 +109,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.wasimaster.wmkeyboard.app.GalleryPickActivity
 import com.wasimaster.wmkeyboard.core.location.LocationAccess
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.location.LocationStamp
@@ -144,6 +149,21 @@ private class PendingCapture(
 )
 
 /**
+ * What the camera's confirm step and the text scanner hand back to the service
+ * besides a send (#807): a translated photo copied or saved without sending
+ * it, and the words picked off a scan opened in the Translate tool. Travels
+ * in [ToolHoldCallbacks] because the screen's parameter list is full.
+ */
+data class PhotoCallbacks(
+    /** The photo on the clipboard, as a picture. */
+    val onCopy: (File) -> Unit = {},
+    /** The photo in Pictures/WM Keyboard, whatever Save to the gallery says. */
+    val onSave: (File) -> Unit = {},
+    /** The Translate tool, opened on this text. */
+    val onTranslateText: (String) -> Unit = {},
+)
+
+/**
  * Where the panel box sits on screen. The viewfinder overflows the box
  * (width-filling FILL_CENTER spill), so both the capture crop and the
  * overlay positions are computed against the window, not the box.
@@ -175,6 +195,7 @@ internal fun CameraPanel(
     onClose: () -> Unit,
     /** The Location tool, for the stamp and the caption (#350). */
     location: LocationCallbacks = LocationCallbacks(),
+    photo: PhotoCallbacks = PhotoCallbacks(),
 ) {
     val height = keyRowsHeight(state)
     val kb = LocalKbTheme.current
@@ -208,8 +229,16 @@ internal fun CameraPanel(
             .fillMaxWidth()
             .height(height),
     ) {
-        if (hasPermission) {
-            CameraContent(state = state, onSend = onSend, onClose = onClose, location = location)
+        // A clip's picture (#807) needs no camera, so no camera permission.
+        if (hasPermission || state.cameraImage != null) {
+            CameraContent(
+                state = state,
+                onSend = onSend,
+                onClose = onClose,
+                location = location,
+                photo = photo,
+                canShoot = hasPermission,
+            )
         } else {
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -241,7 +270,7 @@ internal fun CameraPanel(
         }
         // Back chip for the permission screen; with the camera running,
         // CameraContent draws its own at the top of the visible viewfinder.
-        if (!hasPermission) {
+        if (!hasPermission && state.cameraImage == null) {
             val keyFeedback = LocalKeyPressFeedback.current
             Box(modifier = Modifier.align(Alignment.TopStart).padding(8.dp)) {
                 CameraChipButton(
@@ -263,6 +292,9 @@ private fun CameraContent(
     onSend: (File, Boolean) -> Unit,
     onClose: () -> Unit,
     location: LocationCallbacks,
+    photo: PhotoCallbacks,
+    /** The camera may be used; false while the panel only shows a clip's picture (#807). */
+    canShoot: Boolean,
 ) {
     val kb = LocalKbTheme.current
     val context = LocalContext.current
@@ -293,6 +325,9 @@ private fun CameraContent(
     var translating by remember { mutableStateOf(false) }
     var translateNote by remember { mutableStateOf<String?>(null) }
     var translateAsked by remember { mutableStateOf(false) }
+    // A clip's Translate (#807) opens the confirm step on the picture and
+    // translates it straight away, without a second press.
+    var autoTranslate by remember { mutableStateOf(false) }
     var camera by remember { mutableStateOf<Camera?>(null) }
     // Current optical/digital zoom, shown as a pill and driven by pinch. Reset
     // when the camera rebinds (retake / lens switch both drop back to 1x).
@@ -389,9 +424,9 @@ private fun CameraContent(
     // (Re)bind on open and on lens switch; release the camera as soon as
     // the panel closes so other apps can use it. No binding while the
     // confirm step is up — the frozen photo is the whole UI.
-    DisposableEffect(provider, selector, imageCapture, pending == null) {
+    DisposableEffect(provider, selector, imageCapture, pending == null, canShoot) {
         val cameraProvider = provider
-        if (cameraProvider != null && selector != null && pending == null) {
+        if (cameraProvider != null && selector != null && pending == null && canShoot) {
             val preview = Preview.Builder().build().also {
                 it.surfaceProvider = previewView.surfaceProvider
             }
@@ -466,6 +501,50 @@ private fun CameraContent(
             if (capture != null) pending = capture
             capturing = false
         }
+    }
+
+    // A photo already on the phone (#807), from the photo picker or a clip,
+    // put on the confirm step as if just taken: a JPEG of its own in the
+    // capture folder, so Retake and Translate may delete it, and the
+    // original is never touched. Shown whole, like a full-frame capture.
+    fun loadPicture(uri: android.net.Uri, translate: Boolean) {
+        if (capturing) return
+        capturing = true
+        scope.launch {
+            val loaded = withContext(Dispatchers.IO) {
+                runCancellable {
+                    val bitmap = MediaPrep.decode(context, uri, captureMaxPx) ?: error("not a picture")
+                    val file = File(captureDir(context), "IMG_${System.currentTimeMillis()}.jpg")
+                    file.outputStream().use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out) }
+                    PendingCapture(file, bitmap, visibleOffsetY = null, visibleHeight = null)
+                }.getOrNull()
+            }
+            capturing = false
+            if (loaded == null) {
+                android.widget.Toast.makeText(context, R.string.ime_camera_picture_error, android.widget.Toast.LENGTH_SHORT).show()
+                if (!canShoot) onClose()
+                return@launch
+            }
+            pending?.let { old -> launch(Dispatchers.IO) { old.file.delete() } }
+            translateNote = null
+            translateAsked = false
+            autoTranslate = translate
+            pending = loaded
+        }
+    }
+    LaunchedEffect(state.cameraImage) {
+        state.cameraImage?.let { loadPicture(android.net.Uri.fromFile(File(it)), translate = canTranslate) }
+    }
+    // The photo picker is an activity of its own: the pick is waiting when
+    // the keyboard comes back.
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                GalleryPickActivity.consumeCamera()?.let { loadPicture(it, translate = false) }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // Top of the visible viewfinder in panel-local px: the preview spills
@@ -553,11 +632,15 @@ private fun CameraContent(
             // adds it. Retake is always first.
             val translated = captured.file.name.startsWith(TRANSLATED_PREFIX)
             val actions = buildList {
-                add(CaptureAction.RETAKE)
+                // Without the camera there is nothing to retake: back is the way out.
+                if (canShoot) add(CaptureAction.RETAKE)
                 if (!state.cameraSearchOnly) add(CaptureAction.SEND)
                 if (state.cameraSearchOnly || state.settings.camera.searchButton) add(CaptureAction.SEARCH)
                 if (canTranslate && !state.cameraSearchOnly && !translated) add(CaptureAction.TRANSLATE)
             }
+            // A translated photo can also be kept without sending it (#807):
+            // round buttons at the top right, where the server chip was.
+            val keepActions = if (translated) listOf(CaptureAction.COPY, CaptureAction.SAVE) else emptyList()
             // The photo goes to the provider and comes back with its text in
             // the Translate tool's language, in place of the one taken; Send
             // then sends that. Data saver is asked the way photo search asks:
@@ -624,16 +707,31 @@ private fun CameraContent(
                     // start (data saver, a failed upload) leaves it to retry.
                     CaptureAction.SEARCH -> onSend(captured.file, true)
                     CaptureAction.TRANSLATE -> translatePhoto()
+                    CaptureAction.COPY -> {
+                        feedback()
+                        photo.onCopy(captured.file)
+                    }
+                    CaptureAction.SAVE -> {
+                        feedback()
+                        photo.onSave(captured.file)
+                    }
                 }
             }
+            LaunchedEffect(captured) {
+                if (autoTranslate) {
+                    autoTranslate = false
+                    if (CaptureAction.TRANSLATE in actions) translatePhoto()
+                }
+            }
+            val focusable = actions + keepActions
             // The ring exists only on this frozen still — the live viewfinder
             // below publishes nothing, so the count drops to zero on Retake.
             PanelFocusTarget(
                 panel = PanelMode.CAMERA,
                 region = FocusRegion.ACTIONS,
-                count = actions.size,
-                columns = actions.size,
-            ) { index -> actions.getOrNull(index)?.let(act) }
+                count = focusable.size,
+                columns = focusable.size,
+            ) { index -> focusable.getOrNull(index)?.let(act) }
             val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
             if (locationOffered && !state.cameraSearchOnly) {
                 LocationCaptionToggle(
@@ -664,20 +762,34 @@ private fun CameraContent(
                             CaptureAction.SEND -> Icons.AutoMirrored.Outlined.Send
                             CaptureAction.SEARCH -> Icons.Outlined.ImageSearch
                             CaptureAction.TRANSLATE -> Icons.Outlined.Translate
+                            CaptureAction.COPY -> Icons.Outlined.ContentCopy
+                            CaptureAction.SAVE -> Icons.Outlined.Download
                         },
-                        label = stringResource(
-                            when (action) {
-                                CaptureAction.RETAKE -> R.string.ime_camera_retake_action
-                                CaptureAction.SEND -> R.string.ime_camera_send_action
-                                CaptureAction.SEARCH -> R.string.ime_camera_search_action
-                                CaptureAction.TRANSLATE -> R.string.ime_camera_translate_action
-                            },
-                        ),
+                        label = stringResource(captureActionLabel(action)),
                         // Send stays the main action while it is there.
                         accent = action == CaptureAction.SEND ||
                             (action == CaptureAction.SEARCH && CaptureAction.SEND !in actions),
                         focused = focusedAction == index,
                     ) { act(action) }
+                }
+            }
+            if (keepActions.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset { IntOffset(0, if (sliceHeight == null) 0 else viewfinderTop) }
+                        .padding(8.dp)
+                        .then(stillLayer),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    keepActions.forEachIndexed { index, action ->
+                        CameraChipButton(
+                            icon = if (action == CaptureAction.COPY) Icons.Outlined.ContentCopy else Icons.Outlined.Download,
+                            description = stringResource(captureActionLabel(action)),
+                            active = false,
+                            focused = focusedAction == actions.size + index,
+                        ) { act(action) }
+                    }
                 }
             }
             if (CaptureAction.TRANSLATE in actions) {
@@ -708,6 +820,12 @@ private fun CameraContent(
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                 )
             }
+            return@Box
+        }
+
+        // A clip's picture still loading, with no camera to show meanwhile.
+        if (!canShoot) {
+            CircularProgressIndicator(color = kb.accent)
             return@Box
         }
 
@@ -895,6 +1013,19 @@ private fun CameraContent(
                 modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.End,
             ) {
+                // A photo already on the phone (#807), for what a capture can do
+                // beyond sending: translating it or searching with it.
+                if (canTranslate || state.cameraSearchOnly || state.settings.camera.searchButton) {
+                    CameraChipButton(
+                        icon = Icons.Outlined.PhotoLibrary,
+                        description = stringResource(R.string.ime_camera_pick_desc),
+                        active = false,
+                    ) {
+                        feedback()
+                        runCatching { context.startActivity(GalleryPickActivity.cameraIntent(context)) }
+                    }
+                    if (hasFront && hasBack) Spacer(Modifier.width(8.dp))
+                }
                 if (hasFront && hasBack) {
                     CameraChipButton(
                         icon = Icons.Outlined.Cameraswitch,
@@ -938,7 +1069,16 @@ private fun LocationCaptionToggle(on: Boolean, modifier: Modifier = Modifier, on
 }
 
 /** What the confirm step can do with a photo. */
-private enum class CaptureAction { RETAKE, SEND, SEARCH, TRANSLATE }
+private enum class CaptureAction { RETAKE, SEND, SEARCH, TRANSLATE, COPY, SAVE }
+
+private fun captureActionLabel(action: CaptureAction): Int = when (action) {
+    CaptureAction.RETAKE -> R.string.ime_camera_retake_action
+    CaptureAction.SEND -> R.string.ime_camera_send_action
+    CaptureAction.SEARCH -> R.string.ime_camera_search_action
+    CaptureAction.TRANSLATE -> R.string.ime_camera_translate_action
+    CaptureAction.COPY -> R.string.ime_camera_copy_action
+    CaptureAction.SAVE -> R.string.ime_camera_save_action
+}
 
 /** A capture that came back translated (#727) starts with this, so it is not offered for translating again. */
 private const val TRANSLATED_PREFIX = "translated-"

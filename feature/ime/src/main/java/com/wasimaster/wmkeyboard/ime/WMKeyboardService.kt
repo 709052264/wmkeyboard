@@ -26261,6 +26261,8 @@ open class WMKeyboardService : InputMethodService() {
                 cameraSearchOnly = next == PanelMode.CAMERA && it.panel == PanelMode.IMAGE_SEARCH,
                 // Only a clip's Extract text sets this, after the change (#371).
                 ocrImage = null,
+                // Only a clip's Translate sets this, after the change (#807).
+                cameraImage = null,
             )
         }
         // Whichever of emoji, GIFs and stickers is now up is the one the
@@ -30714,13 +30716,15 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Copies a produced image into Pictures/WM Keyboard when the tool's
      * save option is on. Runs off the main thread; a failure only costs the
-     * gallery copy, never the send that follows.
+     * gallery copy, never the send that follows. [confirm] says so in a toast
+     * when it worked, for a save that is the whole action.
      */
     private fun saveToGalleryIfEnabled(
         file: File,
         mimeType: String,
         enabled: Boolean,
         namePrefix: String,
+        confirm: Boolean = false,
     ) {
         if (!enabled) return
         if (!GallerySaver.canSave(this)) {
@@ -30739,11 +30743,11 @@ open class WMKeyboardService : InputMethodService() {
         val name = "${namePrefix}_$stamp.${MediaMime.extension(mimeType)}"
         serviceScope.launch(Dispatchers.IO) {
             val saved = GallerySaver.save(this@WMKeyboardService, file, mimeType, name) != null
-            if (!saved) {
+            if (!saved || confirm) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(
                         this@WMKeyboardService,
-                        getString(R.string.ime_service_gallery_save_error),
+                        getString(if (saved) R.string.ime_camera_saved_toast else R.string.ime_service_gallery_save_error),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -37616,6 +37620,11 @@ open class WMKeyboardService : InputMethodService() {
                 onClear = ::onFindReplaceClear,
             ),
             clipboard = clipboardPanelActions(),
+            photo = com.wasimaster.wmkeyboard.ime.ui.PhotoCallbacks(
+                onCopy = ::onPhotoCopy,
+                onSave = ::onPhotoSave,
+                onTranslateText = { openMacroSearch(PanelMode.TRANSLATE, it) },
+            ),
             onMediaPanelHeight = ::onMediaPanelHeight,
             onPanelOverKeysHeight = ::onPanelOverKeysHeight,
             onFullBleedHeight = ::onFullBleedHeight,
@@ -43439,6 +43448,21 @@ open class WMKeyboardService : InputMethodService() {
         copyRefusedImage(file)
     }
 
+    /** The camera's Copy on a translated photo (#807): the picture on the clipboard. */
+    private fun onPhotoCopy(file: File) {
+        val contentUri = runCatching {
+            FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
+        }.getOrNull() ?: return
+        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+            .setPrimaryClip(android.content.ClipData.newUri(contentResolver, "image", contentUri))
+        toast(R.string.ime_camera_copied_toast)
+    }
+
+    /** The camera's Save on a translated photo (#807): Pictures/WM Keyboard, whatever the tool's setting says. */
+    private fun onPhotoSave(file: File) {
+        saveToGalleryIfEnabled(file, MediaMime.JPEG, enabled = true, namePrefix = "IMG", confirm = true)
+    }
+
     /** The last resort for a picture no MIME got through: the clipboard, and a toast that says so. */
     private fun copyRefusedImage(file: File) {
         val contentUri = runCatching {
@@ -43775,6 +43799,7 @@ open class WMKeyboardService : InputMethodService() {
         onOpenLink = ::onClipboardOpenLink,
         onViewImage = ::onClipboardViewImage,
         onExtractText = ::onClipboardExtractText,
+        onTranslateImage = ::onClipboardTranslateImage,
         onPanelHeight = ::onClipboardPanelHeight,
         onKeysToggle = ::onClipboardKeysToggle,
         onCombine = ::onClipCombineStart,
@@ -43887,6 +43912,21 @@ open class WMKeyboardService : InputMethodService() {
         val path = item.imagePath?.takeIf { File(it).exists() } ?: return
         onPanelChange(PanelMode.OCR)
         _uiState.update { it.copy(ocrImage = path) }
+    }
+
+    /**
+     * Translates the text in an image clip (#807): the camera's confirm step
+     * opens on the picture and sends it to the photo translation server at
+     * once, so the translated copy can be sent, copied or saved. Only while
+     * a server is on; the camera itself is not needed.
+     */
+    fun onClipboardTranslateImage(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem) {
+        if (!isClipboardAccessible() || item.kind != ClipKind.IMAGE) return
+        if (com.wasimaster.wmkeyboard.core.tools.PhotoTranslate.rows(_uiState.value.settings).isEmpty()) return
+        val path = item.imagePath?.takeIf { File(it).exists() } ?: return
+        onPanelChange(PanelMode.CAMERA)
+        if (_uiState.value.panel != PanelMode.CAMERA) return
+        _uiState.update { it.copy(cameraImage = path) }
     }
 
     /**

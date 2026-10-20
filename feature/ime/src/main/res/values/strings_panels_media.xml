@@ -185,6 +185,12 @@
     <string name="ime_camera_translate_action">Translate</string>
     <string name="ime_camera_translate_metered_ask">You are on a metered connection. Press Translate again to send the photo.</string>
     <string name="ime_camera_translate_blocked">Data saver stops photo translation on this connection.</string>
+    <string name="ime_camera_copy_action">Copy</string>
+    <string name="ime_camera_save_action">Save to the gallery</string>
+    <string name="ime_camera_copied_toast">Photo copied</string>
+    <string name="ime_camera_saved_toast">Saved to the gallery</string>
+    <string name="ime_camera_pick_desc">Pick a photo</string>
+    <string name="ime_camera_picture_error">That picture could not be opened.</string>
     <!-- Screen reader labels for the controls over the viewfinder. -->
     <string name="ime_camera_close_desc">Close the camera</string>
     <string name="ime_camera_captured_photo_desc">The photo you took</string>

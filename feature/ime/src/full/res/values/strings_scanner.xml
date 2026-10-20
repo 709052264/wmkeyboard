@@ -59,6 +59,7 @@
     <string name="ime_scanner_scan_again_action">Scan again</string>
     <!-- Puts the scanned text into the field that the user types in. -->
     <string name="ime_scanner_insert_action">Insert</string>
+    <string name="ime_scanner_translate_action">Translate</string>
     <string name="ime_scanner_copied_toast">Copied</string>
     <string name="ime_scanner_permission_action">Allow the camera</string>
     <string name="ime_scanner_no_camera">Your device has no camera.</string>

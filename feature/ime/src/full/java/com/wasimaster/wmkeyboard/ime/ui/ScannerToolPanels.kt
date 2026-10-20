@@ -60,6 +60,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -178,6 +179,8 @@ private sealed interface OcrStage {
  * Opened from an image clip's Extract text (#371), it reads that picture
  * ([KeyboardUiState.ocrImage]) instead: no camera and no permission, the
  * picture where the viewfinder would be, and the read starts on its own.
+ *
+ * [onTranslate] opens the Translate tool on the words picked (#807).
  */
 @Composable
 internal fun OcrPanel(
@@ -185,6 +188,7 @@ internal fun OcrPanel(
     onInsert: (String) -> Unit,
     onRequestPermission: () -> Unit,
     onClose: () -> Unit,
+    onTranslate: (String) -> Unit = {},
 ) {
     val height = keyRowsHeight(state) + fullBleedHiddenRows(state)
     val context = LocalContext.current
@@ -203,6 +207,7 @@ internal fun OcrPanel(
             OcrContent(
                 state = state,
                 onInsert = onInsert,
+                onTranslate = onTranslate,
                 onClose = onClose,
                 autoSelect = state.settings.scanner.ocrAutoSelectWords,
             )
@@ -229,6 +234,7 @@ internal fun OcrPanel(
 private fun OcrContent(
     state: KeyboardUiState,
     onInsert: (String) -> Unit,
+    onTranslate: (String) -> Unit,
     onClose: () -> Unit,
     autoSelect: Boolean,
 ) {
@@ -475,6 +481,7 @@ private fun OcrContent(
                     result = current.result,
                     autoSelect = autoSelect,
                     onInsert = onInsert,
+                    onTranslate = onTranslate,
                     onRescan = { stage = OcrStage.Viewfinder },
                     onClose = onClose,
                 )
@@ -866,6 +873,7 @@ private fun OcrResultView(
     result: OcrResult,
     autoSelect: Boolean,
     onInsert: (String) -> Unit,
+    onTranslate: (String) -> Unit,
     onRescan: () -> Unit,
     onClose: () -> Unit,
 ) {
@@ -893,14 +901,14 @@ private fun OcrResultView(
 
     // The ring exists only on this frozen result — the viewfinder publishes
     // nothing. Fixed ACTIONS slots (Scan again, select-all toggle, Copy,
-    // Insert; the last three no-op with no words), and the word chips as
-    // RESULTS in reading order.
+    // Translate, Insert; the last four no-op with no words), and the word
+    // chips as RESULTS in reading order.
     val allWords = result.lines.flatten()
     PanelFocusTarget(
         panel = PanelMode.OCR,
         region = FocusRegion.ACTIONS,
-        count = if (result.wordCount > 0) 4 else 1,
-        columns = 4,
+        count = if (result.wordCount > 0) 5 else 1,
+        columns = 5,
     ) { index ->
         when (index) {
             0 -> { feedback(); onRescan() }
@@ -910,7 +918,8 @@ private fun OcrResultView(
                 else allWords.map { it.id }.toSet()
             }
             2 -> { feedback(); copySelected() }
-            3 -> selectedText().takeIf { it.isNotEmpty() }?.let(onInsert)
+            3 -> selectedText().takeIf { it.isNotEmpty() }?.let(onTranslate)
+            4 -> selectedText().takeIf { it.isNotEmpty() }?.let(onInsert)
         }
     }
     PanelFocusTarget(
@@ -1041,7 +1050,7 @@ private fun OcrResultView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
             ) {
                 CaptureActionButton(
                     icon = Icons.Outlined.ContentCopy,
@@ -1052,11 +1061,22 @@ private fun OcrResultView(
                     feedback()
                     copySelected()
                 }
+                // The picked words in the Translate tool (#807), which then
+                // reads them in the language it translates into.
+                CaptureActionButton(
+                    icon = Icons.Outlined.Translate,
+                    label = stringResource(R.string.ime_scanner_translate_action),
+                    accent = false,
+                    focused = focusedAction == 3,
+                ) {
+                    val text = selectedText()
+                    if (text.isNotEmpty()) onTranslate(text)
+                }
                 CaptureActionButton(
                     icon = Icons.AutoMirrored.Outlined.Send,
                     label = stringResource(R.string.ime_scanner_insert_action),
                     accent = true,
-                    focused = focusedAction == 3,
+                    focused = focusedAction == 4,
                 ) {
                     val text = selectedText()
                     if (text.isNotEmpty()) onInsert(text)
