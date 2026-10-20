@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutCodec
+import com.wasimaster.wmkeyboard.core.layout.panelKindForLayerKey
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayout
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayouts
@@ -15347,6 +15348,39 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs ->
             val current = readPanelLayouts(prefs)
             writePanelLayouts(prefs, current.filter { it.panel != spec.panel } + spec, spec.panel)
+        }
+
+    /**
+     * Takes the theme off every place in [pins] (issue #806), so those grids
+     * draw in the theme picked under Keyboard themes again. A layout's pins
+     * all go in one write, read inside the edit like [updateCustomLayout].
+     */
+    suspend fun clearThemePins(pins: List<ThemePin>) =
+        editPrefs { prefs ->
+            val layouts = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
+            val byLayout = pins.filter { it.layoutId != null }.groupBy { it.layoutId!! }
+            if (byLayout.isNotEmpty()) {
+                val cleared = byLayout.map { (id, layoutPins) ->
+                    val keys = layoutPins.map { it.layerKey }.toSet()
+                    val layout = resolveLayout(layouts, id)
+                    layout.copy(
+                        themeId = if (null in keys) null else layout.themeId,
+                        layers = layout.layers.mapValues { (key, layer) ->
+                            if (key in keys) layer.copy(themeId = null) else layer
+                        },
+                    )
+                }
+                val ids = cleared.map { it.id }.toSet()
+                prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(layouts.filter { it.id !in ids } + cleared)
+            }
+            val panelKinds = pins.filter { it.layoutId == null }
+                .mapNotNull { pin -> pin.layerKey?.let(::panelKindForLayerKey) }.toSet()
+            if (panelKinds.isNotEmpty()) {
+                val panels = readPanelLayouts(prefs).map { spec ->
+                    if (spec.panel in panelKinds) spec.copy(grid = spec.grid.copy(themeId = null)) else spec
+                }
+                panelKinds.forEach { kind -> writePanelLayouts(prefs, panels, kind) }
+            }
         }
 
     /** Back to the shipped grid for [kind]; the editor's Reset. */

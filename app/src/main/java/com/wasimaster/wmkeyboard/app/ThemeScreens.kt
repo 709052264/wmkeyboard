@@ -80,6 +80,9 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.LayoutLayer
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wasimaster.wmkeyboard.core.layout.panelKindForLayerKey
+import com.wasimaster.wmkeyboard.core.settings.themePins
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.layout.PaddingValues
@@ -500,7 +503,7 @@ internal sealed interface ThemePickerRow {
  * bare row can never trail a family heading.
  */
 @Composable
-internal fun themePickerRows(settings: LiveSettings): List<ThemePickerRow> {
+internal fun themePickerRows(settings: LiveSettings, defaultInBuiltIns: Boolean = false): List<ThemePickerRow> {
     val context = LocalContext.current
     return themePickerRows(
         builtIns = BuiltInThemes,
@@ -510,6 +513,7 @@ internal fun themePickerRows(settings: LiveSettings): List<ThemePickerRow> {
         customLabel = stringResource(R.string.theme_picker_section_custom_label),
         familyName = { themeFamilyName(context, it) },
         name = { themeName(context, it) },
+        defaultInBuiltIns = defaultInBuiltIns,
     )
 }
 
@@ -526,9 +530,17 @@ internal fun themePickerRows(
     customLabel: String,
     familyName: (ThemeSpec) -> String,
     name: (ThemeSpec) -> String,
+    /**
+     * The default theme as the first built-in rather than above every section.
+     * For a picker with an Inherit row on top (issue #806): "Default (system)"
+     * right under it read as a second way to follow the theme that is set, and
+     * pinned a panel to the Material You theme instead.
+     */
+    defaultInBuiltIns: Boolean = false,
 ): List<ThemePickerRow> {
     val rows = mutableListOf<ThemePickerRow>()
-    rows += ThemePickerRow.Choice(DEFAULT_THEME_ID, defaultName, indented = false)
+    val defaultRow = ThemePickerRow.Choice(DEFAULT_THEME_ID, defaultName, indented = false)
+    if (!defaultInBuiltIns || builtIns.isEmpty()) rows += defaultRow
     val sections = listOf(
         builtInLabel to builtIns,
         customLabel to customs.sortedBy { it.name.lowercase() },
@@ -536,6 +548,7 @@ internal fun themePickerRows(
     for ((label, entries) in sections) {
         if (entries.isEmpty()) continue
         rows += ThemePickerRow.Section(label)
+        if (defaultInBuiltIns && entries === builtIns) rows += defaultRow
         val (families, singles) = entries.partition { it.variants.isNotEmpty() }
         singles.forEach { rows += ThemePickerRow.Choice(it.id, name(it), indented = false) }
         for (family in families) {
@@ -732,7 +745,7 @@ internal fun ModeThemePickerDialog(
     title: String = stringResource(R.string.theme_mode_picker_title),
 ) {
     val inheritLabel = stringResource(R.string.theme_mode_inherit_label)
-    val rows = themePickerRows(settings)
+    val rows = themePickerRows(settings, defaultInBuiltIns = true)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
@@ -1524,6 +1537,7 @@ fun ThemesScreen(
         ) { scope.launch { repository.setAutoThemeEnabled(false) } }
     }
     HighContrastThemeBanner(repository, settings)
+    ThemePinsBanner(repository, settings)
     ChoiceControl(
         options = ThemeGalleryStyle.entries.map { it to stringResource(themeGalleryStyleLabelRes(it)) },
         selected = settings.watch { it.appUi.themeGalleryStyle },
@@ -2451,6 +2465,41 @@ private fun HighContrastThemeBanner(repository: SettingsRepository, settings: Li
     ) { scope.launch { repository.setHighContrastKeys(false) } }
 }
 
+/**
+ * Says where the keyboard keeps a theme of its own (issue #806): a layout, one
+ * of its pages, one of its panel tabs, a shared panel layout. Those draw in
+ * their own theme whatever is picked here, and the editor's preview leaves
+ * them out (#779), so without this the two disagree with nothing saying why.
+ * Clear takes the theme off every place listed.
+ */
+@Composable
+private fun ThemePinsBanner(repository: SettingsRepository, settings: LiveSettings) {
+    val sharedPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
+    val pins = settings.watch { it.themePins(sharedPanels) }
+    if (pins.isEmpty()) return
+    val scope = rememberCoroutineScope()
+    val places = mutableListOf<String>()
+    for (pin in pins) {
+        val theme = themeDisplayName(settings, pin.themeId)
+        val panel = pin.layerKey?.let(::panelKindForLayerKey)
+        val layer = LayoutLayer.entries.firstOrNull { it.key == pin.layerKey }
+        val layerName = layer?.let { stringResource(layerTitleRes(it)) } ?: pin.layerKey
+        places += when {
+            pin.layoutName == null && panel != null ->
+                stringResource(R.string.theme_pin_shared_panel, stringResource(panelTitleRes(panel)), theme)
+            pin.layerKey == null -> stringResource(R.string.theme_pin_layout, pin.layoutName.orEmpty(), theme)
+            panel != null -> stringResource(
+                R.string.theme_pin_panel, pin.layoutName.orEmpty(), stringResource(panelTitleRes(panel)), theme,
+            )
+            else -> stringResource(R.string.theme_pin_layer, pin.layoutName.orEmpty(), layerName.orEmpty(), theme)
+        }
+    }
+    StateBanner(
+        text = stringResource(R.string.theme_pins_body, places.joinToString("; ")),
+        action = stringResource(R.string.theme_pins_clear_action),
+    ) { scope.launch { repository.clearThemePins(pins) } }
+}
+
 @Composable
 fun ThemeEditorScreen(
     repository: SettingsRepository,
@@ -3188,6 +3237,7 @@ fun ThemeEditorScreen(
     // the open look alone.
     var confirmDeleteVariant by remember(lookId) { mutableStateOf(false) }
     HighContrastThemeBanner(repository, settings)
+    ThemePinsBanner(repository, settings)
     SettingsGroup(stringResource(R.string.theme_variant_section_title), foldKey = "theme/variant") {
         item {
             val members = settings.watch { s ->
