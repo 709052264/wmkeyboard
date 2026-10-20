@@ -93,7 +93,7 @@ The app has two profiles, and every build packages both:
 To regenerate the second one, with a device on API 33 or later connected (or a rooted one on API 28 or later):
 
 ```sh
-./gradlew :app:generateFullIntlReleaseBaselineProfile -Pwmkb.benchmark=true
+./gradlew :app:generateIntlReleaseBaselineProfile -Pwmkb.benchmark=true
 ```
 
 Commit what it writes. It is filtered to the app's own classes, since the libraries ship profiles of their own. Use this variant's task rather than the plugin's merged `generateBaselineProfile`: the merged task would run the journey once for each of eight variants to produce the same file.
