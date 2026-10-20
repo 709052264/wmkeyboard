@@ -18892,8 +18892,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private inline fun recordStat(block: TypingStats.() -> Unit) {
         val state = _uiState.value
+        // A password field is never counted (#829): the heatmap's lifetime
+        // cells would hold a fresh map's first password as the keys it used.
         typingStats.enabled = state.settings.typingStatsEnabled &&
-            !(state.incognitoOn && state.settings.incognitoPausesLearning)
+            !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
+            !state.secureField
         liveSpeed.privateField = state.liveWpmPrivate
         typingStats.block()
         publishLiveWpm(state.settings.spacebarLiveWpm)
