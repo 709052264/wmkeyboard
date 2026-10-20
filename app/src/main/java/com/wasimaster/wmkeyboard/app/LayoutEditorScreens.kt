@@ -5876,8 +5876,11 @@ internal fun KeyEditSheet(
             onDismiss = { pickingMode = false },
             onPick = { picked ->
                 pickingMode = false
+                // No name stored (#821): the board looks it up by id, so a
+                // rename reaches the key. A name an earlier pick left goes too;
+                // a label typed by hand stays.
                 onChange {
-                    it.copy(action = KeyAction.Mode(picked.id), label = it.label.ifBlank { picked.name })
+                    it.copy(action = KeyAction.Mode(picked.id), label = it.label.unlessModeName(keyboardModes))
                 }
             },
         )
@@ -6488,7 +6491,7 @@ private fun FlickFields(
             onDismiss = { pickingModeAt = null },
             onPick = { picked ->
                 pickingModeAt = null
-                finishArm(direction, KeyAction.Mode(picked.id)) { it.ifBlank { picked.name } }
+                finishArm(direction, KeyAction.Mode(picked.id)) { it.unlessModeName(keyboardModes) }
             },
         )
     }
@@ -6963,7 +6966,7 @@ private fun ActionAlternatesRows(
                 onChange(
                     alternates.mapIndexed { i, a ->
                         if (i == index) {
-                            a.copy(action = KeyAction.Mode(picked.id), label = a.label.ifBlank { picked.name })
+                            a.copy(action = KeyAction.Mode(picked.id), label = a.label.unlessModeName(keyboardModes))
                         } else {
                             a
                         }
@@ -7038,6 +7041,10 @@ private val AlternateActionCatalog: List<KeyActionOption> =
  * not list — the glyph the popup will draw.
  */
 @Composable
+/** [this] label, or none when it is only some mode's name, which the board looks up for itself (#821). */
+private fun String.unlessModeName(modes: List<KeyboardMode>): String =
+    takeUnless { label -> modes.any { it.name == label } }.orEmpty()
+
 internal fun actionAlternateName(
     alternate: KeyAlternate,
     secondaryLayouts: List<LayoutSpec>,

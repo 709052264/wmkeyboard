@@ -21826,6 +21826,9 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // Issue #340: the keys that stand in for 小゛゜ while the reading ends in a
     // kana that has one of those forms.
     val kanaVariantKeys = state.kanaVariantReady
+    // Mode keys draw their mode's name as it is now, looked up by id (#821),
+    // and a mode that is gone draws as gone (#835).
+    val modeNames = state.settings.keyboardModes.associate { it.id to it.name }
     // Fancy Text: every digit key holds the digit's styled forms.
     val fancyDigits = fancyStyleFor(state) != null
     if (!commaAsEmoji && !globeAsEmoji && !stripDigits && !digitSymbols &&
@@ -22092,7 +22095,7 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
             if (kanaVariantKeys && rowKey.kanaVariantWhileComposing) {
                 mapped = mapped.asKanaVariantKey()
             }
-            mapped
+            mapped.withModeNames(modeNames)
         }
     }
     return base.copy(rows = rewritten)
