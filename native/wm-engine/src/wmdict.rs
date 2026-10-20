@@ -32,8 +32,8 @@
 //! Labels are UTF-16 code units, as the Kotlin side types them: a word with
 //! a character outside the BMP takes two edges.
 
+use crate::completer;
 use crate::freq_codec;
-use crate::java_heap::JavaHeap;
 use std::cmp::Ordering;
 
 pub const MAGIC: u32 = 0x574D_4443;
@@ -669,34 +669,11 @@ impl<B: AsRef<[u8]>> Dict<B> {
         self.from(Self::ROOT, Vec::new(), limit)
     }
 
-    /// Branch and bound from `node`: a frontier ordered by the best
-    /// frequency a subtree can still hold, so a word is emitted only once no
-    /// unopened branch can outrank it, and the walk stays near `limit` in
-    /// cost however big the dictionary.
+    /// Branch and bound from `node` ([`completer::from`]): a frontier
+    /// ordered by the best frequency a subtree can still hold, so a word is
+    /// emitted only once no unopened branch can outrank it.
     fn from(&self, node: u32, text: Vec<u16>, limit: usize) -> Vec<(Vec<u16>, i32)> {
-        let mut results = Vec::with_capacity(limit.min(self.word_count as usize));
-        let mut heap = JavaHeap::new(|a: &Frontier, b: &Frontier| b.priority.cmp(&a.priority));
-        let mut children = Vec::new();
-        heap.push(Frontier { priority: self.max_subtree(node), node: Some(node), text });
-        while results.len() < limit {
-            let Some(f) = heap.pop() else { break };
-            match f.node {
-                None => results.push((f.text, f.priority)),
-                Some(node) => {
-                    if self.is_word(node) {
-                        heap.push(Frontier { priority: self.frequency(node), node: None, text: f.text.clone() });
-                    }
-                    self.children_into(node, &mut children);
-                    for &(label, child) in &children {
-                        let mut text = Vec::with_capacity(f.text.len() + 1);
-                        text.extend_from_slice(&f.text);
-                        text.push(label);
-                        heap.push(Frontier { priority: self.max_subtree(child), node: Some(child), text });
-                    }
-                }
-            }
-        }
-        results
+        completer::from(self, node, text, limit, self.word_count as usize)
     }
 
     /// Every `(word, frequency)`, by depth-first walk: for building another
@@ -734,15 +711,6 @@ impl<B: AsRef<[u8]>> Dict<B> {
             }
         }
     }
-}
-
-/// A frontier entry: a subtree to open, or (`node == None`) a word to emit
-/// at its exact frequency. Ordered by priority alone, highest first, as
-/// `TrieCompleter`'s queue is; ties fall to the heap's own order.
-struct Frontier {
-    priority: i32,
-    node: Option<u32>,
-    text: Vec<u16>,
 }
 
 #[cfg(test)]

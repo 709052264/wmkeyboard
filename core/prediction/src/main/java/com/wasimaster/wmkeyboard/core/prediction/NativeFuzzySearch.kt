@@ -7,10 +7,10 @@ import java.util.WeakHashMap
 /**
  * [FuzzyBeamSearch.search] in Rust (`wm-engine`'s `fuzzy::search_units`),
  * when every trie it walks has a Rust twin: a [MappedTrie] is one already,
- * a [PackedTrie] gets a copy of its bytes the first time it is walked, and
- * an empty trie (a user lexicon with nothing learned yet) is skipped, since
- * it can contribute nothing. Any other trie, which today means a non-empty
- * [Trie], keeps the whole search in Kotlin.
+ * the user lexicon's [LexiconTrie] is a copy of one, a [PackedTrie] gets a
+ * copy of its bytes the first time it is walked, and an empty trie is
+ * skipped, since it can contribute nothing. Any other trie, which today means
+ * a non-empty [Trie] some caller built itself, keeps the search in Kotlin.
  *
  * One crossing per search; the proximity and habit models cross once, by
  * handle ([KeyProximity.nativeHandle], [EditHabits.nativeHandle]).
@@ -19,6 +19,9 @@ internal object NativeFuzzySearch {
 
     /** [dictHandle]'s answer for a trie with nothing in it. */
     private const val SKIP = -1L
+
+    private const val KIND_DICTIONARY = 0
+    private const val KIND_LEXICON = 1
 
     private val packedTwins = WeakHashMap<PackedTrie, Long>()
 
@@ -38,15 +41,22 @@ internal object NativeFuzzySearch {
         keys: KeySets?,
     ): List<FuzzyBeamSearch.ScoredCandidate>? {
         val handles = LongArray(sources.size)
+        val kinds = IntArray(sources.size)
         val weights = DoubleArray(sources.size)
         val tiers = IntArray(sources.size)
         var count = 0
         val scratch = ChildBuffer()
         for (src in sources) {
-            val handle = dictHandle(src.walker, scratch)
+            val walker = src.walker
+            val handle = if (walker is LexiconTrie) {
+                if (walker.isEmpty) SKIP else walker.nativeHandle
+            } else {
+                dictHandle(walker, scratch)
+            }
             if (handle == SKIP) continue
             if (handle == 0L) return null
             handles[count] = handle
+            kinds[count] = if (walker is LexiconTrie) KIND_LEXICON else KIND_DICTIONARY
             weights[count] = src.logWeight
             tiers[count] = if (src.tier == FuzzyBeamSearch.Tier.USER) 1 else 0
             count++
@@ -66,7 +76,7 @@ internal object NativeFuzzySearch {
             }
         }
         val words = PredictionNative.fuzzySearch(
-            handles.copyOf(count), weights.copyOf(count), tiers.copyOf(count),
+            handles.copyOf(count), kinds.copyOf(count), weights.copyOf(count), tiers.copyOf(count),
             typed, proximity.nativeHandle, limit, maxEdits, habits.nativeHandle,
             model?.keyOrder, model?.centerPairs, model?.sigmaValue ?: KeyTouchModel.SIGMA, points,
             keys?.rawSets, keys?.rawSpellings, doubles, ints,

@@ -21,6 +21,7 @@ use wm_engine::wmdict::Dict;
 
 use crate::dict::{DictBytes, DICTS};
 use crate::guard::{give_all_units, guarded, object, read_units, throw_state};
+use crate::lexicon::{Store, LEXICONS};
 use crate::handles::Registry;
 
 static PROXIMITIES: LazyLock<Registry<KeyProximity>> = LazyLock::new(Registry::new);
@@ -126,11 +127,12 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `fuzzySearch(dicts, weights, tiers, typed, proximity, limit, maxEdits,
+/// `fuzzySearch(dicts, kinds, weights, tiers, typed, proximity, limit, maxEdits,
 /// habits, touchKeys, touchCenters, sigma, touchPoints, keySets,
 /// keySpellings, doublesOut, intsOut)`.
 ///
-/// `tiers` are 0 for the dictionary tier, 1 for the user tier. `habits` is
+/// `kinds` say what each handle is: 0 a dictionary, 1 a user lexicon (its
+/// trie). `tiers` are 0 for the dictionary tier, 1 for the user tier. `habits` is
 /// 0 for none. The touch frame is absent when `touchKeys` is null: keys
 /// with their centres as x, y pairs in the model's order, and a tap per
 /// typed character as x, y with NaN for an unknown one. `keySets` is null
@@ -145,6 +147,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     mut env: JNIEnv,
     _class: JClass,
     dicts: JLongArray,
+    kinds: JIntArray,
     weights: JDoubleArray,
     tiers: JIntArray,
     typed: JString,
@@ -168,10 +171,19 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let weights = doubles(env, &weights)?;
         let mut tier_codes = vec![0i32; count];
         env.get_int_array_region(&tiers, 0, &mut tier_codes).ok()?;
-        let mut held: Vec<Arc<Dict<DictBytes>>> = Vec::with_capacity(count);
-        for &handle in &handles {
-            held.push(object!(env, DICTS, handle));
+        let mut kind_codes = vec![0i32; count];
+        env.get_int_array_region(&kinds, 0, &mut kind_codes).ok()?;
+        let mut held: Vec<Arc<Dict<DictBytes>>> = Vec::new();
+        let mut stores: Vec<Arc<Store>> = Vec::new();
+        for (&handle, &kind) in handles.iter().zip(&kind_codes) {
+            if kind == 1 {
+                stores.push(object!(env, LEXICONS, handle));
+            } else {
+                held.push(object!(env, DICTS, handle));
+            }
         }
+        // Read locks on every lexicon for the length of the walk.
+        let guards: Vec<_> = stores.iter().map(|s| s.lexicon.read().unwrap_or_else(|e| e.into_inner())).collect();
         let proximity = object!(env, PROXIMITIES, proximity);
         let habits = if habits == 0 { None } else { Some(object!(env, HABITS, habits)) };
         let mut typed_units = Vec::new();
@@ -215,16 +227,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             Some(KeySets::new(sets, spellings))
         };
 
-        let sources: Vec<WalkSource> = held
-            .iter()
-            .zip(&weights)
-            .zip(&tier_codes)
-            .map(|((dict, &log_weight), &tier)| WalkSource {
-                walker: dict.as_ref(),
-                log_weight,
-                tier: if tier == 1 { Tier::User } else { Tier::Dictionary },
-            })
-            .collect();
+        let (mut next_dict, mut next_lexicon) = (0, 0);
+        let mut sources: Vec<WalkSource> = Vec::with_capacity(count);
+        for i in 0..count {
+            let walker: &dyn fuzzy::Walker = if kind_codes[i] == 1 {
+                next_lexicon += 1;
+                guards[next_lexicon - 1].trie()
+            } else {
+                next_dict += 1;
+                held[next_dict - 1].as_ref()
+            };
+            sources.push(WalkSource {
+                walker,
+                log_weight: weights[i],
+                tier: if tier_codes[i] == 1 { Tier::User } else { Tier::Dictionary },
+            });
+        }
         let found = WORKSPACE.with_borrow_mut(|ws| {
             fuzzy::search_units(
                 &sources,

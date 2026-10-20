@@ -59,8 +59,9 @@ internal object PredictionNative {
     external fun habitsClose(handle: Long)
 
     /**
-     * One walk over the dictionaries behind [dicts]. Tiers are 0 (dictionary)
-     * or 1 (user); [habits] is 0 for none. The touch frame is absent when
+     * One walk over the tries behind [dicts]: each a dictionary handle when
+     * its [kinds] entry is 0, a user lexicon ([lexNew]) when 1. Tiers are 0
+     * (dictionary) or 1 (user); [habits] is 0 for none. The touch frame is absent when
      * [touchKeys] is null: [touchCenters] holds an x, y per key and
      * [touchPoints] an x, y per typed character, NaN where unknown.
      * For result `i`, [doublesOut] holds score, editCost, dictScore and
@@ -70,6 +71,7 @@ internal object PredictionNative {
     @Suppress("LongParameterList")
     external fun fuzzySearch(
         dicts: LongArray,
+        kinds: IntArray,
         weights: DoubleArray,
         tiers: IntArray,
         typed: String,
@@ -86,4 +88,58 @@ internal object PredictionNative {
         doublesOut: DoubleArray,
         intsOut: IntArray,
     ): Array<String>
+
+    // The user lexicon (UserLexicon). Words arrive folded (WordKey); the
+    // n-gram kinds are 0 bigram, 1 trigram, 2 one-skip, 3 two-skip.
+    external fun lexNew(): Long
+    external fun lexClose(handle: Long)
+
+    /** `[Array<String> words to judge, Array<String> spellings to fold]`, or null for a file that is not a snapshot. */
+    external fun lexBeginLoad(handle: Long, json: String): Array<Any>?
+    external fun lexFinishLoad(handle: Long, learnable: BooleanArray, shapeKeys: Array<String>)
+    external fun lexResetForReload(handle: Long)
+    external fun lexFinishReload(handle: Long)
+
+    @Suppress("LongParameterList")
+    external fun lexLearnWord(handle: Long, key: String, vote: String?, count: Int, lang: String, listedInLowerCase: Boolean): Boolean
+
+    @Suppress("LongParameterList")
+    external fun lexAddWord(handle: Long, key: String, caseEvidence: Boolean, surface: String?, boost: Int, pinCase: Boolean)
+    external fun lexLanguageOf(handle: Long, key: String): String?
+    external fun lexDisplayOf(handle: Long, key: String): String?
+    external fun lexIsAddedByHand(handle: Long, key: String): Boolean
+
+    /** [Long.MIN_VALUE] for a word the store does not have. */
+    external fun lexAddedGeneration(handle: Long, key: String): Long
+    external fun lexRename(handle: Long, oldKey: String, newKey: String, surface: String, surfaceFolds: Boolean): Boolean
+    external fun lexSetCount(handle: Long, key: String, count: Int): Boolean
+    external fun lexIsCasePinned(handle: Long, key: String): Boolean
+    external fun lexPinCase(handle: Long, key: String, pinned: Boolean): Boolean
+    external fun lexLearnNgram(handle: Long, kind: Int, a: String, b: String, c: String)
+    external fun lexNgramCount(handle: Long, kind: Int, a: String, b: String, c: String): Int
+
+    /** Followers best first: kind 0 after [a], 1 after [a] [b], 2 one word after [a], 3 two words after. */
+    external fun lexFollowers(handle: Long, kind: Int, a: String, b: String, limit: Int): Array<String>
+
+    /** `[Array<String>, IntArray]`. */
+    external fun lexFollowerCounts(handle: Long, key: String): Array<Any>
+    external fun lexComplete(handle: Long, prefix: String, limit: Int, frequencies: IntArray): Array<String>
+    external fun lexContains(handle: Long, key: String): Boolean
+    external fun lexIsEstablished(handle: Long, key: String, minCount: Int): Boolean
+    external fun lexFrequencyOf(handle: Long, key: String): Int
+    external fun lexWordCount(handle: Long): Int
+
+    /** `[Array<String>, IntArray]`, in key order. */
+    external fun lexAllWords(handle: Long): Array<Any>
+    external fun lexForgetAll(handle: Long, keys: Array<String>)
+    external fun lexClear(handle: Long, deleted: Boolean)
+
+    /** The file's text, or null when nothing changed since the last save. */
+    external fun lexPrepareSave(handle: Long): String?
+    external fun lexMarkUnsaved(handle: Long)
+    external fun lexMutationCount(handle: Long): Long
+    external fun lexTrieVersion(handle: Long): Long
+
+    /** `[childStart, labels, targets, frequency, maxSubtree, isWord, longArrayOf(version)]`. */
+    external fun lexExportTrie(handle: Long): Array<Any>
 }

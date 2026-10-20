@@ -9,7 +9,9 @@
 //! - [`dict`]: `PredictionNative` (core/prediction), the mapped `.wmdict`
 //!   dictionaries and `.wmng` n-gram packs.
 //! - [`fuzzy`]: `PredictionNative` again, the fuzzy correction walk over
-//!   those dictionaries.
+//!   those dictionaries and the user lexicon.
+//! - [`lexicon`]: `PredictionNative` again, the user lexicon behind
+//!   `UserLexicon`.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -26,4 +28,5 @@ mod fuzzy;
 mod guard;
 mod handles;
 mod kernels;
+mod lexicon;
 mod transliteration;
