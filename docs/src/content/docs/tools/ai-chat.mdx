@@ -158,7 +158,7 @@ A Play Store build adds a **Report** button along the bottom edge of every finis
 
 When the model searches the web or reads a page on the way to an answer (see [Letting the model look things up](/tools/ai/#letting-the-model-look-things-up)), the bubble says so while it happens, as **Searching the web for "…"** or **Reading example.com…**, and keeps a line over the finished answer afterwards. Tap it to see each search with the results the model was given, each page it read by its full address, and any lookup that failed and why. A tap on a result opens it in your browser and a long press copies the address, on the keyboard and in the app alike. The record is saved with the answer, so it's still there when you come back to the chat, and it stays even on a turn that failed or that you stopped. A lookup cut off by **Stop** is marked "Stopped".
 
-Reasoning models follow the same **Show model reasoning** setting the keyboard panel uses. With it on, the raw stream renders with the thinking part dimmed. With it off, you get a "Reasoning…" line until real answer text starts arriving.
+Reasoning models follow the same **Show model reasoning** setting the keyboard panel uses. With it on, the reasoning shows dimmed as it arrives, and the answer under it is drawn with its formatting as it streams, tables and maths included. With it off, you get a "Reasoning…" line until real answer text starts arriving.
 
 An on-device model gets a live session per conversation, seeded with the saved transcript, so it keeps the context of what you've already said. Switching conversation, model, [compute backend or context size](/tools/ai/#local-models) closes that session and opens a fresh one, seeded the same way.
 

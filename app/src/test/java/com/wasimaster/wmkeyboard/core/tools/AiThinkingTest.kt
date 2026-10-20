@@ -56,4 +56,34 @@ class AiThinkingTest {
         // A finished response with no markers at all is a normal answer.
         assertEquals("Plain answer", AiThinking.stripped("Plain answer"))
     }
+
+    @Test
+    fun `reasoning is what sits inside the tags`() {
+        assertEquals("let me see", AiThinking.reasoning("<think>let me see</think>The answer"))
+        assertEquals("still going", AiThinking.reasoning("<think>still going"))
+        assertEquals("", AiThinking.reasoning("<think>"))
+        assertEquals("", AiThinking.reasoning("Plain answer"))
+        assertEquals("", AiThinking.reasoning(""))
+    }
+
+    @Test
+    fun `reasoning under an implicit opener`() {
+        assertEquals("bare thoughts", AiThinking.reasoning("bare thoughts</think>Answer", implicitThink = true))
+        assertEquals("bare thoughts", AiThinking.reasoning("bare thoughts", implicitThink = true))
+        // A close with no opener is reasoning whether or not the template said so.
+        assertEquals("thoughts", AiThinking.reasoning("thoughts</think>Answer"))
+    }
+
+    @Test
+    fun `reasoning and output split the stream between them`() {
+        // What the streaming bubble draws: the two never overlap and never lose text.
+        val raw = "<think>work it out</think>| a | b |\n|---|---|\n| \$x\$ | 2 |"
+        assertEquals("work it out", AiThinking.reasoning(raw))
+        assertEquals("| a | b |\n|---|---|\n| \$x\$ | 2 |", AiThinking.split(raw).output)
+        for (end in 0..raw.length) {
+            val part = raw.substring(0, end)
+            AiThinking.reasoning(part)
+            AiThinking.reasoning(part, implicitThink = true)
+        }
+    }
 }

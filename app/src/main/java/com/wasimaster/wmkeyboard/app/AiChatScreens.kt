@@ -870,29 +870,32 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                         Modifier.padding(bottom = 4.dp),
                     )
                 }
+                val reasoning = if (showThinking) AiThinking.reasoning(run.partial, run.implicitThink) else ""
                 when {
-                    showThinking && run.partial.isNotEmpty() -> Text(
-                        run.partial,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (split.thinking) {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        },
-                    )
-                    // Drawn as the finished answer will be, so the bold and the
-                    // lists are there while it streams rather than at the end.
-                    split.output.isNotBlank() -> {
-                        val ink = MaterialTheme.colorScheme.onSurfaceVariant
-                        ChatMarkdown(
-                            split.output,
-                            ChatMarkdownColors(
-                                text = ink,
-                                dim = ink.copy(alpha = 0.65f),
-                                codeBackground = ink.copy(alpha = 0.10f),
-                            ),
-                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                        )
+                    // The reasoning dimmed, then the answer drawn as the finished
+                    // one will be: tables and maths take shape as they stream
+                    // rather than showing as raw text until the end.
+                    reasoning.isNotEmpty() || split.output.isNotBlank() -> {
+                        if (reasoning.isNotEmpty()) {
+                            Text(
+                                reasoning,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
+                                modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 6.dp) else Modifier,
+                            )
+                        }
+                        if (split.output.isNotBlank()) {
+                            val ink = MaterialTheme.colorScheme.onSurfaceVariant
+                            ChatMarkdown(
+                                split.output,
+                                ChatMarkdownColors(
+                                    text = ink,
+                                    dim = ink.copy(alpha = 0.65f),
+                                    codeBackground = ink.copy(alpha = 0.10f),
+                                ),
+                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                            )
+                        }
                     }
                     // The line above already names the tool and what it is on.
                     toolRunning && !split.thinking -> Unit

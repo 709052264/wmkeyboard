@@ -654,16 +654,26 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
             // The calls so far, the running one saying what it is doing.
             val toolRunning = run.tools.any { it.running }
             if (run.tools.isNotEmpty()) ToolUses(run.tools, colors, onChat, Modifier.padding(bottom = 4.dp))
+            val reasoning = remember(run.partial, run.implicitThink, showThinking) {
+                if (showThinking) AiThinking.reasoning(run.partial, run.implicitThink) else ""
+            }
             when {
-                showThinking && run.partial.isNotEmpty() -> Text(
-                    // Dimmed by alpha, as the actions' result is: some themes
-                    // draw their secondary text in the same white.
-                    grayThinking(run.partial, kb.chipText.copy(alpha = 0.45f)),
-                    color = kb.chipText,
-                    fontSize = 13.sp,
-                    lineHeight = 18.sp,
-                )
-                split.output.isNotBlank() -> ChatMarkdown(split.output, colors)
+                // The reasoning dimmed, then the answer as markdown, so its
+                // tables and maths take shape while it streams.
+                reasoning.isNotEmpty() || split.output.isNotBlank() -> {
+                    if (reasoning.isNotEmpty()) {
+                        Text(
+                            reasoning,
+                            // Dimmed by alpha, as the actions' result is: some
+                            // themes draw their secondary text in the same white.
+                            color = kb.chipText.copy(alpha = 0.45f),
+                            fontSize = 13.sp,
+                            lineHeight = 18.sp,
+                            modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 5.dp) else Modifier,
+                        )
+                    }
+                    if (split.output.isNotBlank()) ChatMarkdown(split.output, colors)
+                }
                 // The line over this one already says which tool is running
                 // and on what; "Using a tool" under it would only repeat it.
                 toolRunning && !split.thinking -> Unit
