@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FontDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
@@ -138,6 +139,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_FONT -> R.string.netlog_source_download_font to R.string.netlog_sent_download
     NetSource.DOWNLOAD_CUTOUT -> R.string.netlog_source_download_cutout to R.string.netlog_sent_download
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
     NetSource.DOWNLOAD_NATIVE -> R.string.netlog_source_download_native to R.string.netlog_sent_download
     NetSource.DOWNLOAD_LANGUAGE -> R.string.netlog_source_download_language to R.string.netlog_sent_download
     NetSource.ADDONS -> R.string.netlog_source_addons to R.string.netlog_sent_addons
@@ -172,6 +174,7 @@ private fun ownerRoute(source: NetSource): String? = when (source) {
     NetSource.RBOARD_THEMES -> "themes"
     NetSource.BACKUP -> "backup"
     NetSource.UPDATES -> "about"
+    NetSource.DOWNLOAD_SEMANTIC -> "ai"
     NetSource.SUPPORTERS -> "supporters"
     else -> null
 }
@@ -184,6 +187,7 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
     NetSource.DOWNLOAD_FONT -> Icons.Outlined.FontDownload
     NetSource.DOWNLOAD_VOCAB -> Icons.Outlined.AutoStories
     NetSource.DOWNLOAD_CUTOUT -> Icons.Outlined.ContentCut
+    NetSource.DOWNLOAD_SEMANTIC -> Icons.Outlined.ImageSearch
     NetSource.ADDONS -> Icons.Outlined.Extension
     NetSource.LINK_IMPORT, NetSource.LINK_PREVIEW -> Icons.Outlined.Link
     NetSource.KEYMAN -> Icons.Outlined.Keyboard

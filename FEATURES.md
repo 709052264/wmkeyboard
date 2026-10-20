@@ -2462,6 +2462,21 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 ## AI, voice, handwriting, scanning
 
+- **Search by meaning** `RARE` — the clipboard, notes, snippets, emoji and sticker search boxes also list what means the query, after the keyword matches, in 100+ languages, fully on device; off by default (AI screen)
+  - EmbeddingGemma 2 (Apache-2.0) on the classic LiteRT interpreter — the litert gate shared with Whisper, the cutout and PaddleOCR; no ONNX Runtime, no sqlite-vec
+    - LiteRT-LM bundles repacked once — external weight sections inlined, only the 128/256/512-token encoder and 70-token vision signatures kept (the classic interpreter prepares subgraph 0 at load), outputs bit-identical; published as the data repo's `models` release, SHA-256 pinned
+    - Token embedder needs no interpreter — the int4 table is read straight from a mapped file (low nibble first × row scale × √512), exactly the bundle's graph
+    - SentencePiece BPE in pure Kotlin — byte fallback, user-defined pieces, score-priority merges; identical ids to SentencePiece on 620 multilingual test texts, ~14 MB heap
+  - One vector space for text and pictures — the Text Vision tower feeds the same encoder, so a typed query finds stickers and screenshots too
+    - Three choices with sizes — Off / Text (~155 MB) / Text and pictures (~375 MB); picking one is the download, behind the metered-connection question
+    - Emoji vectors precomputed off device — 1,716 catalogue names embedded by script and downloaded (2.6 MB) instead of ten minutes of phone CPU
+  - Runs in its own `:semantic` process — the loaded model's ~350 MB never counts against the keyboard; text model released after 3 idle minutes, vision tower after 20 s
+  - Incremental background index — per kind, stamped by content hash, on one low-priority thread when its panel opens; 400 texts or 32 pictures per pass; brute-force cosine over a flat file
+    - Locked notes and password clips never indexed — their vectors would leak what the keyboard masks; turning the feature off deletes every index
+  - Stands-out ranking, not a fixed cutoff — a hit must be near the best, over the median by a margin, and over a floor; thresholds read off the model's scores on mixed-language texts and COCO photos
+  - Untagged stickers tagged from their picture — nearest emoji names become trigger keywords for stickers-as-you-type, kept apart from the user's own and never written to the pack
+  - Falls back silently — no model, no LiteRT (F-Droid), a slow first load: the box shows its keyword matches as before
+
 - **AI writing actions** `RARE` — On-keyboard panel that runs prompts against the focused field's text; 8 shipped actions, user-extensible
   - Shipped action set `RARE` — 11 built-ins: Rewrite, Summarize, Translate, Improve, Formal, Shorter, Friendly, Fix grammar, Explain, Continue, Custom
     - Translate target is free text — {target} token stored in the prompt, substituted at run time so changing the language updates every prompt

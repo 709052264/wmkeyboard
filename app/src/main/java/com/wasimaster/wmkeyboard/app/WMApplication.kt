@@ -49,6 +49,17 @@ open class WMApplication : Application() {
         // a failure while showing a crash report would launch another crash
         // report, forever. See CrashReportActivity.
         if (DebugLog.isCrashProcess()) return
+        // Search by meaning's own process runs the model and nothing else: no
+        // sync, no alarms, no second copy of anything the keyboard's process
+        // owns. It needs the log, the network log, and the gate that says
+        // where the LiteRT interpreter is.
+        if (com.wasimaster.wmkeyboard.core.semantic.EmbeddingService.isServiceProcess()) {
+            DebugLog.setBuildTag(BuildConfig.FLAVOR)
+            DebugLog.attach(this)
+            NetLog.attach(this)
+            installOnDemandDelivery(this)
+            return
+        }
         // Which of the four flavours this is, said here because here is the
         // only place that knows. The log lives in :core:common and compiles
         // against :core:config, which carries `capabilities` alone, so left to

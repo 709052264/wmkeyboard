@@ -596,7 +596,14 @@ internal fun rememberClipboardPanelSession(state: KeyboardUiState): ClipboardPan
     } else {
         filtered
     }
-    val matched = if (query.isEmpty()) ordered else ordered.filter(matcher)
+    // Then the clips only search by meaning found, best first; only from
+    // [ordered], so the tab, tag and kind filters still hold.
+    val meaningIds = state.meaning.clips.forQuery(query)
+    val matched = when {
+        query.isEmpty() -> ordered
+        meaningIds.isEmpty() -> ordered.filter(matcher)
+        else -> com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(ordered.filter(matcher), ordered, meaningIds) { it.id.toString() }
+    }
     val shownItems = if (oldest.value) {
         remember(matched, searching) { if (searching) matched.reversed() else oldestFirst(matched) }
     } else {

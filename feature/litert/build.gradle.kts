@@ -11,7 +11,7 @@ plugins {
 // code in :core:voice, :core:content and :core:intelligence instead (see the
 // playStoreChannel blocks there), and F-Droid builds are lite and have no
 // LiteRT. Built exactly like :feature:translate beside it. The module has no
-// sources of its own: it compiles the three shared bridge directories, one
+// sources of its own: it compiles the four shared bridge directories, one
 // class each, which the base app reaches by reflection, plus the litert
 // dependency. libtensorflowlite_jni.so is about 4 MB per ABI, and all three
 // things that use it are off by default: offline Whisper dictation is an
@@ -69,6 +69,8 @@ androidComponents {
                 ?.addStaticSourceDirectory("../../core/content/src/cutoutbridge/java")
             variant.sources.kotlin
                 ?.addStaticSourceDirectory("../../core/intelligence/src/paddlebridge/java")
+            variant.sources.kotlin
+                ?.addStaticSourceDirectory("../../core/intelligence/src/semanticbridge/java")
         }
     }
 }

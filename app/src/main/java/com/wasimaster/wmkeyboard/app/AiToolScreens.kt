@@ -104,6 +104,9 @@ internal fun AiHubSettings(
             }
         }
     }
+    // Not an AI tool, but the same kind of thing: a model on the device, and
+    // nobody looks for it under Clipboard or Emoji, which it serves alike.
+    SemanticSearchGroup(repository, settings)
     SettingsGroup(stringResource(R.string.toolai_ai_chat_group_title)) {
         item {
             NavRow(

@@ -93,6 +93,9 @@ enum class NetSource(
     /** Tesseract language data for the scan text tool. */
     DOWNLOAD_OCR("download_ocr", ToolbarTool.OCR),
 
+    /** EmbeddingGemma 2, the model behind search by meaning. */
+    DOWNLOAD_SEMANTIC("download_semantic"),
+
     /**
      * A native library a GitHub or F-Droid build fetches the first time a
      * feature needs it: the project's own from the data repository, ML Kit's,

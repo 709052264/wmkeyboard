@@ -3614,6 +3614,8 @@ data class KeyboardSettings(
     val dictionaryTranslations: DictionaryTranslationSettings = DictionaryTranslationSettings(),
     /** The Look up card over other apps (#765, see [LookupSettings]). */
     val lookup: LookupSettings = LookupSettings(),
+    /** Search by meaning: the on-device model behind the search boxes (see [SemanticSearchSettings]). */
+    val semanticSearch: SemanticSearchSettings = SemanticSearchSettings(),
     /** Text-editing tool and selection-editing settings (see [TextEditingSettings]). */
     val textEditing: TextEditingSettings = TextEditingSettings(),
     /** The trackpad tool: sensitivity and the gestures it answers to (see [TrackpadSettings]). */
@@ -11241,6 +11243,7 @@ class SettingsRepository(private val context: Context) {
             notes = readNotes(p, defaults),
             send = SendPrefs.read(p, defaults.send),
             lookup = LookupPrefs.read(p, defaults.lookup),
+            semanticSearch = SemanticSearchPrefs.read(p, defaults.semanticSearch),
             gallery = GalleryPrefs.read(p, defaults.gallery),
             powerSaving = readPowerSaving(p, defaults),
             dataSaver = dataSaverFromPrefs(p, defaults),
@@ -14239,6 +14242,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateLookup(change: (LookupSettings) -> LookupSettings) = editPrefs { p ->
         val old = LookupPrefs.read(p, storedDefaults.lookup)
         LookupPrefs.write(p, old, change(old))
+    }
+
+    /** One change to search by meaning's settings; see [updateGallery]. */
+    suspend fun updateSemanticSearch(change: (SemanticSearchSettings) -> SemanticSearchSettings) = editPrefs { p ->
+        val old = SemanticSearchPrefs.read(p, storedDefaults.semanticSearch)
+        SemanticSearchPrefs.write(p, old, change(old))
     }
 
     /**

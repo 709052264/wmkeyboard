@@ -124,6 +124,11 @@ import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
 import com.wasimaster.wmkeyboard.core.clipboard.ClipPlainLetters
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
+import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
+import com.wasimaster.wmkeyboard.core.semantic.MeaningSync
+import com.wasimaster.wmkeyboard.ime.semantic.MeaningHits
+import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
+import com.wasimaster.wmkeyboard.ime.semantic.MeaningSpace
 import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
@@ -4750,6 +4755,7 @@ open class WMKeyboardService : InputMethodService() {
                     refreshLanguageDataDownloads(settings)
                 }
                 refreshDictionaryBar(settings)
+                meaningSearch.configure(settings.semanticSearch, userUnlocked)
                 // Keyed off the mode actually being typed, so a field-forced
                 // mode gets its own proximity grid and word lists rather than
                 // the saved mode's.
@@ -10704,7 +10710,10 @@ open class WMKeyboardService : InputMethodService() {
                 if (_uiState.value.panel != PanelMode.QR_GEN) scheduleMediaLiveSearch()
             }
             CaptureTarget.DICTIONARY_SEARCH -> updateQuery { it.copy(dictionaryQuery = text) }
-            CaptureTarget.CLIPBOARD_SEARCH -> updateQuery { it.copy(clipboardQuery = text) }
+            CaptureTarget.CLIPBOARD_SEARCH -> {
+                updateQuery { it.copy(clipboardQuery = text) }
+                queryMeaningClips(text)
+            }
             CaptureTarget.REPEAT_TEXT, CaptureTarget.REPEAT_SEPARATOR -> _uiState.update {
                 it.copy(textRepeat = it.textRepeat.withFocusedText(text.take(TEXT_REPEAT_BOX_MAX)))
             }
@@ -10721,10 +10730,16 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { state ->
                     state.copy(clipCombine = state.clipCombine?.withFocusedText(text))
                 }
-            CaptureTarget.SNIPPET_SEARCH -> updateQuery { it.copy(snippetQuery = text) }
+            CaptureTarget.SNIPPET_SEARCH -> {
+                updateQuery { it.copy(snippetQuery = text) }
+                queryMeaningSnippets(text)
+            }
             // The search filters as it is typed; the drafts are written to
             // the store a moment after the typing pauses (see noteEditDraft).
-            CaptureTarget.NOTE_SEARCH -> publishNotes { it.copy(query = text, held = null) }
+            CaptureTarget.NOTE_SEARCH -> {
+                publishNotes { it.copy(query = text, held = null) }
+                queryMeaningNotes(text)
+            }
             CaptureTarget.NOTE_TITLE ->
                 noteEditDraft { it.copy(titleDraft = text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
             CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
@@ -20598,6 +20613,165 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.toolPrefill != null) _uiState.update { it.copy(toolPrefill = null) }
     }
 
+    // ---- Search by meaning ----
+
+    /**
+     * The search boxes' second opinion: clips, notes, snippets, emoji and
+     * stickers found by what a query means (see [MeaningSearch]). Every
+     * answer is listed after the keyword matches, and with the feature off or
+     * its model absent nothing here does anything.
+     */
+    private val meaningSearch by lazy { MeaningSearch(applicationContext, serviceScope) }
+
+    /** Indexes what [panel] searches, in the background. A no-op unless search by meaning is ready. */
+    private fun indexMeaningFor(panel: PanelMode) {
+        if (!userUnlocked || !meaningSearch.enabled) return
+        when (panel) {
+            PanelMode.CLIPBOARD -> {
+                val clips = clipboardStore.items().filter { !it.sensitive }
+                meaningSearch.index(
+                    MeaningSpace.CLIPS,
+                    clips.mapNotNull { clip ->
+                        meaningTextOf(clip)?.let { MeaningSync.Item(clip.id.toString(), MeaningSearch.stampOf(it), it) }
+                    },
+                )
+                meaningSearch.index(
+                    MeaningSpace.CLIP_PICTURES,
+                    clips.mapNotNull { clip ->
+                        clip.imagePath?.takeIf { clip.kind == ClipKind.IMAGE }
+                            ?.let { MeaningSync.Item(clip.id.toString(), MeaningSearch.stampOf(it), it) }
+                    },
+                )
+            }
+            PanelMode.SNIPPETS -> meaningSearch.index(
+                MeaningSpace.SNIPPETS,
+                snippetStore.items().map { snippet ->
+                    val text = listOfNotNull(
+                        snippet.label.takeIf { it.isNotBlank() },
+                        snippet.text,
+                        snippet.trigger,
+                    ).joinToString("\n")
+                    MeaningSync.Item(snippet.id.toString(), MeaningSearch.stampOf(text), text)
+                },
+            )
+            // A locked note is never indexed: its vector would let a search
+            // find what the keyboard otherwise masks.
+            PanelMode.NOTES -> meaningSearch.index(
+                MeaningSpace.NOTES,
+                noteStore.items(com.wasimaster.wmkeyboard.core.notes.NoteFilter(includeLocked = false)).map { note ->
+                    val text = listOf(note.title, note.tags.joinToString(" "), note.body)
+                        .filter { it.isNotBlank() }
+                        .joinToString("\n")
+                    MeaningSync.Item(note.id.toString(), MeaningSearch.stampOf(text), text)
+                },
+            )
+            PanelMode.STICKER -> indexMeaningStickers()
+            else -> Unit
+        }
+    }
+
+    /** What a clip is found by: its text (and a link's page title), a file's name. Pictures go to [MeaningSpace.CLIP_PICTURES]. */
+    private fun meaningTextOf(clip: com.wasimaster.wmkeyboard.core.clipboard.ClipItem): String? = when {
+        clip.kind.isTextual -> listOfNotNull(clip.linkPreview?.title?.takeIf { it.isNotBlank() }, clip.text)
+            .joinToString("\n")
+            .takeIf { it.isNotBlank() }
+        clip.kind == ClipKind.FILE -> clip.fileName?.takeIf { it.isNotBlank() }
+        else -> null
+    }
+
+    /**
+     * The user's own stickers, by what they show; then, for the ones with no
+     * title or keyword, tags read off the picture for the stickers offered
+     * while typing.
+     */
+    private fun indexMeaningStickers() {
+        val packs = stickerPackStore.packs()
+        val items = packs.flatMap { pack ->
+            pack.stickers.mapNotNull { sticker ->
+                val file = stickerPackStore.fileFor(pack.id, sticker) ?: return@mapNotNull null
+                MeaningSync.Item(
+                    pack.id + "/" + sticker.id,
+                    MeaningSearch.stampOf(file.path + ":" + file.length()),
+                    file.path,
+                )
+            }
+        }
+        val untagged = packs.flatMap { pack ->
+            pack.stickers.filter { it.name.isBlank() && it.keywords.isEmpty() }.map { pack.id + "/" + it.id }
+        }.toSet()
+        meaningSearch.index(MeaningSpace.STICKERS, items) { refreshMeaningStickerTags(untagged) }
+        refreshMeaningStickerTags(untagged)
+    }
+
+    private fun refreshMeaningStickerTags(untagged: Set<String>) {
+        if (untagged.isEmpty()) return
+        val names = emojiEntries.associate { it.emoji to it.name }
+        meaningSearch.refreshStickerTags(untagged, { names[it] }) { refreshStickerOffer() }
+    }
+
+    private fun queryMeaningClips(text: String) {
+        val query = text.trim()
+        meaningSearch.query(MeaningSpace.CLIPS, query, MeaningRank.TEXT) { byText ->
+            meaningSearch.query(MeaningSpace.CLIP_PICTURES, query, MeaningRank.PICTURE) { byPicture ->
+                _uiState.update { it.copy(meaning = it.meaning.copy(clips = MeaningHits.Found(query, byText + byPicture))) }
+            }
+        }
+    }
+
+    private fun queryMeaningSnippets(text: String) {
+        val query = text.trim()
+        meaningSearch.query(MeaningSpace.SNIPPETS, query, MeaningRank.TEXT) { keys ->
+            _uiState.update { it.copy(meaning = it.meaning.copy(snippets = MeaningHits.Found(query, keys))) }
+        }
+    }
+
+    private fun queryMeaningNotes(text: String) {
+        val query = text.trim()
+        meaningSearch.query(MeaningSpace.NOTES, query, MeaningRank.TEXT) { keys ->
+            _uiState.update { it.copy(meaning = it.meaning.copy(notes = MeaningHits.Found(query, keys))) }
+            publishNotes()
+        }
+    }
+
+    /**
+     * Adds to the emoji panel's results the emoji whose names mean what
+     * [query] does, in any language, after the keyword ones: "বিড়াল" or
+     * "gato" finds 🐈 with no keyword pack for either.
+     */
+    private fun appendMeaningEmoji(query: String, hidden: Set<String>) {
+        meaningSearch.query(MeaningSpace.EMOJI, query, MeaningRank.EMOJI) { keys ->
+            if (keys.isEmpty() || _uiState.value.emojiQuery != query) return@query
+            val have = _uiState.value.emojiResults.mapTo(HashSet()) { it.emoji }
+            val byEmoji = emojiEntries.associateBy { it.emoji }
+            val extra = keys.filter { it !in have && it !in hidden }.mapNotNull { byEmoji[it] }
+            if (extra.isNotEmpty()) _uiState.update { it.copy(emojiResults = it.emojiResults + extra) }
+        }
+    }
+
+    /**
+     * The sticker grid's own-packs results with what search by meaning finds
+     * after them: stickers by what they show. On the provider dispatch's IO
+     * thread, so it waits a moment for the answer and gives up rather than
+     * hold the grid while the model loads.
+     */
+    private fun meaningStickers(query: String, packId: String?, byWords: List<GifItem>): List<GifItem> {
+        if (query.isBlank()) return byWords
+        val keys = meaningSearch.blockingQuery(
+            MeaningSpace.STICKERS,
+            query,
+            MeaningRank.PICTURE,
+            timeoutMs = MEANING_STICKER_WAIT_MS,
+        ) { key -> packId == null || key.startsWith("$packId/") }
+        if (keys.isEmpty()) return byWords
+        val seen = byWords.mapTo(HashSet()) { it.id }
+        val extra = keys.mapNotNull { key ->
+            val pack = stickerPackStore.pack(key.substringBefore('/')) ?: return@mapNotNull null
+            val sticker = pack.stickers.firstOrNull { it.id == key.substringAfter('/') } ?: return@mapNotNull null
+            stickerPackStore.asGifItem(pack.id, sticker)
+        }.filter { seen.add(it.id) }
+        return byWords + extra
+    }
+
     // ---- stickers offered while typing (#329) ----
 
     /** Triggers of every sticker the user owns, rebuilt when the packs change. */
@@ -20605,6 +20779,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The pack store's [StickerPackStore.stateToken] [stickerTriggers] was built at. */
     private var stickerTriggersToken = Long.MIN_VALUE
+
+    /** [MeaningSearch.stickerTagsVersion] [stickerTriggers] was built at. */
+    private var stickerTriggersTagsVersion = -1
     private var stickerOfferJob: Job? = null
 
     /**
@@ -20635,9 +20812,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun stickerTriggerIndex(): StickerTriggerIndex = synchronized(stickerTriggerLock) {
         stickerPackStore.reloadIfChanged()
         val token = stickerPackStore.stateToken()
-        if (token != stickerTriggersToken) {
-            stickerTriggers = StickerTriggerIndex.build(stickerPackStore.packs())
+        val tagsVersion = meaningSearch.stickerTagsVersion
+        if (token != stickerTriggersToken || tagsVersion != stickerTriggersTagsVersion) {
+            stickerTriggers = StickerTriggerIndex.build(stickerPackStore.packs(), meaningSearch.stickerTags)
             stickerTriggersToken = token
+            stickerTriggersTagsVersion = tagsVersion
         }
         stickerTriggers
     }
@@ -26153,6 +26332,9 @@ open class WMKeyboardService : InputMethodService() {
             clipboardStore.reload()
             fetchLinkPreviews()
         }
+        // Search by meaning catches up on what this panel searches, in the
+        // background, so the box is ready by the time anything is typed.
+        indexMeaningFor(panel)
         // Leaving the Notes panel, by closing it or opening another: the draft
         // is saved and the editor, the search and the Undo bar go (#560).
         if (_uiState.value.panel == PanelMode.NOTES) notesLeavePanel()
@@ -35748,7 +35930,7 @@ open class WMKeyboardService : InputMethodService() {
             limit = settings.gif.resultLimit,
         )
         GifSource.LOCAL ->
-            stickerPackStore.searchAsGifItems(query, _uiState.value.stickerPackId)
+            meaningStickers(query, _uiState.value.stickerPackId, stickerPackStore.searchAsGifItems(query, _uiState.value.stickerPackId))
         GifSource.OFFLINE ->
             if (sticker) emptyList()
             else com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks.search(query, OFFLINE_GIF_LIMIT)
@@ -38305,10 +38487,19 @@ open class WMKeyboardService : InputMethodService() {
             // An open note that was deleted for good, in the app or by the
             // trash's timer, has nothing left to show.
             val open = notes.open?.takeIf { noteStore.item(it) != null }
+            val sort = state.settings.notes.sort
+            val byWords = NotesLogic.visible(noteStore, notes.filter, notes.query, sort, deviceLocked)
+            // Then the notes only search by meaning found, from the same shelf.
+            val meaningIds = state.meaning.notes.forQuery(notes.query)
+            val items = if (meaningIds.isEmpty()) {
+                byWords
+            } else {
+                MeaningHits.append(byWords, NotesLogic.visible(noteStore, notes.filter, "", sort, deviceLocked), meaningIds) { it.id.toString() }
+            }
             state.copy(
                 notes = notes.copy(
                     available = userUnlocked,
-                    items = NotesLogic.visible(noteStore, notes.filter, notes.query, state.settings.notes.sort, deviceLocked),
+                    items = items,
                     tags = noteStore.tags(),
                     counts = NotesLogic.counts(noteStore, deviceLocked),
                     open = open,
@@ -42973,6 +43164,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             val shown = if (hidden.isEmpty()) results else results.filterNot { it.emoji in hidden }
             updateQuery { it.copy(emojiResults = shown) }
+            appendMeaningEmoji(query, hidden)
         }
     }
 
@@ -46879,6 +47071,12 @@ open class WMKeyboardService : InputMethodService() {
          * many animated cells to lay out.
          */
         private const val OFFLINE_GIF_LIMIT = 240
+
+        /**
+         * How long the sticker grid waits for search by meaning's answer. Enough
+         * for a loaded model; a first query that has to load it is not waited for.
+         */
+        private const val MEANING_STICKER_WAIT_MS = 2_500L
 
         /**
          * The glide sandbox row, by its title's resource name. A string, not

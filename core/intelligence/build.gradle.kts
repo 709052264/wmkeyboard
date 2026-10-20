@@ -122,6 +122,8 @@ androidComponents {
             variant.sources.kotlin?.addStaticSourceDirectory("src/inkbridge/java")
             // And for PaddleOCR's graphs on LiteRT: see PaddleRuntime.kt.
             variant.sources.kotlin?.addStaticSourceDirectory("src/paddlebridge/java")
+            // And for search by meaning's EmbeddingGemma graphs: see EmbeddingRuntime.kt.
+            variant.sources.kotlin?.addStaticSourceDirectory("src/semanticbridge/java")
         }
     }
 }
@@ -171,8 +173,9 @@ dependencies {
         // ~16 MB per ABI of native code only reaches devices that use it.
         "fullImplementation"(libs.mlkit.translate)
         "fullImplementation"(libs.mlkit.language.id)
-        // The scanner's PaddleOCR reader. The same interpreter :core:voice
-        // links for Whisper, so this adds nothing to the APK.
+        // The scanner's PaddleOCR reader and search by meaning. The same
+        // interpreter :core:voice links for Whisper, so this adds nothing to
+        // the APK.
         "fullImplementation"(libs.litert)
     }
     // Always, whatever the channel: OnDeviceTranslatorCatalogueTest pins the

@@ -95,6 +95,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataArray
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataObject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataSaverOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataUsage
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteSweep
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dns
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Layers
@@ -420,6 +421,9 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
+        put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }
+        put(R.string.semantic_tag_stickers_title) { Icons.Outlined.Sell }
+        put(R.string.semantic_delete_title) { Icons.Outlined.Delete }
         put(R.string.accessibility_talkback_title) { Icons.Outlined.RecordVoiceOver }
         put(R.string.accessibility_passthrough_service_title) { Icons.Outlined.Accessibility }
         put(R.string.accessibility_debounce_title) { Icons.Outlined.FilterAlt }

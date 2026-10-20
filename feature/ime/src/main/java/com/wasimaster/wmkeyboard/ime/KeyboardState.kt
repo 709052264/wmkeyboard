@@ -3387,6 +3387,11 @@ data class KeyboardUiState(
     val clipboardItems: List<ClipItem> = emptyList(),
     /** Live query for the clipboard panel's search bar (feature-gated). */
     val clipboardQuery: String = "",
+    /**
+     * What search by meaning found for the clipboard, notes and snippets
+     * boxes, listed after their keyword matches (see [MeaningHits]).
+     */
+    val meaning: com.wasimaster.wmkeyboard.ime.semantic.MeaningHits = com.wasimaster.wmkeyboard.ime.semantic.MeaningHits(),
     /** Typing edits [clipboardQuery] instead of the field, like emoji search. */
     val clipboardSearchActive: Boolean = false,
     /**
@@ -4426,7 +4431,14 @@ data class KeyboardUiState(
         // in (#471): the point of typing a name is not having to remember
         // where it was put.
         val query = snippetQuery.trim()
-        if (query.isNotEmpty()) return snippets.filter { it.matchesQuery(query) }
+        if (query.isNotEmpty()) {
+            // Then what only search by meaning found, when it is on.
+            return com.wasimaster.wmkeyboard.ime.semantic.MeaningHits.append(
+                snippets.filter { it.matchesQuery(query) },
+                snippets,
+                meaning.snippets.forQuery(query),
+            ) { it.id.toString() }
+        }
         return when {
             snippetFolders.isEmpty() -> snippets
             openSnippetFolder() != null -> snippets.filter { it.folderId == snippetFolderOpen }

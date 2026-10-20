@@ -238,6 +238,11 @@
     <init>();
     *;
 }
+# Search by meaning's EmbeddingGemma graphs (EmbeddingEngine's facade), the same way.
+-keep class com.wasimaster.wmkeyboard.core.semantic.bridge.LitertEmbeddingRuntime {
+    <init>();
+    *;
+}
 
 # --- Handwriting bridge --------------------------------------------------------
 # Reached ONLY by reflection (HandwritingModels' facade), from the base APK in

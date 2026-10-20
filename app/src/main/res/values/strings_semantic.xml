@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Search by meaning: the keyboard's search boxes (clipboard, notes,
+         snippets, emoji, stickers) also find what a query means, in any
+         language, with a model that runs on the phone. On the AI screen. -->
+    <string name="semantic_group_title">Search by meaning</string>
+    <string name="semantic_group_info">With this on, the search boxes in the clipboard, notes, snippets, emoji and sticker panels also show what matches the meaning of your words, after the usual matches. "groceries" finds the note "Buy milk, eggs and bread", and "বিড়াল" finds 🐈. It works in more than 100 languages.\n\nThe model is EmbeddingGemma 2 by Google. It is downloaded once and runs on this phone. What you search and what it searches never leave the phone. While the model is in use it takes about 350 MB of memory, in a process apart from the keyboard, and it lets that memory go after a few minutes.</string>
+    <string name="semantic_mode_title">Search by meaning</string>
+    <string name="semantic_mode_subtitle">Also find things by what they mean, not only by the letters typed</string>
+    <string name="semantic_mode_off">Off</string>
+    <!-- %1$s is the download size, for example "152 MB". -->
+    <string name="semantic_mode_text">Text (<xliff:g id="size" example="152 MB">%1$s</xliff:g>)</string>
+    <!-- %1$s is the download size of text and pictures together, for example "373 MB". -->
+    <string name="semantic_mode_pictures">Text and pictures (<xliff:g id="size" example="373 MB">%1$s</xliff:g>)</string>
+    <string name="semantic_mode_info">Text finds clips, notes, snippets and emoji by meaning. Text and pictures also finds your own stickers and saved GIFs by what they show, and is a larger download. Off keeps search as it was and downloads nothing.</string>
+    <!-- %1$s and %2$s are byte counts, for example "40 MB" and "152 MB". -->
+    <string name="semantic_status_downloading">Downloading the model: <xliff:g id="done" example="40 MB">%1$s</xliff:g> of <xliff:g id="total" example="152 MB">%2$s</xliff:g></string>
+    <string name="semantic_status_missing">The model is not downloaded yet. Search works as before until it is.</string>
+    <string name="semantic_status_ready">Ready. The keyboard adds matches by meaning as it learns your clips, notes and snippets, a few at a time in the background.</string>
+    <string name="semantic_tag_stickers_title">Tag my stickers</string>
+    <string name="semantic_tag_stickers_subtitle">Stickers without keywords get some from what they show, so they come up while you type</string>
+    <string name="semantic_delete_title">Delete the model</string>
+    <!-- %1$s is how much storage the model files take, for example "373 MB". -->
+    <string name="semantic_delete_subtitle"><xliff:g id="size" example="373 MB">%1$s</xliff:g> on this phone</string>
+    <string name="semantic_delete_action">Delete</string>
+    <string name="semantic_delete_confirm">Delete the search model? Search by meaning stops until you download it again.</string>
+    <string name="semantic_metered_body">The search model is a large download.</string>
+</resources>

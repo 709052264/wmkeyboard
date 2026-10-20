@@ -96,8 +96,12 @@ class StickerTriggerIndex private constructor(
          * Indexes every sticker's title and keywords. Within one trigger,
          * stickers whose title it is come before those that only carry it as
          * a keyword, and after that they keep pack order.
+         *
+         * [extra] adds keywords the user did not write, by
+         * `"<packId>/<stickerId>"`: the ones search by meaning reads off an
+         * untagged sticker's picture. They count as keywords, never as titles.
          */
-        fun build(packs: List<StickerPack>): StickerTriggerIndex {
+        fun build(packs: List<StickerPack>, extra: Map<String, List<String>> = emptyMap()): StickerTriggerIndex {
             val byKey = HashMap<String, MutableList<Entry>>()
             fun add(raw: String, packId: String, sticker: CustomSticker, fromTitle: Boolean) {
                 val key = normalize(raw)
@@ -111,6 +115,7 @@ class StickerTriggerIndex private constructor(
                 for (sticker in pack.stickers) {
                     add(sticker.name, pack.id, sticker, fromTitle = true)
                     sticker.keywords.forEach { add(it, pack.id, sticker, fromTitle = false) }
+                    extra[pack.id + "/" + sticker.id]?.forEach { add(it, pack.id, sticker, fromTitle = false) }
                 }
             }
             if (byKey.isEmpty()) return EMPTY
