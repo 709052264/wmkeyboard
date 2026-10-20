@@ -162,8 +162,8 @@ object ImageGenModels {
                     "a895f6f96b441d55a3aed101d4c192dc20feabf888402772976a5f29b1871255",
                 ),
                 aiHub(
-                    "SM8850", "snapdragon_8_elite_gen5_for_galaxy", 0L,
-                    PENDING_SM8850,
+                    "SM8850", "snapdragon_8_elite_gen5_for_galaxy", 710_771_252L,
+                    "9e2aade77178fb487dd929c88a60f830b2edd05a71bbe052798a253b87042c5b",
                 ),
             ),
         ),
@@ -200,8 +200,6 @@ object ImageGenModels {
     const val NPU_VAE = "vae.bin"
     const val NPU_METADATA = "metadata.json"
 
-    // Filled in from Qualcomm's published zips; until then the chip is not offered.
-    private const val PENDING_SM8850 = ""
 
     /**
      * The spec the NPU builds run with: Stable Diffusion 1.5's own schedule
