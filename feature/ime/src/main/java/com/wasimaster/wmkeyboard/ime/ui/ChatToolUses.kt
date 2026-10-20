@@ -68,6 +68,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Handyman
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
+import com.wasimaster.wmkeyboard.core.tools.AiMemoryNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.tools.AiPhase
 import com.wasimaster.wmkeyboard.core.tools.AiToolActivity
@@ -101,6 +103,11 @@ import com.wasimaster.wmkeyboard.ime.R
  * / Always allow, which go out through [onApproval]. A surface that passes no
  * [onApproval] shows the question without the buttons.
  *
+ * A call that saved to the AI memory adds a line under the record, open or
+ * folded: "Saved to memory", the fact, and Undo, which goes out through
+ * [onUndoMemory] with the call's index in [uses]. A surface that passes none
+ * shows the line without Undo.
+ *
  * With [animate] the record moves: a live one slides in, the spinner shrinks
  * into the mark of what the call did, the header's words cross-fade, the
  * detail unrolls and rolls back up, and a call added while it is open arrives
@@ -120,6 +127,7 @@ fun ChatToolUses(
     fontSize: TextUnit = 12.sp,
     onApproval: ((AiToolApproval) -> Unit)? = null,
     animate: Boolean = true,
+    onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     if (uses.isEmpty()) return
     var expanded by remember { mutableStateOf(false) }
@@ -252,6 +260,64 @@ fun ChatToolUses(
                     modifier = Modifier.blockTouches(!expanded),
                 )
             }
+        }
+        for ((index, use) in uses.withIndex()) {
+            val note = use.memory ?: continue
+            if (use.running || use.failed) continue
+            key("memory", index) {
+                MemorySaveLine(note, colors, fontSize, onUndoMemory?.let { undo -> { undo(index) } })
+            }
+        }
+    }
+}
+
+/**
+ * One save to the AI memory: what was kept, and Undo while it can still be
+ * taken back. Drawn whether or not the record is unfolded, since the point
+ * of it is that the user sees what the model decided to remember.
+ */
+@Composable
+private fun MemorySaveLine(note: AiMemoryNote, colors: ChatMarkdownColors, fontSize: TextUnit, onUndo: (() -> Unit)?) {
+    Row(
+        modifier = Modifier
+            .padding(top = 3.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .border(1.dp, colors.dim.copy(alpha = 0.35f), RoundedCornerShape(8.dp))
+            .padding(start = 7.dp, end = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Psychology, contentDescription = null, tint = colors.dim, modifier = Modifier.size(13.dp))
+        Spacer(Modifier.width(5.dp))
+        val label = when {
+            note.undone -> stringResource(R.string.ime_ai_memory_undone)
+            note.added -> stringResource(R.string.ime_ai_memory_saved)
+            else -> stringResource(R.string.ime_ai_memory_updated)
+        }
+        Text(
+            "$label · ${note.text}",
+            color = colors.dim,
+            fontSize = fontSize,
+            lineHeight = fontSize * LINE_HEIGHT,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .padding(vertical = 4.dp),
+        )
+        if (onUndo != null && !note.undone) {
+            Text(
+                stringResource(R.string.ime_ai_memory_undo),
+                color = colors.text,
+                fontSize = fontSize,
+                lineHeight = fontSize * LINE_HEIGHT,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable(onClick = onUndo)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        } else {
+            Spacer(Modifier.width(6.dp))
         }
     }
 }
@@ -606,6 +672,16 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_name_add_calendar_event,
         R.string.ime_ai_tool_add_calendar_event_running,
         R.string.ime_ai_tool_add_calendar_event_done,
+    ),
+    AiTools.REMEMBER to ToolLabels(
+        R.string.ime_ai_tool_name_remember,
+        R.string.ime_ai_tool_remember_running,
+        R.string.ime_ai_tool_remember_done,
+    ),
+    AiTools.FORGET to ToolLabels(
+        R.string.ime_ai_tool_name_forget,
+        R.string.ime_ai_tool_forget_running,
+        R.string.ime_ai_tool_forget_done,
     ),
     AiTools.ADD_NOTE to ToolLabels(
         R.string.ime_ai_tool_name_add_note,

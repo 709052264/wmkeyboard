@@ -2249,6 +2249,30 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.home_ai_title,
             "ai",
         ),
+        entry(R.string.toolai_memory_screen_title, R.string.toolai_memory_nav_subtitle, R.string.home_ai_title, "ai"),
+        // The memory screen's own rows (Settings › AI › Memory).
+        entry(
+            R.string.toolai_memory_enabled_title,
+            R.string.toolai_memory_enabled_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
+            weight = EntryWeight.SECTION,
+        ),
+        entry(
+            R.string.toolai_memory_cloud_title,
+            R.string.toolai_memory_cloud_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
+        ),
+        entry(
+            R.string.toolai_memory_delete_all_title,
+            R.string.toolai_memory_delete_all_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
+        ),
         entry(R.string.semantic_mode_title, R.string.semantic_mode_subtitle, R.string.home_ai_title, "ai")
             .takeIf { com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED },
         entry(R.string.semantic_tag_stickers_title, R.string.semantic_tag_stickers_subtitle, R.string.home_ai_title, "ai")

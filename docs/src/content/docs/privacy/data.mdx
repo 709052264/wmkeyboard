@@ -39,6 +39,7 @@ Everything below lives under the app's private storage. No other app can read th
 | Snippets you've saved | `snippets/snippets.json` | You write these yourself |
 | What you sent the AI tool and what it answered | `ai/history.json` | Only if you turn [AI history](/tools/ai/#history) on; it's off by default |
 | Your saved AI chat conversations | `ai/chats.json` | Kept automatically while [Keep your conversations](/tools/ai-chat/#whats-kept-and-where) is on; unlike the row above, it's on by default |
+| What the AI remembers about you | `ai/memory.json` | Short facts a chat saves while [AI memory](/tools/ai-memory/) is on, or that you add yourself. Never from incognito or a private chat, and every one is on <SettingsPath path="AI / Memory" /> to edit or delete |
 | Every keyboard setting | A DataStore file, `keyboard_settings.preferences_pb` | You choose these yourself |
 | Downloaded wordlists, CJK dictionaries and emoji-keyword packs | `dict/`, `cjk_dicts/`, `emoji_dict/` | You download these yourself, per language |
 | Downloaded offline AI and speech models <Flavor edition="google" /> | `models/`, `whisper/` | You download these yourself |

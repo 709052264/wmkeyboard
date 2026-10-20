@@ -573,4 +573,43 @@
     <string name="toolai_hub_settings_assistant_title">Offer the Settings assistant</string>
     <string name="toolai_hub_settings_assistant_subtitle">Off hides it from search and the AI screens, and it sends nothing</string>
     <string name="toolai_ai_chat_fab_desc">Chat with the AI</string>
+
+    <!-- ================================================================== -->
+    <!-- AI memory: Settings › AI › Memory.                                 -->
+    <!-- ================================================================== -->
+    <string name="toolai_memory_screen_title">Memory</string>
+    <string name="toolai_memory_group_title">Memory</string>
+    <string name="toolai_memory_nav_subtitle">What the AI remembers about you, kept on this phone</string>
+    <string name="toolai_memory_enabled_title">Remember things about me</string>
+    <string name="toolai_memory_enabled_subtitle">Chats save short facts about you, and later chats and AI actions use them</string>
+    <string name="toolai_memory_enabled_info">The AI saves a fact when you tell it something that will still be true later, or when you ask it to remember something. Each save shows under the answer with Undo. The facts stay on this phone. Incognito fields and private chats never read or save memory, and facts that look like passwords, codes, card numbers or keys are refused. Turning this off stops reading and saving. The saved facts stay until you delete them.</string>
+    <string name="toolai_memory_cloud_title">Use with cloud models</string>
+    <string name="toolai_memory_cloud_subtitle">Send the saved facts with requests to the AI service in use, and let its chats save new ones</string>
+    <string name="toolai_memory_cloud_info">Off, only a model on this phone reads or saves memory. On, the facts picked for a request travel with it to the service you use, and that service's own privacy terms apply to them.</string>
+    <string name="toolai_memory_list_title">Saved memories</string>
+    <string name="toolai_memory_add_title">Add memory</string>
+    <string name="toolai_memory_add_subtitle">Write a fact for the AI to know</string>
+    <string name="toolai_memory_empty">Nothing saved yet. Tell the AI something about yourself in a chat, or add a fact here.</string>
+    <string name="toolai_memory_source_manual">Added by you</string>
+    <string name="toolai_memory_source_chat">From a chat</string>
+    <!-- %1$s is where the memory came from, %2$s when it last changed. -->
+    <string name="toolai_memory_row_subtitle">%1$s · %2$s</string>
+    <string name="toolai_memory_delete_all_title">Delete all memories</string>
+    <string name="toolai_memory_delete_all_subtitle">Removes every saved fact from this phone</string>
+    <string name="toolai_memory_delete_all_confirm">Delete every saved memory? This cannot be undone.</string>
+    <string name="toolai_memory_dialog_add_title">Add memory</string>
+    <string name="toolai_memory_dialog_edit_title">Edit memory</string>
+    <string name="toolai_memory_fact_label">Fact</string>
+    <string name="toolai_memory_fact_hint">Such as: Lives in Dhaka</string>
+    <string name="toolai_memory_category_label">Category (optional)</string>
+    <string name="toolai_memory_error_secret">This looks like a password, code, card number or key. The AI memory does not keep those.</string>
+    <!-- %1$d is the longest a memory may be, in characters. -->
+    <string name="toolai_memory_error_too_long">A memory is one short fact, at most %1$d characters.</string>
+    <string name="toolai_memory_error_duplicate">That fact is already saved.</string>
+    <string name="toolai_memory_error_unreadable">The memory cannot be read until the phone is unlocked.</string>
+    <string name="toolai_memory_error_full">The memory is full. Delete some facts first.</string>
+    <plurals name="toolai_memory_count">
+        <item quantity="one">%1$d memory saved</item>
+        <item quantity="other">%1$d memories saved</item>
+    </plurals>
 </resources>

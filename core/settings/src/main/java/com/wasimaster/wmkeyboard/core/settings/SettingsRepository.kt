@@ -182,6 +182,7 @@ import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.aimemory.AiMemoryStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
 import com.wasimaster.wmkeyboard.core.vocab.VocabChipTap
@@ -4374,9 +4375,9 @@ data class SyncSettings(
 val SyncSettings.keepLocalGroups: Set<com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup>
     get() = com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup.of(keepLocal)
 
-/** [SyncSettings.sections] as the sections themselves. */
+/** [SyncSettings.sections] as the sections themselves; never one sync may not carry. */
 val SyncSettings.sectionSet: Set<ConfigBackup.Section>
-    get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.id in sections }
+    get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.syncable && it.id in sections }
 
 /** The locations sync reads and writes: the ticked ones that can be tried. */
 fun SyncSettings.targets(locations: List<BackupLocation>): List<BackupLocation> =
@@ -4825,6 +4826,37 @@ data class AiSettings(
     val providerHeaders: Map<String, List<McpHeader>> = emptyMap(),
     /** The reply tool's own settings (#234). */
     val reply: AiReplySettings = AiReplySettings(),
+    /** What the AI remembers about the user between chats. */
+    val memory: AiMemorySettings = AiMemorySettings(),
+)
+
+/**
+ * AI memory: short facts about the user that a model saves in a chat and is
+ * handed again in later chats and the AI actions. The facts themselves are
+ * in `AiMemoryStore`, on the phone; these are the two switches over them.
+ * Nested for the ceiling reason given on [AiReplySettings].
+ */
+data class AiMemorySettings(
+    /**
+     * Chats save facts and every AI run is handed them.
+     *
+     * On by default, because with the default below it changes nothing that
+     * leaves the phone: only an on-device model reads or writes memory until
+     * the user also allows cloud models, every save shows in the chat with
+     * an Undo, and the whole list is on one settings screen. Off stops
+     * reading and saving; what is saved stays until the user deletes it.
+     */
+    val enabled: Boolean = true,
+    /**
+     * Cloud models get memory too: the saved facts go with each request to
+     * the service in use, and its chats can save new ones.
+     *
+     * Off by default. The facts are the most personal text the keyboard
+     * keeps about someone, gathered over many chats, and sending them along
+     * with every request is a choice to make knowingly, not one made for the
+     * user. An on-device model always gets them while [enabled] is on.
+     */
+    val cloud: Boolean = false,
 )
 
 /**
@@ -10968,6 +11000,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_REPLY_TIDY_UP = booleanPreferencesKey("ai_reply_tidy_up")
         private val AI_REPLY_KEEP_HISTORY = booleanPreferencesKey("ai_reply_keep_history")
         private val AI_REPLY_CATCH_SCREENSHOTS = booleanPreferencesKey("ai_reply_catch_screenshots")
+        private val AI_MEMORY_ENABLED = booleanPreferencesKey("ai_memory_enabled")
+        private val AI_MEMORY_CLOUD = booleanPreferencesKey("ai_memory_cloud")
         // Where a per-action prompt override used to live, one key each. Read
         // only now, and folded into the action list on every read; see
         // [legacyAiPrompts]. Not deleted, because a settings backup taken
@@ -13243,6 +13277,10 @@ class SettingsRepository(private val context: Context) {
                 tidyUp = p[AI_REPLY_TIDY_UP] ?: defaults.ai.reply.tidyUp,
                 keepHistory = p[AI_REPLY_KEEP_HISTORY] ?: defaults.ai.reply.keepHistory,
                 catchScreenshots = p[AI_REPLY_CATCH_SCREENSHOTS] ?: defaults.ai.reply.catchScreenshots,
+            ),
+            memory = AiMemorySettings(
+                enabled = p[AI_MEMORY_ENABLED] ?: defaults.ai.memory.enabled,
+                cloud = p[AI_MEMORY_CLOUD] ?: defaults.ai.memory.cloud,
             ),
         )
 
@@ -16885,6 +16923,9 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.KAOMOJI in sections) {
             readStore(KAOMOJI_FILE)?.let { out[ConfigBackup.Section.KAOMOJI] = it }
         }
+        if (ConfigBackup.Section.AI_MEMORY in sections) {
+            readStore(AiMemoryStore.FILE_PATH)?.let { out[ConfigBackup.Section.AI_MEMORY] = it }
+        }
         return out
     }
 
@@ -16922,6 +16963,7 @@ class SettingsRepository(private val context: Context) {
                     // Alarms; presets, countdowns and the settings ride along uncounted.
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
                     ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
+                    ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -17073,6 +17115,14 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the library in memory; without this it
                 // saves its own copy over the one just restored.
                 bumpKaomojiVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.AI_MEMORY] as? JsonObject)?.let { obj ->
+            if (writeStore(AiMemoryStore.FILE_PATH, obj)) {
+                restored.add(ConfigBackup.Section.AI_MEMORY)
+                // The chats and the keyboard share one store in memory;
+                // without this the next save puts the old list back.
+                AiMemoryStore.reloadShared()
             }
         }
         (parsed.sections[ConfigBackup.Section.CLOCK] as? JsonObject)?.let { obj ->
@@ -17872,6 +17922,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiReplyCatchScreenshots(value: Boolean) =
         editPrefs { it[AI_REPLY_CATCH_SCREENSHOTS] = value }
+
+    suspend fun setAiMemoryEnabled(value: Boolean) = editPrefs { it[AI_MEMORY_ENABLED] = value }
+
+    suspend fun setAiMemoryCloud(value: Boolean) = editPrefs { it[AI_MEMORY_CLOUD] = value }
 
     suspend fun setAiToolWebSearch(value: Boolean) =
         editPrefs { it[AI_TOOL_WEB_SEARCH] = value }

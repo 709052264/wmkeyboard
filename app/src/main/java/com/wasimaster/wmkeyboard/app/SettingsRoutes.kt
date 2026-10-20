@@ -190,6 +190,7 @@ internal object SettingsRoutes {
         "ai_actions",
         "ai_reply_tones",
         "ai_history",
+        "ai_memory",
         "ai_chat",
         "ai_chat/{conversationId}",
         "settings_assistant",

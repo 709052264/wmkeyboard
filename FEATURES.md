@@ -2684,7 +2684,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Retry drops the failed bubble and re-answers the same user message
     - Failed turns excluded from the context sent to the model
   - Launcher shortcut straight into chat `RARE` — wmkeyboard://settings/ai_chat, one of 7 allowlisted shortcut routes
-- **AI history and privacy guards** `RARE` — Optional on-device log of every AI run
+- **AI memory** `uncommon` — Short facts about the user that chats save and later chats and AI actions are handed, on the phone only (Settings › AI › Memory)
+  - `remember` and `forget` tools `uncommon` — offered to a chat only, never to AI actions or AI reply (their input is the field's text, which may be anyone's words); no Run/Ask policy, every save shows under the answer as "Saved to memory" with Undo
+  - Deduplicated `RARE` — a fact equal once normalised, or saying no more than one kept, is a duplicate; one saying more ("likes tea" → "likes green tea", or 80% shared words) replaces the old wording under the same id; normalising keeps combining marks so Bengali and Hindi words stay whole
+  - Secret filter in code `RARE` — refuses a named secret with its value, a one-time code, a Luhn-valid 13–19 digit card number, provider key shapes (sk-, AIza, ghp_, xox, AKIA, PEM) and generated-looking tokens, for the model's saves and the user's own alike
+  - Few go whole, many go ranked `uncommon` — up to 30 facts and 3000 chars go to every run; past that 12 best matches (search by meaning when its model is on the phone, shared words otherwise) then the newest, 20 in all; a chat picks once per conversation so on-device sessions and prompt caches stay warm
+  - Who gets it — on-device models always while it is on (default on); cloud and self-hosted only with "Use with cloud models" (default off); never incognito fields or chats begun in incognito; never before the first unlock (credential-encrypted storage)
+  - Memory screen — on/off, cloud switch, Add memory, edit, swipe or button delete, Delete all (app-lock target); 500 facts, 300 chars each
+  - Backup section `AI memory`, off by default; the one section sync can never carry
   - Four-condition write guard `RARE` — a pure, separately tested function: enabled AND device unlocked since boot AND not a password field AND not incognito
   - What a record holds `RARE` — action id and name-at-the-time, provider, model, input, output, duration, instruction, reasoning chars, streamed flag, error, truncated flag
     - Whether the answer was actually used — NONE / REPLACE / INSERT, written back when the user commits
@@ -2901,6 +2908,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Whisper engine and handwrite-with-swipes | silently downgraded by Power Saving's "drop on-device models" option (Whisper → system recognizer, handwrite → glide typing) |
 | AI tool, handwriting, all three scanners and the camera tool | not direct-boot safe — unavailable until the device has been unlocked once after a restart |
 | AI history and AI chat transcripts | stored only on device, deliberately excluded from settings backup; history additionally requires the user to enable it and is never written from a password field or in incognito |
+| AI memory | stored only on device in credential-encrypted storage; goes to a cloud model only with "Use with cloud models" on; in a backup only when its section is ticked (off by default); never synced; never read or written in incognito |
 | Report a bad AI generation | opens a draft in the user's own mail app; there is no reporting server and nothing is uploaded |
 | Save-to-gallery for camera captures and scanned pages | writes into shared storage (Pictures/WM Keyboard); off by default |
 

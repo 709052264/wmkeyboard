@@ -98,6 +98,10 @@ internal object AppLockTargets {
             LockKind.SCREEN, LockGroup.CONTENT, route = "ai_history", onByDefault = true,
         ),
         LockTarget(
+            "screen_ai_memory", R.string.toolai_memory_screen_title,
+            LockKind.SCREEN, LockGroup.CONTENT, route = "ai_memory", onByDefault = true,
+        ),
+        LockTarget(
             "screen_ai_chat", R.string.home_screen_ai_chat_title,
             LockKind.SCREEN, LockGroup.CONTENT, route = "ai_chat", onByDefault = true,
         ),
@@ -143,6 +147,10 @@ internal object AppLockTargets {
         ),
         LockTarget(
             "action_delete_ai_chats", R.string.toolai_delete_chats_title,
+            LockKind.ACTION, LockGroup.DESTRUCTIVE, onByDefault = true,
+        ),
+        LockTarget(
+            "action_delete_ai_memory", R.string.toolai_memory_delete_all_title,
             LockKind.ACTION, LockGroup.DESTRUCTIVE, onByDefault = true,
         ),
         LockTarget(

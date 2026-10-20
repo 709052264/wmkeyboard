@@ -1,0 +1,74 @@
+---
+title: "AI memory"
+description: "Short facts about you that the AI saves in a chat and uses again in later chats and AI actions. You can read, edit and delete every one, and they stay on your phone."
+sidebar:
+  order: 11.6
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+<SettingsPath path="AI / Memory" />
+
+Without memory, every chat starts from nothing: you tell the AI where you live, what you do and how you like answers, and the next chat has forgotten all of it. AI memory keeps those facts. When you mention something about yourself that will still be true next week, the model in the [AI chat](/tools/ai-chat/) can save it as one short line, such as "Lives in Dhaka" or "Prefers short answers". Later chats are handed the saved lines, and so are the keyboard's [AI actions](/tools/ai/) and [AI reply](/tools/ai-reply/).
+
+Every fact is on one screen, where you can read it, change it or delete it. Nothing in memory comes from anywhere else, so that list is everything the AI remembers about you.
+
+## How a fact gets saved
+
+The model decides, while it answers. It's told to save only what is about you and will stay true: your name, where you live, your work, your preferences, the people and projects you mention often. It also saves what you ask it to remember ("remember that I'm vegetarian"), and deletes what you ask it to forget. If a saved fact has changed, it rewrites that one instead of adding a second.
+
+A save shows under the answer as a line saying **Saved to memory** with the fact, or **Memory updated** when an old fact was reworded. **Undo** on that line takes it back: a new fact is deleted, and a reworded one gets its old words back. The line then says **Taken back**. It works the same on the keyboard's chat and in the app.
+
+Saving the same fact twice doesn't make two lines. A fact that says no more than one already saved is left alone, and one that says more ("likes green tea" after "likes tea") replaces the old wording under the same entry.
+
+Some things are never kept, whatever the model tries. A line that looks like a password with its value, a PIN, a one-time code, a payment card number, or an API key or token is refused, and the model is told why. So is anything longer than 300 characters, since a memory is one fact and not a note.
+
+## Which models get it
+
+<SettingsPath path="AI / Memory / Use with cloud models" />
+
+- **A model on your phone** always gets memory while **Remember things about me** is on. Nothing leaves the phone.
+- **A cloud or self-hosted service** gets it only when you also turn on **Use with cloud models**, which is off to start with. With it on, the facts picked for a request go to that service with the request, and its chats can save new facts. With it off, a chat with that service neither sees nor saves memory.
+
+The facts are the most personal thing the keyboard keeps about you, gathered over many chats. Sending them along with every request is a choice to make yourself, which is why the cloud switch starts off. Memory itself starts on, because until you flip that second switch it only ever reaches a model running on your phone.
+
+## What a chat or an action is handed
+
+While you have up to 30 facts, and they're short, every request gets all of them. Past that, each request gets the 20 that fit it best: the ones closest in meaning to what you asked, when [search by meaning](/smart/search-by-meaning/) is on and its model is downloaded, or the ones sharing words with it otherwise, then the most recently saved.
+
+A chat picks its facts once, on its first message, and keeps them for the rest of the conversation. That keeps an on-device model's session and a service's prompt cache from starting over on every message. A change you make on the memory screen reaches the next message of a chat already open.
+
+AI actions and AI reply read memory but never save to it. The text they work on is the field's, which may be someone else's message or a document, so nothing in it is taken as a fact about you. They're also told to use the facts only where the task calls for them, so **Fix grammar** doesn't sign your name to the text.
+
+## Where it doesn't apply
+
+- **Incognito.** A field in [incognito](/privacy/incognito/), from the setting or from an app asking for it, neither reads nor saves memory. A chat started in incognito is a private one, and it never touches memory either, even after incognito ends.
+- **Before you unlock.** Memory is kept in storage that only opens once you've unlocked the phone after it started. Until then the AI has no memory at all.
+- **Password fields.** The AI tool doesn't run in one.
+
+## The memory screen
+
+<SettingsPath path="AI / Memory" />
+
+- **Remember things about me** turns memory on or off. Off, no chat or action reads or saves it. The facts you already have stay until you delete them.
+- **Use with cloud models** is described above.
+- **Add memory** opens a box for a fact of your own, with an optional category such as "work" or "food". The same checks apply as to the model's saves, so a password is refused here too.
+- Each saved fact is a row, newest first, with where it came from (**Added by you** or **From a chat**) and when it last changed. Tap a row to edit it. Swipe it left for **Edit** and **Delete**, or use the delete button on the row.
+- **Delete all memories** clears the list after asking. The [app lock](/reference/settings/app-lock/) can put a fingerprint in front of it, and in front of the whole screen.
+
+## Where it's kept
+
+The facts are one file in the app's private storage. They go nowhere unless you send them:
+
+- **Backups** carry them only when you tick **AI memory** in what goes in a backup, which is off to start with. See [Backup & restore](/privacy/backup/).
+- **Sync** never carries them. AI memory isn't one of the sections a sync can pick.
+- **Search by meaning** keeps a small index of the facts next to its others, so it can find the closest ones. **Delete all memories** deletes it too.
+
+## Limits
+
+| What | Limit |
+|---|---|
+| Facts kept | 500. Past that the model is told memory is full, and a fact you add is refused. |
+| Length of one fact | 300 characters |
+| Facts sent whole | Up to 30, and 3,000 characters together |
+| Facts sent past that | The 20 that fit the request best |
