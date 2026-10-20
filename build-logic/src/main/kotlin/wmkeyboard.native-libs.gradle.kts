@@ -32,9 +32,9 @@ check(dirs.isNotEmpty()) { "${project.path} keeps no library of native/gates.jso
 val playStoreChannel = (wmkbFlag("wmkb.enablePlayStore", "WMKB_ENABLE_PLAY_STORE") ?: "false").toBoolean()
 
 if (playStoreChannel && "src/main/jniLibs" in dirs) {
+    // `main` exists from the moment com.android.library is applied.
     extensions.getByType(LibraryExtension::class.java).sourceSets
-        .matching { it.name == "main" }
-        .configureEach { jniLibs.setSrcDirs(emptyList<String>()) }
+        .getByName("main").jniLibs.setSrcDirs(emptyList<String>())
 }
 
 extensions.getByType(LibraryAndroidComponentsExtension::class.java).onVariants { variant ->
