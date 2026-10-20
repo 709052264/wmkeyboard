@@ -102,6 +102,11 @@ Offline Asr4All, Parakeet and Moonshine, and, from the release after 0.6.0,
 the text engines (Avro, Khipro, Bijoy, Hindi, Urdu and the Indic languages),
 which moved from Kotlin into the Rust crate `native/wm-engine`.
 
+From the release after 0.6.2 the ExecuTorch library lives apart, in
+`core/voice/src/executorch/jniLibs` (its own delivery gate, shared with the
+FUTO Swipe glide engine), and the next entry's `scandelete` needs that path
+added.
+
 Up to 0.5.14 lite carried none of them, so deleting was the whole story. Now
 `build` puts them back: `../native/build-lite-libs.sh` runs after the scan and
 before Gradle, and compiles all of them from source into the directories the

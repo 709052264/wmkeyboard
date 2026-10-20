@@ -466,7 +466,7 @@ android {
         // recogniser (~6.5 MB per ABI) behind the handwriting tool.
         dynamicFeatures += ":feature:litert"
         dynamicFeatures += ":feature:handwriting"
-        // The whisper.cpp, ExecuTorch and Whistle libraries behind the
+        // The whisper.cpp and Whistle libraries behind the
         // offline voice engines other than LiteRT Whisper, Harper's behind
         // the grammar tool and the spell checker, and Tesseract's behind the
         // scanner's offline reader. Library files only: their Kotlin stays
@@ -475,6 +475,9 @@ android {
         // ONNX Runtime (~33 MB on arm64) and the sherpa-onnx bridge behind
         // Offline Sherpa, fetched when Sherpa is first picked.
         dynamicFeatures += ":feature:onnx"
+        // The ExecuTorch runtime (~3.8 MB on arm64) behind Asr4All,
+        // Parakeet, Moonshine and the FUTO Swipe glide engine.
+        dynamicFeatures += ":feature:executorch"
         dynamicFeatures += ":feature:grammar"
         // Hunspell's library, behind spell checking against an imported
         // .aff/.dic.
@@ -1349,7 +1352,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:onnx, :feature:grammar, :feature:spell and :feature:ocr modules.
+        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell and :feature:ocr modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

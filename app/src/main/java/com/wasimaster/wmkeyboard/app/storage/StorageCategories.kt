@@ -30,6 +30,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
@@ -76,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
@@ -460,6 +462,33 @@ internal object StorageCategories {
                 WhistleModelDownloadManager.delete(env.roots.files)
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
             },
+        ),
+        StorageCategory(
+            id = "glide_models",
+            title = R.string.storage_glide_models_title,
+            subtitle = R.string.storage_glide_models_subtitle,
+            icon = Icons.Outlined.Gesture,
+            accent = Color(0xFF5C6BC0),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "typing/gestures",
+            note = R.string.storage_note_mapped,
+            pathsOf = { listOf(FutoSwipe.rootDir(it.files)) },
+            itemsOf = { env ->
+                // FUTO Swipe's encoder and decoder, downloaded or part-way.
+                listOfNotNull(
+                    FutoSwipe.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = "futo-swipe",
+                            label = "FUTO Swipe",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
+                )
+            },
+            deleteOne = { env, _ -> FutoSwipe.delete(env.roots.files) },
+            clearOf = { env -> FutoSwipe.delete(env.roots.files) },
         ),
         StorageCategory(
             id = "ai_models",

@@ -74,6 +74,7 @@ it.
 | Voice typing (Whistle) <Flavor edition="full" /> | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
 | Voice typing (Asr4All) | none | nothing leaves the phone during dictation | never: fully offline once a model is downloaded |
 | Voice typing (Parakeet, Moonshine, Sherpa) | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
+| Glide typing (FUTO Swipe engine) | none | nothing leaves the phone while you swipe | never: fully offline once the two models are downloaded |
 | Voice typing ([transcription server](/tools/transcription-server/)) | a server address you enter, on your own network or a service such as Groq or OpenAI | the recording of each phrase (16 kHz WAV, up to 30 seconds), the model name you set, the layout's language unless you turn that off, and up to 150 of your own words plus your prompt text when [words to listen for](/tools/voice/#words-to-listen-for) are on | once per phrase, after you stop speaking, only while you dictate with this engine |
 
 The AI panel's **Report** button is the one row that quotes your own text
@@ -183,8 +184,8 @@ what's already in the table above:
   fetches its three files, 11 MB together, only when you press **Download**
   for Chinese or Japanese where ML Kit can't read them. The requests carry
   nothing about you.
-- **`huggingface.co`** is the source for offline Whisper, Whistle, Asr4All, Parakeet, Moonshine and Sherpa speech models and
-  on-device AI models. Most are public. A couple of gated on-device models
+- **`huggingface.co`** is the source for offline Whisper, Whistle, Asr4All, Parakeet, Moonshine and Sherpa speech models,
+  the FUTO Swipe glide models and on-device AI models. Most are public. A couple of gated on-device models
   need your own Hugging Face account token.
 - **`fonts.gstatic.com`** serves Google's Noto animated emoji. Long-press an
   emoji that has an animated version and the keyboard fetches a small WebP
@@ -277,6 +278,7 @@ some are.
 | Offline Whisper speech models | Hugging Face | SHA-256 for whisper.cpp models, from a fixed revision; a file-size floor only for LiteRT models | Yes, around 150 MB. See [Offline voice (Whisper)](/tools/whisper/#downloading-and-managing-models) |
 | Offline Whistle speech model <Flavor edition="full" /> | Hugging Face, pinned to one revision | SHA-256 verified before the file is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Whistle)](/tools/whistle/#setting-it-up) |
 | Offline Asr4All speech models | Hugging Face, pinned to one revision per size | SHA-256 verified for both files before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Asr4All)](/tools/asr4all/#setting-it-up) |
+| FUTO Swipe glide models | Hugging Face, `futo-org/futo-swipe` pinned to one revision | SHA-256 verified for both files before they are used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [The FUTO Swipe engine](/typing/glide-typing/#the-futo-swipe-engine) |
 | Offline Parakeet and Moonshine speech models | Hugging Face, pinned to one revision each | SHA-256 verified for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and Parakeet's 719 MB also asks on mobile data. See [Parakeet](/tools/parakeet/#setting-it-up) and [Moonshine](/tools/moonshine/#setting-it-up) |
 | Offline Sherpa speech models, Silero VAD and the English punctuation model | Hugging Face, pinned to one revision each | SHA-256 verified for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and a model of 150 MB or more also asks on mobile data. See [Offline voice (Sherpa)](/tools/sherpa/#setting-it-up) |
 | Text scanner languages (Tesseract) <Flavor edition="full" /> | the Tesseract project's `tessdata_fast` 4.1.0 on GitHub | none beyond the file arriving at the length the server announced; a file Tesseract can't load is not read | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |

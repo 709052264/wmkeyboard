@@ -5,11 +5,11 @@ plugins {
     id("com.android.dynamic-feature")
 }
 
-// The on-demand home of the whisper.cpp, ExecuTorch and Whistle native libraries,
+// The on-demand home of the whisper.cpp and Whistle native libraries,
 // Play builds only: :app lists this module in `dynamicFeatures` when
 // wmkb.enablePlayStore is on, and no other build references it at all. Every
 // other channel packages the same files in the base APK from :core:voice.
-// The module has no code: WhisperCpp, EtNative and WhistleEngine stay in :core:voice and
+// The module has no code: WhisperCpp and WhistleEngine stay in :core:voice and
 // load the libraries through FeatureModules.loadLibrary once Play has
 // installed this split. It packages :core:voice's src/main/jniLibs and, for
 // full, src/full/jniLibs (Whistle, arm64 only) in place, which :core:voice
@@ -17,8 +17,8 @@ plugins {
 // build scripts and F-Droid's recipe know. Whistle rides here rather than in a
 // split of its own because bundletool wants every module with native code on
 // the base's three ABIs, and Whistle has one. Used only by the GGML Whisper
-// models, Asr4All, Parakeet, Moonshine and Whistle, all of which the user
-// picks and downloads first.
+// models and Whistle, both of which the user picks and downloads first.
+// ExecuTorch, which used to ride here too, is :feature:executorch.
 android {
     namespace = "com.wasimaster.wmkeyboard.speechfeature"
     compileSdk {

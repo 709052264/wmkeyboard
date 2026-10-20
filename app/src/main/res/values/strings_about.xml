@@ -186,6 +186,7 @@
     <string name="about_bundled_rime_used">The optional RIME engine for Chinese and Cantonese, with LevelDB, yaml-cpp, marisa-trie, OpenCC and Boost</string>
     <string name="about_bundled_executorch_used">The engine that runs the Offline Asr4All models on your device</string>
     <!-- Asr4All is a model name and is not translated. -->
+    <string name="about_bundled_futo_swipe_used">Glide typing powered by FUTO Swipe: the neural glide models, downloaded on request when that glide engine is picked</string>
     <string name="about_bundled_asr4all_used">The Offline Asr4All speech recognition models, downloaded on request. They may not be used for surveillance or profiling; dictation is allowed</string>
     <!-- Parakeet and Moonshine are model names and are not translated. -->
     <string name="about_bundled_parakeet_used">The Offline Parakeet speech recognition model, downloaded on request</string>

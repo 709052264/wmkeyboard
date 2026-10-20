@@ -79,6 +79,9 @@ enum class NetSource(
     DOWNLOAD_CJK("download_cjk"),
     DOWNLOAD_EMOJI("download_emoji", ToolbarTool.EMOJI),
     DOWNLOAD_WHISPER("download_whisper", ToolbarTool.VOICE),
+
+    /** FUTO Swipe's glide models, when that glide engine is turned on. */
+    DOWNLOAD_GLIDE("download_glide"),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
 

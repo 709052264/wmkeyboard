@@ -359,6 +359,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Exclusive loops — A loop credits only the key nearest its centre, and the samples inside it belong to that key alone, so the keys its edge passes over cannot enter the word
     - Admissible bound pruning — logWeight + ln(1+maxSubtree) - shapeWeight*minCol; anchor radius 1.6 and near radius 1.5 key widths
     - 17 injectable tuning weights — sigma, maxPointCost, gapWeight, gapWindow, shapeWeight, repeatCost, unloopedRepeat, unclaimedDwell, loopExtent, loopMinArc, wiggleExtent, wiggleWeight, unclaimedLoop, shapeChannel, anchorRadius, nearRadius, vocabularyRank — swept by a test harness
+  - FUTO Swipe neural engine `RARE` — Optional glide engine for English on QWERTY (Typing > Gestures > Glide engine, built-in by default): FUTO's encoder and English QWERTY decoder on the app's ExecuTorch runtime, read by the app's own trie-constrained CTC beam (CtcGlideBeam, MIT) over the same word sources, reranker and picker as GlideBeam
+    - Measured on 5,000 real swipes — FUTO's MIT test set, words in the list: top-1 .957 vs GlideBeam .801, top-4 .993 vs .937 on the bundled English list; .949/.991 vs .819/.921 on the 160k AOSP list
+    - QWERTY by fit, not by name — Per-axis least-squares fit of the grid's 26 letters onto the models' training frame; a letter off its row (AZERTY, QWERTZ, Dvorak, Colemak) or any non-English language falls back to GlideBeam per stroke
+    - Licence-gated download — 3.9 MB from a pinned Hugging Face revision, SHA-256 checked, after the FUTO Model Weights License is accepted; "powered by FUTO Swipe" under the setting and in About
+    - Own ExecuTorch gate — libwmexecutorch moved to an `executorch` delivery gate (Play :feature:executorch), shared with Asr4All, Parakeet and Moonshine, so the glide engine never fetches whisper.cpp
   - Per-language glide readiness gate `RARE` — Glide enables itself only where it can decode honestly; measured, not flagged
     - Coverage measurement — Top 1500 words per word source; grid must be able to spell 90% of them
     - Converting-layout block — Off on Avro, Hangul, Vietnamese and every CJK conversion layout — a stroke there spells a reading, not a word
@@ -716,6 +721,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | TalkBack gesture pass-through for spacebar slide / backspace swipe / glide / handwriting | needs the 'WM Keyboard gestures' accessibility service granted by the user |
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
+| FUTO Swipe glide engine | English on a QWERTY layout; the licence accepted and the 3.9 MB models downloaded (network); the ExecuTorch runtime on the phone (fetched on first use where the build leaves it out). Any other case reads with the built-in decoder |
 | Volume keys as cursor control | no permission, but only active while the input view is shown |
 
 ## Languages, scripts, layouts, transliteration

@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.GlideCoverage
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.GlideWorkspace
+import com.wasimaster.wmkeyboard.core.gesture.NeuralGlide
 import com.wasimaster.wmkeyboard.core.gesture.RomanizedIndex
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.transliteration.PhoneticIndex
@@ -1076,6 +1077,17 @@ class SuggestionEngine(
     private var deepGlideBeam = GlideBeam(glideTuning.copy(vocabularyRank = 0))
 
     /**
+     * The neural glide engine the user picked in place of [glideBeam] (FUTO
+     * Swipe, English on QWERTY), or null for the built-in decoder. The
+     * keyboard service sets it before each decode from the setting, the
+     * language and whether the models are here, so it is null whenever the
+     * engine does not apply; [glide] still falls back to [glideBeam] for a
+     * stroke it cannot read (a layout that is not QWERTY, a model error).
+     */
+    @Volatile
+    var neuralGlide: NeuralGlide? = null
+
+    /**
      * The two-thumb decoder (issue #638), on the same stroke weights as
      * [glideBeam] so a setting that moves a radius moves both.
      */
@@ -1261,6 +1273,22 @@ class SuggestionEngine(
             romanization.walkSources()
         }
         if (sources.isEmpty()) return emptyList()
+        // The neural engine reads Latin spellings only, so never on a
+        // phonetic layout, where the answer is the romanization's own.
+        val neural = neuralGlide?.takeIf { romanization.isEmpty }?.decode(
+            path = path,
+            keys = keys,
+            keyWidth = keyWidth,
+            sources = sources,
+            limit = maxOf(limit, if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL),
+            deep = deep,
+            vocabularyRank = glideTuning.vocabularyRank,
+        )
+        if (neural != null) {
+            return finishGlide(
+                neural, romanization, limit, previousWord, previousWord2, previousWord3, recentWords,
+            )
+        }
         val decoded = (if (deep) deepGlideBeam else glideBeam).decode(
             path = path,
             keys = keys,

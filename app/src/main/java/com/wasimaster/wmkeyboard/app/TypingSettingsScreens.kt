@@ -2132,6 +2132,9 @@ internal fun TypingGesturesSettings(
                 // kept together and out of line: this screen's body is already
                 // past its length budget and these belong to one another.
                 glideVocabularyRows(settings, repository, scope)
+                // Which decoder reads the swipe at all: built-in, or FUTO
+                // Swipe for English on QWERTY.
+                glideEngineRows(settings, repository, scope)
                 item {
                     ToggleSetting(
                         R.string.typing_space_after_glide_title,

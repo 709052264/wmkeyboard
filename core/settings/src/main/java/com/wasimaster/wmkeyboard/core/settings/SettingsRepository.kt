@@ -1557,6 +1557,27 @@ enum class GlideLookAhead(
 }
 
 /**
+ * Which decoder reads a glide.
+ *
+ * [BUILT_IN] is `GlideBeam`, the app's own decoder, for every language and
+ * layout. [FUTO_SWIPE] is FUTO Swipe's neural encoder and English QWERTY
+ * decoder (3.9 MB, downloaded under the FUTO Model Weights License) with the
+ * app's own dictionary search over it, for English on a QWERTY layout only;
+ * every other language and layout, and any moment the models or the
+ * ExecuTorch runtime are not on the phone yet, falls back to the built-in
+ * decoder.
+ *
+ * Measured 2026-10-20 on 5,000 real swipes from FUTO's MIT test set (the
+ * shipped English list, words it holds): top-1 .801 built-in against .957
+ * FUTO Swipe, top-4 .937 against .993. The built-in decoder stays the default
+ * until the same comparison holds on a phone.
+ */
+enum class GlideEngine(@StringRes val labelRes: Int) {
+    BUILT_IN(R.string.core_settings_glide_engine_built_in_label),
+    FUTO_SWIPE(R.string.core_settings_glide_engine_futo_label),
+}
+
+/**
  * Which word a stroke being drawn is given the suggestion strip's own colour,
  * instead of only the bold the leading suggestion always gets.
  *
@@ -7646,6 +7667,11 @@ data class GestureSettings(
      */
     val lookAhead: GlideLookAhead = GlideLookAhead.OFF,
     /**
+     * Which decoder reads a glide — see [GlideEngine]. [GlideEngine.BUILT_IN]
+     * by default.
+     */
+    val engine: GlideEngine = GlideEngine.BUILT_IN,
+    /**
      * Which word a stroke being drawn is coloured rather than merely bolded —
      * see [GlideCommitColor]. [GlideCommitColor.CONFIDENT] by default, which
      * draws nothing at all until [lookAhead] is on and the strip has a colour
@@ -9814,6 +9840,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SANDBOX = stringPreferencesKey("gesture_sandbox")
         private val GESTURE_PREVIEW_STEADINESS = stringPreferencesKey("gesture_preview_steadiness")
         private val GESTURE_LOOK_AHEAD = stringPreferencesKey("gesture_look_ahead")
+        private val GESTURE_ENGINE = stringPreferencesKey("gesture_engine")
         private val GESTURE_COMMIT_COLOR = stringPreferencesKey("gesture_commit_color")
         private val GESTURE_COMMIT_COLOR_SCOPE =
             stringPreferencesKey("gesture_commit_color_scope")
@@ -11685,6 +11712,9 @@ class SettingsRepository(private val context: Context) {
             lookAhead = p[GESTURE_LOOK_AHEAD]
                 ?.let { runCatching { GlideLookAhead.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.lookAhead,
+            engine = p[GESTURE_ENGINE]
+                ?.let { runCatching { GlideEngine.valueOf(it) }.getOrNull() }
+                ?: defaults.gesture.engine,
             commitColor = p[GESTURE_COMMIT_COLOR]
                 ?.let { runCatching { GlideCommitColor.valueOf(it) }.getOrNull() }
                 ?: defaults.gesture.commitColor,
@@ -18312,6 +18342,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureLookAhead(value: GlideLookAhead) =
         editPrefs { it[GESTURE_LOOK_AHEAD] = value.name }
+
+    suspend fun setGestureEngine(value: GlideEngine) =
+        editPrefs { it[GESTURE_ENGINE] = value.name }
 
     suspend fun setGestureCommitColor(value: GlideCommitColor) =
         editPrefs { it[GESTURE_COMMIT_COLOR] = value.name }

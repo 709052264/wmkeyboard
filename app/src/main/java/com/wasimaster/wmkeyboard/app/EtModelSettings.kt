@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
@@ -80,9 +81,9 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
         }
     }.toSet()
 
-    // The runtime itself is an on-demand part: ONNX Runtime for Sherpa, the
-    // speech libraries (shared with whisper.cpp) for the others.
-    if (engine == EtEngine.SHERPA) OnnxModuleBanner(settings) else SpeechModuleBanner(settings)
+    // The runtime itself is an on-demand part off the APK: ONNX Runtime for
+    // Sherpa, ExecuTorch (shared with the FUTO Swipe glide engine) for the others.
+    if (engine == EtEngine.SHERPA) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch)
 
     SettingsGroup(
         stringResource(

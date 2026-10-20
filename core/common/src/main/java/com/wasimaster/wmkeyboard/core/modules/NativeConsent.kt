@@ -16,7 +16,9 @@ import kotlinx.coroutines.flow.asStateFlow
  *   given.
  * - A licence, such as [QUALCOMM]: the vendor's terms, which the user
  *   accepts because the phone fetches the vendor's files itself and this
- *   project does not redistribute them.
+ *   project does not redistribute them. [FUTO] is the same kind of
+ *   agreement for model weights rather than a library: FUTO Swipe's glide
+ *   models, fetched from Hugging Face under the FUTO Model Weights License.
  *
  * Kept in its own small preferences file on device-protected storage: the
  * keyboard reads it before the user unlocks, and it is not a setting worth
@@ -25,10 +27,13 @@ import kotlinx.coroutines.flow.asStateFlow
 object NativeConsent {
     const val DOWNLOADS = "downloads"
     const val QUALCOMM = "qualcomm"
+    const val FUTO = "futo"
 
     /** The licence page each licence id links to. */
     val licenceUrls: Map<String, String> = mapOf(
         QUALCOMM to "https://softwarecenter.qualcomm.com/api/download/software/licenses/ai_model_hub/v1/LICENSE.pdf",
+        // Pinned to the revision the app downloads (FutoSwipe in :core:voice).
+        FUTO to "https://huggingface.co/futo-org/futo-swipe/blob/18328c3042b066952c0936b3771d492fe2ec289a/LICENSE.md",
     )
 
     private const val PREFS = "native_delivery"

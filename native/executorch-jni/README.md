@@ -1,14 +1,16 @@
 # executorch-jni: the keyboard's ExecuTorch runtime
 
 A selective build of [ExecuTorch](https://github.com/pytorch/executorch) and a
-small JNI bridge over its C++ `Module` API. Three offline dictation engines run
-on it, each with its own Kotlin pipeline in `core/voice/src/main/.../voice`:
+small JNI bridge over its C++ `Module` API. Three offline dictation engines and
+one glide engine run on it, each with its own Kotlin pipeline in
+`core/voice/src/main/.../voice`:
 
 | Engine | Kotlin | Model | Pipeline |
 |---|---|---|---|
 | Offline Asr4All (#289) | `asr4all/` | Asr4All S/M/L, English | streaming CTC windows with carried caches, then a punctuation and casing pass |
 | Offline Parakeet | `parakeet/` | NVIDIA Parakeet TDT 0.6B v3, 25 European languages | preprocessor, encoder, then greedy token-and-duration transducer decoding |
 | Offline Moonshine | `moonshine/` | Moonshine Tiny, English | encoder on the clip at its own length, then the decoder's cached loop |
+| FUTO Swipe glide engine | `futoswipe/` | FUTO Swipe encoder and English QWERTY decoder | the stroke on a 60 Hz clock, 64 points, encoder then decoder, then `CtcGlideBeam` in `:core:prediction` over the dictionary tries |
 
 The bridge (`EtNative` in `executorch/`) knows nothing about speech: it opens
 a `.pte`, describes a method's tensors and runs a method. Models, files,
@@ -37,8 +39,11 @@ ops = {o.name + ("." + o.overload if o.overload else "") for p in prog.execution
 `executorch_prim::*` and `aten::sym_size.int` are built into the runtime and
 stay out of `ops.txt`.
 
-The built libraries are committed under `core/voice/src/main/jniLibs/`, so the
-app builds without an NDK, and both editions, full and lite, carry them.
+The built libraries are committed under `core/voice/src/executorch/jniLibs/`,
+so the app builds without an NDK. They ride their own delivery gate,
+`executorch` (`:feature:executorch` on Play, a pinned download on the GitHub
+and F-Droid builds), apart from whisper.cpp's `speech` gate, so turning on the
+glide engine fetches 3.8 MB and not the whole speech set.
 F-Droid deletes the committed copies and builds them with this script
 (through `native/build-lite-libs.sh`), and so does the release workflow for
 the reference APK F-Droid compares against; the script maps the build
@@ -76,6 +81,14 @@ revision, every file checked against the SHA-256 in `EtCatalog`:
   `nvidia/parakeet-tdt-0.6b-v3`, CC-BY-4.0.
 - Moonshine: `software-mansion/react-native-executorch-moonshine-tiny`, the
   XNNPACK encoder and decoder of Useful Sensors' Moonshine Tiny, MIT.
+- FUTO Swipe: `futo-org/futo-swipe`, the fp32 encoder
+  (`honorable_sturgeon`) and English QWERTY decoder (`magic_macaw`), under
+  the FUTO Model Weights License 1.0, which asks for a visible "powered by
+  FUTO Swipe" notice. Their programs add three operators to the list:
+  `aten::atan2.out`, `aten::cumsum.out` and `aten::lt.Scalar_out`. The
+  optional context language model (`hungry_jellyfish`, which would add
+  `aten::clamp.out`) is not used: on FUTO's test set it moved top-1 by half a
+  point, and the strip's own context reranker already runs after the glide.
 
 ## Checked on the desktop
 

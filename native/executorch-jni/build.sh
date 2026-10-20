@@ -3,7 +3,7 @@
 # ExecuTorch (only the operators in ops.txt, optimized kernels where they
 # exist, the XNNPACK delegate, the Module extension), then executorch_jni.cpp
 # over it; copies the results into
-# core/voice/src/main/jniLibs/. See README.md.
+# core/voice/src/executorch/jniLibs/. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk native/executorch-jni/build.sh
 #
@@ -29,7 +29,7 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
 # Where the libraries go: the jniLibs directory of the module that packages
 # them for the non-Play builds. F-Droid's recipe scandeletes the same path.
-OUT=${ET_OUT:-$REPO/core/voice/src/main/jniLibs}
+OUT=${ET_OUT:-$REPO/core/voice/src/executorch/jniLibs}
 NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
 [ -n "$NDK" ] && [ -f "$NDK/build/cmake/android.toolchain.cmake" ] || {
     echo "Set ANDROID_NDK to an NDK install (r27 or newer)" >&2; exit 1; }

@@ -7,7 +7,8 @@
 #   Harper grammar      harper-jni/build.sh       libharper_jni.so
 #   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
 #   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
-#   Moonshine
+#   Moonshine, FUTO                                (into core/voice/src/executorch/jniLibs)
+#   Swipe glide
 #   Noise reduction     rnnoise-jni/build.sh      libwmdenoise.so
 #   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so

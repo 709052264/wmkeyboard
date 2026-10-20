@@ -32,7 +32,7 @@ of it, so nothing here needs a branch or a patched source tree.
 | LiteRT interpreter (offline Whisper, the sticker editor's own background remover) | bundled | absent | on-demand `:feature:litert` module |
 | Handwriting recognition (ML Kit) | bundled | absent | on-demand `:feature:handwriting` module |
 | Text engines (Avro, Khipro, Bijoy, Hindi, Urdu, the Indic languages) | committed prebuilt library | compiled from source by the recipe | the same prebuilt library, in the base module |
-| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp, ExecuTorch) and `:feature:grammar` (Harper) modules |
+| Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine, the FUTO Swipe glide engine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp), `:feature:executorch` (ExecuTorch) and `:feature:grammar` (Harper) modules |
 | Hunspell (spell checking against an imported `.aff`/`.dic`) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:spell` module |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, full only | absent | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
@@ -491,7 +491,8 @@ instead.
    libraries. Some belong to variants a `lite` build never assembles
    (Tesseract, Whistle, the LLM module's placeholders). The rest, the text
    engines, Harper, whisper.cpp and ExecuTorch under the `src/main/jniLibs`
-   of `:core:language`, `:core:intelligence` and `:core:voice`, ship in
+   of `:core:language`, `:core:intelligence` and `:core:voice` (ExecuTorch
+   under `:core:voice`'s `src/executorch/jniLibs`), ship in
    `lite` itself. The recipe
    deletes all of them before the source scan, then its `build:` step runs
    `native/build-lite-libs.sh`, which compiles the `lite` ones from source with
