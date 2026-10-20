@@ -45,6 +45,8 @@
     <string name="storage_wordlists_title">Word lists</string>
     <!-- One item in Word lists: RIME's compiled schemas and the words it learned. RIME stays in Latin letters. -->
     <string name="storage_rime_label">RIME schemas and learned words</string>
+    <!-- One item in Word lists: what the Mozc engine learned from the user's picks. Mozc stays in Latin letters. -->
+    <string name="storage_mozc_label">Mozc learned conversions</string>
     <string name="storage_wordlists_subtitle">Dictionaries you downloaded for prediction</string>
     <string name="storage_bundled_dicts_title">Built-in dictionaries</string>
     <string name="storage_bundled_dicts_subtitle">Unpacked from the app. They come back when you next type.</string>

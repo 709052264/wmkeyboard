@@ -43,6 +43,11 @@
     <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
     <string name="core_input_rime_pack_jyutping_subtitle">The rime-cantonese schema for Cantonese, with its word and phrase lists.</string>
 
+    <!-- Mozc's dictionary, for the optional Mozc engine for Japanese. Mozc
+         stays in Latin letters. -->
+    <string name="core_input_mozc_pack_title">Mozc dictionary</string>
+    <string name="core_input_mozc_pack_subtitle">Mozc's own system dictionary, with its connection costs, segmenter and suggestion filter. The Mozc engine converts with this; the built-in engine does not use it.</string>
+
     <!--
       Failure text for a CJK dictionary pack download. Each string replaces the
       pack row subtitle after the download stops.

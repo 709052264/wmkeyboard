@@ -132,6 +132,20 @@ build. The runtime itself is Microsoft's MIT-licensed AAR on Maven Central,
 read on the phone after the download opt-in, like every other delivered
 library.
 
+The Mozc engine for Japanese adds `native/mozc-jni` (Mozc's converter, into
+`core/input/src/mozc/jniLibs`), and with it the first library that builds
+with Bazel rather than CMake or Cargo: Mozc supports no other build. The
+script fetches bazelisk from its GitHub release and Bazel 9.0.2 through it,
+both checked against SHA-256 values in the script, and Bazel fetches Mozc's
+module dependencies (Abseil, Protocol Buffers, the rules) from the Bazel
+Central Registry, each checked against the registry's hash. Bazel itself is a
+prebuilt binary, as Gradle's distribution is; whether F-Droid accepts that
+for a native build step is for the merge request to settle. The next entry's
+`scandelete` needs `core/input/src/mozc/jniLibs` added, beside
+`core/input/src/main/jniLibs` (librime). The dictionary Mozc converts with is
+not in the APK or the library: it is a CJK pack download, like the built-in
+engine's.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

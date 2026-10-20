@@ -144,6 +144,7 @@
     <string name="search_kw_languages_cjk_loose_marks">japanese flick dakuten handakuten sokuon modifier insensitive</string>
     <string name="search_kw_languages_cjk_traditional">taiwan hong kong hanzi</string>
     <string name="search_kw_languages_rime_engine">rime librime schema trime weasel squirrel 中州韻 deploy</string>
+    <string name="search_kw_languages_mozc_engine">google input 日本語入力 変換 文節 bunsetsu segment kanji</string>
     <string name="search_kw_languages_conjunct_backspace">hindi devanagari indic akshara cluster</string>
     <string name="search_kw_languages_fancy_style_row">unicode aesthetic cursive strikethrough</string>
     <string name="search_kw_languages_translit_hints_row">transliteration phonetic romanized</string>

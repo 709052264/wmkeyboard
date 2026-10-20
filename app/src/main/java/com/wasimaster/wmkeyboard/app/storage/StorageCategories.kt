@@ -53,6 +53,7 @@ import com.wasimaster.wmkeyboard.core.feedback.SoundStore
 import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.icons.IconPackStore
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
@@ -304,7 +305,7 @@ internal object StorageCategories {
             danger = Danger.REDOWNLOAD,
             manageRoute = "languages",
             note = R.string.storage_note_mapped,
-            pathsOf = { listOf(File(it.files, "dict"), File(it.files, "cjk_dicts"), File(it.files, "rime")) },
+            pathsOf = { listOf(File(it.files, "dict"), File(it.files, "cjk_dicts"), File(it.files, "rime"), File(it.files, "mozc")) },
             itemsOf = { env ->
                 // RIME's unpacked and compiled schemas, with the words it learned:
                 // one item, since they only make sense together.
@@ -318,7 +319,19 @@ internal object StorageCategories {
                         directory = true,
                     )
                 }
-                listOfNotNull(rime) +
+                // What Mozc learned from the user's picks; its dictionary is a
+                // CJK pack below.
+                val mozc = File(env.roots.files, "mozc").takeIf(File::isDirectory)?.let { dir ->
+                    StorageItem(
+                        id = dir.absolutePath,
+                        label = env.context.getString(R.string.storage_mozc_label),
+                        detail = dir.name,
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                        directory = true,
+                    )
+                }
+                listOfNotNull(rime, mozc) +
                     languageItems(env, File(env.roots.files, "dict")) +
                     childrenOf(File(env.roots.files, "cjk_dicts")).map { dir ->
                         // These are named after the input method rather than a
@@ -335,6 +348,9 @@ internal object StorageCategories {
                     }
             },
             deleteOne = { env, item ->
+                // A running Mozc keeps its history in memory and would write
+                // it back, so it forgets it as well.
+                if (item.id == File(env.roots.files, "mozc").absolutePath) MozcRuntime.clearHistory(env.context)
                 item.files.forEach { it.deleteRecursively() }
                 refreshWordlists(env)
             },
@@ -342,6 +358,8 @@ internal object StorageCategories {
                 emptyOut(File(env.roots.files, "dict"))
                 emptyOut(File(env.roots.files, "cjk_dicts"))
                 File(env.roots.files, "rime").deleteRecursively()
+                MozcRuntime.clearHistory(env.context)
+                File(env.roots.files, "mozc").deleteRecursively()
                 refreshWordlists(env)
             },
         ),
@@ -1219,6 +1237,7 @@ internal object StorageCategories {
         WordlistDownloadManager.refresh(env.roots.files)
         CjkDictDownloadManager.refresh(env.roots.files)
         RimeRuntime.recheck(env.context)
+        MozcRuntime.recheck(env.context)
     }
 
     /**

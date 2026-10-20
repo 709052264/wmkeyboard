@@ -82,6 +82,11 @@
 # (Java_com_wasimaster_wmkeyboard_core_input_rime_RimeNative_*).
 -keep class com.wasimaster.wmkeyboard.core.input.rime.RimeNative { *; }
 
+# --- Mozc (JNI) ----------------------------------------------------------------
+# libwmmozc.so binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_input_mozc_MozcNative_*).
+-keep class com.wasimaster.wmkeyboard.core.input.mozc.MozcNative { *; }
+
 # --- Bergamot (JNI) -----------------------------------------------------------
 # libwmbergamot.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).

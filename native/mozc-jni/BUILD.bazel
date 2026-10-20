@@ -1,0 +1,103 @@
+# libwmmozc: WM Keyboard's bridge to Mozc's converter, built inside Mozc's
+# own Bazel workspace. build.sh copies this directory to src/wmkeyboard/ of
+# a Mozc checkout at the pinned release and builds :wmmozc.arm64 and the
+# others; see README.md. Not part of Mozc.
+
+load("//:build_defs.bzl", "MOZC_TAGS", "mozc_cc_binary", "mozc_cc_library")
+load("//android/jni:cross_build_binary.bzl", "cross_build_binary")
+
+package(default_visibility = ["//visibility:private"])
+
+mozc_cc_library(
+    name = "bridge",
+    srcs = ["mozc_bridge.cc"],
+    hdrs = ["mozc_bridge.h"],
+    deps = [
+        "//base:system_util",
+        "//base:util",
+        "//composer",
+        "//composer:table",
+        "//config:config_handler",
+        "//converter:converter_interface",
+        "//converter:segments",
+        "//data_manager",
+        "//engine",
+        "//protocol:commands_cc_proto",
+        "//protocol:config_cc_proto",
+        "//request:conversion_request",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+# The Android library: JNI symbols only, 16 KB pages.
+mozc_cc_binary(
+    name = "wmmozc",
+    srcs = ["mozc_jni.cc"],
+    additional_linker_inputs = ["jni.map"],
+    copts = ["-fvisibility=hidden"],
+    linkopts = [
+        "-llog",
+        "-Wl,--version-script=$(location jni.map)",
+        "-Wl,--gc-sections",
+        "-Wl,--exclude-libs,ALL",
+        "-Wl,--build-id=sha1",
+        "-Wl,-z,max-page-size=16384",
+    ],
+    linkshared = 1,
+    tags = MOZC_TAGS.ANDROID_ONLY,
+    target_compatible_with = ["@platforms//os:android"],
+    deps = [":bridge"],
+)
+
+[
+    cross_build_binary(
+        name = "wmmozc." + abi,
+        cpu = cpu,
+        platform = ":" + abi,
+        tags = MOZC_TAGS.ANDROID_ONLY,
+        target = ":wmmozc",
+    )
+    for abi, cpu in [
+        ("arm64-v8a", "arm64-v8a"),
+        ("armeabi-v7a", "armv7"),
+        ("x86_64", "x86_64"),
+    ]
+]
+
+[
+    platform(
+        name = abi,
+        constraint_values = ["@platforms//cpu:" + cpu, "@platforms//os:android"],
+    )
+    for abi, cpu in [
+        ("arm64-v8a", "arm64"),
+        ("armeabi-v7a", "armv7"),
+        ("x86_64", "x86_64"),
+    ]
+]
+
+# Host checking only (host-test.sh): a driver over the bridge, and the JNI
+# library for the desktop JVM so MozcNative can be loaded off a phone.
+mozc_cc_binary(
+    name = "mozc_host_test",
+    srcs = ["host_test.cc"],
+    deps = [":bridge"],
+)
+
+# jni.h for the host library: host-test.sh copies the NDK's, which stands
+# alone, so no JDK has to be found.
+mozc_cc_library(
+    name = "host_jni",
+    hdrs = glob(["host_jni/jni.h"], allow_empty = True),
+    includes = ["host_jni"],
+)
+
+mozc_cc_binary(
+    name = "libwmmozc_host.so",
+    srcs = ["mozc_jni.cc"],
+    linkshared = 1,
+    deps = [
+        ":bridge",
+        ":host_jni",
+    ],
+)

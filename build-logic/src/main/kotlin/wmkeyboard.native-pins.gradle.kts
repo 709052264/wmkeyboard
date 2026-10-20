@@ -41,6 +41,7 @@ val ownSpecs = mapOf(
     "libwmhunspell.so" to Own("spell", false),
     "libwmtess.so" to Own("ocr", true),
     "libwmrime.so" to Own("rime", false),
+    "libwmmozc.so" to Own("mozc", false),
     "libwmbergamot.so" to Own("bergamot", false),
 )
 
@@ -54,6 +55,7 @@ val ownDirs = mapOf(
     "core/intelligence/src/full/jniLibs" to true,
     "core/prediction/src/main/jniLibs" to false,
     "core/input/src/main/jniLibs" to false,
+    "core/input/src/mozc/jniLibs" to false,
     "core/intelligence/src/bergamot/jniLibs" to false,
 )
 

@@ -101,7 +101,8 @@ fun KeyboardSettings.restrictedToDirectBoot(): KeyboardSettings {
         // RIME's schemas and the user dictionary it learns into are under
         // filesDir, so Chinese types through the built-in engine until unlock
         // (whose own downloaded dictionaries are behind the lock as well).
-        cjk = cjk.copy(rimeLanguages = emptySet()),
+        // Mozc's dictionary and what it learns are there too.
+        cjk = cjk.copy(rimeLanguages = emptySet(), mozcJapanese = false),
     )
 }
 

@@ -994,6 +994,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Exact prefix commit — Spans are librime's own candidate ends; Simplified, Traditional, Taiwan and Hong Kong forms are librime filter switches inside its menu
     - Learns whole phrases — A pick goes to RIME's user dictionary; picking 你好 then 世界 teaches 你好世界. Not in incognito or password fields
     - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
+  - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.34. Built-in stays the default
+    - Own library on its own gate — `libwmmozc.so` (native/mozc-jni: Mozc's converter with Abseil and Protocol Buffers, built with Mozc's own Bazel Android config; 16 KB pages, JNI symbols only) behind the `mozc` gate: `:feature:mozc` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in
+    - Its own dictionary — Mozc's `mozc.data`, built from the same release, as a checksum-pinned CJK pack; not in the library
+    - Sentence conversion and prediction — Mozc's mobile prediction: whole-sentence conversions, then partial ones that convert the start of the reading; a pick commits that much and the rest converts again; zero-query suggestions after a pick
+    - Segments (文節) — Arrow keys split the reading and resize the highlighted part; with selection on (or on a physical keyboard, plain arrows once split) they move the highlight; Shift+arrows resize on a physical keyboard; the composing region shades the focused part
+    - Exact prefix commit — Spans are Mozc's own `consumed_key_size` and segment keys, in kana, mapped back to romaji through the transducer's spans
+    - Learns — Conversions, boundaries and predictions go to Mozc's user history, written a few seconds after a pick. Not in incognito or password fields
+    - Before first unlock — Mozc's dictionary and history are credential-protected, so a locked phone types on the built-in engine
   - Candidate surface — The suggestion strip is replaced by ranked candidates while a buffer is composing
     - Expanded grid — Ranked to depth 128 for lattice methods so a tap in the wrapping grid still resolves
     - Prefix-consistency contract — candidates(b,100).take(12) must equal candidates(b,12) or strip and grid would disagree
@@ -2829,7 +2837,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Two GitHub builds** — From 0.6.3 a release publishes the standard build (full · English, on-demand libraries and languages) and the offline build (full · all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
 - **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
   - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
-  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
+  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime, Mozc) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
   - Same gates as Play — Every library sits behind a `ModuleGate`, so the banners, `awaitInstalled` callers and `GatedLibrary` facades are unchanged; ML Kit's bundled text and barcode readers gained a `scanner` gate.
   - Loaded without ART double-registration — A dependency that loads its library itself is preloaded with a plain `dlopen` from `libwm_engine_jni.so`, so `JNI_OnLoad` runs once.
   - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.

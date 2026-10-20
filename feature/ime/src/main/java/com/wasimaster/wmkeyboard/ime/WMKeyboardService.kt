@@ -40,6 +40,8 @@ import android.text.InputType
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.SuggestionSpan
+import android.text.style.BackgroundColorSpan
+import android.text.style.UnderlineSpan
 import android.view.KeyCharacterMap
 import android.view.KeyEvent
 import android.view.View
@@ -704,6 +706,8 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.input.composer.resolvedComposer
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngines
 import com.wasimaster.wmkeyboard.core.input.rime.RimeEngine
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcEngine
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.KhiproComposer
 import com.wasimaster.wmkeyboard.core.input.composer.CjkConfig
@@ -4527,6 +4531,8 @@ open class WMKeyboardService : InputMethodService() {
                 // Before the layout's composer is resolved below: whether a
                 // Chinese layout types through RIME is part of that answer.
                 RimeEngine.configure(this@WMKeyboardService, settings.cjk.rimeLanguages, settings.cjk.rimeSchemas)
+                // The same for Japanese on Mozc.
+                MozcEngine.configure(this@WMKeyboardService, settings.cjk.mozcJapanese, settings.cjk.kanaLooseMarks)
                 // A field-scoped override (FORCE_ASCII, hintLocales) outlives
                 // settings emissions — otherwise saving any unrelated setting
                 // would drop the field back to a layout it cannot accept.
@@ -7010,6 +7016,10 @@ open class WMKeyboardService : InputMethodService() {
         if (loadedCjkPackToken != cjkTablesToken()) {
             serviceScope.launch { loadCjkConversionTables() }
         }
+        // Mozc picked but not open yet: its library or dictionary may have
+        // landed since (a download, an offline import), or the phone was
+        // unlocked. Opening runs in the background; asking again is cheap.
+        if (MozcEngine.enabled && !MozcRuntime.ready) MozcRuntime.prepare(this)
         // Likewise an input method imported in Settings, or a layout bound to
         // one switched on there.
         reloadImportedInputMethods()
@@ -15826,10 +15836,28 @@ open class WMKeyboardService : InputMethodService() {
             r.expectReplaceBefore(revisionFragment.length, preview)
             revisionFragment = preview
         }
-        ic.setComposingText(preview, 1)
+        ic.setComposingText(segmentMarked(preview), 1)
         _uiState.update { it.copy(composingPreview = preview) }
         publishComposingRoman()
         publishKanaVariantReady()
+    }
+
+    /**
+     * [preview] with a reading's segments marked, while a segmenting
+     * composer (Mozc) has it split: the focused segment shaded, the others
+     * underlined, as Mozc's own keyboard draws them, so the arrow keys'
+     * resizing shows where the boundary went. Unmarked otherwise; the app
+     * draws its own composing underline then.
+     */
+    private fun segmentMarked(preview: String): CharSequence {
+        val composer = _uiState.value.composer
+        if (!composer.segmentsReading) return preview
+        val focus = composer.focusedSegment(composing.toString()) ?: return preview
+        if (focus.first < 0 || focus.last >= preview.length || focus.isEmpty()) return preview
+        return SpannableString(preview).apply {
+            setSpan(UnderlineSpan(), 0, preview.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE or Spanned.SPAN_COMPOSING)
+            setSpan(BackgroundColorSpan(SEGMENT_FOCUS_COLOR), focus.first, focus.last + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
     }
 
     /**
@@ -17599,7 +17627,7 @@ open class WMKeyboardService : InputMethodService() {
         while (composing.isNotEmpty() && guard++ < 64) {
             val buf = composing.toString()
             val top = composer.candidates(buf).firstOrNull()
-            val chosen = top ?: composer.composeBuffer(buf)
+            val chosen = top?.let { composer.committedText(buf, 0, it) } ?: composer.composeBuffer(buf)
             val consumed = if (top != null) {
                 composer.consumedForIndex(buf, 0)
             } else {
@@ -17636,7 +17664,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun conversionPredictions(context: String): List<String> {
         val state = _uiState.value
-        if (!state.composer.isConversion || context.isEmpty()) return clearConversionPredictions()
+        if (!state.composer.isConversion || context.isEmpty() && !state.composer.predictsFromAnyText) {
+            return clearConversionPredictions()
+        }
         if (!state.settings.suggestions || state.secureField || state.fieldNoSuggestions ||
             !state.allowsTypingIntelligence
         ) {
@@ -17722,7 +17752,7 @@ open class WMKeyboardService : InputMethodService() {
         // An editor that will not say keeps whatever the last commit put up.
         val before = currentInputConnection?.getTextBeforeCursor(CjkContext.KEEP, 0) ?: return
         val left = CjkContext.hanTail(before)
-        CjkContext.before = left
+        CjkContext.fromField(before)
         val reading = repickReading(left)
         if (reading == null) {
             conversionRepick = null
@@ -17872,8 +17902,9 @@ open class WMKeyboardService : InputMethodService() {
         // first, so learning it would only entrench the existing order.
         // A single character of the candidate ([piece], 以词定字) consumes the
         // candidate's whole reading but teaches nothing about the word.
+        // With a later segment focused (Mozc), the segments before it go in too.
+        val written = piece ?: if (index >= 0) composer.committedText(buf, index, chosen) else chosen
         if (index >= 0 && piece == null && learningAllowed) composer.learnChoice(buf, index)
-        val written = piece ?: chosen
         ic.commitText(written, 1)
         composing.delete(0, consumed)
         val rest = composer.remainderAfterCommit(composing.toString())
@@ -41118,6 +41149,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val ic = currentInputConnection ?: return
         if (haptic) vibrate()
+        if (stepSegment(action, extendSelection || _uiState.value.selectingText)) return
         endCompositionForCaretKey(ic)
         lastGestureWord = null
         val selecting = extendSelection || _uiState.value.selectingText
@@ -46165,6 +46197,21 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (composing.isEmpty() || !state.composer.isConversion || state.captureTarget() != null) return false
         val highlighted = state.candidateCursor >= 0
+        // Mozc's segments, as on a desktop: Shift+Left/Right resize the
+        // focused one, and once the reading is split Left/Right move the
+        // focus, with Up/Down left to step through its candidates.
+        if (state.composer.segmentsReading &&
+            (event.keyCode == KeyEvent.KEYCODE_DPAD_LEFT || event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT)
+        ) {
+            val delta = if (event.keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) 1 else -1
+            val split = state.composer.focusedSegment(composing.toString()) != null
+            // Spent even when nothing moved, at a reading's edge: passed on,
+            // the arrow would move the caret out of the reading.
+            if (event.isShiftPressed || split && !event.isCtrlPressed && !event.isAltPressed) {
+                stepSegmentBy(resize = event.isShiftPressed, delta = delta)
+                return true
+            }
+        }
         return when (val keyCode = event.keyCode) {
             KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_DPAD_DOWN -> moveCandidateCursor(1)
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_UP -> moveCandidateCursor(-1)
@@ -46176,6 +46223,37 @@ open class WMKeyboardService : InputMethodService() {
                 highlighted && event.hasNoModifiers() && pickSuggestion(keyCode - KeyEvent.KEYCODE_1)
             else -> false
         }
+    }
+
+    /**
+     * An on-screen arrow over a reading Mozc converts by segments: Left and
+     * Right resize the focused segment, as the arrow keys of Mozc's own
+     * Android keyboard do, and with selection on (or Shift held) they move
+     * the focus instead. False whenever it is not that, which leaves the
+     * arrow to move the caret.
+     */
+    private fun stepSegment(action: TextEditAction, moving: Boolean): Boolean {
+        if (action != TextEditAction.LEFT && action != TextEditAction.RIGHT) return false
+        val state = _uiState.value
+        if (composing.isEmpty() || !state.composer.segmentsReading || state.captureTarget() != null) return false
+        val delta = if (action == TextEditAction.RIGHT) 1 else -1
+        stepSegmentBy(resize = !moving, delta = delta)
+        // Spent either way: a refused resize at the reading's edge must not
+        // drop the caret out of the reading.
+        return true
+    }
+
+    /** Resizes or refocuses the reading's segments and redraws reading and candidates; false when nothing moved. */
+    private fun stepSegmentBy(resize: Boolean, delta: Int): Boolean {
+        val ic = currentInputConnection ?: return false
+        val composer = _uiState.value.composer
+        val buffer = composing.toString()
+        val moved = if (resize) composer.resizeSegment(buffer, delta) else composer.moveSegment(buffer, delta)
+        if (!moved) return false
+        _uiState.update { it.copy(candidateCursor = -1) }
+        updateComposingText(ic)
+        refreshSuggestions()
+        return true
     }
 
     /** Moves the candidate highlight [delta] places, wrapping; false with no candidates to move over. */
@@ -47286,6 +47364,13 @@ open class WMKeyboardService : InputMethodService() {
     companion object {
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
+
+        /**
+         * The shade under a reading's focused segment ([segmentMarked]): the
+         * app draws it over its own text colour in either theme, so a light
+         * translucent grey, as Mozc's own keyboard uses.
+         */
+        private const val SEGMENT_FOCUS_COLOR = 0x5580_8080
 
         /**
          * How many GIFs one search of the imported packs lists. They are on the

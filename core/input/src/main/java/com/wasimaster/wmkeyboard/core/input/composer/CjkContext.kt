@@ -18,13 +18,45 @@ object CjkContext {
     /** Longest suffix of [before] tried as the previous word. */
     private const val MAX_WORD = 4
 
+    /** How much of [text] is kept: a few of Mozc's history segments. */
+    private const val TEXT_KEEP = 16
+
     @Volatile
     var before: String = ""
-        set(value) { field = hanTail(value) }
+        set(value) {
+            // Extending what was there extends [text] too; anything else
+            // replaces both.
+            val old = field
+            text = if (old.isNotEmpty() && value.startsWith(old)) {
+                (text + value.substring(old.length)).takeLast(TEXT_KEEP)
+            } else {
+                value.takeLast(TEXT_KEEP)
+            }
+            field = hanTail(value)
+        }
+
+    /**
+     * The same context in every script, not only its Han tail: what Mozc
+     * reads on from, since Japanese ends most phrases in kana (今日は) and
+     * [before] would be empty after each of them. Follows [before]: emptied
+     * when it is, extended when it is.
+     */
+    @Volatile
+    var text: String = ""
+        private set
+
+    /** Both contexts from the field's own text before the caret. */
+    fun fromField(textBeforeCaret: CharSequence) {
+        before = hanTail(textBeforeCaret)
+        text = textBeforeCaret.toString().takeLast(TEXT_KEEP)
+    }
 
     /** [before] followed by [committed], as the context for what is typed next. */
     fun committed(committed: String) {
+        // [text] keeps the kana [before]'s Han tail drops (今日は, then 天気).
+        val all = (text + committed).takeLast(TEXT_KEEP)
         before += committed
+        text = all
     }
 
     /**

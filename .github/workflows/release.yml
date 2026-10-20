@@ -366,7 +366,7 @@ jobs:
           abi='${{ matrix.abi }}'
           unzip -l "$out" | grep -q "lib/$abi/libwm_engine_jni.so" \
             || { echo "::error::$out has no $abi libwm_engine_jni.so"; exit 1; }
-          libs="libharper_jni.so libwmhunspell.so libwmwhispercpp.so libwmexecutorch.so libwmrime.so libwmdenoise.so libwmsherpa.so libwmbergamot.so"
+          libs="libharper_jni.so libwmhunspell.so libwmwhispercpp.so libwmexecutorch.so libwmrime.so libwmmozc.so libwmdenoise.so libwmsherpa.so libwmbergamot.so"
           [ "$abi" = arm64-v8a ] && libs="$libs libwmwhispercpp_v82.so"
           pins=$(unzip -p "$out" assets/native/pins.tsv)
           for lib in $libs; do

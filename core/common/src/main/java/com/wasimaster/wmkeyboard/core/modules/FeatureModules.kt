@@ -138,6 +138,14 @@ object FeatureModules {
     var rime: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:mozc`: Google's Mozc converter, behind the optional Mozc
+     * engine for Japanese (`:core:input`). Its dictionary is a separate
+     * download; the built-in Japanese composer needs neither.
+     */
+    @Volatile
+    var mozc: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
      * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
      * unpacked into app storage by `NpuRuntime` in :core:intelligence.

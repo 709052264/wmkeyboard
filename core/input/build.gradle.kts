@@ -62,6 +62,18 @@ if (playStoreChannel) {
         .getByName("main").jniLibs.setSrcDirs(emptyList<String>())
 }
 
+androidComponents {
+    onVariants { variant ->
+        // Mozc's library, off Play: in a directory of its own so the on-demand
+        // :feature:mozc split carries it alone on Play, as :feature:rime does
+        // src/main/jniLibs. A build with native delivery pins it instead
+        // (wmkeyboard.native-pins); native/mozc-jni/build.sh writes here.
+        if (!playStoreChannel) {
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/mozc/jniLibs")
+        }
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
