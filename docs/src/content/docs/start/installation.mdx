@@ -15,11 +15,11 @@ Install it from [Google Play](https://play.google.com/store/apps/details?id=com.
 
 ## Installing from Google Play
 
-Open the [WM Keyboard listing](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard) and tap **Install**. There is nothing to pick: Play carries the <Flavor edition="full" /> edition and serves your phone the right CPU architecture on its own.
+Open the [WM Keyboard listing](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard) and tap **Install**. There is nothing to pick: Play carries the standard build and serves your phone the right CPU architecture on its own.
 
 The Play copy differs from the GitHub APKs in a few ways:
 
-- **Heavier parts arrive when you first need them.** The on-device AI runtime, the on-device translation engine, handwriting recognition and the interpreter behind offline voice typing and the sticker editor's background remover are not in the first install. The first time you use one, Play downloads it, and the feature carries on by itself once it lands. See [Full vs Lite](/start/editions/).
+- **Heavier parts arrive when you first need them.** The on-device AI runtime, the on-device translation engine, handwriting recognition and the interpreter behind offline voice typing and the sticker editor's background remover are not in the first install. The first time you use one, Play downloads it, and the feature carries on by itself once it lands. See [Which build you have](/start/editions/).
 - **ML Kit comes from Google Play services** rather than from inside the app, so OCR and QR scanning use the copy Play services already keeps.
 - **Updates come from Play.** The app has no updater of its own there. When a new version is out, the settings app can offer it through Play's in-app update prompt.
 - **Two device-side extras are left out:** the accessibility service that keeps keyboard gestures working under TalkBack, and the photos permission that lets new screenshots turn up in the clipboard. Install from GitHub or F-Droid if you need either. See [Permissions](/privacy/permissions/).
@@ -53,7 +53,7 @@ Each release on the [GitHub releases page](https://github.com/wasi-master/wmkeyb
 
 The release page carries the real size of every file next to its link, so check there rather than here.
 
-Up to 0.6.2, each release also had a Lite edition and an all-languages build of each edition. If you installed one of those from GitHub, the app's updater moves you to the standard build: your settings stay, and on Android 11 and later the app downloads your interface language again the first time it starts in it. The Lite edition is still what F-Droid builds.
+Up to 0.6.2, each release also had a Lite edition and an all-languages build of each edition. If you installed one of those from GitHub, the app's updater moves you to the standard build: your settings stay, and on Android 11 and later the app downloads your interface language again the first time it starts in it. From 0.6.3 there is no Lite edition anywhere; F-Droid builds the standard app without Google's SDKs.
 
 ## Building the APK yourself
 
@@ -64,13 +64,11 @@ Up to 0.6.2, each release also had a Lite edition and an all-languages build of 
 2. Clone the repository. From the repository root, run one of these commands:
 
    ```sh
-   ./gradlew assembleFullIntlDebug   # every feature, every language
-   ./gradlew assembleFullEnDebug     # every feature, English only
-   ./gradlew assembleLiteIntlDebug   # fewer tools, every language
-   ./gradlew assembleLiteEnDebug     # fewer tools, English only
+   ./gradlew assembleIntlDebug   # every language
+   ./gradlew assembleEnDebug     # English only
    ```
 
-   The task name is the edition, then the language build, then the build type. `Intl` is all 48 languages and `En` is English alone.
+   The task name is the language build, then the build type. `Intl` is all 48 languages and `En` is English alone. Add `-Pwmkb.enableFdroid=true` to build what F-Droid builds, without Google's SDKs.
 
    For a release build, replace `Debug` with `Release`. A release build needs your own signing keystore. Without one the APK comes out unsigned, and Android refuses to install it. The debug builds above are signed with the local debug key and install fine on your own device.
 
@@ -86,9 +84,9 @@ The build produces one APK per CPU architecture only when `wmkb.splitApks` is on
   <Shot id="start/first-launch" alt="First launch after install, before the setup wizard starts." />
 </PhoneFrame>
 
-## Choosing an edition
+## Choosing a build
 
-The GitHub builds and the Google Play copy are <Flavor edition="full" />. F-Droid builds <Flavor edition="lite" />, which leaves out the parts that come from Google: ML Kit's handwriting and scanners, the LiteRT runtimes behind the original Whisper models and the local AI model, and the Whistle voice engine. See [Full vs Lite](/start/editions/) for the complete comparison and how to tell which edition you're running.
+The GitHub builds and the Google Play copy have every feature. F-Droid's is the <Flavor edition="fdroid" />, which leaves out the parts that come from Google: ML Kit's handwriting and scanners, the LiteRT runtimes behind the original Whisper models and the local AI model, and the Whistle voice engine. See [Which build you have](/start/editions/) for the complete comparison and how to tell which build you're running.
 
 ## Interface languages
 

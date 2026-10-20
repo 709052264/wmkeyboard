@@ -25,14 +25,15 @@ SIDELOAD_PROPS = {
   "wmkb.splitApks" => "true",
 }.freeze
 
-# Play and F-Droid read different metadata trees, because the two editions are
+# Play and F-Droid read different metadata trees, because the two builds are
 # not the same app.
 #
 # F-Droid scans `fastlane/metadata/android/<locale>/` out of the source repo and
-# there is no way to point it somewhere else, so that tree is the *lite* one.
-# Its description must not promise handwriting, text and QR scanning, offline
-# Whisper dictation or the on-device AI models: the lite flavour contains none
-# of them, and F-Droid's readers are exactly the people who check.
+# there is no way to point it somewhere else, so that tree is F-Droid's. Its
+# description must not promise handwriting, text and QR scanning, offline
+# Whisper dictation or the on-device AI models: F-Droid's build carries none of
+# Google's libraries behind them, and F-Droid's readers are exactly the people
+# who check.
 #
 # Play's tree is the one below, chosen with supply's `metadata_path`. Only the
 # three text files diverge. Images and changelogs stay in the shared tree and
@@ -150,22 +151,17 @@ platform :android do
   # them back. They are there for the channels nobody translates for: F-Droid
   # builds `intl`, and GitHub offers both.
   #
-  # The task is named in full rather than by the `bundleFullRelease` alias in
-  # app/build.gradle.kts, which builds the same bundle but also mirrors it to
-  # bundle/fullRelease/. The gradle action reports the newest .aab it can find
-  # as GRADLE_AAB_OUTPUT_PATH, and one candidate is better than two.
-  desc "Build the Play AAB (bundleFullEnRelease with the Play channel flags)"
+  desc "Build the Play AAB (bundleEnRelease with the Play channel flags)"
   lane :bundle_play do
     ensure_signing!
-    gradle(task: "bundleFullEnRelease", properties: PLAY_PROPS)
+    gradle(task: "bundleEnRelease", properties: PLAY_PROPS)
   end
 
-  desc "Build the sideload/GitHub-release APKs: full + lite in both language builds, one APK per ABI"
+  desc "Build the sideload/GitHub-release APKs in both language builds, one APK per ABI"
   lane :apks do
     ensure_signing!
     gradle(
-      task: "assembleFullIntlRelease assembleFullEnRelease " \
-            "assembleLiteIntlRelease assembleLiteEnRelease",
+      task: "assembleIntlRelease assembleEnRelease",
       properties: SIDELOAD_PROPS,
     )
     UI.success("APKs under app/build/outputs/apk/*/release/")

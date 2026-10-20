@@ -32,13 +32,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -54,7 +47,6 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Both flavours, while the base still has them.
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/input/src/main/jniLibs")
     }
 }

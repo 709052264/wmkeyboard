@@ -27,7 +27,7 @@ import org.junit.Test
  *
  * ```
  * KEYMAN_CORPUS=/path/to/keyboards KEYMAN_OUT=/path/to/out \
- *   ./gradlew :core:keyman:testFullDebugUnitTest --tests '*KeymanPipelineTest*' --rerun-tasks
+ *   ./gradlew :core:keyman:testDebugUnitTest --tests '*KeymanPipelineTest*' --rerun-tasks
  * ```
  *
  * Without both variables it does nothing and passes, so an ordinary build needs

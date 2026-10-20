@@ -110,6 +110,10 @@ ALL_SUFFIXES = ("play", "full-intl", "full-en", "lite-intl", "lite-en", "full", 
 # from a new build can still be reporting against an old release whose assets
 # were never split by language.
 FLAVOR_TO_SUFFIX = {
+    # From 0.6.3 the app has only the `languages` flavour, so a record says
+    # `intl` or `en`; the mapping assets keep their `full-` names.
+    "intl": ("full-intl", "full"),
+    "en": ("full-en", "full"),
     "fullintl": ("full-intl", "full"),
     "fullen": ("full-en", "full"),
     "liteintl": ("lite-intl", "lite"),
@@ -122,7 +126,7 @@ FLAVOR_TO_SUFFIX = {
 
 # The flavours that name the build outright, so the mapping is a lookup and
 # not a competition between candidates.
-EXACT_FLAVORS = frozenset({"fullintl", "fullen", "liteintl", "liteen"})
+EXACT_FLAVORS = frozenset({"intl", "en", "fullintl", "fullen", "liteintl", "liteen"})
 
 # One obfuscated frame, split into the parts a mapping is checked against.
 OBF_FRAME_RE = re.compile(

@@ -530,7 +530,7 @@ python3 docs/screenshots/import.py keyboard
 
 **Shot:** First launch after install, before the setup wizard starts.
 
-- Install a debug APK (assembleFullDebug) on a clean profile / after clearing app data so onboardingDone is false
+- Install a debug APK (assembleIntlDebug) on a clean profile / after clearing app data so onboardingDone is false
 - Launch the app cold and capture the very first frame before the onboarding wizard's WelcomePage finishes composing, or capture WelcomePage itself if the pre-wizard frame is too transient to be a meaningful shot
 
 > This is mostly a placeholder for 'what a fresh install looks like on open' — if the true first frame is not a distinct visual from the onboarding WelcomePage (MainActivity.kt / Onboarding.kt), it's fine to just capture WelcomePage and adjust the caption to say so; don't invent a distinct pre-wizard screen if one doesn't exist.

@@ -2728,7 +2728,7 @@ private fun SearchStrings.toolRows(): List<SettingsSearchEntry> =
  *
  * Build it once per screen, keyed on the context, and hand the result to
  * [searchSettings]. Tool-detail rows for tools this build cannot provide (the
- * lite flavor drops the ML Kit ones) are filtered out, because their screens
+ * F-Droid build drops the ML Kit ones) are filtered out, because their screens
  * are unreachable. A row listed twice by mistake is kept once: the results list
  * keys on the entry, and two rows with one key would crash it.
  */

@@ -145,9 +145,9 @@ Traffic to a self-hosted server is plain HTTP, and the app allows cleartext traf
 
 ### Local models
 
-<Flavor edition="full" />
+<Flavor edition="google" />
 
-The **On your device** provider runs a model entirely on the phone, no network involved. It's the only provider that needs a download first, and the one that **Add a provider** doesn't offer at all in a Lite build.
+The **On your device** provider runs a model entirely on the phone, no network involved. It's the only provider that needs a download first, and the one that **Add a provider** doesn't offer at all in the F-Droid build.
 
 <PhoneFrame side caption="The on-device model catalog, with tier badges and a params/size subtitle per model.">
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
@@ -297,7 +297,7 @@ Each tool has its own **Run**, **Ask** or **Off**, the same three choices an [MC
 | **Send to your computer** | Sends text or a link to a computer paired through [KDE Connect](/tools/kde-connect/). Only listed while KDE Connect is on. | Ask |
 | **Read your home** | Lists what is on or open across every home of the [Smart home tool](/tools/home-assistant/), or whatever matches a home, room, device or sensor name. Only listed while a home is set up. | Ask |
 | **Control your home** | Works one device on any home of the [Smart home tool](/tools/home-assistant/): lights, fans, temperature, scenes, locks. The model finds the device with **Read your home** first. With a Home Assistant on the list it can also send one plain sentence to Assist. | Ask |
-| **Read text in a picture** | For a model that can't see pictures: reads the text in one you [sent in the chat](/tools/ai-chat/#sending-pictures), with ML Kit on your device <Flavor edition="full" />, or the [scan text tool's](/tools/scanner/) online engine if you picked that. | Run |
+| **Read text in a picture** | For a model that can't see pictures: reads the text in one you [sent in the chat](/tools/ai-chat/#sending-pictures), with ML Kit on your device <Flavor edition="google" />, or the [scan text tool's](/tools/scanner/) online engine if you picked that. | Run |
 | **Search by picture** | Uploads a picture you sent to the [camera tool's](/tools/camera/) search site (Google Lens unless you changed it) and gives you the link to the results. The model can't read that page itself. | Off |
 
 The tools that read what's on your phone, and the ones that change something, start on **Ask**. A web page the model reads could carry instructions of its own, and **Ask** means nothing it says reaches your calendar or your notes without you seeing the request first. None of the tools can delete or edit anything: they only read, add or start. **Always allow** on the request card switches that tool to **Run**.
@@ -450,7 +450,7 @@ One more row lives on the History screen, under a **Downloading models** heading
 
 ### What the On-device provider adds
 
-<Flavor edition="full" />
+<Flavor edition="google" />
 
 Adding **On your device** to the list draws the whole model manager onto the same screen, under the list. [Local models](#local-models) covers the catalog, **Compute** and **Context size**. Three more things sit on that screen and nowhere else:
 
@@ -489,7 +489,7 @@ The panel itself sends nothing until you actually tap an action chip: opening th
 - **Offline, an on-device model can stand in.** With [Use on-device models offline](/privacy/data-saver/#with-no-connection) on and a [local model](#local-models) downloaded, an AI action set to a cloud provider or a server runs on the phone when there is no connection, or when the server does not answer. A short message says so the first time. AI chat always uses the provider you picked.
 - **AI isn't pinned to the toolbar or the onboarding wizard's starter set by default.** You add it yourself from the toolbox once you want it, the same as most non-essential tools.
 - **Not available on the lock screen.** AI needs credentials the direct-boot-safe mirror of your data deliberately doesn't carry, so it's one of the tools that only works after you've unlocked the device once since restart.
-- **The Writing keyboard mode pins AI first** on its toolbar for apps it recognizes as writing-heavy (see [Keyboard modes](/typing/modes/)). The pin shows in both editions, same as the tool itself. Only the On-device provider is Full-only.
+- **The Writing keyboard mode pins AI first** on its toolbar for apps it recognizes as writing-heavy (see [Keyboard modes](/typing/modes/)). The pin shows in every build, same as the tool itself. Only the On-device provider is missing from the F-Droid build.
 - **A reasoning model's guess is a substring match** against the model ID, on strings like "thinking", "-r1", "qwen3", "gpt-5", "grok-4", "deepseek-v4". It can be wrong in either direction. A false positive only costs a larger token ceiling. A false negative risks a response cut off mid-thought.
 - **Custom has no stored default prompt.** Every other action's prompt can be edited and still has a built-in fallback. Custom's instruction only ever exists for the run you type it for.
 - **On-device answers never claim to have been cut off.** The local engine reports no stop reason, so there's nothing to read, and the app says nothing rather than guessing. Every other provider does report it.

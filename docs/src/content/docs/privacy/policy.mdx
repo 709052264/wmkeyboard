@@ -1,6 +1,6 @@
 ---
 title: "Privacy policy (Google Play edition)"
-description: "The formal policy for the full edition from Google Play: what WM Keyboard collects (nothing, beyond a name a tipper asks to have listed), what stays on your device, what optional tools send where, and what Google's own libraries report."
+description: "The formal policy for the Google Play and GitHub builds: what WM Keyboard collects (nothing, beyond a name a tipper asks to have listed), what stays on your device, what optional tools send where, and what Google's own libraries report."
 sidebar:
   label: "Privacy policy (Play)"
   order: 8
@@ -10,20 +10,21 @@ sidebar:
 (`com.wasimaster.wmkeyboard`) and this documentation site. WM Keyboard is
 written and published by Wasi Master, an individual developer.
 
-:::note[This page covers the full edition]
-There are two builds of WM Keyboard and they are not the same app underneath,
-so they get one policy each rather than one policy with a page of footnotes.
+:::note[This page covers the Google Play and GitHub builds]
+The F-Droid build and the others are not the same app underneath, so they get
+one policy each rather than one policy with a page of footnotes.
 
-This page is the full edition. That is the build on Google Play, and the `full`
-APK on the GitHub releases page. It includes handwriting, OCR, QR and document
+This page is every build but F-Droid's: the one on Google Play, and the
+standard and offline APKs on the GitHub releases page. It includes handwriting, OCR, QR and document
 scanning, sticker background removal, grammar checking, offline Whisper
 dictation and on-device AI. The handwriting, scanning and background-removal
 features run on Google's ML Kit, which reports its own diagnostics to Google.
 
-If you installed from F-Droid, you have the lite edition, which ships none
-of those, and no ML Kit, Play library or Google sign-in code at all. Read
+If you installed from F-Droid, you have a build that ships none of the ML
+Kit features, and no ML Kit, Play library or Google sign-in code at all. Read
 [Privacy policy (F-Droid edition)](/privacy/policy-fdroid/) instead. The app
-tells you which one you have under About: the version line names the edition.
+tells you which one you have under About: the version line says F-Droid on
+that one.
 :::
 
 The rest of this section explains the same subject in more depth and with
@@ -152,7 +153,7 @@ inside the app either, so your only choice is whether to use the feature.
 
 - **ML Kit** powers handwriting input, OCR, QR and barcode scanning, the
   document scanner, sticker background removal and on-device translation, in
-  the full edition only.
+  every build but F-Droid's.
   Google
   [states](https://developers.google.com/ml-kit/android-data-disclosure) that
   its SDK sends device information (make, model, OS build, available ML
@@ -175,7 +176,7 @@ ordinary Drive API calls, and only if you connect it.
 The first and the third are specific to this edition: the F-Droid build has no
 ML Kit, no Play libraries and no Google sign-in compiled into it at all.
 Downloadable fonts are the exception, since that request goes to a system
-provider rather than to code the app bundles, so the lite build makes it too.
+provider rather than to code the app bundles, so the F-Droid build makes it too.
 See [Privacy policy (F-Droid edition)](/privacy/policy-fdroid/).
 
 ## Other third-party components

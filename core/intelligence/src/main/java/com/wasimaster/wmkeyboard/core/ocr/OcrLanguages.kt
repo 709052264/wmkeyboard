@@ -28,7 +28,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 object OcrLanguages {
 
     /**
-     * Whether ML Kit's four non-Latin recognizers can run: a full build on a
+     * Whether ML Kit's four non-Latin recognizers can run: a build with ML Kit on a
      * phone with Play services, which downloads their models. Null asks the
      * build and the phone; tests set it.
      */
@@ -38,7 +38,7 @@ object OcrLanguages {
         get() = extraScriptsOverride ?: (BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available)
 
     /**
-     * Whether this build can run PaddleOCR: every full build, since the
+     * Whether this build can run PaddleOCR: every one but F-Droid's, since the
      * LiteRT interpreter it runs on ships wherever Whisper's does (in the
      * APK, or in Play's :feature:litert split). Null asks the build; tests set it.
      */

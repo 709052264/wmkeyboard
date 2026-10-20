@@ -11,9 +11,9 @@ plugins {
 // other channel packages the same files in the base APK from :core:voice.
 // The module has no code: WhisperCpp and WhistleEngine stay in :core:voice and
 // load the libraries through FeatureModules.loadLibrary once Play has
-// installed this split. It packages :core:voice's src/main/jniLibs and, for
-// full, src/full/jniLibs (Whistle, arm64 only) in place, which :core:voice
-// drops from itself on this channel, so the files keep the paths the native
+// installed this split. It packages :core:voice's src/main/jniLibs and
+// src/whistle/jniLibs (Whistle, arm64 only) in place, which :core:voice
+// leaves out of itself on this channel, so the files keep the paths the native
 // build scripts and F-Droid's recipe know. Whistle rides here rather than in a
 // split of its own because bundletool wants every module with native code on
 // the base's three ABIs, and Whistle has one. Used only by the GGML Whisper
@@ -37,13 +37,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -59,12 +52,8 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Both flavours: the base carries these libraries in full and lite
-        // alike off Play. Whistle is full only, as it is off Play.
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/main/jniLibs")
-        if (variant.flavorName == "full") {
-            variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/full/jniLibs")
-        }
+        variant.sources.jniLibs?.addStaticSourceDirectory("../../core/voice/src/whistle/jniLibs")
     }
 }
 

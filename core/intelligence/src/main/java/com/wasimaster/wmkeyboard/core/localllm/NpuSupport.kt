@@ -49,7 +49,7 @@ object NpuSupport {
 
     /**
      * This phone's NPU target, or null when there is none: not a listed chip,
-     * an older Android, a lite or F-Droid build. Fixed for the process.
+     * an older Android, an F-Droid build. Fixed for the process.
      */
     val soc: String? by lazy {
         if (!BuildConfig.ENABLE_NPU || Build.VERSION.SDK_INT < MIN_SDK) return@lazy null

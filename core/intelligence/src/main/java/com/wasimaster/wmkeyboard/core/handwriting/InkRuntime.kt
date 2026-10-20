@@ -11,7 +11,7 @@ package com.wasimaster.wmkeyboard.core.handwriting
  * - Play builds: in the on-demand `:feature:handwriting` module, downloaded
  *   the first time the handwriting tool asks for a model. The recogniser is
  *   about 6.5 MB of native code per ABI, and most installs never open it.
- * - Every other full build: compiled straight into `:core:intelligence` (the
+ * - Every other build but F-Droid's: compiled straight into `:core:intelligence` (the
  *   `src/inkbridge` source directory), where Play's delivery does not exist
  *   to fetch it later.
  *

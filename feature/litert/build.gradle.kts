@@ -9,9 +9,9 @@ plugins {
 // this module in `dynamicFeatures` when wmkb.enablePlayStore is on, and no
 // other build references it at all — direct-download APKs embed the same
 // code in :core:voice, :core:content and :core:intelligence instead (see the
-// playStoreChannel blocks there), and F-Droid builds are lite and have no
-// LiteRT. Built exactly like :feature:translate beside it. The module has no
-// sources of its own: it compiles the four shared bridge directories, one
+// playStoreChannel blocks there), and F-Droid's build has no LiteRT. Built
+// exactly like :feature:translate beside it. The module has no sources of its
+// own: it compiles the four shared bridge directories, one
 // class each, which the base app reaches by reflection, plus the litert
 // dependency. libtensorflowlite_jni.so is about 4 MB per ABI, and all three
 // things that use it are off by default: offline Whisper dictation is an
@@ -37,13 +37,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -59,19 +52,14 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Only the full flavour has the LiteRT classes the bridges import; the
-        // lite split stays empty (a few KB) and is never requested — the lite
-        // app has neither Whisper nor a cutout button to ask for it.
-        if (variant.flavorName == "full") {
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/voice/src/whisperbridge/java")
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/content/src/cutoutbridge/java")
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/intelligence/src/paddlebridge/java")
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/intelligence/src/semanticbridge/java")
-        }
+        variant.sources.kotlin
+            ?.addStaticSourceDirectory("../../core/voice/src/whisperbridge/java")
+        variant.sources.kotlin
+            ?.addStaticSourceDirectory("../../core/content/src/cutoutbridge/java")
+        variant.sources.kotlin
+            ?.addStaticSourceDirectory("../../core/intelligence/src/paddlebridge/java")
+        variant.sources.kotlin
+            ?.addStaticSourceDirectory("../../core/intelligence/src/semanticbridge/java")
     }
 }
 
@@ -87,5 +75,5 @@ dependencies {
     implementation(project(":core:voice"))
     implementation(project(":core:content"))
     implementation(project(":core:intelligence"))
-    "fullImplementation"(libs.litert)
+    implementation(libs.litert)
 }

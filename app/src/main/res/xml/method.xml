@@ -18,8 +18,8 @@
       handwriting session when a pen starts writing over a text field: an ink
       window over the whole screen that takes the stylus and lets fingers
       through (the "Stylus" full-screen writing mode, issue #386). The service
-      still refuses the session unless that mode is picked. Full build only,
-      through the bool; see bools_stylus.xml.
+      still refuses the session unless that mode is picked. Off in F-Droid's
+      build, through the bool; see resValue in feature/ime/build.gradle.kts.
     -->
     <!--
       No static subtypes on purpose. Every subtype we expose is registered at

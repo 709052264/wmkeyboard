@@ -11,7 +11,7 @@ import java.io.File
  * network (Qin et al. 2020, Apache-2.0), as a LiteRT graph.
  *
  * It is here and not beside the code that runs it because the storage screen
- * lists the file in both flavours, and only the full one can run it.
+ * lists the file in every build, and F-Droid's cannot run it.
  *
  * The graph is the `u2netp.onnx` that rembg publishes, converted with onnx2tf,
  * and checked against that file output for output: the largest difference on

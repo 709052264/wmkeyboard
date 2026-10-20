@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.compose.compiler.gradle.ComposeCompilerGradlePluginE
 
 // Compose compiler reports for any module that applies this, on demand:
 //
-//   ./gradlew :feature:ime:compileFullDebugKotlin --rerun -PcomposeMetrics=true
+//   ./gradlew :feature:ime:compileDebugKotlin --rerun -PcomposeMetrics=true
 //   scripts/compose-reports.sh feature/ime        # the same, then a summary
 //
 // They land in build/compose/reports (per composable: restartable, skippable,

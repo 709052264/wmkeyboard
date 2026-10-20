@@ -56,7 +56,7 @@ class MlKitRegistrarRulesTest {
         // Both have to hold for the class the crash went through, or the rule
         // matches nothing and keeps nothing.
         val registrar = runCatching { Class.forName(COMMON_REGISTRAR) }.getOrNull()
-        assumeTrue("ML Kit is not on this variant's classpath (lite flavor)", registrar != null)
+        assumeTrue("ML Kit is not on this build's classpath (F-Droid)", registrar != null)
         val implementsRegistrar = registrar!!.interfaces.any { it.name == COMPONENT_REGISTRAR }
         assertTrue("$COMMON_REGISTRAR no longer implements $COMPONENT_REGISTRAR", implementsRegistrar)
         val constructor = runCatching { registrar.getDeclaredConstructor() }.getOrNull()

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
- * A full build off Play that carries the Home APIs SDK: [GoogleHomeSdk]
+ * A build off Play that carries the Home APIs SDK: [GoogleHomeSdk]
  * compiled in, nothing to fetch. Same shape as the stubs and the Play facade.
  */
 object GoogleHomeSupport {

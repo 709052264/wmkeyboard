@@ -44,7 +44,7 @@ If letters themselves are landing late rather than the strip just being slow to 
 
 - **A big dictionary.** The tier you picked is the main lever. Bangla's full list is over 450,000 words, and **Everything** keeps all of them. Dropping to Medium or Small is one press on a downloaded row, with no delete and re-download involved. See [Changing the size of a list you already have](/languages/dictionaries/#changing-the-size-of-a-list-you-already-have).
 - **Extras layered on top of the strip.** [Words on the keys](/typing/words-on-the-keys/) asks for a much deeper candidate list than the strip itself shows, and emoji prediction, [glide typing](/typing/glide-typing/) and an installed n-gram pack each add work per keystroke. Turning off the ones you don't use is cheaper than turning off suggestions entirely.
-- **Everything else the app is holding.** [Power saving mode](/typing/power-saving/) trims background work in one switch. The **Lite** edition leaves out the heavier optional subsystems altogether, which is worth trying on a phone that struggles with the Full build.
+- **Everything else the app is holding.** [Power saving mode](/typing/power-saving/) trims background work in one switch. The feature libraries are not in the APK at all until a feature asks for one, so leaving a heavy tool unused costs nothing on a phone that struggles with the Full build.
 
 To confirm it is the suggestion pass before you start changing things, turn **Suggestions** off under <SettingsPath path="Typing / Suggestions" /> and type a line. If the lag goes away, it's the pass, and one of the levers above will help. If it doesn't, it's something else and worth [filing](#filing-a-useful-bug-report) with a diagnostics report attached.
 
@@ -138,7 +138,7 @@ Beyond that short answer:
 ## Details & edge cases
 
 - There's no whole-app "reset everything" action anywhere in settings: every reset button (icons, pinned tools, layouts, symbol sets, custom colors, and so on) is scoped to one feature. The closest thing to a full reset is Android's own **Settings → Apps → WM Keyboard → Storage → Clear storage**, which is standard OS behavior, not something WM Keyboard controls.
-- Diagnostics behaves identically on Full and Lite editions: nothing about the report builder, crash list, or logs is edition-gated.
+- Diagnostics behaves identically in every build: nothing about the report builder, crash list, or logs is build-gated.
 - The app log and crash file are two different stores for a reason: the in-memory log is cheap enough to always be on (no switch to remember to flip before reproducing a bug), while the crash file is the one thing written to disk, because the in-memory log dies along with the process that crashed.
 
 :::danger[Clearing app storage is destructive]

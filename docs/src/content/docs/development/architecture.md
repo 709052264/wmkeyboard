@@ -40,9 +40,10 @@ do not. See [testing](/development/testing/) for what that means in practice.
 
 Notable seams:
 
-- **`:core:config`** generates the library-side `BuildConfig` (full/lite
-  flags, API keys); every module carries the `capabilities` flavor dimension
-  so full/lite propagates end-to-end.
+- **`:core:config`** generates the library-side `BuildConfig` (channel and
+  feature flags, API keys). No library module has a product flavor; the one
+  build switch that changes code, `wmkb.enableFdroid`, is read by each module
+  that has ML Kit code and picks its `src/google` or `src/nogoogle` sources.
 - **Split packages are deliberate.** `core.settings.ToolbarTool` lives in
   `:core:common` so icon packs and tool engines can name tools without
   depending on the settings module; the network clients in `:feature:tools`

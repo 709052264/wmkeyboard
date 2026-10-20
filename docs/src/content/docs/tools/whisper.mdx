@@ -36,7 +36,7 @@ Offline Whisper runs two kinds of model, and the catalog lists both.
   - Each one is a single `.bin` file, checked against its published SHA-256 once it downloads.
 - **LiteRT models** are the community `.tflite` conversions the app started with. Each has the whole decoding loop compiled in, so none of the above can be asked of it, and a few can only be told one of a fixed set of languages. They still work, and a model you already downloaded keeps working. Where whisper.cpp is available their names end in "(LiteRT)".
 
-whisper.cpp is in both editions, full and lite, on 64-bit and 32-bit ARM phones and on x86_64. A phone whose cores all have the ARMv8.2 dot-product instructions (most from 2018 on) gets a build that uses them, which is several times faster at the arithmetic these models are made of.
+whisper.cpp is in every build, on 64-bit and 32-bit ARM phones and on x86_64. A phone whose cores all have the ARMv8.2 dot-product instructions (most from 2018 on) gets a build that uses them, which is several times faster at the arithmetic these models are made of.
 
 Bigger models trade download size and speed for accuracy:
 
@@ -116,11 +116,11 @@ When exactly one model is on disk, the app quietly adopts it as that fallback, s
 
 <SettingsPath path="Voice typing" />
 
-The Whisper-specific controls live inside the same **Voice typing** screen as the system-recognizer settings. There's no separate destination for them. The **Recognition engine** list is where you add Whisper in the first place; **Add a provider** offers it in either edition wherever whisper.cpp or LiteRT can run. Move it to the top to make it the engine for every language. The rest of the table shows up once Whisper is on the list, or a language uses it.
+The Whisper-specific controls live inside the same **Voice typing** screen as the system-recognizer settings. There's no separate destination for them. The **Recognition engine** list is where you add Whisper in the first place; **Add a provider** offers it in any build wherever whisper.cpp or LiteRT can run. Move it to the top to make it the engine for every language. The rest of the table shows up once Whisper is on the list, or a language uses it.
 
 | Setting | Default | What it does |
 |---|---|---|
-| Recognition engine | System recognizer | Switches dictation between the system speech recognizer and offline Whisper. On the lite edition it offers the whisper.cpp models only, since lite has no LiteRT. |
+| Recognition engine | System recognizer | Switches dictation between the system speech recognizer and offline Whisper. On the F-Droid build it offers the whisper.cpp models only, since that build has no LiteRT. |
 | Translate to English | Off | Speaks any language and types its English translation instead of a transcription, when the routed model supports it. |
 | Model per language | Automatic | Pins a specific downloaded model to a language, overriding automatic routing. One row per enabled language, each with a **Change** button. |
 | Model for other languages | Automatic | The fallback step 3 of the routing order uses. Only shown once more than one model is on disk. |
@@ -149,7 +149,7 @@ Nine of the 10 multilingual models support translation. Turbo doesn't, because l
 
 **Speed has no benchmarked numbers.** The app carries no measured per-device timing table. The only official guidance is the relative sizing above, with Tiny fastest and the two Large graphs slowest and heaviest on RAM, plus a general note that bigger models are more accurate and slower to download and to transcribe.
 
-**Both editions, different catalogs.** The whisper.cpp models run in every edition, lite included. The LiteRT models need the LiteRT runtime, which only the full edition carries, so lite's catalog lists the whisper.cpp models alone. A build made without the whisper.cpp library, as F-Droid's is, offers no Whisper engine at all. See [Full vs Lite](/start/editions/).
+**Every build, different catalogs.** The whisper.cpp models run in every build, F-Droid's included. The LiteRT models need the LiteRT runtime, which the F-Droid build doesn't carry, so its catalog lists the whisper.cpp models alone. A build made without the whisper.cpp library offers no Whisper engine at all. See [Which build you have](/start/editions/).
 
 **Power saving can silently override your choice.** Its "On-device models" option is on by default. Power saving never turns on by itself unless you set **Turn on by itself**, but once it's on, by hand or by a trigger you chose, dictation falls back to the system recognizer even with Whisper selected and a model downloaded. If dictation seems to have switched engines on its own, check your power-saving settings first.
 

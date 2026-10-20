@@ -2,7 +2,7 @@ name: Tesseract native build
 
 # Rebuilds libwmtess.so (native/tesseract-jni) for every ABI and uploads it.
 # Run by hand after changing native/tesseract-jni, then commit the artifact's
-# files into core/intelligence/src/full/jniLibs/.
+# files into core/intelligence/src/tesseract/jniLibs/.
 on:
   workflow_dispatch:
 
@@ -28,7 +28,7 @@ jobs:
       - name: Exports
         run: |
           nm=$(ls "$ANDROID_NDK"/toolchains/llvm/prebuilt/*/bin/llvm-nm)
-          for so in core/intelligence/src/full/jniLibs/*/libwmtess.so; do
+          for so in core/intelligence/src/tesseract/jniLibs/*/libwmtess.so; do
             echo "$so"
             "$nm" -D --defined-only "$so" | grep ' T '
           done
@@ -36,4 +36,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: wmtess-jniLibs
-          path: core/intelligence/src/full/jniLibs/*/libwmtess.so
+          path: core/intelligence/src/tesseract/jniLibs/*/libwmtess.so

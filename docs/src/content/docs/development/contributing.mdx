@@ -95,9 +95,8 @@ One task runs everything:
 ./gradlew staticAnalysis
 ```
 
-That runs Android Lint against the app module's full flavor, detekt with full
-type resolution against both the full and lite flavors of the app module plus
-its unit tests, and per-module detekt across 19 of the 20 library modules.
+That runs Android Lint against the app module's `intl` debug variant, detekt
+with full type resolution against the app module plus its unit tests, and per-module detekt across 19 of the 20 library modules.
 (`:core:config` has no Kotlin sources to check, and `:tools:dictc` is skipped
 deliberately. See below.) CI doesn't run this task, so run it yourself before
 you ask for review.
@@ -181,7 +180,7 @@ See [Testing](/development/testing/) for what that second task covers and
 where its tests live.
 
 :::note
-GitHub Actions runs the unit tests, a full and lite debug assemble, the
+GitHub Actions runs the unit tests, debug assembles of the standard and F-Droid builds, the
 advisory evals and a docs link-check on every pull request
 (`.github/workflows/ci.yml`). `staticAnalysis` is not in CI, and there's no
 pull request template or `CODEOWNERS` file, so the static-analysis half of the
@@ -197,12 +196,11 @@ instead, per the "Picking a first contribution" section above.
 
 ## Details & edge cases
 
-- **Lite-flavor detekt only runs where lite actually differs.** `staticAnalysis`
-  runs a separate lite-flavor detekt pass for only `:core:voice`,
-  `:core:intelligence` and `:feature:ime`, the only modules whose `src/lite`
-  source set replaces real implementations (ML Kit, LiteRT) with stubs. Every
-  other module's full and lite sources are identical, so a second pass over
-  them would repeat the first.
+- **F-Droid's stand-ins need their own pass.** `src/nogoogle` in `:app`,
+  `:core:content`, `:core:intelligence` and `:feature:ime` replaces the code
+  that calls ML Kit directly, and only a build with `-Pwmkb.enableFdroid=true`
+  compiles it. `./gradlew staticAnalysis -Pwmkb.enableFdroid=true` analyses
+  those files; the plain run does not.
 - **`:tools:dictc` is excluded from `staticAnalysis` on purpose.** Its source
   set adds `:core:prediction`'s source directory, so analyzing it would report
   those same seven files a second time under a different module name.

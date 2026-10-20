@@ -29,7 +29,7 @@ data class ProviderEnv(
     val channel: ProviderChannel,
     /** No internet permission: only providers on the phone can ever answer. */
     val offline: Boolean,
-    /** ML Kit translation is compiled into this build (the full flavour). */
+    /** ML Kit translation is compiled into this build (every one but F-Droid's). */
     val onDeviceTranslate: Boolean,
     /** Bergamot can translate here: Android 9 or later, its library in reach, and a network to fetch models. */
     val bergamot: Boolean = false,
@@ -37,7 +37,7 @@ data class ProviderEnv(
     val offlineGifPacks: Boolean,
     /** The Google Home APIs can run: the build carries them and Play services is on the phone. */
     val googleHome: Boolean = false,
-    /** The build carries the on-device AI runtime (the full flavour). */
+    /** The build carries the on-device AI runtime (every one but F-Droid's). */
     val onDeviceAi: Boolean = false,
     /**
      * The dictation engines this build can run, by engine id

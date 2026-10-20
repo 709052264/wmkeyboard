@@ -46,13 +46,13 @@ The one addon type that isn't pure data. A plugin is a small Lua script, sandbox
 
 Two rules apply to plugins that don't apply to the other thirteen addon types. A plugin must publish a checksum or the install is refused before any network call happens. And a plugin installed from a repository always lands switched off rather than running immediately. Installing is refused outright if <SettingsPath path="Tools / Plugins / Allow plugins" /> is off (off by default). That's a separate setting from the Plugins *toolbar tool*, which only controls whether a Plugins panel appears on the toolbar, not whether plugins are allowed to run. See [WM Keyboard plugins](/plugins/overview/).
 
-## Editions and storage
+## Builds and storage
 
-### Flavor / edition
+### Build / edition
 
-WM Keyboard ships as two Gradle build flavors (`full` and `lite`) from a single flavor dimension. That dimension flips five build flags on or off together: ML Kit handwriting, ML Kit scanners, grammar checking, the local LLM, and offline Whisper. "Edition" is the word this documentation uses for the same thing, and "flavor" is the Gradle-level name developers use.
+WM Keyboard is one app in three builds: the standard one (GitHub and Google Play), the offline one with no internet permission (GitHub), and F-Droid's. Up to 0.6.2 there were two editions instead, Full and Lite, and F-Droid shipped Lite. The F-Droid build is compiled with `wmkb.enableFdroid`, which leaves out Google's SDKs (ML Kit, LiteRT, LiteRT-LM) and with them four toolbox tools (Handwriting, Text scan/OCR, QR & barcode scanner, Document scanner) and two nested options <Flavor edition="google" /> inside tools every build has: Whisper's LiteRT models inside Voice typing, and the on-device LLM choice inside AI writing tools.
 
-Lite hides exactly five toolbox tools (Handwriting, Text scan/OCR, QR & barcode scanner, Document scanner, Grammar check) and two nested options <Flavor edition="full" /> inside tools that exist on both editions: Whisper's engine choice inside Voice typing, and the on-device LLM choice inside AI writing tools. Both editions share a package name and signing config, so installing one over the other is a normal update with your data intact. The measured 0.3.0 release APKs run about 66 MB for Full on `arm64-v8a` and under 9 MB for Lite. Check which you have at <SettingsPath path="About / App / Version" />, which names the flavor directly. Full comparison: [Full vs Lite](/start/editions/).
+All builds share a package name and signing key, so installing one over another is a normal update with your data intact. Check which you have at <SettingsPath path="About / App / Version" />. Full comparison: [Which build you have](/start/editions/).
 
 ### Direct boot
 

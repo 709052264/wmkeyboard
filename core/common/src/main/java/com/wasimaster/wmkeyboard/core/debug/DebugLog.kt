@@ -86,11 +86,10 @@ object DebugLog {
     private var appContext: Context? = null
 
     /**
-     * The whole flavour name, which only `:app` knows.
+     * The flavour name (`intl` or `en`), which only `:app` knows.
      *
-     * Everything in this module compiles against `:core:config`, and that
-     * module carries the `capabilities` dimension alone — so `BuildConfig.FLAVOR`
-     * here reads `full`, never `fullIntl` or `fullEn`. The two language builds
+     * Everything in this module compiles against `:core:config`, which has no
+     * flavours, so nothing here can tell the two language builds apart. They
      * are separate R8 runs whose mappings are not interchangeable, so a record
      * that cannot name its language build cannot be retraced against the right
      * one. `WMApplication` fills this in on every process start, before any
@@ -232,9 +231,9 @@ object DebugLog {
     /** Whether this is the throwaway process the crash screen runs in. */
     fun isCrashProcess(): Boolean = processName().endsWith(CRASH_PROCESS_SUFFIX)
 
-    /** What a record names as the build: the whole flavour once :app has said. */
-    private val flavorTag: String
-        get() = buildTag ?: BuildConfig.FLAVOR
+    /** What a record names as the build: the flavour once :app has said, else nothing. */
+    internal val flavorTag: String
+        get() = buildTag.orEmpty()
 
     private val channelTag: String
         get() = when {

@@ -5,7 +5,7 @@ import java.io.File
 
 /**
  * The seam between the sticker editor's own background remover and the
- * LiteRT interpreter that runs it. `LocalSubjectCutout` (full flavour) reaches
+ * LiteRT interpreter that runs it. `LocalSubjectCutout` reaches
  * its implementation, `LitertCutoutRuntime`, only by reflection — see
  * [CutoutModule.BRIDGE_CLASS] — because the class lives in a different place
  * per channel, exactly as Whisper's does (see `WhisperRuntime` in
@@ -14,8 +14,9 @@ import java.io.File
  * - Play builds: in the on-demand `:feature:litert` module, downloaded the
  *   first time a cutout runs on a phone whose Play services cannot supply
  *   Google's model.
- * - Every other full build: compiled straight into `:core:content` (the
- *   `src/cutoutbridge` source directory).
+ * - Every other build: compiled straight into `:core:content` (the
+ *   `src/cutoutbridge` source directory), except F-Droid's, which has no
+ *   LiteRT at all.
  *
  * No type here may come from LiteRT: this interface is what the base APK
  * compiles against in Play builds, where that library is absent.

@@ -11,7 +11,7 @@
 # are turned DOWN rather than being papered over with @Suppress everywhere.
 #
 # Run:
-#   ./gradlew detektFullDebug          # with type resolution (finds the most)
+#   ./gradlew detektDebug          # with type resolution (finds the most)
 #   ./gradlew detekt                   # source-only, fast
 #   ./gradlew staticAnalysis           # everything, including Android Lint
 
@@ -186,10 +186,11 @@ coroutines:
     active: false
   RedundantSuspendModifier:
     active: true
-    # The lite flavour's stubs mirror the full API signature exactly — that is
-    # the whole point of them, and it is what keeps the shared callers
-    # compiling. `suspend` there is required by the contract, not redundant.
-    excludes: ['**/src/lite/**']
+    # F-Droid's stubs (src/nogoogle) mirror the src/google API signature
+    # exactly — that is the whole point of them, and it is what keeps the
+    # shared callers compiling. `suspend` there is required by the contract,
+    # not redundant.
+    excludes: ['**/src/nogoogle/**']
   SleepInsteadOfDelay:
     active: true
   SuspendFunSwallowedCancellation:
@@ -507,9 +508,9 @@ style:
     active: true
     ignoreOverridableFunction: true
     ignoreActualFunction: true
-    # A lite stub returning a constant `false`/`null` is the feature being
+    # An F-Droid stub returning a constant `false`/`null` is the feature being
     # switched off, not a function that forgot to do something.
-    excludes: ['**/src/lite/**']
+    excludes: ['**/src/nogoogle/**']
   LoopWithTooManyJumpStatements:
     active: true
     maxJumpCount: 3
@@ -542,10 +543,10 @@ style:
   OptionalAbstractKeyword: { active: true }
   OptionalUnit:
     active: true
-    # See RedundantSuspendModifier: the lite and noplay stubs mirror the full
-    # and play signatures exactly. An explicit `= Unit` there is the contract
+    # See RedundantSuspendModifier: the nogoogle and noplay stubs mirror the
+    # google and play signatures exactly. An explicit `= Unit` there is the contract
     # the shared callers compile against, not a redundant return type.
-    excludes: ['**/src/lite/**', '**/src/noplay/**']
+    excludes: ['**/src/nogoogle/**', '**/src/noplay/**']
   PreferToOverPairSyntax: { active: false }
   ProtectedMemberInFinalClass: { active: true }
   RedundantExplicitType: { active: true }

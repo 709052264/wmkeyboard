@@ -28,7 +28,7 @@ prefix="wmkeyboard-${version}-vc${code}"
 # ---------------------------------------------------------------- helpers
 
 # Human size for a file in dist/, or "not built" when the build did not
-# produce it (lite has no native symbols, for one).
+# produce it (a release cut before native symbols existed, for one).
 size_of() {
   local f="$dist/$1"
   [ -f "$f" ] || { printf 'not built'; return; }
@@ -181,11 +181,11 @@ row() { # <file> <what it is>
 "
 }
 row SHA256SUMS.txt 'Checksums for everything above'
-row "${prefix}-fdroid.apk" 'The F-Droid build, **lite · all languages**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves, byte for byte. Installs over an F-Droid install from 0.5.10 on'
+row "${prefix}-fdroid.apk" 'The F-Droid build, **all languages, no Google libraries**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves, byte for byte. Installs over an F-Droid install from 0.5.10 on'
 # From 0.6.2 one per ABI, named by the full versionCode (release * 10 + ABI
 # digit), since that is all F-Droid's `Binaries:` pattern can name them by.
 fdroid_row() { # <abi> <digit> <who>
-  row "wmkeyboard-${version}-vc$((code * 10 + $2))-fdroid.apk" "The F-Droid build for **$1**, **lite · all languages**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves $3, byte for byte. Installs over an F-Droid install from 0.5.10 on"
+  row "wmkeyboard-${version}-vc$((code * 10 + $2))-fdroid.apk" "The F-Droid build for **$1**, **all languages, no Google libraries**. F-Droid rebuilds it from source and publishes it only if the two match, so it is the same APK F-Droid serves $3, byte for byte. Installs over an F-Droid install from 0.5.10 on"
 }
 fdroid_row arm64-v8a 2 'to most phones'
 fdroid_row armeabi-v7a 1 'to 32-bit phones'

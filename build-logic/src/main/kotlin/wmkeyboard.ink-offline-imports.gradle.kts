@@ -2,7 +2,7 @@ import com.android.build.api.instrumentation.FramesComputationMode
 import com.android.build.api.instrumentation.InstrumentationScope
 import com.android.build.api.variant.AndroidComponentsExtension
 
-// Applies InkOfflineImportsTransform to the full flavour of the module that
+// Applies InkOfflineImportsTransform to every variant of the module that
 // packages ML Kit's digital-ink library: :app outside Play, the
 // :feature:handwriting split on Play. Scope ALL, because the classes it edits
 // come from the library's AAR; isInstrumentable keeps it to that one package.
@@ -10,7 +10,6 @@ import com.android.build.api.variant.AndroidComponentsExtension
 // an early return.
 extensions.getByType(AndroidComponentsExtension::class.java).apply {
     onVariants(selector().all()) { variant ->
-        if (variant.productFlavors.none { it.second == "full" }) return@onVariants
         variant.instrumentation.transformClassesWith(
             InkOfflineImportsTransform::class.java,
             InstrumentationScope.ALL,

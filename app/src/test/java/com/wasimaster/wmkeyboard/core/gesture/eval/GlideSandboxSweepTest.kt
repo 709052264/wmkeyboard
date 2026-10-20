@@ -42,7 +42,7 @@ import org.junit.Test
  * it when re-deciding the sandbox policy:
  *
  * ```
- * WM_GLIDE_SANDBOX_SWEEP=1 ./gradlew :app:testFullIntlDebugUnitTest --tests "*GlideSandboxSweepTest"
+ * WM_GLIDE_SANDBOX_SWEEP=1 ./gradlew :app:testIntlDebugUnitTest --tests "*GlideSandboxSweepTest"
  * ```
  */
 class GlideSandboxSweepTest {

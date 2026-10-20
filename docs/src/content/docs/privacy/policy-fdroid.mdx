@@ -1,6 +1,6 @@
 ---
 title: "Privacy policy (F-Droid edition)"
-description: "The formal policy for the lite edition from F-Droid: no Google library compiled in, nothing collected, and every network call named."
+description: "The formal policy for the F-Droid build: no Google library compiled in, nothing collected, and every network call named."
 sidebar:
   label: "Privacy policy (F-Droid)"
   order: 9
@@ -11,20 +11,20 @@ sidebar:
 documentation site. WM Keyboard is written and published by Wasi Master, an
 individual developer.
 
-:::note[This page covers the lite edition]
-There are two builds of WM Keyboard and they are not the same app underneath,
-so they get one policy each rather than one policy with a page of footnotes.
+:::note[This page covers the F-Droid build]
+The F-Droid build and the others are not the same app underneath, so they get
+one policy each rather than one policy with a page of footnotes.
 
-This page is the lite edition. That is what F-Droid builds from source, and the
-`lite` APK on the GitHub releases page. It is compiled with
-`wmkb.enablePlayStore=false` and `wmkb.enableGms=false` against the `lite`
-product flavour, which means no Google library is on its compile classpath
-at all.
+This page is the F-Droid build, which F-Droid compiles from source. It is
+compiled with `wmkb.enableFdroid=true`, `wmkb.enablePlayStore=false` and
+`wmkb.enableGms=false`, which means no Google library is on its compile
+classpath at all. Up to 0.6.2 this was the `lite` edition, which GitHub
+published too.
 
-If you installed from Google Play, you have the full edition, which does
-carry Google libraries. Read [Privacy policy (Google Play
+If you installed from Google Play or GitHub, you have a build that does carry
+Google libraries. Read [Privacy policy (Google Play
 edition)](/privacy/policy/) instead. The app tells you which one you have
-under About: the version line names the edition.
+under About: the version line says F-Droid on this one.
 :::
 
 ## The summary
@@ -34,7 +34,7 @@ tracking, no analytics, no crash reporting, and no server belonging to this
 project that the app sends anything to. What you type is processed on your
 device and stays there.
 
-In this edition there is no caveat to that. The full edition has to disclose
+In this build there is no caveat to that. The other builds have to disclose
 Google's ML Kit reporting its own diagnostics; this build does not contain
 ML Kit, so there is nothing of that kind to disclose. The one Google-adjacent
 code path that survives is downloadable fonts, and it is inert on a device
@@ -112,8 +112,8 @@ applies the same exclusions to everything for as long as it is on.
 ## What leaves your device, and only when you ask
 
 Typing itself never uses the network. A set of optional tools do, each one
-only while you are actively using it. This is the same list as the full
-edition minus the rows that need code this build does not have.
+only while you are actively using it. This is the same list as the other
+builds minus the rows that need code this build does not have.
 
 | Tool | What it sends | To |
 |---|---|---|
@@ -149,10 +149,11 @@ tools talk to are not free software. Every one of them is opt-in, and the
 keyboard is fully usable with all of them untouched. Most also have a free,
 self-hostable alternative you can switch to above.
 
-Voice typing is the row to read carefully. This edition has no offline
-Whisper, so dictation goes through Android's own `SpeechRecognizer`. On most
+Voice typing is the row to read carefully. Until you set up one of the
+offline engines (which needs **Download feature libraries** on and a model
+downloaded), dictation goes through Android's own `SpeechRecognizer`. On most
 devices that is a Google component and your audio may leave the device. If
-that matters to you, do not use voice typing on this edition.
+that matters to you, use an offline engine or do not use voice typing.
 
 
 ### The update check
@@ -168,7 +169,7 @@ is one you can actually install from where you installed this.
 
 ## Permissions
 
-This build asks for the same Android permissions as the full one, and every
+This build asks for the same Android permissions as the others, and every
 one belongs to a single optional feature that is off until you turn it on:
 microphone for voice input, camera for the camera tool, contacts for name
 suggestions, calendar for the calendar tool, photos for the clipboard's

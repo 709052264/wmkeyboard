@@ -17,7 +17,7 @@ rustup and the pinned `cargo-ndk`, builds arm64-v8a, armeabi-v7a and x86_64,
 and remaps the registry, standard library and repository paths out of the
 panic messages, so two machines with the same toolchain build the same bytes.
 F-Droid deletes the committed copies and builds them with it (through
-`native/build-lite-libs.sh`), as does the release workflow for the reference
+`native/build-fdroid-libs.sh`), as does the release workflow for the reference
 APK F-Droid compares against.
 
 Host-side tests (`cargo test`) exercise the lint→JSON path without Android.

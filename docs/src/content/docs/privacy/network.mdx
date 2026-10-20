@@ -40,7 +40,7 @@ it.
 | Translate | `translate.googleapis.com` (no key) or `translation.googleapis.com` (with a key) | the text you typed into the panel, up to 2,500 characters, plus the target language | as you type, about 400ms after you stop, only while the panel is open |
 | Translate and DeepL Write, with your DeepL key | `api-free.deepl.com` (Free keys), `api.deepl.com` (other keys), or the DeepL server you entered | Translate: the same as above. DeepL Write: the text in the field or the selection, up to 2,500 characters. Both send your key in a header | only after you add a DeepL key under Tools / Translate. Translate as you type in its panel; DeepL Write only when you tap it |
 | Translate, with your own translation server | the server address you entered | the same as Translate above, inside a chat request with an instruction to translate, plus your key in a header if you set one | only after you enter a server address under Tools / Translate. Then as you type in the panel, in place of every other translation service |
-| Translate, on-device models | `dl.google.com` (through Android's download manager), full edition only | nothing you typed: the request names the language model | when you press Download for a language, in the panel or under Tools / Translate |
+| Translate, on-device models | `dl.google.com` (through Android's download manager), not in the F-Droid build | nothing you typed: the request names the language model | when you press Download for a language, in the panel or under Tools / Translate |
 | Translate, Firefox Translations models | `firefox-settings-attachments.cdn.mozilla.net`, Mozilla's server for the files Firefox downloads, 64-bit phones with Android 9 and later | nothing you typed: the request names the model file | when you press Download for a direction, in the panel or under Tools / Translate |
 | GIF search | `api.klipy.com`, `api.giphy.com`, and `gifcities.archive.org` with `web.archive.org` once GifCities is on | your search text, or nothing for the trending feed | immediately when you open the panel (trending), then live as you type |
 | Sticker search | same clients as GIF search | same | same |
@@ -66,13 +66,13 @@ it.
 | AI (cloud provider) | the provider you picked, on its own API: Anthropic, OpenAI, Gemini, Grok (xAI), DeepSeek, or Brave (`api.search.brave.com`, which runs a web search with your text before it answers) | the text you ran the action on, plus a system prompt | only when you tap an action, never in the background |
 | AI (any other OpenAI-compatible service) | whatever address you type in, for instance OpenRouter, Groq, Together or Mistral | same | same |
 | AI (self-hosted Ollama or LM Studio) | a server address you enter on your own network | same | same, over plain HTTP |
-| AI (on-device) <Flavor edition="full" /> | none | nothing leaves the phone | never: this provider has no network path at all |
+| AI (on-device) <Flavor edition="google" /> | none | nothing leaves the phone | never: this provider has no network path at all |
 | Reporting an AI result | none of the app's own | nothing: it builds a mail draft and hands it to your mail app | only when you tap Report, and only your mail app sends it |
 | Clipboard link previews | whatever URL you copied | a GET request to that page | off by default; when on, right after you copy a new link |
-| QR scan link previews <Flavor edition="full" /> | whatever URL a scanned code contains | a GET request to that page | off by default; when on, right after a QR code decodes to a URL |
+| QR scan link previews <Flavor edition="google" /> | whatever URL a scanned code contains | a GET request to that page | off by default; when on, right after a QR code decodes to a URL |
 | Voice typing (system recognizer) | Android's platform speech service (not WM Keyboard's own code) | your speech audio | whenever the on-device model for that language isn't installed: always, below Android 12 |
 | Voice typing (Whisper) | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
-| Voice typing (Whistle) <Flavor edition="full" /> | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
+| Voice typing (Whistle) <Flavor edition="google" /> | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
 | Voice typing (Asr4All) | none | nothing leaves the phone during dictation | never: fully offline once a model is downloaded |
 | Voice typing (Parakeet, Moonshine, Sherpa) | none | nothing leaves the phone during dictation | never: fully offline once the model is downloaded |
 | Glide typing (FUTO Swipe engine) | none | nothing leaves the phone while you swipe | never: fully offline once the two models are downloaded |
@@ -174,12 +174,12 @@ what's already in the table above:
 - **`raw.githubusercontent.com/wasi-master/wmkeyboard-monkeytype-sounds`** is
   the second pre-added addon repository, a set of key-sound packs. Like the
   one above it is removable, and removing it is permanent.
-- **`raw.githubusercontent.com/tesseract-ocr/tessdata_fast`** <Flavor edition="full" />
+- **`raw.githubusercontent.com/tesseract-ocr/tessdata_fast`** <Flavor edition="google" />
   is the Tesseract project's own language data, pinned to its 4.1.0 release.
   The [text scanner](/tools/scanner/#which-languages-it-reads) fetches one
   file per language, 0.4 MB to 12 MB, only when you press **Download** for
   it. The request names the language and nothing else.
-- **`raw.githubusercontent.com/iFleey/PPOCRv5-Android`** <Flavor edition="full" />
+- **`raw.githubusercontent.com/iFleey/PPOCRv5-Android`** <Flavor edition="google" />
   holds PaddleOCR's PP-OCRv5 models converted for LiteRT, pinned to one
   commit. The [text scanner](/tools/scanner/#which-languages-it-reads)
   fetches its three files, 11 MB together, only when you press **Download**
@@ -277,14 +277,14 @@ some are.
 | CJK conversion tables (pinyin, kana, stroke, cangjie, jyutping, and the Traditional phrase table), and the RIME engine's schema packs | same data repository | SHA-256 verified before the file is used | No |
 | [Keyman typing rules](/languages/keyman/#typing-rules) | `downloads.keyman.com`, or the same data repository's copy when keyman.com can't serve them | the file must parse as a keyboard before it's kept, and the data repository's copy is also SHA-256 verified against the checksum listed beside it | No |
 | Offline Whisper speech models | Hugging Face | SHA-256 for whisper.cpp models, from a fixed revision; a file-size floor only for LiteRT models | Yes, around 150 MB. See [Offline voice (Whisper)](/tools/whisper/#downloading-and-managing-models) |
-| Offline Whistle speech model <Flavor edition="full" /> | Hugging Face, pinned to one revision | SHA-256 verified before the file is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Whistle)](/tools/whistle/#setting-it-up) |
+| Offline Whistle speech model <Flavor edition="google" /> | Hugging Face, pinned to one revision | SHA-256 verified before the file is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Whistle)](/tools/whistle/#setting-it-up) |
 | Offline Asr4All speech models | Hugging Face, pinned to one revision per size | SHA-256 verified for both files before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Offline voice (Asr4All)](/tools/asr4all/#setting-it-up) |
 | FUTO Swipe glide models | Hugging Face, `futo-org/futo-swipe` pinned to one revision | SHA-256 verified for both files before they are used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [The FUTO Swipe engine](/typing/glide-typing/#the-futo-swipe-engine) |
 | Offline Parakeet and Moonshine speech models | Hugging Face, pinned to one revision each | SHA-256 verified for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and Parakeet's 719 MB also asks on mobile data. See [Parakeet](/tools/parakeet/#setting-it-up) and [Moonshine](/tools/moonshine/#setting-it-up) |
 | Offline Sherpa speech models, Silero VAD and the English punctuation model | Hugging Face, pinned to one revision each | SHA-256 verified for every file before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks, and a model of 150 MB or more also asks on mobile data. See [Offline voice (Sherpa)](/tools/sherpa/#setting-it-up) |
-| Text scanner languages (Tesseract) <Flavor edition="full" /> | the Tesseract project's `tessdata_fast` 4.1.0 on GitHub | none beyond the file arriving at the length the server announced; a file Tesseract can't load is not read | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
+| Text scanner languages (Tesseract) <Flavor edition="google" /> | the Tesseract project's `tessdata_fast` 4.1.0 on GitHub | none beyond the file arriving at the length the server announced; a file Tesseract can't load is not read | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | Firefox Translations models (on-device translation) | Mozilla's attachment server, `firefox-settings-attachments.cdn.mozilla.net`, the files Firefox's own Remote Settings point at | SHA-256 and exact size of each download, and again of each file after it is unpacked, against values built into the app | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Translate](/tools/translate/#firefox-translations-models) |
-| Text scanner models for Chinese and Japanese (PaddleOCR) <Flavor edition="full" /> | PPOCRv5-Android on GitHub, pinned to one commit | SHA-256 of each of the three files | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
+| Text scanner models for Chinese and Japanese (PaddleOCR) <Flavor edition="google" /> | PPOCRv5-Android on GitHub, pinned to one commit | SHA-256 of each of the three files | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | On-device AI models | Hugging Face, per model | no checksum, a file-size floor only | Yes, at 500 MB. See [AI tools](/tools/ai/#local-models) |
 | [Search by meaning](/smart/search-by-meaning/) model (EmbeddingGemma 2) | the data repository's `models` release on GitHub, about 155 MB for text and 220 MB more for pictures. Fetched when you pick it, never on its own | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
 | Addons (themes, icon packs, plugins, sounds, layouts, sticker packs) | whichever repository you added | SHA-256 verified when the manifest supplies one, and mandatory for plugins specifically, since they run code | No |
@@ -314,7 +314,7 @@ choice is whether to use the feature.
 
 | Component | In which build | Reaches Google when | What it sends |
 |---|---|---|---|
-| **ML Kit** (handwriting, OCR, QR/barcode scanning, document scanning, sticker background removal, on-device translation) | full edition only | when you use one of those features | Per [Google's own disclosure](https://developers.google.com/ml-kit/android-data-disclosure): device make, model, OS build and available ML accelerators; the app's package name and version; a per-install identifier; latency figures, the API settings and input/output sizes; the SDK version, the kind of event (init, model download, detection) and any error codes. Google describes this as diagnostics and usage analytics, says it's encrypted in transit and not passed to third parties, and provides no switch to disable it. |
+| **ML Kit** (handwriting, OCR, QR/barcode scanning, document scanning, sticker background removal, on-device translation) | every build but F-Droid's | when you use one of those features | Per [Google's own disclosure](https://developers.google.com/ml-kit/android-data-disclosure): device make, model, OS build and available ML accelerators; the app's package name and version; a per-install identifier; latency figures, the API settings and input/output sizes; the SDK version, the kind of event (init, model download, detection) and any error codes. Google describes this as diagnostics and usage analytics, says it's encrypted in transit and not passed to third parties, and provides no switch to disable it. |
 | **Downloadable fonts** | every build with Play services present | the first time a script's default keyboard font is needed, and whenever you pick a Google font in the theme editor | the font family name and this app's package name, asked of the Play services font provider. Play services makes the actual request, not this app. |
 | **Play Store libraries** (in-app updates, and the on-demand downloads of the on-device AI runtime, the on-device translation engine, the interpreter behind offline voice typing and the sticker editor's own background remover, the handwriting recogniser, the libraries behind the whisper.cpp, Asr4All, Parakeet, Moonshine and Whistle voice engines, ONNX Runtime behind the Sherpa voice engine, the scanner's offline text reader, and the grammar checker) | Play Store builds only | on the update check, when you first use an on-device AI model, when you first pick on-device translation, when you first use offline voice typing or a background removal without Play services, when you first download a handwriting model, when you first dictate with one of those voice engines, when you first download a text-reader language pack, and when you first open the grammar tool or the spell checker starts | the app's package and version, handled by the Play Store app that installed it |
 
@@ -324,7 +324,7 @@ Google Drive as a backup destination adds a fourth, but only if you connect
 it: signing in is a Google sign-in, and after that the app talks to Drive
 directly over ordinary HTTPS. Nothing is connected by default.
 
-The lite edition ships no ML Kit at all, so the first row doesn't exist
+The F-Droid build ships no ML Kit at all, so the first row doesn't exist
 there, and the F-Droid build carries no Play Store libraries either.
 The font row is the one that survives everywhere. It's an AndroidX API
 talking to whatever font provider the device has, so a phone with Play

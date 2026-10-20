@@ -171,9 +171,9 @@
     <string name="ime_handwriting_ink_on_desc">Writing. Tap to use the app instead</string>
     <string name="ime_handwriting_ink_off_desc">Using the app. Tap to write</string>
     <string name="ime_handwriting_stylus_hint">Write with your stylus over a text field</string>
-    <!-- Shown in place of the writing area of a handwriting layout in the
-         Lite edition, which does not include the recognizer. -->
-    <string name="ime_handwriting_layout_full_only_info">Handwriting is in the Full edition only. Use the globe key to change to a different layout.</string>
+    <!-- Shown in place of the writing area of a handwriting layout in a
+         build without the recognizer (F-Droid's). -->
+    <string name="ime_handwriting_layout_full_only_info">This version of the app does not have handwriting. Use the globe key to change to a different layout.</string>
 
     <!-- Camera panel. -->
     <string name="ime_camera_permission_body">The camera tool needs permission to use the camera. The app takes a photo only when you press the shutter.</string>

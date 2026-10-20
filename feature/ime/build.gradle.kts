@@ -12,19 +12,34 @@ plugins {
 }
 
 // Coverage for the root's merged report (`./gradlew koverHtmlReportUnit`):
-// this module's full-flavour debug unit tests.
+// this module's debug unit tests.
 kover {
     currentProject {
-        createVariant("unit") { add("fullDebug") }
+        createVariant("unit") { add("debug") }
     }
+}
+
+// F-Droid's build carries no Google artifact (fdroid/README.md): no ML Kit
+// and no Google Home, so src/nogoogle's stand-ins replace src/google's
+// scanner, OCR and document-scan classes. See the same flag in
+// :core:intelligence.
+val googleSdks: Boolean = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    !(providers.gradleProperty("wmkb.enableFdroid").orNull
+        ?: localProperties.getProperty("wmkb.enableFdroid")
+        ?: System.getenv("WMKB_ENABLE_FDROID")
+        ?: "false").toBoolean()
 }
 
 // Same channel flag :app reads (see the flag() helper there): a Play-store
 // build resolves it true, every other channel false. Here it swaps the two
 // bundled ML Kit artifacts for their unbundled play-services twins — a Play
 // install implies GMS, so the models can come from Play services instead of
-// shipping ~18 MB per ABI in the AAB. Sideload and F-Droid builds keep the
-// bundled artifacts (or none, for lite) so scanners never depend on GMS there.
+// shipping ~18 MB per ABI in the AAB. Sideloaded builds keep the bundled
+// artifacts so scanners never depend on GMS there, and F-Droid's has none.
 // Both variants expose the identical com.google.mlkit.vision.* API, so no
 // source changes ride on this flag.
 // The Google Home APIs SDK, which Google hands out as a bundle rather than
@@ -41,7 +56,7 @@ val googleHomeSdk: Boolean = googleHomeVersion != null || googleHomeAars
 // -Pwmkb.enableGoogleHome=true for one build (a fast one, say) and leave
 // local.properties at false; :core:config reads the same flag for
 // ENABLE_GOOGLE_HOME, so the code and the dependency never disagree.
-val googleHome: Boolean = googleHomeSdk && run {
+val googleHome: Boolean = googleHomeSdk && googleSdks && run {
     val localProperties = Properties().apply {
         val file = rootProject.file("local.properties")
         if (file.exists()) file.inputStream().use { load(it) }
@@ -70,30 +85,33 @@ android {
     }
     defaultConfig {
         minSdk = 24
+        // Whether the keyboard tells Android it takes stylus handwriting
+        // sessions (method.xml's supportsStylusHandwriting, issue #386). Off
+        // in F-Droid's build: it has no recogniser, and declaring support
+        // anyway would let Android hand it stylus drags over a text field
+        // that it can only refuse, after the app has already given them up.
+        resValue("bool", "ime_supports_stylus_handwriting", "$googleSdks")
     }
 
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     // The Google Home APIs are a hand-downloaded SDK (Google hosts no Maven
-    // artifact for them): the AARs go under libs/googlehome, and only a full
-    // build that has them compiles the real GoogleHomeSupport. Without them
-    // the full flavour uses the same stub lite does, so a checkout without
-    // the SDK still builds. ENABLE_GOOGLE_HOME in :core:config follows suit.
+    // artifact for them): the AARs go under libs/googlehome, and only a build
+    // that has them compiles the real GoogleHomeSupport. Without them it uses
+    // the stub, so a checkout without the SDK still builds, and so does
+    // F-Droid's. ENABLE_GOOGLE_HOME in :core:config follows suit.
     //
     // On Play the SDK is not linked here at all: it is the on-demand
     // :feature:googlehome split, which compiles src/googlehome, and this
     // module gets the facade that reaches it by reflection instead.
     sourceSets {
-        getByName("full") {
+        getByName("main") {
             val dirs = when {
                 googleHome && playStoreChannel -> listOf("src/googlehomeplay/java")
                 googleHome -> listOf("src/googlehome/java", "src/googlehomedirect/java")
                 else -> listOf("src/googlehomestub/java")
             }
-            for (dir in dirs) {
+            // The classes that call ML Kit directly, or their F-Droid stand-ins.
+            val google = if (googleSdks) "src/google/java" else "src/nogoogle/java"
+            for (dir in dirs + google) {
                 java.srcDir(dir)
                 kotlin.srcDir(dir)
             }
@@ -105,7 +123,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        // For ime_supports_stylus_handwriting above.
+        resValues = true
+    }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
     // Robolectric gives each test class its own sandbox classloader, which the
     // default 512m worker does not survive alongside this module's 486 plain
@@ -176,30 +198,34 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.network.okhttp)
-    if (playStoreChannel) {
-        "fullImplementation"(libs.mlkit.text.recognition.unbundled)
-        "fullImplementation"(libs.mlkit.barcode.scanning.unbundled)
+    if (!googleSdks) {
+        // F-Droid: no ML Kit at all; see src/nogoogle.
+    } else if (playStoreChannel) {
+        implementation(libs.mlkit.text.recognition.unbundled)
+        implementation(libs.mlkit.barcode.scanning.unbundled)
     } else {
-        "fullImplementation"(libs.mlkit.text.recognition)
-        "fullImplementation"(libs.mlkit.barcode.scanning)
+        implementation(libs.mlkit.text.recognition)
+        implementation(libs.mlkit.barcode.scanning)
     }
     // The other four OCR scripts (#757), unbundled on every channel: Play
     // services fetches each model on first use. About 3 KB of code each, as
     // the shared pipeline is already here through the Latin artifact (the
     // bundled one depends on the unbundled one). Without Play services those
     // scripts read with Paddle or Tesseract instead (OcrLanguages).
-    "fullImplementation"(libs.mlkit.text.recognition.chinese.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.japanese.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.korean.unbundled)
-    "fullImplementation"(libs.mlkit.text.recognition.devanagari.unbundled)
-    "fullImplementation"(libs.mlkit.document.scanner)
+    if (googleSdks) {
+        implementation(libs.mlkit.text.recognition.chinese.unbundled)
+        implementation(libs.mlkit.text.recognition.japanese.unbundled)
+        implementation(libs.mlkit.text.recognition.korean.unbundled)
+        implementation(libs.mlkit.text.recognition.devanagari.unbundled)
+        implementation(libs.mlkit.document.scanner)
+    }
     if (googleHome && playStoreChannel) {
         // In :feature:googlehome; see the source sets above.
     } else if (googleHome && googleHomeVersion != null) {
-        "fullImplementation"("com.google.android.gms:play-services-home:$googleHomeVersion")
-        "fullImplementation"("com.google.android.gms:play-services-home-types:$googleHomeVersion")
+        implementation("com.google.android.gms:play-services-home:$googleHomeVersion")
+        implementation("com.google.android.gms:play-services-home-types:$googleHomeVersion")
     } else if (googleHome && googleHomeAars) {
-        "fullImplementation"(fileTree("libs/googlehome") { include("*.aar", "*.jar") })
+        implementation(fileTree("libs/googlehome") { include("*.aar", "*.jar") })
     }
 
     testImplementation(libs.junit)

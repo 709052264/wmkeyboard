@@ -71,7 +71,7 @@ include(":feature:ime")
 // LiteRT-LM runtime. :app adds it to `dynamicFeatures` behind the same flag,
 // and a dynamic-feature module that no app registers cannot resolve its own
 // `featureName`, so including it unconditionally breaks every non-Play build
-// the moment an unqualified task name (`assembleFullDebug`, and so the whole
+// the moment an unqualified task name (`assembleDebug`, and so the whole
 // of CI) fans out across every project. It is therefore in the build only
 // when the channel that consumes it is. Developers who want it in the IDE
 // have wmkb.enablePlayStore=true in local.properties already, since that is

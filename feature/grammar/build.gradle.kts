@@ -12,7 +12,7 @@ plugins {
 // code: HarperNative stays in :core:intelligence and loads the library
 // through FeatureModules.loadLibrary once Play has installed this split. It
 // packages :core:intelligence's src/main/jniLibs in place (only Harper is
-// there; Tesseract is in src/full), which :core:intelligence drops from
+// there; Tesseract is in src/tesseract), which :core:intelligence drops from
 // itself on this channel. About 2.3 MB on arm64, used only by the grammar
 // tool and the spell checker.
 android {
@@ -33,13 +33,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -55,8 +48,6 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Both flavours: the base carries these libraries in full and lite
-        // alike off Play.
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/intelligence/src/main/jniLibs")
     }
 }

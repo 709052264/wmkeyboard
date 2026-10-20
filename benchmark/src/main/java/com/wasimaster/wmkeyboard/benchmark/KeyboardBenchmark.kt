@@ -21,7 +21,7 @@ import org.junit.runner.RunWith
  * (feature/ime/.../ime/ImeTrace.kt), summed over each iteration, so a
  * regression shows up as the section that grew rather than only as more jank.
  *
- *     ./gradlew :benchmark:connectedFullIntlBenchmarkReleaseAndroidTest \
+ *     ./gradlew :benchmark:connectedIntlBenchmarkReleaseAndroidTest \
  *         -Pwmkb.benchmark=true \
  *         -Pandroid.testInstrumentationRunnerArguments.class=com.wasimaster.wmkeyboard.benchmark.KeyboardBenchmark
  */

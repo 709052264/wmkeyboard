@@ -1364,7 +1364,7 @@
     "caption": "First launch after install, before the setup wizard starts.",
     "host": "harness-blank",
     "setup": [
-      "Install a debug APK (assembleFullDebug) on a clean profile / after clearing app data so onboardingDone is false",
+      "Install a debug APK (assembleIntlDebug) on a clean profile / after clearing app data so onboardingDone is false",
       "Launch the app cold and capture the very first frame before the onboarding wizard's WelcomePage finishes composing, or capture WelcomePage itself if the pre-wizard frame is too transient to be a meaningful shot"
     ],
     "status": "done",

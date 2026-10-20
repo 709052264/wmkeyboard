@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 /**
  * One real round trip against a public instance, skipped unless asked for:
  *
- *     ./gradlew :core:send:testFullDebugUnitTest -Psend.interop=1 [-Psend.interop.url=https://…]
+ *     ./gradlew :core:send:testDebugUnitTest -Psend.interop=1 [-Psend.interop.url=https://…]
  *
  * It uploads a kilobyte with a one-download limit and a password, reads the
  * envelope back, downloads and decrypts it, and deletes what is left. The

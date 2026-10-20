@@ -334,9 +334,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| System spell checker (HarperSpellCheckerService) | full flavour only — lite ships no libharper_jni.so, and the service plus its manifest and spellchecker.xml live in src/full |
+| System spell checker (HarperSpellCheckerService) | every build (the service is in the main manifest); a build without libharper_jni.so keeps the spelling half only |
 | Contact names and contact-email completion in the strip | needs the READ_CONTACTS grant plus the per-feature setting; both off by default |
-| Contact-aware spell checking (names never flagged, name corrections lead the menu) | full flavour plus READ_CONTACTS grant plus the contactSuggestions setting |
+| Contact-aware spell checking (names never flagged, name corrections lead the menu) | READ_CONTACTS grant plus the contactSuggestions setting |
 | Downloadable wordlists (333 entries, 331 languages) | needs network; fetched from the public wmkeyboard-data GitHub repo, no API key |
 | Downloadable n-gram packs (English, Bengali, romanized Bengali) | needs network; fetched silently from the same repo |
 | Importing a custom word list from a URL | needs network; the file-picker import path does not |
@@ -717,7 +717,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting instead of glide (letter-area swipe drawing) | full flavour only (BuildConfig.ENABLE_ML_KIT_HANDWRITING); also needs a downloaded ML Kit digital-ink model, so a network fetch on first use |
+| Handwriting instead of glide (letter-area swipe drawing) | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING); also needs a downloaded ML Kit digital-ink model, so a network fetch on first use |
 | TalkBack gesture pass-through for spacebar slide / backspace swipe / glide / handwriting | needs the 'WM Keyboard gestures' accessibility service granted by the user |
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
@@ -1076,13 +1076,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| CJK conversion dictionary packs (pinyin, ja_kana, jyutping, stroke, cangjie, s2t_phrases) | network download required - none are bundled; until downloaded the composer shows the buffer but no candidates. Both flavours. |
+| CJK conversion dictionary packs (pinyin, ja_kana, jyutping, stroke, cangjie, s2t_phrases) | network download required - none are bundled; until downloaded the composer shows the buffer but no candidates. Every build. |
 | Downloadable word lists, emoji keyword packs and n-gram packs per language | network download; prompted once when adding a language |
 | Region-based language suggestions | reads TelephonyManager SIM/network country - no permission needed, but absent on Wi-Fi-only devices (falls back to time zone, then locale) |
 | Per-script pinned fonts and per-script font pickers (Noto Music, Noto Sans Symbols 2, Noto Sans <script>) | fetched through the Google Play Services downloadable-fonts provider; on a GMS-free or offline device the async font falls back to the platform default |
 | Android subtype auto-enabling for every layout | needs API 34+ (setExplicitlyEnabledInputMethodSubtypes); on Android 13 and below the user must tick languages in system settings |
 | Layout import from FlorisBoard/HeliBoard files, and addon-repo layout installs | file picker / repository URL; foreign files capped at 4 MB |
-| Everything else in this area (826-language registry, 1,732 layouts, all composers, Avro, Bengali spelling maps, fancy text, notation layouts, layout editor) | no flavour gate - :core:language and :core:input have no full/lite source sets, so all of it ships in Lite too |
+| Everything else in this area (826-language registry, 1,732 layouts, all composers, Avro, Bengali spelling maps, fancy text, notation layouts, layout editor) | no build gate: all of it ships in every build, F-Droid's included |
 
 ## Themes and appearance
 
@@ -1590,7 +1590,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - One-tap background removal `RARE` — ML Kit subject segmentation where there are Play services (module on demand), the app's own U²-Net-P on LiteRT where there are none (#278); either way the model arrives on the first tap with a progress bar.
     - Own model — 4.6 MB `u2netp.tflite` from wmkeyboard-data `models/cutout/`, SHA-256 pinned, resumable, kept in `files/cutout`, listed under Stickers on the storage screen, excluded from Android backup
     - Refuses degenerate masks — Under 1% or over 99% coverage reports "no subject" rather than erasing the picture
-    - Brushes still work without it — Lite builds and un-fetchable models just lose the button
+    - Brushes still work without it — the F-Droid build and un-fetchable models just lose the button
   - Edits resume across sessions `RARE` — Reopens the source photo with the crop, mask, border and brush size still applied.
     - Crop stored as fractions — Survives a different screen, window size or decode scale — not the editor's own pan/zoom
     - Opens on Erase when resuming — A stray pan in Crop is the one gesture that would throw the erasing away
@@ -1612,7 +1612,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Sticker editor: one-tap background removal | full flavour only (ML Kit subject segmentation, or U²-Net-P on the LiteRT interpreter without Play services); lite ships a stub reporting supported=false |
+| Sticker editor: one-tap background removal | not in the F-Droid build (ML Kit subject segmentation, or U²-Net-P on the LiteRT interpreter without Play services); there supported=false |
 | Sticker editor: segmentation model | needs a one-time download (network): the Play services on-demand module, or without Play services (or when they lack the module) the app's own 4.6 MB model from the data repository (on Play the LiteRT interpreter that runs it is the on-demand :feature:litert split, fetched first under the same bar); button offers the download and falls back to brushes if neither can be fetched |
 | GIF search and send (Klipy, GIPHY) | needs a user-supplied API key for at least one provider, plus network |
 | Sticker search and send (Klipy, GIPHY) | needs a user-supplied API key for at least one provider, plus network; keys shared with the GIF tool |
@@ -1709,7 +1709,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - Lite ships 66 of 71 — Handwriting, OCR, QR scan, Doc scan, Grammar are compiled out
+    - The F-Droid build has 4 fewer — Handwriting, OCR, QR scan and Doc scan are compiled out
     - Doc scan also needs Play services — PlayServices.available gate, since the scanner UI lives in Play services
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
@@ -1810,7 +1810,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Show private screens — Non-exported activities listed dimmed with a lock
     - No QUERY_ALL_PACKAGES — Reads the same launcher list the home screen sees
     - Sort A–Z or most recent — Labels under icons can be hidden
-- **Scanners** `uncommon` — 3 camera-driven tools, all ML Kit, full edition only
+- **Scanners** `uncommon` — 3 camera-driven tools, all ML Kit, not in the F-Droid build
   - Text scan (OCR) `uncommon` — Full-bleed viewfinder, on-device recognition: ML Kit for Latin script, Tesseract (per-language download) for 100+ languages in most other scripts
     - Words as tappable chips grouped by line — Trim the capture down before inserting
     - Start with everything selected — On by default; off makes chips opt-in instead
@@ -2113,7 +2113,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - A provider list of homes — `ProviderTool.SMART_HOME`, always mixed: every row is connected, in list order; each home is a `ProviderCredential` with an `extra` map for its tokens, remote address, bridge id or granted structure; several homes at once, rooms prefixed with the home's name
     - One model for every platform — `HomeBackend` in `:core:homeassistant`; every other platform is an adapter onto Home Assistant's entity shape (`HaEntity`, HA domains and attribute names, `HaFeatures` bits) and back from `HaServiceCall`, so the panel, formatter, icons, AI tools and snippets never know which platform drew a tile
     - Home Assistant — Live over the WebSocket API (`subscribe_entities` compressed stream, JVM-tested); REST fallback; reconnect with backoff; a refused token stops and asks once; browser sign-in IndieAuth style through the docs site's `/ha/` page naming `wmkeyboard://ha-auth`, tokens refresh themselves, a long-lived token is the fallback; mDNS `_home-assistant._tcp` finds the server; home and remote addresses; every HA kind incl. camera stills, Assist, agents
-    - Google Home — The Home APIs SDK through Play services, full flavour only and only when the SDK is checked in under `feature/ime/libs/googlehome` (Google hands it out as a bundle, not a Maven artifact); Google's own consent picks the account, the structure and the device kinds; Matter traits (OnOff, LevelControl, ColorControl, Thermostat, DoorLock, WindowCovering, FanControl, MediaPlayback, sensors) mapped to HA domains; `ENABLE_GOOGLE_HOME` per channel, a `<queries>` entry for the Google Home app
+    - Google Home — The Home APIs SDK through Play services, not in the F-Droid build, and only when the SDK is checked in under `feature/ime/libs/googlehome` (Google hands it out as a bundle, not a Maven artifact); Google's own consent picks the account, the structure and the device kinds; Matter traits (OnOff, LevelControl, ColorControl, Thermostat, DoorLock, WindowCovering, FanControl, MediaPlayback, sensors) mapped to HA domains; `ENABLE_GOOGLE_HOME` per channel, a `<queries>` entry for the Google Home app
     - SmartThings (`:core:smarthome`) — Samsung's REST API: locations as the home, rooms, devices with status, scenes; OAuth through the docs site's `/st/` return page and the build's client id, or a pasted personal access token (24 h); polled every 10 s while running since events need a hosted SmartApp; lights, switches, fans, shades, locks, valves, thermostats, media players, sensors
     - Philips Hue bridge (`:core:smarthome`) — CLIP v2 on the LAN over the bridge's own TLS, pinned at pairing (press the button, `POST /api`); mDNS `_hue._tcp`; lights, room group lights, scenes, motion, contact, temperature, light level, battery; live over the SSE event stream; xy ↔ hue/saturation conversion
     - openHAB (`:core:smarthome`) — `/rest/items` with an API token, items by type and semantic tag, rooms and floors from the semantic model, live over `/rest/events`
@@ -2187,12 +2187,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting tool and handwrite-with-swipes | full flavour only (ML Kit digital ink); each language model is an 8-26MB download |
-| Text scan (OCR) | full flavour only (ML Kit text recognition + bundled Tesseract library); needs CAMERA permission |
-| QR & barcode scanner | full flavour only (ML Kit barcode); needs CAMERA permission; link details need network |
-| Document scanner | full flavour only, and hidden entirely when Google Play services is unavailable |
-| Grammar tool | full flavour only (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI) |
-| AI On-device provider and its 8-model catalog | full flavour only; 2 of the 8 models need a Hugging Face token and licence acceptance |
+| Handwriting tool and handwrite-with-swipes | not in the F-Droid build (ML Kit digital ink); each language model is an 8-26MB download |
+| Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
+| QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
+| Document scanner | not in the F-Droid build, and hidden entirely when Google Play services is unavailable |
+| Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source) |
+| AI On-device provider and its 8-model catalog | not in the F-Droid build; 2 of the 8 models need a Hugging Face token and licence acceptance |
 | AI cloud providers (Claude, OpenAI, Gemini, Grok, DeepSeek, Brave) | needs the user's own API key — no built-in or proxied key for any of them |
 | AI self-hosted providers (Ollama, LM Studio, Other service) | needs a reachable server address; plain-HTTP traffic on the local network |
 | Web search and Image search | needs a Brave API key (user's or the build's); with none the tools vanish from bar, toolbox, chips and hardware shortcuts |
@@ -2215,7 +2215,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Voice typing | needs microphone permission; audio may reach the OS recognizer service unless the on-device language model is installed |
 | Clipboard link previews and QR link details and dictionary auto-lookup | network, and force-disabled by power saving's background-network toggle |
 | 35 tools of 83 are unavailable before the first unlock after reboot | direct-boot filter; the other 48 (arithmetic, sensors, keyboard-own state, all 14 cursor tools) stay usable |
-| Lite edition tool count | 81 of 86 tools; the 5 ML Kit / Harper tools are compiled out, not just hidden |
+| F-Droid build tool count | 4 fewer; the ML Kit tools are compiled out, not just hidden |
 
 ## Clipboard, snippets, text expansion
 
@@ -2443,7 +2443,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Token characters include . _ % + - @
     - Up to 5 addresses offered
     - Committed with no trailing space and not learned as a word
-  - Contacts in the system spell checker `RARE` — Full flavour only; separate Android spell-checker component
+  - Contacts in the system spell checker `RARE` — Every build with Harper; separate Android spell-checker component
     - Known contact names and emails are not underlined
     - Matching contact name ranked first in the correction menu
     - Reads the same contact-names setting, with no toggle of its own
@@ -2476,15 +2476,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Clipboard tool (history, panel, entity chips, phone masks) | ships identically in full and lite; no edition gating |
-| Snippets and text expansion | ships identically in full and lite; no edition gating |
+| Clipboard tool (history, panel, entity chips, phone masks) | ships identically in every build |
+| Snippets and text expansion | ships identically in every build |
 | Clipboard link previews | network — direct unauthenticated request to the copied site, off by default |
 | Screenshots in clipboard history | needs READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE; off by default |
 | "Show source app" on clip cards | needs the Usage Access special permission; off by default, best-effort guess |
 | One-time-code chip from notifications | needs the notification-listener grant (shared component with the media tool); off by default |
 | Dismiss the code's notification after use | uses the same notification-listener grant |
 | Contact name and contact email suggestions | needs READ_CONTACTS; both off by default |
-| Contact names in the system spell checker | full flavour only (Harper); also requires selecting WM Keyboard as Android's spell checker |
+| Contact names in the system spell checker | every build with Harper; also requires selecting WM Keyboard as Android's spell checker |
 | Clipboard history, snippets, contacts | unavailable before the first unlock after reboot (credential-encrypted storage / locked providers) |
 | Inline autofill and system smart-reply chips | Android 11+ (API 30) only; both suppressed in incognito |
 
@@ -2769,7 +2769,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Optional copy into Pictures/WM Keyboard
     - Tool hidden entirely on a device without Play services
   - Shared camera permission gate `uncommon` — one trampoline activity for OCR, QR and the camera tool; the panel rechecks on resume
-- **Camera tool** `uncommon` — Live viewfinder inside the keyboard that sends a photo into the field, both editions
+- **Camera tool** `uncommon` — Live viewfinder inside the keyboard that sends a photo into the field, every build
   - Viewfinder controls `uncommon` — tap to focus, pinch to zoom, flash cycle, self-timer, lens switch
     - Flash cycles Off → Auto → On, shown only when the lens has a flash unit
     - Self-timer cycles Off → 3s → 10s with a large countdown digit and a tick per second
@@ -2795,15 +2795,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| On-device LLM provider and its whole model catalog | full flavour only (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent in lite |
-| Offline Whisper dictation and the Recognition-engine list's Whisper row | full flavour only (BuildConfig.ENABLE_WHISPER); the section does not render in lite |
-| Handwriting panel and handwrite-with-swipes | full flavour only (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
-| Text scan (OCR) and QR/barcode scanner | full flavour only (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
-| Document scanner | full flavour only, and additionally requires Google Play services — the tool is hidden when Play services is absent |
+| On-device LLM provider and its whole model catalog | not in the F-Droid build (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent there |
+| Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
+| Handwriting panel and handwrite-with-swipes | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
+| Text scan (OCR) and QR/barcode scanner | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
+| Document scanner | not in the F-Droid build, and additionally requires Google Play services — the tool is hidden when Play services is absent |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence |
-| NPU under Compute | full flavour Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
+| NPU under Compute | Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
 | Handwriting language models | one-time network download per language through ML Kit |
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |
@@ -2826,7 +2826,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Trusted by signature — A pack loads only when it is signed with the app's own certificate and its versionCode is this release's; packs live per version under `noBackupFilesDir/langpacks/<versionCode>`, older versions are dropped.
   - One ResourcesLoader — Attached to the Application, every activity (`onActivityPreCreated`) and the keyboard service; a new pack reaches all of them through `setProviders`.
   - Picker and import — About › App language and Android 13's per-app language fetch the pack before switching; a pack file imports offline; Storage lists Interface languages.
-- **Two GitHub builds** — From 0.6.3 a release publishes the standard build (full · English, on-demand libraries and languages) and the offline build (full · all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
+- **Two GitHub builds** — From 0.6.3 a release publishes the standard build (English, on-demand libraries and languages) and the offline build (all languages, no internet permission, everything built in). The updater moves lite and all-languages installs onto the standard build (`ReleaseAssets.pickAsset` falls back to `full`/`en`).
 - **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
   - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
   - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, RNNoise, the sherpa-onnx bridge, Harper, Hunspell, Tesseract, librime) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM, Qualcomm's QNN and Microsoft's ONNX Runtime read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
@@ -3118,7 +3118,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | WebDAV / S3 / FTP destinations | need network plus user-supplied server credentials (WebDAV and S3 refuse plain http; FTP allows plain with a stated warning) |
 | Automatic backup job | requires the device to be charging, and skips entirely until the user has unlocked once since boot |
 | Android system backup | needs the opt-in switch plus a device capable of encrypting the backup under the user's screen lock (disableIfNoEncryptionCapabilities) |
-| Backup exclusion of Whisper / on-device AI models | full flavour only — those directories exist only where the models can be downloaded |
+| Backup exclusion of Whisper / on-device AI models | not in the F-Droid build — those directories exist only where the models can be downloaded |
 | Exact storage totals | API 26+ StorageStatsManager; below that the screen falls back to its own walk and labels the figure an estimate |
 | Clipboard screenshot capture (storage category, backup content) | needs the photos grant (READ_MEDIA_IMAGES / READ_EXTERNAL_STORAGE) |
 | OTP notification chip (disabled during direct boot) | needs the notification-listener grant, which is a system settings screen rather than a prompt |
@@ -3308,7 +3308,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - microG answers both probes the same way, by design — The feature is offered and its own failure path takes over per module.
     - Probed answers cached for the process, primed in both onCreate paths — Defaults to 'available' before priming so a tool never disappears on a device that supports it.
   - Drive backup destination behind a gms/nogms source seam `uncommon` — Only the OAuth token provider is gated; the Drive REST calls are ordinary HTTP and compile everywhere.
-  - full / lite build flavours `uncommon` — lite drops ~100 MB of ML Kit and native Harper: handwriting, OCR, QR scan, doc scan, grammar, local LLM and Whisper.
+  - F-Droid build `uncommon` — wmkb.enableFdroid leaves out ML Kit, LiteRT and LiteRT-LM (src/nogoogle stands in): handwriting, OCR, QR scan, doc scan, local LLM and LiteRT Whisper. The full/lite flavours of 0.6.2 and earlier are gone.
 - **Notification listener and special access** `RARE` — One prominent-disclosure layer for the three grants Android hands out on a system Settings screen rather than a permission dialog.
   - One notification-listener component worn by two features `RARE` — Media control needs only the grant; the OTP chip reads notification text, gated per notification.
     - Renaming the class would silently revoke existing users' grant — Android grants notification access per component.
@@ -3336,8 +3336,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Media control tool and OTP notification chips | needs the notification-listener grant (Settings > Notification access); Play Console declaration still outstanding per project notes |
 | Clipboard 'show source app' | needs the usage-access grant |
 | Play In-App Updates (card, About rows, flexible/immediate flows) | play-channel builds only (wmkb.enablePlayStore); also requires the install to have come from Play and a network call |
-| Document scanner tool | full flavour only (ML Kit) and hidden entirely on devices without Google Play services |
-| Handwriting, OCR, QR scan, grammar check, offline Whisper dictation, local LLM | full flavour only (ML Kit / LiteRT / Harper native) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
+| Document scanner tool | not in the F-Droid build (ML Kit) and hidden entirely on devices without Google Play services |
+| Handwriting, OCR, QR scan, LiteRT Whisper dictation, local LLM | not in the F-Droid build (ML Kit / LiteRT) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
 | Offline Whisper dictation, the sticker editor's own background remover, handwriting recognition | on Play, each runtime is an on-demand split fetched on first use (:feature:litert for the LiteRT interpreter the first two share, :feature:handwriting for ML Kit's ink recogniser); the language-to-model mapping for handwriting is compiled in (InkModelTags) so the tool knows what it is offering before the split arrives; sideload builds compile the same bridges into :core:voice, :core:content and :core:intelligence |
 | Google Drive backup destination | GMS-enabled builds only (wmkb.enableGms); reports unavailable in F-Droid builds |
 | Servers screen (Advanced) and per-tool server fields | F-Droid builds only (wmkb.enableFdroid) |
@@ -3578,7 +3578,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Lua plugins | unavailable during direct boot; scripts and their storage live in credential-encrypted storage |
 | Word list and emoji keyword pack import from a URL | needs network; http/https only |
 | Installing a plugin from a repository | requires a sha256 in the manifest — the install is refused without one (opening a .wmplugin file directly skips that check) |
-| Plugin runtime (luaj) | no flavour gate — core:plugins has no src/full or src/lite sources and luaj-jse ships in both full and lite builds |
+| Plugin runtime (luaj) | no build gate — luaj-jse ships in every build |
 | Font import validation | the second validation stage calls android.graphics.Typeface, so it only runs on device (injected as a lambda for JVM tests) |
 
 ## Modes, rows, field adaptation, runtime
@@ -3795,7 +3795,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Answers recomputed as a whole, so the depth/privacy pair is order-independent
   - Starter tool sets `RARE` — 3 ordered sets: Minimal 8 tools, Recommended 21, Power 35, out of 64
     - Set order is load-bearing — the default toolbox ranking is built from it
-    - Unsupported tools filtered out, then topped up with Wikipedia and Power saving — Covers the lite build and Play-less devices losing handwriting, OCR and doc scan
+    - Unsupported tools filtered out, then topped up with Wikipedia and Power saving — Covers the F-Droid build and Play-less devices losing handwriting, OCR and doc scan
     - Finishing from any page lands the persona's set — Only when the enabled set is still the untouched everything-on default; unanswered gets the middle set
   - Page gating — OnboardingPage enum of 11; the unanswered short path is deliberate
     - Languages page appears for "two or more" or when a second language is already enabled
@@ -3903,10 +3903,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Rickroll detection in the QR scanner | full flavour only (ML Kit barcode scanning); the matcher itself lives in :core:tools and compiles in both |
-| Whisper card on the onboarding Discover page | full flavour only (BuildConfig.ENABLE_WHISPER) |
+| Rickroll detection in the QR scanner | not in the F-Droid build (ML Kit barcode scanning); the matcher itself lives in :core:tools and compiles in both |
+| Whisper card on the onboarding Discover page | not in the F-Droid build (BuildConfig.ENABLE_WHISPER) |
 | OTP discover card and the OTP chip on the suggestion strip | needs the notification-listener grant; the wizard asks with a prominent disclosure as the switch goes on |
-| Handwriting and text-scanning tools in the Recommended/Power starter sets | full flavour only; the sets top up with Wikipedia and Power saving when they drop out |
+| Handwriting and text-scanning tools in the Recommended/Power starter sets | not in the F-Droid build; the sets top up with Wikipedia and Power saving when they drop out |
 | Document scanner in the Power starter set | needs Google Play services; absent otherwise, triggering the same top-up |
 | Weather section of the onboarding tool-setup page | needs a location (search or coordinates) and a network call to be useful |
 | Autofill chips and platform smart replies in the suggestion strip | needs Android 11+ and a system autofill service; suppressed while incognito |

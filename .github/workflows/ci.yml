@@ -39,7 +39,7 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Run unit tests
-        # `unitTests` and not a bare testFullIntlDebugUnitTest: :app carries the
+        # `unitTests` and not a bare testIntlDebugUnitTest: :app carries the
         # `languages` flavour and the library modules do not, so no single
         # flavoured task name reaches both. The aggregate in the root build
         # does.
@@ -53,20 +53,24 @@ jobs:
           path: '**/build/reports/tests/'
           retention-days: 7
 
-  # Four jobs rather than two now that `languages` is a flavour dimension.
-  # They run on separate runners at the same time, so the wall clock is what it
-  # was; only the runner minutes double. The English build is here to prove the
-  # localeFilters path still packages, which nothing else would catch before a
-  # release was already being cut.
+  # Three jobs on separate runners at the same time. The English build is here
+  # to prove the localeFilters path still packages, which nothing else would
+  # catch before a release was already being cut. The F-Droid one compiles
+  # with -Pwmkb.enableFdroid=true, which swaps in the src/nogoogle stand-ins
+  # for the ML Kit code and drops Google's SDKs: the only build that compiles
+  # them, so the only place a broken stand-in shows up before F-Droid's own
+  # build fails.
   assemble:
-    name: Assemble ${{ matrix.capability }} ${{ matrix.language }} debug
+    name: Assemble ${{ matrix.build }} ${{ matrix.language }} debug
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        capability: [full, lite]
-        language: [intl, en]
+        include:
+          - { build: standard, language: intl }
+          - { build: standard, language: en }
+          - { build: fdroid, language: intl }
     steps:
       - uses: actions/checkout@v4
 
@@ -83,26 +87,20 @@ jobs:
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
-      # Capitalised and joined: assembleFullIntlDebug, assembleLiteEnDebug.
-      # AGP names the output directory the same way, minus the build type:
-      # app/build/outputs/apk/fullIntl/debug/.
+      # Capitalised: assembleIntlDebug, assembleEnDebug. AGP names the output
+      # directory after the flavour: app/build/outputs/apk/intl/debug/.
       - name: Assemble
         run: |
-          capability='${{ matrix.capability }}'
           language='${{ matrix.language }}'
-          variant="${capability}${language^}"
-          # Exported because the upload step needs the same capitalisation and
-          # a GitHub expression cannot produce it: joining the two matrix
-          # values would spell the directory "fullintl". (No expression syntax
-          # in this comment: Actions evaluates it inside run blocks too.)
-          echo "VARIANT_DIR=$variant" >> "$GITHUB_ENV"
-          ./gradlew "assemble${capability^}${language^}Debug" --stacktrace
+          flags=()
+          [ '${{ matrix.build }}' = fdroid ] && flags+=(-Pwmkb.enableFdroid=true)
+          ./gradlew "assemble${language^}Debug" "${flags[@]}" --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk-${{ matrix.capability }}-${{ matrix.language }}-debug
-          path: app/build/outputs/apk/${{ env.VARIANT_DIR }}/debug/*.apk
+          name: apk-${{ matrix.build }}-${{ matrix.language }}-debug
+          path: app/build/outputs/apk/${{ matrix.language }}/debug/*.apk
           retention-days: 7
 
   # ART never compiles a method of 10,000 dex instructions or more, and runs
@@ -131,7 +129,7 @@ jobs:
           build-scan-terms-of-use-agree: "yes"
 
       - name: Check method sizes
-        run: ./gradlew :app:checkDexMethodsFullEnFast --stacktrace
+        run: ./gradlew :app:checkDexMethodsEnFast --stacktrace
 
       - name: Upload report
         if: always()
@@ -142,8 +140,8 @@ jobs:
           retention-days: 7
 
   # Every library the APK ships, against the licences app/build.gradle.kts
-  # allows. Three builds because the answer differs: full carries ML Kit under
-  # Google's terms, lite does not, and an F-Droid build must carry nothing but
+  # allows. Two builds because the answer differs: the standard one carries
+  # ML Kit under Google's terms, and an F-Droid build must carry nothing but
   # free licences, which the F-Droid flag makes the allow list enforce.
   licenses:
     name: Dependency licences
@@ -165,11 +163,11 @@ jobs:
           build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
           build-scan-terms-of-use-agree: "yes"
 
-      - name: Full and lite
-        run: ./gradlew :app:licenseeAndroidFullIntlRelease :app:licenseeAndroidLiteIntlRelease --stacktrace
+      - name: Standard
+        run: ./gradlew :app:licenseeAndroidIntlRelease --stacktrace
 
-      - name: Lite as F-Droid builds it
-        run: ./gradlew :app:licenseeAndroidLiteIntlRelease -Pwmkb.enableFdroid=true --stacktrace
+      - name: As F-Droid builds it
+        run: ./gradlew :app:licenseeAndroidIntlRelease -Pwmkb.enableFdroid=true --stacktrace
 
       - name: Upload report
         if: always()
@@ -207,7 +205,7 @@ jobs:
       # and a Test task whose --tests filter matches nothing fails the build.
       - name: Run evals
         run: >
-          ./gradlew :app:testFullIntlDebugUnitTest
+          ./gradlew :app:testIntlDebugUnitTest
           --tests '*.prediction.eval.*' --tests '*.gesture.eval.*'
           -Pwmkb.skipBenchmarks=true --stacktrace
 

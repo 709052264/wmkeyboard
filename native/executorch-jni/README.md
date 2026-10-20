@@ -45,7 +45,7 @@ so the app builds without an NDK. They ride their own delivery gate,
 and F-Droid builds), apart from whisper.cpp's `speech` gate, so turning on the
 glide engine fetches 3.8 MB and not the whole speech set.
 F-Droid deletes the committed copies and builds them with this script
-(through `native/build-lite-libs.sh`), and so does the release workflow for
+(through `native/build-fdroid-libs.sh`), and so does the release workflow for
 the reference APK F-Droid compares against; the script maps the build
 machine's paths out of the library so the two builds match. Rebuild after
 you change anything here:

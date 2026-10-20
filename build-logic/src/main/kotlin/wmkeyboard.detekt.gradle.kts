@@ -1,12 +1,12 @@
 import com.android.build.api.variant.LibraryAndroidComponentsExtension
 import io.gitlab.arturbosch.detekt.Detekt
+import java.util.Properties
 
 // Type-resolved detekt for a library module. detekt 1.23's Android integration
 // targets the AGP 7/8 variant API and registers no `detekt<Variant>` tasks
 // under AGP 9, so this plugin registers them by hand — same approach as the
 // hand-rolled tasks in :app, generalized over whatever debug variants the
-// module declares (detektFullDebug / detektLiteDebug everywhere, since every
-// module carries the `capabilities` dimension).
+// module declares (detektDebug everywhere: no library has a flavour).
 //
 // Each module analyses only its own sources, against its own compile
 // classpath. Analysing another module's sources with this module's classpath
@@ -34,17 +34,31 @@ detekt {
     basePath = rootProject.projectDir.absolutePath
 }
 
+// The modules with ML Kit code keep it in src/google, and F-Droid's stand-ins
+// for it in src/nogoogle; a build compiles one or the other (see
+// :core:intelligence), so it analyses that one.
+val googleSdks = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    !(providers.gradleProperty("wmkb.enableFdroid").orNull
+        ?: localProperties.getProperty("wmkb.enableFdroid")
+        ?: System.getenv("WMKB_ENABLE_FDROID")
+        ?: "false").toBoolean()
+}
+
 val components = extensions.getByType(LibraryAndroidComponentsExtension::class.java)
 components.onVariants { variant ->
     if (variant.buildType != "debug") return@onVariants
     val variantName = variant.name.replaceFirstChar { it.uppercase() }
     // The variant's resolved compile classpath. Taken from the variant API
-    // rather than the compile task (`compileFullDebugKotlin`), which the
+    // rather than the compile task (`compileDebugKotlin`), which the
     // built-in-Kotlin AGP registers later than this callback runs.
     val variantClasspath = variant.compileClasspath
     val sourceDirs = buildList {
         add("src/main/java")
-        variant.flavorName?.takeIf { it.isNotEmpty() }?.let { add("src/$it/java") }
+        add(if (googleSdks) "src/google/java" else "src/nogoogle/java")
     }
 
     tasks.register("detekt$variantName", Detekt::class.java) {

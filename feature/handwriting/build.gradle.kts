@@ -12,7 +12,7 @@ plugins {
 // :app lists this module in `dynamicFeatures` when wmkb.enablePlayStore is
 // on, and no other build references it at all — direct-download APKs embed
 // the same code in :core:intelligence instead (see the playStoreChannel block
-// there), and F-Droid builds are lite and have no ML Kit. Built exactly like
+// there), and F-Droid's build has no ML Kit. Built exactly like
 // :feature:translate beside it. The module has no sources of its own: it
 // compiles the shared src/inkbridge directory, whose one class the base app
 // reaches by reflection, plus the digital-ink dependency. libdigitalink.so is
@@ -36,13 +36,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -58,13 +51,8 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Only the full flavour has the ML Kit classes the bridge imports; the
-        // lite split stays empty (a few KB) and is never requested — the lite
-        // app has no handwriting tool to ask for it.
-        if (variant.flavorName == "full") {
-            variant.sources.kotlin
-                ?.addStaticSourceDirectory("../../core/intelligence/src/inkbridge/java")
-        }
+        variant.sources.kotlin
+            ?.addStaticSourceDirectory("../../core/intelligence/src/inkbridge/java")
     }
 }
 
@@ -77,6 +65,6 @@ dependencies {
     // puts no :core class in the split — it only makes InkRuntime and
     // HwStroke visible to the bridge compile.
     implementation(project(":core:intelligence"))
-    "fullImplementation"(libs.mlkit.digital.ink)
-    "fullImplementation"(libs.kotlinx.coroutines.android)
+    implementation(libs.mlkit.digital.ink)
+    implementation(libs.kotlinx.coroutines.android)
 }

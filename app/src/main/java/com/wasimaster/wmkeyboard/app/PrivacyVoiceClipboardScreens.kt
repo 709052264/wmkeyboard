@@ -286,7 +286,7 @@ private fun VerifyChecksumsRow(repository: SettingsRepository, settings: LiveSet
 internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val whisperEnabled = com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled()
-    // No library in lite or off arm64, so nothing to offer there (#548).
+    // No library off arm64 or where F-Droid stripped it, so nothing to offer there (#548).
     val whistleEnabled = com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped
     // The engines whose models download file by file: the ExecuTorch ones
     // behind Asr4All (#289), Parakeet and Moonshine, and Sherpa on ONNX

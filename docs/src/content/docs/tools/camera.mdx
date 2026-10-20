@@ -10,7 +10,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-The Camera tool swaps the key rows for a live viewfinder, so you can snap a photo and send it into whatever you're typing in without ever leaving the keyboard. <Flavor edition="both" />: it's built on plain CameraX, not ML Kit, so it ships in both editions.
+The Camera tool swaps the key rows for a live viewfinder, so you can snap a photo and send it into whatever you're typing in without ever leaving the keyboard. <Flavor edition="all" />: it's built on plain CameraX, not ML Kit, so it ships in every build.
 
 <PhoneFrame caption="The live viewfinder: flash and self-timer chips on the left, shutter in the middle, front/back switch on the right.">
   {/* shot: tools/camera-viewfinder */}
@@ -181,4 +181,4 @@ The tool's own settings, split into three groups:
 - **Search isn't an in-keyboard result list.** Every search route ends in another app or in your browser, which is where the results are worth reading. Nothing comes back into the field you're typing in.
 - **Not pinned or recommended by default.** Camera ships enabled, but it isn't in the toolbar's default pinned set and isn't part of the onboarding wizard's "Recommended" starter selection either. If you went through setup and picked "Recommended" rather than "Everything" on the tools page, you'll need to turn Camera on yourself under Settings → Tools.
 - **No direct-boot support.** Camera doesn't work on the lock screen before you've unlocked your device once after a restart, since it depends on the app's private storage, which isn't available that early.
-- **Both editions, no gating.** The OCR, QR, document-scan, and handwriting tools are full-edition-only, because they depend on Google ML Kit. Camera has no edition restriction anywhere in its code path.
+- **Every build, no gating.** The OCR, QR, document-scan, and handwriting tools are missing from the F-Droid build, because they depend on Google ML Kit. Camera has no edition restriction anywhere in its code path.

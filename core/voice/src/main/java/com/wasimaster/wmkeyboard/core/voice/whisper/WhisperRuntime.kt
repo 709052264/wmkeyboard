@@ -12,7 +12,7 @@ import java.io.File
  * - Play builds: in the on-demand `:feature:litert` module, downloaded the
  *   first time offline dictation is used. The interpreter is about 4 MB of
  *   native code per ABI, and most installs keep the system recogniser.
- * - Every other full build: compiled straight into `:core:voice` (the
+ * - Every other build but F-Droid's: compiled straight into `:core:voice` (the
  *   `src/whisperbridge` source directory), where Play's delivery does not
  *   exist to fetch it later.
  *

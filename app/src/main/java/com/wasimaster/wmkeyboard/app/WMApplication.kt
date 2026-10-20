@@ -61,11 +61,10 @@ open class WMApplication : Application() {
             installOnDemandDelivery(this)
             return
         }
-        // Which of the four flavours this is, said here because here is the
+        // Which of the two flavours this is, said here because here is the
         // only place that knows. The log lives in :core:common and compiles
-        // against :core:config, which carries `capabilities` alone, so left to
-        // itself a crash record says `full` and cannot tell the `intl` build
-        // from the `en` one. Those are separate R8 runs with mappings that do
+        // against :core:config, which has no flavours, so left to itself a
+        // crash record cannot tell the `intl` build from the `en` one. Those are separate R8 runs with mappings that do
         // not interchange, and the retrace bot picks the mapping off this
         // line. Before attach, so the first crash of the process already
         // carries it.

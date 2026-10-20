@@ -7,8 +7,8 @@
   com.wasimaster.wmkeyboard.intelligence.R.string.core_intel_llm_tier_recommended_label.
   The R classes are non-transitive, so the import has to name this module.
 
-  Both product flavours read this one file, so a string a lite stub and its
-  full counterpart share stays here and not in a flavour resource folder.
+  The src/google code and its F-Droid stand-ins in src/nogoogle both read this
+  one file, so a string they share stays here.
 
   Data stays in the Kotlin sources and never comes here: model names, parameter
   counts, Hugging Face repository paths and file names, handwriting language

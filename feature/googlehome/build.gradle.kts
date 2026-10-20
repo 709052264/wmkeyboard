@@ -21,11 +21,6 @@ android {
         // See :feature:llm: Play takes the `en` bundle.
         missingDimensionStrategy("languages", "en", "intl")
     }
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -41,10 +36,7 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        // Lite has no Google Home; its split stays empty and is never asked for.
-        if (variant.flavorName == "full") {
-            variant.sources.kotlin?.addStaticSourceDirectory("../ime/src/googlehome/java")
-        }
+        variant.sources.kotlin?.addStaticSourceDirectory("../ime/src/googlehome/java")
     }
 }
 
@@ -66,6 +58,6 @@ dependencies {
     // Consent runs on the settings activity's lifecycle scope.
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    "fullImplementation"("com.google.android.gms:play-services-home:$googleHomeVersion")
-    "fullImplementation"("com.google.android.gms:play-services-home-types:$googleHomeVersion")
+    implementation("com.google.android.gms:play-services-home:$googleHomeVersion")
+    implementation("com.google.android.gms:play-services-home-types:$googleHomeVersion")
 }

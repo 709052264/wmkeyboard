@@ -174,7 +174,7 @@ sealed interface KeyAction {
      *
      * The tool is fired whether or not it is one of the tools shown on the
      * toolbar — a key bound by hand is its own reason for the tool to run — but
-     * a tool this build does not ship (a full-flavour scanner on lite) or one
+     * a tool this build does not ship (an ML Kit scanner on F-Droid) or one
      * that is not usable yet (a search tool with no key configured) does
      * nothing, the same as it would on the toolbar.
      *

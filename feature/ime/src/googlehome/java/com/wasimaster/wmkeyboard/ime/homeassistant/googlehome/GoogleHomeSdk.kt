@@ -85,7 +85,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
- * The Google Home APIs, full flavour with the SDK present. One [HomeClient]
+ * The Google Home APIs, in a build with the SDK present. One [HomeClient]
  * per process, built on first use with the device types and traits the
  * panel draws. Consent runs in the settings activity ([register],
  * [requestAccess]); the keyboard reads the granted structure through

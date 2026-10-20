@@ -7,14 +7,13 @@ plugins {
 
 // The on-demand home of the Tesseract library, Play builds only: :app lists
 // this module in `dynamicFeatures` when wmkb.enablePlayStore is on, and no
-// other build references it at all. Every other full build packages the same
+// other build references it at all. Every other channel packages the same
 // files in the base APK from :core:intelligence. The module has no code:
 // TesseractOcr stays in :core:intelligence and loads the library through
 // FeatureModules.loadLibrary once Play has installed this split, which
 // OcrPacks asks for alongside the first language pack. It packages
-// :core:intelligence's src/full/jniLibs in place, which :core:intelligence
-// drops from itself on this channel. Full only, like the scanner's offline
-// reader: the lite split stays empty and is never requested.
+// :core:intelligence's src/tesseract/jniLibs in place, which
+// :core:intelligence leaves out of itself on this channel.
 android {
     namespace = "com.wasimaster.wmkeyboard.ocrfeature"
     compileSdk {
@@ -33,13 +32,6 @@ android {
         }
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split).
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -55,9 +47,7 @@ kotlin {
 
 androidComponents {
     onVariants { variant ->
-        if (variant.flavorName == "full") {
-            variant.sources.jniLibs?.addStaticSourceDirectory("../../core/intelligence/src/full/jniLibs")
-        }
+        variant.sources.jniLibs?.addStaticSourceDirectory("../../core/intelligence/src/tesseract/jniLibs")
     }
 }
 

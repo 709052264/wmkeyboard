@@ -288,7 +288,6 @@
     <issue id="MissingPermission">
         <ignore path="**/src/test/**" />
         <ignore path="**/src/androidTest/**" />
-        <ignore path="**/src/testFull/**" />
     </issue>
 
     <!-- Unit tests run on the host JVM, never on a device, so the minSdk 24
@@ -297,17 +296,14 @@
          API 24 phone. Instrumentation tests DO run on device and stay checked. -->
     <issue id="NewApi">
         <ignore path="**/src/test/**" />
-        <ignore path="**/src/testFull/**" />
     </issue>
     <issue id="InlinedApi">
         <ignore path="**/src/test/**" />
-        <ignore path="**/src/testFull/**" />
     </issue>
     <!-- Same reasoning: a test asserting on a "/data/..." literal is checking
          the direct-boot path contract, not hardcoding a device path. -->
     <issue id="SdCardPath">
         <ignore path="**/src/test/**" />
-        <ignore path="**/src/testFull/**" />
     </issue>
     <issue id="UnusedResources">
         <ignore path="**/src/test/**" />

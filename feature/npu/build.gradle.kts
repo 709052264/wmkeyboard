@@ -10,7 +10,7 @@ plugins {
 // The on-demand home of the Qualcomm NPU runtime behind Compute = NPU for
 // on-device AI (#804), Play builds only: :app lists this module in
 // `dynamicFeatures` when wmkb.enablePlayStore and wmkb.enableNpu are both on,
-// and no other build references it. Every other full build packages the same
+// and no other build references it. Every other build packages the same
 // assets in the base APK from :core:intelligence. No code and no native
 // libraries: NpuRuntime in :core:intelligence copies the assets into app
 // storage, where LiteRT and the DSP loader read them, so this split needs
@@ -29,14 +29,6 @@ android {
         missingDimensionStrategy("languages", "en", "intl")
     }
 
-    // Must mirror the base app's dimension: each base variant needs a
-    // matching variant here (fullRelease base -> fullRelease split). The
-    // lite split stays empty and is never requested.
-    flavorDimensions += "capabilities"
-    productFlavors {
-        create("full") { dimension = "capabilities" }
-        create("lite") { dimension = "capabilities" }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

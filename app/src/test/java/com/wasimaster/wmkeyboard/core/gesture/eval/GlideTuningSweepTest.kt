@@ -27,7 +27,7 @@ import org.junit.Test
  * Set it when a weight is being re-picked:
  *
  * ```
- * WM_GLIDE_SWEEP=1 ./gradlew :app:testFullIntlDebugUnitTest --tests "*GlideTuningSweepTest"
+ * WM_GLIDE_SWEEP=1 ./gradlew :app:testIntlDebugUnitTest --tests "*GlideTuningSweepTest"
  * ```
  *
  * One axis at a time is deliberate. A full grid over eight weights measures the

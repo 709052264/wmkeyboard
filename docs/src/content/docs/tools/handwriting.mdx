@@ -14,7 +14,7 @@ import KeyCap from '@components/KeyCap.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-Handwriting turns a full-width canvas into a keyboard. Write a letter or a word with a finger or a stylus, and the keyboard recognizes it on-device and drops it into your text. <Flavor edition="full" />: it runs on Google ML Kit's digital ink models, which only ship in the full build.
+Handwriting turns a full-width canvas into a keyboard. Write a letter or a word with a finger or a stylus, and the keyboard recognizes it on-device and drops it into your text. <Flavor edition="google" />: it runs on Google ML Kit's digital ink models, which F-Droid's build leaves out.
 
 <PhoneFrame caption="The handwriting panel: a writing canvas over a row of abc, space, delete and enter keys.">
   {/* shot: tools/handwriting-panel-writing */}
@@ -58,7 +58,7 @@ The stylus mode only works with a stylus the screen reports as one (S Pen, a Wac
 
 ## Handwriting as a layout
 
-Chinese, Japanese and Korean have a **Handwriting** layout of their own, the way Gboard offers one. Turn it on with the language's other layouts and pick it with the globe key: the writing area takes the place of the letter keys, and a normal bottom row (<KeyCap>?123</KeyCap>, globe, punctuation, <KeyCap>Space</KeyCap>, <KeyCap>Delete</KeyCap>, <KeyCap>Enter</KeyCap>) stays under it. Ink is read in that layout's language, with everything below about models, delete and undo working the same. There's no language chip on it; the globe key changes language. On the lite build the area only says that handwriting needs the full edition.
+Chinese, Japanese and Korean have a **Handwriting** layout of their own, the way Gboard offers one. Turn it on with the language's other layouts and pick it with the globe key: the writing area takes the place of the letter keys, and a normal bottom row (<KeyCap>?123</KeyCap>, globe, punctuation, <KeyCap>Space</KeyCap>, <KeyCap>Delete</KeyCap>, <KeyCap>Enter</KeyCap>) stays under it. Ink is read in that layout's language, with everything below about models, delete and undo working the same. There's no language chip on it; the globe key changes language. On the F-Droid build the area only says that this version of the app has no handwriting.
 
 ## Handwriting without opening the panel
 
@@ -121,6 +121,6 @@ Whatever the Recognition pause slider is set to, handwriting in these languages 
 - The recognizer only sees the last 20 characters of text before your cursor as context (a limit set by ML Kit itself, not WM Keyboard).
 - Handwriting has no direct-boot support: neither the panel nor handwriting-by-swipe works before you've unlocked your device once after a restart, unlike some other tools. If [Power Saving mode](/typing/power-saving/) is set to drop on-device models to save battery, handwriting-by-swipe is switched back to plain gesture typing until you turn it back on.
 
-## Why full only
+## Why not on F-Droid
 
-Digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is compiled into the full build and left out of the lite build entirely, rather than hidden behind a toggle. So the Handwriting tool doesn't appear in the toolbar or toolbox on lite, and the "Handwrite" option of **What a swipe does** is full-only too. See [Full vs Lite](/start/editions/) if you're deciding between builds.
+Digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is Google's and not open source, so the F-Droid build leaves it out entirely, rather than hiding it behind a toggle. So the Handwriting tool doesn't appear in the toolbar or toolbox on lite, and the "Handwrite" option of **What a swipe does** is full-only too. See [Which build you have](/start/editions/) if you're deciding between builds.

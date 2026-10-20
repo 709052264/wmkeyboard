@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.core.debug.DebugLog
 
 /**
  * Where a problem goes: the project's issue tracker, and the maintainer's
@@ -58,7 +59,7 @@ object Support {
         }
         appendLine(
             "version: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) " +
-                "${BuildConfig.FLAVOR}$channel ${BuildConfig.BUILD_TYPE}",
+                "${DebugLog.flavorTag}$channel ${BuildConfig.BUILD_TYPE}",
         )
         appendLine("android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         append("device: ${Build.MANUFACTURER} ${Build.MODEL}")

@@ -679,7 +679,7 @@ fun availableVoiceEngines(): Set<String> = buildSet {
     add(ProviderTypes.ENGINE_SYSTEM)
     add(ProviderTypes.ENGINE_SERVER)
     if (isWhisperEnabled()) add("whisper")
-    // No library in lite or off arm64 (#548).
+    // No library off arm64 or where F-Droid stripped it (#548).
     if (com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine.shipped) add("whistle")
     // The ExecuTorch runtime behind Asr4All, Parakeet and Moonshine (#289).
     if (com.wasimaster.wmkeyboard.core.voice.executorch.EtNative.shipped) {

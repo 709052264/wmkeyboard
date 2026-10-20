@@ -12,7 +12,7 @@ import java.io.File
  *
  * - Play builds: in the on-demand `:feature:llm` module, downloaded the first
  *   time On-device AI is used, keeping ~20 MB per ABI out of every install.
- * - Every other full build: compiled straight into `:core:intelligence`
+ * - Every other build but F-Droid's: compiled straight into `:core:intelligence`
  *   (the `src/llmbridge` source directory), embedded like it always was.
  *
  * No type here may come from the LiteRT-LM SDK: this interface is what the
@@ -80,8 +80,8 @@ interface LlmRuntime {
 /**
  * Whether the runtime's home is present on this install, and how to fetch it
  * when it is not. The default says "always present", which is correct for
- * every channel except Play: sideload full builds embed the bridge, and lite
- * builds never reach this code (the On-device provider is hidden there).
+ * every channel except Play: sideloaded builds embed the bridge, and F-Droid's
+ * never reaches this code (the On-device provider is hidden there).
  * Play builds swap in a SplitInstall-backed gate at startup — see
  * `installLlmDelivery` in `:app`.
  */

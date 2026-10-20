@@ -63,6 +63,17 @@ object AlwaysInstalled : ModuleGate {
 }
 
 /**
+ * The gate of a runtime this build does not carry at all: the ML Kit and
+ * LiteRT ones in F-Droid's build, which may hold no Google artifact. Missing
+ * and failed, so nothing waits for it, and there is nothing to fetch.
+ */
+object NotInBuild : ModuleGate {
+    override val state: StateFlow<ModuleState> = MutableStateFlow(ModuleState.Missing(failed = true))
+
+    override fun requestInstall() = Unit
+}
+
+/**
  * The on-demand modules, one gate each. A `var` per module rather than a map
  * keyed by name so that a facade cannot ask for a module that does not exist.
  */

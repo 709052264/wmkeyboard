@@ -2,7 +2,7 @@ package com.wasimaster.wmkeyboard.core.translate
 
 /**
  * What ML Kit's on-device translator can and cannot read, kept apart from ML
- * Kit itself so the lite build, the settings screens and the unit tests can all
+ * Kit itself so the F-Droid build, the settings screens and the unit tests can all
  * reason about it without the library on the classpath.
  *
  * Three facts about the engine shape everything here:

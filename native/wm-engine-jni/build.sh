@@ -38,7 +38,7 @@ export RUSTFLAGS="--remap-path-prefix=$CARGO_HOME=/cargo --remap-path-prefix=$SY
 export CARGO_TARGET_DIR=${WM_ENGINE_TARGET_DIR:-$HERE/target}
 
 cd "$HERE"
-# WMKB_ABIS narrows the build to some of the three (native/build-lite-libs.sh).
+# WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
 ABIS=(${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64})
 ANDROID_NDK_HOME=$NDK cargo ndk $(printf -- '-t %s ' "${ABIS[@]}") --platform 24 \
     -o "$OUT" build --release --locked

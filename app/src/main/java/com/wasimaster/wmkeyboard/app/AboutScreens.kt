@@ -102,19 +102,17 @@ internal const val DOCS_URL = "https://wmkeyboard.pages.dev"
 /**
  * The privacy policy for *this* build, not for the project in general.
  *
- * The two editions are different apps underneath — lite has no ML Kit, no Play
- * libraries and no Google sign-in compiled into it — so they carry one policy
- * each, and this row has to open the one that is true of the APK the reader is
- * holding. Opening the wrong one would disclose collection that does not
+ * F-Droid's build is a different app underneath — no ML Kit, no Play
+ * libraries and no Google sign-in compiled into it — so it carries a policy of
+ * its own, and this row has to open the one that is true of the APK the reader
+ * is holding. Opening the wrong one would disclose collection that does not
  * happen, or worse, fail to disclose collection that does.
  *
- * Keyed on the flavour rather than on `BuildConfig.ENABLE_FDROID`, which the
- * F-Droid recipe does set. The flavour is the more honest key: a lite APK
- * downloaded from GitHub wants exactly the same page as an F-Droid install,
- * because it is the same binary, and the page is about what the binary can do
- * rather than about where it came from.
+ * Keyed on what was compiled in (`GOOGLE_SDKS`, false only when the build was
+ * made with wmkb.enableFdroid) rather than on where the APK came from: the
+ * page is about what the binary can do.
  */
-private val PRIVACY_POLICY_URL = if (BuildConfig.FLAVOR_capabilities == "lite") {
+private val PRIVACY_POLICY_URL = if (!com.wasimaster.wmkeyboard.config.BuildConfig.GOOGLE_SDKS) {
     "$DOCS_URL/privacy/policy-fdroid/"
 } else {
     "$DOCS_URL/privacy/policy/"
@@ -160,8 +158,8 @@ private data class Attribution(
 )
 
 /**
- * Components whose code or data is bundled into the APK. Flavour-gated
- * entries are absent from lite builds, where their libraries are not linked.
+ * Components whose code or data is bundled into the APK. Gated entries are
+ * absent from F-Droid's build, where their libraries are not linked.
  */
 private val bundledAttributions: List<Attribution> = buildList {
     add(
@@ -394,8 +392,8 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
-    // OpenAI's weights reach both runtimes: LiteRT's graphs in full builds,
-    // whisper.cpp's models in every edition that has its library (#440).
+    // OpenAI's weights reach both runtimes: LiteRT's graphs in every build but
+    // F-Droid's, whisper.cpp's models in every build that has its library (#440).
     if (BuildConfig.ENABLE_WHISPER || WhisperCatalog.cppAvailable) {
         add(
             Attribution(
@@ -765,8 +763,8 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Unicode License v3", "unicode-3.0.txt",
         "https://www.unicode.org/",
     ))
-    // The three below are downloaded by full-edition features only, so a lite
-    // build does not list what it cannot fetch.
+    // The three below are downloaded by features F-Droid's build lacks, so it
+    // does not list what it cannot fetch.
     if (com.wasimaster.wmkeyboard.core.stickers.SubjectCutout.supported) {
         add(Attribution(
             "U\u00b2-Net-P background remover",
@@ -992,7 +990,7 @@ internal fun AboutSettings(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val flavor = BuildConfig.FLAVOR_capabilities.replaceFirstChar { it.uppercase() }
+    val flavor = BuildConfig.EDITION
     val channel = when {
         BuildConfig.ENABLE_PLAY_STORE -> " · Play Store"
         BuildConfig.ENABLE_FDROID -> " · F-Droid"
