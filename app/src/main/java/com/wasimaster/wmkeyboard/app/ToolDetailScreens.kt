@@ -85,8 +85,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
-import com.wasimaster.wmkeyboard.core.settings.providerChain
-import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
@@ -102,6 +100,7 @@ import com.wasimaster.wmkeyboard.ime.WMKeyboardService
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
+import com.wasimaster.wmkeyboard.core.grammar.LanguageToolChecker
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.core.settings.MediaGridSpacingRange
@@ -126,8 +125,6 @@ import com.wasimaster.wmkeyboard.core.tools.typingConfigLanguage
 import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
-import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
-import com.wasimaster.wmkeyboard.core.translate.NllbTranslator
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -473,48 +470,7 @@ internal fun ToolDetailSettings(
                 default = usable && tool in SettingsDefaults.enabledTools,
             ) { scope.launch { repository.setToolEnabled(tool, it) } }
         }
-        // Off the grid, on everywhere else: for a tool someone only reaches by
-        // name, from a selection action or pinned on the bar. Meaningless while
-        // the tool is off, since then it is in no grid to leave.
-        item(visible = toolOn) {
-            ToggleSetting(
-                R.string.tooldetail_show_in_toolbox_title,
-                stringResource(R.string.tooldetail_show_in_toolbox_subtitle),
-                settings.watch { tool !in it.toolbox.hiddenTools },
-                default = tool !in SettingsDefaults.toolbox.hiddenTools,
-            ) { scope.launch { repository.setToolHiddenInToolbox(tool, !it) } }
-        }
-        // Recolour just this tool's icon. Only meaningful while the global
-        // "Colorful tool icons" switch is on, since it's what paints them.
-        if (coloredIcons) {
-            item {
-                ColorSetting(
-                    // With the gradients off there is one colour and it needs
-                    // no qualifier; with them on the two rows have to say which
-                    // end of the gradient each one is. Named by resource rather
-                    // than resolved here, so the row picks its icon out of
-                    // [SettingsRowIcons] like every other settings row.
-                    title = if (gradient) R.string.tooldetail_icon_colour_start_title
-                    else R.string.tooldetail_icon_colour_title,
-                    color = settings.watch { it.toolColorOverrides[tool] },
-                    fallback = toolAccentColorArgb(tool),
-                    onChange = { scope.launch { repository.setToolColor(tool, it) } },
-                )
-            }
-            item(visible = gradient) {
-                ColorSetting(
-                    title = R.string.tooldetail_icon_colour_end_title,
-                    color = settings.watch { it.toolColorEndOverrides[tool] },
-                    // Derived from whichever colour the near end currently
-                    // is, so the pair moves together until it is pinned.
-                    fallback = settings.watch { toolAccentEndColorArgb(tool, it.toolColorOverrides) },
-                    onChange = { scope.launch { repository.setToolColorEnd(tool, it) } },
-                )
-            }
-        }
-        item { ToolHoldRow(repository, settings, tool) }
     }
-    ToolKeywordSetting(repository, settings, tool)
     when (tool) {
         ToolbarTool.KDE_CONNECT ->
             com.wasimaster.wmkeyboard.app.kdeconnect.KdeConnectToolSettings(repository, settings, onNavigate)
@@ -1274,25 +1230,12 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.dictionaryAutoLookup,
                     ) { scope.launch { repository.setDictionaryAutoLookup(it) } }
                 }
-                // The packs source is only as good as the packs installed, and
-                // this list's switch alone said nothing about where they come
-                // from (#665).
-                item {
-                    NavRow(
-                        R.string.tooldetail_dictionary_packs_title,
-                        stringResource(R.string.tooldetail_dictionary_packs_subtitle),
-                        onClick = { onNavigate("vocab/packs") },
-                    )
-                }
-                serverItems(
-                    repository,
-                    settings,
-                    endpoints = listOf(ServiceEndpoint.KAIKKI, ServiceEndpoint.WIKTIONARY, ServiceEndpoint.DICTIONARY_API),
-                )
             }
-            DictionaryTranslationsGroup(repository, settings)
             // Where the tool looks, in the order it asks: a provider is only
             // asked when those above it did not know the word or were unreachable.
+            // The packs' screen link, the offline dictionaries' downloads, the
+            // imported dictionaries (#765) and the server addresses are on the
+            // sources' own screens.
             ProvidersGroup(
                 repository,
                 settings,
@@ -1300,10 +1243,7 @@ internal fun ToolDetailSettings(
                 titleRes = R.string.tooldetail_dictionary_sources_title,
                 info = stringResource(R.string.tooldetail_dictionary_sources_info),
             )
-            // The words the packs above do not know, with no network (#665).
-            OfflineDictionariesGroup(settings)
-            // Yomichan / Yomitan dictionaries, in any language (#765).
-            ImportedDictionariesGroup()
+            DictionaryTranslationsGroup(repository, settings)
             // The same look-up as a card over other apps (#765).
             LookupSettingsGroup(repository, settings, onNavigate)
         }
@@ -2079,6 +2019,21 @@ internal fun ToolDetailSettings(
                             }
                         }
                     }
+                }
+            }
+            // Who translates, in order: on the device, the user's own server,
+            // DeepL, LibreTranslate, Google. The engine switch above decides
+            // which part of the list a translation asks. Each on-device
+            // engine's models, DeepL Write and Google's server address are on
+            // those providers' own screens.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.TRANSLATE,
+                info = stringResource(R.string.tooldetail_translate_providers_info),
+            )
+            if (onDevice) {
+                SettingsGroup(stringResource(R.string.tooldetail_advanced_group), foldKey = "translate_advanced") {
                     // Both shape the panel's language menus, and only mean
                     // something where models do; the subtitles say which
                     // engine each one works with.
@@ -2100,27 +2055,6 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            if (OnDeviceTranslator.AVAILABLE) TranslateModelManager(settings)
-            if (BergamotTranslator.available) BergamotModelManager(settings)
-            if (NllbTranslator.available) NllbModelManager(settings)
-            // Who translates, in order: on the device, the user's own server,
-            // DeepL, LibreTranslate, Google. The engine switch above decides
-            // which part of the list a translation asks.
-            ProvidersGroup(
-                repository,
-                settings,
-                ProviderTool.TRANSLATE,
-                info = stringResource(R.string.tooldetail_translate_providers_info),
-            )
-            if (BuildConfig.ENABLE_FDROID) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.TRANSLATE_GOOGLE, ServiceEndpoint.TRANSLATE_CLOUD))
-                }
-            }
-            DeepLWriteSettingsGroup(repository, settings)
         }
         ToolbarTool.GIF, ToolbarTool.STICKER -> {
             // Who the panel asks: KLIPY, GIPHY, Commons or another wiki,
@@ -2134,19 +2068,6 @@ internal fun ToolDetailSettings(
                 // Categories were fetched with the old key; they are not the new key's answer.
                 onChanged = { MediaCategoryCache.clear() },
             )
-            if (BuildConfig.ENABLE_FDROID && tool == ToolbarTool.GIF) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(
-                        ServiceEndpoint.KLIPY,
-                        ServiceEndpoint.GIPHY,
-                        ServiceEndpoint.GIFCITIES,
-                        ServiceEndpoint.WAYBACK_MACHINE,
-                    ))
-                }
-            }
             if (tool == ToolbarTool.STICKER) {
                 // Decides which rows the suggest group holds; the rows read
                 // everything else.
@@ -2373,7 +2294,6 @@ internal fun ToolDetailSettings(
                         }
                     }
                 }
-                OfflineGifPacksGroup()
             }
             // Resolved out here: the group builder lambda is not composable.
             val stickerOption = stringResource(R.string.tooldetail_media_send_sticker_option)
@@ -2474,30 +2394,8 @@ internal fun ToolDetailSettings(
                 ProviderTool.SEARCH,
                 info = stringResource(R.string.tooldetail_search_providers_info),
             )
-            if (BuildConfig.ENABLE_FDROID) {
-                SettingsGroup(
-                    stringResource(R.string.servers_group_title),
-                    info = stringResource(R.string.servers_group_info),
-                ) {
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.BRAVE_SEARCH, ServiceEndpoint.TAVILY))
-                }
-            }
-            // Tavily's own option, once Tavily is in the list.
-            val tavilyListed = settings.watch { it.providerChain(ProviderTool.SEARCH).has(ProviderTypes.TAVILY.id) }
-            SettingsGroup(
-                stringResource(R.string.tooldetail_tavily_group),
-                info = stringResource(R.string.tooldetail_tavily_info),
-            ) {
-                item(visible = tavilyListed) {
-                    ToggleSetting(
-                        R.string.tooldetail_tavily_advanced_title,
-                        stringResource(R.string.tooldetail_tavily_advanced_subtitle),
-                        settings.watch { it.webSearch.tavilyAdvanced },
-                        info = stringResource(R.string.tooldetail_tavily_advanced_info),
-                        default = SettingsDefaults.webSearch.tavilyAdvanced,
-                    ) { scope.launch { repository.setSearchTavilyAdvanced(it) } }
-                }
-            }
+            // Tavily's advanced search and the F-Droid server addresses are on
+            // those providers' own screens.
             SettingsGroup(stringResource(R.string.tooldetail_search_results_group)) {
                 item {
                     ToggleSetting(
@@ -2667,6 +2565,16 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.GRAMMAR -> {
+            // Harper on the phone, and LanguageTool servers, off until picked.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.GRAMMAR,
+                titleRes = R.string.tooldetail_grammar_providers_group,
+                info = stringResource(R.string.tooldetail_grammar_providers_info),
+                // A server's answers were for its old setup.
+                onChanged = { LanguageToolChecker.reset() },
+            )
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item {
                     ChoiceSetting(
@@ -2955,7 +2863,6 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyCacheHours.toFloat(),
                     ) { scope.launch { repository.setCurrencyCacheHours(it.toInt()) } }
                 }
-                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.CURRENCY_API, ServiceEndpoint.CURRENCY_API_MIRROR, ServiceEndpoint.FRANKFURTER, ServiceEndpoint.ER_API))
             }
             // Where rates come from, best first; the next is asked when one fails.
             ProvidersGroup(
@@ -3002,7 +2909,6 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoCacheMinutes.toFloat(),
                         ) { scope.launch { repository.setCryptoCacheMinutes(it.toInt()) } }
                     }
-                    serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.COINBASE, ServiceEndpoint.COINGECKO))
                     item { CryptoCoinPicker(repository, settings) }
                 }
             }
@@ -3213,6 +3119,62 @@ internal fun ToolDetailSettings(
         }
         else -> {}
     }
+    // How the tool sits on the toolbar and in the toolbox: the same rows on
+    // every tool's page, so after the tool's own settings rather than
+    // before them, folded with what they hold named on the heading.
+    SettingsGroup(
+        stringResource(R.string.tooldetail_toolbar_group),
+        foldKey = "tool_toolbar",
+        foldSummary = {
+            listOfNotNull(
+                stringResource(R.string.tooldetail_show_in_toolbox_title).takeIf { toolOn },
+                stringResource(R.string.tooldetail_icon_colour_title).takeIf { coloredIcons },
+                stringResource(R.string.tooldetail_hold_title),
+            ).joinToString(", ")
+        },
+    ) {
+        // Off the grid, on everywhere else: for a tool someone only reaches by
+        // name, from a selection action or pinned on the bar. Meaningless while
+        // the tool is off, since then it is in no grid to leave.
+        item(visible = toolOn) {
+            ToggleSetting(
+                R.string.tooldetail_show_in_toolbox_title,
+                stringResource(R.string.tooldetail_show_in_toolbox_subtitle),
+                settings.watch { tool !in it.toolbox.hiddenTools },
+                default = tool !in SettingsDefaults.toolbox.hiddenTools,
+            ) { scope.launch { repository.setToolHiddenInToolbox(tool, !it) } }
+        }
+        // Recolour just this tool's icon. Only meaningful while the global
+        // "Colorful tool icons" switch is on, since it's what paints them.
+        if (coloredIcons) {
+            item {
+                ColorSetting(
+                    // With the gradients off there is one colour and it needs
+                    // no qualifier; with them on the two rows have to say which
+                    // end of the gradient each one is. Named by resource rather
+                    // than resolved here, so the row picks its icon out of
+                    // [SettingsRowIcons] like every other settings row.
+                    title = if (gradient) R.string.tooldetail_icon_colour_start_title
+                    else R.string.tooldetail_icon_colour_title,
+                    color = settings.watch { it.toolColorOverrides[tool] },
+                    fallback = toolAccentColorArgb(tool),
+                    onChange = { scope.launch { repository.setToolColor(tool, it) } },
+                )
+            }
+            item(visible = gradient) {
+                ColorSetting(
+                    title = R.string.tooldetail_icon_colour_end_title,
+                    color = settings.watch { it.toolColorEndOverrides[tool] },
+                    // Derived from whichever colour the near end currently
+                    // is, so the pair moves together until it is pinned.
+                    fallback = settings.watch { toolAccentEndColorArgb(tool, it.toolColorOverrides) },
+                    onChange = { scope.launch { repository.setToolColorEnd(tool, it) } },
+                )
+            }
+        }
+        item { ToolHoldRow(repository, settings, tool) }
+    }
+    ToolKeywordSetting(repository, settings, tool)
 }
 /**
  * The coins the keyboard reads and offers. An empty stored set means the
@@ -3802,7 +3764,7 @@ private fun ToolKeywordSetting(
  * besides translating.
  */
 @Composable
-private fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
+internal fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val defaults = SettingsDefaults.translate.deepl
     // What decides which rows the group holds; each row reads its own value.

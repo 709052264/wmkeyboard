@@ -126,4 +126,11 @@
          the ONNX Runtime part that runs it. -->
     <string name="core_intel_xlit_module_error">The part that runs the model did not download. Check the connection, then try again.</string>
 
+    <!-- Grammar check through a LanguageTool server. Shown in the grammar
+         panel when a check fails; the status code is the HTTP one. -->
+    <string name="core_intel_languagetool_error_request">LanguageTool could not check this text. The server may not have this language (HTTP <xliff:g id="status" example="400">%1$d</xliff:g>).</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool did not accept the username and API key (HTTP <xliff:g id="status" example="403">%1$d</xliff:g>).</string>
+    <string name="core_intel_languagetool_error_too_long">The text is too long for this LanguageTool server (HTTP <xliff:g id="status" example="413">%1$d</xliff:g>).</string>
+    <string name="core_intel_languagetool_error_rate_limit">The LanguageTool server has had as many checks from this phone as it takes in a minute. Edit the text in a moment to check again (HTTP <xliff:g id="status" example="429">%1$d</xliff:g>).</string>
+
 </resources>

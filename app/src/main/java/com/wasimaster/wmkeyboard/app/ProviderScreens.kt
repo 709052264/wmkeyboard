@@ -70,7 +70,6 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyBitcoin
@@ -87,6 +86,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhoneAndroid
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.KeyboardArrowRight
+import androidx.compose.ui.text.style.TextOverflow
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import com.wasimaster.wmkeyboard.app.homeassistant.HomeProviderExtras
@@ -119,6 +121,7 @@ import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import kotlinx.coroutines.launch
@@ -133,7 +136,15 @@ import kotlinx.coroutines.launch
  * it, so one KLIPY key serves GIFs and stickers both.
  */
 
-/** A tool's provider list as a settings group: the mode, the rows, Add, and Reset. */
+/**
+ * A tool's provider list as settings groups. The providers that are on come
+ * first, in the order they are asked, each row saying what it is set up with
+ * and that it opens: a press opens the provider's own screen
+ * ([PROVIDER_PAGE_ROUTE]), where its setup and everything else it has live.
+ * The ones that are off follow, folded to a name, a description and a
+ * switch, under a heading for where they run when they run in more than one
+ * kind of place. How the list is used, and Reset, sit in a fold at the end.
+ */
 @Composable
 internal fun ProvidersGroup(
     repository: SettingsRepository,
@@ -145,15 +156,9 @@ internal fun ProvidersGroup(
     /** After every saved change: for a cache that answered for the old setup. */
     onChanged: () -> Unit = {},
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    // Read once: whether offline GIF packs exist is a look at the disk, and
-    // which voice engines can run is a load of their libraries.
-    val env = remember(tool) {
-        ProviderEnvironment.current().let {
-            if (tool == ProviderTool.VOICE) it.copy(voiceEngines = availableVoiceEngines()) else it
-        }
-    }
+    val navigate = LocalSettingsNavigate.current
+    val env = rememberProviderEnv(tool)
     val rows = settings.watch { it.resolveProviders(tool, env, all = true) }
     val mode = settings.watch { it.providerMode(tool, env) }
     val stored = settings.watch { tool in it.providers.chains }
@@ -172,12 +177,78 @@ internal fun ProvidersGroup(
         }
     }
     fun chain(): ProviderChain = settings.value.providerChain(tool, env)
+    fun openRow(row: ResolvedProvider) {
+        // A kind a newer build added: nothing to open, only to remove.
+        if (row.type == null) removing = row else navigate(providerRoute(tool, row.key))
+    }
+    fun toggle(row: ResolvedProvider, on: Boolean) = save(ProviderEdits.setChain(tool, chain().toggled(row.key, on)))
 
+    val on = rows.filter { it.entry.enabled }
+    val off = rows.filterNot { it.entry.enabled }
     SettingsGroup(
         stringResource(titleRes),
         // What a settings search lands on; one list per page.
         highlightKey = titleRes,
         info = info ?: stringResource(R.string.providers_group_info),
+    ) {
+        item {
+            if (on.isEmpty()) {
+                Text(
+                    stringResource(if (rows.isEmpty()) R.string.providers_empty else R.string.providers_none_on),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                )
+            } else {
+                ProviderList(
+                    rows = on,
+                    // Only the rows that are on move; the ones that are off keep
+                    // their places, which nothing reads while they are off.
+                    onReorder = { ordered ->
+                        save(ProviderEdits.setChain(tool, chain().withOnOrder(ordered.map { it.key })))
+                    },
+                    onToggle = ::toggle,
+                    onOpen = ::openRow,
+                    onRemove = { row -> removing = row },
+                )
+            }
+        }
+        item {
+            WmRow(
+                title = stringResource(R.string.providers_add),
+                subtitle = stringResource(R.string.providers_add_subtitle),
+                icon = Icons.Outlined.Add,
+                onClick = { adding = true },
+            )
+        }
+    }
+    // Sorted by where they run only when that tells them apart: three
+    // online services under "Online services" is a heading saying nothing.
+    val kinds = off.groupBy { ProviderPlace.of(it.type) }.toSortedMap()
+    for ((place, placed) in kinds) {
+        SettingsGroup(stringResource(if (kinds.size > 1) place.titleRes else R.string.providers_section_off)) {
+            for (row in placed) {
+                item(key = row.key) {
+                    OffProviderRow(
+                        row = row,
+                        tool = tool,
+                        onToggle = { toggle(row, it) },
+                        onOpen = { openRow(row) },
+                        onRemove = { removing = row },
+                    )
+                }
+            }
+        }
+    }
+    val modeSummary: (@Composable () -> String)? = if (tool.modes.size > 1) {
+        { stringResource(mode.labelRes) }
+    } else {
+        null
+    }
+    SettingsGroup(
+        stringResource(R.string.providers_options_title),
+        foldKey = "providers_${tool.id}",
+        foldSummary = modeSummary,
     ) {
         if (tool.modes.size > 1) {
             item {
@@ -213,47 +284,6 @@ internal fun ProvidersGroup(
                     modifier = Modifier.padding(top = 6.dp),
                 )
             }
-        }
-        item {
-            if (rows.isEmpty()) {
-                Text(
-                    stringResource(R.string.providers_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                )
-            } else {
-                ProviderList(
-                    rows = rows,
-                    onReorder = { ordered ->
-                        save(ProviderEdits.setChain(tool, chain().copy(entries = ordered.map { it.entry })))
-                    },
-                    onToggle = { row, on -> save(ProviderEdits.setChain(tool, chain().toggled(row.key, on))) },
-                    onOpen = { row ->
-                        val type = row.type
-                        if (type == null) {
-                            // A kind a newer build added: nothing to edit, only to remove.
-                            removing = row
-                        } else {
-                            editing = ProviderEditTarget(
-                                type = type,
-                                credential = row.credential ?: ProviderCredential(row.entry.credentialKey, type.id),
-                                isNew = false,
-                                row = row,
-                            )
-                        }
-                    },
-                    onRemove = { row -> removing = row },
-                )
-            }
-        }
-        item {
-            WmRow(
-                title = stringResource(R.string.providers_add),
-                subtitle = stringResource(R.string.providers_add_subtitle),
-                icon = Icons.Outlined.Add,
-                onClick = { adding = true },
-            )
         }
         item(visible = stored) {
             WmRow(
@@ -311,31 +341,108 @@ internal fun ProvidersGroup(
         )
     }
     removing?.let { row ->
-        val title = providerTitle(context, row)
-        val change = ProviderEdits.removeEntry(settings.value, tool, row.key, env)
-        AlertDialog(
-            onDismissRequest = { removing = null },
-            title = { Text(stringResource(R.string.providers_remove_title, title)) },
-            text = {
-                Text(
-                    stringResource(
-                        if (change.credentials != null) R.string.providers_remove_body_credential else R.string.providers_remove_body,
-                        stringResource(tool.labelRes),
-                    ),
-                )
+        ProviderRemoveDialog(
+            settings = settings,
+            tool = tool,
+            env = env,
+            row = row,
+            onConfirm = { change ->
+                removing = null
+                save(change)
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    removing = null
-                    save(change)
-                }) { Text(stringResource(R.string.providers_remove)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { removing = null }) { Text(stringResource(CommonR.string.common_cancel)) }
-            },
+            onDismiss = { removing = null },
         )
     }
 }
+
+/** Asks before a row goes; says whether its key and address go with it. */
+@Composable
+internal fun ProviderRemoveDialog(
+    settings: LiveSettings,
+    tool: ProviderTool,
+    env: ProviderEnv,
+    row: ResolvedProvider,
+    onConfirm: (ProviderEdits.Change) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val title = providerTitle(context, row)
+    val change = ProviderEdits.removeEntry(settings.value, tool, row.key, env)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.providers_remove_title, title)) },
+        text = {
+            Text(
+                stringResource(
+                    if (change.credentials != null) R.string.providers_remove_body_credential else R.string.providers_remove_body,
+                    stringResource(tool.labelRes),
+                ),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(change) }) { Text(stringResource(R.string.providers_remove)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/**
+ * What a provider list knows of the phone, read once per list: whether
+ * offline GIF packs exist is a look at the disk, and which voice engines can
+ * run is a load of their libraries.
+ */
+@Composable
+internal fun rememberProviderEnv(tool: ProviderTool): ProviderEnv = remember(tool) {
+    ProviderEnvironment.current().let {
+        if (tool == ProviderTool.VOICE) it.copy(voiceEngines = availableVoiceEngines()) else it
+    }
+}
+
+/**
+ * [entries] with the rows named in [onOrder] in that order, each put into a
+ * place one of those rows held: every other row keeps its own. This is how
+ * the turned-on rows are dragged without the turned-off ones between them
+ * moving.
+ */
+internal fun ProviderChain.withOnOrder(onOrder: List<String>): ProviderChain {
+    val byKey = entries.associateBy { it.key }
+    val queue = ArrayDeque(onOrder.distinct().mapNotNull { byKey[it] })
+    val moving = queue.mapTo(HashSet()) { it.key }
+    return copy(entries = entries.map { if (it.key in moving) queue.removeFirst() else it })
+}
+
+/** Where a provider runs, which is what the turned-off rows are sorted under. In heading order. */
+internal enum class ProviderPlace(@StringRes val titleRes: Int) {
+    ON_DEVICE(R.string.providers_section_on_device),
+    ONLINE(R.string.providers_section_online),
+    SERVER(R.string.providers_section_servers),
+    ;
+
+    companion object {
+        fun of(type: ProviderType?): ProviderPlace = when {
+            type?.onDevice == true -> ON_DEVICE
+            type?.selfHosted == true -> SERVER
+            else -> ONLINE
+        }
+    }
+}
+
+/** The pattern of a provider's own screen; see [providerRoute]. */
+internal const val PROVIDER_PAGE_ROUTE = "provider/{tool}/{key}"
+
+/**
+ * A provider's own screen. [key] is a row's key, or a kind's id: a search
+ * result or a link names a kind ("the Whisper engine"), and the screen opens
+ * on that kind's first row, or offers to add it.
+ */
+// URLEncoder rather than Uri: the search index builds these routes on the JVM in tests too.
+internal fun providerRoute(tool: ProviderTool, key: String): String =
+    "provider/${tool.id}/${java.net.URLEncoder.encode(key, "UTF-8")}"
+
+/** [providerRoute] for a kind, for the search index and links. */
+internal fun providerRoute(tool: ProviderTool, type: ProviderType): String = providerRoute(tool, type.id)
 
 /** What the editor sheet is editing: one credential of one type, new or saved, and the list row it was opened from. */
 internal data class ProviderEditTarget(
@@ -394,7 +501,7 @@ private fun hostOf(url: String): String =
 
 /** The line under a row's name, and whether it reports a problem. */
 @Composable
-private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
+internal fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
     val type = row.type
     return when (row.problem) {
         ProviderProblem.NEEDS_KEY -> stringResource(R.string.providers_status_needs_key) to true
@@ -417,6 +524,11 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
                 ?: row.url.takeIf { it.isNotBlank() }?.let(::hostOf)
                 ?: stringResource(R.string.providers_status_signed_in)
             type?.onDevice == true -> stringResource(R.string.providers_status_on_device)
+            // Said plainly on the row itself: this one sends what you write away.
+            type === ProviderTypes.LANGUAGETOOL -> stringResource(
+                R.string.providers_status_sends_text,
+                hostOf(runCatching { GrammarProviders.serverOf(row).base }.getOrDefault(row.url)),
+            )
             // A front end's engine beside its host: two Mozhi rows may differ in nothing else.
             row.url.isNotBlank() -> type?.credential?.engine(row.model)
                 ?.let { hostOf(row.url) + stringResource(R.string.providers_tag_separator) + it.label }
@@ -553,7 +665,7 @@ private fun ProviderList(
     }
 }
 
-/** One provider: the order and its grip, the tile, the name and state (as many lines as they take), the switch. */
+/** One turned-on provider: the order and its grip, the tile, the name and setup, the way in, the switch. */
 @Composable
 private fun ProviderRow(
     row: ResolvedProvider,
@@ -573,11 +685,11 @@ private fun ProviderRow(
     val upLabel = stringResource(R.string.providers_move_up)
     val downLabel = stringResource(R.string.providers_move_down)
     val shape = MaterialTheme.shapes.medium
-    // Remove asks first, as it does from the setup sheet: the dialog says
-    // whether the key goes with it.
+    // Remove asks first, as it does from the provider's screen: the dialog
+    // says whether the key goes with it.
     SwipeActionsRow(
         listOf(
-            SwipeAction(Icons.Outlined.Edit, stringResource(R.string.providers_edit), onClick = onOpen),
+            SwipeAction(Icons.Outlined.Settings, stringResource(R.string.providers_open), onClick = onOpen),
             deleteSwipeAction(stringResource(R.string.providers_remove), onRemove),
         ),
         modifier = modifier,
@@ -587,18 +699,9 @@ private fun ProviderRow(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 60.dp)
-            .clip(shape)
-            .clickable(onClickLabel = stringResource(R.string.providers_edit)) { onOpen() }
-            .semantics {
-                customActions = buildList {
-                    if (onMove != null && canMoveUp) add(CustomAccessibilityAction(upLabel) { onMove(-1); true })
-                    if (onMove != null && canMoveDown) add(CustomAccessibilityAction(downLabel) { onMove(1); true })
-                }
-            }
             .padding(start = 8.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
     ) {
-        // The order, over the grip that changes it. One narrow column where
-        // the number and the drag handle used to sit at the two ends of the row.
+        // The order, over the grip that changes it.
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -619,37 +722,131 @@ private fun ProviderRow(
                 modifier = Modifier.size(18.dp),
             )
         }
-        Spacer(Modifier.size(8.dp))
-        ProviderTile(row.type, active = row.entry.enabled && row.usable)
-        Spacer(Modifier.size(12.dp))
-        Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            Row(verticalAlignment = Alignment.Top) {
-                if (problem && row.entry.enabled) {
-                    Icon(
-                        Icons.Outlined.ErrorOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 2.dp, end = 4.dp).size(14.dp),
+        Spacer(Modifier.size(4.dp))
+        // Everything but the grip and the switch is one press target, and
+        // the chevron at its end says that it opens.
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .weight(1f)
+                .clip(shape)
+                .clickable(enabled = row.type != null, onClickLabel = stringResource(R.string.providers_open)) { onOpen() }
+                .semantics {
+                    customActions = buildList {
+                        if (onMove != null && canMoveUp) add(CustomAccessibilityAction(upLabel) { onMove(-1); true })
+                        if (onMove != null && canMoveDown) add(CustomAccessibilityAction(downLabel) { onMove(1); true })
+                    }
+                }
+                .padding(start = 4.dp, top = 4.dp, bottom = 4.dp),
+        ) {
+            ProviderTile(row.type, active = row.usable)
+            Spacer(Modifier.size(12.dp))
+            Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge)
+                Row(verticalAlignment = Alignment.Top) {
+                    if (problem) {
+                        Icon(
+                            Icons.Outlined.ErrorOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.padding(top = 2.dp, end = 4.dp).size(14.dp),
+                        )
+                    }
+                    Text(
+                        status,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (problem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Text(
-                    status,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (problem && row.entry.enabled) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+            }
+            if (row.type != null) {
+                Icon(
+                    Icons.AutoMirrored.Outlined.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp),
                 )
             }
         }
-        // A switch at four fifths of its size: the row's one control, without
-        // the width a full switch and a menu button took between them.
-        Box(Modifier.size(width = 48.dp, height = 40.dp), contentAlignment = Alignment.Center) {
-            Switch(
-                checked = row.entry.enabled,
-                onCheckedChange = onToggle,
-                modifier = Modifier.requiredSize(width = 52.dp, height = 32.dp).scale(0.8f),
-            )
+        ProviderSwitch(row.entry.enabled, onToggle)
+    }
+    }
+}
+
+/**
+ * One turned-off provider, folded: what it is and the switch that brings it
+ * into the list. Its setup is not shown, since nothing asks it; a press
+ * still opens its screen, to set it up before it is turned on.
+ */
+@Composable
+private fun OffProviderRow(
+    row: ResolvedProvider,
+    tool: ProviderTool,
+    onToggle: (Boolean) -> Unit,
+    onOpen: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val context = LocalContext.current
+    val title = providerTitle(context, row)
+    val description = row.type?.let { stringResource(it.descriptionRes(tool)) } ?: stringResource(R.string.providers_status_unknown)
+    SwipeActionsRow(
+        listOf(deleteSwipeAction(stringResource(R.string.providers_remove), onRemove)),
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 56.dp)
+                .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(MaterialTheme.shapes.medium)
+                    .clickable(onClickLabel = stringResource(R.string.providers_open)) { onOpen() }
+                    .padding(start = 8.dp, top = 6.dp, bottom = 6.dp),
+            ) {
+                ProviderTile(row.type, active = false)
+                Spacer(Modifier.size(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(title, style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            ProviderSwitch(false, onToggle, enabled = row.type != null)
         }
     }
+}
+
+/**
+ * A row's switch, behind a thin rule that sets it apart from the part of the
+ * row that opens: the two do different things, and read as two targets.
+ * At four fifths of its size, so a long name keeps its width.
+ */
+@Composable
+private fun ProviderSwitch(checked: Boolean, onToggle: (Boolean) -> Unit, enabled: Boolean = true) {
+    Box(
+        Modifier
+            .padding(horizontal = 4.dp)
+            .size(width = 1.dp, height = 32.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant),
+    )
+    Box(Modifier.size(width = 52.dp, height = 40.dp), contentAlignment = Alignment.Center) {
+        Switch(
+            checked = checked,
+            onCheckedChange = onToggle,
+            enabled = enabled,
+            modifier = Modifier.requiredSize(width = 52.dp, height = 32.dp).scale(0.8f),
+        )
     }
 }
 
@@ -729,6 +926,7 @@ internal fun providerIcon(type: ProviderType?): ImageVector = when {
     type === ProviderTypes.COMMONS -> Icons.Outlined.Public
     ProviderTool.PHOTOS in type.serves -> Icons.Outlined.PhotoLibrary
     ProviderTool.AI in type.serves -> Icons.Outlined.AutoAwesome
+    ProviderTool.GRAMMAR in type.serves -> Icons.Outlined.Spellcheck
     else -> Icons.Outlined.Image
 }
 
@@ -774,7 +972,7 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
 
 /** The short facts under a kind in the add sheet: free software, on the phone, a key it needs. */
 @Composable
-private fun providerTags(type: ProviderType): String {
+internal fun providerTags(type: ProviderType): String {
     val tags = buildList {
         if (type.onDevice) add(stringResource(R.string.providers_tag_on_device))
         if (type.freeSoftware) add(stringResource(R.string.providers_tag_free))
@@ -796,7 +994,7 @@ private fun providerTags(type: ProviderType): String {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ProviderTypeSheet(
+internal fun ProviderTypeSheet(
     tool: ProviderTool,
     env: ProviderEnv,
     chain: ProviderChain,
@@ -861,7 +1059,7 @@ private fun ProviderTypeSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("detekt.LongMethod", "detekt.CyclomaticComplexMethod")
-private fun ProviderEditorSheet(
+internal fun ProviderEditorSheet(
     repository: SettingsRepository,
     tool: ProviderTool,
     target: ProviderEditTarget,
@@ -888,7 +1086,9 @@ private fun ProviderEditorSheet(
             (spec.key != Need.REQUIRED || (type.hasBuiltInKey && !another) || draft.apiKey.isNotBlank()) &&
             (!another || spec.key == Need.NONE || draft.apiKey.isNotBlank() || (type === ProviderTypes.DEEPL && draft.url.isNotBlank())) &&
             (!spec.modelRequired || draft.model.isNotBlank()) &&
-            (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
+            (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank()) &&
+            // A Premium account signs with both; one without the other is refused.
+            (!spec.username || draft.apiKey.isBlank() == draft.extra[CredentialSpec.USERNAME].isNullOrBlank())
     }
     fun edit(next: ProviderCredential) {
         draft = next
@@ -931,7 +1131,11 @@ private fun ProviderEditorSheet(
                     label = stringResource(R.string.providers_field_url),
                     value = draft.url,
                     supporting = stringResource(
-                        if (spec.url == Need.REQUIRED) R.string.providers_field_url_hint else R.string.providers_field_url_optional_hint,
+                        when {
+                            type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_url_languagetool_hint
+                            spec.url == Need.REQUIRED -> R.string.providers_field_url_hint
+                            else -> R.string.providers_field_url_optional_hint
+                        },
                     ),
                     keyboardType = KeyboardType.Uri,
                 ) { edit(draft.copy(url = it)) }
@@ -962,6 +1166,19 @@ private fun ProviderEditorSheet(
                     )
                 }
             }
+            if (spec.username) {
+                StoredTextField(
+                    label = stringResource(R.string.providers_field_username),
+                    value = draft.extra[CredentialSpec.USERNAME].orEmpty(),
+                    supporting = stringResource(R.string.providers_field_username_hint),
+                ) { name ->
+                    edit(
+                        draft.copy(
+                            extra = if (name.isBlank()) draft.extra - CredentialSpec.USERNAME else draft.extra + (CredentialSpec.USERNAME to name),
+                        ),
+                    )
+                }
+            }
             // A home's key is a token pasted or a pairing made in its own section below, not a plain field.
             if (spec.key != Need.NONE && !home) {
                 StoredTextField(
@@ -969,6 +1186,7 @@ private fun ProviderEditorSheet(
                     value = draft.apiKey,
                     supporting = stringResource(
                         when {
+                            type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_key_languagetool_hint
                             another -> R.string.providers_field_key_another_hint
                             type.hasBuiltInKey -> R.string.providers_field_key_builtin_hint
                             spec.key == Need.OPTIONAL -> R.string.providers_field_key_optional_hint
@@ -987,6 +1205,7 @@ private fun ProviderEditorSheet(
                     ),
                 ) { edit(draft.copy(model = it)) }
             }
+            if (type === ProviderTypes.LANGUAGETOOL) LanguageToolExtras(draft, ::edit)
             if (home) {
                 HomeProviderExtras(
                     repository = repository,
@@ -1121,5 +1340,7 @@ private fun ProviderCredential.trimmed() =
         apiKey = apiKey.trim(),
         url = url.trim(),
         model = model.trim(),
-        extra = extra[CredentialSpec.PATH]?.let { extra + (CredentialSpec.PATH to it.trim()) } ?: extra,
+        extra = extra.mapValues { (key, value) ->
+            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME) value.trim() else value
+        },
     )

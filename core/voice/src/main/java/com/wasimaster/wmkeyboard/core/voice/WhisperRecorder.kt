@@ -49,11 +49,12 @@ class WhisperRecorder(
      */
     maxSeconds: Int = WhisperMel.CHUNK_SECONDS,
     /**
-     * RNNoise in front of whatever hears the clip ([VoiceDenoise]), or null to
-     * keep the microphone's own audio. Owned from here on: the reader thread
-     * uses it and closes it when the capture ends. The pulse ring still
-     * follows the raw microphone, so it shows that the microphone hears; the
-     * silence stop and the clip get the cleaned audio.
+     * Noise reduction in front of whatever hears the clip ([VoiceDenoise]), or
+     * null to keep the microphone's own audio. Owned from here on: the reader
+     * thread uses it, adds what it still holds to the clip when the capture
+     * ends, and closes it. The pulse ring still follows the raw microphone,
+     * so it shows that the microphone hears; the silence stop and the clip
+     * get the cleaned audio.
      */
     private val denoise: VoiceDenoise.Stream? = null,
 ) {
@@ -138,6 +139,20 @@ class WhisperRecorder(
         }
     }
 
+    /**
+     * The denoiser's last samples (DPDFNet trails the microphone by 40 ms) onto
+     * the end of the clip, as far as there is room. Runs on the reader thread
+     * once capture has stopped and before anything hears that it ended, so
+     * [stop] and the end-of-clip callbacks see the whole clip.
+     */
+    private fun flushDenoiser() {
+        val tail = runCatching { denoise?.finish() }.getOrNull() ?: return
+        val room = min(tail.size, maxSamples - count)
+        if (room <= 0) return
+        tail.copyInto(buffer, count, 0, room)
+        count += room
+    }
+
     private fun capture(r: AudioRecord) {
         // A reader that loses the CPU to background work drops samples once
         // the capture buffer overruns, and a gap in the audio is a wrong word.
@@ -157,8 +172,9 @@ class WhisperRecorder(
                 // itself: asking again returns at once with the same answer,
                 // so carrying on would spin here until somebody called stop.
                 running = false
+                flushDenoiser()
                 onLost()
-                break
+                return
             }
             if (n == 0) continue
             var rawSq = 0.0
@@ -189,17 +205,20 @@ class WhisperRecorder(
                     quiet += room
                     if (quiet >= quietLimit) {
                         running = false
+                        flushDenoiser()
                         onSilence()
-                        break
+                        return
                     }
                 }
             }
             if (count >= maxSamples) {
                 running = false
                 onMaxReached()
-                break
+                return
             }
         }
+        // Stopped from outside: [stop] waits for this before it copies the clip.
+        flushDenoiser()
     }
 
     private companion object {

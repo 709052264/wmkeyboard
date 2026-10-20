@@ -63,9 +63,10 @@ interface AiToolHost {
         Result.failure(UnsupportedOperationException("no Home Assistant here"))
 
     /**
-     * Whether [searchClipboard] and [notesByMeaning] can answer: search by
-     * meaning is on and its model is on the phone. Without it
-     * `search_clipboard` is not offered and `search_notes` matches words only.
+     * Whether [searchClipboard], [notesByMeaning] and [snippetsByMeaning] can
+     * answer: search by meaning is on and its model is on the phone. Without
+     * it `search_clipboard` is not offered, and `search_notes` and
+     * `search_snippets` match words only.
      */
     val canSearchByMeaning: Boolean get() = false
 
@@ -79,6 +80,10 @@ interface AiToolHost {
 
     /** Notes that mean what [query] does, best first; never a locked or deleted one. Blocking. */
     fun notesByMeaning(query: String): Result<List<AiMeaningHit>> =
+        Result.failure(UnsupportedOperationException("no search by meaning here"))
+
+    /** Snippets that mean what [query] does, best first; never a deleted one. Blocking. */
+    fun snippetsByMeaning(query: String): Result<List<AiMeaningHit>> =
         Result.failure(UnsupportedOperationException("no search by meaning here"))
 
     /** How many pictures the user has sent in this conversation (#698). */

@@ -113,12 +113,19 @@ object ToolHttp {
         HttpResponse(connection.readBody(call), kept)
     }
 
+    /**
+     * POSTs [form] URL-encoded. [wantHeaders] are kept on a failure, the way
+     * [getWithHeaders] keeps them: a 429's `Retry-After` is what says how long
+     * to wait.
+     */
     fun postForm(
         url: String,
         form: Map<String, String>,
         timeoutMs: Int = 10_000,
         source: NetSource? = null,
         route: String? = null,
+        headers: Map<String, String> = emptyMap(),
+        wantHeaders: Set<String> = emptySet(),
     ): String = metered(url, "POST", source, route) { connection, call ->
         connection.connectTimeout = timeoutMs
         connection.readTimeout = timeoutMs
@@ -126,13 +133,17 @@ object ToolHttp {
         connection.requestMethod = "POST"
         connection.doOutput = true
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+        for ((name, value) in headers) connection.setRequestProperty(name, value)
         val body = form.entries.joinToString("&") { (key, value) ->
             "$key=${URLEncoder.encode(value, "UTF-8")}"
         }
         connection.send(body.toByteArray(), call)
         val status = connection.responseCode
         call.status = status
-        if (status !in 200..299) throw httpFailure(status, connection.readError(call))
+        if (status !in 200..299) {
+            val kept = wantHeaders.mapNotNull { name -> connection.getHeaderField(name)?.let { name to it } }.toMap()
+            throw httpFailure(status, connection.readError(call), kept)
+        }
         connection.readBody(call)
     }
 

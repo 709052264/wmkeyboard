@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.core.semantic.Embeddings
 import com.wasimaster.wmkeyboard.core.semantic.SemanticModels
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.settings.SemanticSearchSettings
+import com.wasimaster.wmkeyboard.core.snippets.SnippetStore
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningHit
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningLookup
@@ -71,7 +72,7 @@ class KeyboardAiToolHost(
     private val seesImages: Boolean = false,
     private val scanner: ScannerSettings? = null,
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
-    /** Search by meaning's settings, for search_clipboard and search_notes; null where the surface does not lend it. */
+    /** Search by meaning's settings, for search_clipboard, search_notes and search_snippets; null where the surface does not lend it. */
     private val semantic: SemanticSearchSettings? = null,
 ) : AiToolHost {
 
@@ -322,6 +323,12 @@ class KeyboardAiToolHost(
     override fun notesByMeaning(query: String): Result<List<AiMeaningHit>> = runCatching {
         val notes = NoteStore(File(context.filesDir, NoteStore.FILE_PATH)).items(NoteFilter(includeLocked = false))
         lookUp(query, MeaningLookup.Sources(notes = notes))
+    }
+
+    /** The snippets as their file holds them now. */
+    override fun snippetsByMeaning(query: String): Result<List<AiMeaningHit>> = runCatching {
+        val snippets = SnippetStore(File(context.filesDir, SnippetStore.FILE_PATH)).items()
+        lookUp(query, MeaningLookup.Sources(snippets = snippets))
     }
 
     private fun lookUp(query: String, sources: MeaningLookup.Sources): List<AiMeaningHit> {

@@ -349,6 +349,20 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * there is no asymmetry here to exploit yet. The only thing either says
          * is that a *tight* anchor costs accuracy: whatever an anchor is for, it
          * is not for being strict.
+         *
+         * Above the shipped value the radius widens the score as well as the
+         * gate (issue #805). As a gate alone it admitted words that could not
+         * win: the first letter still paid its location cost on the first
+         * sample, capped only from 2.06 key widths out, and the lead-in from
+         * the touch-down to the key was travel the gap term charged, so a word
+         * starting 2.5 keys off trailed one starting under the finger by about
+         * 40 nats against a dictionary's whole frequency spread of about 14.
+         * The excess over the default is now [startSlack]: that much of the
+         * distance to the first key is free on the first sample, that much of
+         * the lead-in is free as gap, the shape channel sees the lead-in on
+         * the word's own path, and the key is walkable even if the stroke
+         * never passes within [nearRadius] of it. At or under the default all
+         * four are zero, so the shipped decoder is unchanged.
          */
         val startRadius: Float = 1.6f,
         /** How far the stroke's *last* sample may sit from the word's last key,
@@ -447,6 +461,16 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val endRadiusSq: Float get() = endRadius * endRadius
         val nearCost: Float get() = nearRadius * nearRadius * invTwoSigmaSq
         val loopRadiusSq: Float get() = loopRadius * loopRadius
+
+        /**
+         * How much of [startRadius] lies past the shipped one, in key widths:
+         * the distance from the touch-down to a word's first key that the
+         * score forgives. See [anchorSlack].
+         */
+        val startSlack: Float get() = (startRadius - DEFAULT.startRadius).coerceAtLeast(0f)
+
+        /** [startSlack] for [endRadius] and the lift-off. */
+        val endSlack: Float get() = (endRadius - DEFAULT.endRadius).coerceAtLeast(0f)
 
         /** [dwellFull] as the divisor it is used as, floored off zero. */
         val dwellScale: Float get() = if (dwellFull > MIN_DWELL_FULL) dwellFull else MIN_DWELL_FULL
@@ -719,18 +743,21 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             val expected = span / step
             val lo = maxOf(1, (expected - tuning.gapWindow).toInt())
             val hi = maxOf(lo, (expected + tuning.gapWindow).toInt() + 1) + ws.collapsedSamples
+            val lead = anchorLead(0, visits[m - 1], tuning.startSlack, keys, ws)
+            val tail = anchorLead(n - 1, key, tuning.endSlack, keys, ws)
             cur[0] = GlideWorkspace.UNREACHABLE
             for (j in 1 until n) {
                 var best = GlideWorkspace.UNREACHABLE
                 var from = -1
                 val arcJ = arc[j]
+                val easeJ = if (j == n - 1) tail else 0f
                 var i = maxOf(0, j - hi)
                 val to = j - lo
                 while (i <= to) {
                     val before = prev[i]
                     if (before < GlideWorkspace.UNREACHABLE) {
                         val gap = arcJ - arc[i] - span
-                        val v = before + tuning.gapWeight * (if (gap < 0f) -gap else gap)
+                        val v = before + gapCharge(gap, if (i == 0) lead + easeJ else easeJ)
                         if (v < best) {
                             best = v
                             from = i
@@ -1097,6 +1124,10 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         val expected = span / step
         val lo = maxOf(1, (expected - tuning.gapWindow).toInt())
         val hi = maxOf(lo, (expected + tuning.gapWindow).toInt() + 1) + ws.collapsedSamples
+        // Only the first letter sits on sample 0, so a finite value there is
+        // always the lead-in; only the last letter can finish on the last.
+        val lead = anchorLead(0, prevKey, tuning.startSlack, keys, ws)
+        val tail = anchorLead(n - 1, key, tuning.endSlack, keys, ws)
 
         out[0] = GlideWorkspace.UNREACHABLE
         var best = GlideWorkspace.UNREACHABLE
@@ -1104,6 +1135,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             val from = maxOf(0, j - hi)
             val to = j - lo
             val arcJ = arc[j]
+            val easeJ = if (j == n - 1) tail else 0f
             var bestPrev = GlideWorkspace.UNREACHABLE
             var i = from
             while (i <= to) {
@@ -1111,7 +1143,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
                 if (at < GlideWorkspace.UNREACHABLE) {
                     val travelled = arcJ - arc[i]
                     val gap = travelled - span
-                    val v = at + tuning.gapWeight * (if (gap < 0f) -gap else gap)
+                    val v = at + gapCharge(gap, if (i == 0) lead + easeJ else easeJ)
                     if (v < bestPrev) bestPrev = v
                 }
                 i++
@@ -1171,6 +1203,9 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             for (a in 0 until keyCount) remain[base + a] = GlideWorkspace.UNREACHABLE
             for (x in 0 until count) {
                 val from = near[x]
+                // The same anchor easing as [advance], or the bound would
+                // overstate what a far first or last letter really pays.
+                val lead = if (j == 0) anchorLead(0, from, tuning.startSlack, keys, ws) else 0f
                 var best = GlideWorkspace.UNREACHABLE
                 for (y in 0 until count) {
                     val to = near[y]
@@ -1184,8 +1219,12 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
                         val rest = remain[i * keyCount + to]
                         if (rest < GlideWorkspace.UNREACHABLE) {
                             val gap = arc[i] - arcJ - span
-                            val v = tuning.gapWeight * (if (gap < 0f) -gap else gap) +
-                                cost[i * keyCount + to] + rest
+                            val ease = if (i == n - 1) {
+                                lead + anchorLead(n - 1, to, tuning.endSlack, keys, ws)
+                            } else {
+                                lead
+                            }
+                            val v = gapCharge(gap, ease) + cost[i * keyCount + to] + rest
                             if (v < best) best = v
                         }
                         i++
@@ -1292,6 +1331,55 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         }
         anchorMask(ws.pathX[0], ws.pathY[0], keys, ws.startKey, tuning.startRadiusSq)
         anchorMask(ws.pathX[n - 1], ws.pathY[n - 1], keys, ws.endKey, tuning.endRadiusSq)
+        anchorSlack(0, tuning.startSlack, ws.startKey, keys, ws)
+        anchorSlack(n - 1, tuning.endSlack, ws.endKey, keys, ws)
+    }
+
+    /**
+     * Rescores sample [j], an anchor, on the distance past [slack] rather than
+     * the whole distance, and lets every key [mask] admits there be walked even
+     * if the stroke never passes within [Tuning.nearRadius] of it (issue #805).
+     * A no-op at zero slack, which is every radius at or under the default.
+     *
+     * Only the first letter sits on sample 0 and only a last letter finishes
+     * on the last, so this reaches the anchors and nothing else; and since
+     * [buildRemain] reads the same table, the walk's bound moves with it.
+     */
+    private fun anchorSlack(j: Int, slack: Float, mask: BooleanArray, keys: GlideKeyMap, ws: GlideWorkspace) {
+        if (slack <= 0f) return
+        val keyCount = keys.keyCount
+        val base = j * keyCount
+        val invTwoSigmaSq = tuning.invTwoSigmaSq
+        val maxPointCost = tuning.maxPointCost
+        for (k in 0 until keyCount) {
+            val dx = ws.pathX[j] - keys.keyX[k]
+            val dy = ws.pathY[j] - keys.keyY[k]
+            val past = sqrt(dx * dx + dy * dy) - slack
+            val scaled = if (past > 0f) past * past * invTwoSigmaSq else 0f
+            ws.pointCost[base + k] = if (scaled > maxPointCost) maxPointCost else scaled
+            if (mask[k]) ws.nearKey[k] = true
+        }
+    }
+
+    /**
+     * How much of the travel between anchor sample [j] and [key] the gap term
+     * forgives: the distance from the one to the other, up to [slack]. A
+     * touch-down off its key draws that much stroke the key span cannot
+     * explain, in either direction, and charging it as gap undid the slack
+     * [anchorSlack] gave the location (issue #805). Zero at zero slack.
+     */
+    private fun anchorLead(j: Int, key: Int, slack: Float, keys: GlideKeyMap, ws: GlideWorkspace): Float {
+        if (slack <= 0f || key < 0) return 0f
+        val dx = ws.pathX[j] - keys.keyX[key]
+        val dy = ws.pathY[j] - keys.keyY[key]
+        val d = sqrt(dx * dx + dy * dy)
+        return if (d < slack) d else slack
+    }
+
+    /** The gap term for a travel-against-span disagreement of [gap], the first [ease] of it free. */
+    private fun gapCharge(gap: Float, ease: Float): Float {
+        val over = (if (gap < 0f) -gap else gap) - ease
+        return if (over > 0f) tuning.gapWeight * over else 0f
     }
 
     /**
@@ -1703,6 +1791,7 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             previous = key
         }
         if (count < 2) return null
+        count = withAnchorLeads(count, ws)
         resamplePolyline(ws.idealX, ws.idealY, count, ws.idealShapeX, ws.idealShapeY)
         normalise(ws.idealShapeX, ws.idealShapeY, ws.idealShapeX, ws.idealShapeY)
 
@@ -1713,6 +1802,47 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
             sum += sqrt(dx * dx + dy * dy).toDouble()
         }
         return sum / GlideWorkspace.SHAPE_POINTS
+    }
+
+    /**
+     * The ideal path of [count] points in [GlideWorkspace.idealX] with the
+     * stroke's lead-in and tail on it, each as far as [Tuning.startSlack] and
+     * [Tuning.endSlack] forgive, and its new length. The alignment lets a far
+     * first or last key off the stretch between it and the touch (issue #805);
+     * without this the shape channel would charge that same stretch as a
+     * stroke drawn the wrong shape. Unchanged at zero slack.
+     */
+    private fun withAnchorLeads(count: Int, ws: GlideWorkspace): Int {
+        var size = count
+        val start = tuning.startSlack
+        if (start > 0f && size < GlideWorkspace.MAX_IDEAL_POINTS) {
+            for (p in size downTo 1) {
+                ws.idealX[p] = ws.idealX[p - 1]
+                ws.idealY[p] = ws.idealY[p - 1]
+            }
+            size++
+            reachToward(1, 0, ws.pathX[0], ws.pathY[0], start, ws)
+        }
+        val end = tuning.endSlack
+        if (end > 0f && size < GlideWorkspace.MAX_IDEAL_POINTS) {
+            val last = ws.samples - 1
+            reachToward(size - 1, size, ws.pathX[last], ws.pathY[last], end, ws)
+            size++
+        }
+        return size
+    }
+
+    /** Writes ideal point [into] as point [from] moved toward ([x], [y]) by at most [reach]. */
+    @Suppress("LongParameterList")
+    private fun reachToward(from: Int, into: Int, x: Float, y: Float, reach: Float, ws: GlideWorkspace) {
+        val fx = ws.idealX[from]
+        val fy = ws.idealY[from]
+        val dx = x - fx
+        val dy = y - fy
+        val d = sqrt(dx * dx + dy * dy)
+        val t = if (d <= reach) 1f else reach / d
+        ws.idealX[into] = fx + dx * t
+        ws.idealY[into] = fy + dy * t
     }
 
     /**

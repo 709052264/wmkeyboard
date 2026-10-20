@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -34,7 +35,7 @@ class SettingsSearchKeywordsTest {
     @Test
     fun `every keyword belongs to a row the index actually carries`() {
         val indexed = index.mapTo(mutableSetOf()) { it.titleRes }
-        val orphans = SettingsSearchKeywords.keys.filterNot { it in indexed }
+        val orphans = SettingsSearchKeywords.keys.filterNot { it in indexed || it in ENGINE_GATED }
             .map { strings.resourceName(it) }
         assertEquals("keywords for rows no longer in the index", emptyList<String>(), orphans)
     }
@@ -91,6 +92,15 @@ class SettingsSearchKeywordsTest {
         assertTrue(
             "keyword table has ${SettingsSearchKeywords.size} rows against ${index.size} indexed",
             SettingsSearchKeywords.size < index.size / 3,
+        )
+    }
+
+    private companion object {
+        // Drawn only where their engine runs, and neither runs on this JVM:
+        // Bergamot needs API 28, NLLB a 64-bit Android process.
+        val ENGINE_GATED = setOf(
+            R.string.tooldetail_translate_bergamot_group,
+            R.string.tooldetail_translate_nllb_group,
         )
     }
 }

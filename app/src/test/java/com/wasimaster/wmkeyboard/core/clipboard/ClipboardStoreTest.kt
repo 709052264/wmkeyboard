@@ -116,7 +116,9 @@ class ClipboardStoreTest {
     }
 
     @Test fun tagsAreSetAndFoundBySearch() {
-        val store = ClipboardStore(null)
+        // No expiry: search() reads the list at the real clock, where a clip
+        // stamped 1000 ms after 1970 would long since have expired.
+        val store = ClipboardStore(null, expiryMillis = 0)
         val clip = store.add("an address", now = 1000)!!
         assertTrue(store.setTags(clip.id, listOf("work", "maps")))
         assertFalse(store.setTags(clip.id, listOf("work", "maps")))

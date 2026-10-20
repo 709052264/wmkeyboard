@@ -1078,6 +1078,9 @@ class SnippetStore(private val storageFile: File?) {
 
     companion object {
 
+        /** Where the snippets live, under the app's files directory. */
+        const val FILE_PATH = "snippets/snippets.json"
+
         /**
          * An id for something new, and one that another device is very
          * unlikely to hand out too: the time in milliseconds times a thousand,

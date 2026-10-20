@@ -623,28 +623,35 @@ class GlideBeamTest {
     }
 
     /**
-     * Why #805's reporter saw no difference: the radius is a gate, and the
-     * score behind it is not. The first letter still pays its location cost on
-     * the first sample (capped at [GlideBeam.Tuning.maxPointCost], 12, from
-     * 2.06 key widths out) and the lead-in from the touch-down to its key is
-     * travel the alignment charges as gap, so `hello` drawn from 2.5 keys off
-     * trails a word that starts where the finger went down by more than its
-     * hundredfold frequency lead (4.6 nats). On a real dictionary there is
-     * nearly always such a word.
+     * What #805's reporter asked for: a radius above the default widens the
+     * score, not just the gate. As a gate alone, `hello` drawn from 2.5 keys
+     * off still paid its first letter's capped location cost and the lead-in
+     * as gap, and trailed `bello`, which starts where the finger went down, by
+     * more than its hundredfold frequency lead. With the excess over 1.6
+     * forgiven on the first sample, the lead-in and the shape channel, the two
+     * fit about equally and frequency picks `hello`. At the default the slack
+     * is zero, so the shipped decoder still reads only `bello` here.
      */
     @Test
-    fun `a wide start radius admits a far first letter but ranks it under one the finger touched`() {
+    fun `a wide start radius lets a far first letter beat a rarer word the finger touched`() {
         val h = centers.getValue('h'.code)
         val far = gestureFor("hello").toMutableList().apply {
             this[0] = GesturePoint(h.x, h.y + 2.5f * keyWidth)
         }
         val withRival = sourcesOf(lexicon + ("bello" to 9))
-        val words = GlideBeam(GlideBeam.Tuning(startRadius = 4f))
-            .decode(far, grid, keyWidth, withRival, GlideWorkspace(), 4)
-            .map { it.word }
+        fun wordsAt(startRadius: Float): List<String> =
+            GlideBeam(GlideBeam.Tuning(startRadius = startRadius))
+                .decode(far, grid, keyWidth, withRival, GlideWorkspace(), 4)
+                .map { it.word }
 
-        assertTrue("expected hello admitted in $words", "hello" in words)
-        assertTrue("expected bello over hello in $words", words.indexOf("bello") in 0 until words.indexOf("hello"))
+        val wide = wordsAt(4f)
+        val hello = wide.indexOf("hello")
+        val bello = wide.indexOf("bello")
+        assertTrue("expected hello over bello in $wide", hello >= 0 && (bello < 0 || hello < bello))
+        assertEquals(0f, GlideBeam.Tuning().startSlack, 0f)
+        assertEquals(0f, GlideBeam.Tuning().endSlack, 0f)
+        val shipped = wordsAt(1.6f)
+        assertFalse("expected no hello in $shipped", "hello" in shipped)
     }
 
     @Test

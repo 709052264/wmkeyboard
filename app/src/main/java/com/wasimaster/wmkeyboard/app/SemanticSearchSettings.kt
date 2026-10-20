@@ -37,6 +37,8 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
     val scope = rememberCoroutineScope()
     val mode = settings.watch { it.semanticSearch.mode }
     val states by SemanticDownloads.states.collectAsState()
+    // Read here, in composition: the group builder below is not composable.
+    val onDisk = remember(states) { SemanticModels.bytesOnDisk(context.noBackupFilesDir) }
     val module by FeatureModules.litert.state.collectAsState()
     val decide = rememberDownloadDecision(settings)
     var metered by remember { mutableStateOf<SemanticModels.Pack?>(null) }
@@ -128,7 +130,6 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
                 ) { on -> scope.launch { repository.updateSemanticSearch { it.copy(tagStickers = on) } } }
             }
         }
-        val onDisk = remember(states) { SemanticModels.bytesOnDisk(context.noBackupFilesDir) }
         if (onDisk > 0L) {
             item {
                 ActionRow(

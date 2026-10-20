@@ -94,6 +94,15 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
+      # assets/supporters.json is what the app lists before its own network
+      # check, and all a no-internet build ever shows. Refresh it from the live
+      # /api/supporters so each release names everyone who tipped up to the
+      # build, not up to the last time someone ran `npm run supporters`. Site
+      # down: keep the committed copy, never fail a release over a credits list.
+      # F-Droid builds from the tagged source, so its APK has the committed one.
+      - name: Refresh the supporters list
+        run: node docs/scripts/sync-supporters.mjs || echo "::warning::Could not reach /api/supporters; this build ships the committed supporters.json"
+
       # splitApks=true gives one APK per ABI instead of one fat universal APK,
       # which is what the download page wants. Play channel off: this build must
       # not carry the in-app-update library, since it only works via Play.
@@ -440,6 +449,15 @@ jobs:
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
 
+      # assets/supporters.json is what the app lists before its own network
+      # check, and all a no-internet build ever shows. Refresh it from the live
+      # /api/supporters so each release names everyone who tipped up to the
+      # build, not up to the last time someone ran `npm run supporters`. Site
+      # down: keep the committed copy, never fail a release over a credits list.
+      # F-Droid builds from the tagged source, so its APK has the committed one.
+      - name: Refresh the supporters list
+        run: node docs/scripts/sync-supporters.mjs || echo "::warning::Could not reach /api/supporters; this build ships the committed supporters.json"
+
       - name: Build the no-internet APKs
         env:
           RELEASE_STORE_FILE: release.keystore
@@ -545,6 +563,15 @@ jobs:
             exit 1
           fi
           echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+
+      # assets/supporters.json is what the app lists before its own network
+      # check, and all a no-internet build ever shows. Refresh it from the live
+      # /api/supporters so each release names everyone who tipped up to the
+      # build, not up to the last time someone ran `npm run supporters`. Site
+      # down: keep the committed copy, never fail a release over a credits list.
+      # F-Droid builds from the tagged source, so its APK has the committed one.
+      - name: Refresh the supporters list
+        run: node docs/scripts/sync-supporters.mjs || echo "::warning::Could not reach /api/supporters; this build ships the committed supporters.json"
 
       # Play channel on: unbundled ML Kit, in-app updates, and :feature:llm,
       # :feature:translate, :feature:litert and :feature:handwriting as

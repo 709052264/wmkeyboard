@@ -6,14 +6,16 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
+import com.wasimaster.wmkeyboard.core.snippets.Snippet
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningFormat
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningHit
 import com.wasimaster.wmkeyboard.core.tools.AiMeaningSource
 
 /**
- * Search by meaning for the AI tools: one query against the clipboard or the
- * notes index [MeaningSearch] keeps (`search_clipboard`, and the meaning half
- * of `search_notes`), each item checked against its store as it is now.
+ * Search by meaning for the AI tools: one query against the clipboard, notes
+ * or snippets index [MeaningSearch] keeps (`search_clipboard`, and the meaning
+ * halves of `search_notes` and `search_snippets`), each item checked against
+ * its store as it is now.
  *
  * The indexes are only as fresh as the last time their panel opened, so
  * the stores are the word on what may be read: a clip that has since been
@@ -35,6 +37,7 @@ internal class MeaningLookup(
     class Sources(
         val clips: List<ClipItem> = emptyList(),
         val notes: List<Note> = emptyList(),
+        val snippets: List<Snippet> = emptyList(),
     )
 
     /**
@@ -49,6 +52,7 @@ internal class MeaningLookup(
 
         val clips = sources.clips.filter(::readable).associateBy { it.id.toString() }
         val notes = sources.notes.filter(::readable).associateBy { it.id.toString() }
+        val snippets = sources.snippets.associateBy { it.id.toString() }
 
         val hits = ArrayList<AiMeaningHit>()
         for (hit in found(MeaningSpace.CLIPS, vector, clips.keys)) {
@@ -60,6 +64,11 @@ internal class MeaningLookup(
             val note = notes.getValue(hit.key)
             val body = note.body.ifBlank { note.tags.joinToString(", ") }
             hits += AiMeaningHit(AiMeaningSource.NOTE, note.title.ifBlank { null }, AiMeaningFormat.excerpt(body), hit.score, hit.key)
+        }
+        // A snippet's text is a template; it is read as written, never expanded.
+        for (hit in found(MeaningSpace.SNIPPETS, vector, snippets.keys)) {
+            val snippet = snippets.getValue(hit.key)
+            hits += AiMeaningHit(AiMeaningSource.SNIPPET, snippet.label.ifBlank { null }, AiMeaningFormat.excerpt(snippet.text), hit.score, hit.key)
         }
         // Each space was thresholded on its own, against its own crowd; across
         // them the raw cosine is the fairest order there is.

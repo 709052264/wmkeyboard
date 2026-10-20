@@ -125,7 +125,9 @@ class SettingsSearchRankingTest {
         first("volume", "hardware_sound_volume_title"),
         first("keyboard height", "layout_key_height_title"),
         first("backspace", "typing_backspace_swipe_title"),
-        first("shift", "typing_shift_enter_title"),
+        // Four rows start with Shift now; the recase ones (#662) sit on a
+        // deeper screen and lead, Shift and Enter after them.
+        first("shift", "typing_shift_recase_title"),
         // The screen is "App lock" now, so "fingerprint" reaches it through its
         // search words only, and the permission row named exactly "Fingerprint"
         // keeps its own name (see SettingsSearchKeywords). "Offer the fingerprint

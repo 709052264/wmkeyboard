@@ -66,10 +66,10 @@ class ConfigBackupTest {
     }
 
     @Test
-    fun `clock encodes after notes and kaomoji comes last`() {
+    fun `clock encodes after notes and AI memory comes last`() {
         // Sections encode in declaration order and older builds read bundles
         // positionally, so a new section may only ever be appended.
-        assertEquals(ConfigBackup.Section.KAOMOJI, ConfigBackup.Section.entries.last())
+        assertEquals(ConfigBackup.Section.AI_MEMORY, ConfigBackup.Section.entries.last())
         val payload = buildJsonObject { put("a", JsonPrimitive(1)) }
         val text = ConfigBackup.encode(
             1,
@@ -85,6 +85,12 @@ class ConfigBackupTest {
         val parsed = requireNotNull(ConfigBackup.decode(text))
         assertTrue(parsed.has(ConfigBackup.Section.NOTES))
         assertTrue(parsed.has(ConfigBackup.Section.CLOCK))
+    }
+
+    @Test
+    fun `AI memory is never a sync section`() {
+        assertFalse(ConfigBackup.Section.AI_MEMORY.syncable)
+        assertTrue(ConfigBackup.Section.entries.filter { it != ConfigBackup.Section.AI_MEMORY }.all { it.syncable })
     }
 
     @Test

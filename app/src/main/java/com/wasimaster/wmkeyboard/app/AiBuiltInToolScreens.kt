@@ -92,6 +92,10 @@ internal val builtInToolText: Map<String, BuiltInToolText> = mapOf(
         R.string.toolai_ai_builtin_search_notes_title,
         R.string.toolai_ai_builtin_search_notes_subtitle,
     ),
+    AiTools.SEARCH_SNIPPETS to BuiltInToolText(
+        R.string.toolai_ai_builtin_search_snippets_title,
+        R.string.toolai_ai_builtin_search_snippets_subtitle,
+    ),
     AiTools.SEARCH_CLIPBOARD to BuiltInToolText(
         R.string.toolai_ai_builtin_search_clipboard_title,
         R.string.toolai_ai_builtin_search_clipboard_subtitle,

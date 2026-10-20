@@ -129,6 +129,22 @@ object ConfigBackup {
          * Appended after [CLOCK] for the reason given on [VOCAB].
          */
         KAOMOJI("kaomoji"),
+
+        /**
+         * What the AI remembers about the user: the facts on Settings › AI ›
+         * Memory. Off by default everywhere, and never in sync (see
+         * [syncable]): the list is gathered from the user's chats, and it
+         * leaves the phone only in a backup the user told to carry it.
+         * Appended after [KAOMOJI] for the reason given on [VOCAB].
+         */
+        AI_MEMORY("ai_memory"),
+        ;
+
+        /**
+         * Whether sync may carry this section between devices. Everything but
+         * [AI_MEMORY], which goes into a backup or nowhere.
+         */
+        val syncable: Boolean get() = this != AI_MEMORY
     }
 
     private val json = Json { prettyPrint = true }

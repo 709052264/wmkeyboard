@@ -24,6 +24,13 @@ character, the blank between them) is a few lines of Kotlin, and building
 sherpa-onnx's TTS would link espeak-ng, which is GPL-3.0, for phonemes these
 voices never use.
 
+Reduce background noise at Strong runs here too (`dpdfnet_jni.cpp`, driven by
+`core.voice.StrongDenoise`): sherpa-onnx's streaming speech denoiser over Ceva's
+DPDFNet baseline model (DeepFilterNet2 with dual-path RNN blocks, Apache-2.0,
+16 kHz), with 12 dB of the microphone mixed back under the cleaned audio. See
+[Choosing the Strong model](#choosing-the-strong-model) below for why that model
+and that mix.
+
 The bridge is a thin JNI layer over sherpa-onnx's C API, which is linked in
 statically with only speech recognition switched on (no TTS, no diarization,
 no audio I/O, no servers). ONNX Runtime is not linked in. `libwmsherpa.so`
@@ -68,15 +75,17 @@ about four minutes.
 
 The models are not bundled. `EtCatalog` in `:core:voice` pins each one to a
 Hugging Face revision and every file to its SHA-256, the same store and
-downloader as the ExecuTorch engines.
+downloader as the ExecuTorch engines. The denoiser's model is sherpa-onnx's own
+conversion (`speech-enhancement-models` release, `dpdfnet_baseline.onnx`,
+8,791,035 bytes), pinned by size and SHA-256 in `StrongDenoise`.
 
 ## ABIs
 
 | ABI | Size |
 |---|---|
-| arm64-v8a | about 2.2 MB |
+| arm64-v8a | about 2.3 MB |
 | armeabi-v7a | about 1.5 MB |
-| x86_64 | about 2.4 MB |
+| x86_64 | about 2.5 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.
@@ -102,8 +111,49 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
   sentence's samples, null on failure; inputs matched by name, a `sid` input
   fed 0), `nativeVitsFree`.
 
+- `nativeDenoiser(model, threads, delay, keep)`: a streaming DPDFNet denoiser,
+  0 on failure (or a model whose rate is not 16 kHz). `nativeDenoise(handle,
+  samples, count)` returns what is ready, `keep` times the input `delay`
+  samples back mixed under it; the first `delay` output samples of a clip are
+  dropped. `nativeDenoiseFinish` feeds `delay` samples of silence, flushes and
+  resets, so over a clip the output is exactly as long as the input.
+  `nativeDenoiserFree`. sherpa-onnx exits the process on a model whose
+  metadata it does not recognise, so Kotlin hands it only a file whose SHA-256
+  it has checked.
+
 `mms_tts_catalog.py` writes the voice catalog, `core/voice/src/main/assets/speech/mms_tts.tsv`:
 every voice of one pinned revision of the ONNX conversion, with sizes and SHA-256.
 
-None of it is thread-safe; Kotlin calls the recognizer on one thread and the
-voice on another (`MmsSpeech.dispatcher`); the two share no handle.
+None of it is thread-safe; Kotlin calls the recognizer on one thread, the
+voice on another (`MmsSpeech.dispatcher`) and a denoiser on the capture thread
+of the clip using it; they share no handle.
+
+## Choosing the Strong model
+
+Measured on a Mac (2026-10-20) before any of it was built: 25 LibriSpeech
+clips, each mixed with street and cafeteria noise from DEMAND (channel 1) and
+a synthetic desk fan at 0, 5 and 10 dB SNR, plus the clean clips, 250 clips
+and 34 minutes in all. Every denoiser was fed 100 ms chunks, as
+`WhisperRecorder` does. Word error rate, all 250 clips:
+
+| Denoiser | Whisper Tiny (en) | Sherpa zipformer-en-20M |
+|---|---|---|
+| none | 27.2% | 33.1% |
+| RNNoise v0.1.1 (Light) | 32.8% | 40.0% |
+| RNNoise, 12 dB of input kept | 31.0% | 35.7% |
+| GTCRN (sherpa-onnx) | 32.6% | 37.9% |
+| DPDFNet baseline | 26.4% | 32.4% |
+| DPDFNet baseline, 12 dB kept (Strong) | 24.1% | 31.1% |
+| DPDFNet2 | 25.9% | 30.7% |
+| DPDFNet2, 12 dB kept | 23.7% | |
+| DeepFilterNet3 (48 kHz, its own CLI) | 30.3% | |
+| DeepFilterNet3, 12 dB kept | 24.7% | |
+
+Blank cells are runs that did not finish. On clean clips Strong moved Whisper
+from 8.2% to 9.0%. CPU per 10 ms of
+audio, one thread, on a heavily loaded M2: RNNoise 0.25 ms, GTCRN 1.07,
+DPDFNet baseline 1.20, DeepFilterNet3 1.23, DPDFNet2 2.62. DPDFNet2 is within
+noise of the baseline on accuracy at twice the work, and DeepFilterNet3 needs
+48 kHz audio and its own STFT and feature code (or the Rust runtime) on top,
+so the baseline is the one shipped. Peak RSS of the Python process running it
+was under 90 MB.

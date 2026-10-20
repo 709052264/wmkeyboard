@@ -35,6 +35,9 @@ internal enum class MeaningSpace(val fileName: String, val pictures: Boolean = f
 
     /** The phone's photos, for the gallery panel's search; only with the photos permission. */
     PHOTOS("photos", pictures = true),
+
+    /** The AI's memories of the user; kept up to date by `AiMemoryRecall`, not by a panel. */
+    MEMORIES("ai_memory"),
 }
 
 /**

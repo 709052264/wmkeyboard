@@ -106,6 +106,7 @@ internal fun NetSourceTile(look: NetSourceLook, modifier: Modifier = Modifier, s
 private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.TRANSLATE -> R.string.netlog_source_translate to R.string.netlog_sent_translate
     NetSource.DEEPL_WRITE -> R.string.netlog_source_deepl_write to R.string.netlog_sent_deepl_write
+    NetSource.LANGUAGETOOL -> R.string.netlog_source_languagetool to R.string.netlog_sent_languagetool
     NetSource.GIF -> R.string.netlog_source_gif to R.string.netlog_sent_gif
     NetSource.STICKER -> R.string.netlog_source_sticker to R.string.netlog_sent_sticker
     NetSource.WEB_SEARCH -> R.string.netlog_source_web_search to R.string.netlog_sent_web_search

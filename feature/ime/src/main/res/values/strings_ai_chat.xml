@@ -163,10 +163,13 @@
     <string name="ime_ai_tool_calculate_done">Worked out %1$s</string>
     <string name="ime_ai_tool_name_calendar_events">Your calendar</string>
     <string name="ime_ai_tool_name_search_notes">Your notes</string>
+    <string name="ime_ai_tool_name_search_snippets">Your snippets</string>
     <string name="ime_ai_tool_name_search_clipboard">Your clipboard</string>
     <string name="ime_ai_tool_name_current_location">Your location</string>
     <string name="ime_ai_tool_name_add_calendar_event">Add to calendar</string>
     <string name="ime_ai_tool_name_add_note">New note</string>
+    <string name="ime_ai_tool_name_remember">Memory</string>
+    <string name="ime_ai_tool_name_forget">Forget</string>
     <string name="ime_ai_tool_name_set_alarm">Alarm</string>
     <string name="ime_ai_tool_name_start_timer">Timer</string>
     <string name="ime_ai_tool_name_open_app">Open an app</string>
@@ -178,6 +181,9 @@
     <string name="ime_ai_tool_search_notes_running">Searching your notes for “%1$s”…</string>
     <string name="ime_ai_tool_search_notes_done">Searched your notes for “%1$s”</string>
     <!-- %1$s is what the model searched for. -->
+    <string name="ime_ai_tool_search_snippets_running">Searching your snippets for “%1$s”…</string>
+    <string name="ime_ai_tool_search_snippets_done">Searched your snippets for “%1$s”</string>
+    <!-- %1$s is what the model searched for. -->
     <string name="ime_ai_tool_search_clipboard_running">Looking through your clipboard for “%1$s”…</string>
     <string name="ime_ai_tool_search_clipboard_done">Looked through your clipboard for “%1$s”</string>
     <!-- %1$s is the event's title. -->
@@ -186,6 +192,20 @@
     <!-- %1$s is the note's title. -->
     <string name="ime_ai_tool_add_note_running">Saving the note “%1$s”…</string>
     <string name="ime_ai_tool_add_note_done">Saved the note “%1$s”</string>
+    <!-- AI memory. %1$s is the start of the fact the model saved, such as "Lives in Dhaka". -->
+    <string name="ime_ai_tool_remember_running">Saving “%1$s” to memory…</string>
+    <string name="ime_ai_tool_remember_done">Remembered “%1$s”</string>
+    <!-- %1$s is a memory's number or words from it. -->
+    <string name="ime_ai_tool_forget_running">Forgetting “%1$s”…</string>
+    <string name="ime_ai_tool_forget_done">Forgot “%1$s”</string>
+    <!-- The line under an answer when the model saved a fact about the user. A fact follows it. -->
+    <string name="ime_ai_memory_saved">Saved to memory</string>
+    <!-- The same, when the model changed a fact it had saved before. -->
+    <string name="ime_ai_memory_updated">Memory updated</string>
+    <!-- The same, after the user pressed Undo on it. -->
+    <string name="ime_ai_memory_undone">Taken back</string>
+    <!-- Takes the save back: deletes the new memory, or puts the old wording back. -->
+    <string name="ime_ai_memory_undo">Undo</string>
     <!-- %1$s is a time of day, such as 07:30. -->
     <string name="ime_ai_tool_set_alarm_running">Setting an alarm for %1$s…</string>
     <string name="ime_ai_tool_set_alarm_done">Set an alarm for %1$s</string>

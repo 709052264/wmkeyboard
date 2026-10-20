@@ -132,6 +132,7 @@
     <string name="backup_section_notes_label">Notes</string>
     <string name="backup_section_clock_label">Clock</string>
     <string name="backup_section_kaomoji_label">Kaomoji</string>
+    <string name="backup_section_ai_memory_label">AI memory</string>
 
     <!-- The same names in the middle of a sentence, for the list in     -->
     <!-- backup_restore_done ("The app restored themes, snippets.").      -->
@@ -152,6 +153,7 @@
     <string name="backup_section_notes_label_lowercase">notes</string>
     <string name="backup_section_clock_label_lowercase">clock</string>
     <string name="backup_section_kaomoji_label_lowercase">kaomoji</string>
+    <string name="backup_section_ai_memory_label_lowercase">AI memory</string>
 
     <!-- How much of each part a backup file holds. %1$d is the count. These -->
     <!-- go after the name of the part: "Themes: 3 custom themes".           -->
@@ -220,6 +222,10 @@
         <item quantity="one">%1$d kaomoji</item>
         <item quantity="other">%1$d kaomoji</item>
     </plurals>
+    <plurals name="backup_section_ai_memory_count">
+        <item quantity="one">%1$d memory</item>
+        <item quantity="other">%1$d memories</item>
+    </plurals>
 
     <!-- ================================================================== -->
     <!-- Backup: what the export file holds.                                -->
@@ -254,6 +260,8 @@
     <string name="backup_include_notes_info">Locked notes stay out of the file unless Include API keys is on. A backup file is easy to share, and a locked note is one you asked to keep from view.</string>
     <string name="backup_include_clock_subtitle">Alarms, timer presets, countdowns and the clock settings</string>
     <string name="backup_include_kaomoji_subtitle">Your kaomoji library: the faces you added, their tags, the order and your favourites</string>
+    <string name="backup_include_ai_memory_subtitle">What the AI remembers about you, from Settings › AI › Memory</string>
+    <string name="backup_include_ai_memory_info">Off unless you turn it on. These facts come from your chats, so a backup that holds them is as personal as the chats. Sync never carries them to another phone.</string>
     <string name="backup_include_clock_info">Running timers, the stopwatch and the history stay on this phone. Sync leaves the clock out unless you turn it on, so two phones do not ring for one alarm.</string>
     <string name="backup_include_swipe_subtitle">How you swipe: where your finger lands, the readings you corrected, and the shape you draw each word in. Holds the words you have swiped.</string>
     <string name="backup_include_addons_info">This is only the list of addresses. The add-ons themselves go into the sections above. An installed theme is a custom theme, and an installed pack is an icon pack.</string>
@@ -350,7 +358,7 @@
     <string name="backup_auto_passphrase_label">Passphrase</string>
     <string name="backup_auto_passphrase_show">Show the passphrase</string>
     <string name="backup_auto_passphrase_hide">Hide the passphrase</string>
-    <string name="backup_auto_personal_warning">This backup holds words that you typed, or text that you copied, and no passphrase protects it. The app writes it to your locations on a timer. Turn on a passphrase, or turn off the dictionary, the clipboard and the swipe style in What goes in a backup.</string>
+    <string name="backup_auto_personal_warning">This backup holds words that you typed, text that you copied, or what the AI remembers about you, and no passphrase protects it. The app writes it to your locations on a timer. Turn on a passphrase, or turn off the dictionary, the clipboard, the swipe style and AI memory in What goes in a backup.</string>
     <string name="backup_auto_now_action">Back up now</string>
     <string name="backup_auto_running">Backing up…</string>
     <!-- %1$s is the name of the file that the app wrote. -->

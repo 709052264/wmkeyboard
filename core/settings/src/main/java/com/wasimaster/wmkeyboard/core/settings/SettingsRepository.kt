@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
+import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
@@ -182,6 +183,7 @@ import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.aimemory.AiMemoryStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
 import com.wasimaster.wmkeyboard.core.vocab.VocabChipTap
@@ -4374,9 +4376,9 @@ data class SyncSettings(
 val SyncSettings.keepLocalGroups: Set<com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup>
     get() = com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup.of(keepLocal)
 
-/** [SyncSettings.sections] as the sections themselves. */
+/** [SyncSettings.sections] as the sections themselves; never one sync may not carry. */
 val SyncSettings.sectionSet: Set<ConfigBackup.Section>
-    get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.id in sections }
+    get() = ConfigBackup.Section.entries.filterTo(LinkedHashSet()) { it.syncable && it.id in sections }
 
 /** The locations sync reads and writes: the ticked ones that can be tried. */
 fun SyncSettings.targets(locations: List<BackupLocation>): List<BackupLocation> =
@@ -4825,6 +4827,37 @@ data class AiSettings(
     val providerHeaders: Map<String, List<McpHeader>> = emptyMap(),
     /** The reply tool's own settings (#234). */
     val reply: AiReplySettings = AiReplySettings(),
+    /** What the AI remembers about the user between chats. */
+    val memory: AiMemorySettings = AiMemorySettings(),
+)
+
+/**
+ * AI memory: short facts about the user that a model saves in a chat and is
+ * handed again in later chats and the AI actions. The facts themselves are
+ * in `AiMemoryStore`, on the phone; these are the two switches over them.
+ * Nested for the ceiling reason given on [AiReplySettings].
+ */
+data class AiMemorySettings(
+    /**
+     * Chats save facts and every AI run is handed them.
+     *
+     * On by default, because with the default below it changes nothing that
+     * leaves the phone: only an on-device model reads or writes memory until
+     * the user also allows cloud models, every save shows in the chat with
+     * an Undo, and the whole list is on one settings screen. Off stops
+     * reading and saving; what is saved stays until the user deletes it.
+     */
+    val enabled: Boolean = true,
+    /**
+     * Cloud models get memory too: the saved facts go with each request to
+     * the service in use, and its chats can save new ones.
+     *
+     * Off by default. The facts are the most personal text the keyboard
+     * keeps about someone, gathered over many chats, and sending them along
+     * with every request is a choice to make knowingly, not one made for the
+     * user. An on-device model always gets them while [enabled] is on.
+     */
+    val cloud: Boolean = false,
 )
 
 /**
@@ -5740,12 +5773,13 @@ data class WhisperSettings(
     /** Force Whisper to translate speech to English instead of transcribing verbatim. */
     val translate: Boolean = false,
     /**
-     * RNNoise in front of the on-device engines (Whisper, Whistle, the
-     * ExecuTorch engines, Sherpa): steady background noise taken out of the
-     * microphone's audio before a model hears it. The system recognizer and
+     * Noise reduction in front of the on-device engines (Whisper, Whistle,
+     * the ExecuTorch engines, Sherpa): [VoiceDenoise.OFF], [VoiceDenoise.LIGHT]
+     * (RNNoise) or [VoiceDenoise.STRONG] (DPDFNet on ONNX Runtime, which falls
+     * back to Light without its model or runtime). The system recognizer and
      * the transcription server get the audio as it is.
      */
-    val denoise: Boolean = false,
+    val denoise: String = VoiceDenoise.OFF,
     /**
      * The transcription server's API root for the "server" engine, e.g.
      * `http://192.168.1.10:8000/v1`. Any server that speaks OpenAI's
@@ -10067,6 +10101,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_CLOUD_AI = stringPreferencesKey("data_saver_cloud_ai")
         private val DS_FILE_SEND = stringPreferencesKey("data_saver_file_send")
         private val DS_CLOUD_VOICE = stringPreferencesKey("data_saver_cloud_voice")
+        private val DS_CLOUD_GRAMMAR = stringPreferencesKey("data_saver_cloud_grammar")
         private val OFFLINE_FALLBACK = booleanPreferencesKey("offline_fallback")
         private val BACKSPACE_SWIPE_DELETE = booleanPreferencesKey("backspace_swipe_delete")
         private val HARDWARE_KEYBOARD_INPUT = booleanPreferencesKey("hardware_keyboard_input")
@@ -10515,7 +10550,9 @@ class SettingsRepository(private val context: Context) {
         private val WHISPER_MODEL_ID = stringPreferencesKey("whisper_model_id")
         private val WHISPER_MODEL_BY_LANG = stringPreferencesKey("whisper_model_by_lang")
         private val WHISPER_TRANSLATE = booleanPreferencesKey("whisper_translate")
+        // A switch before the level: on read as Light, the only level it had.
         private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
+        private val VOICE_DENOISE_LEVEL = stringPreferencesKey("voice_denoise_level")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
         private val VOICE_SERVER_KEY = stringPreferencesKey("voice_server_key")
         private val VOICE_SERVER_MODEL = stringPreferencesKey("voice_server_model")
@@ -10968,6 +11005,8 @@ class SettingsRepository(private val context: Context) {
         private val AI_REPLY_TIDY_UP = booleanPreferencesKey("ai_reply_tidy_up")
         private val AI_REPLY_KEEP_HISTORY = booleanPreferencesKey("ai_reply_keep_history")
         private val AI_REPLY_CATCH_SCREENSHOTS = booleanPreferencesKey("ai_reply_catch_screenshots")
+        private val AI_MEMORY_ENABLED = booleanPreferencesKey("ai_memory_enabled")
+        private val AI_MEMORY_CLOUD = booleanPreferencesKey("ai_memory_cloud")
         // Where a per-action prompt override used to live, one key each. Read
         // only now, and folded into the action list on every read; see
         // [legacyAiPrompts]. Not deleted, because a settings backup taken
@@ -12731,7 +12770,9 @@ class SettingsRepository(private val context: Context) {
             modelByLang = p[WHISPER_MODEL_BY_LANG]?.let { decodeWhisperModelByLang(it) }
                 ?: defaults.whisper.modelByLang,
             translate = p[WHISPER_TRANSLATE] ?: defaults.whisper.translate,
-            denoise = p[VOICE_DENOISE] ?: defaults.whisper.denoise,
+            denoise = p[VOICE_DENOISE_LEVEL]?.takeIf { it in VoiceDenoise.LEVELS }
+                ?: p[VOICE_DENOISE]?.let { if (it) VoiceDenoise.LIGHT else VoiceDenoise.OFF }
+                ?: defaults.whisper.denoise,
             serverUrl = p[VOICE_SERVER_URL] ?: defaults.whisper.serverUrl,
             serverKey = p[VOICE_SERVER_KEY] ?: defaults.whisper.serverKey,
             serverModel = p[VOICE_SERVER_MODEL] ?: defaults.whisper.serverModel,
@@ -13243,6 +13284,10 @@ class SettingsRepository(private val context: Context) {
                 tidyUp = p[AI_REPLY_TIDY_UP] ?: defaults.ai.reply.tidyUp,
                 keepHistory = p[AI_REPLY_KEEP_HISTORY] ?: defaults.ai.reply.keepHistory,
                 catchScreenshots = p[AI_REPLY_CATCH_SCREENSHOTS] ?: defaults.ai.reply.catchScreenshots,
+            ),
+            memory = AiMemorySettings(
+                enabled = p[AI_MEMORY_ENABLED] ?: defaults.ai.memory.enabled,
+                cloud = p[AI_MEMORY_CLOUD] ?: defaults.ai.memory.cloud,
             ),
         )
 
@@ -14117,8 +14162,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setWhisperTranslate(value: Boolean) =
         editPrefs { it[WHISPER_TRANSLATE] = value }
 
-    suspend fun setVoiceDenoise(value: Boolean) =
-        editPrefs { it[VOICE_DENOISE] = value }
+    suspend fun setVoiceDenoise(value: String) =
+        editPrefs {
+            it[VOICE_DENOISE_LEVEL] = value
+            it.remove(VOICE_DENOISE)
+        }
 
     suspend fun setVoiceServerUrl(value: String) =
         editPrefs { it[VOICE_SERVER_URL] = value.trim().trimEnd('/') }
@@ -16128,6 +16176,7 @@ class SettingsRepository(private val context: Context) {
             cloudAi = p.policy(DS_CLOUD_AI, d.cloudAi),
             fileSend = p.policy(DS_FILE_SEND, d.fileSend),
             cloudVoice = p.policy(DS_CLOUD_VOICE, d.cloudVoice),
+            cloudGrammar = p.policy(DS_CLOUD_GRAMMAR, d.cloudGrammar),
             offlineFallback = p[OFFLINE_FALLBACK] ?: d.offlineFallback,
         )
     }
@@ -16885,6 +16934,9 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.KAOMOJI in sections) {
             readStore(KAOMOJI_FILE)?.let { out[ConfigBackup.Section.KAOMOJI] = it }
         }
+        if (ConfigBackup.Section.AI_MEMORY in sections) {
+            readStore(AiMemoryStore.FILE_PATH)?.let { out[ConfigBackup.Section.AI_MEMORY] = it }
+        }
         return out
     }
 
@@ -16922,6 +16974,7 @@ class SettingsRepository(private val context: Context) {
                     // Alarms; presets, countdowns and the settings ride along uncounted.
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
                     ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
+                    ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -17073,6 +17126,14 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the library in memory; without this it
                 // saves its own copy over the one just restored.
                 bumpKaomojiVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.AI_MEMORY] as? JsonObject)?.let { obj ->
+            if (writeStore(AiMemoryStore.FILE_PATH, obj)) {
+                restored.add(ConfigBackup.Section.AI_MEMORY)
+                // The chats and the keyboard share one store in memory;
+                // without this the next save puts the old list back.
+                AiMemoryStore.reloadShared()
             }
         }
         (parsed.sections[ConfigBackup.Section.CLOCK] as? JsonObject)?.let { obj ->
@@ -17872,6 +17933,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiReplyCatchScreenshots(value: Boolean) =
         editPrefs { it[AI_REPLY_CATCH_SCREENSHOTS] = value }
+
+    suspend fun setAiMemoryEnabled(value: Boolean) = editPrefs { it[AI_MEMORY_ENABLED] = value }
+
+    suspend fun setAiMemoryCloud(value: Boolean) = editPrefs { it[AI_MEMORY_CLOUD] = value }
 
     suspend fun setAiToolWebSearch(value: Boolean) =
         editPrefs { it[AI_TOOL_WEB_SEARCH] = value }
@@ -18772,6 +18837,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDataSaverCloudVoice(value: MeteredPolicy) =
         editPrefs { it[DS_CLOUD_VOICE] = value.name }
+
+    suspend fun setDataSaverCloudGrammar(value: MeteredPolicy) =
+        editPrefs { it[DS_CLOUD_GRAMMAR] = value.name }
 
     suspend fun setDataSaverFileSend(value: MeteredPolicy) =
         editPrefs { it[DS_FILE_SEND] = value.name }

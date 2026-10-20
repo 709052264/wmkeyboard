@@ -11,6 +11,8 @@ import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.through
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
+import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
+import com.wasimaster.wmkeyboard.core.grammar.LanguageToolClient
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
@@ -118,6 +120,18 @@ internal object ProviderProbes {
             // Rens has no request that costs nothing but a photo; its page having the form is the check.
             ProviderTypes.RENS.id -> {
                 { RensClient.ping(credential.url) }
+            }
+            // The language list costs nothing and says the address is a LanguageTool server.
+            ProviderTypes.LANGUAGETOOL.id -> {
+                {
+                    val server = GrammarProviders.serverOf(
+                        ResolvedProvider(
+                            ProviderEntry(type.id, credential.id), type, credential,
+                            apiKey = credential.apiKey, url = credential.url, model = "", problem = null,
+                        ),
+                    )
+                    check(LanguageToolClient.languages(server).isNotEmpty()) { "no languages" }
+                }
             }
             ProviderTypes.TRANSLATE_SERVER.id -> {
                 {

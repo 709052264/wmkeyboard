@@ -26,6 +26,10 @@
     <!-- Title of the colour picker dialog. %1$s is the name of the tool, for example "Clipboard". -->
     <!-- Heading of the options group. Many tools use this one heading. -->
     <string name="tooldetail_options_group">Options</string>
+    <!-- Heading of the fold that holds a screen's less used settings. Many screens use this one heading. -->
+    <string name="tooldetail_advanced_group">Advanced</string>
+    <!-- Heading of the fold at the end of every tool's page: show in toolbox, icon colour, press and hold. -->
+    <string name="tooldetail_toolbar_group">Toolbar and toolbox</string>
 
     <!-- Rows that send the user to a bigger settings screen. -->
     <string name="tooldetail_layout_nav_title">All layout and size settings</string>
@@ -703,7 +707,9 @@
     <string name="tooldetail_grammar_system_subtitle">Set WM Keyboard as the spell checker of Android</string>
     <string name="tooldetail_grammar_no_suggestions_title">Underline only, no fix popup</string>
     <string name="tooldetail_grammar_no_suggestions_subtitle">Mark the spelling mistakes but offer no corrections</string>
-    <string name="tooldetail_grammar_info">Grammar checking runs on your device with the Harper engine, the same one behind harper-ls. It works offline and uploads nothing that you type. Open the tool while you write to see the issues with one-press fixes. The dialect chip on the panel also changes the dialect.\n\nHarper can also act as the system spell checker of Android. The underlines and correction menus inside other apps then come from it as well. The button above opens the system Spell checker screen. Select WM Keyboard there. It follows the dialect that you select above. If your device hides that screen, the button opens the input method settings instead.</string>
+    <string name="tooldetail_grammar_providers_group">Checkers</string>
+    <string name="tooldetail_grammar_providers_info">Who checks your writing, in order. A check goes to the first checker that is on and knows the language you are typing in, and to the next one when that one cannot answer.\n\nHarper runs on the phone, works offline, and checks English only. Nothing you type leaves the phone with it.\n\nLanguageTool checks more than 30 languages, but it runs on a server, so the text in the field is sent there each time it is checked: to api.languagetool.org, LanguageTool\'s public server, unless you enter the address of a server you run yourself. It is off until you switch it on. It is never sent a password field or text typed in incognito. The public server takes 20 checks a minute, so a long note is checked a piece at a time.</string>
+    <string name="tooldetail_grammar_info">Harper, the grammar engine built into the keyboard, can also act as the system spell checker of Android. It runs on your device, works offline and uploads nothing that you type, whatever the Checkers list above says. The underlines and correction menus inside other apps then come from it as well. The button above opens the system Spell checker screen. Select WM Keyboard there. It follows the dialect that you select above. If your device hides that screen, the button opens the input method settings instead.</string>
 
     <!-- Wikipedia tool. -->
     <string name="tooldetail_wiki_language_label">Wikipedia language</string>

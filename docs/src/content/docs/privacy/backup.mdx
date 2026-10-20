@@ -42,12 +42,14 @@ its own switch:
 | Vocabulary | On | Your word lists, imported packs and learning progress. Downloaded packs are left out; they can be downloaded again |
 | Swipe style | Off | Where your finger lands when you swipe, the readings you corrected, and the shape you draw each word in |
 | Notes | On | Your notes, their tags, and what is in the trash. Locked notes stay out unless API keys are included; see [Notes](/tools/notes/#backups) |
+| AI memory | Off | What the AI remembers about you, from <SettingsPath path="AI / Memory" />. See [AI memory](/tools/ai-memory/) |
 
 Sticker packs and icon packs default off because their images make the file
 large, not because there's anything private about them. Turn them on and a
 restore on another phone gets working packs rather than empty shells. The
 personal ones, dictionary, clipboard and swipe style, default off because
-they're your typing history rather than configuration. Emoji history and typing statistics
+they're your typing history rather than configuration. AI memory is off for
+the same reason: its facts come out of your chats. Emoji history and typing statistics
 are personal too but default on, since both are small and neither can be
 downloaded again if you lose it. The statistics are counts only, never
 anything you typed.
@@ -97,6 +99,7 @@ more than the in-app dialog's one-line summary suggests:
 | Vocabulary | **Replaces.** Your own word lists and progress are rebuilt from the file; packs downloaded from the catalogue are untouched, since the bundle never carried them. |
 | Swipe style | **Replaces.** All three files come from the bundle, and a keyboard already running picks them up rather than saving its own copies back over them. |
 | Notes | **Replaces,** keeping the locked notes already on the phone when the file was made without them. A keyboard already running reloads the file rather than saving its own list over it. |
+| AI memory | **Replaces.** The saved facts on the phone are swapped for the ones in the file, and the chats pick them up at once. |
 
 If the file includes API keys, the dialog warns you before you confirm; see
 [Secrets stay out by default](#secrets-stay-out-by-default) below.
@@ -264,7 +267,8 @@ Syncing again replaces a device's counts; it never adds them a second time.
   or **Only when I ask**.
 - **What:** **What syncs** has its own list of the same sections a backup
   has. By default that's settings, themes and snippets. Learned words,
-  clipboard and the rest are there to turn on.
+  clipboard and the rest are there to turn on. AI memory is the one section
+  that isn't on the list: it goes into a backup you choose, or nowhere.
 - **Where:** your devices must share at least one ticked location. Tick more
   and the file goes to each, so sync keeps working while one service is down.
 - **First sync:** a device that joins takes the settings your other devices

@@ -91,6 +91,7 @@ import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
+import com.wasimaster.wmkeyboard.core.net.InternetGate
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -492,6 +493,11 @@ import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import com.wasimaster.wmkeyboard.core.grammar.GrammarEdit
 import com.wasimaster.wmkeyboard.core.grammar.GrammarFix
 import com.wasimaster.wmkeyboard.core.grammar.GrammarLint
+import com.wasimaster.wmkeyboard.core.grammar.GrammarHeld
+import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
+import com.wasimaster.wmkeyboard.core.grammar.GrammarStep
+import com.wasimaster.wmkeyboard.core.grammar.LanguageToolChecker
+import com.wasimaster.wmkeyboard.core.grammar.LanguageToolLanguages
 import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
@@ -515,6 +521,7 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
 import com.wasimaster.wmkeyboard.ime.aichat.KeyboardAiToolHost
@@ -652,6 +659,7 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
+import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
@@ -8865,6 +8873,8 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        // Strong noise reduction's idle model; a clip recording now keeps its own.
+        StrongDenoise.release()
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OfflineTranslation.release()
         // Vocabulary cards: read back from the pack files on demand.
@@ -28899,15 +28909,21 @@ open class WMKeyboardService : InputMethodService() {
         // and so do the engines that decode as they hear.
         val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true ||
             (model as? OnDeviceVoice.Et)?.model?.engine?.let(::liveEngine) == true
-        // Reduce background noise: RNNoise in front of an on-device engine,
-        // never the server, which gets the microphone as it is. It rides the
-        // speech libraries; when they are not here yet the phrase goes
-        // through as recorded and they are fetched for the next one.
-        val denoise = if (model != null && _uiState.value.settings.whisper.denoise) {
-            VoiceDenoise.newStream().also {
-                if (it == null && !WhisperCpp.moduleReady && dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
-                    WhisperCpp.requestModule()
+        // Reduce background noise in front of an on-device engine, never the
+        // server, which gets the microphone as it is. Light (RNNoise) rides
+        // the speech libraries, Strong (DPDFNet) ONNX Runtime and a model of
+        // its own; Strong without them runs as Light, and a level whose
+        // libraries are not here yet lets the phrase through as recorded.
+        // Either way the missing libraries are fetched for the next one; the
+        // model only ever downloads from the settings screen.
+        val denoiseLevel = _uiState.value.settings.whisper.denoise
+        val denoise = if (model != null && denoiseLevel != VoiceDenoise.OFF) {
+            VoiceDenoise.newStream(denoiseLevel, filesDir).also {
+                val downloads = dataSaverStatus.allows(MeteredFeature.DOWNLOADS)
+                if (denoiseLevel == VoiceDenoise.STRONG && !SherpaNative.moduleReady && downloads) {
+                    SherpaNative.requestModule()
                 }
+                if (it == null && !WhisperCpp.moduleReady && downloads) WhisperCpp.requestModule()
             }
         } else {
             null
@@ -34272,8 +34288,13 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+        val incognito = _uiState.value.incognitoOn
         aiJob = serviceScope.launch {
-            val system = AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty(), draft = draft)
+            val memory = aiMemoryFor(settings, onDevice, incognito, listOf(instruction, transcript, draft))
+            val system = withAiMemory(
+                AiPrompts.replyPrompt(tone, style, instruction, hasImage = shots.isNotEmpty(), draft = draft),
+                memory,
+            )
             val config = AiClient.config(settings.ai)
             val outcome = withContext(Dispatchers.IO) {
                 runCatching {
@@ -34708,11 +34729,13 @@ open class WMKeyboardService : InputMethodService() {
             AiChatAction.Send -> aiChatSend()
             AiChatAction.Stop -> AiChatController.stop(this)
             AiChatAction.Retry -> aiChatChoice()?.let {
-                AiChatController.retry(this, state.settings, chat.conversationId, it)
+                AiChatController.retry(this, state.settings, chat.conversationId, it, incognito = state.incognitoOn)
             }
             AiChatAction.Regenerate -> aiChatChoice()?.let {
-                AiChatController.regenerate(this, state.settings, chat.conversationId, it)
+                AiChatController.regenerate(this, state.settings, chat.conversationId, it, incognito = state.incognitoOn)
             }
+            is AiChatAction.UndoMemory ->
+                AiChatController.undoMemory(this, chat.conversationId, action.messageIndex, action.useIndex)
             AiChatAction.EditLast -> {
                 val taken = AiChatController.editLast(this, chat.conversationId) ?: return
                 _uiState.update {
@@ -34950,7 +34973,10 @@ open class WMKeyboardService : InputMethodService() {
         // chat opened and left leaves no row behind.
         val id = chat.conversationId.takeIf { it >= 0 && store.get(it) != null }
             ?: store.newConversation(System.currentTimeMillis(), ephemeral = state.incognitoOn).id
-        AiChatController.send(this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images)
+        AiChatController.send(
+            this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images,
+            incognito = state.incognitoOn,
+        )
         chatPictureFrom.clear()
         _uiState.update {
             it.copy(
@@ -35021,6 +35047,34 @@ open class WMKeyboardService : InputMethodService() {
         runAi(ai.action, instruction, instruction, generated = true)
     }
 
+    /**
+     * The AI memory a keyboard AI run is handed, as a block for its system
+     * prompt, or empty: see [AiMemoryRecall] for who gets it. [about] is what
+     * the run is about, for picking the closest facts when there are many.
+     * Off the main thread, since picking may embed the request.
+     */
+    private suspend fun aiMemoryFor(
+        settings: KeyboardSettings,
+        onDevice: Boolean,
+        incognito: Boolean,
+        about: List<String>,
+    ): String = withContext(Dispatchers.IO) {
+        val query = about.filter { it.isNotBlank() }.joinToString("\n")
+        val recall = AiMemoryRecall.recall(this@WMKeyboardService, settings, onDevice, incognito, query)
+        AiMemoryRecall.promptTail(recall, forChat = false, withTools = false)
+    }
+
+    /**
+     * [system] with [memory] in front of it. In front, not after: an action's
+     * prompt ends on what to reply with, and that has to stay the last word.
+     */
+    private fun withAiMemory(system: String, memory: String): String =
+        if (memory.isBlank()) system else memory.trim() + "\n\n" + system
+
+    /** Whether the AI panel's next run goes to the phone's own model. */
+    private fun aiRunsOnDevice(settings: KeyboardSettings, offlineFirst: Boolean): Boolean =
+        settings.ai.provider == AiProvider.ON_DEVICE || offlineFirst
+
     private fun runAi(
         action: AiActionSpec,
         source: String,
@@ -35086,7 +35140,7 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 emptyList()
             }
-            val system = when {
+            val framed = when {
                 // Writing from nothing: the request rides in the user message,
                 // so the system prompt only has to frame it. No injection guard
                 // here by design, which is why the callers only reach this with
@@ -35095,6 +35149,17 @@ open class WMKeyboardService : InputMethodService() {
                 action.askEachRun -> AiPrompts.customPrompt(instruction)
                 else -> AiPrompts.systemPrompt(action, settings.ai.translateTo)
             }
+            // Read, never written: an action's input is the field's text,
+            // which may be anyone's words, so nothing in it is taken as a fact
+            // about the user. A fall back to the phone's model keeps what the
+            // server was allowed, which is never more.
+            val memory = aiMemoryFor(
+                settings,
+                onDevice = aiRunsOnDevice(settings, offlineFirst),
+                incognito = _uiState.value.incognitoOn,
+                about = listOf(instruction, source),
+            )
+            val system = withAiMemory(framed, memory)
             val config = AiClient.config(settings.ai)
             var fellBack = offlineFirst
             val result = withContext(Dispatchers.IO) {
@@ -38298,17 +38363,14 @@ open class WMKeyboardService : InputMethodService() {
     private fun scheduleGrammarCheck(immediate: Boolean = false) {
         grammarJob?.cancel()
         grammarJob = serviceScope.launch {
-            if (!immediate) delay(_uiState.value.settings.grammarDebounceMs.toLong())
+            if (!immediate) {
+                // A server reads every check, so give typing a longer pause
+                // before one goes out than the phone's own engine needs.
+                val debounce = _uiState.value.settings.grammarDebounceMs.toLong()
+                delay(if (grammarPlan().online) maxOf(debounce, GRAMMAR_ONLINE_DEBOUNCE_MS) else debounce)
+            }
             val state = _uiState.value
             if (state.panel != PanelMode.GRAMMAR) return@launch
-            if (!GrammarChecker.moduleReady) {
-                awaitGrammarModule()
-                return@launch
-            }
-            if (!GrammarChecker.available) {
-                _uiState.update { it.copy(grammar = GrammarUi(available = false)) }
-                return@launch
-            }
             val source = extractFieldText()
             if (source.isBlank()) {
                 _uiState.update { it.copy(grammar = GrammarUi()) }
@@ -38318,19 +38380,112 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 it.copy(grammar = it.grammar.copy(sourceText = source, checking = true))
             }
-            val dialect = _uiState.value.settings.grammarDialect
-            val lints = GrammarChecker.check(source, dialect.ordinal)
+            val outcome = lintField(source, _uiState.value.settings.grammarDialect)
             if (_uiState.value.panel != PanelMode.GRAMMAR) return@launch
-            _uiState.update {
+            showGrammarOutcome(source, outcome)
+        }
+    }
+
+    /** What one check came to, for [showGrammarOutcome]. */
+    private sealed interface GrammarOutcome {
+        /** [via] is the server's name when one answered, null for Harper. */
+        data class Found(val lints: List<GrammarLint>, val via: String? = null) : GrammarOutcome
+
+        /** Nothing could answer; [notice] says why, in the panel's place for the issues. */
+        data class Notice(val notice: String) : GrammarOutcome
+
+        /** Harper was the one to ask and its Play part is not here yet. */
+        data object HarperPending : GrammarOutcome
+
+        /** Harper was the one to ask and this build has none. */
+        data object HarperMissing : GrammarOutcome
+    }
+
+    /** The grammar list as it stands for the field in front of the keyboard. */
+    private fun grammarPlan() = _uiState.value.let { state ->
+        GrammarProviders.plan(
+            // Nothing on the disk to look at for this list, and it is read on every pause.
+            rows = state.settings.resolveProviders(ProviderTool.GRAMMAR, com.wasimaster.wmkeyboard.core.settings.choiceEnv()),
+            languageTag = state.language.localeTag,
+            // Neither a password nor anything typed in incognito goes to a server.
+            privateField = state.secureField || state.incognitoOn,
+            dataSaverAllows = dataSaverStatus.allows(MeteredFeature.CLOUD_GRAMMAR),
+        )
+    }
+
+    /**
+     * Checks [text] with the grammar list's checkers in turn: the first that
+     * knows the keyboard's language, then the next when that one cannot
+     * answer (Harper not in this build, a server that is down). See
+     * [GrammarProviders.plan] for the order and for what is never sent.
+     */
+    private suspend fun lintField(text: String, dialect: GrammarDialect): GrammarOutcome {
+        val plan = grammarPlan()
+        val languageTag = _uiState.value.language.localeTag
+        var failure: Throwable? = null
+        var harperPending = false
+        var harperMissing = false
+        for (step in plan.steps) {
+            when (step) {
+                GrammarStep.Harper -> {
+                    if (!GrammarChecker.moduleReady) {
+                        harperPending = true
+                        continue
+                    }
+                    if (!GrammarChecker.available) {
+                        harperMissing = true
+                        continue
+                    }
+                    return GrammarOutcome.Found(GrammarChecker.check(text, dialect.ordinal))
+                }
+                is GrammarStep.LanguageTool -> try {
+                    val language = LanguageToolLanguages.codeFor(languageTag, dialect)
+                    val result = LanguageToolChecker.check(text, language, step.server)
+                    return GrammarOutcome.Found(result.lints, via = step.name)
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    failure = e
+                }
+            }
+        }
+        return when {
+            // A server that failed says why, even when Harper is missing too.
+            failure != null -> GrammarOutcome.Notice(ToolHttp.friendlyMessage(this, failure))
+            harperPending -> GrammarOutcome.HarperPending
+            harperMissing -> GrammarOutcome.HarperMissing
+            else -> GrammarOutcome.Notice(
+                getString(
+                    when (plan.held) {
+                        GrammarHeld.PRIVATE -> R.string.ime_grammar_languagetool_private_info
+                        GrammarHeld.DATA_SAVER -> R.string.ime_grammar_languagetool_data_saver_info
+                        GrammarHeld.NOTHING_ON, null -> R.string.ime_grammar_nothing_on_info
+                    },
+                ),
+            )
+        }
+    }
+
+    /** Puts one check's [outcome] for [source] in the panel. */
+    private suspend fun showGrammarOutcome(source: String, outcome: GrammarOutcome) {
+        when (outcome) {
+            is GrammarOutcome.Found -> _uiState.update {
                 it.copy(
                     grammar = GrammarUi(
                         sourceText = source,
-                        lints = lints,
+                        lints = outcome.lints,
                         checking = false,
                         checkedOnce = true,
+                        via = outcome.via,
                     ),
                 )
             }
+            // checkedOnce, so a caret move does not ask again; the next edit does.
+            is GrammarOutcome.Notice -> _uiState.update {
+                it.copy(grammar = GrammarUi(sourceText = source, checking = false, checkedOnce = true, notice = outcome.notice))
+            }
+            GrammarOutcome.HarperPending -> awaitGrammarModule()
+            GrammarOutcome.HarperMissing -> _uiState.update { it.copy(grammar = GrammarUi(available = false)) }
         }
     }
 
@@ -38420,18 +38575,9 @@ open class WMKeyboardService : InputMethodService() {
                     ),
                 )
             }
-            val lints = GrammarChecker.check(text, _uiState.value.settings.grammarDialect.ordinal)
+            val outcome = lintField(text, _uiState.value.settings.grammarDialect)
             if (_uiState.value.panel != PanelMode.GRAMMAR) return@launch
-            _uiState.update {
-                it.copy(
-                    grammar = GrammarUi(
-                        sourceText = text,
-                        lints = lints,
-                        checking = false,
-                        checkedOnce = true,
-                    ),
-                )
-            }
+            showGrammarOutcome(text, outcome)
         }
     }
 
@@ -38650,18 +38796,9 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(grammar = GrammarUi()) }
                 return@launch
             }
-            val lints = GrammarChecker.check(source, dialect.ordinal)
+            val outcome = lintField(source, dialect)
             if (_uiState.value.panel != PanelMode.GRAMMAR) return@launch
-            _uiState.update {
-                it.copy(
-                    grammar = GrammarUi(
-                        sourceText = source,
-                        lints = lints,
-                        checking = false,
-                        checkedOnce = true,
-                    ),
-                )
-            }
+            showGrammarOutcome(source, outcome)
         }
     }
 
@@ -39225,7 +39362,7 @@ open class WMKeyboardService : InputMethodService() {
     /** The Send protocol's client: gated by the internet permission, logged as the tool's traffic. */
     private val sendHttpClient: okhttp3.OkHttpClient by lazy {
         okhttp3.OkHttpClient.Builder()
-            .addInterceptor(com.wasimaster.wmkeyboard.core.net.InternetGate)
+            .addInterceptor(InternetGate)
             .addNetworkInterceptor(com.wasimaster.wmkeyboard.core.net.NetLogInterceptor(com.wasimaster.wmkeyboard.core.netlog.NetSource.SEND))
             .connectTimeout(20, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
@@ -41616,26 +41753,34 @@ open class WMKeyboardService : InputMethodService() {
     /** Runs the grammar checker over the selection alone and commits every first suggestion. */
     private fun fixGrammarInSelection(offer: SelectionMacroOffer) {
         if (!BuildConfig.ENABLE_GRAMMAR) return
-        if (!GrammarChecker.moduleReady) {
-            // Play, before the library's part is here.
-            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) GrammarChecker.requestModule()
-            toast(R.string.ime_grammar_module_installing_toast)
-            return
-        }
-        if (!GrammarChecker.available) {
-            if (!grammarProbePending()) toast(R.string.ime_selection_macro_grammar_unavailable_toast)
-            return
+        // Harper's own state is only in the way when Harper is the one to ask:
+        // a LanguageTool server first on the list checks the selection itself.
+        if (grammarPlan().steps.firstOrNull() == GrammarStep.Harper) {
+            if (!GrammarChecker.moduleReady) {
+                // Play, before the library's part is here.
+                if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) GrammarChecker.requestModule()
+                toast(R.string.ime_grammar_module_installing_toast)
+                return
+            }
+            if (!GrammarChecker.available && grammarProbePending()) return
         }
         if (offer.busy != null) return
         val seq = ++macroSeq
         setMacroBusy(SelectionMacro.GRAMMAR_FIX)
         macroJob?.cancel()
         macroJob = serviceScope.launch {
-            val lints = runCatching {
-                GrammarChecker.check(offer.text, _uiState.value.settings.grammarDialect.ordinal)
-            }.getOrDefault(emptyList())
+            val outcome = lintField(offer.text, _uiState.value.settings.grammarDialect)
             if (!offerStillLive(offer, seq)) return@launch
             setMacroBusy(null)
+            val lints = when (outcome) {
+                is GrammarOutcome.Found -> outcome.lints
+                is GrammarOutcome.Notice -> {
+                    Toast.makeText(this@WMKeyboardService, outcome.notice, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                GrammarOutcome.HarperPending -> return@launch toast(R.string.ime_grammar_module_installing_toast)
+                GrammarOutcome.HarperMissing -> return@launch toast(R.string.ime_selection_macro_grammar_unavailable_toast)
+            }
             val fixed = GrammarChecker.applyAll(offer.text, lints)
             if (fixed == offer.text) toast(R.string.ime_selection_macro_grammar_clean_toast) else rewriteSelection(fixed)
         }
@@ -43395,7 +43540,18 @@ open class WMKeyboardService : InputMethodService() {
         val strip = _uiState.value.suggestions
         parts.forEachIndexed { i, part ->
             if (part.none { it.isLetter() }) return@forEachIndexed
-            val offers = if (i == parts.lastIndex) strip.filterNot { it.equals(part, ignoreCase = true) } else emptyList()
+            // One word for one word: a strip pair ("here now") or the join of
+            // the word before with this one ("herenow") is about two words,
+            // and put in place of this one alone it would double the first.
+            val before = recentPending.lastOrNull()?.first ?: recentEntries.lastOrNull()?.word
+            val offers = if (i == parts.lastIndex) {
+                strip.filterNot {
+                    it.equals(part, ignoreCase = true) || it.any(Char::isWhitespace) ||
+                        (before != null && it.equals(before + part, ignoreCase = true))
+                }
+            } else {
+                emptyList()
+            }
             recentPending += part to offers
         }
     }
@@ -43438,11 +43594,17 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val read = recentRead()
-        if (read == null) {
+        // Measured from a caret the editor has moved past, every place the
+        // read gives is off by the same amount, and the words would be taken
+        // for rewritten and dropped. The keyboard's own settings fields
+        // report the caret a beat late, which on the phone left the row
+        // empty. So a read the editor does not vouch for waits for its echo.
+        val stale = currentInputConnection?.let { !caretStillAt(it, expectedSelStart) } == true
+        if (read == null || stale) {
             // Not "no words": the caret is not known until the echo of the
             // keyboard's own edit, and an empty bar stayed empty until the
             // next word was committed (#839).
-            if (expectedSelStart < 0 && currentInputConnection != null) recentBarAwaitsEcho = true
+            if ((expectedSelStart < 0 || stale) && currentInputConnection != null) recentBarAwaitsEcho = true
             return
         }
         // The words written since the last read are the newest in the field.
@@ -48288,6 +48450,14 @@ open class WMKeyboardService : InputMethodService() {
     companion object {
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
+
+        /**
+         * The shortest pause in typing before a grammar check goes to a
+         * LanguageTool server. The public API takes 20 checks a minute, and
+         * each one carries the text; the phone's own engine keeps the user's
+         * Re-check delay.
+         */
+        private const val GRAMMAR_ONLINE_DEBOUNCE_MS = 1_200L
 
         /**
          * The shade under a reading's focused segment ([segmentMarked]): the

@@ -9,6 +9,9 @@ import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderType
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -238,6 +241,40 @@ private fun SearchStrings.toolEntry(
         .let { if (it == 0) "" else getString(it) },
     key = "tool/${tool.name}#${resourceName(title)}",
 )
+
+/**
+ * Builds an entry on a provider's own screen ([PROVIDER_PAGE_ROUTE]): the
+ * path is the screen the tool's list is on, then the provider. The kind's
+ * name is read from the kind, as the screen's heading reads it.
+ */
+private fun SearchStrings.providerEntry(
+    tool: ProviderTool,
+    type: ProviderType,
+    @StringRes title: Int,
+    @StringRes subtitle: Int = 0,
+    // A row on a tool's page weighs as one ([toolEntry]); elsewhere as an ordinary row.
+    weight: EntryWeight? = null,
+): SettingsSearchEntry {
+    val host = providerHostTool(tool)
+    val above = when {
+        host != null -> crumb(R.string.home_tools_title, toolTitle(host))
+        tool == ProviderTool.VOICE -> crumb(R.string.home_voice_title)
+        tool == ProviderTool.PHOTOS -> crumb(R.string.photo_services_title)
+        else -> crumb(R.string.home_typing_title, R.string.typing_group_suggestions_title)
+    }
+    val route = providerRoute(tool, type)
+    return SettingsSearchEntry(
+        title = getString(title),
+        subtitle = if (subtitle == 0) "" else getString(subtitle),
+        screenPath = above + getString(type.labelRes),
+        route = route,
+        weight = weight ?: if (host != null) EntryWeight.DETAIL else EntryWeight.NORMAL,
+        tool = host,
+        titleRes = title,
+        keywords = searchKeywordsFor(title).let { if (it == 0) "" else getString(it) },
+        key = "$route#${resourceName(title)}",
+    )
+}
 
 /** Rows on the Typing screen, in screen order. */
 private fun SearchStrings.typingRows(): List<SettingsSearchEntry> {
@@ -1120,7 +1157,6 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_enabled_title, R.string.voice_enabled_subtitle),
         // The engines are a provider list now; its heading is the title.
         row(R.string.voice_engine_title, R.string.providers_add_subtitle),
-        row(R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle),
         row(R.string.voice_languages_title, R.string.voice_languages_subtitle),
         row(R.string.voice_engine_languages_title, R.string.voice_engine_languages_subtitle),
         row(R.string.voice_ui_title, R.string.voice_ui_subtitle),
@@ -1138,8 +1174,16 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_denoise_title, R.string.voice_denoise_subtitle),
         row(R.string.voice_punctuation_title, R.string.voice_punctuation_subtitle),
         row(R.string.voice_ai_tidy_title, R.string.voice_ai_tidy_subtitle),
-        row(R.string.voice_translate_title, R.string.voice_translate_subtitle),
-        row(R.string.voice_server_language_title, R.string.voice_server_language_subtitle),
+        // On the engines' own screens, opened from their rows on the list.
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.SYSTEM_RECOGNIZER,
+            R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle,
+        ),
+        providerEntry(ProviderTool.VOICE, ProviderTypes.WHISPER, R.string.voice_translate_title, R.string.voice_translate_subtitle),
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.TRANSCRIPTION_SERVER,
+            R.string.voice_server_language_title, R.string.voice_server_language_subtitle,
+        ),
         row(R.string.voice_bias_personal_title, R.string.voice_bias_personal_subtitle),
     )
 }
@@ -1670,7 +1714,7 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
         R.string.providers_add_subtitle,
         keywords = R.string.search_kw_translate_server,
     ),
-    toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_deepl_write_title, R.string.tooldetail_deepl_write_subtitle),
+    providerEntry(ProviderTool.TRANSLATE, ProviderTypes.DEEPL, R.string.tooldetail_deepl_write_title, R.string.tooldetail_deepl_write_subtitle),
 )
 
 /** Rows on the tool pages, from Translate through the AI tool. */
@@ -1739,8 +1783,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_search_count_title, R.string.tooldetail_search_count_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_answer_title, R.string.tooldetail_search_answer_subtitle),
     toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_search_open_browser_title, R.string.tooldetail_search_open_browser_subtitle),
-    toolEntry(ToolbarTool.WEB_SEARCH, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
-    toolEntry(ToolbarTool.IMAGE_SEARCH, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
+    // On Tavily's own screen, opened from its row on the list.
+    providerEntry(ProviderTool.SEARCH, ProviderTypes.TAVILY, R.string.tooldetail_tavily_advanced_title, R.string.tooldetail_tavily_advanced_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_select_all_title, R.string.tooldetail_ocr_select_all_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_engine_title),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_packs_header),
@@ -1757,6 +1801,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
         R.string.tooldetail_voice_all_subtitle,
         weight = EntryWeight.MIRROR,
     ),
+    toolEntry(ToolbarTool.GRAMMAR, R.string.tooldetail_grammar_providers_group, R.string.providers_add_subtitle),
     toolEntry(ToolbarTool.GRAMMAR, R.string.tooldetail_grammar_dialect_title, R.string.tooldetail_grammar_dialect_subtitle),
     toolEntry(ToolbarTool.GRAMMAR, R.string.tooldetail_grammar_debounce_title, R.string.tooldetail_grammar_debounce_subtitle),
     toolEntry(ToolbarTool.GRAMMAR, R.string.tooldetail_grammar_system_title, R.string.tooldetail_grammar_system_subtitle),
@@ -1861,6 +1906,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_builtin_title, R.string.toolai_ai_builtin_subtitle),
     // The keyboard's own tools (#698), on their own screen, one row each.
+    // Named after the tool they let the AI use ("Translate", "Calculator"),
+    // so they sit under that tool's own page.
     *builtInToolText.values.map { text ->
         entry(
             text.title,
@@ -1868,6 +1915,7 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
             R.string.toolai_ai_builtin_screen_title,
             AI_BUILT_IN_TOOLS_ROUTE,
             screenParent = R.string.home_tools_title,
+            weight = EntryWeight.DETAIL,
         )
     }.toTypedArray(),
     entry(
@@ -1949,11 +1997,12 @@ private fun SearchStrings.translateEngineRows(): List<SettingsSearchEntry> =
             ),
         ) + listOfNotNull(
             // Each engine's model list is drawn only where that engine runs.
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_models_group)
+            // On each engine's own screen, opened from its row on the list.
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.ML_KIT, R.string.tooldetail_translate_models_group)
                 .takeIf { OnDeviceTranslator.AVAILABLE },
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_bergamot_group)
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.BERGAMOT, R.string.tooldetail_translate_bergamot_group)
                 .takeIf { BergamotTranslator.available },
-            toolEntry(ToolbarTool.TRANSLATE, R.string.tooldetail_translate_nllb_group)
+            providerEntry(ProviderTool.TRANSLATE, ProviderTypes.NLLB, R.string.tooldetail_translate_nllb_group)
                 .takeIf { NllbTranslator.available },
         )
     }
@@ -2134,6 +2183,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         dataSaver(R.string.datasaver_downloads_title, R.string.datasaver_downloads_subtitle),
         dataSaver(R.string.datasaver_ai_title, R.string.datasaver_ai_subtitle),
         dataSaver(R.string.datasaver_voice_title, R.string.datasaver_voice_subtitle),
+        dataSaver(R.string.datasaver_grammar_title, R.string.datasaver_grammar_subtitle),
         dataSaver(R.string.datasaver_offline_fallback_title, R.string.datasaver_offline_fallback_subtitle),
         // The four kinds of notification, each one a thing someone will come
         // looking for by name the first time it arrives or stops arriving.
@@ -2248,6 +2298,30 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
             R.string.toolai_hub_settings_assistant_subtitle,
             R.string.home_ai_title,
             "ai",
+        ),
+        entry(R.string.toolai_memory_screen_title, R.string.toolai_memory_nav_subtitle, R.string.home_ai_title, "ai"),
+        // The memory screen's own rows (Settings › AI › Memory).
+        entry(
+            R.string.toolai_memory_enabled_title,
+            R.string.toolai_memory_enabled_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
+            weight = EntryWeight.SECTION,
+        ),
+        entry(
+            R.string.toolai_memory_cloud_title,
+            R.string.toolai_memory_cloud_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
+        ),
+        entry(
+            R.string.toolai_memory_delete_all_title,
+            R.string.toolai_memory_delete_all_subtitle,
+            R.string.toolai_memory_screen_title,
+            "ai_memory",
+            screenParent = R.string.home_ai_title,
         ),
         entry(R.string.semantic_mode_title, R.string.semantic_mode_subtitle, R.string.home_ai_title, "ai")
             .takeIf { com.wasimaster.wmkeyboard.core.semantic.SemanticModels.SUPPORTED },
@@ -2817,9 +2891,10 @@ internal fun settingsCrumbSeed(
 ): List<SettingsCrumb> {
     // Reversed, so that a name indexed twice keeps the route of the entry that
     // comes first in the index — the destination, ahead of any later mention.
-    val routes = index.asReversed()
-        .filter { it.weight == EntryWeight.SECTION }
-        .associate { it.title to it.route }
+    // A tool's own page counts too, below a screen of the same name: a row on
+    // a provider's screen has the tool above it, and that step should open.
+    val routes = index.asReversed().filter { it.weight == EntryWeight.TOOL }.associate { it.title to it.route } +
+        index.asReversed().filter { it.weight == EntryWeight.SECTION }.associate { it.title to it.route }
     val steps = entry.screenPath
         .filterNot { it == homeTitle }
         .map { SettingsCrumb(entryId = "seed:$it", title = it, route = routes[it], seeded = true) }

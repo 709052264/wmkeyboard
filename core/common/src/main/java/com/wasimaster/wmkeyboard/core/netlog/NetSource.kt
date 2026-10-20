@@ -28,6 +28,9 @@ enum class NetSource(
 
     /** DeepL Write, from the grammar panel or the selection bar. Its settings sit on the Translate page. */
     DEEPL_WRITE("deepl_write", ToolbarTool.TRANSLATE),
+
+    /** A LanguageTool server the grammar tool's list asks: the public API, or one the user runs. */
+    LANGUAGETOOL("languagetool", ToolbarTool.GRAMMAR),
     GIF("gif", ToolbarTool.GIF),
     STICKER("sticker", ToolbarTool.STICKER),
     WEB_SEARCH("web_search", ToolbarTool.WEB_SEARCH),

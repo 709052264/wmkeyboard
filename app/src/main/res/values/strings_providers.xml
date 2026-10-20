@@ -10,6 +10,32 @@
     <string name="providers_add_subtitle">A service, your own server, or files on the phone</string>
     <string name="providers_reset">Reset to default</string>
     <string name="providers_reset_subtitle">Go back to the list this build starts with</string>
+    <!-- The heading over the providers that are switched off, when they are all of one kind. -->
+    <string name="providers_section_off">Turned off</string>
+    <!-- The headings over the providers that are switched off, sorted by where they run. -->
+    <string name="providers_section_on_device">Turned off: on the phone</string>
+    <string name="providers_section_online">Turned off: online services</string>
+    <string name="providers_section_servers">Turned off: your own servers</string>
+    <string name="providers_none_on">All providers are off. Turn one on below, or add one.</string>
+    <!-- The fold under a provider list that holds how the list is used, and Reset. -->
+    <string name="providers_options_title">List settings</string>
+    <!-- Accessibility label for what a press on a provider row does. -->
+    <string name="providers_open">Open settings</string>
+    <!-- A provider's own screen (ProviderPage.kt). -->
+    <string name="providers_page_on_title">Use this provider</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_on_subtitle">%1$s asks it in its place on the list</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_off_subtitle">%1$s skips it</string>
+    <string name="providers_page_setup_title">Setup</string>
+    <string name="providers_page_setup_none">Nothing to set up</string>
+    <!-- %1$s is the tool, such as Voice typing. -->
+    <string name="providers_page_not_listed">This provider is not on the %1$s list.</string>
+    <string name="providers_page_add_action">Add</string>
+    <string name="providers_page_fix_action">Set up</string>
+    <string name="providers_page_used_by_title">Shared with</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_remove_subtitle">Take it off the %1$s list</string>
 
     <string name="providers_status_needs_key">Needs an API key</string>
     <string name="providers_status_needs_sign_in">Not signed in. Edit to sign in.</string>
@@ -23,6 +49,8 @@
     <string name="providers_status_unknown">Added by a newer version of the app</string>
     <string name="providers_status_off">Off</string>
     <string name="providers_status_on_device">On the phone</string>
+    <!-- A LanguageTool row in the grammar tool's list. %1$s is the server's host. -->
+    <string name="providers_status_sends_text">Sends your text to %1$s</string>
     <string name="providers_status_builtin_key">Uses the key in this build</string>
     <string name="providers_status_your_key">Uses your key</string>
     <string name="providers_status_your_key_ending">Uses your key ending %1$s</string>
@@ -54,9 +82,17 @@
     <string name="providers_field_url">Server address</string>
     <string name="providers_field_url_hint">For example https://translate.example.org</string>
     <string name="providers_field_url_optional_hint">Optional. Leave it empty for the default.</string>
+    <string name="providers_field_url_languagetool_hint">Optional. Leave it empty for the public server, api.languagetool.org, or enter the address of your own LanguageTool server, such as http://192.168.1.20:8081.</string>
     <string name="providers_field_key">API key</string>
     <string name="providers_field_key_builtin_hint">Optional. Leave it empty to use the key in this build.</string>
     <string name="providers_field_key_optional_hint">Optional.</string>
+    <string name="providers_field_key_languagetool_hint">Optional. The API key of a LanguageTool Premium account, from your account page, together with its username.</string>
+    <string name="providers_field_username">Username</string>
+    <string name="providers_field_username_hint">Optional. The email address of your Premium account. Give it with the API key or leave both empty.</string>
+    <string name="providers_languagetool_picky_title">Picky mode</string>
+    <string name="providers_languagetool_picky_subtitle">Also report style and typography issues that the server leaves out by default</string>
+    <string name="providers_languagetool_mother_tongue_label">Your first language</string>
+    <string name="providers_languagetool_mother_tongue_hint">Optional. A language code such as de or fr. LanguageTool then also looks for false friends from that language.</string>
     <string name="providers_field_key_another_hint">Required. This is a second one, so it needs a key of its own.</string>
     <string name="providers_field_key_required_hint">Required.</string>
     <string name="providers_field_model">Model</string>

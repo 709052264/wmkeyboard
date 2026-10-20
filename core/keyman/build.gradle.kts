@@ -50,3 +50,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     testImplementation(libs.junit)
 }
+
+// Tests that reach the Rust text engines load libwm_engine_jni for this
+// machine, which :core:language builds; see the comment on its task.
+tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }
