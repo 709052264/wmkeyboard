@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.localllm
 
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import java.io.File
 import java.io.InputStream
 import java.util.zip.ZipFile
@@ -41,6 +42,7 @@ object NpuRuntime {
     @Synchronized
     fun directory(context: Context, soc: String): File? {
         val names = NpuSupport.runtimeLibraries(soc).takeIf { it.isNotEmpty() } ?: return null
+        if (NativeDelivery.gate(DELIVERED_GATE) != null) return delivered(soc, names)
         val gate = FeatureModules.npu
         if (!gate.installed) {
             gate.requestInstall()
@@ -125,6 +127,27 @@ object NpuRuntime {
         }
         true
     }.getOrDefault(false)
+
+    /** The gate of the libraries every chip shares, on a build with native delivery. */
+    private const val DELIVERED_GATE = "npu"
+
+    /**
+     * [directory] on a build with native delivery: the shared libraries and
+     * this chip's stub and skel are separate gates, fetched from Qualcomm's
+     * and Google's Maven repositories once the user has accepted Qualcomm's
+     * licence, and already in app storage, so nothing is unpacked.
+     */
+    private fun delivered(soc: String, names: List<String>): File? {
+        val arch = NpuSupport.HTP_ARCH[soc] ?: return null
+        val gateNames = listOf(DELIVERED_GATE, "$DELIVERED_GATE-$arch")
+        val gates = gateNames.map { NativeDelivery.gate(it) ?: return null }
+        if (!gates.all { it.installed }) {
+            gates.filterNot { it.installed }.forEach { it.requestInstall() }
+            return null
+        }
+        val dir = NativeDelivery.directoryFor(gateNames) ?: return null
+        return dir.takeIf { names.all { File(dir, it).exists() } && preload(dir, names) }
+    }
 
     /** When this install was last updated: a new app version brings new libraries. */
     private fun installStamp(app: Context): String = runCatching {

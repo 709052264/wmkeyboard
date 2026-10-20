@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.ocr
 import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import java.util.concurrent.Executors
 import kotlinx.coroutines.Job
@@ -67,6 +68,10 @@ object PaddleOcr {
     /** On [thread]: the bridge, with both graphs and the character list loaded. */
     private fun load(context: Context): PaddleRuntime {
         val filesDir = context.filesDir
+        // LiteRT loads its library by name; a delivered one goes in first.
+        if (!NativeDelivery.preload("tensorflowlite_jni")) {
+            throw TesseractException(TesseractException.Reason.UNAVAILABLE, "libtensorflowlite_jni.so would not load")
+        }
         val bridge = runCatching {
             FeatureModules.load<PaddleRuntime>(PaddleModule.BRIDGE_CLASS, context.classLoader)
         }.getOrElse {

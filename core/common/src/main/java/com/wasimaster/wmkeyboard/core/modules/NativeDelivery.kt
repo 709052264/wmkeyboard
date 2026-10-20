@@ -144,17 +144,17 @@ object NativeDelivery {
     }
 
     /**
-     * A directory holding every library of [gate] under its own name, for a
+     * A directory holding every library of [gates] under its own name, for a
      * runtime that is handed a directory rather than files (LiteRT's NPU
      * dispatch, and the DSP side of QNN, which reads its skel by name from a
      * search path). Links into the store, or copies where links are refused.
-     * Null until every library of the gate is installed.
+     * Null until every library of those gates is installed.
      */
-    fun directoryFor(gate: String): File? {
+    fun directoryFor(gates: List<String>): File? {
         val nativeStore = store ?: return null
-        val gatePins = pins.filter { it.gate == gate }
+        val gatePins = pins.filter { it.gate in gates }
         if (gatePins.isEmpty() || !gatePins.all(nativeStore::installed)) return null
-        val dir = File(nativeStore.root, "dirs/$gate")
+        val dir = File(nativeStore.root, "dirs/${gates.joinToString("+")}")
         dir.mkdirs()
         for (pin in gatePins) {
             val target = nativeStore.fileOf(pin)

@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.handwriting
 import android.content.Context
 import android.os.SystemClock
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
@@ -121,6 +122,8 @@ object HandwritingModels {
     private fun runtime(): InkRuntime? {
         loaded?.let { return it }
         if (!FeatureModules.handwriting.installed) return null
+        // ML Kit loads its library by name; a delivered one goes in first.
+        if (!NativeDelivery.preload("digitalink")) return null
         return runCancellable {
             FeatureModules.load<InkRuntime>(InkModule.BRIDGE_CLASS, HandwritingModels::class.java.classLoader!!)
         }.onSuccess { loaded = it }.getOrNull()

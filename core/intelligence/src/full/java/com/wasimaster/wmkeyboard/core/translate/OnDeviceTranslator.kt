@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.translate
 
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.app.DownloadManager
 import android.content.Context
 import android.net.ConnectivityManager
@@ -80,6 +81,8 @@ object OnDeviceTranslator {
     private fun runtime(context: Context): TranslateRuntime? {
         loaded?.let { return it }
         if (TranslateModule.gate.state.value != TranslateModuleState.Installed) return null
+        // ML Kit loads both libraries by name; delivered ones go in first.
+        if (!NativeDelivery.preload("translate_jni") || !NativeDelivery.preload("language_id_l2c_jni")) return null
         MlKitInit.ensure(context)
         return runCancellable { TranslateModule.load(context) }
             .onSuccess { loaded = it }

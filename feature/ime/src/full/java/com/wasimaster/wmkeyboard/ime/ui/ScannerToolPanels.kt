@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
@@ -302,11 +304,22 @@ private fun OcrContent(
     // too (Tesseract's own, or the LiteRT interpreter for Paddle); until then
     // the prompt's download fetches the split.
     val ocrModule by (if (paddle) PaddleOcr.moduleState else TesseractOcr.moduleState).collectAsState()
-    val packReady = remember(pack, packStatus, ocrModule) {
-        pack == null || (
-            ocrModule == ModuleState.Installed && (
-                packStatus == OcrPacks.Status.Downloaded ||
-                    (packStatus == null && OcrPacks.isDownloaded(filesDir, pack))
+    // ML Kit's own Latin reader brings a library of its own, which a build with
+    // native delivery fetches the first time; the pack prompt's place shows
+    // that download instead.
+    val scannerModule by FeatureModules.scanner.state.collectAsState()
+    val needsLibrary = engine != OcrEngine.ONLINE && pack == null &&
+        OcrLanguages.mlKitRecognizer(ocrLanguage) == MlKitScript.LATIN
+    val libraryReady = remember(needsLibrary, scannerModule) {
+        !needsLibrary || MlKitRecognizers.ready(MlKitScript.LATIN)
+    }
+    val packReady = remember(pack, packStatus, ocrModule, libraryReady) {
+        libraryReady && (
+            pack == null || (
+                ocrModule == ModuleState.Installed && (
+                    packStatus == OcrPacks.Status.Downloaded ||
+                        (packStatus == null && OcrPacks.isDownloaded(filesDir, pack))
+                    )
                 )
             )
     }
@@ -543,8 +556,12 @@ private fun OcrContent(
             null
         }
 
-        if (!packReady && pack != null) {
-            OcrPackPrompt(state, ocrLanguage, pack, packStatus, filesDir)
+        if (!packReady && (pack != null || needsLibrary)) {
+            if (pack != null) {
+                OcrPackPrompt(state, ocrLanguage, pack, packStatus, filesDir)
+            } else {
+                ScannerLibraryPrompt(state)
+            }
             Box(modifier = Modifier.align(Alignment.TopStart).padding(8.dp)) {
                 CameraChipButton(
                     icon = Icons.AutoMirrored.Outlined.ArrowBack,
@@ -760,6 +777,84 @@ private fun OcrPackPrompt(
                     MeteredDecision.BLOCKED -> meteredBlocked = true
                     MeteredDecision.ASK ->
                         if (meteredAsked) OcrPacks.start(filesDir, pack) else meteredAsked = true
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The scanner's reading library on a build with native delivery
+ * ([FeatureModules.scanner]): ML Kit's bundled text and barcode readers,
+ * fetched the first time either is opened. The same shape as
+ * [OcrPackPrompt], data saver asked on the button.
+ */
+@Composable
+private fun ScannerLibraryPrompt(state: KeyboardUiState) {
+    val kb = LocalKbTheme.current
+    val context = LocalContext.current
+    val feedback = LocalKeyPressFeedback.current
+    val gate = FeatureModules.scanner
+    val module by gate.state.collectAsState()
+    var meteredAsked by remember { mutableStateOf(false) }
+    var meteredBlocked by remember { mutableStateOf(false) }
+    val size = (gate as? DownloadedModuleGate)?.missingBytes ?: 0L
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
+        val current = module
+        if (current is ModuleState.Installing) {
+            if (current.totalBytes > 0L) {
+                CircularProgressIndicator(
+                    progress = { (current.bytes.toFloat() / current.totalBytes).coerceIn(0f, 1f) },
+                    color = kb.accent,
+                )
+            } else {
+                CircularProgressIndicator(color = kb.accent)
+            }
+            Text(
+                stringResource(R.string.ime_scanner_library_downloading),
+                color = kb.secondaryText,
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+            return@Column
+        }
+        val consent = (current as? ModuleState.Missing)?.consent
+        Text(
+            when {
+                consent != null -> stringResource(R.string.ime_scanner_library_consent)
+                meteredBlocked -> stringResource(R.string.ime_metered_off_body)
+                meteredAsked -> stringResource(R.string.ime_metered_ask_body)
+                (current as? ModuleState.Missing)?.failed == true -> stringResource(R.string.ime_scanner_library_failed)
+                else -> stringResource(R.string.ime_scanner_library_body, Formatter.formatShortFileSize(context, size))
+            },
+            color = kb.secondaryText,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+        )
+        if (!meteredBlocked && consent == null) {
+            OcrPromptButton(
+                Icons.Outlined.FileDownload,
+                stringResource(
+                    when {
+                        meteredAsked -> R.string.ime_metered_allow_action
+                        (current as? ModuleState.Missing)?.failed == true -> CommonR.string.common_retry
+                        else -> CommonR.string.common_download
+                    },
+                ),
+            ) {
+                feedback()
+                when (state.dataSaver.decide(MeteredFeature.DOWNLOADS)) {
+                    MeteredDecision.ALLOWED -> gate.requestInstall()
+                    MeteredDecision.BLOCKED -> meteredBlocked = true
+                    MeteredDecision.ASK -> if (meteredAsked) gate.requestInstall() else meteredAsked = true
                 }
             }
         }
@@ -1121,7 +1216,11 @@ internal fun QrScanPanel(
             .fillMaxWidth()
             .height(height),
     ) {
-        if (hasPermission) {
+        val scannerModule by FeatureModules.scanner.state.collectAsState()
+        val libraryReady = remember(scannerModule) { MlKitRecognizers.barcodeReady() }
+        if (hasPermission && !libraryReady) {
+            ScannerLibraryPrompt(state)
+        } else if (hasPermission) {
             QrScanContent(
                 state = state,
                 onInsert = onInsert,

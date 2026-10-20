@@ -25,6 +25,8 @@ object ChatImageOcr {
     /** The text in [bitmap], line by line; empty when there is none. Throws when the read fails. */
     suspend fun read(bitmap: Bitmap, script: MlKitScript = MlKitScript.LATIN): String {
         if (!available) return ""
+        // A build with native delivery may still have to fetch the reader's library.
+        check(MlKitRecognizers.awaitReady(script)) { "the text reader's library is not available" }
         val recognizer = MlKitRecognizers.client(script)
         return try {
             recognizer.process(InputImage.fromBitmap(bitmap, 0)).await().text.trim()

@@ -36,6 +36,10 @@
     <string name="ime_scanner_ocr_language_desc">Text language: <xliff:g id="language" example="Bangla">%1$s</xliff:g>. Tap to change.</string>
     <!-- Tesseract reads a language only after its data is on the phone.
          %1$s is the name of a language, %2$s the download size, for example "2.4 MB". -->
+    <string name="ime_scanner_library_body">The scanner needs a one-time download of its reading library, <xliff:g id="size" example="16 MB">%1$s</xliff:g>.</string>
+    <string name="ime_scanner_library_downloading">Downloading the scanner\'s reading library…</string>
+    <string name="ime_scanner_library_failed">The reading library did not download. Check the connection and try again.</string>
+    <string name="ime_scanner_library_consent">Feature library downloads are off. Turn them on in Settings › Privacy › Feature libraries, then try again.</string>
     <string name="ime_scanner_ocr_need_pack_body">To read <xliff:g id="language" example="Bangla">%1$s</xliff:g> text, the scanner needs a one-time download of <xliff:g id="size" example="0.9 MB">%2$s</xliff:g>.</string>
     <!-- %1$s is the name of a language. -->
     <string name="ime_scanner_ocr_downloading_progress">Downloading the <xliff:g id="language" example="Bangla">%1$s</xliff:g> text data…</string>

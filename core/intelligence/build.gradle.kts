@@ -55,7 +55,20 @@ val npuRuntime = run {
     prop("wmkb.enableNpu", "WMKB_ENABLE_NPU", "true").toBoolean() &&
         !prop("wmkb.enableFdroid", "WMKB_ENABLE_FDROID", "false").toBoolean()
 }
-if (npuRuntime && !playStoreChannel) apply(plugin = "wmkeyboard.npu-runtime")
+// A build with native delivery (see wmkeyboard.native-pins) fetches the same
+// files on demand instead, so it does not carry them as assets either. Read
+// the way :app reads it.
+val nativeDelivery = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    fun prop(name: String, env: String, default: String) =
+        providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: System.getenv(env) ?: default
+    prop("wmkb.nativeDelivery", "WMKB_NATIVE_DELIVERY", "true").toBoolean() && !playStoreChannel &&
+        !prop("wmkb.noInternet", "WMKB_NO_INTERNET", "false").toBoolean()
+}
+if (npuRuntime && !playStoreChannel && !nativeDelivery) apply(plugin = "wmkeyboard.npu-runtime")
 
 android {
     namespace = "com.wasimaster.wmkeyboard.intelligence"

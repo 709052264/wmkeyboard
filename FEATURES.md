@@ -2561,6 +2561,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - NPU falls back to the GPU, then the CPU — a model with no NPU build never tries it; a build that fails to start, or crashes the keyboard, stays off the NPU until a system or app update; a failed answer only for that session
     - Qualcomm QNN runtime as compressed assets — LiteRT's dispatch library plus libQnnHtp, libQnnSystem and the V79/V81 stub and skel, about 14 MB instead of 50 as native libraries; unpacked into no-backup storage per app version
     - On Play the runtime is the on-demand :feature:npu split — requested when NPU is picked; until it arrives the model runs on the GPU or CPU
+    - GitHub edition: native delivery — Qualcomm's licence is accepted first (on the Compute row or Privacy › Downloads), then the shared QNN libraries and the chip's stub and skel are read out of qnn-runtime on Maven Central (gates npu and npu-V79/npu-V81)
   - Context-window setting `RARE` — 5 presets 1024–16384 plus the model's own default; changing it reloads the model
     - No per-response ceiling on-device — the window bounds prompt and answer together
   - Engine lifecycle `RARE` — one cached engine rebuilt only when model file or backend changes
@@ -2767,6 +2768,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Save-to-gallery for camera captures and scanned pages | writes into shared storage (Pictures/WM Keyboard); off by default |
 
 ## Privacy, backup, storage, statistics
+
+- **Native delivery** — The GitHub and F-Droid editions leave the native libraries behind optional features out of the APK and fetch each one the first time its feature asks, the way Play's on-demand modules do (`wmkeyboard.native-pins`, `NativeDelivery` in :core:common).
+  - Pinned in the APK — `assets/native/pins.tsv` carries each library's gate, ABI, size and SHA-256, written at build time from the jniLibs or the resolved AAR; the host serving the bytes is never trusted.
+  - Two sources — The project's own libraries (whisper.cpp, ExecuTorch, Whistle, Harper, Tesseract) from the data repository's `natives` release, by hash; ML Kit, LiteRT, LiteRT-LM and Qualcomm's QNN read entry by entry out of the vendor's own Maven artifact with HTTP ranges, never mirrored.
+  - Same gates as Play — Every library sits behind a `ModuleGate`, so the banners, `awaitInstalled` callers and `GatedLibrary` facades are unchanged; ML Kit's bundled text and barcode readers gained a `scanner` gate.
+  - Loaded without ART double-registration — A dependency that loads its library itself is preloaded with a plain `dlopen` from `libwm_engine_jni.so`, so `JNI_OnLoad` runs once.
+  - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.
+  - Import and storage — A library file whose hash matches a pin installs through the offline import; Storage lists them as Feature libraries.
+  - Off with `-Pwmkb.nativeDelivery=false`, and always off on Play and in the no-internet build.
 
 - **App lock** — Optional check in front of the settings screens and destructive buttons the user picks: BiometricPrompt, or the app's own PIN, password or pattern.
   - App-own secret — PIN (4–16 digits, own number pad, no IME), password (4+ chars) or 3×3 pattern (4+ dots, jumped middle dot joins); salted PBKDF2-SHA256 hash, 120k iterations, never the secret.

@@ -206,6 +206,7 @@ internal fun PrivacySettings(
     OtherAppsGroup(repository, onNavigate)
     SettingsGroup(stringResource(R.string.privacy_downloads_group_title)) {
         item { VerifyChecksumsRow(repository, settings) }
+        item { FeatureLibrariesRows() }
     }
     SettingsGroup(stringResource(R.string.privacy_data_group_title)) {
         item {

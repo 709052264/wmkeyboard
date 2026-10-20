@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.localllm
 
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.content.Context
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.intelligence.R
@@ -38,6 +39,10 @@ object LocalLlmEngine {
         if (!LlmModule.gate.installed()) {
             LlmModule.gate.requestInstall()
             throw IOException(context.getString(R.string.core_intel_llm_module_downloading))
+        }
+        // LiteRT-LM loads its library by name; a delivered one goes in first.
+        if (!NativeDelivery.preload("litertlm_jni")) {
+            throw IOException(context.getString(R.string.core_intel_llm_module_restart))
         }
         return try {
             val impl = Class.forName(LlmModule.BRIDGE_CLASS, true, context.classLoader)

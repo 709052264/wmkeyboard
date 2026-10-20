@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -88,6 +89,8 @@ internal object LocalSubjectCutout {
     private fun runtime(context: Context): CutoutRuntime? {
         runtime?.let { return it }
         if (!FeatureModules.litert.installed) return null
+        // LiteRT loads its library by name; a delivered one goes in first.
+        if (!NativeDelivery.preload("tensorflowlite_jni")) return null
         return runCancellable {
             FeatureModules.load<CutoutRuntime>(CutoutModule.BRIDGE_CLASS, context.classLoader)
         }.onSuccess { runtime = it }.getOrNull()

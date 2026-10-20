@@ -99,6 +99,19 @@
     <string name="privacy_backup_info">This setting is off at the start. The keyboard copies nothing that it stores to Google Drive or to a new device. Turn it on, and the Android backup treats the keyboard like any other app. Your settings, themes, layouts, snippets, learned words, sticker packs, icon packs and plugins come back on a new device, or after you install the app again. The backup leaves out the voice models, the AI models, the downloaded word lists and the emoji keyword packs. The keyboard can download these again by itself, and the backup must stay inside the size limit of Android. The backup does include your saved API keys. Android makes a cloud backup only on a device that can encrypt it with your screen lock. Backup &amp; restore in Settings is the other way, and it never uses Google. It saves the same data in a file that you move yourself.</string>
 
     <string name="privacy_downloads_group_title">Downloads</string>
+    <string name="privacy_native_downloads_title">Download feature libraries</string>
+    <string name="privacy_native_downloads_on_subtitle">On: a feature downloads its library from GitHub the first time you use it</string>
+    <string name="privacy_native_downloads_off_subtitle">Off: features that need a library say so instead of downloading it</string>
+    <string name="privacy_native_downloads_info">This F-Droid build leaves out the native libraries behind some features, such as offline voice typing and grammar checking. With this setting on, the keyboard downloads a library the first time its feature needs it, from the WM Keyboard data repository on GitHub. By turning this on, you choose to bypass F-Droid\'s checks: F-Droid did not build or review these files. Before the keyboard uses a file, it compares the file with a checksum that is built into this app. You can also import the files yourself from Settings › About › Storage.</string>
+    <string name="privacy_native_downloads_confirm_title">Download files that F-Droid has not checked?</string>
+    <string name="privacy_native_downloads_confirm_action">Turn on</string>
+    <string name="privacy_qualcomm_licence_title">Qualcomm NPU runtime</string>
+    <string name="privacy_qualcomm_licence_accepted">Licence accepted. The NPU runtime downloads from Maven Central.</string>
+    <string name="privacy_qualcomm_licence_not_accepted">Not accepted. On-device AI can\'t use the NPU.</string>
+    <string name="privacy_qualcomm_licence_dialog_title">Qualcomm\'s licence</string>
+    <string name="privacy_qualcomm_licence_dialog_body">To run AI on the NPU, the keyboard needs Qualcomm\'s QNN runtime for your phone\'s chip (about <xliff:g id="size" example="29 MB">%1$s</xliff:g>). The keyboard downloads it from Qualcomm\'s own package on Maven Central, so Qualcomm gives you these files under its AI Stack License, not WM Keyboard. The licence says that you must be 18 or older and that you accept its terms.</string>
+    <string name="privacy_qualcomm_licence_accept">Accept and download</string>
+    <string name="privacy_qualcomm_licence_view">View licence</string>
     <string name="privacy_verify_checksums_title">Verify downloaded files</string>
     <string name="privacy_verify_checksums_subtitle">Check every download and import against its published checksum</string>
     <string name="privacy_verify_checksums_off_subtitle">Off: the keyboard uses files that fail their checksum. Turn this back on when you can.</string>

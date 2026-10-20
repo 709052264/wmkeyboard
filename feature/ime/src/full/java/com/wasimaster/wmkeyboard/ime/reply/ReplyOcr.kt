@@ -53,6 +53,8 @@ object ReplyOcr {
         script: MlKitScript = MlKitScript.LATIN,
     ): List<ReplyTurn> {
         if (!available) return emptyList()
+        // A build with native delivery may still have to fetch the reader's library.
+        check(MlKitRecognizers.awaitReady(script)) { "the text reader's library is not available" }
         val recognizer = MlKitRecognizers.client(script)
         return try {
             val result = recognizer.process(InputImage.fromBitmap(bitmap, 0)).await()

@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.app.storage
 
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.modules.NativePin
 import android.content.Context
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
@@ -604,7 +606,32 @@ internal object StorageCategories {
                 AddonStore.get(env.context).reload()
             },
         ),
+        // Native delivery (GitHub and F-Droid builds): the libraries features
+        // fetched the first time they were used. One row per library, named
+        // after it rather than its hash directory; a deleted one downloads
+        // again the next time its feature asks.
+        StorageCategory(
+            id = "feature_libraries",
+            title = R.string.storage_feature_libraries_title,
+            subtitle = R.string.storage_feature_libraries_subtitle,
+            icon = Icons.Outlined.Extension,
+            accent = Color(0xFF90A4AE),
+            group = StorageGroup.DOWNLOADS,
+            pathsOf = { roots -> listOfNotNull(NativeDelivery.store()?.root?.takeIf { it.startsWith(roots.noBackupFiles) }) },
+            countOf = { _ -> installedLibraries().size },
+            itemsOf = { env ->
+                installedLibraries().map { (pin, file) ->
+                    StorageItem(id = pin.sha256, label = pin.name, detail = pin.gate, bytes = file.length(), files = listOf(file.parentFile ?: file))
+                }
+            },
+        ),
     )
+
+    /** The delivered libraries on disk, with the pin each one answers. */
+    private fun installedLibraries(): List<Pair<NativePin, File>> {
+        val store = NativeDelivery.store() ?: return emptyList()
+        return NativeDelivery.pins().filter(store::installed).map { it to store.fileOf(it) }
+    }
 
     // ---- looks and add-ons ----
 

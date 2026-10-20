@@ -114,10 +114,16 @@ This is a different screen from the sibling **Backup & restore** item on the Set
 | Setting | Control | Default |
 |---|---|---|
 | Verify downloaded files | Toggle | On |
+| Download feature libraries (F-Droid edition) | Toggle | Off |
+| Qualcomm NPU runtime (GitHub edition, phones with a supported Snapdragon) | Toggle | Off |
 
 **Verify downloaded files** holds every file the keyboard downloads or imports to the SHA-256 checksum it was published with: Chinese, Japanese and Cantonese dictionary packs, Whisper, Whistle, Parakeet, Moonshine and Asr4All voice models, the sticker cutout model, script fonts, add-ons, Rboard theme packs, Keyman layouts from the mirror, and app updates on the GitHub build. A file that doesn't match is refused and deleted, because it's either damaged or not the file that was published.
 
 Leave it on. It exists for one situation: a file had to change on the server, your installed version still expects the old checksum, and the update that knows the new one hasn't reached you yet. Turning it off lets that version take the new file in the meantime. Turning it off asks you to confirm first, and while it's off the row's subtitle says so. Turn it back on once you've updated.
+
+**Download feature libraries** appears only in the F-Droid edition. The GitHub and F-Droid editions leave the native libraries behind some features out of the app, and fetch each one the first time its feature needs it. In the F-Droid edition, those are offline voice typing and grammar checking. F-Droid allows an app to download code only when you opt in, so these features do nothing until you turn this on. Turning it on asks you to confirm, because F-Droid did not build or review those files. Each file is still checked against a checksum built into the app before it's used. You can also import the files yourself: copy them from the data repository's `natives` release, then use **Import** on the [Storage](/reference/settings/about/) screen.
+
+**Qualcomm NPU runtime** appears in the GitHub edition on a phone that can run on-device AI on its NPU. The runtime is Qualcomm's, and the keyboard fetches it from Qualcomm's own package on Maven Central, so you accept Qualcomm's AI Stack License before the download. Picking **NPU** under Compute asks you the same thing. Turning this off withdraws your acceptance, and the NPU is no longer used.
 
 Some checks stay no matter what. An app update still has to carry the developer's signing certificate, so an APK someone else signed is never installed. An add-on that runs code still has to publish a checksum at all. Models with a fixed file size (Whistle, the ExecuTorch voice models, the cutout model) still have to be that size.
 

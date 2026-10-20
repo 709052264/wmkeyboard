@@ -22,7 +22,7 @@ object NpuSupport {
      * named after (`libQnnHtpV79Stub.so` and so on). SM8750 is the Snapdragon
      * 8 Elite (Galaxy S25 series), SM8850 the 8 Elite Gen 5 (Galaxy S26 Ultra).
      */
-    private val HTP_ARCH = mapOf(
+    internal val HTP_ARCH = mapOf(
         "SM8750" to "V79",
         "SM8850" to "V81",
     )

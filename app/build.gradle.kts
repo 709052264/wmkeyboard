@@ -146,6 +146,17 @@ val noInternet = flag("wmkb.noInternet", "WMKB_NO_INTERNET")
 // compass tools fall back to a typed or searched place, as before.
 val noLocation = flag("wmkb.noLocation", "WMKB_NO_LOCATION")
 
+// Native delivery (wmkeyboard.native-pins): the GitHub and F-Droid builds
+// leave the native libraries behind optional features out of the APK and
+// fetch each one the first time its feature asks, the way Play's on-demand
+// modules do for a Play install. On by default; off on Play, which has its own
+// modules and whose policy forbids downloading code anywhere else, and off in
+// the no-internet build, which could never fetch them.
+// `-Pwmkb.nativeDelivery=false` bundles everything as before.
+val nativeDelivery = flag("wmkb.nativeDelivery", "WMKB_NATIVE_DELIVERY", default = "true") &&
+    !playStoreChannel && !noInternet
+if (nativeDelivery) apply(plugin = "wmkeyboard.native-pins")
+
 // Manifest entries that belong to exactly one channel. REQUEST_INSTALL_PACKAGES
 // and the install-result receiver must not exist in a Play or F-Droid APK, and
 // the Play Store package query is pointless anywhere but Play.

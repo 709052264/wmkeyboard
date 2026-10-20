@@ -8,6 +8,9 @@ import com.google.mlkit.vision.text.devanagari.DevanagariTextRecognizerOptions
 import com.google.mlkit.vision.text.japanese.JapaneseTextRecognizerOptions
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 
 /**
@@ -33,6 +36,28 @@ internal object MlKitRecognizers {
             MlKitScript.DEVANAGARI -> DevanagariTextRecognizerOptions.Builder().build()
         }
     )
+
+    /** The bundled Latin reader's library, fetched on demand with native delivery. */
+    const val OCR_LIBRARY = "mlkit_google_ocr_pipeline"
+
+    /** The barcode reader's library, the same way. */
+    const val BARCODE_LIBRARY = "barhopper_v3"
+
+    /**
+     * Whether [script]'s reader can run now. Only the bundled Latin reader
+     * has a library of its own; the others are Play services'. On a build
+     * with native delivery that library may not be here yet
+     * ([FeatureModules.scanner]); everywhere else this is always true.
+     */
+    fun ready(script: MlKitScript): Boolean =
+        script != MlKitScript.LATIN || (FeatureModules.scanner.installed && NativeDelivery.preload(OCR_LIBRARY))
+
+    /** [ready], fetching the library first when it is missing. False when it could not be. */
+    suspend fun awaitReady(script: MlKitScript): Boolean =
+        script != MlKitScript.LATIN || (FeatureModules.scanner.awaitInstalled() && NativeDelivery.preload(OCR_LIBRARY))
+
+    /** Whether the barcode reader can run now. */
+    fun barcodeReady(): Boolean = FeatureModules.scanner.installed && NativeDelivery.preload(BARCODE_LIBRARY)
 
     /** True when [failure] means Play services is still downloading the model. */
     fun isDownloading(failure: Throwable?): Boolean =

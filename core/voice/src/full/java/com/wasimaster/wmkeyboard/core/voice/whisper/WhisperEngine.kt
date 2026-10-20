@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
@@ -48,6 +49,9 @@ object WhisperEngine {
             throw WhisperException(R.string.core_voice_whisper_module_downloading)
         }
         return try {
+            // A build with native delivery fetched LiteRT's library rather
+            // than shipping it; LiteRT loads it by name, so it goes in first.
+            check(NativeDelivery.preload("tensorflowlite_jni")) { "libtensorflowlite_jni.so would not load" }
             FeatureModules.load<WhisperRuntime>(WhisperModule.BRIDGE_CLASS, WhisperEngine::class.java.classLoader!!)
                 .also { runtime = it }
         } catch (e: Throwable) {

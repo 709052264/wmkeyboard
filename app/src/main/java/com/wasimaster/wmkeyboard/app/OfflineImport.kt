@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.content.Context
 import android.net.Uri
 import android.os.StatFs
@@ -95,8 +96,18 @@ internal object OfflineImport {
             leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
             leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
             PhoneticIndexDownloads.languageOfPublishedName(leaf) != null ||
-            OfflineDictionaries.recognises(leaf)
+            OfflineDictionaries.recognises(leaf) ||
+            isNativeLibrary(leaf)
     }
+
+    /**
+     * A native library this build delivers on demand: its own name, or the
+     * `<sha256>-<name>` the data repository's release publishes it as. The
+     * hash decides whether it installs.
+     */
+    private fun isNativeLibrary(leaf: String): Boolean =
+        NativeDelivery.active && leaf.endsWith(".so") &&
+            NativeDelivery.pins().any { leaf == it.name || leaf.endsWith("-${it.name}") }
 
     /**
      * [recognises], plus the files told by their name *and* their size, or
@@ -347,6 +358,16 @@ internal object OfflineImport {
             return attempt(name) {
                 if (CutoutModel.install(filesDir, file)) {
                     Outcome(name, true, R.string.offline_import_cutout_done)
+                } else {
+                    Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        if (isNativeLibrary(name)) {
+            return attempt(name) {
+                val pin = NativeDelivery.import(file)
+                if (pin != null) {
+                    Outcome(name, true, R.string.offline_import_native_done, listOf(pin.name))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
                 }

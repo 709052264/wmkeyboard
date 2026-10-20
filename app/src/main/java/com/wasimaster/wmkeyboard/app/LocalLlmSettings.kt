@@ -59,6 +59,8 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.ModelTier
 import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -297,6 +299,13 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     CaptionText(stringResource(R.string.models_llm_import_info))
 
     SectionHeader(stringResource(R.string.models_llm_compute_title))
+    var askQualcomm by remember { mutableStateOf(false) }
+    if (askQualcomm) {
+        QualcommLicenceDialog { accepted ->
+            askQualcomm = false
+            if (accepted) scope.launch { repository.setAiLocalBackend(LocalLlmBackend.NPU) }
+        }
+    }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -307,6 +316,15 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             FilterChip(
                 selected = selectedBackend == backend,
                 onClick = {
+                    // A build with native delivery fetches the runtime from
+                    // Qualcomm's own repository, under Qualcomm's licence: the
+                    // user accepts it before NPU is picked.
+                    if (backend == LocalLlmBackend.NPU && NativeDelivery.gate("npu") != null &&
+                        !NativeConsent.has(NativeConsent.QUALCOMM)
+                    ) {
+                        askQualcomm = true
+                        return@FilterChip
+                    }
                     // On Play the runtime is its own download; start it now
                     // rather than at the first answer.
                     if (backend == LocalLlmBackend.NPU) FeatureModules.npu.requestInstall()
