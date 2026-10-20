@@ -40,8 +40,12 @@ object LatexMath {
 
     data class Row(val items: List<Node>) : Node
 
-    /** [rule] false is a `\binom`'s stack, with no line between. */
-    data class Frac(val num: Node, val den: Node, val rule: Boolean = true) : Node
+    /**
+     * [rule] false is a `\binom`'s stack, with no line between. [display] is
+     * `\dfrac` and `\cfrac` (true: full size wherever it sits, so a continued
+     * fraction does not shrink away) or `\tfrac` (false); null follows context.
+     */
+    data class Frac(val num: Node, val den: Node, val rule: Boolean = true, val display: Boolean? = null) : Node
 
     data class Root(val body: Node, val index: Node? = null) : Node
 
@@ -429,7 +433,9 @@ object LatexMath {
             ACCENTS[name]?.let { return Accent(argument(), it) }
             STYLES[name]?.let { return restyle(argument(), it) }
             return when (name) {
-                "frac", "dfrac", "tfrac", "cfrac" -> Frac(argument(), argument())
+                "frac" -> Frac(argument(), argument())
+                "dfrac", "cfrac" -> Frac(argument(), argument(), display = true)
+                "tfrac" -> Frac(argument(), argument(), display = false)
                 "binom", "dbinom", "tbinom" -> Fenced("(", Frac(argument(), argument(), rule = false), ")")
                 "choose" -> Atom("choose", Kind.BIN)
                 "sqrt" -> {

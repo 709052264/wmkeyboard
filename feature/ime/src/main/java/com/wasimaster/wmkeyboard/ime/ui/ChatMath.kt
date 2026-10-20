@@ -224,7 +224,13 @@ internal class MathTypesetter(
 
     // ---------------------------------------------------------------- fractions
 
-    private fun frac(f: LatexMath.Frac, level: Int): MathBox {
+    private fun frac(f: LatexMath.Frac, outer: Int): MathBox {
+        // `\dfrac` sets itself in display style wherever it is; `\tfrac` in text style.
+        val level = when (f.display) {
+            true -> DISPLAY
+            false -> max(outer, TEXT)
+            null -> outer
+        }
         val inner = FRACTION_LEVEL[level]
         val num = node(f.num, inner)
         val den = node(f.den, inner)
@@ -290,7 +296,10 @@ internal class MathTypesetter(
         val baseAtom = n.base as? LatexMath.Atom
         val limits = n.limits ?: (level == DISPLAY && baseAtom != null && baseAtom.limits)
         val inner = SCRIPT_LEVEL[level]
-        val sup = n.sup?.let { node(it, inner) }
+        // A prime is its own raised glyph: at script size it shrinks to a speck
+        // that reads as an accent, so it keeps the base's size and height.
+        val primes = (n.sup as? LatexMath.Atom)?.text?.let { t -> t.isNotEmpty() && t.all { it == '′' } } == true
+        val sup = n.sup?.let { node(it, if (primes) level else inner) }
         val sub = n.sub?.let { node(it, inner) }
         val s = size(level)
         if (limits) {
@@ -315,7 +324,9 @@ internal class MathTypesetter(
         val small = size(inner)
         var up = 0f
         var down = 0f
-        if (sup != null) {
+        if (sup != null && primes) {
+            up = 0f
+        } else if (sup != null) {
             up = max(s * (if (level == DISPLAY) 0.413f else 0.363f), base.ascent - small * 0.32f)
             up = max(up, sup.descent + s * 0.11f)
         }
@@ -676,7 +687,7 @@ internal fun MathScope.inlineContent(formulas: List<String>, color: Color): Map<
     val map = HashMap<String, InlineTextContent>(formulas.size)
     formulas.forEachIndexed { k, latex ->
         val box = typesetter.layout(latex, display = false)
-        val half = max(box.ascent - textCenter, box.descent + textCenter) + em * 0.06f
+        val half = placeholderHalf(box)
         val width = box.width + em * 0.1f
         map[formulaId(k)] = InlineTextContent(
             Placeholder((width / em).em, (half * 2 / em).em, PlaceholderVerticalAlign.TextCenter),
@@ -696,6 +707,18 @@ internal fun MathScope.inlineContent(formulas: List<String>, color: Color): Map<
 }
 
 internal fun formulaId(index: Int) = "math:$index"
+
+/** Half a placeholder's height: room for [box] above and below the text's middle. */
+private fun MathScope.placeholderHalf(box: MathBox) = max(box.ascent - textCenter, box.descent + textCenter) + em * 0.06f
+
+/**
+ * The tallest of [formulas] as it sits in a line, in ems of the text around
+ * it. A `Text` with a fixed line height keeps every line at that height,
+ * placeholders included, so a root over `b²` would reach into the line above;
+ * a paragraph holding one taller than its lines lets them grow instead.
+ */
+internal fun MathScope.inlineHeightEm(formulas: List<String>): Float =
+    formulas.maxOfOrNull { placeholderHalf(typesetter.layout(it, display = false)) * 2 / em } ?: 0f
 
 /**
  * A display formula on its own line, centred, scrolling sideways when it is

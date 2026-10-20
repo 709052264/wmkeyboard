@@ -81,6 +81,23 @@ class MathTypesetterTest {
     }
 
     @Test
+    fun `a continued fraction keeps its size`() {
+        val cfrac = d("\\cfrac{1}{1+\\cfrac{1}{1+\\cfrac{1}{x}}}")
+        val frac = d("\\frac{1}{1+\\frac{1}{1+\\frac{1}{x}}}")
+        assertTrue(cfrac.descent > frac.descent)
+        assertTrue(cfrac.width > frac.width)
+        // And \tfrac stays small even in display.
+        assertTrue(d("\\tfrac{a}{b}").ascent < d("\\frac{a}{b}").ascent)
+    }
+
+    @Test
+    fun `a prime stays the size of its base`() {
+        // Not lifted the way a power is: the glyph is already high.
+        assertTrue(d("f'").ascent < d("f^2").ascent)
+        assertTrue(d("f'").width > d("f").width)
+    }
+
+    @Test
     fun `a power rises and an index drops`() {
         assertTrue(d("x^2").ascent > d("x").ascent)
         assertTrue(d("x_i").descent > d("x").descent)
