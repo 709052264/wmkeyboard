@@ -131,6 +131,19 @@ internal fun AiHubSettings(
             )
         }
     }
+    SettingsGroup(stringResource(R.string.toolai_hub_button_group_title)) {
+        item {
+            ToggleSetting(
+                R.string.toolai_hub_chat_button_everywhere_title,
+                stringResource(R.string.toolai_hub_chat_button_everywhere_subtitle),
+                settings.watch { it.appUi.aiChatButtonEverywhere },
+                default = SettingsDefaults.appUi.aiChatButtonEverywhere,
+            ) { scope.launch { repository.setAiChatButtonEverywhere(it) } }
+        }
+    }
+    // This screen's own action, whatever the switch above says: the frame
+    // leaves the everywhere button off this route so there is only one.
+    RegisterFab { AiChatFab({ onNavigate("ai_chat") }) }
 }
 
 /** The tools the AI screen lists, in the order the Tools list has them. */

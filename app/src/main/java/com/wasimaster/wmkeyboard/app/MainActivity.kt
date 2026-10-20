@@ -771,6 +771,9 @@ private fun SettingsNavHost(
     LaunchedEffect(layoutWanted) {
         if (layoutWanted != layoutShown) context.findActivity()?.recreate()
     }
+    val openChat: () -> Unit = remember(navController) {
+        { navController.navigate("ai_chat") { launchSingleTop = true } }
+    }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
@@ -783,6 +786,9 @@ private fun SettingsNavHost(
             // handed the settings.
             LocalReduceMotion provides reduceMotion,
             LocalKeyboardPreview provides preview.takeIf { previewWanted },
+            // The AI chat button on every screen, when asked for: the frame
+            // draws it from this, so no screen has to know about it.
+            LocalAiChatFab provides openChat.takeIf { settings.watch { it.appUi.aiChatButtonEverywhere } },
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),

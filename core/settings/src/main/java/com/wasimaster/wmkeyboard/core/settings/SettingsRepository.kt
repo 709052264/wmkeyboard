@@ -6292,6 +6292,12 @@ data class AppUiSettings(
      */
     val keyboardPreviewButton: Boolean = true,
     /**
+     * Whether every settings screen carries the button that opens the AI chat,
+     * not only the AI screen. Off by default: the chat is one feature among
+     * many, and most screens already have a button of their own.
+     */
+    val aiChatButtonEverywhere: Boolean = false,
+    /**
      * How a settings row offers a web link to itself (#646): not at all, on a
      * long press, or as a small link button beside the reset and the "?". Off
      * by default; it is for people who send other people to a setting.
@@ -9961,6 +9967,8 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_SCREEN_TRANSITIONS = booleanPreferencesKey("settings_screen_transitions")
         private val SETTINGS_KEYBOARD_PREVIEW_BUTTON =
             booleanPreferencesKey("settings_keyboard_preview_button")
+        private val SETTINGS_AI_CHAT_BUTTON_EVERYWHERE =
+            booleanPreferencesKey("settings_ai_chat_button_everywhere")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
@@ -11727,6 +11735,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.appUi.screenTransitions,
             keyboardPreviewButton = p[SETTINGS_KEYBOARD_PREVIEW_BUTTON]
                 ?: defaults.appUi.keyboardPreviewButton,
+            aiChatButtonEverywhere = p[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE]
+                ?: defaults.appUi.aiChatButtonEverywhere,
             settingLinks = p[SETTINGS_SETTING_LINKS]
                 ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingLinks,
@@ -18681,6 +18691,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.keyboardPreviewButton]. */
     suspend fun setKeyboardPreviewButton(value: Boolean) =
         editPrefs { it[SETTINGS_KEYBOARD_PREVIEW_BUTTON] = value }
+
+    /** See [AppUiSettings.aiChatButtonEverywhere]. */
+    suspend fun setAiChatButtonEverywhere(value: Boolean) =
+        editPrefs { it[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE] = value }
 
     /** See [AppUiSettings.settingLinks]. */
     suspend fun setSettingLinks(value: SettingLinkMode) =

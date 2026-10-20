@@ -565,4 +565,8 @@
     <!-- AI screen, opened from the settings home screen. It collects the AI tools, the chat and the history. -->
     <string name="toolai_hub_tools_title">On the keyboard</string>
     <string name="toolai_hub_tools_info">The AI writing tools screen sets the provider, the key and the model. AI reply, the chat and the settings assistant use the same ones.</string>
+    <string name="toolai_hub_button_group_title">Chat button</string>
+    <string name="toolai_hub_chat_button_everywhere_title">Chat button on every screen</string>
+    <string name="toolai_hub_chat_button_everywhere_subtitle">Show the button that opens the AI chat on every settings screen, not only this one</string>
+    <string name="toolai_ai_chat_fab_desc">Chat with the AI</string>
 </resources>

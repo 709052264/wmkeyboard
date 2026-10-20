@@ -2208,6 +2208,12 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),
+        entry(
+            R.string.toolai_hub_chat_button_everywhere_title,
+            R.string.toolai_hub_chat_button_everywhere_subtitle,
+            R.string.home_ai_title,
+            "ai",
+        ),
         access(R.string.accessibility_talkback_title, R.string.accessibility_talkback_subtitle),
         access(R.string.accessibility_passthrough_service_title).takeIf { ChannelFeatures.GESTURE_PASSTHROUGH },
         access(R.string.accessibility_debounce_title, R.string.accessibility_debounce_subtitle_off),

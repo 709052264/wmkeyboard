@@ -150,6 +150,9 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import kotlin.math.roundToInt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.SmallFloatingActionButton
+import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
 
@@ -629,6 +632,48 @@ internal fun RegisterAddFab(label: String, onClick: () -> Unit) {
  * thrown away and rebuilt.
  */
 private const val AddFabKey = "wm.fab.add"
+
+/**
+ * How a screen opens the AI chat, published at the settings root while
+ * **Chat button on every screen** is on; null otherwise. The frame draws
+ * [AiChatFab] from it on every screen but the few in [NoChatFabRoutes].
+ */
+internal val LocalAiChatFab = compositionLocalOf<(() -> Unit)?> { null }
+
+/**
+ * Screens that never get the everywhere button: the chat itself and the
+ * settings assistant, which are already a chat, and the AI screen, which
+ * registers the same button as its own.
+ */
+private val NoChatFabRoutes = setOf("ai", "ai_chat", "settings_assistant")
+
+/**
+ * The button that opens the AI chat. Full size where it is the screen's one
+ * action, as on the AI screen; [small] and in the tertiary colour where it
+ * rides beside a screen's own "add", so the two read as one primary action and
+ * one aside.
+ */
+@Composable
+internal fun AiChatFab(onClick: () -> Unit, small: Boolean = false) {
+    val label = stringResource(R.string.toolai_ai_chat_fab_desc)
+    // A wrapper carries the flight key, as on the keyboard test button: the
+    // button travels between screens rather than blinking out and back.
+    Box(Modifier.wmSharedElement(AiChatFabKey)) {
+        if (small) {
+            SmallFloatingActionButton(
+                onClick = onClick,
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            ) { Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = label) }
+        } else {
+            FloatingActionButton(onClick = onClick) {
+                Icon(Icons.AutoMirrored.Outlined.Chat, contentDescription = label)
+            }
+        }
+    }
+}
+
+private const val AiChatFabKey = "wm.fab.ai_chat"
 
 /** Pins [content] under the bar, above the scrolling body, while the caller is composed. */
 @Composable
@@ -2521,13 +2566,12 @@ internal fun WmScreen(
                 // button stacks above a screen's own, and needs its own room.
                 val hasFab = fab != null || slots?.fab != null
                 val hasPreview = LocalKeyboardPreview.current != null && slots?.dock == null
+                val hasChat = LocalAiChatFab.current != null && LocalScreenRoute.current !in NoChatFabRoutes
+                // Each small button stacked above the bottom one adds a step.
+                val buttons = listOf(hasFab, hasPreview, hasChat).count { it }
                 Spacer(
                     Modifier.height(
-                        when {
-                            hasFab && hasPreview -> FAB_TAIL + PREVIEW_FAB_STEP
-                            hasFab || hasPreview -> FAB_TAIL
-                            else -> 24.dp
-                        },
+                        if (buttons == 0) 24.dp else FAB_TAIL + PREVIEW_FAB_STEP * (buttons - 1),
                     ),
                 )
             }
@@ -2644,6 +2688,7 @@ private fun WmScreenFrame(
     RegisterSettingsCrumb(crumbTitle ?: title, route)
     val slots = remember { ScreenSlots() }
     val preview = LocalKeyboardPreview.current?.takeIf { slots.dock == null }
+    val chatFab = LocalAiChatFab.current
     val scope = rememberCoroutineScope()
     // One per screen, published for everything it draws — see [SettingsSnackbar].
     val snackbarHost = remember { SnackbarHostState() }
@@ -2740,18 +2785,24 @@ private fun WmScreenFrame(
                 },
                 floatingActionButton = {
                     val own = fab ?: slots.fab
+                    val chat = chatFab?.takeIf { route !in NoChatFabRoutes }
                     // The keyboard test (#412) rides above the screen's own
                     // button rather than in its place. Not on a screen that
                     // docks a keyboard of its own: two keyboards, one of them
-                    // the real one, would be a test of nothing.
-                    if (preview != null) {
+                    // the real one, would be a test of nothing. The everywhere
+                    // chat button sits between them, small when the screen
+                    // has a button of its own and full size when it has not.
+                    if (preview != null || (chat != null && own != null)) {
                         Column(
                             horizontalAlignment = Alignment.End,
                             verticalArrangement = Arrangement.spacedBy(PREVIEW_FAB_GAP),
                         ) {
-                            KeyboardPreviewFab(preview)
+                            if (preview != null) KeyboardPreviewFab(preview)
+                            if (chat != null) AiChatFab(chat, small = own != null)
                             own?.invoke()
                         }
+                    } else if (chat != null) {
+                        AiChatFab(chat)
                     } else {
                         own?.invoke()
                     }
