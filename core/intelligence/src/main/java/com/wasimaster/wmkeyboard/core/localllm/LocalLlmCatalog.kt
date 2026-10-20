@@ -27,6 +27,21 @@ enum class ModelTier(@StringRes val badgeRes: Int?) {
     EXPERIMENTAL(R.string.core_intel_llm_tier_experimental_label),
 }
 
+/**
+ * An ahead-of-time build of a catalog model for one chip's NPU (#804),
+ * published in the same Hugging Face repository as the standard file. Only
+ * the NPU runs it: it holds the chip's compiled graph, not weights a CPU or
+ * GPU can use.
+ */
+data class NpuBuild(
+    /** The chip it was compiled for, as [NpuSupport.normalizeSoc] spells it. */
+    val soc: String,
+    /** Exact file under the repo's resolve/main/, next to the standard one. */
+    val fileName: String,
+    /** Exact size from huggingface.co/api, checked 2026-10-20. */
+    val sizeBytes: Long,
+)
+
 /** One downloadable model in the curated catalog. */
 data class LocalLlmModel(
     /** Stable key — used as the storage directory name and the settings value. */
@@ -67,6 +82,12 @@ data class LocalLlmModel(
      * to: a model family that has eyes elsewhere is not enough.
      */
     val vision: Boolean = false,
+    /**
+     * Builds of this model for chips' NPUs, which a download fetches instead
+     * of [fileName] when Compute is NPU on one of those chips. Empty for most
+     * models: upstream publishes them for a few small ones only.
+     */
+    val npuBuilds: List<NpuBuild> = emptyList(),
 )
 
 /**
@@ -126,6 +147,10 @@ object LocalLlmCatalog {
             tier = ModelTier.UNTESTED,
             minRamMb = 4096,
             descriptionRes = R.string.core_intel_llm_model_gemma3_1b_subtitle,
+            npuBuilds = listOf(
+                NpuBuild("SM8750", "Gemma3-1B-IT_q4_ekv1280_sm8750.litertlm", 689_291_264L),
+                NpuBuild("SM8850", "Gemma3-1B-IT_q4_ekv1280_sm8850.litertlm", 693_747_712L),
+            ),
         ),
         LocalLlmModel(
             id = "qwen25-1.5b",
@@ -183,6 +208,10 @@ object LocalLlmCatalog {
             tier = ModelTier.UNTESTED,
             minRamMb = 2048,
             descriptionRes = R.string.core_intel_llm_model_gemma3_270m_subtitle,
+            npuBuilds = listOf(
+                NpuBuild("SM8750", "gemma3-270m-it-q8.qualcomm.sm8750.litertlm", 461_340_672L),
+                NpuBuild("SM8850", "gemma3-270m-it-q8.qualcomm.sm8850.litertlm", 463_011_840L),
+            ),
         ),
         LocalLlmModel(
             // SmolLM v1's .task bundle behaved like a base model (no chat
@@ -208,6 +237,17 @@ object LocalLlmCatalog {
 
     fun byId(id: String): LocalLlmModel? = models.firstOrNull { it.id == id }
 
+    /** [model]'s build for the NPU of [soc], or null when it has none. */
+    fun npuBuild(model: LocalLlmModel, soc: String?): NpuBuild? =
+        soc?.let { chip -> model.npuBuilds.firstOrNull { it.soc == chip } }
+
+    /**
+     * The file a download of [model] fetches, and its size: the NPU build for
+     * [npuSoc] when one is asked for and exists, the standard file otherwise.
+     */
+    fun downloadTarget(model: LocalLlmModel, npuSoc: String?): Pair<String, Long> =
+        npuBuild(model, npuSoc)?.let { it.fileName to it.sizeBytes } ?: (model.fileName to model.sizeBytes)
+
     /**
      * Whether the model behind a selection id can read a picture: true or
      * false for a catalog model, null for an imported file (`custom:<name>`),
@@ -219,8 +259,8 @@ object LocalLlmCatalog {
         return byId(id)?.vision
     }
 
-    fun downloadUrl(model: LocalLlmModel): String =
-        "https://huggingface.co/${model.repo}/resolve/main/${model.fileName}"
+    fun downloadUrl(model: LocalLlmModel, fileName: String = model.fileName): String =
+        "https://huggingface.co/${model.repo}/resolve/main/$fileName"
 
     /** The repo page: the licence text, and where a gated model's terms are accepted. */
     fun licenseUrl(model: LocalLlmModel): String = "https://huggingface.co/${model.repo}"

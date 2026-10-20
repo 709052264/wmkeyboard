@@ -1,0 +1,58 @@
+import com.android.build.api.variant.AndroidComponentsExtension
+import org.gradle.api.artifacts.VersionCatalogsExtension
+
+// Packages the Qualcomm NPU runtime behind Compute = NPU for on-device AI
+// (#804) as assets of the full flavour: LiteRT's dispatch library from
+// com.google.ai.edge.litert:litert-npu-runtime-qualcomm, and from Qualcomm's
+// com.qualcomm.qti:qnn-runtime only the files the chips in NpuSupport need.
+// Never the whole QNN AAR, which is 75 MB of every Hexagon generation, and
+// never libQnnHtpPrepare.so (88 MB, compiles models on the phone; every
+// catalog NPU build arrives compiled). Applied by :core:intelligence outside
+// Play and by the on-demand :feature:npu split on Play, and only where the
+// wmkb.enableNpu flag allows it: the QNN libraries are Qualcomm's licence, so
+// never in F-Droid or lite.
+//
+// The AARs are resolved as files from their own configuration, never as
+// dependencies: as dependencies AGP would package all of their native
+// libraries uncompressed.
+
+// Keep in step with NpuSupport.runtimeLibraries in :core:intelligence.
+val npuLibraries = listOf(
+    "libLiteRtDispatch_Qualcomm.so",
+    "libQnnSystem.so",
+    "libQnnHtp.so",
+    // SM8750, Snapdragon 8 Elite.
+    "libQnnHtpV79Stub.so",
+    "libQnnHtpV79Skel.so",
+    // SM8850, Snapdragon 8 Elite Gen 5.
+    "libQnnHtpV81Stub.so",
+    "libQnnHtpV81Skel.so",
+)
+
+val npuRuntime = configurations.create("npuRuntime") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
+val catalog = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
+for (alias in listOf("litert-npu-runtime-qualcomm", "qnn-runtime")) {
+    val module = catalog.findLibrary(alias).get().get()
+    dependencies.add(npuRuntime.name, "${module.module.group}:${module.module.name}:${module.versionConstraint.requiredVersion}@aar")
+}
+
+// One task per variant: AGP points each one's output at a directory of its
+// own variant's, which one shared task could not have.
+extensions.getByType(AndroidComponentsExtension::class.java).apply {
+    onVariants(selector().all()) { variant ->
+        if (variant.productFlavors.none { it.second == "full" }) return@onVariants
+        val task = tasks.register(
+            "npuRuntimeAssets${variant.name.replaceFirstChar { it.uppercase() }}",
+            NpuRuntimeAssets::class.java,
+        ) {
+            archives.from(npuRuntime)
+            libraries.set(npuLibraries)
+        }
+        variant.sources.assets?.addGeneratedSourceDirectory(task, NpuRuntimeAssets::outputDir)
+    }
+}

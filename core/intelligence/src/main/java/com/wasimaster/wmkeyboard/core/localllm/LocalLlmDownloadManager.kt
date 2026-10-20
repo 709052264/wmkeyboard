@@ -105,33 +105,47 @@ object LocalLlmDownloadManager {
 
     val isBusy: Boolean get() = activeJob?.isActive == true
 
-    /** Seeds [states] from disk; call when the model manager UI appears. */
+    /**
+     * Seeds [states] from disk; call when the model manager UI appears. A
+     * model counts as downloaded when either of its builds is there (#804);
+     * a half-fetched one of either is the Paused one.
+     */
     fun refresh(filesDir: File) {
+        val soc = NpuSupport.soc
         _states.update { current ->
             LocalLlmCatalog.models.associate { model ->
                 val active = current[model.id]
+                val part = listOfNotNull(
+                    LocalLlmStore.partFile(filesDir, model) to model.sizeBytes,
+                    LocalLlmCatalog.npuBuild(model, soc)
+                        ?.let { LocalLlmStore.partFile(filesDir, model, it.fileName) to it.sizeBytes },
+                ).firstOrNull { it.first.isFile }
                 model.id to when {
                     // Never clobber a live download's progress state.
                     model.id == activeId && isBusy && active != null -> active
                     LocalLlmStore.isDownloaded(filesDir, model) -> DownloadStatus.Downloaded
-                    LocalLlmStore.partFile(filesDir, model).isFile -> DownloadStatus.Paused(
-                        LocalLlmStore.partFile(filesDir, model).length(), model.sizeBytes,
-                    )
+                    part != null -> DownloadStatus.Paused(part.first.length(), part.second)
                     else -> DownloadStatus.NotDownloaded
                 }
             }
         }
     }
 
-    fun start(filesDir: File, model: LocalLlmModel, hfToken: String) {
+    /**
+     * Fetches [model]: its NPU build for [npuSoc] when one is given and the
+     * model has it, the standard file otherwise. Progress is reported under
+     * the model's id either way, one download at a time as ever.
+     */
+    fun start(filesDir: File, model: LocalLlmModel, hfToken: String, npuSoc: String? = null) {
         if (isBusy) return
         activeId = model.id
-        val part = LocalLlmStore.partFile(filesDir, model)
-        set(model.id, DownloadStatus.Downloading(part.length(), model.sizeBytes))
+        val (fileName, sizeBytes) = LocalLlmCatalog.downloadTarget(model, npuSoc)
+        val part = LocalLlmStore.partFile(filesDir, model, fileName)
+        set(model.id, DownloadStatus.Downloading(part.length(), sizeBytes))
         activeJob = scope.launch {
             try {
-                downloadInto(model, part, hfToken)
-                check(part.renameTo(LocalLlmStore.modelFile(filesDir, model))) {
+                downloadInto(model, fileName, sizeBytes, part, hfToken)
+                check(part.renameTo(LocalLlmStore.modelFile(filesDir, model, fileName))) {
                     "could not move the finished download into place"
                 }
                 set(model.id, DownloadStatus.Downloaded)
@@ -141,7 +155,7 @@ object LocalLlmDownloadManager {
                 // NotDownloaded; without this guard the unwinding coroutine
                 // overwrites that with Paused(0, size), resurrecting a model
                 // the user just deleted.
-                if (part.isFile) set(model.id, DownloadStatus.Paused(part.length(), model.sizeBytes))
+                if (part.isFile) set(model.id, DownloadStatus.Paused(part.length(), sizeBytes))
                 throw e
             } catch (e: FailedException) {
                 set(model.id, DownloadStatus.Failed(e.reason, e.messageRes, e.messageArg))
@@ -184,13 +198,19 @@ object LocalLlmDownloadManager {
         val messageArg: String = "",
     ) : IOException()
 
-    private suspend fun downloadInto(model: LocalLlmModel, part: File, hfToken: String) {
+    private suspend fun downloadInto(
+        model: LocalLlmModel,
+        fileName: String,
+        sizeBytes: Long,
+        part: File,
+        hfToken: String,
+    ) {
         part.parentFile?.mkdirs()
         var resumeFrom = part.length()
 
         val free = StatFs(part.parentFile!!.path).availableBytes
-        if (free < model.sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) {
-            val neededGb = (model.sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) / 1e9
+        if (free < sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) {
+            val neededGb = (sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) / 1e9
             throw FailedException(
                 FailReason.NO_SPACE,
                 R.string.core_intel_llm_download_error_no_space,
@@ -198,10 +218,9 @@ object LocalLlmDownloadManager {
             )
         }
 
-        val connection = URL(LocalLlmCatalog.downloadUrl(model)).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(
-            NetSource.DOWNLOAD_LLM, "GET", LocalLlmCatalog.downloadUrl(model), route = NetLog.pathOf(LocalLlmCatalog.downloadUrl(model)),
-        )
+        val url = LocalLlmCatalog.downloadUrl(model, fileName)
+        val connection = URL(url).openConnection() as HttpURLConnection
+        val netCall = NetLog.call(NetSource.DOWNLOAD_LLM, "GET", url, route = NetLog.pathOf(url))
         try {
             connection.connectTimeout = 15_000
             connection.readTimeout = 30_000
@@ -270,7 +289,7 @@ object LocalLlmDownloadManager {
                         R.string.core_intel_llm_download_error_truncated,
                     )
                 }
-            } else if (written < model.sizeBytes * 9 / 10) {
+            } else if (written < sizeBytes * 9 / 10) {
                 // No Content-Length to validate against. sizeBytes is only
                 // approximate, so use a loose floor: catch a grossly truncated
                 // body (clean EOF after a partial transfer) without false-

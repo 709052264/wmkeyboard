@@ -91,6 +91,14 @@ object FeatureModules {
     var ocr: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
+     * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
+     * unpacked into app storage by `NpuRuntime` in :core:intelligence.
+     */
+    @Volatile
+    var npu: ModuleGate = AlwaysInstalled
+
+    /**
      * How a native library is loaded. `System.loadLibrary` wherever the
      * library is in the base APK. Play swaps in SplitInstallHelper's, which
      * also finds a library in a split installed after this process started,

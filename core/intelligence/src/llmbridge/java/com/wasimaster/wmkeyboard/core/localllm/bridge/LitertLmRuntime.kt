@@ -15,6 +15,9 @@ import com.google.ai.edge.litertlm.MessageCallback
 import com.google.ai.edge.litertlm.SamplerConfig
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
 import com.wasimaster.wmkeyboard.core.localllm.LlmRuntime
+import com.wasimaster.wmkeyboard.core.localllm.NpuRouting
+import com.wasimaster.wmkeyboard.core.localllm.NpuRuntime
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.localllm.VisionUnsupportedException
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.intelligence.R
@@ -32,7 +35,13 @@ import java.util.concurrent.locks.ReentrantLock
  *
  * Engine initialization takes seconds and pins the model weights in memory,
  * so one engine is cached across requests and only rebuilt when the model
- * file or backend changes. The facade caches the single instance of this
+ * file or backend changes.
+ *
+ * Compute = NPU (#804) is an accelerator choice on the same path, not a second
+ * one: when the selected model has an ahead-of-time build for this phone's
+ * chip on disk, the engine is built on `Backend.NPU`; when it has none, or the
+ * NPU fails, the standard file runs exactly as Compute = GPU would, falling to
+ * the CPU in turn. The facade caches the single instance of this
  * class, so instance state here has the same lifetime the old singleton had.
  */
 class LitertLmRuntime : LlmRuntime {
@@ -66,24 +75,22 @@ class LitertLmRuntime : LlmRuntime {
     private val sessionConversations = ArrayList<Conversation>()
 
     /**
-     * [gpuKey]s of models that failed on the GPU — go straight to CPU. Kept on
-     * disk as well ([GPU_FAILED_FILE]): the IME process is restarted all day,
-     * and a list that died with it sent every new process back to the GPU to
-     * fail the same way, stranding another few GB each time (CPH2481, Mali-G57:
-     * 2.2 GB of GL memory held by an idle keyboard after one failure).
+     * [verdictKey]s of models that failed on the GPU — go straight to CPU. Kept
+     * on disk as well: the IME process is restarted all day, and a list that
+     * died with it sent every new process back to the GPU to fail the same
+     * way, stranding another few GB each time (CPH2481, Mali-G57: 2.2 GB of GL
+     * memory held by an idle keyboard after one failure).
      */
-    private val gpuFallback = mutableSetOf<String>()
-
-    /** Whether [gpuFallback] has been read back from disk in this process. */
-    private var gpuVerdictsLoaded = false
+    private val gpuVerdicts = AcceleratorVerdicts(GPU_FAILED_FILE, GPU_ATTEMPT_FILE)
 
     /**
-     * The [gpuKey] whose GPU engine has not answered yet, mirrored in
-     * [GPU_ATTEMPT_FILE]. A native crash in the GPU driver kills the process
-     * before any catch runs, so the only trace it leaves is that file still
-     * being there when the next process loads the verdicts.
+     * The same for NPU builds that did not start on this phone's NPU (#804):
+     * they go straight to the standard file on the GPU or CPU.
      */
-    private var gpuUnproven: String? = null
+    private val npuVerdicts = AcceleratorVerdicts(NPU_FAILED_FILE, NPU_ATTEMPT_FILE)
+
+    /** The [verdictKey] of the loaded engine's file, for blaming its accelerator. */
+    private var loadedVerdictKey: String? = null
 
     /**
      * Process graphics memory in KB before the first GPU engine was built, or
@@ -132,7 +139,7 @@ class LitertLmRuntime : LlmRuntime {
                 val conversation = newConversation(activeEngine, system)
                 // Done after this call; close it on the next drain.
                 retiredConversations.add(conversation)
-                return runMessage(conversation, user, onPartial).also { confirmGpu() }
+                return runMessage(conversation, user, onPartial).also { confirmAccelerator() }
             } catch (e: Throwable) {
                 throw generationFailure(context, modelFile, e)
             }
@@ -175,7 +182,7 @@ class LitertLmRuntime : LlmRuntime {
                 )
                 val answer = runContents(conversation, contents, onPartial)
                 visionProven += modelFile.path
-                confirmGpu()
+                confirmAccelerator()
                 return answer
             } catch (e: Throwable) {
                 if (modelFile.path !in visionProven) {
@@ -254,7 +261,7 @@ class LitertLmRuntime : LlmRuntime {
                         message = ChatReplay.replayMessage(history, user)
                     }
                     val raw = runMessage(active, message, onPartial)
-                    confirmGpu()
+                    confirmAccelerator()
                     history.add(ChatReplay.Turn(fromUser = true, text = user))
                     history.add(ChatReplay.Turn(fromUser = false, text = stripThink(raw)))
                     return raw
@@ -347,10 +354,22 @@ class LitertLmRuntime : LlmRuntime {
         contextTokens: Int,
     ): Engine = try {
         obtainEngine(context, modelFile, backend, contextTokens)
+    } catch (e: NpuBuildOnlyException) {
+        // Already says what to do; "the file is damaged" would be wrong.
+        releaseLocked()
+        throw e
     } catch (e: Throwable) {
         releaseLocked()
         throw IOException(context.getString(R.string.core_intel_llm_engine_error_load), e)
     }
+
+    /**
+     * Only an NPU build of the model is on disk, and the NPU is not what will
+     * run it: Compute is CPU or GPU, the NPU runtime is not ready, or the NPU
+     * already failed on it. The standard file is the way out, so the message
+     * names it.
+     */
+    private class NpuBuildOnlyException(message: String) : IOException(message)
 
     /** Drains the retired conversations, then opens a new one. Lock held. */
     private fun newConversation(activeEngine: Engine, system: String): Conversation {
@@ -433,16 +452,28 @@ class LitertLmRuntime : LlmRuntime {
         modelFile: File,
         e: Throwable,
     ): IOException {
-        val wasGpu = loadedKey?.backend == "gpu"
+        val loadedBackend = loadedKey?.backend
+        val verdictKey = loadedVerdictKey ?: verdictKey(context, modelFile)
         releaseLocked()
-        if (wasGpu) {
+        if (loadedBackend == "gpu") {
             // GPU init succeeded but generation blew up — usually GPU
             // memory, which is far tighter than system RAM. Blacklist
             // this model on GPU so the retry runs on CPU without the
             // user having to work out that the backend was the problem.
-            markGpuFailed(context, modelFile)
+            gpuVerdicts.markFailed(context, verdictKey)
             return IOException(
                 context.getString(R.string.core_intel_llm_engine_error_gpu),
+                e,
+            )
+        }
+        if (loadedBackend == "npu") {
+            // The NPU started but the answer failed. Not written to disk: a
+            // prompt longer than the window the build was compiled for fails
+            // this way too, and that says nothing about the next prompt. A
+            // native crash on the NPU is still remembered, by the attempt file.
+            npuVerdicts.markFailed(context, verdictKey, persist = false)
+            return IOException(
+                context.getString(R.string.core_intel_llm_engine_error_npu),
                 e,
             )
         }
@@ -487,15 +518,15 @@ class LitertLmRuntime : LlmRuntime {
     }.getOrNull() ?: 0L
 
     /**
-     * Identifies a model on this phone as it is now. A system update (a new
-     * GPU driver), an app update (a new runtime) or a redownloaded file each
-     * deserve a fresh try on the GPU, so they are part of the key.
+     * Identifies a model file on this phone as it is now. A system update (a
+     * new GPU driver), an app update (a new runtime) or a redownloaded file
+     * each deserve a fresh try on the accelerator, so they are part of the key.
      */
-    private fun gpuKey(context: Context, modelFile: File): String =
-        "${gpuKeyPrefix(context)}${modelFile.length()}|${modelFile.path}"
+    private fun verdictKey(context: Context, modelFile: File): String =
+        "${verdictKeyPrefix(context)}${modelFile.length()}|${modelFile.path}"
 
-    /** The part of a [gpuKey] that is the same for every model until an update. */
-    private fun gpuKeyPrefix(context: Context): String {
+    /** The part of a [verdictKey] that is the same for every model until an update. */
+    private fun verdictKeyPrefix(context: Context): String {
         val installed = installStamp ?: runCatching {
             context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
         }.getOrDefault(0L).also { installStamp = it }
@@ -506,55 +537,92 @@ class LitertLmRuntime : LlmRuntime {
     private var installStamp: Long? = null
 
     /**
-     * Reads the GPU verdicts back once per process, turning an attempt the
-     * last process never finished into a failure. Verdicts from before the
-     * last system or app update are dropped, which is what gives the GPU its
-     * fresh try. Lock held.
+     * The loaded engine has answered, or was let go of in an orderly way:
+     * either way the process survived it, so the next one has nothing to
+     * blame on its accelerator. Lock held.
      */
-    private fun loadGpuVerdicts(context: Context) {
-        if (gpuVerdictsLoaded) return
-        gpuVerdictsLoaded = true
-        val dir = context.noBackupFilesDir
-        val current = gpuKeyPrefix(context)
-        val stored = runCatching { File(dir, GPU_FAILED_FILE).readLines() }.getOrNull()
-            ?.filter { it.isNotBlank() }
-            .orEmpty()
-        gpuFallback += stored.filter { it.startsWith(current) }
-        val attempt = File(dir, GPU_ATTEMPT_FILE)
-        val crashed = runCatching { attempt.readText().trim() }.getOrNull()
-        if (!crashed.isNullOrEmpty() && crashed.startsWith(current)) gpuFallback += crashed
-        if (gpuFallback.size != stored.size || !stored.containsAll(gpuFallback)) saveGpuVerdicts(context)
-        runCatching { attempt.delete() }
-    }
-
-    private fun saveGpuVerdicts(context: Context) {
-        runCatching {
-            File(context.noBackupFilesDir, GPU_FAILED_FILE)
-                .writeText(gpuFallback.joinToString("\n"))
-        }
-    }
-
-    /** This model does not run on this GPU; remembered across processes. Lock held. */
-    private fun markGpuFailed(context: Context, modelFile: File) {
-        gpuFallback += gpuKey(context, modelFile)
-        saveGpuVerdicts(context)
-        gpuUnproven = null
-        runCatching { File(context.noBackupFilesDir, GPU_ATTEMPT_FILE).delete() }
+    private fun confirmAccelerator() {
+        gpuVerdicts.confirm()
+        npuVerdicts.confirm()
     }
 
     /**
-     * The loaded GPU engine has answered, or was let go of in an orderly way:
-     * either way the process survived it, so the next one has nothing to
-     * blame on the GPU. Lock held.
+     * Models that failed on one accelerator of this phone, remembered across
+     * processes in [failedFileName] (one [verdictKey] per line) in the app's
+     * no-backup dir. Before the native code runs, [begin] writes the key to
+     * [attemptFileName]: a native crash in a driver kills the process before
+     * any catch runs, so the only trace it leaves is that file still being
+     * there when the next process [load]s the verdicts. All calls with the
+     * runtime's lock held.
      */
-    private fun confirmGpu() {
-        if (gpuUnproven == null) return
-        gpuUnproven = null
-        attemptFile?.let { runCatching { it.delete() } }
-    }
+    private inner class AcceleratorVerdicts(
+        private val failedFileName: String,
+        private val attemptFileName: String,
+    ) {
+        private val failed = mutableSetOf<String>()
 
-    /** [GPU_ATTEMPT_FILE] in this app's no-backup dir, once a context has been seen. */
-    private var attemptFile: File? = null
+        /** Whether [load] has read the file back in this process. */
+        private var loaded = false
+
+        /** The key whose engine has not answered yet, mirrored in the attempt file. */
+        private var unproven: String? = null
+
+        /** The attempt file, once a context has been seen. */
+        private var attemptFile: File? = null
+
+        operator fun contains(key: String): Boolean = key in failed
+
+        /**
+         * Reads the verdicts back once per process, turning an attempt the
+         * last process never finished into a failure. Verdicts from before the
+         * last system or app update are dropped, which is what gives the
+         * accelerator its fresh try.
+         */
+        fun load(context: Context) {
+            if (loaded) return
+            loaded = true
+            val dir = context.noBackupFilesDir
+            val current = verdictKeyPrefix(context)
+            val stored = runCatching { File(dir, failedFileName).readLines() }.getOrNull()
+                ?.filter { it.isNotBlank() }
+                .orEmpty()
+            failed += stored.filter { it.startsWith(current) }
+            val attempt = File(dir, attemptFileName)
+            val crashed = runCatching { attempt.readText().trim() }.getOrNull()
+            if (!crashed.isNullOrEmpty() && crashed.startsWith(current)) failed += crashed
+            if (failed.size != stored.size || !stored.containsAll(failed)) save(context)
+            runCatching { attempt.delete() }
+        }
+
+        /** Written before the native code runs: if it takes the process down, the file is all the next one has. */
+        fun begin(context: Context, key: String) {
+            val attempt = File(context.noBackupFilesDir, attemptFileName)
+            attemptFile = attempt
+            unproven = key
+            runCatching { attempt.writeText(key) }
+        }
+
+        /** This model does not run on this accelerator; on disk too unless [persist] is false. */
+        fun markFailed(context: Context, key: String, persist: Boolean = true) {
+            failed += key
+            if (persist) save(context)
+            unproven = null
+            runCatching { File(context.noBackupFilesDir, attemptFileName).delete() }
+        }
+
+        /** The engine [begin] was for has answered or was closed by this code. */
+        fun confirm() {
+            if (unproven == null) return
+            unproven = null
+            attemptFile?.let { runCatching { it.delete() } }
+        }
+
+        private fun save(context: Context) {
+            runCatching {
+                File(context.noBackupFilesDir, failedFileName).writeText(failed.joinToString("\n"))
+            }
+        }
+    }
 
     private fun obtainEngine(
         context: Context,
@@ -563,13 +631,27 @@ class LitertLmRuntime : LlmRuntime {
         contextTokens: Int,
         vision: Boolean = false,
     ): Engine {
-        loadGpuVerdicts(context)
-        val gpuId = if (backend == LocalLlmBackend.GPU) gpuKey(context, modelFile) else null
-        val wantGpu = gpuId != null && gpuId !in gpuFallback
+        gpuVerdicts.load(context)
+        npuVerdicts.load(context)
+        val soc = NpuSupport.soc
+        val plan = NpuRouting.plan(modelFile, soc)
+        // A picture never goes to the NPU: no catalog NPU build has a vision
+        // encoder, and the standard file is the one that might.
+        val npuFile = plan.npu?.takeIf { backend == LocalLlmBackend.NPU && !vision && soc != null }
+        val npuId = npuFile?.let { verdictKey(context, it) }
+        val wantNpu = npuId != null && npuId !in npuVerdicts
+        // NPU falls back the way GPU would: the GPU first, then the CPU.
+        val standard = plan.standard
+        val gpuId = if (backend != LocalLlmBackend.CPU && standard != null) verdictKey(context, standard) else null
+        val wantGpu = gpuId != null && gpuId !in gpuVerdicts
         // The context size is part of the key, not just the config: it is baked
         // into the loaded engine, so a cached one built at the old size would
         // quietly ignore a change until the process restarted.
-        val key = EngineKey(modelFile.path, if (wantGpu) "gpu" else "cpu", contextTokens, vision)
+        val key = if (wantNpu) {
+            EngineKey(npuFile!!.path, "npu", contextTokens, vision)
+        } else {
+            EngineKey((standard ?: modelFile).path, if (wantGpu) "gpu" else "cpu", contextTokens, vision)
+        }
         // An engine with its vision encoder answers text too, so a text call
         // keeps it rather than paying a rebuild to drop the encoder; only a
         // picture on a text-only engine forces one.
@@ -581,29 +663,57 @@ class LitertLmRuntime : LlmRuntime {
         }
         releaseLocked()
 
+        var npuRuntimeMissing = false
+        if (wantNpu) {
+            val runtimeDir = NpuRuntime.directory(context, soc!!)
+            if (runtimeDir == null) {
+                // Not in this build, still on its way from Play, or not
+                // loadable here. Not a verdict on the model: try again next time.
+                npuRuntimeMissing = true
+            } else {
+                npuVerdicts.begin(context, npuId!!)
+                try {
+                    return buildEngine(context, npuFile!!, Backend.NPU(runtimeDir.path), contextTokens, vision = false).also {
+                        engine = it
+                        loadedKey = key
+                        loadedVerdictKey = npuId
+                    }
+                } catch (_: Throwable) {
+                    npuVerdicts.markFailed(context, npuId)
+                }
+            }
+        }
+
+        val file = standard ?: throw NpuBuildOnlyException(
+            context.getString(
+                when {
+                    backend != LocalLlmBackend.NPU || soc == null -> R.string.core_intel_llm_engine_error_npu_build_only
+                    npuRuntimeMissing -> R.string.core_intel_llm_engine_error_npu_runtime_missing
+                    else -> R.string.core_intel_llm_engine_error_npu_no_standard
+                },
+            ),
+        )
+        val cpuKey = EngineKey(file.path, "cpu", contextTokens, vision)
         if (wantGpu) {
             if (gpuBaselineKb < 0) gpuBaselineKb = graphicsKb()
-            // Written before the native code runs: if the driver takes the
-            // process down, the file is all the next one has to go on.
-            val attempt = File(context.noBackupFilesDir, GPU_ATTEMPT_FILE)
-            attemptFile = attempt
-            gpuUnproven = gpuId
-            runCatching { attempt.writeText(gpuId!!) }
+            gpuVerdicts.begin(context, gpuId!!)
             try {
-                return buildEngine(context, modelFile, Backend.GPU(), contextTokens, vision).also {
+                return buildEngine(context, file, Backend.GPU(), contextTokens, vision).also {
                     engine = it
-                    loadedKey = key
+                    loadedKey = cpuKey.copy(backend = "gpu")
+                    loadedVerdictKey = gpuId
                     gpuLoaded = true
                 }
             } catch (_: Throwable) {
                 // Whatever it allocated before failing may be stranded too.
                 gpuReleased = true
-                markGpuFailed(context, modelFile)
+                gpuVerdicts.markFailed(context, gpuId)
             }
         }
-        return buildEngine(context, modelFile, Backend.CPU(), contextTokens, vision).also {
+        return buildEngine(context, file, Backend.CPU(), contextTokens, vision).also {
             engine = it
-            loadedKey = key.copy(backend = "cpu")
+            loadedKey = cpuKey
+            loadedVerdictKey = null
         }
     }
 
@@ -628,8 +738,10 @@ class LitertLmRuntime : LlmRuntime {
                 cacheDir = cache.path,
                 // Null leaves the window to the model. This is the whole window,
                 // prompt and answer together — litertlm has no per-response
-                // ceiling to set, so this is the only lever there is.
-                maxNumTokens = contextTokens.takeIf { it > 0 },
+                // ceiling to set, so this is the only lever there is. Always
+                // null on the NPU: an ahead-of-time build has its window
+                // compiled in (the "ekv1280" in a file name), and cannot grow.
+                maxNumTokens = contextTokens.takeIf { it > 0 && backend !is Backend.NPU },
             ),
         )
         engine.initialize()
@@ -657,11 +769,17 @@ class LitertLmRuntime : LlmRuntime {
          */
         const val MAX_IMAGES = 3
 
-        /** One [gpuKey] per line: models that failed on this phone's GPU. */
+        /** One [verdictKey] per line: models that failed on this phone's GPU. */
         const val GPU_FAILED_FILE = "litertlm-gpu-failed"
 
-        /** The [gpuKey] of a GPU engine that has not answered yet. */
+        /** The [verdictKey] of a GPU engine that has not answered yet. */
         const val GPU_ATTEMPT_FILE = "litertlm-gpu-attempt"
+
+        /** One [verdictKey] per line: NPU builds that failed on this phone's NPU. */
+        const val NPU_FAILED_FILE = "litertlm-npu-failed"
+
+        /** The [verdictKey] of an NPU engine that has not answered yet. */
+        const val NPU_ATTEMPT_FILE = "litertlm-npu-attempt"
     }
 
     /** Closes conversations that are done. Lock held. */
@@ -682,15 +800,14 @@ class LitertLmRuntime : LlmRuntime {
         }
         sessionConversations.clear()
         runCatching { engine?.close() }
-        if (loadedKey?.backend == "gpu") {
-            gpuReleased = true
-            // Torn down by this code, not by a crash. A failure that led here
-            // is recorded by the caller straight after.
-            confirmGpu()
-        }
+        if (loadedKey?.backend == "gpu") gpuReleased = true
+        // Torn down by this code, not by a crash. A failure that led here is
+        // recorded by the caller straight after.
+        if (loadedKey != null) confirmAccelerator()
         gpuLoaded = false
         engine = null
         loadedKey = null
+        loadedVerdictKey = null
         engineEpoch++
     }
 

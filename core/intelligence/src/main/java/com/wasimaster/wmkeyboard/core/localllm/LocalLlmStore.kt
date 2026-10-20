@@ -7,6 +7,10 @@ import java.io.File
  * `filesDir/models/<id>/<fileName>` with a `<fileName>.part` while the
  * download is in flight; user-imported files live in `filesDir/models/custom/`.
  *
+ * A model with NPU builds (#804) can have one of those beside its standard
+ * file, `filesDir/models/<id>/<npu fileName>`: the same directory, so deleting
+ * the model deletes both, and [orphanDirs] needs no second rule.
+ *
  * The atomic-rename contract: a final (non-.part) file exists only if its
  * download completed with the expected byte count, so presence == valid.
  * The custom directory scan is the whole registry for imports — no index
@@ -24,14 +28,27 @@ object LocalLlmStore {
     fun modelDir(filesDir: File, model: LocalLlmModel): File =
         File(modelsDir(filesDir), model.id)
 
-    fun modelFile(filesDir: File, model: LocalLlmModel): File =
-        File(modelDir(filesDir, model), model.fileName)
+    /** [model]'s standard file, or with [fileName] one of its [LocalLlmModel.npuBuilds]. */
+    fun modelFile(filesDir: File, model: LocalLlmModel, fileName: String = model.fileName): File =
+        File(modelDir(filesDir, model), fileName)
 
-    fun partFile(filesDir: File, model: LocalLlmModel): File =
-        File(modelDir(filesDir, model), "${model.fileName}.part")
+    fun partFile(filesDir: File, model: LocalLlmModel, fileName: String = model.fileName): File =
+        File(modelDir(filesDir, model), "$fileName.part")
 
-    fun isDownloaded(filesDir: File, model: LocalLlmModel): Boolean =
+    /** [model]'s NPU build for [soc] on disk, or null. */
+    fun npuFile(filesDir: File, model: LocalLlmModel, soc: String?): File? =
+        LocalLlmCatalog.npuBuild(model, soc)
+            ?.let { modelFile(filesDir, model, it.fileName) }
+            ?.takeIf { it.isFile }
+
+    /** Whether the standard file, the one every backend runs, is on disk. */
+    fun hasStandard(filesDir: File, model: LocalLlmModel): Boolean =
         modelFile(filesDir, model).isFile
+
+    /** Some build of [model] is on disk: the standard file or an NPU build. */
+    fun isDownloaded(filesDir: File, model: LocalLlmModel): Boolean =
+        hasStandard(filesDir, model) ||
+            model.npuBuilds.any { modelFile(filesDir, model, it.fileName).isFile }
 
     fun customDir(filesDir: File): File = File(modelsDir(filesDir), "custom")
 
@@ -54,7 +71,12 @@ object LocalLlmStore {
             if (name.isBlank() || name != File(name).name) return null
             File(customDir(filesDir), name)
         } else {
-            LocalLlmCatalog.byId(aiLocalModelId)?.let { modelFile(filesDir, it) } ?: return null
+            val model = LocalLlmCatalog.byId(aiLocalModelId) ?: return null
+            // The standard file when it is there; otherwise the NPU build
+            // that is. The engine looks for the other one itself (NpuRouting).
+            modelFile(filesDir, model).takeIf { it.isFile }
+                ?: model.npuBuilds.map { modelFile(filesDir, model, it.fileName) }.firstOrNull { it.isFile }
+                ?: return null
         }
         return file.takeIf { it.isFile }
     }

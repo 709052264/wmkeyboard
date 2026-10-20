@@ -90,11 +90,11 @@ fun apiKey(propertyName: String, envName: String): String =
         ?: System.getenv(envName)?.trim()
         ?: ""
 
-fun flag(propertyName: String, envName: String): Boolean =
+fun flag(propertyName: String, envName: String, default: String = "false"): Boolean =
     (providers.gradleProperty(propertyName).orNull
         ?: localProperties.getProperty(propertyName)
         ?: System.getenv(envName)
-        ?: "false").toBoolean()
+        ?: default).toBoolean()
 
 // Which store this build is going to. It decides more than a label: each
 // channel gets a different updater, and each updater is a liability in the
@@ -458,6 +458,12 @@ android {
         dynamicFeatures += ":feature:speech"
         dynamicFeatures += ":feature:grammar"
         dynamicFeatures += ":feature:ocr"
+        // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
+        // assets that only phones with a listed chip fetch, once someone
+        // picks NPU. Included by settings.gradle.kts under the same flag.
+        if (flag("wmkb.enableNpu", "WMKB_ENABLE_NPU", default = "true")) {
+            dynamicFeatures += ":feature:npu"
+        }
     }
 
     // See the splitApks flag at the top of this file. Splits shape APK

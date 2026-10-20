@@ -8,6 +8,7 @@ import com.google.android.play.core.splitinstall.SplitInstallManagerFactory
 import com.google.android.play.core.splitinstall.SplitInstallRequest
 import com.google.android.play.core.splitinstall.SplitInstallSessionState
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
@@ -18,7 +19,8 @@ import kotlinx.coroutines.flow.StateFlow
  * Play-channel delivery of the on-demand modules that share one gate type:
  * `:feature:litert`, `:feature:handwriting`, `:feature:speech` (the
  * whisper.cpp, ExecuTorch and Whistle libraries), `:feature:grammar`
- * (Harper) and `:feature:ocr` (Tesseract).
+ * (Harper), `:feature:ocr` (Tesseract) and `:feature:npu` (the Qualcomm NPU
+ * runtime, when the build has it).
  * This directory replaces
  * `src/noplay/java` when `wmkb.enablePlayStore` is on, the same seam as
  * LlmDelivery and TranslateDelivery beside it, and each module here is
@@ -31,6 +33,7 @@ private const val HANDWRITING_MODULE = "handwriting"
 private const val SPEECH_MODULE = "speech"
 private const val GRAMMAR_MODULE = "grammar"
 private const val OCR_MODULE = "ocr"
+private const val NPU_MODULE = "npu"
 
 /**
  * Publishes a SplitInstall-backed gate for each module into [FeatureModules].
@@ -42,8 +45,13 @@ private const val OCR_MODULE = "ocr"
  */
 fun installOnDemandDelivery(app: Application) {
     val manager = SplitInstallManagerFactory.create(app)
-    val gates = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE, OCR_MODULE)
-        .associateWith { PlayModuleGate(manager, it) }
+    // :feature:npu is in the bundle only when wmkb.enableNpu is on. Without
+    // it the gate stays the default, whose "installed" NpuRuntime then finds
+    // no assets behind, which reads as no NPU: never reached anyway, because
+    // NpuSupport offers no NPU when ENABLE_NPU is off.
+    val modules = listOf(LITERT_MODULE, HANDWRITING_MODULE, SPEECH_MODULE, GRAMMAR_MODULE, OCR_MODULE) +
+        listOfNotNull(NPU_MODULE.takeIf { BuildConfig.ENABLE_NPU })
+    val gates = modules.associateWith { PlayModuleGate(manager, it) }
     manager.registerListener { session: SplitInstallSessionState ->
         for (name in session.moduleNames()) gates[name]?.onSession(session)
         if (session.status() == SplitInstallSessionStatus.INSTALLED) {
@@ -57,6 +65,7 @@ fun installOnDemandDelivery(app: Application) {
     FeatureModules.speech = gates.getValue(SPEECH_MODULE)
     FeatureModules.grammar = gates.getValue(GRAMMAR_MODULE)
     FeatureModules.ocr = gates.getValue(OCR_MODULE)
+    gates[NPU_MODULE]?.let { FeatureModules.npu = it }
     // The speech, grammar and OCR splits hold bare native libraries for classes in
     // the base. A split installed after this process started is not on the
     // class loader's library path; SplitInstallHelper looks there as well.

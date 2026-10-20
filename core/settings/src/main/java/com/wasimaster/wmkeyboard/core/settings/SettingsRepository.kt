@@ -702,10 +702,17 @@ enum class AiProvider(@StringRes val labelRes: Int) {
 /**
  * Compute backend for on-device AI models. GPU is best-effort: the engine
  * falls back to CPU when GPU initialization fails on this device.
+ *
+ * NPU runs a model's ahead-of-time build for this phone's chip on its AI
+ * accelerator (#804). Only offered where the build carries that chip's
+ * runtime (`NpuSupport` in :core:intelligence), and only a model with an NPU
+ * build for the chip uses it; everything else, and any NPU failure, runs as
+ * GPU would. Appended, so stored values of the other two keep their meaning.
  */
 enum class LocalLlmBackend(@StringRes val labelRes: Int) {
     CPU(R.string.core_settings_ai_backend_cpu_label),
     GPU(R.string.core_settings_ai_backend_gpu_label),
+    NPU(R.string.core_settings_ai_backend_npu_label),
 }
 
 // The AI tool's actions used to be an enum here. They are a list the user owns

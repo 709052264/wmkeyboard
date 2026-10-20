@@ -38,6 +38,17 @@ fun flag(propertyName: String, envName: String): Boolean =
         ?: System.getenv(envName)
         ?: "false").toBoolean()
 
+/**
+ * Whether full builds carry the Qualcomm NPU runtime for on-device AI (#804).
+ * On unless switched off, and never in the F-Droid build: the QNN libraries
+ * are Qualcomm's own licence. :core:intelligence, :app and settings.gradle.kts
+ * read the same two properties to decide what gets packaged.
+ */
+val npuRuntime: Boolean =
+    (providers.gradleProperty("wmkb.enableNpu").orNull
+        ?: localProperties.getProperty("wmkb.enableNpu")
+        ?: System.getenv("WMKB_ENABLE_NPU")
+        ?: "true").toBoolean() && !flag("wmkb.enableFdroid", "WMKB_ENABLE_FDROID")
 
 android {
     namespace = "com.wasimaster.wmkeyboard.config"
@@ -82,6 +93,8 @@ android {
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
             buildConfigField("Boolean", "ENABLE_WHISPER", "true")
+            // The NPU as a Compute choice for on-device AI: see npuRuntime above.
+            buildConfigField("Boolean", "ENABLE_NPU", "$npuRuntime")
             // The Google Home APIs: their SDK is a full-only dependency, and
             // the grant only works for a signing certificate that has an
             // OAuth client, so each channel says whether it carries one.
@@ -96,6 +109,7 @@ android {
             buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
             buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "false")
             buildConfigField("Boolean", "ENABLE_WHISPER", "false")
+            buildConfigField("Boolean", "ENABLE_NPU", "false")
             buildConfigField("Boolean", "ENABLE_GOOGLE_HOME", "false")
         }
     }

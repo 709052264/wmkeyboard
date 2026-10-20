@@ -57,6 +57,8 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager.FailReaso
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmModel
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.ModelTier
+import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -85,15 +87,27 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     var customModels by remember { mutableStateOf(LocalLlmStore.customModels(filesDir)) }
     var storageUsed by remember { mutableLongStateOf(0L) }
     var orphanBytes by remember { mutableLongStateOf(0L) }
-    var meteredPending by remember { mutableStateOf<LocalLlmModel?>(null) }
+    var meteredPending by remember { mutableStateOf<Pair<LocalLlmModel, String?>?>(null) }
     var meteredBlocked by remember { mutableStateOf(false) }
     var importError by remember { mutableStateOf<String?>(null) }
     var importing by remember { mutableStateOf(false) }
+    // This phone's NPU target, or null; the NPU chip and builds only exist with one (#804).
+    val npuSoc = NpuSupport.soc
+    // Which builds of each catalog model are on disk, as (standard, NPU):
+    // a model can have one, the other or both, and a row offers the missing
+    // one when the Compute choice wants it.
+    var builds by remember { mutableStateOf<Map<String, Pair<Boolean, Boolean>>>(emptyMap()) }
 
     LaunchedEffect(Unit) { LocalLlmDownloadManager.refresh(filesDir) }
     LaunchedEffect(states, customModels, importing) {
         storageUsed = withContext(Dispatchers.IO) { LocalLlmStore.totalBytesUsed(filesDir) }
         orphanBytes = withContext(Dispatchers.IO) { LocalLlmStore.orphanBytes(filesDir) }
+        builds = withContext(Dispatchers.IO) {
+            LocalLlmCatalog.models.associate { model ->
+                val npuOnDisk = LocalLlmStore.npuFile(filesDir, model, npuSoc) != null
+                model.id to (LocalLlmStore.hasStandard(filesDir, model) to npuOnDisk)
+            }
+        }
         // The only model on disk needs no selection step: adopt it — covers
         // both "first download just finished" and "selection was deleted".
         if (LocalLlmStore.selectedModelFile(filesDir, settings.value.ai.localModelId) == null) {
@@ -109,8 +123,12 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         (info.totalMem / (1024 * 1024)).toInt()
     }
 
-    fun startDownload(model: LocalLlmModel) {
-        LocalLlmDownloadManager.start(filesDir, model, settings.value.ai.hfToken)
+    // A download with Compute on NPU fetches the model's NPU build for this
+    // chip, when it has one; the second-build buttons below pass their own.
+    fun npuTarget(): String? = npuSoc?.takeIf { settings.value.ai.localBackend == LocalLlmBackend.NPU }
+
+    fun startDownload(model: LocalLlmModel, target: String?) {
+        LocalLlmDownloadManager.start(filesDir, model, settings.value.ai.hfToken, target)
         notifyDownload(
             model.id,
             context.getString(R.string.notify_download_ai_model, model.displayName),
@@ -118,18 +136,19 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         )
     }
 
-    fun requestDownload(model: LocalLlmModel) {
+    fun requestDownload(model: LocalLlmModel, target: String? = npuTarget()) {
         val metered = isMeteredNow(context)
+        val size = LocalLlmCatalog.downloadTarget(model, target).second
         when (downloadDecisionNow(context, settings.value)) {
             MeteredDecision.BLOCKED -> meteredBlocked = true
-            MeteredDecision.ASK -> meteredPending = model
+            MeteredDecision.ASK -> meteredPending = model to target
             // Not held by data saving, so the old size threshold still stands:
             // these are the largest downloads the app makes.
             MeteredDecision.ALLOWED ->
-                if (metered && model.sizeBytes >= METERED_CONFIRM_BYTES) {
-                    meteredPending = model
+                if (metered && size >= METERED_CONFIRM_BYTES) {
+                    meteredPending = model to target
                 } else {
-                    startDownload(model)
+                    startDownload(model, target)
                 }
         }
     }
@@ -158,18 +177,43 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     // On disk (ready to use) vs still on Hugging Face — two questions the
     // one mixed list used to answer badly. Anything mid-download counts as
     // "available" so its progress bar stays with the thing being fetched.
+    // A model fetching its second build stays where it is.
     val onDisk = LocalLlmCatalog.models.filter {
-        (states[it.id] ?: DownloadStatus.NotDownloaded) is DownloadStatus.Downloaded
+        (states[it.id] ?: DownloadStatus.NotDownloaded) is DownloadStatus.Downloaded ||
+            builds[it.id]?.let { (standard, npu) -> standard || npu } == true
     }
     // Selected model to the very top of its section — it's the one answer
     // "which model am I using?" needs, and scrolling for it is silly.
     val yours = onDisk.sortedByDescending { it.id == selectedId }
     val available = LocalLlmCatalog.models - onDisk.toSet()
 
+    val selectedBackend = settings.watch { it.ai.localBackend }
+
     @Composable
     fun catalogRow(model: LocalLlmModel) {
+        val (hasStandard, hasNpu) = builds[model.id] ?: (false to false)
+        val npuBuild = LocalLlmCatalog.npuBuild(model, npuSoc)
+        val wantsNpu = selectedBackend == LocalLlmBackend.NPU && npuBuild != null
+        // The build a row is missing, when the Compute choice needs it: the
+        // NPU build with Compute on NPU, the standard one otherwise (only the
+        // NPU can run an NPU build). Null when there is nothing to add.
+        val secondBuild = when {
+            !hasStandard && !hasNpu -> null
+            wantsNpu && !hasNpu -> stringResource(
+                R.string.models_llm_get_npu_build_action,
+                formatBytes(npuBuild!!.sizeBytes),
+            ) to { requestDownload(model, npuSoc) }
+            !wantsNpu && !hasStandard -> stringResource(
+                R.string.models_llm_get_standard_build_action,
+                formatBytes(model.sizeBytes),
+            ) to { requestDownload(model, null) }
+            else -> null
+        }
         CatalogModelRow(
             model = model,
+            sizeBytes = if (wantsNpu) npuBuild!!.sizeBytes else model.sizeBytes,
+            npuBuildOnDisk = hasNpu,
+            secondBuild = secondBuild,
             status = states[model.id] ?: DownloadStatus.NotDownloaded,
             selected = settings.watch { it.ai.localModelId == model.id },
             hasToken = settings.watch { it.ai.hfToken.isNotBlank() },
@@ -253,18 +297,30 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     CaptionText(stringResource(R.string.models_llm_import_info))
 
     SectionHeader(stringResource(R.string.models_llm_compute_title))
-    val selectedBackend = settings.watch { it.ai.localBackend }
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.padding(horizontal = 16.dp),
     ) {
+        // NPU only where this build has a runtime for this phone's chip.
         for (backend in LocalLlmBackend.entries) {
+            if (backend == LocalLlmBackend.NPU && npuSoc == null) continue
             FilterChip(
                 selected = selectedBackend == backend,
-                onClick = { scope.launch { repository.setAiLocalBackend(backend) } },
+                onClick = {
+                    // On Play the runtime is its own download; start it now
+                    // rather than at the first answer.
+                    if (backend == LocalLlmBackend.NPU) FeatureModules.npu.requestInstall()
+                    scope.launch { repository.setAiLocalBackend(backend) }
+                },
                 label = { Text(stringResource(backend.labelRes)) },
             )
         }
+    }
+    if (npuSoc != null) {
+        val withBuilds = LocalLlmCatalog.models.filter { LocalLlmCatalog.npuBuild(it, npuSoc) != null }
+        CaptionText(
+            stringResource(R.string.models_llm_compute_npu_info, withBuilds.joinToString { it.displayName }),
+        )
     }
 
     if (storageUsed > 0) {
@@ -289,15 +345,15 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         }
     }
 
-    meteredPending?.let { model ->
+    meteredPending?.let { (model, target) ->
         MeteredDownloadDialog(
             detail = stringResource(
                 R.string.models_metered_body,
                 model.displayName,
-                formatBytes(model.sizeBytes),
+                formatBytes(LocalLlmCatalog.downloadTarget(model, target).second),
             ),
             onConfirm = {
-                startDownload(model)
+                startDownload(model, target)
                 meteredPending = null
             },
             onDismiss = { meteredPending = null },
@@ -309,6 +365,12 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
 @Composable
 private fun CatalogModelRow(
     model: LocalLlmModel,
+    /** The size of the build a download fetches now (#804). */
+    sizeBytes: Long,
+    /** Whether the NPU build is among the files on disk. */
+    npuBuildOnDisk: Boolean,
+    /** Label and action for fetching the other build, when the row offers one. */
+    secondBuild: Pair<String, () -> Unit>?,
     status: DownloadStatus,
     selected: Boolean,
     hasToken: Boolean,
@@ -324,7 +386,7 @@ private fun CatalogModelRow(
     val facts = stringResource(
         R.string.models_llm_row_subtitle,
         model.params,
-        formatBytes(model.sizeBytes),
+        formatBytes(sizeBytes),
         stringResource(model.descriptionRes),
     )
     val tooBigNote = stringResource(R.string.models_llm_row_too_big)
@@ -364,6 +426,13 @@ private fun CatalogModelRow(
                         )
                     }
                     Text(subtitle)
+                    if (downloaded && npuBuildOnDisk) {
+                        Text(
+                            stringResource(R.string.models_llm_npu_build_label),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                     // The terms in view before the download, gated or not:
                     // Gemma 3 has its own, the rest are Apache-2.0.
                     Text(
@@ -446,10 +515,15 @@ private fun CatalogModelRow(
                 is DownloadStatus.Paused -> CaptionText(
                     stringResource(R.string.models_paused_progress, formatBytes(status.bytes)),
                 )
-                is DownloadStatus.Downloaded -> if (!selected) {
+                is DownloadStatus.Downloaded -> if (!selected || secondBuild != null) {
                     Row(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        TextButton(onClick = onSelect) {
-                            Text(stringResource(R.string.models_use_action))
+                        if (!selected) {
+                            TextButton(onClick = onSelect) {
+                                Text(stringResource(R.string.models_use_action))
+                            }
+                        }
+                        secondBuild?.let { (label, action) ->
+                            TextButton(onClick = action, enabled = !downloadBusy) { Text(label) }
                         }
                     }
                 }

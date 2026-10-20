@@ -100,6 +100,15 @@ if (playStoreChannel) {
     include(":feature:speech")
     include(":feature:grammar")
     include(":feature:ocr")
+    // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
+    // wmkb.enableNpu=false (the same flag :core:config reads).
+    val local = java.util.Properties()
+    file("local.properties").takeIf { it.exists() }?.inputStream()?.use(local::load)
+    val npuRuntime = (providers.gradleProperty("wmkb.enableNpu").orNull
+        ?: local.getProperty("wmkb.enableNpu")
+        ?: System.getenv("WMKB_ENABLE_NPU")
+        ?: "true").toBoolean()
+    if (npuRuntime) include(":feature:npu")
 }
 // Macrobenchmarks and the baseline profile generator (-Pwmkb.benchmark=true).
 // Out of the ordinary build for two reasons. Applying the baselineprofile

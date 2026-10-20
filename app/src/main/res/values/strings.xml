@@ -32,6 +32,9 @@
     <string name="speech_module_title">Offline voice engines</string>
     <string name="grammar_module_title">Grammar checker</string>
     <string name="ocr_module_title">Offline text reader</string>
+    <!-- The same for :feature:npu, the runtime behind Compute = NPU for
+         on-device AI. NPU stays in English. -->
+    <string name="npu_module_title">On-device AI on the NPU</string>
     <!-- Shown in Settings › Notification access for the listener that the
          media-control tool and the one-time code chip share. It is the whole
          sentence the user reads before granting, so it names both features:

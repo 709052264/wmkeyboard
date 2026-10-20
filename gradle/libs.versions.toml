@@ -98,6 +98,14 @@ vectordrawableAnimated = "1.2.0"
 lottie = "6.7.1"
 zxing = "3.5.4"
 litertlm = "0.14.0"
+# The NPU runtime behind Compute = NPU (#804), packaged as assets by the
+# wmkeyboard.npu-runtime convention, never as dependencies. Dispatch 2.3.0
+# accepts the LiteRT API that litertlm 0.14.0 reports (it asks for <= 0.1.0
+# and warns on an older one), and litertlm takes any 0.x dispatch API from
+# 0.1 on: checked in both binaries' version checks, 2026-10-20.
+litertNpu = "2.3.0"
+# Qualcomm's own licence, so full Play and sideload builds only.
+qnnRuntime = "2.51.0"
 # 2.x splits into litert + litert-api sharing one namespace, which AGP's
 # manifest merger rejects; 1.4.2 is the last single-artifact classic runtime
 # (org.tensorflow.lite.Interpreter + signature runners).
@@ -243,6 +251,8 @@ androidx-vectordrawable-animated = { group = "androidx.vectordrawable", name = "
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 zxing-core = { group = "com.google.zxing", name = "core", version.ref = "zxing" }
 litertlm-android = { group = "com.google.ai.edge.litertlm", name = "litertlm-android", version.ref = "litertlm" }
+litert-npu-runtime-qualcomm = { group = "com.google.ai.edge.litert", name = "litert-npu-runtime-qualcomm", version.ref = "litertNpu" }
+qnn-runtime = { group = "com.qualcomm.qti", name = "qnn-runtime", version.ref = "qnnRuntime" }
 litert = { group = "com.google.ai.edge.litert", name = "litert", version.ref = "litert" }
 luaj-jse = { group = "org.luaj", name = "luaj-jse", version.ref = "luaj" }
 snakeyaml = { group = "org.yaml", name = "snakeyaml", version.ref = "snakeyaml" }

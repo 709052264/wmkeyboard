@@ -144,6 +144,16 @@
     <!-- CPU and GPU name the two compute backends. They stay in English. -->
     <string name="models_llm_compute_info">The GPU option is experimental. The app changes to the CPU automatically if the GPU does not start, or if a model stops during an answer. The GPU memory is much smaller than the system memory, so a large model frequently needs the CPU. Select CPU here if the GPU continues to fail.</string>
 
+    <!-- Below the Compute choices, only on a phone whose chip has an NPU
+         build. NPU, GPU and CPU stay in English. %1$s lists the model names,
+         for example "Gemma 3 1B, Gemma 3 270M". -->
+    <string name="models_llm_compute_npu_info">NPU runs a model on the AI accelerator of your phone. It needs a build of the model for the chip of your phone, and only some models have one: <xliff:g id="models" example="Gemma 3 1B, Gemma 3 270M">%1$s</xliff:g>. When Compute is NPU, Download gets that build. Other models, and a model that fails on the NPU, run as they do with GPU. The NPU build only runs on the NPU.</string>
+    <!-- Buttons on a model row that get the other file of a model. %1$s is the download size. -->
+    <string name="models_llm_get_npu_build_action">Get the NPU build, <xliff:g id="size" example="689 MB">%1$s</xliff:g></string>
+    <string name="models_llm_get_standard_build_action">Get the standard build, <xliff:g id="size" example="584 MB">%1$s</xliff:g></string>
+    <!-- Under a model row when its NPU build is on the phone. -->
+    <string name="models_llm_npu_build_label">NPU build on this phone</string>
+
     <!-- Model storage. %1$s is how much space the models use. -->
     <string name="models_llm_storage_info">Models use <xliff:g id="size" example="2.6 GB">%1$s</xliff:g> of storage on your device. The app keeps them in private app storage. A download continues from where it stopped if you cancel it or lose the connection.</string>
     <!-- %1$s is how much space files of old models still use. -->

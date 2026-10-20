@@ -40,6 +40,23 @@ val playStoreChannel = run {
         ?: "false").toBoolean()
 }
 
+// The Qualcomm NPU runtime for Compute = NPU (#804): on unless
+// wmkb.enableNpu=false, never in the F-Droid build. Read the same way as
+// ENABLE_NPU in :core:config. On Play it is the on-demand :feature:npu split
+// instead, so it is packaged here only off Play; see the convention for what
+// it carries and why as assets.
+val npuRuntime = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    fun prop(name: String, env: String, default: String) =
+        providers.gradleProperty(name).orNull ?: localProperties.getProperty(name) ?: System.getenv(env) ?: default
+    prop("wmkb.enableNpu", "WMKB_ENABLE_NPU", "true").toBoolean() &&
+        !prop("wmkb.enableFdroid", "WMKB_ENABLE_FDROID", "false").toBoolean()
+}
+if (npuRuntime && !playStoreChannel) apply(plugin = "wmkeyboard.npu-runtime")
+
 android {
     namespace = "com.wasimaster.wmkeyboard.intelligence"
     compileSdk {

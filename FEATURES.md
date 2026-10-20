@@ -2555,8 +2555,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Metered-connection confirmation above 500 MB
     - Orphan cleanup — directories left by models dropped from the catalog are reported with a one-tap Free up
   - Import your own model file `RARE` — any .litertlm or .task; GGUF rejected on extension
-  - Compute backend choice `RARE` — CPU (default) or GPU
+  - Compute backend choice `RARE` — CPU (default) or GPU, plus NPU on SM8750 and SM8850 (issue #804)
     - GPU failure falls back to CPU and is remembered per model file
+    - NPU runs a model's ahead-of-time build for this chip — Gemma 3 1B and Gemma 3 270M have one; Download fetches it while Compute is NPU, a row offers the other build when Compute wants it
+    - NPU falls back to the GPU, then the CPU — a model with no NPU build never tries it; a build that fails to start, or crashes the keyboard, stays off the NPU until a system or app update; a failed answer only for that session
+    - Qualcomm QNN runtime as compressed assets — LiteRT's dispatch library plus libQnnHtp, libQnnSystem and the V79/V81 stub and skel, about 14 MB instead of 50 as native libraries; unpacked into no-backup storage per app version
+    - On Play the runtime is the on-demand :feature:npu split — requested when NPU is picked; until it arrives the model runs on the GPU or CPU
   - Context-window setting `RARE` — 5 presets 1024–16384 plus the model's own default; changing it reloads the model
     - No per-response ceiling on-device — the window bounds prompt and answer together
   - Engine lifecycle `RARE` — one cached engine rebuilt only when model file or backend changes
@@ -2747,6 +2751,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence |
+| NPU under Compute | full flavour Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
 | Handwriting language models | one-time network download per language through ML Kit |
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |

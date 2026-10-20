@@ -41,12 +41,13 @@
     <string name="core_settings_ai_provider_on_device_label">On your device</string>
 
     <!-- ================================================================== -->
-    <!-- AI tool: which processor runs a model on the device. Both are      -->
+    <!-- AI tool: which processor runs a model on the device. All three are -->
     <!-- hardware acronyms and stay in English in every language.           -->
     <!-- ================================================================== -->
 
     <string name="core_settings_ai_backend_cpu_label" translatable="false">CPU</string>
     <string name="core_settings_ai_backend_gpu_label" translatable="false">GPU</string>
+    <string name="core_settings_ai_backend_npu_label" translatable="false">NPU</string>
 
     <!-- The AI actions moved to :core:tools as core_tools_ai_action_*, with  -->
     <!-- the rest of the action model. They are a list the user owns now, so  -->

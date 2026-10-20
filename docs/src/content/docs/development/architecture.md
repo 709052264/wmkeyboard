@@ -282,3 +282,16 @@ announce nor explore.
   the spelling-map assets. The service loads the backend when a layout that
   types through it is enabled. Rebuild the committed `.so` files with
   `native/wm-engine-jni/build.sh`; see [building](/development/building/).
+- **On-device AI accelerators.** Compute choices are `LocalLlmBackend`
+  values, and every one goes through the same `LlmRuntime` seam: the bridge
+  (`core/intelligence/src/llmbridge/.../LitertLmRuntime.kt`) picks the
+  litertlm `Backend` and owns the fallback, so callers never change. The NPU
+  is the worked example. To add a chip, list it in `NpuSupport.HTP_ARCH`
+  (`core/intelligence/.../localllm/NpuSupport.kt`) with its Hexagon
+  generation, add that generation's QNN stub and skel to the
+  `wmkeyboard.npu-runtime` convention in `build-logic`, and give the catalog
+  models that have a build for it an `NpuBuild` in `LocalLlmCatalog`. The
+  runtime ships as assets that `NpuRuntime` unpacks, in the base APK outside
+  Play and in the on-demand `:feature:npu` split on Play. A model without a
+  build for the chip needs nothing: `NpuRouting` sends it to its standard
+  file on the GPU or CPU.
