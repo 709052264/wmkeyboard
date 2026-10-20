@@ -48,6 +48,8 @@
     <string name="voice_ui_bar_desc">A small pill that you can drag anywhere. The keyboard stays hidden</string>
     <string name="voice_typing_title">Voice typing mode</string>
     <string name="voice_typing_subtitle">How voice typing and the keys share the field</string>
+    <!-- Shown instead when only one mode can be picked. %1$s is the voice typing view that offers the others, "Compact bar over the keys". -->
+    <string name="voice_typing_subtitle_needs_strip">The other modes need the voice typing view set to <xliff:g id="view" example="Compact bar over the keys">%1$s</xliff:g></string>
     <string name="voice_typing_info">One block at a time is the usual way. The words appear in the field while you speak, and the first key press stops the microphone.\n\nType while you speak keeps the microphone open. Each phrase goes into the field when you stop for breath, so the keys, the layouts and the suggestion strip stay live all through the session. Use it with the compact bar over the keys. This mode always keeps listening.\n\nPlain text works the same way, but it adds no punctuation and no spaces. You control all of them from the keyboard. Use it for code, for terminals and for any field where you want only the words you said.\n\nThe two type-while-you-speak modes need the keys on screen, so they are offered only when the voice typing view is the compact bar over the keys. Plain text also needs the system recognizer: the offline models and a transcription server add their own punctuation.</string>
     <string name="voice_typing_block">One block at a time</string>
     <string name="voice_typing_interactive">Type while you speak</string>

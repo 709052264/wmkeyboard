@@ -395,9 +395,17 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             }
         }
         item {
+            // With only one block at a time on offer, the row says what brings
+            // the other two (#852): a list of one, with nothing on it saying
+            // why, read as a setting that would not change.
+            val keysShownForModes = voiceUiMode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP
             ChoiceSetting(
                 R.string.voice_typing_title,
-                subtitle = stringResource(R.string.voice_typing_subtitle),
+                subtitle = if (keysShownForModes) {
+                    stringResource(R.string.voice_typing_subtitle)
+                } else {
+                    stringResource(R.string.voice_typing_subtitle_needs_strip, stringResource(R.string.voice_ui_strip))
+                },
                 info = stringResource(R.string.voice_typing_info),
                 // Typing while you speak needs the keys on screen, which only
                 // the compact bar leaves there; plain text needs an engine that
