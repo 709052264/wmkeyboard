@@ -1,10 +1,15 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.TrieWalker
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.ceil
-import kotlin.math.ln
 import kotlin.math.sqrt
+
+// fdlibm's log, as `wm-engine`'s `strict_math::log` computes it, so the Rust
+// decoder and this one score alike on every runtime.
+private fun ln(x: Double): Double = StrictMath.log(x)
 
 /**
  * Decoder for a word typed with both thumbs at once (issue #638): any mix of
@@ -62,6 +67,10 @@ import kotlin.math.sqrt
  * letter is in the word, never that it is in it twice. A word with a single
  * swipe and nothing else should go to [GlideBeam], which has all of them; the
  * caller routes.
+ *
+ * [decode] runs in Rust ([NativeGlide.duetDecode]) whenever
+ * [NativeEngine.useNative] allows and every trie has a Rust twin; this
+ * implementation is the fallback and the parity test's reference.
  */
 class DuetBeam(
     private val tuning: GlideBeam.Tuning = GlideBeam.Tuning(),
@@ -119,6 +128,12 @@ class DuetBeam(
     ): List<GlideBeam.Candidate> {
         if (tokens.isEmpty() || tokens.size > DuetWorkspace.MAX_TOKENS) return emptyList()
         if (keyWidth <= 0f || keys.keyCount == 0 || sources.isEmpty() || limit <= 0) return emptyList()
+        if (NativeEngine.useNative) {
+            NativeGlide.duetDecode(tuning, duet, tokens, keys, keyWidth, sources, limit, partial)?.let {
+                nativeRuns.incrementAndGet()
+                return it
+            }
+        }
         prepare(tokens, keys, keyWidth, ws)
 
         val k = maxOf(limit * 2, GlideBeam.RESULT_K)
@@ -854,6 +869,9 @@ class DuetBeam(
         private const val EPS = 1e-9
 
         private fun ln1p(v: Int): Double = ln(1.0 + v)
+
+        /** Decodes that ran in Rust, for the tests that check they did. */
+        val nativeRuns = AtomicLong()
 
         /**
          * Which decoder a word's gestures belong to. One swipe alone is a

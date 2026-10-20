@@ -6,8 +6,9 @@ import com.wasimaster.wmkeyboard.core.prediction.NativeFuzzySearch
 import com.wasimaster.wmkeyboard.core.prediction.PredictionNative
 
 /**
- * [GlideBeam] in Rust (`wm-engine`'s `glide`), when every trie it decodes
- * against has a Rust twin, the same test [NativeFuzzySearch] makes.
+ * [GlideBeam], [DuetBeam] and [CtcGlideBeam] in Rust (`wm-engine`'s `glide`), when
+ * every trie they decode against has a Rust twin, the same test
+ * [NativeFuzzySearch] makes.
  *
  * The user's learned shapes stay in Kotlin, in [GlideShapeSource], so a
  * decode that reads them is two crossings on one thread: the walk, which
@@ -54,32 +55,15 @@ internal object NativeGlide {
         shapes: GlideShapeSource?,
         lookAhead: Int,
     ): List<GlideBeam.Candidate>? {
-        val handles = LongArray(sources.size)
-        val kinds = IntArray(sources.size)
-        val weights = DoubleArray(sources.size)
-        val tiers = IntArray(sources.size)
-        val floors = IntArray(sources.size)
-        var count = 0
-        val scratch = ChildBuffer()
-        for (src in sources) {
-            val walker = src.walker
-            val handle = NativeFuzzySearch.handleOf(walker, scratch)
-            if (handle == NativeFuzzySearch.SKIP) continue
-            if (handle == 0L) return null
-            handles[count] = handle
-            kinds[count] = NativeFuzzySearch.kindOf(walker)
-            weights[count] = src.logWeight
-            tiers[count] = if (src.tier == FuzzyBeamSearch.Tier.USER) 1 else 0
-            floors[count] = walker.frequencyAtRank(tuning.vocabularyRank)
-            count++
-        }
+        val s = Sources(sources, tuning.vocabularyRank)
+        if (!s.complete) return null
         val learned = shapes != null && tuning.learnedShapeGain > 0.0 && tuning.shapeChannel > 0.0
         val seeding = shapes != null && tuning.shapeSeeding && tuning.learnedShapeGain > 0.0
         val stroke = Path(path)
         val walked = PredictionNative.glideDecode(
             tuningArray, stroke.xs, stroke.ys, stroke.ts, keys.nativeHandle, keyWidth,
-            handles.copyOf(count), kinds.copyOf(count), weights.copyOf(count), tiers.copyOf(count),
-            floors.copyOf(count), limit, lookAhead, if (learned || seeding) 1 else 0,
+            s.handles.copyOf(s.count), s.kinds.copyOf(s.count), s.weights.copyOf(s.count), s.tiers.copyOf(s.count),
+            s.floors.copyOf(s.count), limit, lookAhead, if (learned || seeding) 1 else 0,
         ) ?: return emptyList()
         if (!learned && !seeding) return candidates(walked)
         @Suppress("UNCHECKED_CAST")
@@ -95,6 +79,110 @@ internal object NativeGlide {
             null
         }
         return candidates(PredictionNative.glideFinish(words, stored, seeds))
+    }
+
+    /** The sources as `glide.rs` takes them, or null when one has no Rust twin. */
+    private class Sources(sources: List<FuzzyBeamSearch.WalkSource>, vocabularyRank: Int) {
+        val handles = LongArray(sources.size)
+        val kinds = IntArray(sources.size)
+        val weights = DoubleArray(sources.size)
+        val tiers = IntArray(sources.size)
+        val floors = IntArray(sources.size)
+        var count = 0
+        var complete = true
+
+        init {
+            val scratch = ChildBuffer()
+            for (src in sources) {
+                val walker = src.walker
+                val handle = NativeFuzzySearch.handleOf(walker, scratch)
+                if (handle == NativeFuzzySearch.SKIP) continue
+                if (handle == 0L) {
+                    complete = false
+                    break
+                }
+                handles[count] = handle
+                kinds[count] = NativeFuzzySearch.kindOf(walker)
+                weights[count] = src.logWeight
+                tiers[count] = if (src.tier == FuzzyBeamSearch.Tier.USER) 1 else 0
+                floors[count] = walker.frequencyAtRank(vocabularyRank)
+                count++
+            }
+        }
+    }
+
+    /** [CtcGlideBeam.decode] natively, or null when a source has no twin. */
+    @Suppress("LongParameterList")
+    fun ctcDecode(
+        scoring: CtcGlideBeam.Scoring,
+        emissions: SwipeEmissions,
+        sources: List<FuzzyBeamSearch.WalkSource>,
+        limit: Int,
+        width: Int,
+        vocabularyRank: Int,
+    ): List<GlideBeam.Candidate>? {
+        val s = Sources(sources, vocabularyRank)
+        if (!s.complete) return null
+        val weights = with(scoring) {
+            doubleArrayOf(
+                lengthNorm.toDouble(), lengthBonus.toDouble(), freqWeight.toDouble(),
+                pruneNorm.toDouble(), pruneBonus.toDouble(),
+            )
+        }
+        return candidates(
+            PredictionNative.ctcDecode(
+                emissions.logProbs, emissions.steps, s.handles.copyOf(s.count), s.kinds.copyOf(s.count),
+                s.weights.copyOf(s.count), s.tiers.copyOf(s.count), s.floors.copyOf(s.count),
+                limit, width, weights,
+            ),
+        )
+    }
+
+    /** [DuetBeam.decode] natively, or null when a source has no twin. */
+    @Suppress("LongParameterList")
+    fun duetDecode(
+        tuning: GlideBeam.Tuning,
+        duet: DuetBeam.Duet,
+        tokens: List<GlideToken>,
+        keys: GlideKeyMap,
+        keyWidth: Float,
+        sources: List<FuzzyBeamSearch.WalkSource>,
+        limit: Int,
+        partial: Boolean,
+    ): List<GlideBeam.Candidate>? {
+        val s = Sources(sources, tuning.vocabularyRank)
+        if (!s.complete) return null
+        val kinds = IntArray(tokens.size)
+        val sizes = IntArray(tokens.size)
+        val points = ArrayList<GesturePoint>()
+        for ((i, token) in tokens.withIndex()) {
+            when (token) {
+                is GlideToken.Tap -> {
+                    kinds[i] = 0
+                    sizes[i] = 1
+                    points.add(GesturePoint(token.x, token.y, token.t))
+                }
+                is GlideToken.Swipe -> {
+                    kinds[i] = 1
+                    sizes[i] = token.points.size
+                    points.addAll(token.points)
+                }
+            }
+        }
+        val stroke = Path(points)
+        val duetValues = with(duet) {
+            doubleArrayOf(
+                orderSlackMs.toDouble(), tapWindowMs.toDouble(), tapSigma.toDouble(), tapNearRadius.toDouble(),
+                tapMaxCost.toDouble(), tapRepeatCost.toDouble(), samplesPerKey.toDouble(), minSamples.toDouble(),
+            )
+        }
+        return candidates(
+            PredictionNative.duetDecode(
+                tuningArray(tuning), duetValues, kinds, sizes, stroke.xs, stroke.ys, stroke.ts,
+                keys.nativeHandle, keyWidth, s.handles.copyOf(s.count), s.kinds.copyOf(s.count),
+                s.weights.copyOf(s.count), s.tiers.copyOf(s.count), s.floors.copyOf(s.count), limit, partial,
+            ),
+        )
     }
 
     private fun candidates(result: Array<Any>): List<GlideBeam.Candidate> {

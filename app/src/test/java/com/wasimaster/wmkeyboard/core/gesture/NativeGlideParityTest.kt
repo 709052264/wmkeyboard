@@ -4,6 +4,7 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
 import com.wasimaster.wmkeyboard.core.engine.NativeEngine
+import com.wasimaster.wmkeyboard.core.gesture.eval.DuetCorpus
 import com.wasimaster.wmkeyboard.core.gesture.eval.GlideGrid
 import com.wasimaster.wmkeyboard.core.gesture.eval.SwipeCorpus
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -12,6 +13,9 @@ import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.PackedTrie
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import java.io.File
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.random.Random
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assume.assumeTrue
@@ -30,6 +34,10 @@ import org.junit.Test
  * learned shapes and the shape seeding; every candidate's word, score, shape
  * cost, tier and look-ahead must be bit-identical, and so must the
  * alignment of the intended word and the stored shape of the stroke.
+ *
+ * [DuetBeam] gets the two-thumb eval's corpus, with and without its clock,
+ * whole words and prefixes; [CtcGlideBeam] gets emissions peaked along
+ * sampled words, with noise, at both beam widths and under the cap.
  */
 class NativeGlideParityTest {
 
@@ -173,5 +181,110 @@ class NativeGlideParityTest {
             }
         }
         println("glide parity: $decodes decodes, $candidates candidates, $alignments alignments identical")
+    }
+
+    private fun dictionaries(): Triple<List<Pair<String, Int>>, Trie, PackedTrie> {
+        val entries = entries()
+        val trie = Trie().apply { entries.forEach { (word, frequency) -> insert(word, frequency) } }
+        return Triple(entries, trie, PackedTrie.of(entries))
+    }
+
+    private fun userTrie() = Trie().apply {
+        for ((i, word) in listOf("e-mail", "re-read", "jenny's", "a.m.", "glide", "duet").withIndex()) insert(word, 20 + i)
+    }
+
+    private fun withUser(dictionary: com.wasimaster.wmkeyboard.core.prediction.WordSource, user: Trie) =
+        dictionary.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) } +
+            user.walkers().map { FuzzyBeamSearch.WalkSource(it, 1.5, FuzzyBeamSearch.Tier.USER) }
+
+    @Test
+    fun everyTwoThumbWordDecodesTheSame() {
+        val (entries, trie, packed) = dictionaries()
+        val user = userTrie()
+        val grid = GlideGrid.of(BuiltInLayouts.QWERTY)
+        val keys = GlideKeyMap.of(grid.keyCenters(KEY_WIDTH), KEY_WIDTH)
+        val corpus = DuetCorpus(SEED, grid = grid)
+        val looping = SwipeCorpus.Noise.TYPICAL.profile.copy(loopOnDoubles = 1f)
+        val cases = SwipeCorpus.Noise.entries.flatMap { corpus.generate(entries, it, CASES) } +
+            corpus.generate(entries, SwipeCorpus.Noise.TYPICAL, CASES, looping)
+        val default = GlideBeam.Tuning()
+        val beams = listOf(
+            "shipped" to DuetBeam(),
+            "capped" to DuetBeam(default.copy(vocabularyRank = 20_000)),
+            "wide anchors" to DuetBeam(default.copy(startRadius = default.startRadius + 0.6f, endRadius = default.endRadius + 0.6f)),
+        )
+        var count = 0
+        for ((name, beam) in beams) {
+            for ((index, case) in cases.withIndex()) {
+                val sources = withUser(if (index % 2 == 0) trie else packed, user)
+                val clockless = case.tokens.map { token ->
+                    when (token) {
+                        is GlideToken.Tap -> GlideToken.Tap(token.x, token.y, 0L)
+                        is GlideToken.Swipe -> GlideToken.Swipe(token.points.map { it.copy(t = 0L) })
+                    }
+                }
+                for ((tokens, clock) in listOf(case.tokens to "clocked", clockless to "clockless")) {
+                    for (partial in listOf(false, true)) {
+                        val what = "$name #$index '${case.intended}' $clock partial=$partial"
+                        val expected = kotlinSide { beam.decode(tokens, keys, KEY_WIDTH, sources, DuetWorkspace(), LIMIT, partial) }
+                        val runs = DuetBeam.nativeRuns.get()
+                        val actual = beam.decode(tokens, keys, KEY_WIDTH, sources, DuetWorkspace(), LIMIT, partial)
+                        assertEquals("$what: the decode did not run in Rust", runs + 1, DuetBeam.nativeRuns.get())
+                        same(expected, actual, what)
+                        count++
+                    }
+                }
+            }
+        }
+        println("duet parity: $count decodes, $candidates candidates identical")
+    }
+
+    /** Emissions peaked along [word]'s letters, a few steps each with blanks between, plus noise. */
+    private fun emissionsFor(word: String, random: Random, noise: Float): SwipeEmissions {
+        val classes = SwipeEmissions.CLASSES
+        val steps = ArrayList<Int>()
+        for (ch in word.lowercase()) {
+            val cls = ch - 'a'
+            if (cls !in 0 until 26) continue
+            repeat(1 + random.nextInt(3)) { steps.add(cls) }
+            if (random.nextFloat() < 0.4f) steps.add(SwipeEmissions.BLANK)
+        }
+        val out = FloatArray(steps.size * classes)
+        for ((t, cls) in steps.withIndex()) {
+            var sum = 0.0
+            val raw = DoubleArray(classes) { c ->
+                val logit = (if (c == cls) 6.0 else 0.0) + noise * random.nextDouble(-3.0, 3.0)
+                exp(logit).also { sum += it }
+            }
+            for (c in 0 until classes) out[t * classes + c] = ln(raw[c] / sum).toFloat()
+        }
+        return SwipeEmissions(steps.size, out)
+    }
+
+    @Test
+    fun everyNeuralReadingDecodesTheSame() {
+        val (entries, trie, packed) = dictionaries()
+        val user = userTrie()
+        val random = Random(SEED)
+        val words = entries.filter { (w, _) -> w.length >= 2 }.shuffled(random).take(CASES * 3).map { it.first } +
+            listOf("email", "reread", "jennys", "duet")
+        var count = 0
+        for (beam in listOf(CtcGlideBeam(), CtcGlideBeam(CtcGlideBeam.Scoring(lengthNorm = 0.4f, pruneBonus = 0.8f, freqWeight = 0.3f)))) {
+            for ((index, word) in words.withIndex()) {
+                val emissions = emissionsFor(word, random, if (index % 3 == 0) 1.5f else 0.4f)
+                if (emissions.steps == 0) continue
+                val sources = withUser(if (index % 2 == 0) trie else packed, user)
+                for ((width, rank) in listOf(100 to 0, 300 to 0, 100 to 20_000)) {
+                    val what = "#$index '$word' width=$width rank=$rank"
+                    val expected = kotlinSide { beam.decode(emissions, sources, LIMIT, width, rank) }
+                    val runs = CtcGlideBeam.nativeRuns.get()
+                    val actual = beam.decode(emissions, sources, LIMIT, width, rank)
+                    assertEquals("$what: the decode did not run in Rust", runs + 1, CtcGlideBeam.nativeRuns.get())
+                    same(expected, actual, what)
+                    count++
+                }
+            }
+        }
+        println("ctc parity: $count decodes, $candidates candidates identical")
     }
 }

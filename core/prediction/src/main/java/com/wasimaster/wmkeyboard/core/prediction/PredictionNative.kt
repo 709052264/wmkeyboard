@@ -255,4 +255,44 @@ internal object PredictionNative {
     ): IntArray?
 
     external fun glideSampleShape(xs: FloatArray, ys: FloatArray, ts: LongArray, keyWidth: Float): ByteArray?
+
+    /** `CtcGlideBeam.decode`: the result shaped as [glideDecode]'s; [scoring] is lengthNorm, lengthBonus, freqWeight, pruneNorm, pruneBonus. */
+    @Suppress("LongParameterList")
+    external fun ctcDecode(
+        logProbs: FloatArray,
+        steps: Int,
+        dicts: LongArray,
+        kinds: IntArray,
+        weights: DoubleArray,
+        tiers: IntArray,
+        minFrequencies: IntArray,
+        limit: Int,
+        width: Int,
+        scoring: DoubleArray,
+    ): Array<Any>
+
+    /** A plain `Trie`'s exact copy, for the walks (`sources.rs`); kind 2 in their source lists. */
+    external fun trieFromEntries(words: Array<String>, frequencies: IntArray): Long
+    external fun trieClose(handle: Long)
+
+    /** `DuetBeam.decode`: tokens as kinds (0 tap, 1 swipe) and point counts over the flat points; the result shaped as [glideDecode]'s. */
+    @Suppress("LongParameterList")
+    external fun duetDecode(
+        tuning: DoubleArray,
+        duet: DoubleArray,
+        tokenKinds: IntArray,
+        tokenSizes: IntArray,
+        xs: FloatArray,
+        ys: FloatArray,
+        ts: LongArray,
+        keyMap: Long,
+        keyWidth: Float,
+        dicts: LongArray,
+        kinds: IntArray,
+        weights: DoubleArray,
+        tiers: IntArray,
+        minFrequencies: IntArray,
+        limit: Int,
+        partial: Boolean,
+    ): Array<Any>
 }

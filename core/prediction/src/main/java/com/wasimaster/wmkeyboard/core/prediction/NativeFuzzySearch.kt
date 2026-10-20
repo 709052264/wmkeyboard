@@ -8,9 +8,9 @@ import java.util.WeakHashMap
  * [FuzzyBeamSearch.search] in Rust (`wm-engine`'s `fuzzy::search_units`),
  * when every trie it walks has a Rust twin: a [MappedTrie] is one already,
  * the user lexicon's [LexiconTrie] is a copy of one, a [PackedTrie] gets a
- * copy of its bytes the first time it is walked, and an empty trie is
- * skipped, since it can contribute nothing. Any other trie, which today means
- * a non-empty [Trie] some caller built itself, keeps the search in Kotlin.
+ * copy of its bytes the first time it is walked, a plain [Trie] an exact
+ * copy each time it has changed, and an empty trie is skipped, since it can
+ * contribute nothing. Any other walker keeps the search in Kotlin.
  *
  * One crossing per search; the proximity and habit models cross once, by
  * handle ([KeyProximity.nativeHandle], [EditHabits.nativeHandle]).
@@ -22,6 +22,7 @@ internal object NativeFuzzySearch {
 
     const val KIND_DICTIONARY = 0
     const val KIND_LEXICON = 1
+    const val KIND_TRIE = 2
 
     private val packedTwins = WeakHashMap<PackedTrie, Long>()
 
@@ -104,7 +105,11 @@ internal object NativeFuzzySearch {
         else -> if (walker.childrenInto(walker.root, scratch) == 0 && !walker.isWord(walker.root)) SKIP else 0L
     }
 
-    fun kindOf(walker: TrieWalker): Int = if (walker is LexiconTrie) KIND_LEXICON else KIND_DICTIONARY
+    fun kindOf(walker: TrieWalker): Int = when (walker) {
+        is LexiconTrie -> KIND_LEXICON
+        is Trie.NodeWalker -> KIND_TRIE
+        else -> KIND_DICTIONARY
+    }
 
     /** A [Trie]'s Rust copy and the [Trie.version] it was made at; closed once replaced or the trie is gone. */
     private class TrieTwin(val version: Long, val handle: Long)
@@ -115,18 +120,19 @@ internal object NativeFuzzySearch {
      * A Rust copy of [trie], rebuilt whenever the trie has changed since the
      * last one. Only tests walk a plain [Trie], some of them one they keep
      * adding to, so this trades a rebuild per change for having no second
-     * walk to keep. The copy is the [PackedTrie] of the same entries, which
-     * walks identically: the same children in the same order, the same
-     * frequencies, and the same subtree maxima, since a [Trie]'s only rise.
+     * walk to keep. The copy is `wm-engine`'s `UserTrie`, the [Trie] port:
+     * exact counts (a `.wmdict` rounds them), children in label order, and
+     * the same subtree maxima, since a [Trie]'s counts only rise.
      */
     private fun trieTwin(trie: Trie): Long = synchronized(trieTwins) {
         trieTwins[trie]?.takeIf { it.version == trie.version }?.let { return it.handle }
         val entries = ArrayList<Pair<String, Int>>()
         val walker = trie.walkers().single()
         collect(walker, walker.root, StringBuilder(), entries)
-        val bytes = ByteArrayOutputStream().also { PackedTrieCodec.write(PackedTrie.of(entries), it) }.toByteArray()
-        val twin = TrieTwin(trie.version, PredictionNative.dictFromBytes(bytes))
-        NativeHandles.track(twin, twin.handle, PredictionNative::dictClose)
+        val words = Array(entries.size) { entries[it].first }
+        val frequencies = IntArray(entries.size) { entries[it].second }
+        val twin = TrieTwin(trie.version, PredictionNative.trieFromEntries(words, frequencies))
+        NativeHandles.track(twin, twin.handle, PredictionNative::trieClose)
         trieTwins[trie] = twin
         twin.handle
     }

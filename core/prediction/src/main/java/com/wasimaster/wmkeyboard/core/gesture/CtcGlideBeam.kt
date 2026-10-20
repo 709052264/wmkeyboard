@@ -1,10 +1,16 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.prediction.ChildBuffer
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.TrieWalker
-import kotlin.math.ln
-import kotlin.math.pow
+import java.util.concurrent.atomic.AtomicLong
+
+// fdlibm's log and pow, as `wm-engine`'s `strict_math` computes them, so the
+// Rust decoder and this one score alike on every runtime.
+private fun ln(x: Double): Double = StrictMath.log(x)
+
+private fun Float.pow(x: Float): Float = StrictMath.pow(toDouble(), x.toDouble()).toFloat()
 
 /**
  * Glide decoding off a neural model's emissions ([SwipeModel]): a beam search
@@ -35,6 +41,10 @@ import kotlin.math.pow
  *
  * Written for this project from the scoring the model card and technical
  * report describe; FUTO's own decoder library is GPL and none of it is here.
+ *
+ * [decode] runs in Rust ([NativeGlide.ctcDecode]) whenever
+ * [NativeEngine.useNative] allows and every trie has a Rust twin; this
+ * implementation is the fallback and the parity test's reference.
  */
 class CtcGlideBeam(private val scoring: Scoring = Scoring()) {
 
@@ -100,6 +110,12 @@ class CtcGlideBeam(private val scoring: Scoring = Scoring()) {
         vocabularyRank: Int = 0,
     ): List<GlideBeam.Candidate> {
         if (limit <= 0 || sources.isEmpty() || emissions.steps == 0) return emptyList()
+        if (NativeEngine.useNative) {
+            NativeGlide.ctcDecode(scoring, emissions, sources, limit, width, vocabularyRank)?.let {
+                nativeRuns.incrementAndGet()
+                return it
+            }
+        }
         ensure(width)
         val best = HashMap<String, GlideBeam.Candidate>()
         for (src in sources) search(src, emissions, width, vocabularyRank, best)
@@ -391,12 +407,15 @@ class CtcGlideBeam(private val scoring: Scoring = Scoring()) {
         }
     }
 
-    private companion object {
-        const val NO_CHAR = '\u0000'
+    companion object {
+        /** Decodes that ran in Rust, for the tests that check they did. */
+        val nativeRuns = AtomicLong()
+
+        private const val NO_CHAR = '\u0000'
         /** Next-beam slots per kept hypothesis before it grows. */
-        const val EXPANSION = 16
+        private const val EXPANSION = 16
         /** As [GlideBeam]: a stroke never reads as a single letter. */
-        const val MIN_WORD_LENGTH = 2
-        const val MAX_WORD = 64
+        private const val MIN_WORD_LENGTH = 2
+        private const val MAX_WORD = 64
     }
 }
