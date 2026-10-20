@@ -79,9 +79,16 @@ class UserLexicon(private val storageFile: File?) {
         fun bump(next: String) {
             counts.merge(next, 1, Int::plus)
             sorted = null
-            if (counts.size > MAX_FOLLOWERS) {
-                counts.remove(counts.minByOrNull { it.value }?.key)
-            }
+            if (counts.size > MAX_FOLLOWERS) dropLast()
+        }
+
+        /**
+         * Drops the follower that ranks last in [ordered]: the lowest count,
+         * and of several at that count the one that sorts last. Not the
+         * hash map's first, which hung on insertion history.
+         */
+        private fun dropLast() {
+            counts.remove(counts.entries.minWithOrNull(EVICTION_ORDER)?.key)
         }
 
         /** Moves [old]'s count onto [new], adding to any count [new] already has. */
@@ -95,9 +102,7 @@ class UserLexicon(private val storageFile: File?) {
         fun absorb(other: Followers) {
             for ((next, count) in other.counts) counts.merge(next, count, Int::plus)
             sorted = null
-            while (counts.size > MAX_FOLLOWERS) {
-                counts.remove(counts.minByOrNull { it.value }?.key)
-            }
+            while (counts.size > MAX_FOLLOWERS) dropLast()
         }
 
         fun ordered(): List<String> = sorted ?: counts.entries
@@ -883,11 +888,14 @@ class UserLexicon(private val storageFile: File?) {
                 val halfLives = age.toDouble() / HALF_LIFE_GENERATIONS
                 return (words[word] ?: 0) * Math.pow(2.0, -halfLives)
             }
+            // The word itself breaks ties, so which of several equally
+            // scored words goes does not hang on the map's order.
             val evictable = words.keys
                 .sortedWith(
                     compareBy(
                         { it in addedByHand || (words[it] ?: 0) >= STICKY_MIN_COUNT },
                         { score(it) },
+                        { it },
                     )
                 )
             val toEvict = evictable.take(words.size - EVICT_TO)
@@ -917,25 +925,25 @@ class UserLexicon(private val storageFile: File?) {
             mutations++
         }
         if (bigrams.size > MAX_BIGRAM_PREVS) {
-            val evictable = bigrams.entries.sortedBy { it.value.total() }
+            val evictable = bigrams.entries.sortedWith(HEAD_EVICTION_ORDER)
             for (entry in evictable.take(bigrams.size - MAX_BIGRAM_PREVS)) {
                 bigrams.remove(entry.key)
             }
         }
         if (trigrams.size > MAX_TRIGRAM_CONTEXTS) {
-            val evictable = trigrams.entries.sortedBy { it.value.total() }
+            val evictable = trigrams.entries.sortedWith(HEAD_EVICTION_ORDER)
             for (entry in evictable.take(trigrams.size - MAX_TRIGRAM_CONTEXTS)) {
                 trigrams.remove(entry.key)
             }
         }
         if (skip1grams.size > MAX_SKIP1_HEADS) {
-            val evictable = skip1grams.entries.sortedBy { it.value.total() }
+            val evictable = skip1grams.entries.sortedWith(HEAD_EVICTION_ORDER)
             for (entry in evictable.take(skip1grams.size - MAX_SKIP1_HEADS)) {
                 skip1grams.remove(entry.key)
             }
         }
         if (skip2grams.size > MAX_SKIP2_HEADS) {
-            val evictable = skip2grams.entries.sortedBy { it.value.total() }
+            val evictable = skip2grams.entries.sortedWith(HEAD_EVICTION_ORDER)
             for (entry in evictable.take(skip2grams.size - MAX_SKIP2_HEADS)) {
                 skip2grams.remove(entry.key)
             }
@@ -962,6 +970,14 @@ class UserLexicon(private val storageFile: File?) {
         /** Heads of the (prev3 -> next) store; the issue's own budget for it. */
         private const val MAX_SKIP2_HEADS = 1_000
         private const val MAX_FOLLOWERS = 32
+
+        /** Last in [Followers.ordered] first: lowest count, then the word that sorts last. */
+        private val EVICTION_ORDER =
+            compareBy<Map.Entry<String, Int>> { it.value }.thenByDescending { it.key }
+
+        /** Heads with the fewest sightings go first, ties by the head itself. */
+        private val HEAD_EVICTION_ORDER =
+            compareBy<Map.Entry<String, Followers>> { it.value.total() }.thenBy { it.key }
 
         /** NUL, built rather than written literally. */
         private val TRIGRAM_SEPARATOR: Char = 0.toChar()

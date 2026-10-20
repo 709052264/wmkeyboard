@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import java.util.TreeMap
+
 /**
  * Read-only view over a frequency-weighted word index: prefix completion plus
  * exact frequency/membership lookup. Implemented by the mutable node-based
@@ -36,7 +38,13 @@ interface WordSource {
 class Trie : WordSource {
 
     private class Node {
-        val children = HashMap<Char, Node>()
+        /**
+         * Sorted by label, so a walk lists children in the same order on
+         * every run and in every implementation (the Rust user lexicon's
+         * trie, which the parity tests hold to this one). A hash map listed
+         * them in an order that hung on insertion history.
+         */
+        val children = TreeMap<Char, Node>()
         var frequency = 0
         var isWord = false
         /** Highest word frequency anywhere in this node's subtree (incl. self). */
