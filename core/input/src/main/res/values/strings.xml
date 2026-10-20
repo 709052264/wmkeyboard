@@ -33,13 +33,13 @@
     <string name="core_input_rime_pack_base_title">RIME essentials</string>
     <string name="core_input_rime_pack_base_subtitle">Punctuation, symbols, the word-frequency table and the Simplified and Traditional conversion every RIME schema uses. Downloaded with the first schema.</string>
     <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
-    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME's own Pinyin schema, with the stroke schema it looks characters up by.</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME\'s own Pinyin schema, with the stroke schema it looks characters up by.</string>
     <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
     <string name="core_input_rime_pack_ice_subtitle">A large modern Simplified Chinese vocabulary for Pinyin, with Double Pinyin and 9-key variants. Compiling it takes a minute or more.</string>
     <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
-    <string name="core_input_rime_pack_bopomofo_subtitle">RIME's Zhuyin schema on the standard Dachen key map, with Terra Pinyin's dictionary.</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">RIME\'s Zhuyin schema on the standard Dachen key map, with Terra Pinyin\'s dictionary.</string>
     <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
-    <string name="core_input_rime_pack_cangjie5_subtitle">RIME's fifth-generation Cangjie schema, characters and phrases.</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME\'s fifth-generation Cangjie schema, characters and phrases.</string>
     <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
     <string name="core_input_rime_pack_jyutping_subtitle">The rime-cantonese schema for Cantonese, with its word and phrase lists.</string>
 
