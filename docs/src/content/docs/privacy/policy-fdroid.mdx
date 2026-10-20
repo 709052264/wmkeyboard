@@ -6,7 +6,7 @@ sidebar:
   order: 9
 ---
 
-**Effective 11 August 2026.** This policy covers the WM Keyboard Android app
+**Effective 20 October 2026.** This policy covers the WM Keyboard Android app
 (`com.wasimaster.wmkeyboard`) as built and distributed by F-Droid, and this
 documentation site. WM Keyboard is written and published by Wasi Master, an
 individual developer.
@@ -56,16 +56,17 @@ and the source it builds from.
 | **Google ML Kit** | reports device and app information, a per-install identifier, and timing and error data to Google whenever one of its features runs | handwriting input, OCR, QR and barcode scanning, document scanning, sticker background removal |
 | **Google Play in-app updates** | asks the Play Store whether a newer version exists | nothing: F-Droid's own client handles updates |
 | **The self-updater** | downloads an APK from the project's GitHub releases and installs it | nothing, and it could not have worked here anyway: F-Droid signs its builds with its own key, so an APK from GitHub cannot install over an F-Droid install. This build has no `REQUEST_INSTALL_PACKAGES` permission and no installer code. What it has instead is a check that asks F-Droid, described below |
-| **Play Feature Delivery** | downloads the on-device AI runtime as a separate module | nothing: this edition has no on-device AI |
+| **Play Feature Delivery** | downloads a feature's native library as a separate module | nothing: this edition downloads those libraries itself, after you agree to it (see below) |
 | **Google Play services auth** | gets an OAuth token for Google Drive | Drive as a backup destination. Local storage, WebDAV, an S3-compatible bucket, an SFTP, SMB or FTP server, a Git repository, a mail account, Dropbox and OneDrive all still work |
-| **LiteRT-LM** | runs a language model on the device | on-device AI models. Cloud AI providers still work if you supply your own key |
+| **LiteRT-LM** | runs a language model on the device | the LiteRT-LM models (`.litertlm` and `.task` files). GGUF models still run on the device through llama.cpp, which this edition builds from source, and cloud AI providers still work with your own key |
 | **Qualcomm QNN runtime** | runs an on-device AI model on a Snapdragon phone's NPU, under Qualcomm's own licence | the **NPU** choice under Compute, which this edition could not use anyway without LiteRT-LM |
-| **Whisper speech models** | offline dictation | offline voice typing. Android's own recognizer still works |
-| **Harper grammar engine** | grammar checking | the grammar tool |
+| **LiteRT Whisper models** | offline dictation on Google's LiteRT | the older LiteRT Whisper models. Offline Whisper on whisper.cpp and the other offline voice engines still work |
 
-The native libraries for offline voice typing (whisper.cpp and ExecuTorch),
-for grammar checking (Harper), for the RIME engine for Chinese (librime) and
-for the Mozc engine for Japanese (Mozc) are built from source with the rest of
+The native libraries for offline voice typing (whisper.cpp, ExecuTorch and
+sherpa-onnx), for grammar and spell checking (Harper and Hunspell), for the
+RIME engine for Chinese (librime), the Mozc engine for Japanese (Mozc),
+on-device translation (Bergamot), neural phonetic suggestions (IndicXlit) and
+GGUF models for on-device AI (llama.cpp) are built from source with the rest of
 this edition, but they are not in the APK. The keyboard downloads one the first time
 its feature needs it, from the project's data repository on GitHub, and only
 after you turn on **Download feature libraries** under Privacy. F-Droid did not
@@ -128,7 +129,7 @@ builds minus the rows that need code this build does not have.
 | Photo backgrounds | your search terms | Unsplash, Pexels |
 | AI writing tools | the text you ran an action on | the provider you chose, using your own API key, or a server you run yourself |
 | Voice typing | your speech audio | Android's own speech service |
-| Language data downloads | nothing about you | GitHub |
+| Language and model downloads | nothing about you | GitHub, Hugging Face, and Mozilla for the Firefox Translations models |
 
 Under default settings, typing on its own reaches none of these. A weather or
 currency smart chip waits for your tap before it fetches anything, and language

@@ -3368,7 +3368,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Clipboard 'show source app' | needs the usage-access grant |
 | Play In-App Updates (card, About rows, flexible/immediate flows) | play-channel builds only (wmkb.enablePlayStore); also requires the install to have come from Play and a network call |
 | Document scanner tool | not in the F-Droid build (ML Kit) and hidden entirely on devices without Google Play services |
-| Handwriting, OCR, QR scan, LiteRT Whisper dictation, local LLM | not in the F-Droid build (ML Kit / LiteRT) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
+| Handwriting, OCR, QR scan, LiteRT Whisper dictation, LiteRT-LM local models | not in the F-Droid build (ML Kit / LiteRT; GGUF models on llama.cpp are) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
 | Offline Whisper dictation, the sticker editor's own background remover, handwriting recognition | on Play, each runtime is an on-demand split fetched on first use (:feature:litert for the LiteRT interpreter the first two share, :feature:handwriting for ML Kit's ink recogniser); the language-to-model mapping for handwriting is compiled in (InkModelTags) so the tool knows what it is offering before the split arrives; sideload builds compile the same bridges into :core:voice, :core:content and :core:intelligence |
 | Google Drive backup destination | GMS-enabled builds only (wmkb.enableGms); reports unavailable in F-Droid builds |
 | Servers screen (Advanced) and per-tool server fields | F-Droid builds only (wmkb.enableFdroid) |

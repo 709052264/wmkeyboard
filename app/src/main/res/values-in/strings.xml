@@ -4361,7 +4361,7 @@
     <string name="netlog_filter_incognito">Penyamaran</string>
     <string name="netlog_filter_only">Hanya %1$s</string>
     <string name="netlog_filter_remove_desc">Tampilkan semuanya lagi</string>
-    <string name="netlog_invisible_body">Tiga bagian aplikasi Google melakukan permintaan sendiri, di luar kode yang mengisi log ini. ML Kit (tulisan tangan, pemindaian teks, pemindaian QR, potongan stiker dan terjemahan pada perangkat, hanya edisi lengkap) melaporkan penggunaan ke Google. Layanan Play mengunduh font berdasarkan nama. Build Play Store menanyakan pembaruan dan bagian sesuai permintaan ke Play Store.</string>
+    <string name="netlog_invisible_body">Tiga bagian aplikasi Google melakukan permintaan sendiri, di luar kode yang mengisi log ini. ML Kit (tulisan tangan, pemindaian teks, pemindaian QR, potongan stiker dan terjemahan pada perangkat, tidak ada di edisi F-Droid) melaporkan penggunaan ke Google. Layanan Play mengunduh font berdasarkan nama. Build Play Store menanyakan pembaruan dan bagian sesuai permintaan ke Play Store.</string>
     <string name="netlog_invisible_link">Baca apa yang dikirim masing-masing</string>
     <string name="netlog_invisible_title">Apa yang tidak dapat dilihat layar ini</string>
     <string name="netlog_keep_info">Log menyimpan hingga 2.000 baris dan total 30 hari, hanya di perangkat Anda. Setiap baris berisi fitur, server, alamat tanpa kuerinya, ukuran, hasil, dan waktu. Log tidak pernah menyimpan apa yang Anda ketik, cari, atau kirim, dan tidak pernah menyimpan kunci API. Cadangan tidak menyertakannya.</string>

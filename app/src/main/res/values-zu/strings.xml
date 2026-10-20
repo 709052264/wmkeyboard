@@ -4373,7 +4373,7 @@
     <string name="netlog_filter_incognito">Incognito</string>
     <string name="netlog_filter_only">Kuphela %1$s</string>
     <string name="netlog_filter_remove_desc">Bonisa konke futhi</string>
-    <string name="netlog_invisible_body">Izingxenye ezintathu ze-Google zohlelo lokusebenza zenza izicelo zazo, ngaphandle kwekhodi egcwalisa le logi. I-ML Kit (ukubhala ngesandla, ukuskena umbhalo, ukuskena i-QR, ukusika izitika nokuhumusha kudivayisi, uhlelo oluphelele kuphela) ibika ukusetshenziswa ku-Google. I-Play services ilanda amafonti ngegama. Izinhlelo ze-Play Store zibuza i-Play Store mayelana nezibuyekezo nezingxenye ezidingekayo.</string>
+    <string name="netlog_invisible_body">Izingxenye ezintathu ze-Google zohlelo lokusebenza zenza izicelo zazo, ngaphandle kwekhodi egcwalisa le logi. I-ML Kit (ukubhala ngesandla, ukuskena umbhalo, ukuskena i-QR, ukusika izitika nokuhumusha kudivayisi, akukho kuhlelo lwe-F-Droid) ibika ukusetshenziswa ku-Google. I-Play services ilanda amafonti ngegama. Izinhlelo ze-Play Store zibuza i-Play Store mayelana nezibuyekezo nezingxenye ezidingekayo.</string>
     <string name="netlog_invisible_link">Funda lokho okuthunyelwa ngamunye</string>
     <string name="netlog_invisible_title">Lokho lesi sikrini esingakuboni</string>
     <string name="netlog_keep_info">Ilogi igcina imigqa efika ku-2,000 nezinsuku ezingama-30 zezibalo, kudivayisi yakho kuphela. Umugqa ngamunye ubamba isici, iseva, ikheli ngaphandle kombuzo walo, usayizi, umphumela nesikhathi. Ayikaze ibambe lokho okuthayiphile, okuseshile noma okuthumile, futhi ayikaze ibambe okhiye be-API. Izipele azikufaki lokhu.</string>

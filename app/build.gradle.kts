@@ -285,7 +285,9 @@ android {
         buildConfigField("Boolean", "ENABLE_ML_KIT_HANDWRITING", "$googleSdks")
         buildConfigField("Boolean", "ENABLE_ML_KIT_SCANNERS", "$googleSdks")
         buildConfigField("Boolean", "ENABLE_GRAMMAR", "true")
-        buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "$googleSdks")
+        // On-device AI everywhere (llama.cpp, GGUF); LiteRT-LM only with Google's SDKs.
+        buildConfigField("Boolean", "ENABLE_LOCAL_LLM", "true")
+        buildConfigField("Boolean", "ENABLE_LITERT_LM", "$googleSdks")
         buildConfigField("Boolean", "ENABLE_WHISPER", "$googleSdks")
         // OAuth client ids for the Dropbox and OneDrive backup destinations.
         // Not secrets: the sign-in uses PKCE so no client secret ships. A

@@ -4359,7 +4359,7 @@
     <string name="netlog_filter_incognito">Yksityinen</string>
     <string name="netlog_filter_only">Vain %1$s</string>
     <string name="netlog_filter_remove_desc">Näytä kaikki uudelleen</string>
-    <string name="netlog_invisible_body">Kolme Googlen sovellusosaa tekee omia pyyntöjään tämän lokin täyttävän koodin ulkopuolella. ML Kit (käsiala, tekstin skannaus, QR-skannaus, tarrojen leikkaus ja laitteessa tapahtuva käännös, vain täysversiossa) raportoi käytöstä Googlelle. Play-palvelut lataa fontteja nimen perusteella. Play Kauppa -koontiversiot kysyvät Play Kaupalta päivityksiä ja tarvittavia osia.</string>
+    <string name="netlog_invisible_body">Kolme Googlen sovellusosaa tekee omia pyyntöjään tämän lokin täyttävän koodin ulkopuolella. ML Kit (käsiala, tekstin skannaus, QR-skannaus, tarrojen leikkaus ja laitteessa tapahtuva käännös, ei F-Droid-versiossa) raportoi käytöstä Googlelle. Play-palvelut lataa fontteja nimen perusteella. Play Kauppa -koontiversiot kysyvät Play Kaupalta päivityksiä ja tarvittavia osia.</string>
     <string name="netlog_invisible_link">Lue mitä kukin lähettää</string>
     <string name="netlog_invisible_title">Mitä tämä näyttö ei näe</string>
     <string name="netlog_keep_info">Loki säilyttää enintään 2 000 riviä ja 30 päivän yhteenvetotiedot vain laitteellasi. Jokainen rivi sisältää ominaisuuden, palvelimen, osoitteen ilman kyselyä, koon, tuloksen ja ajan. Se ei koskaan sisällä kirjoittamaasi, etsimääsi tai lähettämääsi sisältöä, eikä se koskaan sisällä API-avaimia. Varmuuskopiot eivät sisällä sitä.</string>

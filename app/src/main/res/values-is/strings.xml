@@ -4360,7 +4360,7 @@
     <string name="netlog_filter_incognito">Huliðshamur</string>
     <string name="netlog_filter_only">Aðeins %1$s</string>
     <string name="netlog_filter_remove_desc">Sýna allt aftur</string>
-    <string name="netlog_invisible_body">Þrír Google-hlutar forritsins gera sínar eigin beiðnir, utan þess kóða sem fyllir þessa skrá. ML Kit (rithönd, textaskönnun, QR-skönnun, límmiðaklippingar og þýðing á tæki, aðeins í fullri útgáfu) sendir notkunarskýrslur til Google. Play-þjónustur hlaða niður leturgerðum eftir nafni. Play Store-útgáfur spyrja Play Store um uppfærslur og hluta sem sóttir eru eftir þörfum.</string>
+    <string name="netlog_invisible_body">Þrír Google-hlutar forritsins gera sínar eigin beiðnir, utan þess kóða sem fyllir þessa skrá. ML Kit (rithönd, textaskönnun, QR-skönnun, límmiðaklippingar og þýðing á tæki, ekki í F-Droid útgáfunni) sendir notkunarskýrslur til Google. Play-þjónustur hlaða niður leturgerðum eftir nafni. Play Store-útgáfur spyrja Play Store um uppfærslur og hluta sem sóttir eru eftir þörfum.</string>
     <string name="netlog_invisible_link">Lesa hvað hver og einn sendir</string>
     <string name="netlog_invisible_title">Það sem þessi skjár sér ekki</string>
     <string name="netlog_keep_info">Annállinn geymir allt að 2.000 raðir og 30 daga af samtölum, eingöngu á tækinu þínu. Hver röð geymir eiginleikann, netþjóninn, vistfangið án fyrirspurnar, stærðina, niðurstöðuna og tímann. Hann geymir aldrei það sem þú skrifaðir, leitaðir að eða sendir, og hann geymir aldrei API-lykla. Afrit innihalda hann ekki.</string>

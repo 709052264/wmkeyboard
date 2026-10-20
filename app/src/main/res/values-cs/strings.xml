@@ -4359,7 +4359,7 @@
     <string name="netlog_filter_incognito">Anonymní režim</string>
     <string name="netlog_filter_only">Pouze %1$s</string>
     <string name="netlog_filter_remove_desc">Zobrazit vše znovu</string>
-    <string name="netlog_invisible_body">Tři části aplikace od Googlu provádějí vlastní požadavky mimo kód, který vyplňuje tento protokol. ML Kit (rukopis, skenování textu, skenování QR, výřezy nálepek a překlad v zařízení, pouze plná verze) hlásí využití Googlu. Služby Play stahují písma podle názvu. Sestavení z Obchodu Play se ptají Obchodu Play na aktualizace a části na vyžádání.</string>
+    <string name="netlog_invisible_body">Tři části aplikace od Googlu provádějí vlastní požadavky mimo kód, který vyplňuje tento protokol. ML Kit (rukopis, skenování textu, skenování QR, výřezy nálepek a překlad v zařízení, není ve verzi pro F-Droid) hlásí využití Googlu. Služby Play stahují písma podle názvu. Sestavení z Obchodu Play se ptají Obchodu Play na aktualizace a části na vyžádání.</string>
     <string name="netlog_invisible_link">Přečtěte si, co kdo posílá</string>
     <string name="netlog_invisible_title">Co tato obrazovka nevidí</string>
     <string name="netlog_keep_info">Protokol uchovává až 2 000 řádků a 30 dní souhrnů, pouze ve vašem zařízení. Každý řádek obsahuje funkci, server, adresu bez dotazu, velikost, výsledek a čas. Nikdy neobsahuje to, co jste napsali, vyhledali nebo odeslali, a nikdy neobsahuje klíče API. Zálohy jej neobsahují.</string>

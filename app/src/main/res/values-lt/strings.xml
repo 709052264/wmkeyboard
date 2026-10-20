@@ -4363,7 +4363,7 @@
     <string name="netlog_filter_incognito">Inkognito</string>
     <string name="netlog_filter_only">Tik %1$s</string>
     <string name="netlog_filter_remove_desc">Rodyti viską iš naujo</string>
-    <string name="netlog_invisible_body">Trys „Google“ programėlės dalys siunčia savo užklausas, nepriklausomai nuo kodo, kuris pildo šį žurnalą. „ML Kit“ (rašysenos atpažinimas, teksto nuskaitymas, QR nuskaitymas, lipdukų iškirpimas ir vertimas įrenginyje, tik pilnoje versijoje) praneša „Google“ apie naudojimą. „Play“ paslaugos atsisiunčia šriftus pagal pavadinimą. „Play Store“ versijos teiraujasi „Play Store“ apie atnaujinimus ir papildomus komponentus.</string>
+    <string name="netlog_invisible_body">Trys „Google“ programėlės dalys siunčia savo užklausas, nepriklausomai nuo kodo, kuris pildo šį žurnalą. „ML Kit“ (rašysenos atpažinimas, teksto nuskaitymas, QR nuskaitymas, lipdukų iškirpimas ir vertimas įrenginyje, nėra F-Droid versijoje) praneša „Google“ apie naudojimą. „Play“ paslaugos atsisiunčia šriftus pagal pavadinimą. „Play Store“ versijos teiraujasi „Play Store“ apie atnaujinimus ir papildomus komponentus.</string>
     <string name="netlog_invisible_link">Skaityti, ką kiekvienas siunčia</string>
     <string name="netlog_invisible_title">Ko šis ekranas nemato</string>
     <string name="netlog_keep_info">Žurnale saugoma iki 2000 eilučių ir 30 dienų bendrų duomenų, tik jūsų įrenginyje. Kiekvienoje eilutėje saugoma funkcija, serveris, adresas be užklausos, dydis, rezultatas ir laikas. Jame niekada nesaugoma tai, ką įvedėte, ieškojote ar išsiuntėte, ir niekada nesaugomi API raktai. Atsarginėse kopijose šie duomenys neįtraukiami.</string>

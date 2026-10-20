@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import android.content.Context
 import android.net.Uri
@@ -411,6 +412,10 @@ internal object OfflineImport {
         // list and the runtime routing go by.
         val gguf = extension != ModelFormat.GGUF.extension && GgufFile.isGguf(file)
         if (gguf || ModelFormat.entries.any { it.extension == extension }) {
+            // F-Droid's build has llama.cpp but no LiteRT-LM: only a GGUF runs.
+            if (!gguf && extension != ModelFormat.GGUF.extension && !BuildConfig.ENABLE_LITERT_LM) {
+                return Outcome(name, false, R.string.models_llm_import_error_gguf_only)
+            }
             return attempt(name) {
                 // A catalog model goes where its download would, so its row
                 // reads as downloaded; anything else is the user's own.

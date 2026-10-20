@@ -4360,7 +4360,7 @@
     <string name="netlog_filter_incognito">Incògnit</string>
     <string name="netlog_filter_only">Només %1$s</string>
     <string name="netlog_filter_remove_desc">Torna-ho a mostrar tot</string>
-    <string name="netlog_invisible_body">Tres parts de Google de l\'aplicació fan les seves pròpies sol·licituds, fora del codi que omple aquest registre. ML Kit (escriptura a mà, escaneig de text, escaneig de QR, retalls d\'adhesius i traducció al dispositiu, només edició completa) informa de l\'ús a Google. Els serveis de Play descarreguen tipus de lletra pel nom. Les compilacions de Play Store pregunten a la Play Store sobre actualitzacions i parts sota demanda.</string>
+    <string name="netlog_invisible_body">Tres parts de Google de l\'aplicació fan les seves pròpies sol·licituds, fora del codi que omple aquest registre. ML Kit (escriptura a mà, escaneig de text, escaneig de QR, retalls d\'adhesius i traducció al dispositiu, no disponible a la versió d\'F-Droid) informa de l\'ús a Google. Els serveis de Play descarreguen tipus de lletra pel nom. Les compilacions de Play Store pregunten a la Play Store sobre actualitzacions i parts sota demanda.</string>
     <string name="netlog_invisible_link">Llegir el que envia cadascú</string>
     <string name="netlog_invisible_title">El que aquesta pantalla no pot veure</string>
     <string name="netlog_keep_info">El registre conserva fins a 2.000 files i 30 dies de totals, només al vostre dispositiu. Cada fila conté la funció, el servidor, l\'adreça sense la seva consulta, la mida, el resultat i l\'hora. Mai no conté el que heu escrit, cercat o enviat, i mai no conté claus d\'API. Les còpies de seguretat no l\'inclouen.</string>

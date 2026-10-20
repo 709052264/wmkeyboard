@@ -4374,7 +4374,7 @@
     <string name="netlog_filter_incognito">Ficho</string>
     <string name="netlog_filter_only">Ni %1$s pekee</string>
     <string name="netlog_filter_remove_desc">Onyesha kila kitu tena</string>
-    <string name="netlog_invisible_body">Sehemu tatu za Google za programu hufanya maombi yao wenyewe, nje ya msimbo unaojaza logi hii. ML Kit (mwandiko, skanning ya maandishi, skanning ya QR, ukataji wa vibandiko na tafsiri kwenye kifaa, toleo kamili pekee) huripoti matumizi kwa Google. Huduma za Play hupakua fonti kwa jina. Ujenzi wa Play Store huuliza Play Store kuhusu masasisho na sehemu zinazohitajika.</string>
+    <string name="netlog_invisible_body">Sehemu tatu za Google za programu hufanya maombi yao wenyewe, nje ya msimbo unaojaza logi hii. ML Kit (mwandiko, skanning ya maandishi, skanning ya QR, ukataji wa vibandiko na tafsiri kwenye kifaa, haipo katika toleo la F-Droid) huripoti matumizi kwa Google. Huduma za Play hupakua fonti kwa jina. Ujenzi wa Play Store huuliza Play Store kuhusu masasisho na sehemu zinazohitajika.</string>
     <string name="netlog_invisible_link">Soma kile kila kimoja kinachotuma</string>
     <string name="netlog_invisible_title">Kile skrini hii haiwezi kuona</string>
     <string name="netlog_keep_info">Logi huhifadhi hadi safu 2,000 na jumla ya siku 30, kwenye kifaa chako pekee. Kila safu inashikilia kipengele, seva, anwani bila hoja yake, ukubwa, matokeo na wakati. Haiwahi kuhifadhi ulichoandika, kutafuta au kutuma, na haihifadhi funguo za API. Hifadhi rudufu hazijumuishi hii.</string>

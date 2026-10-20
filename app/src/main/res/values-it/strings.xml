@@ -4357,7 +4357,7 @@
     <string name="netlog_filter_incognito">Incognito</string>
     <string name="netlog_filter_only">Solo %1$s</string>
     <string name="netlog_filter_remove_desc">Mostra di nuovo tutto</string>
-    <string name="netlog_invisible_body">Tre componenti Google dell\'app effettuano le proprie richieste, al di fuori del codice che riempie questo registro. ML Kit (scrittura a mano, scansione testo, scansione QR, ritagli di adesivi e traduzione sul dispositivo, solo edizione completa) segnala l\'utilizzo a Google. I servizi Play scaricano i font per nome. Le build del Play Store interrogano il Play Store per aggiornamenti e componenti on-demand.</string>
+    <string name="netlog_invisible_body">Tre componenti Google dell\'app effettuano le proprie richieste, al di fuori del codice che riempie questo registro. ML Kit (scrittura a mano, scansione testo, scansione QR, ritagli di adesivi e traduzione sul dispositivo, assente nella versione F-Droid) segnala l\'utilizzo a Google. I servizi Play scaricano i font per nome. Le build del Play Store interrogano il Play Store per aggiornamenti e componenti on-demand.</string>
     <string name="netlog_invisible_link">Leggi cosa invia ciascuno</string>
     <string name="netlog_invisible_title">Cosa questa schermata non può vedere</string>
     <string name="netlog_keep_info">Il registro conserva fino a 2.000 righe e 30 giorni di totali, solo sul tuo dispositivo. Ogni riga contiene la funzionalità, il server, l\'indirizzo senza la sua query, la dimensione, il risultato e l\'ora. Non contiene mai ciò che hai digitato, cercato o inviato e non contiene mai chiavi API. I backup non lo includono.</string>
