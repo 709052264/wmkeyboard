@@ -227,6 +227,17 @@ class SendClientTest {
         assertEquals(SendServerConfig.DEFAULT, client.config(base))
     }
 
+    @Test
+    fun `a file that cannot be opened is UNREADABLE, whatever the provider throws`() {
+        val revoked = SendFile("a.txt", 3) { throw SecurityException("Permission Denial") }
+        val gone = SendFile("b.txt", 3) { throw java.io.FileNotFoundException("b.txt") }
+        listOf(revoked, gone).forEach { file ->
+            val e = assertThrows(SendException::class.java) { ConcatInputStream(listOf(file)).read(ByteArray(8), 0, 8) }
+            assertEquals(SendError.UNREADABLE, e.error)
+            assertEquals(file.name, e.detail)
+        }
+    }
+
     private class MemorySink : SendSink {
         val files = LinkedHashMap<String, ByteArrayOutputStream>()
 

@@ -37,6 +37,8 @@ enum class SendError {
     CORRUPT,
     /** Not a Send link at all. */
     BAD_LINK,
+    /** A file to send could not be opened: moved, deleted, or its read grant gone. */
+    UNREADABLE,
 }
 
 class SendException(

@@ -34,6 +34,7 @@ import com.wasimaster.wmkeyboard.core.settings.SendPasswordMode
 import com.wasimaster.wmkeyboard.core.settings.SendSettings
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -150,6 +151,9 @@ internal class SendController(
     /** The receiving conversation, kept between the metadata call and the download. */
     private var session: SendClient.Session? = null
 
+    /** Picks whose read grant [SendPickActivity] persisted for the draft: released once they leave it. */
+    private val heldGrants = mutableSetOf<Uri>()
+
     /** What a data-saving "ask" is holding. */
     private var pendingTransfer: (() -> Unit)? = null
 
@@ -234,6 +238,7 @@ internal class SendController(
     private fun consumePicks() {
         val picks = SendPickActivity.consume()
         if (picks.isEmpty()) return
+        picks.filter { it.held }.forEach { heldGrants += it.uri }
         addFiles(picks.map { p -> SendDraftFile(nextFileId++, p.name, p.size, p.mime, uri = p.uri, source = SendSource.FILES) })
         if (!open) host.openPanel()
     }
@@ -455,6 +460,7 @@ internal class SendController(
         val gone = _state.value.draft.files.firstOrNull { it.id == id }
         _state.update { it.copy(draft = it.draft.copy(files = it.draft.files.filterNot { f -> f.id == id })) }
         gone?.file?.takeIf { it.parentFile?.name == CACHE_DIR }?.delete()
+        gone?.let(::releaseGrant)
     }
 
     private fun moveFile(from: Int, to: Int) {
@@ -470,6 +476,15 @@ internal class SendController(
         val files = _state.value.draft.files
         _state.update { it.copy(draft = it.draft.copy(files = emptyList())) }
         files.forEach { it.file?.takeIf { f -> f.parentFile?.name == CACHE_DIR }?.delete() }
+        files.forEach(::releaseGrant)
+    }
+
+    /** Lets go of a pick's persisted read grant, unless another draft entry still points at it. */
+    private fun releaseGrant(f: SendDraftFile) {
+        val uri = f.uri ?: return
+        if (uri !in heldGrants || _state.value.draft.files.any { it.uri == uri }) return
+        heldGrants -= uri
+        runCatching { app.contentResolver.releasePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
     }
 
     private fun passwordOn(on: Boolean) {
@@ -725,17 +740,23 @@ internal class SendController(
                 }
                 refreshHistory()
                 draft.files.forEach { f -> f.file?.takeIf { it.parentFile?.name == CACHE_DIR }?.delete() }
+                draft.files.forEach(::releaseGrant)
                 if (!host.keyboardVisible()) notifyDone(upload, delivered) else WmNotifications.cancel(app, NotificationIds.SEND_UPLOAD)
-            } catch (e: SendException) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // Anything else (a provider's SecurityException, a runtime
+                // failure under the client) is a failed upload, never a dead keyboard (#808).
+                val error = (e as? SendException)?.error ?: SendError.SERVER
                 WmNotifications.cancel(app, NotificationIds.SEND_UPLOAD)
-                if (e.error == SendError.CANCELLED) {
+                if (error == SendError.CANCELLED) {
                     _state.update { it.copy(link = LinkStage.Compose) }
                 } else {
                     _state.update {
                         it.copy(
                             link = LinkStage.Failed(
-                                e.error, e.status, draft.totalSize,
-                                suggestions = if (e.error == SendError.TOO_BIG) SendInstances.roomFor(draft.totalSize) else emptyList(),
+                                error, (e as? SendException)?.status ?: 0, draft.totalSize,
+                                suggestions = if (error == SendError.TOO_BIG) SendInstances.roomFor(draft.totalSize) else emptyList(),
                             ),
                         )
                     }
@@ -993,14 +1014,17 @@ internal class SendController(
                 notice(SendNotice.Kind.SAVED, saved.size.toString())
                 if (!host.keyboardVisible()) notifyReceived(saved) else WmNotifications.cancel(app, NotificationIds.SEND_RECEIVE)
                 if (host.settings.openAfterDownload && saved.size == 1 && host.keyboardVisible()) openReceived(saved.single())
-            } catch (e: SendException) {
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val error = (e as? SendException)?.error ?: SendError.SERVER
                 WmNotifications.cancel(app, NotificationIds.SEND_RECEIVE)
-                if (e.error == SendError.CANCELLED) {
+                if (error == SendError.CANCELLED) {
                     updateReceive { it.copy(progress = null) }
                 } else {
-                    updateReceive { it.copy(progress = null, error = e.error) }
+                    updateReceive { it.copy(progress = null, error = error) }
                     // A download that failed after the server counted it may be gone for good.
-                    if (e.error == SendError.NOT_FOUND) session = null
+                    if (error == SendError.NOT_FOUND) session = null
                 }
             }
         }

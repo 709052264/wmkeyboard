@@ -15,13 +15,22 @@ import androidx.activity.result.contract.ActivityResultContracts
  * tools never take each other's picks.
  *
  * Nothing is copied here. The picks are parked in [consume]'s queue and the
- * keyboard, in the same process and holding the same read grants, adds them
- * to its draft once the app behind it has the field back.
+ * keyboard, in the same process, adds them to its draft once the app behind
+ * it has the field back.
+ *
+ * The picker's read grant belongs to this activity and Android revokes it
+ * when the activity goes, which is at once: the upload, minutes later, would
+ * meet a `SecurityException` (#808). So each pick's grant is made persistable
+ * here, and the keyboard lets it go again once the file has left the draft.
  */
 class SendPickActivity : ComponentActivity() {
 
-    /** One pick: a URI this process may read, and what the picker said about it. */
-    data class Picked(val uri: Uri, val mime: String, val name: String, val size: Long)
+    /**
+     * One pick: a URI this process may read, and what the picker said about it.
+     * [held] says the read grant was persisted here, for this pick, and is the
+     * keyboard's to release; false when it was already held for something else.
+     */
+    data class Picked(val uri: Uri, val mime: String, val name: String, val size: Long, val held: Boolean = false)
 
     companion object {
         private val pending = ArrayDeque<Picked>()
@@ -57,9 +66,15 @@ class SendPickActivity : ComponentActivity() {
     }
 
     private fun deliver(uris: List<Uri>) {
-        val picks = uris.mapNotNull { uri -> runCatching { describe(uri) }.getOrNull() }
+        val picks = uris.mapNotNull { uri -> runCatching { describe(uri).copy(held = hold(uri)) }.getOrNull() }
         if (picks.isNotEmpty()) offer(picks)
         finish()
+    }
+
+    /** Keeps the read grant past this activity; true when it is newly held for this pick. */
+    private fun hold(uri: Uri): Boolean {
+        if (contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }) return false
+        return runCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }.isSuccess
     }
 
     private fun describe(uri: Uri): Picked {

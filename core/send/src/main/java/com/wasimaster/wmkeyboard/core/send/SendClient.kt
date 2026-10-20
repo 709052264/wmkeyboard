@@ -388,7 +388,15 @@ internal class ConcatInputStream(private val files: List<SendFile>) : InputStrea
             current = null
             return false
         }
-        current = files[index].open()
+        val file = files[index]
+        current = try {
+            file.open()
+        } catch (e: IOException) {
+            throw SendException(SendError.UNREADABLE, detail = file.name, cause = e)
+        } catch (e: SecurityException) {
+            // A content URI whose grant has lapsed throws this, not an IOException (#808).
+            throw SendException(SendError.UNREADABLE, detail = file.name, cause = e)
+        }
         return true
     }
 

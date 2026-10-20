@@ -139,6 +139,7 @@ internal fun errorText(error: SendError): Int = when (error) {
     SendError.WRONG_PASSWORD -> R.string.ime_send_error_wrong_password
     SendError.CORRUPT -> R.string.ime_send_error_corrupt
     SendError.BAD_LINK -> R.string.ime_send_error_bad_link
+    SendError.UNREADABLE -> R.string.ime_send_error_unreadable
 }
 
 @Composable

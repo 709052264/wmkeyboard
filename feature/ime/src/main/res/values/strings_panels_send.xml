@@ -104,6 +104,7 @@
     <string name="ime_send_error_wrong_password">Wrong password.</string>
     <string name="ime_send_error_corrupt">The file arrived damaged.</string>
     <string name="ime_send_error_bad_link">That is not a Send link.</string>
+    <string name="ime_send_error_unreadable">A file could not be read. Remove it and pick it again.</string>
 
     <!-- Data saving -->
     <string name="ime_send_data_title">On mobile data</string>
