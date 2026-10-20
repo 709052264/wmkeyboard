@@ -437,7 +437,9 @@ internal const val PROVIDER_PAGE_ROUTE = "provider/{tool}/{key}"
  * result or a link names a kind ("the Whisper engine"), and the screen opens
  * on that kind's first row, or offers to add it.
  */
-internal fun providerRoute(tool: ProviderTool, key: String): String = "provider/${tool.id}/${Uri.encode(key)}"
+// URLEncoder rather than Uri: the search index builds these routes on the JVM in tests too.
+internal fun providerRoute(tool: ProviderTool, key: String): String =
+    "provider/${tool.id}/${java.net.URLEncoder.encode(key, "UTF-8")}"
 
 /** [providerRoute] for a kind, for the search index and links. */
 internal fun providerRoute(tool: ProviderTool, type: ProviderType): String = providerRoute(tool, type.id)

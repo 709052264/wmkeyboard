@@ -23,6 +23,10 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
+import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -310,6 +314,50 @@ internal fun ProviderOwnSettings(
     onNavigate: (String) -> Unit,
 ) {
     when (type.id) {
+        // ---- Voice typing: what the voice screen used to stack under its dictation rows.
+        ProviderTypes.SYSTEM_RECOGNIZER.id -> SystemRecognizerSettings(repository, settings)
+        ProviderTypes.WHISPER.id -> if (isWhisperEnabled()) {
+            WhisperOfflineSettings(repository, settings)
+            WhisperModelManager(repository, settings)
+        }
+        ProviderTypes.WHISTLE.id -> if (WhistleEngine.shipped) WhistleModelManager(settings)
+        ProviderTypes.ASR4ALL.id, ProviderTypes.PARAKEET.id, ProviderTypes.MOONSHINE.id,
+        ProviderTypes.SHERPA.id, ProviderTypes.OMNILINGUAL.id,
+        -> EtEngine.byId(type.id)?.takeIf { it.runtimeShipped }?.let { EtModelManager(it, settings) }
+        ProviderTypes.TRANSCRIPTION_SERVER.id -> VoiceServerSettings(repository, settings)
         else -> Unit
+    }
+}
+
+/** The phone's recognizer: whether it may go online. */
+@Composable
+private fun SystemRecognizerSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup {
+        item {
+            ToggleSetting(
+                R.string.voice_system_on_device_title,
+                stringResource(R.string.voice_system_on_device_subtitle),
+                settings.watch { it.whisper.systemOnDevice },
+                info = stringResource(R.string.voice_system_info) + "\n\n" + stringResource(R.string.voice_system_on_device_info),
+                default = SettingsDefaults.whisper.systemOnDevice,
+            ) { scope.launch { repository.setVoiceSystemOnDevice(it) } }
+        }
+    }
+}
+
+/** Whisper's translate-to-English switch, above its models. */
+@Composable
+private fun WhisperOfflineSettings(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(stringResource(R.string.voice_offline_group)) {
+        item {
+            ToggleSetting(
+                R.string.voice_translate_title,
+                stringResource(R.string.voice_translate_subtitle),
+                settings.watch { it.whisper.translate },
+                default = SettingsDefaults.whisper.translate,
+            ) { scope.launch { repository.setWhisperTranslate(it) } }
+        }
     }
 }

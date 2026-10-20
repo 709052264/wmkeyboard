@@ -9,6 +9,9 @@ import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.providers.ProviderType
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -238,6 +241,40 @@ private fun SearchStrings.toolEntry(
         .let { if (it == 0) "" else getString(it) },
     key = "tool/${tool.name}#${resourceName(title)}",
 )
+
+/**
+ * Builds an entry on a provider's own screen ([PROVIDER_PAGE_ROUTE]): the
+ * path is the screen the tool's list is on, then the provider. The kind's
+ * name is read from the kind, as the screen's heading reads it.
+ */
+private fun SearchStrings.providerEntry(
+    tool: ProviderTool,
+    type: ProviderType,
+    @StringRes title: Int,
+    @StringRes subtitle: Int = 0,
+    // A row on a tool's page weighs as one ([toolEntry]); elsewhere as an ordinary row.
+    weight: EntryWeight? = null,
+): SettingsSearchEntry {
+    val host = providerHostTool(tool)
+    val above = when {
+        host != null -> crumb(R.string.home_tools_title, toolTitle(host))
+        tool == ProviderTool.VOICE -> crumb(R.string.home_voice_title)
+        tool == ProviderTool.PHOTOS -> crumb(R.string.photo_services_title)
+        else -> crumb(R.string.home_typing_title, R.string.typing_group_suggestions_title)
+    }
+    val route = providerRoute(tool, type)
+    return SettingsSearchEntry(
+        title = getString(title),
+        subtitle = if (subtitle == 0) "" else getString(subtitle),
+        screenPath = above + getString(type.labelRes),
+        route = route,
+        weight = weight ?: if (host != null) EntryWeight.DETAIL else EntryWeight.NORMAL,
+        tool = host,
+        titleRes = title,
+        keywords = searchKeywordsFor(title).let { if (it == 0) "" else getString(it) },
+        key = "$route#${resourceName(title)}",
+    )
+}
 
 /** Rows on the Typing screen, in screen order. */
 private fun SearchStrings.typingRows(): List<SettingsSearchEntry> {
@@ -1120,7 +1157,6 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_enabled_title, R.string.voice_enabled_subtitle),
         // The engines are a provider list now; its heading is the title.
         row(R.string.voice_engine_title, R.string.providers_add_subtitle),
-        row(R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle),
         row(R.string.voice_languages_title, R.string.voice_languages_subtitle),
         row(R.string.voice_engine_languages_title, R.string.voice_engine_languages_subtitle),
         row(R.string.voice_ui_title, R.string.voice_ui_subtitle),
@@ -1138,8 +1174,16 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         row(R.string.voice_denoise_title, R.string.voice_denoise_subtitle),
         row(R.string.voice_punctuation_title, R.string.voice_punctuation_subtitle),
         row(R.string.voice_ai_tidy_title, R.string.voice_ai_tidy_subtitle),
-        row(R.string.voice_translate_title, R.string.voice_translate_subtitle),
-        row(R.string.voice_server_language_title, R.string.voice_server_language_subtitle),
+        // On the engines' own screens, opened from their rows on the list.
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.SYSTEM_RECOGNIZER,
+            R.string.voice_system_on_device_title, R.string.voice_system_on_device_subtitle,
+        ),
+        providerEntry(ProviderTool.VOICE, ProviderTypes.WHISPER, R.string.voice_translate_title, R.string.voice_translate_subtitle),
+        providerEntry(
+            ProviderTool.VOICE, ProviderTypes.TRANSCRIPTION_SERVER,
+            R.string.voice_server_language_title, R.string.voice_server_language_subtitle,
+        ),
         row(R.string.voice_bias_personal_title, R.string.voice_bias_personal_subtitle),
     )
 }
