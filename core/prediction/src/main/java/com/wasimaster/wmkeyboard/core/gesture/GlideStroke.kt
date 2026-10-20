@@ -51,9 +51,14 @@ class GlideStroke(
     companion object {
         /**
          * How far, in key widths, a stroke's end may land from the letter it
-         * stands for: anywhere on that key or on a neighbour, never with a
-         * whole key in between.
+         * stands for. Wider than the decoder's own start and end radius (1.6
+         * by default), since a stroke the decoder misread is exactly one whose
+         * ends wandered: rows are taller than keys are wide, so the far edge
+         * of the key above or below is already about two key widths off.
+         * 1.5 refused real corrections (#805); 2.0–2.2 is where learning on
+         * QWERTY behaved in the reporter's own trials, and "the" still starts
+         * over three keys from "a".
          */
-        const val END_SLACK = 1.5f
+        const val END_SLACK = 2.2f
     }
 }
