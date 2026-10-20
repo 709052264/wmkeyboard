@@ -600,6 +600,53 @@ class GlideBeamTest {
         assertFalse("expected no hello in $tight", "hello" in tight)
     }
 
+    /**
+     * #805: the slider's top end against its default, on a touch-down two and
+     * a half key widths below h. Only b and n sit within 1.6 of it and nothing
+     * in the lexicon starts with either, so 1.6 reads nothing; 4 admits h.
+     */
+    @Test
+    fun `a start radius of 4 reads a touch-down two and a half keys off the first letter`() {
+        val h = centers.getValue('h'.code)
+        val far = gestureFor("hello").toMutableList().apply {
+            this[0] = GesturePoint(h.x, h.y + 2.5f * keyWidth)
+        }
+        fun wordsAt(startRadius: Float): List<String> =
+            GlideBeam(GlideBeam.Tuning(startRadius = startRadius))
+                .decode(far, grid, keyWidth, sources, GlideWorkspace(), 4)
+                .map { it.word }
+
+        val wide = wordsAt(4f)
+        assertTrue("expected hello in $wide", "hello" in wide)
+        val shipped = wordsAt(1.6f)
+        assertFalse("expected no hello in $shipped", "hello" in shipped)
+    }
+
+    /**
+     * Why #805's reporter saw no difference: the radius is a gate, and the
+     * score behind it is not. The first letter still pays its location cost on
+     * the first sample (capped at [GlideBeam.Tuning.maxPointCost], 12, from
+     * 2.06 key widths out) and the lead-in from the touch-down to its key is
+     * travel the alignment charges as gap, so `hello` drawn from 2.5 keys off
+     * trails a word that starts where the finger went down by more than its
+     * hundredfold frequency lead (4.6 nats). On a real dictionary there is
+     * nearly always such a word.
+     */
+    @Test
+    fun `a wide start radius admits a far first letter but ranks it under one the finger touched`() {
+        val h = centers.getValue('h'.code)
+        val far = gestureFor("hello").toMutableList().apply {
+            this[0] = GesturePoint(h.x, h.y + 2.5f * keyWidth)
+        }
+        val withRival = sourcesOf(lexicon + ("bello" to 9))
+        val words = GlideBeam(GlideBeam.Tuning(startRadius = 4f))
+            .decode(far, grid, keyWidth, withRival, GlideWorkspace(), 4)
+            .map { it.word }
+
+        assertTrue("expected hello admitted in $words", "hello" in words)
+        assertTrue("expected bello over hello in $words", words.indexOf("bello") in 0 until words.indexOf("hello"))
+    }
+
     @Test
     fun `too short a path returns nothing`() {
         val h = centers.getValue('h'.code)
