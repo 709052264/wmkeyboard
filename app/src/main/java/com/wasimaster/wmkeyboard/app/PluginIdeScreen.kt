@@ -221,7 +221,7 @@ internal fun PluginIdeProjectsScreen(onNavigate: (String) -> Unit) {
             item { CaptionText(stringResource(R.string.plugin_ide_drafts_empty)) }
         } else {
             for ((draft, manifest) in drafts) {
-                item {
+                item(key = draft.draftId) {
                     val edited = DateUtils.getRelativeTimeSpanString(
                         draft.updatedAt,
                         System.currentTimeMillis(),
@@ -235,6 +235,18 @@ internal fun PluginIdeProjectsScreen(onNavigate: (String) -> Unit) {
                     WmRow(
                         title = manifest?.name?.ifBlank { null } ?: untitled,
                         subtitle = subtitle,
+                        swipeActions = listOf(
+                            SwipeAction(
+                                Icons.Outlined.ContentCopy,
+                                stringResource(R.string.plugin_ide_duplicate_draft_desc),
+                            ) {
+                                scope.launch {
+                                    val copy = withContext(Dispatchers.IO) { workspace.duplicate(draft.draftId) }
+                                    if (copy == null) Toast.makeText(context, newError, Toast.LENGTH_LONG).show()
+                                }
+                            },
+                            deleteSwipeAction(stringResource(R.string.plugin_ide_delete_draft_desc)) { deleting = draft },
+                        ),
                         trailing = {
                             Row {
                                 IconButton(onClick = {

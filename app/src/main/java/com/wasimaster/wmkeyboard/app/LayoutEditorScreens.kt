@@ -912,7 +912,7 @@ internal fun KeyLayoutsScreen(
             }
         }
         for (layout in customs) {
-            item {
+            item(key = layout.id) {
                 ScrollAnchor(layout.id == returnTo) {
                     LayoutRow(
                         layout = layout,
@@ -945,7 +945,7 @@ internal fun KeyLayoutsScreen(
         info = stringResource(R.string.layout_editor_secondary_group_caption),
     ) {
         for (layout in secondaries) {
-            item {
+            item(key = layout.id) {
                 ScrollAnchor(layout.id == returnTo) {
                     LayoutRow(
                         layout = layout,
@@ -1005,7 +1005,7 @@ internal fun KeyLayoutsScreen(
     if (builtIns.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.layout_editor_built_in_title)) {
             for (layout in builtIns) {
-                item {
+                item(key = layout.id) {
                     ScrollAnchor(layout.id == returnTo) {
                         LayoutRow(
                             layout = layout,
@@ -1434,9 +1434,26 @@ private fun LayoutRow(
     onToggle: ((Boolean) -> Boolean)? = null,
 ) {
     val resources = LocalContext.current.resources
+    val exportDesc = stringResource(R.string.layout_editor_export_desc, layout.name)
+    val duplicateDesc = stringResource(R.string.layout_editor_duplicate_desc, layout.name)
+    val deleteDesc = if (deleteIsReset) {
+        stringResource(R.string.layout_editor_reset_desc, layout.name)
+    } else {
+        stringResource(R.string.layout_editor_delete_desc, layout.name)
+    }
     WmRow(
         title = layout.name,
         subtitle = layoutSummary(resources, layout, enabled),
+        swipeActions = buildList {
+            add(SwipeAction(Icons.Outlined.Share, exportDesc, onClick = onExport))
+            add(SwipeAction(Icons.Outlined.ContentCopy, duplicateDesc, onClick = onDuplicate))
+            if (onDelete != null) {
+                add(
+                    if (deleteIsReset) SwipeAction(Icons.Outlined.Refresh, deleteDesc, onClick = onDelete)
+                    else deleteSwipeAction(deleteDesc, onDelete),
+                )
+            }
+        },
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onToggle != null && !layout.secondary) {

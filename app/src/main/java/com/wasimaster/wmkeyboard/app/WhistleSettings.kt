@@ -73,6 +73,15 @@ internal fun WhistleModelManager(settings: LiveSettings) {
                             formatBytes(WhistleModelStore.MODEL_BYTES),
                         )
                     },
+                    swipeActions = if (status == Status.Downloaded) {
+                        listOf(
+                            deleteSwipeAction(stringResource(R.string.models_delete_model_desc, title)) {
+                                WhistleModelDownloadManager.delete(filesDir)
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    },
                     trailing = {
                         when (status) {
                             Status.Downloaded -> IconButton(

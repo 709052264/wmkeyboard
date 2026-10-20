@@ -1108,10 +1108,21 @@ private fun Sessions(
         itemsIndexed(conversations, key = { _, conversation -> conversation.id }) { index, conversation ->
             val current = conversation.id == state.aiChat.conversationId
             val shape = kb.cardShape()
+            // The swipe deletes at once: reaching the red button is already the
+            // second deliberate step the chip's two taps stand in for.
+            KbSwipeActionsRow(
+                actions = listOf(
+                    kbDeleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                        doomed = null
+                        onChat(AiChatAction.Delete(conversation.id))
+                    },
+                ),
+                reduceMotion = state.settings.reduceMotion,
+                modifier = Modifier.animateItem(),
+            ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .animateItem()
                     .clip(shape)
                     .focusRing(focused == index + 2, shape)
                     .background(kb.chip)
@@ -1152,6 +1163,7 @@ private fun Sessions(
                         doomed = conversation.id
                     }
                 }
+            }
             }
         }
     }

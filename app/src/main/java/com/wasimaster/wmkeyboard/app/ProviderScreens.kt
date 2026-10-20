@@ -70,6 +70,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Mic
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CurrencyBitcoin
@@ -242,6 +243,7 @@ internal fun ProvidersGroup(
                             )
                         }
                     },
+                    onRemove = { row -> removing = row },
                 )
             }
         }
@@ -458,6 +460,7 @@ private fun ProviderList(
     onReorder: (List<ResolvedProvider>) -> Unit,
     onToggle: (ResolvedProvider, Boolean) -> Unit,
     onOpen: (ResolvedProvider) -> Unit,
+    onRemove: (ResolvedProvider) -> Unit,
 ) {
     var working by remember { mutableStateOf(rows) }
     var dragKey by remember { mutableStateOf<String?>(null) }
@@ -543,6 +546,7 @@ private fun ProviderList(
                     canMoveDown = index < working.lastIndex,
                     onToggle = { on -> onToggle(row, on) },
                     onOpen = { onOpen(row) },
+                    onRemove = { onRemove(row) },
                 )
             }
         }
@@ -561,6 +565,7 @@ private fun ProviderRow(
     canMoveDown: Boolean,
     onToggle: (Boolean) -> Unit,
     onOpen: () -> Unit,
+    onRemove: () -> Unit,
 ) {
     val context = LocalContext.current
     val title = providerTitle(context, row)
@@ -568,9 +573,18 @@ private fun ProviderRow(
     val upLabel = stringResource(R.string.providers_move_up)
     val downLabel = stringResource(R.string.providers_move_down)
     val shape = MaterialTheme.shapes.medium
+    // Remove asks first, as it does from the setup sheet: the dialog says
+    // whether the key goes with it.
+    SwipeActionsRow(
+        listOf(
+            SwipeAction(Icons.Outlined.Edit, stringResource(R.string.providers_edit), onClick = onOpen),
+            deleteSwipeAction(stringResource(R.string.providers_remove), onRemove),
+        ),
+        modifier = modifier,
+    ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 60.dp)
             .clip(shape)
@@ -635,6 +649,7 @@ private fun ProviderRow(
                 modifier = Modifier.requiredSize(width = 52.dp, height = 32.dp).scale(0.8f),
             )
         }
+    }
     }
 }
 

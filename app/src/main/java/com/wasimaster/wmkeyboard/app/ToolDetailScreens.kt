@@ -4164,6 +4164,21 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                 val status = statuses[language.tag] ?: "checking"
                 WmRow(
                     title = language.displayName,
+                    swipeActions = if (status == "downloaded") {
+                        listOf(
+                            deleteSwipeAction(
+                                stringResource(R.string.privacy_handwriting_delete_desc, language.displayName),
+                            ) {
+                                scope.launch {
+                                    HandwritingModels.delete(language.tag)
+                                    statuses[language.tag] =
+                                        if (HandwritingModels.isDownloaded(language.tag)) "downloaded" else "missing"
+                                }
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    },
                     subtitle = when (status) {
                             "checking" -> stringResource(R.string.privacy_handwriting_status_checking)
                             "downloaded" -> stringResource(R.string.privacy_handwriting_status_downloaded)
@@ -4306,6 +4321,15 @@ private fun OcrPackManager(settings: LiveSettings) {
                 val status = states[pack] ?: OcrPacks.Status.NotDownloaded
                 val names = languages.joinToString(", ") { it.displayName }
                 WmRow(
+                    swipeActions = if (status == OcrPacks.Status.Downloaded) {
+                        listOf(
+                            deleteSwipeAction(stringResource(R.string.privacy_handwriting_delete_desc, names)) {
+                                OcrPacks.delete(filesDir, pack)
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    },
                     title = if (pack == PaddleOcrModel.PACK) {
                         stringResource(R.string.tooldetail_ocr_pack_paddle_title, names)
                     } else {

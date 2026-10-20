@@ -34,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -357,12 +358,26 @@ private fun InstalledSoundSection(
         if (sounds.isEmpty()) {
             CaptionText(stringResource(R.string.hardware_sound_empty))
         }
-        for (sound in sounds) {
+        for (sound in sounds) key(sound.id) {
             val selected = selectedId == sound.id
+            val deleteSound = {
+                scope.launch {
+                    if (selected) repository.setKeySoundStyle(KeySoundStyle.CLICK)
+                    withContext(Dispatchers.IO) { store.delete(sound.id) }
+                    KeySoundPlayer.forgetCustom(sound.id)
+                }
+                Unit
+            }
             HighlightableItem(sound.id) {
                 WmRow(
                     title = sound.name,
                     supporting = sound.author.takeIf { it.isNotBlank() }?.let { { Text(it) } },
+                    swipeActions = listOf(
+                        deleteSwipeAction(
+                            stringResource(R.string.hardware_sound_delete_desc, sound.name),
+                            deleteSound,
+                        ),
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selected) {
@@ -512,8 +527,16 @@ private fun InstalledSoundPackSection(
         if (packs.isEmpty()) {
             CaptionText(stringResource(R.string.hardware_sound_pack_empty))
         }
-        for (pack in packs) {
+        for (pack in packs) key(pack.id) {
             val selected = selectedId == pack.id
+            val deletePack = {
+                scope.launch {
+                    if (selected) repository.setKeySoundStyle(KeySoundStyle.CLICK)
+                    withContext(Dispatchers.IO) { store.delete(pack.id) }
+                    KeySoundPlayer.forgetPack(pack.id)
+                }
+                Unit
+            }
             HighlightableItem(pack.id) {
                 WmRow(
                     title = pack.name,
@@ -560,6 +583,12 @@ private fun InstalledSoundPackSection(
                             },
                         )
                     },
+                    swipeActions = listOf(
+                        deleteSwipeAction(
+                            stringResource(R.string.hardware_sound_delete_desc, pack.name),
+                            deletePack,
+                        ),
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (selected) {

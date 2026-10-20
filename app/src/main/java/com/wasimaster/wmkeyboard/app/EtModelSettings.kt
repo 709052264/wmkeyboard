@@ -108,6 +108,15 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                             is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(status.bytes))
                             else -> stringResource(R.string.voice_et_model_missing, formatBytes(model.bytes))
                         },
+                        swipeActions = if (status == Status.Downloaded) {
+                            listOf(
+                                deleteSwipeAction(stringResource(R.string.models_delete_model_desc, title)) {
+                                    EtDownloadManager.delete(filesDir, model)
+                                },
+                            )
+                        } else {
+                            emptyList()
+                        },
                         trailing = {
                             when (status) {
                                 Status.Downloaded -> IconButton(

@@ -20,6 +20,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -736,11 +737,19 @@ private fun InstalledEmojiFontList(repository: SettingsRepository, settings: Liv
         CaptionText(stringResource(R.string.langemoji_emoji_fonts_empty))
     }
     val installedId = settings.watch { it.emojiFontInstalled.installedId }
-    for (font in fonts) {
+    for (font in fonts) key(font.id) {
         val selected = installedId == font.id
         WmRow(
             title = font.name,
             supporting = font.author.takeIf { it.isNotBlank() }?.let { { Text(it) } },
+            swipeActions = listOf(
+                deleteSwipeAction(stringResource(R.string.langemoji_emoji_font_delete_desc, font.name)) {
+                    scope.launch {
+                        repository.forgetInstalledEmojiFont(font.id)
+                        withContext(Dispatchers.IO) { store.delete(font.id) }
+                    }
+                },
+            ),
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (selected) {

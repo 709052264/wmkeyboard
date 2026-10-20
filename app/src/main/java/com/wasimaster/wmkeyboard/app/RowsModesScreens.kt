@@ -684,7 +684,7 @@ internal fun SymbolRowSettings(
     ) {
         val allSets = resolveSymbolSets(customSets)
         for (set in allSets) {
-            item {
+            item(key = set.id) {
                 val enabled = settings.watch { set.id in it.symbolRowSetIds }
                 val edited = settings.watch { s -> s.customSymbolSets.any { it.id == set.id } }
                 val builtIn = BuiltInSymbolSets.byId(set.id) != null
@@ -722,6 +722,29 @@ internal fun SymbolRowSettings(
                                 }
                             },
                         )
+                    },
+                    // Delete for a set of your own, Reset for a shipped one you
+                    // changed: the editor's button, without opening the editor.
+                    swipeActions = buildList {
+                        add(
+                            SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                                onNavigate(symbolSetEditRoute(set.id))
+                            },
+                        )
+                        if (edited) {
+                            val remove = { scope.launch { repository.deleteSymbolSet(set.id) }; Unit }
+                            add(
+                                if (builtIn) {
+                                    SwipeAction(
+                                        Icons.Outlined.Refresh,
+                                        stringResource(R.string.rows_symbol_set_reset_action),
+                                        onClick = remove,
+                                    )
+                                } else {
+                                    deleteSwipeAction(stringResource(R.string.rows_symbol_set_delete_action), remove)
+                                },
+                            )
+                        }
                     },
                     // Every set is editable now, built-ins included: editing
                     // one stores an override under the same id, so modes that
@@ -1258,8 +1281,13 @@ private fun ReorderRow(
     }
     val rowShape = MaterialTheme.shapes.medium
     val lift = MaterialTheme.colorScheme.surfaceContainerHigh
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    val removeDesc = stringResource(R.string.rows_reorder_remove_desc, label)
+    // The bin, a swipe away as well as at the row's end. Enabled on what the
+    // row is rather than on whether it is being dragged: flipping it mid-drag
+    // would rebuild the row and drop the grip's gesture under the finger.
+    SwipeActionsRow(
+        actions = if (onDelete != null) listOf(deleteSwipeAction(removeDesc, onDelete)) else emptyList(),
+        enabled = deletable,
         modifier = Modifier
             .fillMaxWidth()
             .height(rowHeight)
@@ -1272,30 +1300,37 @@ private fun ReorderRow(
             }
             .background(if (dragging) lift else Color.Transparent, rowShape),
     ) {
-        Text(
-            stringResource(R.string.rows_reorder_position_label, position),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(28.dp),
-        )
-        content()
-        if (onDelete != null) {
-            IconButton(onClick = onDelete, enabled = deletable) {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = stringResource(R.string.rows_reorder_remove_desc, label),
-                    tint = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        Icon(
-            Icons.Outlined.DragHandle,
-            contentDescription = stringResource(R.string.rows_reorder_handle_desc, label),
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(start = 8.dp)
-                .size(28.dp)
-                .then(handle),
-        )
+                .fillMaxWidth()
+                .height(rowHeight),
+        ) {
+            Text(
+                stringResource(R.string.rows_reorder_position_label, position),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.width(28.dp),
+            )
+            content()
+            if (onDelete != null) {
+                IconButton(onClick = onDelete, enabled = deletable) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = stringResource(R.string.rows_reorder_remove_desc, label),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+            Icon(
+                Icons.Outlined.DragHandle,
+                contentDescription = stringResource(R.string.rows_reorder_handle_desc, label),
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(28.dp)
+                    .then(handle),
+            )
+        }
     }
 }
 
@@ -1468,7 +1503,7 @@ internal fun ModesSettings(
     }
     SettingsGroup(stringResource(R.string.modes_group_title)) {
         for (modeId in modeIds) {
-            item {
+            item(key = modeId) {
                 val mode = settings.watch { s -> s.keyboardModes.firstOrNull { it.id == modeId } }
                     ?: return@item
                 // The switch is the mode's own on/off (#152): off, it stays in
@@ -1496,6 +1531,12 @@ internal fun ModesSettings(
                             ),
                         )
                     },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            onNavigate(modeEditRoute(mode.id))
+                        },
+                        deleteSwipeAction(deleteModeDesc) { confirmDelete = mode },
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(
@@ -2055,9 +2096,15 @@ internal fun ModeEditor(
             )
         }
         for (hint in hints) {
-            item {
+            item(key = hint) {
                 WmRow(
                     title = hint,
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.modes_hint_remove_desc)) {
+                            val mode = current()
+                            save(mode.copy(hints = mode.hints - hint))
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             val mode = current()
@@ -2092,7 +2139,7 @@ internal fun ModeEditor(
             }
         }
         for (pkg in apps) {
-            item {
+            item(key = pkg) {
                 val context = LocalContext.current
                 val label = remember(pkg) {
                     runCatching {
@@ -2106,6 +2153,12 @@ internal fun ModeEditor(
                     supporting = if (label != pkg) {
                         { Text(pkg) }
                     } else null,
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.modes_app_remove_desc)) {
+                            val mode = current()
+                            save(mode.copy(apps = mode.apps - pkg))
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             val mode = current()

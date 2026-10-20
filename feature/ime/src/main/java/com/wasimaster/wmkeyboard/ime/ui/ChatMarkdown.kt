@@ -3,6 +3,14 @@ package com.wasimaster.wmkeyboard.ime.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.heightIn
@@ -363,6 +371,7 @@ private fun CodeBlock(
         // the language never would.
         val dark = colors.text.luminance() > 0.5f
         val highlighted = remember(block.code, block.language, dark) { highlight(block.code, block.language, dark) }
+        val scroll = rememberScrollState()
         Text(
             highlighted,
             color = colors.text,
@@ -372,7 +381,9 @@ private fun CodeBlock(
             softWrap = false,
             modifier = Modifier
                 .padding(top = 3.dp)
-                .horizontalScroll(rememberScrollState()),
+                .scrollHint(scroll, colors.text)
+                .horizontalScroll(scroll)
+                .padding(bottom = SCROLL_HINT_ROOM),
         )
     }
 }
@@ -393,13 +404,15 @@ private fun TableBlock(
     math: MathScope?,
 ) {
     val border = colors.dim.copy(alpha = colors.dim.alpha * 0.4f)
+    val scroll = rememberScrollState()
     Row(
         Modifier
             .clip(RoundedCornerShape(6.dp))
             .drawBehind {
                 drawRect(border, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
             }
-            .horizontalScroll(rememberScrollState()),
+            .scrollHint(scroll, colors.text)
+            .horizontalScroll(scroll),
     ) {
         for (column in block.header.indices) {
             val align = when (block.align[column]) {
@@ -573,6 +586,47 @@ private fun annotated(
     }
     return Md(text, formulas.map { it.url.orEmpty() })
 }
+
+/**
+ * Shows that a block scrolls sideways (#811): the edge with more beyond it
+ * fades out, and a thin bar along the bottom gives its place and length.
+ * Nothing at all while the content fits. Goes before the [horizontalScroll]
+ * it describes, so it draws over the viewport rather than the content; it
+ * reads the scroll in the draw phase only, so scrolling recomposes nothing.
+ */
+internal fun Modifier.scrollHint(state: ScrollState, color: Color): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val max = state.maxValue
+        if (max <= 0 || max == Int.MAX_VALUE) return@drawWithContent
+        val w = size.width
+        val fade = minOf(28.dp.toPx(), w / 4)
+        if (state.value > 0) {
+            drawRect(
+                Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), startX = 0f, endX = fade),
+                size = Size(fade, size.height),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+        if (state.value < max) {
+            drawRect(
+                Brush.horizontalGradient(listOf(Color.Black, Color.Transparent), startX = w - fade, endX = w),
+                topLeft = Offset(w - fade, 0f),
+                size = Size(fade, size.height),
+                blendMode = BlendMode.DstIn,
+            )
+        }
+        val h = 3.dp.toPx()
+        val y = size.height - h
+        val thumb = maxOf(w * w / (w + max), 24.dp.toPx()).coerceAtMost(w)
+        val x = (w - thumb) * state.value / max
+        drawRoundRect(color.copy(alpha = color.alpha * 0.15f), Offset(0f, y), Size(w, h), CornerRadius(h / 2))
+        drawRoundRect(color.copy(alpha = color.alpha * 0.55f), Offset(x, y), Size(thumb, h), CornerRadius(h / 2))
+    }
+
+/** Room under a scrolling block's content for [scrollHint]'s bar. */
+internal val SCROLL_HINT_ROOM = 6.dp
 
 /** A code block's text with its tokens coloured; [dark] is a light-on-dark reader. */
 private fun highlight(code: String, language: String, dark: Boolean): AnnotatedString = buildAnnotatedString {

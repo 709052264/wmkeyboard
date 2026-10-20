@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
+import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -56,6 +57,24 @@ internal fun LanguageSettings(
     // to fetch its dictionary comes back to Bangla, not to the top of a list of
     // eleven languages they then have to find it in again.
     val returnTo = remember { ReturnAnchor.take(LANGUAGES_ANCHOR) }
+    // A language swiped away that still has downloads on the phone: the
+    // dialog asks whether they go too, as Remove on its own page does.
+    var removing by remember { mutableStateOf<LanguageDef?>(null) }
+    removing?.let { language ->
+        LanguageDataDeleteDialog(
+            language = language,
+            bytes = downloadedLanguageBytes(context.filesDir, language.id),
+            onKeep = {
+                removing = null
+                scope.launch { removeLanguageLayouts(repository, settings, language.id) }
+            },
+            onDelete = {
+                removing = null
+                deleteLanguageData(context.filesDir, language.id)
+                scope.launch { removeLanguageLayouts(repository, settings, language.id) }
+            },
+        )
+    }
     // "Your languages" is the enabled set (deduped, in switch order); each opens
     // its detail. Adding one is a search over the whole registry.
     // The pencil on the heading swaps the list for the same list with drag
@@ -123,17 +142,33 @@ internal fun LanguageSettings(
         }
         for (language in languages) {
             if (editing) break
-            item {
+            item(key = language.id) {
                 val names = settings.watch { s ->
                     s.enabledLayoutIds
                         .filter { resolveLayout(s.customLayouts, it).language().id == language.id }
                         .joinToString { resolveLayout(s.customLayouts, it).name }
                 }
+                // Remove, as at the foot of the language's own page, and only
+                // while another language is left to type in.
+                val removeLabel = stringResource(R.string.languages_remove_action, language.englishName)
                 ScrollAnchor(language.id == returnTo) {
                     NavRow(
                         language.displayName,
                         subtitle = names.ifBlank { null },
                         route = "language/${language.id}",
+                        swipeActions = if (languages.size > 1) {
+                            listOf(
+                                deleteSwipeAction(removeLabel) {
+                                    if (hasLanguageData(context.filesDir, language.id)) {
+                                        removing = language
+                                    } else {
+                                        scope.launch { removeLanguageLayouts(repository, settings, language.id) }
+                                    }
+                                },
+                            )
+                        } else {
+                            emptyList()
+                        },
                     ) {
                         ReturnAnchor.arm(LANGUAGES_ANCHOR, language.id)
                         onNavigate("language/${language.id}")

@@ -707,6 +707,16 @@ private fun WhisperModelRow(
             titleContent = {
                 Text(model.displayName, fontWeight = if (inUse) FontWeight.SemiBold else null)
             },
+            swipeActions = if (status is DownloadStatus.Downloaded) {
+                listOf(
+                    deleteSwipeAction(
+                        stringResource(R.string.models_delete_model_desc, model.displayName),
+                        onDelete,
+                    ),
+                )
+            } else {
+                emptyList()
+            },
             supporting = {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),

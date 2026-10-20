@@ -358,6 +358,14 @@ private fun StickerPackRow(
                 }
             }
         },
+        swipeActions = listOf(
+            SwipeAction(
+                Icons.Outlined.Share,
+                stringResource(R.string.import_sticker_pack_export_desc, pack.name),
+                onClick = onExport,
+            ),
+            deleteSwipeAction(stringResource(R.string.import_sticker_pack_delete_desc, pack.name), onDelete),
+        ),
         trailing = {
             Row {
                 IconButton(onClick = onExport) {

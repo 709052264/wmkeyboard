@@ -37,6 +37,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
@@ -940,6 +941,16 @@ private fun RepositoryRow(
                 }
             }
         },
+        swipeActions = listOf(
+            SwipeAction(Icons.Outlined.Refresh, stringResource(R.string.addon_repo_refresh_action)) {
+                scope.launch {
+                    withContext(Dispatchers.IO) {
+                        AddonDownloadManager.fetchManifest(store, ref, context.cacheDir)
+                    }
+                }
+            },
+            deleteSwipeAction(stringResource(CommonR.string.common_remove)) { store.removeRepo(ref.manifestUrl) },
+        ),
         trailing = {
             Box {
                 IconButton(onClick = { menu = true }) {
@@ -2216,9 +2227,18 @@ private fun LanguageVariantRow(
         is AddonDownloadManager.AddonStatus.Failed -> status.text.resolve(context)
         AddonDownloadManager.AddonStatus.NotInstalled -> addonMetaLine(variant.version, variant.sizeBytes, "")
     }
+    val installed = status is AddonDownloadManager.AddonStatus.Installed ||
+        status is AddonDownloadManager.AddonStatus.UpdateAvailable
     WmRow(
         title = label,
         subtitle = subtitle,
+        swipeActions = if (installed) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.addon_language_uninstall_desc, label), onUninstall),
+            )
+        } else {
+            emptyList()
+        },
         trailing = {
             when (status) {
                 is AddonDownloadManager.AddonStatus.Installed ->

@@ -344,10 +344,12 @@ private fun DictionaryItemRow(
     checked: Boolean?,
     onChecked: (Boolean) -> Unit,
     error: Boolean = false,
+    swipeActions: List<SwipeAction> = emptyList(),
     trailing: @Composable () -> Unit,
 ) {
     WmRow(
         title = title,
+        swipeActions = swipeActions,
         leading = checked?.let { { Checkbox(checked = it, onCheckedChange = null) } },
         supporting = {
             Text(
@@ -412,12 +414,18 @@ private fun WordListRow(
     // the new size did not arrive, and the list already there is still the
     // one in use.
     val kept = (status as? WordlistDownloadManager.DownloadStatus.Failed)?.kept == true
+    val deleteLabel = stringResource(R.string.languages_wordlist_delete_desc)
     DictionaryItemRow(
         title = title,
         supporting = supporting,
         checked = if (onDevice) checked else null,
         onChecked = onChecked,
         error = status is WordlistDownloadManager.DownloadStatus.Failed,
+        swipeActions = if (entry != null && (status is WordlistDownloadManager.DownloadStatus.Downloaded || kept)) {
+            listOf(deleteSwipeAction(deleteLabel) { WordlistDownloadManager.delete(filesDir, entry) })
+        } else {
+            emptyList()
+        },
     ) {
         when (status) {
             is WordlistDownloadManager.DownloadStatus.Downloaded ->
@@ -568,6 +576,15 @@ private fun EmojiKeywordsRow(
         checked = if (downloaded || imported) checked else null,
         onChecked = onChecked,
         error = status is EmojiDictDownloadManager.DownloadStatus.Failed,
+        swipeActions = if (downloaded) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.languages_emoji_dict_delete_desc)) {
+                    EmojiDictDownloadManager.delete(filesDir, langId)
+                },
+            )
+        } else {
+            emptyList()
+        },
     ) {
         when (status) {
             is EmojiDictDownloadManager.DownloadStatus.Downloaded ->
@@ -644,6 +661,15 @@ private fun WordPairsRow(
         checked = if (status is NgramPackDownloadManager.DownloadStatus.Downloaded) checked else null,
         onChecked = onChecked,
         error = status == NgramPackDownloadManager.DownloadStatus.Failed,
+        swipeActions = if (status is NgramPackDownloadManager.DownloadStatus.Downloaded) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.languages_word_pairs_delete_desc)) {
+                    NgramPackDownloadManager.delete(filesDir, langId)
+                },
+            )
+        } else {
+            emptyList()
+        },
     ) {
         when (status) {
             is NgramPackDownloadManager.DownloadStatus.Downloaded ->

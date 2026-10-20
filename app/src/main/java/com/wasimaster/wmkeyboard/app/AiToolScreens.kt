@@ -538,8 +538,16 @@ internal fun AiActionsSettings(
         }
         for (action in ordered) {
             if (reordering) break
-            item {
+            item(key = action.id) {
                 val on = settings.watch { action.id !in it.ai.hiddenActions }
+                // Delete for an action of your own; for a shipped one that you
+                // changed, Reset, which is the same call bringing it back.
+                val stored = settings.watch { s -> s.ai.customActions.any { it.id == action.id } }
+                val shipped = BuiltInAiActions.byId(action.id) ?: BuiltInAiReplyTones.byId(action.id)
+                val editLabel = stringResource(R.string.toolai_ai_action_edit_desc)
+                val removeLabel = stringResource(
+                    if (shipped != null) R.string.toolai_ai_action_reset_action else R.string.toolai_ai_action_delete_action,
+                )
                 WmRow(
                     title = names[action.id].orEmpty(),
                     supporting = {
@@ -566,6 +574,16 @@ internal fun AiActionsSettings(
                                 }
                             },
                         )
+                    },
+                    swipeActions = buildList {
+                        add(SwipeAction(Icons.Outlined.Edit, editLabel) { onNavigate("ai_action_edit/${action.id}") })
+                        if (stored) {
+                            val remove = { scope.launch { repository.deleteAiAction(action.id) }; Unit }
+                            add(
+                                if (shipped != null) SwipeAction(Icons.Outlined.Refresh, removeLabel, onClick = remove)
+                                else deleteSwipeAction(removeLabel, remove),
+                            )
+                        }
                     },
                     trailing = {
                         IconButton(onClick = { onNavigate("ai_action_edit/${action.id}") }) {

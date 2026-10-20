@@ -56,6 +56,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Visibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
@@ -143,7 +144,7 @@ internal fun AiMcpSettings(
             )
         }
         for (server in servers) {
-            item {
+            item(key = server.id) {
                 val entry = entryOf(server)
                 val status = when {
                     server.id in connecting -> stringResource(R.string.toolai_ai_mcp_connecting_progress)
@@ -156,6 +157,16 @@ internal fun AiMcpSettings(
                     supporting = {
                         Text(status, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) { onNavigate(route) },
+                        deleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                            scope.launch {
+                                repository.deleteMcpServer(server.id)
+                                withContext(Dispatchers.IO) { McpCatalogStore.remove(context, server.id) }
+                                McpClient.forget(server.id)
+                            }
+                        },
+                    ),
                     trailing = {
                         Switch(
                             checked = server.enabled,

@@ -214,7 +214,7 @@ internal fun IconsScreen(
             )
         }
         for (pack in packs) {
-            item {
+            item(key = pack.id) {
                 val count = pack.slots.size
                 val countText =
                     pluralStringResource(R.plurals.plugins_icons_pack_icon_count, count, count)
@@ -236,6 +236,13 @@ internal fun IconsScreen(
                         supporting = countText + authorText + versionText,
                         selected = settings.watch { it.icons.activePackId == pack.id },
                         onClick = { scope.launch { repository.setIconPack(pack.id) } },
+                        swipeActions = listOf(
+                            SwipeAction(Icons.Outlined.FileUpload, exportDesc) {
+                                pendingExport = pack
+                                exportLauncher.launch(IconPackFile.fileName(pack))
+                            },
+                            deleteSwipeAction(deleteDesc) { confirmDelete = pack },
+                        ),
                         trailing = {
                             Row {
                                 IconButton(onClick = {
@@ -514,10 +521,12 @@ private fun PackRow(
     selected: Boolean,
     onClick: () -> Unit,
     trailing: (@Composable () -> Unit)? = null,
+    swipeActions: List<SwipeAction> = emptyList(),
 ) {
     WmRow(
         title = name,
         subtitle = supporting,
+        swipeActions = swipeActions,
         leading = {
             if (selected) {
                 Icon(

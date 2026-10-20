@@ -875,29 +875,43 @@ internal fun AboutSettings(
     // Read outside the click handlers: they are plain lambdas, not composables.
     val bugReportSubject = stringResource(R.string.about_bug_report_email_subject)
 
-    SettingsGroup(stringResource(CommonR.string.common_share)) {
-        item(visible = !BuildConfig.ENABLE_FDROID) {
+    SettingsGroup(
+        stringResource(R.string.about_community_title),
+        info = stringResource(R.string.about_community_body),
+    ) {
+        item { TelegramRow { uriHandler.openUri(Support.TELEGRAM_URL) } }
+        item { SocialStrip() }
+        item {
             NavRow(
-                R.string.about_share_play_link,
-                PLAY_STORE_URL.removePrefix("https://"),
+                R.string.about_supporters_title,
+                stringResource(R.string.about_supporters_subtitle),
+                route = "supporters",
+                onClick = onOpenSupporters,
+            )
+        }
+    }
+
+    SettingsGroup(
+        stringResource(R.string.about_feedback_title),
+        info = stringResource(R.string.about_feedback_body),
+    ) {
+        item {
+            NavRow(
+                R.string.about_report_bug_title,
+                stringResource(R.string.about_report_bug_subtitle),
             ) {
-                shareLink(context, PLAY_STORE_URL)
+                uriHandler.openUri(Support.ISSUES_URL)
             }
         }
-        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
-            NavRow(
-                R.string.about_share_fdroid_link,
-                FDROID_URL.removePrefix("https://"),
-            ) {
-                shareLink(context, FDROID_URL)
-            }
-        }
-        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
-            NavRow(
-                R.string.about_share_github_link,
-                SOURCE_URL.removePrefix("https://"),
-            ) {
-                shareLink(context, SOURCE_URL)
+        item {
+            NavRow(R.string.about_email_developer_title, Support.EMAIL) {
+                if (!Support.email(context, bugReportSubject, Support.bugReport())) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.about_no_email_app_error, Support.EMAIL),
+                        Toast.LENGTH_LONG,
+                    ).show()
+                }
             }
         }
     }
@@ -1065,47 +1079,6 @@ internal fun AboutSettings(
     // "unsupported" and this draws nothing.
     UpdateSettings(settings)
 
-    SettingsGroup(
-        stringResource(R.string.about_feedback_title),
-        info = stringResource(R.string.about_feedback_body),
-    ) {
-        item {
-            NavRow(
-                R.string.about_report_bug_title,
-                stringResource(R.string.about_report_bug_subtitle),
-            ) {
-                uriHandler.openUri(Support.ISSUES_URL)
-            }
-        }
-        item {
-            NavRow(R.string.about_email_developer_title, Support.EMAIL) {
-                if (!Support.email(context, bugReportSubject, Support.bugReport())) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.about_no_email_app_error, Support.EMAIL),
-                        Toast.LENGTH_LONG,
-                    ).show()
-                }
-            }
-        }
-    }
-
-    SettingsGroup(
-        stringResource(R.string.about_community_title),
-        info = stringResource(R.string.about_community_body),
-    ) {
-        item { TelegramRow { uriHandler.openUri(Support.TELEGRAM_URL) } }
-        item { SocialStrip() }
-        item {
-            NavRow(
-                R.string.about_supporters_title,
-                stringResource(R.string.about_supporters_subtitle),
-                route = "supporters",
-                onClick = onOpenSupporters,
-            )
-        }
-    }
-
     SettingsGroup(stringResource(R.string.about_documentation_title)) {
         item {
             NavRow(
@@ -1139,6 +1112,33 @@ internal fun AboutSettings(
                 selected = settings.watch { it.appUi.settingLinks },
                 default = SettingsDefaults.appUi.settingLinks,
             ) { scope.launch { repository.setSettingLinks(it) } }
+        }
+    }
+
+    SettingsGroup(stringResource(CommonR.string.common_share)) {
+        item(visible = !BuildConfig.ENABLE_FDROID) {
+            NavRow(
+                R.string.about_share_play_link,
+                PLAY_STORE_URL.removePrefix("https://"),
+            ) {
+                shareLink(context, PLAY_STORE_URL)
+            }
+        }
+        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
+            NavRow(
+                R.string.about_share_fdroid_link,
+                FDROID_URL.removePrefix("https://"),
+            ) {
+                shareLink(context, FDROID_URL)
+            }
+        }
+        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
+            NavRow(
+                R.string.about_share_github_link,
+                SOURCE_URL.removePrefix("https://"),
+            ) {
+                shareLink(context, SOURCE_URL)
+            }
         }
     }
 

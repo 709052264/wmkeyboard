@@ -327,7 +327,7 @@ private fun FontPickerSection(
     if (relevant.isNotEmpty()) {
         SettingsGroup(installedTitle) {
             for (font in relevant) {
-                item {
+                item(key = font.id) {
                     val id = FontStore.fontIdFor(font.id)
                     // Matched on the library id, not the prefixed settings one:
                     // an install records the font exactly as the store knows it.
@@ -399,8 +399,10 @@ private fun FontChoiceRow(
     onDelete: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
+    val deleteDesc = stringResource(R.string.fonts_delete_desc, label)
     WmRow(
         title = label,
+        swipeActions = if (onDelete != null) listOf(deleteSwipeAction(deleteDesc, onDelete)) else emptyList(),
         // The row is the preview: name and sample both drawn in the font
         // itself, so picking one shows what it will look like.
         titleContent = { Text(label, fontFamily = family, fontSize = 18.sp) },

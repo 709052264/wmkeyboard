@@ -5,6 +5,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.InlineTextContent
@@ -731,8 +732,9 @@ internal fun MathBlock(latex: String, color: Color, scope: MathScope, modifier: 
     val density = LocalDensity.current
     val pad = scope.em * 0.2f
     val size = with(density) { Size(box.width + pad * 2, box.ascent + box.descent + pad * 2) }
+    val scroll = rememberScrollState()
     Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-        Box(Modifier.horizontalScroll(rememberScrollState())) {
+        Box(Modifier.scrollHint(scroll, color).horizontalScroll(scroll).padding(bottom = SCROLL_HINT_ROOM)) {
             Canvas(
                 Modifier
                     .size(with(density) { size.width.toDp() }, with(density) { size.height.toDp() })

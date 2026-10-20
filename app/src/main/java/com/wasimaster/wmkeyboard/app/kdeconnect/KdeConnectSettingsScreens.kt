@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.app.SwipeActionsRow
+import com.wasimaster.wmkeyboard.app.deleteSwipeAction
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Computer
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Laptop
@@ -471,11 +473,16 @@ internal fun KdeDevicesScreen(repository: SettingsRepository, settings: LiveSett
             }
         }
         for (host in hosts) {
-            item {
-                Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(host, Modifier.weight(1f), fontFamily = FontFamily.Monospace)
-                    IconButton(onClick = { scope.launch { repository.removeKdeHost(host) } }) {
-                        Icon(Icons.Outlined.Close, stringResource(R.string.kdeconnect_hosts_remove, host))
+            item(key = host) {
+                val removeLabel = stringResource(R.string.kdeconnect_hosts_remove, host)
+                SwipeActionsRow(
+                    listOf(deleteSwipeAction(removeLabel) { scope.launch { repository.removeKdeHost(host) } }),
+                ) {
+                    Row(Modifier.fillMaxWidth().padding(start = 16.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Text(host, Modifier.weight(1f), fontFamily = FontFamily.Monospace)
+                        IconButton(onClick = { scope.launch { repository.removeKdeHost(host) } }) {
+                            Icon(Icons.Outlined.Close, removeLabel)
+                        }
                     }
                 }
             }

@@ -46,6 +46,7 @@ import com.wasimaster.wmkeyboard.app.RunGlyph
 import com.wasimaster.wmkeyboard.app.RunPhase
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.WmIconTile
+import com.wasimaster.wmkeyboard.app.deleteSwipeAction
 import com.wasimaster.wmkeyboard.app.WmRow
 import com.wasimaster.wmkeyboard.app.formatBytes
 import com.wasimaster.wmkeyboard.app.lock.AppLockTargets
@@ -270,6 +271,7 @@ private fun StorageItemRow(
     WmRow(
         title = item.label.ifBlank { stringResource(R.string.storage_item_unknown_label) },
         subtitle = item.detail,
+        swipeActions = if (item.deletable && enabled) listOf(deleteSwipeAction(deleteDesc, onDelete)) else emptyList(),
         leading = when {
             preview != null -> {
                 { StorageThumbnail(preview, accent) }

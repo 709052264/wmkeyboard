@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Restore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckCircle
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ErrorOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
@@ -232,7 +233,7 @@ internal fun LocationsGroup(
         info = stringResource(R.string.backup_locations_info),
     ) {
         for (location in auto.locations) {
-            item {
+            item(key = location.id) {
                 LocationRow(
                     location = location,
                     syncs = auto.sync.enabled && location.id in auto.sync.locationIds,
@@ -391,6 +392,12 @@ private fun LocationRow(
                     )
                 }
             }
+        },
+        swipeActions = buildList {
+            if (location.configured) {
+                add(SwipeAction(Icons.Outlined.Restore, stringResource(R.string.backup_location_restore, title), onClick = onRestore))
+            }
+            add(deleteSwipeAction(stringResource(R.string.backup_location_remove), onRemove))
         },
         trailing = {
             Box {
