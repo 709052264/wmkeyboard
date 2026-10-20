@@ -29,7 +29,66 @@ recipe and the trap). Output: milliseconds per call, calls per keystroke or per
 action, share of frame time. A candidate under about 1 ms per action, or 0.3 ms
 per keystroke, stays in Kotlin unless Phase 2 moves it for desktop sharing.
 
-Status: not started.
+Status: host JVM measured 2026-10-21; phone not measured yet (the CPH2481's
+wireless-debugging pairing had lapsed, and the device pass was skipped).
+
+**Harness:** `native/bench/phase0/` (`Phase0Bench.kt`, `run.sh`), outside
+Gradle and never shipped. `run.sh host` compiles it with the Kotlin compiler
+from the Gradle cache against a checkout's built `core/*` release jars and runs
+it on the JVM; `run.sh device` dexes the same classes and runs them under ART
+on the phone with `app_process`, so the phone column will time identical code.
+Each case warms for at least a second (meant to give ART's JIT time on the phone), then times up to 400
+calls. Real classes are called wherever they take plain arrays. Where the loop
+sits behind `android.graphics` or a private function (NsfwFilter's CHW loop,
+ImageGenEngine.toBitmap, PhotoEditRenderer.sharpenInPlace, WhisperRecorder's
+chunk loop, GlideBeam.buildCosts), its body is copied verbatim onto arrays.
+Inputs: random unit vectors; 512² sticker frames shaded to fill the palette; a
+12 MP photo with a 25-line detector map and PP-OCRv5's 40×18,385 recogniser
+output; 200 synthetic QWERTY swipes (mean 139 points, 4 ms apart) on the
+bundled 17,306-word `en.txt`, where GlideBeam's top-1 is 92%. No real-swipe set
+is checked in, so the FUTO test split was not used. The method splits are JFR
+execution samples taken during the same runs.
+
+**Host numbers** (M-series Mac, JDK 21, the quieter of two runs; the first run
+shared the machine with another session's sweeps and read about 1.6x slower):
+
+| Candidate | Median / p95 per call | How often | NEON-shaped share |
+|---|---|---|---|
+| `VectorIndex.score`, 1k × 768 | 0.74 / 0.79 ms | per meaning search, after a 300 ms pause; per AI memory recall | dots 88%; the rest is a `Hit` per item and a full sort |
+| `VectorIndex.score`, 5k × 768 | 3.8 / 3.9 ms | same | dots 86% |
+| `VectorIndex.score`, 20k × 768 (photos) | 17.0 / 18.0 ms | same | dots 80% |
+| `GifEncoder.addFrame`, 512² | 4.4 / 4.6 ms | per frame, 30-60 per animated sticker into a GIF-only field | LZW 43% (serial hash), median cut 38%, index lookup 6%, bounds 5% |
+| `GifEncoder`, whole 30-frame GIF | 135 / 141 ms | per such sticker sent | as above |
+| `PaddleOcrPipeline.read` minus inference, 12 MP, 25 lines | 42 / 44 ms | per OCR read | `detectorInput`'s box average 39%, `ctcDecode` argmax 36%, `strip` bilinear 17% |
+| `detectorInput`, 12 MP to 640² | 14.4 / 14.9 ms | per OCR read | all of it |
+| `ctcDecode`, 40 × 18,385 | 0.22 / 0.24 ms | per 320 px piece, 25-75 per page | all of it |
+| Cutout `normalise` + `alphaOf`, 320² | 0.25 + 0.16 ms | per cutout, beside a LiteRT segmentation | all of it |
+| NsfwFilter CHW loop, 224² | 0.05 ms | per generated picture | all of it |
+| ImageGen sampler step, 4×64×64 | 0.012 ms | per UNet step | all of it |
+| ImageGen `toBitmap`, 512² | 0.61 ms | per picture and preview, beside seconds of UNet | all of it |
+| PhotoEdit sharpen, 2048 × 1536 | 67 / 68 ms | per adjust change in the editor preview while sharpen > 0 (`base()` reruns) | all of it |
+| PhotoEdit sharpen, 4000 × 3000 | 257 / 261 ms | per photo sent with sharpen > 0 | all of it |
+| `GlideBeam.decode` | 2.2 / 6.7 ms | per swipe, at finger-up | `advance` (banded min-plus DP, per trie node) ~50%, `buildRemain` ~16%, `anchorLead` ~12% |
+| `GlideBeam`, 6 live previews | 7.6 / 19.7 ms | per swipe, while the finger is down | same |
+| `buildCosts` loop, 48 samples × 26 keys | 0.001 ms | per decode | the "distance loop": nothing to win |
+| `CtcGlideBeam.decode` | 2.3 / 3.7 ms | per swipe, FUTO engine only | hash maps and trie walk |
+| `DuetBeam.decode` | 1.1 / 5.8 ms | per two-thumb word | `advance` 89% |
+| PCM16 to float + RMS, 1,600 samples | 0.001 ms | per 100 ms audio chunk | all of it |
+| `WhisperMel.compute`, 5 s | 5.5 ms | per utterance, LiteRT Whisper only, beside seconds of inference | FFT |
+| `WavEncoder.encode`, 5 s | 0.06 ms | per utterance, server engines only | all of it |
+
+None of these runs per keystroke. Every "port" verdict in Phase 1 clears the
+1 ms bar on the host already, and every "skip" is under 0.1 ms or under 1% of
+the action it belongs to, so a phone several times slower than the Mac does
+not flip a verdict. The phone column is still owed before a kernel's commit
+claims a speed-up: `native/bench/phase0/run.sh device` once adb is paired.
+
+Fixes these runs found in Kotlin, unmeasured and out of scope here:
+`GlideBeam.anchorLead` takes a square root on every `advance` call when its
+value depends only on the key, so it could be one table per anchor filled in
+`buildCosts`. `VectorIndex.score` sorts every hit when its callers keep a few.
+`GifEncoder.Palette.of` builds its used-bucket list through a boxed
+`(0 until BUCKETS).filter` on every frame.
 
 ## Shared infrastructure
 
@@ -100,15 +159,23 @@ with `build.sh` and report the size change.
 
 ## Phase 1: NEON kernels
 
-| Kernel | Today | Expected gain |
-|---|---|---|
-| Embedding dot products | `VectorIndex.score`, scalar Kotlin over every vector | 8-16x with `vfmaq_f32`; int8 storage + `sdot` (armv8.2) also cuts index memory 4x |
-| GIF encoding | `GifEncoder`, `AnimatedWebpToGif` | palette nearest-colour search and dithering |
-| Image pre/post-processing | `PaddleOcrPipeline`, `NsfwFilter`, cutout, sticker generator, `PhotoEditRenderer` | resize, normalise, alpha mask, colour conversion |
-| Glide shape scoring | inner distance loops of `GlideBeam`, `DuetBeam`, `CtcGlideBeam` | four trace points per instruction; only if Phase 0 shows it matters |
-| Audio glue | PCM16 to float, resampling, energy in front of every voice engine | small per call, runs on every chunk |
+Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order.
 
-Status: waiting on Phase 0.
+| Kernel | Kotlin cost (host) | How often | Verdict | Expected NEON gain |
+|---|---|---|---|---|
+| Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **port** | 10x or more: a 3×3 integer stencil on 16 u8 lanes, no gathers. A RuntimeShader would also do it on API 33+ |
+| Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **port** | 4-8x on the dots with `vfmaq_f32`; at 20k the f32 scan is 61 MB and memory-bound, so int8 + `sdot` (also 4x less memory) is what reaches the top of that. `dot_rows_f32` and `dot_i8` already exist. Keep the top-k in Kotlin, or select instead of sorting |
+| OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page |
+| GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
+| Glide shape scoring (`GlideBeam`, `DuetBeam`, `CtcGlideBeam`) | 2.2 / 6.7 ms per decode, 7.6 / 19.7 ms per stroke of previews; the distance loop is 1 µs | per swipe | **skip as a Phase 1 kernel**; Phase 2 step 4 ports the decoders | the time is in `advance`, a banded min-plus DP called per trie node. A JNI call per node would cost more than it saves, so vectorise its band (4-lane min/select, perhaps 2x on a decode) inside the Rust decoder |
+| Cutout, NSFW filter, sticker generator glue | 0.42, 0.05 and 0.012-0.61 ms | per cutout, picture or UNet step, each beside a network that takes hundreds of ms to seconds | **skip** | under 1% of the action |
+| Audio glue (PCM16 to float, energy, `WhisperMel`, `WavEncoder`) | 1 µs per 100 ms chunk; 5.5 ms mel and 0.06 ms WAV per utterance | per chunk; per utterance | **skip** | under 1% of capture or inference. No Kotlin resampler exists: capture is at 16 kHz already |
+
+None is "port only for desktop": the glide decoders are the shared piece, and
+Phase 2 already moves them.
+
+Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
+Kernel sessions may start in the order above.
 
 ## Phase 2: prediction core in Rust
 
