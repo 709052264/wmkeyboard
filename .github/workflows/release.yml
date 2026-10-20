@@ -712,7 +712,14 @@ jobs:
       # never appears to a watcher with half its APKs attached. The whole step
       # is idempotent: a re-run edits and re-uploads over whatever the last
       # attempt managed.
+      #
+      # `announce` is true only when this run is what makes the release
+      # public: it did not exist, or it was still a draft from an attempt that
+      # died before publishing. A re-run, or a tag moved onto a fixed commit
+      # and rebuilt (0.6.2), updates a release people have already been told
+      # about, and the Telegram step below stays quiet for it.
       - name: Create release
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
@@ -725,10 +732,12 @@ jobs:
             echo "::error::Nothing in dist/ to attach"
             exit 1
           fi
-          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+          if draft=$(gh release view "$TAG" --repo "$REPO" --json isDraft -q .isDraft 2>/dev/null); then
+            if [ "$draft" = true ]; then announce=true; else announce=false; fi
             gh release edit "$TAG" --repo "$REPO" \
               --title "$TITLE" --notes-file release-body.md
           else
+            announce=true
             gh release create "$TAG" --repo "$REPO" --draft \
               --title "$TITLE" --notes-file release-body.md
           fi
@@ -737,11 +746,14 @@ jobs:
             gh release upload "$TAG" --repo "$REPO" --clobber "$f"
           done
           gh release edit "$TAG" --repo "$REPO" --draft=false --latest
+          echo "announce=$announce" >> "$GITHUB_OUTPUT"
 
       # Announce the new release on the Telegram community in the
       # announcements and releases topic (#19), linking the full English arm64 APK
       # and attaching the lite English one (Full is over the 50 MB bot upload cap).
+      # Once per release: not when this run only updated a published one.
       - name: Announce on Telegram
+        if: steps.release.outputs.announce == 'true'
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TAG: ${{ github.ref_name }}

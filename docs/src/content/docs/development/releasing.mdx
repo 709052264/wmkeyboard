@@ -276,6 +276,11 @@ inside a fence long enough that no backtick run in it can escape.
    warning if the `PLAY_SERVICE_ACCOUNT_JSON` secret is not set. Promoting to
    production stays a decision you make by hand.
 
+   The release is announced on the Telegram community only by the run that
+   publishes it. Re-running the workflow, or moving the tag onto a fixed
+   commit and pushing it again, rebuilds and re-uploads every file into the
+   same release and posts nothing.
+
    To release to GitHub and F-Droid alone, put `[skip play]` in the message of
    the commit the tag points at. The `play` job then stands down, and the
    issue comments name F-Droid as the only store to wait for. This is for a
