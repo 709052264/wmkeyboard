@@ -38,6 +38,10 @@ BIN=$(ls -d "$NDK"/toolchains/llvm/prebuilt/*/bin)
 WORK=${ET_WORK:-$(mktemp -d)}
 mkdir -p "$WORK"
 WORK=$(cd "$WORK" && pwd -P)
+# A scratch directory of our own is about 4.7 GB after three ABIs; remove it
+# on exit like the other build scripts. An ET_WORK the caller named is kept,
+# since reusing it is the point of naming one.
+[ -n "${ET_WORK:-}" ] || trap 'rm -rf "$WORK"' EXIT
 PY=$(command -v python3)
 
 # Network fetches retry: F-Droid's builders share GitHub and GitLab with
