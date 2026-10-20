@@ -5634,7 +5634,10 @@ internal fun RowScope.LatinSuggestionChips(
                                     val event = awaitPointerEvent(PointerEventPass.Initial)
                                     val change = event.changes.firstOrNull { it.id == down.id } ?: break
                                     if (anchorY.isNaN() && heldWord == suggestion && !heldFacts.blacklisted) {
-                                        anchorY = change.position.y
+                                        // Where the finger was when the hold
+                                        // fired: this event may already be the
+                                        // first step of the slide.
+                                        anchorY = change.previousPosition.y
                                         held = heldFacts.rankSteps
                                     }
                                     if (!anchorY.isNaN() && change.pressed) {
