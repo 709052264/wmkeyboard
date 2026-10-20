@@ -500,6 +500,9 @@ android {
         // llama.cpp (a few MB per ABI), the runtime for GGUF models; fetched
         // when the first GGUF model is downloaded or used.
         dynamicFeatures += ":feature:llama"
+        // The built-in document scanner (OpenCV core and imgproc, under 2 MB),
+        // fetched the first time the scanner tool runs without Google's.
+        dynamicFeatures += ":feature:docscan"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
         // assets that only phones with a listed chip fetch, once someone
         // picks NPU. Included by settings.gradle.kts under the same flag.
@@ -1382,7 +1385,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell, :feature:ocr, :feature:rime, :feature:mozc, :feature:bergamot, :feature:ct2, :feature:zinnia and :feature:llama modules.
+        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell, :feature:ocr, :feature:rime, :feature:mozc, :feature:bergamot, :feature:ct2, :feature:zinnia, :feature:llama and :feature:docscan modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

@@ -27,6 +27,8 @@
 #   (Chinese, Japanese)                            (into core/intelligence/src/zinnia/jniLibs)
 #   llama.cpp (GGUF     llamacpp-jni/build.sh     libwmllama*.so
 #   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
+#   Document scanner    docscan-jni/build.sh      libwmdocscan.so
+#   (OpenCV)                                      (into core/intelligence/src/docscan/jniLibs)
 #
 # libwmsherpa and libwmxlit are linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -91,3 +93,4 @@ fi
 "$HERE/ctranslate2-jni/build.sh"
 "$HERE/zinnia-jni/build.sh"
 "$HERE/llamacpp-jni/build.sh"
+"$HERE/docscan-jni/build.sh"

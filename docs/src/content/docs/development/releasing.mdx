@@ -39,6 +39,7 @@ flavor drive all of it, so nothing here needs a branch or a patched source tree.
 | CTranslate2 (the NLLB-200 translation engine, 64-bit phones; armeabi-v7a gets a stub that refuses to load) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:ct2` module |
 | llama.cpp (GGUF models for on-device AI) | committed prebuilt libraries, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:llama` module |
 | zinnia (Chinese and Japanese handwriting without ML Kit) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:zinnia` module |
+| OpenCV (the built-in document scanner) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:docscan` module |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, full only | absent | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
 | Native libraries in the APK | uncompressed and page-aligned | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
@@ -753,7 +754,7 @@ non-UTF-8 locale otherwise raises rather than counting.
    Go to internal first, always. Play's own device catalogue tells you within
    minutes if an on-demand module (`:feature:llm`, `:feature:translate`,
    `:feature:litert`, `:feature:handwriting`, `:feature:speech`,
-   `:feature:grammar`, `:feature:spell`, `:feature:ocr`, `:feature:bergamot`, `:feature:ct2`, `:feature:zinnia`, `:feature:llama`) or the unbundled ML Kit path
+   `:feature:grammar`, `:feature:spell`, `:feature:ocr`, `:feature:bergamot`, `:feature:ct2`, `:feature:zinnia`, `:feature:llama`, `:feature:docscan`) or the unbundled ML Kit path
    is misconfigured, and that is far cheaper to learn there than in
    production.
 

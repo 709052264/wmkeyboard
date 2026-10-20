@@ -126,6 +126,9 @@ if (playStoreChannel) {
     // llama.cpp, the same way: the library alone, behind GGUF models for
     // on-device AI.
     include(":feature:llama")
+    // The built-in document scanner's OpenCV library, the same way, behind
+    // the scanner tool where Google's scanner is missing or switched off.
+    include(":feature:docscan")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
     // wmkb.enableNpu=false (the same flag :core:config reads).
     val local = java.util.Properties()

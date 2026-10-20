@@ -666,7 +666,14 @@
     <!-- Document scanner tool. -->
     <string name="tooldetail_doc_scan_gallery_title">Save to the gallery</string>
     <string name="tooldetail_doc_scan_gallery_subtitle">Also keep scanned pages in Pictures/WM Keyboard</string>
-    <string name="tooldetail_doc_scan_info">This opens the document scanner of Google, which is part of Google Play services, with edge detection, crop and shadow cleanup. Scanned pages come back as images. The keyboard puts them into the chat like a camera photo when it opens again. The processing runs on your device.</string>
+    <string name="tooldetail_doc_scan_info">This opens the document scanner of Google, which is part of Google Play services, with edge detection, crop and shadow cleanup. Turn on the built-in scanner below to use the keyboard\'s own instead. Scanned pages come back as images. The keyboard puts them into the chat like a camera photo when it opens again. The processing runs on your device.</string>
+    <string name="tooldetail_doc_scan_builtin_info">This opens the keyboard\'s own document scanner. It finds the page in the camera picture or a photo, lets you move its corners, flattens it, and can clean it up to white paper in colour, grey or black and white. Scanned pages come back as images. The keyboard puts them into the chat like a camera photo when it opens again. Everything runs on your device, without Google Play services.</string>
+    <string name="tooldetail_doc_scan_builtin_title">Use the built-in scanner</string>
+    <string name="tooldetail_doc_scan_builtin_subtitle">Scan with the keyboard\'s own scanner instead of Google\'s</string>
+    <string name="tooldetail_doc_scan_module_missing_info">The built-in scanner is an extra part of the keyboard, about 2.5 MB. It downloads the first time you scan, or now.</string>
+    <string name="tooldetail_doc_scan_module_installing_info">Downloading the built-in scanner…</string>
+    <string name="tooldetail_doc_scan_module_installing_sized_info">Downloading the built-in scanner: <xliff:g id="done" example="0.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="2.4 MB">%2$s</xliff:g></string>
+    <string name="tooldetail_doc_scan_module_metered_body">The built-in scanner is a separate download of about 2.5 MB.</string>
 
     <!-- Voice typing tool. Everything it can be configured with lives on the
          Voice typing screen, so the page is one row that opens it. -->

@@ -1703,7 +1703,7 @@ private fun SearchStrings.galleryRows(): List<SettingsSearchEntry> {
     )
 }
 
-private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
+private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNotNull(
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_packs_title, R.string.tooldetail_sticker_packs_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_title, R.string.tooldetail_sticker_suggest_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_sticker_suggest_style_title),
@@ -1747,6 +1747,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOf(
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_auto_title, R.string.tooldetail_qr_scan_auto_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_haptics_title, R.string.tooldetail_qr_scan_haptics_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_preview_title, R.string.tooldetail_qr_scan_preview_subtitle),
+    // A choice only where Google's scanner can run; elsewhere the built-in one is all there is.
+    toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_builtin_title, R.string.tooldetail_doc_scan_builtin_subtitle)
+        .takeIf { googleDocScanner },
     toolEntry(ToolbarTool.DOC_SCAN, R.string.tooldetail_doc_scan_gallery_title, R.string.tooldetail_doc_scan_gallery_subtitle),
     toolEntry(
         ToolbarTool.VOICE,

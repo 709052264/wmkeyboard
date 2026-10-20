@@ -1172,6 +1172,21 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The built-in document scanner (OpenCV): full screen, used where
+             Google's scanner is missing or switched off. Hands its pages to
+             the keyboard the same way, so the same launch shape: its own
+             task affinity, out of recents. configChanges because the scan in
+             progress (photo, corners, kept pages) lives in Compose state and
+             a turn of the phone must not drop it. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.PageScanActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+
         <!--
              The crash report screen, shown instead of Android's "app has
              stopped" dialog in a build made with -Pwmkb.enableCrashScreen=true.

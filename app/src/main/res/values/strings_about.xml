@@ -171,6 +171,7 @@
     <string name="about_bundled_lottie_used">Draws animated Telegram stickers</string>
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
+    <string name="about_bundled_opencv_used">Finds, flattens and cleans up pages in the built-in document scanner (native library)</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
     <string name="about_bundled_zinnia_used">Reads Chinese and Japanese handwriting on the device without Google services (native library)</string>
     <string name="about_bundled_divvunspell_used">Checks spelling against GiellaLT finite-state spellers for Sámi, Greenlandic, Faroese and other languages (native library)</string>

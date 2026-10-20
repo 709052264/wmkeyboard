@@ -47,6 +47,9 @@
     <!-- :feature:llama, llama.cpp behind GGUF models for on-device AI.
          llama.cpp and GGUF stay in Latin letters. -->
     <string name="llama_module_title">llama.cpp for GGUF models</string>
+    <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
+         Google's scanner is missing. -->
+    <string name="docscan_module_title">Built-in document scanner</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for
          on-device AI. NPU stays in English. -->
     <string name="npu_module_title">On-device AI on the NPU</string>

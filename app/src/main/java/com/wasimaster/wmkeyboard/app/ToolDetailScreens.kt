@@ -2628,10 +2628,25 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.DOC_SCAN -> {
+            val builtIn = settings.watch { it.scanner.docBuiltIn }
+            DocScanModuleBanner(settings, builtIn)
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
-                info = stringResource(R.string.tooldetail_doc_scan_info),
+                info = stringResource(
+                    if (googleDocScanner) R.string.tooldetail_doc_scan_info else R.string.tooldetail_doc_scan_builtin_info,
+                ),
             ) {
+                // Only a choice where Google's scanner can run at all.
+                if (googleDocScanner) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_doc_scan_builtin_title,
+                            stringResource(R.string.tooldetail_doc_scan_builtin_subtitle),
+                            settings.watch { it.scanner.docBuiltIn },
+                            default = SettingsDefaults.scanner.docBuiltIn,
+                        ) { scope.launch { repository.setDocScanBuiltIn(it) } }
+                    }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_doc_scan_gallery_title,
