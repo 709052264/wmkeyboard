@@ -153,6 +153,11 @@ enum class ToolbarTool {
     // Action-only, like [CLIPBOARD_SEARCH]: meant for the floating button's
     // tap while the keyboard is up, a flick or a key.
     LEAVE_FIELD,
+    // Reads the typed text aloud: the selection, or the field around the
+    // caret, in the keyboard's language. A downloaded MMS voice reads it
+    // offline when there is one, the phone's own voice otherwise. A second
+    // tap stops it.
+    READ_BACK,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -264,7 +269,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
     ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
-    ToolbarTool.RECENT_COPIES,
+    ToolbarTool.RECENT_COPIES, ToolbarTool.READ_BACK,
     -> false
     // The cursor moves nudge the caret and nothing else, and the clipboard trio
     // acts on the selection in place.
@@ -380,7 +385,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
+    ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push
     // every other tool a full row down in the toolbox.

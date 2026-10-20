@@ -3165,6 +3165,7 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.TEXT_REPEAT -> TextRepeatToolSettings(repository, settings)
+        ToolbarTool.READ_BACK -> ReadBackToolSettings(settings)
         ToolbarTool.TYPING_TEST -> TypingTestToolSettings(repository, settings)
         ToolbarTool.AI -> AiToolSettings(repository, settings, onNavigate)
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)

@@ -108,6 +108,9 @@ enum class NetSource(
     /** IndicXlit, the neural readings on the Indic phonetic layouts. */
     DOWNLOAD_XLIT("download_xlit"),
 
+    /** Meta's MMS voices, which read text aloud offline (Read back, the speaker buttons). */
+    DOWNLOAD_VOICE_OUT("download_voice_out", ToolbarTool.READ_BACK),
+
     /**
      * A native library a GitHub or F-Droid build fetches the first time a
      * feature needs it: the project's own from the data repository, ML Kit's,

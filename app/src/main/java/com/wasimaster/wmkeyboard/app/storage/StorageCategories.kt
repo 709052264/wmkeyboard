@@ -82,6 +82,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
+import com.wasimaster.wmkeyboard.core.voice.speech.MmsVoices
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -251,6 +252,7 @@ internal object StorageCategories {
 
     /** The ExecuTorch engines' items among them: one per model, the catalog id after this prefix. */
     private const val ET_ITEM_PREFIX = "et:"
+    private const val MMS_ITEM_PREFIX = "mms:"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
@@ -429,7 +431,8 @@ internal object StorageCategories {
                 listOf(
                     WhisperStore.rootDir(it.files),
                     WhistleModelStore.rootDir(it.files),
-                ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) }
+                ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
+                    MmsVoices.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -460,6 +463,14 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     }
+                } + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
+                    // Read back's offline voices, one folder per language code.
+                    StorageItem(
+                        id = MMS_ITEM_PREFIX + dir.name,
+                        label = "MMS voice (${dir.name})",
+                        bytes = diskUsage(dir, env.roots.blockSize),
+                        files = listOf(dir),
+                    )
                 }
             },
             deleteOne = { env, item ->
@@ -468,6 +479,8 @@ internal object StorageCategories {
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
+                } else if (item.id.startsWith(MMS_ITEM_PREFIX)) {
+                    item.files.forEach { it.deleteRecursively() }
                 } else {
                     // The selection goes first: the keyboard must never be pointed
                     // at a model file that is about to disappear.
@@ -483,6 +496,7 @@ internal object StorageCategories {
                 WhisperDownloadManager.refresh(env.roots.files)
                 WhistleModelDownloadManager.delete(env.roots.files)
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
+                emptyOut(MmsVoices.rootDir(env.roots.files))
             },
         ),
         StorageCategory(

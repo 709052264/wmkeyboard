@@ -586,6 +586,18 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://huggingface.co/Banafo/Kroko-ASR",
             ),
         )
+        // Speech out (Read back, the speaker buttons) on the same runtime:
+        // Meta's MMS voices, which the phone fetches after the user accepts
+        // their non-commercial licence.
+        add(
+            Attribution(
+                "MMS-TTS voices",
+                R.string.about_bundled_mms_used,
+                "Copyright Meta Platforms, Inc.; ONNX conversion by Will Wade",
+                "CC-BY-NC-4.0", "cc-by-nc-4.0.txt",
+                "https://huggingface.co/facebook/mms-tts",
+            ),
+        )
         add(
             Attribution(
                 "Silero VAD",

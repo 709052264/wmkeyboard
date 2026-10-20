@@ -1,0 +1,45 @@
+---
+title: "Read back and offline voices"
+description: "Hear what you typed, read aloud in the keyboard's language, with Meta's MMS voices offline in more than a thousand languages."
+sidebar:
+  order: 17.8
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+**Read back** reads your text aloud. With something selected it reads the selection; with nothing selected it reads everything in the field, up to about 4,000 characters. It reads in the keyboard's current language, so switching to Bangla and tapping it reads Bangla. Tap it again while it reads to stop. The tool stays lit while it is reading. It never reads a password field.
+
+Add it from the toolbox like any other tool. It sits in the **Create and convert** group on the Tools screen, and its page there is <SettingsPath path="Tools / Read back" />.
+
+## Offline voices
+
+The phone's own text-to-speech voice reads by default. Many phones have no voice for smaller languages at all, and that is what the offline voices are for: Meta's [MMS-TTS](https://huggingface.co/facebook/mms-tts) voices, one per language, for more than 1,100 languages. A downloaded voice reads its language on the phone, with no connection.
+
+<SettingsPath path="Tools / Read back / Offline voices" /> lists a voice for each of your keyboard languages that has one, with a Download button. Each voice is about 114 MB. Languages with no MMS voice are named under the list; the phone's voice keeps reading those.
+
+1. The first download asks you to accept the voices' licence, Creative Commons Attribution-NonCommercial 4.0: free to use, not for commercial purposes. The voices come from Hugging Face under that licence, not from the keyboard, so you agree to it once, before anything downloads.
+2. On the GitHub and Play builds a banner offers ONNX Runtime first, the engine the voices run on, a one-time download of about 33 MB that [Offline Sherpa](/tools/sherpa/) uses too. The offline build carries it already. The F-Droid build asks you to turn on **Download feature libraries** first.
+3. Download the voices you want. Each file comes from a fixed revision of the ONNX conversion of Meta's models and is checked against its SHA-256 before it is used. A download that stops resumes where it left off.
+
+Swipe a downloaded voice's row, or tap its bin, to delete it. The voices also show under <SettingsPath path="Storage / Voice models" />.
+
+### Where the voices read
+
+Once a language's voice is downloaded, it reads that language everywhere the keyboard speaks:
+
+- **Read back**.
+- The speaker button on [vocabulary](/tools/vocabulary/) cards, when there is no recording to play.
+- The speaker button on the [Look up](/tools/look-up/) card, in the dictionary's language.
+- **Speak** in [selection actions](/smart/selection-actions/), for Bengali and Devanagari text and for text in the phone's own language.
+
+A recording, when a card has one, still plays first. The speech rate is the one under <SettingsPath path="Tools / Vocabulary" />; MMS voices have no pitch setting, so the pitch slider only changes the phone's voice.
+
+### What to expect
+
+MMS voices read letters, not phonemes, and they were trained on Bible readings, so they sound clear but plain, a little like someone reading a passage aloud. They read words as written: digits and symbols the voice has no letter for are skipped, so in most languages "3 kg" comes out as "kg". Each sentence is made while the one before it plays, so a long text starts once the first sentence is ready. Making speech is heavy work: a second of speech takes about a second of one fast processor core, so on a phone expect a pause of a second or so before the first sentence, and on a slower phone short gaps between sentences.
+
+Voices that need Meta's romaniser, which spells a language in Latin letters before it is read, are not offered; for those languages the phone's voice reads.
+
+## Privacy
+
+Reading happens on the phone. A downloaded voice sends nothing anywhere. The phone's own voice is whatever text-to-speech engine you picked in Android's settings, and some of those engines use the network.

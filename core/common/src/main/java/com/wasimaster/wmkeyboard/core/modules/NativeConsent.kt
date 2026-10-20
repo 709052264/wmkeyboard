@@ -21,6 +21,9 @@ import kotlinx.coroutines.flow.asStateFlow
  *   models, fetched from Hugging Face under the FUTO Model Weights License.
  *   [NLLB] likewise, for Meta's NLLB-200 translation model under CC BY-NC
  *   4.0 (non-commercial use only).
+ *   [MMS] is Meta's MMS speech weights under CC-BY-NC-4.0: free to use, not
+ *   for commercial purposes, which the user agrees to before the first voice
+ *   downloads.
  *
  * Kept in its own small preferences file on device-protected storage: the
  * keyboard reads it before the user unlocks, and it is not a setting worth
@@ -31,6 +34,7 @@ object NativeConsent {
     const val QUALCOMM = "qualcomm"
     const val FUTO = "futo"
     const val NLLB = "nllb"
+    const val MMS = "mms"
 
     /** The licence page each licence id links to. */
     val licenceUrls: Map<String, String> = mapOf(
@@ -40,6 +44,7 @@ object NativeConsent {
         // The licence Meta released NLLB-200's weights under, which the
         // converted copy the app downloads (NllbTranslator) keeps.
         NLLB to "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
+        MMS to "https://creativecommons.org/licenses/by-nc/4.0/",
     )
 
     private const val PREFS = "native_delivery"

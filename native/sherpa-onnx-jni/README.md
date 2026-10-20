@@ -5,6 +5,14 @@ streaming Zipformer transducers, Silero VAD and the English online
 punctuation model. Kotlin entry points: `SherpaNative` and `SherpaEngine` in
 `core/voice/src/main/java/com/wasimaster/wmkeyboard/core/voice/sherpa/`.
 
+The same library reads text aloud with Meta's MMS-TTS voices
+(`vits_jni.cpp`, driven by `core.voice.speech.MmsSpeech`). That part is not
+sherpa-onnx: it runs the VITS network through ONNX Runtime's C++ API. An MMS
+voice reads characters, so its whole text frontend (lower-casing, one id per
+character, the blank between them) is a few lines of Kotlin, and building
+sherpa-onnx's TTS would link espeak-ng, which is GPL-3.0, for phonemes these
+voices never use.
+
 The bridge is a thin JNI layer over sherpa-onnx's C API, which is linked in
 statically with only speech recognition switched on (no TTS, no diarization,
 no audio I/O, no servers). ONNX Runtime is not linked in. `libwmsherpa.so`
@@ -56,7 +64,7 @@ downloader as the ExecuTorch engines.
 | ABI | Size |
 |---|---|
 | arm64-v8a | about 2.2 MB |
-| armeabi-v7a | about 1.4 MB |
+| armeabi-v7a | about 1.5 MB |
 | x86_64 | about 2.3 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
@@ -77,5 +85,14 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
   (returns whether speech is going on; feeds Silero whole 512-sample windows
   and drops finished segments), `nativeVadReset`, `nativeVadFree`.
 - `nativePunctuation(model, vocab)`, `nativePunctuate`, `nativePunctuationFree`.
+- `nativeVits(model, threads)`, `nativeVitsMeta(handle, key)` (a custom
+  metadata entry such as `sample_rate` or `add_blank`, empty when absent),
+  `nativeVitsRun(handle, ids, noiseScale, lengthScale, noiseScaleW)` (one
+  sentence's samples, null on failure; inputs matched by name, a `sid` input
+  fed 0), `nativeVitsFree`.
 
-None of it is thread-safe; Kotlin calls everything on one thread.
+`mms_tts_catalog.py` writes the voice catalog, `core/voice/src/main/assets/speech/mms_tts.tsv`:
+every voice of one pinned revision of the ONNX conversion, with sizes and SHA-256.
+
+None of it is thread-safe; Kotlin calls the recognizer on one thread and the
+voice on another (`MmsSpeech.dispatcher`); the two share no handle.
