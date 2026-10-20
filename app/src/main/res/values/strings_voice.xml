@@ -206,4 +206,19 @@
     <string name="voice_et_model_missing">Not downloaded · <xliff:g id="size" example="38.6 MB">%1$s</xliff:g></string>
     <string name="voice_et_model_in_use">In use. No audio leaves your phone</string>
     <string name="voice_et_model_kept">Downloaded. A larger one is in use</string>
+    <!-- Speech out: Meta's MMS voices, for Read back and the speaker buttons. -->
+    <string name="read_back_tool_caption">Reads the selection aloud, or everything in the field when nothing is selected, in the keyboard\'s current language. A downloaded voice below reads it offline; for any other language the phone\'s own voice does. Password fields are never read. The vocabulary settings\' speech rate applies.</string>
+    <string name="speech_voices_group">Offline voices</string>
+    <string name="speech_voices_info">Meta\'s MMS voices, one per language, read text aloud on the phone with no connection. Once a language\'s voice is downloaded, Read back and the speaker buttons on vocabulary cards and Look up use it instead of the phone\'s voice. Each voice is about 114 MB.</string>
+    <string name="speech_voice_ready">Downloaded. Reads this language offline</string>
+    <!-- %1$s is the download size, for example "114 MB". -->
+    <string name="speech_voice_missing">Not downloaded · <xliff:g id="size" example="114 MB">%1$s</xliff:g></string>
+    <!-- %1$s is a comma-separated list of language names. -->
+    <string name="speech_voices_missing_languages">No offline voice for <xliff:g id="languages" example="Japanese, Korean">%1$s</xliff:g>. The phone\'s own voice reads them.</string>
+    <string name="speech_voices_credit">Voices: Meta MMS-TTS (CC-BY-NC-4.0), converted to ONNX by Will Wade, run by ONNX Runtime.</string>
+    <string name="speech_voices_not_in_build">This build has no ONNX Runtime, so offline voices are not available. The phone\'s own voice reads aloud.</string>
+    <string name="speech_voices_licence_title">MMS voices licence</string>
+    <string name="speech_voices_licence_body">Meta\'s MMS voices download from Hugging Face under the Creative Commons Attribution-NonCommercial 4.0 licence: free to use, but not for commercial purposes. You receive them from there under that licence, not from this keyboard. Accept to download.</string>
+    <string name="speech_voices_licence_accept">Accept and download</string>
+    <string name="speech_voices_licence_view">Read licence</string>
 </resources>

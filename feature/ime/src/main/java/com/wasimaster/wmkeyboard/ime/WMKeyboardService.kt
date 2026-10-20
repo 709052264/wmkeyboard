@@ -8311,6 +8311,7 @@ open class WMKeyboardService : InputMethodService() {
         // reaching TalkBack.
         KeyboardPassthrough.publishRegion(null)
         stopReadAloud()
+        stopReadBack()
         vocabProgress.save()
         // Nothing is showing a vocabulary card once the window is gone; the
         // nudges only need the triggers, which stay. The next card reads the
@@ -26466,6 +26467,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
+            ToolbarTool.READ_BACK -> toggleReadBack()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
             ToolbarTool.TEXT_EDIT -> onPanelChange(PanelMode.TEXT_EDIT)
@@ -35352,6 +35354,8 @@ open class WMKeyboardService : InputMethodService() {
                 dataSaverStatus.decide(MeteredFeature.VOCAB_AUDIO) == MeteredDecision.ALLOWED
         }
         val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        // The speaker is shared: this word ends Read back's reading.
+        if (_uiState.value.readingBack) _uiState.update { it.copy(readingBack = false) }
         speaker.speak(word.word, url, settings.ttsRate, settings.ttsPitch, settings.accent.locale)
     }
 
@@ -41111,6 +41115,8 @@ open class WMKeyboardService : InputMethodService() {
             else -> Locale.getDefault()
         }
         val vocab = _uiState.value.settings.vocabulary
+        // The speaker is shared: this reading ends Read back's.
+        if (_uiState.value.readingBack) _uiState.update { it.copy(readingBack = false) }
         setSpeaking(true)
         speaker.speak(offer.text, null, vocab.ttsRate, vocab.ttsPitch, locale) {
             // The engine calls back on its own thread.
@@ -41121,6 +41127,48 @@ open class WMKeyboardService : InputMethodService() {
     private fun stopReadAloud() {
         vocabSpeaker?.stop()
         if (_uiState.value.selectionMacros?.speaking == true) setSpeaking(false)
+    }
+
+    /**
+     * Read back: the selection, or else the whole field, read aloud in the
+     * keyboard's language; tapped while reading, it stops. A downloaded MMS
+     * voice reads it when there is one for the language, the phone's own
+     * voice otherwise (see [VocabSpeaker]). Never a password field.
+     */
+    private fun toggleReadBack() {
+        val state = _uiState.value
+        if (state.readingBack) {
+            stopReadBack()
+            return
+        }
+        if (state.secureField) return
+        val text = (selectedFieldText() ?: readBackFieldText())?.take(READ_BACK_MAX_CHARS)
+        if (text.isNullOrBlank()) return
+        val speaker = vocabSpeaker ?: VocabSpeaker(this).also { vocabSpeaker = it }
+        if (state.selectionMacros?.speaking == true) setSpeaking(false)
+        val vocab = state.settings.vocabulary
+        _uiState.update { it.copy(readingBack = true) }
+        speaker.speak(text, null, vocab.ttsRate, vocab.ttsPitch, Locale.forLanguageTag(state.language.localeTag)) {
+            // The engine calls back on its own thread.
+            serviceScope.launch { _uiState.update { it.copy(readingBack = false) } }
+        }
+    }
+
+    /** The field's text for Read back: all of it when the editor hands it over, else a window around the caret. */
+    private fun readBackFieldText(): String? {
+        val ic = currentInputConnection ?: return null
+        val whole = runCatching { ic.getExtractedText(ExtractedTextRequest(), 0)?.text?.toString() }.getOrNull()
+        val text = whole ?: runCatching {
+            ic.getTextBeforeCursor(READ_BACK_MAX_CHARS, 0)?.toString().orEmpty() +
+                ic.getTextAfterCursor(READ_BACK_MAX_CHARS, 0)?.toString().orEmpty()
+        }.getOrNull()
+        return text?.takeIf { it.isNotBlank() }
+    }
+
+    private fun stopReadBack() {
+        if (!_uiState.value.readingBack) return
+        vocabSpeaker?.stop()
+        _uiState.update { it.copy(readingBack = false) }
     }
 
     /**
@@ -48758,3 +48806,6 @@ private const val LOCATION_FIELD_CHARS = 2_000
 /** Recent clips the Found tab reads, newest first, and how much of each. */
 private const val LOCATION_CLIPS = 10
 private const val LOCATION_CLIP_CHARS = 4_000
+
+/** The most Read back reads in one go: a few minutes of speech. */
+private const val READ_BACK_MAX_CHARS = 4_000

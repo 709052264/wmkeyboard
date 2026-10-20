@@ -189,6 +189,7 @@ object IconDefaults {
         ToolbarTool.QR_GEN -> Icons.Outlined.QrCode2
         ToolbarTool.PASSWORD_GEN -> Icons.Outlined.Password
         ToolbarTool.TEXT_REPEAT -> Icons.Outlined.Repeat
+        ToolbarTool.READ_BACK -> Icons.AutoMirrored.Outlined.VolumeUp
         ToolbarTool.TYPING_TEST -> Icons.Outlined.Speed
         // The settings app's own Statistics glyph, so the tool and the row it
         // opens look like the same thing.

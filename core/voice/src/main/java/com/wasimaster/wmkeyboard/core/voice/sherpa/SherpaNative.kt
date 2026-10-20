@@ -10,7 +10,8 @@ import kotlinx.coroutines.flow.StateFlow
 
 /**
  * sherpa-onnx, through `native/sherpa-onnx-jni`: k2-fsa's speech toolkit over
- * Microsoft's ONNX Runtime. Two libraries, both behind the `onnx` gate
+ * Microsoft's ONNX Runtime, plus the VITS runner that reads text aloud with
+ * Meta's MMS voices ([com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech]). Two libraries, both behind the `onnx` gate
  * (`:feature:onnx` on Play): `libonnxruntime.so`, Microsoft's own build from
  * Maven Central, and `libwmsherpa.so`, this project's bridge, which names the
  * runtime as a dependency and so must come second. The runtime is about
@@ -92,4 +93,26 @@ object SherpaNative {
 
     /** [text] (UTF-8) punctuated and cased, UTF-8. */
     @JvmStatic external fun nativePunctuate(punctuation: Long, text: ByteArray): ByteArray
+
+    // Speech out: one VITS voice (Meta's MMS-TTS). The text is turned into
+    // token ids on the Kotlin side; this runs the network.
+    @JvmStatic external fun nativeVits(model: String, threads: Int): Long
+
+    @JvmStatic external fun nativeVitsFree(vits: Long)
+
+    /** The model's metadata entry [key] (`sample_rate`, `add_blank`), UTF-8; empty when absent. */
+    @JvmStatic external fun nativeVitsMeta(vits: Long, key: String): ByteArray
+
+    /**
+     * One sentence's samples in [-1, 1] at the model's rate, or null when the
+     * run fails. The scales are VITS's own: sampling noise, duration (1 / speed)
+     * and duration noise.
+     */
+    @JvmStatic external fun nativeVitsRun(
+        vits: Long,
+        ids: LongArray,
+        noiseScale: Float,
+        lengthScale: Float,
+        noiseScaleW: Float,
+    ): FloatArray?
 }

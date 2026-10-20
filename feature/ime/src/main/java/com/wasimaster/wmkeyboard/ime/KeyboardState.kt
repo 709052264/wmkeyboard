@@ -3572,6 +3572,8 @@ data class KeyboardUiState(
      */
     val fieldContentMimeTypes: List<String> = emptyList(),
     val secureField: Boolean = false,
+    /** Read back is reading the field aloud; its tool stays lit until it ends or is tapped again. */
+    val readingBack: Boolean = false,
     /**
      * The device lock screen (keyguard) is showing. Refreshed on each field
      * start from [android.app.KeyguardManager]. Only the "hide toolbar &

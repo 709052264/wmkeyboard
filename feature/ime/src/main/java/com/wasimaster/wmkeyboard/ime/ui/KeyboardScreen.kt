@@ -8403,6 +8403,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
+    ToolbarTool.READ_BACK -> R.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8604,6 +8605,8 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
+    // Lit while it reads, so the second tap reads as Stop.
+    ToolbarTool.READ_BACK -> state.readingBack
 }
 
 /**
