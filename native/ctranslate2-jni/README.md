@@ -68,7 +68,7 @@ them from Hugging Face only after the user accepts that licence
 | `-z max-page-size=16384` | 16 KB page devices |
 | `-ffile-prefix-map` for both source trees, the build directory and the NDK | the same bytes from any machine with NDK r29, which F-Droid's reproducible build relies on |
 
-Size, stripped, NDK r29: arm64-v8a 2,715,256 bytes, x86_64 3,063,888, the
+Size, stripped, NDK r29: arm64-v8a 2,701,024 bytes, x86_64 3,053,168, the
 armeabi-v7a stub 2,772.
 
 ## Contract with Kotlin
@@ -86,6 +86,9 @@ keyboard.
   `[sourceTag] + pieces + "</s>"` and decoding starts from `targetTag`, as
   Hugging Face's NLLB tokenizer does; the result drops that first token.
   Decoding stops at twice the longest source plus ten tokens, at most 256.
+  The output layer is cut to the pieces the target's script can produce (see
+  "The output layer, cut to the target's script" below); Kotlin passes
+  nothing extra for it.
 
 ## Tested
 
@@ -132,7 +135,112 @@ list: Bergamot where it has the pair, NLLB for the rest.
 Two builds of all three ABIs from fresh clones in different directories
 came out byte for byte the same (NDK r29, CMake 4.x, macOS host).
 
-Not yet tried: a vocabulary restriction for the output layer (CTranslate2's
-`use_vmap`, keyed on source tokens, so it would need a target-script map
-built differently), which would cut the largest matrix and its packing
-buffer.
+The figures above are for the whole vocabulary, before the cut described
+next.
+
+## The output layer, cut to the target's script
+
+Each decoding step multiplies the decoder's state by the output projection,
+256,206 rows of 1,024 int8 weights: 262 M of the roughly 430 M weights a step
+repacks, and the matrix behind ruy's largest packing buffer. A sentence into
+Bengali can only use Bengali pieces, pieces with no letters in them (digits,
+punctuation, "▁") and pieces copied from its source, such as a name or a link.
+So the bridge decodes against those rows alone.
+
+CTranslate2's own mechanism for this, `use_vmap` with a `vmap.txt` beside
+`model.bin` (`VocabularyMap` in `src/vocabulary_map.cc`), cannot express it.
+Its rules are keyed on n-grams of the source tokens; the empty key lists
+pieces that are always candidates, and the target prefix's ids are added to
+every set. The file is read once, when the model loads. Nothing in NLLB's
+source names the target (it is `[sourceTag] + pieces + "</s>"`), so a map per
+target would need its own model load, another 600 MB each, or a source token
+that names the target, which would change what the encoder reads.
+
+The bridge restricts the layer itself, through CTranslate2's public API and
+with no patch to it. `Translator::post` runs a function on the translator's
+own worker thread (its thread pool and ruy context), and that function does
+what `translate_batch` does for this model: the encoder through
+`EncoderDecoderReplica::encoder()`, then
+`Decoder::update_output_layer(multiple, ids)` and `ctranslate2::decode`.
+With the cut turned off, this path gave the same bytes as `translate_batch`
+on every sentence below.
+
+The cut comes from the target tag alone. Its script code (`Beng` in
+`ben_Beng`) picks Unicode blocks from a table in `ct2_jni.cpp`. A piece is
+kept when every character is either in those blocks or in no script
+(ASCII digits and punctuation, Latin-1 signs, combining accents, general
+punctuation and symbols, CJK and full-width punctuation, emoji). Other
+languages' tags are dropped. The source's own ids, the target tag and
+`<unk>`, `<s>` and `</s>` are added on every call. Each script's list is
+built once per handle, on first use, from `shared_vocabulary.txt` as
+loaded. A script missing from the table decodes against the whole
+vocabulary. Rows kept:
+
+| Target script | Rows | Share |
+|---|---|---|
+| Latin | 141,831 | 55.4 % |
+| Cyrillic | 26,216 | 10.2 % |
+| Hangul (with Han) | 18,864 | 7.4 % |
+| Arabic | 17,705 | 6.9 % |
+| Japanese (Han and kana) | 17,171 | 6.7 % |
+| Devanagari | 12,054 | 4.7 % |
+| Simplified or Traditional Han | 10,879 | 4.2 % |
+| Bengali | 7,569 | 3.0 % |
+| Ethiopic | 7,182 | 2.8 % |
+| Tamil | 5,748 | 2.2 % |
+| Thai | 5,242 | 2.0 % |
+
+CTranslate2 4.8.3 has a bug here that the bridge works around:
+`update_output_layer` builds its reverse map (`_to_output_word_id`) with
+`emplace` and clears it only on the way back to the full vocabulary. Two
+different cuts in a row keep the first one's entries, so the forced target
+tag, and the ids after it, map to the wrong rows. The output turned to
+garbage from the third sentence on. The bridge resets to the whole
+vocabulary before each cut, which clears the map; with a size multiple of 1
+on the CPU the reset copies nothing. `use_vmap` goes through the same code,
+so its users hit the same bug whenever their candidate sets differ between
+calls. `src/layers/decoder.cc` upstream has not changed since 2023.
+
+### Measured
+
+The 40 sentences have the same layout as the set above: five English
+sentences into Bengali, Hindi, Arabic, Swahili and French, three of each back
+into English. The set itself was rewritten for this test, because the
+earlier one was not kept. The run used an M2, one thread, one sentence per
+call, in a JVM through the JNI names. Instruction counts come from
+`/usr/bin/time -l`, with the 3.0 to 3.3 G that starting the JVM and loading
+the model cost (a run that only loads) taken off. The load average stayed
+between 20 and 40, so wall times are left out.
+
+| Targets | Instructions, whole vocabulary | Cut | Change | Peak footprint, whole | Cut |
+|---|---|---|---|---|---|
+| Bengali, Hindi, Arabic (15 sentences) | 148.9 G | 67.4 G | −55 % | 1,261 MB | 796 MB |
+| English, French, Swahili (25 sentences) | 205.9 G | 153.6 G | −25 % | 1,259 MB | 1,182 MB |
+| All 40 in one process | 339.7 G | 223.8 G | −34 % | 1,264 MB | 1,217 MB |
+
+All 40 translations came out the same, byte for byte, with and without the
+cut. Five-sentence batches matched as well. Loading still peaks at about
+720 MB.
+
+Into a non-Latin script, decoding now costs about half the work, and the
+peak footprint ends up about 75 MB above the loaded model rather than 540 MB
+above it. Into a Latin script the cut keeps 55 % of the rows and peak memory
+barely moves: going by the code, `select_weights` copies the kept rows
+(145 MB) and ruy then packs that copy, which together come to about what
+packing the whole projection took. A process that has translated
+into both kinds keeps the larger figure. `Ct2Native.MIN_TOTAL_RAM` stays
+where it is for that reason: the translate list offers Latin targets on
+every phone.
+
+On Android nothing else changes: no download, no new file, no Kotlin. The
+rebuilt library carries the cut, and the restricted path runs for every
+target whose script is in the table. A tighter cut for Latin targets would
+need a list per language rather than per script. Letters alone do little:
+pieces made only of ASCII letters number 112,275, and with French accents
+added, 117,754. A list built from text in each language would have to be
+shipped and kept in step with the model, and its effect on unusual words
+has not been measured.
+
+The libraries committed with this change came out of `build.sh` twice from
+the same source with the same bytes, and a build of the bridge before it
+reproduced the library it replaced. Not run on a phone yet.
