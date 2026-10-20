@@ -22,6 +22,8 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.AiProvider
+import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.isWhisperEnabled
@@ -307,7 +309,7 @@ private fun providerSetup(row: ResolvedProvider): String =
  * A kind with nothing of its own draws nothing.
  */
 @Composable
-@Suppress("UNUSED_PARAMETER")
+@Suppress("UNUSED_PARAMETER", "detekt.CyclomaticComplexMethod")
 internal fun ProviderOwnSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
@@ -333,7 +335,11 @@ internal fun ProviderOwnSettings(
         ProviderTypes.BERGAMOT.id -> if (BergamotTranslator.available) BergamotModelManager(settings)
         ProviderTypes.NLLB.id -> if (NllbTranslator.available) NllbModelManager(settings)
         ProviderTypes.DEEPL.id -> DeepLWriteSettingsGroup(repository, settings)
-        else -> Unit
+        // ---- AI: the model on the phone, and the headers a service is sent with (#648).
+        ProviderTypes.ON_DEVICE_AI.id -> LocalLlmModelManager(repository, settings)
+        else -> if (tool == ProviderTool.AI) {
+            AiProviders.of(type.id)?.takeIf { it != AiProvider.ON_DEVICE }?.let { AiProviderHeadersGroup(repository, settings, it) }
+        }
     }
 }
 

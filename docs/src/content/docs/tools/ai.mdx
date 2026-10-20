@@ -127,7 +127,7 @@ An `http://` address works, for a service on your own network, and that traffic 
 
 ### Extra headers
 
-Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. An **Extra headers** group under the list holds them for the service in use, unless that is the model on your device. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.
+Some services want more in a request than a key. OpenCode Go, for one, reads a session header and a User-Agent of its own, and a gateway in front of a provider may want its own token. An **Extra headers** group on each service's own screen holds them: press the service's row on the list. The model on your device has none. Tap **Add header**, then fill in a name and a value. Each edit saves as you make it, and the value stays hidden until you tap the eye.
 
 - **Yours are sent last.** A header here replaces the app's own of the same name, whatever its capitals, so a `User-Agent` or `Authorization` you add is the one the service sees.
 - **`{session}` stands in for a session id.** Type it anywhere in a value, for example the name `x-opencode-session` with the value `{session}`. One panel action, its lookups included, sends one id, and a [chat](/tools/ai-chat/) sends the same id for every message in that conversation.
@@ -452,7 +452,7 @@ API keys are never part of a record. It carries the model's name and nothing abo
 Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful tool icons](/reference/settings/tools/) are on, a per-tool icon color override. Below that:
 
 - **Keyword**: the word that offers this tool on the suggestion strip when you type it alone. Defaults to `ai`.
-- **Extra headers**: none to start with, see [Extra headers](#extra-headers).
+- **Extra headers**: on each service's own screen, none to start with, see [Extra headers](#extra-headers).
 - **AI providers**: the services and models the AI can use, see [Choosing where it runs](#choosing-where-it-runs). Empty on a fresh install, which lands on the empty-state screen until you add one. Until you edit it, the list holds every service your earlier settings had a key or an address for.
 - **In use**: which row answers, shown once the list has two. The model picker on the panel changes it too.
 - **Max response length**: a token ceiling, roughly ¾ of a word each, picked from steps rather than a slider: 1k through 128k, plus **Provider maximum**. Default 8,192. A model the app takes for a reasoning model gets 4× this ceiling on its own, capped at 131,072, because reasoning tokens come out of the same budget before the answer starts. That guess is a substring match on the model ID, for strings like "thinking", "qwen3", "grok-4" or "deepseek-v4". The On-device provider swaps this row for **Context size**.
@@ -480,7 +480,7 @@ One more row lives on the History screen, under a **Downloading models** heading
 
 <Flavor edition="google" />
 
-Adding **On your device** to the list draws the whole model manager onto the same screen, under the list. [Local models](#local-models) covers the catalog, **Compute** and **Context size**. Three more things sit on that screen and nowhere else:
+Adding **On your device** to the list puts the whole model manager on that row's own screen: press **On your device** to open it. [Local models](#local-models) covers the catalog, **Compute** and **Context size**. Three more things sit on that screen and nowhere else:
 
 - **Hugging Face account**, holding an **Access token** field. Blank by default, stored the same way an API key is, and only the gated models need it. Under the field, **Get a token** opens `huggingface.co/settings/tokens` in your browser.
 - **Import your own**, an **Import model file** button that opens the system file picker. It takes `.litertlm` and `.task` files only, and anything else is rejected with a message under the button.
