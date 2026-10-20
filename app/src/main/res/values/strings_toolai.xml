@@ -222,6 +222,8 @@
     <string name="toolai_ai_builtin_calendar_events_subtitle">Lists your events for the days the model asks about. Needs the calendar tool\'s access.</string>
     <string name="toolai_ai_builtin_search_notes_title">Read your notes</string>
     <string name="toolai_ai_builtin_search_notes_subtitle">Searches your notes and reads the ones that match. With Search by meaning on, it also finds notes that say the same thing in other words. A locked note\'s text stays hidden.</string>
+    <string name="toolai_ai_builtin_search_snippets_title">Read your snippets</string>
+    <string name="toolai_ai_builtin_search_snippets_subtitle">Searches your snippets and reads the ones that match: their name, trigger and text, as written. With Search by meaning on, it also finds snippets that say the same thing in other words.</string>
     <string name="toolai_ai_builtin_search_clipboard_title">Search your clipboard</string>
     <string name="toolai_ai_builtin_search_clipboard_subtitle">Finds the clips in your clipboard history that mean what the model asks about. Passwords and codes stay out. Needs Search by meaning.</string>
     <string name="toolai_ai_builtin_current_location_title">Your location</string>

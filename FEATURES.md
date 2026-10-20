@@ -2468,6 +2468,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Installable snippet add-on packs, 4 MB, previewable before install
     - Uninstalling a pack removes exactly the ids it added
     - Own config-backup section
+  - `search_snippets` AI tool ("Read your snippets") — up to five snippets matching every word of the query in their name, triggers, tags or text (name or trigger hits first), the newest five with no query; each read as name, trigger and text cut short, with up to three other expansions; templates and patterns read as written and marked as templates, never expanded; starts on Ask
 - **Contact-aware completion** `uncommon` — Names, emails and app labels held in memory only, never written to disk
   - Contact name suggestions — Off by default; needs the Contacts permission
     - Display names split into component words and indexed
@@ -2549,7 +2550,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Gallery photo search (Text and pictures) — a search button in the gallery header ranks the library's photos by a typed description; photos indexed from MediaStore thumbnails, 32 per pass, pass after pass while the panel stays open, newest 3,000 kept; follows the photos permission (no access drops the index); no button without the pictures model, and none on Play (no library access)
   - `search_clipboard` AI tool — the model's query against the clipboard index, up to eight excerpts; every hit re-checked against the store (marked or password-shaped clips and deleted ones dropped); offered only with the feature on and the text model present; starts on Ask
   - `search_notes` meaning half — with the feature on, notes that mean the query follow the word matches under "Close in meaning", minus the ones the words found; locked and trashed notes never
-    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchClipboard` / `notesByMeaning`, so `:feature:tools` gains no dependency on `:core:intelligence`
+  - `search_snippets` meaning half — the same for snippets, from the snippets index; each hit re-read from the store, so a snippet deleted since it was indexed is dropped
+    - Clean module seam — the search lives in `:feature:ime` and is lent through `AiToolHost.searchClipboard` / `notesByMeaning` / `snippetsByMeaning`, so `:feature:tools` gains no dependency on `:core:intelligence`
   - Storage row — About → Storage → Search by meaning lists the text model, the pictures model and the indexes with sizes; deleting the text model or the indexes turns the feature off, the pictures model alone drops it to Text
 
 - **AI writing actions** `RARE` — On-keyboard panel that runs prompts against the focused field's text; 8 shipped actions, user-extensible

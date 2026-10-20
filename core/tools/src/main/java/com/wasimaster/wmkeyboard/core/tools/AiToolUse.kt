@@ -290,6 +290,7 @@ object AiTools {
     const val CALENDAR_EVENTS = "calendar_events"
     const val SEARCH_NOTES = "search_notes"
     const val SEARCH_CLIPBOARD = "search_clipboard"
+    const val SEARCH_SNIPPETS = "search_snippets"
     const val CURRENT_LOCATION = "current_location"
     const val ADD_CALENDAR_EVENT = "add_calendar_event"
     const val ADD_NOTE = "add_note"
@@ -426,6 +427,13 @@ object AiTools {
             "Search the user's notes for words in their title, tags or text, and read the ones that match. " +
                 "When search by meaning is on, notes that mean the same thing in other words follow.",
             param("query", "Words to look for. Leave it out for the most recent notes.", required = false),
+        ),
+        data(
+            SEARCH_SNIPPETS,
+            "Search the user's text snippets, the saved texts they insert by typing a short trigger, " +
+                "for words in their name, trigger, tags or text. Each match gives its name, its trigger and its text. " +
+                "When search by meaning is on, snippets that mean the same thing in other words follow.",
+            param("query", "Words to look for. Leave it out for the newest snippets.", required = false),
         ),
         // Search by meaning over the clipboard history: offered only once
         // its model is on the phone and the feature is on (see AiToolRunner).
@@ -576,7 +584,7 @@ object AiTools {
         CONVERT_UNITS -> conversion(call, "value")
         CALCULATE -> call.argument("expression")
         CALENDAR_EVENTS -> call.argument("from")?.let { from -> call.argument("to")?.let { "$from – $it" } ?: from }
-        SEARCH_NOTES, SEARCH_CLIPBOARD -> call.argument("query")
+        SEARCH_NOTES, SEARCH_SNIPPETS, SEARCH_CLIPBOARD -> call.argument("query")
         ADD_NOTE -> call.argument("title")
         ADD_CALENDAR_EVENT -> call.argument("title")
         SET_ALARM -> call.argument("time")
