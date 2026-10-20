@@ -483,14 +483,23 @@ object ToolHttp {
      * shows the provider's own words when it sent any, and our wording for the
      * status when it did not.
      */
-    fun friendlyMessage(context: Context, t: Throwable): String = when (t) {
-        is ToolHttpException -> httpText(context, t)
-        is NoInternetPermissionException -> context.getString(CommonR.string.common_error_no_internet_permission)
-        is UnknownHostException -> context.getString(CommonR.string.common_error_network)
-        is SocketTimeoutException -> context.getString(CommonR.string.common_error_timeout)
-        is ConnectException -> context.getString(R.string.core_tools_error_server_unreachable)
+    fun friendlyMessage(context: Context, t: Throwable): String =
+        friendlyMessage(t) { res, arg -> if (arg == null) context.getString(res) else context.getString(res, arg) }
+
+    /**
+     * [friendlyMessage] with the strings looked up by [text], which is given a
+     * resource and the one argument it formats, or null when it takes none.
+     * Public so a caller's JVM tests, which have no Context, can hold it to
+     * the same wording (#828).
+     */
+    fun friendlyMessage(t: Throwable, text: (res: Int, arg: Any?) -> String): String = when (t) {
+        is ToolHttpException -> httpText(t, text)
+        is NoInternetPermissionException -> text(CommonR.string.common_error_no_internet_permission, null)
+        is UnknownHostException -> text(CommonR.string.common_error_network, null)
+        is SocketTimeoutException -> text(CommonR.string.common_error_timeout, null)
+        is ConnectException -> text(R.string.core_tools_error_server_unreachable, null)
         else -> t.message?.takeIf { it.isNotBlank() }
-            ?: context.getString(CommonR.string.common_error_generic)
+            ?: text(CommonR.string.common_error_generic, null)
     }
 
     /**
@@ -507,11 +516,11 @@ object ToolHttp {
     }
 
     /** The provider's own words, or our wording for the status it answered with. */
-    private fun httpText(context: Context, t: ToolHttpException): String {
+    private fun httpText(t: ToolHttpException, text: (res: Int, arg: Any?) -> String): String {
         t.apiMessage?.takeIf { it.isNotBlank() }?.let { return it }
         // A failure with no status of its own (the size cap) takes no argument.
-        if (t.status <= 0) return context.getString(t.messageRes)
-        return context.getString(t.messageRes, t.status)
+        if (t.status <= 0) return text(t.messageRes, null)
+        return text(t.messageRes, t.status)
     }
 
     /** The failure to throw for an HTTP status outside 200..299. */
