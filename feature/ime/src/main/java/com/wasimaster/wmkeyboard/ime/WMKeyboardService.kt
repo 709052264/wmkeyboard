@@ -14427,6 +14427,14 @@ open class WMKeyboardService : InputMethodService() {
         // backspace still works in, and works in one (the spelling draft)
         // backspace calls a buffer.
         if (if (forward) forwardDeleteOwnsBuffer() else backspaceEditsBuffer()) return -1
+        // A word a composer is still converting (pinyin, Telex, kana) is its
+        // keys, not the text on screen, and a selection has to turn it into
+        // plain text before it can cover it: what was left of `weishenme`
+        // after the swipe was letters no longer read as pinyin (#853). So the
+        // swipe deletes as it goes there, through the buffer, as a press does.
+        if (!deleteSwipeActive && !forward && composing.isNotEmpty() && _uiState.value.composer.isTransliterating) {
+            return -1
+        }
         val ic = currentInputConnection ?: return -1
         if (deleteSwipeActive && deleteSwipeForward != forward) resetDeleteSwipe()
         if (!deleteSwipeActive && !beginDeleteSwipe(ic, forward)) return -1

@@ -194,7 +194,7 @@ Each step costs a certain amount of leftward travel. In Words mode the cost shri
 
 While the highlight is up the swipe is still undoable: dragging back to the right shrinks it a step at a time, and dragging all the way back to where the swipe started leaves the text alone entirely. The gesture retraces its own steps, so a word that cost a short pull on the shrinking curve gives itself back for the same short pull.
 
-Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change.
+Turn the setting off to get the older behaviour, where each word or character goes the moment the swipe passes it. Deleted text cannot be given back, so dragging right only re-anchors the gesture, and the next word costs the full first-word distance again instead of picking up where the shrinking curve left off. A few editors cannot hold a selection while the keyboard drives it, and a search box drawn by the keyboard itself (emoji search, for one) has no cursor to select with. The swipe falls back to deleting as it goes in both cases, with no setting to change. It does the same over a word that is still being converted, such as pinyin or Vietnamese Telex, so what is left of the word is still read as one.
 
 ### Holding delete to clear words
 
