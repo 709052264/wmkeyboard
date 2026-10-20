@@ -25311,9 +25311,14 @@ open class WMKeyboardService : InputMethodService() {
         if (window <= 0 || !pendingWordSpace) return
         val before = ic.getTextBeforeCursor(ALL_UP_RETRACT_LOOKBACK, 0)?.toString() ?: return
         if (!before.endsWith(' ')) return
-        val word = before.dropLast(1).takeLastWhile { it.isLetter() }
+        // The whole word, apostrophes and all (#818): `it's` and not its `s`,
+        // or `on` would take the space back to make "it'son". An opening
+        // quote is not part of the word, so `'car` still reopens as `car`.
+        val run = before.dropLast(1).takeLastWhile { isComposingWordChar(it) }
         // A word that fills the whole look-back may go on past it.
-        if (word.isEmpty() || word.length == ALL_UP_RETRACT_LOOKBACK - 1) return
+        if (run.length == ALL_UP_RETRACT_LOOKBACK - 1) return
+        val word = run.trimStart { WordContext.isApostrophe(it) }
+        if (word.isEmpty()) return
         allUpSpace = AllUpSpace(word, SystemClock.uptimeMillis(), window)
     }
 
