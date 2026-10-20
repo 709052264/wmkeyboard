@@ -87,6 +87,7 @@ import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
 import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
 import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -181,6 +182,9 @@ import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideCase
 import com.wasimaster.wmkeyboard.core.gesture.GlideToken
 import com.wasimaster.wmkeyboard.core.gesture.KeyCenter
+import com.wasimaster.wmkeyboard.core.gesture.NeuralGlide
+import com.wasimaster.wmkeyboard.core.gesture.SwipeEmissions
+import com.wasimaster.wmkeyboard.core.gesture.SwipeModel
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadProgress
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -384,6 +388,7 @@ import com.wasimaster.wmkeyboard.core.settings.floatingFor
 import com.wasimaster.wmkeyboard.core.settings.oneHandedAllowedOn
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColor
 import com.wasimaster.wmkeyboard.core.settings.GlideCommitColorScope
+import com.wasimaster.wmkeyboard.core.settings.GlideEngine
 import com.wasimaster.wmkeyboard.core.settings.GlideLookAhead
 import com.wasimaster.wmkeyboard.core.settings.GlidePreviewSteadiness
 import com.wasimaster.wmkeyboard.core.settings.GlideSandbox
@@ -629,6 +634,8 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceSpacing
 import com.wasimaster.wmkeyboard.core.voice.VoiceTidy
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
+import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
+import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipeModel
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperLanguages
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppPlan
@@ -23541,6 +23548,34 @@ open class WMKeyboardService : InputMethodService() {
     /** The sources a sandbox decode is restricted to: the words this user has written. */
     private val LEARNED_TIER = setOf(FuzzyBeamSearch.Tier.USER)
 
+    /**
+     * FUTO Swipe adapted to the decoder's model interface, and the loaded
+     * model it wraps: a model deleted and downloaded again is a new one.
+     */
+    @Volatile
+    private var futoGlide: Pair<FutoSwipeModel, NeuralGlide>? = null
+
+    /**
+     * The neural glide engine for the next decode, or null for the built-in
+     * one: the user picked FUTO Swipe, the language is English, and the models
+     * and the ExecuTorch runtime are on the phone. Whether the layout is
+     * QWERTY is the engine's own question, asked of each stroke's key map.
+     */
+    private fun neuralGlideNow(): NeuralGlide? {
+        val state = _uiState.value
+        if (state.settings.gesture.engine != GlideEngine.FUTO_SWIPE || !state.language.isEnglish) return null
+        val model = FutoSwipe.model(filesDir) ?: return null
+        futoGlide?.let { (loaded, glide) -> if (loaded === model) return glide }
+        val glide = NeuralGlide(
+            object : SwipeModel {
+                override fun emissions(features: FloatArray): SwipeEmissions? =
+                    model.emissions(features)?.let { SwipeEmissions(it.size / SwipeEmissions.CLASSES, it) }
+            },
+        )
+        futoGlide = model to glide
+        return glide
+    }
+
     /** Decodes one stroke against the active language's word sources; see [decodeStroke]. */
     private fun glideDecode(
         points: List<GesturePoint>,
@@ -23565,6 +23600,7 @@ open class WMKeyboardService : InputMethodService() {
         guessAhead: Boolean = true,
     ): GlideReading {
         val engine = suggestionEngine ?: return GlideReading.NONE
+        engine.neuralGlide = neuralGlideNow()
         val policy = sandboxPolicy()
         val gesture = _uiState.value.settings.gesture
         // The lift decodes exactly what the previews decoded (#121). This used
@@ -23742,6 +23778,7 @@ open class WMKeyboardService : InputMethodService() {
         rejected: String,
         slots: Int,
     ): List<String> = withContext(Dispatchers.Default) {
+        engine.neuralGlide = neuralGlideNow()
         engine.glide(
             path = stroke.points,
             keys = keyMapFor(stroke.keys, stroke.keyWidthPx),
@@ -27367,11 +27404,18 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
-            onDevice is OnDeviceVoice.Et || onDevice == OnDeviceVoice.Whistle
+            onDevice == OnDeviceVoice.Whistle
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
-            // Play only, the same way: whisper.cpp's, ExecuTorch's and
-            // Whistle's libraries are the on-demand :feature:speech part.
+            // The same way where the libraries are fetched rather than
+            // carried: whisper.cpp's and Whistle's are the :feature:speech part.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
+            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            return
+        }
+        if (onDevice is OnDeviceVoice.Et && !FeatureModules.executorch.installed) {
+            // ExecuTorch is its own part (:feature:executorch), shared with
+            // the FUTO Swipe glide engine.
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) FeatureModules.executorch.requestInstall()
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }

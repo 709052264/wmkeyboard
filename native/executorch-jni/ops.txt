@@ -7,6 +7,7 @@ aten::alias_copy.out
 aten::amax.out
 aten::arange.start_out
 aten::argmax.out
+aten::atan2.out
 aten::bitwise_and.Tensor_out
 aten::bitwise_not.out
 aten::bmm.out
@@ -16,6 +17,7 @@ aten::constant_pad_nd.out
 aten::copy.out
 aten::copy_
 aten::cos.out
+aten::cumsum.out
 aten::div.out
 aten::div.out_mode
 aten::embedding.out
@@ -34,6 +36,7 @@ aten::le.Tensor_out
 aten::log.out
 aten::log10.out
 aten::logical_and.out
+aten::lt.Scalar_out
 aten::lt.Tensor_out
 aten::mm.out
 aten::mul.out

@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
@@ -73,8 +74,9 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
         .filter { states[it.id] is Status.Downloaded }
         .maxByOrNull { it.millions }
 
-    // Play: the runtime itself is an on-demand part, shared with whisper.cpp.
-    SpeechModuleBanner(settings)
+    // The runtime itself is an on-demand part off the APK, shared with the
+    // FUTO Swipe glide engine.
+    SpeechModuleBanner(settings, FeatureModules.executorch)
 
     SettingsGroup(
         stringResource(

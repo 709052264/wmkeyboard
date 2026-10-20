@@ -73,12 +73,14 @@ object NativeDelivery {
      */
     fun install(context: Context, needOptIn: Boolean, dlopen: (String) -> String?) {
         val app = context.applicationContext
+        // Licences are agreed to on every build, pins or not: FUTO Swipe's
+        // model weights download on a bundled build too.
+        NativeConsent.attach(app, needOptIn)
         val text = runCatching { app.assets.open(NativePins.ASSET).bufferedReader().use { it.readText() } }.getOrNull()
             ?: return
         abi = processAbi(app)
         val mine = NativePins.parse(text).filter { it.abi == abi }
         if (mine.isEmpty()) return
-        NativeConsent.attach(app, needOptIn)
         val nativeStore = NativeStore(File(app.noBackupFilesDir, "natives"))
         store = nativeStore
         pins = mine
@@ -89,6 +91,7 @@ object NativeDelivery {
             }
         }
         gate("speech")?.let { FeatureModules.speech = it }
+        gate("executorch")?.let { FeatureModules.executorch = it }
         gate("grammar")?.let { FeatureModules.grammar = it }
         gate("ocr")?.let { FeatureModules.ocr = it }
         gate("litert")?.let { FeatureModules.litert = it }

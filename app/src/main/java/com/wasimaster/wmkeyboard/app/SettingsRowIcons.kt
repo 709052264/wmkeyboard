@@ -1032,6 +1032,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_glide_search_all_chip_title) { Icons.Outlined.Search }
         put(R.string.typing_glide_steadiness_title) { Icons.Outlined.Anchor }
         put(R.string.typing_glide_lookahead_title) { Icons.Outlined.FastForward }
+        put(R.string.typing_glide_engine_title) { Icons.Outlined.Psychology }
         put(R.string.typing_glide_commit_color_title) { Icons.Outlined.Palette }
         put(R.string.typing_glide_commit_scope_title) { Icons.Outlined.Tune }
         put(R.string.typing_letter_swipe_action_title) { Icons.Outlined.Draw }

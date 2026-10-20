@@ -56,10 +56,11 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleGate
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
-import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCpp
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager.DownloadStatus
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
@@ -913,20 +914,22 @@ private fun WhisperDownloadProgress(bytes: Long, total: Long) {
 }
 
 /**
- * The whisper.cpp, ExecuTorch and Whistle libraries' own download (`:feature:speech`),
- * on a Play install that has not fetched them. Nothing anywhere else, where
- * the libraries are in the APK. Asks the way the interpreter's banner does.
+ * A native library part's own download, on a build that fetches it rather than
+ * carrying it: [gate] is `:feature:speech` (whisper.cpp and Whistle) by
+ * default, or `:feature:executorch` (the ExecuTorch runtime) for Asr4All,
+ * Parakeet, Moonshine and the FUTO Swipe glide engine. Nothing where the
+ * libraries are in the APK. Asks the way the interpreter's banner does.
  */
 @Composable
-internal fun SpeechModuleBanner(settings: LiveSettings) {
+internal fun SpeechModuleBanner(settings: LiveSettings, gate: ModuleGate = FeatureModules.speech) {
     val context = LocalContext.current
-    val module by WhisperCpp.moduleState.collectAsState()
+    val module by gate.state.collectAsState()
     if (module == ModuleState.Installed) return
     var metered by remember { mutableStateOf(false) }
     var blocked by remember { mutableStateOf(false) }
     WhisperModuleBanner(module) {
         when (downloadDecisionNow(context, settings.value)) {
-            MeteredDecision.ALLOWED -> WhisperCpp.requestModule()
+            MeteredDecision.ALLOWED -> gate.requestInstall()
             MeteredDecision.ASK -> metered = true
             MeteredDecision.BLOCKED -> blocked = true
         }
@@ -936,7 +939,7 @@ internal fun SpeechModuleBanner(settings: LiveSettings) {
             detail = stringResource(R.string.models_whisper_module_metered_body),
             onConfirm = {
                 metered = false
-                WhisperCpp.requestModule()
+                gate.requestInstall()
             },
             onDismiss = { metered = false },
         )

@@ -33,7 +33,7 @@ data class Own(val gate: String, val fullOnly: Boolean)
 val ownSpecs = mapOf(
     "libwmwhispercpp.so" to Own("speech", false),
     "libwmwhispercpp_v82.so" to Own("speech", false),
-    "libwmexecutorch.so" to Own("speech", false),
+    "libwmexecutorch.so" to Own("executorch", false),
     "libwmwhistle.so" to Own("speech", true),
     "libharper_jni.so" to Own("grammar", false),
     "libwmtess.so" to Own("ocr", true),
@@ -43,6 +43,7 @@ val ownSpecs = mapOf(
 val ownDirs = mapOf(
     "core/voice/src/main/jniLibs" to false,
     "core/voice/src/full/jniLibs" to true,
+    "core/voice/src/executorch/jniLibs" to false,
     "core/intelligence/src/main/jniLibs" to false,
     "core/intelligence/src/full/jniLibs" to true,
 )

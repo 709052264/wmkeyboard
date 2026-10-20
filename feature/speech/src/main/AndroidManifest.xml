@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      On-demand delivery: nothing in this split is needed until the user downloads a whisper.cpp
-     model or picks Asr4All, Parakeet or Moonshine, so Play holds it back until
-     WhisperCpp or EtNative asks for it via SplitInstall
+     model or picks Whistle, so Play holds it back until WhisperCpp asks for
+     it via SplitInstall
      (see OnDemandDelivery in :app's src/play).
 
      Native libraries only, so hasCode="false": a split that declares code

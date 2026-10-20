@@ -59,10 +59,11 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Play builds leave src/main/jniLibs (whisper.cpp and ExecuTorch) and
-// src/full/jniLibs (Whistle) out of this module, so out of the base APK:
-// the on-demand :feature:speech split packages the same directories
-// instead. The files stay here because the native build scripts and
+// Play builds leave src/main/jniLibs (whisper.cpp) and src/full/jniLibs
+// (Whistle) out of this module, so out of the base APK: the on-demand
+// :feature:speech split packages the same directories instead, and
+// :feature:executorch packages src/executorch/jniLibs (ExecuTorch), which
+// every other build adds below. The files stay here because the native build scripts and
 // F-Droid's recipe write and scan exactly these paths.
 //
 // Through the new DSL's extension type, not the `android` accessor's
@@ -83,6 +84,12 @@ androidComponents {
         // which a flavour folder cannot be.
         if (!playStoreChannel && variant.flavorName == "full") {
             variant.sources.kotlin?.addStaticSourceDirectory("src/whisperbridge/java")
+        }
+        // ExecuTorch rides its own gate, `executorch`: kept apart from
+        // src/main/jniLibs so Play's :feature:executorch split can carry it
+        // alone. Elsewhere it is packaged here, or pinned for native delivery.
+        if (!playStoreChannel) {
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/executorch/jniLibs")
         }
     }
 }

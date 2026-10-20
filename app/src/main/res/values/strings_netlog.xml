@@ -173,6 +173,7 @@
     <string name="netlog_source_download_font">Font downloads</string>
     <string name="netlog_source_download_cutout">Background remover download</string>
     <string name="netlog_source_download_ocr">Text scanner language downloads</string>
+    <string name="netlog_source_download_glide">Glide model downloads</string>
     <string name="netlog_source_download_native">Feature library downloads</string>
     <string name="netlog_source_download_language">Interface language downloads</string>
     <string name="netlog_source_addons">Add-ons</string>

@@ -50,6 +50,8 @@
     <string name="storage_emoji_dicts_subtitle">Emoji search words in your languages</string>
     <string name="storage_voice_models_title">Voice models</string>
     <string name="storage_voice_models_subtitle">Speech recognition that runs on your device</string>
+    <string name="storage_glide_models_title">Glide models</string>
+    <string name="storage_glide_models_subtitle">FUTO Swipe, when it reads your glides</string>
     <string name="storage_ai_models_title">AI models</string>
     <string name="storage_ai_models_subtitle">Language models that run on your device</string>
     <string name="storage_ocr_packs_title">Text scanner languages</string>

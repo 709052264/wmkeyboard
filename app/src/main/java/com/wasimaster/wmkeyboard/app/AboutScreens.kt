@@ -398,6 +398,17 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/pytorch/executorch",
             ),
         )
+        // The glide engine's models, on the same runtime. The weights licence
+        // asks for this notice wherever the product says what it is built on.
+        add(
+            Attribution(
+                "FUTO Swipe",
+                R.string.about_bundled_futo_swipe_used,
+                "FUTO Swipe Model weights, FUTO Holdings, Inc.",
+                "FUTO Model Weights License 1.0", "futo-swipe-weights.txt",
+                "https://huggingface.co/futo-org/futo-swipe",
+            ),
+        )
         add(
             Attribution(
                 "Asr4All Model",

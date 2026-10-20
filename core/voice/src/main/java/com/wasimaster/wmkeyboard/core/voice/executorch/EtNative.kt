@@ -8,24 +8,27 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.asCoroutineDispatcher
 
 /**
- * ExecuTorch, built for the keyboard's speech models alone, through
+ * ExecuTorch, built for the keyboard's own models alone, through
  * `native/executorch-jni`: a selective build carrying only the operators those
  * models use, the XNNPACK delegate and the Module extension. Asr4All, Parakeet
- * and Moonshine all run on it; each has its own Kotlin pipeline over [Program].
+ * and Moonshine all run on it, each with its own Kotlin pipeline over
+ * [Program], and so does the FUTO Swipe glide engine (`futoswipe`).
  *
- * The libraries ship in `src/main/jniLibs`, so both editions carry them. Play
- * builds move them into the on-demand `:feature:speech` split, shared with
- * whisper.cpp, so [shipped] says whether the build has the runtime and
- * [available] whether it is loaded. A build without them (F-Droid deletes
- * prebuilt libraries) has [shipped] false and offers none of these engines.
+ * The libraries ship in `src/executorch/jniLibs`, behind their own gate,
+ * [FeatureModules.executorch]: Play builds move them into the on-demand
+ * `:feature:executorch` split and GitHub and F-Droid builds fetch them on
+ * first use, so [shipped] says whether the build has the runtime and
+ * [available] whether it is loaded.
  *
- * A program is not thread-safe, and the models are large, so every call runs
- * on [dispatcher], one thread, and [open] keeps one set of programs at a time:
- * opening another engine's model closes the last one.
+ * A program is not thread-safe, and the speech models are large, so every
+ * speech call runs on [dispatcher], one thread, and [programs] keeps one set
+ * of speech programs at a time: opening another engine's model closes the
+ * last one. The glide models are small and opened apart from that set with
+ * [open], and serialise their own calls.
  */
 object EtNative {
 
-    private val library = GatedLibrary({ FeatureModules.speech }) {
+    private val library = GatedLibrary({ FeatureModules.executorch }) {
         runCatching { FeatureModules.loadLibrary("wmexecutorch") }.isSuccess
     }
 
@@ -77,8 +80,8 @@ object EtNative {
     /** Opens [file], or null when it is not a program this runtime can load. */
     fun open(file: File): Program? {
         check(available) {
-            if (FeatureModules.speech.installed) "the ExecuTorch runtime is not in this build"
-            else "the ExecuTorch runtime is still downloading from Google Play"
+            if (FeatureModules.executorch.installed) "the ExecuTorch runtime is not in this build"
+            else "the ExecuTorch runtime is still downloading"
         }
         val h = nativeOpen(file.absolutePath)
         return if (h == 0L) null else Program(h)

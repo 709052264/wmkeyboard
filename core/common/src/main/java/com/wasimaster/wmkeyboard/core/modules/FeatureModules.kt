@@ -81,12 +81,21 @@ object FeatureModules {
     var handwriting: ModuleGate = AlwaysInstalled
 
     /**
-     * `:feature:speech`: the whisper.cpp, ExecuTorch and Whistle native
-     * libraries behind the GGML Whisper models, Asr4All, Parakeet, Moonshine
-     * and Whistle (`:core:voice`). Only the libraries move; their Kotlin stays in the base.
+     * `:feature:speech`: the whisper.cpp and Whistle native libraries behind
+     * the GGML Whisper models and Whistle (`:core:voice`). Only the libraries
+     * move; their Kotlin stays in the base.
      */
     @Volatile
     var speech: ModuleGate = AlwaysInstalled
+
+    /**
+     * `:feature:executorch`: the app's ExecuTorch runtime (`libwmexecutorch`),
+     * shared by Asr4All, Parakeet and Moonshine dictation and the FUTO Swipe
+     * glide engine (`:core:voice`). Its own gate so that turning on the glide
+     * engine does not also fetch whisper.cpp and Whistle.
+     */
+    @Volatile
+    var executorch: ModuleGate = AlwaysInstalled
 
     /** `:feature:grammar`: the Harper grammar library (`:core:intelligence`). */
     @Volatile

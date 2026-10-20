@@ -200,6 +200,23 @@ The apostrophe is the one piece of punctuation left out of this, because contrac
 
 The contractions that are *not* ambiguous are swiped without it. Draw `doesnt`, `isnt`, `wasnt` or `shouldnt` and the keyboard reads the stroke as the contraction and writes "doesn't", the same repair **Fix missing apostrophes** makes when you type. This holds for every contraction in that repair's table, whether or not the word list has the bare spelling, and it goes away when that setting is off. Where the bare spelling is a rarer word of its own, such as `ill`, `cant` or `wont`, the stroke is weighed as the contraction it is far more often drawn for, so drawing `ill` gives "I'll".
 
+## The FUTO Swipe engine
+
+Everything above describes the keyboard's own decoder, which reads every language and layout. For English on a QWERTY layout there is a second one to choose from. **Glide engine** (<SettingsPath path="Typing / Gestures" />, **Built-in** by default) can be set to **FUTO Swipe**, which reads a swipe with two small neural networks published by FUTO: an encoder that reads the stroke and an English QWERTY decoder that turns it into letters, trained on about a million swipes people drew on real phones. The keyboard then spells words out of your own word lists from those letters, the same lists, added words and learned words the built-in decoder uses, and the result goes through the same context reranking, ambiguity picker and alternates on the strip.
+
+On 5,000 swipes from FUTO's public test set (real people's English swipes, not drawn by a program), against the keyboard's bundled English list:
+
+| | Right word first | Right word in the top four |
+|---|---|---|
+| Built-in decoder | 80% | 94% |
+| FUTO Swipe | 96% | 99% |
+
+Against the 160,000-word downloadable English list the built-in decoder scored 82% and 92%, FUTO Swipe 95% and 99%. Both figures count only swipes whose word is in the list, since neither engine can type a word it doesn't know. The built-in decoder stays the default until the same comparison has been made on phones.
+
+Picking it asks you to accept the FUTO Model Weights License, then downloads the two models, 3.9 MB together, from FUTO's Hugging Face page, pinned to one version and checked against their SHA-256 checksums. On a build that leaves the ExecuTorch runtime out of the APK (the Play Store, GitHub and F-Droid builds fetch it on first use, the same runtime offline Asr4All, Parakeet and Moonshine run on), that comes down too. The models run on the phone, so your swipes never leave it. The licence asks that the keyboard say it is powered by FUTO Swipe, which the setting does under its row and the About screen does in its list of components.
+
+FUTO Swipe only reads English on a QWERTY layout. Another language, another layout (AZERTY, QWERTZ, Dvorak, Colemak and the rest all move some letter to another row), a phonetic layout such as Avro, and any swipe before the models are on the phone all go to the built-in decoder, with nothing to switch. Three of the built-in decoder's features don't apply while FUTO Swipe reads a swipe: [finishing long words early](#finishing-a-long-word-early), the marks in the next section (a loop for a doubled letter, a pause or wiggle for a letter), and the shapes [your swipe style](#what-a-swipe-teaches) keeps. The model reads timing and shape from the stroke for itself. Two-thumb words are always read by the built-in decoder.
+
 ## Marking a letter as you glide
 
 Some words are the same stroke. "good" and "god" are: the o is one key and your finger crosses it one time, so the shape of the path has nothing to say about which word you meant. So are "write", "wire" and "wrote", which all draw the same straight line along the top row of a QWERTY keyboard. Without a mark, the commoner word wins on frequency alone. There are two kinds of mark you can make on a key, and they mean different things:
@@ -300,6 +317,7 @@ This is also the one way a swipe can teach a capital. A capital the *keyboard* c
 | Offer a full search while proofreading | Off | Puts a small search button on the suggestion strip when the cursor lands inside a swiped word whose stroke is still kept, for searching that stroke against every word list. Tap it to search, hold it to dismiss. The same search is always available from a held word on the strip; this only saves the hold. See [Going back to a misread swipe](#going-back-to-a-misread-swipe). |
 | Finish long words early | Off | Off, When sure or Eager. Lets a swipe be read as a word it has only started, and lifting types it. A word you have drawn in full is never overtaken by a longer one unless the longer one is clearly likelier; under Prefer my words and Only my words the guess is always one of your own words. See [Finishing a long word early](#finishing-a-long-word-early). |
 | Color the word a lift will type | When sure | Never, When sure, Any early word or Always. Which word on the strip and in the preview gets the strip's own colour, meaning "this is what a lift types", not just bold. |
+| Glide engine | Built-in | Built-in or FUTO Swipe (English, QWERTY). FUTO Swipe reads English swipes on a QWERTY layout with FUTO's neural models, downloaded under their own licence; everything else stays on the built-in decoder. See [The FUTO Swipe engine](#the-futo-swipe-engine). |
 
 ### Advanced tuning
 

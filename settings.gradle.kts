@@ -94,10 +94,13 @@ if (playStoreChannel) {
     // background remover) and ML Kit's ink recogniser, the same way.
     include(":feature:litert")
     include(":feature:handwriting")
-    // whisper.cpp, ExecuTorch and Whistle's native libraries, Harper's and
+    // whisper.cpp and Whistle's native libraries, Harper's and
     // Tesseract's: no code, only the .so files :core:voice and
     // :core:intelligence leave out of the base APK on this channel.
     include(":feature:speech")
+    // The ExecuTorch runtime, shared by three dictation engines and the FUTO
+    // Swipe glide engine, the same way.
+    include(":feature:executorch")
     include(":feature:grammar")
     include(":feature:ocr")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
