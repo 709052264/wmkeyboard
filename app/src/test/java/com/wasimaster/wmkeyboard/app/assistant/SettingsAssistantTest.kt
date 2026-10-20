@@ -1,6 +1,6 @@
 package com.wasimaster.wmkeyboard.app.assistant
 
-import com.wasimaster.wmkeyboard.app.R
+import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings

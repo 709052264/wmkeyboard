@@ -252,10 +252,11 @@ private fun BlockText(
     math: MathScope?,
 ) {
     val inline = text.inlineContent(math, color)
+    val lines = text.lineHeight(math, fontSize, lineHeight)
     if (selectable) {
-        SelectableText(text.text, color, fontSize, lineHeight = lineHeight, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
+        SelectableText(text.text, color, fontSize, lineHeight = lines, fontWeight = fontWeight, ask = ask, onTap = onTap, inlineContent = inline)
     } else {
-        Text(text.text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lineHeight, inlineContent = inline)
+        Text(text.text, color = color, fontSize = fontSize, fontWeight = fontWeight, lineHeight = lines, inlineContent = inline)
     }
 }
 
@@ -265,6 +266,16 @@ private class Md(val text: AnnotatedString, val formulas: List<String>)
 @Composable
 private fun Md.inlineContent(math: MathScope?, color: Color): Map<String, InlineTextContent> =
     if (math == null || formulas.isEmpty()) emptyMap() else remember(formulas, math, color) { math.inlineContent(formulas, color) }
+
+/**
+ * [lineHeight], or none when a formula in this run is taller than a line:
+ * a fixed line height holds every line to it, placeholders included, and the
+ * formula would draw into the line above. Only that paragraph loosens.
+ */
+private fun Md.lineHeight(math: MathScope?, fontSize: TextUnit, lineHeight: TextUnit): TextUnit {
+    if (math == null || formulas.isEmpty() || !lineHeight.isSp || !fontSize.isSp) return lineHeight
+    return if (math.inlineHeightEm(formulas) > lineHeight.value / fontSize.value) TextUnit.Unspecified else lineHeight
+}
 
 /**
  * A task item: a box, then its text struck through once ticked. Tappable only
@@ -316,7 +327,7 @@ private fun TaskRow(
             inlineContent = md.inlineContent(math, color),
             color = color,
             fontSize = fontSize,
-            lineHeight = lineHeight,
+            lineHeight = md.lineHeight(math, fontSize, lineHeight),
             textDecoration = if (block.checked) TextDecoration.LineThrough else null,
         )
     }
@@ -405,7 +416,7 @@ private fun TableBlock(
                         inlineContent = md.inlineContent(math, colors.text),
                         color = colors.text,
                         fontSize = fontSize,
-                        lineHeight = lineHeight,
+                        lineHeight = md.lineHeight(math, fontSize, lineHeight),
                         fontWeight = if (row == 0) FontWeight.SemiBold else null,
                         textAlign = align,
                         softWrap = false,

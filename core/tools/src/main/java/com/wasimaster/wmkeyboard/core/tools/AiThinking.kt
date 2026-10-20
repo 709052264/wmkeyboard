@@ -39,6 +39,25 @@ object AiThinking {
     }
 
     /**
+     * The reasoning alone, tags removed: what sits inside `<think>…</think>`,
+     * or everything before the close under [implicitThink]. Empty when there
+     * is none. With "show reasoning" on, a streaming bubble draws this dimmed
+     * and the answer after it as markdown, so tables and maths take shape
+     * while they stream instead of showing as raw text until the end.
+     */
+    fun reasoning(raw: String, implicitThink: Boolean = false): String {
+        val open = raw.indexOf(OPEN)
+        val close = raw.indexOf(CLOSE, if (open >= 0) open else 0)
+        return when {
+            open >= 0 && close >= 0 -> raw.substring(open + OPEN.length, close)
+            open >= 0 -> raw.substring(open + OPEN.length)
+            close >= 0 -> raw.substring(0, close)
+            implicitThink -> raw
+            else -> ""
+        }.trim()
+    }
+
+    /**
      * Final-result cleanup: the answer without reasoning, trimmed. A finished
      * response with no think markers at all is returned whole even under
      * [implicitThink] — the model simply didn't reason this time.
