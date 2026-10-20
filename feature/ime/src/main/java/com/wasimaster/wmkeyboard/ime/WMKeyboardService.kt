@@ -2773,9 +2773,9 @@ open class WMKeyboardService : InputMethodService() {
      * Deliberately not tied to the caret: the caret this service has on record
      * is the last one the editor reported, and the delete that takes the word
      * off does not report one, so a position check here would be reading a
-     * stale number. The window and the one-word budget are what bound it
-     * instead, and a word that has nothing to do with the stroke largely falls
-     * to `KeyOffsets.MAX_OBSERVED` even if it does claim it.
+     * stale number. The window, the one-word budget and the stroke's ends
+     * ([GlideStroke.endsFit], #805) are what bound it instead: a word whose
+     * first and last letters the finger never came near does not claim it.
      */
     private var undoneGlide: UndoneGlide? = null
 
@@ -23196,10 +23196,11 @@ open class WMKeyboardService : InputMethodService() {
      * the next word they type is their next word, not this one retried.
      *
      * The same word again is not an answer — it is the reading they rejected —
-     * and neither is a word the stroke cannot be laid on, which [learnHand]
-     * refuses. A word that has nothing to do with the stroke mostly falls to
-     * `KeyOffsets.MAX_OBSERVED`, which drops any letter the finger came nowhere
-     * near.
+     * and neither is a word whose first and last letters the stroke's ends
+     * came nowhere near ([GlideStroke.endsFit], #805). That gate covers all
+     * three learners: deleting "the" and typing "a" is an edit of the
+     * sentence, and letting "a" claim the stroke taught the shape store and
+     * the pair that a swipe for "the" meant "a".
      */
     private fun claimUndoneGlide(word: String) {
         val undone = undoneGlide ?: return
@@ -23207,6 +23208,7 @@ open class WMKeyboardService : InputMethodService() {
         if (SystemClock.uptimeMillis() - undone.atMs > UNDONE_GLIDE_WINDOW_MS) return
         if (WordKey.of(word) == WordKey.of(undone.rejected)) return
         val stroke = undone.stroke
+        if (!stroke.endsFit(word, rawKeyMapFor(stroke.keys, stroke.keyWidthPx))) return
         lastHandAdjustment = learnHand(stroke.points, stroke.keys, stroke.keyWidthPx, word)
         stroke.shape?.let { learningBuffer.attachGlide(word, it) }
         noteGlidePreference(rejected = undone.rejected, chosen = word)
