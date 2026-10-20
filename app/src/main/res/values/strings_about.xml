@@ -170,6 +170,7 @@
     <string name="about_bundled_lottie_used">Draws animated Telegram stickers</string>
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
+    <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
     <string name="about_bundled_rust_crates_used">The libraries that the grammar library depends on</string>
     <string name="about_bundled_tesseract_used">Reads text in most scripts for the text scanner (native library)</string>

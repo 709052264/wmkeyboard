@@ -4,10 +4,15 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 
 /** A Hunspell `.aff` and `.dic` pair imports as every word it spells (#619). */
 class HunspellTest {
+
+    @get:Rule
+    val temp = TemporaryFolder()
 
     private val aff = """
         SET UTF-8
@@ -106,5 +111,61 @@ class HunspellTest {
             CustomDictionaries.Inspection.Refused(CustomDictionaries.Refusal.MissingDic),
             CustomDictionaries.inspect(listOf(affFile)),
         )
+    }
+
+    @Test
+    fun importKeepsTheAffAndDicBesideTheListForTheLibrary() {
+        val files = listOf(
+            CustomDictionaries.ImportFile("bs_BA.aff", aff.toByteArray()),
+            CustomDictionaries.ImportFile("bs_BA.dic", dic.toByteArray()),
+        )
+        val found = CustomDictionaries.inspect(files) as CustomDictionaries.Inspection.Found
+        val written = CustomDictionaries.write(
+            temp.root, "bs", found.dictionaries.single(), CustomDictionaries.ImportParts.ALL,
+        )
+        assertTrue(written.words > 0)
+        val list = CustomDictionaries.lists(temp.root, "bs").single()
+        val pair = CustomDictionaries.hunspellFiles(temp.root, "bs").single()
+        assertEquals("bs_BA.aff", pair.aff.name)
+        assertEquals("bs_BA.dic", pair.dic.name)
+        // As picked, byte for byte: the library reads the rules, not the unfolded words.
+        assertEquals(aff, pair.aff.readText())
+        assertEquals(dic, pair.dic.readText())
+        assertTrue(CustomDictionaries.filesOf(list).containsAll(listOf(pair.aff, pair.dic)))
+
+        // Switched off, the list takes its pair out of use and keeps it.
+        val off = CustomDictionaries.setEnabled(list, false)
+        assertTrue(CustomDictionaries.hunspellFiles(temp.root, "bs").isEmpty())
+        assertTrue(CustomDictionaries.hasHunspell(temp.root, "bs"))
+        assertEquals(pair, CustomDictionaries.hunspellFilesOf(off))
+
+        // A second import of the same name does not adopt the first one's pair.
+        CustomDictionaries.write(temp.root, "bs", found.dictionaries.single(), CustomDictionaries.ImportParts.ALL)
+        assertEquals(1, CustomDictionaries.hunspellFiles(temp.root, "bs").size)
+        assertFalse(CustomDictionaries.hunspellFiles(temp.root, "bs").single() == pair)
+
+        // Deleted, the list takes its pair with it.
+        CustomDictionaries.remove(off)
+        assertFalse(pair.aff.exists())
+        assertFalse(pair.dic.exists())
+    }
+
+    @Test
+    fun onlyAHunspellImportKeepsAPair() {
+        val plain = CustomDictionaries.inspect(
+            listOf(CustomDictionaries.ImportFile("words.txt", "hello 10\nworld 5\n".toByteArray())),
+        ) as CustomDictionaries.Inspection.Found
+        CustomDictionaries.write(temp.root, "en", plain.dictionaries.single(), CustomDictionaries.ImportParts.ALL)
+        assertFalse(CustomDictionaries.hasHunspell(temp.root, "en"))
+        assertTrue(CustomDictionaries.hunspellFiles(temp.root, "en").isEmpty())
+        // Nor do the words of a Hunspell import left out: there is nothing for the rules to stand behind.
+        val files = listOf(
+            CustomDictionaries.ImportFile("bs_BA.aff", aff.toByteArray()),
+            CustomDictionaries.ImportFile("bs_BA.dic", dic.toByteArray()),
+        )
+        val found = CustomDictionaries.inspect(files) as CustomDictionaries.Inspection.Found
+        val none = CustomDictionaries.ImportParts(words = false, pairs = true, shortcuts = true)
+        CustomDictionaries.write(temp.root, "bs", found.dictionaries.single(), none)
+        assertFalse(CustomDictionaries.hasHunspell(temp.root, "bs"))
     }
 }

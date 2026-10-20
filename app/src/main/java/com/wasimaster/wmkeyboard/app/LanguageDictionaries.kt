@@ -119,6 +119,7 @@ internal fun DictionariesGroup(
     val emojiImported = remember(langId, emojiStatus) {
         EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()
     }
+    val hasHunspell = rememberHasHunspell(langId)
 
     // Sizes the Download all on the heading, so it is read here.
     val size = settings.watch { it.appUi.defaultWordlistSize }
@@ -224,6 +225,11 @@ internal fun DictionariesGroup(
                     wordlistSize = size,
                 )
             }
+        }
+        // Only for a language with an imported Hunspell dictionary that kept
+        // its .aff and .dic: that is all the library checks against.
+        if (hasHunspell) {
+            item(key = "hunspell") { HunspellRow(langId, settings) }
         }
         item {
             NavRow(

@@ -99,6 +99,9 @@ if (playStoreChannel) {
     // :core:intelligence leave out of the base APK on this channel.
     include(":feature:speech")
     include(":feature:grammar")
+    // Hunspell's, the same way, behind spell checking against imported
+    // .aff/.dic dictionaries.
+    include(":feature:spell")
     include(":feature:ocr")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
     // wmkb.enableNpu=false (the same flag :core:config reads).

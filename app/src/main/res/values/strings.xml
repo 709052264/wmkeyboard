@@ -31,6 +31,7 @@
     <string name="handwriting_module_title">Handwriting recognition</string>
     <string name="speech_module_title">Offline voice engines</string>
     <string name="grammar_module_title">Grammar checker</string>
+    <string name="spell_module_title">Hunspell spell checker</string>
     <string name="ocr_module_title">Offline text reader</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for
          on-device AI. NPU stays in English. -->

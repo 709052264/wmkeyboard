@@ -34,6 +34,12 @@ import java.util.zip.ZipInputStream
  * list is switched on and go when it is deleted, so the list stays the one
  * thing a user manages. Which parts are written is the user's choice at
  * import ([inspect], then [write]).
+ *
+ * A Hunspell dictionary also keeps its own two files beside its list,
+ * `<name>.aff` and `<name>.dic`, as they were picked: the list is what the
+ * tries read, and the pair is what the Hunspell library checks words against
+ * when it is present ([hunspellFiles], [HunspellChecker]). They follow the
+ * list the same way.
  */
 object CustomDictionaries {
 
@@ -50,6 +56,8 @@ object CustomDictionaries {
 
     private const val PAIRS_SUFFIX = ".wmng"
     private const val SHORTCUTS_SUFFIX = ".shortcuts"
+    private const val AFF_SUFFIX = ".aff"
+    private const val DIC_SUFFIX = ".dic"
     private const val HEADER_SUFFIX = ".header"
     private const val BODY_SUFFIX = ".body"
 
@@ -303,7 +311,8 @@ object CustomDictionaries {
     /**
      * One dictionary found in the picked files, before anything is written.
      * [words] are on this app's scale. A plain word list keeps its own bytes,
-     * so its comments and spacing survive the import.
+     * so its comments and spacing survive the import, and a Hunspell
+     * dictionary keeps its two files in [hunspell].
      */
     class ImportCandidate(
         val name: String,
@@ -313,10 +322,17 @@ object CustomDictionaries {
         val locale: String?,
         val description: String?,
         internal val verbatim: ByteArray? = null,
+        internal val hunspell: HunspellSource? = null,
     ) {
         /** Whether there is anything to ask about beyond the words. */
         val hasExtras: Boolean get() = ngrams.isNotEmpty() || shortcuts.isNotEmpty()
     }
+
+    /** A Hunspell dictionary's own files, written beside its list. */
+    class HunspellSource(val aff: ByteArray, val dic: ByteArray)
+
+    /** A list's Hunspell pair on disk. */
+    data class HunspellFiles(val aff: File, val dic: File)
 
     /** Which parts of a candidate to write. */
     data class ImportParts(val words: Boolean, val pairs: Boolean, val shortcuts: Boolean) {
@@ -467,6 +483,7 @@ object CustomDictionaries {
             shortcuts = emptyList(),
             locale = Hunspell.language(aff.bytes) ?: name.substringBeforeLast('.'),
             description = null,
+            hunspell = HunspellSource(aff.bytes, dic.bytes),
         )
     }
 
@@ -520,6 +537,17 @@ object CustomDictionaries {
                     writer.flush()
                 }
             }
+        }
+        // The rules the words were unfolded from, for the Hunspell library.
+        // Only with the words: a list imported for its pairs alone has
+        // nothing for Hunspell to stand behind.
+        val hunspell = candidate.hunspell
+        val keptRules = wrote && words > 0 && hunspell != null &&
+            writeAtomically(affFile(target)) { it.write(hunspell.aff) } &&
+            writeAtomically(dicFile(target)) { it.write(hunspell.dic) }
+        if (!keptRules) {
+            affFile(target).delete()
+            dicFile(target).delete()
         }
         if (!wrote) {
             pairsFile(target).delete()
@@ -609,9 +637,35 @@ object CustomDictionaries {
     /** The file holding a list's shortcuts, one `trigger<TAB>expansion` a line. */
     fun shortcutsFile(list: File): File = File(list.parentFile, baseName(list) + SHORTCUTS_SUFFIX)
 
+    /** The `.aff` an imported Hunspell dictionary kept beside [list]. */
+    fun affFile(list: File): File = File(list.parentFile, baseName(list) + AFF_SUFFIX)
+
+    /** The `.dic` an imported Hunspell dictionary kept beside [list]. */
+    fun dicFile(list: File): File = File(list.parentFile, baseName(list) + DIC_SUFFIX)
+
+    /** [list]'s Hunspell pair, when its import kept one. */
+    fun hunspellFilesOf(list: File): HunspellFiles? {
+        val aff = affFile(list)
+        val dic = dicFile(list)
+        return if (aff.isFile && dic.isFile) HunspellFiles(aff, dic) else null
+    }
+
+    /**
+     * The Hunspell pairs of the switched-on lists for [langId], oldest first:
+     * what the Hunspell library checks that language's words against. Empty
+     * for every list imported before the pairs were kept, which has to be
+     * imported again to gain one.
+     */
+    fun hunspellFiles(filesDir: File, langId: String): List<HunspellFiles> =
+        lists(filesDir, langId).mapNotNull(::hunspellFilesOf)
+
+    /** Whether any list for [langId], switched on or off, kept a Hunspell pair. */
+    fun hasHunspell(filesDir: File, langId: String): Boolean =
+        allLists(filesDir, langId).any { hunspellFilesOf(it) != null }
+
     /** The list and whatever sits beside it, for the storage screen. */
     fun filesOf(list: File): List<File> =
-        listOf(list, pairsFile(list), shortcutsFile(list)).filter { it.exists() }
+        listOf(list, pairsFile(list), shortcutsFile(list), affFile(list), dicFile(list)).filter { it.exists() }
 
     private fun baseName(list: File): String = displayName(list).removeSuffix(".txt")
 
@@ -739,10 +793,12 @@ object CustomDictionaries {
         }
     }.getOrNull()
 
-    /** Deletes a list and the pairs and shortcuts beside it. */
+    /** Deletes a list and the pairs, shortcuts and Hunspell files beside it. */
     fun remove(file: File): Boolean {
         pairsFile(file).delete()
         shortcutsFile(file).delete()
+        affFile(file).delete()
+        dicFile(file).delete()
         return file.delete()
     }
 
@@ -899,8 +955,9 @@ object CustomDictionaries {
             .ifEmpty { "wordlist" }
         // A name is taken while anything of a list by that name is there: a
         // switched-off list, or the pairs of one, would otherwise be adopted.
-        fun taken(name: String) = listOf(".txt", ".txt$DISABLED_SUFFIX", PAIRS_SUFFIX, SHORTCUTS_SUFFIX)
-            .any { File(dir, name + it).exists() }
+        fun taken(name: String) =
+            listOf(".txt", ".txt$DISABLED_SUFFIX", PAIRS_SUFFIX, SHORTCUTS_SUFFIX, AFF_SUFFIX, DIC_SUFFIX)
+                .any { File(dir, name + it).exists() }
         var name = base
         var n = 2
         while (taken(name)) {

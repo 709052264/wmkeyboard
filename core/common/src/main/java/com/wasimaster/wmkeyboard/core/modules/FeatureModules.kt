@@ -92,6 +92,13 @@ object FeatureModules {
     @Volatile
     var grammar: ModuleGate = AlwaysInstalled
 
+    /**
+     * `:feature:spell`: the Hunspell library behind spell checking against an
+     * imported `.aff` and `.dic` (`:core:prediction`).
+     */
+    @Volatile
+    var spell: ModuleGate = AlwaysInstalled
+
     /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
     @Volatile
     var ocr: ModuleGate = AlwaysInstalled

@@ -246,6 +246,15 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Additive to the bundled list, not a replacement
     - A file that parses to zero words is deleted again — Picking a PDF fails visibly instead of contributing nothing
     - Legacy folder migration — ENGLISH, BANGLA, FRENCH folders renamed to language ids, merging without clobbering
+    - Hunspell .aff/.dic unfolded into words, and the two files kept beside the list (Hunspell.kt)
+  - Hunspell spell checking `RARE` — Native Hunspell 1.7.2 checks words against an imported .aff/.dic, where the unfolded list cannot reach
+    - A word Hunspell accepts is never autocorrected away and gets no corrections on the strip — German, Dutch, Hungarian and Finnish compounds made up on the spot stand
+    - Hunspell's spellings join the strip on the background pass, for a word it rejects that no list leads to — a listed spelling at the walk's one-far-edit score, an unlisted one (a compound) at an imported stem's
+    - Accepted words count as known to the learning gate
+    - On-demand library libwmhunspell.so (gate spell): pinned and downloaded on GitHub builds, the :feature:spell split on Play, built from source on F-Droid (native/hunspell-jni)
+    - Language › Dictionaries row and module banner for a language with an imported pair; never fetched from the keyboard itself
+    - No library, no pair, or a list switched off: the word lists decide alone, exactly as before
+    - The main thread waits at most 15 ms for Hunspell's lock and otherwise answers as if it were absent; answers cached per word
   - Three trie implementations behind one interface `uncommon` — Mutable node trie, heap-packed CSR trie, mapped trie
     - WordSource and TrieWalker split — The walker gives node-level access so fuzzy search steers its own traversal
     - One shared branch-and-bound completer — TrieCompleter replaces three parallel copies of the same loop

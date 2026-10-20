@@ -473,6 +473,9 @@ android {
         // in the base.
         dynamicFeatures += ":feature:speech"
         dynamicFeatures += ":feature:grammar"
+        // Hunspell's library, behind spell checking against an imported
+        // .aff/.dic.
+        dynamicFeatures += ":feature:spell"
         dynamicFeatures += ":feature:ocr"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
         // assets that only phones with a listed chip fetch, once someone
@@ -1340,7 +1343,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:grammar and :feature:ocr modules.
+        // :feature:speech, :feature:grammar, :feature:spell and :feature:ocr modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with
