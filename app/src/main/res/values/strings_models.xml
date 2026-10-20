@@ -136,8 +136,18 @@
     <string name="models_llm_available_title">Available to download</string>
     <string name="models_llm_catalog_info">The best models are at the top, not the smallest ones. A model at the top writes better, but the download is bigger, the answer is slower, and it needs more memory. A gated model needs a Hugging Face account. Add your token above, then accept the licence on the model page one time.</string>
 
+    <!-- The second list of models, run by llama.cpp. GGUF is the file format
+         and llama.cpp the engine; both stay in Latin letters. -->
+    <string name="models_llm_gguf_title">GGUF models (llama.cpp)</string>
+    <string name="models_llm_gguf_info">These models run on llama.cpp, a second engine that runs any GGUF file. It uses the CPU only, so Compute does not apply to them, and they cannot read pictures. The models above, which run on LiteRT-LM, stay the default. Each file is checked against the one the catalogue names before you can use it.</string>
+    <!-- Under a model row. %1$s is the engine name, llama.cpp. -->
+    <string name="models_llm_runtime_label">Runs on <xliff:g id="runtime" example="llama.cpp">%1$s</xliff:g></string>
+    <string name="models_llm_llama_module_missing_info">llama.cpp is an extra part of the keyboard that downloads when you first need it. Download it to use GGUF models.</string>
+    <string name="models_llm_llama_module_installing_info">Downloading llama.cpp…</string>
+    <string name="models_llm_llama_module_metered_body">llama.cpp is a separate download of a few megabytes.</string>
+
     <string name="models_llm_import_title">Import your own</string>
-    <string name="models_llm_import_info">You can import any LiteRT-LM model in a .litertlm file or a .task file. For example, a model that you converted yourself or downloaded in a browser.</string>
+    <string name="models_llm_import_info">You can import any LiteRT-LM model in a .litertlm file or a .task file, and any GGUF model, which llama.cpp runs. For example, a model that you converted yourself or downloaded in a browser.</string>
     <string name="models_llm_import_action">Import model file</string>
     <string name="models_llm_importing_label">Importing…</string>
 
@@ -184,7 +194,7 @@
 
     <!-- Errors while the app imports a model file that the user selected. -->
     <string name="models_llm_import_error_no_name">The app cannot read the name of the file.</string>
-    <string name="models_llm_import_error_not_a_model">This is not a model file. The app needs a .litertlm file or a .task file.</string>
+    <string name="models_llm_import_error_not_a_model">This is not a model file. The app needs a .litertlm file, a .task file or a GGUF file.</string>
     <!-- %1$s is the size of the file the user selected. -->
     <string name="models_llm_import_error_no_space">There is not enough storage for this file of <xliff:g id="size" example="2.6 GB">%1$s</xliff:g>.</string>
     <string name="models_llm_import_error_open">The app cannot open the selected file.</string>

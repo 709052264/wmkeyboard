@@ -285,6 +285,20 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    // GGUF models for on-device AI, in every build that has the On-device
+    // provider: packaged, pinned for download, or a Play split. See
+    // native/llamacpp-jni.
+    if (BuildConfig.ENABLE_LOCAL_LLM) {
+        add(
+            Attribution(
+                "llama.cpp and ggml",
+                R.string.about_bundled_llama_cpp_used,
+                "Copyright (c) 2023-2026 The ggml authors; nlohmann/json Copyright (c) 2013-2025 Niels Lohmann",
+                "MIT", "mit-llama-cpp.txt",
+                "https://github.com/ggml-org/llama.cpp",
+            ),
+        )
+    }
     // On-device translation without Google, in every build: packaged, pinned
     // for download, or a Play split. See native/bergamot-jni.
     add(

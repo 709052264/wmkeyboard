@@ -116,6 +116,8 @@ androidComponents {
         // A build with native delivery pins it instead (wmkeyboard.native-pins).
         if (!playStoreChannel) {
             variant.sources.jniLibs?.addStaticSourceDirectory("src/bergamot/jniLibs")
+            // llama.cpp's, the same way: :feature:llama carries it on Play.
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/llama/jniLibs")
         }
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,

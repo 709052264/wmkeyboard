@@ -185,6 +185,7 @@
     <!-- TFLite is the file format of the model, not an abbreviation to translate. -->
     <string name="about_bundled_whisper_used">The speech recognition model, in TFLite versions that run on your device</string>
     <string name="about_bundled_whisper_android_used">The reference for the mel spectrogram and the tokenizer port</string>
+    <string name="about_bundled_llama_cpp_used">The engine that runs GGUF models for on-device AI (native library)</string>
     <string name="about_bundled_whisper_cpp_used">The engine that runs the faster Offline Whisper models on your device, and those models</string>
     <string name="about_bundled_rime_used">The optional RIME engine for Chinese and Cantonese, with LevelDB, yaml-cpp, marisa-trie, OpenCC and Boost</string>
     <string name="about_bundled_executorch_used">The engine that runs the Offline Asr4All models on your device</string>

@@ -132,6 +132,12 @@ build. The runtime itself is Microsoft's MIT-licensed AAR on Maven Central,
 read on the phone after the download opt-in, like every other delivered
 library.
 
+From the release after 0.6.2 the script also builds `native/llamacpp-jni`
+(llama.cpp at a pinned release tag, CMake, CPU backend only) into
+`core/intelligence/src/llama/jniLibs`, the runtime for GGUF models; the next
+entry's `scandelete` needs that path added. Nothing is fetched at configure
+time: no KleidiAI, no OpenSSL, no web UI.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

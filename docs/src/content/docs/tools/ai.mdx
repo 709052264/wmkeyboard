@@ -153,7 +153,7 @@ The **On your device** provider runs a model entirely on the phone, no network i
   <Shot id="tools/ai-settings-local-catalog" alt="The on-device model catalog, with tier badges and a size/RAM subtitle per model." />
 </PhoneFrame>
 
-The catalog is eight models, ordered best-first rather than smallest-first:
+The catalog has two lists. The first is eight models in LiteRT-LM's format, the engine the keyboard has always used and still the default. They're ordered best-first rather than smallest-first:
 
 | Model | Params | Size | Tier | Gated |
 |---|---|---|---|---|
@@ -170,17 +170,43 @@ Each row names the licence its weights are published under, and **Licence and mo
 
 Two of the eight are gated and need a Hugging Face account. Paste a token into the **Access token** field under **Hugging Face account**, above the catalog. Then accept the model's license on its Hugging Face page, once per model.
 
+#### GGUF models on llama.cpp
+
+Below them sits a second list, **GGUF models (llama.cpp)**. These run on [llama.cpp](https://github.com/ggml-org/llama.cpp), a second engine that loads any GGUF file, the format most open models are published in. Each row says **Runs on llama.cpp**, and its name ends in "(GGUF)", which keeps it apart from a LiteRT-LM model of the same name in the panel's and the chat's model pickers. Picking one of these models is how you pick the engine: the keyboard routes every request to whichever engine runs the model in use.
+
+| Model | Params | Size | Tier | Licence |
+|---|---|---|---|---|
+| Qwen 3 1.7B | 1.7B | 1.83 GB | Untested | Apache-2.0 |
+| Llama 3.2 1B | 1B | 808 MB | Untested | Llama 3.2 Community License |
+| Gemma 3 1B | 1B | 806 MB | Untested | Gemma Terms of Use |
+| Qwen 3 0.6B | 0.6B | 639 MB | Experimental | Apache-2.0 |
+| Qwen 2.5 0.5B | 0.5B | 491 MB | Experimental | Apache-2.0 |
+| SmolLM2 360M | 360M | 386 MB | Experimental | Apache-2.0 |
+| Gemma 3 270M | 270M | 292 MB | Experimental | Gemma Terms of Use |
+
+None of them is gated, so no Hugging Face token is needed, Gemma 3 included. Each one is fetched from a fixed commit of its repository and checked against a SHA-256 before it counts as downloaded. A file that doesn't match is deleted and the row asks you to download it again. The Qwen and SmolLM2 files come from the makers' own repositories, Gemma from ggml-org (the llama.cpp project), and Llama 3.2 from bartowski's conversion of Meta's model.
+
+What's different about them:
+
+- **CPU only.** **Compute** applies to the LiteRT-LM models. A GGUF model runs on the CPU's big cores whatever that row says.
+- **No pictures.** The reply tool reads a screenshot another way, as it does for any model that can't see.
+- **The model's own chat template.** llama.cpp formats each conversation with the template stored in the GGUF file, so a model you import is prompted the way its makers trained it. Text from your field is kept as text: it can't open a turn of its own, even if it contains the template's markers.
+- **Stop really stops.** A LiteRT-LM answer runs to its end in the background after you press Stop. A GGUF answer ends at the next word, and what it had written is what the model remembers.
+- **Memory is checked first.** Before a model loads, the keyboard compares what it needs (the file, plus room for the context) with the memory free on the phone. If it's short, the context shrinks first. If even that won't fit, you get a message with both figures instead of a crash. A loaded model is unloaded after three minutes with nothing to do, and the keyboard lets go of it earlier when it hides.
+
+llama.cpp itself is an extra part of a few megabytes. The Google Play edition downloads it from Play with the first GGUF model, and the GitHub edition fetches it from the project's own release. Until it's there, the GGUF list shows a banner with a **Download** button.
+
 Every model carries an advisory minimum-RAM figure behind the scenes. When your phone's total RAM falls under it, the app appends "May be too large for this device" to that model's subtitle. It never blocks the download and never shows you the raw number. That warning is the only per-device signal the catalog gives you up front. There's no published speed benchmark, because how fast a model answers depends on the phone as much as on the model. What you get instead is a progress readout with elapsed seconds, once a request is actually running.
 
 Tapping **Download** starts a resumable download. Cancel it, lose signal, or background the app, and the next attempt picks the transfer up where it left off rather than restarting. Only one download runs at a time. On a metered connection, a model of 500 MB or more asks for confirmation first.
 
-Don't need the catalog? **Import your own** takes any `.litertlm` or `.task` file, the two container formats the on-device engine loads. That covers one you converted yourself or downloaded elsewhere in a browser. There's no GGUF support. A file with any other extension is rejected on import.
+Don't need the catalog? **Import your own** takes any `.litertlm` or `.task` file, which LiteRT-LM runs, and any GGUF file, which llama.cpp runs. That covers one you converted yourself or downloaded elsewhere in a browser. A GGUF is recognised by its contents, so one that lost its `.gguf` extension on the way still imports and gets the extension back. Anything else is rejected. The same goes for **Import files** under Storage, which also takes a catalog GGUF and checks it against its SHA-256 like a download. An imported GGUF uses the chat template inside it; one with no template is prompted in ChatML, the format most small open models use.
 
 A **Compute** row picks **CPU** or **GPU** for inference, and CPU is the default. GPU is best-effort. If it fails to initialize, runs out of GPU memory partway through an answer, or takes the keyboard down with it, the engine falls back to CPU on its own and keeps that model on the CPU from then on. It tries the GPU again after a system update, an app update or a fresh download of the model. Some GPU drivers keep a failed model's memory after the model is closed, which can leave the whole phone slow. When that happens, the keyboard restarts itself a few seconds after you close it, so the memory is freed. It doesn't do this while a screen of the app is open or a model is downloading.
 
 On a phone with a Snapdragon 8 Elite (SM8750, the Galaxy S25 series) or 8 Elite Gen 5 (SM8850, the Galaxy S26 Ultra), running Android 12 or later, the row has a third choice, **NPU**, which runs a model on the phone's AI accelerator. The NPU needs a build of the model compiled for that chip, and only Gemma 3 1B and Gemma 3 270M have one. With **NPU** selected, **Download** on those two rows fetches the NPU build (689 MB and 461 MB on an SM8750) instead of the standard file. A model you already have gets a **Get the NPU build** button. Every other model runs as it does with **GPU**. So does a model whose NPU build fails to start, and the app keeps that model off the NPU until the next system or app update. A failure partway through an answer only moves the next try in that session to the GPU, because a prompt longer than the build's window fails the same way. The NPU build runs only on the NPU, so a model whose only file is its NPU build offers **Get the standard build** when Compute is CPU or GPU. The NPU runtime is Qualcomm's QNN. The Google Play edition downloads it from Play the first time you pick **NPU**. The GitHub edition first asks you to accept Qualcomm's licence, then fetches only your chip's files from Qualcomm's own package on Maven Central, about 30 MB. The F-Droid edition has no NPU at all.
 
-A **Context size** row sets how much text the model is loaded with, prompt and answer together, in tokens. It defaults to the model's own value. This is the only length lever on-device. Unlike a cloud API there's no per-response ceiling to set, so the window is what bounds an answer. A larger window costs memory, and changing it reloads the model.
+A **Context size** row sets how much text the model is loaded with, prompt and answer together, in tokens. It defaults to the model's own value, or 4,096 tokens for a GGUF model, whose own value is often far more than a phone can hold. This is the only length lever on-device. Unlike a cloud API there's no per-response ceiling to set, so the window is what bounds an answer. A larger window costs memory, and changing it reloads the model.
 
 ## Your own actions
 

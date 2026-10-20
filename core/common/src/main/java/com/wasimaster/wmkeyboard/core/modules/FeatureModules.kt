@@ -126,6 +126,14 @@ object FeatureModules {
     @Volatile
     var bergamot: ModuleGate = AlwaysInstalled
 
+    /**
+     * `:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models
+     * (`:core:intelligence`). LiteRT-LM, the default runtime, has its own
+     * gate (`LlmModule`); only a GGUF model asks for this one.
+     */
+    @Volatile
+    var llama: ModuleGate = AlwaysInstalled
+
     /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
     @Volatile
     var ocr: ModuleGate = AlwaysInstalled

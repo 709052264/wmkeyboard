@@ -145,6 +145,15 @@ object LocalLlmDownloadManager {
         activeJob = scope.launch {
             try {
                 downloadInto(model, fileName, sizeBytes, part, hfToken)
+                // A pinned file (the GGUF rows) counts only when its bytes
+                // are the ones the catalog names; a resumed download that
+                // spliced two uploads together, or a wrong file, never does.
+                expectedSha256(model, fileName)?.let { expected ->
+                    if (!sha256Of(part).equals(expected, ignoreCase = true)) {
+                        part.delete()
+                        throw FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_checksum)
+                    }
+                }
                 check(part.renameTo(LocalLlmStore.modelFile(filesDir, model, fileName))) {
                     "could not move the finished download into place"
                 }
@@ -175,6 +184,24 @@ object LocalLlmDownloadManager {
 
     fun cancel() {
         activeJob?.cancel()
+    }
+
+    /** The SHA-256 [fileName] of [model] must have, when the catalog pins one. */
+    fun expectedSha256(model: LocalLlmModel, fileName: String = model.fileName): String? =
+        model.sha256?.takeIf { fileName == model.fileName }
+
+    /** Hex SHA-256 of [file]'s contents. Reads the whole file: IO dispatcher only. */
+    fun sha256Of(file: File): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        file.inputStream().use { input ->
+            val buffer = ByteArray(1024 * 1024)
+            while (true) {
+                val read = input.read(buffer)
+                if (read < 0) break
+                digest.update(buffer, 0, read)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     fun delete(filesDir: File, model: LocalLlmModel) {

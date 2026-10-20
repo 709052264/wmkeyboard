@@ -161,6 +161,17 @@ The script fetches the revision of `mozilla/translations` that Firefox ships (on
 
 The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's public Remote Settings collection `translations-models-v2` and writes `BergamotCatalog.kt` with each file's address, size and SHA-256. Run it to move to Mozilla's newer models, then review the diff. `native/bergamot-jni/README.md` has the JNI contract and the reasons behind each build flag.
 
+## Rebuilding the llama.cpp library
+
+GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-lite-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:
+
+```sh
+# Needs git, CMake and Ninja
+ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/llamacpp-jni/build.sh
+```
+
+The script fetches llama.cpp at the release `pin.sh` names and builds four libraries: arm64 twice (ARMv8.0, and ARMv8.2 with dot product and fp16, picked from `/proc/cpuinfo` at load the way whisper.cpp's are), armeabi-v7a and x86_64, CPU backend only. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
+
 ## Running static analysis
 
 ```sh

@@ -5,7 +5,10 @@ import com.wasimaster.wmkeyboard.core.settings.LocalLlmBackend
 import java.io.File
 
 /**
- * The seam between the app and the LiteRT-LM runtime. `LocalLlmEngine` (the
+ * The seam between the app and an on-device runtime: LiteRT-LM, reached as
+ * below, or llama.cpp ([LlamaCppRuntime], in this module, for GGUF files).
+ *
+ * `LocalLlmEngine` (the
  * facade every caller uses) reaches its implementation, `LitertLmRuntime`,
  * only by reflection — see [LlmModule.BRIDGE_CLASS] — because the class lives
  * in a different place per channel:
@@ -58,6 +61,12 @@ interface LlmRuntime {
 
     /** Contract of [LocalLlmEngine.release]. */
     fun release()
+
+    /**
+     * Contract of [LocalLlmEngine.stop]. A no-op where the runtime cannot cut
+     * an answer short: LiteRT-LM's blocking generation always runs to its end.
+     */
+    fun stop() = Unit
 
     /** Contract of [LocalLlmEngine.gpuMemoryMayBeStranded]. */
     fun gpuMemoryMayBeStranded(): Boolean

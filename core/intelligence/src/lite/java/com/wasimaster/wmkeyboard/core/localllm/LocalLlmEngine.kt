@@ -9,12 +9,14 @@ import java.io.File
  * object only keeps the shared callers (IME service) compiling. The
  * On-device provider is hidden from lite settings, making this unreachable
  * in practice.
+ *
+ * llama.cpp needs nothing from Google, so a GGUF model runs here as in the
+ * full build ([LlamaCpp]); only LiteRT-LM files are refused.
  */
 object LocalLlmEngine {
 
     const val AVAILABLE = false
 
-    @Suppress("UNUSED_PARAMETER")
     fun generate(
         context: Context,
         modelFile: File,
@@ -23,14 +25,18 @@ object LocalLlmEngine {
         system: String,
         user: String,
         onPartial: ((String) -> Unit)? = null,
-    ): String = error("On-device AI is not available in the lite build")
+    ): String {
+        if (LlamaCpp.handles(modelFile)) {
+            return LlamaCpp.runtime(context).generate(context, modelFile, backend, contextTokens, system, user, onPartial)
+        }
+        error("On-device AI is not available in the lite build")
+    }
 
     /**
      * Throws [VisionUnsupportedException] rather than `error()`: the reply tool
      * catches that type to fall back to reading the picture another way, and
      * an IllegalStateException would get past it.
      */
-    @Suppress("UNUSED_PARAMETER")
     fun generateWithImages(
         context: Context,
         modelFile: File,
@@ -40,34 +46,46 @@ object LocalLlmEngine {
         user: String,
         images: List<ByteArray>,
         onPartial: ((String) -> Unit)? = null,
-    ): String = throw VisionUnsupportedException("On-device AI is not available in the lite build")
+    ): String {
+        if (LlamaCpp.handles(modelFile)) {
+            return LlamaCpp.runtime(context)
+                .generateWithImages(context, modelFile, backend, contextTokens, system, user, images, onPartial)
+        }
+        throw VisionUnsupportedException("On-device AI is not available in the lite build")
+    }
 
-    @Suppress("UNUSED_PARAMETER")
     fun chatSession(
         context: Context,
         modelFile: File,
         backend: LocalLlmBackend,
         contextTokens: Int,
         system: String,
-    ): ChatSession = error("On-device AI is not available in the lite build")
-
-    /** Mirror of the full-flavor session so shared callers compile. */
-    class ChatSession private constructor() {
-
-        @Suppress("UNUSED_PARAMETER")
-        fun sendMessage(user: String, onPartial: ((String) -> Unit)? = null): String =
-            error("On-device AI is not available in the lite build")
-
-        @Suppress("UNUSED_PARAMETER")
-        fun seed(transcript: List<ChatReplay.Turn>) = Unit
-
-        @Suppress("UNUSED_PARAMETER")
-        fun recordStoppedTurn(user: String, fullAnswer: String) = Unit
-
-        fun close() = Unit
+    ): ChatSession {
+        if (LlamaCpp.handles(modelFile)) {
+            return ChatSession(LlamaCpp.runtime(context).chatSession(context, modelFile, backend, contextTokens, system))
+        }
+        error("On-device AI is not available in the lite build")
     }
 
-    fun release() = Unit
+    /** Mirror of the full-flavor session so shared callers compile; only llama.cpp backs it here. */
+    class ChatSession internal constructor(
+        private val delegate: LlmRuntime.Chat,
+    ) {
+
+        fun sendMessage(user: String, onPartial: ((String) -> Unit)? = null): String =
+            delegate.sendMessage(user, onPartial)
+
+        fun seed(transcript: List<ChatReplay.Turn>) = delegate.seed(transcript)
+
+        fun recordStoppedTurn(user: String, fullAnswer: String) =
+            delegate.recordStoppedTurn(user, fullAnswer)
+
+        fun close() = delegate.close()
+    }
+
+    fun release() = LlamaCpp.release()
+
+    fun stop() = LlamaCpp.stop()
 
     fun gpuMemoryMayBeStranded(): Boolean = false
 

@@ -114,6 +114,9 @@ if (playStoreChannel) {
     // Mozilla's Bergamot translator, the same way: the library alone, behind
     // the translate tool's Firefox Translations engine.
     include(":feature:bergamot")
+    // llama.cpp, the same way: the library alone, behind GGUF models for
+    // on-device AI.
+    include(":feature:llama")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless
     // wmkb.enableNpu=false (the same flag :core:config reads).
     val local = java.util.Properties()
