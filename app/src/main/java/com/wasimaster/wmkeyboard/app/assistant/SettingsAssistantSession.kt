@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.tools.AiClient
@@ -69,6 +70,9 @@ internal object SettingsAssistantSession {
      */
     @Volatile
     private var runSeq = 0
+
+    /** Data Saver asked before the last question went out (#826); the next one is the yes. */
+    private var meteredAsked = false
     private var nextId = 0
     private val sessionId = UUID.randomUUID().toString()
 
@@ -153,6 +157,21 @@ internal object SettingsAssistantSession {
         val choice = current(choices(app, settings()), settings())
         if (choice == null) {
             add { Item.Reply(it, noProvider, failed = true) }
+            return
+        }
+        // Data Saver's Cloud AI policy (#826), which the keyboard's AI already
+        // keeps: held, nothing is sent, not even a documentation search.
+        val granted = meteredAsked
+        meteredAsked = false
+        val decision = if (granted) MeteredDecision.ALLOWED else AiChatController.cloudAiDecision(app, settings(), choice)
+        if (decision != MeteredDecision.ALLOWED) {
+            meteredAsked = decision == MeteredDecision.ASK
+            val held = if (meteredAsked) {
+                app.getString(com.wasimaster.wmkeyboard.R.string.settings_assistant_metered_ask)
+            } else {
+                app.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_error_metered_blocked)
+            }
+            add { Item.Reply(it, held, failed = true) }
             return
         }
         _busy.value = true
