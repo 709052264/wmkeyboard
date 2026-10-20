@@ -19,6 +19,10 @@ import java.io.IOException
  * error shape callers already render — so "AI part is still downloading" and
  * "model ran out of memory" travel the same path. F-Droid's build has no
  * LiteRT-LM at all, so [AVAILABLE] is false there and nothing offers it.
+ *
+ * A GGUF file goes to llama.cpp instead ([LlamaCpp]), the second runtime,
+ * whatever the channel: the model the user picked decides the runtime, and
+ * LiteRT-LM stays the default for everything it can run.
  */
 object LocalLlmEngine {
 
@@ -35,6 +39,10 @@ object LocalLlmEngine {
      * load the split's classes and native libraries as soon as the install
      * completes.
      */
+    /** llama.cpp for a GGUF, LiteRT-LM for everything else. */
+    private fun runtimeFor(context: Context, modelFile: File): LlmRuntime =
+        if (LlamaCpp.handles(modelFile)) LlamaCpp.runtime(context) else runtime(context)
+
     private fun runtime(context: Context): LlmRuntime {
         runtime?.let { return it }
         if (!LlmModule.gate.installed()) {
@@ -73,7 +81,7 @@ object LocalLlmEngine {
         system: String,
         user: String,
         onPartial: ((String) -> Unit)? = null,
-    ): String = runtime(context)
+    ): String = runtimeFor(context, modelFile)
         .generate(context, modelFile, backend, contextTokens, system, user, onPartial)
 
     /**
@@ -93,7 +101,7 @@ object LocalLlmEngine {
         user: String,
         images: List<ByteArray>,
         onPartial: ((String) -> Unit)? = null,
-    ): String = runtime(context)
+    ): String = runtimeFor(context, modelFile)
         .generateWithImages(context, modelFile, backend, contextTokens, system, user, images, onPartial)
 
     /**
@@ -111,7 +119,7 @@ object LocalLlmEngine {
         contextTokens: Int,
         system: String,
     ): ChatSession = ChatSession(
-        runtime(context).chatSession(context, modelFile, backend, contextTokens, system),
+        runtimeFor(context, modelFile).chatSession(context, modelFile, backend, contextTokens, system),
     )
 
     /** Wrapper keeping the public session type stable across channels. */
@@ -136,6 +144,17 @@ object LocalLlmEngine {
      */
     fun release() {
         runtime?.release()
+        LlamaCpp.release()
+    }
+
+    /**
+     * Cuts the running answer short, where the runtime can: llama.cpp stops
+     * at its next token and the caller gets the text so far. LiteRT-LM's
+     * generation cannot be interrupted and runs to its end as before.
+     */
+    fun stop() {
+        runtime?.stop()
+        LlamaCpp.stop()
     }
 
     /**

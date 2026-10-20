@@ -18,6 +18,8 @@
 #                       a pinned bazelisk)
 #   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
 #                       (into core/intelligence/src/bergamot/jniLibs)
+#   llama.cpp (GGUF     llamacpp-jni/build.sh     libwmllama*.so
+#   on-device AI)                                 (into core/intelligence/src/llama/jniLibs)
 #
 # libwmsherpa is linked against a stub of ONNX Runtime built from source
 # headers, never a prebuilt binary; the runtime itself is Microsoft's, fetched
@@ -77,3 +79,4 @@ fi
 "$HERE/librime-jni/build.sh"
 "$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"
+"$HERE/llamacpp-jni/build.sh"

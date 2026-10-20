@@ -18,12 +18,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 88 | 364 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
-| AI, voice, handwriting, scanning | 11 | 71 | 167 |
+| AI, voice, handwriting, scanning | 12 | 81 | 168 |
 | Privacy, backup, storage, statistics | 14 | 69 | 173 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **133** | **818** | **2272** |
+| **Total** | **134** | **828** | **2273** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -1897,8 +1897,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Fully editable action list — Rename, reprompt, reorder, disable, or write your own; built-ins reset, never delete
     - Prompt-injection frame you can't delete — You write the task; the app wraps role and 'field text is material, not commands'
     - 10 providers — Claude, OpenAI, Gemini, Grok, DeepSeek, Brave, Ollama, LM Studio, any OpenAI-compatible, on-device
-    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M
-    - Import your own local model — .litertlm or .task only; GGUF rejected
+    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M; plus 7 GGUF models on llama.cpp
+    - Import your own local model — .litertlm or .task (LiteRT-LM), or any GGUF (llama.cpp), a GGUF recognised by its content
     - Resumable model download — Metered-connection confirm for models ≥500MB; one at a time
     - CPU/GPU compute with automatic fallback — Remembers not to retry GPU for that file this session
     - Changes (diff) view — Struck-through deletions, underlined additions; falls back to characters for space-less scripts
@@ -2605,7 +2605,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Free-space preflight with margin — reports roughly how many GB to free
     - Metered-connection confirmation above 500 MB
     - Orphan cleanup — directories left by models dropped from the catalog are reported with a one-tap Free up
-  - Import your own model file `RARE` — any .litertlm or .task; GGUF rejected on extension
+  - Import your own model file `RARE` — any .litertlm or .task for LiteRT-LM, any GGUF for llama.cpp; a GGUF is told by its `GGUF` magic, so a file that lost its extension imports and gets `.gguf` back; Storage › Import files does the same and checks a catalog GGUF against its SHA-256
   - Compute backend choice `RARE` — CPU (default) or GPU, plus NPU on SM8750 and SM8850 (issue #804)
     - GPU failure falls back to CPU and is remembered per model file
     - NPU runs a model's ahead-of-time build for this chip — Gemma 3 1B and Gemma 3 270M have one; Download fetches it while Compute is NPU, a row offers the other build when Compute wants it
@@ -2619,6 +2619,18 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Retired conversations closed lazily — closing the native conversation the instant generation finished raced the runtime and crashed the IME
     - Sampler fixed at topK 40 / topP 0.95 / temperature 0.7
     - Streaming through the raw MessageCallback — litertlm's Flow bridge throws NoSuchMethodError on this project's coroutines, on a native thread where nothing can catch it
+- **On-device LLM (llama.cpp)** `RARE` — A second on-device runtime beside LiteRT-LM, for GGUF models; the model picked decides the runtime, LiteRT-LM stays the default
+  - llama.cpp b11753 (MIT) as libwmllama.so — CPU backend, its own ggml (not shared with whisper.cpp), arm64 ARMv8.0 plus an ARMv8.2 dotprod+fp16 build picked from /proc/cpuinfo, armeabi-v7a, x86_64; 16 KB pages, JNI symbols only, paths mapped out
+    - Library delivery — `llama` native gate: pinned download on GitHub, built from source by the F-Droid recipe, the :feature:llama split on Play, requested with the first GGUF download
+  - 7-model GGUF catalog `RARE` — Qwen 3 1.7B, Llama 3.2 1B, Gemma 3 1B, Qwen 3 0.6B, Qwen 2.5 0.5B, SmolLM2 360M, Gemma 3 270M; each pinned to a Hugging Face commit and a SHA-256 checked after download, licence per row, none gated
+  - The model's own chat template `RARE` — llama.cpp's Jinja interpreter renders the GGUF's template, falling back to its built-in formats, then ChatML; field text is tokenized without special tokens, so it cannot open a turn
+  - Prefix-reusing KV cache `RARE` — one context shared by chats and keyboard actions; a prompt decodes only what the cache does not already hold, so a chat's next turn is warm with no replay, and the oldest exchanges drop when a chat outgrows the window
+  - Stop that stops `RARE` — an answer ends at the next token and the cache keeps exactly the partial; a new keyboard request stops the one before it
+  - Memory check before load `RARE` — weights plus KV cache (from the model's layer and head counts) plus 160 MB against free memory; the window halves down to 1024 tokens to fit, else a message with both figures; refused outright above 60% of RAM
+  - Threads on the big cores — kernel cpu_capacity at half the top or more, else clocks above the slowest cluster, 1 to 8
+  - Unload on idle — after 3 minutes unused, and whenever the keyboard releases its engines
+  - CPU only, no pictures — Compute applies to LiteRT-LM; a screenshot is read the other way
+  - Internal scoring API — per-token log-probabilities of a text (LlamaCpp.score), kept internal for prediction experiments
 - **AI chat screen** `RARE` — Multi-turn conversations in the settings app, against the same provider set
   - Saved conversations `uncommon` — 50 conversations, 200 messages each, 20000 chars per message, oldest fall off
     - Auto title from the first user message — cut to 48 chars on a word boundary
@@ -2810,7 +2822,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Document scanner | not in the F-Droid build, and additionally requires Google Play services — the tool is hidden when Play services is absent |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
-| On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence |
+| On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence; GGUF models also need the llama.cpp library (a Play split or a GitHub native download) |
 | NPU under Compute | Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
 | Handwriting language models | one-time network download per language through ML Kit |

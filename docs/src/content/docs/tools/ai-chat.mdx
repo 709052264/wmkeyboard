@@ -148,7 +148,7 @@ Your pick is remembered for next time, and each conversation also remembers the 
 
 Type in the box and hit send. While the answer streams, the send button becomes **Stop**.
 
-- **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. An on-device generation is a native call that can't truly be interrupted. It finishes quietly in the background instead, and the model's own memory of the conversation is kept in step with what you can see.
+- **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. A LiteRT-LM model's generation is a native call that can't truly be interrupted. It finishes quietly in the background instead, and the model's own memory of the conversation is kept in step with what you can see. A [GGUF model](/tools/ai/#gguf-models-on-llamacpp) stops at once, and remembers exactly the partial answer.
 - **A failed turn** shows the error in its own bubble with a **Retry** button. Only the newest failed message gets one, because retrying something from the middle of a transcript would answer out of order. Retry re-sends the message the failure was answering, so nothing is duplicated.
 - **Leaving doesn't cancel anything.** Navigate away mid-answer and the generation carries on. Come back and it's either still streaming or already in the transcript.
 
@@ -160,7 +160,7 @@ When the model searches the web or reads a page on the way to an answer (see [Le
 
 Reasoning models follow the same **Show model reasoning** setting the keyboard panel uses. With it on, the reasoning shows dimmed as it arrives, and the answer under it is drawn with its formatting as it streams, tables and maths included. With it off, you get a "Reasoning…" line until real answer text starts arriving.
 
-An on-device model gets a live session per conversation, seeded with the saved transcript, so it keeps the context of what you've already said. Switching conversation, model, [compute backend or context size](/tools/ai/#local-models) closes that session and opens a fresh one, seeded the same way.
+An on-device model gets a live session per conversation, seeded with the saved transcript, so it keeps the context of what you've already said. A GGUF model is given the whole conversation in its own chat template on every turn, and only the new message costs time, because the turns before it are still in its memory. When a conversation outgrows the context, its oldest exchanges are left out first. Switching conversation, model, [compute backend or context size](/tools/ai/#local-models) closes that session and opens a fresh one, seeded the same way.
 
 ## Nothing set up yet
 

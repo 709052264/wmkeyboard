@@ -367,15 +367,17 @@ object AiChatController {
 
     /**
      * Retires the current generation. The remote stream drops its socket via
-     * `isActive`; the on-device one runs to completion in the background —
-     * a blocking native call cannot be interrupted — and [finishRun] then
-     * mirrors its full text into the session so a later replay matches what
-     * the model remembers. Either way the transcript keeps the partial,
-     * marked stopped.
+     * `isActive`; an on-device LiteRT-LM one runs to completion in the
+     * background — its blocking native call cannot be interrupted — and
+     * [finishRun] then mirrors its full text into the session so a later
+     * replay matches what the model remembers. A GGUF model on llama.cpp
+     * stops at its next token instead, and what it wrote is what its session
+     * keeps. Either way the transcript keeps the partial, marked stopped.
      */
     fun stop(context: Context) {
         val current = _run.value ?: return
         runSeq++
+        if (current.choice.provider == AiProvider.ON_DEVICE) LocalLlmEngine.stop()
         val store = store(context.applicationContext)
         store.appendMessage(
             current.conversationId,

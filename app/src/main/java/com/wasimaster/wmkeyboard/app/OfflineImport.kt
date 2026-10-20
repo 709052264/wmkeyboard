@@ -24,7 +24,9 @@ import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeStore
+import com.wasimaster.wmkeyboard.core.localllm.GgufFile
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.ModelFormat
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
@@ -403,18 +405,29 @@ internal object OfflineImport {
             }
         }
         val extension = name.substringAfterLast('.', "").lowercase()
-        if (ModelFormat.entries.any { it.extension == extension }) {
+        // A GGUF is told by its first four bytes as well, so a model whose
+        // name lost its extension on the way (a browser, a chat app) still
+        // installs; it gets the extension back, which is what the model
+        // list and the runtime routing go by.
+        val gguf = extension != ModelFormat.GGUF.extension && GgufFile.isGguf(file)
+        if (gguf || ModelFormat.entries.any { it.extension == extension }) {
             return attempt(name) {
                 // A catalog model goes where its download would, so its row
                 // reads as downloaded; anything else is the user's own.
                 val model = LocalLlmCatalog.models.firstOrNull { it.fileName == name }
+                // A pinned catalog file has to be the pinned bytes, as its
+                // download would be checked.
+                val expected = model?.let { LocalLlmDownloadManager.expectedSha256(it) }
+                if (expected != null && !LocalLlmDownloadManager.sha256Of(file).equals(expected, ignoreCase = true)) {
+                    return@attempt Outcome(name, false, R.string.offline_import_mismatch)
+                }
                 val target = if (model != null) {
                     LocalLlmStore.modelFile(filesDir, model)
                 } else {
-                    File(LocalLlmStore.customDir(filesDir), name)
+                    File(LocalLlmStore.customDir(filesDir), if (gguf) "$name.${ModelFormat.GGUF.extension}" else name)
                 }
                 copyInto(file, target)
-                Outcome(name, true, R.string.offline_import_llm_done, listOf(model?.displayName ?: name))
+                Outcome(name, true, R.string.offline_import_llm_done, listOf(model?.displayName ?: target.name))
             }
         }
         return Outcome(name, false, R.string.offline_import_unknown)

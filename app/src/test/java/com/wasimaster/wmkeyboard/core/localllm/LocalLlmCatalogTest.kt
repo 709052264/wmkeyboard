@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.localllm
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -56,5 +57,42 @@ class LocalLlmCatalogTest {
         LocalLlmCatalog.models.forEach { assertEquals(it, LocalLlmCatalog.byId(it.id)) }
         assertNull(LocalLlmCatalog.byId("nope"))
         assertNull(LocalLlmCatalog.byId(""))
+    }
+
+    // LiteRT-LM stays the default: its rows come first, and the GGUF rows
+    // that llama.cpp runs follow as a block of their own.
+    @Test
+    fun `gguf rows follow every litert row`() {
+        val runtimes = LocalLlmCatalog.models.map { it.runtime }
+        val firstGguf = runtimes.indexOf(LocalLlmRuntime.LLAMA_CPP)
+        assertTrue("no GGUF rows", firstGguf > 0)
+        assertTrue(runtimes.drop(firstGguf).all { it == LocalLlmRuntime.LLAMA_CPP })
+    }
+
+    // A pinned commit is what keeps the SHA-256 true: "main" can move.
+    @Test
+    fun `gguf rows pin a commit and a sha256`() {
+        LocalLlmCatalog.models.filter { it.format == ModelFormat.GGUF }.forEach { model ->
+            assertTrue(model.id, model.id.startsWith("gguf-"))
+            assertTrue(model.id, model.revision.matches(Regex("[0-9a-f]{40}")))
+            assertTrue(model.id, model.sha256.orEmpty().matches(Regex("[0-9a-f]{64}")))
+            assertEquals(
+                "https://huggingface.co/${model.repo}/resolve/${model.revision}/${model.fileName}",
+                LocalLlmCatalog.downloadUrl(model),
+            )
+            assertFalse(model.id, model.vision)
+            assertTrue(model.id, model.npuBuilds.isEmpty())
+        }
+    }
+
+    @Test
+    fun `runtime of an imported file follows its extension`() {
+        assertEquals(LocalLlmRuntime.LLAMA_CPP, LocalLlmCatalog.runtimeOf("custom:mine.Q4_K_M.gguf"))
+        assertEquals(LocalLlmRuntime.LITERT_LM, LocalLlmCatalog.runtimeOf("custom:mine.litertlm"))
+        assertEquals(LocalLlmRuntime.LLAMA_CPP, LocalLlmCatalog.runtimeOf("gguf-qwen3-0.6b"))
+        assertNull(LocalLlmCatalog.runtimeOf(""))
+        // llama.cpp here has no vision projector: an imported GGUF never sees.
+        assertEquals(false, LocalLlmCatalog.canSee("custom:mine.gguf"))
+        assertNull(LocalLlmCatalog.canSee("custom:mine.litertlm"))
     }
 }

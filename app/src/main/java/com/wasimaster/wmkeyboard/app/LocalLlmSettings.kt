@@ -50,15 +50,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.localllm.GgufFile
+import com.wasimaster.wmkeyboard.core.localllm.LlamaCpp
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager.DownloadStatus
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager.FailReason
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmModel
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmRuntime
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
+import com.wasimaster.wmkeyboard.core.localllm.ModelFormat
 import com.wasimaster.wmkeyboard.core.localllm.ModelTier
 import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
+import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
@@ -130,6 +135,9 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     fun npuTarget(): String? = npuSoc?.takeIf { settings.value.ai.localBackend == LocalLlmBackend.NPU }
 
     fun startDownload(model: LocalLlmModel, target: String?) {
+        // A GGUF needs llama.cpp to run: fetched alongside, where the build
+        // delivers it on demand, so both are there when the model is.
+        if (model.runtime == LocalLlmRuntime.LLAMA_CPP) LlamaCpp.requestModule()
         LocalLlmDownloadManager.start(filesDir, model, settings.value.ai.hfToken, target)
         notifyDownload(
             model.id,
@@ -187,7 +195,11 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     // Selected model to the very top of its section — it's the one answer
     // "which model am I using?" needs, and scrolling for it is silly.
     val yours = onDisk.sortedByDescending { it.id == selectedId }
+    // Two lists, one per runtime: LiteRT-LM's first, as the default, and the
+    // GGUF models llama.cpp runs below it, on a build that has llama.cpp.
     val available = LocalLlmCatalog.models - onDisk.toSet()
+    val availableLitert = available.filter { it.runtime == LocalLlmRuntime.LITERT_LM }
+    val availableGguf = if (LlamaCpp.shipped) available.filter { it.runtime == LocalLlmRuntime.LLAMA_CPP } else emptyList()
 
     val selectedBackend = settings.watch { it.ai.localBackend }
 
@@ -276,7 +288,17 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         stringResource(R.string.models_llm_available_title),
         info = stringResource(R.string.models_llm_catalog_info),
     ) {
-        for (model in available) item { catalogRow(model) }
+        for (model in availableLitert) item { catalogRow(model) }
+    }
+
+    if (availableGguf.isNotEmpty()) {
+        SettingsGroup(
+            stringResource(R.string.models_llm_gguf_title),
+            info = stringResource(R.string.models_llm_gguf_info),
+        ) {
+            for (model in availableGguf) item { catalogRow(model) }
+        }
+        LlamaModuleBanner(settings)
     }
 
     SettingsGroup(
@@ -444,6 +466,7 @@ private fun CatalogModelRow(
                         )
                     }
                     Text(subtitle)
+                    if (model.runtime == LocalLlmRuntime.LLAMA_CPP) RuntimeLabel(model.runtime)
                     if (downloaded && npuBuildOnDisk) {
                         Text(
                             stringResource(R.string.models_llm_npu_build_label),
@@ -574,7 +597,66 @@ private fun CatalogModelRow(
     }
 }
 
-/** An imported .litertlm/.task file, styled like a catalog row. */
+/**
+ * Which engine runs a model, under its row, for the llama.cpp ones: LiteRT-LM
+ * is the default and goes unsaid.
+ */
+@Composable
+private fun RuntimeLabel(runtime: LocalLlmRuntime) {
+    Text(
+        stringResource(R.string.models_llm_runtime_label, runtime.label),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+/**
+ * llama.cpp's own download, on a build that fetches it (a Play split, or a
+ * GitHub build's native library) and has not yet. Nothing where it is in the
+ * APK. The same questions about mobile data as the speech engines' banner.
+ */
+@Composable
+private fun LlamaModuleBanner(settings: LiveSettings) {
+    val context = LocalContext.current
+    val module by LlamaCpp.moduleState.collectAsState()
+    var metered by remember { mutableStateOf(false) }
+    var blocked by remember { mutableStateOf(false) }
+    when (val state = module) {
+        ModuleState.Installed -> Unit
+        is ModuleState.Installing -> StateBanner(stringResource(R.string.models_llm_llama_module_installing_info))
+        is ModuleState.Missing if state.consent != null -> StateBanner(
+            stringResource(R.string.models_native_consent_needed_info),
+            tone = BannerTone.WARNING,
+        )
+        is ModuleState.Missing -> StateBanner(
+            stringResource(
+                if (state.failed) R.string.models_whisper_module_failed_info else R.string.models_llm_llama_module_missing_info,
+            ),
+            action = stringResource(if (state.failed) CommonR.string.common_retry else CommonR.string.common_download),
+            tone = if (state.failed) BannerTone.WARNING else BannerTone.INFO,
+            onAction = {
+                when (downloadDecisionNow(context, settings.value)) {
+                    MeteredDecision.ALLOWED -> LlamaCpp.requestModule()
+                    MeteredDecision.ASK -> metered = true
+                    MeteredDecision.BLOCKED -> blocked = true
+                }
+            },
+        )
+    }
+    if (metered) {
+        MeteredDownloadDialog(
+            detail = stringResource(R.string.models_llm_llama_module_metered_body),
+            onConfirm = {
+                metered = false
+                LlamaCpp.requestModule()
+            },
+            onDismiss = { metered = false },
+        )
+    }
+    if (blocked) MeteredBlockedDialog(onDismiss = { blocked = false })
+}
+
+/** An imported .litertlm/.task/.gguf file, styled like a catalog row. */
 @Composable
 private fun CustomModelRow(
     file: File,
@@ -598,6 +680,9 @@ private fun CustomModelRow(
                         )
                     }
                     Text(formatBytes(file.length()))
+                    if (file.extension.equals(ModelFormat.GGUF.extension, ignoreCase = true)) {
+                        RuntimeLabel(LocalLlmRuntime.LLAMA_CPP)
+                    }
                 }
             },
             leading = if (selected) {
@@ -721,9 +806,10 @@ private fun DownloadProgress(bytes: Long, total: Long) {
 }
 
 /**
- * SAF picker that copies the chosen .litertlm/.task into the custom models
- * directory via a .part + rename, so a killed copy never leaves a file that
- * looks importable.
+ * SAF picker that copies the chosen .litertlm/.task/.gguf into the custom
+ * models directory via a .part + rename, so a killed copy never leaves a file
+ * that looks importable. A GGUF is also told by its content, so one whose
+ * name lost its extension still imports, and gets it back.
  */
 @Composable
 private fun ImportModelButton(
@@ -787,22 +873,24 @@ private fun importModel(context: Context, uri: android.net.Uri) {
         )
     val fileName = File(reportedName).name
     val extension = fileName.substringAfterLast('.', "").lowercase()
-    require(extension == "litertlm" || extension == "task") {
-        context.getString(R.string.models_llm_import_error_not_a_model)
-    }
+    val known = ModelFormat.entries.any { it.extension == extension }
     val dir = LocalLlmStore.customDir(context.filesDir).apply { mkdirs() }
     val free = android.os.StatFs(dir.path).availableBytes
     require(size < 0 || free > size + 64L * 1024 * 1024) {
         context.getString(R.string.models_llm_import_error_no_space, formatBytes(size))
     }
     val part = File(dir, "$fileName.part")
-    val target = File(dir, fileName)
     try {
         context.contentResolver.openInputStream(uri)?.use { input ->
             part.outputStream().use { output -> input.copyTo(output) }
         } ?: throw IllegalArgumentException(
             context.getString(R.string.models_llm_import_error_open),
         )
+        val target = when {
+            known -> File(dir, fileName)
+            GgufFile.isGguf(part) -> File(dir, "$fileName.${ModelFormat.GGUF.extension}")
+            else -> throw IllegalArgumentException(context.getString(R.string.models_llm_import_error_not_a_model))
+        }
         check(part.renameTo(target)) {
             context.getString(R.string.models_llm_import_error_move)
         }

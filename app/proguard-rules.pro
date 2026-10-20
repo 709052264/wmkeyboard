@@ -87,6 +87,11 @@
 # (Java_com_wasimaster_wmkeyboard_core_input_mozc_MozcNative_*).
 -keep class com.wasimaster.wmkeyboard.core.input.mozc.MozcNative { *; }
 
+# --- llama.cpp (JNI) ----------------------------------------------------------
+# libwmllama.so binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_localllm_LlamaNative_*).
+-keep class com.wasimaster.wmkeyboard.core.localllm.LlamaNative { *; }
+
 # --- Bergamot (JNI) -----------------------------------------------------------
 # libwmbergamot.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).

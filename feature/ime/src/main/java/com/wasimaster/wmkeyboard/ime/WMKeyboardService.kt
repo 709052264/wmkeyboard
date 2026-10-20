@@ -33608,6 +33608,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun runAiReply(tone: AiActionSpec, instruction: String) {
         // Somebody else's message is never worth less care than the user's own.
         if (_uiState.value.secureField) return
+        // A GGUF model's answer stops at its next token instead of running on
+        // behind the new request (LiteRT-LM's cannot, and runs to its end).
+        if (aiJob?.isActive == true) LocalLlmEngine.stop()
         aiJob?.cancel()
         val settings = _uiState.value.settings
         val onDevice = settings.ai.provider == AiProvider.ON_DEVICE
@@ -34432,6 +34435,7 @@ open class WMKeyboardService : InputMethodService() {
         // chat, applied to every AI run: the chips are greyed out in such a
         // field ([aiFieldHasText]), so this is the backstop.
         if (_uiState.value.secureField) return
+        if (aiJob?.isActive == true) LocalLlmEngine.stop()
         aiJob?.cancel()
         // A downloaded on-device model the user asked to stand in for the
         // server (#452): tried first with no connection, and again if the

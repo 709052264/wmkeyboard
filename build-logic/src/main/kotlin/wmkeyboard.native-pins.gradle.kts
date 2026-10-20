@@ -41,6 +41,8 @@ val ownSpecs: Map<String, String> = mapOf(
     "libwmrime.so" to "rime",
     "libwmmozc.so" to "mozc",
     "libwmbergamot.so" to "bergamot",
+    "libwmllama.so" to "llama",
+    "libwmllama_v82.so" to "llama",
 )
 
 /** Where the build keeps them; F-Droid's recipe builds and scans the same paths. */
@@ -55,6 +57,7 @@ val ownDirs = listOf(
     "core/input/src/main/jniLibs",
     "core/input/src/mozc/jniLibs",
     "core/intelligence/src/bergamot/jniLibs",
+    "core/intelligence/src/llama/jniLibs",
 )
 
 /**
