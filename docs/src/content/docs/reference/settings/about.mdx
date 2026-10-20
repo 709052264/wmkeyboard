@@ -39,9 +39,10 @@ Something a model wrote isn't a bug in the app, and it has its own button. See [
 
 ## Checking version, licence, and source
 
-The **App** group holds eleven rows:
+The **App** group holds twelve rows:
 
 - **Version** shows the edition, build type and store channel as its subtitle ("Full build (release · Play Store)", or "Lite build (debug)" on something you sideloaded), with the build number after "code," and the version name as the row's trailing value. It navigates nowhere, but it isn't quite inert. Tap it seven times and you get [the hidden mini game](/reference/easter-eggs/#find-the-hidden-mini-game), with a toast counting you down from the fourth tap.
+- **What's new** opens the release notes of the version you have installed, on every build. See [Reading what changed](#reading-what-changed).
 - **Licence** shows "MIT, © 2026 Wasi Master" and opens the app's own MIT licence text in full underneath it, monospaced and horizontally scrollable.
 - **Source code** opens the GitHub repository directly in your browser; unlike the Share rows further down, this one navigates immediately rather than opening a share sheet.
 - **Short app name** is a switch, off by default. Turn it on and your app drawer and home screen call the app **WMK** instead of **WM Keyboard**, so a narrow launcher grid doesn't cut the name short. See [Changing the name under the icon](#changing-the-name-under-the-icon).
@@ -140,7 +141,9 @@ Wherever an update is offered, on the home-screen card and in the dialog that as
 
 The notes are fetched the moment you press the button, not with the update check, so nothing is downloaded for a release you never asked about. The dialog opens straight away and shows a progress bar until they arrive. A release that never had notes written for it says so instead of opening empty.
 
-GitHub builds only. An F-Droid build has a page to send you to and no notes behind it, so it offers no button, and the Play Store shows its own "What's new" in the store listing.
+That button is on GitHub builds only. An F-Droid build has a page to send you to and no notes behind it, so it offers no button, and the Play Store shows its own "What's new" in the store listing.
+
+The notes for the version you already have are a different matter, and every build has them. After an update, from any store, the app posts an **Updated to** notification; tapping it opens that version's notes over whatever screen the app shows. The same dialog is behind **What's new** in the App group above and behind the button on the **Updated to** card. These notes ship inside the app, so they open offline and send nothing. Only a build cut before its notes were written has none inside, and that one reads them from the version's tag on GitHub instead.
 
 ### What a GitHub build checks before it installs
 

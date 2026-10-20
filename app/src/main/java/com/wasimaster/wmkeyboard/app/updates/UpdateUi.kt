@@ -40,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -141,7 +140,6 @@ private fun AppUpdater.showing(kind: UpdateCardKind): Boolean = state.value.card
 @Composable
 internal fun UpdatedCard(modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
     // Whether it was the move to every language rather than a new version,
     // read before takeJustUpdated clears the record it lives in.
     val (justUpdated, switchedLanguages) = remember {
@@ -161,7 +159,7 @@ internal fun UpdatedCard(modifier: Modifier = Modifier) {
         exit = fadeOut() + shrinkVertically(),
         label = "updatedCard",
     ) {
-        UpdatedCardBody(switchedLanguages, modifier, uriHandler) { showing = false }
+        UpdatedCardBody(switchedLanguages, modifier) { showing = false }
     }
 }
 
@@ -169,9 +167,12 @@ internal fun UpdatedCard(modifier: Modifier = Modifier) {
 private fun UpdatedCardBody(
     switchedLanguages: Boolean,
     modifier: Modifier,
-    uriHandler: UriHandler,
     onDismiss: () -> Unit,
 ) {
+    // In the app rather than on the release page: the notes ship in the APK
+    // (see [InstalledReleaseNotes]), and a browser is a long way to go for them.
+    var showNotes by remember { mutableStateOf(false) }
+    if (showNotes) InstalledReleaseNotesDialog { showNotes = false }
     UpdateCardFrame(
         title = if (switchedLanguages) {
             stringResource(R.string.update_card_switched_title)
@@ -187,11 +188,7 @@ private fun UpdatedCardBody(
             Text(stringResource(R.string.update_action_dismiss))
         }
         Spacer(Modifier.width(8.dp))
-        TextButton(
-            onClick = {
-                uriHandler.openUri(GithubReleases.releasePage("v" + BuildConfig.VERSION_NAME))
-            },
-        ) {
+        TextButton(onClick = { showNotes = true }) {
             Text(stringResource(R.string.update_action_notes))
         }
     }

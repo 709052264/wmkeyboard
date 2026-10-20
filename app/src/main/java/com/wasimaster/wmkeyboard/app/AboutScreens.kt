@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
+import com.wasimaster.wmkeyboard.app.updates.InstalledReleaseNotesDialog
 import com.wasimaster.wmkeyboard.app.updates.AllLanguagesRow
 import com.wasimaster.wmkeyboard.app.updates.KeepEnglishOnlyRow
 import com.wasimaster.wmkeyboard.app.updates.UpdateSettings
@@ -1096,6 +1097,17 @@ internal fun AboutSettings(
                     }
                 }
             }
+        }
+        item {
+            // The installed version's notes, from the APK (see
+            // InstalledReleaseNotes), so a changelog is one tap away on every
+            // channel and not only while an update is on offer.
+            var showNotes by remember { mutableStateOf(false) }
+            if (showNotes) InstalledReleaseNotesDialog { showNotes = false }
+            NavRow(
+                R.string.update_action_notes,
+                stringResource(R.string.about_whats_new_subtitle, BuildConfig.VERSION_NAME),
+            ) { showNotes = true }
         }
         item {
             // The licence identifier and the copyright line travel verbatim.

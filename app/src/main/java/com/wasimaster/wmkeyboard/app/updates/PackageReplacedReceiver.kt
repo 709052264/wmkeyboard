@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.MainActivity
 import com.wasimaster.wmkeyboard.core.notify.NotificationIds
 import com.wasimaster.wmkeyboard.core.notify.NotificationKind
 import com.wasimaster.wmkeyboard.core.notify.WmNotifications
@@ -36,16 +37,22 @@ class PackageReplacedReceiver : BroadcastReceiver() {
             )
             setContentText(app.getString(R.string.update_notify_updated_body))
             setAutoCancel(true)
-            WmNotifications.launchIntent(app)?.let { launch ->
-                setContentIntent(
-                    PendingIntent.getActivity(
-                        app,
-                        0,
-                        launch,
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-                    ),
-                )
-            }
+            // Straight to the notes the body promises. The launcher intent
+            // this used to send opened the home screen and nothing else, and
+            // the "Updated to" card there only appears after an update this
+            // app installed itself, so on Play and F-Droid the tap showed
+            // nothing about what changed.
+            val launch = Intent(app, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                .putExtra(MainActivity.EXTRA_SHOW_RELEASE_NOTES, true)
+            setContentIntent(
+                PendingIntent.getActivity(
+                    app,
+                    0,
+                    launch,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
         }
     }
 }

@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudSync
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Celebration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Videocam
@@ -352,6 +353,7 @@ internal object SettingsRowIcons {
 
         // ---- About ----
         put(R.string.about_version_title) { Icons.Outlined.Info }
+        put(R.string.update_action_notes) { Icons.Outlined.Celebration }
         put(R.string.about_licence_title) { Icons.Outlined.Gavel }
         put(R.string.about_licences_title) { Icons.Outlined.Gavel }
         put(R.string.about_supporters_title) { Icons.Outlined.VolunteerActivism }
