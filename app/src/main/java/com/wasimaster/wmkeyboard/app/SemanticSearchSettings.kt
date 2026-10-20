@@ -45,7 +45,6 @@ internal fun SemanticSearchGroup(repository: SettingsRepository, settings: LiveS
     var blocked by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { SemanticDownloads.refresh(context) }
 
-    val onDisk = remember(states) { SemanticModels.bytesOnDisk(context.noBackupFilesDir) }
     fun size(bytes: Long) = Formatter.formatShortFileSize(context, bytes)
     val textBytes = SemanticModels.bytes(SemanticModels.Pack.TEXT)
     val pictureBytes = textBytes + SemanticModels.bytes(SemanticModels.Pack.PICTURES)
