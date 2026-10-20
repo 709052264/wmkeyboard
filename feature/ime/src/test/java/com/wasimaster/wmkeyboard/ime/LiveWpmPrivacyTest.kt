@@ -127,6 +127,61 @@ class LiveWpmPrivacyTest {
         assertEquals(TWO_WORDS, shown())
     }
 
+    @Test
+    fun `which fields count as private`() {
+        // #827: read off the field the way a start reads it, with the keys
+        // shown or hidden (#845).
+        val private = listOf(
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_WEB_PASSWORD,
+            InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_VARIATION_PASSWORD,
+        )
+        val open = listOf(
+            InputType.TYPE_CLASS_TEXT,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS,
+            InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI,
+            InputType.TYPE_CLASS_NUMBER,
+            InputType.TYPE_CLASS_PHONE,
+        )
+        val service = keyboard()
+        for ((types, expected) in listOf(private to true, open to false)) {
+            for (type in types) {
+                service.onStartInput(EditorInfo().also { it.inputType = type }, false)
+                val state = service.uiState.value
+                assertEquals("secureField for 0x${Integer.toHexString(type)}", expected, state.secureField)
+                assertEquals("liveWpmPrivate for 0x${Integer.toHexString(type)}", expected, state.liveWpmPrivate)
+            }
+        }
+    }
+
+    @Test
+    fun `a field that asks for no learning is private while auto-incognito is on`() {
+        val service = keyboard(glideReadyState(settings = on.copy(autoIncognito = true)))
+        val flagged = listOf(
+            textField().also { it.imeOptions = EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING },
+            textField().also { it.privateImeOptions = "com.example.noPersonalizedLearning" },
+        )
+        for (field in flagged) {
+            service.onStartInput(textField(), false)
+            service.freshPair()
+            service.onStartInput(field, false)
+            assertEquals(true, service.uiState.value.fieldIncognito)
+            repeat(3) { assertEquals(0, service.word()) }
+        }
+    }
+
+    @Test
+    fun `a password field reached with the keys hidden shows no speed`() {
+        // #845: only onStartInput runs while a physical keyboard hides the keys.
+        val service = keyboard()
+        service.onStartInput(
+            EditorInfo().also { it.inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD },
+            false,
+        )
+        repeat(3) { assertEquals(0, service.word()) }
+    }
+
     private fun textField() = EditorInfo().also { it.inputType = InputType.TYPE_CLASS_TEXT }
 
     private companion object {
