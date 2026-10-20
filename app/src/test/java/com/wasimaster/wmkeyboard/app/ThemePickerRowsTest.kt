@@ -25,6 +25,7 @@ class ThemePickerRowsTest {
     private fun rows(
         builtIns: List<ThemeSpec>,
         customs: List<ThemeSpec> = emptyList(),
+        defaultInBuiltIns: Boolean = false,
     ) = themePickerRows(
         builtIns = builtIns,
         customs = customs,
@@ -33,6 +34,7 @@ class ThemePickerRowsTest {
         customLabel = "Your themes",
         familyName = { it.familyName ?: it.name },
         name = { it.name },
+        defaultInBuiltIns = defaultInBuiltIns,
     )
 
     @Test
@@ -115,5 +117,16 @@ class ThemePickerRowsTest {
         assertEquals(ids.size, ids.toSet().size)
         val shipped = BuiltInThemes.flatMap { listOf(it) + it.variants }.map { it.id }
         assertTrue(ids.containsAll(shipped))
+    }
+
+    @Test
+    fun `under an Inherit row the default theme is the first built-in, not a peer of Inherit`() {
+        // Issue #806: "Default (system)" right under "Inherit" read as a second
+        // way to follow the theme that is set, and pinned a panel to Material You.
+        val rows = rows(listOf(theme("b", "Built in")), defaultInBuiltIns = true)
+        assertTrue(rows.first() is ThemePickerRow.Section)
+        val choices = rows.filterIsInstance<ThemePickerRow.Choice>().map { it.id }
+        assertEquals(listOf(DEFAULT_THEME_ID, "b"), choices)
+        assertEquals(1, rows.indexOfFirst { it is ThemePickerRow.Choice && it.id == DEFAULT_THEME_ID })
     }
 }

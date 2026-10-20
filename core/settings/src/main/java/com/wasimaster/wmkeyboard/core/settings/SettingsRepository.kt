@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
 import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.PanelKind
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutCodec
+import com.wasimaster.wmkeyboard.core.layout.panelKindForLayerKey
 import com.wasimaster.wmkeyboard.core.layout.PanelLayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayout
 import com.wasimaster.wmkeyboard.core.layout.resolvePanelLayouts
@@ -8800,6 +8801,14 @@ data class SuggestionStripSettings(
      */
     val autoSpaceAfterSuggestion: Boolean = true,
     /**
+     * Languages a pick commits bare in while [autoSpaceAfterSuggestion] stays
+     * on for the rest (#813): Bangla words take their case markers, postpositions
+     * and suffixes straight after a suggestion, so the space is wrong more
+     * often than right there. Only the switched-off languages are stored, so a
+     * language added later gets the space.
+     */
+    val spaceAfterSuggestionOffLangs: Set<String> = emptySet(),
+    /**
      * Leave the word you have already typed out of the strip, so every slot
      * offers something new.
      *
@@ -9107,6 +9116,10 @@ data class SuggestionStripSettings(
      */
     val learnFromTextPairs: Boolean = true,
 ) {
+    /** Whether a word picked from the strip while typing [langId] gets a space after it. */
+    fun autoSpaceAfterSuggestionFor(langId: String): Boolean =
+        autoSpaceAfterSuggestion && langId !in spaceAfterSuggestionOffLangs
+
     /** Whether the fixed-spelling map applies to [langId]. */
     fun spellingMapEnabledFor(langId: String): Boolean = langId !in spellingMapOffLangs
 
@@ -9858,6 +9871,8 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
         private val SYMBOLS_RETURN_ON_SPACE = booleanPreferencesKey("symbols_return_on_space")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
+        private val SPACE_AFTER_SUGGESTION_OFF_LANGS =
+            stringSetPreferencesKey("space_after_suggestion_off_langs")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
@@ -12052,6 +12067,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.contextRerank,
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
+            spaceAfterSuggestionOffLangs = p[SPACE_AFTER_SUGGESTION_OFF_LANGS]
+                ?: defaults.suggestionStrip.spaceAfterSuggestionOffLangs,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
@@ -15358,6 +15375,39 @@ class SettingsRepository(private val context: Context) {
             writePanelLayouts(prefs, current.filter { it.panel != spec.panel } + spec, spec.panel)
         }
 
+    /**
+     * Takes the theme off every place in [pins] (issue #806), so those grids
+     * draw in the theme picked under Keyboard themes again. A layout's pins
+     * all go in one write, read inside the edit like [updateCustomLayout].
+     */
+    suspend fun clearThemePins(pins: List<ThemePin>) =
+        editPrefs { prefs ->
+            val layouts = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
+            val byLayout = pins.filter { it.layoutId != null }.groupBy { it.layoutId!! }
+            if (byLayout.isNotEmpty()) {
+                val cleared = byLayout.map { (id, layoutPins) ->
+                    val keys = layoutPins.map { it.layerKey }.toSet()
+                    val layout = resolveLayout(layouts, id)
+                    layout.copy(
+                        themeId = if (null in keys) null else layout.themeId,
+                        layers = layout.layers.mapValues { (key, layer) ->
+                            if (key in keys) layer.copy(themeId = null) else layer
+                        },
+                    )
+                }
+                val ids = cleared.map { it.id }.toSet()
+                prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(layouts.filter { it.id !in ids } + cleared)
+            }
+            val panelKinds = pins.filter { it.layoutId == null }
+                .mapNotNull { pin -> pin.layerKey?.let(::panelKindForLayerKey) }.toSet()
+            if (panelKinds.isNotEmpty()) {
+                val panels = readPanelLayouts(prefs).map { spec ->
+                    if (spec.panel in panelKinds) spec.copy(grid = spec.grid.copy(themeId = null)) else spec
+                }
+                panelKinds.forEach { kind -> writePanelLayouts(prefs, panels, kind) }
+            }
+        }
+
     /** Back to the shipped grid for [kind]; the editor's Reset. */
     suspend fun resetPanelLayout(kind: PanelKind) =
         editPrefs { prefs ->
@@ -17430,6 +17480,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoSpaceAfterSuggestion(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_SUGGESTION] = value }
+
+    /**
+     * Turn the space after a picked suggestion on or off for one language
+     * (#813). Only the switched-off languages are stored; the global switch
+     * still rules them all.
+     */
+    suspend fun setAutoSpaceAfterSuggestionForLanguage(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[SPACE_AFTER_SUGGESTION_OFF_LANGS].orEmpty()
+            it[SPACE_AFTER_SUGGESTION_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
 
     suspend fun setExpandUserDictShortcuts(value: Boolean) =
         editPrefs { it[EXPAND_USER_DICT_SHORTCUTS] = value }

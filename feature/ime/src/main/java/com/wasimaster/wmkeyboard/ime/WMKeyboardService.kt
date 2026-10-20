@@ -22665,7 +22665,8 @@ open class WMKeyboardService : InputMethodService() {
         // (A26): off commits the word bare and leaves the caret on it.
         // A shortcut that expands to a gap — a tab, an em space — ends in one
         // already, so it earns no space of its own on top (#552).
-        val autoSpace = _uiState.value.settings.suggestionStrip.autoSpaceAfterSuggestion &&
+        val pickState = _uiState.value
+        val autoSpace = pickState.settings.suggestionStrip.autoSpaceAfterSuggestionFor(pickState.language.id) &&
             suggestion.lastOrNull()?.isWhitespace() != true
         val after = ic.getTextAfterCursor(1, 0)
         val spaced = autoSpace && spaceToStepOver(after)
@@ -22824,7 +22825,10 @@ open class WMKeyboardService : InputMethodService() {
      * (#508, #662, #679).
      */
     private fun splicedPickSpacing(next: Char?): PickSpacing {
-        if (!_uiState.value.settings.suggestionStrip.autoSpaceAfterSuggestion) return PickSpacing("", 1, false)
+        val state = _uiState.value
+        if (!state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id)) {
+            return PickSpacing("", 1, false)
+        }
         val after = next?.toString()
         return when {
             spaceToStepOver(after) -> PickSpacing("", pickCaretOffset(spaced = true), false)
@@ -22874,7 +22878,7 @@ open class WMKeyboardService : InputMethodService() {
         stopVoiceForManualInput()
         vibrate()
         val state = _uiState.value
-        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestion
+        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id)
         val after = ic.getTextAfterCursor(1, 0)
         val spaced = autoSpace && spaceToStepOver(after)
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)

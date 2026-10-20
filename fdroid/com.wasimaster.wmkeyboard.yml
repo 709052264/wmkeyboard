@@ -228,8 +228,8 @@ Builds:
       - wmkb.enableFdroid=true
 
   - versionName: 0.6.2
-    versionCode: 351
-    commit: e509aabc928197e0b75b0cf83527e2cc6cab89f4
+    versionCode: 361
+    commit: f56c73d3ce9b83ea616ea7b512c612da6adaa0e5
     timeout: 18000
     subdir: app
     sudo:
@@ -261,8 +261,8 @@ Builds:
       - wmkb.abi=armeabi-v7a
 
   - versionName: 0.6.2
-    versionCode: 352
-    commit: e509aabc928197e0b75b0cf83527e2cc6cab89f4
+    versionCode: 362
+    commit: f56c73d3ce9b83ea616ea7b512c612da6adaa0e5
     timeout: 18000
     subdir: app
     sudo:
@@ -294,8 +294,8 @@ Builds:
       - wmkb.abi=arm64-v8a
 
   - versionName: 0.6.2
-    versionCode: 353
-    commit: e509aabc928197e0b75b0cf83527e2cc6cab89f4
+    versionCode: 363
+    commit: f56c73d3ce9b83ea616ea7b512c612da6adaa0e5
     timeout: 18000
     subdir: app
     sudo:
@@ -336,4 +336,4 @@ VercodeOperation:
   - 10*%c + 3
 UpdateCheckData: gradle.properties|wmkb.versionCode=(\d+)|.|wmkb.versionName=(.+)
 CurrentVersion: 0.6.2
-CurrentVersionCode: 353
+CurrentVersionCode: 363

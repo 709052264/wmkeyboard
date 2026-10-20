@@ -138,6 +138,13 @@
     <!-- %1$s is the English name of the language, for example "Bengali". -->
     <string name="languages_autocorrect_info">Turn this off to keep each word you type in <xliff:g id="language" example="Bengali">%1$s</xliff:g> as you typed it, while other languages are still corrected. The suggestion strip still shows its suggestions, and you can tap one. The autocorrect switch in Typing turns autocorrect off for all languages.</string>
 
+    <string name="languages_spacing_group">Spacing</string>
+    <string name="languages_space_after_suggestion_title">Space after a suggestion</string>
+    <string name="languages_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
+    <string name="languages_space_after_suggestion_global_off_subtitle">Space after a suggestion is off for all languages in Typing</string>
+    <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_space_after_suggestion_info">Turn this off to type a word you select from the suggestion strip in <xliff:g id="language" example="Bengali">%1$s</xliff:g> without a space after it, so you can add an ending straight away. Other languages still get the space. The Space after a suggestion switch in Typing turns the space off for all languages.</string>
+
     <string name="languages_spelling_map_title">Spellings</string>
     <string name="languages_spelling_map_row_title">Use known spellings</string>
     <string name="languages_spelling_map_row_subtitle">Type "tmr" to get তোমার, and "table" to get টেবিল</string>

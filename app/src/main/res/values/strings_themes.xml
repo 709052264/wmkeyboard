@@ -117,6 +117,21 @@
     <string name="theme_gallery_section_title">Themes</string>
     <string name="theme_gallery_auto_on_body">Auto theme is on, so the gallery only shows what it would look like.</string>
     <string name="theme_high_contrast_on_body">High contrast keys is on, so the keyboard uses its own key, background and hint colors instead of the colors of this theme.</string>
+    <!-- Notice on the themes screen and the theme editor when a layout, one of
+         its pages or a panel keeps a theme of its own (issue #806). The
+         argument is a list of the places, built from the strings below and
+         joined with "; ". -->
+    <string name="theme_pins_body">These parts of the keyboard use a theme of their own instead of this one: %1$s.</string>
+    <!-- Button on that notice: takes the theme off every place it lists. -->
+    <string name="theme_pins_clear_action">Clear</string>
+    <!-- One place in that list. %1$s is a layout name, %2$s a theme name. -->
+    <string name="theme_pin_layout">the %1$s layout uses %2$s</string>
+    <!-- %1$s is a layout name, %2$s a page of it (Symbols, Number…), %3$s a theme name. -->
+    <string name="theme_pin_layer">the %2$s page of %1$s uses %3$s</string>
+    <!-- %1$s is a layout name, %2$s a panel (Numpad, Clipboard…), %3$s a theme name. -->
+    <string name="theme_pin_panel">the %2$s tab of %1$s uses %3$s</string>
+    <!-- A panel layout shared by every layout. %1$s is the panel, %2$s a theme name. -->
+    <string name="theme_pin_shared_panel">the shared %1$s layout uses %2$s</string>
     <!-- How the gallery shows a theme that has more than one look. Auto
          follows the answer from the setup questions. -->
     <!-- Caption over that choice. -->
