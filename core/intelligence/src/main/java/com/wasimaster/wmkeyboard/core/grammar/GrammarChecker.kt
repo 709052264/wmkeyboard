@@ -55,7 +55,12 @@ data class GrammarFix(
  */
 data class GrammarEdit(val start: Int, val end: Int, val text: String)
 
-/** One grammar/style issue. [start]/[end] are UTF-16 indices into the checked text. */
+/**
+ * One grammar/style issue. [start]/[end] are UTF-16 indices into the checked text.
+ *
+ * [title] and [rule] come from LanguageTool only (its `shortMessage` and its
+ * rule id); Harper's lints leave them blank.
+ */
 @Serializable
 data class GrammarLint(
     val start: Int,
@@ -65,6 +70,8 @@ data class GrammarLint(
     val message: String = "",
     val priority: Int = 0,
     val suggestions: List<GrammarFix> = emptyList(),
+    val title: String = "",
+    val rule: String = "",
 )
 
 /**

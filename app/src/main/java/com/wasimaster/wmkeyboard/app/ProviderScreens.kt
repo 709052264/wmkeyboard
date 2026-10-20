@@ -119,6 +119,7 @@ import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
+import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import kotlinx.coroutines.launch
@@ -417,6 +418,11 @@ private fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
                 ?: row.url.takeIf { it.isNotBlank() }?.let(::hostOf)
                 ?: stringResource(R.string.providers_status_signed_in)
             type?.onDevice == true -> stringResource(R.string.providers_status_on_device)
+            // Said plainly on the row itself: this one sends what you write away.
+            type === ProviderTypes.LANGUAGETOOL -> stringResource(
+                R.string.providers_status_sends_text,
+                hostOf(runCatching { GrammarProviders.serverOf(row).base }.getOrDefault(row.url)),
+            )
             // A front end's engine beside its host: two Mozhi rows may differ in nothing else.
             row.url.isNotBlank() -> type?.credential?.engine(row.model)
                 ?.let { hostOf(row.url) + stringResource(R.string.providers_tag_separator) + it.label }
@@ -729,6 +735,7 @@ internal fun providerIcon(type: ProviderType?): ImageVector = when {
     type === ProviderTypes.COMMONS -> Icons.Outlined.Public
     ProviderTool.PHOTOS in type.serves -> Icons.Outlined.PhotoLibrary
     ProviderTool.AI in type.serves -> Icons.Outlined.AutoAwesome
+    ProviderTool.GRAMMAR in type.serves -> Icons.Outlined.Spellcheck
     else -> Icons.Outlined.Image
 }
 
@@ -888,7 +895,9 @@ private fun ProviderEditorSheet(
             (spec.key != Need.REQUIRED || (type.hasBuiltInKey && !another) || draft.apiKey.isNotBlank()) &&
             (!another || spec.key == Need.NONE || draft.apiKey.isNotBlank() || (type === ProviderTypes.DEEPL && draft.url.isNotBlank())) &&
             (!spec.modelRequired || draft.model.isNotBlank()) &&
-            (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank())
+            (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank()) &&
+            // A Premium account signs with both; one without the other is refused.
+            (!spec.username || draft.apiKey.isBlank() == draft.extra[CredentialSpec.USERNAME].isNullOrBlank())
     }
     fun edit(next: ProviderCredential) {
         draft = next
@@ -931,7 +940,11 @@ private fun ProviderEditorSheet(
                     label = stringResource(R.string.providers_field_url),
                     value = draft.url,
                     supporting = stringResource(
-                        if (spec.url == Need.REQUIRED) R.string.providers_field_url_hint else R.string.providers_field_url_optional_hint,
+                        when {
+                            type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_url_languagetool_hint
+                            spec.url == Need.REQUIRED -> R.string.providers_field_url_hint
+                            else -> R.string.providers_field_url_optional_hint
+                        },
                     ),
                     keyboardType = KeyboardType.Uri,
                 ) { edit(draft.copy(url = it)) }
@@ -962,6 +975,19 @@ private fun ProviderEditorSheet(
                     )
                 }
             }
+            if (spec.username) {
+                StoredTextField(
+                    label = stringResource(R.string.providers_field_username),
+                    value = draft.extra[CredentialSpec.USERNAME].orEmpty(),
+                    supporting = stringResource(R.string.providers_field_username_hint),
+                ) { name ->
+                    edit(
+                        draft.copy(
+                            extra = if (name.isBlank()) draft.extra - CredentialSpec.USERNAME else draft.extra + (CredentialSpec.USERNAME to name),
+                        ),
+                    )
+                }
+            }
             // A home's key is a token pasted or a pairing made in its own section below, not a plain field.
             if (spec.key != Need.NONE && !home) {
                 StoredTextField(
@@ -969,6 +995,7 @@ private fun ProviderEditorSheet(
                     value = draft.apiKey,
                     supporting = stringResource(
                         when {
+                            type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_key_languagetool_hint
                             another -> R.string.providers_field_key_another_hint
                             type.hasBuiltInKey -> R.string.providers_field_key_builtin_hint
                             spec.key == Need.OPTIONAL -> R.string.providers_field_key_optional_hint
@@ -987,6 +1014,7 @@ private fun ProviderEditorSheet(
                     ),
                 ) { edit(draft.copy(model = it)) }
             }
+            if (type === ProviderTypes.LANGUAGETOOL) LanguageToolExtras(draft, ::edit)
             if (home) {
                 HomeProviderExtras(
                     repository = repository,
@@ -1121,5 +1149,7 @@ private fun ProviderCredential.trimmed() =
         apiKey = apiKey.trim(),
         url = url.trim(),
         model = model.trim(),
-        extra = extra[CredentialSpec.PATH]?.let { extra + (CredentialSpec.PATH to it.trim()) } ?: extra,
+        extra = extra.mapValues { (key, value) ->
+            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME) value.trim() else value
+        },
     )

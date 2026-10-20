@@ -1,6 +1,6 @@
 ---
 title: "Grammar check"
-description: "Offline grammar checking powered by Harper: squiggles without a server."
+description: "Grammar checking with Harper on the phone, or LanguageTool on a server for more than 30 languages."
 sidebar:
   order: 7
 ---
@@ -9,7 +9,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Shot from '@components/Shot.astro';
 
-Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. Everything happens on-device. Nothing you type leaves the phone to get checked.
+Grammar check runs your writing past Harper, the same open-source engine behind `harper-ls`, and surfaces fixable issues right above the keys as you type. Harper runs on the phone, so by default nothing you type leaves it to get checked. For other languages than English you can switch on [LanguageTool](#checkers-harper-and-languagetool), which checks on a server instead.
 
 <PhoneFrame caption="The Grammar panel open above the key rows, with a spelling issue and its fix chips.">
   {/* shot: smart/grammar-panel-open */}
@@ -27,6 +27,48 @@ Harper checks English spelling, grammar, and style: agreement errors, punctuatio
 Any of those twenty can be switched off, either one at a time or a whole category at once. See [Filtering what you see](#filtering-what-you-see).
 
 Each issue also lints against a specific English dialect: **American** (the default), **British**, **Canadian**, or **Australian**. You pick that independently of whatever language or layout you're typing with, since Harper only understands English. See [Options](#options) below for where to change it.
+
+## Checkers: Harper and LanguageTool
+
+<SettingsPath path="Tools / Grammar check / Checkers" />
+
+The **Checkers** list at the top of the settings page says who checks your writing. It is a [provider list](/tools/providers/), so rows can be dragged into another order, switched off, set up or removed. It starts with two rows:
+
+- **Harper**, on the phone and switched on. English only.
+- **LanguageTool**, switched off. It checks grammar, spelling and style in more than 30 languages, among them German, French, Spanish, Portuguese, Dutch, Polish, Ukrainian and Russian, but it runs on a server. Its row says where your text goes: **Sends your text to api.languagetool.org**.
+
+A check goes to the first checker that is on and knows the language of the layout you're typing with. Harper knows English; LanguageTool knows every language it has, and a language it lacks goes as `auto`, so the server works out what the text is. With the list as it starts, then, English stays on the phone and the other languages go to LanguageTool once you switch it on. Drag LanguageTool above Harper to have it check English too. When the first checker cannot answer (Harper isn't in this build, the server is down), the next one that knows the language answers instead. With no checker that knows the language, Harper checks anyway, as Grammar check always did.
+
+While LanguageTool answers, the panel's title reads **Grammar · LanguageTool**, or the nickname you gave the server. Its issues use the same cards, the same four categories and the same filter as Harper's: each LanguageTool category maps onto one of the twenty kinds (its typos onto Spelling or Typo, its casing onto Capitalization, its confused words onto Usage, and so on). English checks follow the dialect chip: American, British, Canadian or Australian.
+
+### What goes to the server
+
+Every check sends the text in the field, its language code, your Premium username and key if you set them, and the two options below. Nothing else. The panel checks after each pause in typing, but never sooner than 1.2 seconds after the last key while LanguageTool is first in line. **Fix all**, a fix chip and the **Grammar** [selection action](/smart/selection-actions/) re-check the result the same way.
+
+These are never sent:
+
+- a **password field**, or any field an app marks as one
+- anything typed in **[incognito](/privacy/incognito/)**, whether you turned it on or the field asked for it
+- anything while [data saver](/privacy/data-saver/) holds **Online grammar check**
+
+In each of those cases Harper still checks English, and for other languages the panel says why nothing is checked. Every request appears in [Network activity](/privacy/network-activity/) as **LanguageTool**.
+
+### Servers and accounts
+
+Tap the LanguageTool row to set it up:
+
+| Field | What it does |
+| --- | --- |
+| Server address | Empty for LanguageTool's public server, `api.languagetool.org`. Or the address of a server you run yourself, for instance `http://192.168.1.20:8081` |
+| Username and API key | A [LanguageTool Premium](https://languagetool.org/premium) account. Give both or neither. With both and no address, checks go to the Premium server, `api.languagetoolplus.com` |
+| Picky mode | Also report the style and typography issues the server leaves out by default |
+| Your first language | A code such as `de` or `fr`. LanguageTool then also flags false friends from that language |
+
+**Test** asks the server for its list of languages, so a typo in an address shows up there rather than in the panel.
+
+LanguageTool's server is free software (LGPL), so you can run your own on a computer at home, or anywhere else, from the [jar](https://dev.languagetool.org/http-server) or one of the Docker images. Your text then never reaches a third party. Add it with **Add a provider / LanguageTool**: each server is its own row, with its own address and nickname. This is the same in every edition, F-Droid's included.
+
+The public server takes 20 checks a minute, 75 KB of text a minute and 20 KB a check. Grammar check keeps to that: a long note is cut into pieces of at most 18 KB at paragraph ends, then sentence ends, then spaces, and a piece already checked isn't sent again until it changes. If a minute's allowance is used up, the next check waits for it when that takes seconds, and the panel says the server is busy when it would take longer. Edit the text and it tries again. A Premium account or your own server is sent bigger pieces, up to 60 KB, with no pacing.
 
 ## Using the panel
 
@@ -95,7 +137,7 @@ With a DeepL API Pro key set up under [Tools / Translate](/tools/translate/#deep
 
 The answer takes the place of the issue list until you tap **Replace** or close it with its X. **Replace** swaps the text for DeepL's version. On a field longer than 2,500 characters, only the first 2,500 go to DeepL and only those are replaced. If you edit the text before the answer arrives, the answer is dropped, because it no longer matches what is in the field.
 
-This is the one part of Grammar check that goes online. The text in the field and your DeepL key go to DeepL, and only when you tap the button. Without a DeepL key, or with DeepL Write off, the button is not there and the panel works as described above. It's never there in a password field either, so a password can't be sent to DeepL. The same rewrite is available on selected text as the **DeepL Write** [selection action](/smart/selection-actions/).
+Apart from [LanguageTool](#checkers-harper-and-languagetool), when you switch it on, this is the one part of Grammar check that goes online. The text in the field and your DeepL key go to DeepL, and only when you tap the button. Without a DeepL key, or with DeepL Write off, the button is not there and the panel works as described above. It's never there in a password field either, so a password can't be sent to DeepL. The same rewrite is available on selected text as the **DeepL Write** [selection action](/smart/selection-actions/).
 
 ## Options
 
@@ -107,6 +149,7 @@ This is the one part of Grammar check that goes online. The text in the field an
 
 | Setting | Default | Range/options |
 | --- | --- | --- |
+| Checkers | Harper on, LanguageTool off | Harper, LanguageTool servers; see [Checkers](#checkers-harper-and-languagetool) |
 | English dialect | American | American, British, Canadian, Australian |
 | Re-check delay | 350&nbsp;ms | 100–1500&nbsp;ms |
 | Show Correctness issues | On | Per kind: spelling, typo, grammar, agreement, capitalization, punctuation, word boundaries, confused words, misheard phrases, usage |
@@ -120,7 +163,8 @@ A **System-wide** group sits below these two, with a **Use Harper everywhere** b
 
 ## Details & edge cases
 
-- **English only.** Apart from the optional [DeepL Write](#deepl-write) button, Harper doesn't check any other language, and the dialect setting is global. It applies no matter which typing language or layout is currently active. Grammar check has nothing to do while you're typing in a non-English language.
+- **Harper is English only.** It doesn't check any other language, and the dialect setting is global: it applies no matter which typing language or layout is currently active. For other languages switch on [LanguageTool](#checkers-harper-and-languagetool), or use the optional [DeepL Write](#deepl-write) button.
+- **The system spell checker is always Harper.** The Checkers list only decides who checks in the Grammar panel. What Android's spell checker marks in other apps comes from Harper on the phone, whatever the list says.
 - **Every build.** Grammar check and the spell checker's grammar marks are in every build. F-Droid compiles Harper from source. A build made without Harper's native library shows the tool as not in this build, and its spell checker checks spelling only.
 - **A missing engine fails safely.** If `libharper_jni.so` didn't load, the panel opens normally and says the grammar engine isn't in this build, rather than crashing or hanging on "checking."
 - **A fix only touches the words it flagged.** Applying a chip (or "Fix all") replaces the flagged spans and nothing else, so the rest of what you wrote isn't re-typed into the field. That's what keeps formatting alive in apps that have any: bold, colour, a checklist item in Google Keep. The one exception is an editor that won't tell the keyboard where its text starts. There's no way to address a span in one of those, so the fix falls back to rewriting the whole field, which flattens any styling it was carrying.
@@ -128,6 +172,7 @@ A **System-wide** group sits below these two, with a **Use Harper everywhere** b
 - **"Fix all" only uses each issue's first suggestion.** For an issue with several possible fixes, use its individual fix chips instead if you want a different one applied.
 - **A filter hides issues, it doesn't stop the checking.** Harper still lints the whole text; the filter decides what's worth showing you. Turning kinds off doesn't make checking faster.
 - **An unfamiliar kind is always shown.** If a future Harper adds a kind of issue this version of the app doesn't know, it appears in the panel (under Engagement's color) rather than being silently swallowed by a filter that can't name it.
+- **A LanguageTool error takes the issues' place.** No connection, a refused key or a busy server shows as a line in the panel, unless the next checker on the list could answer. The next edit checks again.
 - **Re-check delay only paces this panel.** It has no effect on [the system spell checker](/smart/spell-checker/), which always answers synchronously when another app's text field asks it to.
 
 For contact-aware, dictionary-based red squiggles in every other app on your phone, not only WM Keyboard's own writing surface, see [System spell checker](/smart/spell-checker/). For the everyday typo-fixing that runs on every language and every build, see [Autocorrect](/smart/autocorrect/).

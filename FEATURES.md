@@ -1842,6 +1842,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Fix all — Applies each lint's top suggestion in one action
     - Per-lint dismiss — Cards can be dismissed instead of fixed
     - Card jumps the caret when it has no suggestion — Focus-ring seeded only from the leader key
+    - Checkers provider list — `ProviderTool.GRAMMAR`, FALLBACK: Harper (on device) on, LanguageTool off by default; a check goes to the first row that knows the layout's language (Harper = English), down the list when one cannot answer, Harper on anything when nothing knows it (`GrammarProviders.plan`)
+    - LanguageTool over HTTP — `POST /v2/check`, blank address = `api.languagetool.org`, username + key = Premium (`api.languagetoolplus.com`), own server per row; picky level and mother tongue in the row's setup; matches mapped onto Harper's 20 kinds (`LanguageToolClient.kindFor`), UTF-16 offsets, ≤5 fix chips; keyboard language → LT code with English by the dialect, else `auto` (`LanguageToolLanguages`)
+    - Public-API limits kept — Text cut at paragraph / sentence / space into ≤18 KB pieces (60 KB elsewhere), a sliding minute of 20 requests and 75 KB, 429 retried on Retry-After or 2 s / 5 s, waits over 15 s reported; answers cached per piece; ≥1.2 s debounce while a server checks first
+    - Never sent — Password fields, incognito (manual or field), or while Data saver › Online grammar check holds it; panel says why; own NetSource `languagetool` in Network activity
   - App launcher `RARE` — App drawer inside the keyboard
     - Live search over names and packages — Keys return under a shortened panel while searching
     - Pinned and recent row — Last 10 opened, stored as package names only
@@ -2233,7 +2237,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
 | QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
 | Document scanner | every build: Google's scanner with Play services, the built-in OpenCV scanner without (its library is an on-demand download, about 2.5 MB) |
-| Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source) |
+| Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source); LanguageTool checker needs the network and the user switching it on, public server or self-hosted on every build |
 | AI On-device provider and its 8-model catalog | not in the F-Droid build; 2 of the 8 models need a Hugging Face token and licence acceptance |
 | AI cloud providers (Claude, OpenAI, Gemini, Grok, DeepSeek, Brave) | needs the user's own API key — no built-in or proxied key for any of them |
 | AI self-hosted providers (Ollama, LM Studio, Other service) | needs a reachable server address; plain-HTTP traffic on the local network |

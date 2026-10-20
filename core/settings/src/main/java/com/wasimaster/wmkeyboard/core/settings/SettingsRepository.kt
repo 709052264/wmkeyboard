@@ -10069,6 +10069,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_CLOUD_AI = stringPreferencesKey("data_saver_cloud_ai")
         private val DS_FILE_SEND = stringPreferencesKey("data_saver_file_send")
         private val DS_CLOUD_VOICE = stringPreferencesKey("data_saver_cloud_voice")
+        private val DS_CLOUD_GRAMMAR = stringPreferencesKey("data_saver_cloud_grammar")
         private val OFFLINE_FALLBACK = booleanPreferencesKey("offline_fallback")
         private val BACKSPACE_SWIPE_DELETE = booleanPreferencesKey("backspace_swipe_delete")
         private val HARDWARE_KEYBOARD_INPUT = booleanPreferencesKey("hardware_keyboard_input")
@@ -16137,6 +16138,7 @@ class SettingsRepository(private val context: Context) {
             cloudAi = p.policy(DS_CLOUD_AI, d.cloudAi),
             fileSend = p.policy(DS_FILE_SEND, d.fileSend),
             cloudVoice = p.policy(DS_CLOUD_VOICE, d.cloudVoice),
+            cloudGrammar = p.policy(DS_CLOUD_GRAMMAR, d.cloudGrammar),
             offlineFallback = p[OFFLINE_FALLBACK] ?: d.offlineFallback,
         )
     }
@@ -18781,6 +18783,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDataSaverCloudVoice(value: MeteredPolicy) =
         editPrefs { it[DS_CLOUD_VOICE] = value.name }
+
+    suspend fun setDataSaverCloudGrammar(value: MeteredPolicy) =
+        editPrefs { it[DS_CLOUD_GRAMMAR] = value.name }
 
     suspend fun setDataSaverFileSend(value: MeteredPolicy) =
         editPrefs { it[DS_FILE_SEND] = value.name }

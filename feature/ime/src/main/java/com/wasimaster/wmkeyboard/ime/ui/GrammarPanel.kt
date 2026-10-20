@@ -232,7 +232,9 @@ internal fun GrammarPanel(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                stringResource(R.string.ime_grammar_title),
+                // Who read the text, when it left the phone to be read.
+                grammar.via?.let { stringResource(R.string.ime_grammar_title_via, it) }
+                    ?: stringResource(R.string.ime_grammar_title),
                 color = kb.secondaryText,
                 fontSize = 12.sp,
                 maxLines = 1,
@@ -389,6 +391,7 @@ internal fun GrammarPanel(
             // room for it and the issue list both, and it is what was asked for.
             rephrase != null && !rephrase.working -> GrammarBody.REPHRASE
             grammar.moduleHint != null -> GrammarBody.MODULE
+            grammar.notice != null && !grammar.checking -> GrammarBody.NOTICE
             !grammar.available -> GrammarBody.UNAVAILABLE
             grammar.sourceText.isEmpty() && !grammar.checking -> GrammarBody.EMPTY
             lints.isEmpty() && grammar.checkedOnce && !grammar.checking -> GrammarBody.CLEAR
@@ -409,6 +412,7 @@ internal fun GrammarPanel(
                     when (shown) {
                         GrammarBody.REPHRASE -> Unit
                         GrammarBody.MODULE -> grammar.moduleHint?.let { GrammarHint(stringResource(it)) }
+                        GrammarBody.NOTICE -> grammar.notice?.let { GrammarHint(it) }
                         GrammarBody.UNAVAILABLE -> GrammarHint(
                             stringResource(R.string.ime_grammar_unavailable_info),
                         )
@@ -452,7 +456,7 @@ internal fun GrammarPanel(
 }
 
 /** What the grammar panel's body is showing, for the cross-fade between them. */
-private enum class GrammarBody { REPHRASE, MODULE, UNAVAILABLE, EMPTY, CLEAR, LIST }
+private enum class GrammarBody { REPHRASE, MODULE, NOTICE, UNAVAILABLE, EMPTY, CLEAR, LIST }
 
 /**
  * A key for each card that survives the field changing around it. Offsets will

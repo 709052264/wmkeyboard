@@ -3,6 +3,8 @@
 
     <!-- Grammar panel: the offline grammar strip above the key rows. -->
     <string name="ime_grammar_title">Grammar</string>
+    <!-- The panel's title while a LanguageTool server checks the text. %1$s is the server's name, "LanguageTool" unless the user named it. -->
+    <string name="ime_grammar_title_via">Grammar · <xliff:g id="server" example="LanguageTool">%1$s</xliff:g></string>
     <!-- Content description of the chip that opens the list of English dialects. -->
     <string name="ime_grammar_dialect_desc">Select the dialect</string>
     <!-- How many issues the grammar check found in the text. %1$d is the count. -->
@@ -43,6 +45,9 @@
     <string name="ime_grammar_module_installing_info">The grammar checker is an extra part of the keyboard, and it is downloading…</string>
     <string name="ime_grammar_module_failed_info">The grammar checker did not download. Check the connection, then open this panel again.</string>
     <string name="ime_grammar_module_data_saver_info">The grammar checker is an extra part of the keyboard that downloads separately, and data saving is holding downloads.</string>
+    <string name="ime_grammar_languagetool_private_info">LanguageTool is never sent a password field or text typed in incognito, so nothing checks this field. Harper checks English here when it is on the list.</string>
+    <string name="ime_grammar_languagetool_data_saver_info">Data saving is holding online grammar checks, so LanguageTool is not asked. Harper checks English when it is on the list.</string>
+    <string name="ime_grammar_nothing_on_info">Every grammar checker is off. Switch one on in the Grammar check settings.</string>
     <string name="ime_grammar_module_installing_toast">The grammar checker is downloading. Try again in a moment.</string>
 
     <!-- AI panel: one tap actions that run on the text in the field. -->

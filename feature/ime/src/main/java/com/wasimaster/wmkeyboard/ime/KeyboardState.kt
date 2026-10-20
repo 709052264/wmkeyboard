@@ -1566,7 +1566,8 @@ fun TranslateUi.cleared(): TranslateUi =
 /**
  * Grammar strip state. Like translate, the strip follows the focused field:
  * the service re-extracts and re-lints (debounced) on every change while the
- * panel is open. All linting is offline via the bundled Harper engine.
+ * panel is open. The grammar tool's provider list says who checks: the
+ * bundled Harper engine, or a LanguageTool server the user switched on.
  */
 data class GrammarUi(
     /** Field text the current [lints] correspond to. */
@@ -1589,6 +1590,13 @@ data class GrammarUi(
      * drops a rewrite of text the user has since changed.
      */
     val rephrase: DeepLWriteUi? = null,
+    /** The LanguageTool server that found [lints], by name; null when Harper did. */
+    val via: String? = null,
+    /**
+     * Why there are no issues to show: a server that failed, or one that was
+     * not asked (a password field, data saver). Shown in the issues' place.
+     */
+    val notice: String? = null,
 )
 
 /** One DeepL Write request from the grammar panel, and what came of it. */

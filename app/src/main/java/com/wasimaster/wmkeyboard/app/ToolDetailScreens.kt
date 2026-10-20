@@ -102,6 +102,7 @@ import com.wasimaster.wmkeyboard.ime.WMKeyboardService
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import com.wasimaster.wmkeyboard.core.settings.GifContentFilter
 import com.wasimaster.wmkeyboard.core.settings.GrammarCategory
+import com.wasimaster.wmkeyboard.core.grammar.LanguageToolChecker
 import com.wasimaster.wmkeyboard.core.settings.GrammarDialect
 import com.wasimaster.wmkeyboard.core.settings.GrammarLintKind
 import com.wasimaster.wmkeyboard.core.settings.MediaGridSpacingRange
@@ -2667,6 +2668,16 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.GRAMMAR -> {
+            // Harper on the phone, and LanguageTool servers, off until picked.
+            ProvidersGroup(
+                repository,
+                settings,
+                ProviderTool.GRAMMAR,
+                titleRes = R.string.tooldetail_grammar_providers_group,
+                info = stringResource(R.string.tooldetail_grammar_providers_info),
+                // A server's answers were for its old setup.
+                onChanged = { LanguageToolChecker.reset() },
+            )
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item {
                     ChoiceSetting(
