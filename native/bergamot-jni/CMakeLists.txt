@@ -83,6 +83,12 @@ foreach(target bergamot-translator-source)
     target_compile_options(${target} PUBLIC ${marian_options})
 endforeach()
 
+# faiss uses __m128 under __SSE__ and counts on glibc's headers to have
+# pulled in the intrinsics; bionic's do not.
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+    target_compile_options(faiss PRIVATE -include immintrin.h)
+endif()
+
 # zstd's decompressor, for the .zst files Mozilla publishes the models as.
 # The x86_64 assembly fast path is left out, so every ABI compiles the same C.
 file(GLOB zstd_sources ${ZSTD_SRC}/lib/common/*.c ${ZSTD_SRC}/lib/decompress/*.c)

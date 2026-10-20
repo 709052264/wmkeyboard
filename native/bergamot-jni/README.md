@@ -67,7 +67,7 @@ As pinned on 2026-10-20: 114 directions, every language to and from English,
 |---|---|
 | API 28 (Android 9), not the app's 24 | Marian's path library (pathie-cpp) calls `iconv`, `nl_langinfo` and `glob`, which bionic has from API 28. `BergamotNative.MIN_SDK` keeps older phones from loading it |
 | ARM: ruy for both the int8 and the float GEMM, simde in place of SSE | Marian's own ARM path, which Firefox's ARM builds use; ruy picks the dot-product kernels at run time |
-| x86_64: intgemm for int8, ruy for float | intgemm dispatches SSSE3/AVX2/AVX-512 at run time; no BLAS anywhere |
+| x86_64: intgemm for int8, ruy for float | intgemm dispatches SSSE3/AVX2/AVX-512 at run time; no BLAS anywhere. faiss gets `-include immintrin.h`: it uses `__m128` and counts on glibc to have pulled the intrinsics in |
 | armeabi-v7a: `stub.c`, no engine | simd_utils' sse2neon uses AArch64-only types (`float64x2_t`), so Marian has no 32-bit ARM build. Play wants every split to cover the base's three ABIs, so 32-bit ARM gets a library whose `JNI_OnLoad` fails; `BergamotNative.supported` wants a 64-bit process anyway |
 | Vocabulary paths in the config as well as in memory | Marian indexes `vocabs` while it builds the embedding layer. Firefox's WASM reads past an empty list harmlessly; native code crashed on it (found on the desktop test below) |
 | Marian's defines copied onto Bergamot's sources and the bridge | Marian sets `ARM`, `SSE` and its GEMM backend for its own directory only; the headers the others include read them too |
@@ -75,7 +75,7 @@ As pinned on 2026-10-20: 114 directions, every language to and from English,
 | `-z max-page-size=16384` | 16 KB page devices |
 | `-ffile-prefix-map` for every source tree, the build directory and the NDK | the same bytes from any machine with NDK r29, which F-Droid's reproducible build relies on |
 
-Size, stripped: arm64-v8a about 6.7 MB.
+Size, stripped: arm64-v8a 6,725,880 bytes, x86_64 7,049,760, the armeabi-v7a stub 2,748.
 
 ## Tested
 
@@ -88,8 +88,9 @@ English → Japanese (separate source and target vocabularies) and Bengali →
 English (a `tiny` model); an emoji came through intact, a repeated sentence
 came from the cache, and a missing file threw a Java exception.
 `nativeUnzstd` produced files matching every pinned unpacked SHA-256 and
-refused a truncated download. Two arm64 builds, one from fresh clones and one
-from existing checkouts, came out byte for byte the same.
+refused a truncated download. Two builds of all three ABIs, one from fresh
+clones and one from existing checkouts in other directories, came out byte for
+byte the same (NDK r29, CMake 4.4, macOS host).
 
 ## Contract with Kotlin
 
