@@ -172,6 +172,17 @@ ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/llamacpp-jni/build.sh
 
 The script fetches llama.cpp at the release `pin.sh` names and builds four libraries: arm64 twice (ARMv8.0, and ARMv8.2 with dot product and fp16, picked from `/proc/cpuinfo` at load the way whisper.cpp's are), armeabi-v7a and x86_64, CPU backend only. It keeps its own copy of ggml rather than sharing whisper.cpp's: the two projects move ggml at different times, and the two libraries come through different gates. `native/llamacpp-jni/host-test.sh` builds the same bridge for the Mac or Linux, so `LlamaNative` can be run on a desktop JVM; the README has the contract, the harness recipe and the measured speeds.
 
+## Rebuilding the document scanner library
+
+The built-in document scanner, which the scanner tool opens where Google's is missing or switched off, runs on [OpenCV](https://github.com/opencv/opencv) 4.14.0: only its `core` and `imgproc` modules, built static, with a small JNI bridge and the scanner's own page detection, flattening and clean-up (`docscan.cpp`) into `libwmdocscan.so` from `native/docscan-jni/`. `DocScanNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/docscan/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/docscan/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `docscan`), Play builds ship them in the on-demand `:feature:docscan` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild after you edit `native/docscan-jni/`:
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
+```
+
+The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP, KleidiCV or any other accelerator that downloads a binary at configure time. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
+
 ## Running static analysis
 
 ```sh

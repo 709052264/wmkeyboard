@@ -1724,8 +1724,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - The F-Droid build has 4 fewer — Handwriting, OCR, QR scan and Doc scan are compiled out
-    - Doc scan also needs Play services — PlayServices.available gate, since the scanner UI lives in Play services
+    - The F-Droid build has 3 fewer — Handwriting, OCR and QR scan are compiled out
+    - Doc scan is everywhere — Google's scanner where Play services runs it, the built-in OpenCV scanner elsewhere
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
   - Panel key capture `uncommon` — Input-taking panels reroute keystrokes into their own field
@@ -1837,7 +1837,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Insert automatically — Off by default; types the value the instant it's spotted
     - Link details preview — Off by default; force-disabled by power saving's background-network toggle
     - Pinch to zoom with a percentage pill — Pill shows above roughly 1.05x
-  - Document scanner `uncommon` — Hands off to Google's scanner UI
+  - Document scanner `uncommon` — Google's scanner UI, or the built-in OpenCV scanner where Google's can't run
     - Pages inserted one at a time — JPEG, same path as a camera-tool photo
     - Gallery import allowed — Alongside the camera capture
     - Save to gallery — Off by default; writes to Pictures/WM Keyboard
@@ -2205,7 +2205,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Handwriting tool and handwrite-with-swipes | not in the F-Droid build (ML Kit digital ink); each language model is an 8-26MB download |
 | Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
 | QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
-| Document scanner | not in the F-Droid build, and hidden entirely when Google Play services is unavailable |
+| Document scanner | every build: Google's scanner with Play services, the built-in OpenCV scanner without (its library is an on-demand download, about 2.5 MB) |
 | Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source) |
 | AI On-device provider and its 8-model catalog | not in the F-Droid build; 2 of the 8 models need a Hugging Face token and licence acceptance |
 | AI cloud providers (Claude, OpenAI, Gemini, Grok, DeepSeek, Brave) | needs the user's own API key — no built-in or proxied key for any of them |
@@ -2790,6 +2790,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Pinch to zoom with a percentage pill above 1.05x
     - Rescan re-arms the decoder
   - Document scanner `RARE` — hands off to Play services' GmsDocumentScanner (edge detection, crop, cleanup) through an invisible trampoline activity
+    - Built-in scanner (PageScanActivity) `RARE` — OpenCV core + imgproc as libwmdocscan.so (~2.4 MB arm64), no Google code: what F-Droid, de-Googled phones and a failed Google scanner get, and a per-tool "Use the built-in scanner" switch elsewhere
+      - Live page outline in the viewfinder — CameraX ImageAnalysis at 640×480, every 120 ms, same 4:3 frame as preview and photo
+      - Detection — four edge maps (median-scaled Canny, gentle Canny, per-colour-channel Canny, Otsu region) → convex hulls → quads with plausible corners whose sides the edges follow; a side on the frame border counts only beside two real ones
+      - Draggable corners with a loupe, red outline and disabled Crop while the corners cross; swap between found corners and the whole picture
+      - Flattened page with Original, Colour (default), Grey and Black and white; quarter turns; Add page / Done for multi-page scans
+      - Clean-up — paper light measured per channel on a grid from unsaturated pixels only, so coloured boxes survive and shadows lift; B/W = local threshold plus a level, solid dark areas kept
+      - Library delivery — `docscan` native gate: pinned download on GitHub, built from source by the F-Droid recipe (opt-in download), the :feature:docscan split on Play; prompt on the scanner screen and a banner on the tool page
+      - Desktop check — native/docscan-jni/desktop/check.sh runs the same docscan.cpp on photos on a Mac
     - Gallery import allowed alongside the camera
     - Pages come back as JPEGs and are committed one at a time when the IME regains the field
     - Pending-page directory trimmed to the 8 newest
@@ -2826,7 +2834,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
 | Handwriting panel and handwrite-with-swipes | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_HANDWRITING; ML Kit digital ink) |
 | Text scan (OCR) and QR/barcode scanner | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
-| Document scanner | not in the F-Droid build, and additionally requires Google Play services — the tool is hidden when Play services is absent |
+| Document scanner | every build and phone: Google's scanner where Play services can run it, the built-in OpenCV scanner (on-demand library) everywhere else |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence; GGUF models also need the llama.cpp library (a Play split or a GitHub native download) |

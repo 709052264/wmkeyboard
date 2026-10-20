@@ -131,6 +131,8 @@ androidComponents {
             variant.sources.jniLibs?.addStaticSourceDirectory("src/tesseract/jniLibs")
             // llama.cpp's, the same way: :feature:llama carries it on Play.
             variant.sources.jniLibs?.addStaticSourceDirectory("src/llama/jniLibs")
+            // The built-in document scanner's: :feature:docscan carries it on Play.
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/docscan/jniLibs")
         }
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,

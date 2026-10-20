@@ -92,6 +92,11 @@
 # (Java_com_wasimaster_wmkeyboard_core_localllm_LlamaNative_*).
 -keep class com.wasimaster.wmkeyboard.core.localllm.LlamaNative { *; }
 
+# --- Document scanner (JNI) ---------------------------------------------------
+# libwmdocscan.so binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_docscan_DocScanNative_*).
+-keep class com.wasimaster.wmkeyboard.core.docscan.DocScanNative { *; }
+
 # --- Bergamot (JNI) -----------------------------------------------------------
 # libwmbergamot.so binds by the mangled Java name
 # (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).

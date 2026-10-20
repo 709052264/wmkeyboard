@@ -130,7 +130,7 @@
     <string name="fonts_tool_image_search_desc">Search for images from the keyboard. Press an image to send it</string>
     <string name="fonts_tool_ocr_desc">Point the camera at printed text and type it. You select only the words you need</string>
     <string name="fonts_tool_qr_scan_desc">Scan a QR code or a barcode and insert its text</string>
-    <string name="fonts_tool_doc_scan_desc">Scan a document with the Google scanner and send it as an image</string>
+    <string name="fonts_tool_doc_scan_desc">Scan a document and send it as an image</string>
     <string name="fonts_tool_voice_desc">Type text with your voice, in any language the speech recognizer of your device supports</string>
     <!-- Harper is the name of the grammar checker that runs on the device. -->
     <string name="fonts_tool_grammar_desc">Check the text you write for grammar problems. Harper does this offline</string>

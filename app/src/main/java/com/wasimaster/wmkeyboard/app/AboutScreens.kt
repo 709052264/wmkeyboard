@@ -319,6 +319,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/mozilla/translations/tree/main/inference",
         ),
     )
+    // The built-in document scanner, in every build: packaged, pinned for
+    // download, or a Play split. Only OpenCV's core and imgproc modules, with
+    // Android's cpufeatures; see native/docscan-jni.
+    add(
+        Attribution(
+            "OpenCV",
+            R.string.about_bundled_opencv_used,
+            "Copyright (C) 2000-2022 Intel Corporation, 2009-2011 Willow Garage Inc., 2015-2023 OpenCV Foundation and others",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/opencv/opencv",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.

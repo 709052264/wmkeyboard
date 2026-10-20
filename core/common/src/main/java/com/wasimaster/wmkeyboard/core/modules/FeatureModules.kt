@@ -150,6 +150,14 @@ object FeatureModules {
     var ocr: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:docscan`: the built-in document scanner's library (OpenCV's
+     * core and imgproc, `:core:intelligence`), behind the scanner tool where
+     * Google's scanner is missing or switched off.
+     */
+    @Volatile
+    var docscan: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:rime`: librime, behind the optional RIME engine for Chinese
      * (`:core:input`). The built-in composers need nothing from it.
      */

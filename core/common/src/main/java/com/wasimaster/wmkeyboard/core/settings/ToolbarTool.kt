@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings
 
 import com.wasimaster.wmkeyboard.config.BuildConfig
-import com.wasimaster.wmkeyboard.core.util.PlayServices
 
 // Extracted from SettingsRepository.kt so the low-level modules (icons, tools,
 // media) can reference these types without depending on the settings module —
@@ -273,15 +272,11 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
 
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
     !BuildConfig.ENABLE_ML_KIT_HANDWRITING && tool == ToolbarTool.HANDWRITING -> false
-    !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool in setOf(
-        ToolbarTool.OCR, ToolbarTool.QR_SCAN, ToolbarTool.DOC_SCAN
-    ) -> false
+    !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool in setOf(ToolbarTool.OCR, ToolbarTool.QR_SCAN) -> false
     !BuildConfig.ENABLE_GRAMMAR && tool == ToolbarTool.GRAMMAR -> false
-    // The only tool that is not this app's own code: the scanner is an
-    // activity inside Play services, so on a device without it the tool can
-    // do nothing but apologise. OCR and QR stay — their models are in the
-    // APK and run with no Play services at all.
-    !PlayServices.available && tool == ToolbarTool.DOC_SCAN -> false
+    // The document scanner is offered everywhere: Google's (an activity
+    // inside Play services) where it can run, the built-in OpenCV one
+    // everywhere else, F-Droid's build and phones without Play services.
     else -> true
 }
 

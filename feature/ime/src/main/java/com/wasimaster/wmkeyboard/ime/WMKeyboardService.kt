@@ -36045,19 +36045,32 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Doc-scan tool: hand off to ML Kit's full-screen scanner activity
-     * (edge detection, crop, filters — all Google's UI). The scanned pages
-     * come back through [DocScanActivity.consumePendingPages] in
-     * [onStartInputView], once the target app has focus again.
+     * Doc-scan tool: hand off to a full-screen scanner activity. ML Kit's
+     * (edge detection, crop, filters — all Google's UI) where Play services
+     * can run it and the user has not picked the built-in one; the built-in
+     * OpenCV scanner ([com.wasimaster.wmkeyboard.app.PageScanActivity])
+     * everywhere else. Either way the
+     * scanned pages come back through [DocScanActivity.consumePendingPages]
+     * in [onStartInputView], once the target app has focus again.
      */
     fun onDocScanStart() {
-        if (!BuildConfig.ENABLE_ML_KIT_SCANNERS) return
         vibrate()
         _uiState.update { it.copy(panel = PanelMode.NONE) }
+        val google = BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available &&
+            !_uiState.value.settings.scanner.docBuiltIn
         startActivity(
-            Intent(this, DocScanActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            if (google) {
+                Intent(this, DocScanActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+            } else {
+                // Its library may still need fetching; it asks the way data
+                // saver says to, which only the keyboard knows.
+                com.wasimaster.wmkeyboard.app.PageScanActivity.intent(
+                    this,
+                    dataSaverStatus.decide(MeteredFeature.DOWNLOADS),
+                )
+            },
         )
     }
 

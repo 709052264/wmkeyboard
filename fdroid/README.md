@@ -159,6 +159,14 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 entry's `scandelete` needs that path added. Nothing is fetched at configure
 time: no KleidiAI, no OpenSSL, no web UI.
 
+From the release after 0.6.2 the script also builds `native/docscan-jni`
+(OpenCV 4.14.0 at a pinned commit, only its core and imgproc modules, static)
+into `core/intelligence/src/docscan/jniLibs`: the built-in document scanner,
+which F-Droid's build uses in place of Google's. The next entry's
+`scandelete` needs that path added. OpenCV's configure step downloads nothing
+with the options in `native/docscan-jni/opencv.cmake`: IPP, KleidiCV, FastCV
+and the other prebuilt accelerators are off.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

@@ -89,6 +89,42 @@
     <string name="ime_scanner_format_generic">Barcode</string>
 
     <!-- Document scanner trampoline (DocScanActivity). -->
+    <!-- The built-in document scanner (PageScanActivity), used where Google's is missing. -->
+    <string name="ime_docscan_library_body">The document scanner needs a one-time download of its library.</string>
+    <string name="ime_docscan_library_body_sized">The document scanner needs a one-time download of its library, <xliff:g id="size" example="2.4 MB">%1$s</xliff:g>.</string>
+    <string name="ime_docscan_library_downloading">Downloading the document scanner…</string>
+    <string name="ime_docscan_library_failed">The scanner did not download. Check the connection and try again.</string>
+    <string name="ime_docscan_library_unavailable">The document scanner does not run on this phone.</string>
+    <string name="ime_docscan_open_settings">Open settings</string>
+    <string name="ime_docscan_camera_permission">Allow the camera to scan a page, or pick a photo of one.</string>
+    <string name="ime_docscan_allow_camera">Allow the camera</string>
+    <string name="ime_docscan_pick_photo">Pick a photo</string>
+    <string name="ime_docscan_torch_desc">Light</string>
+    <string name="ime_docscan_done_count">Done · <xliff:g id="count" example="2">%1$d</xliff:g></string>
+    <string name="ime_docscan_adjust_hint">Drag a corner if it missed the page.</string>
+    <string name="ime_docscan_adjust_not_found">No page found. Drag the corners onto it.</string>
+    <string name="ime_docscan_retake">Retake</string>
+    <string name="ime_docscan_whole">Whole picture</string>
+    <string name="ime_docscan_detected">Found page</string>
+    <string name="ime_docscan_next">Crop</string>
+    <string name="ime_docscan_page_number">Page <xliff:g id="number" example="1">%1$d</xliff:g></string>
+    <string name="ime_docscan_filter_original">Original</string>
+    <string name="ime_docscan_filter_colour">Colour</string>
+    <string name="ime_docscan_filter_grey">Grey</string>
+    <string name="ime_docscan_filter_bw">Black and white</string>
+    <string name="ime_docscan_rotate_desc">Turn</string>
+    <string name="ime_docscan_add_page">Add page</string>
+    <string name="ime_docscan_discard_title">Send the scanned pages?</string>
+    <plurals name="ime_docscan_discard_body">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> page is scanned and not sent yet.</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> pages are scanned and not sent yet.</item>
+    </plurals>
+    <string name="ime_docscan_send">Send</string>
+    <string name="ime_docscan_discard">Discard</string>
+    <string name="ime_docscan_photo_error">That picture could not be read.</string>
+    <string name="ime_docscan_capture_error">The camera could not take the picture.</string>
+    <string name="ime_docscan_crop_error">The page could not be flattened. Move the corners and try again.</string>
+    <string name="ime_docscan_save_error">The page could not be saved.</string>
     <string name="ime_docscan_unavailable_error">The document scanner is not available. It needs Google Play services.</string>
 
 </resources>

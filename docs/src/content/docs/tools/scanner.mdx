@@ -12,7 +12,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 
-Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="google" />: F-Droid's build has none of the three. The QR and document scanners run on Google ML Kit; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language.
+Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="google" />: F-Droid's build has only the document scanner, its built-in one. The QR scanner runs on Google ML Kit; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language. The document scanner uses Google's scanner where Google Play services can run it and the keyboard's own everywhere else.
 
 <PhoneFrame caption="Text scan (OCR): a full-bleed camera view with recognized words ready to tap.">
   {/* shot: tools/ocr-viewfinder */}
@@ -111,25 +111,39 @@ One row for each download the languages you type in need, with its size, a **Dow
 
 ## Scanning a document
 
-**Document scanner** hands the whole flow to Google's own scanner UI: edge detection, cropping, and cleanup happen there, outside the keyboard, since an IME can't host that kind of full-screen flow itself. Gallery import is allowed alongside the camera, and pages come back as JPEGs.
+**Document scanner** has two scanners behind it, and both work the same way from the keyboard's side: the scan runs full screen, outside the keyboard (an IME can't host that kind of flow itself), and the pages come back as JPEGs.
+
+- **Google's scanner** is the default on a phone with Google Play services. Edge detection, cropping and cleanup happen in Google's own UI, and gallery import is allowed alongside the camera.
+- **The built-in scanner** is the keyboard's own, built on [OpenCV](https://opencv.org/). It is what the F-Droid build and phones without Google Play services use, and on any other phone you can pick it with **Use the built-in scanner**. If Google's scanner fails to start, the built-in one opens in its place.
 
 <PhoneFrame caption="Document scanner: Google's scan UI for capturing and cropping a page.">
   {/* shot: tools/doc-scan-capture */}
 </PhoneFrame>
 
-Once you're back in your app, each captured page is inserted exactly like a Camera-tool photo, sent to the field one page at a time. If Google Play services or the scanner module isn't available on your device, you get a toast saying so instead of a crash.
+The built-in scanner goes through three steps:
+
+1. **Capture.** The camera outlines the page it sees as you aim. Press the shutter, or the photo button to pick a picture you already have. The light button turns on the flash as a torch.
+2. **Corners.** The scanner places the four corners on the page it found. Drag any that missed; a magnifier shows the spot under your finger while you drag. When it finds no page, the corners start just inside the edges of the picture. The button beside the tick swaps between the corners it found and the whole picture. A red outline means the corners cross over each other, and the tick waits until they don't.
+3. **Page.** The flattened page, with four looks: **Original**, **Colour** (the default: paper turned white and shadows lifted, ink and coloured areas kept), **Grey**, and **Black and white**. The turn button rotates it a quarter turn at a time. **Add page** keeps it and goes back to the camera for the next one; **Done** keeps it and sends every page.
+
+Back steps back through those three. Leaving the camera with pages kept asks whether to send or discard them. The camera's permission is asked for on the scanner's own screen; without it, the photo button still works.
+
+The built-in scanner needs its library, about 2.5 MB. Builds that don't carry it fetch it the first time you scan (or from the banner on the tool's settings page), the same way as the keyboard's other feature libraries: from Google Play on the Play build, and from GitHub elsewhere, which on F-Droid's build waits until you turn on [Download feature libraries](/reference/settings/privacy/#downloads). Everything runs on your device.
+
+Once you're back in your app, each captured page is inserted exactly like a Camera-tool photo, sent to the field one page at a time.
 
 <SettingsPath path="Tools / Document scanner / Options" />
 
+- **Use the built-in scanner**: off by default, and shown only where Google's scanner can run. Scans with the keyboard's own scanner instead.
 - **Save to the gallery**: off by default. Also keeps scanned pages in the **WM Keyboard** album under Pictures.
 
 ## Details & edge cases
 
-- **Camera permission** works differently across the three tools. OCR and QR/barcode check for it themselves, and when it isn't granted they offer an **Allow the camera** button. That opens the same disclosure-then-system-prompt trampoline the [Camera tool](/tools/camera/#granting-camera-access) uses, and returns you to the panel. The document scanner skips that prompt entirely. Google's scanner activity manages its own camera permission internally.
+- **Camera permission** works differently across the three tools. OCR and QR/barcode check for it themselves, and when it isn't granted they offer an **Allow the camera** button. That opens the same disclosure-then-system-prompt trampoline the [Camera tool](/tools/camera/#granting-camera-access) uses, and returns you to the panel. The document scanner skips that prompt: Google's scanner manages its own camera permission, and the built-in one asks on its own screen.
 - None of the three scanners work before you've unlocked your device once after a restart (no direct-boot support), unlike some other tools that do work at the lock screen.
 - The trigger words in [Options](#options) are what make a standalone `ocr`, `scan` or `docscan` surface a chip into the matching tool. [Smart chips](/smart/chips/) covers that mechanism in full.
 - Open any of the three from Settings → **Tools** → **Scanners**, or by typing its keyword as described above.
 
 ## Why not on F-Droid
 
-OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. QR/barcode scanning depends on ML Kit's barcode-scanning library. Document scanning depends on Google Play services' document scanner module. All three are Google's, so the F-Droid build leaves them out entirely, rather than hiding them behind a toggle, and the Scanners group doesn't appear in its toolbox or toolbar at all. See [Which build you have](/start/editions/) if you're deciding between builds.
+OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. QR/barcode scanning depends on ML Kit's barcode-scanning library. Google's document scanner depends on Google Play services' document scanner module. Those are Google's, so the F-Droid build leaves text scan and QR scanning out entirely, rather than hiding them behind a toggle. Its document scanner is the built-in one, which has no Google code in it. See [Which build you have](/start/editions/) if you're deciding between builds.
