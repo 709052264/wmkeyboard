@@ -2612,7 +2612,7 @@ apnr	আপনার
 apple	আপল
 chaisilo	চাইছিলো
 chere	ছেড়ে
-cheyeu	চেয়েও
+cheyeu	চেয়েও
 choice	চয়েস
 dice	ডাইস
 dupure	দুপুরে
@@ -3215,7 +3215,7 @@ dabi	দাবি
 dari	দাড়ি
 dekhabe	দেখাবে
 dhuye	ধুয়ে
-diyeu	দিয়েও
+diyeu	দিয়েও
 dukkho	দুঃখ
 eidai	এইদাই
 ekbaro	একবারো
@@ -4091,7 +4091,7 @@ giri	গিরি
 haal	হাল
 hoisilam	হয়েছিলাম
 hota	হোতা
-hoyeu	হয়েও
+hoyeu	হয়েও
 hoyni	হয়নি
 jaa	জা
 janbi	জানবি
@@ -6518,7 +6518,7 @@ pon	পন
 porda	পর্দা
 porina	পোরিনা
 porjontoi	পর্যন্তই
-porleu	পড়লেও
+porleu	পড়লেও
 portei	পোরতেই
 prodhan	প্রধান
 puraton	পুরাতন
@@ -7156,7 +7156,7 @@ udahoron	উদাহরণ
 uddessho	উদ্দেশ্যো
 uddhar	উদ্ধার
 urei	উরেই
-ureu	উড়েও
+ureu	উড়েও
 vabbi	ভাবি
 vabisilem	ভাবিসিলেম
 vabsilo	ভাবছিলো
@@ -9454,10 +9454,10 @@ chand	চাঁদ
 chapati	চাপাটি
 chaptise	চাপতিসে
 charbe	চড়বে
-charleu	ছাড়লেও
+charleu	ছাড়লেও
 chatai	চাটাই
 chats	চ্যাটস
-chayeu	চায়েও
+chayeu	চায়েও
 cheharar	চেহারার
 chela	চেলা
 chelder	চেলদের
@@ -12439,7 +12439,7 @@ bhangai	ভাঙাই
 # Mined from the romanized corpus: each spelling here is seen 5+ times, is
 # read as no word by the rules, the siblings or the rest of this list, and
 # reduces from fuller spellings in the corpus that almost all mean the same
-# word. Hand-checked; ambiguous ones (parlm: পারলাম or পড়লাম) are left out.
+# word. Hand-checked; ambiguous ones (parlm: পারলাম or পড়লাম) are left out.
 grp	গ্রুপ
 klke	কালকে
 lgbe	লাগবে
