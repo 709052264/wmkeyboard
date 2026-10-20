@@ -463,6 +463,34 @@
     <string name="languages_rime_delete_all_title">Delete RIME data</string>
     <string name="languages_rime_delete_all_subtitle">Removes the compiled schemas, your imported schemas and the words RIME learned from you. Downloaded packs stay and compile again.</string>
 
+    <!-- The Mozc engine for Japanese (Google's open-source converter). Mozc
+         is the engine's name and stays in Latin letters. -->
+    <string name="languages_mozc_group_title">Conversion engine</string>
+    <string name="languages_mozc_group_info">The built-in engine converts with the kana dictionary above. Mozc is Google's open-source Japanese engine, the one behind Google Japanese Input. It converts whole sentences, learns what you pick, and lets you move the boundaries between the parts of a reading. It needs its own library and dictionary.</string>
+    <string name="languages_mozc_engine_title">Japanese engine</string>
+    <string name="languages_mozc_engine_mozc">Mozc</string>
+    <string name="languages_mozc_engine_subtitle">With Mozc, every Japanese layout converts through Mozc: romaji, flick, 12-key and kana. The keys stay the same. The arrow keys resize the part of the reading being converted.</string>
+    <!-- %1$s is a size such as 2.9 MB. -->
+    <string name="languages_mozc_library_missing">Mozc needs its library, about <xliff:g id="size" example="2.9 MB">%1$s</xliff:g>. The built-in engine types until it is here.</string>
+    <string name="languages_mozc_library_missing_unsized">Mozc needs its library. The built-in engine types until it is here.</string>
+    <!-- %1$s and %2$s are sizes such as 1.2 MB and 2.9 MB. -->
+    <string name="languages_mozc_library_installing">Downloading the Mozc library: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="2.9 MB">%2$s</xliff:g></string>
+    <string name="languages_mozc_library_installing_unsized">Downloading the Mozc library…</string>
+    <string name="languages_mozc_library_failed">The Mozc library did not download.</string>
+    <string name="languages_mozc_status_title">Mozc status</string>
+    <string name="languages_mozc_status_off">Mozc starts when you pick it above.</string>
+    <string name="languages_mozc_status_locked">Mozc starts after you unlock the phone. Until then the built-in engine types.</string>
+    <string name="languages_mozc_status_needs_library">Waiting for the Mozc library.</string>
+    <string name="languages_mozc_status_needs_data">Download the Mozc dictionary below. Mozc starts when it is here.</string>
+    <string name="languages_mozc_status_starting">Starting…</string>
+    <!-- %1$s is the dictionary's version, such as 3.34.6239.102. -->
+    <string name="languages_mozc_status_ready">Ready, dictionary <xliff:g id="version" example="3.34.6239.102">%1$s</xliff:g></string>
+    <!-- %1$s is Mozc's own error message, in English. -->
+    <string name="languages_mozc_status_failed">Mozc did not start: <xliff:g id="detail" example="invalid magic">%1$s</xliff:g></string>
+    <string name="languages_mozc_clear_title">Forget what Mozc learned</string>
+    <string name="languages_mozc_clear_subtitle">Clears the conversions, predictions and reading boundaries Mozc learned from your picks. The dictionary stays.</string>
+    <string name="languages_mozc_clear_done">Cleared.</string>
+
     <string name="languages_cjk_traditional_title">Traditional characters</string>
     <string name="languages_cjk_traditional_subtitle">The keyboard converts candidates to Traditional (繁體). With the phrase table pack, it converts word by word, so 头发 becomes 頭髮.</string>
     <!-- Info text for the Traditional characters toggle. The Chinese characters

@@ -120,8 +120,8 @@ from it. Nothing in the engine or the service names Hindi.
 
 ### Native conversion engines
 
-The CJK composers are Kotlin, and a native engine (RIME for Chinese today,
-Mozc for Japanese later) stands in for one of them rather than beside it.
+The CJK composers are Kotlin, and a native engine (RIME for Chinese, Mozc for
+Japanese) stands in for one of them rather than beside it.
 `LayoutSpec.resolvedComposer()` builds the layout's built-in composer, then
 asks `ConversionEngines` (`core/input/.../composer/ConversionEngines.kt`)
 whether a registered `ConversionEngine` replaces it for the layout's
@@ -162,11 +162,30 @@ RIME's half (`core/input/.../rime/`):
 - Schema packs are ordinary `CjkDictPack`s (`RimeSchemaCatalog`), so download,
   checksum and offline import are the CJK pack path unchanged.
 
-A Mozc engine would add a `ConversionEngine` for `ComposerType.ROMAJI` (and
-the flick and kana layouts that share it), a gate and a `:feature:` module
-like `rime`'s, and its own runtime. `RimeComposer`'s session mirror and
-`RimeKeys`' map back to buffer characters are the two parts written to be
-copied.
+Mozc's half (`core/input/.../mozc/`):
+
+- `MozcEngine` replaces the composer for `ComposerType.ROMAJI` in Japanese,
+  which every Japanese layout (romaji, flick, JIS kana) types through.
+- `MozcRuntime` opens Mozc once both the library (`mozc` gate) and the
+  dictionary (`MozcData`, a `CjkDictPack` holding Mozc's own `mozc.data`)
+  are on the device and storage is unlocked, on a background thread, and
+  guards every call with `tryLock` like RIME's runtime. What Mozc learns
+  lives in `filesDir/mozc/user` and is written out a few seconds after a pick.
+- `MozcComposer` hands Mozc hiragana, never keys: `Kana.transduce` composes
+  the buffer as the built-in composer does, and the spans it keeps map a
+  length Mozc reports in kana back to buffer characters. The bridge
+  (`native/mozc-jni/mozc_bridge.cc`) sits on Mozc's `ConverterInterface`
+  rather than its session, because only the converter's `Segments` say how
+  much of the reading a partial suggestion covers
+  (`Candidate::consumed_key_size`). Each call starts from the whole reading;
+  only Mozc's history segments carry over, which is its context and what
+  its learning reads.
+- Segments are a second list. `Composer.segmentsReading`,
+  `resizeSegment`, `moveSegment`, `focusedSegment` and `committedText` let
+  the service's arrow keys split and resize a reading and mark the focused
+  segment in the composing region; the composer replays the operations from
+  Mozc's own split on each call, and a pick commits the segments up to the
+  focused one. `remainderAfterCommit` keeps the rest split.
 
 ### Prediction
 

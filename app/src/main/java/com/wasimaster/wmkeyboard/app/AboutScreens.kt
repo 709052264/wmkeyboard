@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
 import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
@@ -430,6 +431,20 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright RIME Developers",
                 "BSD-3-Clause", "rime-third-party.txt",
                 "https://github.com/rime/librime",
+            ),
+        )
+    }
+    if (MozcRuntime.libraryShipped) {
+        // The optional Mozc engine for Japanese: Mozc with Abseil and
+        // Protocol Buffers in one library, and the notices of the dictionary
+        // it downloads, which come from Mozc's sources at the same release.
+        add(
+            Attribution(
+                "Mozc",
+                R.string.about_bundled_mozc_used,
+                "Copyright 2010-2026 Google Inc.",
+                "BSD-3-Clause", "mozc-third-party.txt",
+                "https://github.com/google/mozc",
             ),
         )
     }

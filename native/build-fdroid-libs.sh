@@ -13,6 +13,9 @@
 #   Offline Sherpa      sherpa-onnx-jni/build.sh  libwmsherpa.so
 #   Hunspell spelling   hunspell-jni/build.sh     libwmhunspell.so
 #   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
+#   Mozc (Japanese)     mozc-jni/build.sh         libwmmozc.so
+#                       (into core/input/src/mozc/jniLibs; Bazel, through
+#                       a pinned bazelisk)
 #   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
 #                       (into core/intelligence/src/bergamot/jniLibs)
 #
@@ -72,4 +75,5 @@ fi
 "$HERE/sherpa-onnx-jni/build.sh"
 "$HERE/hunspell-jni/build.sh"
 "$HERE/librime-jni/build.sh"
+"$HERE/mozc-jni/build.sh"
 "$HERE/bergamot-jni/build.sh"

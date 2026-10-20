@@ -175,7 +175,11 @@ internal fun RimeEngineGroup(
         val packs = listOf(RimeSchemaCatalog.BASE) + RimeSchemaCatalog.forLang(langId).map { it.pack }
         for (pack in packs) {
             item(visible = rimeOn, key = pack.id) {
-                RimePackRow(pack, downloads[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded) {
+                EnginePackRow(
+                    pack,
+                    downloads[pack.id] ?: CjkDictDownloadManager.DownloadStatus.NotDownloaded,
+                    onDeleted = { RimeRuntime.recheck(context) },
+                ) {
                     download {
                         val wanted = RimeSchemaCatalog.withBase(pack)
                         CjkDictDownloadManager.startAll(filesDir, wanted)
@@ -348,16 +352,25 @@ private fun RimeStatusRow(status: RimeRuntime.Status, enabled: Boolean, onDeploy
     )
 }
 
-/** Download and delete for one schema pack, the same row the conversion dictionaries use. */
+/**
+ * Download and delete for one of a conversion engine's packs (a RIME schema
+ * pack, Mozc's dictionary), the same row the conversion dictionaries use.
+ * [onDeleted] tells the engine its files went.
+ */
 @Composable
-private fun RimePackRow(pack: CjkDictPack, status: CjkDictDownloadManager.DownloadStatus, onDownload: () -> Unit) {
+internal fun EnginePackRow(
+    pack: CjkDictPack,
+    status: CjkDictDownloadManager.DownloadStatus,
+    onDeleted: () -> Unit,
+    onDownload: () -> Unit,
+) {
     val context = LocalContext.current
     val filesDir = context.filesDir
     val name = stringResource(pack.displayNameRes)
     val deleteLabel = stringResource(R.string.languages_cjk_delete_desc, name)
     val delete = {
         CjkDictDownloadManager.delete(filesDir, pack)
-        RimeRuntime.recheck(context)
+        onDeleted()
     }
     WmRow(
         title = name,

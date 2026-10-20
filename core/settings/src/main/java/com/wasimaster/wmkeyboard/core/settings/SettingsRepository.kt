@@ -5345,6 +5345,12 @@ data class CjkSettings(
      * compiled, takes the first installed pack that offers one.
      */
     val rimeSchemas: Map<String, String> = emptyMap(),
+    /**
+     * Whether Japanese converts on Google's Mozc engine instead of the
+     * built-in one. Off by default: Mozc needs its library and its own
+     * dictionary downloaded, the built-in engine only its kana dictionary.
+     */
+    val mozcJapanese: Boolean = false,
 )
 
 /**
@@ -10079,6 +10085,7 @@ class SettingsRepository(private val context: Context) {
         private val RIME_LANGUAGES = stringSetPreferencesKey("rime_languages")
         // "METHOD=schema_id" entries.
         private val RIME_SCHEMAS = stringSetPreferencesKey("rime_schemas")
+        private val MOZC_JAPANESE = booleanPreferencesKey("mozc_japanese")
         private val VI_STRICT_TONES = booleanPreferencesKey("vi_strict_tones")
         private val VI_RESTORE_MARKS = booleanPreferencesKey("vi_restore_marks")
         private val ONE_HANDED_MODE = stringPreferencesKey("one_handed_mode")
@@ -11882,6 +11889,7 @@ class SettingsRepository(private val context: Context) {
                 ?.mapNotNull { entry -> entry.split('=', limit = 2).takeIf { it.size == 2 }?.let { it[0] to it[1] } }
                 ?.toMap()
                 ?: defaults.cjk.rimeSchemas,
+            mozcJapanese = p[MOZC_JAPANESE] ?: defaults.cjk.mozcJapanese,
         )
 
     private fun readVietnamese(p: Preferences, defaults: KeyboardSettings) =
@@ -19006,6 +19014,9 @@ class SettingsRepository(private val context: Context) {
         val current = p[RIME_LANGUAGES] ?: emptySet()
         p[RIME_LANGUAGES] = if (value) current + languageId else current - languageId
     }
+
+    /** Whether Japanese converts on Mozc rather than the built-in engine. */
+    suspend fun setMozcJapanese(value: Boolean) = editPrefs { it[MOZC_JAPANESE] = value }
 
     /** The RIME schema [method] types through; null goes back to the default. */
     suspend fun setRimeSchema(method: String, schemaId: String?) = editPrefs { p ->

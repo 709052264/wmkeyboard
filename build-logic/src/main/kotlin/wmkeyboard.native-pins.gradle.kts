@@ -39,6 +39,7 @@ val ownSpecs: Map<String, String> = mapOf(
     "libwmhunspell.so" to "spell",
     "libwmtess.so" to "ocr",
     "libwmrime.so" to "rime",
+    "libwmmozc.so" to "mozc",
     "libwmbergamot.so" to "bergamot",
 )
 
@@ -52,6 +53,7 @@ val ownDirs = listOf(
     "core/intelligence/src/tesseract/jniLibs",
     "core/prediction/src/main/jniLibs",
     "core/input/src/main/jniLibs",
+    "core/input/src/mozc/jniLibs",
     "core/intelligence/src/bergamot/jniLibs",
 )
 

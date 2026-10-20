@@ -426,6 +426,32 @@ Each pack carries its upstream licence in a `licenses` folder inside the zip. Th
 
 **Before the first unlock.** RIME's schemas and its user dictionary sit in the app's credential-protected storage, with your other learned words, so on a phone that has restarted and not been unlocked yet, Chinese types on the built-in engine. RIME takes over again after you unlock.
 
+## The Mozc engine
+
+<SettingsPath path="Languages & layouts / Japanese / Conversion engine / Japanese engine" />
+
+Japanese can convert on [Mozc](https://github.com/google/mozc) instead of the keyboard's own engine. Mozc is Google's open-source Japanese engine, the one inside Google Japanese Input and Gboard's Japanese keyboard. Where the built-in engine looks up words, Mozc converts whole sentences, so `kyouhaiitenkidesune` comes out as 今日はいい天気ですね in one pick. It also predicts as you type, splits a reading into its parts (文節) the way a desktop Japanese input method does, and learns from what you pick.
+
+**Japanese engine** picks **Built-in** or **Mozc**, and Built-in is the default. Every Japanese layout converts through Mozc once it's picked: Romaji, Flick (the 12-key pad), Kana JIS and any layout of your own that composes kana. The keys don't change. The keyboard still turns romaji into kana itself, the 小゛゜ key still cycles the last kana, and only the conversion is Mozc's.
+
+Mozc needs two downloads before it takes over, and the group lists them as they arrive:
+
+1. **Its library**, about 3 MB. The Google Play edition fetches it from Play, the GitHub edition from the project's data repository, and the F-Droid edition from the same place once **Download feature libraries** is on under Privacy. Picking Mozc asks for it, after the usual question on a metered connection.
+2. **The Mozc dictionary**, about 19 MB: Mozc's own system dictionary, connection costs and segmenter, built from Mozc's sources at the same release as the library. Picking Mozc starts this download too, and it is checked against a SHA-256 built into the app like the other conversion dictionaries. The same file installs offline through **Import** on the [Storage](/reference/settings/about/) screen.
+
+**Mozc status** says where it stands. Until both are in place, and before the phone's first unlock, Japanese keeps typing on the built-in engine, so switching never leaves you unable to type. The built-in kana dictionary above is not needed for Mozc and can stay or go.
+
+**The candidates.** While you type, the strip shows Mozc's predictions: whole-sentence conversions first, then words and phrases that cover only the start of the reading. Picking one of those commits that much and leaves the rest of the reading composing, with its own candidates already up. The plain hiragana, katakana and half-width katakana of the reading stay at the end of the list. The expanded grid pages further down the same list. After you pick, the strip offers what Mozc expects next.
+
+**Moving the boundaries.** The arrow keys work on the reading while it's composing, as they do on Gboard's Japanese pad. <KeyCap>←</KeyCap> and <KeyCap>→</KeyCap> split the reading into its parts if it isn't yet, then narrow or widen the highlighted part by one kana. The field shows every part converted, with the highlighted one shaded, and the strip lists the candidates for that part alone. With selection on, the arrows move the highlight to the part before or after instead. Picking a candidate commits every part up to the highlighted one, each as it shows, and the rest stays split so the next part's candidates come straight up. Backspace or another key goes back to typing the reading. The arrow row and the text-editing pad both have these arrows.
+
+On a physical keyboard it works as on a desktop: <KeyCap>Shift</KeyCap>+<KeyCap>←</KeyCap>/<KeyCap>→</KeyCap> resizes the highlighted part, and once the reading is split <KeyCap>←</KeyCap>/<KeyCap>→</KeyCap> move between parts while <KeyCap>↑</KeyCap>/<KeyCap>↓</KeyCap> step through the candidates.
+
+**Match kana without marks** works here too, through Mozc's own version of it, so かつこう still finds 学校.
+
+**Learning.** Mozc learns from each pick: which conversion a reading takes, where you put the boundaries, and what you type after what, which is how its predictions get better. Like the rest of the keyboard's learning, it learns nothing in incognito or a password field. What it learns is written to the app's credential-protected storage a few seconds after you pick. **Forget what Mozc learned** clears it and keeps the dictionary.
+
+
 ## Details & edge cases
 
 - **A Japanese word-list download exists but does nothing for typing.** Japanese has its own entry in the ordinary downloadable-dictionary catalog (see [Downloadable dictionaries](/languages/dictionaries/)), but because Japanese is a conversion input method, the regular suggestion engine never runs for it. That download currently has no effect on any of the three Japanese layouts. Korean's word list, by contrast, is fully active, since Korean isn't a conversion method.

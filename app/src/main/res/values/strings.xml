@@ -38,6 +38,9 @@
     <!-- :feature:rime, librime behind the optional RIME engine for Chinese.
          RIME is the engine's name and stays in Latin letters. -->
     <string name="rime_module_title">RIME Chinese engine</string>
+    <!-- :feature:mozc, Google's Mozc behind the optional Mozc engine for
+         Japanese. Mozc is the engine's name and stays in Latin letters. -->
+    <string name="mozc_module_title">Mozc Japanese engine</string>
     <string name="bergamot_module_title">Firefox Translations engine</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for
          on-device AI. NPU stays in English. -->

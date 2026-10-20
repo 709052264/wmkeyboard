@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.input.composer
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
+import com.wasimaster.wmkeyboard.core.input.mozc.MozcData
 import com.wasimaster.wmkeyboard.core.input.rime.RimeSchemaCatalog
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 import com.wasimaster.wmkeyboard.input.R
@@ -161,11 +162,12 @@ object CjkDictCatalog {
     )
 
     /**
-     * [packs] and the RIME engine's schema packs ([RimeSchemaCatalog]), which
-     * download, verify, import and sit on disk the same way but are offered
-     * on their own screen and never converted with by the built-in composers.
+     * [packs], the RIME engine's schema packs ([RimeSchemaCatalog]) and the
+     * Mozc engine's dictionary ([MozcData]), which download, verify, import
+     * and sit on disk the same way but are offered in their engine's own
+     * group and never converted with by the built-in composers.
      */
-    val allPacks: List<CjkDictPack> get() = packs + RimeSchemaCatalog.packs
+    val allPacks: List<CjkDictPack> get() = packs + RimeSchemaCatalog.packs + MozcData.packs
 
     init {
         check(allPacks.map { it.id }.toSet().size == allPacks.size) { "pack ids must be unique" }

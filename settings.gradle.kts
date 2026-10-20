@@ -111,6 +111,9 @@ if (playStoreChannel) {
     // librime's library behind the optional RIME Chinese engine, the same
     // way: :core:input leaves it out of the base APK on this channel.
     include(":feature:rime")
+    // Mozc's converter behind the optional Mozc Japanese engine, the same
+    // way, from :core:input's src/mozc/jniLibs.
+    include(":feature:mozc")
     // Mozilla's Bergamot translator, the same way: the library alone, behind
     // the translate tool's Firefox Translations engine.
     include(":feature:bergamot")

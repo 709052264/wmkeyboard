@@ -102,6 +102,7 @@ object NativeDelivery {
         gate("scanner")?.let { FeatureModules.scanner = it }
         gate("npu")?.let { FeatureModules.npu = it }
         gate("rime")?.let { FeatureModules.rime = it }
+        gate("mozc")?.let { FeatureModules.mozc = it }
         FeatureModules.loadLibrary = { name ->
             val file = fileFor(name)
             if (file != null) System.load(file.path) else System.loadLibrary(name)

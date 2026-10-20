@@ -335,6 +335,14 @@ interface Composer {
      */
     fun predictions(context: String, limit: Int): List<String> = emptyList()
 
+    /**
+     * Whether [predictions] reads on from any text, not just Han: Mozc follows
+     * 今日は as readily as 今日, and keeps its own context
+     * ([CjkContext.text]). The keyboard then asks it even when the Han
+     * context it passes is empty.
+     */
+    val predictsFromAnyText: Boolean get() = false
+
     /** Records that [picked] was taken from [predictions] for [context]. */
     fun learnPrediction(context: String, picked: String) {
         // Nothing to learn: the default composer predicts nothing.
@@ -347,6 +355,40 @@ interface Composer {
      * narrowing whatever is read next. The default keeps [rest] whole.
      */
     fun remainderAfterCommit(rest: String): String = rest
+
+    /**
+     * Whether this composer converts a reading by segments (文節) whose
+     * bounds and focus the user can move: Mozc. The keyboard's arrow keys
+     * then reach [resizeSegment] and [moveSegment] while a reading composes,
+     * instead of moving the caret. False for everything else.
+     */
+    val segmentsReading: Boolean get() = false
+
+    /**
+     * Widens ([delta] > 0) or narrows the focused segment of [buffer] by one
+     * reading character, splitting the reading into segments first if it is
+     * not yet. From then on [candidates] are that segment's, and
+     * [composeBuffer] shows every segment converted. False when nothing
+     * changed.
+     */
+    fun resizeSegment(buffer: String, delta: Int): Boolean = false
+
+    /** Moves the focus [delta] segments along [buffer]'s; false when nothing changed. */
+    fun moveSegment(buffer: String, delta: Int): Boolean = false
+
+    /**
+     * Where the focused segment sits in [composeBuffer]'s text, for the
+     * composing region to mark it; null while [buffer] is not split into
+     * segments.
+     */
+    fun focusedSegment(buffer: String): IntRange? = null
+
+    /**
+     * What picking candidate [index] ([chosen]) of [buffer] writes. Usually
+     * [chosen]; with a later segment focused, the segments before it go in
+     * too, as they show, since a pick consumes the reading from its start.
+     */
+    fun committedText(buffer: String, index: Int, chosen: String): String = chosen
 
     /** A transliterator's buffer (roman, or jamo) rendered as script text. */
     fun composeBuffer(buffer: String): String = buffer

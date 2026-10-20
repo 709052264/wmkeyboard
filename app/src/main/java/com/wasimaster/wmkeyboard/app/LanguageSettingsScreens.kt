@@ -1446,6 +1446,12 @@ internal fun LanguageDetailScreen(
         RimeEngineGroup(langId, repository, settings)
     }
 
+    // Japanese can convert on Mozc instead: the engine choice, its library,
+    // its dictionary and its learning.
+    if (langId == "ja") {
+        MozcEngineGroup(repository, settings)
+    }
+
     // Removing the only language would leave nothing to type in, so it is only
     // offered when another language is enabled.
     if (settings.watch { it.enabledLanguages.size > 1 }) {
