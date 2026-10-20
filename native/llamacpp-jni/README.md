@@ -13,7 +13,7 @@ The built libraries are committed under `core/intelligence/src/llama/jniLibs/`,
 a directory of their own so the Play split carries nothing else. GitHub builds
 leave them out of the APK and pin them (gate `llama`), Play builds ship them in
 the on-demand `:feature:llama` split, and F-Droid deletes the committed copies
-and builds them with this script through `native/build-lite-libs.sh`. The
+and builds them with this script through `native/build-fdroid-libs.sh`. The
 script maps the build machine's paths out of the library and fixes llama.cpp's
 build number and commit, so two builds with the same NDK come out the same.
 Rebuild after you change anything here:

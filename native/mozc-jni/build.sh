@@ -104,7 +104,7 @@ fi
 ROOT=${MOZC_BAZEL_ROOT:-$WORK/bazel-root}
 bazel() { (cd "$SRC/src" && "$BAZELISK" --output_user_root="$ROOT" "$@"); }
 
-# WMKB_ABIS narrows the build to some of the three (native/build-lite-libs.sh).
+# WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
 wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) return 0 ;; *) return 1 ;; esac; }
 targets=()
 for abi in arm64-v8a armeabi-v7a x86_64; do

@@ -14,7 +14,7 @@ Play builds deliver it as the on-demand `:feature:mozc` split, and the GitHub
 and F-Droid builds pin it in `assets/native/pins.tsv` under the `mozc` gate
 and fetch it from the data repository's `natives` release when someone picks
 Mozc. F-Droid deletes the committed copies and builds them with this script
-(through `native/build-lite-libs.sh`), and so does the release workflow for
+(through `native/build-fdroid-libs.sh`), and so does the release workflow for
 the reference APK. Rebuild after you change anything here:
 
 ```sh

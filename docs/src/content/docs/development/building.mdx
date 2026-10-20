@@ -163,7 +163,7 @@ The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's pu
 
 ## Rebuilding the llama.cpp library
 
-GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-lite-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:
+GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:
 
 ```sh
 # Needs git, CMake and Ninja
