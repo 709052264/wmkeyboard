@@ -127,10 +127,8 @@
     <!-- Screen reader name for pressing and holding a word on the suggestion
          strip, which opens the menu below. -->
     <string name="ime_suggestion_hold_label">Word options</string>
-    <!-- A recent word's chip at the start of the strip (#787), read by TalkBack as what a tap does. -->
-    <string name="ime_recent_word_open_desc">Show other words for this one</string>
-    <!-- The recent word's menu when there is nothing else it could have been. -->
-    <string name="ime_recent_word_nothing">Nothing else to offer</string>
+    <!-- An alternative on the recent-word row (#842), read by TalkBack as what a tap does. %1$s is the word written, %2$s the one that would replace it. -->
+    <string name="ime_recent_word_replace_desc">Change <xliff:g id="word" example="form">%1$s</xliff:g> to <xliff:g id="offer" example="from">%2$s</xliff:g></string>
     <!-- Shown over the strip while a held word is slid up or down (#790). %1$s is the word, %2$s its new rank, such as +2 or −3. -->
     <string name="ime_suggestion_rank_badge">\"<xliff:g id="word" example="mary">%1$s</xliff:g>\" rank <xliff:g id="rank" example="+2">%2$s</xliff:g></string>
     <!-- The same, slid back to where it started: lifting changes nothing. -->

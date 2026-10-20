@@ -14737,6 +14737,7 @@ open class WMKeyboardService : InputMethodService() {
             fixApostrophes = state.settings.autoText.apostrophe,
             expandPatterns = true,
         ) || tryUncomposedTrigger(ic, state, endedBySpace = true)
+        if (!committed) noteUncomposedRecentWord(ic, state)
         // The expansion left the caret inside itself, at its {cursor} marker.
         // A space committed there lands in the middle of the text the snippet
         // inserted, so this press is spent on the expansion instead.
@@ -19104,6 +19105,7 @@ open class WMKeyboardService : InputMethodService() {
         // The pattern gate follows what went into the field, not what the
         // lexicon was allowed to keep, so it is fed on both paths.
         for (part in parts) pushRecentWord(part)
+        noteRecentWords(parts)
         scheduleRecentBar()
         // Spent by this commit whatever it turns out to be about: the guard is
         // for the space that finishes the word the user just added by hand, and
@@ -43020,11 +43022,31 @@ open class WMKeyboardService : InputMethodService() {
     // ---- the recent-word bar (#787) ----
 
     /**
-     * Spellings the bar replaced, keyed by where the new one starts, so the
-     * word it put there offers the old one back first. Session-scoped like
-     * the bar; shifted by [onRecentWordPick] when a fix changes a length.
+     * One word written in this field, as the bar keeps it (#842): where it
+     * starts, how it is spelled now, the spelling the bar last replaced there,
+     * and what else it could have been, kept from when it was written.
      */
-    private val recentBarReplaced = HashMap<Int, Pair<String, String>>()
+    private class RecentEntry(
+        var start: Int,
+        var word: String,
+        var previous: String?,
+        val offers: List<String>,
+    )
+
+    /**
+     * The words written in this field, oldest first (#842). Only words the
+     * user wrote here: text the field already held, or that the caret was
+     * moved into, never joins. Matched back to the field by place on every
+     * read, and a word that no longer reads there leaves.
+     */
+    private val recentEntries = ArrayList<RecentEntry>()
+
+    /**
+     * Words written since the bar last read the field, newest last, each with
+     * what the strip offered for it as it was written; given their place on
+     * the next read.
+     */
+    private val recentPending = ArrayList<Pair<String, List<String>>>()
 
     private var recentBarPending = false
     private val recentBarHandler = Handler(Looper.getMainLooper())
@@ -43047,10 +43069,43 @@ open class WMKeyboardService : InputMethodService() {
         return _uiState.value.composingPreview.length.takeIf { it > 0 } ?: composing.length
     }
 
-    /** Whether the bar may show at all in this field. */
+    /**
+     * Whether the bar may show at all in this field: prose, and a browser's
+     * address bar too (#814), which is where a search is typed and where the
+     * bar's words are the user's own; never a password, incognito or a field
+     * that cannot be read.
+     */
     private fun recentBarAllowed(state: KeyboardUiState = _uiState.value): Boolean =
-        state.settings.suggestionStrip.recentWordBar && state.allowsTypingIntelligence &&
+        state.settings.suggestionStrip.recentWordBar &&
+            (state.allowsTypingIntelligence || state.fieldKind == FieldKind.URI) &&
             !state.secureField && !state.incognitoOn && !isNullField()
+
+    /**
+     * A word was written: [parts] are its words, and the strip's words as it
+     * was written are what else the last one could have been (#842).
+     */
+    private fun noteRecentWords(parts: List<String>) {
+        if (!recentBarAllowed()) return
+        val strip = _uiState.value.suggestions
+        parts.forEachIndexed { i, part ->
+            if (part.none { it.isLetter() }) return@forEachIndexed
+            val offers = if (i == parts.lastIndex) strip.filterNot { it.equals(part, ignoreCase = true) } else emptyList()
+            recentPending += part to offers
+        }
+    }
+
+    /**
+     * The word a space is about to end in a field that composes nothing, the
+     * address bar above all (#814): its letters went straight to the field,
+     * so nothing else hears of it. It keeps no alternatives of its own.
+     */
+    private fun noteUncomposedRecentWord(ic: InputConnection, state: KeyboardUiState) {
+        if (state.composesForSuggestions || !recentBarAllowed(state)) return
+        val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
+        val word = before.takeLastWhile { isComposingWordChar(it) }
+        if (word.any { it.isLetter() } && word.length < before.length) recentPending += word to emptyList()
+        scheduleRecentBar()
+    }
 
     /**
      * Re-reads the bar's words once the current edit has landed: posted, so
@@ -43071,29 +43126,63 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun refreshRecentBar() {
         recentBarAwaitsEcho = false
-        val words = if (recentBarAllowed()) {
-            val found = recentWordOccurrences()
+        if (!recentBarAllowed()) {
+            recentPending.clear()
+            if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
+            return
+        }
+        val read = recentRead()
+        if (read == null) {
             // Not "no words": the caret is not known until the echo of the
             // keyboard's own edit, and an empty bar stayed empty until the
             // next word was committed (#839).
-            if (found == null && expectedSelStart < 0 && currentInputConnection != null) {
-                recentBarAwaitsEcho = true
-                return
-            }
-            found?.map { it.second }?.takeLast(RECENT_BAR_WORDS).orEmpty()
-        } else {
-            emptyList()
+            if (expectedSelStart < 0 && currentInputConnection != null) recentBarAwaitsEcho = true
+            return
         }
+        // The words written since the last read are the newest in the field.
+        if (recentPending.isNotEmpty()) {
+            var at = read.words.lastIndex
+            for ((word, offers) in recentPending.asReversed()) {
+                while (at >= 0 && read.words[at].second != word) at--
+                if (at < 0) break
+                val start = read.words[at].first
+                if (recentEntries.none { it.start == start }) recentEntries += RecentEntry(start, word, null, offers)
+                at--
+            }
+            recentPending.clear()
+            recentEntries.sortBy { it.start }
+            while (recentEntries.size > RECENT_BAR_KEPT) recentEntries.removeAt(0)
+        }
+        // A word the read can see that no longer reads as itself is gone: it
+        // was deleted or rewritten. One out of sight (after the caret, or
+        // before what was read) stays, unshown.
+        val at = read.words.toMap()
+        recentEntries.removeAll { entry ->
+            entry.start >= read.origin && entry.start < read.end && at[entry.start] != entry.word
+        }
+        publishRecentBar(at)
+    }
+
+    /** The entries [visible] reads where they stand, the newest few, as the bar draws them. */
+    private fun publishRecentBar(visible: Map<Int, String>) {
+        val words = recentEntries
+            .filter { visible[it.start] == it.word }
+            .takeLast(RECENT_BAR_WORDS)
+            .map { RecentBarWord(it.start, it.word, recentOffers(it)) }
         if (_uiState.value.recentBar != words) _uiState.update { it.copy(recentBar = words) }
     }
 
     /** Forgets the bar: a new field, or the keyboard closing. */
     private fun clearRecentBar() {
-        recentBarReplaced.clear()
+        recentEntries.clear()
+        recentPending.clear()
         recentBarHandler.removeCallbacksAndMessages(null)
         recentBarPending = false
         if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
     }
+
+    /** What the field reads before the caret: where that text starts and ends, and its words. */
+    private class RecentRead(val origin: Int, val end: Int, val words: List<Pair<Int, String>>)
 
     /**
      * The words written before the caret, oldest first, as (start, word)
@@ -43101,7 +43190,7 @@ open class WMKeyboardService : InputMethodService() {
      * an occurrence is a place as well as a spelling: two copies of `form`
      * are two different entries. Null when the field will not say.
      */
-    private fun recentWordOccurrences(): List<Pair<Int, String>>? {
+    private fun recentRead(): RecentRead? {
         val ic = currentInputConnection ?: return null
         val caret = expectedSelStart.takeIf { it >= 0 } ?: return null
         val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull()
@@ -43123,55 +43212,54 @@ open class WMKeyboardService : InputMethodService() {
             if (start == 0 && before.length >= RECENT_BAR_LOOKBEHIND) continue
             if (word.any { it.isLetter() }) found += (origin + start) to word
         }
-        return found
-    }
-
-    /** The occurrence [back] words before the caret, if it is still spelled [word]. */
-    private fun recentOccurrence(back: Int, word: String): Int? {
-        val all = recentWordOccurrences() ?: return null
-        val (start, spelled) = all.getOrNull(all.lastIndex - back) ?: return null
-        return start.takeIf { spelled == word }
+        return RecentRead(origin, origin + written.length, found)
     }
 
     /**
-     * What the bar offers in place of the word [back] words before the caret:
-     * the spelling the bar replaced there, if any, then the other readings
-     * its swipe kept, then the engine's corrections. Never the word itself,
-     * and nothing the strip would hold back.
+     * What the bar offers in place of [entry]: the spelling the bar replaced
+     * there, if any, then what the strip offered as it was written and the
+     * other readings its swipe kept (#842). A word that kept nothing, one
+     * typed straight into an address bar, gets the dictionary's corrections
+     * instead. Never the word itself, and nothing the strip would hold back.
      */
-    private fun recentWordOffers(back: Int, word: String): List<String> {
-        val start = recentOccurrence(back, word) ?: run {
-            refreshRecentBar()
-            return emptyList()
-        }
+    private fun recentOffers(entry: RecentEntry): List<String> {
         val engine = suggestionEngine
-        val replaced = recentBarReplaced[start]?.takeIf { it.first == word }?.second
-        val fresh = engine?.let {
-            runCatching { it.suggest(word.lowercase(), previousWord = null, limit = RECENT_BAR_OFFERS + 2) }
-                .getOrDefault(emptyList())
-        }.orEmpty()
-        return (listOfNotNull(replaced) + glideReadings.readingsAt(word, start) + fresh)
-            .map { caseLike(it, word, _uiState.value.language.letterCaseIsSpelling) }
-            .filterNot { it == word || engine?.suppresses(it) == true }
+        val kept = entry.offers + glideReadings.readingsAt(entry.word, entry.start)
+        val fresh = if (kept.isEmpty()) {
+            engine?.let {
+                runCatching { it.suggest(entry.word.lowercase(), previousWord = null, limit = RECENT_BAR_OFFERS + 2) }
+                    .getOrDefault(emptyList())
+            }.orEmpty()
+        } else {
+            emptyList()
+        }
+        return (listOfNotNull(entry.previous) + kept + fresh)
+            .map { caseLike(it, entry.word, _uiState.value.language.letterCaseIsSpelling) }
+            .filterNot { it == entry.word || engine?.suppresses(it) == true }
             .distinct()
             .take(RECENT_BAR_OFFERS)
     }
 
     /**
-     * Puts [replacement] where the word [back] words before the caret stands
-     * (#787). Only that occurrence: it is found by place, checked to still
-     * read [word], and left alone when it does not. The caret and a word still
-     * being typed stay where they are, moved only by the change in length.
+     * Puts [replacement] where the bar's word at [start] stands (#787). Only
+     * that occurrence: it is found by place, and left alone unless the field
+     * still reads [word] there and the editor's caret is where the keyboard
+     * last saw it (#842), since a stale offset would rewrite the wrong
+     * characters. The caret and a word still being typed stay where they
+     * are, moved only by the change in length.
      */
-    private fun onRecentWordPick(back: Int, word: String, replacement: String) {
+    private fun onRecentWordPick(start: Int, word: String, replacement: String) {
         val ic = currentInputConnection ?: return
-        val start = recentOccurrence(back, word)
-        if (start == null || replacement.isEmpty()) {
+        val entry = recentEntries.firstOrNull { it.start == start && it.word == word }
+        val caret = expectedSelStart
+        val read = recentRead()
+        if (entry == null || replacement.isEmpty() || caret < 0 || !caretStillAt(ic, caret) ||
+            read == null || read.words.none { it.first == start && it.second == word }
+        ) {
             refreshRecentBar()
             return
         }
         vibrate()
-        val caret = expectedSelStart
         val end = start + word.length
         val delta = replacement.length - word.length
         val typing = composing.isNotEmpty()
@@ -43192,13 +43280,12 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             learningBuffer.drop(word)
         }
-        val shifted = recentBarReplaced.entries.associate { (at, pair) -> (if (at > start) at + delta else at) to pair }
-        recentBarReplaced.clear()
-        recentBarReplaced.putAll(shifted)
-        // The spelling just replaced, so the same chip changes it back however
-        // many times it has changed (#842): the first one kept, `here` →
-        // `hear` → `here` offered nothing to undo the second pick with.
-        recentBarReplaced[start] = replacement to word
+        // The words after it moved with the change in length. The spelling
+        // just replaced is what the same chip changes back to, however many
+        // times it has changed (#842).
+        for (other in recentEntries) if (other.start > start) other.start += delta
+        entry.previous = word
+        entry.word = replacement
         scheduleRecentBar()
     }
 
@@ -48269,11 +48356,14 @@ open class WMKeyboardService : InputMethodService() {
         private const val NUMBER_SUGGESTION_LIMIT = 3
 
         /** Enough to hold the longest number [TypedNumbers] keeps, and what stands in front of it. */
-        /** Words the recent-word bar shows (#787). */
-        private const val RECENT_BAR_WORDS = 2
+        /** Words the recent-word bar shows (#787, three since #842); the row scrolls when they do not fit. */
+        private const val RECENT_BAR_WORDS = 3
+
+        /** Words the bar remembers in a field, more than it shows, for a caret moved back and forth. */
+        private const val RECENT_BAR_KEPT = 8
 
         /** Alternatives a recent word offers. */
-        private const val RECENT_BAR_OFFERS = 4
+        private const val RECENT_BAR_OFFERS = 3
 
         /** How far back the bar reads for its words. */
         private const val RECENT_BAR_LOOKBEHIND = 128

@@ -706,6 +706,9 @@ val FieldKind.numericLayer: LayoutLayer?
         FieldKind.TEXT, FieldKind.EMAIL, FieldKind.URI -> null
     }
 
+/** A word on the recent-word bar (#787, #842): where it starts in the field, its spelling, and what else it could be. */
+data class RecentBarWord(val start: Int, val word: String, val offers: List<String>)
+
 enum class PanelMode {
     NONE, EMOJI, CLIPBOARD, SNIPPETS, TOOLBOX, TEXT_EDIT, TRACKPAD,
     COMPASS, LEVEL, MOON_PHASE, WEATHER, CALENDAR,
@@ -3883,10 +3886,11 @@ data class KeyboardUiState(
     val captureSuggestions: List<String> = emptyList(),
     /**
      * The recent-word bar's words (#787), oldest first: the last words
-     * written before the caret, not counting the one being typed. Empty
-     * while the bar is off or has nothing to show.
+     * written in this field before the caret, not counting the one being
+     * typed, each with what else it could have been (#842). Empty while the
+     * bar is off or has nothing to show.
      */
-    val recentBar: List<String> = emptyList(),
+    val recentBar: List<RecentBarWord> = emptyList(),
     /** The focused keyboard-owned field's undo history, while it has one (#665). */
     val captureUndo: CaptureUndoMark? = null,
     /**

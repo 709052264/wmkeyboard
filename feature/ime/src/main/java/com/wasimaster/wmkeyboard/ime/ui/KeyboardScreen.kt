@@ -547,6 +547,7 @@ import com.wasimaster.wmkeyboard.ime.CaptureTarget
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import com.wasimaster.wmkeyboard.ime.CaptureVoiceAction
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.RecentBarWord
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
@@ -12621,6 +12622,7 @@ internal fun fullBleedHiddenRows(
         (if (state.settings.rows.dictionaryBarEnabled) DictionaryRowHeight else 0.dp) +
         // Avro's candidate row rides above the strip, so it hides with it.
         (if (phoneticCandidateBarShown(state)) PhoneticCandidateRowHeight else 0.dp) +
+        (if (recentRowShown(state)) RecentRowHeight else 0.dp) +
         // The macro row is state-driven, so unlike the on-demand tools row it
         // can be counted: whether it is on screen is in the ui state this
         // function already has.
@@ -13332,6 +13334,9 @@ private fun KeyboardBody(
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
                                 // directly over the strip it belongs to.
+                                // The recent words (#814), in their own row so
+                                // the strip keeps its width.
+                                if (recentRowShown(state)) RecentWordRow(state.recentBar, suggestionHold)
                                 if (phoneticCandidateBarShown(state)) PhoneticCandidateBar(state, onSuggestion)
                                 WithNetActivityDot(
                                     state.settings.networkLog.showOnKeyboard,
@@ -31215,72 +31220,79 @@ internal fun signedRank(steps: Int): String = when {
     else -> "0"
 }
 
+/** Height of the recent-word row (#814): a touch target's worth, since every word in it is one. */
+internal val RecentRowHeight = 48.dp
+
+/** Whether the recent-word row is up: it has words, the setting is on and the strip is showing. */
+internal fun recentRowShown(state: KeyboardUiState): Boolean =
+    state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar &&
+        !state.settings.toolbarBehavior.stripHidden
+
 /**
- * The recent-word bar (#787): the last words written, newest on the right,
- * each a chip that opens what else it could have been. A pick replaces that
- * occurrence where it stands; the live words to the right are untouched.
+ * The recent-word row (#787, #814, #842): the last words written, newest on
+ * the right, each followed by what else it could have been. It sits over the
+ * strip in a row of its own, so the live suggestions keep their full width,
+ * and the alternatives are on screen from the start: one tap on one replaces
+ * that word where it stands. Scrolls sideways when the words outgrow it,
+ * starting at the newest.
  */
 @Composable
-private fun RecentWordBar(words: List<String>, hold: SuggestionHoldCallbacks) {
+internal fun RecentWordRow(words: List<RecentBarWord>, hold: SuggestionHoldCallbacks) {
     val kb = LocalKbTheme.current
+    val scroll = rememberScrollState()
+    LaunchedEffect(words) { scroll.scrollTo(scroll.maxValue) }
     Row(
-        modifier = Modifier.padding(start = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(RecentRowHeight)
+            .horizontalScroll(scroll)
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        words.forEachIndexed { index, word ->
-            val back = words.lastIndex - index
-            var offers by remember(word, back) { mutableStateOf<List<String>?>(null) }
-            Box {
-                Box(
-                    modifier = Modifier
-                        .widthIn(max = 88.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(kb.chip)
-                        .clickable(onClickLabel = stringResource(R.string.ime_recent_word_open_desc)) {
-                            offers = hold.recentOffers(back, word)
-                        }
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        word,
-                        color = kb.chipText,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+        words.forEachIndexed { index, recent ->
+            // Keyed on the place, not the spelling: two copies of a word are
+            // two entries, and a pick must reach the one it was drawn for.
+            key(recent.start) {
+                if (index > 0) {
+                    VerticalDivider(
+                        modifier = Modifier.height(20.dp).padding(horizontal = 4.dp),
+                        thickness = SuggestionDividerWidth,
+                        color = MaterialTheme.colorScheme.outlineVariant,
                     )
                 }
-                val shown = offers
-                if (shown != null) {
-                    DropdownMenu(
-                        expanded = true,
-                        onDismissRequest = { offers = null },
-                        properties = MenuPopupProperties,
+                Text(
+                    recent.word,
+                    color = kb.keyText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.padding(horizontal = 6.dp),
+                )
+                for (offer in recent.offers) {
+                    val replace = stringResource(R.string.ime_recent_word_replace_desc, recent.word, offer)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .widthIn(min = 48.dp)
+                            .padding(vertical = 6.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(kb.chip)
+                            .clickable(role = Role.Button, onClickLabel = replace) {
+                                hold.onRecentPick(recent.start, recent.word, offer)
+                            }
+                            .padding(horizontal = 10.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        if (shown.isEmpty()) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.ime_recent_word_nothing)) },
-                                onClick = { offers = null },
-                                enabled = false,
-                            )
-                        }
-                        for (offer in shown) {
-                            DropdownMenuItem(
-                                text = { Text(offer) },
-                                onClick = {
-                                    offers = null
-                                    hold.onRecentPick(back, word, offer)
-                                },
-                            )
-                        }
+                        Text(
+                            offer,
+                            color = kb.chipText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                        )
                     }
                 }
             }
         }
-        VerticalDivider(
-            modifier = Modifier.height(20.dp),
-            thickness = SuggestionDividerWidth,
-            color = MaterialTheme.colorScheme.outlineVariant,
-        )
     }
 }
