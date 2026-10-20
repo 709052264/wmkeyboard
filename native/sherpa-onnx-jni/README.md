@@ -74,9 +74,9 @@ downloader as the ExecuTorch engines.
 
 | ABI | Size |
 |---|---|
-| arm64-v8a | about 3.1 MB |
-| armeabi-v7a | about 2.1 MB |
-| x86_64 | about 3.3 MB |
+| arm64-v8a | about 2.2 MB |
+| armeabi-v7a | about 1.5 MB |
+| x86_64 | about 2.4 MB |
 
 All three are 16 KB aligned (`-z max-page-size=16384`), as is Microsoft's
 runtime from 1.30.0.
