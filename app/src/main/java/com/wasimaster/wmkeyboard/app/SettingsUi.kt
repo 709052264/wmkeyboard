@@ -74,10 +74,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import kotlinx.coroutines.CoroutineScope
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -1148,6 +1144,10 @@ internal fun Modifier.focusOncePlaced(
  * rows built by `NavRow`, `ToggleSetting` and their siblings are wrapped by
  * those helpers instead, so they leave this at 0 and take the argument
  * themselves.
+ *
+ * [swipeActions] puts buttons behind the row that a swipe toward the start
+ * shows, and [fullSwipe] one a long swipe runs outright — see
+ * [SwipeActionsRow], including why a row with them must be keyed.
  */
 @Composable
 internal fun WmRow(
@@ -1167,8 +1167,38 @@ internal fun WmRow(
     subtitleFlies: Boolean = false,
     enabled: Boolean = true,
     @StringRes highlightKey: Int = 0,
+    swipeActions: List<SwipeAction> = emptyList(),
+    fullSwipe: SwipeAction? = null,
     onClick: (() -> Unit)? = null,
 ) {
+    if (swipeActions.isNotEmpty()) {
+        // The caller's modifier goes on the outside, so one that has to sit
+        // on an item's root (a lazy list's `animateItem`) still does, and
+        // padding insets the buttons along with the row.
+        // Not tied to [enabled]: a row that cannot be opened (an addon source
+        // whose list did not load) is often exactly the one to remove.
+        SwipeActionsRow(swipeActions, modifier = modifier, fullSwipe = fullSwipe) {
+            WmRow(
+                title = title,
+                subtitle = subtitle,
+                icon = icon,
+                accent = accent,
+                titleStyle = titleStyle,
+                titleContent = titleContent,
+                leading = leading,
+                trailing = trailing,
+                supporting = supporting,
+                trailingOnTitleLine = trailingOnTitleLine,
+                titleReflows = titleReflows,
+                flightTo = flightTo,
+                subtitleFlies = subtitleFlies,
+                enabled = enabled,
+                highlightKey = highlightKey,
+                onClick = onClick,
+            )
+        }
+        return
+    }
     if (highlightKey != 0) {
         HighlightableRow(title, highlightKey) {
             WmRow(
@@ -1368,64 +1398,6 @@ internal class SettingsSnackbar(
 
 /** The screen's undo bar. Null outside a settings screen's frame. */
 internal val LocalSettingsSnackbar = compositionLocalOf<SettingsSnackbar?> { null }
-
-/**
- * A row that is deleted by swiping it aside, either way.
- *
- * Pairs with [SettingsSnackbar]: the swipe is the fast way to remove a row and
- * the bar is what makes removing it that easily safe. The trash button on the
- * row stays — a swipe is a shortcut for people who know it is there, never the
- * only way to reach something.
- *
- * Callers in a plain `Column` (which is what a settings group is) must key the
- * row: `item(key = id) { }` in a group, which also closes the deleted row in
- * place, or `key(id) { }` anywhere else. Without it the state remembered here
- * belongs to a *position* in the list, and the row that slides up into a
- * deleted row's place inherits its dismissed state and vanishes too.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun SwipeToDelete(onDelete: () -> Unit, content: @Composable () -> Unit) {
-    val haptics = rememberSettingsHaptics()
-    val state = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.Settled) return@rememberSwipeToDismissBoxState false
-            haptics.toggle(on = false)
-            onDelete()
-            true
-        },
-    )
-    SwipeToDismissBox(
-        state = state,
-        backgroundContent = { SwipeToDeleteBackground(state.dismissDirection) },
-        content = { content() },
-    )
-}
-
-/** What shows under a row being swiped away: the error colour and a bin. */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SwipeToDeleteBackground(direction: SwipeToDismissBoxValue) {
-    // Settled means the row is at rest and the background is not being looked
-    // at; painting it anyway leaves a red edge under every row in the list.
-    if (direction == SwipeToDismissBoxValue.Settled) return
-    val alignment =
-        if (direction == SwipeToDismissBoxValue.StartToEnd) Alignment.CenterStart
-        else Alignment.CenterEnd
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.errorContainer)
-            .padding(horizontal = 24.dp),
-        contentAlignment = alignment,
-    ) {
-        Icon(
-            Icons.Outlined.Delete,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onErrorContainer,
-        )
-    }
-}
 
 /** The [SettingsHaptics] for the window this composable is drawn in. */
 @Composable

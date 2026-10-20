@@ -43,7 +43,7 @@ internal fun ImportedDictionariesGroup() {
         info = stringResource(R.string.tooldetail_dictionary_imported_info),
     ) {
         installed.forEachIndexed { index, dictionary ->
-            item {
+            item(key = dictionary.info.id) {
                 ImportedDictionaryRow(
                     dictionary = dictionary,
                     canMoveUp = index > 0,
@@ -93,6 +93,25 @@ private fun ImportedDictionaryRow(
     WmRow(
         title = info.title,
         supporting = { Text(if (info.attribution.isBlank()) detail else detail + "\n" + info.attribution, maxLines = 4) },
+        swipeActions = buildList {
+            if (canMoveUp) {
+                add(
+                    SwipeAction(
+                        Icons.Outlined.ArrowUpward,
+                        stringResource(R.string.tooldetail_dictionary_imported_up_desc, info.title),
+                    ) { onMove(-1) },
+                )
+            }
+            if (canMoveDown) {
+                add(
+                    SwipeAction(
+                        Icons.Outlined.ArrowDownward,
+                        stringResource(R.string.tooldetail_dictionary_imported_down_desc, info.title),
+                    ) { onMove(1) },
+                )
+            }
+            add(deleteSwipeAction(stringResource(R.string.tooldetail_dictionary_offline_delete_desc, info.title), onDelete))
+        },
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (canMoveUp) {

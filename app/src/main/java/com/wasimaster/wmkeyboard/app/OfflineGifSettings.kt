@@ -35,7 +35,7 @@ internal fun OfflineGifPacksGroup() {
         info = stringResource(R.string.offline_gifs_info),
     ) {
         for (pack in packs) {
-            item {
+            item(key = pack.id) {
                 WmRow(
                     title = pack.name,
                     supporting = {
@@ -48,6 +48,12 @@ internal fun OfflineGifPacksGroup() {
                             ),
                         )
                     },
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.offline_gifs_delete_desc, pack.name)) {
+                            OfflineGifPacks.delete(pack.id)
+                            packs = OfflineGifPacks.packs()
+                        },
+                    ),
                     trailing = {
                         IconButton(
                             onClick = {

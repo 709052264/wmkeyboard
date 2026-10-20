@@ -339,6 +339,21 @@ internal fun CustomDictionarySettings(
                                         ?.let { pluralStringResource(R.plurals.customdict_shortcut_count, it, it) },
                                 ).joinToString(" · ")
                             },
+                            swipeActions = listOf(
+                                deleteSwipeAction(
+                                    stringResource(R.string.customdict_delete_list_desc, listName),
+                                ) {
+                                    if (!busy) {
+                                        scope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                CustomDictionaries.remove(entry.file)
+                                            }
+                                            refresh()
+                                            repository.bumpCustomDictVersion()
+                                        }
+                                    }
+                                },
+                            ),
                             trailing = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                 // Switching off renames the file rather than
@@ -862,6 +877,24 @@ internal fun EmojiKeywordSettings(
                                 R.plurals.customdict_emoji_count,
                                 entry.emoji,
                                 entry.emoji,
+                            ),
+                            swipeActions = listOf(
+                                deleteSwipeAction(
+                                    stringResource(
+                                        R.string.customdict_delete_pack_desc,
+                                        entry.file.nameWithoutExtension,
+                                    ),
+                                ) {
+                                    if (!busy) {
+                                        scope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                EmojiKeywordPacks.remove(entry.file)
+                                            }
+                                            refresh()
+                                            repository.bumpEmojiKeywordPackVersion()
+                                        }
+                                    }
+                                },
                             ),
                             trailing = {
                                 IconButton(

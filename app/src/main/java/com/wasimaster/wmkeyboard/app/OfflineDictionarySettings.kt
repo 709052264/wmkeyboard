@@ -133,6 +133,16 @@ private fun OfflineDictionaryRow(
         WmRow(
             title = pack.name,
             supporting = { Text(subtitle) },
+            swipeActions = if (status is Status.Downloaded) {
+                listOf(
+                    deleteSwipeAction(
+                        stringResource(R.string.tooldetail_dictionary_offline_delete_desc, pack.name),
+                        onDelete,
+                    ),
+                )
+            } else {
+                emptyList()
+            },
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     when {

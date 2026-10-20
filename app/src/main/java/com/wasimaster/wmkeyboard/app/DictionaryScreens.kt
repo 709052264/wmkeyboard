@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Rule
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Remove
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Phone
@@ -366,6 +367,11 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                     } else {
                         standing
                     },
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.backup_delete_word_desc, word)) {
+                            persist { it.forget(word) }
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = { persist { it.forget(word) } }) {
                             Icon(
@@ -898,6 +904,11 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
                             LanguageRegistry.byId(id).displayName,
                         )
                     },
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.backup_delete_word_desc, word)) {
+                            scope.launch { repository.removeSuggestionBlacklistWord(word, entry.languageId) }
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             scope.launch { repository.removeSuggestionBlacklistWord(word, entry.languageId) }
@@ -1006,6 +1017,11 @@ internal fun PhoneFormatSettings(repository: SettingsRepository, settings: LiveS
                 WmRow(
                     title = format,
                     icon = Icons.Outlined.Phone,
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.phoneformats_delete_desc, format)) {
+                            scope.launch { repository.removeClipboardPhoneFormat(format) }
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             scope.launch { repository.removeClipboardPhoneFormat(format) }
@@ -1209,6 +1225,14 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                     },
                     icon = Icons.AutoMirrored.Outlined.Rule,
                     onClick = { editing = index },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            editing = index
+                        },
+                        deleteSwipeAction(stringResource(R.string.copy_rules_delete_desc, rule.pattern)) {
+                            save(rules.filterIndexed { i, _ -> i != index })
+                        },
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(
@@ -1468,6 +1492,11 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
                             R.plurals.typing_learned_corrections_times,
                             taught.count,
                             taught.count,
+                        ),
+                        swipeActions = listOf(
+                            deleteSwipeAction(
+                                stringResource(R.string.typing_learned_corrections_delete_desc, typed),
+                            ) { persist { it.forget(typed) } },
                         ),
                         trailing = {
                             IconButton(onClick = { persist { it.forget(typed) } }) {

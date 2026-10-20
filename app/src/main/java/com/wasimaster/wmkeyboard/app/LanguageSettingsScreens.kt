@@ -1470,6 +1470,15 @@ internal fun EmojiDictRow(entry: EmojiDictEntry) {
                 },
             )
         },
+        swipeActions = if (status is EmojiDictDownloadManager.DownloadStatus.Downloaded) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.languages_emoji_dict_delete_desc)) {
+                    EmojiDictDownloadManager.delete(filesDir, entry.languageId)
+                },
+            )
+        } else {
+            emptyList()
+        },
         trailing = {
             when (status) {
                 is EmojiDictDownloadManager.DownloadStatus.Downloaded ->
@@ -1626,6 +1635,15 @@ private fun CjkDictPackManager(
                 WmRow(
                     title = stringResource(pack.displayNameRes),
                     subtitle = packStatusLabel(pack, status),
+                    swipeActions = if (status == CjkDictDownloadManager.DownloadStatus.Downloaded) {
+                        listOf(
+                            deleteSwipeAction(stringResource(R.string.languages_cjk_delete_desc, packName)) {
+                                CjkDictDownloadManager.delete(filesDir, pack)
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    },
                     trailing = {
                         when (status) {
                             is CjkDictDownloadManager.DownloadStatus.Downloading ->

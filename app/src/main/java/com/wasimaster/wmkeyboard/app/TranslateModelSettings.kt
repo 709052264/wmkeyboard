@@ -227,6 +227,13 @@ private fun TranslateModelRow(
     val latest = rememberUpdatedState(state)
     WmRow(
         title = name,
+        swipeActions = if (!builtIn && state is OfflineModelState.Downloaded) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.privacy_handwriting_delete_desc, name), onDelete),
+            )
+        } else {
+            emptyList()
+        },
         subtitle = when {
             // Every model translates through English, so English is part of
             // the engine and not a thing to fetch or remove.

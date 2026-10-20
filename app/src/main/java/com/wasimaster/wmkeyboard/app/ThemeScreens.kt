@@ -4172,6 +4172,18 @@ fun ThemeEditorScreen(
                         },
                     ),
                     leading = { ImageThumb(path) },
+                    swipeActions = if (path != null) {
+                        listOf(
+                            deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
+                                update { t ->
+                                    slot.pathIn(t)?.let { File(it).delete() }
+                                    slot.withPath(t, null)
+                                }
+                            },
+                        )
+                    } else {
+                        emptyList()
+                    },
                     trailing = {
                         if (path != null) {
                             IconButton(
@@ -4240,9 +4252,18 @@ fun ThemeEditorScreen(
         info = stringResource(R.string.theme_key_override_section_body),
     ) {
         for (id in overrideIds) {
-            item {
+            item(key = id) {
                 WmRow(
                     title = keyOverrideDisplayName(id),
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            overrideEditorTitle = null
+                            overrideEditorId = id
+                        },
+                        deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
+                            update { t -> t.copy(keyOverrides = t.keyOverrides - id) }
+                        },
+                    ),
                     trailing = {
                         IconButton(
                             onClick = {
@@ -4322,10 +4343,21 @@ fun ThemeEditorScreen(
         info = stringResource(R.string.theme_decal_section_body),
     ) {
         decals.forEachIndexed { index, decal ->
-            item {
+            item(key = decal.id) {
                 WmRow(
                     title = stringResource(R.string.theme_decal_item_label, index + 1),
                     leading = { Icon(Icons.Outlined.Image, contentDescription = null) },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            decalEditorId = decal.id
+                        },
+                        deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
+                            update { t ->
+                                decal.image?.let { File(it).delete() }
+                                t.copy(decals = t.decals.filterNot { it.id == decal.id })
+                            }
+                        },
+                    ),
                     trailing = {
                         IconButton(
                             onClick = {
@@ -4926,13 +4958,21 @@ fun ThemeEditorScreen(
         }
         if (effectKind == KeyEffectKind.CUSTOM_IMAGE) {
             effectImages.forEachIndexed { index, path ->
-                item {
+                item(key = path) {
                     WmRow(
                         title = stringResource(
                             R.string.theme_effect_image_item_label,
                             index + 1,
                         ),
                         leading = { ImageThumb(path) },
+                        swipeActions = listOf(
+                            deleteSwipeAction(stringResource(CommonR.string.common_remove)) {
+                                update { t ->
+                                    File(path).delete()
+                                    t.copy(keyEffectImages = t.keyEffectImages.filterIndexed { i, _ -> i != index })
+                                }
+                            },
+                        ),
                         trailing = {
                             IconButton(
                                 onClick = {

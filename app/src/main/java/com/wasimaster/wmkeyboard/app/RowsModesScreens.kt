@@ -1468,7 +1468,7 @@ internal fun ModesSettings(
     }
     SettingsGroup(stringResource(R.string.modes_group_title)) {
         for (modeId in modeIds) {
-            item {
+            item(key = modeId) {
                 val mode = settings.watch { s -> s.keyboardModes.firstOrNull { it.id == modeId } }
                     ?: return@item
                 // The switch is the mode's own on/off (#152): off, it stays in
@@ -1496,6 +1496,12 @@ internal fun ModesSettings(
                             ),
                         )
                     },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            onNavigate(modeEditRoute(mode.id))
+                        },
+                        deleteSwipeAction(deleteModeDesc) { confirmDelete = mode },
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Switch(
@@ -2055,9 +2061,15 @@ internal fun ModeEditor(
             )
         }
         for (hint in hints) {
-            item {
+            item(key = hint) {
                 WmRow(
                     title = hint,
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.modes_hint_remove_desc)) {
+                            val mode = current()
+                            save(mode.copy(hints = mode.hints - hint))
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             val mode = current()
@@ -2092,7 +2104,7 @@ internal fun ModeEditor(
             }
         }
         for (pkg in apps) {
-            item {
+            item(key = pkg) {
                 val context = LocalContext.current
                 val label = remember(pkg) {
                     runCatching {
@@ -2106,6 +2118,12 @@ internal fun ModeEditor(
                     supporting = if (label != pkg) {
                         { Text(pkg) }
                     } else null,
+                    swipeActions = listOf(
+                        deleteSwipeAction(stringResource(R.string.modes_app_remove_desc)) {
+                            val mode = current()
+                            save(mode.copy(apps = mode.apps - pkg))
+                        },
+                    ),
                     trailing = {
                         IconButton(onClick = {
                             val mode = current()

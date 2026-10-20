@@ -829,7 +829,7 @@ internal fun VocabPacksScreen(
             item { CaptionText(stringResource(R.string.vocab_packs_installed_empty)) }
         }
         for (item in known) {
-            item {
+            item(key = item.file.absolutePath) {
                 val packId = VocabPacks.packIdOf(item.file)
                 val catalog = VocabCatalog.byId(packId)
                 HighlightableItem(packId) {
@@ -838,6 +838,11 @@ internal fun VocabPacksScreen(
                             title = item.pack.name,
                             subtitle = stringResource(R.string.vocab_pack_progress_subtitle, item.pack.words.size, item.seen, item.learnt),
                             icon = Icons.Outlined.School,
+                            swipeActions = listOf(
+                                deleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                                    confirmDelete = item
+                                },
+                            ),
                             trailing = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     IconButton(onClick = { confirmDelete = item }) {
@@ -1285,11 +1290,20 @@ internal fun VocabListEditorScreen(
             item { CaptionText(stringResource(R.string.vocab_list_words_empty)) }
         }
         for (word in current.words) {
-            item {
+            item(key = word.word) {
                 val learnt = progress.isLearnt(word.word)
                 WmRow(
                     title = word.word,
                     subtitle = word.definition.ifBlank { stringResource(R.string.vocab_word_needs_details_label) },
+                    swipeActions = listOf(
+                        SwipeAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) {
+                            adding = word
+                            showSheet = true
+                        },
+                        deleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                            save(current.copy(words = current.words.filter { it.word != word.word }))
+                        },
+                    ),
                     trailing = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             if (learnt) Icon(

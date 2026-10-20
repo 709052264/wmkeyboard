@@ -201,11 +201,11 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         )
     }
     SettingsGroup {
-        for (model in yours) item { catalogRow(model) }
+        for (model in yours) item(key = model.id) { catalogRow(model) }
         for (file in customModels.sortedByDescending {
             selectedId == LocalLlmStore.CUSTOM_PREFIX + it.name
         }) {
-            item {
+            item(key = file.name) {
                 val id = LocalLlmStore.CUSTOM_PREFIX + file.name
                 CustomModelRow(
                     file = file,
@@ -381,6 +381,16 @@ private fun CatalogModelRow(
                     )
                 }
             } else null,
+            swipeActions = if (downloaded) {
+                listOf(
+                    deleteSwipeAction(
+                        stringResource(R.string.models_delete_model_desc, model.displayName),
+                        onDelete,
+                    ),
+                )
+            } else {
+                emptyList()
+            },
             // The primary action for a row lives on its right edge, where a
             // list's actions belong — not on a button underneath it.
             trailing = {
@@ -506,6 +516,9 @@ private fun CustomModelRow(
                     )
                 }
             } else null,
+            swipeActions = listOf(
+                deleteSwipeAction(stringResource(R.string.models_delete_model_desc, file.name), onDelete),
+            ),
             trailing = {
                 IconButton(onClick = onDelete) {
                     Icon(

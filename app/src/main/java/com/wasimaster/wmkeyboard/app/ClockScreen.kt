@@ -451,18 +451,21 @@ private fun ClocksSection(zones: List<WorldZone>, hour24: Boolean) {
             item(key = z.zoneId) {
                 val tz = TimeZone.getTimeZone(z.zoneId)
                 val city = z.label.ifEmpty { IcuZoneNames().city(z.zoneId) ?: ZoneCatalog.fallbackCity(z.zoneId) }
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(city, style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "${ClockFormats.weekday(now, tz)} · ${ClockFormats.deltaLabel(ClockFormats.offsetDelta(now, tz, home))}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    Text(ClockFormats.time(now, tz, hour24), style = MaterialTheme.typography.headlineSmall.merge(Digits))
-                    IconButton(onClick = { ClockPrefs.update(context) { c -> c.copy(zones = c.zones.filterNot { it.zoneId == z.zoneId }) } }) {
-                        Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_remove_desc))
+                val remove = { ClockPrefs.update(context) { c -> c.copy(zones = c.zones.filterNot { it.zoneId == z.zoneId }) } }
+                SwipeActionsRow(listOf(deleteSwipeAction(stringResource(ImeR.string.ime_clock_remove_desc)) { remove() })) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(city, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "${ClockFormats.weekday(now, tz)} · ${ClockFormats.deltaLabel(ClockFormats.offsetDelta(now, tz, home))}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Text(ClockFormats.time(now, tz, hour24), style = MaterialTheme.typography.headlineSmall.merge(Digits))
+                        IconButton(onClick = { remove() }) {
+                            Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_remove_desc))
+                        }
                     }
                 }
             }
@@ -533,21 +536,24 @@ private fun CountdownsSection(data: ClockData) {
         for (c in data.countdowns) {
             item(key = c.id) {
                 val days = (LocalDay.of(c.target, zone).epochDay - today.epochDay).toInt()
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(c.title, style = MaterialTheme.typography.titleMedium)
-                        Text(ClockFormats.longDate(c.target, zone), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                    Text(
-                        when {
-                            days > 0 -> "${NumberFormat.getInstance().format(days)} ${pluralStringResource(ImeR.plurals.ime_clock_days_left, days)}"
-                            days < 0 -> "${NumberFormat.getInstance().format(-days)} ${pluralStringResource(ImeR.plurals.ime_clock_days_ago, -days)}"
-                            else -> stringResource(ImeR.string.ime_clock_today)
-                        },
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    IconButton(onClick = { ClockStore.get(context).update { ClockActions.removeCountdown(it, c.id) } }) {
-                        Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_delete))
+                val remove = { ClockStore.get(context).update { ClockActions.removeCountdown(it, c.id) } }
+                SwipeActionsRow(listOf(deleteSwipeAction(stringResource(ImeR.string.ime_clock_delete)) { remove() })) {
+                    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(c.title, style = MaterialTheme.typography.titleMedium)
+                            Text(ClockFormats.longDate(c.target, zone), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        Text(
+                            when {
+                                days > 0 -> "${NumberFormat.getInstance().format(days)} ${pluralStringResource(ImeR.plurals.ime_clock_days_left, days)}"
+                                days < 0 -> "${NumberFormat.getInstance().format(-days)} ${pluralStringResource(ImeR.plurals.ime_clock_days_ago, -days)}"
+                                else -> stringResource(ImeR.string.ime_clock_today)
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                        IconButton(onClick = { remove() }) {
+                            Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_clock_delete))
+                        }
                     }
                 }
             }

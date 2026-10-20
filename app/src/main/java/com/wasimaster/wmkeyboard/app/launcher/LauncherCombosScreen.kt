@@ -44,6 +44,8 @@ import com.wasimaster.wmkeyboard.app.CaptionText
 import com.wasimaster.wmkeyboard.app.LiveSettings
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.StateBanner
+import com.wasimaster.wmkeyboard.app.SwipeAction
+import com.wasimaster.wmkeyboard.app.deleteSwipeAction
 import com.wasimaster.wmkeyboard.app.WmRow
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.LauncherSplitCombo
@@ -93,7 +95,7 @@ internal fun LauncherCombosScreen(repository: SettingsRepository, settings: Live
     CaptionText(stringResource(R.string.launchercombos_caption))
     SettingsGroup {
         combos.forEachIndexed { index, combo ->
-            item {
+            item(key = combo) {
                 ComboRow(
                     combo = combo,
                     firstLabel = labels[combo.first] ?: combo.first,
@@ -150,6 +152,16 @@ private fun ComboRow(
             stringResource(R.string.launchercombos_rename_hint)
         } else {
             pairLabel
+        },
+        swipeActions = buildList {
+            add(SwipeAction(Icons.Outlined.SwapHoriz, stringResource(R.string.launchercombos_swap), onClick = onSwap))
+            if (canMoveUp) {
+                add(SwipeAction(Icons.Outlined.ArrowUpward, stringResource(R.string.launchercombos_move_up)) { onMove(-1) })
+            }
+            if (canMoveDown) {
+                add(SwipeAction(Icons.Outlined.ArrowDownward, stringResource(R.string.launchercombos_move_down)) { onMove(1) })
+            }
+            add(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete))
         },
         leading = {
             Box(Modifier.width(40.dp).height(32.dp)) {

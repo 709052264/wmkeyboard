@@ -1207,13 +1207,11 @@ private fun SnippetGroup(
             // inherit its dismissed state and disappear as well. The key also
             // lets the group close a deleted row in place, and open a new one.
             item(key = snippet.id) {
-                SwipeToDelete(onDelete = { onDelete(snippet) }) {
-                    SnippetRow(
-                        snippet,
-                        onEdit = { onOpen(snippet) },
-                        onDelete = { onDelete(snippet) },
-                    )
-                }
+                SnippetRow(
+                    snippet,
+                    onEdit = { onOpen(snippet) },
+                    onDelete = { onDelete(snippet) },
+                )
             }
         }
     }
@@ -1221,6 +1219,7 @@ private fun SnippetGroup(
 /** One snippet in the Text Expander list: what it inserts, and what fires it. */
 @Composable
 private fun SnippetRow(snippet: Snippet, onEdit: () -> Unit, onDelete: () -> Unit) {
+    val delete = deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete)
     // Snippet ids are numbers; an install records the batch it added as one
     // comma-joined list of them.
     HighlightableItem(snippet.id.toString()) {
@@ -1319,6 +1318,10 @@ private fun SnippetRow(snippet: Snippet, onEdit: () -> Unit, onDelete: () -> Uni
             // pencil button beside a row that is already the target for the
             // same thing is one target too many.
             onClick = onEdit,
+            // A long swipe deletes outright: the screen offers the snippet
+            // back from the undo bar, so it is never lost to a slip.
+            swipeActions = listOf(delete),
+            fullSwipe = delete,
             trailing = {
                 IconButton(onClick = onDelete) {
                     Icon(
@@ -2046,6 +2049,33 @@ private fun ExpansionListEditor(
         expansions.forEachIndexed { index, value ->
             val open = openIndex == index
             WmRow(
+                swipeActions = buildList {
+                    if (index > 0) {
+                        add(
+                            SwipeAction(Icons.Outlined.KeyboardArrowUp, stringResource(R.string.rows_move_up_desc)) {
+                                onChange(expansions.swapped(index, index - 1))
+                                onOpenChange(if (open) index - 1 else openIndex)
+                            },
+                        )
+                    }
+                    if (index < expansions.lastIndex) {
+                        add(
+                            SwipeAction(Icons.Outlined.KeyboardArrowDown, stringResource(R.string.rows_move_down_desc)) {
+                                onChange(expansions.swapped(index, index + 1))
+                                onOpenChange(if (open) index + 1 else openIndex)
+                            },
+                        )
+                    }
+                    // A snippet with nothing to insert is not a snippet.
+                    if (expansions.size > 1) {
+                        add(
+                            deleteSwipeAction(stringResource(CommonR.string.common_delete)) {
+                                onChange(expansions.filterIndexed { i, _ -> i != index })
+                                onOpenChange(null)
+                            },
+                        )
+                    }
+                },
                 title = value.lineSequence().firstOrNull()?.trim()?.takeIf { it.isNotEmpty() }
                     ?: stringResource(R.string.rows_snippet_expansion_empty_label),
                 supporting = if (index == 0) {

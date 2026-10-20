@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteForever
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Label
@@ -399,6 +400,15 @@ internal fun NotesListScreen(
                             if (selecting) selected = selected.toggle(note.id) else openNote(note)
                         },
                         onLongClick = { selected = selected.toggle(note.id) },
+                        onPin = { scope.launch { state.mutate { s -> s.setPinned(note.id, !note.pinned) } } },
+                        onArchive = { scope.launch { state.mutate { s -> s.setArchived(note.id, !note.archived) } } },
+                        onTrash = {
+                            scope.launch { state.mutate { s -> s.trash(note.id) } }
+                            snackbar?.undo(
+                                context.resources.getQuantityString(R.plurals.notes_trashed_count_snackbar, 1, 1),
+                                context.getString(CommonR.string.common_undo),
+                            ) { scope.launch { state.mutate { s -> s.restore(note.id) } } }
+                        },
                     )
                 }
             }
@@ -527,54 +537,82 @@ private fun NoteListRow(
     checked: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
+    onPin: () -> Unit,
+    onArchive: () -> Unit,
+    onTrash: () -> Unit,
 ) {
     val title = note.displayTitle().ifEmpty { stringResource(R.string.notes_untitled) }
-    Box(Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick)) {
-        WmRow(
-            title = title,
-            leading = if (selecting) ({ Checkbox(checked = checked, onCheckedChange = { onClick() }) }) else null,
-            trailing = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (note.pinned) Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.notes_pinned_desc), modifier = Modifier.size(16.dp))
-                    if (note.locked) Icon(Icons.Outlined.Lock, contentDescription = stringResource(R.string.notes_locked_desc), modifier = Modifier.size(16.dp))
-                }
-            },
-            trailingOnTitleLine = true,
-            supporting = {
-                Column {
-                    val preview = if (note.locked) stringResource(R.string.notes_locked_preview) else note.previewBody()
-                    if (preview.isNotBlank()) {
-                        Text(
-                            preview,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+    // The same three things the selection bar does to many notes, for one.
+    // A long swipe trashes outright: the trash keeps the note, and the undo
+    // bar puts it back where it was.
+    val trash = deleteSwipeAction(stringResource(R.string.notes_trash_action), onTrash)
+    SwipeActionsRow(
+        actions = listOf(
+            SwipeAction(
+                Icons.Outlined.PushPin,
+                stringResource(if (note.pinned) R.string.notes_unpin_action else R.string.notes_pin_action),
+                SwipeTone.ACCENT,
+                onPin,
+            ),
+            SwipeAction(
+                Icons.Outlined.Inventory2,
+                stringResource(if (note.archived) R.string.notes_unarchive_action else R.string.notes_archive_action),
+                onClick = onArchive,
+            ),
+            trash,
+        ),
+        fullSwipe = trash,
+        // While picking notes the row is a checkbox, and a swipe is one more
+        // thing a finger meant for the next tick could set off.
+        enabled = !selecting,
+    ) {
+        Box(Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick)) {
+            WmRow(
+                title = title,
+                leading = if (selecting) ({ Checkbox(checked = checked, onCheckedChange = { onClick() }) }) else null,
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (note.pinned) Icon(Icons.Outlined.PushPin, contentDescription = stringResource(R.string.notes_pinned_desc), modifier = Modifier.size(16.dp))
+                        if (note.locked) Icon(Icons.Outlined.Lock, contentDescription = stringResource(R.string.notes_locked_desc), modifier = Modifier.size(16.dp))
                     }
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                        Text(
-                            relativeTime(note.updatedAt),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        if (note.tags.isNotEmpty()) {
-                            Spacer(Modifier.width(8.dp))
-                            FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                for (tag in note.tags) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        TagSwatch(tagColours[tag.lowercase(Locale.ROOT)] ?: 0, 8.dp)
-                                        Spacer(Modifier.width(3.dp))
-                                        Text(tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                trailingOnTitleLine = true,
+                supporting = {
+                    Column {
+                        val preview = if (note.locked) stringResource(R.string.notes_locked_preview) else note.previewBody()
+                        if (preview.isNotBlank()) {
+                            Text(
+                                preview,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
+                            Text(
+                                relativeTime(note.updatedAt),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            if (note.tags.isNotEmpty()) {
+                                Spacer(Modifier.width(8.dp))
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    for (tag in note.tags) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            TagSwatch(tagColours[tag.lowercase(Locale.ROOT)] ?: 0, 8.dp)
+                                            Spacer(Modifier.width(3.dp))
+                                            Text(tag, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-            },
-            onClick = null,
-        )
+                },
+                onClick = null,
+            )
+        }
     }
 }
 
@@ -749,6 +787,13 @@ internal fun NoteTagsScreen(settings: LiveSettings) {
                         title = tag.name,
                         subtitle = pluralStringResource(R.plurals.notes_tag_count, count, count),
                         leading = { TagSwatch(tag.colour, 14.dp) },
+                        swipeActions = listOf(
+                            SwipeAction(
+                                Icons.Outlined.Edit,
+                                stringResource(R.string.notes_tag_rename_action),
+                            ) { renaming = tag },
+                            deleteSwipeAction(stringResource(R.string.notes_tag_remove_action)) { removing = tag },
+                        ),
                         trailing = {
                             Box {
                                 IconButton(onClick = { menu = true }) { Icon(Icons.Outlined.MoreVert, contentDescription = null) }
@@ -879,6 +924,24 @@ internal fun NotesTrashScreen(settings: LiveSettings) {
                     WmRow(
                         title = note.displayTitle().ifEmpty { stringResource(R.string.notes_untitled) },
                         subtitle = stringResource(R.string.notes_trashed_ago, relativeTime(note.deletedAt ?: note.updatedAt)),
+                        swipeActions = listOf(
+                            SwipeAction(
+                                Icons.Outlined.Restore,
+                                stringResource(R.string.notes_restore_action),
+                                SwipeTone.ACCENT,
+                            ) {
+                                scope.launch { state.mutate { s -> s.restore(note.id) } }
+                                snackbar?.undo(
+                                    context.getString(R.string.notes_restored_snackbar, note.displayTitle()),
+                                    context.getString(CommonR.string.common_undo),
+                                ) { scope.launch { state.mutate { s -> s.trash(note.id) } } }
+                            },
+                            SwipeAction(
+                                Icons.Outlined.DeleteForever,
+                                stringResource(R.string.notes_delete_forever_action),
+                                SwipeTone.DESTRUCTIVE,
+                            ) { deleting = note },
+                        ),
                         trailing = {
                             Row {
                                 IconButton(onClick = {

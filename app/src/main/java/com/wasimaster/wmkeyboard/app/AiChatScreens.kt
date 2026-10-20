@@ -238,6 +238,7 @@ private fun ConversationRow(
         },
         modifier = modifier,
         subtitle = DateUtils.getRelativeTimeSpanString(conversation.updatedAt).toString(),
+        swipeActions = listOf(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete)),
         trailing = {
             IconButton(onClick = onDelete) {
                 Icon(
