@@ -2036,6 +2036,7 @@ private fun PhoneticStripGroup(
         it.suggestionStrip.phoneticCandidateListFor(langId) != PhoneticCandidateList.OFF
     }
     val neuralOn = settings.watch { it.suggestionStrip.neuralPhoneticFor(langId) }
+    val neuralLeads = settings.watch { langId in it.suggestionStrip.neuralLeadsLangs }
     SettingsGroup(stringResource(R.string.languages_phonetic_strip_title)) {
         item {
             ToggleSetting(
@@ -2121,6 +2122,18 @@ private fun PhoneticStripGroup(
                 }
             }
             item(visible = neuralOn) { NeuralPhoneticModelRow(settings) }
+            // Only where it measured worth the swap it makes (IndicXlitModels.LEADS).
+            if (IndicXlitModels.canLead(langId)) {
+                item(visible = neuralOn) {
+                    ToggleSetting(
+                        R.string.languages_neural_leads_title,
+                        stringResource(R.string.languages_neural_leads_subtitle),
+                        neuralLeads,
+                        info = stringResource(R.string.languages_neural_leads_info, languageName),
+                        default = langId in SettingsDefaults.suggestionStrip.neuralLeadsLangs,
+                    ) { scope.launch { repository.setNeuralLeads(langId, it) } }
+                }
+            }
         }
     }
 }

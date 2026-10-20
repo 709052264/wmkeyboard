@@ -1006,6 +1006,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         row(R.string.languages_phonetic_candidates_title, R.string.languages_phonetic_candidates_subtitle),
         // The subtitle is a format string (the download size); the title carries the search.
         row(R.string.languages_neural_phonetic_title),
+        row(R.string.languages_neural_leads_title, R.string.languages_neural_leads_subtitle),
         row(R.string.languages_phonetic_guide_title),
         row(R.string.languages_ansi_allowed_title, R.string.languages_ansi_allowed_subtitle),
         row(R.string.languages_ansi_version_title, R.string.languages_ansi_version_subtitle),

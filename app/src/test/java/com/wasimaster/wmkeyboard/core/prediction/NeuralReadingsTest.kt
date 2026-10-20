@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
 
-/** Where IndicXlit's readings join a phonetic strip: after the committed reading, never before it. */
+/** Where IndicXlit's readings join a phonetic strip: after the committed reading, or before an unknown one when leading. */
 class NeuralReadingsTest {
 
     private val bangla = { w: String -> w.isNotEmpty() && w.all { it in 'ঀ'..'৿' } }
@@ -59,5 +59,39 @@ class NeuralReadingsTest {
     @Test
     fun anEmptyStripTakesTheReadings() {
         assertEquals(listOf("আমি"), merge(emptyList(), listOf("আমি")))
+    }
+
+    private fun lead(strip: List<String>, readings: List<String>) =
+        NeuralReadings.merge(strip, readings, bangla, { it in listed }, lead = true)
+
+    @Test
+    fun leadingPutsTheListedReadingFirstAndTheRulesReadingSecond() {
+        val merged = lead(listOf("ভালবাসী", "ভালবাস"), listOf("ভালোবাসী", "ভালোবাসি"))
+        assertEquals(listOf("ভালোবাসি", "ভালবাসী", "ভালোবাসী", "ভালবাস"), merged)
+    }
+
+    @Test
+    fun aListedHeadIsNeverLedOver() {
+        val merged = lead(listOf("আম", "আমী"), listOf("আমি"))
+        assertEquals(listOf("আম", "আমি", "আমী"), merged)
+    }
+
+    @Test
+    fun noListedReadingLeavesTheHeadFirst() {
+        val merged = lead(listOf("ভালবাসী"), listOf("ভালোবাসী"))
+        assertEquals(listOf("ভালবাসী", "ভালোবাসী"), merged)
+    }
+
+    @Test
+    fun anEnglishHeadIsNotLedOver() {
+        val merged = lead(listOf("hello", "হেল্লো"), listOf("আমি"))
+        assertEquals(listOf("hello", "হেল্লো", "আমি"), merged)
+    }
+
+    @Test
+    fun leaderAnswersTheCommitPathTheSameWay() {
+        assertEquals("আমি", NeuralReadings.leader("আমী", listOf("আমী", "অমি", "আমি")) { it in listed })
+        assertEquals(null, NeuralReadings.leader("আম", listOf("আমি")) { it in listed })
+        assertEquals(null, NeuralReadings.leader("আমী", listOf("অমি")) { it in listed })
     }
 }

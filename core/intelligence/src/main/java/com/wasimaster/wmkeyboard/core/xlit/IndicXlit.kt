@@ -45,6 +45,9 @@ class IndicXlit(context: Context) {
     @Volatile
     private var pending: Future<List<String>>? = null
 
+    @Volatile
+    private var pendingKey: String? = null
+
     /**
      * Starts reading [roman] for [languageId] (which must be one of
      * [IndicXlitModels.LANGUAGES]); the answer is the readings best first.
@@ -53,12 +56,16 @@ class IndicXlit(context: Context) {
     fun request(languageId: String, roman: String): Future<List<String>> {
         val key = "$languageId\u0000$roman"
         cache.get(key)?.let { return CompletableFuture.completedFuture(it) }
+        // The same word asked again while it is still running (the space bar
+        // waiting on the strip's request): that one, rather than starting over.
+        pending?.takeIf { pendingKey == key && !it.isCancelled }?.let { return it }
         pending?.cancel(false)
         val future = worker.submit<List<String>> {
             // Not cached when the model could not run: it may be here for the next word.
             run(languageId, roman)?.also { cache.put(key, it) }.orEmpty()
         }
         pending = future
+        pendingKey = key
         return future
     }
 

@@ -16407,7 +16407,8 @@ open class WMKeyboardService : InputMethodService() {
                     scriptAlternate = commit?.alternate
                     commit?.output
                 } ?: state.composer.composeBuffer(typed)
-                if (isLatinOnPhonetic(top, state)) sentenceCasedLatin(top, typed, state) else top
+                val led = neuralCommit(state, language, typed, top) ?: top
+                if (isLatinOnPhonetic(led, state)) sentenceCasedLatin(led, typed, state) else led
             }
             // Vietnamese commits a composed Vietnamese word, and a word list
             // knows more about that word than the composer does: the spelling
@@ -20832,6 +20833,37 @@ open class WMKeyboardService : InputMethodService() {
         return lang to xlit.request(lang, typed)
     }
 
+    /**
+     * Whether IndicXlit may choose [lang]'s space-bar word (Neural suggestions
+     * lead, on the language's page). Not on a fixed strip, whose head is the
+     * buffer in Latin letters, nor with desktop Avro's candidate row drawn,
+     * whose first word the space bar would then disagree with.
+     */
+    private fun neuralLeads(state: KeyboardUiState, lang: String): Boolean {
+        val strip = state.settings.suggestionStrip
+        return strip.neuralLeadsFor(lang) && IndicXlitModels.canLead(lang) &&
+            suggestionEngine?.phoneticFixedStrip == null &&
+            strip.phoneticCandidateListFor(lang) != PhoneticCandidateList.BAR
+    }
+
+    /**
+     * The model's word for a space that would write [top], or null to keep it.
+     * The strip normally has the answer already and led with it, and then this
+     * agrees with it. A space that comes first, before the strip was drawn
+     * with the answer, waits [NEURAL_COMMIT_WAIT_MS] at most for the request
+     * that is running, so how fast the word was typed does not change what it
+     * becomes. Only asked when it could matter: a native head that is not a
+     * known word, with no spelling map entry.
+     */
+    private fun neuralCommit(state: KeyboardUiState, lang: String, typed: String, top: String): String? {
+        if (typed.isEmpty() || !state.allowsTypingIntelligence || !neuralLeads(state, lang)) return null
+        val engine = suggestionEngine ?: return null
+        return engine.neuralCommit(lang, typed, top) {
+            val xlit = indicXlit ?: IndicXlit(applicationContext).also { indicXlit = it }
+            xlit.await(xlit.request(lang, typed), NEURAL_COMMIT_WAIT_MS)
+        }
+    }
+
     /** Indexes what [panel] searches, in the background. A no-op unless search by meaning is ready. */
     private fun indexMeaningFor(panel: PanelMode) {
         if (!userUnlocked || !meaningSearch.enabled) return
@@ -21982,7 +22014,7 @@ open class WMKeyboardService : InputMethodService() {
                             if (ask.isDone && !ask.isCancelled && composing.toString() == typed) refreshSuggestions()
                         }
                     }
-                    engine.withNeuralReadings(lang, walked, readings)
+                    engine.withNeuralReadings(lang, walked, readings, typed, lead = neuralLeads(state, lang))
                 }
                 val deep = deepAll.take(askFor)
                 state.composer.phoneticLanguage?.let { lang ->
@@ -47736,6 +47768,9 @@ open class WMKeyboardService : InputMethodService() {
          * mostly time the pass spends anyway.
          */
         private const val NEURAL_BUDGET_MS = 50L
+
+        /** How long a space waits for the model's answer it would commit; see [neuralCommit]. */
+        private const val NEURAL_COMMIT_WAIT_MS = 30L
 
         /** How long a late IndicXlit answer is still waited for, to draw the strip again. */
         private const val NEURAL_LATE_MS = 1_000L

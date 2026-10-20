@@ -67,6 +67,17 @@ object IndicXlitModels {
 
     fun supports(languageId: String): Boolean = languageId in BLOCKS
 
+    /**
+     * The languages where the model may also choose the space bar's word when
+     * the rules' reading is not a known word. Measured with the spelling map on
+     * (top-1, Aksharantar test words): Bengali 25.0% to 56.4%, Hindi 40.9% to
+     * 48.6%, and chat spellings the map lacks 41.8% to 52.8% and 78.2% to 80.1%.
+     * Urdu gained one point (29.1% to 30.1%), not worth what the swap costs.
+     */
+    val LEADS: Set<String> = setOf("bn", "hi")
+
+    fun canLead(languageId: String): Boolean = languageId in LEADS
+
     /** Whether [c] may be in a reading for [languageId]: its block, or a joiner. */
     fun writes(languageId: String, c: Char): Boolean =
         c == '‌' || c == '‍' || BLOCKS[languageId].orEmpty().any { c.code in it }

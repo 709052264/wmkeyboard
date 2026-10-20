@@ -9017,6 +9017,16 @@ data class SuggestionStripSettings(
      */
     val neuralPhoneticLangs: Set<String> = emptySet(),
     /**
+     * Phonetic languages, of those with [neuralPhoneticLangs] on, where
+     * IndicXlit may also choose what the space bar commits, but only when the
+     * rules' reading is not a word the keyboard knows and the spelling map has
+     * no entry for the spelling. The model's best reading that is in the word
+     * list then leads the strip, and the rules' reading sits right behind it.
+     * Off by default: it means a correct Avro spelling of a word the list
+     * lacks, such as a name, can be swapped for a listed lookalike.
+     */
+    val neuralLeadsLangs: Set<String> = emptySet(),
+    /**
      * Languages whose Khipro layouts leave out the strip's chip of the keys
      * exactly as pressed (#772), modifiers and all (`prshn/` beside প্রশ্ন).
      * Khipro's `f` and `/` change what came before them, so the chip is how
@@ -9182,6 +9192,9 @@ data class SuggestionStripSettings(
 
     /** Whether [langId]'s phonetic strip offers IndicXlit's readings. */
     fun neuralPhoneticFor(langId: String): Boolean = langId in neuralPhoneticLangs
+
+    /** Whether IndicXlit may choose [langId]'s space-bar word; see [neuralLeadsLangs]. */
+    fun neuralLeadsFor(langId: String): Boolean = neuralPhoneticFor(langId) && langId in neuralLeadsLangs
 
     /** Whether [langId]'s phonetic layout ranks its readings by the words before them. */
     fun phoneticContextEnabledFor(langId: String): Boolean = langId !in phoneticContextOffLangs
@@ -9779,6 +9792,7 @@ class SettingsRepository(private val context: Context) {
         private val PHONETIC_SIBLINGS_OFF_LANGS = stringSetPreferencesKey("phonetic_siblings_off_langs")
         private val PHONETIC_CONTEXT_OFF_LANGS = stringSetPreferencesKey("phonetic_context_off_langs")
         private val NEURAL_PHONETIC_LANGS = stringSetPreferencesKey("neural_phonetic_langs")
+        private val NEURAL_LEADS_LANGS = stringSetPreferencesKey("neural_leads_langs")
         private val RAW_KEYS_CHIP_OFF_LANGS = stringSetPreferencesKey("raw_keys_chip_off_langs")
         private val IMPORTED_ONLY_LANGS = stringSetPreferencesKey("imported_only_langs")
         private val WORD_PAIRS_OFF_LANGS = stringSetPreferencesKey("word_pairs_off_langs")
@@ -12175,6 +12189,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.phoneticContextOffLangs,
             neuralPhoneticLangs = p[NEURAL_PHONETIC_LANGS]
                 ?: defaults.suggestionStrip.neuralPhoneticLangs,
+            neuralLeadsLangs = p[NEURAL_LEADS_LANGS]
+                ?: defaults.suggestionStrip.neuralLeadsLangs,
             rawKeysChipOffLangs = p[RAW_KEYS_CHIP_OFF_LANGS]
                 ?: defaults.suggestionStrip.rawKeysChipOffLangs,
             importedOnlyLangs = p[IMPORTED_ONLY_LANGS]
@@ -17963,6 +17979,13 @@ class SettingsRepository(private val context: Context) {
         editPrefs {
             val on = it[NEURAL_PHONETIC_LANGS].orEmpty()
             it[NEURAL_PHONETIC_LANGS] = if (enabled) on + langId else on - langId
+        }
+
+    /** Let IndicXlit choose one phonetic language's space-bar word, or not; see [SuggestionStripSettings.neuralLeadsLangs]. */
+    suspend fun setNeuralLeads(langId: String, enabled: Boolean) =
+        editPrefs {
+            val on = it[NEURAL_LEADS_LANGS].orEmpty()
+            it[NEURAL_LEADS_LANGS] = if (enabled) on + langId else on - langId
         }
 
     /**
