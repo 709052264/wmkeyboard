@@ -279,6 +279,8 @@ class DuetBeam(
             ws.sampleX[i * MS + n - 1], ws.sampleY[i * MS + n - 1], keys, ws.endKey, i * kc,
             tuning.endRadiusSq,
         )
+        anchorSlack(i, 0, tuning.startSlack, ws.startKey, keys, ws)
+        anchorSlack(i, n - 1, tuning.endSlack, ws.endKey, keys, ws)
         findLoops(i, path, keys, keyWidth, ws)
         return true
     }
@@ -357,6 +359,38 @@ class DuetBeam(
             ws.sampleT[offset + out] = last.t
             out++
         }
+    }
+
+    /**
+     * [GlideBeam]'s anchor slack on swipe [i]'s sample [j]: the location cost
+     * there on the distance past [slack], and every key [mask] admits walkable
+     * whether or not the swipe passes near it (issue #805). A no-op at zero.
+     */
+    @Suppress("LongParameterList")
+    private fun anchorSlack(i: Int, j: Int, slack: Float, mask: BooleanArray, keys: GlideKeyMap, ws: DuetWorkspace) {
+        if (slack <= 0f) return
+        val kc = keys.keyCount
+        val base = (i * MS + j) * kc
+        val invTwoSigmaSq = tuning.invTwoSigmaSq
+        val maxPointCost = tuning.maxPointCost
+        for (k in 0 until kc) {
+            val dx = ws.sampleX[i * MS + j] - keys.keyX[k]
+            val dy = ws.sampleY[i * MS + j] - keys.keyY[k]
+            val past = sqrt(dx * dx + dy * dy) - slack
+            val scaled = if (past > 0f) past * past * invTwoSigmaSq else 0f
+            ws.cost[base + k] = if (scaled > maxPointCost) maxPointCost else scaled
+            if (mask[i * kc + k]) ws.near[i * kc + k] = true
+        }
+    }
+
+    /** [GlideBeam]'s anchor lead: how much travel between swipe [tok]'s sample [j] and [key] the gap term forgives. */
+    @Suppress("LongParameterList")
+    private fun anchorLead(tok: Int, j: Int, key: Int, slack: Float, keys: GlideKeyMap, ws: DuetWorkspace): Float {
+        if (slack <= 0f || key < 0) return 0f
+        val dx = ws.sampleX[tok * MS + j] - keys.keyX[key]
+        val dy = ws.sampleY[tok * MS + j] - keys.keyY[key]
+        val d = sqrt(dx * dx + dy * dy)
+        return if (d < slack) d else slack
     }
 
     @Suppress("LongParameterList")
@@ -677,17 +711,23 @@ class DuetBeam(
         val out = slot * MS
         val first = maxOf(1, ws.scratchMin[slot])
         for (j in 0 until minOf(first, n)) ws.scratch[out + j] = UNREACHABLE
+        // Sample 0 holds only a first letter and only a last finishes on n - 1,
+        // so these ease the lead-in and the tail and nothing else.
+        val lead = anchorLead(tok, 0, prevKey, tuning.startSlack, keys, ws)
+        val tail = anchorLead(tok, n - 1, key, tuning.endSlack, keys, ws)
         var best = UNREACHABLE
         for (j in first until n) {
             val from = maxOf(0, j - hi)
             val to = j - lo
+            val easeJ = if (j == n - 1) tail else 0f
             var bestPrev = UNREACHABLE
             var i = from
             while (i <= to) {
                 val at = ws.cols[prev + i]
                 if (at < UNREACHABLE) {
                     val gap = (j - i) * step - span
-                    val v = at + tuning.gapWeight * (if (gap < 0f) -gap else gap)
+                    val over = (if (gap < 0f) -gap else gap) - (if (i == 0) lead + easeJ else easeJ)
+                    val v = at + (if (over > 0f) tuning.gapWeight * over else 0f)
                     if (v < bestPrev) bestPrev = v
                 }
                 i++
