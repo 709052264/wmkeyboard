@@ -57,6 +57,15 @@ internal object SettingsAssistantSession {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var job: Job? = null
+
+    /**
+     * The run that is current (#819), the way the AI chat retires one: bumped
+     * by every [send], [stop] and [clear], and a run whose number is no longer
+     * this one is over. Cancelling [job] alone stops nothing, since the
+     * provider call and the native generate block without looking at it.
+     */
+    @Volatile
+    private var runSeq = 0
     private var nextId = 0
     private val sessionId = UUID.randomUUID().toString()
 
@@ -145,10 +154,14 @@ internal object SettingsAssistantSession {
         }
         _busy.value = true
         _partial.value = ""
+        val seq = ++runSeq
         job = scope.launch {
             val answer = runCatching {
-                withContext(Dispatchers.IO) { run(app, choice, settings, index) }
+                withContext(Dispatchers.IO) { run(app, choice, settings, index, seq) }
             }
+            // A stopped or cleared run says nothing more, and leaves the busy
+            // state to the run that replaced it.
+            if (seq != runSeq) return@launch
             _busy.value = false
             _partial.value = ""
             answer.exceptionOrNull()?.let { if (it is CancellationException) return@launch }
@@ -161,6 +174,7 @@ internal object SettingsAssistantSession {
     }
 
     fun stop() {
+        runSeq++
         job?.cancel()
         job = null
         _busy.value = false
@@ -211,13 +225,18 @@ internal object SettingsAssistantSession {
         choice: ModelChoice,
         settings: () -> KeyboardSettings,
         index: List<SettingsSearchEntry>,
+        seq: Int,
     ): String {
+        val live = { seq == runSeq }
         val tools = AssistantTools(
             index = index,
             settings = settings,
             refs = refs,
             host = object : AssistantTools.Host {
                 override fun show(entry: SettingsSearchEntry) {
+                    // A stopped run puts no card in the chat, least of all one
+                    // the user has just cleared.
+                    if (!live()) return
                     // Once per question: a model that shows the same row twice
                     // in one answer should not stack two cards.
                     val sinceAsked = _items.value.takeLastWhile { it !is Item.User }
@@ -226,6 +245,7 @@ internal object SettingsAssistantSession {
                 }
 
                 override fun propose(setting: AssistantSetting, from: String, to: String): Int {
+                    if (!live()) return -1
                     var made = 0
                     add { id ->
                         made = id
@@ -242,7 +262,7 @@ internal object SettingsAssistantSession {
                 is Item.Change, is Item.Setting -> null
             }
         }.takeLast(MAX_TURNS)
-        if (choice.provider == AiProvider.ON_DEVICE) return runOnDevice(context, choice, settings(), tools, turns)
+        if (choice.provider == AiProvider.ON_DEVICE) return runOnDevice(context, choice, settings(), tools, turns, live)
         val current = settings()
         val chosen = current.aiThrough(choice.rowKey) ?: current.ai.copy(provider = choice.provider)
         val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT, sessionId = sessionId)
@@ -255,8 +275,8 @@ internal object SettingsAssistantSession {
             executor = tools,
             maxRounds = MAX_ROUNDS,
             onPhase = {},
-            onPartial = { partial -> _partial.value = AiThinking.stripped(partial) },
-            isActive = { job?.isActive != false },
+            onPartial = { partial -> if (live()) _partial.value = AiThinking.stripped(partial) },
+            isActive = live,
         )
         return AiThinking.stripped(completion.text)
     }
@@ -276,8 +296,9 @@ internal object SettingsAssistantSession {
      *
      * Each round is one stateless [LocalLlmEngine.generate] over the folded
      * conversation, so no native session outlives the answer. A stop retires
-     * the loop at the next round; the round already running finishes in the
-     * background, as a blocking native call has to.
+     * the loop at the next round ([live] turns false); the round already
+     * running finishes in the background, as a blocking native call has to,
+     * and its text and cards go nowhere.
      */
     private fun runOnDevice(
         context: Context,
@@ -285,6 +306,7 @@ internal object SettingsAssistantSession {
         current: KeyboardSettings,
         tools: AssistantTools,
         turns: List<AiClient.ChatTurn>,
+        live: () -> Boolean,
     ): String {
         val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
             ?: throw IOException(context.getString(com.wasimaster.wmkeyboard.ime.R.string.ime_ai_chat_error_no_model))
@@ -305,8 +327,8 @@ internal object SettingsAssistantSession {
             native = false,
             executor = tools,
             maxRounds = LOCAL_ROUNDS,
-            onPartial = { partial -> _partial.value = AiThinking.stripped(partial) },
-            isActive = { job?.isActive != false },
+            onPartial = { partial -> if (live()) _partial.value = AiThinking.stripped(partial) },
+            isActive = live,
         ) { roundSystem, roundTurns, _, roundPartial ->
             AiClient.Completion(
                 LocalLlmEngine.generate(
@@ -323,7 +345,7 @@ internal object SettingsAssistantSession {
         val answer = AiThinking.stripped(completion.text)
         val pointed = SettingRefs.LINK_SCHEME in answer ||
             _items.value.drop(before).any { it is Item.Setting || it is Item.Change }
-        if (!pointed) hits.firstOrNull()?.let { best -> add { Item.Setting(it, best.key) } }
+        if (!pointed && live()) hits.firstOrNull()?.let { best -> add { Item.Setting(it, best.key) } }
         return answer
     }
 
