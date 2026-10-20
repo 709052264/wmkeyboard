@@ -37,6 +37,7 @@ val ownSpecs = mapOf(
     "libwmwhistle.so" to Own("speech", true),
     "libwmdenoise.so" to Own("speech", false),
     "libwmsherpa.so" to Own("onnx", false),
+    "libwmxlit.so" to Own("onnx", false),
     "libharper_jni.so" to Own("grammar", false),
     "libwmhunspell.so" to Own("spell", false),
     "libwmtess.so" to Own("ocr", true),

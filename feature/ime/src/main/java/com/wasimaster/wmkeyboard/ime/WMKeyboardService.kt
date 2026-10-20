@@ -126,6 +126,8 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipCopyRules
 import com.wasimaster.wmkeyboard.core.clipboard.ClipPlainLetters
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlit
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import com.wasimaster.wmkeyboard.core.semantic.MeaningSync
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningHits
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningSearch
@@ -4794,6 +4796,7 @@ open class WMKeyboardService : InputMethodService() {
                 syncPhoneticFixedStrip(settings, activeSpec)
                 syncPhoneticCandidateLists(settings)
                 syncAnsiOutput(settings, activeSpec)
+                if (settings.suggestionStrip.neuralPhoneticLangs.isEmpty()) indicXlit?.release()
                 glideSourcesEpoch.update { it + 1 }
             }
         }
@@ -8414,6 +8417,8 @@ open class WMKeyboardService : InputMethodService() {
         // Hunspell's dictionaries are native memory the process keeps otherwise.
         hunspellChecker?.second?.close()
         hunspellChecker = null
+        indicXlit?.shutdown()
+        indicXlit = null
         pluginRuntime?.shutdown()
         pluginRuntime = null
         vocabSpeaker?.shutdown()
@@ -20721,6 +20726,26 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val meaningSearch by lazy { MeaningSearch(applicationContext, serviceScope) }
 
+    /**
+     * IndicXlit, for the phonetic languages whose strip offers its readings
+     * (Neural suggestions on the language's page). Made the first time one
+     * asks; with the model or ONNX Runtime absent it answers nothing.
+     */
+    private var indicXlit: IndicXlit? = null
+
+    /**
+     * Starts IndicXlit on [typed] when the layout's language has neural
+     * suggestions on, or null. Started before the pass's own walk so the two
+     * run side by side; [NEURAL_BUDGET_MS] is how long the pass then waits.
+     */
+    private fun requestNeuralReadings(state: KeyboardUiState, typed: String): Pair<String, java.util.concurrent.Future<List<String>>>? {
+        val lang = state.composer.phoneticLanguage ?: return null
+        if (typed.isEmpty() || !state.allowsTypingIntelligence) return null
+        if (!state.settings.suggestionStrip.neuralPhoneticFor(lang) || !IndicXlitModels.supports(lang)) return null
+        val xlit = indicXlit ?: IndicXlit(applicationContext).also { indicXlit = it }
+        return lang to xlit.request(lang, typed)
+    }
+
     /** Indexes what [panel] searches, in the background. A no-op unless search by meaning is ready. */
     private fun indexMeaningFor(panel: PanelMode) {
         if (!userUnlocked || !meaningSearch.enabled) return
@@ -21835,6 +21860,9 @@ open class WMKeyboardService : InputMethodService() {
             // Desktop Avro's candidate list, for the row above the strip when
             // the language is set to draw it there.
             var candidateBar = emptyList<String>()
+            // IndicXlit's readings, when the language has them on: asked now,
+            // read after the walk, so the two overlap.
+            val neural = if (state.composer.completionLanguage == null) requestNeuralReadings(state, typed) else null
             val (results, emojis, bias, floating) = withContext(suggestionDispatcher) {
                 // A layout whose keys already spell the word (Khipro) is
                 // completed from what they spelled, not from the roman keys;
@@ -21855,6 +21883,20 @@ open class WMKeyboardService : InputMethodService() {
                         phoneticSlots = state.settings.suggestionStrip.slotCount,
                         completionLanguage = completing,
                     )
+                }.let { walked ->
+                    val (lang, ask) = neural ?: return@let walked
+                    val waited = SystemClock.uptimeMillis() - started
+                    val readings = indicXlit?.await(ask, NEURAL_BUDGET_MS - waited).orEmpty()
+                    // Too slow for this pass: the answer is cached when it
+                    // comes, and the strip is drawn again for it if the word
+                    // is still the one being typed.
+                    if (!ask.isDone) {
+                        serviceScope.launch {
+                            withContext(Dispatchers.IO) { indicXlit?.await(ask, NEURAL_LATE_MS) }
+                            if (ask.isDone && !ask.isCancelled && composing.toString() == typed) refreshSuggestions()
+                        }
+                    }
+                    engine.withNeuralReadings(lang, walked, readings)
                 }
                 val deep = deepAll.take(askFor)
                 state.composer.phoneticLanguage?.let { lang ->
@@ -47584,6 +47626,16 @@ open class WMKeyboardService : InputMethodService() {
          * at all, which is what made #313 possible.
          */
         private const val MAX_SUGGESTION_DEBOUNCE_MS = 120L
+
+        /**
+         * How long a suggestion pass waits for IndicXlit, counted from the
+         * pass's start. The model runs beside the pass's own walk, so this is
+         * mostly time the pass spends anyway.
+         */
+        private const val NEURAL_BUDGET_MS = 50L
+
+        /** How long a late IndicXlit answer is still waited for, to draw the strip again. */
+        private const val NEURAL_LATE_MS = 1_000L
 
         /** Longest a commit waits on a correction already being worked out; see awaitCommitResolution. */
         private const val COMMIT_RESOLUTION_WAIT_MS = 100L

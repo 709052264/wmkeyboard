@@ -1,0 +1,30 @@
+IndicXlit
+=========
+
+Neural suggestions on the Indic phonetic layouts run IndicXlit v1.0 (English
+to Indic), the transliteration model AI4Bharat trained on the Aksharantar
+corpus: https://github.com/AI4Bharat/IndicXlit. The keyboard downloads its
+weights, exported to ONNX and quantised to int8 without other change, from the
+wmkeyboard-data repository (scripts/export_indicxlit.py there). Licence:
+
+MIT License
+
+Copyright (c) 2022 AI4Bhārat
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
