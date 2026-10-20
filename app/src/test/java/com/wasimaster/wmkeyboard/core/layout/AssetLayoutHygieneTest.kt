@@ -158,6 +158,15 @@ class AssetLayoutHygieneTest {
         // it offers a single Enets board for both Enets languages.
         setOf("abq_cyrillic", "agx_cyrillic", "rut_cyrillic", "tab_cyrillic", "tkr_cyrillic"),
         setOf("enf_cyrillic", "enh_cyrillic"),
+        // Tatoeba languages (CorpusLanguages) are built from their script's
+        // template plus the letters their corpus uses; where it uses none the
+        // template lacks, the grid is the template's.
+        setOf("acm", "afb", "ajp", "apc", "ar_letters", "ayl"),
+        setOf("awa", "gbm"),
+        setOf("bfz", "pi"),
+        setOf("he_si1452", "jpa", "oar", "tmr"),
+        setOf("jdt", "krc", "kum", "nog"),
+        setOf("th_kedmanee", "tts"),
     )
 
     @Test
