@@ -98,6 +98,8 @@ if (playStoreChannel) {
     // Tesseract's: no code, only the .so files :core:voice and
     // :core:intelligence leave out of the base APK on this channel.
     include(":feature:speech")
+    // ONNX Runtime and the sherpa-onnx bridge behind Offline Sherpa, the same way.
+    include(":feature:onnx")
     include(":feature:grammar")
     include(":feature:ocr")
     // The Qualcomm NPU runtime behind Compute = NPU, assets only, unless

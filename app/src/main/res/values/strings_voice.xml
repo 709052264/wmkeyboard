@@ -32,6 +32,7 @@
     <string name="voice_engine_parakeet_desc">25 European languages on your device, told apart by the model. A large model for recent phones. Each phrase arrives after you stop</string>
     <string name="voice_engine_moonshine">Offline Moonshine</string>
     <string name="voice_engine_moonshine_desc">A small, quick English model on your device. Each phrase arrives after you stop. Other languages use the system recognizer</string>
+    <string name="voice_engine_sherpa">Offline Sherpa</string>
     <string name="voice_engine_server">Transcription server</string>
     <string name="voice_engine_server_desc">Sends each phrase to a server you run, which saves battery. Each phrase arrives after you stop</string>
     <string name="voice_dictation_group">Dictation</string>
@@ -69,6 +70,9 @@
     <string name="voice_punctuation_subtitle">Say \"comma\", \"question mark\" or \"দাঁড়ি\" to type the mark</string>
     <string name="voice_offline_group">Offline transcription</string>
     <string name="voice_translate_title">Translate to English</string>
+    <string name="voice_denoise_title">Reduce background noise</string>
+    <string name="voice_denoise_subtitle">Clean up the microphone before an offline model hears it</string>
+    <string name="voice_denoise_info">RNNoise, a small noise-removal network, takes steady background sound such as a fan, traffic or a busy café out of the audio before an offline engine (Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa) hears it. It runs on the phone and adds about 10 ms. The system recognizer and the transcription server get the microphone as it is. In a quiet room it gains nothing, so it is off by default.</string>
     <string name="voice_translate_subtitle">Speak any language and type its English translation</string>
     <!-- The transcription server engine (#286). Any server that speaks OpenAI's audio transcription API. -->
     <string name="voice_server_group">Transcription server</string>
@@ -192,6 +196,9 @@
     <string name="voice_parakeet_group">Parakeet model</string>
     <string name="voice_parakeet_model_info">Parakeet TDT is a speech recognition model by NVIDIA that runs on this phone. It transcribes 25 European languages, among them English, German, French, Spanish, Italian, Portuguese, Polish, Dutch, Ukrainian and Russian, and it works out which one you speak. It is a large model, so it suits a recent phone with plenty of memory. A phrase is transcribed once you stop, and can run to 50 seconds. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
     <string name="voice_moonshine_group">Moonshine model</string>
+    <string name="voice_sherpa_group">Sherpa models</string>
+    <string name="voice_sherpa_model_info">Sherpa runs k2-fsa\'s sherpa-onnx with streaming Zipformer models on this phone. The words go into the field while you speak, and the phrase ends by itself after the pause set in Stop after a pause, which Silero, a small voice detector packed with every model, listens for. Download the model for each language you dictate in; a language with no model here uses the system recognizer. Punctuation (English) adds punctuation and capitals to English phrases once it is downloaded. Sherpa also needs ONNX Runtime, a one-time download of about 33 MB. The models come from Hugging Face once, and after that no audio leaves the phone.</string>
+    <string name="voice_sherpa_punctuation_kept">Punctuates English phrases</string>
     <string name="voice_moonshine_model_info">Moonshine Tiny is a small English speech recognition model that runs on this phone. It is made for short phrases on small devices: it reads only as much audio as you said, so a short phrase is quick. A phrase is transcribed once you stop, and can run to 30 seconds. While a layout in another language is in use, dictation uses the system recognizer instead. The model comes from Hugging Face once, and after that no audio leaves the phone.</string>
 
     <!-- Lines under each downloadable model of the Asr4All, Parakeet and Moonshine engines. -->

@@ -48,6 +48,14 @@ class WhisperRecorder(
      * window, so its models get more room before [onMaxReached].
      */
     maxSeconds: Int = WhisperMel.CHUNK_SECONDS,
+    /**
+     * RNNoise in front of whatever hears the clip ([VoiceDenoise]), or null to
+     * keep the microphone's own audio. Owned from here on: the reader thread
+     * uses it and closes it when the capture ends. The pulse ring still
+     * follows the raw microphone, so it shows that the microphone hears; the
+     * silence stop and the clip get the cleaned audio.
+     */
+    private val denoise: VoiceDenoise.Stream? = null,
 ) {
     private val maxSamples = WhisperMel.SAMPLE_RATE * maxSeconds
     private val buffer = FloatArray(maxSamples)
@@ -86,7 +94,7 @@ class WhisperRecorder(
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT,
         )
-        if (minBuf <= 0) return false
+        if (minBuf <= 0) return failed()
         val r = try {
             AudioRecord(
                 MediaRecorder.AudioSource.VOICE_RECOGNITION,
@@ -96,11 +104,11 @@ class WhisperRecorder(
                 minBuf * 4,
             )
         } catch (_: Throwable) {
-            return false
+            return failed()
         }
         if (r.state != AudioRecord.STATE_INITIALIZED) {
             runCatching { r.release() }
-            return false
+            return failed()
         }
         if (preferredDevice != null) runCatching { r.setPreferredDevice(preferredDevice) }
         record = r
@@ -110,17 +118,32 @@ class WhisperRecorder(
             running = false
             runCatching { r.release() }
             record = null
-            return false
+            return failed()
         }
         thread = Thread { readLoop(r) }.apply { start() }
         return true
     }
 
+    /** A capture that never started: the denoiser it was handed is done with too. */
+    private fun failed(): Boolean {
+        denoise?.close()
+        return false
+    }
+
     private fun readLoop(r: AudioRecord) {
+        try {
+            capture(r)
+        } finally {
+            denoise?.close()
+        }
+    }
+
+    private fun capture(r: AudioRecord) {
         // A reader that loses the CPU to background work drops samples once
         // the capture buffer overruns, and a gap in the audio is a wrong word.
         runCatching { Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO) }
         val chunk = ShortArray(1600) // ~100 ms
+        val raw = FloatArray(chunk.size)
         // Silence stop (#500): armed by the first chunk loud enough to be
         // speech, so the quiet before the user starts talking never ends the
         // clip; then a run of quiet chunks of the asked length does.
@@ -138,28 +161,36 @@ class WhisperRecorder(
                 break
             }
             if (n == 0) continue
-            var sumSq = 0.0
-            val room = min(n, maxSamples - count)
-            for (i in 0 until room) {
+            var rawSq = 0.0
+            for (i in 0 until n) {
                 val s = chunk[i] / 32768f
+                raw[i] = s
+                rawSq += (s * s).toDouble()
+            }
+            onLevel((sqrt(rawSq / n).toFloat() * 6f).coerceIn(0f, 1f))
+            // Denoised audio comes back in whole 10 ms blocks, a moment
+            // behind; a call can hand back nothing yet.
+            val clean = denoise?.process(raw, n) ?: raw
+            val got = if (denoise != null) clean.size else n
+            var sumSq = 0.0
+            val room = min(got, maxSamples - count)
+            for (i in 0 until room) {
+                val s = clean[i]
                 buffer[count + i] = s
                 sumSq += (s * s).toDouble()
             }
             count += room
-            if (room > 0) {
+            if (room > 0 && quietLimit > 0) {
                 val rms = sqrt(sumSq / room).toFloat()
-                onLevel((rms * 6f).coerceIn(0f, 1f))
-                if (quietLimit > 0) {
-                    if (rms >= SPEECH_RMS) {
-                        heard = true
-                        quiet = 0
-                    } else if (heard) {
-                        quiet += room
-                        if (quiet >= quietLimit) {
-                            running = false
-                            onSilence()
-                            break
-                        }
+                if (rms >= SPEECH_RMS) {
+                    heard = true
+                    quiet = 0
+                } else if (heard) {
+                    quiet += room
+                    if (quiet >= quietLimit) {
+                        running = false
+                        onSilence()
+                        break
                     }
                 }
             }

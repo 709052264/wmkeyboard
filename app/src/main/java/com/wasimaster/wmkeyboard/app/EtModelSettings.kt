@@ -36,11 +36,12 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 private const val ET_METERED_CONFIRM_BYTES = 150_000_000L
 
 /**
- * The models of one ExecuTorch engine: Asr4All's three sizes (#289), or
- * Parakeet's and Moonshine's one each. Download, progress, delete. There is
- * no setting for which one dictates: the largest one on the device does, so
- * keeping a model is choosing it, and the screen marks the one in use. Shown
- * only while [engine] is the engine and the device can run it.
+ * The models of one engine whose models download file by file: Asr4All's
+ * three sizes (#289), Parakeet's and Moonshine's one each, or Sherpa's one per
+ * language and its punctuation model. Download, progress, delete. There is no
+ * setting for which one dictates: the largest one on the device that knows
+ * the language does, so keeping a model is choosing it, and the screen marks
+ * the ones in use. Shown only while [engine] is listed and the device can run it.
  */
 @Composable
 internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
@@ -69,12 +70,19 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     }
 
     // Read from the states, so the mark moves the moment a download lands.
-    val active = models
-        .filter { states[it.id] is Status.Downloaded }
-        .maxByOrNull { it.millions }
+    // A model is in use unless a bigger one on the device covers all its
+    // languages; for the single-language engines that leaves the largest.
+    val downloaded = models.filter { !it.punctuation && states[it.id] is Status.Downloaded }
+    val inUse = downloaded.filter { model ->
+        val languages = model.languages ?: model.engine.languages
+        downloaded.none { other ->
+            other !== model && other.millions > model.millions && languages.all(other::supports)
+        }
+    }.toSet()
 
-    // Play: the runtime itself is an on-demand part, shared with whisper.cpp.
-    SpeechModuleBanner(settings)
+    // The runtime itself is an on-demand part: ONNX Runtime for Sherpa, the
+    // speech libraries (shared with whisper.cpp) for the others.
+    if (engine == EtEngine.SHERPA) OnnxModuleBanner(settings) else SpeechModuleBanner(settings)
 
     SettingsGroup(
         stringResource(
@@ -82,6 +90,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.ASR4ALL -> R.string.voice_asr4all_group
                 EtEngine.PARAKEET -> R.string.voice_parakeet_group
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_group
+                EtEngine.SHERPA -> R.string.voice_sherpa_group
             },
         ),
         info = stringResource(
@@ -89,6 +98,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                 EtEngine.ASR4ALL -> R.string.voice_asr4all_model_info
                 EtEngine.PARAKEET -> R.string.voice_parakeet_model_info
                 EtEngine.MOONSHINE -> R.string.voice_moonshine_model_info
+                EtEngine.SHERPA -> R.string.voice_sherpa_model_info
             },
         ),
     ) {
@@ -102,8 +112,11 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
                         title = title,
                         subtitle = when (status) {
                             Status.Downloaded -> stringResource(
-                                if (model == active) R.string.voice_et_model_in_use
-                                else R.string.voice_et_model_kept,
+                                when {
+                                    model.punctuation -> R.string.voice_sherpa_punctuation_kept
+                                    model in inUse -> R.string.voice_et_model_in_use
+                                    else -> R.string.voice_et_model_kept
+                                },
                             )
                             is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(status.bytes))
                             else -> stringResource(R.string.voice_et_model_missing, formatBytes(model.bytes))

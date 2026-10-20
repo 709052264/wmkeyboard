@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.asr4all
 
+import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtRunner
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
 import kotlin.math.min
@@ -27,7 +28,7 @@ class Asr4AllStream(
     private val meta: Asr4AllMetadata,
     tierName: String = meta.defaultTier,
     usePcec: Boolean = true,
-) {
+) : VoiceStream {
     private val tier = meta.tiers.firstOrNull { it.name == tierName } ?: error("no tier $tierName")
     private val shape = runner.shape(tier.name) ?: error("program has no method ${tier.name}")
     private val spf = meta.samplesPerFrame
@@ -62,7 +63,7 @@ class Asr4AllStream(
     private val totalSamples: Long get() = baseFrame.toLong() * spf + pcmLength
 
     /** Adds [count] samples of [chunk] (16 kHz mono, [-1, 1]) and decodes every window now complete. */
-    fun feed(chunk: FloatArray, count: Int = chunk.size) {
+    override fun feed(chunk: FloatArray, count: Int) {
         if (pcmLength + count > pcm.size) pcm = pcm.copyOf(maxOf(pcm.size * 2, pcmLength + count))
         System.arraycopy(chunk, 0, pcm, pcmLength, count)
         pcmLength += count
@@ -74,7 +75,7 @@ class Asr4AllStream(
      * the second pass. Returns the finished transcript: punctuated where the
      * bundle can, raw otherwise.
      */
-    fun finish(): String {
+    override fun finish(): String {
         while (nextFrame.toLong() * spf < totalSamples) step()
         pcec?.flush()
         pcec?.drain()
@@ -82,7 +83,7 @@ class Asr4AllStream(
     }
 
     /** The raw transcript so far: pieces with repeats and blanks collapsed, lower case. */
-    fun text(): String {
+    override fun text(): String {
         val out = StringBuilder()
         var prev = -1
         for (id in ids) {

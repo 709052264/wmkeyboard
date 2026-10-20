@@ -100,7 +100,7 @@ abstract class NativePinsTask : DefaultTask() {
         listOf(gate, abi, name, sha, size.toString(), source, licence).joinToString("\t")
 
     private fun repositoryFor(module: String): String =
-        if (module.startsWith("com.qualcomm.")) MAVEN_CENTRAL else GOOGLE_MAVEN
+        if (module.startsWith("com.qualcomm.") || module.startsWith("com.microsoft.")) MAVEN_CENTRAL else GOOGLE_MAVEN
 
     private fun sha256(bytes: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }

@@ -623,6 +623,8 @@ import com.wasimaster.wmkeyboard.core.voice.VoiceInputEngine
 import com.wasimaster.wmkeyboard.core.voice.VoiceMics
 import com.wasimaster.wmkeyboard.core.voice.VoiceChoices
 import com.wasimaster.wmkeyboard.core.voice.VoiceClipGate
+import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
+import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
 import com.wasimaster.wmkeyboard.core.voice.VoiceSpacing
@@ -637,7 +639,6 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperException
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperModel
 import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllEngine
-import com.wasimaster.wmkeyboard.core.voice.asr4all.Asr4AllStream
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
@@ -645,6 +646,8 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.moonshine.MoonshineEngine
 import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
+import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleEngine
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleLanguages
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -753,6 +756,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -3047,15 +3051,16 @@ open class WMKeyboardService : InputMethodService() {
     private var whisperRecorder: WhisperRecorder? = null
 
     /**
-     * The asr4all utterance decoding alongside [whisperRecorder] (#289): the
-     * job that feeds it as the microphone delivers, and what it has been fed.
-     * Both belong to [EtNative.dispatcher].
+     * The streaming utterance decoding alongside [whisperRecorder], asr4all's
+     * (#289) or Sherpa's: the job that feeds it as the microphone delivers,
+     * and what it has been fed. Both belong to the engine's own thread
+     * ([liveDispatcher]).
      */
     private var asr4allJob: Job? = null
     @Volatile private var asr4allCapture: Asr4AllCapture? = null
 
-    /** One asr4all utterance and how many of the clip's samples it has had. */
-    private class Asr4AllCapture(val stream: Asr4AllStream, var fed: Int = 0)
+    /** One streaming utterance and how many of the clip's samples it has had. */
+    private class Asr4AllCapture(val stream: VoiceStream, var fed: Int = 0)
 
     /**
      * What asr4all has heard so far sits in the app's field as composing text,
@@ -8625,6 +8630,9 @@ open class WMKeyboardService : InputMethodService() {
         // Only between dictations: the program is the running stream's.
         if (asr4allJob?.isActive != true && EtNative.isOpen) {
             serviceScope.launch(EtNative.dispatcher) { if (asr4allJob?.isActive != true) EtNative.release() }
+        }
+        if (asr4allJob?.isActive != true && SherpaEngine.isOpen) {
+            serviceScope.launch(SherpaNative.dispatcher) { if (asr4allJob?.isActive != true) SherpaEngine.release() }
         }
         // Reloads on the next translation; the panel's state is untouched.
         if (translateEngineLoaded) OnDeviceTranslator.release()
@@ -27362,12 +27370,20 @@ open class WMKeyboardService : InputMethodService() {
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }
+        val sherpa = (onDevice as? OnDeviceVoice.Et)?.model?.engine == EtEngine.SHERPA
         val needsSpeechLibs = (onDevice is OnDeviceVoice.Whisper && onDevice.model.ggml) ||
-            onDevice is OnDeviceVoice.Et || onDevice == OnDeviceVoice.Whistle
+            (onDevice is OnDeviceVoice.Et && !sherpa) || onDevice == OnDeviceVoice.Whistle
         if (needsSpeechLibs && !WhisperCpp.moduleReady) {
             // Play only, the same way: whisper.cpp's, ExecuTorch's and
             // Whistle's libraries are the on-demand :feature:speech part.
             if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) WhisperCpp.requestModule()
+            fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
+            return
+        }
+        if (sherpa && !SherpaNative.moduleReady) {
+            // Sherpa's runtime is its own part, ONNX Runtime and the bridge
+            // (:feature:onnx on Play, the onnx gate elsewhere).
+            if (dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) SherpaNative.requestModule()
             fail(VoiceStatus.ERROR, getString(VoiceR.string.core_voice_whisper_module_downloading))
             return
         }
@@ -27600,7 +27616,9 @@ open class WMKeyboardService : InputMethodService() {
     private fun fallbackOnDeviceVoice(): OnDeviceVoice? {
         if (whistleCoversVoice() && WhistleModelStore.isDownloaded(filesDir)) return OnDeviceVoice.Whistle
         for (engine in EtEngine.entries) {
-            if (etCoversVoice(engine)) EtStore.active(filesDir, engine)?.let { return OnDeviceVoice.Et(it) }
+            if (etCoversVoice(engine)) {
+                EtStore.active(filesDir, engine, voiceLanguageIds())?.let { return OnDeviceVoice.Et(it) }
+            }
         }
         if (!isWhisperEnabled()) return null
         val s = _uiState.value.settings
@@ -27622,12 +27640,38 @@ open class WMKeyboardService : InputMethodService() {
 
     /** [engine] can run here and transcribes every language the dictation listens for. */
     private fun etCoversVoice(engine: EtEngine): Boolean =
-        EtNative.shipped && voiceLanguageIds().all(engine::supports)
+        engine.runtimeShipped && voiceLanguageIds().all(engine::supports)
 
-    /** [pcm] through an ExecuTorch [model] in one go. On [EtNative.dispatcher] only. */
+    /** Whether [engine] decodes while the user speaks rather than when the clip ends. */
+    private fun liveEngine(engine: EtEngine): Boolean = engine == EtEngine.ASR4ALL || engine == EtEngine.SHERPA
+
+    /** The one thread [engine]'s model calls run on. */
+    private fun liveDispatcher(engine: EtEngine): CoroutineDispatcher =
+        if (engine == EtEngine.SHERPA) SherpaNative.dispatcher else EtNative.dispatcher
+
+    /**
+     * A fresh streaming utterance on [model]. Sherpa ends it by itself after
+     * the pause set in "Stop after a pause". On [liveDispatcher] only.
+     */
+    private fun newLiveStream(model: EtModel): VoiceStream = when (model.engine) {
+        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
+        else -> Asr4AllEngine.newStream(filesDir, model)
+    }
+
+    /**
+     * Frees a streaming utterance nobody will finish. Only Sherpa's holds
+     * native memory (asr4all's is the heap's), and it is closed on Sherpa's
+     * own thread, after the feeding job's last call.
+     */
+    private fun dropLiveCapture(capture: Asr4AllCapture?) {
+        val stream = capture?.stream as? AutoCloseable ?: return
+        serviceScope.launch(SherpaNative.dispatcher) { runCatching { stream.close() } }
+    }
+
+    /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
     private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL -> Asr4AllEngine.newStream(filesDir, model).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA -> newLiveStream(model).run {
             feed(pcm)
             finish()
         }
@@ -27644,7 +27688,7 @@ open class WMKeyboardService : InputMethodService() {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
-            is OnDeviceVoice.Et -> return runBlocking(EtNative.dispatcher) { transcribeWithEt(voice.model, pcm) }
+            is OnDeviceVoice.Et -> return runBlocking(liveDispatcher(voice.model.engine)) { transcribeWithEt(voice.model, pcm) }
         }
         if (model.ggml) {
             val translate = _uiState.value.settings.whisper.translate && model.supportsTranslate
@@ -27812,8 +27856,11 @@ open class WMKeyboardService : InputMethodService() {
                 ?.takeIf(::etCoversVoice)
                 ?.let { engine ->
                     choice.modelId?.let(EtCatalog::byId)
-                        ?.takeIf { it.engine == engine && EtStore.isDownloaded(filesDir, it) }
-                        ?: EtStore.active(filesDir, engine)
+                        ?.takeIf { model ->
+                            model.engine == engine && voiceLanguageIds().all(model::supports) &&
+                                EtStore.isDownloaded(filesDir, model)
+                        }
+                        ?: EtStore.active(filesDir, engine, voiceLanguageIds())
                 }
                 ?.let { OnDeviceVoice.Et(it) }
         }
@@ -27834,9 +27881,23 @@ open class WMKeyboardService : InputMethodService() {
         whisperCapture = model?.let { it to languageId }
         serverCapture = if (model == null) languageId else null
         captureLanguages = languages
-        // whisper.cpp reads past one 30-second window, so its clips get room.
+        // whisper.cpp reads past one 30-second window, so its clips get room,
+        // and so do the engines that decode as they hear.
         val cpp = (model as? OnDeviceVoice.Whisper)?.model?.ggml == true ||
-            (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.ASR4ALL
+            (model as? OnDeviceVoice.Et)?.model?.engine?.let(::liveEngine) == true
+        // Reduce background noise: RNNoise in front of an on-device engine,
+        // never the server, which gets the microphone as it is. It rides the
+        // speech libraries; when they are not here yet the phrase goes
+        // through as recorded and they are fetched for the next one.
+        val denoise = if (model != null && _uiState.value.settings.whisper.denoise) {
+            VoiceDenoise.newStream().also {
+                if (it == null && !WhisperCpp.moduleReady && dataSaverStatus.allows(MeteredFeature.DOWNLOADS)) {
+                    WhisperCpp.requestModule()
+                }
+            }
+        } else {
+            null
+        }
         lateinit var recorder: WhisperRecorder
         recorder = WhisperRecorder(
             onLevel = { level ->
@@ -27867,6 +27928,7 @@ open class WMKeyboardService : InputMethodService() {
                 (model as? OnDeviceVoice.Et)?.model?.engine == EtEngine.PARAKEET -> ParakeetEngine.MAX_CLIP_SECONDS
                 else -> WhisperMel.CHUNK_SECONDS
             },
+            denoise = denoise,
         )
         if (!recorder.start()) {
             _uiState.update {
@@ -27901,7 +27963,7 @@ open class WMKeyboardService : InputMethodService() {
             OnDeviceVoice.Whistle -> serviceScope.launch(Dispatchers.Default) {
                 runCatching { WhistleEngine.warm(WhistleModelStore.modelFile(filesDir)) }
             }
-            is OnDeviceVoice.Et -> if (model.model.engine == EtEngine.ASR4ALL) {
+            is OnDeviceVoice.Et -> if (liveEngine(model.model.engine)) {
                 startAsr4AllStream(model.model, recorder, generation)
             } else {
                 // A damaged file throws here; transcribing says so properly.
@@ -27920,10 +27982,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * Decodes the clip in [recorder] while it is still being said (#289): every
-     * [VOICE_PARTIAL_POLL_MS] the new samples go into an asr4all stream, and
-     * what it has heard so far goes on the line under the microphone. When the
-     * clip ends, [finishAsr4All] needs only decode the last moment. A model
-     * that will not load is left for [finishAsr4All] to report.
+     * [VOICE_PARTIAL_POLL_MS] the new samples go into an asr4all or Sherpa
+     * stream, and what it has heard so far goes on the line under the
+     * microphone. When the clip ends, [finishAsr4All] needs only decode the
+     * last moment. A model that will not load is left for [finishAsr4All] to
+     * report. Sherpa also hears the phrase end (Silero), and ends the clip
+     * there the way the recorder's own silence stop would.
      *
      * In block voice typing the words also go into the field as composing
      * text, underlined and rewritten as they grow, exactly like the system
@@ -27936,8 +28000,8 @@ open class WMKeyboardService : InputMethodService() {
         asr4allCapture = null
         asr4allComposed = false
         asr4allJob?.cancel()
-        asr4allJob = serviceScope.launch(EtNative.dispatcher) {
-            val stream = runCatching { Asr4AllEngine.newStream(filesDir, model) }.getOrNull() ?: return@launch
+        asr4allJob = serviceScope.launch(liveDispatcher(model.engine)) {
+            val stream = runCatching { newLiveStream(model) }.getOrNull() ?: return@launch
             val capture = Asr4AllCapture(stream)
             asr4allCapture = capture
             var shown = ""
@@ -27965,6 +28029,14 @@ open class WMKeyboardService : InputMethodService() {
                             _uiState.update { it.copy(voice = it.voice.copy(partial = text)) }
                         }
                     }
+                    if (stream.endpoint) {
+                        withContext(Dispatchers.Main) {
+                            if (generation == voiceGeneration && whisperRecorder === recorder) {
+                                finishWhisper(userStopped = false)
+                            }
+                        }
+                        break
+                    }
                 }
                 delay(VOICE_PARTIAL_POLL_MS)
             }
@@ -27979,8 +28051,8 @@ open class WMKeyboardService : InputMethodService() {
     private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray): String {
         asr4allJob?.cancelAndJoin()
         asr4allJob = null
-        return withContext(EtNative.dispatcher) {
-            val capture = asr4allCapture ?: Asr4AllCapture(Asr4AllEngine.newStream(filesDir, model))
+        return withContext(liveDispatcher(model.engine)) {
+            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model))
             asr4allCapture = null
             if (pcm.size > capture.fed) capture.stream.feed(pcm.copyOfRange(capture.fed, pcm.size))
             capture.stream.finish()
@@ -28093,10 +28165,10 @@ open class WMKeyboardService : InputMethodService() {
                             )
                         }
                         OnDeviceVoice.Whistle -> transcribeWithWhistle(pcm, languages, keywords)
-                        is OnDeviceVoice.Et -> if (model.model.engine == EtEngine.ASR4ALL) {
+                        is OnDeviceVoice.Et -> if (liveEngine(model.model.engine)) {
                             finishAsr4All(model.model, pcm)
                         } else {
-                            withContext(EtNative.dispatcher) { transcribeWithEt(model.model, pcm) }
+                            withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm) }
                         }
                     }
                 }
@@ -28832,6 +28904,8 @@ open class WMKeyboardService : InputMethodService() {
         if (status == VoiceStatus.TRANSCRIBING) WhisperCpp.abort()
         asr4allJob?.cancel()
         asr4allJob = null
+        // Sherpa's stream holds native memory; asr4all's is the heap's.
+        dropLiveCapture(asr4allCapture)
         asr4allCapture = null
         // Its live words are settled below with the recognizer's partial.
         asr4allComposed = false
