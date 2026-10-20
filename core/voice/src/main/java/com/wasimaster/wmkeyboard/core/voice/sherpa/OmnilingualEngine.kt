@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.sherpa
 
+import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
@@ -8,11 +9,15 @@ import java.io.File
 
 /**
  * Offline Omnilingual dictation: Meta's Omnilingual ASR, the 300M CTC model,
- * on sherpa-onnx's offline recognizer. One model for every language it knows,
- * with no language to pick; it is not a streaming model, so Silero VAD cuts
- * the microphone's audio at each short pause and the phrase before the pause
- * is decoded whole while the user goes on talking. The words reach the field
- * a phrase at a time rather than a word at a time.
+ * on ONNX Runtime (omnilingual_jni.cpp in libwmsherpa). One model for every
+ * language it knows, with no language to pick; it is not a streaming model,
+ * so Silero VAD cuts the microphone's audio at each short pause and the
+ * phrase before the pause is decoded whole while the user goes on talking.
+ * The words reach the field a phrase at a time rather than a word at a time.
+ *
+ * Left to itself the model spells in whichever script it thinks it hears, so
+ * each phrase is decoded with its output held to the scripts of the languages
+ * being dictated ([OmnilingualScriptMask]).
  *
  * The model takes about 1 GB of memory once open, so it stays open between
  * dictations only until a memory trim, and opening it frees Sherpa's
@@ -45,6 +50,12 @@ object OmnilingualEngine {
     private var recognizer = 0L
     private var recognizerDir: String? = null
 
+    /** The open model's tokens.txt, indexed by id, for [OmnilingualScriptMask]. */
+    private var tokens: List<String> = emptyList()
+
+    /** Masks already built for the open model, by the scripts they allow. */
+    private val masks = HashMap<Set<Character.UnicodeScript>, BooleanArray?>()
+
     /** Streams not yet closed, which [release] waits for; see [SherpaEngine]. */
     private var liveStreams = 0
 
@@ -58,12 +69,14 @@ object OmnilingualEngine {
     }
 
     /**
-     * A fresh dictation on [model]. [endpointMs] is the pause that ends it,
+     * A fresh dictation on [model] in [languageIds] (keyboard language ids),
+     * whose scripts the text keeps to. [endpointMs] is the pause that ends it,
      * or 0 for none (the user stops it). Throws when the model or its Silero
      * file will not load.
      */
-    fun newStream(filesDir: File, model: EtModel, endpointMs: Int): OmnilingualStream {
+    fun newStream(filesDir: File, model: EtModel, endpointMs: Int, languageIds: List<String>): OmnilingualStream {
         val rec = recognizerFor(filesDir, model)
+        val allowed = maskFor(languageIds)
         val vad = SherpaNative.nativeSegmenter(
             EtStore.file(filesDir, model, "silero_vad.onnx").path,
             VAD_THRESHOLD,
@@ -80,15 +93,30 @@ object OmnilingualEngine {
         } else {
             -1
         }
-        return OmnilingualStream(rec, vad, quiet) { liveStreams-- }
+        return OmnilingualStream(rec, vad, quiet, allowed) { liveStreams-- }
+    }
+
+    /**
+     * The tokens a dictation in [languageIds] may write, or null for any: a
+     * language this build does not know, or one written in a notation, says
+     * nothing about the script to expect.
+     */
+    private fun maskFor(languageIds: List<String>): BooleanArray? {
+        val scripts = languageIds.map { id ->
+            LanguageRegistry.byId(id).takeIf { it !== LanguageRegistry.GENERIC }?.script ?: return null
+        }
+        val unicode = OmnilingualScriptMask.unicodeScripts(scripts) ?: return null
+        return masks.getOrPut(unicode) { OmnilingualScriptMask.build(tokens, unicode) }
     }
 
     /** Closes the model, unless a stream still uses it. On [SherpaNative.dispatcher] only. */
     fun release() {
         if (liveStreams > 0) return
-        if (recognizer != 0L) SherpaNative.nativeOfflineFree(recognizer)
+        if (recognizer != 0L) SherpaNative.nativeOmnilingualFree(recognizer)
         recognizer = 0L
         recognizerDir = null
+        tokens = emptyList()
+        masks.clear()
         isOpen = false
     }
 
@@ -105,12 +133,14 @@ object OmnilingualEngine {
         // A gigabyte beside Sherpa's own model would not fit next to the
         // keyboard on most phones.
         SherpaEngine.release()
+        val tokensFile = EtStore.file(filesDir, model, "tokens.txt")
         val handle = SherpaNative.nativeOmnilingual(
             EtStore.file(filesDir, model, "model.int8.onnx").path,
-            EtStore.file(filesDir, model, "tokens.txt").path,
+            tokensFile.path,
             THREADS,
         )
         check(handle != 0L) { "${model.label} did not load" }
+        tokens = OmnilingualScriptMask.readTokens(tokensFile)
         recognizer = handle
         recognizerDir = dir.path
         isOpen = true
@@ -132,6 +162,8 @@ class OmnilingualStream internal constructor(
     private var vad: Long,
     /** Samples of silence after Silero's own pause that end the dictation; below 0, never. */
     private val quietToEnd: Int,
+    /** The token ids a phrase may be written with ([OmnilingualScriptMask]); null for any. */
+    private val allowed: BooleanArray?,
     private val onClose: () -> Unit,
 ) : VoiceStream, AutoCloseable {
 
@@ -180,7 +212,8 @@ class OmnilingualStream internal constructor(
         while (true) {
             val phrase = SherpaNative.nativeVadSegment(vad) ?: return
             if (phrase.isEmpty()) continue
-            append(String(SherpaNative.nativeDecodeClip(recognizer, phrase, phrase.size), Charsets.UTF_8).trim())
+            val words = SherpaNative.nativeOmnilingualDecode(recognizer, phrase, phrase.size, allowed)
+            append(String(words, Charsets.UTF_8).trim())
         }
     }
 

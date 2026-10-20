@@ -28234,8 +28234,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun newLiveStream(model: EtModel): VoiceStream = when (model.engine) {
         EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
-        EtEngine.OMNILINGUAL ->
-            OmnilingualEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
+        EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(
+            filesDir,
+            model,
+            _uiState.value.settings.voiceBar.silenceStopMs,
+            voiceLanguageIds(),
+        )
         else -> Asr4AllEngine.newStream(filesDir, model)
     }
 

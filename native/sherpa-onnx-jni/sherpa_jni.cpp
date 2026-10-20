@@ -1,7 +1,7 @@
-// JNI surface for sherpa-onnx's C API: a streaming transducer recognizer, an
-// offline recognizer for Meta's Omnilingual ASR CTC model, Silero voice
-// activity detection (as a speech flag, or cutting the audio into phrases)
-// and the online punctuation model. Kotlin side:
+// JNI surface for sherpa-onnx's C API: a streaming transducer recognizer,
+// Silero voice activity detection (as a speech flag, or cutting the audio into
+// phrases for the Omnilingual model in omnilingual_jni.cpp) and the online
+// punctuation model. Kotlin side:
 // com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative.
 //
 // ONNX Runtime is not linked in. This library names libonnxruntime.so as a
@@ -260,53 +260,6 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeVadFlush(JNI
         vad->pending.clear();
     }
     SherpaOnnxVoiceActivityDetectorFlush(vad->detector);
-}
-
-// Offline recognizer for Meta's Omnilingual ASR CTC model: one whole clip at
-// a time, no language to choose (the model tells them apart itself). 0 when
-// the files will not load.
-JNIEXPORT jlong JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeOmnilingual(
-    JNIEnv* env, jclass, jstring model, jstring tokens, jint threads) {
-    Chars m(env, model), tok(env, tokens);
-    SherpaOnnxOfflineRecognizerConfig config;
-    std::memset(&config, 0, sizeof(config));
-    config.feat_config.sample_rate = 16000;
-    config.feat_config.feature_dim = 80;
-    config.model_config.omnilingual.model = m.get();
-    config.model_config.tokens = tok.get();
-    config.model_config.num_threads = threads;
-    config.model_config.provider = "cpu";
-    config.decoding_method = "greedy_search";
-    return reinterpret_cast<jlong>(SherpaOnnxCreateOfflineRecognizer(&config));
-}
-
-JNIEXPORT void JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeOfflineFree(JNIEnv*, jclass, jlong rec) {
-    if (rec) SherpaOnnxDestroyOfflineRecognizer(reinterpret_cast<const SherpaOnnxOfflineRecognizer*>(rec));
-}
-
-// The first n samples of a clip (16 kHz, [-1, 1]) decoded whole; its text, UTF-8.
-JNIEXPORT jbyteArray JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeDecodeClip(
-    JNIEnv* env, jclass, jlong rec, jfloatArray samples, jint n) {
-    const auto* recognizer = reinterpret_cast<const SherpaOnnxOfflineRecognizer*>(rec);
-    if (!recognizer || n <= 0) return bytes(env, nullptr);
-    const SherpaOnnxOfflineStream* stream = SherpaOnnxCreateOfflineStream(recognizer);
-    if (!stream) return bytes(env, nullptr);
-    jfloat* data = env->GetFloatArrayElements(samples, nullptr);
-    if (!data) {
-        SherpaOnnxDestroyOfflineStream(stream);
-        return bytes(env, nullptr);
-    }
-    SherpaOnnxAcceptWaveformOffline(stream, 16000, data, n);
-    env->ReleaseFloatArrayElements(samples, data, JNI_ABORT);
-    SherpaOnnxDecodeOfflineStream(recognizer, stream);
-    const SherpaOnnxOfflineRecognizerResult* result = SherpaOnnxGetOfflineStreamResult(stream);
-    jbyteArray out = bytes(env, result ? result->text : nullptr);
-    if (result) SherpaOnnxDestroyOfflineRecognizerResult(result);
-    SherpaOnnxDestroyOfflineStream(stream);
-    return out;
 }
 
 JNIEXPORT jlong JNICALL

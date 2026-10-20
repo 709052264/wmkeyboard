@@ -103,13 +103,22 @@ object SherpaNative {
     /** The clip is over: speech still going on becomes a last phrase. */
     @JvmStatic external fun nativeVadFlush(vad: Long)
 
-    // Offline recognizer: Meta's Omnilingual ASR CTC model, a whole clip at a time.
+    // Meta's Omnilingual ASR CTC model on ONNX Runtime, a whole phrase at a time.
     @JvmStatic external fun nativeOmnilingual(model: String, tokens: String, threads: Int): Long
 
-    @JvmStatic external fun nativeOfflineFree(recognizer: Long)
+    @JvmStatic external fun nativeOmnilingualFree(model: Long)
 
-    /** The first [count] samples of a clip (16 kHz mono, in [-1, 1]) as text, UTF-8. */
-    @JvmStatic external fun nativeDecodeClip(recognizer: Long, samples: FloatArray, count: Int): ByteArray
+    /**
+     * The first [count] samples of a phrase (16 kHz mono, in [-1, 1]) as text,
+     * UTF-8. [allowed] flags the token ids that may come out (see
+     * [OmnilingualScriptMask]); null lets the model write any of them.
+     */
+    @JvmStatic external fun nativeOmnilingualDecode(
+        model: Long,
+        samples: FloatArray,
+        count: Int,
+        allowed: BooleanArray?,
+    ): ByteArray
 
     // Online punctuation: CNN-BiLSTM over BPE pieces, punctuation and capitals.
     @JvmStatic external fun nativePunctuation(model: String, vocab: String): Long
