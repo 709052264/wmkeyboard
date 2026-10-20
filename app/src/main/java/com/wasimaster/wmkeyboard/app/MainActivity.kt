@@ -237,8 +237,18 @@ class MainActivity : FragmentActivity() {
          */
         const val EXTRA_OPEN_SETTING = MainActivityContract.EXTRA_OPEN_SETTING
 
+        /**
+         * Intent extra (boolean) that opens the installed version's release
+         * notes over whatever screen is showing. The "Updated to" notification
+         * sends it; see [com.wasimaster.wmkeyboard.app.updates.PackageReplacedReceiver].
+         */
+        const val EXTRA_SHOW_RELEASE_NOTES = "com.wasimaster.wmkeyboard.extra.SHOW_RELEASE_NOTES"
+
         /** Saved-state key of an unanswered [PairLinkDialog][com.wasimaster.wmkeyboard.app.kdeconnect.PairLinkDialog]. */
         private const val STATE_PENDING_PAIR = "pending_pair"
+
+        /** Saved-state key of the release notes being open. */
+        private const val STATE_RELEASE_NOTES = "release_notes"
     }
 
     private lateinit var repository: SettingsRepository
@@ -280,6 +290,9 @@ class MainActivity : FragmentActivity() {
      * pairs: any page or app can open one, naming any address (#702).
      */
     private val pendingPair = MutableStateFlow<String?>(null)
+
+    /** Whether the installed version's release notes are open; see [EXTRA_SHOW_RELEASE_NOTES]. */
+    private val showReleaseNotes = MutableStateFlow(false)
 
     /**
      * The app language (#322). On Android 12 and older nothing else applies
@@ -332,6 +345,13 @@ class MainActivity : FragmentActivity() {
         // stays closed.
         missingLink.value = if (savedInstanceState != null) MissingLink.restore(savedInstanceState) else nav?.missing
         if (savedInstanceState != null) pendingPair.value = savedInstanceState.getString(STATE_PENDING_PAIR)
+        // Same rule as the link dialog: a rotation brings it back only if it
+        // was still open.
+        showReleaseNotes.value = if (savedInstanceState != null) {
+            savedInstanceState.getBoolean(STATE_RELEASE_NOTES)
+        } else {
+            intent.getBooleanExtra(EXTRA_SHOW_RELEASE_NOTES, false)
+        }
         setContent {
             val stored = repository.settings
                 .collectAsStateWithLifecycle(null as KeyboardSettings?)
@@ -400,7 +420,14 @@ class MainActivity : FragmentActivity() {
                     val pairState by pendingPair.collectAsStateWithLifecycle()
                     val pairLink = pairState
                     val pairCode = pairLink?.let { com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode.parse(it) }
-                    if (pairLink != null && pairCode != null) {
+                    val releaseNotes by showReleaseNotes.collectAsStateWithLifecycle()
+                    if (releaseNotes) {
+                        // Asked for by a tap on "Updated to", so it goes first;
+                        // anything else waits for it to close.
+                        com.wasimaster.wmkeyboard.app.updates.InstalledReleaseNotesDialog {
+                            showReleaseNotes.value = false
+                        }
+                    } else if (pairLink != null && pairCode != null) {
                         com.wasimaster.wmkeyboard.app.kdeconnect.PairLinkDialog(
                             pairCode,
                             onPair = {
@@ -424,6 +451,7 @@ class MainActivity : FragmentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (intent.getBooleanExtra(EXTRA_SHOW_RELEASE_NOTES, false)) showReleaseNotes.value = true
         navFor(intent)?.let { nav ->
             pendingNav.value = nav
             nav.missing?.let { missingLink.value = it }
@@ -434,6 +462,7 @@ class MainActivity : FragmentActivity() {
         super.onSaveInstanceState(outState)
         missingLink.value?.save(outState)
         pendingPair.value?.let { outState.putString(STATE_PENDING_PAIR, it) }
+        outState.putBoolean(STATE_RELEASE_NOTES, showReleaseNotes.value)
     }
 
     /** Turns KDE Connect on and pairs with the computer [link] names; see KdeConnectHub.pairByCode. */

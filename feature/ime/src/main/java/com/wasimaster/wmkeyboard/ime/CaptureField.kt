@@ -453,6 +453,16 @@ enum class CaptureTarget(
     val ownsCaret: Boolean get() = this == WORD_SPELL
 
     /**
+     * Whether the focus switch (#665) can hand this field's keys to the app's
+     * field and back. Not the typing test, whose run is the keys; not the
+     * word card, a card over the keyboard rather than a tool's field; and not
+     * the toolbox's own boxes, which take the whole keyboard and are gone the
+     * moment a tool is picked.
+     */
+    val handsKeysToApp: Boolean
+        get() = this != TYPING_TEST && this != WORD_SPELL && this != TOOLBOX_SEARCH && this != TOOLBOX_FOLDER_NAME
+
+    /**
      * Whether the field's own strip carries a microphone that dictates into it
      * (#353). Every field that holds words, less three: the typing test scores
      * keystrokes, and the word card's spelling and the Learn speller each hold

@@ -133,7 +133,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE -> Color(0xFF90A4AE)
 
-    ToolbarTool.HIDE_KEYBOARD -> Color(0xFF607D8B)
+    ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> Color(0xFF607D8B)
     ToolbarTool.LANGUAGE -> Color(0xFF26A69A)
 }
 

@@ -44,6 +44,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -373,7 +374,11 @@ internal fun CalculatorPanel(
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f)) {
+            // The focus switch (#665): the physical keys and the key rows type
+            // into the app's field while it is on; this keypad still edits here.
+            val caretHandle = LocalCaptureCaret.current
+            FieldFocusSwitch(caretHandle, Modifier.padding(end = 6.dp))
+            Column(Modifier.weight(1f).then(if (caretHandle.toApp) Modifier.alpha(FieldToAppAlpha) else Modifier)) {
                 Text(
                     expression.ifEmpty { "0" },
                     color = kb.chipText,
@@ -730,6 +735,7 @@ internal fun UnitConverterPanel(
                 .padding(vertical = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            FieldFocusSwitch(LocalCaptureCaret.current)
             Text(
                 "$value ${from.symbol}",
                 color = kb.modifierKeyText,
@@ -964,6 +970,7 @@ internal fun CurrencyPanel(
                         .padding(vertical = 3.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    FieldFocusSwitch(LocalCaptureCaret.current)
                     Text(
                         "$amountText $fromCode",
                         color = kb.modifierKeyText,

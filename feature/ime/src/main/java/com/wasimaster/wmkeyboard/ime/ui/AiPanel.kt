@@ -286,6 +286,9 @@ internal fun AiPanel(
                         modifier = Modifier.focusRing(focusedResult == 0),
                     ) { onRunCustom() }
                     Spacer(Modifier.width(8.dp))
+                    // The focus switch (#665): the key rows below type into
+                    // the app's field instead while it is on.
+                    FieldFocusSwitch(LocalCaptureCaret.current, Modifier.padding(end = 8.dp))
                     val provider = stringResource(state.settings.ai.provider.labelRes)
                     Text(
                         if (state.aiHasText) {

@@ -887,6 +887,37 @@ val generateLayoutIndex =
         layoutsDir.set(layout.projectDirectory.dir("src/main/assets/layouts"))
     }
 
+// Copies release-notes/<versionName>.md to assets/release-notes.md, so the
+// "Updated to" notification and the About screen can show what changed in the
+// installed version without the network. A version whose notes are not written
+// yet ships without the asset, and the app falls back to fetching them from
+// the tag (InstalledReleaseNotes).
+abstract class BundleReleaseNotesTask : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val notes: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun run() {
+        val out = outputDir.get().asFile
+        out.deleteRecursively()
+        out.mkdirs()
+        notes.files.firstOrNull { it.isFile }?.copyTo(out.resolve("release-notes.md"), overwrite = true)
+    }
+}
+
+val bundleReleaseNotes =
+    tasks.register<BundleReleaseNotesTask>("bundleReleaseNotes") {
+        notes.from(
+            rootProject.layout.projectDirectory.file(
+                "release-notes/${providers.gradleProperty("wmkb.versionName").get()}.md",
+            ),
+        )
+    }
+
 // Rewrites the merged assets with every bundled layout's JSON compacted. The
 // files under src/main/assets/layouts are indented for people and for diffs:
 // 44 MB across ~1,700 layouts, 14.5 MB without the whitespace, which in the
@@ -994,6 +1025,10 @@ androidComponents {
         variant.sources.assets?.addGeneratedSourceDirectory(
             generateLayoutIndex,
             GenerateLayoutIndexTask::outputDir,
+        )
+        variant.sources.assets?.addGeneratedSourceDirectory(
+            bundleReleaseNotes,
+            BundleReleaseNotesTask::outputDir,
         )
         // The update-channel driver picked at the top of this file, added to
         // every production variant. This is the Variant API rather than the

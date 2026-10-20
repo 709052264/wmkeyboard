@@ -1545,6 +1545,11 @@ fun KeyboardScreen(
                 anchor = bodyState.captureAnchorIndex(),
                 onSelect = capture.onSelect,
                 onSelectionAction = capture.onSelectionAction,
+                // The focus switch (#665), on every field that can let go of the keys.
+                toApp = bodyState.captureHandedToApp,
+                onFocusSwitch = capture.onFocusSwitch.takeIf {
+                    bodyState.panelFieldTarget()?.handsKeysToApp == true
+                },
             ),
             LocalSelectionTools provides selectionTools(bodyState, capture.onAiChat),
             LocalOctopusWords provides rememberUpdatedState(bodyState.octopus),
@@ -2157,33 +2162,41 @@ private fun KeyboardScreenFrame(
                         // window with no background; the service restricts the
                         // touchable region to the panel so everything else
                         // falls through to the app behind.
-                        FloatingKeyboardFrame(
-                            state = state,
-                            onDock = { onFloatingChange(false) },
-                            onMoved = onFloatingMoved,
-                            onResized = { widthDp, heightScale ->
-                                onSizingAction(SizingAction.Floating(widthDp, heightScale))
-                            },
-                            onBounds = onFloatingBounds,
-                            keyPreview = keyPreview,
-                            keyGridFocus = panelFocus.keyGrid,
-                            onRingKey = onKey,
-                            onRingText = onText,
-                            content = { heightScale ->
-                                // Key height carries the whole layout (panels
-                                // included), so scaling it scales the
-                                // keyboard's height.
-                                val scaled = if (heightScale == 1f) {
-                                    state
-                                } else {
-                                    state.withKeyHeights(
-                                        (state.settings.keyHeightDp * heightScale).roundToInt(),
-                                        (state.settings.numberRowHeightDp * heightScale).roundToInt(),
-                                    )
-                                }
-                                movableBody(scaled)
-                            },
-                        )
+                        //
+                        // No window blur here: the window spans the screen, so
+                        // a blur would soften the whole app. Hiding the host
+                        // tells the glass so, and the board falls back to the
+                        // theme's fallback opacity (or the wallpaper backdrop)
+                        // instead of sitting see-through on a sharp app.
+                        CompositionLocalProvider(LocalWindowFrost provides NoWindowFrost) {
+                            FloatingKeyboardFrame(
+                                state = state,
+                                onDock = { onFloatingChange(false) },
+                                onMoved = onFloatingMoved,
+                                onResized = { widthDp, heightScale ->
+                                    onSizingAction(SizingAction.Floating(widthDp, heightScale))
+                                },
+                                onBounds = onFloatingBounds,
+                                keyPreview = keyPreview,
+                                keyGridFocus = panelFocus.keyGrid,
+                                onRingKey = onKey,
+                                onRingText = onText,
+                                content = { heightScale ->
+                                    // Key height carries the whole layout (panels
+                                    // included), so scaling it scales the
+                                    // keyboard's height.
+                                    val scaled = if (heightScale == 1f) {
+                                        state
+                                    } else {
+                                        state.withKeyHeights(
+                                            (state.settings.keyHeightDp * heightScale).roundToInt(),
+                                            (state.settings.numberRowHeightDp * heightScale).roundToInt(),
+                                        )
+                                    }
+                                    movableBody(scaled)
+                                },
+                            )
+                        }
                     } else {
                         DockedKeyboardFrame(
                             state = state,
@@ -8389,6 +8402,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD -> R.string.ime_tool_clipboard
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
+    ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
     ToolbarTool.TRACKPAD -> R.string.ime_tool_trackpad
@@ -8587,7 +8601,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     // The clipboard trio the same: they act and are done.
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     // A one-shot action too — it hides the keyboard, nothing to keep lit.
-    ToolbarTool.HIDE_KEYBOARD -> false
+    ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD -> false
     // Switches and is done, like the 🌐 key it stands in for.
     ToolbarTool.LANGUAGE -> false
 }
@@ -12818,7 +12832,9 @@ private const val ShortLandscapeMaxHeightDp = 480
  * draws [TypingTestStrip] in it, and the word card's spelling bar *is* it.
  */
 internal fun captureStripShown(state: KeyboardUiState): Boolean {
-    val target = state.captureTarget() ?: return false
+    // The tool's field, keys or not: the focus switch (#665) leaves the row
+    // standing, empty, rather than resizing the panel on every press.
+    val target = state.panelFieldTarget() ?: return false
     return target.takesWords &&
         target != CaptureTarget.TYPING_TEST &&
         target != CaptureTarget.WORD_SPELL &&
@@ -13970,9 +13986,12 @@ private fun KeyboardBody(
                         )
                     }
                 }
+                // Collapsed over the key rows while the focus switch sends the
+                // keys to the app's field (#665), like any tool whose box lets go.
                 PanelMode.CALCULATOR -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_calculator),
                     onClose = { onPanelChange(PanelMode.CALCULATOR) },
+                    compact = state.captureHandedToApp,
                 ) { CalculatorPanel(state, onToolInsert, converter) }
                 // The converters open at the calculator's height too (#665): their
                 // keypad is the flexible part and shrinks to fit under the unit
@@ -13980,10 +13999,12 @@ private fun KeyboardBody(
                 PanelMode.UNIT_CONVERT -> FullBleedTool(
                     state, stringResource(R.string.ime_unit_convert_title),
                     onClose = { onPanelChange(PanelMode.UNIT_CONVERT) },
+                    compact = state.captureHandedToApp,
                 ) { UnitConverterPanel(state, onToolInsert, converter, onToolPrefillConsumed) }
                 PanelMode.CURRENCY -> FullBleedTool(
                     state, stringResource(R.string.ime_tool_currency),
                     onClose = { onPanelChange(PanelMode.CURRENCY) },
+                    compact = state.captureHandedToApp,
                 ) {
                     CurrencyPanel(
                         state = state,
@@ -17256,9 +17277,12 @@ private fun KeyRows(
     val glideInCapture = state.captureTarget()?.takesWords == true &&
         state.captureTarget() != CaptureTarget.TYPING_TEST &&
         state.settings.gestureTyping
+    // A tool whose field sent its keys to the app's field (#665) glides into
+    // that field, as the keys do with no panel open.
+    val glideIntoApp = state.captureHandedToApp && state.settings.gestureTyping
     val gestureEnabled = !handwriteSwipe && !slideSelect && !state.layouts.handwriting &&
         (
-            glideInTest || glideInCapture ||
+            glideInTest || glideInCapture || glideIntoApp ||
                 (state.settings.gestureTyping && state.panel == PanelMode.NONE)
             ) &&
         state.layoutMode == LayoutMode.LETTERS &&
@@ -17614,7 +17638,7 @@ private fun KeyRows(
     // box: its selection actions take select all, copy, cut, paste and undo.
     val keysInBox = state.keysTakenByKeyboard
     val fingerSwipesOn = gesture.multiFingerSwipes && !state.typingTestActive &&
-        (state.panel == PanelMode.NONE || keysInBox)
+        (state.panel == PanelMode.NONE || keysInBox || state.captureHandedToApp)
     val fingerSwipeMap = rememberUpdatedState(gesture.fingerSwipes)
     val boxSelection = rememberUpdatedState(
         if (keysInBox) LocalCaptureCaret.current.onSelectionAction else null,
@@ -22555,11 +22579,14 @@ internal fun barClipboardSearching(state: KeyboardUiState): Boolean =
  * to type into it. Asked by the body, which draws them, and by
  * [FullBleedTool], which has to leave them room.
  */
-internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.captureTarget()) {
+internal fun keyRowsUnderPanel(state: KeyboardUiState): Boolean = when (state.panelFieldTarget()) {
     // No field of the keyboard's own: the keys stay under the clipboard only
     // when it is stacked over them (#414), and then they type into the app.
     null -> clipboardStacked(state)
-    CaptureTarget.CALC, CaptureTarget.CONVERTER, CaptureTarget.WORD_SPELL -> false
+    // Their own keypads type into them; the key rows come up only while the
+    // focus switch has sent the keys to the app's field (#665).
+    CaptureTarget.CALC, CaptureTarget.CONVERTER -> state.captureHandedToApp
+    CaptureTarget.WORD_SPELL -> false
     // The emoji and clipboard panels reroute their search pills;
     // the rest are only ever up with their own panel open.
     CaptureTarget.EMOJI_SEARCH, CaptureTarget.KAOMOJI_SEARCH,

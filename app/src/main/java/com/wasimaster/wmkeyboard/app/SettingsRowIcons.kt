@@ -75,6 +75,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudSync
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudUpload
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Celebration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Collections
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Videocam
@@ -352,6 +353,7 @@ internal object SettingsRowIcons {
 
         // ---- About ----
         put(R.string.about_version_title) { Icons.Outlined.Info }
+        put(R.string.update_action_notes) { Icons.Outlined.Celebration }
         put(R.string.about_licence_title) { Icons.Outlined.Gavel }
         put(R.string.about_licences_title) { Icons.Outlined.Gavel }
         put(R.string.about_supporters_title) { Icons.Outlined.VolunteerActivism }
@@ -747,6 +749,8 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }
         put(R.string.floating_button_double_tap_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_hold_title) { Icons.Outlined.Gesture }
+        put(R.string.floating_button_tap_typing_title) { Icons.Outlined.TouchApp }
+        put(R.string.floating_button_double_tap_typing_title) { Icons.Outlined.AdsClick }
         put(R.string.floating_button_menu_unreached_title) { Icons.Outlined.Apps }
         put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }

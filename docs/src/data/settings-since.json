@@ -169,6 +169,8 @@
 		"floating_button_enable_title": "0.6.2",
 		"floating_button_haptics_title": "0.6.2",
 		"floating_button_hold_title": "0.6.2",
+		"floating_button_tap_typing_title": "0.6.3",
+		"floating_button_double_tap_typing_title": "0.6.3",
 		"floating_button_idle_opacity_title": "0.6.2",
 		"floating_button_idle_title": "0.6.2",
 		"floating_button_landscape_title": "0.6.2",

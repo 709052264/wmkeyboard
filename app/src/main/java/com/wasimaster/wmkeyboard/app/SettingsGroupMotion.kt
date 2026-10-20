@@ -64,6 +64,12 @@ private class DrawnRow(val entry: SettingsGroupScope.Entry, val leaving: Boolean
     val shows: Boolean get() = !leaving && entry.visible
 }
 
+/**
+ * The key an unkeyed row is composed under: its place among the group's other
+ * unkeyed rows. A class of its own, so no caller's key can equal it.
+ */
+private data class PlainRow(val ordinal: Int)
+
 /** What a pass draws, and whether a key new to it opens or simply appears. */
 private class GroupPass(val rows: List<DrawnRow>, val animateArrivals: Boolean)
 
@@ -260,28 +266,36 @@ internal fun GroupRows(
     val rows = pass.rows
     val firstShown = rows.indexOfFirst { it.shows }
     val lastShown = rows.indexOfLast { it.shows }
+    var plainSeen = 0
     rows.forEachIndexed { index, row ->
         val entry = row.entry
         val gapAbove = index > 0
         val first = if (row.leaving) firstShown < 0 || index < firstShown else index == firstShown
         val last = if (row.leaving) index > lastShown else index == lastShown
         val rowKey = entry.key
-        if (rowKey == null) {
-            when {
-                !entry.conditional -> card(Modifier, gapAbove, first, last, entry.content)
-                // Reduced motion has no still version of a reveal, so the row
-                // is or is not there.
-                still -> if (entry.visible) card(Modifier, gapAbove, first, last, entry.content)
-                else -> AnimatedVisibility(
-                    visible = entry.visible,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut(),
-                ) {
-                    card(Modifier, gapAbove, first, last, entry.content)
+        // Every row is keyed here, outside the branch below, and that is what
+        // lets a keyed row move (#665). The compiler wraps each branch of an
+        // `if` in a group of its own, so a `key` inside one has no siblings to
+        // be found among: when a row left, each row under it met the next
+        // one's slot, was composed afresh, and opened as if it had just been
+        // added. Unkeyed rows are named by their order among themselves, which
+        // is how planRows matches them and how they were composed before.
+        key(rowKey ?: PlainRow(plainSeen++)) {
+            if (rowKey == null) {
+                when {
+                    !entry.conditional -> card(Modifier, gapAbove, first, last, entry.content)
+                    // Reduced motion has no still version of a reveal, so the row
+                    // is or is not there.
+                    still -> if (entry.visible) card(Modifier, gapAbove, first, last, entry.content)
+                    else -> AnimatedVisibility(
+                        visible = entry.visible,
+                        enter = expandVertically() + fadeIn(),
+                        exit = shrinkVertically() + fadeOut(),
+                    ) {
+                        card(Modifier, gapAbove, first, last, entry.content)
+                    }
                 }
-            }
-        } else {
-            key(rowKey) {
+            } else {
                 val leaving = row.leaving
                 // Decided once, in the pass that brings the row in, so a row
                 // that is going to open draws its first frame closed rather

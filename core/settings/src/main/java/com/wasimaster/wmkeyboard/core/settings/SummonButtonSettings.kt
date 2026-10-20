@@ -39,6 +39,18 @@ data class SummonButtonSettings(
     val doubleTap: FloatingAction = FloatingAction.None,
     /** What a press and hold does. The quick menu, which a slide can pick from without letting go. */
     val hold: FloatingAction = FloatingAction.Menu,
+    /**
+     * What a tap does while the keyboard is up, or null for the same as [tap]
+     * (#626). Lets one tap open the keyboard and the next leave the field,
+     * without spending the double tap or the hold on it.
+     */
+    val tapTyping: FloatingAction? = null,
+    /**
+     * What a double tap does while the keyboard is up, or null for the same as
+     * [doubleTap]. Bound only here, a single tap with the keyboard down runs
+     * at once instead of waiting out the double-tap window.
+     */
+    val doubleTapTyping: FloatingAction? = null,
     /** The quick menu's slots, in the order they fan out; at most [MAX_FLOATING_MENU_ITEMS]. */
     val menu: List<FloatingAction> = DefaultFloatingMenu,
     /** Under each quick menu slot, its name. */
@@ -68,16 +80,28 @@ data class SummonButtonSettings(
     val haptics: Boolean = true,
 )
 
+/** What a tap does with the keyboard up or down. */
+fun SummonButtonSettings.tapFor(keyboardUp: Boolean): FloatingAction =
+    if (keyboardUp) tapTyping ?: tap else tap
+
+/** What a double tap does with the keyboard up or down. */
+fun SummonButtonSettings.doubleTapFor(keyboardUp: Boolean): FloatingAction =
+    if (keyboardUp) doubleTapTyping ?: doubleTap else doubleTap
+
+/** Every action a gesture is bound to, the keyboard-up ones included. */
+fun SummonButtonSettings.gestureActions(): List<FloatingAction> =
+    listOfNotNull(tap, doubleTap, hold, tapTyping, doubleTapTyping)
+
 /** Whether any of the button's gestures, or its quick menu, asks the AI. */
 fun SummonButtonSettings.usesAskAi(): Boolean =
-    FloatingAction.AskAi in listOf(tap, doubleTap, hold) || FloatingAction.AskAi in opensMenuItems()
+    FloatingAction.AskAi in gestureActions() || FloatingAction.AskAi in opensMenuItems()
 
 /** Whether any of the button's gestures, or its quick menu, reads the screen: Ask AI, or Look up (#765). */
 fun SummonButtonSettings.readsScreen(): Boolean {
-    val bound = listOf(tap, doubleTap, hold) + opensMenuItems()
+    val bound = gestureActions() + opensMenuItems()
     return FloatingAction.AskAi in bound || FloatingAction.LookUp in bound
 }
 
 /** The quick menu's slots when some gesture opens it, else nothing. */
 fun SummonButtonSettings.opensMenuItems(): List<FloatingAction> =
-    if (FloatingAction.Menu in listOf(tap, doubleTap, hold)) menu else emptyList()
+    if (FloatingAction.Menu in gestureActions()) menu else emptyList()

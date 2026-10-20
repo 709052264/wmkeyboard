@@ -268,6 +268,13 @@
     <string name="ime_undo_correction_desc">Put back the word you typed</string>
     <string name="ime_capture_undo_desc">Undo the last change</string>
     <string name="ime_capture_redo_desc">Redo the change you undid</string>
+    <!-- Screen reader names of the focus switch on a tool's own field (#665),
+         which sends the keys to the app's field or back. Each says what a
+         press does. -->
+    <string name="ime_capture_focus_to_app_desc">Type in the app instead</string>
+    <string name="ime_capture_focus_to_field_desc">Type in this box again</string>
+    <!-- In a tool's empty box while its keys go to the app's field (#665). -->
+    <string name="ime_capture_focus_app_hint">Typing in the app. Tap to type here</string>
 
     <!-- Shown under a glide's word picker once the finger has slid down away
          from the words: lifting now types nothing. -->
@@ -389,6 +396,7 @@
     <string name="ime_tool_clipboard">Clipboard</string>
     <string name="ime_tool_clipboard_search">Clipboard search</string>
     <string name="ime_tool_recent_copies">Recent copies</string>
+    <string name="ime_tool_leave_field">Leave field</string>
     <string name="ime_tool_snippets">Snippets</string>
     <string name="ime_tool_text_edit">Text editing</string>
     <string name="ime_tool_trackpad">Trackpad</string>

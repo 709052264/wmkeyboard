@@ -21,6 +21,14 @@
     <string name="floating_button_hold_title">Press and hold</string>
     <string name="floating_button_pick_title">%1$s does</string>
 
+    <!-- The tap and double tap again, for while the keyboard is up (#626). -->
+    <string name="floating_button_typing_group">While the keyboard is open</string>
+    <string name="floating_button_typing_info">With the keyboard open, a tap and a double tap can do something else, such as leave the text field. Left at the same, they do what Tap and Double tap do. A double tap set only here keeps a tap with the keyboard closed from waiting.</string>
+    <string name="floating_button_tap_typing_title">Tap while open</string>
+    <string name="floating_button_double_tap_typing_title">Double tap while open</string>
+    <string name="floating_button_same_as">Same as %1$s</string>
+    <string name="floating_button_pick_same_subtitle">Does what it does with the keyboard closed</string>
+
     <string name="floating_button_menu_group">Quick menu</string>
     <string name="floating_button_menu_info">The quick menu fans out round the button, facing the middle of the screen. Opened by pressing and holding, slide your finger onto an action and let go to run it, or let go first and tap one. Tap anywhere else to close it. Drag the handles to reorder; the first action sits at one end of the fan.</string>
     <string name="floating_button_menu_unreached_title">No gesture opens the menu</string>

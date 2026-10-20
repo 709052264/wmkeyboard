@@ -954,6 +954,8 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         row(R.string.floating_button_tap_title),
         row(R.string.floating_button_double_tap_title),
         row(R.string.floating_button_hold_title),
+        row(R.string.floating_button_tap_typing_title),
+        row(R.string.floating_button_double_tap_typing_title),
         row(R.string.floating_button_menu_add_title),
         row(R.string.floating_button_menu_labels_title, R.string.floating_button_menu_labels_subtitle),
         row(R.string.floating_button_menu_reset_title, R.string.floating_button_menu_reset_subtitle),

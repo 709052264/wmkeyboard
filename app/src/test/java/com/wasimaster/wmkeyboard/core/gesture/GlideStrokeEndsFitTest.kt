@@ -53,13 +53,26 @@ class GlideStrokeEndsFitTest {
     }
 
     @Test
-    fun `an end on the neighbouring key fits, one with a key in between does not`() {
-        // r is t's neighbour; from e, r sits in between.
+    fun `an end two keys off fits, three keys off does not`() {
+        // r is t's neighbour, e two keys away, w three.
         assertTrue(stroke(at('r'), at('h'), at('e')).endsFit("the", map))
-        assertFalse(stroke(at('e'), at('h'), at('e')).endsFit("the", map))
-        // w is e's neighbour; from q, w sits in between.
+        assertTrue(stroke(at('e'), at('h'), at('e')).endsFit("the", map))
+        assertFalse(stroke(at('w'), at('h'), at('e')).endsFit("the", map))
+        // The same at the other end: w is two keys from e, q three.
         assertTrue(stroke(at('t'), at('h'), at('w')).endsFit("the", map))
         assertFalse(stroke(at('t'), at('h'), at('q')).endsFit("the", map))
+    }
+
+    @Test
+    fun `an end on the far edge of the key below fits`() {
+        // Rows taller than keys are wide, the way the keyboard draws them.
+        val tall = keys.map { KeyCenter(it.codePoint, it.x, it.y * 1.4f) }
+        val stroke = GlideStroke(
+            listOf(GesturePoint(450f, 70f + 1.4f * keyWidth * 1.45f), GesturePoint(250f, 70f)),
+            tall,
+            keyWidth,
+        )
+        assertTrue(stroke.endsFit("te", GlideKeyMap.of(tall, keyWidth)))
     }
 
     @Test

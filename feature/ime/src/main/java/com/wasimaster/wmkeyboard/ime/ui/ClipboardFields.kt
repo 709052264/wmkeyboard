@@ -94,6 +94,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
@@ -3153,9 +3154,18 @@ internal fun ClipEditText(
     // the text (#612): a press on the empty part under a short clip, or in an
     // empty one, landed on nothing, so a long press there to paste did
     // nothing at all. There, the caret goes to the end and Paste is offered.
+    // The focus switch sent the keys to the app's field (#665): faded, no
+    // caret, and a tap on it (the service's caret tap) takes them back.
+    val toApp = handle.toApp
+    val switchShown = handle.onFocusSwitch != null
     BoxWithConstraints(modifier = modifier) {
         val fieldHeight = minHeight
-        Box(modifier = Modifier.verticalScroll(scroll)) {
+        Box(
+            modifier = Modifier
+                .then(if (switchShown) Modifier.padding(end = FieldSwitchRoom) else Modifier)
+                .then(if (toApp) Modifier.alpha(FieldToAppAlpha) else Modifier)
+                .verticalScroll(scroll),
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -3208,7 +3218,7 @@ internal fun ClipEditText(
                 PublishFieldSelection(
                     owner = owner,
                     text = text,
-                    active = true,
+                    active = !toApp,
                     handle = handle,
                     coordinates = { owner.coordinates },
                     layout = { layout?.takeIf { it.layoutInput.text.text == text } },
@@ -3217,7 +3227,7 @@ internal fun ClipEditText(
                 )
                 if (text.isEmpty()) {
                     Text(
-                        text = placeholder,
+                        text = if (toApp) stringResource(R.string.ime_capture_focus_app_hint) else placeholder,
                         color = placeholderColor,
                         fontSize = fontSize,
                         maxLines = 1,
@@ -3227,7 +3237,7 @@ internal fun ClipEditText(
                 }
                 val result = layout?.takeIf { it.layoutInput.text.text == text }
                 // No caret while a span is selected: the highlight marks where typing lands.
-                if (result != null && !selecting) {
+                if (result != null && !selecting && !toApp) {
                     val rect = result.getCursorRect(caret.coerceIn(0, result.layoutInput.text.length))
                     Box(
                         Modifier.offset { IntOffset(rect.left.roundToInt(), rect.top.roundToInt()) },
@@ -3254,8 +3264,13 @@ internal fun ClipEditText(
                 }
             }
         }
+        // The focus switch (#665), in the corner the text leaves it.
+        FieldFocusSwitch(handle, Modifier.align(Alignment.TopEnd))
     }
 }
+
+/** The room [ClipEditText] keeps clear down its end for the focus switch. */
+private val FieldSwitchRoom = 32.dp
 
 /** The editor's blinking bar; held solid under reduce motion, like the search caret. */
 @Composable
@@ -3817,7 +3832,15 @@ private fun ClipCombineBox(
                 .clip(shape)
                 .frostGlass(kb, shape, FrostSurface.CHIPS)
                 .background(kb.chip)
-                .then(if (focused) Modifier.border(1.5.dp, kb.accent, shape) else Modifier.chipBorder(kb, shape))
+                // The accent ring marks the box the keys type into; none while
+                // the focus switch has sent them to the app's field (#665).
+                .then(
+                    if (focused && !LocalCaptureCaret.current.toApp) {
+                        Modifier.border(1.5.dp, kb.accent, shape)
+                    } else {
+                        Modifier.chipBorder(kb, shape)
+                    },
+                )
                 .then(if (focused) Modifier else Modifier.clickable(onClick = onFocus))
                 .padding(horizontal = 10.dp, vertical = 6.dp),
             contentAlignment = Alignment.CenterStart,

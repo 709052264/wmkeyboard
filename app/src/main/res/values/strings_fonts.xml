@@ -84,6 +84,7 @@
     <string name="fonts_tool_clipboard_desc">Paste from the clipboard history</string>
     <string name="fonts_tool_clipboard_search_desc">Open the clipboard with its search ready to type into</string>
     <string name="fonts_tool_recent_copies_desc">Show your latest copies in a row on the suggestion strip, until you type</string>
+    <string name="fonts_tool_leave_field_desc">Press Esc to leave the text field, then hide the keyboard. Works in apps that answer Esc, such as a browser\'s address bar</string>
     <string name="fonts_tool_snippets_desc">Insert saved text snippets</string>
     <string name="fonts_tool_text_edit_desc">Cursor, selection and clipboard controls</string>
     <string name="fonts_tool_trackpad_desc">Drag on the keys to move the cursor, hold to select</string>

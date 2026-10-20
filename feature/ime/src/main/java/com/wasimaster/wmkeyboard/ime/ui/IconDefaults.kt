@@ -136,6 +136,7 @@ object IconDefaults {
         ToolbarTool.CLIPBOARD -> Icons.AutoMirrored.Outlined.Assignment
         ToolbarTool.CLIPBOARD_SEARCH -> Icons.Outlined.Search
         ToolbarTool.RECENT_COPIES -> Icons.Outlined.History
+        ToolbarTool.LEAVE_FIELD -> Icons.Outlined.Close
         ToolbarTool.SNIPPETS -> Icons.AutoMirrored.Outlined.TextSnippet
         ToolbarTool.TEXT_EDIT -> Icons.Outlined.EditNote
         ToolbarTool.TRACKPAD -> SymbolIcons.TrackpadInput

@@ -146,6 +146,13 @@ enum class ToolbarTool {
     // instance as a link with an expiry, a download limit and a password, or
     // straight to a device nearby over Wi-Fi. Receives both kinds too.
     SEND_FILES,
+    // Out of the field, not just the keyboard down (#626). Android gives a
+    // keyboard no way to take another app's focus, but Esc does it in the
+    // apps that answer it (a browser's address bar among them): one Esc,
+    // a second if the field is still there, then the keyboard goes.
+    // Action-only, like [CLIPBOARD_SEARCH]: meant for the floating button's
+    // tap while the keyboard is up, a flick or a key.
+    LEAVE_FIELD,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -204,7 +211,7 @@ val HoldRepeatCursorTools: Set<ToolbarTool> = setOf(
 fun isDirectBootSafeTool(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.EMOJI, ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.ONE_HANDED, ToolbarTool.SPLIT, ToolbarTool.FLOATING, ToolbarTool.RESIZE,
-    ToolbarTool.HIDE_KEYBOARD, ToolbarTool.PERSISTENT,
+    ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD, ToolbarTool.PERSISTENT,
     ToolbarTool.THEMES, ToolbarTool.AUTOCORRECT, ToolbarTool.SOUND_HAPTICS, ToolbarTool.INCOGNITO,
     ToolbarTool.MODES, ToolbarTool.UNDO, ToolbarTool.REDO, ToolbarTool.POWER_SAVING,
     // The fancy layout ships in the assets and its styles are code, so it
@@ -255,7 +262,7 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     ToolbarTool.RESIZE,
     ToolbarTool.FLASHLIGHT, ToolbarTool.UNDO, ToolbarTool.REDO,
     ToolbarTool.INCOGNITO, ToolbarTool.POWER_SAVING, ToolbarTool.AUTOCORRECT,
-    ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD,
+    ToolbarTool.FANCY, ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.HIDE_KEYBOARD, ToolbarTool.LEAVE_FIELD,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.LANGUAGE,
     ToolbarTool.RECENT_COPIES,
     -> false
@@ -295,7 +302,8 @@ val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
  * bindings run through paths that skip the enabled-tools test, so they fire
  * regardless.
  */
-val ActionOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES)
+val ActionOnlyTools: Set<ToolbarTool> =
+    setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD)
 
 /**
  * The "Everything" preset, and the enabled-tools default before setup swaps
@@ -383,7 +391,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.SELECT_WORD, ToolbarTool.SELECT_LINE, ToolbarTool.SELECT_ALL,
     ToolbarTool.SELECT_MODE,
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
-    ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES,
+    ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD,
 )
 
 /**

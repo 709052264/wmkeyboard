@@ -196,7 +196,11 @@ internal fun SearchQueryText(
     modifier: Modifier = Modifier,
 ) {
     val handle = LocalCaptureCaret.current
-    val caret = if (active) handle.at.coerceIn(0, query.length) else -1
+    // The focus switch sent this field's keys to the app's field (#665): no
+    // caret, faded, and a tap anywhere on it is a tap to type here again,
+    // taken before the pill's own press can close the search.
+    val toApp = active && handle.toApp
+    val caret = if (active && !toApp) handle.at.coerceIn(0, query.length) else -1
     // Empty field: no text to press on, so the whole box takes the long press
     // that offers Paste at the caret (#434). Otherwise the one-line text
     // below does, where the press can also land on a word.
@@ -204,18 +208,64 @@ internal fun SearchQueryText(
     val overlay = LocalSelectionOverlay.current
     val owner = remember { SelectionAnchor() }
     var caretBar by remember(query, active) { mutableStateOf(false) }
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        SearchQueryLine(
+            query = query,
+            placeholder = placeholder,
+            active = active,
+            toApp = toApp,
+            caret = caret,
+            textColor = textColor,
+            placeholderColor = placeholderColor,
+            fontSize = fontSize,
+            handle = handle,
+            emptyActive = emptyActive,
+            owner = owner,
+            overlay = overlay,
+            caretBar = caretBar,
+            setCaretBar = { caretBar = it },
+        )
+        // Only on the field that has the keys, or had them until the switch
+        // sent them to the app: one switch on screen, beside its field.
+        if (active) FieldFocusSwitch(handle)
+    }
+}
+
+/** [SearchQueryText] less the focus switch: the line itself, as wide as the field leaves it. */
+@Composable
+private fun RowScope.SearchQueryLine(
+    query: String,
+    placeholder: String,
+    active: Boolean,
+    toApp: Boolean,
+    caret: Int,
+    textColor: Color,
+    placeholderColor: Color,
+    fontSize: TextUnit,
+    handle: CaptureCaretHandle,
+    emptyActive: Boolean,
+    owner: SelectionAnchor,
+    overlay: SelectionOverlayState?,
+    caretBar: Boolean,
+    setCaretBar: (Boolean) -> Unit,
+) {
+    val line = Modifier.weight(1f)
     Row(
-        modifier = if (emptyActive) {
-            modifier
+        modifier = when {
+            toApp -> line
+                .alpha(FieldToAppAlpha)
+                .pointerInput(handle.onFocusSwitch) {
+                    detectTapGestures { handle.onFocusSwitch?.invoke() }
+                }
+            emptyActive -> line
                 .onGloballyPositioned {
                     owner.coordinates = it
                     overlay?.moved(owner)
                 }
                 .pointerInput(query, active) {
-                    detectTapGestures(onLongPress = { caretBar = true }, onTap = { caretBar = false })
+                    detectTapGestures(onLongPress = { setCaretBar(true) }, onTap = { setCaretBar(false) })
                 }
-        } else {
-            modifier
+            else -> line
         },
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -227,7 +277,7 @@ internal fun SearchQueryText(
             coordinates = { owner.coordinates },
             layout = { null },
             caretBar = caretBar,
-            onCaretBarDismiss = { caretBar = false },
+            onCaretBarDismiss = { setCaretBar(false) },
         )
         // Empty field: the caret sits in front of the placeholder, where the
         // first character will land. Nothing to scroll and nowhere to tap.
@@ -237,7 +287,7 @@ internal fun SearchQueryText(
         }
         if (query.isEmpty()) {
             Text(
-                text = placeholder,
+                text = if (toApp) stringResource(R.string.ime_capture_focus_app_hint) else placeholder,
                 color = placeholderColor,
                 fontSize = fontSize,
                 maxLines = 1,
