@@ -1080,6 +1080,29 @@ internal fun LanguageDetailScreen(
         }
     }
 
+    // The space after a picked suggestion, per language the same way (#813):
+    // Bangla words take their case markers and suffixes straight after the
+    // pick, so the space only gets in the way there.
+    SettingsGroup(stringResource(R.string.languages_spacing_group)) {
+        item {
+            val globalOn = settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion }
+            ToggleSetting(
+                R.string.languages_space_after_suggestion_title,
+                stringResource(
+                    if (globalOn) {
+                        R.string.languages_space_after_suggestion_subtitle
+                    } else {
+                        R.string.languages_space_after_suggestion_global_off_subtitle
+                    },
+                ),
+                settings.watch { langId !in it.suggestionStrip.spaceAfterSuggestionOffLangs },
+                info = stringResource(R.string.languages_space_after_suggestion_info, lang.englishName),
+                enabled = globalOn,
+                default = true,
+            ) { scope.launch { repository.setAutoSpaceAfterSuggestionForLanguage(langId, it) } }
+        }
+    }
+
     // Fancy Text: the style the one fancy layout draws and types. The strip
     // over the keys switches it too; this row makes it discoverable from
     // Settings and readable as a plain list.

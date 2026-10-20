@@ -8799,6 +8799,14 @@ data class SuggestionStripSettings(
      */
     val autoSpaceAfterSuggestion: Boolean = true,
     /**
+     * Languages a pick commits bare in while [autoSpaceAfterSuggestion] stays
+     * on for the rest (#813): Bangla words take their case markers, postpositions
+     * and suffixes straight after a suggestion, so the space is wrong more
+     * often than right there. Only the switched-off languages are stored, so a
+     * language added later gets the space.
+     */
+    val spaceAfterSuggestionOffLangs: Set<String> = emptySet(),
+    /**
      * Leave the word you have already typed out of the strip, so every slot
      * offers something new.
      *
@@ -9106,6 +9114,10 @@ data class SuggestionStripSettings(
      */
     val learnFromTextPairs: Boolean = true,
 ) {
+    /** Whether a word picked from the strip while typing [langId] gets a space after it. */
+    fun autoSpaceAfterSuggestionFor(langId: String): Boolean =
+        autoSpaceAfterSuggestion && langId !in spaceAfterSuggestionOffLangs
+
     /** Whether the fixed-spelling map applies to [langId]. */
     fun spellingMapEnabledFor(langId: String): Boolean = langId !in spellingMapOffLangs
 
@@ -9857,6 +9869,8 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_RETURN_CHARS = stringPreferencesKey("symbols_return_chars")
         private val SYMBOLS_RETURN_ON_SPACE = booleanPreferencesKey("symbols_return_on_space")
         private val AUTO_SPACE_AFTER_SUGGESTION = booleanPreferencesKey("auto_space_after_suggestion")
+        private val SPACE_AFTER_SUGGESTION_OFF_LANGS =
+            stringSetPreferencesKey("space_after_suggestion_off_langs")
         private val SKIP_TYPED_WORD = booleanPreferencesKey("skip_typed_word")
         private val RECENT_WORD_BAR = booleanPreferencesKey("recent_word_bar")
         private val EXPAND_USER_DICT_SHORTCUTS = booleanPreferencesKey("expand_user_dict_shortcuts")
@@ -12050,6 +12064,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.contextRerank,
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
+            spaceAfterSuggestionOffLangs = p[SPACE_AFTER_SUGGESTION_OFF_LANGS]
+                ?: defaults.suggestionStrip.spaceAfterSuggestionOffLangs,
             skipTypedWord = p[SKIP_TYPED_WORD] ?: defaults.suggestionStrip.skipTypedWord,
             recentWordBar = p[RECENT_WORD_BAR] ?: defaults.suggestionStrip.recentWordBar,
             expandUserDictShortcuts = p[EXPAND_USER_DICT_SHORTCUTS]
@@ -17455,6 +17471,17 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAutoSpaceAfterSuggestion(value: Boolean) =
         editPrefs { it[AUTO_SPACE_AFTER_SUGGESTION] = value }
+
+    /**
+     * Turn the space after a picked suggestion on or off for one language
+     * (#813). Only the switched-off languages are stored; the global switch
+     * still rules them all.
+     */
+    suspend fun setAutoSpaceAfterSuggestionForLanguage(langId: String, enabled: Boolean) =
+        editPrefs {
+            val off = it[SPACE_AFTER_SUGGESTION_OFF_LANGS].orEmpty()
+            it[SPACE_AFTER_SUGGESTION_OFF_LANGS] = if (enabled) off - langId else off + langId
+        }
 
     suspend fun setExpandUserDictShortcuts(value: Boolean) =
         editPrefs { it[EXPAND_USER_DICT_SHORTCUTS] = value }

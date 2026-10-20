@@ -158,7 +158,7 @@
 
     <string name="typing_space_after_suggestion_title">Space after a suggestion</string>
     <string name="typing_space_after_suggestion_subtitle">Add a space when you select a word from the suggestion strip</string>
-    <string name="typing_space_after_suggestion_info">This setting is on by default. When you press a suggestion, the keyboard types the word and a space after it, so the next word starts clean. Turn it off to type the word without the space. This helps in the languages or fields where a space after a word is usually wrong. If you go back to a word and continue it, the keyboard never adds a second space.</string>
+    <string name="typing_space_after_suggestion_info">This setting is on by default. When you press a suggestion, the keyboard types the word and a space after it, so the next word starts clean. Turn it off to type the word without the space. This helps in the languages or fields where a space after a word is usually wrong. If you go back to a word and continue it, the keyboard never adds a second space. To turn it off for one language only, open that language in Languages &amp; layouts.</string>
 
     <string name="typing_wrap_selection_title">Wrap the selection with brackets</string>
     <string name="typing_wrap_selection_subtitle">Press either half of ( ) [ ] { } &lt; &gt; \" \' or ` to put the pair around the selected text</string>
