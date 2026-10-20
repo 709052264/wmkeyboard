@@ -161,6 +161,17 @@ The script fetches the revision of `mozilla/translations` that Firefox ships (on
 
 The model list is generated: `native/bergamot-jni/catalog.py` reads Mozilla's public Remote Settings collection `translations-models-v2` and writes `BergamotCatalog.kt` with each file's address, size and SHA-256. Run it to move to Mozilla's newer models, then review the diff. `native/bergamot-jni/README.md` has the JNI contract and the reasons behind each build flag.
 
+## Rebuilding the zinnia library
+
+Chinese and Japanese handwriting without ML Kit runs on [zinnia](https://github.com/taku910/zinnia), built with a small JNI bridge into `libwmzinnia.so` from `native/zinnia-jni/`. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/handwriting/ZinniaNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/zinnia/jniLibs/<abi>/`, a directory of their own so that the Play split carries nothing else. GitHub builds pin it for download (gate `zinnia`), Play builds ship it in the on-demand `:feature:zinnia` split, and F-Droid builds it from source through `native/build-fdroid-libs.sh`. Rebuild it only after you edit `native/zinnia-jni/` or move the pinned commit in `build.sh`:
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/zinnia-jni/build.sh
+```
+
+The script fetches zinnia at its pinned commit, compiles the recogniser's four sources for all three ABIs in about fifteen seconds and copies the stripped libraries into place. `build.sh --desktop DIR` builds the same library for the machine it runs on, for testing the JNI from a plain JVM. The models are not part of the build: the Tegaki project's three, pinned in `core/input/.../zinnia/ZinniaData.kt`, download from the data repository as CJK packs. `native/zinnia-jni/README.md` has the JNI contract, where each model came from, and the desktop test's numbers.
+
 ## Rebuilding the llama.cpp library
 
 GGUF models for on-device AI run on [llama.cpp](https://github.com/ggml-org/llama.cpp), built with its chat-template code and a small JNI bridge into `libwmllama.so` (and `libwmllama_v82.so` on arm64) from `native/llamacpp-jni/`. `LlamaNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/localllm/` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/llama/jniLibs/<abi>/`, a directory of their own so the Play split carries nothing else. GitHub builds pin them for download (gate `llama`), Play builds ship them in the on-demand `:feature:llama` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild after you edit `native/llamacpp-jni/` or move the pin in `pin.sh`:

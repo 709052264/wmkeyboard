@@ -489,6 +489,9 @@ android {
         // translate tool's free on-device engine; fetched with the first
         // Firefox Translations model.
         dynamicFeatures += ":feature:bergamot"
+        // zinnia (~0.45 MB on arm64), the offline Chinese and Japanese
+        // handwriting recogniser; fetched with its first model.
+        dynamicFeatures += ":feature:zinnia"
         // llama.cpp (a few MB per ABI), the runtime for GGUF models; fetched
         // when the first GGUF model is downloaded or used.
         dynamicFeatures += ":feature:llama"
@@ -1374,7 +1377,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell, :feature:ocr, :feature:rime, :feature:mozc, :feature:bergamot and :feature:llama modules.
+        // :feature:speech, :feature:executorch, :feature:onnx, :feature:grammar, :feature:spell, :feature:ocr, :feature:rime, :feature:mozc, :feature:bergamot, :feature:zinnia and :feature:llama modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

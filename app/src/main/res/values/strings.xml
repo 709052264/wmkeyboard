@@ -42,6 +42,7 @@
          Japanese. Mozc is the engine's name and stays in Latin letters. -->
     <string name="mozc_module_title">Mozc Japanese engine</string>
     <string name="bergamot_module_title">Firefox Translations engine</string>
+    <string name="zinnia_module_title">Chinese and Japanese handwriting</string>
     <!-- :feature:llama, llama.cpp behind GGUF models for on-device AI.
          llama.cpp and GGUF stay in Latin letters. -->
     <string name="llama_module_title">llama.cpp for GGUF models</string>

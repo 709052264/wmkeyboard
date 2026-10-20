@@ -175,9 +175,17 @@ object InkPackImports {
         return packs.isNotEmpty() && packs.all { File(dir, it.fileName).isFile }
     }
 
-    /** The links to fetch [tag]'s packs from, as ML Kit itself would. Blocking. */
+    /**
+     * The links to fetch [tag]'s packs from, as ML Kit itself would. Blocking.
+     * A zinnia model is one file, which the offline import installs as the CJK
+     * pack it is.
+     */
     fun packUrls(context: Context, tag: String): List<String> =
-        runCatching { HandwritingModelSizes.packs(context, tag) }.getOrDefault(emptyList()).map { it.url }
+        if (ZinniaModels.isTag(tag)) {
+            listOfNotNull(ZinniaModels.packUrl(tag))
+        } else {
+            runCatching { HandwritingModelSizes.packs(context, tag) }.getOrDefault(emptyList()).map { it.url }
+        }
 
     /** Runs [block] with the downloader's internet and network gates open. */
     internal suspend fun <T> waiving(block: suspend () -> T): T {

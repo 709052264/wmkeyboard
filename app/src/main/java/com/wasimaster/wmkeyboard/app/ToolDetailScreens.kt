@@ -1920,6 +1920,17 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingAutoSpace,
                     ) { scope.launch { repository.setHandwritingAutoSpace(it) } }
                 }
+                // Only a choice where ML Kit is in the build: without it
+                // zinnia is all Chinese and Japanese have.
+                item(visible = HandwritingModels.mlKitInBuild) {
+                    ToggleSetting(
+                        R.string.tooldetail_handwriting_zinnia_title,
+                        stringResource(R.string.tooldetail_handwriting_zinnia_subtitle),
+                        settings.watch { it.handwritingZinnia },
+                        info = stringResource(R.string.tooldetail_handwriting_zinnia_info),
+                        default = SettingsDefaults.handwritingZinnia,
+                    ) { scope.launch { repository.setHandwritingZinnia(it) } }
+                }
                 item {
                     SliderSetting(
                         R.string.tooldetail_handwriting_pause_title,
@@ -4106,20 +4117,21 @@ private fun handwritingControlOf(status: String): Int = when (status) {
 
 /**
  * Download/delete state for the handwriting model of every language the user
- * types in — drawn from ML Kit's full ink catalogue, then narrowed to the
- * enabled languages so the list is only ever as long as it is useful. Status
- * is re-read from ML Kit's model manager after every action.
+ * types in — drawn from ML Kit's full ink catalogue and zinnia's three
+ * models, then narrowed to the enabled languages so the list is only ever as
+ * long as it is useful. Status is re-read after every action.
  */
 @Composable
 private fun HandwritingModelManager(settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val enabledLanguages = settings.watch { it.enabledLanguages }
-    val languages = remember(enabledLanguages) {
-        HandwritingModels.modelsFor(enabledLanguages)
+    val zinnia = settings.watch { it.handwritingZinnia }
+    val languages = remember(enabledLanguages, zinnia) {
+        HandwritingModels.modelsFor(enabledLanguages, zinnia)
     }
     val missing = remember(enabledLanguages, languages) {
         enabledLanguages.distinctBy { it.id }
-            .filter { HandwritingModels.tagFor(it) == null }
+            .filter { HandwritingModels.tagFor(it, zinnia) == null }
     }
     val context = LocalContext.current
     val startDownload = rememberDownloadStarter()

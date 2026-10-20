@@ -1,6 +1,5 @@
 package com.wasimaster.wmkeyboard.core.layout
 
-import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.util.JsonPretty
 import com.wasimaster.wmkeyboard.core.util.firstJsonDocument
 import kotlinx.serialization.SerialName
@@ -17,11 +16,10 @@ import kotlinx.serialization.json.jsonArray
  * semantics editing a built-in typing layout already has. Serialized by the
  * lowercase name so a stored list reads `"panel":"emoji"`.
  *
- * [shipped] is whether the panel's tool exists in this build. Handwriting is
- * the one that can be missing: F-Droid's build has no recognizer, so its panel
- * hides from the gallery and the layout editor's tabs there. The flag also lets
- * the next panel define its layout ahead of its tool, as the trackpad's was
- * (issue #39).
+ * [shipped] is whether the panel's tool exists in this build. Every panel's
+ * does today: handwriting, the last one that could be missing, has zinnia
+ * where ML Kit is not in the build. The flag lets the next panel define its
+ * layout ahead of its tool, as the trackpad's was (issue #39).
  */
 @Serializable
 enum class PanelKind(val shipped: Boolean = true) {
@@ -36,7 +34,7 @@ enum class PanelKind(val shipped: Boolean = true) {
     /** The Numpad tool's pad: keys only, like the text-editing pad. */
     @SerialName("numpad") NUMPAD,
     /** The handwriting panel (#568): the writing canvas plus the keys around it. */
-    @SerialName("handwriting") HANDWRITING(shipped = BuildConfig.ENABLE_ML_KIT_HANDWRITING),
+    @SerialName("handwriting") HANDWRITING,
     ;
 
     /**

@@ -131,6 +131,9 @@ androidComponents {
             variant.sources.jniLibs?.addStaticSourceDirectory("src/tesseract/jniLibs")
             // llama.cpp's, the same way: :feature:llama carries it on Play.
             variant.sources.jniLibs?.addStaticSourceDirectory("src/llama/jniLibs")
+            // zinnia's, behind Chinese and Japanese handwriting without ML
+            // Kit: :feature:zinnia carries it on Play.
+            variant.sources.jniLibs?.addStaticSourceDirectory("src/zinnia/jniLibs")
         }
         // Static-source-dir mechanism rather than a flavour folder for the
         // same AGP 9 reason as the channel seams in :app — and conditional,

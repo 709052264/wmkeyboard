@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.HwPoint
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
@@ -100,7 +99,7 @@ internal fun HandwritingCanvasField(
 
         // Language chip: shows the active model, tap cycles through the
         // handwriting languages of the enabled modes.
-        // Only languages ML Kit can actually recognize belong on the chip;
+        // Only languages a recogniser can actually read belong on the chip;
         // cycling onto one with no model would strand the panel on a
         // download that can never complete.
         val languages = state.settings.enabledLanguages
@@ -175,12 +174,8 @@ internal fun HandwritingLayoutCanvas(
     onDownloadModel: () -> Unit,
 ) {
     Box(modifier = modifier.padding(horizontal = 6.dp, vertical = 2.dp)) {
-        if (BuildConfig.ENABLE_ML_KIT_HANDWRITING) {
-            HandwritingStatusBody(state, onStroke, onDownloadModel)
-            UndoStrokeButton(state.handwriting, onUndoStroke, Modifier.align(Alignment.BottomStart))
-        } else {
-            StatusMessage(stringResource(R.string.ime_handwriting_layout_full_only_info))
-        }
+        HandwritingStatusBody(state, onStroke, onDownloadModel)
+        UndoStrokeButton(state.handwriting, onUndoStroke, Modifier.align(Alignment.BottomStart))
     }
 }
 
@@ -203,6 +198,8 @@ internal fun HandwritingStatusBody(
         HandwritingStatus.READY -> WritingCanvas(state, onStroke)
         HandwritingStatus.CHECKING ->
             StatusMessage(stringResource(R.string.ime_handwriting_checking_progress))
+        HandwritingStatus.UNSUPPORTED ->
+            StatusMessage(stringResource(R.string.ime_handwriting_unsupported_info))
         HandwritingStatus.DOWNLOADING -> DownloadingMessage(hw, onDownloadModel)
         HandwritingStatus.NEED_MODEL, HandwritingStatus.ERROR -> Column(
             modifier = Modifier.fillMaxSize(),

@@ -3600,6 +3600,12 @@ data class KeyboardSettings(
     val handwritingAutoSpace: Boolean = true,
     /** How full-screen handwriting separates ink from app touches (see [HandwritingFullScreenMode]). */
     val handwritingFullScreenMode: HandwritingFullScreenMode = HandwritingFullScreenMode.MANUAL,
+    /**
+     * Chinese and Japanese handwriting reads through zinnia, the offline
+     * recogniser, even in a build that has ML Kit's. Without ML Kit zinnia is
+     * used regardless.
+     */
+    val handwritingZinnia: Boolean = false,
     /** Voice tool surface and collapsed-bar state, grouped (see [VoiceBarSettings]). */
     val voiceBar: VoiceBarSettings = VoiceBarSettings(),
     /** Keep listening after each dictated sentence. */
@@ -10442,6 +10448,7 @@ class SettingsRepository(private val context: Context) {
         private val HANDWRITING_COMMIT_DELAY = intPreferencesKey("handwriting_commit_delay")
         private val HANDWRITING_AUTO_SPACE = booleanPreferencesKey("handwriting_auto_space")
         private val HANDWRITING_FULL_SCREEN_MODE = stringPreferencesKey("handwriting_full_screen_mode")
+        private val HANDWRITING_ZINNIA = booleanPreferencesKey("handwriting_zinnia")
         // Legacy boolean the three-way voice_ui_mode replaced; still read as
         // the fallback so an existing strip-mode choice survives the update.
         private val VOICE_STRIP_MODE = booleanPreferencesKey("voice_strip_mode")
@@ -11314,6 +11321,7 @@ class SettingsRepository(private val context: Context) {
             handwritingCommitDelayMs = p[HANDWRITING_COMMIT_DELAY]
                 ?: defaults.handwritingCommitDelayMs,
             handwritingAutoSpace = p[HANDWRITING_AUTO_SPACE] ?: defaults.handwritingAutoSpace,
+            handwritingZinnia = p[HANDWRITING_ZINNIA] ?: defaults.handwritingZinnia,
             handwritingFullScreenMode = p[HANDWRITING_FULL_SCREEN_MODE]
                 ?.let { runCatching { HandwritingFullScreenMode.valueOf(it) }.getOrNull() }
                 ?: defaults.handwritingFullScreenMode,
@@ -13920,6 +13928,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setHandwritingStylusOnly(value: Boolean) =
         editPrefs { it[HANDWRITING_STYLUS_ONLY] = value }
+
+    suspend fun setHandwritingZinnia(value: Boolean) =
+        editPrefs { it[HANDWRITING_ZINNIA] = value }
 
     suspend fun setHandwritingCommitDelayMs(value: Int) =
         editPrefs { it[HANDWRITING_COMMIT_DELAY] = value.coerceIn(300, 2000) }

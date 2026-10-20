@@ -97,6 +97,11 @@
 # (Java_com_wasimaster_wmkeyboard_core_translate_BergamotNative_*).
 -keep class com.wasimaster.wmkeyboard.core.translate.BergamotNative { *; }
 
+# --- zinnia (JNI) -------------------------------------------------------------
+# libwmzinnia.so binds by the mangled Java name
+# (Java_com_wasimaster_wmkeyboard_core_handwriting_ZinniaNative_*).
+-keep class com.wasimaster.wmkeyboard.core.handwriting.ZinniaNative { *; }
+
 # The grammar lint models are decoded from JSON produced by that native code —
 # keep their serializers explicitly so a rules regression can never silently
 # break offline grammar checking.

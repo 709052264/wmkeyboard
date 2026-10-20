@@ -172,6 +172,7 @@
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
+    <string name="about_bundled_zinnia_used">Reads Chinese and Japanese handwriting on the device without Google services (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
     <string name="about_bundled_bergamot_used">Translates on the device without Google services (native library, 64-bit Android 9 and later)</string>
     <string name="about_bundled_bergamot_libs_used">Built into the Bergamot translator\'s native library</string>
@@ -233,6 +234,7 @@
     <string name="about_pack_cedict_used">The Chinese Pinyin conversion dictionary</string>
     <!-- dictionary_oss is the name of the file inside mozc. -->
     <string name="about_pack_mozc_used">The Japanese kana to kanji conversion dictionary (dictionary_oss)</string>
+    <string name="about_pack_tegaki_used">The Chinese and Japanese handwriting models zinnia reads with, downloaded per language</string>
     <string name="about_pack_cantonese_used">The Cantonese Jyutping conversion dictionary</string>
     <string name="about_pack_stroke_used">The stroke sequence input for Chinese</string>
     <!-- kCangjie is the name of the field inside the Unihan database. -->

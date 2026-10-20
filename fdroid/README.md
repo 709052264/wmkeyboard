@@ -159,6 +159,14 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 entry's `scandelete` needs that path added. Nothing is fetched at configure
 time: no KleidiAI, no OpenSSL, no web UI.
 
+The same release adds `native/zinnia-jni` (zinnia, Taku Kudo's BSD-licensed
+handwriting recogniser, at a pinned commit, four C++ files and CMake) into
+`core/intelligence/src/zinnia/jniLibs`. It is what reads Chinese and
+Japanese handwriting in this build, which has no ML Kit; the next entry's
+`scandelete` needs that path added, and the copy of the recipe here already
+has it. The models it reads (the Tegaki project's, LGPL 2.1) are not in the
+APK or the library: they are CJK pack downloads from the data repository.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

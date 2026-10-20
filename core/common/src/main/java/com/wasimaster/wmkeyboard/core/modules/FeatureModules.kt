@@ -165,6 +165,14 @@ object FeatureModules {
     var mozc: ModuleGate = AlwaysInstalled
 
     /**
+     * `:feature:zinnia`: zinnia, the offline recogniser behind Chinese and
+     * Japanese handwriting where ML Kit's is not in the build or not picked
+     * (`:core:intelligence`). Its models are separate downloads.
+     */
+    @Volatile
+    var zinnia: ModuleGate = AlwaysInstalled
+
+    /**
      * `:feature:npu`: the Qualcomm NPU runtime (LiteRT's dispatch library and
      * the QNN libraries) behind Compute = NPU for on-device AI. Assets only,
      * unpacked into app storage by `NpuRuntime` in :core:intelligence.

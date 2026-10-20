@@ -271,8 +271,10 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
     else -> tool !in CursorTools && tool !in ClipboardTools
 }
 
+// Handwriting is in every build: where ML Kit's recogniser is not
+// (F-Droid's), zinnia still reads Chinese and Japanese, and the panel says
+// so for any other language.
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
-    !BuildConfig.ENABLE_ML_KIT_HANDWRITING && tool == ToolbarTool.HANDWRITING -> false
     !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool in setOf(
         ToolbarTool.OCR, ToolbarTool.QR_SCAN, ToolbarTool.DOC_SCAN
     ) -> false

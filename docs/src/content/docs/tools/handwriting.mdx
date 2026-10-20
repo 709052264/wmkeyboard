@@ -3,9 +3,6 @@ title: "Handwriting"
 description: "Write with your finger or stylus, and on-device recognition turns the ink into text."
 sidebar:
   order: 5
-  badge:
-    text: "Full"
-    variant: note
 ---
 
 import PhoneFrame from '@components/PhoneFrame.astro';
@@ -14,7 +11,7 @@ import KeyCap from '@components/KeyCap.astro';
 import Flavor from '@components/Flavor.astro';
 import Shot from '@components/Shot.astro';
 
-Handwriting turns a full-width canvas into a keyboard. Write a letter or a word with a finger or a stylus, and the keyboard recognizes it on-device and drops it into your text. <Flavor edition="google" />: it runs on Google ML Kit's digital ink models, which F-Droid's build leaves out.
+Handwriting turns a full-width canvas into a keyboard. Write a letter or a word with a finger or a stylus, and the keyboard recognizes it on-device and drops it into your text. Two recognisers sit behind it. Google ML Kit's digital ink models read 126 languages <Flavor edition="google" />. [zinnia](#zinnia-for-chinese-and-japanese), an open-source recogniser, reads Chinese and Japanese in every build, and it is the only one in F-Droid's.
 
 <PhoneFrame caption="The handwriting panel: a writing canvas over a row of abc, space, delete and enter keys.">
   {/* shot: tools/handwriting-panel-writing */}
@@ -58,7 +55,7 @@ The stylus mode only works with a stylus the screen reports as one (S Pen, a Wac
 
 ## Handwriting as a layout
 
-Chinese, Japanese and Korean have a **Handwriting** layout of their own, the way Gboard offers one. Turn it on with the language's other layouts and pick it with the globe key: the writing area takes the place of the letter keys, and a normal bottom row (<KeyCap>?123</KeyCap>, globe, punctuation, <KeyCap>Space</KeyCap>, <KeyCap>Delete</KeyCap>, <KeyCap>Enter</KeyCap>) stays under it. Ink is read in that layout's language, with everything below about models, delete and undo working the same. There's no language chip on it; the globe key changes language. On the F-Droid build the area only says that this version of the app has no handwriting.
+Chinese, Japanese and Korean have a **Handwriting** layout of their own, the way Gboard offers one. Turn it on with the language's other layouts and pick it with the globe key: the writing area takes the place of the letter keys, and a normal bottom row (<KeyCap>?123</KeyCap>, globe, punctuation, <KeyCap>Space</KeyCap>, <KeyCap>Delete</KeyCap>, <KeyCap>Enter</KeyCap>) stays under it. Ink is read in that layout's language, with everything below about models, delete and undo working the same. There's no language chip on it; the globe key changes language. On the F-Droid build these layouts write Chinese and Japanese through zinnia; the Korean one says that this version reads handwriting in Chinese and Japanese only.
 
 ## Handwriting without opening the panel
 
@@ -81,7 +78,7 @@ If the language you're typing in has no downloaded model yet, a one-time notice 
   <Shot id="tools/handwriting-model-manager" alt="Recognition models: one row per enabled language, each with its own download status." />
 </PhoneFrame>
 
-The **Recognition models** section lists one row per enabled language that ML Kit can recognize, with its own status: not downloaded (with a download button, and the space that model would take), downloading (counting megabytes toward the total), downloaded and working offline (with a delete/trash icon), or download failed. Recognition runs entirely on-device once a model is on your phone, so after that one download the language works with no network connection at all. See [network policy](/privacy/network/) for what else does and doesn't touch the network.
+The **Recognition models** section lists one row per enabled language that a recogniser can read, with its own status: not downloaded (with a download button, and the space that model would take), downloading (counting megabytes toward the total), downloaded and working offline (with a delete/trash icon), or download failed. Recognition runs entirely on-device once a model is on your phone, so after that one download the language works with no network connection at all. See [network policy](/privacy/network/) for what else does and doesn't touch the network.
 
 Model sizes vary more than you might expect, so each row shows its own rather than one rounded figure for everything. Bangla installs 24.6 MB, English (US) 25.8 MB, French 26.1 MB, and Chinese only 7.9 MB. Roughly half of that crosses the network, because the files travel compressed and get unpacked on the phone. The numbers come out of ML Kit's own manifest rather than an estimate, so the progress readout counts real megabytes toward a real total.
 
@@ -93,11 +90,33 @@ The first time handwriting is used after the keyboard starts, the model check an
 
 Downloads can also take longer than their size suggests, because the service can go quiet for a while before any bytes move. That is the real reason the readout counts megabytes: it tells you whether a download is slow or actually stuck. If nothing arrives for twenty seconds, both the panel and the settings row say so. After ninety seconds of silence the download gives up and clears out what it had already written, so trying again starts fresh instead of rejoining a transfer that already died.
 
-The list of available models isn't hardcoded in WM Keyboard. It's read straight out of ML Kit's own digital ink library, then filtered down to the languages you have enabled. So enabling a new keyboard language surfaces its handwriting model on its own, with nothing WM-Keyboard-specific to configure. The flip side: the catalog of *which languages have a model at all* only grows when ML Kit itself grows.
+The list of ML Kit's models isn't hardcoded in WM Keyboard. It's read straight out of ML Kit's own digital ink library, then filtered down to the languages you have enabled. So enabling a new keyboard language surfaces its handwriting model on its own, with nothing WM-Keyboard-specific to configure. The flip side: the catalog of *which languages have a model at all* only grows when ML Kit itself grows.
 
 A phone that cannot download, or a build with no internet permission, can import a model instead. The **Import from a file** row under the models lists each language's files under **Get the files**: two or three `.zip` files from `dl.google.com`, the same ones ML Kit would fetch. Download them on any device, move them to the phone and pick them under **Import**. See [Importing instead of downloading](/privacy/offline/#importing-instead-of-downloading).
 
 If an enabled language has no ink model, it's called out separately underneath the list: writing in that language falls back to the nearest language that does have one, rather than failing outright. And if none of your enabled languages has a model, the list itself is replaced by a note asking you to add a language on the Languages screen first. A **Languages and layouts** row at the bottom of the section takes you straight there either way.
+
+## zinnia for Chinese and Japanese
+
+<SettingsPath path="Tools / Handwriting / Offline recogniser for Chinese and Japanese" />
+
+[zinnia](https://github.com/taku910/zinnia) is a small open-source recogniser (BSD licence) that runs on the phone with models from the [Tegaki project](https://github.com/tegaki/tegaki). It reads Chinese and Japanese, and it takes over handwriting for them in three cases:
+
+- In the F-Droid build, which has no ML Kit. zinnia is the only recogniser there, so handwriting works in Chinese and Japanese and in no other language, with no switch to set.
+- For Cantonese, in every build. ML Kit has no Cantonese model, so Cantonese writes with zinnia's Traditional Chinese one.
+- When you turn on Offline recogniser for Chinese and Japanese, a switch under Input that appears where ML Kit is in the build. It is off by default, so ML Kit stays the recogniser for both languages until then.
+
+Chinese has two zinnia models, one for Simplified and one for Traditional characters, and the Recognition models list shows both. Which one the panel writes with follows **Traditional characters** in the Chinese settings: off writes Simplified, on writes Traditional.
+
+| Model | Characters | Download |
+|---|---|---|
+| Japanese | 6,420 (kana and the common kanji) | 26.1 MB |
+| Simplified Chinese | 6,763 (all of GB 2312) | 26.8 MB |
+| Traditional Chinese | 11,853 (Big5) | 52.2 MB |
+
+The download is the model and, the first time, zinnia's own library (about 450 KB), in one go; the panel and the settings row count both. On the F-Droid build the library is one of the [feature libraries](/privacy/network/), so it needs **Download feature libraries** turned on under Privacy first, and the panel says so if it is off. The models come from the project's data repository and are checked against the checksum the app ships with. A phone that cannot download can import a model file: the model's row under **Import from a file** links to it.
+
+zinnia reads one character at a time. Write a line of characters with a gap between each, and the keyboard cuts the ink at the gaps and reads every way of joining the pieces back up, so a character whose halves stand apart (石 and 艮 in 硍) is not read as two. The reading zinnia is surest of commits, and the next ones wait in the suggestion strip. It is less accurate than ML Kit, especially for hurried or cursive writing, and it does not use the text before the cursor.
 
 ## Options
 
@@ -105,6 +124,7 @@ If an enabled language has no ink model, it's called out separately underneath t
 
 - **Stylus only**: off by default. With it on, only a stylus (S Pen or similar) draws on the canvas, and finger touches are ignored completely. Even with it off, a finger touch is briefly ignored right after a stylus stroke, so a palm resting on the screen while you write doesn't add stray ink.
 - **Automatic space**: on by default. Inserts a space between words you write one after another, but never before punctuation, and never next to Chinese, Japanese, Thai or another script written without spaces.
+- **Offline recogniser for Chinese and Japanese**: off by default, and shown only where ML Kit is in the build. With it on, Chinese and Japanese read through zinnia; see [zinnia for Chinese and Japanese](#zinnia-for-chinese-and-japanese).
 - **Panel layout**: opens the layout editor described in [The panel is a layout](#the-panel-is-a-layout).
 - **Recognition pause**: default **700 ms**, adjustable from 300–2000 ms. How long the canvas waits after your last stroke before it sends the word off for recognition. Shorter feels snappier. It can also cut a multi-stroke letter or a Bengali conjunct in half if you pause mid-letter, where a longer wait gives you room to breathe between strokes.
 
@@ -118,9 +138,9 @@ Whatever the Recognition pause slider is set to, handwriting in these languages 
 - There's no hover preview, no air-gesture support, and no S Pen side-button handling. The stylus-specific behaviors are palm rejection and the **Stylus** full-screen mode.
 - Switching between the panel and full screen throws away ink that hasn't been recognised yet: it was drawn on the other canvas, at another size.
 - Auto-capitalization at the start of a sentence only applies when you're writing in American English with Auto-capitalize on, and never in a password or other secure field. Bangla and other languages without letter case are skipped entirely.
-- The recognizer only sees the last 20 characters of text before your cursor as context (a limit set by ML Kit itself, not WM Keyboard).
+- ML Kit's recognizer only sees the last 20 characters of text before your cursor as context (a limit set by ML Kit itself, not WM Keyboard). zinnia sees none.
 - Handwriting has no direct-boot support: neither the panel nor handwriting-by-swipe works before you've unlocked your device once after a restart, unlike some other tools. If [Power Saving mode](/typing/power-saving/) is set to drop on-device models to save battery, handwriting-by-swipe is switched back to plain gesture typing until you turn it back on.
 
-## Why not on F-Droid
+## On F-Droid
 
-Digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is Google's and not open source, so the F-Droid build leaves it out entirely, rather than hiding it behind a toggle. So the Handwriting tool doesn't appear in the toolbar or toolbox on lite, and the "Handwrite" option of **What a swipe does** is full-only too. See [Which build you have](/start/editions/) if you're deciding between builds.
+ML Kit's digital ink recognition depends on `com.google.mlkit:digital-ink-recognition`. That library is Google's and not open source, so the F-Droid build leaves it out entirely. The Handwriting tool, the handwriting layouts and the "Handwrite" option of **What a swipe does** are all still there, reading Chinese and Japanese through zinnia, which F-Droid compiles from source. Any other language gets a note in the panel instead of a canvas, and if none of your languages is Chinese or Japanese, the Recognition models list says so. See [Which build you have](/start/editions/) if you're deciding between builds.

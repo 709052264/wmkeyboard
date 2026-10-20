@@ -1436,6 +1436,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_appearance_fonts_nav_title) { Icons.Outlined.TextFields }
         put(R.string.tooldetail_handwriting_stylus_title) { Icons.Outlined.Draw }
         put(R.string.tooldetail_handwriting_auto_space_title) { Icons.Outlined.SpaceBar }
+        put(R.string.tooldetail_handwriting_zinnia_title) { Icons.Outlined.Translate }
         put(R.string.tooldetail_handwriting_pause_title) { Icons.Outlined.Timer }
         put(R.string.tooldetail_handwriting_full_screen_title) { Icons.Outlined.OpenInFull }
         put(R.string.tooldetail_handwriting_languages_title) { Icons.Outlined.Language }

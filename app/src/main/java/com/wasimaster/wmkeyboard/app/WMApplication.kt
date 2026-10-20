@@ -121,6 +121,9 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
         // The same for the dictionaries the user imported (#765).
         com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.attach(filesDir)
+        // Where zinnia's handwriting models are downloaded to, for the
+        // keyboard's panel and the Handwriting settings alike.
+        com.wasimaster.wmkeyboard.core.handwriting.ZinniaModels.attach(filesDir)
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be

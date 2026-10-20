@@ -100,6 +100,7 @@ object NativeDelivery {
         gate("llama")?.let { FeatureModules.llama = it }
         gate("litert")?.let { FeatureModules.litert = it }
         gate("handwriting")?.let { FeatureModules.handwriting = it }
+        gate("zinnia")?.let { FeatureModules.zinnia = it }
         gate("scanner")?.let { FeatureModules.scanner = it }
         gate("npu")?.let { FeatureModules.npu = it }
         gate("rime")?.let { FeatureModules.rime = it }
