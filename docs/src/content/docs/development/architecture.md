@@ -295,3 +295,24 @@ announce nor explore.
   Play and in the on-demand `:feature:npu` split on Play. A model without a
   build for the chip needs nothing: `NpuRouting` sends it to its standard
   file on the GPU or CPU.
+- **Native libraries delivered on demand.** A native library behind an
+  optional feature sits behind a `ModuleGate`
+  (`core/common/.../modules/FeatureModules.kt`), and its facade loads it
+  through `FeatureModules.loadLibrary` or a `GatedLibrary`. Each channel
+  backs the gates differently. On Play they are Play Feature Delivery
+  modules. On GitHub and F-Droid builds, `NativeDelivery` backs them: the
+  build leaves the library out of the APK and writes its size and SHA-256
+  into `assets/native/pins.tsv`, and `DownloadedModuleGate` fetches it the
+  first time its feature asks.
+  - The project's own libraries come from the data repository's `natives`
+    release, named by hash.
+  - Libraries the project may not redistribute (ML Kit, LiteRT, Qualcomm's
+    QNN) are read straight out of the vendor's own Maven artifact with HTTP
+    ranges (`ZipRangeReader`).
+  - A dependency that loads its library itself with `System.loadLibrary` is
+    served by `NativeDelivery.preload`, a plain `dlopen` from the always-shipped
+    `libwm_engine_jni.so` that puts the library in the class loader's
+    namespace under its soname.
+
+  To deliver one more library, give it a gate and a pin, and call `preload`
+  before its dependency's first class loads when the dependency loads it.

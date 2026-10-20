@@ -92,6 +92,13 @@ enum class NetSource(
 
     /** Tesseract language data for the scan text tool. */
     DOWNLOAD_OCR("download_ocr", ToolbarTool.OCR),
+
+    /**
+     * A native library a GitHub or F-Droid build fetches the first time a
+     * feature needs it: the project's own from the data repository, ML Kit's,
+     * LiteRT's and Qualcomm's straight from their Maven repositories.
+     */
+    DOWNLOAD_NATIVE("download_native"),
     ADDONS("addons"),
     KEYMAN("keyman"),
     SIGNAL_STICKERS("signal_stickers", ToolbarTool.STICKER),

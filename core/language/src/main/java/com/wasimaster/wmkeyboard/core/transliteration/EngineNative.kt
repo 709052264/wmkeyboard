@@ -110,4 +110,18 @@ internal object EngineNative {
     external fun urduRomanize(text: String): String
     external fun urduRomanizeWord(word: String): String
     external fun urduNormalize(text: String): String
+
+    // Linker. Null on success, the linker's message otherwise.
+    external fun dlopen(path: String): String?
+}
+
+/**
+ * Opens a downloaded native library with a plain `dlopen` from this always-
+ * shipped library, for the native delivery of non-Play builds: see
+ * `NativePreload` in :core:common, which is handed this function at startup
+ * because it sits below this module.
+ */
+object NativeLinker {
+    /** Null on success, the dynamic linker's message otherwise. */
+    fun dlopen(path: String): String? = EngineNative.dlopen(path)
 }

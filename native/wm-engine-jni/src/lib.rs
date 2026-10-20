@@ -357,6 +357,59 @@ string_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_urdu
 string_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_urduRomanizeWord, wm_engine::urdu_romanizer::romanize_word);
 string_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_urduNormalize, wm_engine::urdu_romanizer::normalize);
 
+// Linker.
+
+#[cfg(unix)]
+extern "C" {
+    fn dlopen(filename: *const std::os::raw::c_char, flags: std::os::raw::c_int) -> *mut std::ffi::c_void;
+    fn dlerror() -> *const std::os::raw::c_char;
+}
+
+/// `RTLD_NOW`, the same value in bionic and glibc.
+#[cfg(unix)]
+const RTLD_NOW: std::os::raw::c_int = 2;
+
+/// Opens the library at `path` with a plain `dlopen`, never through ART.
+///
+/// For a library a dependency loads itself with `System.loadLibrary(name)`
+/// (ML Kit, LiteRT, LiteRT-LM) and that the app downloaded rather than
+/// shipped: the call comes from this library, so the dynamic linker loads it
+/// into the class loader's namespace, and the dependency's later
+/// `loadLibrary` finds it there by soname. Loading it with `System.load`
+/// instead would register it with ART under its path as well as under the
+/// soname, and run its `JNI_OnLoad` twice. The handle is never closed.
+/// Returns null on success, the linker's message otherwise.
+#[cfg(unix)]
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_dlopen(
+    mut env: JNIEnv,
+    _class: JClass,
+    path: JString,
+) -> jstring {
+    guarded(&mut env, null_mut(), |env| {
+        let path = read(env, &path)?;
+        let c_path = std::ffi::CString::new(path).ok()?;
+        // SAFETY: c_path is a valid NUL-terminated string for the call, and
+        // dlerror's result is copied before any other dl* call can reuse it.
+        let failure = unsafe {
+            if dlopen(c_path.as_ptr(), RTLD_NOW).is_null() {
+                let err = dlerror();
+                Some(if err.is_null() {
+                    "dlopen failed".to_string()
+                } else {
+                    std::ffi::CStr::from_ptr(err).to_string_lossy().into_owned()
+                })
+            } else {
+                None
+            }
+        };
+        match failure {
+            None => Some(null_mut()),
+            Some(message) => give(env, message),
+        }
+    })
+}
+
 #[cfg(test)]
 mod tests {
     //! The dispatch helpers; the JNI entry points themselves need a JVM and

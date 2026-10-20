@@ -19,8 +19,14 @@ sealed interface ModuleState {
     /** The runtime is here: always, outside Play; after the download, on Play. */
     data object Installed : ModuleState
 
-    /** Not here. [failed] when the last attempt to fetch it went wrong. */
-    data class Missing(val failed: Boolean = false) : ModuleState
+    /**
+     * Not here. [failed] when the last attempt to fetch it went wrong.
+     * [consent] names what the user has to agree to first, when that is why
+     * it is missing: [NativeConsent.DOWNLOADS] on an F-Droid build that has
+     * not opted in, or a licence id. Such a state counts as [failed], so a
+     * caller waiting for the module stops waiting.
+     */
+    data class Missing(val failed: Boolean = false, val consent: String? = null) : ModuleState
 
     /** On its way from Play. Both figures are 0 before Play reports any. */
     data class Installing(val bytes: Long = 0, val totalBytes: Long = 0) : ModuleState
@@ -97,6 +103,15 @@ object FeatureModules {
      */
     @Volatile
     var npu: ModuleGate = AlwaysInstalled
+
+    /**
+     * ML Kit's bundled text recogniser and barcode reader behind the scanner
+     * tool. Never a Play module: Play builds use the play-services twins,
+     * whose models come from Play services. Only [NativeDelivery] backs it,
+     * on a build that leaves the two libraries out of the APK.
+     */
+    @Volatile
+    var scanner: ModuleGate = AlwaysInstalled
 
     /**
      * How a native library is loaded. `System.loadLibrary` wherever the
