@@ -172,6 +172,7 @@
     <string name="about_bundled_zxing_used">Makes the QR codes</string>
     <string name="about_bundled_luaj_used">The Lua interpreter that runs the plugins in their sandbox</string>
     <string name="about_bundled_hunspell_used">Checks spelling and compound words against imported Hunspell dictionaries (native library)</string>
+    <string name="about_bundled_divvunspell_used">Checks spelling against GiellaLT finite-state spellers for Sámi, Greenlandic, Faroese and other languages (native library)</string>
     <string name="about_bundled_harper_used">Checks the grammar and the style offline (native library)</string>
     <string name="about_bundled_bergamot_used">Translates on the device without Google services (native library, 64-bit Android 9 and later)</string>
     <string name="about_bundled_bergamot_libs_used">Built into the Bergamot translator\'s native library</string>

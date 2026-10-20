@@ -159,6 +159,16 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 entry's `scandelete` needs that path added. Nothing is fetched at configure
 time: no KleidiAI, no OpenSSL, no web UI.
 
+From the release after 0.6.2 the script also builds `native/divvunspell-jni`
+(Divvun's divvunspell, which checks words against GiellaLT's speller archives)
+into `core/prediction/src/main/jniLibs`, beside Hunspell's library, so the
+path that entry already scandeletes covers it. It is a Rust crate like Harper,
+with one difference: divvunspell and its archive reader (box-format, and
+box-format's fastvlq) are git dependencies, fetched by Cargo from GitHub at
+the commits `Cargo.lock` pins, because crates.io's last divvunspell release is
+from 2023. The spellers themselves are never in the APK or the library: the
+phone downloads them from GiellaLT's own releases, or the user imports them.
+
 The reproducible build is what makes this delicate. The reference APK carries
 these libraries too, so F-Droid's copies must come out byte for byte the same
 as the release workflow's. Each script maps every path of the build machine

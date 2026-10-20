@@ -1,0 +1,28 @@
+[package]
+name = "divvunspell-jni"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[lib]
+name = "wmdivvun"
+# rlib for examples/probe.rs, the host check against real archives (README.md).
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# divvunspell's library crate, renamed divvun-fst upstream. Pinned to a commit:
+# crates.io still has only 1.0.0-beta.3 (2023), which predates the BHFST
+# archives GiellaLT publishes now and the search budget the suggestions run on.
+# `compression` lets the older .zhfst (zip) archives open as well.
+divvun-fst = { git = "https://github.com/divvun/divvunspell", rev = "7c3400754ef3f3e39b1c725f0ea18c1acd749b0d", features = ["compression"] }
+jni = "0.21"
+# Unpacking the .pkt.tar.zst a GiellaLT release ships its speller in. zstd is
+# already linked in for divvun-fst's archive reader.
+tar = { version = "0.4", default-features = false }
+zstd = { version = "0.13", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+opt-level = "s"

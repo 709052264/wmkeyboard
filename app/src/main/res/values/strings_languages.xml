@@ -359,10 +359,25 @@ On test words the space bar wrote the right word 56% of the time instead of 25% 
     <string name="languages_hunspell_subtitle">Words your imported Hunspell dictionary accepts, compound words included, are never autocorrected, and its spellings join the suggestions.</string>
     <string name="languages_hunspell_list_off_subtitle">Its word list is switched off. Switch it on under Custom dictionaries to check words with it.</string>
     <string name="languages_hunspell_not_in_build_subtitle">This build of the app has no Hunspell library. Suggestions come from the word list alone.</string>
-    <string name="languages_hunspell_module_missing_info">Hunspell is an extra part of the keyboard, about 1 MB. Download it to check words and compound words against your imported dictionary.</string>
+    <string name="languages_hunspell_module_missing_info">Hunspell is an extra part of the keyboard, about 4 MB with the GiellaLT speller engine it comes with. Download it to check words and compound words against your imported dictionary.</string>
     <string name="languages_hunspell_module_installing_info">Downloading Hunspell…</string>
     <string name="languages_hunspell_module_installing_sized_info">Downloading Hunspell: <xliff:g id="done" example="0.4 MB">%1$s</xliff:g> of <xliff:g id="total" example="1.1 MB">%2$s</xliff:g></string>
-    <string name="languages_hunspell_module_metered_body">Hunspell is a separate download of about 1 MB.</string>
+    <string name="languages_hunspell_module_metered_body">Hunspell is a separate download of about 4 MB.</string>
+    <string name="languages_speller_title">GiellaLT speller</string>
+    <string name="languages_speller_download_size">A finite-state speller from GiellaLT that knows every inflected and compound form. <xliff:g id="download" example="10 MB">%1$s</xliff:g> download, <xliff:g id="storage" example="79 MB">%2$s</xliff:g> on the phone, <xliff:g id="licence" example="GPL-3.0-only">%3$s</xliff:g>.</string>
+    <string name="languages_speller_import_only_subtitle">GiellaLT builds a speller for this language. Import its .bhfst, or the .pkt.tar.zst from a GiellaLT release, to check words with it.</string>
+    <string name="languages_speller_installed">Version <xliff:g id="version" example="4.5.2">%1$s</xliff:g>, <xliff:g id="size" example="79 MB">%2$s</xliff:g>. Words it accepts are never autocorrected, and its spellings join the suggestions.</string>
+    <string name="languages_speller_imported">Imported, <xliff:g id="size" example="79 MB">%1$s</xliff:g>. Words it accepts are never autocorrected, and its spellings join the suggestions.</string>
+    <string name="languages_speller_failed">The speller did not download or unpack. Check the connection and the free storage.</string>
+    <string name="languages_speller_not_in_build_subtitle">This build of the app has no spelling library. Suggestions come from the word lists alone.</string>
+    <string name="languages_speller_import_action">Import</string>
+    <string name="languages_speller_delete_desc">Delete the speller</string>
+    <string name="languages_speller_import_done">Speller installed</string>
+    <string name="languages_speller_import_not_speller">That file is not a speller. Pick a .bhfst, a .zhfst or a GiellaLT .pkt.tar.zst.</string>
+    <string name="languages_speller_import_broken">That speller would not open. It may be damaged or made for a newer divvunspell.</string>
+    <string name="languages_speller_module_missing_info">Spell checking is an extra part of the keyboard, about 4 MB. Download it to use a GiellaLT speller.</string>
+    <string name="languages_speller_module_installing_info">Downloading spell checking…</string>
+    <string name="languages_speller_module_installing_sized_info">Downloading spell checking: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="4 MB">%2$s</xliff:g></string>
 
     <!-- State of a downloaded word list. %1$d is the number of words, %2$s its
          size on your device, for example "4 MB". -->

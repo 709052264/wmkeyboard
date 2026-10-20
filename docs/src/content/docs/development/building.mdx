@@ -148,6 +148,17 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/hunspell-jni/build.sh
 
 The script fetches Hunspell at its pinned commit, builds all three ABIs in about ten seconds and copies the stripped libraries into place. `native/hunspell-jni/README.md` has the JNI contract. Upstream Hunspell rather than nuspell: nuspell needs ICU4C, which the NDK only exposes from API 31.
 
+## Rebuilding the divvunspell library
+
+GiellaLT spellers (`.bhfst`) run on [divvunspell](https://github.com/divvun/divvunspell), the Rust library Divvun's keyboards use, wrapped in a small JNI crate under `native/divvunspell-jni/` that builds `libwmdivvun.so`. `core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction/DivvunNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit beside Hunspell's under `core/prediction/src/main/jniLibs/<abi>/`. They share Hunspell's `spell` gate and `:feature:spell` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`. Rebuild only after you edit `native/divvunspell-jni/`:
+
+```sh
+# Needs rustup; the script installs Rust 1.98.1 and cargo-ndk 4.1.2
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/divvunspell-jni/build.sh
+```
+
+divvunspell is a git dependency pinned to one commit in `Cargo.toml` and `Cargo.lock`, because crates.io's last release is from 2023. A cold build of the three ABIs takes about 25 minutes, nearly all of it link-time optimisation. `native/divvunspell-jni/README.md` has the JNI contract and a host check (`cargo run --release --example probe -- <archive> <words>`) that runs the same code on a Mac against real archives.
+
 ## Rebuilding the Bergamot library
 
 On-device translation without Google runs on Mozilla's [bergamot-translator](https://github.com/mozilla/translations/tree/main/inference), the engine inside Firefox Translations, built with a small JNI bridge into `libwmbergamot.so` from `native/bergamot-jni/`. `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/translate/BergamotNative.kt` is the Kotlin entry point, and the prebuilt `.so` files sit under `core/intelligence/src/bergamot/jniLibs/<abi>/`, a directory of their own so that the Play split carries nothing else. GitHub builds pin it for download (gate `bergamot`), Play builds ship it in the on-demand `:feature:bergamot` split, and F-Droid builds it from source through `native/build-fdroid-libs.sh`. Rebuild it only after you edit `native/bergamot-jni/` or move the pins in `build.sh`:

@@ -265,6 +265,17 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/hunspell/hunspell",
         ),
     )
+    // GiellaLT spellers, in the same library module as Hunspell. See
+    // native/divvunspell-jni; the spellers are fetched, never shipped.
+    add(
+        Attribution(
+            "divvunspell",
+            R.string.about_bundled_divvunspell_used,
+            "Copyright UiT The Arctic University of Norway and divvunspell contributors",
+            "MIT OR Apache-2.0", "divvunspell-third-party.txt",
+            "https://github.com/divvun/divvunspell",
+        ),
+    )
     if (BuildConfig.ENABLE_GRAMMAR) {
         add(
             Attribution(

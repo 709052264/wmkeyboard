@@ -231,6 +231,11 @@ internal fun DictionariesGroup(
         if (hasHunspell) {
             item(key = "hunspell") { HunspellRow(langId, settings) }
         }
+        // For a language GiellaLT builds a speller for: download where a
+        // versioned release is pinned, import otherwise.
+        if (offersSpeller(langId)) {
+            item(key = "speller") { SpellerRow(langId, settings) }
+        }
         item {
             NavRow(
                 R.string.languages_custom_dictionaries_title,

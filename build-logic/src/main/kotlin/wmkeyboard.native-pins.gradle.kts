@@ -38,6 +38,7 @@ val ownSpecs: Map<String, String> = mapOf(
     "libwmxlit.so" to "onnx",
     "libharper_jni.so" to "grammar",
     "libwmhunspell.so" to "spell",
+    "libwmdivvun.so" to "spell",
     "libwmtess.so" to "ocr",
     "libwmrime.so" to "rime",
     "libwmmozc.so" to "mozc",
