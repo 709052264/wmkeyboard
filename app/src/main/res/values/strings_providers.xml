@@ -10,6 +10,32 @@
     <string name="providers_add_subtitle">A service, your own server, or files on the phone</string>
     <string name="providers_reset">Reset to default</string>
     <string name="providers_reset_subtitle">Go back to the list this build starts with</string>
+    <!-- The heading over the providers that are switched off, when they are all of one kind. -->
+    <string name="providers_section_off">Turned off</string>
+    <!-- The headings over the providers that are switched off, sorted by where they run. -->
+    <string name="providers_section_on_device">Turned off: on the phone</string>
+    <string name="providers_section_online">Turned off: online services</string>
+    <string name="providers_section_servers">Turned off: your own servers</string>
+    <string name="providers_none_on">All providers are off. Turn one on below, or add one.</string>
+    <!-- The fold under a provider list that holds how the list is used, and Reset. -->
+    <string name="providers_options_title">List settings</string>
+    <!-- Accessibility label for what a press on a provider row does. -->
+    <string name="providers_open">Open settings</string>
+    <!-- A provider's own screen (ProviderPage.kt). -->
+    <string name="providers_page_on_title">Use this provider</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_on_subtitle">%1$s asks it in its place on the list</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_off_subtitle">%1$s skips it</string>
+    <string name="providers_page_setup_title">Setup</string>
+    <string name="providers_page_setup_none">Nothing to set up</string>
+    <!-- %1$s is the tool, such as Voice typing. -->
+    <string name="providers_page_not_listed">This provider is not on the %1$s list.</string>
+    <string name="providers_page_add_action">Add</string>
+    <string name="providers_page_fix_action">Set up</string>
+    <string name="providers_page_used_by_title">Shared with</string>
+    <!-- %1$s is the tool, such as Translate. -->
+    <string name="providers_page_remove_subtitle">Take it off the %1$s list</string>
 
     <string name="providers_status_needs_key">Needs an API key</string>
     <string name="providers_status_needs_sign_in">Not signed in. Edit to sign in.</string>

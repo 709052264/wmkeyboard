@@ -169,6 +169,7 @@ internal object SettingsRoutes {
         "ai",
         "tools",
         "tool/{toolName}",
+        "provider/{tool}/{key}",
         "accessibility",
         "privacy",
         "permissions",

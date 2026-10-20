@@ -946,6 +946,13 @@ internal val LocalScreenRoute = compositionLocalOf<String?> { null }
 /** The screen this one was opened from, fixed at its first composition. */
 internal val LocalFlightOrigin = compositionLocalOf<String?> { null }
 
+/**
+ * Opens a settings route, for a part shared by many screens that has no
+ * navigation of its own to be handed: a provider list opening one provider's
+ * screen. A no-op outside the settings graph.
+ */
+internal val LocalSettingsNavigate = compositionLocalOf<(String) -> Unit> { {} }
+
 /** One end of a flight: which part of a row, going where, from where. */
 private fun flightKey(part: String, destination: String, from: String?): String =
     "$part|$destination|${from ?: "-"}"

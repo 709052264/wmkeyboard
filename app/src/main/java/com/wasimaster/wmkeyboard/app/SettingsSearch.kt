@@ -2822,9 +2822,10 @@ internal fun settingsCrumbSeed(
 ): List<SettingsCrumb> {
     // Reversed, so that a name indexed twice keeps the route of the entry that
     // comes first in the index — the destination, ahead of any later mention.
-    val routes = index.asReversed()
-        .filter { it.weight == EntryWeight.SECTION }
-        .associate { it.title to it.route }
+    // A tool's own page counts too, below a screen of the same name: a row on
+    // a provider's screen has the tool above it, and that step should open.
+    val routes = index.asReversed().filter { it.weight == EntryWeight.TOOL }.associate { it.title to it.route } +
+        index.asReversed().filter { it.weight == EntryWeight.SECTION }.associate { it.title to it.route }
     val steps = entry.screenPath
         .filterNot { it == homeTitle }
         .map { SettingsCrumb(entryId = "seed:$it", title = it, route = routes[it], seeded = true) }
