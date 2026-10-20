@@ -206,4 +206,53 @@ internal object PredictionNative {
     external fun csClear(handle: Long, deleted: Boolean)
     external fun csPrepareSave(handle: Long): String?
     external fun csMarkUnsaved(handle: Long)
+
+    // The glide decoder (`glide.rs`), behind GlideBeam.
+
+    external fun glideKeyMapOpen(keyX: FloatArray, keyY: FloatArray, codePoints: IntArray, keyOf: IntArray): Long
+    external fun glideKeyMapClose(handle: Long)
+
+    /**
+     * One decode, or its walk when [phase] is 1: `[words, doubles, ints]`
+     * with each word's score and shape cost in `doubles` and its tier
+     * (1 for user) and look-ahead in `ints`. Phase 1 returns every word the
+     * shape channel will score, readings first, with the reading count in
+     * the last int, for [glideFinish] on the same thread. Null when the
+     * stroke is no decode at all.
+     */
+    @Suppress("LongParameterList")
+    external fun glideDecode(
+        tuning: DoubleArray,
+        xs: FloatArray,
+        ys: FloatArray,
+        ts: LongArray,
+        keyMap: Long,
+        keyWidth: Float,
+        dicts: LongArray,
+        kinds: IntArray,
+        weights: DoubleArray,
+        tiers: IntArray,
+        minFrequencies: IntArray,
+        limit: Int,
+        lookAhead: Int,
+        phase: Int,
+    ): Array<Any>?
+
+    /** The last phase-1 [glideDecode] on this thread, finished with [shapes] per word and the seeding's [seeds]. */
+    external fun glideFinish(words: Array<String>, shapes: Array<Array<ByteArray>>, seeds: Array<String>?): Array<Any>
+
+    /** `keys + samples + chars + [sampleCount]`, the visits' x then y in [floatsOut]; null when [word] cannot be laid. */
+    @Suppress("LongParameterList")
+    external fun glideAlign(
+        tuning: DoubleArray,
+        word: String,
+        xs: FloatArray,
+        ys: FloatArray,
+        ts: LongArray,
+        keyMap: Long,
+        keyWidth: Float,
+        floatsOut: FloatArray,
+    ): IntArray?
+
+    external fun glideSampleShape(xs: FloatArray, ys: FloatArray, ts: LongArray, keyWidth: Float): ByteArray?
 }

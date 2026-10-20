@@ -245,7 +245,7 @@ impl Decoder {
     ) -> Vec<Candidate> {
         match self.decode_ranked(path, keys, key_width, sources, limit, look_ahead) {
             None => Vec::new(),
-            Some(ranked) => self.finish(ranked, keys, shapes),
+            Some(ranked) => self.finish(ranked, keys, shapes, None),
         }
     }
 
@@ -301,12 +301,37 @@ impl Decoder {
         Some(Ranked { read, guesses, look_ahead, limit })
     }
 
-    /// The shape channel over a [`Ranked`] walk, the learned-shape seeding
-    /// left to the caller (it is off by default), and the guesses merged in.
-    pub fn finish(&mut self, ranked: Ranked, keys: &KeyMap, shapes: Option<&LearnedShapes>) -> Vec<Candidate> {
+    /// The shape channel over a [`Ranked`] walk, the learned-shape seeding,
+    /// and the guesses merged in. `seeds` are the words whose stored shapes
+    /// sit near the drawn one, nearest first, when seeding is on: the store
+    /// that finds them is the caller's, so the caller asks it (with
+    /// [`Decoder::sample_shape`] of the same stroke) and passes the answer.
+    pub fn finish(
+        &mut self,
+        ranked: Ranked,
+        keys: &KeyMap,
+        shapes: Option<&LearnedShapes>,
+        seeds: Option<&[Vec<u16>]>,
+    ) -> Vec<Candidate> {
         let Ranked { read, guesses, look_ahead, limit } = ranked;
         let mut read = self.rescore_shape(read, keys, shapes);
         read.truncate(limit);
+        if let Some(near) = seeds.filter(|n| !n.is_empty()) {
+            let top = read.iter().map(|c| c.score).reduce(f64::max).unwrap_or(0.0);
+            let had: std::collections::HashSet<Vec<u16>> = read.iter().map(|c| c.word.clone()).collect();
+            for c in read.iter_mut() {
+                if near.contains(&c.word) {
+                    c.score = c.score.max(top);
+                }
+            }
+            for word in near {
+                if !had.contains(word) {
+                    read.push(Candidate { word: word.clone(), score: top, shape_cost: 0.0, tier: Tier::Dictionary, ahead: 0 });
+                }
+            }
+            read.sort_by(by_score);
+            read.truncate(limit);
+        }
         if guesses.is_empty() {
             return read;
         }

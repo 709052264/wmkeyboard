@@ -12,7 +12,7 @@ use std::cell::RefCell;
 use std::ptr::null_mut;
 use std::sync::{Arc, LazyLock, RwLockReadGuard};
 
-use jni::objects::{JByteArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObjectArray, JString};
+use jni::objects::{JByteArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObject, JObjectArray, JString};
 use jni::sys::{jfloat, jint, jlong, jobjectArray};
 use jni::JNIEnv;
 
@@ -128,26 +128,33 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// Writes `found` as `glideDecode` returns it: the words, and per word
-/// `[score, shapeCost]` in `doubles_out` and `[tier, ahead]` in `ints_out`.
-fn give_candidates(env: &mut JNIEnv, found: &[Candidate], doubles_out: &JDoubleArray, ints_out: &JIntArray) -> Option<jobjectArray> {
+/// `found` as `glideDecode` returns it: `Object[] { String[] words,
+/// double[] [score, shapeCost] per word, int[] [user tier, ahead] per word
+/// plus `extra` }`.
+fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Option<jobjectArray> {
     let reals: Vec<f64> = found.iter().flat_map(|c| [c.score, c.shape_cost]).collect();
-    let flags: Vec<i32> = found.iter().flat_map(|c| [(c.tier == Tier::User) as i32, c.ahead]).collect();
-    if env.get_array_length(doubles_out).ok()? < reals.len() as i32 || env.get_array_length(ints_out).ok()? < flags.len() as i32 {
-        return throw_state(env, "wm-engine: the out arrays are too short");
-    }
-    env.set_double_array_region(doubles_out, 0, &reals).ok()?;
-    env.set_int_array_region(ints_out, 0, &flags).ok()?;
-    give_all_units(env, found.iter().map(|c| c.word.as_slice()))
+    let mut flags: Vec<i32> = found.iter().flat_map(|c| [(c.tier == Tier::User) as i32, c.ahead]).collect();
+    flags.extend_from_slice(extra);
+    // SAFETY: each is the local reference its constructor just returned.
+    let words = unsafe { JObject::from_raw(give_all_units(env, found.iter().map(|c| c.word.as_slice()))?) };
+    let doubles = env.new_double_array(reals.len() as i32).ok()?;
+    env.set_double_array_region(&doubles, 0, &reals).ok()?;
+    let ints = give_ints(env, &flags)?;
+    let class = env.find_class("java/lang/Object").ok()?;
+    let out = env.new_object_array(3, &class, JObject::null()).ok()?;
+    env.set_object_array_element(&out, 0, &words).ok()?;
+    env.set_object_array_element(&out, 1, &doubles).ok()?;
+    env.set_object_array_element(&out, 2, &ints).ok()?;
+    Some(out.into_raw())
 }
 
 /// `glideDecode(tuning, xs, ys, ts, keyMap, keyWidth, dicts, kinds, weights,
-/// tiers, minFrequencies, limit, lookAhead, phase, doublesOut, intsOut)`.
+/// tiers, minFrequencies, limit, lookAhead, phase)`.
 ///
 /// `kinds` and `tiers` as for `fuzzySearch`; `minFrequencies` is each
 /// source's vocabulary cap. Phase 0 decodes outright; phase 1 stops before
 /// the shape channel and returns every word it will score, readings first
-/// (`intsOut`'s last used slot pair then holds the reading count), for
+/// (the int array's last slot then holds the reading count), for
 /// `glideFinish`. Null when the stroke is no decode at all.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
@@ -168,8 +175,6 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     limit: jint,
     look_ahead: jint,
     phase: jint,
-    doubles_out: JDoubleArray,
-    ints_out: JIntArray,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let Some(tuning) = tuning(&doubles(env, &tuning_values)?) else {
@@ -220,34 +225,28 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         drop(guards);
         let Some(ranked) = ranked else { return Some(null_mut()) };
         if phase == 0 {
-            let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, None));
-            return give_candidates(env, &found, &doubles_out, &ints_out);
+            let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, None, None));
+            return give_candidates(env, &found, &[]);
         }
         let mut all: Vec<Candidate> = ranked.read.clone();
         all.extend(ranked.guesses.iter().cloned());
         let read_count = ranked.read.len() as i32;
         PENDING.with_borrow_mut(|p| *p = Some((ranked, keys.clone())));
-        let words = give_candidates(env, &all, &doubles_out, &ints_out)?;
-        let slot = (all.len() * 2) as i32;
-        if env.get_array_length(&ints_out).ok()? < slot + 1 {
-            return throw_state(env, "wm-engine: the out arrays are too short");
-        }
-        env.set_int_array_region(&ints_out, slot, &[read_count]).ok()?;
-        Some(words)
+        give_candidates(env, &all, &[read_count])
     })
 }
 
-/// `glideFinish(words, shapes, doublesOut, intsOut)`: the last phase-1
-/// decode on this thread, finished with each of `words`' learned shapes
-/// (`shapes[i]`, a `byte[][]`, possibly empty).
+/// `glideFinish(words, shapes, seeds)`: the last phase-1 decode on this
+/// thread, finished with each of `words`' learned shapes (`shapes[i]`, a
+/// `byte[][]`, possibly empty) and, when seeding is on, the words whose
+/// stored shapes sit near the stroke (`seeds`, else null).
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_glideFinish(
     mut env: JNIEnv,
     _class: JClass,
     words: JObjectArray,
     shapes: JObjectArray,
-    doubles_out: JDoubleArray,
-    ints_out: JIntArray,
+    seeds: JObjectArray,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let Some((ranked, keys)) = PENDING.with_borrow_mut(|p| p.take()) else {
@@ -272,8 +271,22 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             env.delete_local_ref(list).ok()?;
             learned.insert(units, stored);
         }
-        let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, Some(&learned)));
-        give_candidates(env, &found, &doubles_out, &ints_out)
+        let near = if seeds.is_null() {
+            None
+        } else {
+            let n = env.get_array_length(&seeds).ok()?;
+            let mut near = Vec::with_capacity(n as usize);
+            for i in 0..n {
+                let word = JString::from(env.get_object_array_element(&seeds, i).ok()?);
+                let mut units = Vec::new();
+                read_units(env, &word, &mut units)?;
+                env.delete_local_ref(word).ok()?;
+                near.push(units);
+            }
+            Some(near)
+        };
+        let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, Some(&learned), near.as_deref()));
+        give_candidates(env, &found, &[])
     })
 }
 
