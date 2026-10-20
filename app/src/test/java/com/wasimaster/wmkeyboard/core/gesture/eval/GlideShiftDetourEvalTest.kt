@@ -55,16 +55,32 @@ class GlideShiftDetourEvalTest {
 
     private companion object {
         const val SEED = 42L
-        const val CASES_PER_LEVEL = 300
+
+        /**
+         * Enough strokes that [TOLERANCE] is about three standard errors at
+         * every level. At 300 the error was .015 to .026, so one draw of cases
+         * against another moved CLEAN between .89 and .94 on an unchanged
+         * decoder; the 2026-10-19 rescale of en.txt redrew the cases and read
+         * as a regression it was not.
+         */
+        const val CASES_PER_LEVEL = 1200
 
         /** A floor is the measured number less this; a change that drops below it fails. */
         const val TOLERANCE = 0.03
 
         /**
-         * Measured 2026-09-15, English/QWERTY, the shipped 17k list, seed 42.
-         * Against the same strokes with only the key's own points dropped —
-         * what the keyboard did before — top-1 was .37 mid-word and .18
-         * ending on the key, and the no-detour ceiling is .96.
+         * Measured 2026-10-21, English/QWERTY, the shipped 17k list after its
+         * rescale, seed 42, 1200 strokes a level. Against the same strokes
+         * with only the key's own points dropped — what the keyboard did
+         * before — top-1 is .37 mid-word and .17 ending on the key, and the
+         * no-detour ceiling is .95.
+         *
+         * The first floors (2026-09-15, 300 strokes) were one lucky draw.
+         * Today's decoder on that draw's cases still reads .937 / .937 / .877
+         * / .737, but at 1200 strokes the same list reads .930 / .913 / .849 /
+         * .706, and the rescaled list's own cases .913 / .908 / .866 / .712.
+         * The rescale itself moves no level by more than .004 on a fixed case
+         * set.
          *
          * Three cuts were measured on the way here, and the numbers say why
          * the shipped one is the shipped one: a walk back along the stroke's
@@ -79,14 +95,14 @@ class GlideShiftDetourEvalTest {
          * was the finger slowing on it, half of which the cut removes.
          */
         val FLOORS = mapOf(
-            SwipeCorpus.Noise.CLEAN to Floors(cut = 0.9367, endCut = 0.8800),
-            SwipeCorpus.Noise.LIGHT to Floors(cut = 0.9367, endCut = 0.8667),
-            SwipeCorpus.Noise.TYPICAL to Floors(cut = 0.8800, endCut = 0.7833),
-            SwipeCorpus.Noise.SLOPPY to Floors(cut = 0.7333, endCut = 0.6900),
+            SwipeCorpus.Noise.CLEAN to Floors(cut = 0.9133, endCut = 0.8725),
+            SwipeCorpus.Noise.LIGHT to Floors(cut = 0.9075, endCut = 0.8683),
+            SwipeCorpus.Noise.TYPICAL to Floors(cut = 0.8658, endCut = 0.8167),
+            SwipeCorpus.Noise.SLOPPY to Floors(cut = 0.7117, endCut = 0.7092),
         )
 
-        /** Per-letter capitals on the right letter, over every level, measured .9407. */
-        const val LETTER_FLOOR = 0.9407
+        /** Per-letter capitals on the right letter, over every level, measured .9117. */
+        const val LETTER_FLOOR = 0.9117
 
         /** `SwipeCorpus`'s tremor: correlation over ~10 samples, stationary σ as asked. */
         const val TREMOR_RHO = 0.9f
@@ -275,7 +291,7 @@ class GlideShiftDetourEvalTest {
         val byNoise = LinkedHashMap<SwipeCorpus.Noise, Counts>()
         for (noise in SwipeCorpus.Noise.entries) {
             val counts = Counts()
-            for (case in corpus.generate(english, noise, CASES_PER_LEVEL)) {
+            for (case in corpus.generate(EvalSampling.entries(english), noise, CASES_PER_LEVEL)) {
                 val visits = visitsOf(case.intended)
                 val k = random.nextInt(visits.size)
                 val jitter = noise.profile.jitter
@@ -366,7 +382,7 @@ class GlideShiftDetourEvalTest {
         val corpus = SwipeCorpus(SEED, grid = grid)
         val random = Random(SEED)
         val cases = listOf(SwipeCorpus.Noise.TYPICAL, SwipeCorpus.Noise.SLOPPY).flatMap { noise ->
-            corpus.generate(english, noise, 150).map { case ->
+            corpus.generate(EvalSampling.entries(english), noise, 150).map { case ->
                 val visits = visitsOf(case.intended)
                 val k = random.nextInt(visits.size)
                 Triple(case, k, detour(case.path, visits, k, endThere = false, noise.profile.jitter, random))
