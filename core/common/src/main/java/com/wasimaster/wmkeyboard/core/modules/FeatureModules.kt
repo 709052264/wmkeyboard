@@ -92,6 +92,14 @@ object FeatureModules {
     @Volatile
     var grammar: ModuleGate = AlwaysInstalled
 
+    /**
+     * `:feature:bergamot`: Mozilla's Bergamot translator behind the translate
+     * tool's free on-device engine (`:core:intelligence`). Only the library
+     * moves; the models are downloaded per language direction.
+     */
+    @Volatile
+    var bergamot: ModuleGate = AlwaysInstalled
+
     /** `:feature:ocr`: the Tesseract library behind the scanner's offline reads (`:core:intelligence`). */
     @Volatile
     var ocr: ModuleGate = AlwaysInstalled

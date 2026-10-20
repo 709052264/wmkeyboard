@@ -357,6 +357,16 @@ object OnDeviceTranslator {
     }
 
     /**
+     * What ML Kit's language identifier makes of [text], for the Bergamot
+     * engine, which has no identifier of its own. Empty while the module is
+     * not here or when the identifier does not answer.
+     */
+    suspend fun identify(context: Context, text: String): List<OfflineTranslatePlan.Candidate> {
+        val engine = runtime(context) ?: return emptyList()
+        return identify(engine, text.take(MAX_CHARS))
+    }
+
+    /**
      * Identification failing is not translation failing: the hints can still
      * settle the source, and the user can always pick it.
      */

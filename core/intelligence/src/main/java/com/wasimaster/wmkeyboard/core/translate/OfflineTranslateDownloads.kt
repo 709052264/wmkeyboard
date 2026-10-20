@@ -34,3 +34,22 @@ fun OnDeviceTranslator.downloadNotified(context: Context, code: String, title: S
         }.distinctUntilChanged(),
     )
 }
+
+/** The same for a Bergamot direction or its library ([BergamotTranslator.ENGINE_KEY]). */
+fun BergamotTranslator.downloadNotified(context: Context, key: String, title: String) {
+    download(context, key)
+    DownloadNotifications.watch(
+        context = context,
+        key = DownloadKeys.translateModel(key),
+        title = title,
+        flow = models.map { states ->
+            when (val state = states[key]) {
+                is OfflineModelState.Downloading -> DownloadProgress.Running(state.bytes, state.totalBytes)
+                OfflineModelState.Downloaded -> DownloadProgress.Done
+                is OfflineModelState.Missing ->
+                    if (state.failed) DownloadProgress.Failed(null) else DownloadProgress.Gone
+                null -> DownloadProgress.Gone
+            }
+        }.distinctUntilChanged(),
+    )
+}

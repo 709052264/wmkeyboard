@@ -252,6 +252,7 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
+      - core/intelligence/src/bergamot/jniLibs
     build: WMKB_ABIS=armeabi-v7a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -285,6 +286,7 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
+      - core/intelligence/src/bergamot/jniLibs
     build: WMKB_ABIS=arm64-v8a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -318,6 +320,7 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
+      - core/intelligence/src/bergamot/jniLibs
     build: WMKB_ABIS=x86_64 ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:

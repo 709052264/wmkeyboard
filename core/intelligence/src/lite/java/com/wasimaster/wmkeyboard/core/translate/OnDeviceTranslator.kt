@@ -37,5 +37,7 @@ object OnDeviceTranslator {
     ): OfflineTranslateResult =
         OfflineTranslateResult.Failed(UnsupportedOperationException("On-device translation is not in the lite build"))
 
+    suspend fun identify(context: Context, text: String): List<OfflineTranslatePlan.Candidate> = emptyList()
+
     fun release() = Unit
 }

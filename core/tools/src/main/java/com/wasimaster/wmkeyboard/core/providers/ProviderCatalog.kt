@@ -31,6 +31,8 @@ data class ProviderEnv(
     val offline: Boolean,
     /** ML Kit translation is compiled into this build (the full flavour). */
     val onDeviceTranslate: Boolean,
+    /** Bergamot can translate here: Android 9 or later, its library in reach, and a network to fetch models. */
+    val bergamot: Boolean = false,
     /** At least one offline GIF pack is imported. */
     val offlineGifPacks: Boolean,
     /** The Google Home APIs can run: the build carries them and Play services is on the phone. */
@@ -62,9 +64,14 @@ object ProviderEnvironment {
     var googleHome: Boolean = false
         private set
 
-    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false) {
+    @Volatile
+    var bergamot: Boolean = false
+        private set
+
+    fun install(onDeviceTranslate: Boolean, googleHome: Boolean = false, bergamot: Boolean = false) {
         this.onDeviceTranslate = onDeviceTranslate
         this.googleHome = googleHome
+        this.bergamot = bergamot
     }
 
     /**
@@ -76,6 +83,7 @@ object ProviderEnvironment {
         channel = ProviderChannel.current,
         offline = !InternetPermission.granted,
         onDeviceTranslate = onDeviceTranslate,
+        bergamot = bergamot,
         offlineGifPacks = lookAtDisk && OfflineGifPacks.hasPacks,
         // The build carries the Home APIs, and the phone has the Play services they run through.
         googleHome = googleHome && PlayServices.available,
@@ -94,6 +102,7 @@ object ProviderCatalog {
     fun runnable(type: ProviderType, env: ProviderEnv): Boolean = when {
         env.offline && !type.onDevice -> false
         type === ProviderTypes.ML_KIT && !env.onDeviceTranslate -> false
+        type === ProviderTypes.BERGAMOT && !env.bergamot -> false
         type === ProviderTypes.GOOGLE_HOME && !env.googleHome -> false
         type === ProviderTypes.ON_DEVICE_AI && !env.onDeviceAi -> false
         ProviderTool.VOICE in type.serves -> ProviderTypes.VOICE_ENGINES[type.id] in env.voiceEngines

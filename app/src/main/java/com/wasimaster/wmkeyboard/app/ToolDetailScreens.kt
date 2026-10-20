@@ -126,6 +126,8 @@ import com.wasimaster.wmkeyboard.core.tools.typingConfigLanguage
 import com.wasimaster.wmkeyboard.core.tools.TypingHistory
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.translate.BergamotTranslator
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
@@ -2035,9 +2037,10 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.TRANSLATE -> {
-            // The engine row and the model list exist only where the engine
-            // does. On a build without ML Kit both would be a choice of one.
-            val onDevice = OnDeviceTranslator.AVAILABLE
+            // The engine row and the model lists exist only where an engine
+            // does: ML Kit in builds that carry it, Bergamot on Android 9 and
+            // later in every build that can fetch its models.
+            val onDevice = OfflineTranslation.available
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
                 if (onDevice) {
@@ -2084,7 +2087,8 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            if (onDevice) TranslateModelManager(settings)
+            if (OnDeviceTranslator.AVAILABLE) TranslateModelManager(settings)
+            if (BergamotTranslator.available) BergamotModelManager(settings)
             // Who translates, in order: on the device, the user's own server,
             // DeepL, LibreTranslate, Google. The engine switch above decides
             // which part of the list a translation asks.

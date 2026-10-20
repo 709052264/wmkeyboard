@@ -75,9 +75,10 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.core.tools.TranslateClient
+import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
 import com.wasimaster.wmkeyboard.core.translate.OfflineModelState
 import com.wasimaster.wmkeyboard.core.translate.OfflineTranslateLanguages
-import com.wasimaster.wmkeyboard.core.translate.OnDeviceTranslator
+import com.wasimaster.wmkeyboard.core.translate.OfflineTranslation
 import com.wasimaster.wmkeyboard.core.translate.TranslateModuleState
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
@@ -431,11 +432,11 @@ private fun TranslateLanguageRow(
     val kb = LocalKbTheme.current
     val translate = state.translate
     val target = state.settings.translateTargetLang
-    val engine = if (OnDeviceTranslator.AVAILABLE) state.settings.translate.engine else TranslateEngine.ONLINE
+    val engine = if (OfflineTranslation.available) state.settings.translate.engine else TranslateEngine.ONLINE
     // Pick mode (#727): a chooser of the providers that are on takes the
     // engine chip's place, since choosing the phone is choosing the engine.
     val providers = rememberProviderChoices(ProviderTool.TRANSLATE, state.settings)
-    val engineChip = OnDeviceTranslator.AVAILABLE && providers == null
+    val engineChip = OfflineTranslation.available && providers == null
     val menu = menus.open
     val rows = menu?.let { translateMenuRows(it, translate, target, engine, state.settings, menus.showAll) }.orEmpty()
     val pick: (TranslateMenu, String) -> Unit = { which, key ->
@@ -926,11 +927,17 @@ private fun translateMenuRows(
     val onlineOnly = stringResource(R.string.ime_translate_online_only_label)
     val selected = if (menu == TranslateMenu.SOURCE) translate.sourceOverride else target
     val names = TranslateClient.languages.toMap()
-    val downloaded: (String) -> Boolean = { code ->
-        val model = OfflineTranslateLanguages.modelCode(code)
-        model == OfflineTranslateLanguages.PIVOT || translate.models[model] is OfflineModelState.Downloaded
+    // The engines on the translate list: ML Kit, Bergamot, or both. Each
+    // reads its own set of languages and keeps its own models.
+    val engines = remember(settings) {
+        TranslateProviders.rows(settings, TranslateEngine.ON_DEVICE)
+            .mapNotNullTo(mutableSetOf()) { OfflineTranslation.engineOf(it.typeId) }
     }
-    val typed = settings.enabledLanguages.mapNotNullTo(mutableSetOf()) { OfflineTranslateLanguages.modelCode(it.id) }
+    val supported: (String) -> Boolean = { code -> OfflineTranslation.supports(code, engines) }
+    val downloaded: (String) -> Boolean = { code -> OfflineTranslation.ready(code, engines, translate.models) }
+    val typed = settings.enabledLanguages.mapNotNullTo(mutableSetOf()) {
+        TranslateClient.pickerCode(it.id.replace('_', '-'))?.lowercase()
+    }
     // An empty map is "not looked yet", not "nothing downloaded": a short
     // list drawn off it would be English alone.
     val shortList = engine == TranslateEngine.ON_DEVICE && settings.translate.onlyDownloaded &&
@@ -938,27 +945,22 @@ private fun translateMenuRows(
     val codes = TranslateClient.languages.map { it.first }
     val arranged = arrangeTranslateLanguages(
         codes = codes,
-        ready = { code ->
-            downloaded(code) ||
-                translate.models[OfflineTranslateLanguages.modelCode(code)] is OfflineModelState.Downloading
-        },
-        keep = { code ->
-            code.equals(selected, ignoreCase = true) || OfflineTranslateLanguages.modelCode(code) in typed
-        },
+        ready = { code -> downloaded(code) || OfflineTranslation.coming(code, engines, translate.models) },
+        keep = { code -> code.equals(selected, ignoreCase = true) || code.lowercase() in typed },
         downloadedFirst = showModels && settings.translate.downloadedFirst,
         shortList = shortList,
     )
     val languages = arranged.map { code ->
-        val model = OfflineTranslateLanguages.modelCode(code)
+        val onDevice = supported(code)
         TranslateMenuRow(
             key = code,
             label = names[code] ?: code,
             selected = code.equals(selected, ignoreCase = true),
-            note = onlineOnly.takeIf { showModels && model == null },
-            downloaded = showModels && model != null && downloaded(code),
+            note = onlineOnly.takeIf { showModels && !onDevice },
+            downloaded = showModels && onDevice && downloaded(code),
             // Only a dead end when nothing else can take it: Automatic hands
             // these to the online service.
-            dimmed = engine == TranslateEngine.ON_DEVICE && model == null,
+            dimmed = engine == TranslateEngine.ON_DEVICE && !onDevice,
         )
     } + listOfNotNull(
         TranslateMenuRow(
@@ -1036,7 +1038,8 @@ private fun TranslateDownloadOffer(translate: TranslateUi, modifier: Modifier = 
     val states = translate.missingModels.map { translate.models[it] }
     val running = states.filterIsInstance<OfflineModelState.Downloading>()
     val waiting = translate.missingModels.filter { translate.models[it] !is OfflineModelState.Downloaded }
-    val names = waiting.joinToString(", ") { TranslateClient.languageName(it) }
+    val engineName = stringResource(R.string.ime_translate_bergamot_engine_name)
+    val names = waiting.joinToString(", ") { OfflineTranslation.label(it, TranslateClient::languageName, engineName) }
     Column(
         modifier = modifier
             .padding(vertical = 4.dp)
@@ -1086,7 +1089,8 @@ private fun TranslateDownloadOffer(translate: TranslateUi, modifier: Modifier = 
                 names,
                 Formatter.formatShortFileSize(
                     context,
-                    OfflineTranslateLanguages.APPROX_MODEL_BYTES * waiting.size.coerceAtLeast(1),
+                    waiting.sumOf { OfflineTranslation.downloadBytes(it) }
+                        .takeIf { it > 0L } ?: OfflineTranslateLanguages.APPROX_MODEL_BYTES,
                 ),
             ),
             color = kb.suggestionText,

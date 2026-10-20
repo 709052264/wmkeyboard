@@ -30,8 +30,8 @@ The header reads left to right like a sentence: *from* this language, *to* that 
 
 - **Source language** is the first chip. It starts on **Detect language** and switches to the language it found once a result comes back, for example "Bengali". Tap it to pick the source yourself when the detection is wrong, which mostly happens with a word or two. Your pick lasts until you close the panel. Pick **Detect language** to hand it back.
 - **Swap** is the arrows between the chips. It turns the translation round: the result becomes the text, its language the source, and the language it was read as the new target. It lights up once there is a result to swap.
-- **Target language** is the second chip. Tap it to open a dropdown of all 63 languages and pick one.
-- **Engine** is the chip on the right, <Flavor edition="full" /> only: **Online**, **On device** or **Automatic**. See [On-device translation](#on-device-translation) below.
+- **Target language** is the second chip. Tap it to open a dropdown of all 68 languages and pick one.
+- **Engine** is the chip on the right: **Online**, **On device** or **Automatic**. See [On-device translation](#on-device-translation) below. It shows wherever an on-device engine runs: every edition on a 64-bit phone with Android 9 or later, and the Full edition everywhere.
 - The translation updates automatically about 400 milliseconds after you stop typing. Pressing return translates immediately, and changing the target language re-translates what's already in the box right away.
 - Once a translation is showing, two actions light up below it:
   - **Insert** types the translation into your field at the cursor, leaving whatever was already there in place.
@@ -49,31 +49,107 @@ Hardware-keyboard focus-ring navigation reaches the whole panel: <KeyCap>Tab</Ke
 
 ## On-device translation
 
-<Flavor edition="full" /> The Full edition can translate on the phone with Google's ML Kit, with no connection and without the text leaving the device. Pick the engine from the chip on the panel or under Options:
+The keyboard can translate on the phone, with no connection and without the text leaving the device. Two engines can do it:
 
-- **Online** (the default) is what Translate has always done: the online [providers](#providers) in your list, such as Google's endpoint, your Cloud key, a LibreTranslate server, [DeepL](#deepl) or [your own translation server](#your-own-translation-server). It knows the most languages and gives the best translations.
-- **On device** never sends the text anywhere. It needs a model for each language, about 30 MB each, downloaded once.
+- **ML Kit** <Flavor edition="full" /> is Google's. It has one model per language, about 30 MB each, and comes in the editions that carry ML Kit.
+- **Firefox Translations** is Mozilla's Bergamot engine with the models Firefox translates web pages with. It is free software and needs no Google services, so it is the on-device engine of the F-Droid edition and of phones without Google Play services. Every edition has it on 64-bit phones with Android 9 or later. Its models are per direction: French → English and English → French are two downloads.
+
+Both are rows in the [Providers](#providers) list. On a phone with both, the order of the list decides which is asked first, and a pair that one of them has no models for goes on to the other. So if you downloaded Japanese for Firefox Translations and nothing for ML Kit, Japanese translates with Firefox Translations. Switch a row off to keep an engine out of it, or set **How to use them** to **Choose in the panel** to pick one each time.
+
+Pick the engine from the chip on the panel or under Options:
+
+- **Online** is what Translate has always done: the online [providers](#providers) in your list, such as Google's endpoint, your Cloud key, a LibreTranslate server, [DeepL](#deepl) or [your own translation server](#your-own-translation-server). It knows the most languages and gives the best translations. It is the default on GitHub and F-Droid.
+- **On device** never sends the text anywhere. It needs models, downloaded once.
 - **Automatic** uses the device whenever the languages are downloaded, and the online service for everything else: a language with no model, a pair you have not downloaded, text the device cannot read. The engine chip's icon shows which one produced the result on screen.
 
-**On Google Play, the engine is a download too.** The Play edition keeps ML Kit's translator out of the install, because it is about 16 MB that most people never use. **On device** is the Play edition's default engine, so the first translation offers the download, and picking **On device** or **Automatic** later asks Google Play for it straight away. The panel and the Tools / Translate page show that download and carry on by themselves when it lands, with no restart. If Play cannot deliver it, the panel says so and the button tries again. APKs from GitHub carry the engine inside and skip this step.
+**On Google Play, the engines are downloads too.** The Play edition keeps ML Kit's translator (about 16 MB) and Bergamot (about 7 MB) out of the install, because most people never use them. **On device** is the Play edition's default engine, so the first translation offers the download, and picking **On device** or **Automatic** later asks Google Play for ML Kit straight away. Bergamot comes with its first model. The panel and the Tools / Translate page show that download and carry on by themselves when it lands, with no restart. If Play cannot deliver it, the panel says so and the button tries again. APKs from GitHub carry ML Kit inside and fetch Bergamot's library with its first model; the F-Droid edition builds Bergamot from source and fetches it once you turn on **Download feature libraries** under [Privacy](/reference/settings/privacy/).
 
-**Models.** Each language is one download, and every model translates to and from English. Bengali to German therefore needs both the Bengali and the German model and goes through English on the way, which costs some accuracy. English itself is part of the engine and is never downloaded. When a translation needs a model you do not have, the result area says which and how big, and the action row becomes a **Download** button. The same button cancels while the download runs. When the models arrive, the text you typed is translated at once. Downloads also show in the notification shade, and they carry on if you close the panel. With [data saver](/reference/settings/data-saver/) holding downloads on a metered connection, the button asks first and a second press is the yes.
+**Models.** When a translation needs a model you do not have, the result area says which and how big, and the action row becomes a **Download** button. The same button cancels while the download runs. When the models arrive, the text you typed is translated at once. Downloads also show in the notification shade, and they carry on if you close the panel. With [data saver](/reference/settings/data-saver/) holding downloads on a metered connection, the button asks first and a second press is the yes.
 
-**Which languages.** 59 of the 63: everything in the list except Malayalam, Nepali, Punjabi and Traditional Chinese (the Chinese model is Simplified). With the engine on **On device** or **Automatic**, the language menus mark downloaded languages with a tick and the ones the device cannot do with **Online only**, and list the downloaded ones first.
+- **ML Kit**: each language is one download, and every model translates to and from English. Bengali to German therefore needs both the Bengali and the German model and goes through English on the way, which costs some accuracy. English itself is part of the engine and is never downloaded.
+- **Firefox Translations**: each direction is one download of 13.5 to 36.5 MB (see [the table](#firefox-translations-models) below). A translation needs only the directions on its way: French into English needs French → English, and French into German needs French → English and English → German, run through English in one pass. The engine's own library is listed beside the models as **Firefox Translations engine** on builds that fetch it.
+
+**Which languages.** ML Kit has 59 of the 68: everything in the list except Azerbaijani, Basque, Bosnian, Malayalam, Nepali, Punjabi, Serbian, Uyghur and Traditional Chinese (its Chinese model is Simplified). Firefox Translations has 58: everything except Esperanto, Georgian, Haitian Creole, Irish, Macedonian, Maltese, Nepali, Punjabi, Swahili and Welsh, and it does have Traditional Chinese. With the engine on **On device** or **Automatic**, the language menus mark the languages that need no download with a tick and the ones neither engine on your list can do with **Online only**, and list the downloaded ones first.
 
 **A short list on the device.** With the engine on **On device**, each language menu lists only what it can use now: the downloaded languages (and any on their way), the languages you type in, and the current selection. **All languages**, the last row, opens the rest of that menu, so you can still pick a language and download it from the offer. The next menu opens short again. **Automatic** always lists every language, because it sends the ones you have not downloaded online. Both behaviours are switches under [Options](#options).
 
-**Detecting the source.** ML Kit's translator has to be told what it is reading, so a separate on-device language identifier (bundled, no download) does the detecting. It is reliable on a sentence and shaky on a word or two. When it is not sure, the keyboard falls back on the languages you type in, the active one first, and shows the source with a question mark, as in "French?". Tap the chip to correct it. Hindi, Japanese, Russian, Arabic, Greek, Bulgarian or Chinese typed in Latin letters is recognised for what it is and refused on the device, because no model reads it; Automatic sends it online instead.
+**Detecting the source.** Neither engine works out by itself what language it is reading. Where ML Kit is on the phone, its on-device language identifier (bundled, no download) does the detecting for both engines. It is reliable on a sentence and shaky on a word or two. Without ML Kit, Firefox Translations makes a rougher guess: from the script (Bengali, Korean, Greek and Thai each have their own; Ukrainian, Belarusian and Serbian have letters Russian lacks, and Urdu and Uyghur letters Arabic lacks) and, for Latin letters, from the commonest short words of each language, which a sentence of five or more words nearly always has. When neither is sure, the keyboard falls back on the languages you type in, the active one first, and shows the source with a question mark, as in "French?". Tap the chip to correct it. Hindi, Japanese, Russian, Arabic, Greek, Bulgarian or Chinese typed in Latin letters is recognised for what it is and refused on the device, because no model reads it; Automatic sends it online instead.
 
-**What to expect.** On-device translation is good for messages and short text and noticeably less exact than the online service on long, technical or idiomatic text. Line breaks and blank lines survive: each line is translated on its own. The translators are unloaded when you close the panel, since a loaded language pair holds tens of megabytes of memory.
+**What to expect.** On-device translation is good for messages and short text and noticeably less exact than the online service on long, technical or idiomatic text. Line breaks and blank lines survive: each line is translated on its own. The engines let go of their models when you close the panel, since a loaded language pair holds tens of megabytes of memory.
+
+### Firefox Translations models
+
+Sizes are what each direction downloads. On the phone it takes about half as much again, unpacked. The models come in two sizes: *tiny* ones of about 14 MB and larger *base* ones of about 24 MB (about 36 MB for Chinese, Japanese and Korean), whichever Mozilla currently ships for Firefox on Android.
+
+| Language | Into English | From English |
+|---|---|---|
+| Afrikaans | 25.0 MB | 24.8 MB |
+| Albanian | 14.3 MB | 14.8 MB |
+| Arabic | 24.7 MB | 23.8 MB |
+| Azerbaijani | 24.6 MB | 24.1 MB |
+| Basque | 24.5 MB | 24.2 MB |
+| Belarusian | 24.0 MB | 23.6 MB |
+| Bengali | 14.4 MB | 14.2 MB |
+| Bosnian | 24.6 MB | 24.0 MB |
+| Bulgarian | 23.6 MB | 24.5 MB |
+| Catalan | 24.2 MB | 24.6 MB |
+| Chinese (Simplified) | 36.2 MB | 36.1 MB |
+| Chinese (Traditional) | 36.4 MB | 35.2 MB |
+| Croatian | 24.6 MB | 23.8 MB |
+| Czech | 24.5 MB | 24.5 MB |
+| Danish | 14.2 MB | 14.0 MB |
+| Dutch | 24.3 MB | 25.0 MB |
+| Estonian | 24.2 MB | 24.1 MB |
+| Filipino | 24.8 MB | 24.5 MB |
+| Finnish | 24.6 MB | 23.6 MB |
+| French | 25.0 MB | 24.6 MB |
+| Galician | 24.6 MB | 24.6 MB |
+| German | 23.9 MB | 24.5 MB |
+| Greek | 14.2 MB | 14.0 MB |
+| Gujarati | 14.6 MB | 13.9 MB |
+| Hebrew | 14.8 MB | 14.4 MB |
+| Hindi | 14.6 MB | 14.2 MB |
+| Hungarian | 24.1 MB | 24.0 MB |
+| Icelandic | 24.7 MB | 23.7 MB |
+| Indonesian | 14.5 MB | 13.9 MB |
+| Italian | 25.1 MB | 25.6 MB |
+| Japanese | 36.0 MB | 34.9 MB |
+| Kannada | 14.9 MB | 14.3 MB |
+| Korean | 35.2 MB | 36.5 MB |
+| Latvian | 14.4 MB | 25.0 MB |
+| Lithuanian | 14.4 MB | 23.9 MB |
+| Malay | 14.2 MB | 14.8 MB |
+| Malayalam | 14.6 MB | 13.6 MB |
+| Marathi | 23.5 MB | 23.8 MB |
+| Norwegian | 15.2 MB | 14.5 MB |
+| Persian | 14.7 MB | 14.6 MB |
+| Polish | 24.2 MB | 23.6 MB |
+| Portuguese | 24.2 MB | 24.8 MB |
+| Romanian | 14.4 MB | 13.5 MB |
+| Russian | 24.1 MB | 22.4 MB |
+| Serbian | 24.6 MB | 23.8 MB |
+| Slovak | 14.7 MB | 23.9 MB |
+| Slovenian | 25.3 MB | 23.6 MB |
+| Spanish | 25.1 MB | 24.1 MB |
+| Swedish | 14.6 MB | 14.3 MB |
+| Tamil | 25.2 MB | 24.2 MB |
+| Telugu | 15.1 MB | 13.8 MB |
+| Thai | 24.4 MB | 24.0 MB |
+| Turkish | 14.1 MB | 14.5 MB |
+| Ukrainian | 14.1 MB | 23.8 MB |
+| Urdu | 24.0 MB | 23.5 MB |
+| Uyghur | 24.8 MB | 25.0 MB |
+| Vietnamese | 14.5 MB | 26.1 MB |
+
+The models are Mozilla's, released under the MPL-2.0 like the engine, and pinned in the app by their SHA-256: a file that does not match is never used.
 
 ## Providers
 
-<SettingsPath path="Tools / Translate / Providers" /> lists who translates, in order: **On device** (the Full edition only), then the online services. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for Google Translate, DeepL, LibreTranslate, a [translation front end](#translation-front-ends) (Mozhi, SimplyTranslate, Lingva or Translite) or your own translation server. Every build offers all of them. A LibreTranslate server, a front end or your own server can be added more than once, each with its own address.
+<SettingsPath path="Tools / Translate / Providers" /> lists who translates, in order: the on-device engines (**On device (ML Kit)** on the Full edition, **On device (Firefox Translations)** on 64-bit phones with Android 9 and later), then the online services. It works like every other [provider list](/tools/providers/): drag to reorder, switch a row off to skip it, and use **Add a provider** for Google Translate, DeepL, LibreTranslate, a [translation front end](#translation-front-ends) (Mozhi, SimplyTranslate, Lingva or Translite) or your own translation server. Every build offers all of them. A LibreTranslate server, a front end or your own server can be added more than once, each with its own address.
 
 The first provider that answers is used. If one fails (no connection, a wrong key, a language it does not have), the next one that is on is asked. Set **How to use them** to **Choose in the panel** to pick the provider yourself instead: the panel's engine chip becomes a chip naming the provider, and its menu lists the providers that are on, the phone included. Only the one you pick translates. A provider that is off is never asked, so the text goes only to the ones that are on. The engine decides which part of the list is used: **On device** asks only the phone, **Online** only the services, and **Automatic** the whole list in its order.
 
-A fresh install starts with Google Translate, which needs no key, and on the Full edition the on-device engine at the top. Updating the app keeps the order your earlier settings gave.
+A fresh install starts with Google Translate, which needs no key, and the on-device engines at the top: ML Kit first where it is there, then Firefox Translations. Updating the app keeps the order your earlier settings gave, and puts Firefox Translations after the on-device rows you already have (at the top if you had none).
 
 ## Your own translation server
 
@@ -119,11 +195,12 @@ DeepL is an optional online service that you bring yourself, with your own DeepL
 - **Turn on**: already on, like every tool. Switching it off removes Translate from both the toolbar and the toolbox.
 - **Icon colour**: only shown if [colorful tool icons](/tools/overview/) are turned on globally. It overrides Translate's icon color.
 - **Keyword shortcut**: a **Trigger words** field pre-filled with "translate", plus a **Match capitals** switch that's off by default. Type the word on its own and the suggestion strip offers to open the tool. See [smart suggestion chips](/smart/chips/).
-- **Translate into**: the target language, from the same 63-language list as the panel's picker. Defaults to **English**. Changing it here also changes what the panel opens to next time.
-- **Translation engine**: <Flavor edition="full" /> **Online**, **On device** or **Automatic**. The same choice as the panel's engine chip. The default is **On device** on Google Play and **Online** in the APKs from GitHub.
-- **Downloaded languages first**: <Flavor edition="full" /> on by default. On **On device** and **Automatic**, the panel's language menus start with the languages on the device. Off keeps the usual order: English and Bengali, then the rest by name.
-- **Only downloaded languages**: <Flavor edition="full" /> on by default. On **On device**, the panel's language menus show the downloaded languages, the languages you type in and the current selection, with **All languages** at the end for the rest. Off lists every language.
+- **Translate into**: the target language, from the same 68-language list as the panel's picker. Defaults to **English**. Changing it here also changes what the panel opens to next time.
+- **Translation engine**: **Online**, **On device** or **Automatic**. The same choice as the panel's engine chip. The default is **On device** on Google Play and **Online** in the APKs from GitHub and F-Droid. Shown wherever an on-device engine runs.
+- **Downloaded languages first**: on by default. On **On device** and **Automatic**, the panel's language menus start with the languages on the device. Off keeps the usual order: English and Bengali, then the rest by name.
+- **Only downloaded languages**: on by default. On **On device**, the panel's language menus show the downloaded languages, the languages you type in and the current selection, with **All languages** at the end for the rest. Off lists every language.
 - **Languages on the device**: <Flavor edition="full" /> the on-device models. The list starts with English (built in), the language you translate into, the languages you type in, and anything already downloaded or on its way. **More languages** below it folds out the rest. Each row downloads, cancels or deletes one model and shows its progress. A download started here shows as running in the panel, and the other way round.
+- **Firefox Translations models**: Bergamot's models, one row per direction with its download size. The list starts with the directions into and out of the language you translate into and the languages you type in, and anything already downloaded or on its way; **More directions** folds out the rest. On builds that fetch the engine's library, **Firefox Translations engine** is the first row until it is here. 64-bit phones with Android 9 and later.
 - **Providers**: who translates, in order. See [Providers](#providers). Each kind's setup asks for what it needs:
   - **Google Translate**: an optional Cloud Translation API key. Without one, translation uses Google's free public endpoint, or the key built into the build if it has one. With one, it uses the official API.
   - **DeepL**: a DeepL API key, a DeepL server for a proxy, or both. See [DeepL](#deepl).
@@ -140,7 +217,7 @@ If you back up your settings with **Include API keys** turned on, a Translate ke
 
 ## Details & edge cases
 
-- **On the device, nothing is sent.** With the engine on **On device**, the text you type is translated by ML Kit on the phone and goes nowhere. The only network use is the model downloads, which come from Google's servers (`dl.google.com`) through Android's download manager, plus ML Kit's own [diagnostics](/privacy/network/). On **Automatic**, text goes online only when the device cannot translate it.
+- **On the device, nothing is sent.** With the engine on **On device**, the text you type is translated on the phone and goes nowhere. The only network use is the model downloads: ML Kit's come from Google's servers (`dl.google.com`) through Android's download manager, plus ML Kit's own [diagnostics](/privacy/network/); Firefox Translations models come from Mozilla's attachment server (`firefox-settings-attachments.cdn.mozilla.net`), the same files Firefox downloads, and Bergamot sends nothing else. On **Automatic**, text goes online only when the device cannot translate it.
 - **Google, or a LibreTranslate server.** With Google Translate in the list and no key, WM Keyboard calls Google's free public translation endpoint. It's the same unofficial one browser translate extensions use: fine for personal typing volumes, with no uptime guarantee and its own rate limits. With a key, it calls the official Cloud Translation v2 API instead, billed to your Google Cloud project and reliable. Add a LibreTranslate server above Google to send translations there first, on any build. Whichever answers, only the text in the panel's box is sent: what you typed, pasted, or had selected when you opened it. Nothing else in the field is.
 - **Your own server, when you set it up.** With only the server on, every online translation goes to that server and to nothing else, errors included (see [Your own translation server](#your-own-translation-server)). It receives the text as the user message of a chat request, in a POST body, with the instruction as the system message and your key, if any, in a request header.
 - **DeepL, when you set it up.** Translations go to DeepL in its place in the list (see [DeepL](#deepl)). A pair that DeepL turns down goes to the next provider, and DeepL is not asked about that pair again until the keyboard restarts. Other DeepL errors (a wrong key, a used-up month) also hand the text to the next provider that is on. If DeepL is the only one on, the panel shows the error.
@@ -148,7 +225,8 @@ If you back up your settings with **Include API keys** turned on, a Translate ke
 - **When it's sent:** automatically ~400ms after you stop typing, immediately on return or retry, and immediately again if you change the target language, all only while the panel is open. Closing the panel cancels any translation in flight.
 - **Power Saving mode's "Background network" toggle doesn't touch this.** That toggle only stops fetches that happen without you asking: link previews, QR auto-scan, dictionary look-ups. Tools you open yourself, translate included, keep working even with it on.
 - **Not available before your phone is unlocked once after a restart.** Translate isn't on the short list of tools that work on a locked device, and the on-device models live in storage that is locked until then. It won't appear if you're typing on the lock screen before that first unlock.
-- **Online translation works the same in both editions.** The on-device engine is Full only, because ML Kit is. Lite and the F-Droid build have no engine chip and no model list, and translate online exactly as before.
+- **Online translation works the same in every edition.** ML Kit is Full only. Firefox Translations is in every edition, so Lite and the F-Droid build have the engine chip and its model list too, on 64-bit phones with Android 9 and later. Elsewhere, without ML Kit, there is no engine chip and Translate is online only, as before.
+- **64-bit Android 9 and later for Firefox Translations.** The engine's library needs parts of Android's C library that arrived in Android 9, and its ARM code needs a 64-bit processor (arm64), so older phones and 32-bit ones do not list it. An x86_64 Chromebook or emulator has it too.
 - **Deleting a model** frees its space at once. If the panel was using it, the next translation asks for it again.
 - If a request fails outright, from no connection, a bad key, or a timeout, the panel shows the raw error message rather than a simplified one. An offline failure can read as a technical exception string instead of "No internet connection."
 - **Online, with no connection.** Turn on [Use on-device models offline](/privacy/data-saver/#with-no-connection) and the Online engine hands the text to the on-device engine when the phone is offline or the service does not answer, as long as both languages are downloaded. The result says **On device, offline**. This goes for your own translation server too: the text still stays on the phone.

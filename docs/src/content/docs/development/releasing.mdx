@@ -33,6 +33,7 @@ of it, so nothing here needs a branch or a patched source tree.
 | Handwriting recognition (ML Kit) | bundled | absent | on-demand `:feature:handwriting` module |
 | Text engines (Avro, Khipro, Bijoy, Hindi, Urdu, the Indic languages) | committed prebuilt library | compiled from source by the recipe | the same prebuilt library, in the base module |
 | Harper, whisper.cpp, ExecuTorch (grammar, Offline Whisper, Asr4All, Parakeet, Moonshine) | committed prebuilt libraries | compiled from source by the recipe | the same prebuilt libraries, in the on-demand `:feature:speech` (whisper.cpp, ExecuTorch) and `:feature:grammar` (Harper) modules |
+| Bergamot (on-device translation without Google, 64-bit Android 9 and later; armeabi-v7a gets a stub that refuses to load) | committed prebuilt library, pinned and downloaded on demand | compiled from source by the recipe | the same prebuilt library, in the on-demand `:feature:bergamot` module |
 | Whistle, Tesseract (Whistle dictation, the scanner's offline reader) | committed prebuilt libraries, full only | absent | the same prebuilt libraries, in the on-demand `:feature:speech` (Whistle, arm64 only) and `:feature:ocr` (Tesseract) modules |
 | In-app updates | GitHub releases, downloads and installs | checks F-Droid, links out | Play In-App Updates |
 | Native libraries in the APK | uncompressed and page-aligned | uncompressed and page-aligned | uncompressed and page-aligned; Play compresses the download itself |
@@ -750,7 +751,7 @@ non-UTF-8 locale otherwise raises rather than counting.
    Go to internal first, always. Play's own device catalogue tells you within
    minutes if an on-demand module (`:feature:llm`, `:feature:translate`,
    `:feature:litert`, `:feature:handwriting`, `:feature:speech`,
-   `:feature:grammar`, `:feature:ocr`) or the unbundled ML Kit path
+   `:feature:grammar`, `:feature:ocr`, `:feature:bergamot`) or the unbundled ML Kit path
    is misconfigured, and that is far cheaper to learn there than in
    production.
 

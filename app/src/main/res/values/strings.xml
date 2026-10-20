@@ -32,6 +32,7 @@
     <string name="speech_module_title">Offline voice engines</string>
     <string name="grammar_module_title">Grammar checker</string>
     <string name="ocr_module_title">Offline text reader</string>
+    <string name="bergamot_module_title">Firefox Translations engine</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for
          on-device AI. NPU stays in English. -->
     <string name="npu_module_title">On-device AI on the NPU</string>

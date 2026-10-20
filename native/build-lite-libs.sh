@@ -8,6 +8,8 @@
 #   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
 #   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
 #   Moonshine
+#   Bergamot translate  bergamot-jni/build.sh     libwmbergamot.so
+#                       (into core/intelligence/src/bergamot/jniLibs)
 #
 # F-Droid's recipe deletes the committed copies of these libraries before its
 # source scan and runs this script in their place (fdroid/README.md), and the
@@ -57,3 +59,4 @@ fi
 "$HERE/harper-jni/build.sh"
 "$HERE/whispercpp-jni/build.sh"
 "$HERE/executorch-jni/build.sh"
+"$HERE/bergamot-jni/build.sh"

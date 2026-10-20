@@ -37,6 +37,7 @@ val ownSpecs = mapOf(
     "libwmwhistle.so" to Own("speech", true),
     "libharper_jni.so" to Own("grammar", false),
     "libwmtess.so" to Own("ocr", true),
+    "libwmbergamot.so" to Own("bergamot", false),
 )
 
 /** Where the build keeps them; F-Droid's recipe builds and scans the same paths. */
@@ -45,6 +46,7 @@ val ownDirs = mapOf(
     "core/voice/src/full/jniLibs" to true,
     "core/intelligence/src/main/jniLibs" to false,
     "core/intelligence/src/full/jniLibs" to true,
+    "core/intelligence/src/bergamot/jniLibs" to false,
 )
 
 /** A dependency's library: its gate, the module whose AAR holds it, a licence. Full flavour only. */

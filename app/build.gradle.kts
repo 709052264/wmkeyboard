@@ -474,6 +474,10 @@ android {
         dynamicFeatures += ":feature:speech"
         dynamicFeatures += ":feature:grammar"
         dynamicFeatures += ":feature:ocr"
+        // Mozilla's Bergamot translator (~6.7 MB on arm64), behind the
+        // translate tool's free on-device engine; fetched with the first
+        // Firefox Translations model.
+        dynamicFeatures += ":feature:bergamot"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
         // assets that only phones with a listed chip fetch, once someone
         // picks NPU. Included by settings.gradle.kts under the same flag.
@@ -1340,7 +1344,7 @@ dependencies {
         implementation(libs.play.app.update); implementation(libs.play.billing)
         // SplitInstall + SplitCompat for the on-demand :feature:llm,
         // :feature:translate, :feature:litert, :feature:handwriting,
-        // :feature:speech, :feature:grammar and :feature:ocr modules.
+        // :feature:speech, :feature:grammar, :feature:ocr and :feature:bergamot modules.
         implementation(libs.play.feature.delivery)
         // ML Kit's own half of running from an on-demand module. It has to be
         // in the base: it is what lets the ML Kit context that started with

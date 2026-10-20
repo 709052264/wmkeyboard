@@ -301,6 +301,8 @@
     <string name="ime_translate_all_languages_label">All languages</string>
     <string name="ime_translate_all_languages_info">Also the languages to download</string>
     <string name="ime_translate_need_models_body">To translate on the device, download: <xliff:g id="languages" example="Bengali, German">%1$s</xliff:g>. About <xliff:g id="size" example="60 MB">%2$s</xliff:g>.</string>
+    <!-- Names the Bergamot engine's own library in the download offer, beside model names like "French → English". -->
+    <string name="ime_translate_bergamot_engine_name">Firefox Translations engine</string>
     <string name="ime_translate_downloading_progress">Downloading: <xliff:g id="languages" example="Bengali, German">%1$s</xliff:g>…</string>
     <string name="ime_translate_download_of_total_progress"><xliff:g id="done" example="9.1 MB">%1$s</xliff:g> of <xliff:g id="total" example="30 MB">%2$s</xliff:g></string>
     <string name="ime_translate_download_failed_error">The download did not finish. Check the connection, then try again.</string>

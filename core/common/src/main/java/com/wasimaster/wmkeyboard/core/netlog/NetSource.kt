@@ -80,6 +80,9 @@ enum class NetSource(
     DOWNLOAD_EMOJI("download_emoji", ToolbarTool.EMOJI),
     DOWNLOAD_WHISPER("download_whisper", ToolbarTool.VOICE),
     DOWNLOAD_LLM("download_llm", ToolbarTool.AI),
+
+    /** A Bergamot translation model, from Mozilla's Firefox Translations servers. */
+    DOWNLOAD_TRANSLATE("download_translate", ToolbarTool.TRANSLATE),
     DOWNLOAD_VOCAB("download_vocab", ToolbarTool.VOCABULARY),
 
     /** An offline dictionary for the Dictionary tool (#665). */

@@ -91,6 +91,7 @@ object NativeDelivery {
         gate("speech")?.let { FeatureModules.speech = it }
         gate("grammar")?.let { FeatureModules.grammar = it }
         gate("ocr")?.let { FeatureModules.ocr = it }
+        gate("bergamot")?.let { FeatureModules.bergamot = it }
         gate("litert")?.let { FeatureModules.litert = it }
         gate("handwriting")?.let { FeatureModules.handwriting = it }
         gate("scanner")?.let { FeatureModules.scanner = it }
