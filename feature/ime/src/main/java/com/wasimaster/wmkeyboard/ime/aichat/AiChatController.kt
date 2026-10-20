@@ -19,7 +19,11 @@ import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.aiRows
 import com.wasimaster.wmkeyboard.core.settings.aiThrough
 import com.wasimaster.wmkeyboard.core.settings.AiSettings
+import com.wasimaster.wmkeyboard.core.settings.DataSaverStatus
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
+import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
+import com.wasimaster.wmkeyboard.core.net.NetworkWatcher
 import com.wasimaster.wmkeyboard.core.settings.homes
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
@@ -153,6 +157,30 @@ object AiChatController {
     private var runSeq = 0
     private var job: Job? = null
 
+    /**
+     * The conversation whose last send Data Saver held to ask first (#826),
+     * so its Retry is the yes: that one retry goes over mobile data, as the
+     * keyboard's AI actions do.
+     */
+    @Volatile
+    private var meteredAsked: Long? = null
+
+    /**
+     * What Data Saver's Cloud AI policy says about sending to [choice] now
+     * (#826). An on-device model costs nothing to reach and is never held.
+     * One fresh reading of the network, since neither the chat screen nor the
+     * Settings assistant keeps a watcher running.
+     */
+    fun cloudAiDecision(context: Context, settings: KeyboardSettings, choice: ModelChoice): MeteredDecision {
+        if (choice.provider == AiProvider.ON_DEVICE) return MeteredDecision.ALLOWED
+        val network = NetworkWatcher(context.applicationContext).apply { refresh() }.state.value
+        return DataSaverStatus(active = settings.dataSaver.appliesTo(network), settings = settings.dataSaver)
+            .decide(MeteredFeature.CLOUD_AI)
+    }
+
+    /** A send Data Saver held; its message is what the chat shows for it. */
+    private class HeldByDataSaver(message: String) : java.io.IOException(message)
+
     // The one live on-device session and the inputs it was built for. A new
     // conversation, model or backend closes it and opens another; the session
     // itself survives engine eviction by replaying its transcript.
@@ -275,7 +303,10 @@ object AiChatController {
         if (lastUser < 0) return
         store.save()
         touchStore()
-        launchGeneration(appContext, settings, conversationId, choice, promptAt(conversation, lastUser))
+        launchGeneration(
+            appContext, settings, conversationId, choice, promptAt(conversation, lastUser),
+            granted = meteredAsked == conversationId,
+        )
     }
 
     /**
@@ -341,7 +372,12 @@ object AiChatController {
         conversationId: Long,
         choice: ModelChoice,
         user: String,
+        /** The user said yes to Data Saver's question; see [meteredAsked]. */
+        granted: Boolean = false,
     ) {
+        // One gate for every way in, the keyboard's chat and the app's (#826).
+        val decision = if (granted) MeteredDecision.ALLOWED else cloudAiDecision(appContext, settings, choice)
+        meteredAsked = null
         val seq = ++runSeq
         val implicitThink =
             choice.provider == AiProvider.ON_DEVICE && isReasoningModel(choice.localModelId)
@@ -354,7 +390,20 @@ object AiChatController {
         )
 
         job = scope.launch {
-            val result = runCatching {
+            val result = if (decision != MeteredDecision.ALLOWED) {
+                if (decision == MeteredDecision.ASK) meteredAsked = conversationId
+                Result.failure(
+                    HeldByDataSaver(
+                        appContext.getString(
+                            if (decision == MeteredDecision.ASK) {
+                                R.string.ime_ai_error_metered_ask
+                            } else {
+                                R.string.ime_ai_error_metered_blocked
+                            },
+                        ),
+                    ),
+                )
+            } else runCatching {
                 if (choice.provider == AiProvider.ON_DEVICE) {
                     runOnDevice(appContext, settings, conversationId, choice, user, seq)
                 } else {

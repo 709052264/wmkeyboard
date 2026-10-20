@@ -114,6 +114,19 @@ The library is part of the same download as Hunspell's, about 4 MB, and the row 
 
 The spellers are GiellaLT's work and stay under their own licences, mostly GPL-3.0 or LGPL-3.0; the app only downloads them. Irish has a versioned GiellaLT release too, but its repository states no licence yet, so it is offered for import only.
 
+### Voikko (Finnish)
+
+Finnish joins words into compounds and inflects each one in fifteen cases, with possessive endings and particles like *-kin* on top, so `kahvinkeittimessäkin` ("in the coffee maker, too") is an ordinary word that no list will ever hold. [Voikko](https://voikko.puimula.org/), the Finnish spell checker LibreOffice and Firefox use, describes the language's morphology rather than listing its words, and the keyboard checks Finnish with it:
+
+- A word Voikko accepts is never autocorrected, and the strip offers no corrections for it. That covers compounds and inflected forms (`taloissammekin`, `ylioppilastutkintolautakunta`), and capitalisation: `Helsingissä` stands, `helsingissä` does not.
+- For a word it rejects, and that no list word starts with, Voikko's spellings join the suggestions, ranked the way Hunspell's are: `kirajstossakin` gets `kirjastossakin`, `paiva` gets `päivä`.
+
+Finnish has a **Voikko spell checking** row in its **Dictionaries** section. **Download** fetches the Finnish dictionary (voikko-fi 2.6, the standard vocabulary), a 1.6 MB download that takes 4 MB on the phone, and checks it against a fixed SHA-256 before installing it. **Import** takes a Voikko dictionary you built yourself, as a zip with a `5/mor-standard` folder (or another `mor-` variant) inside; it is installed only if it loads, and the dictionary that was there stays until then. "That file is not a Voikko dictionary" means the zip has no such folder; "That dictionary would not load" means it is damaged or made for a newer Voikko.
+
+While Finnish has a Voikko dictionary, Voikko checks it in place of an imported Finnish Hunspell dictionary; the Hunspell row says so, and Hunspell takes over again once the Voikko dictionary is deleted. A GiellaLT Finnish speller, if you imported one, still works beside Voikko. The library is part of the same spelling download as Hunspell's, about 4.5 MB in all, with the same **Download** banner; on an F-Droid install, turn on library downloads under <SettingsPath path="Privacy / Downloads" /> first. The offline build has no Voikko library at all, so the row says so and Finnish uses the word lists and Hunspell there. To stop using Voikko, delete the dictionary from the row or swipe the row; the keyboard picks up the change straight away.
+
+The library is libvoikko (MPL 1.1, GPL 2 or LGPL 2.1, at your choice) and the dictionary is voikko-fi (GPL 2 or later). The app never carries either in its APK: the library is downloaded on demand, and the dictionary comes from the WM Keyboard data repository, next to the voikko-fi source release it is built from.
+
 Lists are additive, so several can sit under one language, and for English and Bangla they stack on top of the bundled dictionary rather than replacing it. That's a different mechanism from the downloadable wordlists reached from a language's own Dictionary section, which *do* replace the built-in English or Bangla list. See [Downloadable dictionaries](/languages/dictionaries/) for that pipeline, its size tiers, and the full list of every available wordlist.
 
 ## Suggestion blacklist

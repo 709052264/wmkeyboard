@@ -7406,8 +7406,11 @@ data class GestureSettings(
     /**
      * The least a one-letter word waits under [TwoThumbWordEnd.ALL_UP] (#747),
      * whichever of the two pauses it would otherwise take: a lone letter is
-     * far more often the start of a word than a word. Read as
-     * [twoThumbPauseMs] until it is set. Clamped to [TWO_THUMB_PAUSE_RANGE].
+     * far more often the start of a word than a word. Read as the shorter of
+     * [twoThumbPauseMs] and [twoThumbTapPauseMs] until it is set, so as a
+     * floor it changes nothing until it is raised (#841): read as the swiped
+     * pause alone, it held one-letter taps above a tapped-word pause the user
+     * had lowered. Clamped to [TWO_THUMB_PAUSE_RANGE].
      */
     val twoThumbOneLetterPauseMs: Int = 350,
     /**
@@ -7418,6 +7421,15 @@ data class GestureSettings(
      * it is set; 0 never takes a space back. Clamped to [TWO_THUMB_RETRACT_RANGE].
      */
     val twoThumbRetractWindowMs: Int = 700,
+    /**
+     * Whether [twoThumbTapPauseMs], [twoThumbOneLetterPauseMs] and
+     * [twoThumbRetractWindowMs] hold a value of their own rather than
+     * following [twoThumbPauseMs] (#841). Only one that was set has anything
+     * to reset, and its reset clears it rather than pinning a number.
+     */
+    val twoThumbTapPauseSet: Boolean = false,
+    val twoThumbOneLetterPauseSet: Boolean = false,
+    val twoThumbRetractWindowSet: Boolean = false,
     /**
      * A band on the suggestion strip that shrinks over the all-thumbs-up
      * pause, so the wait before the space is visible (#747).
@@ -11696,15 +11708,22 @@ class SettingsRepository(private val context: Context) {
             twoThumbTapPauseMs = (p[GESTURE_TWO_THUMB_TAP_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
                 ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
                 ?: defaults.gesture.twoThumbTapPauseMs,
-            twoThumbOneLetterPauseMs =
-                (p[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
-                    ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
-                    ?: defaults.gesture.twoThumbOneLetterPauseMs,
+            twoThumbOneLetterPauseMs = p[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                ?: minOf(
+                    (p[GESTURE_TWO_THUMB_TAP_PAUSE_MS] ?: p[GESTURE_TWO_THUMB_PAUSE_MS])
+                        ?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                        ?: defaults.gesture.twoThumbTapPauseMs,
+                    p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)
+                        ?: defaults.gesture.twoThumbPauseMs,
+                ),
             twoThumbRetractWindowMs = (
                 p[GESTURE_TWO_THUMB_RETRACT_MS]
                     ?: p[GESTURE_TWO_THUMB_PAUSE_MS]?.coerceIn(TWO_THUMB_PAUSE_RANGE)?.let { it * 2 }
                 )?.coerceIn(TWO_THUMB_RETRACT_RANGE)
                 ?: defaults.gesture.twoThumbRetractWindowMs,
+            twoThumbTapPauseSet = p[GESTURE_TWO_THUMB_TAP_PAUSE_MS] != null,
+            twoThumbOneLetterPauseSet = p[GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS] != null,
+            twoThumbRetractWindowSet = p[GESTURE_TWO_THUMB_RETRACT_MS] != null,
             twoThumbPauseBand = p[GESTURE_TWO_THUMB_PAUSE_BAND] ?: defaults.gesture.twoThumbPauseBand,
             multiFingerSwipes = p[GESTURE_MULTI_FINGER] ?: defaults.gesture.multiFingerSwipes,
             fingerSwipes = p[GESTURE_FINGER_SWIPES]?.let(FingerSwipeCodec::decode)
@@ -18192,6 +18211,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureTwoThumbRetractWindowMs(value: Int) =
         editPrefs { it[GESTURE_TWO_THUMB_RETRACT_MS] = value.coerceIn(TWO_THUMB_RETRACT_RANGE) }
+
+    // Reset on the three rows that follow the swiped-word pause (#841): back
+    // to following it, not to the number it happened to be when they shipped.
+    suspend fun resetGestureTwoThumbTapPauseMs() = editPrefs { it.remove(GESTURE_TWO_THUMB_TAP_PAUSE_MS) }
+
+    suspend fun resetGestureTwoThumbOneLetterPauseMs() = editPrefs { it.remove(GESTURE_TWO_THUMB_ONE_LETTER_PAUSE_MS) }
+
+    suspend fun resetGestureTwoThumbRetractWindowMs() = editPrefs { it.remove(GESTURE_TWO_THUMB_RETRACT_MS) }
 
     suspend fun setGestureTwoThumbPauseBand(value: Boolean) =
         editPrefs { it[GESTURE_TWO_THUMB_PAUSE_BAND] = value }

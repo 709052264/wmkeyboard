@@ -24,11 +24,28 @@ class RetypeWordTest {
 
     private fun GlideKeyboard.retype() = onTextEdit(TextEditAction.RETYPE_WORD, haptic = false)
 
+    /** Marks the space at the caret as the one a pick or a glide just left. */
+    private fun GlideKeyboard.spaceIsOurs() {
+        WMKeyboardService::class.java.getDeclaredField("pendingWordSpace")
+            .apply { isAccessible = true }
+            .setBoolean(this, true)
+    }
+
     @Test
-    fun `the word before the caret goes, with the space after it, and comes back on the strip`() {
+    fun `the word before the caret goes, with the keyboard's space after it, and comes back on the strip`() {
         val (service, editor) = keyboard("hello form ")
+        service.spaceIsOurs()
         service.retype()
         assertEquals("hello ", editor.text.toString())
+        assertEquals("form", service.uiState.value.suggestions.first())
+    }
+
+    @Test
+    fun `a space the user typed stays`() {
+        // #823: the space key's space is not the word's to take.
+        val (service, editor) = keyboard("hello form ")
+        service.retype()
+        assertEquals("hello  ", editor.text.toString())
         assertEquals("form", service.uiState.value.suggestions.first())
     }
 

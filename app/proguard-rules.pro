@@ -78,6 +78,8 @@
 -keep class com.wasimaster.wmkeyboard.core.prediction.HunspellNative { *; }
 # libwmdivvun.so the same way (..._DivvunNative_*).
 -keep class com.wasimaster.wmkeyboard.core.prediction.DivvunNative { *; }
+# libwmvoikko.so the same way (..._VoikkoNative_*).
+-keep class com.wasimaster.wmkeyboard.core.prediction.VoikkoNative { *; }
 
 # --- librime (JNI) -------------------------------------------------------------
 # libwmrime.so binds by the mangled Java name

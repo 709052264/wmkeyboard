@@ -5615,31 +5615,50 @@ private fun RowScope.LatinSuggestionChips(
                             val down = awaitFirstDown(requireUnconsumed = false)
                             var anchorY = Float.NaN
                             var held = 0
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                if (anchorY.isNaN() && heldWord == suggestion) {
-                                    anchorY = change.position.y
-                                    held = heldFacts.rankSteps
-                                }
-                                if (!anchorY.isNaN() && change.pressed) {
-                                    val steps = ((anchorY - change.position.y) / stepPx).toInt()
-                                    val current = rankSlide
-                                    if (steps != 0 || current != null) {
-                                        if (current == null || current.steps != steps) {
-                                            rankSlide = RankSlide(suggestion, held, steps)
+                            var lifted = false
+                            // The badge goes however the gesture ends (#843):
+                            // a strip that changes the word in this slot
+                            // restarts this block and cancels the loop, and
+                            // nothing after it would run. Nothing is saved then.
+                            try {
+                                while (true) {
+                                    // The Initial pass, where a lift is still
+                                    // unconsumed: the long press consumes
+                                    // everything up to the lift in the Main
+                                    // pass, while Compose's synthetic cancel
+                                    // arrives consumed in every pass (#824).
+                                    val event = awaitPointerEvent(PointerEventPass.Initial)
+                                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                    if (anchorY.isNaN() && heldWord == suggestion) {
+                                        anchorY = change.position.y
+                                        held = heldFacts.rankSteps
+                                    }
+                                    if (!anchorY.isNaN() && change.pressed) {
+                                        val steps = ((anchorY - change.position.y) / stepPx).toInt()
+                                        val current = rankSlide
+                                        if (steps != 0 || current != null) {
+                                            if (current == null || current.steps != steps) {
+                                                rankSlide = RankSlide(suggestion, held, steps)
+                                            }
+                                            // The menu was the hold's answer; a slide is a different one.
+                                            heldWord = null
+                                            change.consume()
                                         }
-                                        // The menu was the hold's answer; a slide is a different one.
-                                        heldWord = null
-                                        change.consume()
+                                    }
+                                    if (!change.pressed) {
+                                        lifted = !change.isConsumed
+                                        break
                                     }
                                 }
-                                if (!change.pressed) break
-                            }
-                            val slide = rankSlide
-                            rankSlide = null
-                            if (slide != null && slide.word == suggestion && slide.steps != 0) {
-                                suggestionHold.onRankSlide(slide.word, slide.target, slide.blocks)
+                                val slide = rankSlide
+                                rankSlide = null
+                                // Only a real lift saves the preview (#824); a
+                                // cancelled touch leaves the word as it was.
+                                if (lifted && slide != null && slide.word == suggestion && slide.steps != 0) {
+                                    suggestionHold.onRankSlide(slide.word, slide.target, slide.blocks)
+                                }
+                            } finally {
+                                if (rankSlide?.word == suggestion) rankSlide = null
                             }
                         }
                     }

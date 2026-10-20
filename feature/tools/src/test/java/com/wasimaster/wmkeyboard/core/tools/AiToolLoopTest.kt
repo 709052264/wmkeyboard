@@ -170,6 +170,49 @@ class AiToolLoopTest {
     private val echo = AiToolLoop.Executor { call -> AiToolResult(call, "result for ${call.name}") }
 
     @Test
+    fun `a tool the round did not offer never reaches the executor`() {
+        // #825: an on-device run offers no web tool, and a sentinel naming one
+        // must not run it.
+        val ran = ArrayList<String>()
+        val executor = AiToolLoop.Executor { call -> ran.add(call.name); AiToolResult(call, "ok") }
+        val results = ArrayList<AiToolResult>()
+        for (native in listOf(false, true)) {
+            val fetch = AiToolCall("c", AiTools.WEB_FETCH, """{"url":"https://a.test"}""")
+            val script = Script(
+                if (native) {
+                    AiClient.Completion("", toolCalls = listOf(fetch))
+                } else {
+                    AiClient.Completion("""<tool_call>{"name":"web_fetch","arguments":{"url":"https://a.test"}}</tool_call>""")
+                },
+                AiClient.Completion("done"),
+            )
+            AiToolLoop.run(
+                system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+                tools = listOf(AiTools.webSearch), native = native, executor = executor,
+                onToolResult = results::add, round = script,
+            )
+        }
+        assertTrue(ran.isEmpty())
+        assertEquals(2, results.size)
+        assertTrue(results.all { it.error.isNotEmpty() })
+    }
+
+    @Test
+    fun `a tool the round offered still runs`() {
+        val ran = ArrayList<String>()
+        val executor = AiToolLoop.Executor { call -> ran.add(call.name); AiToolResult(call, "ok") }
+        val script = Script(
+            AiClient.Completion("""<tool_call>{"name":"web_search","arguments":{"query":"q"}}</tool_call>"""),
+            AiClient.Completion("done"),
+        )
+        AiToolLoop.run(
+            system = "S", turns = listOf(AiClient.ChatTurn(AiClient.ChatRole.USER, "q")),
+            tools = listOf(AiTools.webSearch), native = false, executor = executor, round = script,
+        )
+        assertEquals(listOf(AiTools.WEB_SEARCH), ran)
+    }
+
+    @Test
     fun `no tools runs exactly one round and changes nothing`() {
         val script = Script(AiClient.Completion("plain"))
         val out = AiToolLoop.run(

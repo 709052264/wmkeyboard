@@ -29,10 +29,22 @@ class SpecialKeyFlickTest {
     }
 
     @Test
-    fun `keys that cannot take arms still ignore them`() {
-        for (action in listOf(KeyAction.Space, KeyAction.Delete, KeyAction.ForwardDelete)) {
-            val key = Key("x", action = action, flick = mapOf(FlickDirection.UP to "?"))
-            assertNull(action.toString(), key.flickArm(FlickDirection.UP))
+    fun `the space bar ignores both kinds of arm`() {
+        val text = Key(" ", action = KeyAction.Space, flick = mapOf(FlickDirection.UP to "?"))
+        val action = Key(" ", action = KeyAction.Space, flickActions = mapOf(FlickDirection.UP to KeyAlternate(KeyAction.Enter)))
+        assertNull(text.flickArm(FlickDirection.UP))
+        assertNull(action.flickArm(FlickDirection.UP))
+    }
+
+    @Test
+    fun `the delete keys take both kinds of arm`() {
+        // #769 let ⌫ and ⌦ take arms although their hold repeats.
+        for (delete in listOf(KeyAction.Delete, KeyAction.ForwardDelete)) {
+            val text = Key("", action = delete, flick = mapOf(FlickDirection.UP to "?"))
+            val arm = KeyAlternate(KeyAction.Enter)
+            val action = Key("", action = delete, flickActions = mapOf(FlickDirection.UP to arm))
+            assertEquals(delete.toString(), FlickArm.Text("?"), text.flickArm(FlickDirection.UP))
+            assertEquals(delete.toString(), FlickArm.Action(arm), action.flickArm(FlickDirection.UP))
         }
     }
 

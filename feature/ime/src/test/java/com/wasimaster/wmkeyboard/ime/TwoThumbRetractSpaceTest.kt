@@ -71,6 +71,35 @@ class TwoThumbRetractSpaceTest {
     }
 
     @Test
+    fun `a contraction keeps its space - only the whole word is taken back to`() {
+        // #818: the retraction read `s` off `it's`, and `s` + `on` is "son".
+        for (apostrophe in listOf("'", "\u2019")) {
+            for ((first, next) in listOf("it${apostrophe}s" to "on", "don${apostrophe}t" to "o", "we${apostrophe}re" to "ally")) {
+                val (service, editor) = retracting(
+                    first to 300, "its" to 200, "son" to 100, "on" to 100, "so" to 100,
+                    "to" to 100, "o" to 50, "really" to 100, "ally" to 100,
+                )
+                type(service, first)
+                allUpPause(service)
+                assertEquals("$first ", editor.text.toString())
+                type(service, next)
+                allUpPause(service)
+                assertEquals("$first $next ", editor.text.toString())
+            }
+        }
+    }
+
+    @Test
+    fun `control - its then on stays its on`() {
+        val (service, editor) = retracting("its" to 200, "son" to 100, "on" to 100)
+        type(service, "its")
+        allUpPause(service)
+        type(service, "on")
+        allUpPause(service)
+        assertEquals("its on ", editor.text.toString())
+    }
+
+    @Test
     fun `car d o g splits back where cardo leads nowhere`() {
         // "card" is a word, so the d takes the space back; the o is where the
         // joined letters stop leading anywhere.

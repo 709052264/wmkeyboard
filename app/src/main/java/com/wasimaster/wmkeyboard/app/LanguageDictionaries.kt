@@ -236,6 +236,11 @@ internal fun DictionariesGroup(
         if (offersSpeller(langId)) {
             item(key = "speller") { SpellerRow(langId, settings) }
         }
+        // Finnish: Voikko, which checks it in Hunspell's place once its
+        // dictionary is on the phone.
+        if (offersVoikko(langId)) {
+            item(key = "voikko") { VoikkoRow(langId, settings) }
+        }
         item {
             NavRow(
                 R.string.languages_custom_dictionaries_title,

@@ -153,7 +153,8 @@ the field's declared input type.
   <Shot id="privacy/secure-field-no-suggestions" alt="A password field: no suggestion strip, no smart chips." />
 </PhoneFrame>
 
-A secure field switches off, for as long as it has focus:
+A secure field switches off, for as long as it has focus, whether you type on
+the keys or on a physical keyboard with the keys hidden:
 
 - The suggestion strip. This is the one thing the
   [Suggestions in every field](/typing/field-adaptation/) override can never
@@ -163,6 +164,8 @@ A secure field switches off, for as long as it has focus:
 - Smart suggestion chips (calculator, currency, unit conversions, tool
   shortcuts).
 - Learning. The same lexicon incognito pauses is paused here too.
+- [Typing statistics](/reference/settings/statistics/) and the tap heatmap.
+  Nothing typed in a password field is counted, and no key it touches warms up.
 - **Voice dictation, entirely.** Tap the voice tool in a password field and
   you get `You cannot use voice typing in a password field` instead of a
   recording. That's a hard block rather than a hidden strip.

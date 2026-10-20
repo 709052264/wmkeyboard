@@ -245,9 +245,10 @@ sealed interface KeyAction {
      * does nothing, the dead-key outcome a [Layout] naming a deleted layout
      * gets. A blank [id] is the editor's placeholder while the picker is open.
      *
-     * The second press clears a mode picked by hand. A mode that is on because
-     * a rule chose it for this app or field has no "off" to go to, so the key
-     * leaves it on.
+     * The press is a toggle against the mode that is on (#834): its own mode
+     * on, however it got there, goes back to automatic; anything else picks it.
+     * A mode that is on because a rule chose it for this app or field has no
+     * "off" to go to, so the key leaves it on, and pins nothing by hand.
      */
     @Serializable @SerialName("mode") data class Mode(val id: String = "") : KeyAction
 

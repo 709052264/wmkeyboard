@@ -109,4 +109,8 @@
     <string name="settings_assistant_try">Try asking</string>
     <string name="settings_assistant_shuffle">Show other questions</string>
     <string name="settings_assistant_invalid">Not applied: that value isn\'t one the setting takes.</string>
+    <string name="settings_assistant_metered_ask">Data saver is on. Ask again to send this over mobile data.</string>
+    <string name="settings_assistant_write_failed">The setting couldn\'t be saved. Try again.</string>
+    <!-- Shown on an empty conversation when a cloud or self-hosted provider answers. %1$s is its name, such as Claude. -->
+    <string name="settings_assistant_cloud_notice">Your questions, the recent conversation and the values of the settings it reads go to <xliff:g id="provider" example="Claude">%1$s</xliff:g>.</string>
 </resources>

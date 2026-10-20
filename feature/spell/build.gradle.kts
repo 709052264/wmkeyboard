@@ -5,7 +5,8 @@ plugins {
     id("com.android.dynamic-feature")
 }
 
-// The on-demand home of the spelling libraries, Hunspell's and divvunspell's,
+// The on-demand home of the spelling libraries, Hunspell's, divvunspell's and
+// Voikko's,
 // Play builds only: :app lists this module in `dynamicFeatures` when
 // wmkb.enablePlayStore is on, and no other build references it at all. Every
 // other channel packages the same files in the base APK from :core:prediction,
@@ -13,9 +14,10 @@ plugins {
 // DivvunNative stay in :core:prediction and load their libraries through
 // FeatureModules.loadLibrary once Play has installed this split. It packages
 // :core:prediction's src/main/jniLibs in place, which :core:prediction drops
-// from itself on this channel. About 4 MB on arm64 (1.1 Hunspell, 2.8
-// divvunspell), used only where a language has an imported .aff/.dic or a
-// GiellaLT speller.
+// from itself on this channel, and Voikko's native/voikko-jni/jniLibs, which
+// no module packages anywhere else. About 4.5 MB on arm64 (1.1 Hunspell,
+// 2.8 divvunspell, 0.6 Voikko), used only where a language has an imported
+// .aff/.dic, a GiellaLT speller or a Voikko dictionary.
 android {
     namespace = "com.wasimaster.wmkeyboard.spellfeature"
     compileSdk {
@@ -50,6 +52,7 @@ kotlin {
 androidComponents {
     onVariants { variant ->
         variant.sources.jniLibs?.addStaticSourceDirectory("../../core/prediction/src/main/jniLibs")
+        variant.sources.jniLibs?.addStaticSourceDirectory("../../native/voikko-jni/jniLibs")
     }
 }
 

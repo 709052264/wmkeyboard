@@ -378,6 +378,19 @@ On test words the space bar wrote the right word 56% of the time instead of 25% 
     <string name="languages_speller_module_missing_info">Spell checking is an extra part of the keyboard, about 4 MB. Download it to use a GiellaLT speller.</string>
     <string name="languages_speller_module_installing_info">Downloading spell checking…</string>
     <string name="languages_speller_module_installing_sized_info">Downloading spell checking: <xliff:g id="done" example="1.2 MB">%1$s</xliff:g> of <xliff:g id="total" example="4 MB">%2$s</xliff:g></string>
+    <string name="languages_voikko_title">Voikko spell checking</string>
+    <string name="languages_voikko_download_size">Finnish spell checking that knows compound words and every inflection, used in place of a Hunspell dictionary. <xliff:g id="download" example="1.6 MB">%1$s</xliff:g> download, <xliff:g id="storage" example="4 MB">%2$s</xliff:g> on the phone, <xliff:g id="licence" example="GPL-2.0-or-later">%3$s</xliff:g>.</string>
+    <string name="languages_voikko_import_only_subtitle">Import a Voikko dictionary, a zip with a 5/mor-standard folder in it, to check words with it.</string>
+    <string name="languages_voikko_installed">Dictionary <xliff:g id="version" example="2.6">%1$s</xliff:g>, <xliff:g id="size" example="4 MB">%2$s</xliff:g>. Words Voikko accepts are never autocorrected, and its spellings join the suggestions.</string>
+    <string name="languages_voikko_imported">Imported, <xliff:g id="size" example="4 MB">%1$s</xliff:g>. Words Voikko accepts are never autocorrected, and its spellings join the suggestions.</string>
+    <string name="languages_voikko_failed">The dictionary did not download. Check the connection and the free storage.</string>
+    <string name="languages_voikko_not_in_build_subtitle">This build of the app has no Voikko library. Suggestions come from the word lists and any imported Hunspell dictionary.</string>
+    <string name="languages_voikko_delete_desc">Delete the Voikko dictionary</string>
+    <string name="languages_voikko_import_done">Voikko dictionary installed</string>
+    <string name="languages_voikko_import_not_dictionary">That file is not a Voikko dictionary. Pick a zip with a 5/mor-standard folder in it.</string>
+    <string name="languages_voikko_import_broken">That dictionary would not load. It may be damaged or made for a newer Voikko.</string>
+    <string name="languages_voikko_module_missing_info">Spell checking is an extra part of the keyboard, about 4.5 MB. Download it to check Finnish with Voikko.</string>
+    <string name="languages_hunspell_voikko_subtitle">Voikko checks this language instead while its dictionary is on the phone.</string>
 
     <!-- State of a downloaded word list. %1$d is the number of words, %2$s its
          size on your device, for example "4 MB". -->

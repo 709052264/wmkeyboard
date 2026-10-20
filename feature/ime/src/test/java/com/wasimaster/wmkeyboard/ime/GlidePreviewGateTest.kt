@@ -89,6 +89,18 @@ class GlidePreviewGateTest {
     }
 
     @Test
+    fun aLiftAfterTheResetStillTypesTheWordThatWasOnScreen() {
+        // #816: the lift resets the gate before the finished stroke decodes,
+        // so the word on screen is read first and handed to commit.
+        val gate = GlidePreviewGate()
+        gate.steady(listOf("her", "here"), scores(0.0, -2.0), light, 0L)
+        gate.steady(listOf("here", "her"), scores(0.0, -0.3), light, 1_000L)
+        val shownAtLift = gate.shown
+        gate.reset()
+        assertEquals("her", gate.commit(listOf("here", "herd", "her"), scores(0.0, -0.1, -0.3), light, shownAtLift))
+    }
+
+    @Test
     fun aLiftTakesTheLeaderOnceTheShownWordIsClearlyBeaten() {
         val gate = GlidePreviewGate()
         gate.steady(listOf("hello", "help"), scores(0.0, -2.0), light, 0L)
