@@ -10,11 +10,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 /**
  * Speech out: reads text aloud with a downloaded MMS voice, offline. The
@@ -64,24 +64,37 @@ class SpeechOut(context: Context) {
         return true
     }
 
-    private suspend fun play(voice: MmsVoice, pieces: List<String>, locale: Locale, rate: Float) {
+    private suspend fun play(voice: MmsVoice, pieces: List<String>, locale: Locale, rate: Float) = coroutineScope {
         val filesDir = appContext.filesDir
+        // The next sentence is made while this one plays: on a phone a
+        // sentence takes about as long to make as to say, and made one after
+        // the other each would wait out the whole of the one before.
+        val ready = Channel<FloatArray>(capacity = 1)
+        launch(MmsSpeech.dispatcher) {
+            try {
+                for (piece in pieces) {
+                    MmsSpeech.synthesize(filesDir, voice, piece, locale, rate)?.let { ready.send(it) }
+                }
+            } finally {
+                ready.close()
+            }
+        }
         var written = 0L
         var out: AudioTrack? = null
-        for (piece in pieces) {
-            val samples = withContext(MmsSpeech.dispatcher) {
-                MmsSpeech.synthesize(filesDir, voice, piece, locale, rate)
-            } ?: continue
-            if (!currentCoroutineContext().isActive) return
-            val sink = out ?: openTrack(MmsSpeech.sampleRate)?.also { out = it } ?: return
+        for (samples in ready) {
+            val sink = out ?: openTrack(MmsSpeech.sampleRate)?.also { out = it }
+            if (sink == null) {
+                // No player: stop the maker too, or it waits on the channel forever.
+                ready.cancel()
+                break
+            }
             // A short breath between sentences; VITS ends each one abruptly.
-            val gap = if (written > 0) FloatArray(MmsSpeech.sampleRate * GAP_MS / 1000) else FloatArray(0)
-            if (gap.isNotEmpty()) written += write(sink, gap)
+            if (written > 0) written += write(sink, FloatArray(MmsSpeech.sampleRate * GAP_MS / 1000))
             written += write(sink, samples)
         }
-        val sink = out ?: return
+        val sink = out ?: return@coroutineScope
         // Wait for the last samples to leave the speaker before saying done.
-        while (currentCoroutineContext().isActive && (sink.playbackHeadPosition.toLong() and 0xFFFFFFFFL) < written) {
+        while (isActive && (sink.playbackHeadPosition.toLong() and 0xFFFFFFFFL) < written) {
             delay(POLL_MS)
         }
     }

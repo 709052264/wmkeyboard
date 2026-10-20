@@ -20,8 +20,12 @@ import kotlinx.coroutines.runBlocking
  */
 object MmsSpeech {
 
-    /** Two threads: the decoder's convolutions split well, and dictation keeps the rest. */
-    private const val THREADS = 2
+    /**
+     * Half the cores, two to four: the vocoder's convolutions split well, a
+     * second of speech costs about a second of one fast core to make, and
+     * the rest of the phone keeps the other half.
+     */
+    private val threads: Int = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
 
     // VITS's sampling noise and duration noise, Meta's own defaults for MMS.
     private const val NOISE_SCALE = 0.667f
@@ -69,7 +73,7 @@ object MmsSpeech {
         // An older libwmsherpa without the voice entry points throws here
         // rather than at load time; that is "no voice", not a crash.
         val h = try {
-            SherpaNative.nativeVits(MmsVoices.modelFile(filesDir, voice).path, THREADS)
+            SherpaNative.nativeVits(MmsVoices.modelFile(filesDir, voice).path, threads)
         } catch (_: UnsatisfiedLinkError) {
             0L
         }
