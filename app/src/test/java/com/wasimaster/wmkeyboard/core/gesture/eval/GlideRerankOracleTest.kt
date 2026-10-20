@@ -103,7 +103,8 @@ class GlideRerankOracleTest {
         var oracleHits = 0
         var total = 0
         for (noise in SwipeCorpus.Noise.entries) {
-            val cases = SwipeCorpus(SEED).generate(entries, noise, CASES_PER_LEVEL)
+            // From the pinned list when one is set (#837); see EvalSampling.
+            val cases = SwipeCorpus(SEED).generate(EvalSampling.entries(entries), noise, CASES_PER_LEVEL)
 
             setup.withNone()
             val baseRanks = cases.map { case -> rankOf(setup, keys, case.path, case.intended, null) }

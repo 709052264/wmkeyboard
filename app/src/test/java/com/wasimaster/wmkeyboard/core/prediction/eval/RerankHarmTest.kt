@@ -65,7 +65,9 @@ class RerankHarmTest {
     @Test
     fun seedPriorDoesNotBuryACorrectlyTypedNeighbour() {
         val entries = realEntries()
-        val freq = entries.toMap()
+        // Which neighbours are plausible is a property of the exam, so it is
+        // read from the pinned list when one is set (#837); see EvalSampling.
+        val freq = com.wasimaster.wmkeyboard.core.gesture.eval.EvalSampling.entries(entries).toMap()
         val seeds = seedFile().inputStream().use { SeedBigrams.load(it) }
 
         // (prev, follower) the seed list knows, grouped so a candidate
