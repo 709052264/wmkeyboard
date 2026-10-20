@@ -146,7 +146,7 @@ class AiToolRunner(
         AiTools.OPEN_APP -> host?.canOpenApps == true
         AiTools.SEND_TO_PC -> host?.canSendToPc == true && settings.kdeConnect.enabled
         AiTools.HOME_ASSISTANT, AiTools.HOME_ASSISTANT_STATES -> host?.canControlHome == true
-        AiTools.SEARCH_MEMORY -> host?.canSearchMemory == true
+        AiTools.SEARCH_SAVED -> host?.canSearchSaved == true
         // Only with a picture in the chat, and the reader only for a model
         // that cannot look at the picture itself.
         AiTools.READ_IMAGE_TEXT -> host.let { it != null && it.imageCount > 0 && it.canReadImageText && !it.modelSeesImages }
@@ -295,7 +295,7 @@ class AiToolRunner(
         AiTools.CALCULATE -> calculate(call)
         AiTools.CALENDAR_EVENTS -> calendarEvents(call)
         AiTools.SEARCH_NOTES -> searchNotes(call)
-        AiTools.SEARCH_MEMORY -> searchMemory(call)
+        AiTools.SEARCH_SAVED -> searchSaved(call)
         AiTools.CURRENT_LOCATION -> currentLocation(call)
         AiTools.ADD_CALENDAR_EVENT -> addCalendarEvent(call)
         AiTools.ADD_NOTE -> addNote(call)
@@ -728,13 +728,13 @@ class AiToolRunner(
     /**
      * Search by meaning over the clipboard, notes and snippets, through the
      * keyboard module's indexes. What the model reads is shaped by
-     * [AiMemoryFormat]; what may be found at all is the host's to decide.
+     * [AiSavedFormat]; what may be found at all is the host's to decide.
      */
-    private fun searchMemory(call: AiToolCall): AiToolResult {
+    private fun searchSaved(call: AiToolCall): AiToolResult {
         val query = call.argument("query") ?: return missing(call, "query")
         if (!unlocked()) return refusedWith(call, R.string.ftools_ai_tool_locked, R.string.ftools_ai_tool_reason_locked)
-        val hits = requireNotNull(host).searchMemory(query).getOrThrow()
-        return AiToolResult(call, AiMemoryFormat.format(hits))
+        val hits = requireNotNull(host).searchSaved(query).getOrThrow()
+        return AiToolResult(call, AiSavedFormat.format(hits))
     }
 
     /**

@@ -4,9 +4,9 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipItem
 import com.wasimaster.wmkeyboard.core.notes.Note
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.snippets.Snippet
-import com.wasimaster.wmkeyboard.core.tools.AiMemoryFormat
-import com.wasimaster.wmkeyboard.core.tools.AiMemoryHit
-import com.wasimaster.wmkeyboard.core.tools.AiMemorySource
+import com.wasimaster.wmkeyboard.core.tools.AiSavedFormat
+import com.wasimaster.wmkeyboard.core.tools.AiSavedHit
+import com.wasimaster.wmkeyboard.core.tools.AiSavedSource
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -14,11 +14,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The search_memory tool's search and the words the model reads, with a fake
+ * The search_saved_items tool's search and the words the model reads, with a fake
  * embedder: four axes stand for four topics, so which items a query lands on
  * is known in advance, and what is left out is left out by the filters.
  */
-class MemoryRecallTest {
+class SavedItemSearchTest {
 
     // Axis 0: the dentist. 1: travel. 2: food. 3: everything else.
     private fun v(vararg x: Float) = floatArrayOf(*x)
@@ -55,12 +55,12 @@ class MemoryRecallTest {
         return mapOf(MeaningSpace.CLIPS to clips, MeaningSpace.NOTES to notes, MeaningSpace.SNIPPETS to snippets)
     }
 
-    private fun recall(embedder: (String) -> FloatArray? = { dentist }): MemoryRecall {
+    private fun recall(embedder: (String) -> FloatArray? = { dentist }): SavedItemSearch {
         val byIndex = indexes()
-        return MemoryRecall(embedQuery = { embedder(it) }, indexOf = { byIndex[it] ?: VectorIndex(4) })
+        return SavedItemSearch(embedQuery = { embedder(it) }, indexOf = { byIndex[it] ?: VectorIndex(4) })
     }
 
-    private val sources = MemoryRecall.Sources(
+    private val sources = SavedItemSearch.Sources(
         clips = listOf(clinic, password, shapedLikeOne, code, flight),
         notes = listOf(appointment, locked, trashed),
         snippets = listOf(recipe),
@@ -70,10 +70,10 @@ class MemoryRecallTest {
     fun `finds across sources best first, on one line each`() = runBlocking {
         val hits = recall().search("where is my dentist", sources)!!
         assertEquals(2, hits.size)
-        assertEquals(AiMemorySource.CLIPBOARD, hits[0].source)
+        assertEquals(AiSavedSource.CLIPBOARD, hits[0].source)
         assertEquals("Dr Rahman's clinic, 12 Lake Road", hits[0].text)
         assertNull(hits[0].title)
-        assertEquals(AiMemorySource.NOTE, hits[1].source)
+        assertEquals(AiSavedSource.NOTE, hits[1].source)
         assertEquals("Dentist", hits[1].title)
         assertTrue(hits[0].score > hits[1].score)
     }
@@ -91,14 +91,14 @@ class MemoryRecallTest {
     @Test
     fun `a query about nothing the user has finds nothing`() = runBlocking {
         val hits = recall { v(0f, 0f, 0f, 1f) }.search("quantum chromodynamics", sources)!!
-        assertEquals(emptyList<AiMemoryHit>(), hits)
+        assertEquals(emptyList<AiSavedHit>(), hits)
     }
 
     @Test
     fun `no model answer is null, a too-short query is not asked`() = runBlocking {
         var asked = 0
         assertNull(recall { asked++; null }.search("dentist", sources))
-        assertEquals(emptyList<AiMemoryHit>(), recall { asked++; dentist }.search(" d ", sources))
+        assertEquals(emptyList<AiSavedHit>(), recall { asked++; dentist }.search(" d ", sources))
         assertEquals(1, asked)
     }
 
@@ -106,17 +106,17 @@ class MemoryRecallTest {
     fun `travel lands on the flight, food on the snippet`() = runBlocking {
         assertEquals(listOf("Flight BG 147 to Sylhet"), recall { v(0f, 1f, 0f, 0f) }.search("trip", sources)!!.map { it.text })
         val food = recall { v(0f, 0f, 1f, 0f) }.search("cooking", sources)!!
-        assertEquals(AiMemorySource.SNIPPET, food.single().source)
+        assertEquals(AiSavedSource.SNIPPET, food.single().source)
         assertEquals("Dal", food.single().title)
     }
 
     @Test
     fun `the model reads numbered, labelled lines`() {
-        val text = AiMemoryFormat.format(
+        val text = AiSavedFormat.format(
             listOf(
-                AiMemoryHit(AiMemorySource.CLIPBOARD, null, "Dr Rahman's clinic, 12 Lake Road", 0.95f),
-                AiMemoryHit(AiMemorySource.NOTE, "Dentist", "Tuesday at 3 pm", 0.9f),
-                AiMemoryHit(AiMemorySource.SNIPPET, " ", "Lentils", 0.8f),
+                AiSavedHit(AiSavedSource.CLIPBOARD, null, "Dr Rahman's clinic, 12 Lake Road", 0.95f),
+                AiSavedHit(AiSavedSource.NOTE, "Dentist", "Tuesday at 3 pm", 0.9f),
+                AiSavedHit(AiSavedSource.SNIPPET, " ", "Lentils", 0.8f),
             ),
         )
         assertEquals(
@@ -125,18 +125,18 @@ class MemoryRecallTest {
                 "3. [snippet] Lentils",
             text,
         )
-        assertEquals(AiMemoryFormat.NOTHING, AiMemoryFormat.format(emptyList()))
+        assertEquals(AiSavedFormat.NOTHING, AiSavedFormat.format(emptyList()))
     }
 
     @Test
     fun `at most eight hits are read, and a long text is cut at a word`() {
-        val many = List(12) { AiMemoryHit(AiMemorySource.NOTE, null, "note $it", 1f - it / 100f) }
-        assertEquals(AiMemoryFormat.MAX_HITS, AiMemoryFormat.format(many).lines().size)
+        val many = List(12) { AiSavedHit(AiSavedSource.NOTE, null, "note $it", 1f - it / 100f) }
+        assertEquals(AiSavedFormat.MAX_HITS, AiSavedFormat.format(many).lines().size)
 
         val long = "word ".repeat(100)
-        val cut = AiMemoryFormat.excerpt(long, max = 40)
+        val cut = AiSavedFormat.excerpt(long, max = 40)
         assertTrue(cut.length <= 40)
         assertTrue(cut.endsWith("word…"))
-        assertEquals("a b c", AiMemoryFormat.excerpt("  a\n\tb   c "))
+        assertEquals("a b c", AiSavedFormat.excerpt("  a\n\tb   c "))
     }
 }
