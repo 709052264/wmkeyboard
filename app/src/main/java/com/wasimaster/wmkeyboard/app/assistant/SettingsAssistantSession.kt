@@ -71,6 +71,11 @@ internal object SettingsAssistantSession {
         set(value) {
             scopeOrNull = value
         }
+
+    /** Back to the app's own scope, made again on next use; for tests that swapped it. */
+    internal fun restoreAppScope() {
+        scopeOrNull = null
+    }
     internal var io: CoroutineDispatcher = Dispatchers.IO
 
     private var job: Job? = null

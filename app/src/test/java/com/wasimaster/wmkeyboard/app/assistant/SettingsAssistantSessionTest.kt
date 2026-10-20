@@ -55,7 +55,6 @@ class SettingsAssistantSessionTest {
         route = "keypress", titleRes = R.string.keypress_long_press_delay_title,
     )
 
-    private val appScope = session.scope
     private val appIo = session.io
 
     @Before
@@ -66,7 +65,7 @@ class SettingsAssistantSessionTest {
     @After
     fun restore() {
         session.resetForTest()
-        session.scope = appScope
+        session.restoreAppScope()
         session.io = appIo
     }
 
