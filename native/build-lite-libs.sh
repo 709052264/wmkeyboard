@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Builds, from source, every native library the lite edition ships, into the
-# src/main/jniLibs directories of :core:language, :core:intelligence and
-# :core:voice:
+# src/main/jniLibs directories of :core:language, :core:intelligence,
+# :core:voice and :core:input:
 #
 #   Text engines        wm-engine-jni/build.sh    libwm_engine_jni.so
 #   Harper grammar      harper-jni/build.sh       libharper_jni.so
 #   Offline Whisper     whispercpp-jni/build.sh   libwmwhispercpp*.so
 #   Asr4All, Parakeet,  executorch-jni/build.sh   libwmexecutorch.so
 #   Moonshine
+#   RIME (Chinese)      librime-jni/build.sh      libwmrime.so
 #
 # F-Droid's recipe deletes the committed copies of these libraries before its
 # source scan and runs this script in their place (fdroid/README.md), and the
@@ -57,3 +58,4 @@ fi
 "$HERE/harper-jni/build.sh"
 "$HERE/whispercpp-jni/build.sh"
 "$HERE/executorch-jni/build.sh"
+"$HERE/librime-jni/build.sh"

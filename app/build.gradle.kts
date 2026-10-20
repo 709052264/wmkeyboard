@@ -474,6 +474,9 @@ android {
         dynamicFeatures += ":feature:speech"
         dynamicFeatures += ":feature:grammar"
         dynamicFeatures += ":feature:ocr"
+        // librime (~4 MB per ABI) behind the optional RIME Chinese engine,
+        // fetched when someone picks RIME for a Chinese language.
+        dynamicFeatures += ":feature:rime"
         // The Qualcomm NPU runtime behind Compute = NPU (#804): ~14 MB of
         // assets that only phones with a listed chip fetch, once someone
         // picks NPU. Included by settings.gradle.kts under the same flag.

@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
+import com.wasimaster.wmkeyboard.core.input.rime.RimeRuntime
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
 import com.wasimaster.wmkeyboard.app.updates.AllLanguagesRow
 import com.wasimaster.wmkeyboard.app.updates.KeepEnglishOnlyRow
@@ -383,6 +384,20 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright (c) 2023-2026 The ggml authors",
                 "MIT", "mit-whisper-cpp.txt",
                 "https://github.com/ggml-org/whisper.cpp",
+            ),
+        )
+    }
+    if (RimeRuntime.libraryShipped) {
+        // The optional RIME engine for Chinese: librime and the libraries it
+        // is built with, in one library of its own. The schema packs it
+        // downloads carry their own licences inside each pack.
+        add(
+            Attribution(
+                "librime",
+                R.string.about_bundled_rime_used,
+                "Copyright RIME Developers",
+                "BSD-3-Clause", "rime-third-party.txt",
+                "https://github.com/rime/librime",
             ),
         )
     }

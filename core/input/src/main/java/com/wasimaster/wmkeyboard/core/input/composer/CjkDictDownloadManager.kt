@@ -87,7 +87,7 @@ object CjkDictDownloadManager {
     /** Seeds [states] from disk; call when the pack manager UI appears. */
     fun refresh(filesDir: File) {
         _states.update { current ->
-            CjkDictCatalog.packs.associate { pack ->
+            CjkDictCatalog.allPacks.associate { pack ->
                 val active = current[pack.id]
                 pack.id to when {
                     pack.id == activeId && isBusy && active != null -> active

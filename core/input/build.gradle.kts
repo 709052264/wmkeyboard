@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     id("wmkeyboard.detekt")
@@ -37,6 +39,27 @@ android {
     }
     buildFeatures { compose = true }
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
+}
+
+// Play builds leave src/main/jniLibs (librime, behind the RIME engine) out of
+// this module, so out of the base APK: the on-demand :feature:rime split
+// packages the same directory instead. The file stays here because
+// native/librime-jni/build.sh and F-Droid's recipe write and scan this path.
+// Through the new DSL's extension type, for the AGP 9 reason given in
+// :core:intelligence.
+val playStoreChannel = run {
+    val localProperties = Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) file.inputStream().use { load(it) }
+    }
+    (providers.gradleProperty("wmkb.enablePlayStore").orNull
+        ?: localProperties.getProperty("wmkb.enablePlayStore")
+        ?: System.getenv("WMKB_ENABLE_PLAY_STORE")
+        ?: "false").toBoolean()
+}
+if (playStoreChannel) {
+    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets
+        .getByName("main").jniLibs.setSrcDirs(emptyList<String>())
 }
 
 kotlin {

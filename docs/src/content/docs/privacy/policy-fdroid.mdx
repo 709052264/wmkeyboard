@@ -63,15 +63,16 @@ and the source it builds from.
 | **Whisper speech models** | offline dictation | offline voice typing. Android's own recognizer still works |
 | **Harper grammar engine** | grammar checking | the grammar tool |
 
-The native libraries for offline voice typing (whisper.cpp and ExecuTorch)
-and for grammar checking (Harper) are built from source with the rest of this
-edition, but they are not in the APK. The keyboard downloads one the first time
+The native libraries for offline voice typing (whisper.cpp and ExecuTorch),
+for grammar checking (Harper) and for the RIME engine for Chinese (librime)
+are built from source with the rest of this edition, but they are not in the
+APK. The keyboard downloads one the first time
 its feature needs it, from the project's data repository on GitHub, and only
 after you turn on **Download feature libraries** under Privacy. F-Droid did not
 build or review those downloaded files, which is why the setting is off until
 you turn it on, and why it asks you to confirm. Before the keyboard uses a
 file, it checks the file's SHA-256 against a value built into the app. Until
-you turn the setting on, those two features say that they need it.
+you turn the setting on, those features say that they need it.
 
 Only one Google code path is left. The
 keyboard can ask Android's downloadable-font provider for a font: some

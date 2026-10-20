@@ -447,7 +447,12 @@ fun composerFor(script: ScriptDef, type: ComposerType, langId: String? = null): 
  * The composer this layout types through: an imported input method's when the
  * layout is bound to one ([LayoutSpec.inputMethod]), otherwise [composerFor]
  * with the layout's own script, composer override and language, so two
- * languages that share a script get their own phonetic rules.
+ * languages that share a script get their own phonetic rules. A conversion
+ * composer then goes past [ConversionEngines], where a native engine the user
+ * picked for the language (RIME for Chinese) may stand in for it.
  */
-fun LayoutSpec.resolvedComposer(): Composer =
-    inputMethod?.let(ImportedInputMethods::composer) ?: composerFor(script(), composerType(), langId)
+fun LayoutSpec.resolvedComposer(): Composer {
+    inputMethod?.let(ImportedInputMethods::composer)?.let { return it }
+    val type = composerType()
+    return ConversionEngines.resolve(composerFor(script(), type, langId), type, langId)
+}
