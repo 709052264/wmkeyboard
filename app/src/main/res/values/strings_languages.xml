@@ -491,7 +491,7 @@ On test words the space bar wrote the right word 56% of the time instead of 25% 
     <!-- The Mozc engine for Japanese (Google's open-source converter). Mozc
          is the engine's name and stays in Latin letters. -->
     <string name="languages_mozc_group_title">Conversion engine</string>
-    <string name="languages_mozc_group_info">The built-in engine converts with the kana dictionary above. Mozc is Google's open-source Japanese engine, the one behind Google Japanese Input. It converts whole sentences, learns what you pick, and lets you move the boundaries between the parts of a reading. It needs its own library and dictionary.</string>
+    <string name="languages_mozc_group_info">The built-in engine converts with the kana dictionary above. Mozc is Google\'s open-source Japanese engine, the one behind Google Japanese Input. It converts whole sentences, learns what you pick, and lets you move the boundaries between the parts of a reading. It needs its own library and dictionary.</string>
     <string name="languages_mozc_engine_title">Japanese engine</string>
     <string name="languages_mozc_engine_mozc">Mozc</string>
     <string name="languages_mozc_engine_subtitle">With Mozc, every Japanese layout converts through Mozc: romaji, flick, 12-key and kana. The keys stay the same. The arrow keys resize the part of the reading being converted.</string>
