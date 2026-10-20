@@ -10,7 +10,9 @@ import java.util.zip.ZipFile
  * The Qualcomm NPU runtime on disk, ready for `Backend.NPU(dir)` (#804).
  *
  * The build packages LiteRT's dispatch library and the QNN libraries as
- * compressed assets under [ASSET_DIR], not as native libraries: there they
+ * compressed assets under [ASSET_DIR], each named `<library>.bin` so AGP
+ * compresses it (it stores a `.so` uncompressed even in assets), not as
+ * native libraries: there they
  * would be stored uncompressed, about 50 MB instead of 14, and the runtime
  * could not use them from inside the APK anyway. The DSP half (the skel) is
  * read off the filesystem through `ADSP_LIBRARY_PATH`, and LiteRT opens the
@@ -85,13 +87,13 @@ object NpuRuntime {
      * read directly as well.
      */
     private fun openAsset(app: Context, name: String): InputStream? {
-        runCatching { return app.assets.open("$ASSET_DIR/$name") }
+        runCatching { return app.assets.open("$ASSET_DIR/$name.bin") }
         val info = runCatching { app.packageManager.getApplicationInfo(app.packageName, 0) }.getOrNull()
             ?: return null
         val apks = listOfNotNull(info.sourceDir) + info.splitSourceDirs.orEmpty()
         for (apk in apks) {
             val zip = runCatching { ZipFile(apk) }.getOrNull() ?: continue
-            val entry = zip.getEntry("assets/$ASSET_DIR/$name")
+            val entry = zip.getEntry("assets/$ASSET_DIR/$name.bin")
             if (entry == null) {
                 zip.close()
                 continue
