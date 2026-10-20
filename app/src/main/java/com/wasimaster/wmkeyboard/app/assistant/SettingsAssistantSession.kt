@@ -59,7 +59,8 @@ internal object SettingsAssistantSession {
         data class Setting(override val id: Int, val entryKey: String) : Item
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    // Lazy so that reading [current] does not need a main looper (unit tests).
+    private val scope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate) }
     private var job: Job? = null
 
     /**
