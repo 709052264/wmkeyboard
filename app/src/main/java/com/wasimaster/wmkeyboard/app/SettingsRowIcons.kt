@@ -41,6 +41,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AltRoute
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AlternateEmail
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Anchor
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Animation
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Assistant
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AppShortcut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Architecture
@@ -423,6 +424,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
+        put(R.string.toolai_hub_settings_assistant_title) { Icons.Outlined.Assistant }
         put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }
         put(R.string.semantic_tag_stickers_title) { Icons.Outlined.Sell }
         put(R.string.semantic_delete_title) { Icons.Outlined.Delete }

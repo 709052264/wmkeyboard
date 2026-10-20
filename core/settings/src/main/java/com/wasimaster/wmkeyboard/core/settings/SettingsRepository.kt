@@ -6376,6 +6376,12 @@ data class AppUiSettings(
      */
     val aiChatButtonEverywhere: Boolean = false,
     /**
+     * Whether the Settings assistant (#788) is offered at all (#830). Off, its
+     * search button, its rows and its search result are gone, its route opens
+     * nothing, and so it sends nothing anywhere. On by default, as it shipped.
+     */
+    val settingsAssistant: Boolean = true,
+    /**
      * How a settings row offers a web link to itself (#646): not at all, on a
      * long press, or as a small link button beside the reset and the "?". Off
      * by default; it is for people who send other people to a setting.
@@ -10107,6 +10113,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("settings_keyboard_preview_button")
         private val SETTINGS_AI_CHAT_BUTTON_EVERYWHERE =
             booleanPreferencesKey("settings_ai_chat_button_everywhere")
+        private val SETTINGS_ASSISTANT = booleanPreferencesKey("settings_assistant")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
@@ -11894,6 +11901,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.appUi.keyboardPreviewButton,
             aiChatButtonEverywhere = p[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE]
                 ?: defaults.appUi.aiChatButtonEverywhere,
+            settingsAssistant = p[SETTINGS_ASSISTANT] ?: defaults.appUi.settingsAssistant,
             settingLinks = p[SETTINGS_SETTING_LINKS]
                 ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingLinks,
@@ -18969,6 +18977,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.aiChatButtonEverywhere]. */
     suspend fun setAiChatButtonEverywhere(value: Boolean) =
         editPrefs { it[SETTINGS_AI_CHAT_BUTTON_EVERYWHERE] = value }
+
+    /** See [AppUiSettings.settingsAssistant]. */
+    suspend fun setSettingsAssistant(value: Boolean) =
+        editPrefs { it[SETTINGS_ASSISTANT] = value }
 
     /** See [AppUiSettings.settingLinks]. */
     suspend fun setSettingLinks(value: SettingLinkMode) =

@@ -107,6 +107,7 @@ internal fun AiHubSettings(
     // Not an AI tool, but the same kind of thing: a model on the device, and
     // nobody looks for it under Clipboard or Emoji, which it serves alike.
     SemanticSearchGroup(repository, settings)
+    val assistant = settings.watch { it.appUi.settingsAssistant }
     SettingsGroup(stringResource(R.string.toolai_ai_chat_group_title)) {
         item {
             NavRow(
@@ -116,7 +117,16 @@ internal fun AiHubSettings(
                 onClick = { onNavigate("ai_chat") },
             )
         }
+        // The assistant's own off switch (#830), and its row while it is on.
         item {
+            ToggleSetting(
+                R.string.toolai_hub_settings_assistant_title,
+                stringResource(R.string.toolai_hub_settings_assistant_subtitle),
+                assistant,
+                default = SettingsDefaults.appUi.settingsAssistant,
+            ) { scope.launch { repository.setSettingsAssistant(it) } }
+        }
+        item(visible = assistant) {
             NavRow(
                 title = R.string.settings_assistant_title,
                 subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
@@ -164,6 +174,7 @@ internal fun AiToolSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val numberFormat = stringResource(R.string.values_number)
+    val assistantOn = settings.watch { it.appUi.settingsAssistant }
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val aiProvider = settings.watch { it.ai.provider }
@@ -371,7 +382,8 @@ internal fun AiToolSettings(
                 onClick = { onNavigate("ai_chat") },
             )
         }
-        item {
+        // Gone while the assistant is turned off (#830).
+        item(visible = assistantOn) {
             NavRow(
                 title = R.string.settings_assistant_title,
                 subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
