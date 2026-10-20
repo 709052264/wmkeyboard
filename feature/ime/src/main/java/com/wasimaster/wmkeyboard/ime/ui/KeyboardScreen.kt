@@ -2157,33 +2157,41 @@ private fun KeyboardScreenFrame(
                         // window with no background; the service restricts the
                         // touchable region to the panel so everything else
                         // falls through to the app behind.
-                        FloatingKeyboardFrame(
-                            state = state,
-                            onDock = { onFloatingChange(false) },
-                            onMoved = onFloatingMoved,
-                            onResized = { widthDp, heightScale ->
-                                onSizingAction(SizingAction.Floating(widthDp, heightScale))
-                            },
-                            onBounds = onFloatingBounds,
-                            keyPreview = keyPreview,
-                            keyGridFocus = panelFocus.keyGrid,
-                            onRingKey = onKey,
-                            onRingText = onText,
-                            content = { heightScale ->
-                                // Key height carries the whole layout (panels
-                                // included), so scaling it scales the
-                                // keyboard's height.
-                                val scaled = if (heightScale == 1f) {
-                                    state
-                                } else {
-                                    state.withKeyHeights(
-                                        (state.settings.keyHeightDp * heightScale).roundToInt(),
-                                        (state.settings.numberRowHeightDp * heightScale).roundToInt(),
-                                    )
-                                }
-                                movableBody(scaled)
-                            },
-                        )
+                        //
+                        // No window blur here: the window spans the screen, so
+                        // a blur would soften the whole app. Hiding the host
+                        // tells the glass so, and the board falls back to the
+                        // theme's fallback opacity (or the wallpaper backdrop)
+                        // instead of sitting see-through on a sharp app.
+                        CompositionLocalProvider(LocalWindowFrost provides NoWindowFrost) {
+                            FloatingKeyboardFrame(
+                                state = state,
+                                onDock = { onFloatingChange(false) },
+                                onMoved = onFloatingMoved,
+                                onResized = { widthDp, heightScale ->
+                                    onSizingAction(SizingAction.Floating(widthDp, heightScale))
+                                },
+                                onBounds = onFloatingBounds,
+                                keyPreview = keyPreview,
+                                keyGridFocus = panelFocus.keyGrid,
+                                onRingKey = onKey,
+                                onRingText = onText,
+                                content = { heightScale ->
+                                    // Key height carries the whole layout (panels
+                                    // included), so scaling it scales the
+                                    // keyboard's height.
+                                    val scaled = if (heightScale == 1f) {
+                                        state
+                                    } else {
+                                        state.withKeyHeights(
+                                            (state.settings.keyHeightDp * heightScale).roundToInt(),
+                                            (state.settings.numberRowHeightDp * heightScale).roundToInt(),
+                                        )
+                                    }
+                                    movableBody(scaled)
+                                },
+                            )
+                        }
                     } else {
                         DockedKeyboardFrame(
                             state = state,
