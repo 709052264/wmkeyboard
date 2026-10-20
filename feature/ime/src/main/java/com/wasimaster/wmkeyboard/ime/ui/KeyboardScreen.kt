@@ -5155,10 +5155,6 @@ private fun RowScope.StripWords(
                 }
             }
         }
-        // The recent-word bar (#787), ahead of the live words.
-        if (state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar) {
-            RecentWordBar(state.recentBar, suggestionHold)
-        }
         LatinSuggestionChips(
             // One slot, so the word sits centred across the whole strip
             // rather than in the first of three (see [glideStripOnly]).

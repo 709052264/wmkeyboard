@@ -43014,7 +43014,6 @@ open class WMKeyboardService : InputMethodService() {
             onMorePick = ::onMoreSuggestionPicked,
             onCandidateAdjust = ::onCandidateAdjust,
             onRankSlide = ::onSuggestionRankSlide,
-            recentOffers = ::recentWordOffers,
             onRecentPick = ::onRecentWordPick,
         )
     }
