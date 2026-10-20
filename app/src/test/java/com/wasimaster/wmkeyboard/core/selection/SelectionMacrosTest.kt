@@ -274,8 +274,10 @@ class SelectionMacrosTest {
         val all = SelectionMacros.configurable.toSet()
         for (kind in SelectionKind.entries) {
             val partial = SelectionMacros.offer(kind, all)
-            // Nothing else on the row moves: only the chip with nothing to take.
-            assertEquals(kind.name, partial - SelectionMacro.SELECT_ALL - SelectionMacro.FIND, SelectionMacros.offer(kind, all, MacroGates(wholeField = true)))
+            // Nothing else on the row moves: only the chips with nothing to take,
+            // and the line moves, since the whole text has nowhere to go.
+            val gone = setOf(SelectionMacro.SELECT_ALL, SelectionMacro.FIND, SelectionMacro.LINES_UP, SelectionMacro.LINES_DOWN)
+            assertEquals(kind.name, partial - gone, SelectionMacros.offer(kind, all, MacroGates(wholeField = true)))
         }
     }
 

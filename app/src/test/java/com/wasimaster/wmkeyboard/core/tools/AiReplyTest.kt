@@ -217,8 +217,12 @@ class AiReplyTest {
     @Test
     fun `every shipped tone has a task to run`() {
         // A tone with no task and no instruction box would be a dead chip.
-        assertTrue(BuiltInAiReplyTones.tones.all { it.task.isNotBlank() })
-        assertTrue(BuiltInAiReplyTones.tones.none { it.askEachRun })
+        // Custom is the one whose instruction is typed on the panel each run.
+        assertTrue(BuiltInAiReplyTones.tones.all { it.task.isNotBlank() || it.askEachRun })
+        assertEquals(
+            listOf(BuiltInAiReplyTones.CUSTOM_ID),
+            BuiltInAiReplyTones.tones.filter { it.askEachRun }.map { it.id },
+        )
     }
 
     @Test

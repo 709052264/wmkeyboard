@@ -86,6 +86,8 @@ class DataSaverSettingsTest {
                 animatedEmoji = MeteredPolicy.ALLOW,
                 downloads = MeteredPolicy.ALLOW,
                 cloudAi = MeteredPolicy.ALLOW,
+                cloudVoice = MeteredPolicy.ALLOW,
+                fileSend = MeteredPolicy.ALLOW,
                 vocabAudio = MeteredPolicy.ALLOW,
             ).restrictsAnything,
         )

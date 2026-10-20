@@ -51,7 +51,10 @@ class NgramPackCatalogTest {
         // Two languages sharing a stem means one of them is reading the
         // other's pairs; bn and bn_rom share the repo directory, so the stems
         // are the only thing keeping them apart.
-        val stems = NgramPackCatalog.entries.flatMap { listOf(it.bigramStem, it.trigramStem) }
+        // Another code for the same language (azj-Latn for az) names the very
+        // same pack on purpose; it is two different packs that must not meet.
+        val packs = NgramPackCatalog.entries.map { Triple(it.repoCode, it.bigramStem, it.trigramStem) }.distinct()
+        val stems = packs.flatMap { listOf(it.second, it.third) }
         assertEquals(stems.size, stems.distinct().size)
     }
 }

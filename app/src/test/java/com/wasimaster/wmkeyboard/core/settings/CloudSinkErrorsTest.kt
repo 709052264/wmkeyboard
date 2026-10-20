@@ -81,7 +81,9 @@ class CloudSinkErrorsTest {
 
     @Test
     fun `a network location always waits for a network`() {
-        for (destination in BackupDestination.entries - BackupDestination.FOLDER) {
+        // A paired computer (NEARBY) is reached on the local network and waits
+        // for nothing, like a folder.
+        for (destination in BackupDestination.entries - BackupDestination.FOLDER - BackupDestination.NEARBY) {
             assertEquals(
                 JobInfo.NETWORK_TYPE_ANY,
                 AutoBackupScheduler.networkTypeFor(with(destination, unmetered = false)),

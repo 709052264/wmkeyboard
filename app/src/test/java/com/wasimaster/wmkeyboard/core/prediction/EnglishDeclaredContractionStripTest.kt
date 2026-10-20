@@ -54,7 +54,10 @@ class EnglishDeclaredContractionStripTest {
             "shed" to "she'd", "shell" to "she'll", "well" to "we'll", "were" to "we're",
         )) {
             val strip = e.suggest(typed, previousWord = null).take(slots)
-            assertEquals("$typed: $strip", listOf(typed, offered), strip.take(2))
+            // A much commoner completion may lead (wedding before wed); the
+            // offer still sits on the strip right behind what was typed.
+            assertTrue("$typed: $strip", typed in strip && offered in strip)
+            assertEquals("$typed: $strip", strip.indexOf(typed) + 1, strip.indexOf(offered))
         }
     }
 

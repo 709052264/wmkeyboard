@@ -58,9 +58,9 @@ class GlideStrokeEndsFitTest {
         assertTrue(stroke(at('r'), at('h'), at('e')).endsFit("the", map))
         assertTrue(stroke(at('e'), at('h'), at('e')).endsFit("the", map))
         assertFalse(stroke(at('w'), at('h'), at('e')).endsFit("the", map))
-        // The same at the other end: w is two keys from e, q three.
-        assertTrue(stroke(at('t'), at('h'), at('w')).endsFit("the", map))
-        assertFalse(stroke(at('t'), at('h'), at('q')).endsFit("the", map))
+        // The same at the other end: t is two keys from e, y three.
+        assertTrue(stroke(at('t'), at('h'), at('t')).endsFit("the", map))
+        assertFalse(stroke(at('t'), at('h'), at('y')).endsFit("the", map))
     }
 
     @Test

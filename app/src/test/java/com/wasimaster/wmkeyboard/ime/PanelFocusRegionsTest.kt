@@ -41,6 +41,9 @@ class PanelFocusRegionsTest {
     @Test
     fun `search comes first wherever a panel has one`() {
         for (panel in PanelMode.entries) {
+            // Text Repeat's SEARCH is the text being repeated, which sits
+            // under the mode tabs it depends on.
+            if (panel == PanelMode.TEXT_REPEAT) continue
             val regions = panelFocusRegions(panel)
             if (FocusRegion.SEARCH in regions) {
                 assertEquals("search must lead the Tab order for $panel", regions.first(), FocusRegion.SEARCH)
