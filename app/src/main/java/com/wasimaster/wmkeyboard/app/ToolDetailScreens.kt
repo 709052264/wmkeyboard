@@ -470,48 +470,7 @@ internal fun ToolDetailSettings(
                 default = usable && tool in SettingsDefaults.enabledTools,
             ) { scope.launch { repository.setToolEnabled(tool, it) } }
         }
-        // Off the grid, on everywhere else: for a tool someone only reaches by
-        // name, from a selection action or pinned on the bar. Meaningless while
-        // the tool is off, since then it is in no grid to leave.
-        item(visible = toolOn) {
-            ToggleSetting(
-                R.string.tooldetail_show_in_toolbox_title,
-                stringResource(R.string.tooldetail_show_in_toolbox_subtitle),
-                settings.watch { tool !in it.toolbox.hiddenTools },
-                default = tool !in SettingsDefaults.toolbox.hiddenTools,
-            ) { scope.launch { repository.setToolHiddenInToolbox(tool, !it) } }
-        }
-        // Recolour just this tool's icon. Only meaningful while the global
-        // "Colorful tool icons" switch is on, since it's what paints them.
-        if (coloredIcons) {
-            item {
-                ColorSetting(
-                    // With the gradients off there is one colour and it needs
-                    // no qualifier; with them on the two rows have to say which
-                    // end of the gradient each one is. Named by resource rather
-                    // than resolved here, so the row picks its icon out of
-                    // [SettingsRowIcons] like every other settings row.
-                    title = if (gradient) R.string.tooldetail_icon_colour_start_title
-                    else R.string.tooldetail_icon_colour_title,
-                    color = settings.watch { it.toolColorOverrides[tool] },
-                    fallback = toolAccentColorArgb(tool),
-                    onChange = { scope.launch { repository.setToolColor(tool, it) } },
-                )
-            }
-            item(visible = gradient) {
-                ColorSetting(
-                    title = R.string.tooldetail_icon_colour_end_title,
-                    color = settings.watch { it.toolColorEndOverrides[tool] },
-                    // Derived from whichever colour the near end currently
-                    // is, so the pair moves together until it is pinned.
-                    fallback = settings.watch { toolAccentEndColorArgb(tool, it.toolColorOverrides) },
-                    onChange = { scope.launch { repository.setToolColorEnd(tool, it) } },
-                )
-            }
-        }
-        item { ToolHoldRow(repository, settings, tool) }
     }
-    ToolKeywordSetting(repository, settings, tool)
     when (tool) {
         ToolbarTool.KDE_CONNECT ->
             com.wasimaster.wmkeyboard.app.kdeconnect.KdeConnectToolSettings(repository, settings, onNavigate)
@@ -3160,6 +3119,62 @@ internal fun ToolDetailSettings(
         }
         else -> {}
     }
+    // How the tool sits on the toolbar and in the toolbox: the same rows on
+    // every tool's page, so after the tool's own settings rather than
+    // before them, folded with what they hold named on the heading.
+    SettingsGroup(
+        stringResource(R.string.tooldetail_toolbar_group),
+        foldKey = "tool_toolbar",
+        foldSummary = {
+            listOfNotNull(
+                stringResource(R.string.tooldetail_show_in_toolbox_title).takeIf { toolOn },
+                stringResource(R.string.tooldetail_icon_colour_title).takeIf { coloredIcons },
+                stringResource(R.string.tooldetail_hold_title),
+            ).joinToString(", ")
+        },
+    ) {
+        // Off the grid, on everywhere else: for a tool someone only reaches by
+        // name, from a selection action or pinned on the bar. Meaningless while
+        // the tool is off, since then it is in no grid to leave.
+        item(visible = toolOn) {
+            ToggleSetting(
+                R.string.tooldetail_show_in_toolbox_title,
+                stringResource(R.string.tooldetail_show_in_toolbox_subtitle),
+                settings.watch { tool !in it.toolbox.hiddenTools },
+                default = tool !in SettingsDefaults.toolbox.hiddenTools,
+            ) { scope.launch { repository.setToolHiddenInToolbox(tool, !it) } }
+        }
+        // Recolour just this tool's icon. Only meaningful while the global
+        // "Colorful tool icons" switch is on, since it's what paints them.
+        if (coloredIcons) {
+            item {
+                ColorSetting(
+                    // With the gradients off there is one colour and it needs
+                    // no qualifier; with them on the two rows have to say which
+                    // end of the gradient each one is. Named by resource rather
+                    // than resolved here, so the row picks its icon out of
+                    // [SettingsRowIcons] like every other settings row.
+                    title = if (gradient) R.string.tooldetail_icon_colour_start_title
+                    else R.string.tooldetail_icon_colour_title,
+                    color = settings.watch { it.toolColorOverrides[tool] },
+                    fallback = toolAccentColorArgb(tool),
+                    onChange = { scope.launch { repository.setToolColor(tool, it) } },
+                )
+            }
+            item(visible = gradient) {
+                ColorSetting(
+                    title = R.string.tooldetail_icon_colour_end_title,
+                    color = settings.watch { it.toolColorEndOverrides[tool] },
+                    // Derived from whichever colour the near end currently
+                    // is, so the pair moves together until it is pinned.
+                    fallback = settings.watch { toolAccentEndColorArgb(tool, it.toolColorOverrides) },
+                    onChange = { scope.launch { repository.setToolColorEnd(tool, it) } },
+                )
+            }
+        }
+        item { ToolHoldRow(repository, settings, tool) }
+    }
+    ToolKeywordSetting(repository, settings, tool)
 }
 /**
  * The coins the keyboard reads and offers. An empty stored set means the
