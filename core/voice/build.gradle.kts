@@ -2,6 +2,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
+    // This module's jniLibs of on-demand gates, per channel (native/gates.json).
+    id("wmkeyboard.native-libs")
     id("wmkeyboard.detekt")
     alias(libs.plugins.kotlin.compose)
     id("wmkeyboard.compose-metrics")
@@ -68,24 +70,6 @@ android {
     lint { lintConfig = rootProject.file("config/lint/lint.xml") }
 }
 
-// Play builds leave src/main/jniLibs (whisper.cpp, RNNoise) out of this
-// module, so out of the base APK, and never add src/whistle/jniLibs
-// (Whistle, below): the on-demand :feature:speech split packages the same
-// directories instead, and
-// :feature:executorch packages src/executorch/jniLibs (ExecuTorch), which
-// every other build adds below. The files stay here because the native build scripts and
-// F-Droid's recipe write and scan exactly these paths.
-//
-// Through the new DSL's extension type, not the `android` accessor's
-// `sourceSets`: under AGP 9 that one is typed as the old API's
-// AndroidLibrarySourceSet, and the container's objects fail the cast at
-// configuration time.
-if (playStoreChannel) {
-    extensions.getByType<com.android.build.api.dsl.LibraryExtension>().sourceSets.apply {
-        getByName("main").jniLibs.setSrcDirs(emptyList<String>())
-    }
-}
-
 // Offline Sherpa's libraries: libwmsherpa (native/sherpa-onnx-jni) from
 // src/onnx/jniLibs, and Microsoft's libonnxruntime.so out of its AAR. Kept
 // apart from src/main/jniLibs because they ride their own gate, `onnx`: on
@@ -100,15 +84,6 @@ androidComponents {
         // which a flavour folder cannot be.
         if (!playStoreChannel && googleSdks) {
             variant.sources.kotlin?.addStaticSourceDirectory("src/whisperbridge/java")
-        }
-        // ExecuTorch rides its own gate, `executorch`, and Offline Sherpa's
-        // bridge the `onnx` gate: both kept apart from src/main/jniLibs so
-        // Play's :feature:executorch and :feature:onnx splits can carry them
-        // alone. Elsewhere they are packaged here, or pinned for native delivery.
-        if (!playStoreChannel) {
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/executorch/jniLibs")
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/onnx/jniLibs")
-            variant.sources.jniLibs?.addStaticSourceDirectory("src/whistle/jniLibs")
         }
     }
 }
