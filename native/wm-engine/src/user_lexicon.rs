@@ -108,9 +108,9 @@ impl UserTrie {
         UserTrie { nodes: vec![TrieNode::new()] }
     }
 
-    fn descend_or_add(&mut self, word: &str) -> u32 {
+    fn descend_or_add(&mut self, word: impl IntoIterator<Item = u16>) -> u32 {
         let mut node = 0u32;
-        for unit in word.encode_utf16() {
+        for unit in word {
             let children = &self.nodes[node as usize].children;
             node = match children.binary_search_by_key(&unit, |&(l, _)| l) {
                 Ok(i) => children[i].1,
@@ -127,14 +127,21 @@ impl UserTrie {
 
     /// `insert`: the larger of the stored and the given frequency.
     pub fn insert(&mut self, word: &str, frequency: i32) {
+        let units: Vec<u16> = word.encode_utf16().collect();
+        self.insert_units(&units, frequency);
+    }
+
+    /// [`UserTrie::insert`] for a word as UTF-16 units, lone surrogates
+    /// included, as a Kotlin `Trie` holds them.
+    pub fn insert_units(&mut self, word: &[u16], frequency: i32) {
         if word.is_empty() {
             return;
         }
-        let node = self.descend_or_add(word) as usize;
+        let node = self.descend_or_add(word.iter().copied()) as usize;
         self.nodes[node].is_word = true;
         self.nodes[node].frequency = self.nodes[node].frequency.max(frequency);
         let f = self.nodes[node].frequency;
-        self.bump_max_subtree(word, f);
+        self.bump_max_subtree(word.iter().copied(), f);
     }
 
     /// `reinforce`: the frequency raised by `boost`, the word added if absent.
@@ -142,17 +149,17 @@ impl UserTrie {
         if word.is_empty() {
             return;
         }
-        let node = self.descend_or_add(word) as usize;
+        let node = self.descend_or_add(word.encode_utf16()) as usize;
         self.nodes[node].is_word = true;
         self.nodes[node].frequency = self.nodes[node].frequency.wrapping_add(boost);
         let f = self.nodes[node].frequency;
-        self.bump_max_subtree(word, f);
+        self.bump_max_subtree(word.encode_utf16(), f);
     }
 
-    fn bump_max_subtree(&mut self, word: &str, freq: i32) {
+    fn bump_max_subtree(&mut self, word: impl IntoIterator<Item = u16>, freq: i32) {
         let mut node = 0usize;
         self.nodes[0].max_subtree = self.nodes[0].max_subtree.max(freq);
-        for unit in word.encode_utf16() {
+        for unit in word {
             match self.child(node as u32, unit) {
                 None => return,
                 Some(next) => node = next as usize,

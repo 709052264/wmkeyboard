@@ -196,32 +196,28 @@ those sources. Corrections come from `FuzzyBeamSearch`, one best-first walk
 down the tries themselves rather than Norvig generate-and-test: only strings
 the dictionary can actually reach are ever considered, which is what makes
 two-edit corrections affordable and lets substitutions come from a script's
-own edge labels instead of an ASCII table. The walk runs in Rust whenever every
-trie it covers has a Rust twin (every dictionary the keyboard opens and the
-learned lexicon do; a plain `Trie` built in a test does not), with the Kotlin
-walk as the fallback and as the reference the parity test holds it to. Learning is skipped for secure
-fields and in incognito mode. Everything is JSON on private storage, with
+own edge labels instead of an ASCII table. The walk runs in Rust, over a Rust
+twin of every trie it covers. Learning is skipped for secure fields and in
+incognito mode. Everything is JSON on private storage, with
 one-tap clearing.
 
 ### The native engine and the move to Rust
 
-Prediction is moving into `native/wm-engine`, the Rust crate that already
+Prediction's engines live in `native/wm-engine`, the Rust crate that also
 holds the phonetic engines, so the phone and WMK Desktop run one
-implementation. The order and the rules are in `native/RUST_NEON_PLAN.md`:
-leaves first (the dictionary and n-gram readers, then the correction walk,
-the learning stores and the glide decoders), with `SuggestionEngine`'s
-orchestration staying in Kotlin. Each piece keeps its Kotlin copy until a
-parity test shows the Rust one gives identical output on the real
-dictionaries and the eval sets; then the Kotlin copy is deleted.
+implementation: the dictionary and n-gram readers, the correction walk, the
+learning stores and the glide decoders. `SuggestionEngine`'s orchestration
+stays in Kotlin. The order the pieces moved in and the rules they moved
+under are in `native/RUST_NEON_PLAN.md`. Each kept its Kotlin copy until a
+parity test showed the Rust one gives identical output on the real
+dictionaries and the eval sets, bit for bit; then the copy left the app for
+the test sources, where it stays as the reference that test compares
+against (`reference/` under `app/src/test/.../prediction` and `.../gesture`).
 
 `NativeEngine` (`core/language`, package `core.engine`) loads
 libwm_engine_jni once for every class that calls into it, on a device and in
-a JVM test alike. While a piece has both implementations, it asks
-`NativeEngine.useNative` which to run. The "Native prediction engine" setting
-(Typing, Automatic corrections) sets `NativeEngine.forceKotlin`, which turns
-the Rust side off for every piece that still has both at the next keystroke and pins the SIMD
-kernels to their scalar references. Tests and evals do the same with
-`WM_NATIVE=kotlin` in the environment.
+a JVM test alike. `NativeEngine.forceKotlin` pins the SIMD kernels to their
+scalar references; `WM_NATIVE=kotlin` sets it for a test run.
 
 On the Rust side, `wm-engine`'s `kernels` module holds the data-parallel
 loops. Each has a scalar reference, an aarch64 NEON version on the stable
@@ -229,10 +225,9 @@ intrinsics, and a dispatcher that reads the CPU features once at run time
 (`dotprod` and `fp16` are optional extensions), with a test comparing every
 SIMD version against the reference. Kernels serve more than prediction: the
 scanner's PaddleOCR reader shrinks the photo for its detector and picks each
-recogniser step's best class through them (`box_average`, `argmax`), and the
-same "Native prediction engine" switch sends those back to Kotlin. In
-`wm-engine-jni`, every entry point
-runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
+recogniser step's best class through them (`box_average`, `argmax`). Those two
+keep their Kotlin loops, which run when the library is missing or
+`forceKotlin` is set. In `wm-engine-jni`, every entry point runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
 exception instead of killing the keyboard. Data that outlives a call, such as
 a mapped dictionary, stays in Rust behind a `handles::Registry` handle.
 Calls are batched, one crossing per query or per array.
@@ -243,6 +238,13 @@ library behind a handle; `NativeHandles` closes it once the Kotlin object
 that held it is unreachable, because the IME replaces a dictionary by
 dropping the reference rather than closing it.
 
+The correction walk came next. A walk takes its tries by handle: a mapped
+dictionary is its own twin, a `PackedTrie` gets a copy of its codec bytes,
+the user lexicon's trie is Rust already, and a plain `Trie` (only tests build
+one) gets an exact copy, rebuilt whenever its version counter moves. A
+`.wmdict` would not do for that last one, because the codec rounds
+frequencies.
+
 The learning stores followed. `UserLexicon`, `NgramReranker`,
 `CorrectionMemory` and `CorrectionStats` are thin Kotlin classes over Rust
 stores that read and write the same JSON files as before. Two things stay in
@@ -252,6 +254,14 @@ key (`WordKey.of`) and deciding whether a word may be learned at all
 parses it, Kotlin judges and folds each word, Rust builds the store. The old
 Kotlin stores live on under `app/src/test/.../prediction/reference/` as the
 references the parity tests compare against.
+
+The glide decoders came last: `GlideBeam`, the two-thumb `DuetBeam` and the
+neural `CtcGlideBeam`'s beam search. The user's learned shapes stay in
+Kotlin, so a decode that reads them crosses twice: the walk says which words
+the shape channel will score, Kotlin looks their shapes up, and the second
+call finishes the decode. Key maps cross once, by handle. The workspace
+parameters the decoders still take are kept for their callers and carry
+nothing; the state pools are Rust's, one per decoding thread.
 
 ### Emoji search
 

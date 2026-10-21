@@ -21,14 +21,15 @@ import java.io.File
  *
  * ## The switch
  *
- * While prediction moves from Kotlin to Rust, both implementations exist,
- * and every migrated piece asks [useNative] which to run. [forceKotlin]
- * turns the Rust side off for all of them at once, and pins the SIMD
- * kernels to their scalar references: the "Native prediction engine"
- * setting sets it, and so does `-Dwmkeyboard.native=kotlin` or
- * `WM_NATIVE=kotlin` for a test or eval run, which is how the parity tests
- * compare the two on the same inputs. Pieces whose Kotlin copy has been
- * deleted run in Rust regardless; the transliteration engines always did.
+ * [forceKotlin] pins the SIMD kernels to their scalar references;
+ * `-Dwmkeyboard.native=kotlin` or `WM_NATIVE=kotlin` set it for a test or
+ * eval run. While prediction moved from Kotlin to Rust it also turned each
+ * migrated piece back to its Kotlin copy, and a setting drove it. Every
+ * copy has since been deleted from the app, kept in the test sources as the
+ * reference its parity test compares against, so prediction runs in Rust
+ * regardless, as the transliteration engines always did. The OCR kernels
+ * ([boxAverageBgr], [argmaxRows]) still answer false while [useNative] is
+ * off, and their callers run the Kotlin loops they replaced.
  */
 object NativeEngine {
     const val LIBRARY = "wm_engine_jni"

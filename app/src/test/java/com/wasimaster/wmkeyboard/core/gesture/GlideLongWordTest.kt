@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideWorkspace
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import kotlin.math.PI
@@ -70,12 +72,19 @@ class GlideLongWordTest {
 
         val beam = GlideBeam()
         val workspace = GlideWorkspace()
+        // The pool's saturation is read off the Kotlin reference decoder's
+        // workspace: the Rust decoder reads every stroke the same, bit for
+        // bit (`NativeGlideParityTest`), but keeps its pool out of sight.
+        val reference = KotlinGlideBeam()
+        val referenceWorkspace = KotlinGlideWorkspace()
         var hits = 0
         var saturated = 0
         val misses = ArrayList<String>()
         for (word in targets) {
-            val decoded = beam.decode(stroke(word, random), grid, keyWidth, sources, workspace, limit = 8)
-            if (workspace.saturated) saturated++
+            val path = stroke(word, random)
+            val decoded = beam.decode(path, grid, keyWidth, sources, workspace, limit = 8)
+            reference.decode(path, grid, keyWidth, sources, referenceWorkspace, limit = 8)
+            if (referenceWorkspace.saturated) saturated++
             val top = decoded.firstOrNull()?.word
             if (top == word) hits++ else misses.add("$word -> $top")
         }
