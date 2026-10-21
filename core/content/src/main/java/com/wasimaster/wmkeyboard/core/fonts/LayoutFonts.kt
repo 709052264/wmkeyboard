@@ -34,7 +34,9 @@ import kotlinx.coroutines.launch
  * board picks it up.
  *
  * Today that is Klingon pIqaD, whose letters live in the Private Use Area
- * (the ConScript registry's U+F8D0–U+F8FF) and so in no system font at all.
+ * (the ConScript registry's U+F8D0–U+F8FF) and so in no system font at all,
+ * and Noto Sans Myanmar for Burmese keys on a phone whose own Myanmar font may
+ * be a Zawgyi one.
  * [Entry.sha256] pins each file, so a mirror [ServiceRepo.DATA] points at
  * cannot serve a different one.
  */
@@ -62,7 +64,22 @@ object LayoutFonts {
         sha256 = "b71d452bdebf7f92e338d594a0a05f143e879011f8ced7191f5ce516e5ca1e09",
     )
 
-    private val entries = listOf(KLINGON_PIQAD)
+    /**
+     * Noto Sans Myanmar, SIL OFL 1.1, for Burmese keys with Unicode key font
+     * on: a phone set up for Zawgyi replaces its Myanmar font with a Zawgyi
+     * one, which draws Unicode wrong, and the Google Fonts provider that
+     * would otherwise supply this face is missing on many of those phones.
+     */
+    val NOTO_SANS_MYANMAR = Entry(
+        name = "Noto Sans Myanmar",
+        author = "The Noto Project Authors",
+        version = "2.107",
+        repoPath = "fonts/my/noto-sans-myanmar-regular.ttf",
+        sizeBytes = 195_088L,
+        sha256 = "fafce4db400bc0b214907ccdbfb0ad2f18a57bfefd08c8a571830b84088cf2fc",
+    )
+
+    private val entries = listOf(KLINGON_PIQAD, NOTO_SANS_MYANMAR)
 
     /** The entry installed under [name], or null for a font this does not fetch. */
     fun byName(name: String): Entry? = entries.firstOrNull { it.name.equals(name, ignoreCase = true) }

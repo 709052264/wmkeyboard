@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatListNumbered
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatStrikethrough
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HourglassEmpty
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LinkOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LocationOn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LockOpen
@@ -641,6 +642,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
     SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
     -> Icons.Outlined.Language
+    SelectionMacro.ZAWGYI -> Icons.Outlined.SwapHoriz
     SelectionMacro.DIGITS_LATIN -> Icons.Outlined.Pin
     SelectionMacro.COLOUR -> Icons.Outlined.Palette
     SelectionMacro.JSON_FORMAT -> Icons.Outlined.DataObject

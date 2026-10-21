@@ -94,6 +94,11 @@ enum class SelectionMacro {
     TO_HINGLISH,
     /** Digits of another script rewritten as `0-9`. */
     DIGITS_LATIN,
+    /**
+     * Burmese between Zawgyi, the old font encoding, and Unicode: whichever
+     * way the selection needs, as the detector reads it.
+     */
+    ZAWGYI,
     /** A colour code: a swatch on the chip, and a ladder of its other spellings. */
     COLOUR,
     JSON_FORMAT,
@@ -182,6 +187,7 @@ enum class SelectionMacro {
             TO_HINDI -> R.string.core_content_selection_macro_to_hindi
             TO_HINGLISH -> R.string.core_content_selection_macro_to_hinglish
             DIGITS_LATIN -> R.string.core_content_selection_macro_digits_latin
+            ZAWGYI -> R.string.core_content_selection_macro_zawgyi
             COLOUR -> R.string.core_content_selection_macro_colour
             JSON_FORMAT -> R.string.core_content_selection_macro_json
             BASE64_DECODE -> R.string.core_content_selection_macro_base64
@@ -223,7 +229,7 @@ enum class SelectionMacro {
             FORMAT, FANCY, CHAT_BOLD, CHAT_ITALIC, CHAT_STRIKE, CHAT_MONO,
             CASE_LOWER, CASE_TITLE, CASE_UPPER, CASE_SENTENCE,
             CASE_CAMEL, CASE_SNAKE, CASE_KEBAB, CASE_CONSTANT -> MacroCategory.FORMAT
-            DIGITS_LATIN, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
+            DIGITS_LATIN, ZAWGYI, COLOUR, JSON_FORMAT, BASE64_DECODE, URL_DECODE, STRIP_TRACKERS -> MacroCategory.CONVERT
             TRANSLATE, GRAMMAR_FIX, DEEPL_WRITE, AI, TO_BANGLA, TO_BANGLISH, TO_HINDI, TO_HINGLISH -> MacroCategory.LANGUAGE
             SEARCH, READ_ALOUD, TIME_ZONES -> MacroCategory.LOOKUP
             SHARE, CALL, SMS, WHATSAPP, EMAIL, OPEN, QR, ADD_CONTACT, MAP, CALENDAR -> MacroCategory.OPEN_IN
@@ -579,7 +585,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.COLOUR, SelectionMacro.FANCY,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.COLOUR, SelectionMacro.FANCY,
         SelectionMacro.CHAT_BOLD, SelectionMacro.CHAT_ITALIC, SelectionMacro.CHAT_STRIKE, SelectionMacro.CHAT_MONO,
         SelectionMacro.JSON_FORMAT, SelectionMacro.BASE64_DECODE, SelectionMacro.URL_DECODE,
         SelectionMacro.TIME_ZONES, SelectionMacro.CALENDAR, SelectionMacro.MAP, SelectionMacro.READ_ALOUD,
@@ -605,7 +611,7 @@ object SelectionMacros {
         SelectionMacro.GRAMMAR_FIX, SelectionMacro.DEEPL_WRITE, SelectionMacro.TRANSLATE, SelectionMacro.AI,
         SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
         SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
-        SelectionMacro.DIGITS_LATIN, SelectionMacro.COLOUR,
+        SelectionMacro.DIGITS_LATIN, SelectionMacro.ZAWGYI, SelectionMacro.COLOUR,
         SelectionMacro.CALL, SelectionMacro.SMS, SelectionMacro.WHATSAPP, SelectionMacro.EMAIL,
         SelectionMacro.OPEN, SelectionMacro.QR, SelectionMacro.ADD_CONTACT, SelectionMacro.FANCY,
         SelectionMacro.STRIP_TRACKERS,
@@ -737,6 +743,7 @@ object SelectionMacros {
         SelectionMacro.TO_HINDI -> gates.hindiLoaded && gates.content.hasLatin && !gates.content.hasDevanagari
         SelectionMacro.TO_HINGLISH -> gates.hindiLoaded && gates.content.hasDevanagari
         SelectionMacro.DIGITS_LATIN -> gates.content.hasForeignDigits
+        SelectionMacro.ZAWGYI -> gates.content.hasMyanmar
         SelectionMacro.COLOUR -> gates.content.colour != null
         SelectionMacro.MAP -> gates.content.place != null
         SelectionMacro.CALENDAR -> gates.content.dateTime != null
@@ -1087,6 +1094,7 @@ object SelectionMacros {
         var hasLatin = false
         var hasBengali = false
         var hasDevanagari = false
+        var hasMyanmar = false
         var hasForeignDigits = false
         var hasDigit = false
         var lines = 0
@@ -1104,6 +1112,9 @@ object SelectionMacros {
                         c in 'a'..'z' || c in 'A'..'Z' -> hasLatin = true
                         c in '0'..'9' -> hasDigit = true
                         c.code in 0x0900..0x0963 || c.code in 0x0970..0x097F -> hasDevanagari = true
+                        // The Myanmar block without its digits, which the digit
+                        // branch below reads.
+                        c.code in 0x1000..0x103F || c.code in 0x104A..0x109F -> hasMyanmar = true
                         c.code in 0x0980..0x09FF -> {
                             hasBengali = true
                             if (c in '০'..'৯') {
@@ -1148,6 +1159,7 @@ object SelectionMacros {
             hasLatin = hasLatin,
             hasBengali = hasBengali,
             hasDevanagari = hasDevanagari,
+            hasMyanmar = hasMyanmar,
             hasForeignDigits = hasForeignDigits,
             colour = colour,
             dateTime = dateTime,

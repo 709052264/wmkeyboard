@@ -1,0 +1,68 @@
+---
+title: "Burmese"
+description: "Type Burmese in Unicode, write Zawgyi for the apps and friends that still use it, and convert Zawgyi text you paste, select or find in a text box."
+sidebar:
+  order: 3.8
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+Burmese ships three layouts. **မြန်မာ (Burmese)** is the standard Myanmar3 arrangement and is what you get when you add Burmese. **မြန်မာ (Myanmar, letters row)** gives the consonants a row of their own, and **T9 (မြန်မာ)** is the keypad (see [Ambiguous layouts](/languages/ambiguous/#t9-in-other-languages)). All three type Unicode. The key beside the spacebar types the section mark ။, with `.` first on its long-press, and the digit keys can type Burmese digits (see [Digits](/languages/overview/)).
+
+## Turning it on
+
+<SettingsPath path="Languages & layouts / မြန်မာ · Burmese / Layouts" />
+
+Add Burmese and the standard layout is on. Turn on the other two cards on the same screen if you want them in the switch ring.
+
+## Zawgyi and Unicode
+
+A lot of Burmese text is still written in **Zawgyi**, the font encoding most phones and websites in Myanmar used before Unicode. Zawgyi uses the same characters as Unicode but stores them in the order they are drawn, so ေ comes before its consonant and medial ra takes one of several shapes depending on the letter under it. Text written for one reads as broken letters in the other. မြန်မာ in Unicode is the same five letters as ျမန္မာ in Zawgyi, just stored differently.
+
+The keyboard always types, suggests and corrects in Unicode. What it can do for Zawgyi is write it into a text box that wants it, notice Zawgyi where it would otherwise read it as Unicode, and convert between the two. It tells the encodings apart with the detector from Google's [myanmar-tools](https://github.com/google/myanmar-tools), the one Android and Facebook use, and converts with that library's rules.
+
+## Writing Zawgyi
+
+Turn on **Allow Zawgyi output** on Burmese's own screen (see [Options](#options)) and every Burmese layout gets a **Zawgyi** button beside the suggestions. Tap it and what you type goes into the text box as Zawgyi, whether you typed it, picked it from the strip or pasted it from the clipboard panel. The button stays lit while it's on. Tap it again to go back to Unicode.
+
+- The word you're typing stays in Unicode while it's still being composed, and turns into Zawgyi when you finish it. Zawgyi puts some signs in front of the consonant they belong to, so a syllable only converts right once it's whole. In an app whose font is Zawgyi, the word therefore looks wrong until you finish it.
+- A layout that types letter by letter rewrites the last few letters each time you add one, so ေ moves in front of its consonant as soon as the consonant arrives.
+- Suggestions and next-word predictions keep working. The keyboard reads the text before the cursor back into Unicode first, so it sees the words you typed and not their Zawgyi order.
+- Text that is already Zawgyi, such as a message you copied from a Zawgyi chat, goes in as it is instead of being converted a second time.
+- Backspace removes one Zawgyi character at a time, and the keyboard doesn't pick a word back up for editing when you backspace into it.
+- Zawgyi only reads right in a Zawgyi font. Switch the button off in apps that use Unicode.
+
+## When the text is already Zawgyi
+
+The keyboard checks two places for Zawgyi and offers to deal with it on the suggestion strip.
+
+- **After a paste.** Paste Zawgyi from the clipboard panel or the clipboard chip into a box that isn't being written in Zawgyi and the strip shows **Pasted Zawgyi. Convert to Unicode**. Tap it and the pasted text is replaced with its Unicode. The chip goes away when you type on or tap its ✕. It works on any layout.
+- **In the text box you type into.** On a Burmese layout, when the text before the cursor is Zawgyi, the strip shows **This text is Zawgyi. Write Zawgyi here**. Tap it and the keyboard writes Zawgyi in that text box until you leave it, even with the Zawgyi button off, so your reply matches the conversation. Either way, the keyboard reads that text as Unicode for its suggestions. The chip is offered once per text box.
+
+The keyboard only speaks up when it's sure. It needs a few letters to go on, and short phrases that spell something in both encodings never raise a chip. On upstream's test text no Unicode line was read as Zawgyi.
+
+## Converting text
+
+- **Selection actions.** Select Burmese text and the [selection bar](/smart/selection-actions/) offers **Zawgyi ⇄ Unicode**. It converts whichever way the text needs: Zawgyi becomes Unicode, Unicode becomes Zawgyi. Undo puts the original back.
+- **The clipboard.** In the [clipboard panel](/tools/clipboard/#picking-several-clips), pick clips and press **Zawgyi ⇄ Unicode** on the bar above them. Each clip with Burmese in it is converted the way it needs and keeps its place in the history. Clips an app marked as a password are left alone.
+
+## Unicode key font
+
+A phone set up for Zawgyi usually has a Zawgyi font in place of its Myanmar font, and that font draws Unicode in the wrong order. The keys and the suggestions are Unicode, so on such a phone they can look broken. The keyboard normally draws Burmese in Noto Sans Myanmar from the phone's font provider, which fixes this where the provider is there, but many of the phones that use Zawgyi don't have it.
+
+Turn on **Unicode key font** (it appears once Zawgyi output is allowed) and the keyboard draws Burmese in its own copy of Noto Sans Myanmar, whatever font the phone uses. The font comes from WM Keyboard's data repository (195 KB) the first time the keys need it, and the keys use the phone's font until it lands. A Myanmar font you picked under [Fonts](/themes/fonts/) still comes first.
+
+## Options
+
+<SettingsPath path="Languages & layouts / မြန်မာ · Burmese" />
+
+- **Allow Zawgyi output**: <SettingsPath path="Languages & layouts / မြန်မာ · Burmese / Zawgyi / Allow Zawgyi output" />, off by default. Puts the Zawgyi button on every Burmese layout, see [Writing Zawgyi](#writing-zawgyi).
+- **Unicode key font**: <SettingsPath path="Languages & layouts / မြန်မာ · Burmese / Zawgyi / Unicode key font" />, off by default, shown once Zawgyi output is allowed. See [Unicode key font](#unicode-key-font).
+- **Zawgyi ⇄ Unicode** on the selection bar is on by default, and only shows on Burmese text. Switch it off under <SettingsPath path="Advanced / Selection actions / Actions" />.
+
+## Details & edge cases
+
+- The detector is a statistical model, so it judges a whole stretch of text rather than one letter. Digits don't count as Burmese for it, and text with no Burmese in it is never offered anything.
+- Converting Unicode to Zawgyi and back gives the text you started with, with two exceptions that come from the conversion rules. A ၄ standing on its own comes back as ၎, because Zawgyi writers type the digit four for that letter. And in a word like မှဖြစ် the medial ra can come back on the consonant before the one it belonged to.
+- Unicode allows ် and ့ in either order. Converted text comes back with ့ first, which is the standard order and looks the same.
+- Zawgyi is a Burmese encoding. The Shan, Mon, Pa'O and Rakhine layouts don't get the button.

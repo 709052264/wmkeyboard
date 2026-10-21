@@ -2,9 +2,12 @@ package com.wasimaster.wmkeyboard.core.tools
 
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.voice.OpusEncoder
+import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Sends a recorded clip to a speech-to-text server the user runs, and returns
@@ -15,11 +18,37 @@ import kotlinx.serialization.json.jsonPrimitive
  * speaks: speaches (faster-whisper), LocalAI, whisper.cpp's `whisper-server`
  * (natively on `/inference`, same fields), and the Groq and OpenAI clouds.
  *
+ * The clip goes as Ogg Opus ([OpusEncoder]), about a twelfth of the WAV, and
+ * as WAV where the server cannot read that: whisper.cpp's server started
+ * without `--convert` reads WAV, MP3 and FLAC only.
+ *
  * Blocking; call on an IO dispatcher.
  */
 object TranscriptionClient {
 
     private const val READ_TIMEOUT_MS = 60_000
+
+    /**
+     * What a server answers an upload it cannot decode with: whisper.cpp's 400
+     * ("failed to read audio data"), and the 415 and 422 other frameworks use
+     * for a body they refuse. Anything else is not about the format, and a
+     * second upload would fail the same way.
+     */
+    private val UNREADABLE_AUDIO = setOf(400, 415, 422)
+
+    /**
+     * Endpoints that refused Ogg Opus and then read WAV, for the life of the
+     * process: each costs one small failed upload, once.
+     */
+    private val wavOnly = ConcurrentHashMap.newKeySet<String>()
+
+    /**
+     * Whether [endpoint] is sent WAV without trying Opus: whisper.cpp's own
+     * `/inference` route, whose server reads Ogg only when started with
+     * `--convert`, and every endpoint that has already refused it.
+     */
+    internal fun sendsWav(endpoint: String): Boolean =
+        endpoint.substringBefore('?').trimEnd('/').endsWith("inference") || endpoint in wavOnly
 
     /**
      * The address to POST to. The user types the server's API root the way the
@@ -47,9 +76,16 @@ object TranscriptionClient {
     }
 
     /**
-     * Uploads [wav] and returns the transcript, trimmed. [model] and
-     * [language] (an ISO-639-1 code) are left out of the request when blank,
-     * so the server picks its default model and detects the language itself.
+     * Uploads [samples] (16 kHz mono, as [com.wasimaster.wmkeyboard.core.voice.WhisperRecorder]
+     * records them) and returns the transcript, trimmed. Ogg Opus when the
+     * library is here and the server reads it, WAV otherwise; an endpoint that
+     * answers the Opus upload with [UNREADABLE_AUDIO] gets the WAV straight
+     * after, and from then on. A phone without the library asks for it, so the
+     * next clip goes compressed.
+     *
+     * [model] and [language] (an ISO-639-1 code) are left out of the request
+     * when blank, so the server picks its default model and detects the
+     * language itself.
      *
      * [prompt] is OpenAI's `prompt` field (#305): text the model treats as
      * what came before the clip, which is how names and jargon get spelled
@@ -62,7 +98,7 @@ object TranscriptionClient {
         apiKey: String,
         model: String,
         language: String?,
-        wav: ByteArray,
+        samples: FloatArray,
         prompt: String? = null,
         path: String = "",
     ): String {
@@ -78,16 +114,36 @@ object TranscriptionClient {
         } else {
             emptyMap()
         }
-        val body = ToolHttp.postMultipart(
-            url = endpoint,
-            fields = fields,
-            file = ToolHttp.FilePart("file", "speech.wav", "audio/wav", wav),
-            timeoutMs = READ_TIMEOUT_MS,
-            headers = headers,
-            source = NetSource.TRANSCRIPTION,
-            route = NetLog.pathOf(endpoint),
+        fun send(file: ToolHttp.FilePart, saved: Long = 0): String = parseText(
+            ToolHttp.postMultipart(
+                url = endpoint,
+                fields = fields,
+                file = file,
+                timeoutMs = READ_TIMEOUT_MS,
+                headers = headers,
+                source = NetSource.TRANSCRIPTION,
+                route = NetLog.pathOf(endpoint),
+                savedBytes = saved,
+            ),
         )
-        return parseText(body)
+        fun wav() = ToolHttp.FilePart("file", "speech.wav", "audio/wav", WavEncoder.encode(samples))
+        if (sendsWav(endpoint)) return send(wav())
+        val opus = OpusEncoder.encode(samples)
+        if (opus == null) {
+            OpusEncoder.requestLibrary()
+            return send(wav())
+        }
+        try {
+            return send(
+                ToolHttp.FilePart("file", OpusEncoder.FILE_NAME, OpusEncoder.MIME_TYPE, opus),
+                saved = WavEncoder.sizeOf(samples.size) - opus.size,
+            )
+        } catch (e: ToolHttpException) {
+            if (e.status !in UNREADABLE_AUDIO) throw e
+        }
+        // Remembered only once WAV has worked: a 400 that was about the model
+        // or the key fails this upload too and teaches nothing.
+        return send(wav()).also { wavOnly += endpoint }
     }
 
     /**

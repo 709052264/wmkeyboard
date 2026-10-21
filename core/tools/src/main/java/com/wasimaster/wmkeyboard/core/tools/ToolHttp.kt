@@ -185,6 +185,7 @@ object ToolHttp {
         headers: Map<String, String> = emptyMap(),
         source: NetSource? = null,
         route: String? = null,
+        savedBytes: Long = 0,
     ): String {
         val boundary = "----wmkb" + java.util.UUID.randomUUID().toString().replace("-", "")
         val body = multipartBody(boundary, fields, file)
@@ -201,6 +202,8 @@ object ToolHttp {
             val status = connection.responseCode
             call.status = status
             if (status !in 200..299) throw httpFailure(status, connection.readError(call))
+            // Counted as saved only once the server took the smaller file.
+            call.bytesSaved = savedBytes
             connection.readBody(call)
         }
     }

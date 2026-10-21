@@ -2,6 +2,7 @@ package com.wasimaster.wmkeyboard.core.tools
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -69,6 +70,15 @@ class TranscriptionClientTest {
         )
         assertEquals("plain reply", TranscriptionClient.parseText("plain reply\n"))
         assertEquals("", TranscriptionClient.parseText("""{"segments":[]}"""))
+    }
+
+    @Test
+    fun `whisper cpp route is sent WAV and every other endpoint Opus first`() {
+        assertTrue(TranscriptionClient.sendsWav("http://host:8080/inference"))
+        assertTrue(TranscriptionClient.sendsWav("http://host:8080/inference/"))
+        assertFalse(TranscriptionClient.sendsWav("http://host:8000/v1/audio/transcriptions"))
+        assertFalse(TranscriptionClient.sendsWav("https://api.groq.com/openai/v1/audio/transcriptions"))
+        assertFalse(TranscriptionClient.sendsWav("http://host:8000/v1/transcribe"))
     }
 
     @Test

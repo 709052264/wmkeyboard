@@ -12,8 +12,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Area | Families | Features | Capabilities |
 |---|---|---|---|
 | Typing core: prediction, autocorrect, learning, spell check | 9 | 50 | 205 |
-| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
-| Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
+| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 220 |
+| Languages, scripts, layouts, transliteration | 11 | 65 | 220 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 88 | 364 |
@@ -23,7 +23,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **134** | **828** | **2273** |
+| **Total** | **134** | **829** | **2281** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -568,6 +568,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Content detectors behind switches — Dates and times (numeric in either order, month names in English and Bengali, DateSuggest phrases, zone abbreviations) and places (coordinates read exactly, addresses guessed conservatively) only run while a macro that needs them is on
     - Banglish both ways — To Bangla through the spelling map, then the phonetic index under the strip's own confidence rule, then literal Avro, letter runs only; to Banglish through the inverted map and a rule romaniser with the inherent vowel dropped where speech drops it
     - Hinglish both ways — To Hindi and To Hinglish, the same converter over the Hindi scheme; back to Latin through a schwa-deleting romaniser (करना to karna, नमस्ते to namaste), offered only while the Hindi phonetic layout is enabled
+    - Zawgyi both ways — Zawgyi ⇄ Unicode on Burmese text, the direction picked by myanmar-tools' detector; written past a Zawgyi field's own conversion so it is never converted twice
     - Grammar, AI and speech — Harper over the selection alone with every fix committed at once; AI buttons that run a chosen action on the selection and land in the AI panel, whose Replace now swaps the selection rather than the field; reading aloud through the vocabulary speaker with a chip that reads Stop
     - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them; Calendar first opens the Calendar tool's composer, prefilled, while that tool is on and saves in the keyboard
     - One-time list reset — The on-list and the order carry a list version; a list stored under an older one reads as the shipped list, so every existing user gets the new actions once
@@ -797,6 +798,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Per-script pinned fonts `uncommon` — 25 scripts map to a specific Google font; Music to Noto Music, Braille to Noto Sans Symbols 2
     - Per-script font pickers — Curated alternative families per script, shown only while a language on that script is enabled
     - Per-glyph fallback — A glyph the pinned face lacks falls back to the system font rather than blanking
+  - Zawgyi for Burmese `RARE` — Google myanmar-tools' Markov detector and its CLDR-derived converters, ported into the Rust engine (no download) and held to upstream's own corpus and compatibility table
+    - Zawgyi output — A strip button on Burmese layouts writes Zawgyi; typing, the strip and prediction stay Unicode and the commit is converted, a letter-by-letter run rewritten whole so ေ lands in front of its consonant
+    - Context read back as Unicode — The text before the cursor goes through Zawgyi to Unicode before prediction reads it, in a Zawgyi field or one already holding Zawgyi
+    - Paste offer — Zawgyi pasted from the clipboard into a Unicode field gets a Convert to Unicode chip; already-Zawgyi text is never converted twice in a Zawgyi field
+    - Field offer — A Burmese text box already in Zawgyi offers to write Zawgyi there, for that box only
+    - Confidence bar — Acts unasked only at p ≥ 0.99999, four letters or more, and text the conversion changes; every Unicode line of the UDHR stays under it
+    - Clipboard conversion — Zawgyi ⇄ Unicode on picked clips, each converted the way it needs
+    - Unicode key font — Burmese keys in a keyboard-fetched Noto Sans Myanmar (SHA-pinned, 195 KB) for phones whose Myanmar font is Zawgyi
 - **Keyboard layouts** — 1,732 shipped layouts: 35 compiled built-ins + 1,697 JSON assets (862 of them converted Keyman keyboards)
   - Shipped catalogue — 20 Kotlin LayoutSpecs (boot-critical) plus 354 .wmlayout.json assets parsed off the main thread
     - Latin ergonomic alternates — QWERTY, AZERTY, Dvorak, Colemak, Workman, Halmak built in; BÉPO, Swiss German, LatAm Spanish, Turkish-Q as assets
@@ -2823,6 +2832,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Phrase at a time — Not a streaming model: Silero cuts the microphone's audio at each 0.5 s pause (20 s cap, under the model's 40 s limit) and each phrase is decoded whole on Sherpa's thread while the user keeps talking; the live loop shows the text so far, "Stop after a pause" ends the dictation
   - Memory — ~1 GB RSS while open; opening it frees Sherpa's model and vice versa, released on memory trim between dictations
   - Held to the dictation's scripts — `OmnilingualScriptMask` flags the tokens.txt characters of the dictation languages' Unicode scripts (union for several; digits, spaces, punctuation; Latin's modifier letters; combining marks by family); the native greedy CTC picks only flagged ids, a held letter stands in for a frame the model gives to another script (unless it trails by more than the phrase's median + 4 logits), and a phrase spelled mostly in another script gives held letters a 2-logit margin over the blank; unknown or notation scripts decode unheld
+- **Transcription server dictation** `uncommon` — Engine value `server`: each phrase goes to a speech-to-text server the user runs or pays for (speaches, whisper.cpp's `whisper-server`, LocalAI, Groq, OpenAI) over OpenAI's `POST …/audio/transcriptions`; per-language servers and models, words to listen for in `prompt`, Data saver row, on-device fallback when unreachable
+  - Opus uploads `RARE` — `OpusEncoder` (`native/opus-jni`: libopus 1.6.1 + a hand-written Ogg page writer, `libwmopus.so` ~300 KB) sends `speech.ogg` at 20 kbit/s VBR voice mode, complexity 10: 12.7x smaller than WAV (30 s ≈ 75 KB against 960 KB)
+    - Own gate `opus` — `:feature:opus` on Play, a feature-library download elsewhere; asked for on the first clip, which goes as WAV, so a server-only phone never fetches the on-device engines' libraries
+    - WAV where the receiver needs it — whisper.cpp's `/inference` always; an endpoint that answers Opus with 400/415/422 gets the same phrase again as WAV at once, and WAV for the rest of the process once that works (whisper-server without `--convert` reads WAV/MP3/FLAC only)
+    - Measured, not assumed — 73 LibriSpeech clips through an OpenAI-shaped faster-whisper server: small.en WER 5.65% WAV, 5.74% Opus 20k, 6.52% at 16k; base.en 9.22% WAV, 8.96% Opus; PESQ-WB 4.38. Complexity 5 was 2.3x faster but lost words, so 10 stays
+    - Saved bytes in Network activity — `NetEntry.bytesSaved` (WAV size minus Opus size, set only on a 2xx); the request sheet shows **Saved**
 - **Reduce background noise** `uncommon` — Off | Light | Strong (`voice_denoise_level`; the old on/off switch reads as Light) in `WhisperRecorder` in front of every on-device engine; the level ring keeps the raw microphone, the silence stop and the clip get the cleaned audio; off by default; never for the system recognizer or the server
   - Light — RNNoise (v0.1.1, BSD): 16 kHz raised to 48 kHz by a polyphase sinc filter, denoised in 10 ms frames, brought back down. Rides the speech gate (`libwmdenoise.so`, ~130 KB)
   - Strong `RARE` — DPDFNet baseline (Ceva's DeepFilterNet2 + dual-path RNN, Apache-2.0, 16 kHz) on sherpa-onnx's streaming denoiser in `libwmsherpa.so` (`dpdfnet_jni.cpp`), so the `onnx` gate; 8.8 MB model from sherpa-onnx's release, size + SHA-256 pinned, downloaded from the setting's own row (`filesDir/denoise`, on the storage screen)
@@ -3216,7 +3231,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Direct boot — Rows held in memory until the first unlock, then written.
   - Screen `RARE` — Live "contacting…" line, Today / 7 days / 30 days card with a stacked, scrubbable chart in each tool's own colour, By feature and Servers contacted cards, filtered timeline, per-request sheet.
     - Server badges — New (after the log is 7 days old), Your server (self-hosted and backup addresses), Local network (decided from the name, never resolved).
-    - Request sheet — Why it happened, result in words, data each way, time taken, what that feature sends, links to its settings and Data saver.
+    - Request sheet — Why it happened, result in words, data each way (plus Saved for a voice clip sent as Opus), time taken, what that feature sends, links to its settings and Data saver.
     - Incognito marked, not paused — Rows made while incognito are badged and filterable.
     - CSV export, clear with undo — Also listed on the Storage screen.
   - Keyboard activity dot `RARE` — Off by default; a dot on the toolbar in the requesting tool's colour, hold to read the server.

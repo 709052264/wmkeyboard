@@ -18,6 +18,8 @@ data class ContentFlags(
     val hasBengali: Boolean = false,
     /** Devanagari letters or signs; its digits and the danda do not count. */
     val hasDevanagari: Boolean = false,
+    /** Myanmar letters or signs, the script Zawgyi re-encodes; its digits do not count. */
+    val hasMyanmar: Boolean = false,
     val hasForeignDigits: Boolean = false,
     val colour: Colour? = null,
     val dateTime: DateTimeHit? = null,

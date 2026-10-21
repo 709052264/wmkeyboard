@@ -1428,6 +1428,9 @@ fun KeyboardThemeProvider(
     // A layout's own face may still be on its way ([LayoutFonts]): when it
     // lands the id is the same, so this is what tells the face to resolve again.
     val layoutFontsInstalled by LayoutFonts.installs.collectAsState()
+    // Burmese's Unicode key font: Myanmar in the keyboard's own Noto face, for
+    // a phone whose Myanmar font is a Zawgyi one.
+    val unicodeMyanmar = settings.suggestionStrip.burmeseUnicodeKeysOn
     val keyFontFamily = remember(
         scriptId,
         layoutFontId,
@@ -1438,6 +1441,7 @@ fun KeyboardThemeProvider(
         settings.scriptFontIds,
         settings.customFontName,
         settings.customScriptFontNames,
+        unicodeMyanmar,
     ) {
         KeyboardFonts.scriptFamily(
             context,
@@ -1445,6 +1449,7 @@ fun KeyboardThemeProvider(
             settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
             layoutFontId,
             themeScriptFontId,
+            unicodeMyanmar,
         ) // The Latin/Cyrillic/Greek side of the same order: the user's own
             // pick, then the layout's face, then the theme's. Only a deliberate
             // pick counts — "default" is the absence of one and lets the layout
@@ -1476,6 +1481,7 @@ fun KeyboardThemeProvider(
         settings.scriptFontIds,
         settings.customFontName,
         settings.customScriptFontNames,
+        unicodeMyanmar,
     ) {
         if (scriptId in LATIN_FONT_SCRIPTS) return@remember null
         val latinId = settings.keyFontId.takeIf {
@@ -1488,6 +1494,7 @@ fun KeyboardThemeProvider(
             settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
             layoutFontId,
             themeScriptFontId,
+            unicodeMyanmar,
         ) ?: return@remember null
         (latinId to scriptFontId).takeIf { latinId != scriptFontId }
     }
@@ -1516,6 +1523,8 @@ fun KeyboardThemeProvider(
         settings.scriptFontIds,
         settings.customFontName,
         settings.customScriptFontNames,
+        unicodeMyanmar,
+        layoutFontsInstalled,
     ) {
         val latin by lazy {
             settings.keyFontId.takeIf { it != KeyboardFonts.DEFAULT_ID }
@@ -1534,6 +1543,7 @@ fun KeyboardThemeProvider(
                         settings.scriptFontIds[script.name] ?: KeyboardFonts.DEFAULT_ID,
                         null,
                         themeScriptFonts[script.name],
+                        unicodeMyanmar,
                     ) ?: latin
                 ).also { resolved[script] = it }
             }

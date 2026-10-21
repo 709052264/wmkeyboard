@@ -50,6 +50,14 @@ class NetCall internal constructor(
     val bytesOut: Long get() = sent.get()
     val bytesIn: Long get() = received.get()
 
+    /**
+     * Bytes the call site kept off the network by compressing what it sent
+     * (a dictation clip as Opus rather than WAV). Set by the call site, and
+     * only once the request went through.
+     */
+    @Volatile
+    var bytesSaved: Long = 0
+
     @Volatile
     var durationMs: Long = 0
         private set
@@ -111,6 +119,7 @@ class NetCall internal constructor(
         error = error,
         bytesOut = bytesOut,
         bytesIn = bytesIn,
+        bytesSaved = bytesSaved,
         durationMs = durationMs,
         incognito = incognito,
         background = background,

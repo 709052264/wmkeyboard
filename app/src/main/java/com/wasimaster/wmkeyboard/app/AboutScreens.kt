@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.voice.OpusEncoder
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
@@ -624,6 +625,18 @@ private val bundledAttributions: List<Attribution> = buildList {
             ),
         )
     }
+    if (OpusEncoder.shipped) {
+        add(
+            Attribution(
+                "Opus",
+                R.string.about_bundled_opus_used,
+                "Copyright (c) 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, " +
+                    "CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo, Mozilla, Amazon",
+                "BSD-3-Clause", "bsd-opus.txt",
+                "https://opus-codec.org",
+            ),
+        )
+    }
     if (SherpaNative.shipped) {
         // Offline Sherpa: Microsoft's runtime, fetched from Maven Central,
         // k2-fsa's toolkit built into the bridge, and the weights it
@@ -767,6 +780,26 @@ private val bundledAttributions: List<Attribution> = buildList {
             "Copyright The FlorisBoard Contributors",
             "Apache-2.0", "apache-2.0.txt",
             "https://github.com/florisboard/florisboard",
+        ),
+    )
+    add(
+        Attribution(
+            "myanmar-tools",
+            R.string.about_bundled_myanmar_tools_used,
+            "Copyright 2017 Google LLC",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/google/myanmar-tools",
+        ),
+    )
+    // myanmar-tools compiles its converters from CLDR's transform, whose
+    // notice travels with the rules.
+    add(
+        Attribution(
+            "CLDR Zawgyi transform",
+            R.string.about_bundled_cldr_zawgyi_used,
+            "Copyright © 1991-2013 Unicode, Inc.",
+            "Unicode License v3", "unicode-3.0.txt",
+            "https://github.com/unicode-org/cldr",
         ),
     )
     add(
@@ -940,6 +973,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright Unicode, Inc. (CLDR annotations and emoji data)",
         "Unicode License v3", "unicode-3.0.txt",
         "https://github.com/KDE/kemoji",
+    ))
+    add(Attribution(
+        "Noto Sans Myanmar",
+        R.string.about_pack_noto_myanmar_used,
+        "Copyright 2022 The Noto Project Authors",
+        "SIL Open Font License 1.1", "ofl-1.1.txt",
+        "https://github.com/notofonts/myanmar",
     ))
     add(Attribution(
         "Noto Animated Emoji",

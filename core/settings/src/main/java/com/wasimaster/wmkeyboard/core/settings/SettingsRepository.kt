@@ -9227,6 +9227,25 @@ data class SuggestionStripSettings(
      */
     val bengaliAnsiVersion: Int = 2,
     /**
+     * Whether Burmese may be written in Zawgyi, the font encoding much Burmese
+     * text is still in, for friends and apps that never moved to Unicode.
+     * Allowing it puts a Zawgyi button on the strip of every Burmese layout;
+     * the button turns it on ([burmeseZawgyiOn]). The keyboard keeps typing,
+     * predicting and correcting in Unicode and converts what it commits. Off
+     * by default: Zawgyi is garbage in a Unicode font. On Burmese's screen.
+     */
+    val burmeseZawgyiAllowed: Boolean = false,
+    /** Whether the Burmese layouts write Zawgyi right now: the strip button's state. */
+    val burmeseZawgyiOn: Boolean = false,
+    /**
+     * Whether the Burmese keys draw in a Unicode font the keyboard fetches
+     * itself (Noto Sans Myanmar, from the data repository) rather than one the
+     * phone may have replaced with a Zawgyi font. Offered with Zawgyi output,
+     * since a phone set up for Zawgyi is where the keys would otherwise draw
+     * wrong.
+     */
+    val burmeseUnicodeKeyFont: Boolean = false,
+    /**
      * Which optional items the held-word menu shows (#99). An item missing
      * from the set is never drawn; "Edit" is drawn regardless. All three by
      * default: the menu is contextual (add only while typing an unlearned
@@ -9292,6 +9311,12 @@ data class SuggestionStripSettings(
 
     /** Whether a layout of [langId] writes ANSI now: allowed, switched on, and Bengali. */
     fun bengaliAnsiFor(langId: String?): Boolean = langId == "bn" && bengaliAnsiAllowed && bengaliAnsiOn
+
+    /** Whether a layout of [langId] writes Zawgyi now: allowed, switched on, and Burmese. */
+    fun burmeseZawgyiFor(langId: String?): Boolean = langId == "my" && burmeseZawgyiAllowed && burmeseZawgyiOn
+
+    /** Whether the Burmese keys draw in the fetched Unicode font; see [burmeseUnicodeKeyFont]. */
+    val burmeseUnicodeKeysOn: Boolean get() = burmeseZawgyiAllowed && burmeseUnicodeKeyFont
 
     /** What fills [langId]'s fixed phonetic strip after its two chips. */
     fun phoneticStripSourceFor(langId: String): PhoneticStripSource =
@@ -9823,6 +9848,9 @@ class SettingsRepository(private val context: Context) {
         private val BENGALI_ANSI_ALLOWED = booleanPreferencesKey("bengali_ansi_allowed")
         private val BENGALI_ANSI_ON = booleanPreferencesKey("bengali_ansi_on")
         private val BENGALI_ANSI_VERSION = intPreferencesKey("bengali_ansi_version")
+        private val BURMESE_ZAWGYI_ALLOWED = booleanPreferencesKey("burmese_zawgyi_allowed")
+        private val BURMESE_ZAWGYI_ON = booleanPreferencesKey("burmese_zawgyi_on")
+        private val BURMESE_UNICODE_KEY_FONT = booleanPreferencesKey("burmese_unicode_key_font")
 
         /** `langId=SOURCE` entries, one per language that has picked one. */
         private val PHONETIC_STRIP_SOURCES = stringSetPreferencesKey("phonetic_strip_sources")
@@ -12319,6 +12347,9 @@ class SettingsRepository(private val context: Context) {
             bengaliAnsiAllowed = p[BENGALI_ANSI_ALLOWED] ?: defaults.suggestionStrip.bengaliAnsiAllowed,
             bengaliAnsiOn = p[BENGALI_ANSI_ON] ?: defaults.suggestionStrip.bengaliAnsiOn,
             bengaliAnsiVersion = p[BENGALI_ANSI_VERSION] ?: defaults.suggestionStrip.bengaliAnsiVersion,
+            burmeseZawgyiAllowed = p[BURMESE_ZAWGYI_ALLOWED] ?: defaults.suggestionStrip.burmeseZawgyiAllowed,
+            burmeseZawgyiOn = p[BURMESE_ZAWGYI_ON] ?: defaults.suggestionStrip.burmeseZawgyiOn,
+            burmeseUnicodeKeyFont = p[BURMESE_UNICODE_KEY_FONT] ?: defaults.suggestionStrip.burmeseUnicodeKeyFont,
             // A source name this build does not know is dropped, and the
             // language falls back to the default.
             phoneticStripSources = p[PHONETIC_STRIP_SOURCES]
@@ -17702,6 +17733,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBengaliAnsiVersion(value: Int) =
         editPrefs { it[BENGALI_ANSI_VERSION] = value }
+
+    suspend fun setBurmeseZawgyiAllowed(value: Boolean) =
+        editPrefs { it[BURMESE_ZAWGYI_ALLOWED] = value }
+
+    suspend fun setBurmeseZawgyiOn(value: Boolean) =
+        editPrefs { it[BURMESE_ZAWGYI_ON] = value }
+
+    suspend fun setBurmeseUnicodeKeyFont(value: Boolean) =
+        editPrefs { it[BURMESE_UNICODE_KEY_FONT] = value }
 
     suspend fun setPhoneticFixedStrip(langId: String, enabled: Boolean) =
         editPrefs {

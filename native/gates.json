@@ -59,6 +59,15 @@
       ]
     },
     {
+      "id": "opus",
+      "property": "opus",
+      "doc": "`:feature:opus`: libopus and the Ogg writer that compress dictation audio before it is uploaded to a transcription server (`OpusEncoder`, `:core:voice`). Its own gate, not the speech one: server dictation is the only user, and it should not have to fetch the on-device engines' libraries to get 300 KB of encoder. Until it is here the clip goes as WAV.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmopus.so", "dir": "core/voice/src/opus/jniLibs", "fdroidBuild": "native/opus-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.voice.OpusEncoder"] }
+      ]
+    },
+    {
       "id": "executorch",
       "property": "executorch",
       "doc": "`:feature:executorch`: the app's ExecuTorch runtime (`libwmexecutorch`), shared by Asr4All, Parakeet and Moonshine dictation and the FUTO Swipe glide engine (`:core:voice`). Its own gate so that turning on the glide engine does not also fetch whisper.cpp and Whistle.",

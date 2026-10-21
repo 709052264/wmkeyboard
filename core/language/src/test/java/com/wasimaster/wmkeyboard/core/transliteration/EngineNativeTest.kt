@@ -73,6 +73,20 @@ class EngineNativeTest {
         assertEquals(BijoyAnsi.Version.V2, BijoyAnsi.Version.of(9))
     }
 
+    @Test fun zawgyi() {
+        val zawgyi = "\u1021\u103B\u1015\u100A\u1039\u103B\u1015\u100A\u1039\u1006\u102D\u102F\u1004\u1039\u101B\u102C"
+        val unicode = "\u1021\u1015\u103C\u100A\u103A\u1015\u103C\u100A\u103A\u1006\u102D\u102F\u1004\u103A\u101B\u102C"
+        assertEquals(unicode, Zawgyi.toUnicode(zawgyi))
+        assertEquals(zawgyi, Zawgyi.toZawgyi(unicode))
+        assertEquals(unicode, Zawgyi.convertEitherWay(zawgyi))
+        assertTrue(Zawgyi.probability(zawgyi) > 0.99)
+        assertTrue(Zawgyi.probability(unicode) < 0.01)
+        assertEquals(Double.NEGATIVE_INFINITY, Zawgyi.probability("hello"), 0.0)
+        assertTrue(Zawgyi.isConfidentlyZawgyi(zawgyi))
+        assertFalse(Zawgyi.isConfidentlyZawgyi(unicode))
+        assertEquals("hello", Zawgyi.toUnicode("hello"))
+    }
+
     @Test fun bengaliGraphemes() {
         assertEquals(0, BengaliGraphemes.clusterDeleteLength(""))
         assertEquals(1, BengaliGraphemes.clusterDeleteLength("hello"))

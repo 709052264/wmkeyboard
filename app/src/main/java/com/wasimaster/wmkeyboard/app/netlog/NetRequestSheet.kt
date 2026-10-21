@@ -135,6 +135,15 @@ internal fun NetRequestSheetBody(
                         Formatter.formatShortFileSize(context, entry.bytesOut),
                     ),
                 )
+                if (entry.bytesSaved > 0) {
+                    Fact(
+                        stringResource(R.string.netlog_sheet_saved),
+                        stringResource(
+                            R.string.netlog_sheet_saved_value,
+                            Formatter.formatShortFileSize(context, entry.bytesSaved),
+                        ),
+                    )
+                }
                 Fact(
                     stringResource(R.string.netlog_sheet_took),
                     if (entry.count > 1) {

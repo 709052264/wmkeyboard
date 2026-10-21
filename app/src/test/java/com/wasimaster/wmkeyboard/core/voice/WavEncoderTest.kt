@@ -25,6 +25,11 @@ class WavEncoderTest {
     }
 
     @Test
+    fun `sizeOf matches the encoded file`() {
+        for (n in listOf(0, 1, 16_000, 480_000)) assertEquals(WavEncoder.encode(FloatArray(n)).size.toLong(), WavEncoder.sizeOf(n))
+    }
+
+    @Test
     fun `samples are clamped to the 16-bit range`() {
         val wav = WavEncoder.encode(floatArrayOf(2f, -2f, 0f, 0.5f))
         val b = ByteBuffer.wrap(wav).order(ByteOrder.LITTLE_ENDIAN)

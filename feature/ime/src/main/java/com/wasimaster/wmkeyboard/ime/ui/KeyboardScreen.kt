@@ -538,6 +538,7 @@ import com.wasimaster.wmkeyboard.ime.SnippetOfferKind
 import com.wasimaster.wmkeyboard.ime.SnippetOfferSet
 import com.wasimaster.wmkeyboard.ime.SnippetPickerUi
 import com.wasimaster.wmkeyboard.ime.StripOfferAction
+import com.wasimaster.wmkeyboard.ime.ZawgyiOffer
 import com.wasimaster.wmkeyboard.ime.WordMenuAction
 import com.wasimaster.wmkeyboard.ime.WordMenuFacts
 import com.wasimaster.wmkeyboard.core.settings.WordMenuItem
@@ -3644,6 +3645,9 @@ private fun TopBar(
         // And its conversion twin, which now also goes up as the layout does,
         // before anything is typed.
         state.conversionPackOffer != null ||
+        // And the Zawgyi chip, which lands on a paste or on entering a field,
+        // both moments with nothing being typed.
+        state.zawgyiOffer != null ||
         // And the one offering a swiped word's path to the whole dictionary,
         // which is up while the caret rests inside that word (#135).
         state.glideSearchChip != null ||
@@ -4387,8 +4391,24 @@ private fun RowScope.StripOfferChips(
     // wants ANSI is the one being typed in, and that is when it is
     // reached for.
     if (state.language.id == "bn" && state.settings.suggestionStrip.bengaliAnsiAllowed) {
-        AnsiToggle(active = state.settings.suggestionStrip.bengaliAnsiOn) {
+        EncodingToggle(
+            active = state.settings.suggestionStrip.bengaliAnsiOn,
+            label = stringResource(R.string.ime_ansi_button),
+            description = stringResource(R.string.ime_ansi_output),
+        ) {
             onStripOfferAction(StripOfferAction.ToggleAnsi)
+        }
+    }
+    // Burmese's Zawgyi button, the same switch for the same reason. Lit by
+    // what the layout writes now, which the strip's offer can turn on for one
+    // field without the setting.
+    if (state.language.id == "my" && state.settings.suggestionStrip.burmeseZawgyiAllowed) {
+        EncodingToggle(
+            active = state.zawgyiOutput,
+            label = stringResource(R.string.ime_zawgyi_button),
+            description = stringResource(R.string.ime_zawgyi_output),
+        ) {
+            onStripOfferAction(StripOfferAction.ToggleZawgyi)
         }
     }
     // Autofill chips take the whole strip while they are up: they
@@ -4655,6 +4675,31 @@ private fun RowScope.StripOfferChips(
             onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
             onDismiss = { onStripOfferAction(StripOfferAction.Decline) },
         )
+    }
+    // Zawgyi found where Unicode was expected: text just pasted, or the field
+    // the user is typing Burmese into. After every chip about the word being
+    // typed, since it is about text already in the field.
+    val zawgyiOffer = state.zawgyiOffer
+    if (snippetOffer == null && learnOffer == null && sandboxOffer == null &&
+        wordListOffer == null && packOffer == null && searchChip == null && zawgyiOffer != null
+    ) {
+        val zawgyiShares = suggestionsShowing || state.smart != null
+        OfferChip(
+            label = stringResource(
+                if (zawgyiOffer is ZawgyiOffer.Pasted) R.string.ime_zawgyi_paste_offer else R.string.ime_zawgyi_field_offer,
+            ),
+            icon = Icons.Outlined.Translate,
+            declineDescription = stringResource(R.string.ime_zawgyi_offer_dismiss_desc),
+            onAccept = { onStripOfferAction(StripOfferAction.Accept()) },
+            onDecline = { onStripOfferAction(StripOfferAction.Decline) },
+            stretch = !zawgyiShares,
+            modifier = if (zawgyiShares) {
+                Modifier.widthIn(max = 260.dp).padding(horizontal = 4.dp)
+            } else {
+                Modifier.weight(1f).padding(horizontal = 4.dp)
+            },
+        )
+        if (!zawgyiShares) return true
     }
     // Stickers of the user's own that the text before the cursor asked
     // for (#329), in the two styles that put them here rather than in
@@ -10387,16 +10432,16 @@ private fun StripToolButton(
 }
 
 /**
- * The ANSI button on a Bengali layout's strip: the word ANSI on a pill the
- * height of a compact [ToolCircle], filled while the layouts write ANSI. A word
- * rather than an icon, because ANSI is what the fonts that want it call it and
- * no glyph says it better.
+ * The ANSI button on a Bengali layout's strip, and the Zawgyi one on a Burmese
+ * layout's: the encoding's name on a pill the height of a compact
+ * [ToolCircle], filled while the layouts write it. A word rather than an icon,
+ * because ANSI and Zawgyi are what the fonts that want them are called and no
+ * glyph says it better.
  */
 @Composable
-private fun AnsiToggle(active: Boolean, onClick: () -> Unit) {
+private fun EncodingToggle(active: Boolean, label: String, description: String, onClick: () -> Unit) {
     val kb = LocalKbTheme.current
     val shape = kb.toolShape()
-    val description = stringResource(R.string.ime_ansi_output)
     Box(
         modifier = Modifier
             .height(CompactToolSide.dp)
@@ -10415,7 +10460,7 @@ private fun AnsiToggle(active: Boolean, onClick: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            stringResource(R.string.ime_ansi_button),
+            label,
             color = if (active) kb.toolCircleActiveIcon else kb.toolbarIcon,
             fontSize = 11.sp,
             lineHeight = 12.sp,

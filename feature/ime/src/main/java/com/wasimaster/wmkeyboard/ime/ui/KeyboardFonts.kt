@@ -461,13 +461,21 @@ object KeyboardFonts {
         selectedId: String = DEFAULT_ID,
         layoutFontId: String? = null,
         themeScriptId: String? = null,
+        unicodeMyanmar: Boolean = false,
     ): FontFamily? =
-        scriptFontId(context, scriptId, selectedId, layoutFontId, themeScriptId)?.let { family(context, it) }
+        scriptFontId(context, scriptId, selectedId, layoutFontId, themeScriptId, unicodeMyanmar)
+            ?.let { family(context, it) }
 
     /**
      * The font id [scriptFamily] draws with, by the same order, or null where it
      * returns null. The id rather than the family is what [latinFirstFamily]
      * needs: it builds a platform typeface out of the font's file.
+     *
+     * [unicodeMyanmar] is Burmese's Unicode key font: Myanmar then draws in the
+     * keyboard's own Noto Sans Myanmar ([LayoutFonts.NOTO_SANS_MYANMAR]) ahead
+     * of the provider's, because the phones that want it, set up for Zawgyi,
+     * are often the ones without the provider. Until the file lands the order
+     * below goes on as before.
      */
     fun scriptFontId(
         context: Context,
@@ -475,10 +483,16 @@ object KeyboardFonts {
         selectedId: String = DEFAULT_ID,
         layoutFontId: String? = null,
         themeScriptId: String? = null,
+        unicodeMyanmar: Boolean = false,
     ): String? {
         if (selectedId != DEFAULT_ID && family(context, selectedId) != null) return selectedId
         if (layoutFontId != null && family(context, layoutFontId) != null) return layoutFontId
         if (themeScriptId != null && family(context, themeScriptId) != null) return themeScriptId
+        if (unicodeMyanmar && scriptId == ScriptId.MYANMAR) {
+            // Asking for the installed id is what fetches it the first time.
+            val own = FontStore.fontIdFor(LayoutFonts.NOTO_SANS_MYANMAR.name)
+            if (family(context, own) != null) return own
+        }
         // Asked before the provider check below: this one is our own download,
         // not Google's, and works on a phone without Play services.
         fetchedScriptFonts[scriptId]?.let { entry ->

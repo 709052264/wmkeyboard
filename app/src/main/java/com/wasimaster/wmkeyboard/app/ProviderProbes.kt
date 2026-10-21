@@ -13,7 +13,6 @@ import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.tools.TranscriptionClient
 import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.grammar.LanguageToolClient
-import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
@@ -156,11 +155,12 @@ internal object ProviderProbes {
                 { BraveSearchClient.webSearch(PROBE_WORD, key, 1, true) }
             }
             // One second of silence: it transcribes to nothing, so an answer at all is the pass.
+            // Sent as dictation sends a clip, so a server that cannot read Opus is found out here.
             ProviderTypes.TRANSCRIPTION_SERVER.id -> {
                 {
                     TranscriptionClient.transcribe(
                         credential.url, key, credential.model, null,
-                        WavEncoder.encode(FloatArray(WhisperMel.SAMPLE_RATE)),
+                        FloatArray(WhisperMel.SAMPLE_RATE),
                         path = credential.extra[CredentialSpec.PATH].orEmpty(),
                     )
                 }

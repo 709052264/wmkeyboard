@@ -219,6 +219,7 @@
     <string name="about_bundled_mms_used">The offline voices Read back and the speaker buttons download on request</string>
     <string name="about_bundled_silero_used">The voice detector Offline Sherpa and Offline Omnilingual download with each model, to hear where a phrase ends</string>
     <string name="about_bundled_omnilingual_used">Offline Omnilingual\'s speech recognition model for 1,600 languages, downloaded on request</string>
+    <string name="about_bundled_opus_used">Compresses voice recordings before they are sent to a transcription server</string>
     <string name="about_bundled_rnnoise_used">Reduce background noise at Light, in front of the offline voice engines</string>
     <string name="about_bundled_dpdfnet_used">Reduce background noise at Strong, a DeepFilterNet model the phone downloads on request</string>
     <string name="about_bundled_whistle_used">The Offline Whistle speech recognition engine and its model, which run on your device</string>
@@ -231,6 +232,9 @@
     <string name="about_bundled_indicxlit_used">The model behind Neural suggestions on the Indic phonetic layouts, downloaded when they are turned on</string>
     <string name="about_bundled_avro_used">Desktop Avro\'s dictionary, suffixes, autocorrect and search rules, behind the Avro candidate list</string>
     <string name="about_bundled_khipro_used">The rules of the Khipro Bangla layout</string>
+    <!-- Zawgyi is the name of a Burmese font encoding. Keep it as it is. -->
+    <string name="about_bundled_myanmar_tools_used">Tells Zawgyi Burmese from Unicode, and converts between the two</string>
+    <string name="about_bundled_cldr_zawgyi_used">The rules the Zawgyi and Unicode converters follow</string>
     <string name="about_bundled_futo_layouts_used">The key grids of the layouts converted from FUTO Keyboard\'s layout files</string>
     <string name="about_bundled_floris_layouts_used">The key grids of the layouts converted from FlorisBoard\'s layout files</string>
     <string name="about_bundled_opencc_used">The map between simplified and traditional characters, and the vocabulary of Taiwan and Hong Kong</string>
@@ -248,6 +252,7 @@
     <string name="about_pack_emoji_keywords_used">The emoji search keywords in 141 languages, from KDE\'s kemoji</string>
     <!-- "Noto Animated Emoji" is the name of the image set. Keep it as it is. -->
     <string name="about_pack_animated_emoji_used">The moving emoji that the press and hold popup sends, from Noto Animated Emoji</string>
+    <string name="about_pack_noto_myanmar_used">The Burmese key font for phones set up for Zawgyi, downloaded when Unicode key font is turned on</string>
     <string name="about_pack_cedict_used">The Chinese Pinyin conversion dictionary</string>
     <!-- dictionary_oss is the name of the file inside mozc. -->
     <string name="about_pack_mozc_used">The Japanese kana to kanji conversion dictionary (dictionary_oss)</string>
