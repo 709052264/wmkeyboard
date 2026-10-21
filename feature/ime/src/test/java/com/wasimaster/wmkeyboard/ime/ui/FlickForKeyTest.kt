@@ -71,4 +71,18 @@ class FlickForKeyTest {
     fun `the floor follows the stroke's own start distance`() {
         assertEquals(ThumbFlick.NONE, flickForKey(stroke(70f), keyHeight, keyHeight, startSlopPx = 70f))
     }
+
+    /** A two-thumb fragment like `o`→`k` lifts on the next letter: part of the word (#859). */
+    @Test
+    fun `a fragment that lifts on another letter is not a flick`() {
+        val onLetter: (Float, Float) -> Boolean = { _, y -> y >= 118f }
+        assertEquals(
+            ThumbFlick.NONE,
+            flickForKey(stroke(70f), keyHeight, keyHeight, slop, landsOnLetter = onLetter),
+        )
+        assertEquals(
+            ThumbFlick.HINT,
+            flickForKey(stroke(65f), keyHeight, keyHeight, slop, landsOnLetter = onLetter),
+        )
+    }
 }

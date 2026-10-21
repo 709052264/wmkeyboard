@@ -349,6 +349,8 @@ import com.wasimaster.wmkeyboard.ime.top
 import com.wasimaster.wmkeyboard.ime.glideAnchor
 import com.wasimaster.wmkeyboard.ime.HINT_FLICK_MIN_TRAVEL_HEIGHTS
 import com.wasimaster.wmkeyboard.ime.hintFlick
+import com.wasimaster.wmkeyboard.ime.inAnotherLetterCore
+import com.wasimaster.wmkeyboard.ime.NoLetter
 import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.ime.KeyFlickDirection
 import com.wasimaster.wmkeyboard.ime.keyFlick
@@ -15576,6 +15578,15 @@ internal fun KeyRects.hintFlickTarget(point: Offset): Pair<Key, Rect>? {
 }
 
 /**
+ * The test a flick off the key in [cell] asks at its lift (#859): whether a
+ * point, in the box space of a stroke whose box sits at [origin] in root space,
+ * is in the core of another letter key. See [inAnotherLetterCore].
+ */
+internal fun KeyRects.anotherLetterFrom(cell: Rect, origin: Offset): (Float, Float) -> Boolean = { x, y ->
+    inAnotherLetterCore(x + origin.x, y + origin.y, cell) { rx, ry -> letterCellAt(Offset(rx, ry)) }
+}
+
+/**
  * What a short flick up off this key types (the up-flick capital), or null when
  * it takes none: the shifted character the layout gave it, else its letter's
  * capital. A key whose shift changes nothing (a digit with no shifted twin, a
@@ -18326,6 +18337,7 @@ private fun KeyRows(
                         // the way a tap under a held shift does: a capital flick
                         // can start "Hello" and the thumbs carry on.
                         onCapitalFlick = { key -> stampedOnKey(shiftChordKey(key) ?: key) },
+                        anotherLetterFrom = { cell, at -> liveRects.value.anotherLetterFrom(cell, at) },
                         restGate = restGate,
                     )
                     return@pointerInput
@@ -18775,6 +18787,8 @@ private fun KeyRows(
                                     hintTarget.second.height * HINT_FLICK_MIN_TRAVEL_HEIGHTS,
                                     slop * effectiveSlop * OCTOPUS_SLOP_CLEARANCE,
                                 ),
+                                // "ok" from `o` lifts on `k` (#859).
+                                landsOnLetter = liveRects.value.anotherLetterFrom(hintTarget.second, boxOrigin),
                             )
                         ) {
                             trail.release()
@@ -18797,6 +18811,8 @@ private fun KeyRows(
                                     slop * effectiveSlop * OCTOPUS_SLOP_CLEARANCE,
                                 ),
                                 direction = KeyFlickDirection.UP,
+                                // And "de" from `d` lifts on `e`.
+                                landsOnLetter = liveRects.value.anotherLetterFrom(capitalTarget.second, boxOrigin),
                             )
                         ) {
                             trail.release()
@@ -19005,11 +19021,14 @@ private fun KeyRows(
                         if (change.isConsumed || alternatesGate.open) return@awaitEachGesture
                         points.add(GesturePoint(change.position.x, change.position.y, change.uptimeMillis))
                         if (!change.pressed) {
+                            // Lifting on another letter's core is a word, not a
+                            // flick (#859), even with glide typing off.
+                            val ontoLetter = liveRects.value.anotherLetterFrom(cell, boxOrigin)
                             val typed = when {
-                                hint != null && hintFlick(points, cell.height, minTravel) ->
+                                hint != null && hintFlick(points, cell.height, minTravel, ontoLetter) ->
                                     hint.first.longPress.first()
                                 capital != null &&
-                                    keyFlick(points, cell.height, minTravel, KeyFlickDirection.UP) ->
+                                    keyFlick(points, cell.height, minTravel, KeyFlickDirection.UP, ontoLetter) ->
                                     capital.first
                                 else -> null
                             }
@@ -21012,20 +21031,23 @@ internal enum class ThumbFlick { NONE, HINT, CAPITAL }
  * short vertical swipe (`e→d`) is the same under both: [hintFlick] and
  * [keyFlick], and a floor of half a key's height or a little past the stroke's
  * own start distance ([startSlopPx], the cooldown included), whichever is more.
- * The hint is asked first, as there.
+ * The hint is asked first, as there. [landsOnLetter] is the one-finger
+ * loop's test too: a fragment that lifts inside another letter's core, which
+ * a two-thumb fragment like `o`→`k` mostly is, is part of the word (#859).
  */
 internal fun flickForKey(
     points: List<GesturePoint>,
     hintKeyHeightPx: Float?,
     capitalKeyHeightPx: Float?,
     startSlopPx: Float,
+    landsOnLetter: (x: Float, y: Float) -> Boolean = NoLetter,
 ): ThumbFlick {
     fun floor(height: Float) = maxOf(height * HINT_FLICK_MIN_TRAVEL_HEIGHTS, startSlopPx * OCTOPUS_SLOP_CLEARANCE)
-    if (hintKeyHeightPx != null && hintFlick(points, hintKeyHeightPx, floor(hintKeyHeightPx))) {
+    if (hintKeyHeightPx != null && hintFlick(points, hintKeyHeightPx, floor(hintKeyHeightPx), landsOnLetter)) {
         return ThumbFlick.HINT
     }
     if (capitalKeyHeightPx != null &&
-        keyFlick(points, capitalKeyHeightPx, floor(capitalKeyHeightPx), KeyFlickDirection.UP)
+        keyFlick(points, capitalKeyHeightPx, floor(capitalKeyHeightPx), KeyFlickDirection.UP, landsOnLetter)
     ) {
         return ThumbFlick.CAPITAL
     }
@@ -21114,6 +21136,11 @@ private suspend fun PointerInputScope.twoThumbGlide(
     capitalAt: (Offset) -> Pair<Key, Rect>?,
     onHintFlick: (Key) -> Unit,
     onCapitalFlick: (Key) -> Unit,
+    /**
+     * Whether a box-space point lifts in another letter's core than the one
+     * in this root-space cell, so a short fragment is not a flick (#859).
+     */
+    anotherLetterFrom: (cell: Rect, origin: Offset) -> (Float, Float) -> Boolean,
     /** Resting fingers, shared with the keys' long press (#737). */
     restGate: RestGate,
 ) {
@@ -21262,6 +21289,8 @@ private suspend fun PointerInputScope.twoThumbGlide(
                             hintKeyHeightPx = stroke.hint?.second?.height,
                             capitalKeyHeightPx = stroke.capital?.second?.height,
                             startSlopPx = stroke.startSlopPx,
+                            landsOnLetter = (stroke.hint ?: stroke.capital)?.second
+                                ?.let { cell -> anotherLetterFrom(cell, origin()) } ?: NoLetter,
                         )
                     }
                     if (flick != ThumbFlick.NONE) {
