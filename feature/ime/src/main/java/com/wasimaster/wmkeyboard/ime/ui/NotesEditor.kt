@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,13 +31,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Code
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatBold
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatItalic
@@ -145,6 +151,10 @@ internal fun NotesEditor(
         if (extrasShown || !short) {
             Spacer(Modifier.height(4.dp))
             MarkdownHelperRow(edit, callbacks)
+            if (state.notes.quick) {
+                Spacer(Modifier.height(4.dp))
+                QuickNoteRow(state, edit, callbacks)
+            }
         } else {
             Text(
                 stringResource(R.string.ime_notes_tag_row_desc),
@@ -268,11 +278,80 @@ private fun MarkdownHelperRow(edit: NoteEdit, callbacks: NotesCallbacks) {
 }
 
 /**
- * The editor's height while the keys are back beneath it: the header, the
- * tag row, the helper row and their paddings, plus four lines of text at the
- * user's font scale; two lines and no rows in a short landscape. The frame
- * takes the capture strip out of this and never goes below the header.
+ * The Quick note row (#864), under the helper chips: New note, then the
+ * latest notes by when each was last touched. A tap moves the editor to that
+ * note with the caret at its end, to add to it; the note being left is saved,
+ * or thrown away if it is a new one still blank.
  */
 @Composable
-internal fun notesEditCompactHeight(lineHeight: Dp): Dp =
-    if (shortLandscape()) FullBleedHeaderHeight + 14.dp + lineHeight * 2 else FullBleedHeaderHeight + 86.dp + lineHeight * 4
+private fun QuickNoteRow(state: KeyboardUiState, edit: NoteEdit, callbacks: NotesCallbacks) {
+    val untitled = stringResource(R.string.ime_notes_untitled)
+    Row(
+        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        QuickNoteChip(stringResource(R.string.ime_notes_new_action), selected = edit.isNew, icon = Icons.Outlined.Add) {
+            callbacks.onQuickPick(null)
+        }
+        for (note in state.notes.recent) {
+            if (edit.isNew && note.id == edit.id) continue
+            QuickNoteChip(note.displayTitle().ifEmpty { untitled }, selected = note.id == edit.id) {
+                callbacks.onQuickPick(note.id)
+            }
+        }
+    }
+}
+
+/** [ToolPanelChip]'s pill, with a leading icon beside the words and a width cap so a long title ends in an ellipsis. */
+@Composable
+private fun QuickNoteChip(label: String, selected: Boolean, icon: ImageVector? = null, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val feedback = LocalKeyPressFeedback.current
+    val shape = kb.chipShape()
+    val content = if (selected) kb.chipActiveText else kb.chipText
+    Row(
+        modifier = Modifier
+            .widthIn(max = 160.dp)
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(if (selected) kb.chipActive else kb.chip)
+            .chipBorder(kb, shape)
+            .clickable {
+                feedback()
+                onClick()
+            }
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (icon != null) {
+            Icon(icon, contentDescription = null, tint = content, modifier = Modifier.size(14.dp))
+            Spacer(Modifier.width(4.dp))
+        }
+        Text(
+            label,
+            color = content,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/**
+ * The editor's height while the keys are back beneath it: the header, the
+ * tag row, the helper row and their paddings, plus four lines of text at the
+ * user's font scale; two lines and no rows in a short landscape. The Quick
+ * note row adds its own line of chips. The frame takes the capture strip out
+ * of this and never goes below the header.
+ */
+@Composable
+internal fun notesEditCompactHeight(lineHeight: Dp, quickRow: Boolean = false): Dp = when {
+    shortLandscape() -> FullBleedHeaderHeight + 14.dp + lineHeight * 2
+    quickRow -> FullBleedHeaderHeight + 86.dp + QuickNoteRowHeight + lineHeight * 4
+    else -> FullBleedHeaderHeight + 86.dp + lineHeight * 4
+}
+
+/** The Quick note row's chip line and the gap above it. */
+private val QuickNoteRowHeight = 32.dp

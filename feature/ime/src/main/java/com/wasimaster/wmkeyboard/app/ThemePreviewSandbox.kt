@@ -282,7 +282,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.VOCABULARY -> PanelMode.VOCABULARY
     ToolbarTool.LEARN_FROM_TEXT -> PanelMode.LEARN_FROM_TEXT
     ToolbarTool.FIND_REPLACE -> PanelMode.FIND_REPLACE
-    ToolbarTool.NOTES -> PanelMode.NOTES
+    ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> PanelMode.NOTES
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT

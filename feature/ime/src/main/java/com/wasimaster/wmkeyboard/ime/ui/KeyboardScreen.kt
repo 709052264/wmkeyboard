@@ -8488,6 +8488,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> R.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> R.string.ime_tool_leave_field
+    ToolbarTool.QUICK_NOTE -> R.string.ime_tool_quick_note
     ToolbarTool.READ_BACK -> R.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> R.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> R.string.ime_tool_text_edit
@@ -8642,6 +8643,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
+    ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> state.panel == PanelMode.HOME_ASSISTANT

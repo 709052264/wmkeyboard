@@ -157,6 +157,10 @@ enum class ToolbarTool {
     // offline when there is one, the phone's own voice otherwise. A second
     // tap stops it.
     READ_BACK,
+    // A new note, the keys already typing into its body, in the Notes panel
+    // with a row of the latest notes under it to switch to one and add to it
+    // (#864). Action-only, like [CLIPBOARD_SEARCH].
+    QUICK_NOTE,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -306,7 +310,7 @@ val OptInOnlyTools: Set<ToolbarTool> = setOf(ToolbarTool.LEARN_FROM_TEXT)
  * regardless.
  */
 val ActionOnlyTools: Set<ToolbarTool> =
-    setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD)
+    setOf(ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD, ToolbarTool.QUICK_NOTE)
 
 /**
  * The "Everything" preset, and the enabled-tools default before setup swaps
@@ -395,6 +399,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.SELECT_MODE,
     ToolbarTool.COPY, ToolbarTool.CUT, ToolbarTool.PASTE,
     ToolbarTool.CLIPBOARD_SEARCH, ToolbarTool.RECENT_COPIES, ToolbarTool.LEAVE_FIELD,
+    ToolbarTool.QUICK_NOTE,
 )
 
 /**

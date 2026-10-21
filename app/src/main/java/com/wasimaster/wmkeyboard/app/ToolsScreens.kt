@@ -94,6 +94,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> ImeR.string.ime_tool_clipboard_search
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
+    ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
@@ -189,6 +190,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.CLIPBOARD_SEARCH -> R.string.fonts_tool_clipboard_search_desc
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
+    ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc

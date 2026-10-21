@@ -27328,6 +27328,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.CLIPBOARD_SEARCH -> onClipboardOpenSearching()
             ToolbarTool.RECENT_COPIES -> onRecentClipsToggle()
             ToolbarTool.LEAVE_FIELD -> onLeaveField()
+            ToolbarTool.QUICK_NOTE -> onQuickNote()
             ToolbarTool.READ_BACK -> toggleReadBack()
 
             ToolbarTool.SNIPPETS -> onPanelChange(PanelMode.SNIPPETS)
@@ -27589,7 +27590,7 @@ open class WMKeyboardService : InputMethodService() {
                 findReplace = if (next == PanelMode.FIND_REPLACE) FindReplaceUi() else null,
                 // The filter and the open note survive; the rest is per visit.
                 notes = if (next == PanelMode.NOTES) {
-                    it.notes.copy(searchActive = false, query = "", editing = null, held = null, confirm = null, undo = null)
+                    it.notes.copy(searchActive = false, query = "", editing = null, held = null, confirm = null, undo = null, quick = false, recent = emptyList())
                 } else {
                     it.notes
                 },
@@ -40072,6 +40073,7 @@ open class WMKeyboardService : InputMethodService() {
         onHold = ::onNoteHold,
         onUndo = ::onNotesUndo,
         onUndoDismiss = ::onNotesUndoDismiss,
+        onQuickPick = ::onNotesQuickPick,
     )
 
     /**
@@ -40104,6 +40106,7 @@ open class WMKeyboardService : InputMethodService() {
                     counts = NotesLogic.counts(noteStore, deviceLocked),
                     open = open,
                     editing = notes.editing?.takeIf { open != null || it.isNew },
+                    recent = if (notes.quick) NotesLogic.recent(noteStore) else emptyList(),
                 ),
             )
         }
@@ -40144,7 +40147,9 @@ open class WMKeyboardService : InputMethodService() {
         notesConfirmJob?.cancel()
         notesConfirmJob = null
         _uiState.update {
-            it.copy(notes = it.notes.copy(searchActive = false, query = "", held = null, confirm = null, undo = null))
+            it.copy(
+                notes = it.notes.copy(searchActive = false, query = "", held = null, confirm = null, undo = null, quick = false, recent = emptyList()),
+            )
         }
     }
 
@@ -40242,7 +40247,51 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** New note, optionally born with [tag]: made in the store at once, so it has an id to autosave under. */
-    fun onNotesNew(tag: String?) {
+    fun onNotesNew(tag: String?) = startNewNote(tag, NoteEditField.TITLE)
+
+    /**
+     * The Quick note action (#864): the Notes panel opens on a new note with
+     * the keys already in its body, and the editor carries the row of the
+     * latest notes. Fired again while that is up, it closes the panel, the
+     * way a second tap on a tool does. The new note is the panel's ordinary
+     * one, so left blank it is thrown away like any other.
+     */
+    private fun onQuickNote() {
+        if (!userUnlocked) {
+            toast(R.string.ime_notes_unlock_toast)
+            return
+        }
+        val state = _uiState.value
+        if (state.panel == PanelMode.NOTES && state.notes.quick) {
+            onPanelChange(PanelMode.NOTES)
+            return
+        }
+        if (state.panel != PanelMode.NOTES) onPanelChange(PanelMode.NOTES)
+        if (_uiState.value.panel != PanelMode.NOTES) return
+        _uiState.update { it.copy(notes = it.notes.copy(quick = true)) }
+        startNewNote(tag = null, focus = NoteEditField.BODY)
+    }
+
+    /**
+     * A chip on the quick row: a note to add to, its caret at the end, or
+     * null for a fresh note. The note being left is saved, and a new one left
+     * blank goes, as leaving the editor any other way does.
+     */
+    fun onNotesQuickPick(id: Long?) {
+        val edit = _uiState.value.notes.editing
+        if (edit?.focused == NoteEditField.TAG) onNoteTagCommit()
+        if (id == null) {
+            if (edit?.isNew == true && edit.blank) return
+            startNewNote(tag = null, focus = NoteEditField.BODY)
+            return
+        }
+        if (edit?.id == id) return
+        notesFlushEdit(leaveEditor = true)
+        onNoteEditStart(id, line = null)
+    }
+
+    /** A new note in the editor, the keys in [focus]: the title from New, the body from Quick note. */
+    private fun startNewNote(tag: String?, focus: NoteEditField) {
         if (!userUnlocked) {
             toast(R.string.ime_notes_unlock_toast)
             return
@@ -40255,7 +40304,7 @@ open class WMKeyboardService : InputMethodService() {
         publishNotes {
             it.copy(
                 open = note.id,
-                editing = NoteEdit(note.id, isNew = true, original = note, focused = NoteEditField.TITLE, startedAt = System.currentTimeMillis()),
+                editing = NoteEdit(note.id, isNew = true, original = note, focused = focus, startedAt = System.currentTimeMillis()),
                 searchActive = false,
                 query = "",
                 held = null,

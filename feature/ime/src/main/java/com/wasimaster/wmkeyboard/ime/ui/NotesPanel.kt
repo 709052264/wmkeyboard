@@ -126,6 +126,8 @@ data class NotesCallbacks(
     val onHold: (Long?) -> Unit = {},
     val onUndo: () -> Unit = {},
     val onUndoDismiss: () -> Unit = {},
+    /** A chip on the Quick note row (#864): a note to add to, or null for a new one. */
+    val onQuickPick: (Long?) -> Unit = {},
 )
 
 /** Settings routes the panel links to; `SettingsRoutesTest` scans these constants. */
@@ -166,7 +168,7 @@ internal fun NotesPanelHost(
         extraHeight = if (reading && notes.readExpanded) LocalConfiguration.current.screenHeightDp.dp else 0.dp,
         compact = state.notesTypingActive,
         compactHeight = when {
-            editing != null -> notesEditCompactHeight(lineHeightDp)
+            editing != null -> notesEditCompactHeight(lineHeightDp, quickRow = notes.quick)
             // Searching: the pill, and a few rows of results under it.
             else -> FullBleedHeaderHeight + lineHeightDp * 7
         },

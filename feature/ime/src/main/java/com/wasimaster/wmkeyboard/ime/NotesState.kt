@@ -123,6 +123,14 @@ data class NotesPanelUi(
     val undo: NotesUndo? = null,
     /** The read view grew to the screen's share (#348's expand). */
     val readExpanded: Boolean = false,
+    /**
+     * Opened by the Quick note action (#864): the editor carries a row of the
+     * latest notes, [recent], to switch to one and add to it. For this visit
+     * only; the plain Notes tool opens without it.
+     */
+    val quick: Boolean = false,
+    /** What the quick row offers, newest first; empty unless [quick]. */
+    val recent: List<Note> = emptyList(),
 ) {
     /** The open note, as the list currently has it, or null when it is not in view. */
     fun openNote(): Note? = open?.let { id -> items.firstOrNull { it.id == id } }
@@ -159,6 +167,22 @@ object NotesLogic {
         }
         return if (filter == NotesFilter.Pinned) rows.filter { it.pinned } else rows
     }
+
+    /**
+     * The quick row's notes (#864): the live shelf by when each was last
+     * touched, newest first, pinned or not. Only notes the keyboard's editor
+     * can take: no locked ones, none past [NoteEdit.EDITOR_MAX_LENGTH], and
+     * no blank ones, which are the row's own New chip or a draft about to be
+     * thrown away.
+     */
+    fun recent(store: NoteStore, limit: Int = QUICK_ROW_MAX): List<Note> =
+        store.items(NoteFilter(NoteShelf.ACTIVE, includeLocked = false))
+            .filter { !it.locked && (it.title.isNotBlank() || it.body.isNotBlank()) && it.body.length <= NoteEdit.EDITOR_MAX_LENGTH }
+            .sortedByDescending { it.updatedAt }
+            .take(limit)
+
+    /** How many notes the quick row lists; older ones are a scroll of the panel's list away. */
+    const val QUICK_ROW_MAX = 20
 
     /** The chip counts for [store], locked notes left out while the device is locked. */
     fun counts(store: NoteStore, deviceLocked: Boolean): NotesCounts {

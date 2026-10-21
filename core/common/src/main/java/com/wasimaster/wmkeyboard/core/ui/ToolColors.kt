@@ -78,7 +78,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.STATISTICS -> Color(0xFFFFA000)
     ToolbarTool.FIND_REPLACE -> Color(0xFF5C6BC0)
     // Sticky-note yellow.
-    ToolbarTool.NOTES -> Color(0xFFFBC02D)
+    ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> Color(0xFFFBC02D)
     ToolbarTool.MEDIA_CONTROL -> Color(0xFFAB47BC)
     // KDE's own blue.
     ToolbarTool.KDE_CONNECT -> Color(0xFF1D99F3)
