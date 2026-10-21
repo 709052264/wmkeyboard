@@ -261,6 +261,10 @@ private fun systemTotals(context: Context): StorageReport? = runCatching {
     )
 }.getOrNull()
 
+/** The system's figure for the installed app, or null below API 26 or when it will not say. */
+internal fun systemAppBytes(context: Context): Long? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) systemTotals(context)?.appBytes else null
+
 /** Below API 26 there is no [StorageStatsManager], so measure it ourselves. */
 private fun estimatedTotals(context: Context, roots: StorageRoots): StorageReport {
     val info = context.applicationInfo

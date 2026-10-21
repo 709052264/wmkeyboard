@@ -308,6 +308,22 @@ internal object StorageCategories {
                     deletable = false,
                     directory = true,
                 )
+            }.let { files ->
+                // The system's figure also counts what Android compiled from
+                // the APK, kept beside it where the app cannot list it: the
+                // difference, so the rows add up to the row's own size.
+                val compiled = (systemAppBytes(env.context) ?: 0L) - files.sumOf { it.bytes }
+                if (compiled <= 0L) {
+                    files
+                } else {
+                    files + StorageItem(
+                        id = "compiled",
+                        label = env.context.getString(R.string.storage_app_compiled_label),
+                        detail = env.context.getString(R.string.storage_app_compiled_detail),
+                        bytes = compiled,
+                        deletable = false,
+                    )
+                }
             }
         },
     )
