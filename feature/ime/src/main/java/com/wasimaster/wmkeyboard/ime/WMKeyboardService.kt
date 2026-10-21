@@ -1542,8 +1542,24 @@ open class WMKeyboardService : InputMethodService() {
      * have begun on). Checked as the word grows, and split back into two words
      * the moment it stops leading anywhere. Gone with the word.
      */
-    private class ReopenedWord(val word: String, val starts: Set<String>)
+    private class ReopenedWord(
+        val word: String,
+        val starts: Set<String>,
+        /** How many of the word's gestures are [word]'s own: one per letter when it came back as typed letters. */
+        val headGestures: Int = word.codePointCount(0, word.length),
+    )
     private var reopenedWord: ReopenedWord? = null
+
+    /**
+     * The gestures of the two-thumb word [commitDuet] typed last, and the
+     * shift it was cased under, for as long as that word may open again
+     * (#858): Backspace then takes back its latest swipe or tap rather than
+     * the whole word, and an all-thumbs-up space taken back reopens it as the
+     * gestures it was rather than as letters. Only a word of more than one
+     * gesture; a lone swipe keeps #733's whole-word undo. Spent by either.
+     */
+    private class CommittedDuet(val word: String, val gestures: DuetWord, val shift: ShiftState)
+    private var committedDuet: CommittedDuet? = null
 
     /** Numbers each [AllUpCountdown], so a pause that ends late cannot clear a newer one's band. */
     private var allUpCountdownId = 0
@@ -12883,10 +12899,19 @@ open class WMKeyboardService : InputMethodService() {
             val stroke = lastGestureStroke
             lastGestureStroke = null
             pendingWordSpace = false
+            // A two-thumb word of several gestures loses only its latest one,
+            // as it would have before it was typed (#858).
+            val duet = committedDuet?.takeIf { it.word == word && stroke == null }
+            committedDuet = null
             if (composing.isEmpty()) {
                 // The space the glide typed goes with the word: undoing the
                 // swipe must leave the caret where the swipe found it.
                 val len = glideCommitLength(ic, word)
+                if (len > 0 && duet != null) {
+                    unlearnHand()
+                    reopenCommittedDuet(ic, duet, len, dropLast = true)
+                    return
+                }
                 if (len > 0) {
                     ic.deleteSurroundingText(len, 0)
                     // A word the user took back was a wrong reading of the
@@ -25663,6 +25688,15 @@ open class WMKeyboardService : InputMethodService() {
         if (!continuesWord(space.word, starts, engine::isLivePrefix)) return false
         val typed = space.word + " "
         if (ic.getTextBeforeCursor(typed.length, 0)?.toString() != typed) return false
+        // A two-thumb word comes back as the gestures it was, so a Backspace
+        // after the next one takes back a swipe, not a letter (#858).
+        val duet = committedDuet?.takeIf { it.word == space.word && lastGestureWord == it.word }
+        committedDuet = null
+        if (duet != null) {
+            reopenCommittedDuet(ic, duet, typed.length, dropLast = false)
+            reopenedWord = ReopenedWord(space.word, starts, headGestures = duet.gestures.snapshot().size)
+            return true
+        }
         ic.beginBatchEdit()
         ic.deleteSurroundingText(typed.length, 0)
         pendingWordSpace = false
@@ -25680,6 +25714,50 @@ open class WMKeyboardService : InputMethodService() {
         ic.endBatchEdit()
         reopenedWord = ReopenedWord(space.word, starts)
         return true
+    }
+
+    /**
+     * Takes back the [length] characters of [duet]'s word and its space behind
+     * the caret and opens the word again as its gestures (#858), less the
+     * latest one when [dropLast]: what [duetBackspace] does to a word still
+     * open. Gestures that are only taps once that one is gone come back as the
+     * letters they typed.
+     */
+    private fun reopenCommittedDuet(ic: InputConnection, duet: CommittedDuet, length: Int, dropLast: Boolean) {
+        val gestures = duet.gestures.copy()
+        val removed = if (dropLast) gestures.snapshot().lastOrNull() as? GlideToken.Swipe else null
+        if (dropLast) gestures.removeLast()
+        ic.beginBatchEdit()
+        ic.deleteSurroundingText(length, 0)
+        pendingWordSpace = false
+        // The word is not finished after all, nor evidence of anything yet.
+        lastGestureWord = null
+        lastGestureStroke = null
+        stripReplacesGestureWord = false
+        lastRevertible = null
+        learningBuffer.drop(duet.word)
+        syncPreviousWordFromField(ic)
+        resumedWord = null
+        if (gestures.active) {
+            duetWord.restore(gestures)
+            duetShift = duet.shift
+            keepDuet = true
+            try {
+                // The word as it was until the read below lands; one gesture
+                // shorter, the gestures' own letters.
+                composing = StringBuilder(if (dropLast) gestures.literal() else duet.word)
+            } finally {
+                keepDuet = false
+            }
+            updateComposingText(ic)
+            ic.endBatchEdit()
+            if (dropLast) redecodeDuet(commit = false, backspaced = removed)
+            return
+        }
+        composing = StringBuilder(gestures.typedText().orEmpty())
+        updateComposingText(ic)
+        ic.endBatchEdit()
+        refreshSuggestions()
     }
 
     /**
@@ -25705,7 +25783,7 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val head = reopened.word
         val rest = if (duetWord.active) {
-            duetWord.copy().takeIf { it.dropFirst(head.codePointCount(0, head.length)) }
+            duetWord.copy().takeIf { it.dropFirst(reopened.headGestures) }
         } else {
             null
         }
@@ -25837,8 +25915,14 @@ open class WMKeyboardService : InputMethodService() {
         val alternates = duetShownAlternates
         // The split the word was offering stays on offer once it is typed (#832).
         val split = duetSplit?.takeIf { it.head != null }
+        // Copied before the commit, whose setter clears them (#858).
+        val gestures = duetWord.copy().takeIf { it.active && it.snapshot().size > 1 }
+        val shift = duetShift
         commitComposing(ic, autocorrect = false, fixApostrophes = state.settings.autoText.apostrophe)
         val undoable = state.settings.gesture.twoThumbGlide && word.isNotEmpty()
+        // Read back against the field's text, so an apostrophe the commit put
+        // in (#240) leaves the record unused rather than reopening the wrong word.
+        committedDuet = gestures?.takeIf { undoable }?.let { CommittedDuet(word, it, shift) }
         if (undoable) {
             // Armed before the space, as the glide commit arms it (#113).
             lastGestureWord = word

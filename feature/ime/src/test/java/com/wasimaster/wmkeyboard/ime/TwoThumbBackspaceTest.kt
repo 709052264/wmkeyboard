@@ -13,7 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** Backspace on a two-thumb word that is still open (#732). */
+/** Backspace on a two-thumb word that is still open (#732), or was just typed (#858). */
 @RunWith(RobolectricTestRunner::class)
 class TwoThumbBackspaceTest {
 
@@ -73,5 +73,24 @@ class TwoThumbBackspaceTest {
         service.onKey(delete)
         drain(service)
         assertEquals("q", editor.text.toString())
+    }
+
+    /** #858: a typed word of two swipes loses only the second, and stays open. */
+    @Test
+    fun `backspace after the pause typed a two-swipe word takes back its last swipe`() {
+        val (service, editor) = keyboard(settings(allUp = true))
+        swipe(service)
+        drain(service)
+        swipe(service)
+        drain(service)
+        allUpPause(service)
+        assertEquals("fixture: the pause typed both swipes as one word", "qyqy ", editor.text.toString())
+        service.onKey(delete)
+        drain(service)
+        assertEquals("qy", editor.text.toString())
+        // Still open: the next swipe joins it rather than starting a word.
+        swipe(service)
+        drain(service)
+        assertEquals("qyqy", editor.text.toString())
     }
 }
