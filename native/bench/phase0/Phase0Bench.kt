@@ -692,9 +692,29 @@ object Phase0Bench {
             val p = planes(side, side, semi)
             val layout = if (semi) "semi-planar" else "I420"
             bench("WebmFrames rgbOf 512^2 $layout (copied)", "per colour frame, ~90 per video sticker") { rgbOf(p, side, side) }
+            if (!NativeEngine.useNative) continue
+            val native = IntArray(side * side)
+            val call = {
+                NativeEngine.yuvToRgb(p.y, p.yRow, 1, p.u, p.cRow, p.cPixel, p.v, p.cRow, p.cPixel, 0, 0, side, side, side, native)
+            }
+            check(call()) { "native YUV refused the frame" }
+            val kotlin = rgbOf(p, side, side)
+            val wrong = native.indices.count { native[it] != kotlin[it] }
+            check(wrong == 0) { "native YUV differs from Kotlin at $wrong pixels" }
+            println("  native rgbOf $layout: bit for bit Kotlin's")
+            bench("WebmFrames rgbOf 512^2 $layout (NativeEngine)", "per colour frame") { call(); native }
         }
         val p = planes(side, side, false)
         bench("WebmFrames lumaOf 512^2 (copied)", "per alpha frame") { lumaOf(p, side, side) }
+        bench("WebmFrames lumaOf 512^2 (row bulk get)", "per alpha frame") {
+            val out = ByteArray(side * side)
+            val rows = p.y.duplicate()
+            for (row in 0 until side) {
+                rows.position(row * p.yRow)
+                rows.get(out, row * side, side)
+            }
+            out
+        }
         val rgb = rgbOf(p, side, side)
         val alpha = lumaOf(p, side, side)
         val pixels = IntArray(side * side)

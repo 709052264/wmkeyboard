@@ -33,6 +33,7 @@ pub mod box_average;
 pub mod dot;
 pub mod gif;
 pub mod sharpen;
+pub mod yuv;
 
 #[cfg(test)]
 pub mod testing;

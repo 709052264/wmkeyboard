@@ -15,6 +15,8 @@
 #        WM_NATIVE=kotlin  the Kotlin paths and scalar kernels (the "before"); the
 #                  host library is found from the working directory, as in tests
 #        OUT       work dir (default: native/bench/phase0/out, gitignored)
+#        PIN       a taskset mask for the phone run (c0: the CPH2481's two A76 cores)
+#        ENGINE_SO the arm64 libwm_engine_jni.so to push (default: the committed one)
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -85,7 +87,7 @@ case "$mode" in
     adb push "$OUT/bench.dex.jar" /data/local/tmp/wmbench.jar >/dev/null
     adb push "$REPO/app/dictionaries-src/en.txt" /data/local/tmp/wmbench-en.txt >/dev/null
     # The committed arm64 engine, named outright: app_process has no APK to load it from.
-    adb push "$REPO/core/language/src/main/jniLibs/arm64-v8a/libwm_engine_jni.so" /data/local/tmp/libwm_engine_jni.so >/dev/null
-    adb shell "WM_ENGINE_LIB=/data/local/tmp/libwm_engine_jni.so CLASSPATH=/data/local/tmp/wmbench.jar app_process /system/bin com.wasimaster.wmkeyboard.bench.Phase0Bench /data/local/tmp/wmbench-en.txt $*"
+    adb push "${ENGINE_SO:-$REPO/core/language/src/main/jniLibs/arm64-v8a/libwm_engine_jni.so}" /data/local/tmp/libwm_engine_jni.so >/dev/null
+    adb shell "WM_ENGINE_LIB=/data/local/tmp/libwm_engine_jni.so CLASSPATH=/data/local/tmp/wmbench.jar ${PIN:+taskset $PIN }app_process /system/bin com.wasimaster.wmkeyboard.bench.Phase0Bench /data/local/tmp/wmbench-en.txt $*"
     ;;
 esac

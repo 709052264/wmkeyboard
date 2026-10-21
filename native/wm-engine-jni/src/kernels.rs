@@ -1,11 +1,12 @@
 //! The kernels and the switches over the whole native fast path:
 //! `NativeEngine` in `core/language`.
 
-use jni::objects::{JClass, JFloatArray, JIntArray};
+use jni::objects::{JByteBuffer, JClass, JFloatArray, JIntArray};
 use jni::sys::{jboolean, jfloat, jint, JNI_FALSE, JNI_TRUE};
 use jni::JNIEnv;
 
 use wm_engine::kernels;
+use wm_engine::kernels::yuv;
 
 use crate::guard::{guarded, with_critical};
 
@@ -179,5 +180,65 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_n
             })
         };
         rows.flatten().map(|rows| rows as jint)
+    })
+}
+
+/// A direct buffer's first `limit` bytes (capped at its capacity), or
+/// `None` when it is not direct. The slice lives as long as the Java buffer,
+/// which the caller holds for the length of the call.
+fn direct<'a>(env: &JNIEnv, buffer: &JByteBuffer, limit: jint) -> Option<&'a [u8]> {
+    let address = env.get_direct_buffer_address(buffer).ok()?;
+    let capacity = env.get_direct_buffer_capacity(buffer).ok()?;
+    let len = (limit.max(0) as usize).min(capacity);
+    // SAFETY: a direct buffer's address and capacity describe live memory
+    // the buffer keeps for as long as it is reachable, and the Kotlin caller
+    // keeps it reachable for the whole call.
+    Some(if len == 0 { &[] } else { unsafe { std::slice::from_raw_parts(address, len) } })
+}
+
+/// `NativeEngine.yuvToRgb(...)`: a video frame's YUV 4:2:0 planes (direct
+/// buffers as `android.media.Image` hands them over, each read up to its
+/// limit) as `r << 16 | g << 8 | b` ints into `out`, `rows` × `cols` from
+/// crop corner (`left`, `top`), rows `width` apart, in one crossing
+/// (`kernels::yuv`). False, writing nothing, when a buffer is not direct or
+/// a read or write would fall outside one.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeYuvToRgb(
+    mut env: JNIEnv,
+    _class: JClass,
+    y: JByteBuffer,
+    y_limit: jint,
+    y_row: jint,
+    y_pixel: jint,
+    u: JByteBuffer,
+    u_limit: jint,
+    u_row: jint,
+    u_pixel: jint,
+    v: JByteBuffer,
+    v_limit: jint,
+    v_row: jint,
+    v_pixel: jint,
+    left: jint,
+    top: jint,
+    rows: jint,
+    cols: jint,
+    width: jint,
+    out: JIntArray,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        if [y_row, y_pixel, u_row, u_pixel, v_row, v_pixel, left, top, rows, cols, width].iter().any(|&n| n < 0) {
+            return Some(JNI_FALSE);
+        }
+        let plane = |data, row: jint, pixel: jint| yuv::Plane { data, row_stride: row as usize, pixel_stride: pixel as usize };
+        let (Some(yb), Some(ub), Some(vb)) = (direct(env, &y, y_limit), direct(env, &u, u_limit), direct(env, &v, v_limit)) else {
+            return Some(JNI_FALSE);
+        };
+        let (yp, up, vp) = (plane(yb, y_row, y_pixel), plane(ub, u_row, u_pixel), plane(vb, v_row, v_pixel));
+        let frame = yuv::Frame { left: left as usize, top: top as usize, rows: rows as usize, cols: cols as usize, width: width as usize };
+        let out = out.as_raw();
+        // SAFETY: an int[]; the closure makes no JNI call while it is pinned.
+        let done = unsafe { with_critical::<i32, _>(env.get_raw(), out, true, |out| yuv::yuv420_to_rgb(yp, up, vp, frame, out)) };
+        Some(if done == Some(true) { JNI_TRUE } else { JNI_FALSE })
     })
 }

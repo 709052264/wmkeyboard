@@ -7,6 +7,7 @@ import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.os.Build
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import java.io.Closeable
 
 /**
@@ -289,6 +290,8 @@ object WebmFrames {
     /**
      * The picture in [image] as RGB, BT.601 at video range, which is what
      * VP9 stickers are encoded at. The top byte is left for the alpha.
+     * The planes go to the engine's NEON kernel as they are, one call a
+     * frame; this loop is what it computes, and runs when it cannot.
      */
     private fun rgbOf(image: Image, width: Int, height: Int): IntArray {
         val crop = image.cropRect
@@ -299,6 +302,14 @@ object WebmFrames {
         val out = IntArray(width * height)
         val rows = minOf(height, crop.height())
         val cols = minOf(width, crop.width())
+        if (rows <= 0 || cols <= 0) return out
+        val native = NativeEngine.yuvToRgb(
+            y, yPlane.rowStride, yPlane.pixelStride,
+            u, uPlane.rowStride, uPlane.pixelStride,
+            v, vPlane.rowStride, vPlane.pixelStride,
+            crop.left, crop.top, rows, cols, width, out,
+        )
+        if (native) return out
         for (row in 0 until rows) {
             val yRow = (crop.top + row) * yPlane.rowStride
             val cRow = (crop.top + row) / 2
@@ -325,8 +336,16 @@ object WebmFrames {
         val out = ByteArray(width * height)
         val rows = minOf(height, crop.height())
         val cols = minOf(width, crop.width())
+        // Whole rows at a time where the bytes sit side by side: a
+        // ByteBuffer.get per byte cost 3 ms a frame on a Helio G99.
+        val rowsOf = if (plane.pixelStride == 1) y.duplicate() else null
         for (row in 0 until rows) {
             val from = (crop.top + row) * plane.rowStride
+            if (rowsOf != null) {
+                rowsOf.position(from + crop.left)
+                rowsOf.get(out, row * width, cols)
+                continue
+            }
             for (col in 0 until cols) {
                 out[row * width + col] = y.get(from + (crop.left + col) * plane.pixelStride)
             }

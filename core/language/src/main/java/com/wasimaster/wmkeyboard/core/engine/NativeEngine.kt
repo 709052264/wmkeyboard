@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.engine
 
 import java.io.File
+import java.nio.ByteBuffer
 
 /**
  * The always-shipped native engine, libwm_engine_jni (`native/wm-engine-jni`
@@ -196,6 +197,32 @@ object NativeEngine {
         }
     }
 
+    /**
+     * A decoded video frame's YUV 4:2:0 planes as RGB ints into [out]:
+     * [rows] × [cols] pixels from crop corner ([left], [top]), rows [width]
+     * apart, each `r shl 16 or (g shl 8) or b` by BT.601 at video range,
+     * the top byte left 0. Each plane is a direct buffer read up to its
+     * limit, with its row and pixel strides, chroma at half resolution, as
+     * `android.media.Image` hands them over: one crossing a frame and no
+     * copy. Bit for bit `WebmFrames`' Kotlin loop; NEON on arm64. False,
+     * with [out] untouched, when [useNative] is off, the library predates
+     * the kernel, a buffer is not direct, or a read would fall outside a
+     * plane: run the Kotlin then.
+     */
+    fun yuvToRgb(
+        y: ByteBuffer, yRow: Int, yPixel: Int,
+        u: ByteBuffer, uRow: Int, uPixel: Int,
+        v: ByteBuffer, vRow: Int, vPixel: Int,
+        left: Int, top: Int, rows: Int, cols: Int, width: Int, out: IntArray,
+    ): Boolean = useNative && y.isDirect && u.isDirect && v.isDirect && try {
+        nativeYuvToRgb(
+            y, y.limit(), yRow, yPixel, u, u.limit(), uRow, uPixel, v, v.limit(), vRow, vPixel,
+            left, top, rows, cols, width, out,
+        )
+    } catch (_: UnsatisfiedLinkError) {
+        false
+    }
+
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
@@ -205,4 +232,10 @@ object NativeEngine {
         outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
     ): Boolean
     private external fun nativeArgmaxRows(data: FloatArray, cols: Int, out: IntArray): Int
+    private external fun nativeYuvToRgb(
+        y: ByteBuffer, yLimit: Int, yRow: Int, yPixel: Int,
+        u: ByteBuffer, uLimit: Int, uRow: Int, uPixel: Int,
+        v: ByteBuffer, vLimit: Int, vRow: Int, vPixel: Int,
+        left: Int, top: Int, rows: Int, cols: Int, width: Int, out: IntArray,
+    ): Boolean
 }
