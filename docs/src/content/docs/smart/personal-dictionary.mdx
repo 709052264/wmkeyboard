@@ -32,6 +32,10 @@ Within a plain text field, how hard a word is taught depends on how it was commi
 
 A word needs at least two letters to be auto-learned this way. Adding one yourself (see below) has no such floor.
 
+### Languages written without spaces
+
+Thai, Lao, Khmer and Burmese put no space between words, so what you type between two spaces is usually a phrase. The keyboard finds the words inside it and learns each one, with the word pairs between them, the same as it would for words you had spaced out. A run the keyboard already knows as a single word stays whole. The words before the cursor are read the same way, so next-word suggestions follow the last word you wrote rather than the whole line. Finding words in a run takes a moment longer than splitting at spaces, so for context the keyboard reads only the last 32 characters of a long run.
+
 ## Words wait their turn
 
 Nothing you type is written to your dictionary while you're still typing it. Every committed word is held first, and only counted once the text it landed in has stopped moving. That's what gives you a chance to read back what you wrote: a word you fix, delete or re-pick was never learned in the first place. Only what you do to a word counts against it. Backspacing through it, sweeping it away with a delete swipe or typing a fix over it drops it; putting the cursor on it, or walking the cursor back through it with a spacebar swipe, leaves it waiting, and it is counted with the rest when you move on.

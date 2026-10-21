@@ -1372,6 +1372,9 @@ dependencies {
     testImplementation(libs.androidx.exifinterface)
     // The plugin tests drive the Lua sandbox through luaj types directly.
     testImplementation(libs.luaj.jse)
+    // WordKeyParityTest holds the Rust word key to ART's fold, answered by
+    // ICU4J at the Unicode version ICU4X carries (`android.icu` is a stub here).
+    testImplementation(libs.icu4j)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

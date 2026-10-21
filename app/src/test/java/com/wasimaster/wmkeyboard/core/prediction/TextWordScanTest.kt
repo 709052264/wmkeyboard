@@ -109,6 +109,31 @@ class TextWordScanTest {
     }
 
     @Test
+    fun thaiIsScannedAsTheWordsItHolds() {
+        // "every two weeks", one run with no spaces.
+        val text = "ทุกสองสัปดาห์"
+        val result = scan(text)
+        assertEquals(listOf("ทุก", "สอง", "สัปดาห์"), result.words.map { it.key })
+        assertEquals(text.indexOf("สัปดาห์"), result.word("สัปดาห์").firstStart)
+        assertEquals("สัปดาห์".length, result.word("สัปดาห์").firstLength)
+        assertTrue(("ทุก" to "สอง") in result.pairs)
+        assertTrue(("สอง" to "สัปดาห์") in result.pairs)
+        assertTrue(Triple("ทุก", "สอง", "สัปดาห์") in result.triples)
+    }
+
+    @Test
+    fun pairsRunFromSpacedWordsIntoASegmentedRun() {
+        val result = scan("hello ทุกสอง")
+        assertTrue(("hello" to "ทุก") in result.pairs)
+        assertTrue(("ทุก" to "สอง") in result.pairs)
+    }
+
+    @Test
+    fun aRunMixingThaiWithChineseIsStillSkipped() {
+        assertEquals(listOf("hello"), scan("hello ทุก我们").words.map { it.key })
+    }
+
+    @Test
     fun emptyTextIsEmpty() {
         assertEquals(TextWordScan.Result.EMPTY, scan(""))
     }

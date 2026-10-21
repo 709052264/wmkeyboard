@@ -218,4 +218,23 @@ class WordContextTest {
         assertFalse(WordContext.isLearnableWord("12-34"))
         assertFalse(WordContext.isLearnableWord(""))
     }
+
+    // Thai puts no space after a word, so text ending in Thai letters is
+    // between words, and the words are the ones the segmenter finds.
+    @Test fun thaiContextIsTheSegmentedWords() {
+        val three = WordContext.lastThreeWords("ทุกสองสัปดาห์", enders)
+        assertEquals(Triple("สัปดาห์", "สอง", "ทุก"), three)
+        assertEquals(three, WordContext.lastThreeWords("ทุกสองสัปดาห์ ", enders))
+        assertEquals("สัปดาห์", before("ทุกสองสัปดาห์"))
+        assertEquals("สอง" to "ทุก", WordContext.lastTwoWords("ทุกสอง", enders))
+    }
+
+    @Test fun aShortThaiRunBorrowsTheWordsBeforeIt() {
+        assertEquals(Triple("สอง", "ทุก", "hello"), WordContext.lastThreeWords("Hello ทุกสอง", enders))
+        assertEquals(Triple("ทุก", "hello", "say"), WordContext.lastThreeWords("say hello ทุก", enders))
+        // A sentence boundary still ends the context.
+        assertEquals(Triple("ทุก", null, null), WordContext.lastThreeWords("Hello. ทุก", enders))
+        assertEquals(Triple("ทุก", null, null), WordContext.lastThreeWords("ทุก", enders))
+        assertEquals(WordContext.SENTENCE_START, before("ทุกสอง. "))
+    }
 }

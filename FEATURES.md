@@ -149,6 +149,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Word-key normalization `RARE` — One spelling per word across every store
     - Lowercase plus NFC — Bengali precomposed U+09DF vs decomposed nukta form would otherwise be two words
     - Applied at the store boundary, not the producer — Also covers pasted text and text typed on another keyboard
+    - The phone's fold, twice — Kotlin's WordKey on the typing path and a Rust twin on ICU4X (`word_key.rs`) for lexicon loads and WMK Desktop; the twin follows ART's CaseMapper (u_tolower per unit, one-character final-sigma check, full ICU lowercase only for İ or non-BMP text) and is held to it on every code point
   - Per-word language tag `RARE` — A learned word remembers the language it was typed under
     - Cross-language damp x3 — A learned-only word tagged for another language is handicapped, never banned
     - Damp is relative to the detected field language — In a Banglish field the English-tagged habits get damped instead
@@ -209,6 +210,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Sentence enders break the chain — "Hello. " yields a sentence-start sentinel, not "hello"
     - Combining marks count as word characters — Otherwise Bengali words ending in a vowel sign read as ending early
     - Trigram context degrades to bigram silently — prev2 is null across any boundary rather than guessed
+  - Words inside unspaced scripts `RARE` — Thai, Lao, Khmer and Burmese runs split into words by ICU4X's LSTM word segmenter in the Rust engine (310 KB of models, no download)
+    - Learned word by word — A committed run is learned as the words it holds and the pairs between them, unless the whole run is a word the keyboard knows
+    - Context read across a run — The word before the caret is the run's last word, the two before it the ones ahead, reading only the run's last 32 characters
+    - Learn from text reads them — Their runs are scanned as words instead of skipped; Chinese, Japanese, Tibetan and Javanese still skipped, and Burmese that is confidently Zawgyi
 - **Dictionaries and binary formats** `uncommon` — Two custom on-disk formats, both memory-mapped and read zero-copy
   - .wmdict v3 packed trie `RARE` — 5.9 bytes per node, down from 18.1 in v1
     - Memory-mapped, never parsed — Load time is one mmap call; resident memory is evictable page cache
@@ -2031,7 +2036,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Selection action Repeat — Opens the panel on the selection; on by default (LIST_VERSION 4)
   - Learn from text `RARE` — Lists the words in the field or selection the keyboard does not know, to add to the personal dictionary in one go (#174)
     - Selection, else the whole field — Password fields refused; a partial read or a list past 2,000 words says so
-    - Unknown means every source the engine asks — Active language mix, imported lists, personal and Android dictionaries, contacts, apps; blacklisted words, numbers, links and spaceless scripts skipped
+    - Unknown means every source the engine asks — Active language mix, imported lists, personal and Android dictionaries, contacts, apps; blacklisted words, numbers, links and Chinese/Japanese runs skipped; Thai, Lao, Khmer and Burmese runs read word by word
     - All rows checked, sortable — Select all/none; Most used, Text order or A to Z, remembered
     - Per-row Edit, Show in text, Never suggest, Ignore — Edit types into the panel's own buffer with glide blocked; Ignore lasts one scan
     - Add as by hand — Same path as Add word: out of the waiting room, off the blacklist, mirrored to Android when that is on

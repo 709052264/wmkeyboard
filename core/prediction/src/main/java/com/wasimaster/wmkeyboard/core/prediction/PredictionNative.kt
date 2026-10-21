@@ -94,9 +94,8 @@ internal object PredictionNative {
     external fun lexNew(): Long
     external fun lexClose(handle: Long)
 
-    /** `[Array<String> words to judge, Array<String> spellings to fold]`, or null for a file that is not a snapshot. */
-    external fun lexBeginLoad(handle: Long, json: String): Array<Any>?
-    external fun lexFinishLoad(handle: Long, learnable: BooleanArray, shapeKeys: Array<String>)
+    /** Reads a saved file into the store, folding and judging its words itself; false for a file that is not a snapshot. */
+    external fun lexLoad(handle: Long, json: String): Boolean
     external fun lexResetForReload(handle: Long)
     external fun lexFinishReload(handle: Long)
 
@@ -295,4 +294,14 @@ internal object PredictionNative {
         limit: Int,
         partial: Boolean,
     ): Array<Any>
+
+    // Words as Unicode sees them (words.rs): the Rust twins of [WordKey.of],
+    // [WordKey.surface] and [WordContext.isLearnableWord], and the word
+    // segmenter behind [WordSegments].
+    external fun wordKey(word: String): String
+    external fun wordSurface(word: String): String
+    external fun isLearnableWord(word: String): Boolean
+
+    /** The words of [text] as `[start0, end0, start1, end1, ...]`, UTF-16 offsets. */
+    external fun segmentWords(text: String): IntArray
 }

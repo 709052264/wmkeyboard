@@ -18,6 +18,8 @@
 //!   `NgramReranker`.
 //! - [`corrections`]: `PredictionNative` again, the stores autocorrect
 //!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
+//! - [`words`]: `PredictionNative` again, the word key, the learnability
+//!   gate and the word segmenter for Thai, Lao, Khmer and Burmese.
 //! - [`gif`]: `GifNative` (core/content), the GIF encoder behind
 //!   `GifEncoder`.
 //!
@@ -43,3 +45,4 @@ mod lexicon;
 mod rerank;
 mod sources;
 mod transliteration;
+mod words;

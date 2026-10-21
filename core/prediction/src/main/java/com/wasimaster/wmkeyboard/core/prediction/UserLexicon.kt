@@ -15,11 +15,11 @@ import java.io.File
  * The store is Rust (`wm-engine`'s `user_lexicon`, which WMK Desktop runs
  * too, behind [PredictionNative]'s `lex*` calls): the counts, the learning
  * rules (the case vote, the follower cap, compaction by decayed count) and
- * the file's format. This class keeps what needs the JVM: folding a word to
- * the key every store files it under ([WordKey]), judging which words may be
- * learned at all ([WordContext.isLearnableWord]), and the file itself
- * ([SnapshotFile]'s atomic writes). Every method takes a word in any
- * spelling, as before.
+ * the file's format, and on a load the folding and judging of the words the
+ * file holds. This class folds each word a caller passes to the key every
+ * store files it under ([WordKey]), judges which words may be learned at all
+ * ([WordContext.isLearnableWord]), and owns the file itself ([SnapshotFile]'s
+ * atomic writes). Every method takes a word in any spelling, as before.
  *
  * Thread-safe: the Rust store sits behind a read-write lock, and the
  * operations that span several calls (load, save, reload, clear) hold this
@@ -322,22 +322,16 @@ class UserLexicon(private val storageFile: File?) {
     }
 
     /**
-     * Reads the file into the store. The Rust side parses it and lists the
-     * words it holds; this side says which of them may be learned (the rest
-     * are dropped, once, as #185 did) and what each stored spelling folds to.
+     * Reads the file into the store. The Rust side parses it, drops the
+     * words that may not be learned (once, as #185 did) and keeps each
+     * capital spelling that still folds to its word, by the same rules as
+     * [WordContext.isLearnableWord] and [WordKey.of] (`word_key.rs`).
      */
     private fun load() {
         val file = storageFile ?: return
         if (!file.exists()) return
         val text = runCatching { file.readText() }.getOrNull() ?: return
-        val pending = PredictionNative.lexBeginLoad(native, text) ?: return
-        @Suppress("UNCHECKED_CAST")
-        val strings = pending[0] as Array<String>
-        @Suppress("UNCHECKED_CAST")
-        val shapes = pending[1] as Array<String>
-        val learnable = BooleanArray(strings.size) { WordContext.isLearnableWord(strings[it]) }
-        val shapeKeys = Array(shapes.size) { WordKey.of(shapes[it]) }
-        PredictionNative.lexFinishLoad(native, learnable, shapeKeys)
+        PredictionNative.lexLoad(native, text)
     }
 
     companion object {

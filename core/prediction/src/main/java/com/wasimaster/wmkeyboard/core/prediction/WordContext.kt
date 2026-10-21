@@ -150,13 +150,19 @@ object WordContext {
      *    and the caret ("Hello. " — the next word starts a sentence and
      *    "hello" is not its context). Known limitation, accepted: "Dr. "
      *    reads as a sentence start too;
-     *  - otherwise the last word, in the one spelling every store keys on
+         *  - otherwise the last word, in the one spelling every store keys on
      *    ("Hello, " -> "hello"). See [WordKey]: the text here is read back out
      *    of the field, so it can hold anything any keyboard or paste put there.
+     *
+     * Thai, Lao, Khmer and Burmese are the exception to "null while inside a
+     * word": they put no space after a word, so text ending in their letters
+     * is how the field looks *between* words, and the last word is the last
+     * one [WordSegments] finds in the run ("ไปกินข้าว" -> "ข้าว").
      */
     fun completedWordBefore(text: CharSequence?, enders: CharArray): String? {
         if (text == null) return null
         if (text.isEmpty()) return SENTENCE_START
+        segmentedContext(text, enders)?.let { return it.first }
         if (isWordChar(text.last()) || text.last().isDigit()) return null
         // The run of separators between the last word and the caret.
         var i = text.length - 1
@@ -170,6 +176,64 @@ object WordContext {
         return WordKey.of(text.subSequence(start, i + 1).toString()).ifEmpty { null }
     }
 
+    /**
+     * The context words when the run of letters nearest the caret is Thai,
+     * Lao, Khmer or Burmese: its last three words by [WordSegments], most
+     * recent first, the words before the run filling in when it holds fewer.
+     * Null for any other text, which the scans above read as before.
+     *
+     * The run is the one [completedWordBefore] would take as the last word:
+     * the letters at the very end of [text], or the last ones before the
+     * separators there. A sentence ender among those separators is a
+     * sentence start, which the plain path already answers.
+     */
+    private fun segmentedContext(text: CharSequence?, enders: CharArray): Triple<String?, String?, String?>? {
+        if (text.isNullOrEmpty() || text.last().isDigit()) return null
+        var end = text.length
+        if (!isWordChar(text.last())) {
+            var i = end - 1
+            while (i >= 0 && !isWordCharAt(text, i)) {
+                if (text[i] in enders) return null
+                i--
+            }
+            if (i < 0) return null
+            end = i + 1
+        }
+        var start = end
+        while (start > 0 && isWordCharAt(text, start - 1)) start--
+        // The segmenter's LSTM costs about 15 µs a character on a laptop, and
+        // backspace re-reads the context, so a long run is read only to its
+        // last [SEGMENTED_WINDOW] characters; the first piece of a cut window
+        // may be half a word, and is dropped.
+        val cut = end - start > SEGMENTED_WINDOW
+        val run = text.subSequence(if (cut) end - SEGMENTED_WINDOW else start, end).toString()
+        if (!WordSegments.hasSegmentedScript(run)) return null
+        val at = WordSegments.ranges(run)
+        val words = (at.indices step 2)
+            .drop(if (cut) 1 else 0)
+            .map { WordKey.of(run.substring(at[it], at[it + 1])) }
+            .filter { it.isNotEmpty() }
+        if (words.isEmpty()) return null
+        val n = words.size
+        if (n >= 3) return Triple(words[n - 1], words[n - 2], words[n - 3])
+        // A cut window that held fewer than three whole words: the rest of
+        // the run is unread, so there is nothing reliable before them.
+        if (cut) return Triple(words[n - 1], words.getOrNull(n - 2), null)
+        // Fewer than three: the words before the run fill in, with any
+        // boundary there (a sentence start) ending the context as usual.
+        val (outer1, outer2) = lastThreeWords(text.subSequence(0, start), enders)
+        val first = outer1?.takeUnless { isSentinel(it) }
+        val second = outer2?.takeIf { first != null }
+        return if (n == 2) {
+            Triple(words[1], words[0], first)
+        } else {
+            Triple(words[0], first, second)
+        }
+    }
+
+    /** How much of a Thai, Lao, Khmer or Burmese run [segmentedContext] reads: three long words and more. */
+    private const val SEGMENTED_WINDOW = 32
+
     /** True for the sentinel (or anything in its reserved control plane). */
     fun isSentinel(word: String?): Boolean = word != null && word.startsWith(SENTINEL_CHAR)
 
@@ -180,6 +244,7 @@ object WordContext {
      * trigram context silently degrades to bigram rather than guessing.
      */
     fun lastTwoWords(text: CharSequence?, enders: CharArray): Pair<String?, String?> {
+        segmentedContext(text, enders)?.let { return it.first to it.second }
         val prev1 = completedWordBefore(text, enders)
         if (prev1 == null || isSentinel(prev1)) return prev1 to null
         // Strip the trailing separators and prev1's own letters, then ask the
@@ -200,6 +265,7 @@ object WordContext {
      * nothing across a sentence end.
      */
     fun lastThreeWords(text: CharSequence?, enders: CharArray): Triple<String?, String?, String?> {
+        segmentedContext(text, enders)?.let { return it }
         val (prev1, prev2) = lastTwoWords(text, enders)
         if (prev2 == null) return Triple(prev1, null, null)
         val s = text.toString()

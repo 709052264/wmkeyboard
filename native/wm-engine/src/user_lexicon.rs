@@ -9,13 +9,12 @@
 //! files.
 //!
 //! **Keys come in folded.** Every word is stored under a key: lower case,
-//! then NFC. Folding needs Unicode tables this crate does not carry, so the
-//! caller folds (`WordKey.of` on the phone) and passes keys, and passes
-//! surfaces (`WordKey.surface`) only where they fold back to their key. In
-//! the same way the caller says which words are learnable at all
-//! ([`UserLexicon::finish_load`]); a word the caller refuses never reaches
-//! [`UserLexicon::learn_word`]. Lengths are UTF-16 units and strings order
-//! as UTF-16, as Kotlin's do.
+//! then NFC ([`word_key`]). The caller folds (`WordKey.of` on the phone) and
+//! passes keys, and passes surfaces (`WordKey.surface`) only where they fold
+//! back to their key; a word the caller finds unlearnable never reaches
+//! [`UserLexicon::learn_word`]. A load folds and judges on its own
+//! ([`UserLexicon::load`]), with the same rules. Lengths are UTF-16 units and
+//! strings order as UTF-16, as Kotlin's do.
 //!
 //! The walk trie ([`UserTrie`]) keeps exact counts and sorted children, as
 //! the Kotlin `Trie` does, so the fuzzy walk reads it exactly as it read
@@ -24,6 +23,7 @@
 use crate::completer;
 use crate::fuzzy::Walker;
 use crate::strict_math;
+use crate::word_key;
 use serde_json::{Map, Value};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
@@ -339,14 +339,6 @@ fn take(list: &[String], limit: usize) -> Vec<String> {
 }
 
 // ---- The store ---------------------------------------------------------------
-
-/// What a load needs the caller to answer before it can finish: whether
-/// each of `strings` is learnable, and what each of `shapes` folds to.
-pub struct PendingLoad {
-    snapshot: Snapshot,
-    pub strings: Vec<String>,
-    pub shapes: Vec<String>,
-}
 
 #[derive(Default)]
 pub struct UserLexicon {
@@ -940,49 +932,27 @@ impl UserLexicon {
         Value::Object(out).to_string()
     }
 
-    /// The first half of a load: parses `json` and lists what the caller has
-    /// to judge. `None` when the text is not a snapshot this format allows,
-    /// in which case nothing is loaded, as in Kotlin.
-    pub fn begin_load(json: &str) -> Option<PendingLoad> {
-        let snapshot = Snapshot::parse(json)?;
-        let mut seen: HashSet<String> = HashSet::new();
-        let mut add = |s: &str| {
-            if !seen.contains(s) {
-                seen.insert(s.to_string());
-            }
+    /// Reads `json` into this store as Kotlin's `load` did: junk dropped
+    /// once (and the store marked dirty for it), legacy skip stores renamed,
+    /// ages and capitals restored. False, with nothing loaded, when the text
+    /// is not a snapshot this format allows.
+    ///
+    /// Junk is a word [`word_key::is_learnable`] refuses that was neither
+    /// added by hand nor counted past the old by-hand boost; a remembered
+    /// capital spelling is kept only if it still folds to its word. Both
+    /// questions used to cross back to Kotlin between parsing and building,
+    /// as two calls; they are the same rules here.
+    pub fn load(&mut self, json: &str) -> bool {
+        let Some(snapshot) = Snapshot::parse(json) else {
+            return false;
         };
-        for word in snapshot.words.keys() {
-            add(word);
-        }
-        for (head, map) in &snapshot.bigrams {
-            add(head);
-            map.keys().for_each(|k| add(k));
-        }
-        for (context, map) in &snapshot.trigrams {
-            context.split(TRIGRAM_SEPARATOR).for_each(&mut add);
-            map.keys().for_each(|k| add(k));
-        }
-        for store in [&snapshot.skip1grams, &snapshot.skip2grams, &snapshot.legacy_skip3grams] {
-            for (head, map) in store {
-                add(head);
-                map.keys().for_each(|k| add(k));
-            }
-        }
-        let strings = seen.into_iter().collect();
-        let shapes = snapshot.word_case.values().cloned().collect::<HashSet<_>>().into_iter().collect();
-        Some(PendingLoad { snapshot, strings, shapes })
+        self.load_snapshot(snapshot);
+        true
     }
 
-    /// The second half: `learnable` answers for each of `pending.strings`,
-    /// `shape_keys` gives each of `pending.shapes` folded. Loads into this
-    /// store as Kotlin's `load` does: junk dropped once (and the store marked
-    /// dirty for it), legacy skip stores renamed, ages and capitals restored.
-    pub fn finish_load(&mut self, pending: PendingLoad, learnable: &[bool], shape_keys: &[String]) {
-        let PendingLoad { snapshot, strings, shapes } = pending;
-        let verdict: HashMap<&str, bool> = strings.iter().map(String::as_str).zip(learnable.iter().copied()).collect();
-        let folded: HashMap<&str, &str> = shapes.iter().map(String::as_str).zip(shape_keys.iter().map(String::as_str)).collect();
+    fn load_snapshot(&mut self, snapshot: Snapshot) {
         let junk = |word: &str| {
-            !verdict.get(word).copied().unwrap_or(true)
+            !word_key::is_learnable_str(word)
                 && !snapshot.added_by_hand.contains(word)
                 && snapshot.words.get(word).copied().unwrap_or(0) < STICKY_MIN_COUNT
         };
@@ -1040,7 +1010,7 @@ impl UserLexicon {
             let shape = snapshot
                 .word_case
                 .get(&word)
-                .filter(|shape| folded.get(shape.as_str()).copied() == Some(word.as_str()) && **shape != word);
+                .filter(|shape| **shape != word && word_key::of_str(shape) == word);
             match shape {
                 Some(shape) => {
                     self.word_case.insert(word.clone(), shape.clone());
@@ -1205,12 +1175,9 @@ fn repair_lone_surrogates(json: &str) -> String {
 mod tests {
     use super::*;
 
-    fn load(json: &str, learnable: impl Fn(&str) -> bool) -> UserLexicon {
-        let pending = UserLexicon::begin_load(json).expect("parses");
-        let verdicts: Vec<bool> = pending.strings.iter().map(|s| learnable(s)).collect();
-        let keys: Vec<String> = pending.shapes.iter().map(|s| s.to_lowercase()).collect();
+    fn load(json: &str) -> UserLexicon {
         let mut lexicon = UserLexicon::new();
-        lexicon.finish_load(pending, &verdicts, &keys);
+        assert!(lexicon.load(json), "parses");
         lexicon
     }
 
@@ -1227,7 +1194,7 @@ mod tests {
         assert_eq!(Some("en"), lex.language_of("boston"));
         let json = lex.prepare_save().expect("dirty");
         assert!(lex.prepare_save().is_none());
-        let back = load(&json, |_| true);
+        let back = load(&json);
         assert_eq!(3, back.frequency_of("boston"));
         assert_eq!(1, back.bigram_count("in", "boston"));
         assert_eq!(1, back.trigram_count("live", "in", "boston"));
@@ -1254,7 +1221,7 @@ mod tests {
     #[test]
     fn junk_is_dropped_on_load_and_legacy_skip_names_are_read() {
         let json = r#"{"words":{"ok":3,"bad!":2,"kept!":150},"bigrams":{"ok":{"bad!":1,"ok":2}},"skip2grams":{"ok":{"ok":4}},"skipSchema":0,"generation":7}"#;
-        let lex = load(json, |s| !s.ends_with('!'));
+        let lex = load(json);
         assert!(lex.is_dirty());
         assert_eq!(0, lex.frequency_of("bad!"));
         assert_eq!(150, lex.frequency_of("kept!"));
@@ -1265,13 +1232,31 @@ mod tests {
 
     #[test]
     fn a_wrong_type_fails_the_whole_file_and_a_lone_surrogate_is_repaired() {
-        assert!(UserLexicon::begin_load(r#"{"words":{"a":1.5}}"#).is_none());
-        assert!(UserLexicon::begin_load(r#"{"words":{"a":null}}"#).is_none());
-        assert!(UserLexicon::begin_load(r#"{"words":{"a":3000000000}}"#).is_none());
-        assert!(UserLexicon::begin_load(r#"{"words":{"a":1},"unknown":[1,2]}"#).is_some());
-        let pending = UserLexicon::begin_load(r#"{"words":{"x\ud83d":1,"😀":2}}"#).expect("repaired");
-        assert!(pending.strings.contains(&"x\u{FFFD}".to_string()));
-        assert!(pending.strings.contains(&"😀".to_string()));
+        for broken in [r#"{"words":{"a":1.5}}"#, r#"{"words":{"a":null}}"#, r#"{"words":{"a":3000000000}}"#] {
+            let mut lex = UserLexicon::new();
+            assert!(!lex.load(broken), "{broken}");
+            assert_eq!(0, lex.word_count());
+        }
+        assert!(UserLexicon::new().load(r#"{"words":{"a":1},"unknown":[1,2]}"#));
+        let snapshot = Snapshot::parse(r#"{"words":{"x\ud83d":1,"😀":2}}"#).expect("repaired");
+        assert!(snapshot.words.contains_key("x\u{FFFD}"));
+        assert!(snapshot.words.contains_key("😀"));
+    }
+
+    #[test]
+    fn a_load_folds_capitals_and_judges_words_itself() {
+        // A capital spelling is kept only where it folds to its word, by the
+        // runtime's fold: İ is i + U+0307, not i.
+        let json = r#"{"words":{"istanbul":5,"i\u0307stanbul":4,"οδο\u03c3":2,"οδο\u03c2":2,"x\u00a9":3},"wordCase":{"istanbul":"İstanbul","i\u0307stanbul":"İstanbul","οδο\u03c3":"ΟΔΟΣ","οδο\u03c2":"ΟΔΟΣ"}}"#;
+        let lex = load(json);
+        assert_eq!(None, lex.display_of("istanbul"));
+        assert_eq!(Some("İstanbul"), lex.display_of("i\u{307}stanbul"));
+        // ΟΔΟΣ folds with a final sigma.
+        assert_eq!(None, lex.display_of("οδο\u{3c3}"));
+        assert_eq!(Some("ΟΔΟΣ"), lex.display_of("οδο\u{3c2}"));
+        // ends on a symbol: junk, dropped once.
+        assert_eq!(0, lex.frequency_of("x\u{a9}"));
+        assert!(lex.is_dirty());
     }
 
     #[test]
