@@ -108,7 +108,15 @@ Long-press a chat to start picking several. Taps then tick chats on and off, and
 
 Nothing saved yet? You skip the empty list entirely and land in a new chat, because an empty list with one button on it isn't worth a screen. A chat is only written down on your first send, so opening one and backing straight out leaves no row behind.
 
-The first line of your first message becomes the title, cut to 48 characters on a word boundary. Rename a chat with its pencil, on the keyboard or here, to give it a name of your own, up to 80 characters.
+### Naming chats
+
+Until it has a better name, a chat is called after the first line of your first message, cut to 48 characters on a word boundary.
+
+With <SettingsPath path="Tools / AI writing tools / Auto-rename chats" /> on, the default, the model that answered names the chat once its first answer is in: a few words on what it's about, in the language you wrote your question in, even when the answer came back in another one. It's one more short request to the same model, with your first message and the answer, and it isn't made when [Data Saver](/privacy/data-saver/) would stop or question a send. If it fails, the first-line name stays.
+
+You can also ask the model to rename a chat ("call this chat Trip to Sylhet", "give this a better name"). It proposes a name with its **Rename chat** tool, and a card under the answer asks **Rename this chat to "…"?** with **Accept** and **Decline**. Nothing changes until you accept. On the keyboard, closing the keyboard while the card is up counts as Decline. The tool is offered only while Auto-rename chats is on.
+
+Rename a chat with its pencil, on the keyboard or here, to give it a name of your own, up to 80 characters. A name you typed, or one you accepted, is never replaced by an automatic one.
 
 ### Sending pictures
 

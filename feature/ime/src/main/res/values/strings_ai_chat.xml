@@ -265,4 +265,11 @@
     <!-- %1$s is the chat's title. -->
     <string name="ime_ai_chat_rename_desc">Rename %1$s</string>
     <string name="ime_ai_chat_rename_hint">The chat's new name</string>
+    <!-- The chat's rename_chat tool (#882): its record, and the card asking the user to accept the name. %1$s is the name. -->
+    <string name="ime_ai_tool_name_rename_chat">Rename chat</string>
+    <string name="ime_ai_tool_rename_chat_running">Renaming the chat to “%1$s”…</string>
+    <string name="ime_ai_tool_rename_chat_done">Renamed the chat to “%1$s”</string>
+    <string name="ime_ai_chat_rename_ask">Rename this chat to “%1$s”?</string>
+    <string name="ime_ai_chat_rename_accept">Accept</string>
+    <string name="ime_ai_chat_rename_decline">Decline</string>
 </resources>

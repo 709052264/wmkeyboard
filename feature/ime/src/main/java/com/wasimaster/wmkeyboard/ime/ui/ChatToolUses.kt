@@ -728,6 +728,11 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_reverse_image_search_running,
         R.string.ime_ai_tool_reverse_image_search_done,
     ),
+    AiTools.RENAME_CHAT to ToolLabels(
+        R.string.ime_ai_tool_name_rename_chat,
+        R.string.ime_ai_tool_rename_chat_running,
+        R.string.ime_ai_tool_rename_chat_done,
+    ),
 )
 
 /** The search tools, whose record wears the search mark. */
@@ -777,6 +782,9 @@ internal fun ApprovalCard(
     modifier: Modifier = Modifier,
 ) {
     val small = fontSize * SMALL
+    // A chat's new name (#882) is a yes or a no about one name, so the card
+    // asks just that, with no "always".
+    val rename = use.tool == AiTools.RENAME_CHAT && !use.isMcp
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -786,6 +794,26 @@ internal fun ApprovalCard(
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        if (rename) {
+            Text(
+                stringResource(R.string.ime_ai_chat_rename_ask, use.details),
+                color = colors.text,
+                fontSize = fontSize,
+                lineHeight = fontSize * LINE_HEIGHT,
+                fontWeight = FontWeight.Medium,
+            )
+            if (onApproval != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ApprovalButton(stringResource(R.string.ime_ai_chat_rename_decline), colors, small, strong = false) {
+                        onApproval(AiToolApproval.DENY)
+                    }
+                    ApprovalButton(stringResource(R.string.ime_ai_chat_rename_accept), colors, small, strong = true) {
+                        onApproval(AiToolApproval.ONCE)
+                    }
+                }
+            }
+            return@Column
+        }
         Text(
             if (use.isMcp) {
                 stringResource(R.string.ime_ai_chat_tool_mcp_ask, use.tool, use.server)

@@ -400,6 +400,15 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.chatEnterSends,
             ) { scope.launch { repository.setAiChatEnterSends(it) } }
         }
+        // The model that answered names the chat (#882), on both chats.
+        item {
+            ToggleSetting(
+                R.string.toolai_chat_auto_rename_title,
+                stringResource(R.string.toolai_chat_auto_rename_subtitle),
+                settings.watch { it.ai.chatAutoRename },
+                default = SettingsDefaults.ai.chatAutoRename,
+            ) { scope.launch { repository.setAiChatAutoRename(it) } }
+        }
     }
     SettingsGroup(stringResource(R.string.toolai_ai_actions_group_title)) {
         item {

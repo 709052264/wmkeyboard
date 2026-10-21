@@ -8495,6 +8495,11 @@ open class WMKeyboardService : InputMethodService() {
         jankMonitor.stop()
         // A drop made while the keyboard was up lasted until now.
         floatingButtonDismissed = false
+        // A chat name the model proposed on the keyboard's chat and nobody
+        // answered is declined as the keyboard goes (#882). Only from the
+        // panel: the app's own chat types with this keyboard too, and hiding
+        // it there is not an answer to anything.
+        if (_uiState.value.aiChatShown) AiChatController.declineRenameAsk()
         syncSummonButton()
         KeyboardControls.setUpOverOwnApp(false)
     }

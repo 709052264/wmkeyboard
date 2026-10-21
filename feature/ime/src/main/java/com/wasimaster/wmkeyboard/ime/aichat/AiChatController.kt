@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolApprovalGate
 import com.wasimaster.wmkeyboard.core.tools.AiToolApprover
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolProtocol
+import com.wasimaster.wmkeyboard.core.tools.AiTools
 import com.wasimaster.wmkeyboard.core.tools.AiToolResult
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
@@ -454,7 +455,78 @@ object AiChatController {
                 }
             }
             finishRun(appContext, conversationId, choice, user, seq, result)
+            if (result.isSuccess && seq == runSeq) autoTitle(appContext, settings, conversationId, choice)
         }
+    }
+
+    /**
+     * Names a chat from its first question and answer (#882), with the model
+     * that answered, in the language the user asked in: what "Auto-rename
+     * chats" does. Once only, after the first answer, and never over a name
+     * the user gave. A failure leaves the first line of the question, which
+     * the store titled the chat with already. Never held for Data Saver's
+     * question: a title is not worth asking about, so a send it would hold is
+     * simply not made.
+     */
+    private fun autoTitle(context: Context, settings: KeyboardSettings, conversationId: Long, choice: ModelChoice) {
+        if (!settings.ai.chatAutoRename) return
+        val conversation = store(context).get(conversationId) ?: return
+        if (conversation.titleByUser) return
+        val kept = conversation.messages.filter { !it.failed }
+        if (kept.size != 2 || kept[0].role != AiChatMessage.ROLE_USER || kept[1].role != AiChatMessage.ROLE_ASSISTANT) return
+        if (kept[1].content.isBlank()) return
+        if (cloudAiDecision(context, settings, choice) != MeteredDecision.ALLOWED) return
+        val exchange = "User:\n" + kept[0].content.take(TITLE_INPUT_CHARS) +
+            "\n\nAssistant:\n" + kept[1].content.take(TITLE_INPUT_CHARS)
+        scope.launch {
+            val raw = runCatching {
+                if (choice.provider == AiProvider.ON_DEVICE) {
+                    val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
+                        ?: return@runCatching ""
+                    LocalLlmEngine.generate(
+                        context, modelFile, settings.ai.localBackend, settings.ai.localContextTokens,
+                        AiPrompts.chatTitlePrompt(), exchange,
+                    )
+                } else {
+                    val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+                    val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT, reasoning = false)
+                    AiClient.completeStreaming(
+                        config, AiPrompts.chatTitlePrompt(), exchange, TITLE_MAX_TOKENS,
+                        onPhase = {}, onPartial = {},
+                    ).text
+                }
+            }.getOrNull() ?: return@launch
+            val title = cleanTitle(raw)
+            if (title.isEmpty()) return@launch
+            val store = store(context)
+            // The user may have named it while the title was being written.
+            if (store.get(conversationId)?.titleByUser != false) return@launch
+            if (store.rename(conversationId, title, byUser = false)) {
+                store.save()
+                touchStore()
+            }
+        }
+    }
+
+    /** A model's title as a chat's name: no reasoning, no quotes, one line, no full stop. */
+    internal fun cleanTitle(raw: String): String {
+        val line = AiThinking.parts(raw).output.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() } ?: return ""
+        return line
+            .removePrefix("Title:").removePrefix("title:").trim()
+            .trim('"', '\'', '“', '”', '«', '»', '*', '#', '`', ' ')
+            .trimEnd('.', '。', '।')
+            .trim()
+            .take(AiChatStore.MAX_RENAME)
+    }
+
+    /**
+     * Declines a `rename_chat` question still showing (#882): the keyboard's
+     * chat calls this as the keyboard closes, since a name nobody saw
+     * accepted is not one to keep. Other questions are left waiting.
+     */
+    fun declineRenameAsk() {
+        val asking = _run.value?.tools?.lastOrNull { it.awaitingApproval } ?: return
+        if (asking.tool == AiTools.RENAME_CHAT && !asking.isMcp) toolGate.answer(AiToolApproval.DENY)
     }
 
     /**
@@ -880,6 +952,18 @@ object AiChatController {
         scanner = settings.scanner,
         ocrReaders = if (settings.scanner.ocrEngine == OcrEngine.ONLINE) OnlineOcr.rows(settings) else emptyList(),
         semantic = settings.semanticSearch,
+        // The user accepted it on the card, so it counts as their name. Only
+        // with Auto-rename chats on, which the tool belongs to (#882).
+        renamer = { title: String ->
+            val store = store(context)
+            if (store.rename(conversationId, title, byUser = true)) {
+                store.save()
+                touchStore()
+                store.get(conversationId)?.title
+            } else {
+                null
+            }
+        }.takeIf { settings.ai.chatAutoRename },
     )
 
     /**
@@ -994,4 +1078,10 @@ object AiChatController {
     }
 
     private const val AI_PARTIAL_INTERVAL_MS = 120L
+
+    /** How much of the first question and answer a title is written from. */
+    private const val TITLE_INPUT_CHARS = 1500
+
+    /** A title is a few words; this is room for those and a reasoning model's preamble. */
+    private const val TITLE_MAX_TOKENS = 256
 }
