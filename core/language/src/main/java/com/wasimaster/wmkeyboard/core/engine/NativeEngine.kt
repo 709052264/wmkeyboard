@@ -141,7 +141,24 @@ object NativeEngine {
         return nativeDotRows(query, matrix, dim, out)
     }
 
+    /**
+     * The photo editor's 3x3 sharpen of rows [first] until [first] + [count]
+     * of [src] ([width] ARGB colour ints a row, neighbours clamped to its
+     * edges) into [out], in one call, with NEON on arm64. Bit for bit what
+     * `PhotoEditRenderer.sharpenRows` gives. False, writing nothing, when the
+     * library is missing or [useNative] is off: the caller then runs that
+     * Kotlin loop itself.
+     */
+    fun sharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Boolean =
+        useNative && try {
+            nativeSharpen(src, width, first, count, amount, out) == count
+        } catch (_: UnsatisfiedLinkError) {
+            // A library built before the kernel existed: the Kotlin loop still works.
+            false
+        }
+
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
+    private external fun nativeSharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Int
 }

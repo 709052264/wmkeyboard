@@ -164,7 +164,7 @@ Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order
 
 | Kernel | Kotlin cost (host) | How often | Verdict | Expected NEON gain |
 |---|---|---|---|---|
-| Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **port** | 10x or more: a 3×3 integer stencil on 16 u8 lanes, no gathers. A RuntimeShader would also do it on API 33+ |
+| Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **done** (`kernels/sharpen.rs`) | measured 18x at 2048 px and 11x at 12 MP in the renderer's bands (host); see the status line below |
 | Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **done** (f32; int8 measured and not adopted, see below) | measured 7-8x per search: 0.094 / 0.48 / 2.0 ms on the host |
 | OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page |
 | GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
@@ -178,6 +178,49 @@ Phase 2 already moves them.
 Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
 Kernel sessions may start in the order above. Embedding dot products: done
 (f32), host numbers only.
+
+**Sharpen: done 2026-10-21, host only.** `kernels::sharpen::sharpen_argb`,
+`NativeEngine.sharpen` (false without the library or with `useNative` off,
+and `PhotoEditRenderer.sharpenRows` runs instead), one call per 256-row band
+of `sharpenInPlace`. The Kotlin channel maths is `f32`, not integer, so the
+kernel is too: `ld4` splits sixteen pixels into channel registers, the
+neighbour sum is exact in `u16`, and the multiply, add and round run on four
+`f32` lanes in Kotlin's order with no fused multiply-add. `fcvtas` rounds
+half away from zero, which is `Math.round` for everything not clamped to 0.
+The output is bit for bit Kotlin's: Rust tests cover every tail width,
+1 to 5 rows and every centre value against every neighbour sum at each
+slider step, and the harness compares the JVM loop with the native call on
+both photo sizes at all 20 steps. Same-run host numbers (the machine was
+shared, load 10 to 12 on 8 cores, so the Kotlin side read 1.2 to 1.4x slower
+than Phase 0's):
+
+| Case | Kotlin | Native, one call | Native, 256-row bands |
+|---|---|---|---|
+| 2048 × 1536 | 96 ms | 4.4 ms (22x) | 5.3 ms (18x) |
+| 4000 × 3000 | 307 ms | 19.5 ms (16x) | 27.7 ms (11x) |
+
+The bands column copies each band into a fresh array, as `getPixels` does,
+and is the shape the renderer runs; the bands stay so a 12 MP picture is never
+held as one 48 MB `IntArray`. Phone column owed (`run.sh device` now pushes
+the arm64 `.so` and names it with `WM_ENGINE_LIB`). Library growth over
+main's build with the glide decoders: arm64 +4,400 bytes, armv7 +2,160,
+x86_64 +3,304. armv7 and x86_64 run the Rust
+scalar reference, unmeasured.
+
+A RuntimeShader on API 33+ was not built. It does not fit `base()`, which
+draws on a software canvas so the vignette, grain and later layers can share
+it; on that canvas Skia would interpret the shader per pixel on the CPU, and
+the GPU route means uploading the picture, rendering through a
+`HardwareRenderer` and reading 48 MB back at 12 MP before the next software
+stage. It also cannot match Kotlin: AGSL sees premultiplied colours as
+normalised floats (half precision allowed) and Skia rounds them back its own
+way, so API 33+ and older devices would sharpen differently. It cannot be
+timed on the host either (no Android graphics there), and the phone is not
+paired. So NEON runs on every API level. What is left on a phone is
+`getPixels`/`setPixels`, which unpremultiply and premultiply every pixel, a
+cost the host harness cannot see and the phone run should time; locking the bitmap's own pixels
+(`AndroidBitmap_lockPixels`) would remove both copies but changes results
+for translucent pixels, so measure it on the phone first.
 
 ### Embedding dot products (done, f32)
 

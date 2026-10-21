@@ -12,6 +12,7 @@
 
 package com.wasimaster.wmkeyboard.bench
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.gesture.CtcGlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetWorkspace
@@ -31,7 +32,6 @@ import com.wasimaster.wmkeyboard.core.ocr.PaddleRuntime
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
-import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.stickers.CutoutMask
@@ -321,14 +321,43 @@ object Phase0Bench {
             }
         }
 
-        // PhotoEditRenderer.sharpenInPlace's inner loop, copied onto one
-        // IntArray (the real one bands through getPixels/setPixels, and
-        // android.graphics.Color's accessors are the same shifts inlined).
+        // PhotoEditRenderer.sharpenRows, copied onto one IntArray
+        // (android.graphics.Color's accessors are the same shifts inlined;
+        // sharpenInPlace bands it through getPixels/setPixels), then the
+        // Rust kernel behind NativeEngine.sharpen on the same pixels: the
+        // whole frame in one call, and in sharpenInPlace's 256-row bands.
         for ((pw, ph) in listOf(4000 to 3000, 2048 to 1536)) {
             val src = photo(pw, ph)
             val dst = IntArray(src.size)
-            bench("PhotoEdit sharpen ${pw}x$ph (copied loop)", if (pw == 2048) "per adjust change in the editor preview, sharpen > 0" else "per photo sent with sharpen > 0") {
+            val often = if (pw == 2048) "per adjust change in the editor preview, sharpen > 0" else "per photo sent with sharpen > 0"
+            bench("PhotoEdit sharpen ${pw}x$ph (copied loop)", often) {
                 sharpen(src, dst, pw, ph, 0.5f * 1.6f)
+            }
+            if (!NativeEngine.useNative) continue
+            val native = IntArray(src.size)
+            for (step in 1..20) {
+                val a = step * 0.05f * 1.6f
+                sharpen(src, dst, pw, ph, a)
+                check(NativeEngine.sharpen(src, pw, 0, ph, a, native)) { "native sharpen refused the frame" }
+                val wrong = dst.indices.count { dst[it] != native[it] }
+                check(wrong == 0) { "native sharpen differs from Kotlin at $wrong of ${dst.size} pixels, a=$a" }
+            }
+            println("  native sharpen ${pw}x$ph: bit for bit Kotlin's at all 20 slider steps")
+            bench("PhotoEdit sharpen ${pw}x$ph (NativeEngine, one call)", often) {
+                NativeEngine.sharpen(src, pw, 0, ph, 0.5f * 1.6f, native)
+            }
+            bench("PhotoEdit sharpen ${pw}x$ph (NativeEngine, 256-row bands)", often) {
+                var y0 = 0
+                while (y0 < ph) {
+                    val count = min(256, ph - y0)
+                    val top = max(0, y0 - 1)
+                    val bottom = min(ph, y0 + count + 1)
+                    val band = src.copyOfRange(top * pw, bottom * pw)
+                    val out = IntArray(count * pw)
+                    NativeEngine.sharpen(band, pw, y0 - top, count, 0.5f * 1.6f, out)
+                    System.arraycopy(out, 0, native, y0 * pw, out.size)
+                    y0 += count
+                }
             }
         }
     }

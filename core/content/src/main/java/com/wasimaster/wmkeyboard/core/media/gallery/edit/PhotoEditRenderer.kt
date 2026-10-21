@@ -19,6 +19,7 @@ import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -466,9 +467,9 @@ object PhotoEditRenderer {
      * A 3x3 sharpen, in bands of rows so a large picture is never copied into
      * one array whole. Each band reads one row either side of what it writes,
      * and the row above comes from the previous band's saved copy rather than
-     * the bitmap that band has already rewritten.
+     * the bitmap that band has already rewritten. Each band is one call into
+     * the native kernel (NEON on arm64), or [sharpenRows] without it.
      */
-    @Suppress("detekt.NestedBlockDepth")
     fun sharpenInPlace(bitmap: Bitmap, amount: Float) {
         val w = bitmap.width
         val h = bitmap.height
@@ -487,27 +488,39 @@ object PhotoEditRenderer {
             val lastSrc = IntArray(w)
             System.arraycopy(src, (y1 - 1 - readTop) * w, lastSrc, 0, w)
             val out = IntArray(w * (y1 - y0))
-            for (y in y0 until y1) {
-                val sy = y - readTop
-                val up = if (y == 0) sy else sy - 1
-                val down = if (y == h - 1) sy else sy + 1
-                for (x in 0 until w) {
-                    val c = src[sy * w + x]
-                    val l = src[sy * w + max(0, x - 1)]
-                    val r = src[sy * w + min(w - 1, x + 1)]
-                    val u = src[up * w + x]
-                    val d = src[down * w + x]
-                    out[(y - y0) * w + x] = Color.argb(
-                        Color.alpha(c),
-                        sharpenChannel(Color.red(c), Color.red(l), Color.red(r), Color.red(u), Color.red(d), a),
-                        sharpenChannel(Color.green(c), Color.green(l), Color.green(r), Color.green(u), Color.green(d), a),
-                        sharpenChannel(Color.blue(c), Color.blue(l), Color.blue(r), Color.blue(u), Color.blue(d), a),
-                    )
-                }
-            }
+            val first = y0 - readTop
+            if (!NativeEngine.sharpen(src, w, first, y1 - y0, a, out)) sharpenRows(src, w, first, y1 - y0, a, out)
             bitmap.setPixels(out, 0, w, 0, y0, w, y1 - y0)
             prevRow = lastSrc
             y0 = y1
+        }
+    }
+
+    /**
+     * Rows [first] until [first] + [count] of [src] ([w] pixels a row)
+     * sharpened into [out]. A pixel's neighbours are clamped to [src]: the
+     * row above its first row is that row itself, and so on, so a band
+     * passes one row of the picture either side of the rows it writes. The
+     * Kotlin twin of [NativeEngine.sharpen], which must match it bit for bit.
+     */
+    fun sharpenRows(src: IntArray, w: Int, first: Int, count: Int, a: Float, out: IntArray) {
+        val rows = src.size / w
+        for (sy in first until first + count) {
+            val up = if (sy == 0) sy else sy - 1
+            val down = if (sy == rows - 1) sy else sy + 1
+            for (x in 0 until w) {
+                val c = src[sy * w + x]
+                val l = src[sy * w + max(0, x - 1)]
+                val r = src[sy * w + min(w - 1, x + 1)]
+                val u = src[up * w + x]
+                val d = src[down * w + x]
+                out[(sy - first) * w + x] = Color.argb(
+                    Color.alpha(c),
+                    sharpenChannel(Color.red(c), Color.red(l), Color.red(r), Color.red(u), Color.red(d), a),
+                    sharpenChannel(Color.green(c), Color.green(l), Color.green(r), Color.green(u), Color.green(d), a),
+                    sharpenChannel(Color.blue(c), Color.blue(l), Color.blue(r), Color.blue(u), Color.blue(d), a),
+                )
+            }
         }
     }
 
