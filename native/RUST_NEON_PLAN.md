@@ -165,7 +165,7 @@ Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order
 | Kernel | Kotlin cost (host) | How often | Verdict | Expected NEON gain |
 |---|---|---|---|---|
 | Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **port** | 10x or more: a 3×3 integer stencil on 16 u8 lanes, no gathers. A RuntimeShader would also do it on API 33+ |
-| Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **port** | 4-8x on the dots with `vfmaq_f32`; at 20k the f32 scan is 61 MB and memory-bound, so int8 + `sdot` (also 4x less memory) is what reaches the top of that. `dot_rows_f32` and `dot_i8` already exist. Keep the top-k in Kotlin, or select instead of sorting |
+| Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **done** (f32; int8 measured and not adopted, see below) | measured 7-8x per search: 0.094 / 0.48 / 2.0 ms on the host |
 | OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page |
 | GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
 | Glide shape scoring (`GlideBeam`, `DuetBeam`, `CtcGlideBeam`) | 2.2 / 6.7 ms per decode, 7.6 / 19.7 ms per stroke of previews; the distance loop is 1 µs | per swipe | **skip as a Phase 1 kernel**; Phase 2 step 4 ports the decoders | the time is in `advance`, a banded min-plus DP called per trie node. A JNI call per node would cost more than it saves, so vectorise its band (4-lane min/select, perhaps 2x on a decode) inside the Rust decoder |
@@ -176,7 +176,62 @@ None is "port only for desktop": the glide decoders are the shared piece, and
 Phase 2 already moves them.
 
 Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
-Kernel sessions may start in the order above.
+Kernel sessions may start in the order above. Embedding dot products: done
+(f32), host numbers only.
+
+### Embedding dot products (done, f32)
+
+`VectorIndex` keeps its vectors in one row-major `FloatArray` and scores
+them with `NativeEngine.dotRows` in one crossing; the Kotlin loop stays as
+the fallback when `useNative` is off. Callers now ask
+`search(query, tuning, accept)`, which returns exactly what
+`MeaningRank.select(score(...))` did, hits and order: the median comes from
+a quickselect and only the hits over the bar are ranked, at most the
+tuning's limit, so no `Hit` per item and no full sort. `VectorIndexParityTest`
+holds the kernel to the Kotlin loop (same hits and order, scores within
+`dot.rs`'s 1e-5; neighbours closer than that may trade places) and `search`
+to `select`. The `.so` did not change: `dot_rows_f32` and `nativeDotRows`
+came with the shared infrastructure.
+
+Host numbers from the Phase 0 harness (`only=vector`, same machine and
+load for both columns). "Before" is `score` alone; the old callers then
+also ran `select`, whose median sorted a boxed copy of every score.
+
+| Vectors × 768 | Before (Kotlin `score`) | After, Kotlin fallback (`search`) | After, NEON (`search`) | Heap before / after (read from file) |
+|---|---|---|---|---|
+| 1k | 0.69 ms | 0.63 ms | 0.094 ms | 3 / 4 MB (GC noise at this size) |
+| 5k | 3.70 ms | 3.18 ms | 0.48 ms | 16 / 17 MB |
+| 20k | 16.9 ms | 12.8 ms | 2.03 ms | 64.5 / 65.5 MB |
+
+An index built a batch at a time grows by an eighth, so it holds at most
+an eighth more than it needs (71.8 MB at 20k); `read` sizes it exactly. The
+file format did not change.
+
+**int8, measured and not adopted.** The test was the brief's: adopt only if
+the top hits stay essentially identical. Inputs were real EmbeddingGemma 2
+outputs: 4,200 documents (docs-site paragraphs, and the app's strings in
+English, Bengali and French as short clip-like texts) and 380 queries
+(headings and 2-4 word fragments), embedded with the models release's text
+encoder through Python LiteRT, plus the 1,716 shipped emoji vectors. Each
+variant ran through a float32 copy of `MeaningRank.select` with the
+shipped tunings and was compared with f32:
+
+| Storage | Top hit changed (text / emoji / sticker tags) | Kept-set Jaccard | Largest score error |
+|---|---|---|---|
+| int8 per vector, int8 query (`sdot`) | 2.1% / 2.6% / 4.3% | 0.93-0.97 | 0.0050 |
+| int8 after centring and a block-Hadamard rotation | 0.5% / 0.3% / 1.1% | 0.984-0.995 | 0.0014 |
+| fp16 | 0% / 0% / 0.1% | 0.997-0.998 | 0.00016 |
+
+The model's vectors share one direction (the mean vector's norm is 0.82)
+and one dimension carries a large share (largest magnitude 0.31, against
+an RMS of 0.036), so a per-vector int8 step is about 9x coarser than a
+typical value. The tunings separate hits that sit 0.01-0.02 apart (the
+median gap between the first and second hit is 0.015), and an error of a
+few thousandths reorders them. The int8 build was fast, 0.029 / 0.17 /
+0.77 ms per search with 22 MB at 20k, but it changed what people would see.
+fp16 rows (half the memory, widened to f32 with `vcvt` and summed with
+`vfmaq_f32`) keep the ranking and would be the next step if the 20k scan
+matters on a phone.
 
 ## Phase 2: prediction core in Rust
 
