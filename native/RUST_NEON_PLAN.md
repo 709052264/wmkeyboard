@@ -31,6 +31,8 @@ per keystroke, stays in Kotlin unless Phase 2 moves it for desktop sharing.
 
 Status: host JVM measured 2026-10-21; phone not measured yet (the CPH2481's
 wireless-debugging pairing had lapsed, and the device pass was skipped).
+Round 2 (below) ran the phone for its own candidates, VectorIndex and the
+glide decoders included.
 
 **Harness:** `native/bench/phase0/` (`Phase0Bench.kt`, `run.sh`), outside
 Gradle and never shipped. `run.sh host` compiles it with the Kotlin compiler
@@ -782,6 +784,213 @@ segmentation Thai, Lao, Khmer and Burmese prediction lacked. ICU4X 2.3
   segmenter's Chinese/Japanese dictionary and the other break iterators
   are named by constructors this crate never calls.
 
+## Round 2: NEON after the ports
+
+Phase 2 moved prediction and every glide decoder into Rust, and new
+per-pixel Kotlin landed since Phase 0 (the camera tools, the upscaler,
+frosted glass, Telegram's video stickers). This round measured all of it
+the Phase 0 way and ported only what cleared the bar (about 1 ms per action
+or 0.3 ms per keystroke, and over 1% of the action it belongs to).
+
+**Harness additions** (`native/bench/phase0`): groups `frost`, `upscale`,
+`webm`, `fuzzy` and `duet` run on host and phone; `renderfx`, `camera`
+and `webp` are phone only (they need Android's graphics). `run.sh device`
+takes `ENGINE_SO` (an arm64 library to push instead of the committed one,
+for before and after on the same harness) and `PIN` (a `taskset` mask;
+`c0` is the CPH2481's two A76 cores). It compiles the fuzzy walk's bridge
+from source, so a checkout whose `core/*` jars predate the library still
+matches it. The copied `buildCosts` loop went: its workspace is Rust now.
+
+**The phone.** The CPH2481 is a MediaTek Helio G99 (MT6789: two Cortex-A76
+at 2.2 GHz, six A55 at 2.0 GHz), Android 15. It is far slower than the
+M-series host: ART runs the Kotlin loops 4 to 13 times slower, and Rust 3
+to 4 times. Unpinned runs wander between the core types, so a phone
+median moves by up to 1.5x between runs (CtcGlideBeam, which nothing here
+touched, read 4.6 to 8.0 ms); pinned runs are steadier but still noisy.
+The phone dropped off adb once in the middle; every column was run once
+it was back.
+
+| Candidate | Host | Phone (G99) | How often | Verdict |
+|---|---|---|---|---|
+| Glide DP band (`GlideBeam` advance + `build_remain`, `DuetBeam` advance) | Rust decode 1.85 ms, previews 6.4 ms, DuetBeam 1.1 ms; the band is 94% of a GlideBeam decode (advance 65%, build_remain 28%) and 90% of DuetBeam | decode 5.4-6.8 ms, six previews 22-31 ms, DuetBeam 3.6-4.5 ms | per swipe; previews while the finger moves | **port**, done |
+| WebM frames (`WebmFrames.rgbOf`, `lumaOf`, `compose`) | 3.0-3.3 / 0.017 / 0.11 ms a 512 px frame | 14.7 / 3.2 / 0.64 ms a frame, about 90 frames a sticker | per video sticker imported or sent | **port** `rgbOf`, done; `lumaOf` a Kotlin fix; `compose` stays |
+| Frosted glass (`FrostBake.boxBlur`, three passes on the quarter-size board) | 1.15 ms portrait board, 5.8 ms a whole QHD screen | 7-9 ms portrait, 19-24 landscape, 22-39 tablet, 45-59 QHD | per bake (theme, wallpaper or slider step), cached | **port**, done; RenderEffect compared |
+| Upscaler glue (`UpscaleTiles` input/output, `UpscaleEngine`'s alpha merge, `bleed`) | 3.4 ms a 512 px ×2 pass, merge 1.2 ms, bleed 27 ms | 40 ms a pass, merge 4.8 ms, bleed 114 ms; 1080p pass 221 ms | per upscale, beside a network of about 1-3 s (512 px) to 10+ s (1080p) on this phone | **port** input/output/merge, done; `bleed` a Kotlin fix |
+| `VectorIndex` with fp16 rows | f32 1.83 ms, fp16 0.91 ms at 20k × 768 (memory halves) | f32 5.9-6.2 ms, fp16 3.9 ms (the whole search 7.5 ms) | per meaning search | **not adopted**: rankings (below) |
+| Fuzzy walk (`fuzzy::search_units`) | 0.32 ms a whole typo word, 0.045 ms a prefix | 1.08 ms a whole word, 0.19 ms a prefix | per keystroke | **skip as a kernel**: no rows to vectorise (below) |
+| Camera frames, QR | no Kotlin per pixel | no Kotlin per pixel | 30 fps while scanning | **nothing to port**: the Y plane goes to zxing-cpp in one crossing already |
+| Camera frames, OCR | a still, not a stream | rotating the 12 MP still 470 ms, `getPixels` 50 ms, both Skia | per capture | **nothing to port** in Kotlin: CameraX's `toBitmap` (libyuv) and Skia, then the pipeline Phase 1 ported. The rotate is worth a look outside this plan (see below) |
+| `AnimatedWebpToGif` | no Kotlin per pixel | a 512 px frame: decode 5.6 ms, draw, scale and `getPixels` 1.4 ms, `GifEncoder` 6.5 ms | per animated sticker into a GIF field | **nothing to port**: decode, draw and scale are Skia, `getPixels` a copy, the encoder Rust since Phase 1 |
+
+### Glide band (done)
+
+`kernels::band` (`min_arc`, `min_steps`, `min_ahead`) is the inner loop of
+`GlideBeam`'s `advance` and `build_remain` and `DuetBeam`'s `advance`: the
+cheapest way into one sample from the band of samples the previous letter
+may have ended on, charged for the gap between the distance the finger
+travelled and the distance between the keys. With `gap_window` 14 the band
+is about thirty samples, so it vectorises along the band, four samples a
+step, not per trie node (no extra crossing: the decoders are Rust).
+
+- Exact by construction: the same `f32` operations in the same order
+  (`(arc_j - arc_i) - span`, `|gap| - ease`, `weight * over`, no fused
+  multiply-add), unreachable samples masked to the cut, and a minimum,
+  which over the same values is the same value in any order. There is no
+  NaN, and no `-0.0` (a charge is `+0.0` or positive). Sample 0 (eased by
+  the lead) and `build_remain`'s last sample (eased by the end anchor) stay
+  scalar beside the kernel call. `build_remain` reads a key's costs and
+  remainders along the samples, so the workspace keeps those two tables
+  transposed for the near keys (`point_cost_t`, `remain_t`).
+- Tests: each kernel against its reference bit for bit over every tail
+  length, ties on the ease and signed zeros; and
+  `glide::kernel_parity`, 150 swipes decoded with the kernels pinned to
+  scalar and not (finished, with look-ahead, six previews each, DuetBeam
+  whole and partial), equal. A planted 1e-4 error in the NEON charge fails
+  it. `NativeGlideParityTest` (production against the Kotlin oracles) and
+  the whole `core.gesture.eval` family (18 suites) ran twice through
+  Gradle, once with `WM_NATIVE=kotlin` (the kernels pinned to their
+  references, so the old arithmetic; the test JVM's environment was
+  checked) and once with NEON: all green both times, and every report
+  under `build/reports/gestureeval` and every line the suites print,
+  timing lines aside, byte-identical.
+- Speed: the Phase 0 harness against a build of the library before this
+  round, alternating, two runs each. CtcGlideBeam, which this does not
+  touch, is the control. Host (load 3.6-4.1): GlideBeam decode 1.82 to
+  0.72-0.85 ms (p95 5.9 to 1.8-2.3), six previews 6.3 to 2.8-3.3 ms,
+  DuetBeam 1.10-1.12 to 0.37 ms (p95 5.7 to 1.6); CtcGlideBeam 1.89 both.
+  Phone, pinned to the A76s: decode 6.4-6.9 to 2.3-3.4 ms, previews 22-29
+  to 8.6-14.0 ms, DuetBeam 3.6-5.0 to 1.7-1.9 ms; CtcGlideBeam 4.6-6.9
+  both. `GestureLatencyBench` in the two Gradle runs read 4.4 to 0.88 ms
+  a decode and 16.4 to 3.5 ms a stroke, but the first run shared the
+  machine with its own compile, so the harness numbers are the fair ones.
+- Size: arm64 +3,776 bytes on its own.
+
+### WebM frames (done)
+
+`WebmFrames.rgbOf` read three bytes a pixel through `ByteBuffer.get`.
+`NativeEngine.yuvToRgb` takes the `Image` planes as they are (direct
+buffers, each up to its limit, with its strides and the crop corner): one
+crossing a frame and no copy, the shape the brief asked for camera frames
+too. `kernels::yuv` converts sixteen pixels a step: `ld2` takes every other
+byte of an interleaved chroma plane, the sums run in `i32` lanes as
+Kotlin's `Int`s do, the shift is arithmetic and two saturating narrows
+are `coerceIn(0, 255)`. Integer arithmetic, so the output is bit for bit
+the loop's. A read past any plane is refused before anything is written,
+and the Kotlin loop runs (as it does without the library or with the
+native path off), so a malformed frame still fails where it failed.
+NEON needs a luma pixel stride of 1, an even crop left and chroma strides
+of 1 or 2; anything else takes the scalar reference. `lumaOf` copies whole
+rows with a bulk `get` when the luma bytes sit side by side: a Kotlin
+change, no kernel.
+
+- Tests: sizes, crops, I420 and semi-planar planes with row padding and
+  buffers ending at their last byte, and every luma and chroma value
+  through each lane; `NativeEngineTest` against `WebmFrames`' loop on
+  direct buffers, heap buffers and short planes refused.
+- Host: 3.0-3.3 to 0.11-0.12 ms a frame (27x); `lumaOf` 0.017 to 0.012
+  ms. Phone, pinned: 11.5-13.8 to 0.40 ms a frame, `lumaOf` 2.4 to 0.19
+  ms, so a 90-frame sticker's conversion goes from about 1.3 s to 50 ms.
+- `compose` (0.64 ms a frame on the phone, about 58 ms a sticker) stays:
+  it is one pass over two arrays, close to what the memory allows.
+
+### Frosted glass (done)
+
+`NativeEngine.boxBlur` runs `FrostBake`'s three passes in one crossing;
+`kernels::box_blur` slides four rows' windows side by side for the
+horizontal box and sixteen channels (four columns) for the vertical one.
+Each channel's `sum / window` is `(sum * ceil(2^24 / window)) >> 24`,
+exact for every sum a window of up to 256 pixels holds (the test checks
+all of them); a wider window takes the reference. Bit for bit the Kotlin,
+which stays the fallback. `core/theme` now depends on `core/language` for
+the engine, and its tests build the host library.
+
+- RenderEffect, measured on the phone (Android 15) through a
+  `HardwareRenderer` into an `ImageReader`, quarter-size board, radius 8:
+  4.0 ms GPU-only and 8.4 ms with the pixels read back for a portrait
+  board, 8.5 and 19.6 ms for a whole QHD screen, against NEON's 1.1 and
+  11.4-11.9 ms pinned to the A76s. It is also a different picture (every
+  pixel differs, by 2.5 levels a channel on average and up to 6), and
+  only on API 31+, where `FrostBake` promises the same glass on Android 8
+  as on 15. NEON is the faster correct path, so RenderEffect is not used.
+- Host: 1.15 to 0.26 ms a portrait board, 2.1 to 0.46 landscape, 3.8 to
+  0.79 tablet, 5.8 to 1.3 ms a QHD screen. Phone, pinned: 6.9-7.4 to
+  1.1 ms portrait, 24 to 5.6-6.8 landscape, 23-39 to 4.7-5.6 tablet,
+  45-51 to 11.4-11.9 ms QHD.
+
+### Upscaler (done)
+
+`kernels::upscale`: a tile's input as RGB planes (an IEEE divide by 255,
+edge pixels repeated outside), the network's answer back to opaque ARGB
+(`fcvtas`, which rounds a tie away from zero and so differs from
+`Math.round` only on negative ties, which the clamp sends to 0 either way)
+and `UpscaleEngine`'s alpha merge (the grey's mean as a multiply-shift
+exact for every sum). One crossing a tile each, through
+`NativeEngine.upscaleInput` / `upscaleOutput` / `mergeAlpha`, bit for bit
+the Kotlin, which stays the fallback. `UpscaleTiles.bleed` searched the
+whole picture once per ring, sixteen rings, through boxed lists; a ring
+can only lie beside what the ring before it added, so it is now gathered
+from there. Same result (the test keeps the old scan as its reference),
+and a Kotlin change, not a kernel.
+
+- Host: a 512 px ×2 pass's glue 3.4 to 0.56 ms, a 1024 px pass 13.0 to
+  2.2, a 1080p pass 26 to 4.4 ms; the alpha merge about 2x (it is mostly
+  memory); `bleed` on a 512 px sticker 27 to 2.6 ms. Phone, pinned: a
+  512 px pass 38 to 27 ms (what is left is the stand-in network's copy
+  and a fresh array per tile), a 1024 px pass 121 to 47, a 1080p pass 232
+  to 79 ms; the merge 5.3 to 2.7 ms at 1024 px and unchanged at 4K
+  (memory); `bleed` 114 to 11 ms. A 512 px sticker ×2 with alpha spends
+  about 40 ms around its network instead of about 160.
+
+### fp16 rows for `VectorIndex` (not adopted)
+
+Speed, from a standalone probe on the host (the existing `dot_rows_f32`
+against `fcvtl` widening and `vfmaq_f32` over half-precision rows, same
+rows and query): 0.089 to 0.045 ms at 1k × 768, 0.46 to 0.23 at 5k, 1.83
+to 0.91 at 20k, the matrix 61 to 31 MB. On the phone, pinned: 0.29 to
+0.19 ms, 1.4-1.7 to 0.94-1.0, 5.9-6.2 to 3.9 ms; the whole f32 search
+there is 7.5 ms at 20k, so fp16 would save about 2 ms and half the
+memory.
+
+The bar was that the top hits match the way f32's do, and they do not.
+Measured on the real EmbeddingGemma 2 outputs the dot-product session
+embedded (4,200 documents, 380 queries, the 1,716 emoji vectors), fp16
+kept the same set of hits, in the same order, for 311 of 380 text queries,
+368 of 380 AI-memory queries, 351 of 380 emoji queries and 989 of 1,000
+sticker-tag queries; the top hit changed only for 1 in 1,000. f32 in a
+different summation order (the NEON kernel against the Kotlin loop) moves
+scores by about 1e-6, against fp16's 1.6e-4, and keeps the set. A ranking
+that changes for 3 to 18% of queries is a visible change, so the rows stay
+f32. Revisit with a tuning whose separation is wider than fp16's error.
+
+### The fuzzy walk (not a kernel)
+
+`fuzzy::search_units` is a best-first search over the trie with a binary
+heap, not a matrix of edit rows: each popped state pushes its children's
+edits one at a time. Sampled on the host: the heap's pop 28%, pushing
+states 15%, the walk's own branching 22%, key-set membership 9%, copies
+6%, the logarithm 4%, hashing 3%. Nothing there runs the same operation
+over a row of data, so NEON has nothing to take; the heap's order is what
+keeps the walk equal to the Kotlin oracle's. At 1.08 ms for a whole typo
+word on the phone (0.19 ms a prefix), it is over the 0.3 ms keystroke bar
+at the end of a long word, which makes it a candidate for algorithmic work
+(fewer pushes, a cheaper key-set test), not for SIMD.
+
+### Size
+
+libwm_engine_jni against the main this branched from (its committed
+libraries): arm64-v8a 2,718,344 -> 2,741,136 B (+22,792), armeabi-v7a
+2,083,672 -> 2,094,360 (+10,688), x86_64 3,031,984 -> 3,049,680
+(+17,696). The band kernel alone was +3,776 on arm64, the band, YUV and
+blur kernels together +14,736; armv7 and x86_64 carry only the scalar
+references.
+
+Found on the way, outside this plan: rotating a 12 MP OCR still upright
+(`ImageProxy.toFramedBitmap`'s `createBitmap` with a matrix) takes about
+470 ms on the G99, ten times `getPixels`. Asking CameraX for the rotation
+(`ImageCapture`'s target rotation) or reading the unrotated still and
+rotating the 640 px detector input instead would skip most of it.
+
+Status: round 2 done, host and phone.
 
 ## Rules for every step
 

@@ -107,6 +107,8 @@ object Phase0Bench {
         if (on("audio")) audio()
         if (on("frost")) frost()
         if (on("renderfx")) renderEffect()
+        if (on("camera")) camera()
+        if (on("webp")) webpFrames()
         if (on("upscale")) upscale()
         if (on("webm")) webm()
         if (on("fuzzy")) fuzzy(File(dict))
@@ -657,6 +659,67 @@ object Phase0Bench {
             renderer.destroy()
             reader.close()
         }
+    }
+
+    /**
+     * What the camera tools do to a frame in Kotlin-reachable code, phone
+     * only. The QR scanner hands CameraX's Y plane to zxing-cpp as it is
+     * (ZxingReader.readFrame, one crossing, no copy), so it has no per-pixel
+     * Kotlin to time. OCR reads a still: ImageProxy.toFramedBitmap
+     * (CameraX's toBitmap, then a rotate through createBitmap) and
+     * PaddleOcr's getPixels, both Skia, before the pipeline Phase 1 ported.
+     */
+    private fun camera() {
+        if (System.getProperty("java.vm.name") != "Dalvik") return println("camera: phone only")
+        val (w, h) = 4000 to 3000
+        val source = android.graphics.Bitmap.createBitmap(photo(w, h), w, h, android.graphics.Bitmap.Config.ARGB_8888)
+        val rotate = android.graphics.Matrix().apply { postRotate(90f) }
+        bench("Camera still: rotate 12MP (createBitmap + Matrix)", "per OCR capture", minWarm = 3, maxCalls = 20) {
+            android.graphics.Bitmap.createBitmap(source, 0, 0, w, h, rotate, true).also { it.recycle() }
+        }
+        val pixels = IntArray(w * h)
+        bench("Camera still: getPixels 12MP", "per OCR read (PaddleOcr.recognize)", minWarm = 3, maxCalls = 20) {
+            source.getPixels(pixels, 0, w, 0, 0, w, h)
+        }
+        source.recycle()
+    }
+
+    /**
+     * AnimatedWebpToGif.compose's per-frame work, phone only: decode the
+     * frame's still (a lossy WebP), draw it onto the canvas, draw the canvas
+     * scaled into the GIF-sized bitmap, getPixels; then the Rust GifEncoder.
+     * Everything before the encoder is Skia: no Kotlin pixel loop.
+     */
+    private fun webpFrames() {
+        if (System.getProperty("java.vm.name") != "Dalvik") return println("webp: phone only")
+        val side = 512
+        val frames = Array(30) { stickerFrame(side, it) }
+        val stills = frames.map { px ->
+            val b = android.graphics.Bitmap.createBitmap(px, side, side, android.graphics.Bitmap.Config.ARGB_8888)
+            java.io.ByteArrayOutputStream().also { b.compress(android.graphics.Bitmap.CompressFormat.WEBP_LOSSY, 80, it); b.recycle() }.toByteArray()
+        }
+        val canvasBitmap = android.graphics.Bitmap.createBitmap(side, side, android.graphics.Bitmap.Config.ARGB_8888)
+        val scaledBitmap = android.graphics.Bitmap.createBitmap(side, side, android.graphics.Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(canvasBitmap)
+        val scaled = android.graphics.Canvas(scaledBitmap)
+        val smooth = android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG).apply {
+            xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC)
+        }
+        val whole = android.graphics.Rect(0, 0, side, side)
+        val pixels = IntArray(side * side)
+        var f = 0
+        bench("AnimatedWebpToGif frame: decode still 512^2", "per frame") {
+            android.graphics.BitmapFactory.decodeByteArray(stills[f % 30], 0, stills[f++ % 30].size).also { it.recycle() }
+        }
+        val still = android.graphics.BitmapFactory.decodeByteArray(stills[0], 0, stills[0].size)
+        bench("AnimatedWebpToGif frame: draw + scale + getPixels 512^2", "per frame") {
+            canvas.drawBitmap(still, null, whole, null)
+            scaled.drawBitmap(canvasBitmap, whole, whole, smooth)
+            scaledBitmap.getPixels(pixels, 0, side, 0, 0, side, side)
+            pixels
+        }
+        val encoder = GifEncoder(Discard, side, side)
+        bench("AnimatedWebpToGif frame: GifEncoder.addFrame (Rust)", "per frame") { encoder.addFrame(frames[f++ % 30], 40) }
     }
 
     /**
