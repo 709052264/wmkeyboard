@@ -48,6 +48,12 @@ data class AiChatMessage(
      * every save. Defaulted, so a file from before pictures still decodes.
      */
     val images: List<String> = emptyList(),
+    /**
+     * Files the user sent with this message (#882): a text file's words, or
+     * a recording, video or PDF kept beside the pictures. Defaulted, so a
+     * file from before files still decodes.
+     */
+    val files: List<AiChatFile> = emptyList(),
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -62,11 +68,47 @@ data class AiChatMessage(
         append(content)
         if (attachment.isNotBlank()) append("\n\n<text>\n").append(attachment).append("\n</text>")
         images.indices.forEach { append(if (isEmpty()) "" else "\n").append("<image n=\"").append(firstImage + it).append("\"/>") }
+        files.forEach { file -> append(if (isEmpty()) "" else "\n\n").append(file.promptText()) }
     }
 
     companion object {
         const val ROLE_USER = "USER"
         const val ROLE_ASSISTANT = "ASSISTANT"
+    }
+}
+
+/**
+ * One file sent with a message (#882), as the File button in the chat's "+"
+ * menu picked it.
+ *
+ * A text file is read once, when it is picked, and its words kept in [text]:
+ * every model can read words, and a file read again on every turn could have
+ * changed or gone. Anything else (a recording, a video, a PDF) is copied into
+ * the chat's file folder under [stored], for a model that can take it whole,
+ * and every other model is told the file is there.
+ */
+@Serializable
+data class AiChatFile(
+    /** The name the file had where it was picked. */
+    val name: String,
+    val mime: String = "",
+    /** Bytes, as the picker reported them. */
+    val size: Long = 0,
+    /** The copy's name in the chat's file folder; empty for a text file. */
+    val stored: String = "",
+    /** A text file's words; empty for anything else. */
+    val text: String = "",
+) {
+    val isText: Boolean get() = stored.isEmpty()
+
+    /** What the model reads for this file: its words inside tags, or a mark saying what it is. */
+    fun promptText(): String {
+        val label = name.replace("\"", "'")
+        return if (isText) {
+            "<file name=\"$label\">\n$text\n</file>"
+        } else {
+            "<file name=\"$label\" type=\"$mime\"/>"
+        }
     }
 }
 
@@ -267,6 +309,12 @@ class AiChatStore(private val storageFile: File?) {
         conversation.messages.flatMap { it.images }
     }
 
+    /** Every stored file any conversation in memory still refers to (#882). */
+    @Synchronized
+    fun fileNames(): Set<String> = conversations.flatMapTo(HashSet()) { conversation ->
+        conversation.messages.flatMap { message -> message.files.map { it.stored }.filter { it.isNotEmpty() } }
+    }
+
     @Synchronized
     fun delete(id: Long) {
         conversations.removeAll { it.id == id }
@@ -359,6 +407,9 @@ class AiChatStore(private val storageFile: File?) {
 
         /** Pictures one message may carry. */
         const val MAX_IMAGES = 4
+
+        /** Files one message may carry (#882). */
+        const val MAX_FILES = 4
 
         /** [lastModelKey] prefix for an on-device model. */
         const val ON_DEVICE_KEY_PREFIX = "ON_DEVICE:"

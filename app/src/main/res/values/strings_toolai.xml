@@ -254,7 +254,6 @@
     <string name="toolai_ai_builtin_reverse_image_search_subtitle">Uploads a picture you sent to the camera tool\'s search site and gives you the link to the results</string>
 
     <!-- Pictures in the AI chat (#698). -->
-    <string name="ai_chat_attach_picture_desc">Add a picture</string>
     <string name="ai_chat_picture_desc">Picture</string>
     <string name="ai_chat_picture_remove_desc">Remove the picture</string>
 

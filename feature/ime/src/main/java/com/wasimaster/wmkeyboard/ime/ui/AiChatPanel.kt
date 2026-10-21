@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -32,6 +33,14 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenIn
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AudioFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
@@ -68,7 +77,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
+import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
@@ -260,7 +271,8 @@ internal fun AiChatPanel(
                     state = state,
                     generating = run != null,
                     // Pictures alone are a message, as on the chat screen.
-                    canSend = choice != null && (chat.draft.isNotBlank() || chat.images.isNotEmpty()) && run == null,
+                    canSend = choice != null && run == null &&
+                        (chat.draft.isNotBlank() || chat.images.isNotEmpty() || chat.files.isNotEmpty()),
                     onChat = onChat,
                 )
             }
@@ -493,6 +505,7 @@ private fun MessageBubble(
                 if (message.images.isNotEmpty()) {
                     ChatPictures(message.images, MESSAGE_PICTURE_SIZE, Modifier.padding(bottom = 5.dp))
                 }
+                if (message.files.isNotEmpty()) ChatFiles(message.files, ink, Modifier.padding(bottom = 5.dp))
                 // What the answer was built on, over the answer.
                 if (message.toolUses.isNotEmpty()) {
                     ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp), onUndoMemory)
@@ -774,28 +787,53 @@ private fun EmptyChat(state: KeyboardUiState, onChat: (AiChatAction) -> Unit) {
 }
 
 /**
- * Pictures can be added here (#698): never in incognito, whose chats are not
- * kept, and never over a password field, the same rule the paperclip keeps.
+ * Pictures and files can be added here (#698, #882): never in incognito,
+ * whose chats are not kept, and never over a password field, the same rule
+ * the field's own text keeps.
  */
 private fun picturesOffered(state: KeyboardUiState): Boolean = !state.incognitoOn && !state.secureField
 
+/** One button of the composer's "+" menu (#882), in the order the menu draws them. */
+private enum class AttachItem { IMAGE, FILE, PHOTO, CLIPBOARD, SCREENSHOT, FIELD, PASTE }
+
 /**
- * The composer's ring slots, in the order [Composer] draws them. The picture
- * button is left out where pictures are not offered, and its two sources
- * follow the send button while their row is up; -1 is a slot not on screen.
+ * The "+" menu's buttons for this field. The picture and file sources are left
+ * out where pictures are not offered; a Play build declares no photos
+ * permission, so it has no screenshots to offer.
+ */
+private fun attachItems(state: KeyboardUiState): List<AttachItem> = buildList {
+    if (picturesOffered(state)) {
+        add(AttachItem.IMAGE)
+        add(AttachItem.FILE)
+        add(AttachItem.PHOTO)
+        add(AttachItem.CLIPBOARD)
+        if (ChannelFeatures.SCREENSHOT_CLIPS) add(AttachItem.SCREENSHOT)
+    }
+    add(AttachItem.FIELD)
+    add(AttachItem.PASTE)
+}
+
+private fun attachAction(item: AttachItem): AiChatAction = when (item) {
+    AttachItem.IMAGE -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_IMAGES)
+    AttachItem.FILE -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_FILES)
+    AttachItem.PHOTO -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_PHOTO)
+    AttachItem.CLIPBOARD -> AiChatAction.AddPicture(fromClipboard = true)
+    AttachItem.SCREENSHOT -> AiChatAction.AddPicture(fromClipboard = false)
+    AttachItem.FIELD -> AiChatAction.ToggleAttachment
+    AttachItem.PASTE -> AiChatAction.Paste
+}
+
+/**
+ * The composer's ring slots, in the order [Composer] draws them: the "+"
+ * button, the field, Send, then the menu's buttons while it is up; -1 is a
+ * slot not on screen.
  */
 private class ComposerSlots(state: KeyboardUiState) {
-    val pictures = picturesOffered(state)
-    private val shift = if (pictures) 1 else 0
-    val attach = 0
-    val picture = if (pictures) 1 else -1
-    val paste = 1 + shift
-    val field = 2 + shift
-    val send = 3 + shift
-    val sourcesOpen = pictures && state.aiChat.pictureSources
-    val clipboard = if (sourcesOpen) 4 + shift else -1
-    /** A Play build declares no photos permission, so it has no screenshots to offer. */
-    val screenshot = if (sourcesOpen && ChannelFeatures.SCREENSHOT_CLIPS) 5 + shift else -1
+    val plus = 0
+    val field = 1
+    val send = 2
+    val menu: List<AttachItem> = if (state.aiChat.attachMenu) attachItems(state) else emptyList()
+    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 3 + it }
 }
 
 /** What Enter does on each of the composer's ring slots. Mirrors [ComposerSlots]. */
@@ -805,15 +843,10 @@ private fun composerTargets(
     onChat: (AiChatAction) -> Unit,
 ): List<() -> Unit> = buildList<() -> Unit> {
     val slots = ComposerSlots(state)
-    add { onChat(AiChatAction.ToggleAttachment) }
-    if (slots.pictures) add { onChat(AiChatAction.TogglePictureSources) }
-    add { onChat(AiChatAction.Paste) }
+    add { onChat(AiChatAction.ToggleAttachMenu) }
     add { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) }
     add { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
-    if (slots.sourcesOpen) {
-        add { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
-        if (slots.screenshot >= 0) add { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
-    }
+    slots.menu.forEach { item -> add { onChat(attachAction(item)) } }
 }
 
 /**
@@ -876,33 +909,56 @@ private fun ChatPictures(
 }
 
 /**
- * Where a picture can come from, over the composer: the keyboard cannot open
- * the photo picker the chat screen uses, since an input method that starts an
- * activity loses its field. So these are the reply tool's two sources, and the
- * line beside them says why the last one asked for did not arrive.
+ * The composer's "+" menu (#882), over it: a row of icons, each named by a
+ * long press. Not a sheet: a popup over an input method's window is the
+ * untrusted-touch trap, so it opens in place, the way the old picture row
+ * did. Image, File and Photo go through the system's own pickers, which take
+ * the field away for as long as they are up; the clipboard's picture and the
+ * newest screenshot are the reply tool's sources, which do not. The line
+ * under it says why the last one asked for did not arrive.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PictureSources(state: KeyboardUiState, slots: ComposerSlots, onChat: (AiChatAction) -> Unit) {
+private fun AttachMenu(state: KeyboardUiState, slots: ComposerSlots, onChat: (AiChatAction) -> Unit) {
     val kb = LocalKbTheme.current
+    val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        ToolPanelChip(
-            stringResource(R.string.ime_ai_chat_picture_clipboard),
-            modifier = Modifier.focusRing(focused == slots.clipboard),
-        ) { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
-        if (slots.screenshot >= 0) {
-            ToolPanelChip(
-                stringResource(R.string.ime_ai_chat_picture_screenshot),
-                modifier = Modifier.focusRing(focused == slots.screenshot),
-            ) { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
+    Column(Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            slots.menu.forEach { item ->
+                val (icon, label) = when (item) {
+                    AttachItem.IMAGE -> Icons.Outlined.PhotoLibrary to R.string.ime_ai_chat_attach_image
+                    AttachItem.FILE -> Icons.Outlined.AttachFile to R.string.ime_ai_chat_attach_file
+                    AttachItem.PHOTO -> Icons.Outlined.PhotoCamera to R.string.ime_ai_chat_attach_photo
+                    AttachItem.CLIPBOARD -> Icons.Outlined.Image to R.string.ime_ai_chat_picture_clipboard
+                    AttachItem.SCREENSHOT -> Icons.Outlined.Screenshot to R.string.ime_ai_chat_picture_screenshot
+                    AttachItem.FIELD -> Icons.Outlined.FormatQuote to
+                        if (chat.attachment != null) R.string.ime_ai_chat_attach_remove_desc else R.string.ime_ai_chat_attach_desc
+                    AttachItem.PASTE -> Icons.Outlined.ContentPaste to CommonR.string.common_paste
+                }
+                val enabled = when (item) {
+                    AttachItem.IMAGE, AttachItem.PHOTO, AttachItem.CLIPBOARD, AttachItem.SCREENSHOT ->
+                        chat.images.size < AiChatStore.MAX_IMAGES
+                    AttachItem.FILE -> chat.files.size < AiChatStore.MAX_FILES
+                    // Nothing to quote from an empty field, and never from a password.
+                    AttachItem.FIELD -> chat.attachment != null || (state.aiHasText && !state.secureField)
+                    AttachItem.PASTE -> true
+                }
+                ChatIconButton(
+                    icon,
+                    stringResource(label),
+                    active = item == AttachItem.FIELD && chat.attachment != null,
+                    enabled = enabled,
+                    size = 38.dp,
+                    modifier = Modifier.focusRing(focused == slots.of(item), CircleShape),
+                ) { onChat(attachAction(item)) }
+            }
         }
-        state.aiChat.pictureNotice?.let { notice ->
+        chat.pictureNotice?.let { notice ->
             Text(
                 stringResource(notice),
                 color = kb.secondaryText,
@@ -910,10 +966,78 @@ private fun PictureSources(state: KeyboardUiState, slots: ComposerSlots, onChat:
                 lineHeight = 13.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }
+}
+
+/**
+ * The files of a message (#882): one chip each, with its name, waiting over
+ * the composer with a cross to take it back off, or in a sent bubble.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChatFiles(
+    files: List<AiChatFile>,
+    ink: Color,
+    modifier: Modifier = Modifier,
+    onRemove: ((AiChatFile) -> Unit)? = null,
+) {
+    val kb = LocalKbTheme.current
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        files.forEach { file ->
+            val shape = RoundedCornerShape(8.dp)
+            Row(
+                modifier = Modifier
+                    .clip(shape)
+                    .background(ink.copy(alpha = 0.10f))
+                    .padding(start = 7.dp, end = if (onRemove != null) 2.dp else 8.dp, top = 3.dp, bottom = 3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(fileIcon(file), contentDescription = null, tint = ink, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    file.name,
+                    color = ink,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                    modifier = Modifier.widthIn(max = 160.dp),
+                )
+                onRemove?.let { remove ->
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 2.dp)
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .clickable { remove(file) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ime_ai_chat_file_remove_desc),
+                            tint = kb.chipText,
+                            modifier = Modifier.size(13.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The mark a file's chip wears, by what it is. */
+fun fileIcon(file: AiChatFile): ImageVector = when {
+    file.mime.startsWith("audio/") -> Icons.Outlined.AudioFile
+    file.mime.startsWith("video/") -> Icons.Outlined.VideoFile
+    file.mime == "application/pdf" -> Icons.Outlined.PictureAsPdf
+    else -> Icons.Outlined.Description
 }
 
 @Composable
@@ -933,7 +1057,7 @@ private fun Composer(
             .fillMaxWidth()
             .padding(top = 5.dp),
     ) {
-        if (slots.sourcesOpen) PictureSources(state, slots, onChat)
+        if (chat.attachMenu) AttachMenu(state, slots, onChat)
         // Shown wherever they were picked: a picture already chosen is not taken
         // back because the field behind turned into a password.
         if (chat.images.isNotEmpty()) {
@@ -944,40 +1068,24 @@ private fun Composer(
                 onRemove = { onChat(AiChatAction.RemovePicture(it)) },
             )
         }
+        if (chat.files.isNotEmpty()) {
+            ChatFiles(
+                chat.files,
+                kb.chipText,
+                Modifier.padding(bottom = 5.dp),
+                onRemove = { onChat(AiChatAction.RemoveFile(it)) },
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
         ) {
             ChatIconButton(
-                Icons.Outlined.AttachFile,
-                stringResource(
-                    if (chat.attachment != null) {
-                        R.string.ime_ai_chat_attach_remove_desc
-                    } else {
-                        R.string.ime_ai_chat_attach_desc
-                    },
-                ),
-                active = chat.attachment != null,
-                // Nothing to quote from an empty field, and never from a password.
-                enabled = chat.attachment != null || (state.aiHasText && !state.secureField),
-                modifier = Modifier.focusRing(focused == slots.attach, CircleShape),
-            ) { onChat(AiChatAction.ToggleAttachment) }
-            Spacer(Modifier.width(4.dp))
-            if (slots.pictures) {
-                ChatIconButton(
-                    Icons.Outlined.Image,
-                    stringResource(R.string.ime_ai_chat_picture_desc),
-                    active = chat.pictureSources,
-                    enabled = chat.pictureSources || chat.images.size < AiChatStore.MAX_IMAGES,
-                    modifier = Modifier.focusRing(focused == slots.picture, CircleShape),
-                ) { onChat(AiChatAction.TogglePictureSources) }
-                Spacer(Modifier.width(4.dp))
-            }
-            ChatIconButton(
-                Icons.Outlined.ContentPaste,
-                stringResource(CommonR.string.common_paste),
-                modifier = Modifier.focusRing(focused == slots.paste, CircleShape),
-            ) { onChat(AiChatAction.Paste) }
+                Icons.Outlined.Add,
+                stringResource(R.string.ime_ai_chat_attach_menu_desc),
+                active = chat.attachMenu,
+                modifier = Modifier.focusRing(focused == slots.plus, CircleShape),
+            ) { onChat(AiChatAction.ToggleAttachMenu) }
             Spacer(Modifier.width(6.dp))
             Column(
                 modifier = Modifier

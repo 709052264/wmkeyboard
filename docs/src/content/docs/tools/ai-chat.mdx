@@ -40,21 +40,23 @@ Answers are drawn with their formatting: headings, lists, bold, inline code and 
 
 Maths written in LaTeX is drawn as maths. A formula on its own line, between `$$` signs, inside `\[` and `\]`, in a ` ```math ` block or as a bare `\begin{aligned}`, is set the way a textbook sets it: fractions stacked, roots under their bar, limits over and under a sum, matrices in brackets that grow with them. A wide one scrolls sideways: its cut-off edge fades out and a thin bar under it shows how much more there is, as on a wide table or code block. A formula inside a sentence, between single `$` signs or `\(` and `\)`, sits on the line: `$x^2$` is a small raised 2, and a fraction or a matrix is drawn in place at the size of the text around it. A dollar amount is left alone, so "it costs $5 or $10" stays a sentence. When an answer is inserted into a field, which can't draw any of this, the maths is written out in Unicode instead: `x²`, `√(x+1)`, `(a+b)/c`.
 
-### Sending your text along
+### The + menu
 
-The paperclip beside the message box quotes what you're working on. With text selected in the field, it takes the selection; otherwise it takes the whole field. A line above the message box says which, and how long it is. The model gets your message followed by that text, clearly marked off, and the bubble notes that text went with it. Tap the paperclip again to drop it.
+The **+** button left of the message box opens a row of icons over it. Long-press an icon to see its name.
 
-It's greyed out over an empty field, and it never reads a password field.
+- **Pictures from the gallery** opens the system photo picker. Pick several at once.
+- **A file** opens the system file picker, for a text file, a recording, a video or a PDF. See [Sending files](#sending-files).
+- **Take a photo** opens your camera app, and the photo you take is added. The first time, it asks for the camera permission.
+- **Copied picture** takes the newest picture in your [clipboard history](/tools/clipboard/).
+- **Newest screenshot** takes the last screenshot on the phone, whenever you took it. The first time, it asks for access to your photos, and the screenshot is added once you come back from allowing it.
+- **Send the text of the field** quotes what you're working on. With text selected in the field, it takes the selection; otherwise it takes the whole field. A line above the message box says which, and how long it is. The model gets your message followed by that text, clearly marked off, and the bubble notes that text went with it. Tap it again to drop the text. It's greyed out over an empty field, and it never reads a password field.
+- **Paste** pastes your latest clip at the caret.
 
-The clipboard button next to it pastes your latest clip at the caret.
+The photo picker, the file picker and the camera are system screens, so the keyboard steps aside while one is open and picks up where it was when you come back. Copied picture and Newest screenshot don't leave the keyboard at all.
 
-### Adding a picture
+Up to four pictures and four files can go with one message. They wait above the message box with a cross on each to take it off, and a message can be pictures or files alone. Sent, they show at the top of your bubble, on the keyboard and in the app alike. What the model does with them is the same as in the app: see [Sending pictures](#sending-pictures) and [Sending files](#sending-files).
 
-The picture button beside the paperclip brings up two chips over the message box. **Copied picture** takes the newest picture in your [clipboard history](/tools/clipboard/). **Newest screenshot** takes the last screenshot on the phone, whenever you took it; the first time, it asks for access to your photos, and the screenshot is added once you come back from allowing it. These are the [AI reply tool's](/tools/ai-reply/) sources rather than the photo picker the app's chat uses, because a keyboard that opens a picker loses the field you were typing in.
-
-Up to four pictures can go with one message. They wait above the message box with a cross on each to take it off, and a message can be pictures alone. Sent, they show at the top of your bubble, on the keyboard and in the app alike. What the model does with them is the same as in the app: see [Sending pictures](#sending-pictures).
-
-The picture button isn't there while [incognito](/privacy/incognito/) is on, or over a password field. Play Store builds offer **Copied picture** only, since they don't ask for the photos permission a screenshot needs.
+While [incognito](/privacy/incognito/) is on, or over a password field, the menu offers only the field's text and Paste. Play Store builds leave out **Newest screenshot**, since they don't ask for the photos permission a screenshot needs.
 
 An empty chat offers a few openers: **Reply to this** and **Explain this** quote the field for you, **Help me write** starts the sentence. They only fill the message box. Nothing is sent until you send it.
 
@@ -98,7 +100,7 @@ Titles aren't something you type. The first line of your first message becomes t
 
 ### Sending pictures
 
-The picture button left of the message box opens the system photo picker, which needs no permission. Pick up to four for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
+The **+** button left of the message box opens a sheet with **Pictures from the gallery**, **A file**, **Take a photo** and **Paste**. The gallery is the system photo picker, which needs no permission; **Take a photo** asks for the camera the first time. Pick up to four pictures for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
 
 What the model does with them depends on what it can take:
 
@@ -108,7 +110,17 @@ What the model does with them depends on what it can take:
 
 Either way, with **Search by picture** turned on the model can look a picture up on the web through the [camera tool's](/tools/camera/) search site, and hands you the link to the results.
 
-The keyboard's chat adds pictures its own way, from the clipboard or your newest screenshot: see [Adding a picture](#adding-a-picture).
+The keyboard's chat has the same menu, plus the clipboard's picture and your newest screenshot: see [The + menu](#the--menu).
+
+### Sending files
+
+**A file**, in the **+** menu on the keyboard or in the app, opens the system file picker. Up to four files go with one message, each shown as a chip with its name.
+
+- **A text file** (plain text, Markdown, CSV, JSON, source code and the like) is read when you pick it, and its text goes with your message, marked off with the file's name, to any model. Up to 20,000 characters of it are kept; the rest is cut.
+- **A recording, a video or a PDF** is copied into the chat, up to 14 MB. Gemini is sent the file itself with your newest message. Every other model is told a file of that name and type is there, but can't open it.
+- **A picture** picked this way joins the message's pictures, as if you'd picked it from the gallery.
+
+Anything else, such as a ZIP or an app, is refused with a line saying why.
 
 ## The Settings assistant
 
@@ -196,7 +208,7 @@ Three caps keep the file from growing without limit:
 
 Text you attached from a field is saved with its message, under the same 20,000-character cap, because the conversation wouldn't make sense to the model without it on the next turn.
 
-Pictures are kept as files next to the conversations, scaled down to 1,280 pixels on the long side first, and are deleted when nothing refers to them any more: when the conversation is deleted, for example. With **Keep your conversations** off they go in the app's cache instead.
+Pictures are kept as files next to the conversations, scaled down to 1,280 pixels on the long side first, and are deleted when nothing refers to them any more: when the conversation is deleted, for example. With **Keep your conversations** off they go in the app's cache instead. Recordings, videos and PDFs you sent are kept the same way, unscaled; a text file's text is saved inside its message.
 
 Deleting a conversation from the list removes it for good. There's no undo, which is why the dialog names the chat first.
 

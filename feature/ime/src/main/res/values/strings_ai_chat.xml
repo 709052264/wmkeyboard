@@ -225,8 +225,7 @@
     <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
     <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
     <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
-    <!-- The chat composer's picture button (#698). -->
-    <string name="ime_ai_chat_picture_desc">Add a picture</string>
+    <!-- The chat composer's picture sources (#698), now in its "+" menu. -->
     <string name="ime_ai_chat_picture_clipboard">Copied picture</string>
     <string name="ime_ai_chat_picture_screenshot">Newest screenshot</string>
     <string name="ime_ai_chat_picture_no_clip">No picture in the clipboard history</string>
@@ -235,4 +234,15 @@
     <string name="ime_ai_chat_picture_unreadable">That picture could not be read</string>
     <string name="ime_ai_chat_picture_item_desc">Picture</string>
     <string name="ime_ai_chat_picture_remove_desc">Remove picture</string>
+    <!-- The chat composer's "+" menu (#882): its button, and the buttons in it, named by a long press. -->
+    <string name="ime_ai_chat_attach_menu_desc">Add pictures, files and text</string>
+    <string name="ime_ai_chat_attach_image">Pictures from the gallery</string>
+    <string name="ime_ai_chat_attach_file">A file</string>
+    <string name="ime_ai_chat_attach_photo">Take a photo</string>
+    <string name="ime_ai_chat_attach_full">No room for more on this message</string>
+    <string name="ime_ai_chat_attach_no_picker">This phone has nothing to pick that with</string>
+    <string name="ime_ai_chat_photo_no_permission">Allow the camera to take a photo</string>
+    <string name="ime_ai_chat_file_too_big">That file is too big to send (14 MB at most)</string>
+    <string name="ime_ai_chat_file_unreadable">That file could not be read as text, sound, video or PDF</string>
+    <string name="ime_ai_chat_file_remove_desc">Remove file</string>
 </resources>

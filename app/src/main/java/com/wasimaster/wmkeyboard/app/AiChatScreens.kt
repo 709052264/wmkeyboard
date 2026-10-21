@@ -13,8 +13,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.AsyncImage
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.core.content.FileProvider
+import com.wasimaster.wmkeyboard.app.AiChatPickActivity
+import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatFiles
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
+import com.wasimaster.wmkeyboard.ime.ui.fileIcon
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.json.Json
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -315,19 +333,49 @@ internal fun AiChatScreen(
     // keeps them under, one per line so the list survives a rotation.
     var draftImagesText by rememberSaveable { mutableStateOf("") }
     val draftImages = draftImagesText.lines().filter { it.isNotEmpty() }
+    // Files to send with it (#882), kept as JSON so the list survives a rotation.
+    var draftFilesJson by rememberSaveable { mutableStateOf("") }
+    val draftFiles = remember(draftFilesJson) { decodeFiles(draftFilesJson) }
     val scope = rememberCoroutineScope()
+    var attachSheet by remember { mutableStateOf(false) }
+    val takeIn: (List<Uri>, Boolean) -> Unit = { uris, asFiles ->
+        if (uris.isNotEmpty()) {
+            scope.launch {
+                // Scaled, read or copied in off the main thread: a phone photo
+                // takes a moment to decode, a recording to copy.
+                val (images, files, notice) = withContext(Dispatchers.IO) {
+                    importPicks(context, uris, asFiles, keep = store.persist, draftImages.size, draftFiles.size)
+                }
+                draftImagesText = (draftImages + images).joinToString("\n")
+                draftFilesJson = encodeFiles(draftFiles + files)
+                if (notice != 0) Toast.makeText(context, context.getString(notice), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
     val pickImages = rememberLauncherForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(AiChatStore.MAX_IMAGES),
-    ) { uris ->
-        if (uris.isEmpty()) return@rememberLauncherForActivityResult
-        val room = AiChatStore.MAX_IMAGES - draftImages.size
-        scope.launch {
-            // Scaled and copied in off the main thread: a phone photo takes
-            // a moment to decode.
-            val added = withContext(Dispatchers.IO) {
-                uris.take(room).mapNotNull { AiChatImages.import(context, it, keep = store.persist) }
-            }
-            draftImagesText = (draftImages + added).joinToString("\n")
+    ) { uris -> takeIn(uris, false) }
+    val pickFiles = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
+        takeIn(uris, true)
+    }
+    val cameraFile = remember { File(File(context.cacheDir, "ai_chat_camera"), "photo.jpg") }
+    val takePhoto = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { taken ->
+        if (taken && cameraFile.length() > 0) takeIn(listOf(Uri.fromFile(cameraFile)), false)
+    }
+    val launchCamera: () -> Unit = {
+        runCatching {
+            cameraFile.parentFile?.mkdirs()
+            cameraFile.delete()
+            takePhoto.launch(FileProvider.getUriForFile(context, "${context.packageName}.clipboard", cameraFile))
+        }
+    }
+    // The app declares the camera permission for its camera tool, and Android
+    // then refuses the capture intent to an app that holds it not.
+    val cameraGrant = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            launchCamera()
+        } else {
+            Toast.makeText(context, context.getString(ImeR.string.ime_ai_chat_photo_no_permission), Toast.LENGTH_SHORT).show()
         }
     }
     val listState = rememberLazyListState()
@@ -444,6 +492,7 @@ internal fun AiChatScreen(
                             draft = taken.content
                             draftAttachment = taken.attachment
                             draftImagesText = taken.images.joinToString("\n")
+                            draftFilesJson = encodeFiles(taken.files)
                         }
                     }
                     MessageBubble(
@@ -537,26 +586,192 @@ internal fun AiChatScreen(
                     onRemove = { name -> draftImagesText = (draftImages - name).joinToString("\n") },
                 )
             }
+            if (draftFiles.isNotEmpty()) {
+                ChatFileChips(
+                    files = draftFiles,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    onRemove = { file -> draftFilesJson = encodeFiles(draftFiles - file) },
+                )
+            }
             Composer(
                 draft = draft,
                 onDraft = { draft = it },
                 generating = run != null,
-                canSend = choice != null && (draft.isNotBlank() || draftImages.isNotEmpty()),
+                canSend = choice != null && (draft.isNotBlank() || draftImages.isNotEmpty() || draftFiles.isNotEmpty()),
                 onSend = {
                     val picked = choice ?: return@Composer
                     val id = activeId.takeIf { it >= 0 }
                         ?: store.newConversation(System.currentTimeMillis()).id
                             .also { activeId = it }
-                    AiChatController.send(context, settings.value, id, picked, draft, draftAttachment, draftImages)
+                    AiChatController.send(
+                        context, settings.value, id, picked, draft, draftAttachment, draftImages, files = draftFiles,
+                    )
                     draft = ""
                     draftAttachment = ""
                     draftImagesText = ""
+                    draftFilesJson = ""
                     attachmentOpen = false
                 },
                 onStop = { AiChatController.stop(context) },
-                onAttach = {
-                    pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                }.takeIf { run == null && draftImages.size < AiChatStore.MAX_IMAGES },
+                onAttach = { attachSheet = true }.takeIf { run == null },
+            )
+        }
+    }
+
+    if (attachSheet) {
+        AttachSheet(
+            canAddPictures = draftImages.size < AiChatStore.MAX_IMAGES,
+            canAddFiles = draftFiles.size < AiChatStore.MAX_FILES,
+            onDismiss = { attachSheet = false },
+            onImages = { pickImages.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) },
+            onFiles = { pickFiles.launch(AiChatPickActivity.FILE_TYPES) },
+            onPhoto = {
+                if (context.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    launchCamera()
+                } else {
+                    cameraGrant.launch(Manifest.permission.CAMERA)
+                }
+            },
+            onPaste = {
+                pasteText(context)?.let { clip -> draft = if (draft.isEmpty()) clip else draft + clip }
+            },
+        )
+    }
+}
+
+/**
+ * The "+" sheet under the message box (#882): pictures from the gallery, a
+ * file, a photo, and the clipboard's text. The keyboard's chat has the same
+ * menu, plus what only a keyboard can reach: the field's own text, the
+ * clipboard's picture and the newest screenshot.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AttachSheet(
+    canAddPictures: Boolean,
+    canAddFiles: Boolean,
+    onDismiss: () -> Unit,
+    onImages: () -> Unit,
+    onFiles: () -> Unit,
+    onPhoto: () -> Unit,
+    onPaste: () -> Unit,
+) {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 24.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            AttachSheetItem(Icons.Outlined.PhotoLibrary, ImeR.string.ime_ai_chat_attach_image, canAddPictures) {
+                onDismiss()
+                onImages()
+            }
+            AttachSheetItem(Icons.Outlined.AttachFile, ImeR.string.ime_ai_chat_attach_file, canAddFiles) {
+                onDismiss()
+                onFiles()
+            }
+            AttachSheetItem(Icons.Outlined.PhotoCamera, ImeR.string.ime_ai_chat_attach_photo, canAddPictures) {
+                onDismiss()
+                onPhoto()
+            }
+            AttachSheetItem(Icons.Outlined.ContentPaste, CommonR.string.common_paste, true) {
+                onDismiss()
+                onPaste()
+            }
+        }
+    }
+}
+
+/** One of [AttachSheet]'s buttons: an icon, named under it in small print. */
+@Composable
+private fun AttachSheetItem(icon: ImageVector, @StringRes label: Int, enabled: Boolean, onClick: () -> Unit) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(76.dp)) {
+        FilledTonalIconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(56.dp)) {
+            Icon(icon, contentDescription = stringResource(label))
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            stringResource(label),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        )
+    }
+}
+
+/** The clipboard's text, or null when it holds none. */
+private fun pasteText(context: Context): String? = runCatching {
+    (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+        .primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
+}.getOrNull()?.takeIf { it.isNotEmpty() }
+
+private val fileListJson = Json { ignoreUnknownKeys = true }
+
+private fun encodeFiles(files: List<AiChatFile>): String =
+    if (files.isEmpty()) "" else fileListJson.encodeToString(ListSerializer(AiChatFile.serializer()), files)
+
+private fun decodeFiles(text: String): List<AiChatFile> =
+    if (text.isEmpty()) emptyList() else runCatching {
+        fileListJson.decodeFromString(ListSerializer(AiChatFile.serializer()), text)
+    }.getOrDefault(emptyList())
+
+/**
+ * What picking brought in: pictures scaled into the chat's folder, files read
+ * or copied, and why the last one that did not arrive did not, as a string
+ * resource (0 when everything did). Blocking.
+ */
+private fun importPicks(
+    context: Context,
+    uris: List<Uri>,
+    asFiles: Boolean,
+    keep: Boolean,
+    haveImages: Int,
+    haveFiles: Int,
+): Triple<List<String>, List<AiChatFile>, Int> {
+    val images = ArrayList<String>()
+    val files = ArrayList<AiChatFile>()
+    var notice = 0
+    for (uri in uris) {
+        val imported = if (asFiles) AiChatFiles.import(context, uri, keep) else AiChatFiles.Imported.Picture
+        when (imported) {
+            AiChatFiles.Imported.Picture -> when {
+                haveImages + images.size >= AiChatStore.MAX_IMAGES -> notice = ImeR.string.ime_ai_chat_attach_full
+                else -> AiChatImages.import(context, uri, keep)?.let(images::add)
+                    ?: run { notice = ImeR.string.ime_ai_chat_picture_unreadable }
+            }
+            is AiChatFiles.Imported.Done ->
+                if (haveFiles + files.size >= AiChatStore.MAX_FILES) {
+                    notice = ImeR.string.ime_ai_chat_attach_full
+                } else {
+                    files += imported.file
+                }
+            AiChatFiles.Imported.TooBig -> notice = ImeR.string.ime_ai_chat_file_too_big
+            AiChatFiles.Imported.Unreadable -> notice = ImeR.string.ime_ai_chat_file_unreadable
+        }
+    }
+    return Triple(images, files, notice)
+}
+
+/** A message's files (#882), one chip each; [onRemove] adds a cross for the ones not sent yet. */
+@Composable
+private fun ChatFileChips(files: List<AiChatFile>, modifier: Modifier = Modifier, onRemove: ((AiChatFile) -> Unit)? = null) {
+    LazyRow(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        items(files) { file ->
+            AssistChip(
+                onClick = { onRemove?.invoke(file) },
+                label = { Text(file.name, maxLines = 1, overflow = TextOverflow.MiddleEllipsis) },
+                leadingIcon = { Icon(fileIcon(file), contentDescription = null, modifier = Modifier.size(18.dp)) },
+                trailingIcon = onRemove?.let {
+                    {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(ImeR.string.ime_ai_chat_file_remove_desc),
+                            modifier = Modifier.size(18.dp),
+                        )
+                    }
+                },
             )
         }
     }
@@ -721,6 +936,7 @@ private fun MessageBubble(
                 if (message.images.isNotEmpty()) {
                     ChatPictures(message.images, Modifier.padding(bottom = 6.dp))
                 }
+                if (message.files.isNotEmpty()) ChatFileChips(message.files, Modifier.padding(bottom = 6.dp))
                 // What the answer was built on, over the answer — kept on a
                 // failed turn too, since a run that died after searching
                 // still searched.
@@ -982,7 +1198,7 @@ private fun Composer(
     canSend: Boolean,
     onSend: () -> Unit,
     onStop: () -> Unit,
-    /** Opens the picture picker; null when no more pictures fit. */
+    /** Opens the "+" sheet; null while an answer is coming in. */
     onAttach: (() -> Unit)? = null,
 ) {
     Row(
@@ -992,7 +1208,7 @@ private fun Composer(
         verticalAlignment = Alignment.Bottom,
     ) {
         IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
-            Icon(Icons.Outlined.Image, contentDescription = stringResource(R.string.ai_chat_attach_picture_desc))
+            Icon(Icons.Outlined.Add, contentDescription = stringResource(ImeR.string.ime_ai_chat_attach_menu_desc))
         }
         OutlinedTextField(
             value = draft,

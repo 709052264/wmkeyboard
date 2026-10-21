@@ -7602,6 +7602,8 @@ open class WMKeyboardService : InputMethodService() {
         resumeReplyShotsAfterGrant()
         // And the AI chat's, for the screenshot it was asking for.
         resumeChatShotAfterGrant()
+        // And whatever the chat's "+" menu brought back from a picker (#882).
+        if (com.wasimaster.wmkeyboard.app.AiChatPickActivity.hasPending()) takeAiChatPicks()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -35248,6 +35250,7 @@ open class WMKeyboardService : InputMethodService() {
                             // Its pictures come back with its words; the
                             // clear-out's grace keeps their files.
                             images = taken.images,
+                            files = taken.files,
                             composing = true,
                         ),
                     )
@@ -35284,14 +35287,14 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(modelKey = action.key)) }
             AiChatAction.ToggleAttachment -> {
                 val next = if (chat.attachment != null) null else aiChatAttachmentFromField()
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next, attachMenu = false)) }
             }
             AiChatAction.Paste -> {
                 if (!isClipboardAccessible()) return
                 val clip = KeyboardClipboard.held ?: clipboardStore.latestText().orEmpty()
                 if (clip.isEmpty()) return
                 // Through the ladder, so it lands at the caret like typed text.
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true, attachMenu = false)) }
                 captureTyped(clip)
             }
             is AiChatAction.Insert -> commitToField(
@@ -35311,10 +35314,13 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
-            AiChatAction.TogglePictureSources ->
+            AiChatAction.ToggleAttachMenu ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(pictureSources = !it.aiChat.pictureSources, pictureNotice = null))
+                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
                 }
+            is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
+            is AiChatAction.RemoveFile ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(files = it.aiChat.files - action.file)) }
             is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
             is AiChatAction.RemovePicture -> {
                 chatPictureFrom.remove(action.name)
@@ -35384,7 +35390,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Already waiting above the composer: nothing to add.
             if (_uiState.value.aiChat.images.any { chatPictureFrom[it] == source }) {
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = false, pictureNotice = null)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = false, pictureNotice = null)) }
                 return@launch
             }
             // Scaled and copied in off the main thread: a screenshot takes a
@@ -35404,13 +35410,58 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 val images = it.aiChat.images
                 if (images.size >= AiChatStore.MAX_IMAGES) return@update it
-                it.copy(aiChat = it.aiChat.copy(images = images + name, pictureSources = false, pictureNotice = null))
+                it.copy(aiChat = it.aiChat.copy(images = images + name, attachMenu = false, pictureNotice = null))
             }
         }
     }
 
     private fun aiChatPictureNotice(@StringRes res: Int) {
-        _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = true, pictureNotice = res)) }
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = true, pictureNotice = res)) }
+    }
+
+    /**
+     * The "+" menu's Image, File and Photo (#882), through
+     * [com.wasimaster.wmkeyboard.app.AiChatPickActivity]: each is a system
+     * screen an input method cannot open for a result itself. What comes back
+     * is taken in by [takeAiChatPicks] once the field returns.
+     */
+    private fun aiChatPickFromSystem(mode: Int) {
+        val state = _uiState.value
+        // The same rule the picture buttons keep: nothing from incognito,
+        // whose chats are not kept, and nothing over a password field.
+        if (state.incognitoOn || state.secureField) return
+        val files = mode == com.wasimaster.wmkeyboard.app.AiChatPickActivity.MODE_FILES
+        val room = if (files) {
+            AiChatStore.MAX_FILES - state.aiChat.files.size
+        } else {
+            AiChatStore.MAX_IMAGES - state.aiChat.images.size
+        }
+        if (room <= 0) {
+            aiChatPictureNotice(R.string.ime_ai_chat_attach_full)
+            return
+        }
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = false, pictureNotice = null)) }
+        val keep = AiChatController.store(this).persist
+        runCatching {
+            startActivity(com.wasimaster.wmkeyboard.app.AiChatPickActivity.intent(this, mode, room, keep))
+        }.onFailure { aiChatPictureNotice(R.string.ime_ai_chat_attach_no_picker) }
+    }
+
+    /** What the "+" menu's last trip to a picker brought back, added to the draft. */
+    private fun takeAiChatPicks() {
+        val picks = com.wasimaster.wmkeyboard.app.AiChatPickActivity.consume() ?: return
+        _uiState.update {
+            val chat = it.aiChat
+            val images = (chat.images + picks.images).take(AiChatStore.MAX_IMAGES)
+            val files = (chat.files + picks.files).take(AiChatStore.MAX_FILES)
+            val dropped = chat.images.size + picks.images.size > images.size || chat.files.size + picks.files.size > files.size
+            val notice = when {
+                picks.notice != 0 -> picks.notice
+                dropped -> R.string.ime_ai_chat_attach_full
+                else -> null
+            }
+            it.copy(aiChat = chat.copy(images = images, files = files, pictureNotice = notice, attachMenu = notice != null))
+        }
     }
 
     /** The other half of [aiChatAddPicture]'s permission request, from [onStartInputView]. */
@@ -35466,8 +35517,8 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val chat = state.aiChat
         val text = chat.draft.trim()
-        // Pictures alone are a message, as on the chat screen.
-        if ((text.isEmpty() && chat.images.isEmpty()) || AiChatController.isGenerating) return
+        // Pictures or files alone are a message, as on the chat screen.
+        if ((text.isEmpty() && chat.images.isEmpty() && chat.files.isEmpty()) || AiChatController.isGenerating) return
         val choice = aiChatChoice() ?: return
         val store = AiChatController.store(this)
         // Written on the first send and not before, like the chat screen: a
@@ -35477,6 +35528,7 @@ open class WMKeyboardService : InputMethodService() {
         AiChatController.send(
             this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images,
             incognito = state.incognitoOn,
+            files = chat.files,
         )
         chatPictureFrom.clear()
         _uiState.update {
@@ -35487,7 +35539,8 @@ open class WMKeyboardService : InputMethodService() {
                     attachment = null,
                     modelKey = choice.key,
                     images = emptyList(),
-                    pictureSources = false,
+                    files = emptyList(),
+                    attachMenu = false,
                     pictureNotice = null,
                 ),
             )

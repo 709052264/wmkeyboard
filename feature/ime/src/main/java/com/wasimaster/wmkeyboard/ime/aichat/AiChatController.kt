@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
+import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
@@ -252,12 +253,14 @@ object AiChatController {
         images: List<String> = emptyList(),
         /** Sent from an incognito field: the AI memory is neither read nor changed. */
         incognito: Boolean = false,
+        /** Files sent with it (#882), as [AiChatFiles.import] read or copied them. */
+        files: List<AiChatFile> = emptyList(),
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
         val store = store(appContext)
         val user = text.trim()
-        if (user.isEmpty() && images.isEmpty()) return
+        if (user.isEmpty() && images.isEmpty() && files.isEmpty()) return
 
         val now = System.currentTimeMillis()
         val message = AiChatMessage(
@@ -266,6 +269,7 @@ object AiChatController {
             timestamp = now,
             attachment = attachment.trim(),
             images = images.take(AiChatStore.MAX_IMAGES),
+            files = files.take(AiChatStore.MAX_FILES),
         )
         val updated = store.appendMessage(conversationId, message) ?: return
         store.setLastModelKey(choice.key)
@@ -285,9 +289,10 @@ object AiChatController {
     private fun promptAt(conversation: AiChatConversation, index: Int): String =
         conversation.messages[index].promptText(conversation.firstImageOf(index))
 
-    /** Clears out the pictures nothing refers to any more. */
+    /** Clears out the pictures and files nothing refers to any more. */
     private fun pruneImages(context: Context, store: AiChatStore) {
         runCatching { AiChatImages.prune(context, store.imageNames()) }
+        runCatching { AiChatFiles.prune(context, store.fileNames()) }
     }
 
     /**
@@ -651,7 +656,12 @@ object AiChatController {
                     AiClient.ChatRole.ASSISTANT
                 },
                 promptAt(requireNotNull(conversation), index),
-                images = if (sendsPictures && index == newestUser) pictures(context, message.images) else emptyList(),
+                images = if (index == newestUser) {
+                    (if (sendsPictures) pictures(context, message.images) else emptyList()) +
+                        media(context, choice.provider, message.files)
+                } else {
+                    emptyList()
+                },
             )
         }
         var lastPartialAt = 0L
@@ -762,6 +772,20 @@ object AiChatController {
     /** [names] read back and encoded for a request; one that is gone is left out. */
     private fun pictures(context: Context, names: List<String>): List<AiClient.AiImage> = names.mapNotNull { name ->
         AiChatImages.file(context, name)?.let { ReplyShots.encode(it) }?.let { AiClient.AiImage(it.mimeType, it.base64) }
+    }
+
+    /**
+     * The recordings, videos and PDFs of the newest message, for the one
+     * service whose request takes any file inline (#882): Gemini. Every other
+     * model reads the mark [AiChatFile.promptText] leaves in the message.
+     */
+    private fun media(context: Context, provider: AiProvider, files: List<AiChatFile>): List<AiClient.AiImage> {
+        if (provider != AiProvider.GEMINI) return emptyList()
+        return files.filter { !it.isText }.mapNotNull { file ->
+            val bytes = AiChatFiles.file(context, file.stored)?.let { runCatching { it.readBytes() }.getOrNull() }
+                ?: return@mapNotNull null
+            AiClient.AiImage(file.mime, android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP))
+        }
     }
 
     private fun postPhase(seq: Int, phase: AiPhase) {
