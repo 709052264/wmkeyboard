@@ -9,7 +9,7 @@
 
 use std::cell::RefCell;
 use std::ptr::null_mut;
-use std::sync::{Arc, LazyLock};
+use std::sync::LazyLock;
 
 use jni::objects::{JCharArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObjectArray, JString};
 use jni::sys::{jdouble, jint, jlong, jobjectArray};
@@ -17,11 +17,9 @@ use jni::JNIEnv;
 
 use wm_engine::fuzzy::{self, HabitTables, KeySets, Tier, TouchModel, TouchScoring, WalkSource, Workspace};
 use wm_engine::proximity::KeyProximity;
-use wm_engine::wmdict::Dict;
 
-use crate::dict::{DictBytes, DICTS};
 use crate::guard::{give_all_units, guarded, object, read_units, throw_state};
-use crate::lexicon::{Store, LEXICONS};
+use crate::sources::with_walkers;
 use crate::handles::Registry;
 
 static PROXIMITIES: LazyLock<Registry<KeyProximity>> = LazyLock::new(Registry::new);
@@ -131,7 +129,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 /// habits, touchKeys, touchCenters, sigma, touchPoints, keySets,
 /// keySpellings, doublesOut, intsOut)`.
 ///
-/// `kinds` say what each handle is: 0 a dictionary, 1 a user lexicon (its
+/// `kinds` say what each handle is (see `sources`): 0 a dictionary, 1 a user lexicon (its
 /// trie). `tiers` are 0 for the dictionary tier, 1 for the user tier. `habits` is
 /// 0 for none. The touch frame is absent when `touchKeys` is null: keys
 /// with their centres as x, y pairs in the model's order, and a tap per
@@ -173,17 +171,6 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         env.get_int_array_region(&tiers, 0, &mut tier_codes).ok()?;
         let mut kind_codes = vec![0i32; count];
         env.get_int_array_region(&kinds, 0, &mut kind_codes).ok()?;
-        let mut held: Vec<Arc<Dict<DictBytes>>> = Vec::new();
-        let mut stores: Vec<Arc<Store>> = Vec::new();
-        for (&handle, &kind) in handles.iter().zip(&kind_codes) {
-            if kind == 1 {
-                stores.push(object!(env, LEXICONS, handle));
-            } else {
-                held.push(object!(env, DICTS, handle));
-            }
-        }
-        // Read locks on every lexicon for the length of the walk.
-        let guards: Vec<_> = stores.iter().map(|s| s.lexicon.read().unwrap_or_else(|e| e.into_inner())).collect();
         let proximity = object!(env, PROXIMITIES, proximity);
         let habits = if habits == 0 { None } else { Some(object!(env, HABITS, habits)) };
         let mut typed_units = Vec::new();
@@ -227,35 +214,30 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             Some(KeySets::new(sets, spellings))
         };
 
-        let (mut next_dict, mut next_lexicon) = (0, 0);
-        let mut sources: Vec<WalkSource> = Vec::with_capacity(count);
-        for i in 0..count {
-            let walker: &dyn fuzzy::Walker = if kind_codes[i] == 1 {
-                next_lexicon += 1;
-                guards[next_lexicon - 1].trie()
-            } else {
-                next_dict += 1;
-                held[next_dict - 1].as_ref()
-            };
-            sources.push(WalkSource {
-                walker,
-                log_weight: weights[i],
-                tier: if tier_codes[i] == 1 { Tier::User } else { Tier::Dictionary },
-            });
-        }
-        let found = WORKSPACE.with_borrow_mut(|ws| {
-            fuzzy::search_units(
-                &sources,
-                &typed_units,
-                &proximity,
-                limit.max(0) as usize,
-                ws,
-                max_edits.max(0) as u32,
-                touch.as_ref(),
-                habits.as_deref().map_or(&fuzzy::NO_HABITS as &dyn fuzzy::EditHabits, |h| h),
-                keys.as_ref(),
-            )
-        });
+        let found = with_walkers(env, &handles, &kind_codes, |walkers| {
+            let sources: Vec<WalkSource> = walkers
+                .iter()
+                .enumerate()
+                .map(|(i, &walker)| WalkSource {
+                    walker,
+                    log_weight: weights[i],
+                    tier: if tier_codes[i] == 1 { Tier::User } else { Tier::Dictionary },
+                })
+                .collect();
+            WORKSPACE.with_borrow_mut(|ws| {
+                fuzzy::search_units(
+                    &sources,
+                    &typed_units,
+                    &proximity,
+                    limit.max(0) as usize,
+                    ws,
+                    max_edits.max(0) as u32,
+                    touch.as_ref(),
+                    habits.as_deref().map_or(&fuzzy::NO_HABITS as &dyn fuzzy::EditHabits, |h| h),
+                    keys.as_ref(),
+                )
+            })
+        })?;
 
         let mut reals = Vec::with_capacity(found.len() * 4);
         let mut ints = Vec::with_capacity(found.len() * 4);

@@ -137,13 +137,14 @@ this instead of `std::collections::BinaryHeap`.
 
 **Kotlin**: `NativeEngine` (`core/language`, `core.engine`) loads the
 library once for every bridge (`EngineNative` now goes through it) and
-holds the switch. `NativeEngine.useNative` is what a migrated piece checks;
-`forceKotlin` turns every Rust path off and pins the kernels to scalar. It
-is set by the "Native prediction engine" setting (`suggestionStrip.nativePrediction`,
-Typing > Automatic corrections, default on; the IME pushes it on every
-settings change) and defaults from `WM_NATIVE=kotlin` (or
-`-Dwmkeyboard.native=kotlin` for a JVM started by hand), which is how the
-parity tests and evals run the Kotlin side.
+holds the switch. While a piece had both implementations it checked
+`NativeEngine.useNative`, and `forceKotlin` turned every Rust path off and
+pinned the kernels to scalar; a "Native prediction engine" setting drove it.
+Once every Kotlin copy had moved to the test sources (step 4) the setting
+reached nothing and was removed before it shipped. `forceKotlin` still pins
+the kernels, and defaults from `WM_NATIVE=kotlin` (or
+`-Dwmkeyboard.native=kotlin` for a JVM started by hand); the parity tests
+now run the Kotlin oracles directly.
 
 **Host builds**: every test task that can reach the library depends on
 `:core:language:buildHostEngine` (`build-host.sh`), now including
@@ -326,14 +327,119 @@ so every production trie now has a Rust twin.
   stores sort their exports, saves and evictions by distinct keys. Routing
   them through a few shared sort-key types would get most of it back.
 
-### Step 2 follow-up: the Kotlin walk
+### Step 2 follow-up: the Kotlin walk deleted
 
-Production tries are now all `MappedTrie`, `PackedTrie` or `LexiconTrie`, all
-with Rust twins; only tests build a plain `Trie`. The Kotlin walk stays
-until a plain `Trie` gets a twin too (written through `PackedTrie.of` and the
-codec, as a `PackedTrie`'s is), then moves to the test oracles.
+A plain `Trie` now has a twin too: `wm-engine`'s `UserTrie` (the `Trie` port
+the lexicon already used) filled with the same entries, rebuilt whenever the
+trie's new `version` counter has moved (`sources.rs`, source kind 2). It
+could not be a `.wmdict`: the codec rounds frequencies (`FrequencyCodec`),
+and an exact-count `Trie` read through one scored differently. Only tests
+build a plain `Trie`, so every walk the keyboard makes has a twin, and the
+Kotlin walk moved to `app/src/test/.../prediction/reference/` as
+`KotlinFuzzyBeamSearch`, the oracle `NativeFuzzyParityTest` now compares
+against. `FuzzyBeamSearch.search` keeps its signature; its `BeamWorkspace`
+argument carries nothing.
 
-Status: steps 1 to 3 done; step 4 (glide) in progress.
+### Step 4: the glide decoders (done)
+
+`GlideBeam` (decode, align, sampleShape), `DuetBeam` and `CtcGlideBeam`'s
+beam search run in Rust: `wm-engine`'s `glide` (`mod.rs`, `keymap.rs`,
+`loops.rs`, `workspace.rs`, `duet.rs`, `ctc.rs`), JNI `glide.rs`, Kotlin
+`NativeGlide`. The Kotlin decoders, their workspaces and `LoopScan` moved to
+`app/src/test/.../gesture/reference/` as the oracles; `GlideWorkspace` and
+`DuetWorkspace` keep only their size constants, and the decoders still take
+them so no caller changed.
+
+- Learned shapes stay in Kotlin (`GlideShapeStore`). A decode that reads
+  them is two calls on one thread: the walk returns the words the shape
+  channel will score (readings, then guesses) and the drawn stroke
+  quantised; Kotlin looks up those words' shapes and, with seeding on, the
+  words stored near the stroke; the finish call runs the shape channel, the
+  seeding and the guess merge. Key maps cross once, as a handle on
+  `GlideKeyMap`; each source's vocabulary cap crosses as the frequency
+  Kotlin reads off `frequencyAtRank`.
+- Exactness: f32 where Kotlin has Float and f64 where it has Double, in the
+  same order of operations; Kotlin's `Long * Float` sample clock; the
+  heaps, pools and quickselect swap for swap; `StrictMath` log and pow on
+  the Kotlin side (no number moved on the aarch64 JVM).
+- Parity (`NativeGlideParityTest`, oracles against production): the gesture
+  eval corpus at every noise level plus a dwelling, looping one, against
+  the bundled English list as a `Trie` and as a `PackedTrie` with a user
+  tier of hyphen, apostrophe and dot words, under the shipped weights,
+  wiggles, the vocabulary cap, wide anchors and seeding, with and without
+  look-ahead and learned shapes: 11,250 decodes, 104,940 candidates and
+  1,500 alignments and sampled shapes bit-identical. `DuetBeam` over the
+  two-thumb corpus, clocked and clockless, whole words and prefixes: 9,000
+  decodes, 46,123 candidates. `CtcGlideBeam` over emissions peaked along
+  sampled words with noise, at both beam widths and under the cap: 2,724
+  decodes, 21,792 candidates.
+- Evals: the whole `core.gesture.eval` family (15 suites, the shift-detour
+  eval included and not re-baselined) prints the same numbers and writes
+  byte-identical reports before (step 3's merge, Kotlin decoders) and after.
+  The only test changes are three loop tests that read the decoder's
+  workspace, which now read the oracle's.
+- Latency (`GestureLatencyBench` and `PredictionLatencyBench`, before at
+  step 3's merge and after, alternating, two runs each; the machine was not
+  idle, load average 8-17 with other sessions building): a whole stroke
+  with six previews p50 13.5/14.3 -> 10.4/11.3 ms, p99 48.9/55.0 -> 42.3/43.7
+  ms; one decode against the 4x lexicon p50 4.45/4.41 -> 3.42/4.54 ms; with
+  a 6,445-word shape store 4.15/3.59 -> 3.12/2.68 ms. Typing walks the same
+  Rust code before and after, and its keystroke p50 (0.382/0.345 -> 0.490/
+  0.382 ms) moved with the load, not the change. Worth re-running idle.
+- Size: arm64-v8a 2,010,704 -> 2,116,264 B (+105,560), armeabi-v7a
+  1,462,992 -> 1,544,696 (+81,704), x86_64 2,297,184 -> 2,423,656
+  (+126,472), against step 3's libraries, which already carried an unwired
+  early build of the stroke decoder. The whole of glide against a step-3
+  arm64 build without it: 1,887,872 -> 2,116,264 (+228,392).
+
+### Step 5: what stays in Kotlin, and what porting it would take
+
+`SuggestionEngine` stays in Kotlin, as planned: 5,031 lines of
+orchestration over the Rust pieces, 41 public entry points. Most of what it
+does is deciding which engines to ask and mixing their answers; the heavy
+loops it calls are Rust now. For WMK Desktop, which already runs
+`wm-engine`'s `predict::Predictor` (the typed path: `suggest`, `decide`,
+the learning calls), porting the rest would mean:
+
+- **Glide.** The decoders are done; desktop needs the orchestration around
+  them: the engine's glide entry points (`tuneGlide` through
+  `glideShapeOf`, about 400 lines) routing between `GlideBeam`, `DuetBeam`
+  and the other `GlideDecoder`s, the contraction, apostrophe and trigger
+  sources it builds per call, `GlideCoverage` (170 lines), `GlideCase`'s
+  letter casing (335) and a shape store: `GlideShapeStore` (506) is Kotlin,
+  file format and all.
+- **The neural reading** (`NeuralGlide`): FUTO Swipe's encoder and decoder
+  are ExecuTorch programs run on the app's ExecuTorch runtime
+  (`core/voice`'s `FutoSwipe`). Desktop needs that runtime, or the models
+  converted for one it has, and `SwipeFrame`'s features (`SwipeModel.kt`,
+  194 lines); `glide::ctc` then reads the emissions as it does here.
+- **Phonetic strips** (`phoneticCandidates`, `phoneticCommit`,
+  `completionLatin`, `RomanizedIndex`): the transliteration engines are Rust
+  already; how their readings are ranked into a strip, and the romanized
+  index glide reads them through, are Kotlin.
+- **Field and language context** (`seedFieldContext`, `owningLanguages`,
+  the per-field mix): `language_mix` is ported; the field seeding and the
+  language registry lookups are not.
+- **Casing and display** (`displayOf`, `DictionaryCapitals`, `WordCase`):
+  small, but Unicode case folding is the JVM's; desktop would take ICU4X
+  or Rust's own tables and accept that a handful of folds differ.
+- **What desktop already has twice.** `predict::Lexicon` predates
+  `user_lexicon::UserLexicon` and keeps its own trie and n-gram maps. It
+  should become a wrapper over `UserLexicon`, as the correction stores'
+  desktop wrappers are over theirs, so the two apps read one file format
+  through one implementation.
+- **Not worth porting:** contacts, app names, the system personal
+  dictionary, notifications, anything that reads Android providers. Desktop
+  has its own sources for those, and they enter the walk as sources like
+  any other.
+
+A full port is a few thousand lines and the main risk is behaviour drift in
+the mixing, which no parity test covers today: the next step for desktop
+would be an engine-level parity harness (Kotlin `SuggestionEngine` against
+`Predictor` on the prediction eval's sessions), then moving one entry point
+at a time behind it.
+
+Status: steps 1 to 4 done, step 5 written up; Phase 2 complete.
 
 ## Rules for every step
 

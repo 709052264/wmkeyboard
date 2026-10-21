@@ -38,4 +38,5 @@ mod handles;
 mod kernels;
 mod lexicon;
 mod rerank;
+mod sources;
 mod transliteration;

@@ -87,9 +87,6 @@
     <string name="typing_register_priors_title">Adapt to app tone</string>
     <string name="typing_register_priors_subtitle">Casual words rank higher in chats, lower in email</string>
     <string name="typing_register_priors_info">Chat words such as "lol" and "gonna" rank a little higher in messaging apps, and a little lower in email apps and email fields. This only reorders the suggestions. No word is ever hidden or blocked, and autocorrect does not change.</string>
-    <string name="typing_native_prediction_title">Native prediction engine</string>
-    <string name="typing_native_prediction_subtitle">Run word prediction in the keyboard\'s compiled engine</string>
-    <string name="typing_native_prediction_info">Parts of word prediction are moving from the keyboard\'s app code into its compiled engine, the one WMK Desktop shares. The suggestions are meant to stay exactly the same, only faster. If suggestions, autocorrect or glide typing behave differently or the keyboard stops responding, turn this off: every part that still has its old version runs that one instead, and the next keystroke uses it. Leave it on otherwise.</string>
 
     <string name="typing_undo_autocorrect_title">Undo autocorrect with backspace</string>
     <string name="typing_undo_autocorrect_subtitle">Backspace right after a correction restores what you typed</string>

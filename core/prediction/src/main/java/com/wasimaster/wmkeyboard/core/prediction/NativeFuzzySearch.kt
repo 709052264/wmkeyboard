@@ -8,20 +8,21 @@ import java.util.WeakHashMap
  * [FuzzyBeamSearch.search] in Rust (`wm-engine`'s `fuzzy::search_units`),
  * when every trie it walks has a Rust twin: a [MappedTrie] is one already,
  * the user lexicon's [LexiconTrie] is a copy of one, a [PackedTrie] gets a
- * copy of its bytes the first time it is walked, and an empty trie is
- * skipped, since it can contribute nothing. Any other trie, which today means
- * a non-empty [Trie] some caller built itself, keeps the search in Kotlin.
+ * copy of its bytes the first time it is walked, a plain [Trie] an exact
+ * copy each time it has changed, and an empty trie is skipped, since it can
+ * contribute nothing. Any other walker keeps the search in Kotlin.
  *
  * One crossing per search; the proximity and habit models cross once, by
  * handle ([KeyProximity.nativeHandle], [EditHabits.nativeHandle]).
  */
 internal object NativeFuzzySearch {
 
-    /** [dictHandle]'s answer for a trie with nothing in it. */
-    private const val SKIP = -1L
+    /** [handleOf]'s answer for a trie with nothing in it. */
+    const val SKIP = -1L
 
-    private const val KIND_DICTIONARY = 0
-    private const val KIND_LEXICON = 1
+    const val KIND_DICTIONARY = 0
+    const val KIND_LEXICON = 1
+    const val KIND_TRIE = 2
 
     private val packedTwins = WeakHashMap<PackedTrie, Long>()
 
@@ -48,15 +49,11 @@ internal object NativeFuzzySearch {
         val scratch = ChildBuffer()
         for (src in sources) {
             val walker = src.walker
-            val handle = if (walker is LexiconTrie) {
-                if (walker.isEmpty) SKIP else walker.nativeHandle
-            } else {
-                dictHandle(walker, scratch)
-            }
+            val handle = handleOf(walker, scratch)
             if (handle == SKIP) continue
             if (handle == 0L) return null
             handles[count] = handle
-            kinds[count] = if (walker is LexiconTrie) KIND_LEXICON else KIND_DICTIONARY
+            kinds[count] = kindOf(walker)
             weights[count] = src.logWeight
             tiers[count] = if (src.tier == FuzzyBeamSearch.Tier.USER) 1 else 0
             count++
@@ -96,11 +93,59 @@ internal object NativeFuzzySearch {
         }
     }
 
-    /** The Rust dictionary [walker] reads, 0 when it has none, [SKIP] when it is empty. */
-    private fun dictHandle(walker: TrieWalker, scratch: ChildBuffer): Long = when (walker) {
+    /**
+     * The Rust trie [walker] reads, 0 when it has none, [SKIP] when it is
+     * empty; [kindOf] says which registry the handle is in.
+     */
+    fun handleOf(walker: TrieWalker, scratch: ChildBuffer): Long = when (walker) {
+        is LexiconTrie -> if (walker.isEmpty) SKIP else walker.nativeHandle
         is MappedTrie -> walker.nativeHandle
+        is Trie.NodeWalker -> if (walker.trie.version == 0L) SKIP else trieTwin(walker.trie)
         is PackedTrie -> packedTwin(walker)
         else -> if (walker.childrenInto(walker.root, scratch) == 0 && !walker.isWord(walker.root)) SKIP else 0L
+    }
+
+    fun kindOf(walker: TrieWalker): Int = when (walker) {
+        is LexiconTrie -> KIND_LEXICON
+        is Trie.NodeWalker -> KIND_TRIE
+        else -> KIND_DICTIONARY
+    }
+
+    /** A [Trie]'s Rust copy and the [Trie.version] it was made at; closed once replaced or the trie is gone. */
+    private class TrieTwin(val version: Long, val handle: Long)
+
+    private val trieTwins = WeakHashMap<Trie, TrieTwin>()
+
+    /**
+     * A Rust copy of [trie], rebuilt whenever the trie has changed since the
+     * last one. Only tests walk a plain [Trie], some of them one they keep
+     * adding to, so this trades a rebuild per change for having no second
+     * walk to keep. The copy is `wm-engine`'s `UserTrie`, the [Trie] port:
+     * exact counts (a `.wmdict` rounds them), children in label order, and
+     * the same subtree maxima, since a [Trie]'s counts only rise.
+     */
+    private fun trieTwin(trie: Trie): Long = synchronized(trieTwins) {
+        trieTwins[trie]?.takeIf { it.version == trie.version }?.let { return it.handle }
+        val entries = ArrayList<Pair<String, Int>>()
+        val walker = trie.walkers().single()
+        collect(walker, walker.root, StringBuilder(), entries)
+        val words = Array(entries.size) { entries[it].first }
+        val frequencies = IntArray(entries.size) { entries[it].second }
+        val twin = TrieTwin(trie.version, PredictionNative.trieFromEntries(words, frequencies))
+        NativeHandles.track(twin, twin.handle, PredictionNative::trieClose)
+        trieTwins[trie] = twin
+        twin.handle
+    }
+
+    private fun collect(walker: TrieWalker, node: Int, prefix: StringBuilder, out: MutableList<Pair<String, Int>>) {
+        if (walker.isWord(node)) out.add(prefix.toString() to walker.frequency(node))
+        val children = ChildBuffer()
+        val count = walker.childrenInto(node, children)
+        for (i in 0 until count) {
+            prefix.append(children.labels[i])
+            collect(walker, children.nodes[i], prefix, out)
+            prefix.setLength(prefix.length - 1)
+        }
     }
 
     /** A Rust copy of [trie], written once by the Kotlin codec and released with the trie. */

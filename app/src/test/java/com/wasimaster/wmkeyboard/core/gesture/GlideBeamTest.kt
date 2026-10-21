@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.gesture
 
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.reference.KotlinGlideWorkspace
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import kotlin.math.PI
@@ -33,6 +35,20 @@ class GlideBeamTest {
 
     private val beam = GlideBeam()
     private val workspace = GlideWorkspace()
+
+    // The loop tests read the decoder's workspace, which only the Kotlin
+    // reference decoder still keeps where a test can see it; the Rust one
+    // matches it bit for bit (`NativeGlideParityTest`).
+    private val reference = KotlinGlideBeam()
+    private val referenceWorkspace = KotlinGlideWorkspace()
+
+    private fun referenceDecode(
+        path: List<GesturePoint>,
+        from: List<FuzzyBeamSearch.WalkSource> = sources,
+        decoder: KotlinGlideBeam = reference,
+    ) {
+        decoder.decode(path, grid, keyWidth, from, referenceWorkspace, 4)
+    }
 
     private fun sourcesOf(entries: List<Pair<String, Int>>): List<FuzzyBeamSearch.WalkSource> {
         val trie = Trie().apply { entries.forEach { (word, frequency) -> insert(word, frequency) } }
@@ -356,12 +372,12 @@ class GlideBeamTest {
         // p-o-p is the tightest reversal two adjacent keys allow: twice the
         // arc of its extent, where a loop needs two and a half. A zigzag has
         // arc to spare but its turns cancel. Only the circle reads.
-        decode(gestureFor("pop"), from = sourcesOf(listOf("pop" to 100)))
-        assertEquals(0, workspace.loopCount)
-        decode(gestureFor("what", jitter = 14f))
-        assertEquals(0, workspace.loopCount)
-        decode(loopedAt(gestureFor("god"), 'o'))
-        assertEquals(1, workspace.loopCount)
+        referenceDecode(gestureFor("pop"), from = sourcesOf(listOf("pop" to 100)))
+        assertEquals(0, referenceWorkspace.loopCount)
+        referenceDecode(gestureFor("what", jitter = 14f))
+        assertEquals(0, referenceWorkspace.loopCount)
+        referenceDecode(loopedAt(gestureFor("god"), 'o'))
+        assertEquals(1, referenceWorkspace.loopCount)
     }
 
     @Test
@@ -450,12 +466,11 @@ class GlideBeamTest {
         // A reach of 1.2 keys takes in the o and the keys around it; only the
         // nearest may be credited, or a circle on the o doubles the i and the
         // p as well (#337).
-        val wide = GlideBeam(GlideBeam.Tuning(loopRadius = 1.2f))
-        wide.decode(loopedAt(gestureFor("god"), 'o'), grid, keyWidth, sources, workspace, 4)
-        assertEquals(1, workspace.loopCount)
-        val credited = (0 until grid.keyCount).filter { workspace.keyLoop[it] > 0f }
+        referenceDecode(loopedAt(gestureFor("god"), 'o'), decoder = KotlinGlideBeam(GlideBeam.Tuning(loopRadius = 1.2f)))
+        assertEquals(1, referenceWorkspace.loopCount)
+        val credited = (0 until grid.keyCount).filter { referenceWorkspace.keyLoop[it] > 0f }
         assertEquals(listOf(grid.keyIndex('o'.code)), credited)
-        assertEquals(grid.keyIndex('o'.code), workspace.loopKey[0])
+        assertEquals(grid.keyIndex('o'.code), referenceWorkspace.loopKey[0])
     }
 
     @Test
@@ -465,17 +480,17 @@ class GlideBeamTest {
         // not pull their letters into the word; its own key, and the first
         // and last samples, stay as they were (#337).
         val stroke = loopedAt(gestureFor("god"), 'o')
-        GlideBeam(GlideBeam.Tuning(loopExclusion = 0f)).decode(stroke, grid, keyWidth, sources, workspace, 4)
-        val open = workspace.pointCost.copyOf()
-        decode(stroke)
-        assertEquals(1, workspace.loopCount)
-        val own = workspace.loopKey[0]
-        val from = workspace.loopFrom[0]
-        val to = workspace.loopTo[0]
+        referenceDecode(stroke, decoder = KotlinGlideBeam(GlideBeam.Tuning(loopExclusion = 0f)))
+        val open = referenceWorkspace.pointCost.copyOf()
+        referenceDecode(stroke)
+        assertEquals(1, referenceWorkspace.loopCount)
+        val own = referenceWorkspace.loopKey[0]
+        val from = referenceWorkspace.loopFrom[0]
+        val to = referenceWorkspace.loopTo[0]
         assertTrue("window $from..$to", to - from >= 2)
         val tuning = GlideBeam.Tuning()
         val n = grid.keyCount
-        for (j in 0 until workspace.samples) {
+        for (j in 0 until referenceWorkspace.samples) {
             for (k in 0 until n) {
                 val at = j * n + k
                 val expected = if (j in from + 1 until to && k != own) {
@@ -483,7 +498,7 @@ class GlideBeamTest {
                 } else {
                     open[at]
                 }
-                assertEquals("sample $j key $k", expected, workspace.pointCost[at], 1e-6f)
+                assertEquals("sample $j key $k", expected, referenceWorkspace.pointCost[at], 1e-6f)
             }
         }
     }

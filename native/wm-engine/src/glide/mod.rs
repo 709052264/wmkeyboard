@@ -10,6 +10,8 @@
 //! ([`LearnedShapes`]); the vocabulary cap arrives as each source's minimum
 //! frequency, which the caller reads off its own rank tables.
 
+pub mod ctc;
+pub mod duet;
 pub mod keymap;
 pub mod loops;
 pub mod workspace;
