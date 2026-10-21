@@ -4137,7 +4137,6 @@
     <string name="models_llm_account_title">Hugging Face-account</string>
     <string name="models_llm_available_title">Beschikbaar om te downloaden</string>
     <string name="models_llm_catalog_info">De beste modellen staan bovenaan, niet de kleinste. Een model bovenaan schrijft beter, maar de download is groter, het antwoord is trager en het heeft meer geheugen nodig. Een afgeschermd model vereist een Hugging Face-account. Voeg hierboven je token toe en accepteer daarna eenmalig de licentie op de modelpagina.</string>
-    <string name="models_llm_compute_info">De GPU-optie is experimenteel. De app schakelt automatisch over naar de CPU als de GPU niet start, of als een model stopt tijdens een antwoord. Het GPU-geheugen is veel kleiner dan het systeemgeheugen, dus een groot model heeft vaak de CPU nodig. Selecteer hier CPU als de GPU blijft falen.</string>
     <string name="models_llm_compute_title">Berekening</string>
     <string name="models_llm_empty">Er staat nog geen model op je apparaat. Download er hieronder een om AI offline te gebruiken.</string>
     <string name="models_llm_gated_desc">Dit model vereist een Hugging Face-token</string>
@@ -4148,7 +4147,6 @@
     <string name="models_llm_import_error_no_space">Er is niet genoeg opslagruimte voor dit bestand van %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Dit is geen modelbestand. De app heeft een .litertlm- of .task-bestand nodig.</string>
     <string name="models_llm_import_error_open">De app kan het geselecteerde bestand niet openen.</string>
-    <string name="models_llm_import_info">Je kunt elk LiteRT-LM-model importeren in een .litertlm- of .task-bestand. Bijvoorbeeld een model dat je zelf hebt geconverteerd of in een browser hebt gedownload.</string>
     <string name="models_llm_import_title">Importeer je eigen</string>
     <string name="models_llm_importing_label">Importeren…</string>
     <string name="models_llm_license_action">Licentie- en modelpagina</string>

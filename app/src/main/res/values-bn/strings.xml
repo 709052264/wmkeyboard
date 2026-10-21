@@ -4154,7 +4154,6 @@
     <string name="models_llm_account_title">Hugging Face অ্যাকাউন্ট</string>
     <string name="models_llm_available_title">ডাউনলোডের জন্য উপলব্ধ</string>
     <string name="models_llm_catalog_info">সেরা মডেলগুলো উপরে থাকে, ছোটগুলো নয়। উপরের মডেলগুলো ভালো লেখে, কিন্তু ডাউনলোড সাইজ বড় হয়, উত্তর দিতে ধীরগতি হয় এবং বেশি মেমোরি প্রয়োজন হয়। একটি গেটেড মডেলের জন্য হাগিং ফেস (Hugging Face) অ্যাকাউন্টের প্রয়োজন হয়। উপরে আপনার টোকেন যোগ করুন, তারপর মডেল পেজে একবার লাইসেন্স গ্রহণ করুন।</string>
-    <string name="models_llm_compute_info">জিপিইউ অপশনটি পরীক্ষামূলক। জিপিইউ চালু না হলে বা উত্তরের সময় মডেল বন্ধ হয়ে গেলে অ্যাপটি স্বয়ংক্রিয়ভাবে সিপিইউতে পরিবর্তিত হয়। জিপিইউ মেমোরি সিস্টেম মেমোরির চেয়ে অনেক ছোট, তাই বড় মডেলের জন্য প্রায়ই সিপিইউ প্রয়োজন হয়। জিপিইউ কাজ না করলে এখানে সিপিইউ নির্বাচন করুন।</string>
     <string name="models_llm_compute_title">কম্পিউট</string>
     <string name="models_llm_empty">আপনার ডিভাইসে এখনও কোনো মডেল নেই। অফলাইনে AI ব্যবহার করতে নিচে থেকে একটি ডাউনলোড করুন।</string>
     <string name="models_llm_gated_desc">এই মডেলটির জন্য একটি হাগিং ফেস টোকেন প্রয়োজন</string>
@@ -4165,7 +4164,6 @@
     <string name="models_llm_import_error_no_space">%1$s-এর এই ফাইলের জন্য পর্যাপ্ত স্টোরেজ নেই।</string>
     <string name="models_llm_import_error_not_a_model">এটি কোনো মডেল ফাইল নয়। অ্যাপটির একটি .litertlm ফাইল বা একটি .task ফাইল প্রয়োজন।</string>
     <string name="models_llm_import_error_open">অ্যাপটি নির্বাচিত ফাইলটি খুলতে পারছে না।</string>
-    <string name="models_llm_import_info">আপনি যেকোনো LiteRT-LM মডেল .litertlm ফাইল বা .task ফাইলে ইমপোর্ট করতে পারেন। উদাহরণস্বরূপ, এমন একটি মডেল যা আপনি নিজে কনভার্ট করেছেন বা ব্রাউজারে ডাউনলোড করেছেন।</string>
     <string name="models_llm_import_title">আপনার নিজেরটি ইম্পোর্ট করুন</string>
     <string name="models_llm_importing_label">ইমপোর্ট করা হচ্ছে…</string>
     <string name="models_llm_license_action">লাইসেন্স এবং মডেল পৃষ্ঠা</string>

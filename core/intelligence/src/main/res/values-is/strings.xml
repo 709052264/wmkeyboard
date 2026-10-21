@@ -11,7 +11,6 @@
     <string name="core_intel_llm_engine_error_gpu">Líkanið bilaði á GPU. GPU-minni er mun minna en kerfisminni. Næsta tilraun notar CPU. Til að nota alltaf CPU, stilltu Compute á CPU í stillingum. Þú getur líka valið minna líkan.</string>
     <string name="core_intel_llm_engine_error_load">Gagnamódelið hlaðast ekki inn. Skráin er sennilega skemmd. Eyddu módeli í stillingum og halaðu því niður aftur.</string>
     <string name="core_intel_llm_engine_error_memory">Gerðin kláraði minnið eða hún bilaði. Veldu minni gerð.</string>
-    <string name="core_intel_llm_engine_error_vision">Þetta líkan getur ekki lesið myndir. Gemma 4 getur það.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Lítil Gemma frá fyrri kynslóð. Hún hefur góð gæði og 4K tákna samhengi.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Minnsta Gemma frá Google. Hún er hröð á öllum tækjum.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Nýjasta Gemma kynslóðin. Hún gefur hágæða niðurstöður á tækinu þínu.</string>

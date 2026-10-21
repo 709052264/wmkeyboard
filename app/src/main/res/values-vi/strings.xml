@@ -4130,7 +4130,6 @@
     <string name="models_llm_account_title">Tài khoản Hugging Face</string>
     <string name="models_llm_available_title">Có sẵn để tải xuống</string>
     <string name="models_llm_catalog_info">Các mô hình tốt nhất nằm ở trên cùng, không phải các mô hình nhỏ nhất. Mô hình ở trên cùng viết tốt hơn, nhưng tệp tải xuống lớn hơn, phản hồi chậm hơn và cần nhiều bộ nhớ hơn. Một mô hình có kiểm soát cần có tài khoản Hugging Face. Hãy thêm mã thông báo của bạn ở trên, sau đó chấp nhận giấy phép trên trang mô hình một lần.</string>
-    <string name="models_llm_compute_info">Tùy chọn GPU đang ở giai đoạn thử nghiệm. Ứng dụng sẽ tự động chuyển sang CPU nếu GPU không khởi động hoặc nếu mô hình dừng lại trong khi trả lời. Bộ nhớ GPU nhỏ hơn nhiều so với bộ nhớ hệ thống, vì vậy một mô hình lớn thường cần đến CPU. Hãy chọn CPU tại đây nếu GPU liên tục gặp lỗi.</string>
     <string name="models_llm_compute_title">Tính toán</string>
     <string name="models_llm_empty">Chưa có mô hình nào trên thiết bị của bạn. Hãy tải xuống một mô hình bên dưới để sử dụng AI ngoại tuyến.</string>
     <string name="models_llm_gated_desc">Mô hình này cần có mã thông báo Hugging Face</string>
@@ -4141,7 +4140,6 @@
     <string name="models_llm_import_error_no_space">Không đủ dung lượng lưu trữ cho tệp %1$s này.</string>
     <string name="models_llm_import_error_not_a_model">Đây không phải là tệp mô hình. Ứng dụng cần tệp .litertlm hoặc tệp .task.</string>
     <string name="models_llm_import_error_open">Ứng dụng không thể mở tệp đã chọn.</string>
-    <string name="models_llm_import_info">Bạn có thể nhập bất kỳ mô hình LiteRT-LM nào trong tệp .litertlm hoặc tệp .task. Ví dụ: một mô hình mà bạn tự chuyển đổi hoặc tải xuống trong trình duyệt.</string>
     <string name="models_llm_import_title">Nhập của riêng bạn</string>
     <string name="models_llm_importing_label">Đang nhập…</string>
     <string name="models_llm_license_action">Trang giấy phép và mô hình</string>

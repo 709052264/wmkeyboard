@@ -4139,7 +4139,6 @@
     <string name="models_llm_account_title">Hugging Face-konto</string>
     <string name="models_llm_available_title">Tilgjengelig for nedlasting</string>
     <string name="models_llm_catalog_info">De beste modellene er øverst, ikke de minste. En modell øverst skriver bedre, men nedlastingen er større, svaret er tregere, og den trenger mer minne. En inngjerdet modell krever en Hugging Face-konto. Legg til tokenet ditt ovenfor, og godta deretter lisensen på modellsiden én gang.</string>
-    <string name="models_llm_compute_info">GPU-alternativet er eksperimentelt. Appen bytter automatisk til CPU hvis GPU-en ikke starter, eller hvis en modell stopper under et svar. GPU-minnet er mye mindre enn systemminnet, så en stor modell trenger ofte CPU-en. Velg CPU her hvis GPU-en fortsetter å feile.</string>
     <string name="models_llm_compute_title">Beregning</string>
     <string name="models_llm_empty">Ingen modell er på enheten din ennå. Last ned en nedenfor for å bruke AI offline.</string>
     <string name="models_llm_gated_desc">Denne modellen krever et Hugging Face-token</string>
@@ -4150,7 +4149,6 @@
     <string name="models_llm_import_error_no_space">Det er ikke nok lagringsplass for denne filen på %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Dette er ikke en modellfil. Appen trenger en .litertlm-fil eller en .task-fil.</string>
     <string name="models_llm_import_error_open">Appen kan ikke åpne den valgte filen.</string>
-    <string name="models_llm_import_info">Du kan importere hvilken som helst LiteRT-LM-modell i en .litertlm-fil eller en .task-fil. For eksempel en modell du har konvertert selv eller lastet ned i en nettleser.</string>
     <string name="models_llm_import_title">Importer din egen</string>
     <string name="models_llm_importing_label">Importerer…</string>
     <string name="models_llm_license_action">Lisens- og modellsiden</string>

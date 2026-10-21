@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">હગિંગ ફેસ એકાઉન્ટ</string>
     <string name="models_llm_available_title">ડાઉનલોડ કરવા માટે ઉપલબ્ધ</string>
     <string name="models_llm_catalog_info">શ્રેષ્ઠ મોડેલો ટોચ પર છે, સૌથી નાના નથી. ટોચ પરનું મોડેલ વધુ સારું લખે છે, પરંતુ ડાઉનલોડ મોટું છે, જવાબ ધીમો છે, અને તેને વધુ મેમરીની જરૂર છે. ગેટ કરેલા મોડેલને Hugging Face એકાઉન્ટની જરૂર છે. તમારું ટોકન ઉપર ઉમેરો, પછી એકવાર મોડેલ પેજ પર લાયસન્સ સ્વીકારો.</string>
-    <string name="models_llm_compute_info">GPU વિકલ્પ પ્રાયોગિક છે. જો GPU શરૂ ન થાય, અથવા જવાબ દરમિયાન મોડેલ અટકી જાય તો એપ આપમેળે CPU પર બદલાઈ જાય છે. GPU મેમરી સિસ્ટમ મેમરી કરતા ઘણી નાની હોય છે, તેથી મોટા મોડેલને વારંવાર CPU ની જરૂર પડે છે. જો GPU નિષ્ફળ જવાનું ચાલુ રાખે તો અહીં CPU પસંદ કરો.</string>
     <string name="models_llm_compute_title">કમ્પ્યુટ</string>
     <string name="models_llm_empty">તમારા ઉપકરણ પર હજુ સુધી કોઈ મોડેલ નથી. AI નો ઑફલાઇન ઉપયોગ કરવા માટે નીચે એક ડાઉનલોડ કરો.</string>
     <string name="models_llm_gated_desc">આ મોડેલને હગિંગ ફેસ ટોકનની જરૂર છે</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">%1$s ની આ ફાઇલ માટે પૂરતી સ્ટોરેજ નથી.</string>
     <string name="models_llm_import_error_not_a_model">આ મોડેલ ફાઇલ નથી. એપને .litertlm ફાઇલ અથવા .task ફાઇલની જરૂર છે.</string>
     <string name="models_llm_import_error_open">એપ પસંદ કરેલી ફાઇલ ખોલી શકતી નથી.</string>
-    <string name="models_llm_import_info">તમે કોઈપણ LiteRT-LM મોડેલને .litertlm ફાઇલ અથવા .task ફાઇલમાં આયાત કરી શકો છો. ઉદાહરણ તરીકે, તમે જાતે કન્વર્ટ કરેલું અથવા બ્રાઉઝરમાં ડાઉનલોડ કરેલું મોડેલ.</string>
     <string name="models_llm_import_title">તમારું પોતાનું આયાત કરો</string>
     <string name="models_llm_importing_label">આયાત કરી રહ્યા છીએ...</string>
     <string name="models_llm_license_action">લાઇસન્સ અને મોડેલ પેજ</string>

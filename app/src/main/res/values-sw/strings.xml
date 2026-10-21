@@ -4148,7 +4148,6 @@
     <string name="models_llm_account_title">Akaunti ya Hugging Face</string>
     <string name="models_llm_available_title">Inapatikana kwa kupakuliwa</string>
     <string name="models_llm_catalog_info">Miundo bora iko juu, si ile midogo. Muundo ulio juu huandika vizuri zaidi, lakini upakuaji ni mkubwa, jibu ni polepole, na inahitaji kumbukumbu zaidi. Muundo uliofungwa unahitaji akaunti ya Hugging Face. Ongeza tokeni yako hapo juu, kisha ukubali leseni kwenye ukurasa wa muundo mara moja.</string>
-    <string name="models_llm_compute_info">Chaguo la GPU ni la majaribio. Programu hubadilika hadi CPU kiotomatiki ikiwa GPU haitaanza, au ikiwa modeli itasimama wakati wa jibu. Kumbukumbu ya GPU ni ndogo sana kuliko kumbukumbu ya mfumo, kwa hivyo modeli kubwa mara nyingi huhitaji CPU. Chagua CPU hapa ikiwa GPU itaendelea kushindwa.</string>
     <string name="models_llm_compute_title">Kompyuta</string>
     <string name="models_llm_empty">Hakuna modeli kwenye kifaa chako bado. Pakua moja hapa chini ili kutumia AI nje ya mtandao.</string>
     <string name="models_llm_gated_desc">Muundo huu unahitaji tokeni ya Hugging Face</string>
@@ -4159,7 +4158,6 @@
     <string name="models_llm_import_error_no_space">Hakuna nafasi ya kutosha ya kuhifadhi kwa faili hii ya %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Hii si faili ya modeli. Programu inahitaji faili ya .litertlm au faili ya .task.</string>
     <string name="models_llm_import_error_open">Programu haiwezi kufungua faili iliyochaguliwa.</string>
-    <string name="models_llm_import_info">Unaweza kuingiza modeli yoyote ya LiteRT-LM katika faili ya .litertlm au faili ya .task. Kwa mfano, modeli uliyogeuza mwenyewe au uliyopakua kwenye kivinjari.</string>
     <string name="models_llm_import_title">Ingiza yako mwenyewe</string>
     <string name="models_llm_importing_label">Inaleta…</string>
     <string name="models_llm_license_action">Ukurasa wa leseni na modeli</string>

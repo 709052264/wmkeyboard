@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Compute = GPU or Automatic for offline Whisper's GGML models:
+     libwmwhispercpp_opencl.so links to the vendor's libOpenCL.so, and an app
+     targeting API 31 or later only sees a vendor library it declares. Not
+     required, so a phone without one installs the app, fails that one load,
+     and dictates on the CPU builds. :core:intelligence declares the same
+     library for llama.cpp's OpenCL build; the manifest merger keeps one.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <uses-native-library
+            android:name="libOpenCL.so"
+            android:required="false" />
+    </application>
+
+</manifest>

@@ -63,10 +63,12 @@ internal object PredictionNative {
      * its [kinds] entry is 0, a user lexicon ([lexNew]) when 1. Tiers are 0
      * (dictionary) or 1 (user); [habits] is 0 for none. The touch frame is absent when
      * [touchKeys] is null: [touchCenters] holds an x, y per key and
-     * [touchPoints] an x, y per typed character, NaN where unknown.
+     * [touchPoints] an x, y per typed character, NaN where unknown;
+     * [slipRadius] is how far a tap reaches for a slip, 0 for none.
      * For result `i`, [doublesOut] holds score, editCost, dictScore and
-     * userScore at `4i`, and [intsOut] edits, completedChars, tier and
-     * accents; both must hold `4 * max(limit * 2, 8)`.
+     * userScore at `4i`, and [intsOut] edits, completedChars, tier, accents
+     * and slips at `5i`; they must hold four and five per word of
+     * `max(limit * 2, 8)`.
      */
     @Suppress("LongParameterList")
     external fun fuzzySearch(
@@ -82,6 +84,7 @@ internal object PredictionNative {
         touchKeys: CharArray?,
         touchCenters: FloatArray?,
         sigma: Double,
+        slipRadius: Double,
         touchPoints: FloatArray?,
         keySets: Array<String>?,
         keySpellings: Array<Array<String>?>?,

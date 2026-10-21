@@ -105,7 +105,15 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
   a streaming transducer, greedy search, 16 kHz, 80 mel bins. Its own
   endpoint fires after `trailingSilence` seconds of quiet following words;
   the no-words rule is pushed out of reach.
-- `nativeStream`, `nativeFeed` (decodes every frame the samples complete),
+- `nativeHotwordRecognizer(..., trailingSilence, modelingUnit, bpeVocab,
+  hotwordsScore)`: the same by modified beam search (4 paths), the only search
+  that follows hotwords. `modelingUnit` is `bpe` or `cjkchar+bpe` and nothing
+  else, since sherpa-onnx exits the process on any other; hotwords are cut into
+  pieces over `bpeVocab` (`piece score` a line, written by `SherpaHotwords`
+  from the model's `tokens.txt`), each matching piece worth `hotwordsScore`.
+- `nativeStream`, `nativeHotwordStream(recognizer, hotwords)` (UTF-8, one
+  phrase a line, already spelled for the model by `SherpaHotwords`),
+  `nativeFeed` (decodes every frame the samples complete),
   `nativeText`, `nativeEndpoint`, `nativeFinish` (a short silent tail, input
   finished, decode the rest), `nativeStreamFree`.
 - `nativeVad(model, threshold, minSilence, minSpeech)`, `nativeVadFeed`

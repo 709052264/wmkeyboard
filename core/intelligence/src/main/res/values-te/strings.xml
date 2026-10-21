@@ -11,7 +11,6 @@
     <string name="core_intel_llm_engine_error_gpu">GPUపై మోడల్ విఫలమైంది. GPU మెమరీ సిస్టమ్ మెమరీ కంటే చాలా తక్కువగా ఉంటుంది. తదుపరి ప్రయత్నం CPUని ఉపయోగిస్తుంది. ఎల్లప్పుడూ CPUని ఉపయోగించడానికి, సెట్టింగ్‌లలో కంప్యూట్‌ను CPUకి సెట్ చేయండి. మీరు చిన్న మోడల్‌ను కూడా ఎంచుకోవచ్చు.</string>
     <string name="core_intel_llm_engine_error_load">మోడల్ లోడ్ కాలేదు. ఫైల్ బహుశా పాడై ఉండవచ్చు. సెట్టింగ్‌లలో మోడల్‌ను తొలగించి, మళ్లీ డౌన్‌లోడ్ చేయండి.</string>
     <string name="core_intel_llm_engine_error_memory">మోడల్ మెమరీ అయిపోయింది లేదా విఫలమైంది. చిన్న మోడల్‌ను ఎంచుకోండి.</string>
-    <string name="core_intel_llm_engine_error_vision">ఈ మోడల్ చిత్రాలను చదవలేదు. జెమ్మా 4 చదవగలదు.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">మునుపటి తరం నుండి వచ్చిన చిన్న జెమ్మా. ఇది మంచి నాణ్యతను మరియు 4K టోకెన్ల సందర్భాన్ని కలిగి ఉంది.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">గూగుల్ నుండి అతి చిన్న గెమ్మా. ఇది అన్ని పరికరాల్లో వేగంగా పనిచేస్తుంది.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">అత్యంత కొత్త జెమ్మా జనరేషన్. ఇది మీ పరికరంలో అత్యుత్తమ నాణ్యతను అందిస్తుంది.</string>

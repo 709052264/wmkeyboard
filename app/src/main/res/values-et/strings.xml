@@ -4142,7 +4142,6 @@
     <string name="models_llm_account_title">Hugging Face\'i konto</string>
     <string name="models_llm_available_title">Allalaadimiseks saadaval</string>
     <string name="models_llm_catalog_info">Parimad mudelid on loendi tipus, mitte kõige väiksemad. Tipus olev mudel kirjutab paremini, kuid allalaadimine on mahukam, vastus aeglasem ja see vajab rohkem mälu. Piiratud juurdepääsuga mudel vajab Hugging Face\'i kontot. Lisage oma võti ülalpool, seejärel nõustuge üks kord mudeli lehel litsentsiga.</string>
-    <string name="models_llm_compute_info">GPU valik on eksperimentaalne. Rakendus lülitub automaatselt protsessorile (CPU), kui GPU ei käivitu või kui mudel vastamise ajal peatub. GPU mälu on süsteemi mälust palju väiksem, seega vajab suur mudel sageli protsessorit. Vali siin CPU, kui GPU-ga esineb jätkuvalt tõrkeid.</string>
     <string name="models_llm_compute_title">Arvutus</string>
     <string name="models_llm_empty">Teie seadmes pole veel ühtegi mudelit. Laadige see allpool alla, et kasutada tehisintellekti võrguühenduseta.</string>
     <string name="models_llm_gated_desc">See mudel vajab Hugging Face\'i luba</string>
@@ -4153,7 +4152,6 @@
     <string name="models_llm_import_error_no_space">Selle %1$s faili jaoks pole piisavalt salvestusruumi.</string>
     <string name="models_llm_import_error_not_a_model">See ei ole mudelifail. Rakendus vajab .litertlm- või .task-faili.</string>
     <string name="models_llm_import_error_open">Rakendus ei saa valitud faili avada.</string>
-    <string name="models_llm_import_info">Saad importida mis tahes LiteRT-LM-mudeli .litertlm- või .task-failina. Näiteks mudeli, mille oled ise teisendanud või brauserist alla laadinud.</string>
     <string name="models_llm_import_title">Impordi oma</string>
     <string name="models_llm_importing_label">Importimine…</string>
     <string name="models_llm_license_action">Litsentsi ja mudeli leht</string>

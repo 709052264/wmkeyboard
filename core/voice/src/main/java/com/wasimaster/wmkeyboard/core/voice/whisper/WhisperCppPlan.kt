@@ -34,6 +34,18 @@ object WhisperCppPlan {
     }
 
     /**
+     * Whether [model] asks for the GPU under [compute] (a [WhisperCompute]
+     * value). Auto leaves Tiny on the CPU: its encoder takes a few hundred
+     * milliseconds on a phone's cores, about what starting the GPU costs.
+     * Whether the phone can is [WhisperCpp]'s question, not this one.
+     */
+    fun wantsGpu(model: WhisperModel, compute: String): Boolean = when (compute) {
+        WhisperCompute.GPU -> true
+        WhisperCompute.CPU -> false
+        else -> model.size != WhisperSize.TINY
+    }
+
+    /**
      * The Whisper codes to hand [WhisperCpp.transcribe] for a dictation in
      * [languageIds] (keyboard ids, first is the main one). An English-only
      * model takes none. Languages Whisper does not know are dropped; when that

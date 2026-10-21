@@ -56,6 +56,20 @@ data class NpuBuild(
     val sizeBytes: Long,
 )
 
+/**
+ * A GGUF vision model's projector (its `mmproj` file), published in the same
+ * repository at the same commit as the model, downloaded beside it. llama.cpp
+ * reads pictures through it; without it the model answers text only.
+ */
+data class ModelProjector(
+    /** Exact file under the repo at the model's revision. */
+    val fileName: String,
+    /** SHA-256 at that revision, checked like the model's. */
+    val sha256: String,
+    /** Exact size from huggingface.co/api. */
+    val sizeBytes: Long,
+)
+
 /** One downloadable model in the curated catalog. */
 data class LocalLlmModel(
     /** Stable key — used as the storage directory name and the settings value. */
@@ -108,6 +122,8 @@ data class LocalLlmModel(
      * to: a model family that has eyes elsewhere is not enough.
      */
     val vision: Boolean = false,
+    /** A GGUF vision model's projector, fetched with it; null for every other model. */
+    val projector: ModelProjector? = null,
     /**
      * Builds of this model for chips' NPUs, which a download fetches instead
      * of [fileName] when Compute is NPU on one of those chips. Empty for most
@@ -117,6 +133,9 @@ data class LocalLlmModel(
 ) {
     /** The engine that runs it, from its format. */
     val runtime: LocalLlmRuntime get() = format.runtime
+
+    /** What downloading the standard file costs: the model and its projector. */
+    val downloadBytes: Long get() = sizeBytes + (projector?.sizeBytes ?: 0L)
 }
 
 /**
@@ -270,8 +289,31 @@ object LocalLlmCatalog {
             descriptionRes = R.string.core_intel_llm_model_smollm2_135m_subtitle,
         ),
         // GGUF models for llama.cpp. Sizes, commits and SHA-256s from
-        // huggingface.co/api (paths-info) on 2026-10-20. Licence per row, as
-        // each repository's model card names it.
+        // huggingface.co/api (paths-info) on 2026-10-20, the vision rows on
+        // 2026-10-21. Licence per row, as each repository's model card (or,
+        // for ggml-org's conversions, the original model's) names it.
+        LocalLlmModel(
+            id = "gguf-qwen2.5-vl-3b",
+            displayName = "Qwen 2.5 VL 3B (GGUF)",
+            params = "3B",
+            repo = "ggml-org/Qwen2.5-VL-3B-Instruct-GGUF",
+            revision = "5037fcf163dd95d1e41d1974465f0898ed108ca2",
+            fileName = "Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf",
+            sha256 = "d02fe9b69ad8cadbbd228e387667af66612c44bed29ffc8eb1e7caf9ac486c12",
+            sizeBytes = 1_929_901_056L,
+            gated = false,
+            license = "Qwen Research License",
+            format = ModelFormat.GGUF,
+            tier = ModelTier.UNTESTED,
+            minRamMb = 8192,
+            descriptionRes = R.string.core_intel_llm_model_gguf_qwen25_vl_3b_subtitle,
+            vision = true,
+            projector = ModelProjector(
+                fileName = "mmproj-Qwen2.5-VL-3B-Instruct-Q8_0.gguf",
+                sha256 = "980c9b2f78c04e6cff93d277ada09e768394f112d75db3b4e9dea8a69f9fb904",
+                sizeBytes = 844_757_728L,
+            ),
+        ),
         LocalLlmModel(
             id = "gguf-qwen3-1.7b",
             displayName = "Qwen 3 1.7B (GGUF)",
@@ -355,6 +397,28 @@ object LocalLlmCatalog {
             descriptionRes = R.string.core_intel_llm_model_qwen25_05b_subtitle,
         ),
         LocalLlmModel(
+            id = "gguf-smolvlm-500m",
+            displayName = "SmolVLM 500M (GGUF)",
+            params = "500M",
+            repo = "ggml-org/SmolVLM-500M-Instruct-GGUF",
+            revision = "72e986006ef53e37cdd3f6d4241c90b0f01df376",
+            fileName = "SmolVLM-500M-Instruct-Q8_0.gguf",
+            sha256 = "9d4612de6a42214499e301494a3ecc2be0abdd9de44e663bda63f1152fad1bf4",
+            sizeBytes = 436_806_912L,
+            gated = false,
+            license = "Apache-2.0",
+            format = ModelFormat.GGUF,
+            tier = ModelTier.EXPERIMENTAL,
+            minRamMb = 3072,
+            descriptionRes = R.string.core_intel_llm_model_gguf_smolvlm_500m_subtitle,
+            vision = true,
+            projector = ModelProjector(
+                fileName = "mmproj-SmolVLM-500M-Instruct-Q8_0.gguf",
+                sha256 = "d1eb8b6b23979205fdf63703ed10f788131a3f812c7b1f72e0119d5d81295150",
+                sizeBytes = 108_783_360L,
+            ),
+        ),
+        LocalLlmModel(
             id = "gguf-smollm2-360m",
             displayName = "SmolLM2 360M (GGUF)",
             params = "360M",
@@ -405,6 +469,10 @@ object LocalLlmCatalog {
     fun downloadTarget(model: LocalLlmModel, npuSoc: String?): Pair<String, Long> =
         npuBuild(model, npuSoc)?.let { it.fileName to it.sizeBytes } ?: (model.fileName to model.sizeBytes)
 
+    /** What downloading [model] costs in all, for the user: [downloadTarget] plus a vision model's projector. */
+    fun downloadSize(model: LocalLlmModel, npuSoc: String?): Long =
+        npuBuild(model, npuSoc)?.sizeBytes ?: model.downloadBytes
+
     /**
      * Whether the model behind a selection id can read a picture: true or
      * false for a catalog model, null for an imported file (`custom:<name>`),
@@ -413,10 +481,9 @@ object LocalLlmCatalog {
      */
     fun canSee(id: String?): Boolean? {
         if (id.isNullOrBlank()) return null
-        if (id.startsWith("custom:")) {
-            // llama.cpp here has no vision projector, so an imported GGUF never sees.
-            return if (id.endsWith(".${ModelFormat.GGUF.extension}", ignoreCase = true)) false else null
-        }
+        // An imported GGUF sees when a projector sits beside it, which only
+        // the engine looks for: null, like any other imported file.
+        if (id.startsWith("custom:")) return null
         return byId(id)?.vision
     }
 

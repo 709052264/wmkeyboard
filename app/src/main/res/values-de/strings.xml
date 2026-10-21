@@ -4136,7 +4136,6 @@
     <string name="models_llm_account_title">Hugging Face-Konto</string>
     <string name="models_llm_available_title">Zum Download verfügbar</string>
     <string name="models_llm_catalog_info">Die besten Modelle stehen oben, nicht die kleinsten. Ein Modell weiter oben schreibt besser, aber der Download ist größer, die Antwort langsamer und es benötigt mehr Arbeitsspeicher. Ein geschlossenes Modell erfordert ein Hugging Face-Konto. Füge oben dein Token hinzu und akzeptiere dann einmalig die Lizenz auf der Modellseite.</string>
-    <string name="models_llm_compute_info">Die GPU-Option ist experimentell. Die App wechselt automatisch zur CPU, wenn die GPU nicht startet oder ein Modell während einer Antwort stoppt. Der GPU-Speicher ist viel kleiner als der Systemspeicher, daher benötigt ein großes Modell häufig die CPU. Wählen Sie hier CPU, falls die GPU weiterhin fehlschlägt.</string>
     <string name="models_llm_compute_title">Berechnen</string>
     <string name="models_llm_empty">Es befindet sich noch kein Modell auf Ihrem Gerät. Laden Sie unten eines herunter, um KI offline zu nutzen.</string>
     <string name="models_llm_gated_desc">Dieses Modell benötigt ein Hugging Face-Token</string>
@@ -4147,7 +4146,6 @@
     <string name="models_llm_import_error_no_space">Es ist nicht genügend Speicherplatz für diese %1$s-Datei vorhanden.</string>
     <string name="models_llm_import_error_not_a_model">Dies ist keine Modelldatei. Die App benötigt eine .litertlm- oder .task-Datei.</string>
     <string name="models_llm_import_error_open">Die App kann die ausgewählte Datei nicht öffnen.</string>
-    <string name="models_llm_import_info">Sie können jedes LiteRT-LM-Modell in einer .litertlm- oder .task-Datei importieren. Zum Beispiel ein Modell, das Sie selbst konvertiert oder in einem Browser heruntergeladen haben.</string>
     <string name="models_llm_import_title">Eigene importieren</string>
     <string name="models_llm_importing_label">Importiere…</string>
     <string name="models_llm_license_action">Lizenz- und Modellseite</string>

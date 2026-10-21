@@ -62,6 +62,8 @@ import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCatalog
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager.DownloadStatus
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperEngine
@@ -75,6 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoMode
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Memory
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 
@@ -285,6 +288,10 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         }
     }
 
+    // Where the GGML models run. Only once one is on the phone: the LiteRT
+    // graphs always run on the CPU.
+    if (onDisk.any { it.ggml }) WhisperComputeGroup(repository, settings)
+
     if (suggestions.isNotEmpty()) {
         SettingsGroup(stringResource(R.string.models_whisper_suggested_title)) {
             for (model in suggestions) item { modelRow(model) }
@@ -396,6 +403,54 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
  * for — that produces confident wrong words rather than an error, so a language
  * its model cannot handle is called out in the error colour.
  */
+/**
+ * Compute for the GGML models: Automatic, CPU or GPU. The subtitle says what
+ * this phone's GPU amounts to; choosing GPU forgets an earlier failure there,
+ * so the next dictation tries it again.
+ */
+@Composable
+private fun WhisperComputeGroup(repository: SettingsRepository, settings: LiveSettings) {
+    val scope = rememberCoroutineScope()
+    val selected = settings.watch { it.whisper.compute }
+    // Read again whenever the choice changes: choosing GPU clears a failure.
+    val support = remember(selected) { WhisperCppGpu.support }
+    val subtitle = when (support) {
+        WhisperCppGpu.Support.NO_GPU -> stringResource(R.string.models_whisper_compute_no_gpu)
+        WhisperCppGpu.Support.FAILED -> stringResource(R.string.models_whisper_compute_failed)
+        WhisperCppGpu.Support.READY -> WhisperCppGpu.deviceName
+            ?.let { stringResource(R.string.models_whisper_compute_subtitle_named, it) }
+            ?: stringResource(R.string.models_whisper_compute_subtitle)
+    }
+    SettingsGroup(stringResource(R.string.models_whisper_compute_title)) {
+        item {
+            ChoiceSetting(
+                title = R.string.models_whisper_compute_title,
+                subtitle = subtitle,
+                options = listOf(
+                    WhisperCompute.AUTO to stringResource(R.string.models_whisper_compute_auto),
+                    WhisperCompute.CPU to stringResource(R.string.models_whisper_compute_cpu),
+                    WhisperCompute.GPU to stringResource(R.string.models_whisper_compute_gpu),
+                ),
+                selected = selected,
+                info = stringResource(R.string.models_whisper_compute_info),
+                default = SettingsDefaults.whisper.compute,
+                detail = { choice ->
+                    ChoiceDetail(
+                        icon = when (choice) {
+                            WhisperCompute.CPU -> Icons.Outlined.Memory
+                            WhisperCompute.GPU -> Icons.Outlined.Speed
+                            else -> Icons.Outlined.AutoMode
+                        },
+                    )
+                },
+            ) { choice ->
+                if (choice == WhisperCompute.GPU) WhisperCppGpu.forgetFailures()
+                scope.launch { repository.setWhisperCompute(choice) }
+            }
+        }
+    }
+}
+
 @Composable
 private fun WhisperRoutingCard(
     languages: List<LanguageDef>,

@@ -4130,7 +4130,6 @@
     <string name="models_llm_account_title">Hugging Face 계정</string>
     <string name="models_llm_available_title">다운로드 가능</string>
     <string name="models_llm_catalog_info">가장 작은 모델이 아니라 가장 성능이 좋은 모델이 상단에 있습니다. 상단에 있는 모델은 더 잘 작성하지만 다운로드 용량이 크고 응답 속도가 느리며 더 많은 메모리가 필요합니다. 게이트 모델을 사용하려면 Hugging Face 계정이 필요합니다. 위에서 토큰을 추가한 다음 모델 페이지에서 라이선스에 한 번 동의하세요.</string>
-    <string name="models_llm_compute_info">GPU 옵션은 실험적 기능입니다. GPU가 시작되지 않거나 답변 도중 모델이 중단되면 앱이 자동으로 CPU로 전환됩니다. GPU 메모리는 시스템 메모리보다 훨씬 작으므로 대형 모델은 CPU가 필요한 경우가 많습니다. GPU 오류가 계속 발생하면 CPU를 선택하세요.</string>
     <string name="models_llm_compute_title">연산</string>
     <string name="models_llm_empty">기기에 모델이 없습니다. 오프라인에서 AI를 사용하려면 아래에서 모델을 다운로드하세요.</string>
     <string name="models_llm_gated_desc">이 모델은 Hugging Face 토큰이 필요합니다</string>
@@ -4141,7 +4140,6 @@
     <string name="models_llm_import_error_no_space">%1$s 크기의 파일을 저장할 공간이 부족합니다.</string>
     <string name="models_llm_import_error_not_a_model">모델 파일이 아닙니다. 앱에는 .litertlm 파일 또는 .task 파일이 필요합니다.</string>
     <string name="models_llm_import_error_open">앱이 선택한 파일을 열 수 없습니다.</string>
-    <string name="models_llm_import_info">.litertlm 파일 또는 .task 파일에 있는 모든 LiteRT-LM 모델을 가져올 수 있습니다. 예를 들어, 직접 변환했거나 브라우저에서 다운로드한 모델을 가져올 수 있습니다.</string>
     <string name="models_llm_import_title">직접 가져오기</string>
     <string name="models_llm_importing_label">가져오는 중…</string>
     <string name="models_llm_license_action">라이선스 및 모델 페이지</string>

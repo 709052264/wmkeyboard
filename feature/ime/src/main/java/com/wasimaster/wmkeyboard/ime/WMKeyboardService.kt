@@ -1053,6 +1053,9 @@ open class WMKeyboardService : InputMethodService() {
     /** The mistype tolerance the engine's touch model was last built with (#385). */
     private var toleranceApplied = 100
 
+    /** Whether the engine's touch model was last built reading several slips per word. */
+    private var slipsApplied = true
+
     /**
      * The word the user has gone back into and is editing, if any; see
      * [WordRevision]. Armed when the caret lands on a word
@@ -1922,6 +1925,9 @@ open class WMKeyboardService : InputMethodService() {
         tapAdaptApplied = adaptSetting
         val tolerance = _uiState.value.settings.suggestionStrip.mistypeTolerance
         toleranceApplied = tolerance
+        val slips = _uiState.value.settings.suggestionStrip.fixSeveralSlips
+        slipsApplied = slips
+        val sigma = KeyTouchModel.SIGMA * tolerance / 100.0
         // The typing beam walks the trie one UTF-16 unit at a time, so its touch
         // model is keyed by Char: a letter outside the BMP has no single unit to
         // file under and simply gets no tap evidence, the same as before.
@@ -1931,7 +1937,9 @@ open class WMKeyboardService : InputMethodService() {
                     if (key.codePoint <= 0xFFFF) put(key.codePoint.toChar(), TouchPoint(key.x, key.y))
                 }
             },
-            sigma = KeyTouchModel.SIGMA * tolerance / 100.0,
+            sigma = sigma,
+            // Off, every off-key tap is an edit again, as it always was.
+            slipRadius = if (slips) KeyTouchModel.SLIP_SIGMAS * sigma else 0.0,
         )
     }
 
@@ -4763,7 +4771,8 @@ open class WMKeyboardService : InputMethodService() {
                 if (nowArmed && !hwKeyboardArmed) refreshHandwritingStatus()
                 hwKeyboardArmed = nowArmed
                 if (settings.suggestionStrip.adaptToTaps != tapAdaptApplied ||
-                    settings.suggestionStrip.mistypeTolerance != toleranceApplied
+                    settings.suggestionStrip.mistypeTolerance != toleranceApplied ||
+                    settings.suggestionStrip.fixSeveralSlips != slipsApplied
                 ) {
                     applyTouchModel()
                 }
@@ -8986,7 +8995,7 @@ open class WMKeyboardService : InputMethodService() {
      * volatile read.
      */
     private fun scheduleGpuRecycle() {
-        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded() && !LocalLlmEngine.waitsForGpuRestart()) return
         gpuRecycleJob?.cancel()
         gpuRecycleJob = serviceScope.launch {
             delay(GPU_RECYCLE_DELAY_MS)
@@ -9003,16 +9012,28 @@ open class WMKeyboardService : InputMethodService() {
      * keyboard again on the next field, and [persistentSurface] already plans
      * for a show landing in a new process.
      *
+     * The same when Compute = GPU waits for a new process to reach a GGUF
+     * model: llama.cpp's GPU build of its library can only load in a process
+     * that has not loaded a CPU build yet.
+     *
      * Only with the keyboard away, no screen of the app started (they share
      * this process) and no model download running, and only after the stores
      * are on disk.
      */
     private suspend fun recycleIfGpuStranded() {
-        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        val restartForGpu = LocalLlmEngine.waitsForGpuRestart()
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded() && !restartForGpu) return
         if (keyboardVisible || StartedActivities.count > 0 || LocalLlmDownloadManager.isBusy) return
         val strandedKb = withContext(Dispatchers.Default) { LocalLlmEngine.strandedGpuMemoryKb() }
-        if (strandedKb < GPU_STRANDED_KB) return
-        DebugLog.i("ime", "recycling the process: ${strandedKb / 1024} MB of GPU memory left by the model")
+        if (strandedKb < GPU_STRANDED_KB && !restartForGpu) return
+        DebugLog.i(
+            "ime",
+            if (strandedKb >= GPU_STRANDED_KB) {
+                "recycling the process: ${strandedKb / 1024} MB of GPU memory left by the model"
+            } else {
+                "recycling the process: Compute = GPU needs llama.cpp's GPU build"
+            },
+        )
         withContext(persistDispatcher) {
             saveLearningStores()
             clipboardStore.save()
@@ -28937,11 +28958,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * A fresh streaming utterance on [model]. Sherpa and Omnilingual end it by
-     * themselves after the pause set in "Stop after a pause". On
-     * [liveDispatcher] only.
+     * themselves after the pause set in "Stop after a pause". Sherpa listens
+     * for [words] ([liveBias]). On [liveDispatcher] only.
      */
-    private fun newLiveStream(model: EtModel): VoiceStream = when (model.engine) {
-        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
+    private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream = when (model.engine) {
+        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs, words)
         EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(
             filesDir,
             model,
@@ -28961,10 +28982,18 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch(SherpaNative.dispatcher) { runCatching { stream.close() } }
     }
 
+    /**
+     * The words a [model] that streams is told to listen for: the system
+     * recognizer's list for Sherpa, whose transducers take hotwords; none for
+     * the others. Read on the main thread, where the list is kept.
+     */
+    private fun liveBias(model: EtModel): List<String> =
+        if (model.engine == EtEngine.SHERPA) recognizerBias().words else emptyList()
+
     /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
-    private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
+    private fun transcribeWithEt(model: EtModel, pcm: FloatArray, words: List<String>): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model, words).run {
             feed(pcm)
             finish()
         }
@@ -29030,8 +29059,11 @@ open class WMKeyboardService : InputMethodService() {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
-            is OnDeviceVoice.Et -> return runBlocking(liveDispatcher(voice.model.engine)) {
-                punctuateDictation(voice.model, transcribeWithEt(voice.model, pcm), languages, tag)
+            is OnDeviceVoice.Et -> {
+                val words = liveBias(voice.model)
+                return runBlocking(liveDispatcher(voice.model.engine)) {
+                    punctuateDictation(voice.model, transcribeWithEt(voice.model, pcm, words), languages, tag)
+                }
             }
         }
         if (model.ggml) {
@@ -29092,6 +29124,7 @@ open class WMKeyboardService : InputMethodService() {
             translate,
             WhisperCppPlan.prompt(words),
             WhisperCppPlan.beamSize(model),
+            WhisperCppPlan.wantsGpu(model, _uiState.value.settings.whisper.compute),
         ) ?: return null
         val detected = model.multilingual && codes.isEmpty()
         return if (detected) WhisperScript.rescueAmong(result.text, languages) else result.text
@@ -29119,8 +29152,9 @@ open class WMKeyboardService : InputMethodService() {
      * Gathers [voiceBiasPersonal] again off the main thread, at most every
      * [VOICE_BIAS_TTL_MS], and only while it can be used: the setting on and
      * an engine that takes a hint picked (the system recognizer, Whistle's
-     * keywords, or a whisper.cpp model's prompt; a LiteRT graph takes none,
-     * but which kind a clip goes to is only known per language). The server
+     * keywords, a whisper.cpp model's prompt, or Sherpa's hotwords; a LiteRT
+     * graph takes none, but which kind a clip goes to is only known per
+     * language). The server
      * engine gathers its own at the moment it sends, since it is already off
      * the main thread then.
      */
@@ -29301,7 +29335,12 @@ open class WMKeyboardService : InputMethodService() {
             is OnDeviceVoice.Whisper -> serviceScope.launch(Dispatchers.Default) {
                 if (model.model.ggml) {
                     // A damaged file throws here; transcribing says so properly.
-                    runCatching { WhisperCpp.warm(WhisperStore.modelFile(filesDir, model.model)) }
+                    runCatching {
+                        WhisperCpp.warm(
+                            WhisperStore.modelFile(filesDir, model.model),
+                            WhisperCppPlan.wantsGpu(model.model, _uiState.value.settings.whisper.compute),
+                        )
+                    }
                 } else {
                     WhisperEngine.warm(
                         WhisperStore.modelFile(filesDir, model.model),
@@ -29350,8 +29389,9 @@ open class WMKeyboardService : InputMethodService() {
         asr4allCapture = null
         asr4allComposed = false
         asr4allJob?.cancel()
+        val words = liveBias(model)
         asr4allJob = serviceScope.launch(liveDispatcher(model.engine)) {
-            val stream = runCatching { newLiveStream(model) }.getOrNull() ?: return@launch
+            val stream = runCatching { newLiveStream(model, words) }.getOrNull() ?: return@launch
             val capture = Asr4AllCapture(stream)
             asr4allCapture = capture
             var shown = ""
@@ -29398,11 +29438,11 @@ open class WMKeyboardService : InputMethodService() {
      * stream has not had yet, then its finish, which settles punctuation and
      * capitals. Most of the clip is decoded by then, so this is quick.
      */
-    private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray): String {
+    private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray, words: List<String>): String {
         asr4allJob?.cancelAndJoin()
         asr4allJob = null
         return withContext(liveDispatcher(model.engine)) {
-            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model))
+            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model, words))
             asr4allCapture = null
             if (pcm.size > capture.fed) capture.stream.feed(pcm.copyOfRange(capture.fed, pcm.size))
             capture.stream.finish()
@@ -29483,7 +29523,11 @@ open class WMKeyboardService : InputMethodService() {
         }
         val cpp = whisper?.ggml == true
         // Read here, on the main thread, where the bias list is kept.
-        val keywords = if (model is OnDeviceVoice.Whistle || cpp) recognizerBias().words else emptyList()
+        val keywords = when {
+            model is OnDeviceVoice.Whistle || cpp -> recognizerBias().words
+            model is OnDeviceVoice.Et -> liveBias(model.model)
+            else -> emptyList()
+        }
         _uiState.update {
             it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
         }
@@ -29518,9 +29562,9 @@ open class WMKeyboardService : InputMethodService() {
                         is OnDeviceVoice.Et -> punctuateDictation(
                             model.model,
                             if (liveEngine(model.model.engine)) {
-                                finishAsr4All(model.model, pcm)
+                                finishAsr4All(model.model, pcm, keywords)
                             } else {
-                                withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm) }
+                                withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm, keywords) }
                             },
                             languages,
                             tag,
@@ -49032,8 +49076,8 @@ open class WMKeyboardService : InputMethodService() {
         /** How long the recognizer's word list is used before it is gathered again. */
         private const val VOICE_BIAS_TTL_MS = 5 * 60_000L
 
-        /** The engines that take the user's words as a hint (#305, #548, #440). */
-        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper")
+        /** The engines that take the user's words as a hint (#305, #548, #440), Sherpa's as hotwords. */
+        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper", EtEngine.SHERPA.id)
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L

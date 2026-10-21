@@ -78,6 +78,17 @@ interface LlmRuntime {
     interface Chat {
         fun sendMessage(user: String, onPartial: ((String) -> Unit)?): String
 
+        /**
+         * [sendMessage] with pictures (encoded JPEG/PNG bytes) on this
+         * message. A runtime whose chats take none, or a model that cannot
+         * see, throws [VisionUnsupportedException]; the caller then sends
+         * the words alone.
+         */
+        fun sendMessage(user: String, images: List<ByteArray>, onPartial: ((String) -> Unit)?): String {
+            if (images.isEmpty()) return sendMessage(user, onPartial)
+            throw VisionUnsupportedException("This chat takes no pictures")
+        }
+
         fun seed(transcript: List<ChatReplay.Turn>)
 
         fun recordStoppedTurn(user: String, fullAnswer: String)

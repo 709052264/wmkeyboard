@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">Compte de Hugging Face</string>
     <string name="models_llm_available_title">Disponible per descarregar</string>
     <string name="models_llm_catalog_info">Els millors models estan a la part superior, no els més petits. Un model a la part superior escriu millor, però la descàrrega és més gran, la resposta és més lenta i necessita més memòria. Un model restringit necessita un compte de Hugging Face. Afegeix el teu testimoni a dalt i, a continuació, accepta la llicència a la pàgina del model una vegada.</string>
-    <string name="models_llm_compute_info">L\'opció de GPU és experimental. L\'aplicació canvia a la CPU automàticament si la GPU no s\'inicia o si un model s\'atura durant una resposta. La memòria de la GPU és molt més petita que la memòria del sistema, per la qual cosa un model gran sovint necessita la CPU. Selecciona CPU aquí si la GPU continua fallant.</string>
     <string name="models_llm_compute_title">Còmput</string>
     <string name="models_llm_empty">Encara no hi ha cap model al dispositiu. Baixeu-ne un a continuació per utilitzar la IA sense connexió.</string>
     <string name="models_llm_gated_desc">Aquest model necessita un testimoni (token) d\'Hugging Face</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">No hi ha prou espai d\'emmagatzematge per a aquest fitxer de %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Aquest no és un fitxer de model. L\'aplicació necessita un fitxer .litertlm o un fitxer .task.</string>
     <string name="models_llm_import_error_open">L\'aplicació no pot obrir el fitxer seleccionat.</string>
-    <string name="models_llm_import_info">Podeu importar qualsevol model LiteRT-LM en un fitxer .litertlm o un fitxer .task. Per exemple, un model que hàgiu convertit vosaltres mateixos o que hàgiu baixat en un navegador.</string>
     <string name="models_llm_import_title">Importa el teu</string>
     <string name="models_llm_importing_label">S\'està important...</string>
     <string name="models_llm_license_action">Pàgina de la llicència i el model</string>

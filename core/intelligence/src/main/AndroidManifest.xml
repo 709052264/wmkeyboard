@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      Compute = NPU for on-device AI (#804): the QNN stub talks to the DSP
-     through this vendor library, and an app targeting API 31 or later only
-     sees a vendor library it declares. Not required, so a phone without it
-     installs the app and just has no NPU (NpuRuntime fails to load the stub),
-     as does F-Droid's build, which carries no runtime for it.
+     through libcdsprpc.so, and an app targeting API 31 or later only sees a
+     vendor library it declares. Not required, so a phone without it installs
+     the app and just has no NPU (NpuRuntime fails to load the stub), as does
+     F-Droid's build, which carries no runtime for it.
+
+     Compute = GPU for GGUF models: libwmllama_opencl.so links to the vendor's
+     libOpenCL.so the same way. A phone without one fails that load, and
+     LlamaNative loads a CPU build instead.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application>
         <uses-native-library
             android:name="libcdsprpc.so"
+            android:required="false" />
+        <uses-native-library
+            android:name="libOpenCL.so"
             android:required="false" />
     </application>
 

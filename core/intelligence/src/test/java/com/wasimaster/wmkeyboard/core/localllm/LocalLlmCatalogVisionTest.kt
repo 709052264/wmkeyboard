@@ -8,9 +8,9 @@ import org.junit.Test
 class LocalLlmCatalogVisionTest {
 
     @Test
-    fun `only the Gemma 4 rows say they can see`() {
+    fun `the Gemma 4 rows and the GGUF vision rows say they can see`() {
         val seeing = LocalLlmCatalog.models.filter { it.vision }.map { it.id }.toSet()
-        assertEquals(setOf("gemma4-e2b", "gemma4-e4b"), seeing)
+        assertEquals(setOf("gemma4-e2b", "gemma4-e4b", "gguf-qwen2.5-vl-3b", "gguf-smolvlm-500m"), seeing)
     }
 
     @Test
@@ -22,6 +22,7 @@ class LocalLlmCatalogVisionTest {
     @Test
     fun `an imported file is unknown, so it gets tried`() {
         assertNull(LocalLlmCatalog.canSee("custom:my-model.litertlm"))
+        assertNull(LocalLlmCatalog.canSee("custom:my-model.gguf"))
     }
 
     @Test

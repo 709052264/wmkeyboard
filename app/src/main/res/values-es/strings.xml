@@ -4140,7 +4140,6 @@
     <string name="models_llm_account_title">Cuenta de Hugging Face</string>
     <string name="models_llm_available_title">Disponible para descargar</string>
     <string name="models_llm_catalog_info">Los mejores modelos están arriba, no los más pequeños. Un modelo en la parte superior escribe mejor, pero la descarga es mayor, la respuesta es más lenta y necesita más memoria. Un modelo restringido necesita una cuenta de Hugging Face. Añade tu token arriba, luego acepta la licencia en la página del modelo una vez.</string>
-    <string name="models_llm_compute_info">La opción de GPU es experimental. La aplicación cambia automáticamente a la CPU si la GPU no se inicia o si un modelo se detiene durante una respuesta. La memoria de la GPU es mucho menor que la memoria del sistema, por lo que un modelo grande suele necesitar la CPU. Selecciona CPU aquí si la GPU sigue fallando.</string>
     <string name="models_llm_compute_title">Cómputo</string>
     <string name="models_llm_empty">Aún no hay ningún modelo en tu dispositivo. Descarga uno a continuación para usar la IA sin conexión.</string>
     <string name="models_llm_gated_desc">Este modelo necesita un token de Hugging Face</string>
@@ -4151,7 +4150,6 @@
     <string name="models_llm_import_error_no_space">No hay suficiente almacenamiento para este archivo de %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Este no es un archivo de modelo. La aplicación necesita un archivo .litertlm o un archivo .task.</string>
     <string name="models_llm_import_error_open">La aplicación no puede abrir el archivo seleccionado.</string>
-    <string name="models_llm_import_info">Puedes importar cualquier modelo LiteRT-LM en un archivo .litertlm o .task. Por ejemplo, un modelo que hayas convertido tú mismo o descargado en un navegador.</string>
     <string name="models_llm_import_title">Importa el tuyo</string>
     <string name="models_llm_importing_label">Importando...</string>
     <string name="models_llm_license_action">Página de licencia y modelo</string>

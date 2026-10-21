@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">Hugging Face கணக்கு</string>
     <string name="models_llm_available_title">பதிவிறக்கக் கிடைக்கிறது</string>
     <string name="models_llm_catalog_info">சிறந்த மாடல்கள் மேலே உள்ளன, சிறியவை அல்ல. மேலே உள்ள ஒரு மாடல் சிறப்பாக எழுதும், ஆனால் பதிவிறக்கம் பெரியது, பதில் மெதுவானது, மேலும் அதற்கு அதிக நினைவகம் தேவைப்படுகிறது. கேட் செய்யப்பட்ட மாடலுக்கு Hugging Face கணக்கு தேவை. உங்கள் டோக்கனை மேலே சேர்க்கவும், பின்னர் மாடல் பக்கத்தில் உள்ள உரிமத்தை ஒருமுறை ஏற்கவும்.</string>
-    <string name="models_llm_compute_info">GPU விருப்பம் சோதனையானது. GPU தொடங்கவில்லை என்றாலோ அல்லது பதில் அளிக்கும்போது மாதிரி நின்றுவிட்டாலோ, ஆப்ஸ் தானாகவே CPU-க்கு மாறிவிடும். GPU நினைவகம் கணினி நினைவகத்தை விட மிகச் சிறியது, எனவே பெரிய மாதிரிக்கு அடிக்கடி CPU தேவைப்படுகிறது. GPU தொடர்ந்து தோல்வியுற்றால், இங்கே CPU-வைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="models_llm_compute_title">கணக்கீடு</string>
     <string name="models_llm_empty">உங்கள் சாதனத்தில் இன்னும் எந்த மாடலும் இல்லை. ஆஃப்லைனில் AI-ஐப் பயன்படுத்த கீழே ஒன்றைப் பதிவிறக்கவும்.</string>
     <string name="models_llm_gated_desc">இந்த மாதிரிக்கு Hugging Face டோக்கன் தேவை</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">%1$s அளவுள்ள இந்த கோப்பிற்கு போதுமான சேமிப்பிடம் இல்லை.</string>
     <string name="models_llm_import_error_not_a_model">இது மாதிரி கோப்பு அல்ல. ஆப்பிற்கு .litertlm கோப்பு அல்லது .task கோப்பு தேவை.</string>
     <string name="models_llm_import_error_open">தேர்ந்தெடுக்கப்பட்ட கோப்பை செயலியால் திறக்க முடியவில்லை.</string>
-    <string name="models_llm_import_info">நீங்கள் எந்தவொரு LiteRT-LM மாதிரியையும் .litertlm கோப்பு அல்லது .task கோப்பில் இறக்குமதி செய்யலாம். உதாரணமாக, நீங்கள் நீங்களே மாற்றிய அல்லது உலாவியில் பதிவிறக்கிய மாதிரி.</string>
     <string name="models_llm_import_title">உங்களுடையதை இறக்குமதி செய்யவும்</string>
     <string name="models_llm_importing_label">இறக்குமதி செய்யப்படுகிறது…</string>
     <string name="models_llm_license_action">உரிமம் மற்றும் மாதிரி பக்கம்</string>

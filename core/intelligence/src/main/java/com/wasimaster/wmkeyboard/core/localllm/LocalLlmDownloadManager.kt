@@ -116,7 +116,8 @@ object LocalLlmDownloadManager {
             LocalLlmCatalog.models.associate { model ->
                 val active = current[model.id]
                 val part = listOfNotNull(
-                    LocalLlmStore.partFile(filesDir, model) to model.sizeBytes,
+                    LocalLlmStore.partFile(filesDir, model) to model.downloadBytes,
+                    model.projector?.let { LocalLlmStore.partFile(filesDir, model, it.fileName) to model.downloadBytes },
                     LocalLlmCatalog.npuBuild(model, soc)
                         ?.let { LocalLlmStore.partFile(filesDir, model, it.fileName) to it.sizeBytes },
                 ).firstOrNull { it.first.isFile }
@@ -134,29 +135,28 @@ object LocalLlmDownloadManager {
     /**
      * Fetches [model]: its NPU build for [npuSoc] when one is given and the
      * model has it, the standard file otherwise. Progress is reported under
-     * the model's id either way, one download at a time as ever.
+     * the model's id either way, one download at a time as ever. A GGUF
+     * vision model's projector comes first, in the same progress: the model
+     * file is what makes the row Downloaded, so it lands last.
      */
     fun start(filesDir: File, model: LocalLlmModel, hfToken: String, npuSoc: String? = null) {
         if (isBusy) return
         activeId = model.id
         val (fileName, sizeBytes) = LocalLlmCatalog.downloadTarget(model, npuSoc)
         val part = LocalLlmStore.partFile(filesDir, model, fileName)
-        set(model.id, DownloadStatus.Downloading(part.length(), sizeBytes))
+        // The projector goes with the standard file only: no NPU build sees.
+        val projector = model.projector?.takeIf { fileName == model.fileName }
+            ?.takeIf { LocalLlmStore.projectorFile(filesDir, model)?.isFile != true }
+        val projectorBytes = projector?.sizeBytes ?: 0L
+        val total = sizeBytes + projectorBytes
+        val projectorPart = projector?.let { LocalLlmStore.partFile(filesDir, model, it.fileName) }
+        set(model.id, DownloadStatus.Downloading((projectorPart?.length() ?: projectorBytes) + part.length(), total))
         activeJob = scope.launch {
             try {
-                downloadInto(model, fileName, sizeBytes, part, hfToken)
-                // A pinned file (the GGUF rows) counts only when its bytes
-                // are the ones the catalog names; a resumed download that
-                // spliced two uploads together, or a wrong file, never does.
-                expectedSha256(model, fileName)?.let { expected ->
-                    if (!sha256Of(part).equals(expected, ignoreCase = true)) {
-                        part.delete()
-                        throw FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_checksum)
-                    }
+                if (projector != null && projectorPart != null) {
+                    fetchChecked(filesDir, model, projector.fileName, projector.sizeBytes, projectorPart, hfToken, 0L, total)
                 }
-                check(part.renameTo(LocalLlmStore.modelFile(filesDir, model, fileName))) {
-                    "could not move the finished download into place"
-                }
+                fetchChecked(filesDir, model, fileName, sizeBytes, part, hfToken, projectorBytes, total)
                 set(model.id, DownloadStatus.Downloaded)
             } catch (e: kotlinx.coroutines.CancellationException) {
                 // Only advertise a resumable Paused state when the .part still
@@ -164,7 +164,11 @@ object LocalLlmDownloadManager {
                 // NotDownloaded; without this guard the unwinding coroutine
                 // overwrites that with Paused(0, size), resurrecting a model
                 // the user just deleted.
-                if (part.isFile) set(model.id, DownloadStatus.Paused(part.length(), sizeBytes))
+                if (part.isFile) {
+                    set(model.id, DownloadStatus.Paused(projectorBytes + part.length(), total))
+                } else if (projectorPart?.isFile == true) {
+                    set(model.id, DownloadStatus.Paused(projectorPart.length(), total))
+                }
                 throw e
             } catch (e: FailedException) {
                 set(model.id, DownloadStatus.Failed(e.reason, e.messageRes, e.messageArg))
@@ -186,9 +190,40 @@ object LocalLlmDownloadManager {
         activeJob?.cancel()
     }
 
-    /** The SHA-256 [fileName] of [model] must have, when the catalog pins one. */
+    /**
+     * Downloads [fileName] of [model] into [part], checks it against its pin
+     * and moves it into place. Progress counts from [progressBase] of
+     * [progressTotal], for a download of two files.
+     */
+    private suspend fun fetchChecked(
+        filesDir: File,
+        model: LocalLlmModel,
+        fileName: String,
+        sizeBytes: Long,
+        part: File,
+        hfToken: String,
+        progressBase: Long,
+        progressTotal: Long,
+    ) {
+        downloadInto(model, fileName, sizeBytes, part, hfToken, progressBase, progressTotal)
+        // A pinned file (the GGUF rows) counts only when its bytes
+        // are the ones the catalog names; a resumed download that
+        // spliced two uploads together, or a wrong file, never does.
+        expectedSha256(model, fileName)?.let { expected ->
+            if (!sha256Of(part).equals(expected, ignoreCase = true)) {
+                part.delete()
+                throw FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_checksum)
+            }
+        }
+        check(part.renameTo(LocalLlmStore.modelFile(filesDir, model, fileName))) {
+            "could not move the finished download into place"
+        }
+    }
+
+    /** The SHA-256 [fileName] of [model] must have, when the catalog pins one: the model's or its projector's. */
     fun expectedSha256(model: LocalLlmModel, fileName: String = model.fileName): String? =
         model.sha256?.takeIf { fileName == model.fileName }
+            ?: model.projector?.takeIf { it.fileName == fileName }?.sha256
 
     /** Hex SHA-256 of [file]'s contents. Reads the whole file: IO dispatcher only. */
     fun sha256Of(file: File): String {
@@ -231,6 +266,9 @@ object LocalLlmDownloadManager {
         sizeBytes: Long,
         part: File,
         hfToken: String,
+        progressBase: Long = 0L,
+        /** The whole download's size when it is more than this file; -1 for the server's count. */
+        progressTotal: Long = -1L,
     ) {
         part.parentFile?.mkdirs()
         var resumeFrom = part.length()
@@ -303,7 +341,10 @@ object LocalLlmDownloadManager {
                         val now = System.currentTimeMillis()
                         if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
                             lastUpdate = now
-                            set(model.id, DownloadStatus.Downloading(written, total))
+                            set(
+                                model.id,
+                                DownloadStatus.Downloading(progressBase + written, if (progressTotal >= 0 && total >= 0) progressTotal else total),
+                            )
                         }
                     }
                 }
