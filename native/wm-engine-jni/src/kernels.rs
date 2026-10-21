@@ -67,6 +67,43 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_n
     })
 }
 
+/// `NativeEngine.sharpen(src, width, first, count, amount, out)`: the photo
+/// editor's sharpen of rows `first..first + count` of `src` into `out`, in
+/// one crossing (`kernels::sharpen::sharpen_argb`); returns the rows written,
+/// 0 when the shape does not fit the arrays. Both arrays are pinned, not
+/// copied, for the length of the loop.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeSharpen(
+    mut env: JNIEnv,
+    _class: JClass,
+    src: JIntArray,
+    width: jint,
+    first: jint,
+    count: jint,
+    amount: jfloat,
+    out: JIntArray,
+) -> jint {
+    guarded(&mut env, 0, |env| {
+        if width <= 0 || first < 0 || count < 0 {
+            return Some(0);
+        }
+        let (src, out) = (src.as_raw(), out.as_raw());
+        // SAFETY: both are int[] (the Kotlin signature says so), read as
+        // u32 colour ints, and the closures make no JNI call while the
+        // arrays are pinned. Pinning nests: the inner array is released
+        // before the outer one.
+        let rows = unsafe {
+            let raw = env.get_raw();
+            with_critical::<u32, _>(raw, src, false, |src| {
+                with_critical::<u32, _>(raw, out, true, |out| {
+                    kernels::sharpen::sharpen_argb(src, width as usize, first as usize, count as usize, amount, out)
+                })
+            })
+        };
+        rows.flatten().map(|rows| rows as jint)
+    })
+}
+
 /// `NativeEngine.boxAverageBgr(...)`: the photo `pixels` (ARGB, `width` ×
 /// `height`) shrunk by box averaging at `scale` into the `outW` × `outH`
 /// corner of `out`, rows `stride` pixels apart, normalised BGR with

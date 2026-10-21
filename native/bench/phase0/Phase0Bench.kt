@@ -12,6 +12,7 @@
 
 package com.wasimaster.wmkeyboard.bench
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.gesture.CtcGlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
 import com.wasimaster.wmkeyboard.core.gesture.DuetWorkspace
@@ -31,6 +32,7 @@ import com.wasimaster.wmkeyboard.core.ocr.PaddleRuntime
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
+import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.stickers.CutoutMask
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
@@ -114,18 +116,33 @@ object Phase0Bench {
         val d = 768
         val r = Random(1)
         for (count in intArrayOf(1_000, 5_000, 20_000)) {
-            val index = VectorIndex(d)
             val raw = Array(count) { unitVector(r, d) }
+            val heap = usedHeap()
+            val index = VectorIndex(d)
             raw.forEachIndexed { i, v -> index.put("item/$i", 0L, v) }
+            val built = usedHeap() - heap
+            val file = File.createTempFile("bench", ".vec").apply { deleteOnExit() }
+            index.write(file)
+            val before = usedHeap()
+            val read = VectorIndex.read(file, d)
+            val loaded = usedHeap() - before
+            sink = read
+            println(String.format(Locale.ROOT, "VectorIndex ${count}x$d heap %.1f MB read from its file, %.1f MB built by put (growth slack); file %.1f MB", loaded / 1e6, built / 1e6, file.length() / 1e6))
             val q = unitVector(r, d)
-            bench("VectorIndex.score ${count}x$d", "per search (300 ms debounce)") { index.score(q) }
-            // The same dot products with no Hit objects and no sort: the part
-            // NEON would replace.
-            val stored = Array(count) { index.vectorOf("item/$it")!! }
+            for (native in listOf(false, true)) {
+                if (native && !NativeEngine.loaded) continue
+                NativeEngine.forceKotlin = !native
+                val how = if (native) "native" else "kotlin"
+                bench("VectorIndex.score ${count}x$d $how", "every hit, sorted") { index.score(q) }
+                bench("VectorIndex.search ${count}x$d $how", "per search (300 ms debounce)") { index.search(q, MeaningRank.TEXT) }
+            }
+            NativeEngine.forceKotlin = false
+            // The same dot products with no Hit objects and no sort, on the
+            // f32 vectors: the part the kernel replaces.
             val out = FloatArray(count)
-            bench("  dots only ${count}x$d", "share of the above") {
+            bench("  dots only ${count}x$d kotlin f32", "share of the above") {
                 for (i in 0 until count) {
-                    val v = stored[i]
+                    val v = raw[i]
                     var dot = 0f
                     for (k in 0 until d) dot += v[k] * q[k]
                     out[i] = dot
@@ -133,6 +150,12 @@ object Phase0Bench {
                 out
             }
         }
+    }
+
+    private fun usedHeap(): Long {
+        val rt = Runtime.getRuntime()
+        repeat(3) { System.gc(); Thread.sleep(50) }
+        return rt.totalMemory() - rt.freeMemory()
     }
 
     // ---- GIF encoding -------------------------------------------------------------
@@ -298,14 +321,43 @@ object Phase0Bench {
             }
         }
 
-        // PhotoEditRenderer.sharpenInPlace's inner loop, copied onto one
-        // IntArray (the real one bands through getPixels/setPixels, and
-        // android.graphics.Color's accessors are the same shifts inlined).
+        // PhotoEditRenderer.sharpenRows, copied onto one IntArray
+        // (android.graphics.Color's accessors are the same shifts inlined;
+        // sharpenInPlace bands it through getPixels/setPixels), then the
+        // Rust kernel behind NativeEngine.sharpen on the same pixels: the
+        // whole frame in one call, and in sharpenInPlace's 256-row bands.
         for ((pw, ph) in listOf(4000 to 3000, 2048 to 1536)) {
             val src = photo(pw, ph)
             val dst = IntArray(src.size)
-            bench("PhotoEdit sharpen ${pw}x$ph (copied loop)", if (pw == 2048) "per adjust change in the editor preview, sharpen > 0" else "per photo sent with sharpen > 0") {
+            val often = if (pw == 2048) "per adjust change in the editor preview, sharpen > 0" else "per photo sent with sharpen > 0"
+            bench("PhotoEdit sharpen ${pw}x$ph (copied loop)", often) {
                 sharpen(src, dst, pw, ph, 0.5f * 1.6f)
+            }
+            if (!NativeEngine.useNative) continue
+            val native = IntArray(src.size)
+            for (step in 1..20) {
+                val a = step * 0.05f * 1.6f
+                sharpen(src, dst, pw, ph, a)
+                check(NativeEngine.sharpen(src, pw, 0, ph, a, native)) { "native sharpen refused the frame" }
+                val wrong = dst.indices.count { dst[it] != native[it] }
+                check(wrong == 0) { "native sharpen differs from Kotlin at $wrong of ${dst.size} pixels, a=$a" }
+            }
+            println("  native sharpen ${pw}x$ph: bit for bit Kotlin's at all 20 slider steps")
+            bench("PhotoEdit sharpen ${pw}x$ph (NativeEngine, one call)", often) {
+                NativeEngine.sharpen(src, pw, 0, ph, 0.5f * 1.6f, native)
+            }
+            bench("PhotoEdit sharpen ${pw}x$ph (NativeEngine, 256-row bands)", often) {
+                var y0 = 0
+                while (y0 < ph) {
+                    val count = min(256, ph - y0)
+                    val top = max(0, y0 - 1)
+                    val bottom = min(ph, y0 + count + 1)
+                    val band = src.copyOfRange(top * pw, bottom * pw)
+                    val out = IntArray(count * pw)
+                    NativeEngine.sharpen(band, pw, y0 - top, count, 0.5f * 1.6f, out)
+                    System.arraycopy(out, 0, native, y0 * pw, out.size)
+                    y0 += count
+                }
             }
         }
     }

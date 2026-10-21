@@ -144,36 +144,62 @@ object NativeEngine {
     }
 
     /**
+     * The photo editor's 3x3 sharpen of rows [first] until [first] + [count]
+     * of [src] ([width] ARGB colour ints a row, neighbours clamped to its
+     * edges) into [out], in one call, with NEON on arm64. Bit for bit what
+     * `PhotoEditRenderer.sharpenRows` gives. False, writing nothing, when the
+     * library is missing or [useNative] is off: the caller then runs that
+     * Kotlin loop itself.
+     */
+    fun sharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Boolean =
+        useNative && try {
+            nativeSharpen(src, width, first, count, amount, out) == count
+        } catch (_: UnsatisfiedLinkError) {
+            // A library built before the kernel existed: the Kotlin loop still works.
+            false
+        }
+
+    /**
      * The ARGB photo [pixels] ([width] × [height]) shrunk at [scale] (under
      * 1) by averaging each output pixel's whole box of photo pixels, into
      * the [outW] × [outH] corner of [out], rows [stride] pixels apart, three
      * floats per pixel: BGR, each `(value / 255 - mean) / std`. The rest of
      * [out] is zeroed. [norm] is the three means, then the three deviations.
      * Bit for bit what `PaddleOcrPipeline.detectorInput` computes in Kotlin;
-     * NEON on arm64. False, with [out] untouched, when [useNative] is off or
-     * the shape is not one the kernel takes: run the Kotlin then.
+     * NEON on arm64. False, with [out] untouched, when [useNative] is off,
+     * the library predates the kernel, or the shape is not one the kernel
+     * takes: run the Kotlin then.
      */
     fun boxAverageBgr(
         pixels: IntArray, width: Int, height: Int, scale: Float,
         outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
-    ): Boolean = useNative && nativeBoxAverageBgr(pixels, width, height, scale, outW, outH, stride, norm, out)
+    ): Boolean = useNative && try {
+        nativeBoxAverageBgr(pixels, width, height, scale, outW, outH, stride, norm, out)
+    } catch (_: UnsatisfiedLinkError) {
+        false
+    }
 
     /**
      * The index of the first largest value in each [cols]-wide row of
      * [data] into [out], one per row, as a strict `>` scan from index 0
      * finds it (so a NaN never wins). True when it ran: false when
-     * [useNative] is off or [out] could not take every row, and then the
-     * caller runs its Kotlin. NEON on arm64.
+     * [useNative] is off, the library predates the kernel or [out] could
+     * not take every row, and then the caller runs its Kotlin. NEON on arm64.
      */
     fun argmaxRows(data: FloatArray, cols: Int, out: IntArray): Boolean {
         if (!useNative || cols <= 0) return false
         val rows = data.size / cols
-        return rows <= out.size && nativeArgmaxRows(data, cols, out) == rows
+        return rows <= out.size && try {
+            nativeArgmaxRows(data, cols, out) == rows
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
     }
 
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
+    private external fun nativeSharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Int
     private external fun nativeBoxAverageBgr(
         pixels: IntArray, width: Int, height: Int, scale: Float,
         outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,

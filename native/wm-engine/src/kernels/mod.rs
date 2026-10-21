@@ -30,6 +30,7 @@
 pub mod argmax;
 pub mod box_average;
 pub mod dot;
+pub mod sharpen;
 
 #[cfg(test)]
 pub mod testing;

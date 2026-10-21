@@ -164,8 +164,8 @@ Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order
 
 | Kernel | Kotlin cost (host) | How often | Verdict | Expected NEON gain |
 |---|---|---|---|---|
-| Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **port** | 10x or more: a 3×3 integer stencil on 16 u8 lanes, no gathers. A RuntimeShader would also do it on API 33+ |
-| Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **port** | 4-8x on the dots with `vfmaq_f32`; at 20k the f32 scan is 61 MB and memory-bound, so int8 + `sdot` (also 4x less memory) is what reaches the top of that. `dot_rows_f32` and `dot_i8` already exist. Keep the top-k in Kotlin, or select instead of sorting |
+| Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **done** (`kernels/sharpen.rs`) | measured 18x at 2048 px and 11x at 12 MP in the renderer's bands (host); see the status line below |
+| Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **done** (f32; int8 measured and not adopted, see below) | measured 7-8x per search: 0.094 / 0.48 / 2.0 ms on the host |
 | OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays. **Done** (host), see below | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page. Measured on the host: box average 15.0 to 2.8 ms (5.3x), argmax 0.23 to 0.060 ms per piece (3.8x), the whole `read` 43-45 to 21-22 ms |
 | GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
 | Glide shape scoring (`GlideBeam`, `DuetBeam`, `CtcGlideBeam`) | 2.2 / 6.7 ms per decode, 7.6 / 19.7 ms per stroke of previews; the distance loop is 1 µs | per swipe | **skip as a Phase 1 kernel**; Phase 2 step 4 ports the decoders | the time is in `advance`, a banded min-plus DP called per trie node. A JNI call per node would cost more than it saves, so vectorise its band (4-lane min/select, perhaps 2x on a decode) inside the Rust decoder |
@@ -176,7 +176,105 @@ None is "port only for desktop": the glide decoders are the shared piece, and
 Phase 2 already moves them.
 
 Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
-Kernel sessions may start in the order above. OCR done on the host.
+Kernel sessions may start in the order above. Embedding dot products: done
+(f32), host numbers only. OCR kernels: done, host only.
+
+**Sharpen: done 2026-10-21, host only.** `kernels::sharpen::sharpen_argb`,
+`NativeEngine.sharpen` (false without the library or with `useNative` off,
+and `PhotoEditRenderer.sharpenRows` runs instead), one call per 256-row band
+of `sharpenInPlace`. The Kotlin channel maths is `f32`, not integer, so the
+kernel is too: `ld4` splits sixteen pixels into channel registers, the
+neighbour sum is exact in `u16`, and the multiply, add and round run on four
+`f32` lanes in Kotlin's order with no fused multiply-add. `fcvtas` rounds
+half away from zero, which is `Math.round` for everything not clamped to 0.
+The output is bit for bit Kotlin's: Rust tests cover every tail width,
+1 to 5 rows and every centre value against every neighbour sum at each
+slider step, and the harness compares the JVM loop with the native call on
+both photo sizes at all 20 steps. Same-run host numbers (the machine was
+shared, load 10 to 12 on 8 cores, so the Kotlin side read 1.2 to 1.4x slower
+than Phase 0's):
+
+| Case | Kotlin | Native, one call | Native, 256-row bands |
+|---|---|---|---|
+| 2048 × 1536 | 96 ms | 4.4 ms (22x) | 5.3 ms (18x) |
+| 4000 × 3000 | 307 ms | 19.5 ms (16x) | 27.7 ms (11x) |
+
+The bands column copies each band into a fresh array, as `getPixels` does,
+and is the shape the renderer runs; the bands stay so a 12 MP picture is never
+held as one 48 MB `IntArray`. Phone column owed (`run.sh device` now pushes
+the arm64 `.so` and names it with `WM_ENGINE_LIB`). Library growth over
+main's build with the glide decoders: arm64 +4,400 bytes, armv7 +2,160,
+x86_64 +3,304. armv7 and x86_64 run the Rust
+scalar reference, unmeasured.
+
+A RuntimeShader on API 33+ was not built. It does not fit `base()`, which
+draws on a software canvas so the vignette, grain and later layers can share
+it; on that canvas Skia would interpret the shader per pixel on the CPU, and
+the GPU route means uploading the picture, rendering through a
+`HardwareRenderer` and reading 48 MB back at 12 MP before the next software
+stage. It also cannot match Kotlin: AGSL sees premultiplied colours as
+normalised floats (half precision allowed) and Skia rounds them back its own
+way, so API 33+ and older devices would sharpen differently. It cannot be
+timed on the host either (no Android graphics there), and the phone is not
+paired. So NEON runs on every API level. What is left on a phone is
+`getPixels`/`setPixels`, which unpremultiply and premultiply every pixel, a
+cost the host harness cannot see and the phone run should time; locking the bitmap's own pixels
+(`AndroidBitmap_lockPixels`) would remove both copies but changes results
+for translucent pixels, so measure it on the phone first.
+
+### Embedding dot products (done, f32)
+
+`VectorIndex` keeps its vectors in one row-major `FloatArray` and scores
+them with `NativeEngine.dotRows` in one crossing; the Kotlin loop stays as
+the fallback when `useNative` is off. Callers now ask
+`search(query, tuning, accept)`, which returns exactly what
+`MeaningRank.select(score(...))` did, hits and order: the median comes from
+a quickselect and only the hits over the bar are ranked, at most the
+tuning's limit, so no `Hit` per item and no full sort. `VectorIndexParityTest`
+holds the kernel to the Kotlin loop (same hits and order, scores within
+`dot.rs`'s 1e-5; neighbours closer than that may trade places) and `search`
+to `select`. The `.so` did not change: `dot_rows_f32` and `nativeDotRows`
+came with the shared infrastructure.
+
+Host numbers from the Phase 0 harness (`only=vector`, same machine and
+load for both columns). "Before" is `score` alone; the old callers then
+also ran `select`, whose median sorted a boxed copy of every score.
+
+| Vectors × 768 | Before (Kotlin `score`) | After, Kotlin fallback (`search`) | After, NEON (`search`) | Heap before / after (read from file) |
+|---|---|---|---|---|
+| 1k | 0.69 ms | 0.63 ms | 0.094 ms | 3 / 4 MB (GC noise at this size) |
+| 5k | 3.70 ms | 3.18 ms | 0.48 ms | 16 / 17 MB |
+| 20k | 16.9 ms | 12.8 ms | 2.03 ms | 64.5 / 65.5 MB |
+
+An index built a batch at a time grows by an eighth, so it holds at most
+an eighth more than it needs (71.8 MB at 20k); `read` sizes it exactly. The
+file format did not change.
+
+**int8, measured and not adopted.** The test was the brief's: adopt only if
+the top hits stay essentially identical. Inputs were real EmbeddingGemma 2
+outputs: 4,200 documents (docs-site paragraphs, and the app's strings in
+English, Bengali and French as short clip-like texts) and 380 queries
+(headings and 2-4 word fragments), embedded with the models release's text
+encoder through Python LiteRT, plus the 1,716 shipped emoji vectors. Each
+variant ran through a float32 copy of `MeaningRank.select` with the
+shipped tunings and was compared with f32:
+
+| Storage | Top hit changed (text / emoji / sticker tags) | Kept-set Jaccard | Largest score error |
+|---|---|---|---|
+| int8 per vector, int8 query (`sdot`) | 2.1% / 2.6% / 4.3% | 0.93-0.97 | 0.0050 |
+| int8 after centring and a block-Hadamard rotation | 0.5% / 0.3% / 1.1% | 0.984-0.995 | 0.0014 |
+| fp16 | 0% / 0% / 0.1% | 0.997-0.998 | 0.00016 |
+
+The model's vectors share one direction (the mean vector's norm is 0.82)
+and one dimension carries a large share (largest magnitude 0.31, against
+an RMS of 0.036), so a per-vector int8 step is about 9x coarser than a
+typical value. The tunings separate hits that sit 0.01-0.02 apart (the
+median gap between the first and second hit is 0.015), and an error of a
+few thousandths reorders them. The int8 build was fast, 0.029 / 0.17 /
+0.77 ms per search with 22 MB at 20k, but it changed what people would see.
+fp16 rows (half the memory, widened to f32 with `vcvt` and summed with
+`vfmaq_f32`) keep the ranking and would be the next step if the 20k scan
+matters on a phone.
 
 ### OCR kernels (done)
 
@@ -223,10 +321,12 @@ A photo the detector grows (scale 1 or more) stays on the Kotlin bilinear.
   minus inference 43.1-45.1 to 21.0-21.6 ms. What is left of `read` is
   mostly `strip`'s bilinear and the bench's stand-in copying 2.9 MB of
   logits per piece. Phone not measured (no pairing).
-- Size, against a build of the main it merged into (c668b1c27):
-  libwm_engine_jni arm64-v8a 2,120,680 -> 2,124,728 B (+4,048),
-  armeabi-v7a 1,546,856 -> 1,548,152 (+1,296), x86_64 2,426,960 ->
-  2,429,776 (+2,816).
+- Size, against a build of the main it merged into (55a8517e0, with the
+  sharpen kernel): libwm_engine_jni arm64-v8a 2,120,680 -> 2,129,208 B
+  (+8,528), armeabi-v7a 1,546,856 -> 1,550,248 (+3,392), x86_64 2,426,960
+  -> 2,433,080 (+6,120). Segment padding makes these jumpy: main's build
+  with and without sharpen is the same size, and the same two kernels
+  measured +4,048 / +1,296 / +2,816 on the main before it.
 
 ## Phase 2: prediction core in Rust
 

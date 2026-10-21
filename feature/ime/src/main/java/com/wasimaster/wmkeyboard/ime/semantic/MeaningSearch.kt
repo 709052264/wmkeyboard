@@ -180,7 +180,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
             val vector = vectorOf(query) ?: return@launch onHits(emptyList())
             val keys = withContext(worker) {
                 if (space == MeaningSpace.EMOJI) loadEmoji()
-                MeaningRank.select(indexOf(space).score(vector, accept), tuning).map { it.key }
+                indexOf(space).search(vector, tuning, accept).map { it.key }
             }
             onHits(keys)
         }
@@ -197,7 +197,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
         return runBlocking {
             withTimeoutOrNull(timeoutMs) {
                 val vector = vectorOf(query) ?: return@withTimeoutOrNull emptyList()
-                withContext(worker) { MeaningRank.select(indexOf(space).score(vector, accept), tuning).map { it.key } }
+                withContext(worker) { indexOf(space).search(vector, tuning, accept).map { it.key } }
             }
         } ?: emptyList()
     }
@@ -220,7 +220,7 @@ internal class MeaningSearch(private val context: Context, private val scope: Co
                 val out = HashMap<String, List<String>>()
                 for (key in untagged) {
                     val vector = stickers.vectorOf(key) ?: continue
-                    val picked = MeaningRank.select(emoji.score(vector), MeaningRank.TAG).map { it.key }
+                    val picked = emoji.search(vector, MeaningRank.TAG).map { it.key }
                     if (picked.isEmpty()) continue
                     val words = picked.flatMap { e -> emojiName(e)?.split(' ').orEmpty() }
                         .filter { it.length >= MIN_TAG_WORD }

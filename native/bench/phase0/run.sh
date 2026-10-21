@@ -2,8 +2,9 @@
 # Phase 0 benchmark harness for native/RUST_NEON_PLAN.md. No Gradle: compiles
 # Phase0Bench.kt with the Kotlin compiler from the Gradle cache against the
 # release classes jars a previous build left in a checkout (plus Samplers.kt,
-# PaddleOcrPipeline.kt and NativeEngine.kt from source, which shadow the jars'
-# copies, so a kernel's before and after time this checkout's code), then
+# PaddleOcrPipeline.kt, VectorIndex.kt, MeaningRank.kt and NativeEngine.kt
+# from source, which shadow the jars' copies, so a kernel's before and after
+# time this checkout's code), then
 #   host     runs it on this machine's JVM
 #   dex      d8s it (plus the jars and kotlin-stdlib) into out/bench.dex
 #   device   pushes the dex and runs it under ART with app_process
@@ -47,23 +48,32 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
     -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/ocr/PaddleOcrPipeline.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
     "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt"
 fi
 
 case "$mode" in
   host)
     # android.jar last: its stubs only satisfy class loading; nothing here calls them.
+    # NativeEngine finds this checkout's host build (native/wm-engine-jni/build-host.sh).
     java -Xss8m -cp "$OUT/classes:$STDLIB:$LIBS:$ANDROID_JAR" com.wasimaster.wmkeyboard.bench.Phase0Bench "$REPO/app/dictionaries-src/en.txt" "$@"
     ;;
   dex|device)
     if [ ! -f "$OUT/bench.dex.jar" ] || [ "$OUT/classes" -nt "$OUT/bench.dex.jar" ]; then
       (cd "$OUT/classes" && jar cf "$OUT/bench-classes.jar" .)
+      # The classes built from source above replace the jars' copies, which
+      # d8 would otherwise reject as defined twice.
+      fresh=$(cd "$OUT/classes" && find com -name '*.class' ! -path 'com/wasimaster/wmkeyboard/bench/*')
+      for jar in $(echo "$LIBS" | tr ':' ' '); do zip -q -d "$jar" $fresh >/dev/null 2>&1 || true; done
       "$SDK/build-tools/36.0.0/d8" --release --min-api 31 --lib "$ANDROID_JAR" --output "$OUT/bench.dex.jar" \
         "$OUT/bench-classes.jar" "$STDLIB" $(echo "$LIBS" | tr ':' ' ')
     fi
     [ "$mode" = dex ] && exit 0
     adb push "$OUT/bench.dex.jar" /data/local/tmp/wmbench.jar >/dev/null
     adb push "$REPO/app/dictionaries-src/en.txt" /data/local/tmp/wmbench-en.txt >/dev/null
-    adb shell "CLASSPATH=/data/local/tmp/wmbench.jar app_process /system/bin com.wasimaster.wmkeyboard.bench.Phase0Bench /data/local/tmp/wmbench-en.txt $*"
+    # The committed arm64 engine, named outright: app_process has no APK to load it from.
+    adb push "$REPO/core/language/src/main/jniLibs/arm64-v8a/libwm_engine_jni.so" /data/local/tmp/libwm_engine_jni.so >/dev/null
+    adb shell "WM_ENGINE_LIB=/data/local/tmp/libwm_engine_jni.so CLASSPATH=/data/local/tmp/wmbench.jar app_process /system/bin com.wasimaster.wmkeyboard.bench.Phase0Bench /data/local/tmp/wmbench-en.txt $*"
     ;;
 esac
