@@ -33,8 +33,9 @@ pub fn planar_input(pixels: &[u32], width: usize, height: usize, x0: i64, y0: i6
         let (r, g, b) = (&mut r[at.clone()], &mut g[at.clone()], &mut b[at]);
         // The columns that read inside the picture, in one run.
         let first = (-x0).clamp(0, side as i64) as usize;
-        let last = (width as i64 - x0).clamp(first as i64, side as i64) as usize;
         scalar::input_edge(line, x0, 0..first, r, g, b);
+        #[cfg(target_arch = "aarch64")]
+        let last = (width as i64 - x0).clamp(first as i64, side as i64) as usize;
         #[cfg(target_arch = "aarch64")]
         if active().neon && first < last {
             // SAFETY: NEON is present; columns first..last read inside `line`.

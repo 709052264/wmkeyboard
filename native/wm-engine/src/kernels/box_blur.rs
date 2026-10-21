@@ -31,10 +31,9 @@ pub fn box_blur_argb(pixels: &mut [u32], width: usize, height: usize, radius: us
         return true;
     }
     let (pixels, scratch) = (&mut pixels[..n], &mut scratch[..n]);
-    let window = 2 * radius + 1;
     for _ in 0..passes {
         #[cfg(target_arch = "aarch64")]
-        if active().neon && window <= MAX_VECTOR_WINDOW {
+        if active().neon && 2 * radius < MAX_VECTOR_WINDOW {
             // SAFETY: NEON is present (checked above); the slices hold the picture.
             unsafe {
                 neon::horizontal(pixels, scratch, width, height, radius);
