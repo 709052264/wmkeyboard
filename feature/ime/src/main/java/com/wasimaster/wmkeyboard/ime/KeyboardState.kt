@@ -3332,6 +3332,13 @@ data class KeyboardUiState(
     /** Text-edit panel: arrows extend the selection instead of moving the cursor. */
     val textEditSelecting: Boolean = false,
     /**
+     * No space is armed for the next key (#863), by a hold or a double tap of
+     * its key or by its own action: that key gets no space the keyboard would
+     * add. Spent by it, and called off by Space, Enter, another tap or a new
+     * field. Lights the No space keys while it lasts.
+     */
+    val noSpaceArmed: Boolean = false,
+    /**
      * The toolbar's Selection mode tool, switched on by a tap and off by the
      * next one.
      *

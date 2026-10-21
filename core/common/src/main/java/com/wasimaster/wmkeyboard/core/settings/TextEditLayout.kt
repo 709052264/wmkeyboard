@@ -40,6 +40,12 @@ enum class TextEditAction {
     // just added after a word, or ends the word being typed without one, and
     // lets the next glided word join on with no space in front.
     NO_SPACE,
+
+    // Issue #863. No space as a one-shot modifier, the way Shift is one: the
+    // next key typed gets no space the keyboard would add, so the `.` of
+    // `github.com` is not followed by one. What a hold or a double tap of
+    // [NO_SPACE] runs, and an action of its own for a key or a flick.
+    NO_SPACE_NEXT,
 }
 
 /**

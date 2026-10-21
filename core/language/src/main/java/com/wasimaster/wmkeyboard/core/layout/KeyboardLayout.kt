@@ -957,8 +957,8 @@ const val MaxRowHeightScale = 2.5f
 /**
  * The flick arms this key actually types: [Key.flick] on a key that commits
  * text (issue #547) and, since #789, on any key that [takesFlickActions], so
- * Enter can type `?` on its flick up. A key whose arms are not read (the space
- * bar, a repeating key) draws and reserves none. The layout editor drops a
+ * Enter can type `?` on its flick up. A key whose arms are not read (a braille
+ * dot, a key told to repeat) draws and reserves none. The layout editor drops a
  * key's text arms when its action changes (#838), so a letter turned into an
  * action key does not bring the letter's arms along.
  */
@@ -979,9 +979,8 @@ sealed interface FlickArm {
 /**
  * Whether [Key.flickActions] work on this key (issue #549).
  *
- * Every key but the ones whose drag or hold is already the gesture: the space
- * bar's swipes and language picker, a braille dot's chord, a component's cell,
- * and a key told to repeat while held. A flick arm on one of those would either
+ * Every key but the ones whose drag or hold is already the gesture: a braille
+ * dot's chord, a component's cell, and a key told to repeat while held. A flick arm on one of those would either
  * never be reached or take away what the key is for, so the editor does not
  * offer them and the keyboard does not read them.
  *
@@ -995,12 +994,14 @@ sealed interface FlickArm {
  * So are the caret keys whose hold repeats (#865): a still hold still
  * repeats, and a flick before the repeat starts is an arm, word left or
  * right on an arrow, page up or down.
+ *
+ * And so is the space bar (#863), on the delete key's terms: its swipes and
+ * hold are its own, but an arm takes the directions it covers, and the swipes
+ * keep the rest. No space on a flick of the space bar is the arm asked for.
  */
-fun Key.takesFlickActions(): Boolean = action != KeyAction.Space &&
-    (
-        !holdIsSpokenFor() || action.deletesBackward() || action.deletesForward() ||
-            (action as? KeyAction.Edit)?.op?.repeats == true
-        )
+fun Key.takesFlickActions(): Boolean =
+    action == KeyAction.Space || !holdIsSpokenFor() || action.deletesBackward() || action.deletesForward() ||
+        (action as? KeyAction.Edit)?.op?.repeats == true
 
 /**
  * What a flick towards [direction] does: an action arm where the key has one

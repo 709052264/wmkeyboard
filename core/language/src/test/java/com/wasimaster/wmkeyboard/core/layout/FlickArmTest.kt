@@ -61,7 +61,6 @@ class FlickArmTest {
     @Test
     fun `keys whose drag or hold is already the gesture take no action arms`() {
         val arms = mapOf(FlickDirection.LEFT to left)
-        assertFalse(Key(" ", action = KeyAction.Space, flickActions = arms).hasFlicks())
         assertFalse(Key("x", repeatOnHold = true, flickActions = arms).hasFlicks())
         assertTrue(Key("", action = KeyAction.Shift, flickActions = arms).hasFlicks())
     }
@@ -73,6 +72,16 @@ class FlickArmTest {
         assertTrue(Key("", action = KeyAction.Delete, flickActions = arms).hasFlicks())
         assertTrue(Key("", action = KeyAction.ForwardDelete, flickActions = arms).hasFlicks())
         assertTrue(Key("", action = KeyAction.Delete, flick = mapOf(FlickDirection.UP to "x")).hasFlicks())
+    }
+
+    @Test
+    fun `the space bar takes arms beside its swipes`() {
+        // Issue #863: No space on a flick of the space bar.
+        val arms = mapOf(FlickDirection.UP to KeyAlternate(KeyAction.Edit(TextEditAction.NO_SPACE)))
+        val space = Key(" ", action = KeyAction.Space, flickActions = arms)
+        assertTrue(space.hasFlicks())
+        assertTrue(space.flickArm(FlickDirection.UP) is FlickArm.Action)
+        assertNull(space.flickArm(FlickDirection.LEFT))
     }
 
     @Test

@@ -165,6 +165,7 @@ internal fun textEditActionTitle(op: TextEditAction): Int = when (op) {
     TextEditAction.CUT -> R.string.textedit_action_cut
     TextEditAction.RETYPE_WORD -> R.string.textedit_action_retype_word
     TextEditAction.NO_SPACE -> R.string.textedit_action_no_space
+    TextEditAction.NO_SPACE_NEXT -> R.string.textedit_action_no_space_next
 }
 
 /** The components a layout of [kind] may place; empty for the keys-only pad. */

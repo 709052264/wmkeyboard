@@ -2,11 +2,14 @@ package com.wasimaster.wmkeyboard.ime
 
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
+import com.wasimaster.wmkeyboard.core.settings.AutoTextSettings
 import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import android.os.Looper
 import org.junit.runner.RunWith
@@ -113,5 +116,102 @@ class NoSpaceTest {
         service.caret(4, 2)
         service.glide("ball")
         assertEquals("foot ball ", editor.text.toString())
+    }
+
+    // ---- No space for the next key (#863) ----
+
+    /** A keyboard that puts a space after a full stop, as the issue's does. */
+    private fun spacingKeyboard(): Pair<GlideKeyboard, RecordingEditor> {
+        val editor = RecordingEditor()
+        val (service, _, _) = glideKeyboard(
+            state = glideReadyState(
+                settings = KeyboardSettings(
+                    learnFromTyping = false,
+                    autoText = AutoTextSettings(spaceAfterPunctuation = true),
+                ),
+            ),
+            editor = editor,
+        )
+        return service to editor
+    }
+
+    /** Types [text] a key at a time, answering each key with the editor's caret. */
+    private fun GlideKeyboard.type(editor: RecordingEditor, text: String) {
+        for (ch in text) {
+            val old = editor.text.length
+            onText(ch.toString())
+            val now = editor.text.length
+            onUpdateSelection(old, old, now, now, -1, -1)
+            settle { false }
+        }
+    }
+
+    private fun GlideKeyboard.noSpaceNext() = onTextEdit(TextEditAction.NO_SPACE_NEXT, haptic = false)
+
+    @Test
+    fun `a double tap arms it, and the full stop after it takes no space`() {
+        val (service, editor) = spacingKeyboard()
+        service.type(editor, "github")
+        service.noSpace()
+        service.noSpace()
+        assertTrue(service.uiState.value.noSpaceArmed)
+        service.type(editor, ".com")
+        assertEquals("github.com", editor.text.toString())
+        assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    @Test
+    fun `it is spent by the one key, and the next full stop is spaced again`() {
+        val (service, editor) = spacingKeyboard()
+        service.type(editor, "foo")
+        service.noSpaceNext()
+        service.type(editor, ".bar.")
+        assertEquals("foo.bar. ", editor.text.toString())
+    }
+
+    @Test
+    fun `the hold's action arms it, and pressed again calls it off`() {
+        val (service, _) = spacingKeyboard()
+        service.noSpaceNext()
+        assertTrue(service.uiState.value.noSpaceArmed)
+        service.noSpaceNext()
+        assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    @Test
+    fun `a tap with it armed calls it off`() {
+        val (service, editor) = spacingKeyboard()
+        service.type(editor, "foo")
+        service.noSpaceNext()
+        service.noSpace()
+        assertFalse(service.uiState.value.noSpaceArmed)
+        service.type(editor, ".")
+        assertEquals("foo. ", editor.text.toString())
+    }
+
+    @Test
+    fun `space calls it off`() {
+        val (service, _) = spacingKeyboard()
+        service.noSpaceNext()
+        service.onKey(space)
+        assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    @Test
+    fun `a single tap does not arm it`() {
+        val (service, editor) = spacingKeyboard()
+        service.type(editor, "foo")
+        service.noSpace()
+        assertFalse(service.uiState.value.noSpaceArmed)
+    }
+
+    @Test
+    fun `a glided word is the next key too`() {
+        val (service, editor) = keyboard()
+        service.glide("foot")
+        service.noSpaceNext()
+        service.glide("ball")
+        assertEquals("football ", editor.text.toString())
+        assertFalse(service.uiState.value.noSpaceArmed)
     }
 }

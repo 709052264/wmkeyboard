@@ -3039,6 +3039,21 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var glueCaret = -1
 
+    /** When the last tap of No space landed, for the double tap that arms it (#863); null after one. */
+    private var lastNoSpaceTapAt: Long? = null
+
+    /**
+     * Set while the key No space was armed for (#863) is being typed: the
+     * spacing rules that would put a space after it or in front of it stand
+     * down for this one key.
+     */
+    private var unspacedKey = false
+
+    /** Arms or calls off No space for the next key (#863). */
+    private fun setNoSpaceArmed(armed: Boolean) {
+        if (_uiState.value.noSpaceArmed != armed) _uiState.update { it.copy(noSpaceArmed = armed) }
+    }
+
     /**
      * The No space action (#851), Nintype's spaceless key. The first of these
      * that applies:
@@ -6948,6 +6963,8 @@ open class WMKeyboardService : InputMethodService() {
             pendingAutoSpace = false
             pendingPunctuationSpace = false
             pendingWordSpace = false
+            glueNextWord = false
+            setNoSpaceArmed(false)
             // The last field's text is behind us and nobody is going back to
             // edit it, so the unknown words still waiting in it have settled.
             // This is also how a message field that was *sent* gets counted
@@ -9730,10 +9747,17 @@ open class WMKeyboardService : InputMethodService() {
         pendingKeyHint = key.longPress.firstOrNull()
             ?.removePrefix(VERBATIM_DIGITS)
             ?.takeIf { key.opensAlternatesPopup() }
+        // No space armed for this key (#863) is spent by it.
+        unspacedKey = _uiState.value.noSpaceArmed
+        if (unspacedKey) setNoSpaceArmed(false)
         // A converted Keyman layout owns its own dead keys, in its own context,
         // where its rules can match them. Running ours as well would apply an
         // accent twice.
-        processTypedText(output, applyDeadKeys = keymanSession == null)
+        try {
+            processTypedText(output, applyDeadKeys = keymanSession == null)
+        } finally {
+            unspacedKey = false
+        }
         returnFromSymbolsAfter(output)
     }
 
@@ -11784,7 +11808,8 @@ open class WMKeyboardService : InputMethodService() {
         // no-break space there. Null means the mark takes no space *here* —
         // at the start of a line, or after another mark — and the ordinary
         // hugging applies after all.
-        val spacedRun = spacedMarkRun(ic, text, state)
+        // A key No space was armed for (#863) has no space put in front of it.
+        val spacedRun = if (unspacedKey) null else spacedMarkRun(ic, text, state)
         val ateAutoSpace = spacedRun == null &&
             takeBackAutoSpace(ic, text, state, followsWordSpace)
 
@@ -12057,6 +12082,8 @@ open class WMKeyboardService : InputMethodService() {
         if (!state.settings.autoText.spaceAfterPunctuation || state.composer.isConversion || text.length != 1) {
             return false
         }
+        // No space armed for this key (#863): the `.` of `github.com`.
+        if (unspacedKey) return false
         val mark = text[0]
         if (mark == SPACED_CLOSER || mayCloseQuote(mark)) {
             val prose = state.allowsTypingIntelligence
@@ -14881,6 +14908,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun onSpace() {
         glueNextWord = false
+        setNoSpaceArmed(false)
         // Ahead of the input-connection check: every keyboard-owned field must
         // take a space — or spend the press — even in a window that has no
         // editor focused at all. A typing test scores space as the word
@@ -15141,6 +15169,7 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         val state = _uiState.value
         glueNextWord = false
+        setNoSpaceArmed(false)
         // Enter belongs to whichever keyboard-owned field has the keys, and
         // never to the app behind the panel.
         if (captureEnter()) return
@@ -27064,9 +27093,11 @@ open class WMKeyboardService : InputMethodService() {
      * the field is the user's (#184).
      */
     private fun commitGestureLeadingSpace(ic: InputConnection, state: KeyboardUiState) {
-        // No space asked for this word to join the one before it (#851).
-        if (glueNextWord) {
+        // No space asked for this word to join the one before it (#851), or
+        // was armed for whatever comes next, which this word is (#863).
+        if (glueNextWord || _uiState.value.noSpaceArmed) {
             glueNextWord = false
+            setNoSpaceArmed(false)
             return
         }
         if (!state.settings.gesture.autoSpaceBeforeGlide) return
@@ -42619,7 +42650,33 @@ open class WMKeyboardService : InputMethodService() {
         // typed is the one it ends without a space (#851).
         if (action == TextEditAction.NO_SPACE) {
             if (haptic) vibrate()
-            noSpace()
+            // A second tap close behind the first arms it for the next key
+            // (#863), the way a double tap locks Shift; a tap with it armed
+            // calls it off.
+            val now = SystemClock.uptimeMillis()
+            val second = lastNoSpaceTapAt?.let { now - it < SHIFT_DOUBLE_TAP_MS } == true
+            lastNoSpaceTapAt = if (second) null else now
+            when {
+                _uiState.value.noSpaceArmed -> setNoSpaceArmed(false)
+                second -> {
+                    noSpace()
+                    setNoSpaceArmed(true)
+                }
+                else -> noSpace()
+            }
+            return
+        }
+        // What a hold of No space runs (#863): the tap's own work, and the
+        // next key typed gets no space either. Again calls it off.
+        if (action == TextEditAction.NO_SPACE_NEXT) {
+            if (haptic) vibrate()
+            lastNoSpaceTapAt = null
+            if (_uiState.value.noSpaceArmed) {
+                setNoSpaceArmed(false)
+            } else {
+                noSpace()
+                setNoSpaceArmed(true)
+            }
             return
         }
         // Before the composing text is committed below: a word still being
@@ -42691,7 +42748,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Handled above, before the composing text was committed.
             TextEditAction.BACKSPACE, TextEditAction.FORWARD_DELETE, TextEditAction.RETYPE_WORD,
-            TextEditAction.NO_SPACE,
+            TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT,
             -> Unit
             // Ctrl+Home / Ctrl+End are the editor's whole-text moves, the same
             // way Ctrl+Arrow is its word move; with select mode on they carry
@@ -42857,7 +42914,7 @@ open class WMKeyboardService : InputMethodService() {
             // switch's job now (#665), so it does nothing here.
             TextEditAction.RETYPE_WORD -> true
             // A box of the keyboard's own adds no spaces to take back.
-            TextEditAction.NO_SPACE -> true
+            TextEditAction.NO_SPACE, TextEditAction.NO_SPACE_NEXT -> true
             else -> false
         }
         if (handled && haptic) vibrate()

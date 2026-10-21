@@ -16586,6 +16586,10 @@ internal fun keyVisual(
     // The Select key of the text-editing pad is lit while selection mode is on,
     // whichever surface armed it — the old panel's one piece of state.
     val selectLit = action is KeyAction.Edit && action.op == TextEditAction.SELECT && state.selectingText
+    // No space armed for the next key (#863) lights both its keys, the way
+    // an armed Shift looks held.
+    val noSpaceLit = action is KeyAction.Edit && state.noSpaceArmed &&
+        (action.op == TextEditAction.NO_SPACE || action.op == TextEditAction.NO_SPACE_NEXT)
     // A theme with no key shape gives a key at rest no face, so its label sits on
     // the bare board. The latch and select states below still light theirs, and a
     // colour the theme gave this one key still paints it.
@@ -16596,14 +16600,14 @@ internal fun keyVisual(
     val background = overrideBackground ?: when {
         latch == ModifierState.LOCKED -> palette.accent
         latch == ModifierState.ARMED -> palette.pressedKey
-        selectLit -> palette.accent
+        selectLit || noSpaceLit -> palette.accent
         faceless -> Color.Transparent
         action == KeyAction.Enter -> palette.enterKey
         action != KeyAction.Text -> palette.modifierKey
         else -> palette.key
     }
     val contentColor = override?.text?.let { Color(it.toInt()) } ?: when {
-        selectLit -> palette.enterKeyText
+        selectLit || noSpaceLit -> palette.enterKeyText
         // Enter's label colour is picked for its accent face. With no face it sits
         // on the board like the other modifier labels, so it takes their colour.
         action == KeyAction.Enter && !faceless -> palette.enterKeyText
@@ -16792,6 +16796,8 @@ private fun rememberKeyGrid(
         state.activeFancyStyleId,
         // A text-editing Select key on the grid lights with selection mode.
         state.selectingText,
+        // And a No space key with its arm for the next key (#863).
+        state.noSpaceArmed,
         // Whether the corners read the transliteration at all. The reading
         // itself follows the buffer and is not a key here: [KeyCornerHint]
         // reads it through [LocalTransliterationPreview], so a letter typed
@@ -27197,15 +27203,23 @@ private fun Modifier.pointerInputKey(
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
-            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad)
+            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad || key.hasFlicks())
     ) {
         Modifier.pointerInput(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
             hapticOnLongPress, hapticOnLongPressRelease, vibrateOnSpace, spaceCursor2d,
             spaceSwipeDownHide, textEditing, alternates, pickerIsCarousel, pickerForLongRing,
             switcherExtraStop, languageEchoTotalMs, spaceTouchpad, keyRepeat, vibrateOnRepeat, soundOnRepeat,
+            flickDistanceDp,
         ) {
-            val slopPx = 12.dp.toPx()
+            // The space bar's flick arms (#863), on the delete key's terms
+            // (#769): an arm takes the directions it covers, and a swipe waits
+            // until the finger is past the flick distance heading somewhere no
+            // arm is. With no arms every distance below is what it always was.
+            val hasArm: (FlickDirection) -> Boolean = { key.flickArm(it) != null }
+            val armed = FlickDirection.entries.any(hasArm)
+            val flickSlopPx = flickDistanceDp.dp.toPx()
+            val slopPx = if (armed) maxOf(12.dp.toPx(), flickSlopPx) else 12.dp.toPx()
             val reachPx = AlternatesReachDp.toPx()
             val steerPx = AlternatesSteerDp.toPx()
             val cursorStepPx = textEditing.spaceCursorStepDp.dp.toPx()
@@ -27226,10 +27240,10 @@ private fun Modifier.pointerInputKey(
             val pickerRowPx = PickerRowHeightDp.dp.toPx()
             // A swipe-down must clear this before it dismisses the keyboard —
             // well past the slop so a diagonal cursor drag never trips it.
-            val hideThresholdPx = 40.dp.toPx()
+            val hideThresholdPx = 40.dp.toPx().let { if (armed) maxOf(it, flickSlopPx) else it }
             // A swipe up must clear this before it opens the touchpad (#444):
             // twice the slop, so a tap that rolls upward still types a space.
-            val swipeUpPx = SpaceSwipeUpTouchpadDp.dp.toPx()
+            val swipeUpPx = SpaceSwipeUpTouchpadDp.dp.toPx().let { if (armed) maxOf(it, flickSlopPx) else it }
             // Extra travel demanded before the language list wraps around at
             // either end — the boundary acts like a detent, not a wall.
             val langWrapPx = langStepPx * 2.5f
@@ -27291,6 +27305,13 @@ private fun Modifier.pointerInputKey(
                     var liftAt = 0L
                     // When the touchpad was activated, used to delay gesture processing until longPressDelayMs has elapsed.
                     var touchpadActivatedAt = 0L
+                    // The arm the finger is on, and whether one was ever
+                    // reached: once it has, this press is a flick and never a
+                    // swipe, a hold or a space.
+                    var arm: FlickDirection? = null
+                    var flicked = false
+                    var armRepeat: Job? = null
+                    var armRepeated = false
                     // With language switching on the short-swipe slot, holding
                     // the spacebar just past a normal tap shows the language
                     // picker without needing any initial swipe. The action is
@@ -27485,6 +27506,41 @@ private fun Modifier.pointerInputKey(
                             }
                             change.consume()
                             continue
+                        }
+                        // An arm (#863) is read until the press is something
+                        // else: a swipe that has resolved, or a hold that put
+                        // the language preview up or repeated the space.
+                        if (armed && action == null && !holdPreviewShown && !spaceRepeated) {
+                            val offset = change.position - down.position
+                            val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                            if (live != arm) {
+                                arm = live
+                                setFlickDirection(live)
+                                armRepeat?.cancel()
+                                armRepeat = null
+                                if (live != null) {
+                                    flicked = true
+                                    holdJob?.cancel()
+                                    onKeyHaptic()
+                                    // An arrow or a delete on the arm keeps
+                                    // going while the finger stays out on it.
+                                    armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
+                                        scope.launch {
+                                            delay(keyRepeat.startDelayMs.toLong())
+                                            armRepeated = true
+                                            while (true) {
+                                                repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                                                onKeyRepeat(armKey)
+                                                delay(textEditing.repeatMs.toLong())
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if (flicked) {
+                                change.consume()
+                                continue
+                            }
                         }
                         // The action this gesture would resolve to right now (short
                         // vs long by hold time). Used to decide whether the 2-D pad
@@ -27802,6 +27858,8 @@ private fun Modifier.pointerInputKey(
                         }
                     }
                     holdJob?.cancel()
+                    armRepeat?.cancel()
+                    if (flicked) setFlickDirection(null)
                     if (caretDragOpen) {
                         onCaretDrag(false)
                         caretDragOpen = false
@@ -27811,10 +27869,17 @@ private fun Modifier.pointerInputKey(
                     onKeyRelease()
                     setLanguagePreview(null)
                     setPreviewExtraStop(false)
+                    val armKey = arm?.let { key.flickKey(it) }
                     when {
                         // A swipe-down already dismissed the keyboard: the finger
                         // lifting must not also type a space.
                         hidden -> {}
+                        // The arm already ran while held, or it runs now.
+                        armRepeated -> {}
+                        armKey != null -> onKey(armKey)
+                        // Out to an arm and back inside the flick distance:
+                        // the cancel it is on every flick key.
+                        flicked -> {}
                         // The hold opened the alternates popup: the lift commits
                         // whatever it has highlighted, and types no space. With
                         // hold-to-select off there is nothing to commit and the
@@ -28592,6 +28657,12 @@ private fun Modifier.pointerInputKey(
                                         if (hapticOnLongPress) onKeyPress()
                                         p.armedSelection = true
                                         onSelectionHold(true)
+                                    } else if (editOp == TextEditAction.NO_SPACE) {
+                                        // Issue #863: a hold arms No space for
+                                        // the next key, as a double tap does,
+                                        // the way a hold locks Shift.
+                                        if (hapticOnLongPress) onKeyPress()
+                                        onKey(Key(label = key.label, action = KeyAction.Edit(TextEditAction.NO_SPACE_NEXT)))
                                     } else {
                                         // No alternates: long press behaves like a tap.
                                         if (hapticOnLongPress) onKeyPress()

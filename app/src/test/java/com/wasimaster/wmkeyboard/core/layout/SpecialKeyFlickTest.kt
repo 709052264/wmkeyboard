@@ -29,11 +29,12 @@ class SpecialKeyFlickTest {
     }
 
     @Test
-    fun `the space bar ignores both kinds of arm`() {
+    fun `the space bar takes both kinds of arm`() {
+        // #863 gave the space bar arms, beside its swipes.
         val text = Key(" ", action = KeyAction.Space, flick = mapOf(FlickDirection.UP to "?"))
         val action = Key(" ", action = KeyAction.Space, flickActions = mapOf(FlickDirection.UP to KeyAlternate(KeyAction.Enter)))
-        assertNull(text.flickArm(FlickDirection.UP))
-        assertNull(action.flickArm(FlickDirection.UP))
+        assertEquals(FlickArm.Text("?"), text.flickArm(FlickDirection.UP))
+        assertTrue(action.flickArm(FlickDirection.UP) is FlickArm.Action)
     }
 
     @Test
