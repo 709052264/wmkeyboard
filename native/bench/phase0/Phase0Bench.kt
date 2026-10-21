@@ -120,8 +120,14 @@ object Phase0Bench {
             val heap = usedHeap()
             val index = VectorIndex(d)
             raw.forEachIndexed { i, v -> index.put("item/$i", 0L, v) }
-            val bytes = usedHeap() - heap
-            println(String.format(Locale.ROOT, "VectorIndex ${count}x$d heap %.1f MB (keys and stamps included)", bytes / 1e6))
+            val built = usedHeap() - heap
+            val file = File.createTempFile("bench", ".vec").apply { deleteOnExit() }
+            index.write(file)
+            val before = usedHeap()
+            val read = VectorIndex.read(file, d)
+            val loaded = usedHeap() - before
+            sink = read
+            println(String.format(Locale.ROOT, "VectorIndex ${count}x$d heap %.1f MB read from its file, %.1f MB built by put (growth slack); file %.1f MB", loaded / 1e6, built / 1e6, file.length() / 1e6))
             val q = unitVector(r, d)
             for (native in listOf(false, true)) {
                 if (native && !NativeEngine.loaded) continue

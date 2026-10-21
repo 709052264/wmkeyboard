@@ -145,9 +145,13 @@ class VectorIndex(val dimensions: Int = EmbeddingInput.DIMENSIONS) {
         return c > 0 || (c == 0 && keyAt[a]!! < keyAt[b]!!)
     }
 
-    /** Room for row [row], the next one; returns it. */
+    /**
+     * Room for row [row], the next one; returns it. An eighth more at a time:
+     * an index grows a batch of embeddings at a time, each far slower than
+     * the copy, and stays in memory at the size it grew to.
+     */
     private fun grow(row: Int): Int {
-        if (row == keyAt.size) reserve(maxOf(16, row + row / 2))
+        if (row == keyAt.size) reserve(row + maxOf(16, row / 8))
         return row
     }
 
