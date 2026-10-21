@@ -381,20 +381,20 @@ private fun LinkConfirmDialog(
         is ImportLink.Target.File -> stringResource(
             R.string.import_link_confirm_file,
             target.name,
-            hostOf(target.url),
+            linkHostOf(target.url),
         )
         is ImportLink.Target.Listing -> stringResource(
             R.string.import_link_confirm_lookup,
-            hostOf(target.manifestProbe ?: target.apiUrl),
+            linkHostOf(target.manifestProbe ?: target.apiUrl),
         )
         is ImportLink.Target.Artifact -> stringResource(R.string.import_link_confirm_artifact)
         is ImportLink.Target.SignalStickers -> stringResource(
             R.string.import_link_confirm_signal,
-            hostOf(SignalStickerDownloads.manifestUrl(target.packId)),
+            linkHostOf(SignalStickerDownloads.manifestUrl(target.packId)),
         )
         is ImportLink.Target.TelegramStickers -> stringResource(
             R.string.import_link_confirm_telegram,
-            hostOf(TelegramStickerDownloads.hostUrl()),
+            linkHostOf(TelegramStickerDownloads.hostUrl()),
         )
         else -> ""
     }
@@ -406,7 +406,7 @@ private fun LinkConfirmDialog(
         } else {
             stringResource(
                 R.string.import_link_confirm_artifact_nightly,
-                hostOf(ImportLink.nightlyLinkUrl(artifact)),
+                linkHostOf(ImportLink.nightlyLinkUrl(artifact)),
             )
         }
     }
@@ -551,7 +551,7 @@ internal fun telegramSetIntent(context: android.content.Context, setName: String
 private fun repoLinkFor(manifestUrl: String): String =
     "${AddonDeepLink.SCHEME}://repo?url=" + java.net.URLEncoder.encode(manifestUrl, "UTF-8")
 
-private fun hostOf(url: String): String =
+private fun linkHostOf(url: String): String =
     runCatching { Uri.parse(url).host }.getOrNull().orEmpty().ifBlank { url }
 
 /**
