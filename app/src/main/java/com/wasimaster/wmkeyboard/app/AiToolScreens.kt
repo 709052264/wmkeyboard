@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
@@ -104,7 +105,7 @@ internal fun AiHubSettings(
     // Not an AI tool, but the same kind of thing: a model on the device, and
     // nobody looks for it under Clipboard or Emoji, which it serves alike.
     SemanticSearchGroup(repository, settings)
-    val assistant = settings.watch { it.appUi.settingsAssistant }
+    val assistant = settings.watch { SettingsAssistantGate.offered(it) }
     SettingsGroup(stringResource(R.string.toolai_ai_chat_group_title)) {
         item {
             NavRow(
@@ -186,7 +187,7 @@ internal fun AiToolSettings(
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
     val numberFormat = stringResource(R.string.values_number)
-    val assistantOn = settings.watch { it.appUi.settingsAssistant }
+    val assistantOn = settings.watch { SettingsAssistantGate.offered(it) }
     // What decides which groups and rows the screen holds; each row reads its
     // own value.
     val aiProvider = settings.watch { it.ai.provider }

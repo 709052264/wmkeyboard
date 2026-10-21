@@ -2475,7 +2475,7 @@ private fun SettingsNavGraph(
         composable("settings_assistant") {
             // Turned off (#830): a link or a back stack that still names the
             // route opens nothing, and the assistant sends nothing.
-            if (!settings.watch { it.appUi.settingsAssistant }) {
+            if (!settings.watch { com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate.offered(it) }) {
                 LaunchedEffect(Unit) {
                     // However it was turned off (#877), a run still out ends here.
                     com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantSession.stop()

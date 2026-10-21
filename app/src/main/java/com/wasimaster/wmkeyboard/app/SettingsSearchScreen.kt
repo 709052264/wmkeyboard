@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
 import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
@@ -722,11 +723,10 @@ internal fun SettingsSearchScreen(
     val history = remember(historyText) { SearchHistory.decode(historyText) }
     // With the Settings assistant turned off (#830), its result would lead
     // to a row that is not there, and its button to nothing.
-    val assistant = settings.watch { it.appUi.settingsAssistant }
+    val assistant = settings.watch { SettingsAssistantGate.offered(it) }
     val results = remember(query, corpus, searchIndex, history, assistant) {
         corpus?.let { c ->
-            val all = searchIndex ?: c.index
-            val index = if (assistant) all else all.filterNot { it.titleRes == R.string.settings_assistant_title }
+            val index = SettingsAssistantGate.searchable(searchIndex ?: c.index, assistant)
             rankSettings(query, index, c.vocabulary, history)
         } ?: SearchResults.EMPTY
     }
@@ -735,7 +735,7 @@ internal fun SettingsSearchScreen(
     }
     val recent = remember(searchByKey, history) {
         history.recent(RECENT_PICKS_SHOWN).mapNotNull(searchByKey::get)
-            .filter { assistant || it.titleRes != R.string.settings_assistant_title }
+            .filter { assistant || !SettingsAssistantGate.opensAssistant(it) }
     }
     // Whether this is the screen being come back to from a result rather than
     // opened. A plain array rather than state: it is read once, here, and its
