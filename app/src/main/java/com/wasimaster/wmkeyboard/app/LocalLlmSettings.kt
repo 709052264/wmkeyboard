@@ -13,6 +13,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -403,6 +405,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     if (meteredBlocked) MeteredBlockedDialog { meteredBlocked = false }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun CatalogModelRow(
     model: LocalLlmModel,
@@ -439,7 +442,13 @@ private fun CatalogModelRow(
         WmRow(
             title = model.displayName,
             titleContent = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                // A flow, not a row: a long name leaves the badge no width in a
+                // row, and it wrapped a letter a line. Here it drops under the name.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    itemVerticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
                         model.displayName,
                         fontWeight = if (selected && downloaded) FontWeight.SemiBold else null,
@@ -448,9 +457,7 @@ private fun CatalogModelRow(
                         Icon(
                             Icons.Outlined.Lock,
                             contentDescription = stringResource(R.string.models_llm_gated_desc),
-                            modifier = Modifier
-                                .padding(start = 6.dp)
-                                .size(14.dp),
+                            modifier = Modifier.size(14.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -767,8 +774,9 @@ private fun TierBadge(tier: ModelTier) {
         label,
         style = MaterialTheme.typography.labelSmall,
         color = onContainer,
+        maxLines = 1,
+        softWrap = false,
         modifier = Modifier
-            .padding(start = 8.dp)
             .clip(RoundedCornerShape(6.dp))
             .background(container)
             .padding(horizontal = 6.dp, vertical = 2.dp),
