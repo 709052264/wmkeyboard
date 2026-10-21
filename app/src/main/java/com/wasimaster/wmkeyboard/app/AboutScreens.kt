@@ -397,6 +397,27 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/opencv/opencv",
         ),
     )
+    // The QR scanner's reader without ML Kit, in every build: packaged,
+    // pinned for download, or a Play split. Readers only, with the libzueci
+    // copy upstream carries; see native/zxingcpp-jni.
+    add(
+        Attribution(
+            "zxing-cpp",
+            R.string.about_bundled_zxingcpp_used,
+            "Copyright 2016 ZXing authors, Nu-book Inc., Axel Waggershauser and zxing-cpp contributors",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/zxing-cpp/zxing-cpp",
+        ),
+    )
+    add(
+        Attribution(
+            "libzueci",
+            R.string.about_bundled_zueci_used,
+            "Copyright (C) 2022 gitlost; Copyright (c) 2008-2009 Bjoern Hoehrmann",
+            "BSD-3-Clause / MIT", "bsd-3-clause-zueci.txt",
+            "https://sourceforge.net/projects/libzueci/",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.
@@ -983,15 +1004,19 @@ private val dataPackAttributions: List<Attribution> = buildList {
             "https://github.com/xuebinqin/U-2-Net",
         ))
     }
-    if (BuildConfig.ENABLE_WHISPER) {
-        add(Attribution(
-            "PaddleOCR PP-OCRv5 models",
-            R.string.about_pack_paddle_used,
-            "Copyright PaddlePaddle Authors; LiteRT conversion by iFleey (PPOCRv5-Android)",
-            "Apache-2.0", "apache-2.0.txt",
-            "https://github.com/PaddlePaddle/PaddleOCR",
-        ))
-    }
+    // Every build: the LiteRT conversion where LiteRT is, our MNN export of
+    // the same weights in F-Droid's (the data repository's export_ppocrv5_mnn.py).
+    add(Attribution(
+        "PaddleOCR PP-OCRv5 models",
+        R.string.about_pack_paddle_used,
+        if (BuildConfig.ENABLE_WHISPER) {
+            "Copyright PaddlePaddle Authors; LiteRT conversion by iFleey (PPOCRv5-Android)"
+        } else {
+            "Copyright PaddlePaddle Authors"
+        },
+        "Apache-2.0", "apache-2.0.txt",
+        "https://github.com/PaddlePaddle/PaddleOCR",
+    ))
     if (BuildConfig.ENABLE_LITERT_LM) {
         add(Attribution(
             "On-device AI models (Gemma, Qwen, SmolLM2)",

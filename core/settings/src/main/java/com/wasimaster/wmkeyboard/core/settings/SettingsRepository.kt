@@ -2957,6 +2957,12 @@ data class ScannerSettings(
     val qrScanHaptics: Boolean = true,
     /** Insert a scanned code into the field the moment it is spotted. */
     val qrScanAutoInsert: Boolean = false,
+    /**
+     * Read codes with zxing-cpp even where ML Kit's barcode reader can run.
+     * ML Kit stays the default there; everywhere else zxing-cpp is the only
+     * reader and this is not asked.
+     */
+    val qrZxing: Boolean = false,
     /** Fetch the page title/description for a scanned link, like clipboard link previews. */
     val qrScanLinkPreviews: Boolean = false,
     /** Side length of the QR image the generator inserts, in pixels. */
@@ -10685,6 +10691,7 @@ class SettingsRepository(private val context: Context) {
         private val OCR_ONLINE_KEY = stringPreferencesKey("ocr_online_key")
         private val QR_SCAN_HAPTICS = booleanPreferencesKey("qr_scan_haptics")
         private val QR_SCAN_AUTO_INSERT = booleanPreferencesKey("qr_scan_auto_insert")
+        private val QR_SCAN_ZXING = booleanPreferencesKey("qr_scan_zxing")
         private val QR_SCAN_LINK_PREVIEWS = booleanPreferencesKey("qr_scan_link_previews")
         private val CURRENCY_DECIMALS = intPreferencesKey("currency_decimals")
         private val CURRENCY_LABEL = stringPreferencesKey("currency_label")
@@ -12834,6 +12841,7 @@ class SettingsRepository(private val context: Context) {
             ocrOnlineKey = p[OCR_ONLINE_KEY] ?: defaults.scanner.ocrOnlineKey,
             qrScanHaptics = p[QR_SCAN_HAPTICS] ?: defaults.scanner.qrScanHaptics,
             qrScanAutoInsert = p[QR_SCAN_AUTO_INSERT] ?: defaults.scanner.qrScanAutoInsert,
+            qrZxing = p[QR_SCAN_ZXING] ?: defaults.scanner.qrZxing,
             qrScanLinkPreviews = p[QR_SCAN_LINK_PREVIEWS]
                 ?: defaults.scanner.qrScanLinkPreviews,
             qrSizePx = p[QR_SIZE_PX] ?: defaults.scanner.qrSizePx,
@@ -14525,6 +14533,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setQrScanAutoInsert(value: Boolean) =
         editPrefs { it[QR_SCAN_AUTO_INSERT] = value }
+
+    suspend fun setQrScanZxing(value: Boolean) =
+        editPrefs { it[QR_SCAN_ZXING] = value }
 
     suspend fun setQrScanLinkPreviews(value: Boolean) =
         editPrefs { it[QR_SCAN_LINK_PREVIEWS] = value }

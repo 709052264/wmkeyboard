@@ -11532,6 +11532,7 @@ private fun ToolboxGrid(
     }
     FlowRow(
         modifier = Modifier
+            .highFrameRateWhile(gridScroll.isScrollInProgress)
             .verticalScroll(gridScroll)
             .onGloballyPositioned {
                 gridCoords = it
@@ -13746,29 +13747,21 @@ private fun KeyboardBody(
                     location = toolHold.location,
                     photo = toolHold.photo,
                 )
-                PanelMode.OCR -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
-                    OcrPanel(
-                        state = state,
-                        onInsert = onScannedInsert,
-                        onRequestPermission = onCameraPermissionRequest,
-                        // Opened on a clip's picture (#371), back goes back to the clipboard.
-                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
-                        onTranslate = toolHold.photo.onTranslateText,
-                    )
-                } else {
-                    onPanelChange(PanelMode.SNIPPETS)
-                }
-                PanelMode.QR_SCAN -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
-                    QrScanPanel(
-                        state = state,
-                        onInsert = onScannedInsert,
-                        onOpenUrl = onScannedUrlOpen,
-                        onRequestPermission = onCameraPermissionRequest,
-                        onClose = { onPanelChange(PanelMode.QR_SCAN) },
-                    )
-                } else {
-                    onPanelChange(PanelMode.SNIPPETS)
-                }
+                PanelMode.OCR -> OcrPanel(
+                    state = state,
+                    onInsert = onScannedInsert,
+                    onRequestPermission = onCameraPermissionRequest,
+                    // Opened on a clip's picture (#371), back goes back to the clipboard.
+                    onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                    onTranslate = toolHold.photo.onTranslateText,
+                )
+                PanelMode.QR_SCAN -> QrScanPanel(
+                    state = state,
+                    onInsert = onScannedInsert,
+                    onOpenUrl = onScannedUrlOpen,
+                    onRequestPermission = onCameraPermissionRequest,
+                    onClose = { onPanelChange(PanelMode.QR_SCAN) },
+                )
                 PanelMode.VOICE -> VoicePanel(
                     state = state,
                     onToggle = onVoiceToggle,

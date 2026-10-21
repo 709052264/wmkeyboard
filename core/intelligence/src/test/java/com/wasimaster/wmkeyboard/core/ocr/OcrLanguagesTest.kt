@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.ocr
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.After
 import org.junit.Assert.assertTrue
@@ -17,12 +18,14 @@ class OcrLanguagesTest {
     // A Play build with Play services, unless a test says otherwise.
     @Before
     fun playBuild() {
+        OcrLanguages.mlKitOverride = true
         OcrLanguages.extraScriptsOverride = true
         OcrLanguages.paddleOverride = true
     }
 
     @After
     fun reset() {
+        OcrLanguages.mlKitOverride = null
         OcrLanguages.extraScriptsOverride = null
         OcrLanguages.paddleOverride = null
     }
@@ -114,7 +117,7 @@ class OcrLanguagesTest {
 
     @Test
     fun withoutPaddleChineseAndJapaneseStayWithTesseract() {
-        // Lite builds have no LiteRT.
+        // A build that could not run Paddle (every build can now: LiteRT, or MNN).
         OcrLanguages.extraScriptsOverride = false
         OcrLanguages.paddleOverride = false
         assertEquals("jpn", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("ja"), true))
@@ -175,5 +178,38 @@ class OcrLanguagesTest {
         val packs = OcrLanguages.packsFor(listOf(lang("nb"), lang("nn"), lang("bn")))
         assertEquals(listOf("nor", "ben"), packs.map { it.first })
         assertEquals(listOf("nb", "nn"), packs.first().second.map { it.id })
+    }
+
+    @Test
+    fun fdroidReadsWithPaddleWhereNothingElseIs() {
+        // F-Droid's build: no ML Kit, no Tesseract library; Paddle runs on MNN.
+        OcrLanguages.mlKitOverride = false
+        OcrLanguages.extraScriptsOverride = false
+        val paddle = PaddleOcrModel.PACK
+        assertNull(OcrLanguages.mlKitScript(lang("en")))
+        for (id in listOf("zh", "yue", "ja", "en", "fr", "hi_rom")) {
+            assertEquals(id, paddle, OcrLanguages.offlinePack(OcrEngine.AUTO, lang(id), false))
+        }
+        // Scripts Paddle does not know read online only.
+        assertNull(OcrLanguages.offlinePack(OcrEngine.AUTO, lang("bn"), false))
+        assertFalse(OcrLanguages.readable(OcrEngine.AUTO, lang("bn"), false))
+        assertTrue(OcrLanguages.readable(OcrEngine.ONLINE, lang("bn"), false))
+        assertTrue(OcrLanguages.readable(OcrEngine.AUTO, lang("en"), false))
+        // A choice restored from another build's backup reads as Auto.
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.ML_KIT, lang("ja"), false))
+        assertEquals(paddle, OcrLanguages.offlinePack(OcrEngine.TESSERACT, lang("en"), false))
+        assertEquals(listOf(OcrEngine.AUTO, OcrEngine.ONLINE), OcrLanguages.engines(false))
+        // One pack to offer, and one chip: everything readable reads with it.
+        assertEquals(
+            listOf(paddle),
+            OcrLanguages.packsFor(listOf(lang("en"), lang("ja"), lang("bn")), OcrEngine.AUTO, false).map { it.first },
+        )
+        assertEquals(
+            listOf("en"),
+            OcrLanguages.chipLanguages(OcrEngine.AUTO, listOf(lang("en"), lang("ja"), lang("bn")), false).map { it.id },
+        )
+        // With Tesseract's library, Latin goes back to it.
+        assertEquals("fra", OcrLanguages.offlinePack(OcrEngine.AUTO, lang("fr"), true))
+        assertEquals(listOf(OcrEngine.AUTO, OcrEngine.TESSERACT, OcrEngine.ONLINE), OcrLanguages.engines(true))
     }
 }

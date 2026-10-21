@@ -20,7 +20,7 @@ Open the [WM Keyboard listing](https://play.google.com/store/apps/details?id=com
 The Play copy differs from the GitHub APKs in a few ways:
 
 - **Heavier parts arrive when you first need them.** The on-device AI runtime, the on-device translation engine, handwriting recognition and the interpreter behind offline voice typing and the sticker editor's background remover are not in the first install. The first time you use one, Play downloads it, and the feature carries on by itself once it lands. See [Which build you have](/start/editions/).
-- **ML Kit comes from Google Play services** rather than from inside the app, so OCR and QR scanning use the copy Play services already keeps.
+- **ML Kit comes from Google Play services** rather than from inside the app, so OCR and QR scanning use the copy Play services already keeps. Without Play services the QR scanner reads with zxing-cpp instead.
 - **Updates come from Play.** The app has no updater of its own there. When a new version is out, the settings app can offer it through Play's in-app update prompt.
 - **Two device-side extras are left out:** the accessibility service that keeps keyboard gestures working under TalkBack, and the photos permission that lets new screenshots turn up in the clipboard. Install from GitHub or F-Droid if you need either. See [Permissions](/privacy/permissions/).
 - **Play signs it with its own key.** Android only updates an app with a build signed by the same key, so you cannot install a GitHub or F-Droid APK over the Play copy, or the other way round. To switch, export a backup, uninstall, install from the other source, and import the backup. See [Updating and what carries over](#updating-and-what-carries-over).

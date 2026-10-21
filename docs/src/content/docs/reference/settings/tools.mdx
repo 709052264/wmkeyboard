@@ -59,7 +59,7 @@ A tool that a future group forgets to claim still shows. It would fall into a tr
 
 A tune icon marks the tools with settings beyond the switch. Six are toggle-only here, because their real options live somewhere else: **Settings** (shortcut), **[Statistics](/reference/settings/statistics/)** (a shortcut too, whose page only links to the Statistics screen), **Themes**, **Sound & haptics**, **One-handed mode**, and **[Resize](/tools/resize/)**, whose values are all sliders under <SettingsPath path="Layout & size" /> anyway.
 
-<Flavor edition="fdroid" /> shrinks the **Scanners** group to Document scanner alone: Text scan and QR scan are unavailable there, and the document scanner is the built-in one. **Panels** keeps all its rows: Handwriting is there too, reading Chinese and Japanese through zinnia. See [F-Droid build](#f-droid-build) below for the complete gating rule.
+<Flavor edition="fdroid" /> keeps every row of the **Scanners** group: Text scan reads with PaddleOCR, QR & barcode scanner with zxing-cpp, and the document scanner is the built-in one. **Panels** keeps all its rows: Handwriting is there too, reading Chinese and Japanese through zinnia. See [F-Droid build](#f-droid-build) below for the complete gating rule.
 
 ## Opening a tool's own screen
 
@@ -102,14 +102,11 @@ A handful of tools carry something bigger than a row of toggles: a model downloa
 
 ## F-Droid build
 
-<Flavor edition="fdroid" /> hides two tools completely. There's no settings row anywhere, not even a switch you can't turn on.
-
-- Text scan (OCR)
-- QR & barcode scanner
+<Flavor edition="fdroid" /> hides no tool. Text scan (OCR) stays, reading Chinese, Japanese and Latin-script text with PaddleOCR on MNN, and its **Text recognition** row offers only Automatic and Online model there.
 
 Grammar check stays: F-Droid compiles Harper from source. Handwriting stays too, with zinnia in place of ML Kit, so it reads Chinese and Japanese only. Two more flags narrow what's *inside* a tool without removing the tool itself. Whisper's LiteRT models are left out, and the **On your device** AI provider runs only GGUF models on llama.cpp, since LiteRT and LiteRT-LM are Google's. AI writing tools and Voice typing still exist there, and still have a settings row, with fewer choices on it.
 
-**Document scanner** is in every build and on every phone: Google's scanner where Google Play services can run it, the keyboard's [built-in scanner](/tools/scanner/#scanning-a-document) everywhere else.
+**Document scanner** is in every build and on every phone: Google's scanner where Google Play services can run it, the keyboard's [built-in scanner](/tools/scanner/#scanning-a-document) everywhere else. **QR & barcode scanner** is too: it reads with ML Kit where ML Kit's barcode reader can run and with [zxing-cpp](/tools/scanner/#which-reader-decodes-codes) everywhere else, and its settings screen has **Read codes with zxing-cpp** to pick the open-source reader where both can.
 
 ## Every tool's guide page
 
@@ -173,7 +170,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 - **A tool hidden from the toolbox can still be pinned.** If it is already on the toolbar it stays there. Drag it off the bar and it unpins without landing in the grid, since the grid no longer takes it; turn **Show in toolbox** back on to see it there again.
 - **The tune icon is a hint, not a guarantee of depth.** Some tools with a tune icon add only one or two settings past the shared Turn on, Icon colour and Keyword shortcut rows. The icon means "there's at least one more setting," not "there's a lot here."
 - **A tool's icon colour override survives disabling and re-enabling it.** Turning a tool off and back on doesn't reset any customisation made on its detail screen.
-- **Build-gated tools leave no trace.** A tool hidden by the F-Droid build never appears as a disabled row: not in this list, not in settings search, not in the toolbox. The three tools it hides are absent, and so is Document scanner on a device with no Play services.
+- **Build-gated tools leave no trace.** A tool a build doesn't carry never appears as a disabled row: not in this list, not in settings search, not in the toolbox. Every build carries every tool today, the F-Droid one included.
 - **Rows here get the same restore button as everywhere else.** Any switch or colour you've moved off its shipped value grows a small reset icon. See [putting one setting back](/reference/settings/#putting-one-setting-back) for how it behaves.
 
 ## Related pages

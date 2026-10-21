@@ -30,7 +30,8 @@ import kotlinx.coroutines.launch
 /**
  * The Tesseract language data on disk, and its downloads; and PaddleOCR's
  * models, one pack named [PaddleOcrModel.PACK] made of three files in a
- * directory of their own (see [PaddleOcrModel]).
+ * directory of their own, the graphs in this build's runtime's format (see
+ * [PaddleOcrModel]).
  *
  * Packs live in `filesDir/ocr/tessdata/<pack>.traineddata`, which is the
  * directory handed to Tesseract as its data path. A download goes to a `.part`
@@ -86,11 +87,13 @@ object OcrPacks {
             .orEmpty() + listOfNotNull(PaddleOcrModel.PACK.takeIf { PaddleOcrModel.isDownloaded(filesDir) })
 
     /**
-     * The on-demand module whose library reads [pack] on Play: Tesseract's
-     * own, or the LiteRT interpreter for Paddle. Installed everywhere else.
+     * The gate whose library reads [pack]: Tesseract's own, or Paddle's
+     * runtime ([PaddleOcr.module]: LiteRT, or MNN in the sticker generator's
+     * library). A Play module or a native download; installed wherever the
+     * library is in the APK.
      */
     private fun moduleFor(pack: String) =
-        if (pack == PaddleOcrModel.PACK) FeatureModules.litert else FeatureModules.ocr
+        if (pack == PaddleOcrModel.PACK) PaddleOcr.module else FeatureModules.ocr
 
     /** Seeds [states] from disk for [packs]; call when a list of packs appears. */
     fun refresh(filesDir: File, packs: Collection<String>) {
@@ -110,10 +113,10 @@ object OcrPacks {
         synchronized(jobs) {
             if (jobs[pack]?.isActive == true) return
             set(pack, Status.Downloading(0, OcrLanguages.sizeOf(pack)))
-            // Play: Tesseract itself is the on-demand :feature:ocr split (and
-            // Paddle's interpreter :feature:litert), asked for alongside the
-            // first pack so both arrive together. A no-op wherever the library
-            // is in the APK.
+            // Tesseract itself is the on-demand :feature:ocr split on Play (and
+            // Paddle's runtime :feature:litert, or the imagegen gate's MNN),
+            // asked for alongside the first pack so both arrive together. A
+            // no-op wherever the library is in the APK.
             val module = moduleFor(pack)
             module.requestInstall()
             jobs[pack] = scope.launch {
@@ -133,7 +136,7 @@ object OcrPacks {
                     set(pack, Status.Failed(CommonR.string.common_error_network))
                 } finally {
                     if (pack == PaddleOcrModel.PACK) {
-                        PaddleOcrModel.Part.entries.forEach { paddlePartFile(filesDir, it).delete() }
+                        PaddleOcrModel.parts().forEach { paddlePartFile(filesDir, it).delete() }
                     } else {
                         partFile(filesDir, pack).delete()
                     }
@@ -205,6 +208,7 @@ object OcrPacks {
 
     private fun deleteFiles(filesDir: File, pack: String) {
         if (pack == PaddleOcrModel.PACK) {
+            // Both runtimes' files: a backup restored from another build may hold the other pair.
             PaddleOcrModel.Part.entries.forEach { PaddleOcrModel.file(filesDir, it).delete() }
         } else {
             file(filesDir, pack).delete()
@@ -260,13 +264,14 @@ object OcrPacks {
      */
     private suspend fun downloadPaddle(filesDir: File) {
         val dir = PaddleOcrModel.dir(filesDir).apply { mkdirs() }
-        val missing = PaddleOcrModel.Part.entries.filter { !PaddleOcrModel.file(filesDir, it).isFile }
+        val missing = PaddleOcrModel.parts().filter { !PaddleOcrModel.file(filesDir, it).isFile }
         checkSpace(dir, missing.sumOf { it.bytes })
         val total = PaddleOcrModel.totalBytes
         var done = total - missing.sumOf { it.bytes }
         for (part in missing) {
             val staged = paddlePartFile(filesDir, part)
-            fetch(PaddleOcrModel.url(part), staged) { written, _ ->
+            val url = PaddleOcrModel.url(part) ?: throw FailedException(R.string.core_intel_semantic_no_source)
+            fetch(url, staged) { written, _ ->
                 set(PaddleOcrModel.PACK, Status.Downloading(done + written, total))
             }
             if (sha256(staged) != part.sha256) throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
