@@ -18,6 +18,8 @@
 //!   `NgramReranker`.
 //! - [`corrections`]: `PredictionNative` again, the stores autocorrect
 //!   learns from, behind `CorrectionMemory` and `CorrectionStats`.
+//! - [`gif`]: `GifNative` (core/content), the GIF encoder behind
+//!   `GifEncoder`.
 //!
 //! The rules every entry point follows (native/RUST_NEON_PLAN.md):
 //!
@@ -32,6 +34,7 @@
 mod corrections;
 mod dict;
 mod fuzzy;
+mod gif;
 mod glide;
 mod guard;
 mod handles;

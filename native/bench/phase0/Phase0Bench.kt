@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.imagegen.EulerSampler
 import com.wasimaster.wmkeyboard.core.imagegen.LcmSampler
 import com.wasimaster.wmkeyboard.core.imagegen.NoiseSchedule
 import com.wasimaster.wmkeyboard.core.media.GifEncoder
+import com.wasimaster.wmkeyboard.core.media.reference.KotlinGifEncoder
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrPipeline
 import com.wasimaster.wmkeyboard.core.ocr.PaddleRuntime
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
@@ -192,16 +193,38 @@ object Phase0Bench {
     private fun gif() {
         val side = 512
         val frames = Array(30) { stickerFrame(side, it) }
+        // The Rust encoder behind GifEncoder against the Kotlin one it
+        // replaced (the test sources' reference): the same bytes first.
+        val kotlin = java.io.ByteArrayOutputStream()
+        val native = java.io.ByteArrayOutputStream()
+        KotlinGifEncoder(kotlin, side, side).apply { frames.forEach { addFrame(it, 40) } }.finish()
+        GifEncoder(native, side, side).apply { frames.forEach { addFrame(it, 40) } }.finish()
+        check(kotlin.toByteArray().contentEquals(native.toByteArray())) { "native GIF differs from Kotlin's" }
+        println("  native GIF: byte for byte Kotlin's, ${native.size()} bytes for 30 frames")
         var f = 0
-        val encoder = GifEncoder(Discard, side, side)
-        bench("GifEncoder.addFrame 512x512", "per frame; x30-60 per animated sticker sent as GIF") {
-            encoder.addFrame(frames[f++ % frames.size], 40)
+        val oracle = KotlinGifEncoder(Discard, side, side)
+        bench("GifEncoder.addFrame 512x512 kotlin", "per frame; x30-60 per animated sticker sent as GIF") {
+            oracle.addFrame(frames[f++ % frames.size], 40)
         }
-        bench("GifEncoder whole GIF, 30 frames 512x512", "per animated sticker into a GIF-only field", minWarm = 3, maxCalls = 30) {
-            val e = GifEncoder(Discard, side, side)
+        bench("GifEncoder whole GIF, 30 frames 512x512 kotlin", "per animated sticker into a GIF-only field", minWarm = 3, maxCalls = 30) {
+            val e = KotlinGifEncoder(Discard, side, side)
             for (fr in frames) e.addFrame(fr, 40)
             e.finish()
         }
+        for (scalar in listOf(true, false)) {
+            NativeEngine.forceKotlin = scalar
+            val how = if (scalar) "native scalar" else "native"
+            val encoder = GifEncoder(Discard, side, side)
+            bench("GifEncoder.addFrame 512x512 $how", "per frame") {
+                encoder.addFrame(frames[f++ % frames.size], 40)
+            }
+            bench("GifEncoder whole GIF, 30 frames 512x512 $how", "per animated sticker", minWarm = 3, maxCalls = 30) {
+                val e = GifEncoder(Discard, side, side)
+                for (fr in frames) e.addFrame(fr, 40)
+                e.finish()
+            }
+        }
+        NativeEngine.forceKotlin = false
     }
 
     // ---- OCR pre/post-processing ---------------------------------------------

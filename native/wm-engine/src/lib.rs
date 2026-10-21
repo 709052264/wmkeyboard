@@ -81,6 +81,7 @@ pub mod correction_stats;
 pub mod devanagari_romanizer;
 pub mod freq_codec;
 pub mod fuzzy;
+pub mod gif;
 pub mod glide;
 pub mod gujarati;
 pub mod hindi;

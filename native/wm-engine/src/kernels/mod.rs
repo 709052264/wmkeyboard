@@ -28,6 +28,7 @@
 //! native fast path when a device misbehaves.
 
 pub mod dot;
+pub mod gif;
 pub mod sharpen;
 
 #[cfg(test)]

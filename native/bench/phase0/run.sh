@@ -2,8 +2,9 @@
 # Phase 0 benchmark harness for native/RUST_NEON_PLAN.md. No Gradle: compiles
 # Phase0Bench.kt with the Kotlin compiler from the Gradle cache against the
 # release classes jars a previous build left in a checkout (plus Samplers.kt,
-# VectorIndex.kt, MeaningRank.kt and NativeEngine.kt from source, which are
-# newer than most checkouts' last build), then
+# VectorIndex.kt, MeaningRank.kt, NativeEngine.kt, GifEncoder.kt and the
+# Kotlin GIF encoder kept in the tests from source, which are newer than most
+# checkouts' last build; EXTRA_SRC adds more), then
 #   host     runs it on this machine's JVM
 #   dex      d8s it (plus the jars and kotlin-stdlib) into out/bench.dex
 #   device   pushes the dex and runs it under ART with app_process
@@ -47,7 +48,8 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
     "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt" \
-    "$REPO/core/content/src/main/java/com/wasimaster/wmkeyboard/core/media/GifEncoder.kt" ${EXTRA_SRC:-}
+    "$REPO/core/content/src/main/java/com/wasimaster/wmkeyboard/core/media/GifEncoder.kt" \
+    "$REPO/feature/ime/src/test/java/com/wasimaster/wmkeyboard/core/media/reference/KotlinGifEncoder.kt" ${EXTRA_SRC:-}
 fi
 
 case "$mode" in
