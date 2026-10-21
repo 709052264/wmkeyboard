@@ -29092,6 +29092,7 @@ open class WMKeyboardService : InputMethodService() {
             translate,
             WhisperCppPlan.prompt(words),
             WhisperCppPlan.beamSize(model),
+            WhisperCppPlan.wantsGpu(model, _uiState.value.settings.whisper.compute),
         ) ?: return null
         val detected = model.multilingual && codes.isEmpty()
         return if (detected) WhisperScript.rescueAmong(result.text, languages) else result.text
@@ -29301,7 +29302,12 @@ open class WMKeyboardService : InputMethodService() {
             is OnDeviceVoice.Whisper -> serviceScope.launch(Dispatchers.Default) {
                 if (model.model.ggml) {
                     // A damaged file throws here; transcribing says so properly.
-                    runCatching { WhisperCpp.warm(WhisperStore.modelFile(filesDir, model.model)) }
+                    runCatching {
+                        WhisperCpp.warm(
+                            WhisperStore.modelFile(filesDir, model.model),
+                            WhisperCppPlan.wantsGpu(model.model, _uiState.value.settings.whisper.compute),
+                        )
+                    }
                 } else {
                     WhisperEngine.warm(
                         WhisperStore.modelFile(filesDir, model.model),

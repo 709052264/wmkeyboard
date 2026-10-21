@@ -1,6 +1,7 @@
 {
   global:
     Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_*;
+    Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCppGpu_*;
   local:
     *;
 };

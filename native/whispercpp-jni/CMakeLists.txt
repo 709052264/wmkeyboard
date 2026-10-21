@@ -1,6 +1,8 @@
 # libwmwhispercpp: whispercpp_jni.cpp over a static whisper.cpp + ggml (CPU
-# backend only). Driven by build.sh, which passes the whisper.cpp tree in
-# WHISPER_SRC and the instruction set per variant; see README.md.
+# backend), and libwmwhispercpp_opencl: the same with ggml's OpenCL backend
+# for Adreno GPUs beside it (WM_GPU=opencl). Driven by build.sh, which passes
+# the whisper.cpp tree in WHISPER_SRC, the instruction set per variant and the
+# OpenCL headers and link library; see README.md.
 cmake_minimum_required(VERSION 3.18)
 project(wmwhispercpp C CXX)
 
@@ -10,7 +12,10 @@ if (NOT EXISTS "${WHISPER_SRC}/include/whisper.h")
     message(FATAL_ERROR "WHISPER_SRC must point at a whisper.cpp checkout")
 endif()
 
-# Static, CPU only, nothing but the library.
+# The GPU backend built in beside the CPU one: empty for none, or "opencl".
+set(WM_GPU "" CACHE STRING "GPU backend: empty or opencl")
+
+# Static, nothing but the library.
 set(BUILD_SHARED_LIBS        OFF CACHE BOOL "" FORCE)
 set(WHISPER_BUILD_TESTS      OFF CACHE BOOL "" FORCE)
 set(WHISPER_BUILD_EXAMPLES   OFF CACHE BOOL "" FORCE)
@@ -22,6 +27,24 @@ set(GGML_OPENMP              OFF CACHE BOOL "" FORCE)
 # Cross-compiling: the instruction set comes from build.sh, not this Mac.
 set(GGML_NATIVE              OFF CACHE BOOL "" FORCE)
 set(GGML_BACKEND_DL          OFF CACHE BOOL "" FORCE)
+# One GPU backend at most, and only the one asked for: Metal would come along
+# on a Mac host build otherwise.
+set(GGML_METAL               OFF CACHE BOOL "" FORCE)
+set(GGML_BLAS                OFF CACHE BOOL "" FORCE)
+set(GGML_VULKAN              OFF CACHE BOOL "" FORCE)
+set(GGML_OPENCL              OFF CACHE BOOL "" FORCE)
+if (WM_GPU STREQUAL "opencl")
+    # Qualcomm's backend: Adreno's own matrix and attention kernels, compiled
+    # by the phone's driver from the source embedded in the library. It
+    # refuses every GPU but Adreno and Intel, so WhisperCppGpu loads it on
+    # Adreno only.
+    set(GGML_OPENCL                      ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_EMBED_KERNELS        ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_USE_ADRENO_KERNELS   ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_PROFILING            OFF CACHE BOOL "" FORCE)
+elseif (NOT WM_GPU STREQUAL "")
+    message(FATAL_ERROR "WM_GPU must be empty or opencl, not '${WM_GPU}'")
+endif()
 
 add_subdirectory("${WHISPER_SRC}" whisper EXCLUDE_FROM_ALL)
 
@@ -29,6 +52,10 @@ add_library(wmwhispercpp SHARED whispercpp_jni.cpp)
 set_target_properties(wmwhispercpp PROPERTIES OUTPUT_NAME "${WM_LIB_NAME}")
 target_link_libraries(wmwhispercpp PRIVATE whisper log)
 target_compile_options(wmwhispercpp PRIVATE -fvisibility=hidden -ffunction-sections -fdata-sections)
+if (WM_GPU STREQUAL "opencl")
+    # Its own JNI class, so it can be loaded beside a CPU build.
+    target_compile_definitions(wmwhispercpp PRIVATE WM_GPU WM_JNI_CLASS=WhisperCppGpu)
+endif()
 target_link_options(wmwhispercpp PRIVATE
     -Wl,--no-undefined
     -Wl,--gc-sections

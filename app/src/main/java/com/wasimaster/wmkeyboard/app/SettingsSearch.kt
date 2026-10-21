@@ -1185,6 +1185,10 @@ private fun SearchStrings.voiceRows(): List<SettingsSearchEntry> {
         ),
         providerEntry(ProviderTool.VOICE, ProviderTypes.WHISPER, R.string.voice_translate_title, R.string.voice_translate_subtitle),
         providerEntry(
+            ProviderTool.VOICE, ProviderTypes.WHISPER,
+            R.string.models_whisper_compute_title, R.string.models_whisper_compute_subtitle,
+        ),
+        providerEntry(
             ProviderTool.VOICE, ProviderTypes.TRANSCRIPTION_SERVER,
             R.string.voice_server_language_title, R.string.voice_server_language_subtitle,
         ),

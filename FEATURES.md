@@ -2815,6 +2815,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Buffer full auto-transcribes — continuous mode then starts the next clip
     - No live partials — the whole clip is transcribed after you stop; the panel says "tap when you're done"
     - Keystrokes during transcription never cost a recording — the audio is already in the recorder, not the editor
+  - Compute: Automatic | CPU | GPU `RARE` — `whisper_compute` on the engine's screen, for the whisper.cpp models only; Automatic runs Base and larger on the GPU, Tiny on the CPU
+    - Adreno only — `libwmwhispercpp_opencl.so` (arm64, ARMv8.2) with ggml's OpenCL backend, Qualcomm's own; Mali, Xclipse and PowerVR stay on the CPU. Vulkan rejected: ~29 MB of shaders, no ggml tuning for Mali
+    - Loads beside the CPU build — its own JNI class (WhisperCppGpu), so Compute changes and a fallback need no restart; links the vendor libOpenCL.so (`uses-native-library`, not required)
+    - Fallback to CPU — no device, a refused model (out of GPU memory) or a failed clip goes to the CPU builds at once; a native crash is caught by an attempt file and the next process remembers it; verdicts keyed to the build fingerprint and install time, cleared by choosing GPU
+    - Kernels cached in codeCacheDir — the driver's first compile takes seconds, later processes load the binaries
+    - Measured on an M2 (Vulkan via MoltenVK, encoder per 30 s window): Tiny 94 ms, Base 199 ms, Small 620 ms; Metal 57/96/318; words identical to the CPU, one comma apart on Base greedy. Not measured on a phone
   - Speech translation to English `RARE` — where the graph was actually trained for it — 9 of the 10 multilingual models
     - Turbo excluded on purpose — it carries the translate signature but was trained for transcription only, so running it returns confident nonsense
   - Whisper downloads `uncommon` — two files per model into one directory, both required

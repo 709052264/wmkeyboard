@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
@@ -5779,6 +5780,13 @@ data class WhisperSettings(
     /** Force Whisper to translate speech to English instead of transcribing verbatim. */
     val translate: Boolean = false,
     /**
+     * Where the GGML (whisper.cpp) models run: [WhisperCompute.AUTO] (the GPU
+     * for Base and larger where the phone has an Adreno GPU, else the CPU),
+     * [WhisperCompute.CPU] or [WhisperCompute.GPU]. A GPU that fails hands
+     * the clip to the CPU. LiteRT graphs always run on the CPU.
+     */
+    val compute: String = WhisperCompute.AUTO,
+    /**
      * Noise reduction in front of the on-device engines (Whisper, Whistle,
      * the ExecuTorch engines, Sherpa): [VoiceDenoise.OFF], [VoiceDenoise.LIGHT]
      * (RNNoise) or [VoiceDenoise.STRONG] (DPDFNet on ONNX Runtime, which falls
@@ -10592,6 +10600,7 @@ class SettingsRepository(private val context: Context) {
         private val WHISPER_MODEL_ID = stringPreferencesKey("whisper_model_id")
         private val WHISPER_MODEL_BY_LANG = stringPreferencesKey("whisper_model_by_lang")
         private val WHISPER_TRANSLATE = booleanPreferencesKey("whisper_translate")
+        private val WHISPER_COMPUTE = stringPreferencesKey("whisper_compute")
         // A switch before the level: on read as Light, the only level it had.
         private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
         private val VOICE_DENOISE_LEVEL = stringPreferencesKey("voice_denoise_level")
@@ -12817,6 +12826,7 @@ class SettingsRepository(private val context: Context) {
             modelByLang = p[WHISPER_MODEL_BY_LANG]?.let { decodeWhisperModelByLang(it) }
                 ?: defaults.whisper.modelByLang,
             translate = p[WHISPER_TRANSLATE] ?: defaults.whisper.translate,
+            compute = p[WHISPER_COMPUTE]?.takeIf { it in WhisperCompute.CHOICES } ?: defaults.whisper.compute,
             denoise = p[VOICE_DENOISE_LEVEL]?.takeIf { it in VoiceDenoise.LEVELS }
                 ?: p[VOICE_DENOISE]?.let { if (it) VoiceDenoise.LIGHT else VoiceDenoise.OFF }
                 ?: defaults.whisper.denoise,
@@ -14210,6 +14220,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setWhisperTranslate(value: Boolean) =
         editPrefs { it[WHISPER_TRANSLATE] = value }
+
+    suspend fun setWhisperCompute(value: String) =
+        editPrefs { it[WHISPER_COMPUTE] = value }
 
     suspend fun setVoiceDenoise(value: String) =
         editPrefs {
