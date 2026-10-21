@@ -666,7 +666,6 @@ import com.wasimaster.wmkeyboard.core.voice.VoicePunctuation
 import com.wasimaster.wmkeyboard.core.voice.VoiceCasing
 import com.wasimaster.wmkeyboard.core.voice.VoiceSpacing
 import com.wasimaster.wmkeyboard.core.voice.VoiceTidy
-import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.WhisperRecorder
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipe
 import com.wasimaster.wmkeyboard.core.voice.futoswipe.FutoSwipeModel
@@ -29452,7 +29451,7 @@ open class WMKeyboardService : InputMethodService() {
                         target.key,
                         target.model,
                         language,
-                        WavEncoder.encode(pcm),
+                        pcm,
                         prompt = VoiceBias.serverPrompt(words, server.serverPrompt),
                         path = target.path,
                     )

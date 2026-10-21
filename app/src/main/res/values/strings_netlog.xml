@@ -94,11 +94,17 @@
     <string name="netlog_sheet_request">Request</string>
     <string name="netlog_sheet_result">Result</string>
     <string name="netlog_sheet_data">Data</string>
+    <!-- Shown under Data when the keyboard compressed what it sent, today only
+         voice clips sent to a transcription server. -->
+    <string name="netlog_sheet_saved">Saved</string>
     <string name="netlog_sheet_took">Time taken</string>
     <string name="netlog_sheet_when">When</string>
     <string name="netlog_sheet_count">Requests</string>
     <!-- %1$s is the data received, %2$s the data sent. -->
     <string name="netlog_sheet_data_value"><xliff:g id="down" example="1.4 MB">%1$s</xliff:g> received, <xliff:g id="up" example="5 KB">%2$s</xliff:g> sent</string>
+    <!-- %1$s is how much less was sent, e.g. "290 KB": the audio went compressed
+         as Opus rather than as uncompressed WAV. -->
+    <string name="netlog_sheet_saved_value"><xliff:g id="saved" example="290 KB">%1$s</xliff:g> less sent, as Opus instead of WAV</string>
     <!-- %1$d is a duration in milliseconds. "ms" is a unit symbol. -->
     <string name="netlog_sheet_took_value" tools:ignore="PluralsCandidate"><xliff:g id="ms" example="310">%1$d</xliff:g> ms</string>
     <!-- %1$d is a duration in milliseconds. -->

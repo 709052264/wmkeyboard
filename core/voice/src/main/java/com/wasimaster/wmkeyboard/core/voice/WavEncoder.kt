@@ -8,12 +8,15 @@ import java.nio.ByteOrder
  * Packs [WhisperRecorder]'s float samples into a 16-bit PCM WAV file, the one
  * audio format every transcription server accepts without a decoder of its own
  * (speaches, whisper.cpp's server, OpenAI, Groq). A full 30-second clip at
- * 16 kHz mono is under a megabyte, far below any server's upload limit, so
- * nothing is gained by compressing it on the phone.
+ * 16 kHz mono is just under a megabyte; [OpusEncoder] makes the same clip
+ * about 75 KB, and this is what a server that cannot read that gets.
  */
 object WavEncoder {
 
     private const val HEADER_BYTES = 44
+
+    /** The size of the file [encode] makes from [count] samples. */
+    fun sizeOf(count: Int): Long = HEADER_BYTES + count * 2L
 
     fun encode(samples: FloatArray, sampleRate: Int = WhisperMel.SAMPLE_RATE): ByteArray {
         val dataBytes = samples.size * 2

@@ -63,6 +63,15 @@ class NetLogStoreTest {
     }
 
     @Test
+    fun mergedRowSumsTheBytesSaved() {
+        val s = store()
+        s.add(entry().copy(bytesSaved = 290_000))
+        s.add(entry(at = BASE + 1_000).copy(bytesSaved = 110_000))
+        s.add(entry(at = BASE + 2_000))
+        assertEquals(400_000L, s.rows().single().bytesSaved)
+    }
+
+    @Test
     fun failureDoesNotMergeWithSuccesses() {
         val s = store()
         s.add(entry())

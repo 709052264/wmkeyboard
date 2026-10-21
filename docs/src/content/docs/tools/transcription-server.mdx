@@ -9,7 +9,7 @@ import SettingsPath from '@components/SettingsPath.astro';
 
 The transcription server is another dictation engine, next to the system recognizer, [offline Whisper](/tools/whisper/), [offline Whistle](/tools/whistle/), [offline Asr4All](/tools/asr4all/), [offline Parakeet](/tools/parakeet/) and [offline Moonshine](/tools/moonshine/). The keyboard records what you say and sends the recording to a server you choose. The server sends back the text. The heavy work runs on a computer on your desk or in your rack, not on your phone's battery, and you choose the model.
 
-It works in every build, F-Droid's included. There is nothing to download on the phone.
+It works in every build, F-Droid's included. The phone needs only a small library (about 300 KB) that compresses each recording to about a twelfth of its size before it is sent, fetched the first time you dictate with this engine. Until it is there, recordings go uncompressed, and dictation works the same. See [How much it sends](#how-much-it-sends).
 
 ## Setting it up
 
@@ -99,6 +99,8 @@ whisper-server -m models/ggml-base.bin -l auto --host 0.0.0.0 --port 8080 \
 
 With `--inference-path` as above, set **Server address** to `http://<computer's address>:8080/v1`. Without it, point the keyboard at `http://<computer's address>:8080/inference`. Leave **Model** empty: whisper-server uses the model it was started with. `-l auto` matters when **Send the keyboard language** is off. Without it whisper-server assumes English.
 
+whisper-server reads WAV, MP3 and FLAC on its own. Add `--convert` (it needs `ffmpeg` on the computer) and it also reads the keyboard's compressed recordings, which are a twelfth of the size. Without it, the first phrase tells the keyboard so, and that server gets WAV from then on. An address ending in `/inference` always gets WAV.
+
 ### Cloud services
 
 The same engine reaches the hosted APIs, if you would rather pay per minute than run a machine:
@@ -118,7 +120,7 @@ This is everything the keyboard sends and expects, so you can build or proxy a s
 
 | Part | Sent | Contents |
 |---|---|---|
-| `file` | always | the clip, `speech.wav`, `audio/wav`: 16-bit PCM, 16 kHz, mono, up to 30 seconds (under 1 MB) |
+| `file` | always | the clip, up to 30 seconds, as `speech.ogg`, `audio/ogg`: Opus in Ogg, 16 kHz mono at about 20 kbit/s (about 75 KB for 30 seconds). As `speech.wav`, `audio/wav` (16-bit PCM, 16 kHz, mono, under 1 MB) instead while the compression library is not on the phone, to an address ending in `/inference`, and to a server that could not read the Opus file |
 | `model` | when **Model** is filled in | the text of the field |
 | `language` | when **Send the keyboard language** is on and Whisper knows the language | an ISO-639-1 code such as `en`, `bn` or `de` |
 | `prompt` | when there are words to listen for, or **Prompt** is filled in | your words to listen for, then the text of **Prompt**. See [Words and the prompt](#words-and-the-prompt) |
@@ -128,7 +130,7 @@ An `Authorization: Bearer <key>` header is added when **API key** is filled in. 
 
 **Reply.** HTTP 200 with `{"text": "the words"}`. Other fields are ignored. A plain-text body is accepted too, and is used as the transcript.
 
-**Errors.** Any status outside 200–299 fails the phrase. When the body is `{"error": {"message": "…"}}`, that message is what the voice panel shows. Otherwise the panel shows the keyboard's own wording for the status (401 and 403 read as a rejected key, 429 as a rate limit).
+**Errors.** A 400, 415 or 422 answer to an Opus file is taken to mean the server cannot read Opus: the same phrase is sent again at once as WAV, and once a WAV is read, that address gets WAV for as long as the keyboard keeps running. Otherwise any status outside 200–299 fails the phrase. When the body is `{"error": {"message": "…"}}`, that message is what the voice panel shows. Otherwise the panel shows the keyboard's own wording for the status (401 and 403 read as a rejected key, 429 as a rate limit).
 
 Timeouts are 10 seconds to connect and 60 seconds for the reply.
 
@@ -156,3 +158,11 @@ Voice typing stays off in password fields, whichever engine is chosen.
 - **No address yet.** Choosing the engine without filling in the address makes the voice panel say so, with a shortcut to these settings and a button that switches back to the system recognizer.
 - **Server unreachable.** The panel shows why: no connection, a timeout, or a server that refused the connection. Nothing is typed and the rest of your text is untouched. Press the microphone to try again. With [Use on-device models offline](/privacy/data-saver/#with-no-connection) on and a [Whisper model](/tools/whisper/) downloaded, the phrase is transcribed on the phone instead, and with no connection at all the next phrase goes to the Whisper model, or to the voice typing of your phone, from the start.
 - **No live words.** Like offline Whisper, the server gets the whole phrase at once, so nothing appears in the field while you speak.
+
+## How much it sends
+
+Each phrase goes as Opus, the codec voice calls use, at about 20 kbit/s: around 75 KB for 30 seconds of speech, where the same recording as WAV is just under 1 MB. On 73 LibriSpeech recordings (8 minutes) the Opus files were 12.7 times smaller, and a Whisper small.en server got 5.74% of the words wrong from them against 5.65% from WAV: one word more in 1,150.
+
+The compression library is one of the [feature libraries](/privacy/network/#downloads-dictionaries-models-and-addons), fetched the first time you dictate with this engine (from Play on a Google Play build, and on an F-Droid build only after you turn on **Download feature libraries**). Until it is there, the phrase goes as WAV.
+
+[Network activity](/privacy/network-activity/) shows the saving on each request: press a Transcription server row, and **Saved** says how much less was sent than the WAV would have been.
