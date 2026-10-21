@@ -4,7 +4,8 @@ package com.wasimaster.wmkeyboard.core.input.rime
  * A composing buffer spelled in the keys a RIME schema reads, with the way
  * back: [bufferEnd]`[k]` is how many buffer characters the first `k` input
  * characters cover, any dropped characters right after them included (a
- * Jyutping tone digit goes with its syllable).
+ * Jyutping tone digit goes with its syllable), and so any added ones (the
+ * `'` after a picked T9 syllable).
  */
 class RimeInput(val input: String, private val bufferEnd: IntArray) {
 
@@ -20,6 +21,11 @@ class RimeInput(val input: String, private val bufferEnd: IntArray) {
  * Cangjie, stroke glyphs on the stroke pad. RIME's schemas read the keys of a
  * desktop keyboard instead (bopomofo on the Dachen map, strokes as h s p n z),
  * so each character is mapped on the way in, one character to at most one.
+ * The one addition is T9's: a syllable picked from the reading column sits
+ * in the buffer as letters (`xi26`), and RIME's T9 schema spells every
+ * syllable both in letters and in digits, mixed group by group, so `xi26`
+ * would read as one syllable, `xiao`. A `'` after the picked letters keeps
+ * them a syllable of their own: `xi'26` is 西安.
  */
 object RimeKeys {
 
@@ -51,7 +57,8 @@ object RimeKeys {
     /** [buffer] in [method]'s RIME keys. */
     fun translate(method: RimeMethod, buffer: String): RimeInput {
         val input = StringBuilder(buffer.length)
-        val ends = IntArray(buffer.length + 1)
+        // Room for a `'` after every buffer character, which T9 can add.
+        val ends = IntArray(2 * buffer.length + 1)
         var kept = 0
         for ((i, c) in buffer.withIndex()) {
             val key: Char? = when (method) {
@@ -67,6 +74,11 @@ object RimeKeys {
             }
             if (key != null) {
                 input.append(key)
+                kept++
+            }
+            if (method == RimeMethod.T9_PINYIN && c.isLetter() && buffer.getOrNull(i + 1)?.isDigit() == true) {
+                ends[kept] = i + 1
+                input.append('\'')
                 kept++
             }
             ends[kept] = i + 1

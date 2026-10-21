@@ -16,8 +16,8 @@ import org.junit.rules.TemporaryFolder
  * [FuzzyBeamSearch], which runs in Rust, gives the same answer as the Kotlin
  * walk it replaced ([KotlinFuzzyBeamSearch], kept as the reference;
  * native/RUST_NEON_PLAN.md Phase 2 step 2): every candidate, in order, with
- * bit-identical scores, edit costs, edit counts, completion lengths, tiers
- * and accent counts.
+ * bit-identical scores, edit costs, edit counts, completion lengths, tiers,
+ * accent counts and slip counts.
  *
  * The queries are the prediction eval's own: the typo corpus over the
  * bundled English list (the 2,000 cases `PredictionEvalTest` scores) and its
@@ -80,6 +80,7 @@ class NativeFuzzyParityTest {
             assertEquals("$at dictScore", k.dictScore.toRawBits(), r.dictScore.toRawBits())
             assertEquals("$at userScore", k.userScore.toRawBits(), r.userScore.toRawBits())
             assertEquals("$at accents", k.accents, r.accents)
+            assertEquals("$at slips", k.slips, r.slips)
         }
         compared++
         candidates += kotlin.size
@@ -102,6 +103,10 @@ class NativeFuzzyParityTest {
     }
 
     private val touchModel = KeyTouchModel(QwertyGeometry.keys.associate { it.char to TouchPoint(it.x, it.y) })
+    private val noSlips = KeyTouchModel(
+        QwertyGeometry.keys.associate { it.char to TouchPoint(it.x, it.y) },
+        slipRadius = 0.0,
+    )
 
     @Test
     fun evalCorpusMatchesOnEveryPath() {
@@ -129,7 +134,13 @@ class NativeFuzzyParityTest {
             check("mapped", listOf(dictionary(mapped)), typed, 4)
             check("packed", listOf(dictionary(packed)), typed, 4)
             if (index % 2 == 0) {
-                check("touch", listOf(dictionary(mapped)), typed, 4, touch = FuzzyBeamSearch.TouchScoring(touchModel, taps(typed, random)))
+                val frame = taps(typed, random)
+                check("touch", listOf(dictionary(mapped)), typed, 4, touch = FuzzyBeamSearch.TouchScoring(touchModel, frame))
+                check("touch, no slips", listOf(dictionary(mapped)), typed, 4, touch = FuzzyBeamSearch.TouchScoring(noSlips, frame))
+                check(
+                    "touch, habits", listOf(dictionary(mapped)), typed, 4,
+                    touch = FuzzyBeamSearch.TouchScoring(touchModel, frame), habits = habits,
+                )
             }
             if (index % 3 == 0) check("habits", listOf(dictionary(mapped)), typed, 4, habits = habits)
             if (index % 5 == 0) {

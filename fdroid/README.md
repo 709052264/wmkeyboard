@@ -139,6 +139,14 @@ build. The runtime itself is Microsoft's MIT-licensed AAR on Maven Central,
 read on the phone after the download opt-in, like every other delivered
 library.
 
+From the release after 0.6.2 `native/whispercpp-jni/build.sh` also makes
+`libwmwhispercpp_opencl.so` (arm64 only), whisper.cpp with ggml's OpenCL
+backend for Adreno GPUs, into the same `core/voice/src/main/jniLibs`. It
+clones Khronos's OpenCL-Headers and OpenCL-ICD-Loader at pinned commits
+(Apache-2.0), builds the loader only to link against, and needs Python 3 to
+embed the OpenCL kernels as strings. Nothing from Khronos ships; on the
+phone the library uses the vendor's `libOpenCL.so`.
+
 `native/opus-jni` (libopus at a pinned tag, CMake and Ninja, plus a small
 hand-written Ogg writer) builds `libwmopus.so` into `core/voice/src/opus/jniLibs`,
 the compressor for transcription server uploads. The next entry's `scandelete`

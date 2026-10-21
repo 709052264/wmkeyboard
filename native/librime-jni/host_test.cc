@@ -7,6 +7,7 @@
 // Deploys every *.schema.yaml in <shared>, prints the menu for <input>, then
 // for each pick index chooses it and prints what happened. RIME_OPTIONS (a
 // comma-separated list) switches options on first, such as simplification.
+// RIME_SKIP_DEPLOY=1 starts on what an earlier run deployed into <user>.
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
@@ -32,15 +33,17 @@ int main(int argc, char** argv) {
         return 2;
     }
     wmrime::Paths paths{argv[1], argv[2], "test"};
-    wmrime::BeginDeploy(paths);
-    for (const auto& entry : std::filesystem::directory_iterator(paths.shared_dir)) {
-        const std::string name = entry.path().filename().string();
-        if (name.size() > 12 && name.compare(name.size() - 12, 12, ".schema.yaml") == 0) {
-            bool ok = wmrime::DeploySchema(entry.path().string());
-            std::printf("deploy %s: %s\n", name.c_str(), ok ? "ok" : "FAILED");
+    if (!std::getenv("RIME_SKIP_DEPLOY")) {
+        wmrime::BeginDeploy(paths);
+        for (const auto& entry : std::filesystem::directory_iterator(paths.shared_dir)) {
+            const std::string name = entry.path().filename().string();
+            if (name.size() > 12 && name.compare(name.size() - 12, 12, ".schema.yaml") == 0) {
+                bool ok = wmrime::DeploySchema(entry.path().string());
+                std::printf("deploy %s: %s\n", name.c_str(), ok ? "ok" : "FAILED");
+            }
         }
+        std::printf("deploy default.yaml: %s\n", wmrime::DeployConfig("default.yaml", "config_version") ? "ok" : "FAILED");
     }
-    std::printf("deploy default.yaml: %s\n", wmrime::DeployConfig("default.yaml", "config_version") ? "ok" : "FAILED");
     wmrime::Start(paths);
     std::printf("librime %s\n", wmrime::Version().c_str());
     for (const auto& [id, name] : wmrime::SchemaList()) std::printf("schema %s (%s)\n", id.c_str(), name.c_str());

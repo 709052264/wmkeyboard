@@ -1038,6 +1038,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Same keys — Zhuyin glyphs map onto the Dachen keys, Cangjie radicals onto letters, strokes onto h s p n z; a schema picker per kind of layout
     - Exact prefix commit — Spans are librime's own candidate ends; Simplified, Traditional, Taiwan and Hong Kong forms are librime filter switches inside its menu
     - Learns whole phrases — A pick goes to RIME's user dictionary; picking 你好 then 世界 teaches 你好世界. Not in incognito or password fields
+    - 9-key Pinyin with the syllable column — Rime Ice's `t9` schema; a picked syllable reaches RIME set off by `'` (its T9 algebra reads `xi26` as xiao), the column leads with the syllable RIME's first candidate spells, and the composing text shows that spelling
+    - 联想 after a commit — Chinese gets the built-in Mandarin predictor (word pairs pack plus your habits) whichever schema typed it; librime-predict, keyed on the exact last commit, found almost nothing after RIME's phrase commits on held-out text. Cantonese gets none
+    - No Lua — librime-lua measured at +0.92 MiB (+34%) on arm64; left out, since Lua's io/os would let any imported schema run code in the keyboard. Rime Ice's Lua components are skipped
     - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
   - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.34. Built-in stays the default
     - Own library on its own gate — `libwmmozc.so` (native/mozc-jni: Mozc's converter with Abseil and Protocol Buffers, built with Mozc's own Bazel Android config; 16 KB pages, JNI symbols only) behind the `mozc` gate: `:feature:mozc` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in
@@ -2815,6 +2818,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Buffer full auto-transcribes — continuous mode then starts the next clip
     - No live partials — the whole clip is transcribed after you stop; the panel says "tap when you're done"
     - Keystrokes during transcription never cost a recording — the audio is already in the recorder, not the editor
+  - Compute: Automatic | CPU | GPU `RARE` — `whisper_compute` on the engine's screen, for the whisper.cpp models only; Automatic runs Base and larger on the GPU, Tiny on the CPU
+    - Adreno only — `libwmwhispercpp_opencl.so` (arm64, ARMv8.2) with ggml's OpenCL backend, Qualcomm's own; Mali, Xclipse and PowerVR stay on the CPU. Vulkan rejected: ~29 MB of shaders, no ggml tuning for Mali
+    - Loads beside the CPU build — its own JNI class (WhisperCppGpu), so Compute changes and a fallback need no restart; links the vendor libOpenCL.so (`uses-native-library`, not required)
+    - Fallback to CPU — no device, a refused model (out of GPU memory) or a failed clip goes to the CPU builds at once; a native crash is caught by an attempt file and the next process remembers it; verdicts keyed to the build fingerprint and install time, cleared by choosing GPU
+    - Kernels cached in codeCacheDir — the driver's first compile takes seconds, later processes load the binaries
+    - Measured on an M2 (Vulkan via MoltenVK, encoder per 30 s window): Tiny 94 ms, Base 199 ms, Small 620 ms; Metal 57/96/318; words identical to the CPU, one comma apart on Base greedy. Not measured on a phone
   - Speech translation to English `RARE` — where the graph was actually trained for it — 9 of the 10 multilingual models
     - Turbo excluded on purpose — it carries the translate signature but was trained for transcription only, so running it returns confident nonsense
   - Whisper downloads `uncommon` — two files per model into one directory, both required

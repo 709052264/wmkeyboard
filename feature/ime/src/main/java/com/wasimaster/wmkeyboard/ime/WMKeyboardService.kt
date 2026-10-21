@@ -1053,6 +1053,9 @@ open class WMKeyboardService : InputMethodService() {
     /** The mistype tolerance the engine's touch model was last built with (#385). */
     private var toleranceApplied = 100
 
+    /** Whether the engine's touch model was last built reading several slips per word. */
+    private var slipsApplied = true
+
     /**
      * The word the user has gone back into and is editing, if any; see
      * [WordRevision]. Armed when the caret lands on a word
@@ -1922,6 +1925,9 @@ open class WMKeyboardService : InputMethodService() {
         tapAdaptApplied = adaptSetting
         val tolerance = _uiState.value.settings.suggestionStrip.mistypeTolerance
         toleranceApplied = tolerance
+        val slips = _uiState.value.settings.suggestionStrip.fixSeveralSlips
+        slipsApplied = slips
+        val sigma = KeyTouchModel.SIGMA * tolerance / 100.0
         // The typing beam walks the trie one UTF-16 unit at a time, so its touch
         // model is keyed by Char: a letter outside the BMP has no single unit to
         // file under and simply gets no tap evidence, the same as before.
@@ -1931,7 +1937,9 @@ open class WMKeyboardService : InputMethodService() {
                     if (key.codePoint <= 0xFFFF) put(key.codePoint.toChar(), TouchPoint(key.x, key.y))
                 }
             },
-            sigma = KeyTouchModel.SIGMA * tolerance / 100.0,
+            sigma = sigma,
+            // Off, every off-key tap is an edit again, as it always was.
+            slipRadius = if (slips) KeyTouchModel.SLIP_SIGMAS * sigma else 0.0,
         )
     }
 
@@ -4763,7 +4771,8 @@ open class WMKeyboardService : InputMethodService() {
                 if (nowArmed && !hwKeyboardArmed) refreshHandwritingStatus()
                 hwKeyboardArmed = nowArmed
                 if (settings.suggestionStrip.adaptToTaps != tapAdaptApplied ||
-                    settings.suggestionStrip.mistypeTolerance != toleranceApplied
+                    settings.suggestionStrip.mistypeTolerance != toleranceApplied ||
+                    settings.suggestionStrip.fixSeveralSlips != slipsApplied
                 ) {
                     applyTouchModel()
                 }
@@ -29103,6 +29112,7 @@ open class WMKeyboardService : InputMethodService() {
             translate,
             WhisperCppPlan.prompt(words),
             WhisperCppPlan.beamSize(model),
+            WhisperCppPlan.wantsGpu(model, _uiState.value.settings.whisper.compute),
         ) ?: return null
         val detected = model.multilingual && codes.isEmpty()
         return if (detected) WhisperScript.rescueAmong(result.text, languages) else result.text
@@ -29313,7 +29323,12 @@ open class WMKeyboardService : InputMethodService() {
             is OnDeviceVoice.Whisper -> serviceScope.launch(Dispatchers.Default) {
                 if (model.model.ggml) {
                     // A damaged file throws here; transcribing says so properly.
-                    runCatching { WhisperCpp.warm(WhisperStore.modelFile(filesDir, model.model)) }
+                    runCatching {
+                        WhisperCpp.warm(
+                            WhisperStore.modelFile(filesDir, model.model),
+                            WhisperCppPlan.wantsGpu(model.model, _uiState.value.settings.whisper.compute),
+                        )
+                    }
                 } else {
                     WhisperEngine.warm(
                         WhisperStore.modelFile(filesDir, model.model),

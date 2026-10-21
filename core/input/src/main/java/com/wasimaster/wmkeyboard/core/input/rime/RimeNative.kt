@@ -49,9 +49,12 @@ internal object RimeNative {
     /**
      * Up to [limit] candidates of the segment being composed. [spans] holds
      * limit + 1 ints: `spans[0]` is the byte offset the segment starts at,
-     * `spans[i + 1]` the byte offset candidate i ends at.
+     * `spans[i + 1]` the byte offset candidate i ends at. [comments], when
+     * given, holds limit strings and gets each candidate's comment: the
+     * spelling it was found under, in a schema that hints spellings (the T9
+     * one writes `xi an` for 西安 typed as `94'26`).
      */
-    @JvmStatic external fun nativeMenu(session: Long, limit: Int, spans: IntArray): Array<String>?
+    @JvmStatic external fun nativeMenu(session: Long, limit: Int, spans: IntArray, comments: Array<String?>?): Array<String>?
 
     /**
      * Picks candidate [index] of the segment being composed: null when there

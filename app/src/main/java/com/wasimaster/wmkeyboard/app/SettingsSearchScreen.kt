@@ -1,6 +1,13 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.annotation.StringRes
+import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
+import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
+import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
+import com.wasimaster.wmkeyboard.core.settings.providerChain
+import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -607,10 +614,7 @@ internal object SettingsRouteIcons {
 private class SettingsSearchCorpus(
     val index: List<SettingsSearchEntry>,
     val vocabulary: SettingsSearchVocabulary,
-) {
-    /** The entries by [SettingsSearchEntry.key], for the picks the history remembers. */
-    val byKey: Map<String, SettingsSearchEntry> = index.associateBy { it.key }
-}
+)
 
 /**
  * The last corpus built, kept for the life of the process and keyed by the
@@ -676,6 +680,36 @@ internal fun SettingsSearchScreen(
                 .also { SearchCorpusCache.put(locales, it) }
         }
     }
+    // What a provider list can hold on this phone. Finding out loads the
+    // voice engines' libraries, so it is read once, off the main thread;
+    // until then every kind is offered.
+    val providerEnv by produceState<ProviderEnv?>(null) {
+        value = withContext(Dispatchers.Default) {
+            ProviderEnvironment.current().copy(voiceEngines = availableVoiceEngines())
+        }
+    }
+    val providerLists = settings.watch { it.providers }
+    // The index as this phone can open it: no provider it cannot run unless
+    // a list has it, and the rows the user added twice or gave a nickname.
+    val searchIndex = remember(corpus, providerEnv, providerLists) {
+        corpus?.let { c ->
+            val current = settings.value
+            val env = providerEnv ?: return@let c.index
+            val instances = ResourceSearchStrings(context.resources).providerInstanceRows(
+                rows = { tool -> current.resolveProviders(tool, env, all = true) },
+                subtitle = { _, row -> providerSetupSummary(row).resolve(context) },
+            )
+            searchableProviderEntries(
+                c.index,
+                instances,
+                runnable = { _, type -> ProviderCatalog.runnable(type, env) },
+                listed = { tool, typeId -> current.providerChain(tool, env).entries.any { it.typeId == typeId } },
+            )
+        }
+    }
+    // By key, for the picks the history remembers: a provider row picked
+    // last time is found again while the user still has it.
+    val searchByKey = remember(searchIndex) { searchIndex?.associateBy { it.key }.orEmpty() }
     val picks = remember(context) { SearchPicks(context) }
     // The history this visit ranks by: read when the screen is first opened
     // and held, saved with the screen, through every trip out to a result and
@@ -689,17 +723,18 @@ internal fun SettingsSearchScreen(
     // With the Settings assistant turned off (#830), its result would lead
     // to a row that is not there, and its button to nothing.
     val assistant = settings.watch { it.appUi.settingsAssistant }
-    val results = remember(query, corpus, history, assistant) {
+    val results = remember(query, corpus, searchIndex, history, assistant) {
         corpus?.let { c ->
-            val index = if (assistant) c.index else c.index.filterNot { it.titleRes == R.string.settings_assistant_title }
+            val all = searchIndex ?: c.index
+            val index = if (assistant) all else all.filterNot { it.titleRes == R.string.settings_assistant_title }
             rankSettings(query, index, c.vocabulary, history)
         } ?: SearchResults.EMPTY
     }
     val tokens = remember(query, corpus) {
         corpus?.let { searchTokens(query, it.vocabulary) }.orEmpty()
     }
-    val recent = remember(corpus, history) {
-        corpus?.let { c -> history.recent(RECENT_PICKS_SHOWN).mapNotNull(c.byKey::get) }.orEmpty()
+    val recent = remember(searchByKey, history) {
+        history.recent(RECENT_PICKS_SHOWN).mapNotNull(searchByKey::get)
             .filter { assistant || it.titleRes != R.string.settings_assistant_title }
     }
     // Whether this is the screen being come back to from a result rather than
@@ -726,7 +761,7 @@ internal fun SettingsSearchScreen(
     fun open(entry: SettingsSearchEntry) {
         keyboard?.hide()
         picks.record(query, entry.key)
-        corpus?.let { trail?.seed(settingsCrumbSeed(entry, it.index, homeTitle)) }
+        (searchIndex ?: corpus?.index)?.let { trail?.seed(settingsCrumbSeed(entry, it, homeTitle)) }
         onOpen(entry)
     }
 
@@ -1119,6 +1154,17 @@ internal fun ResultIcon(
     settings: LiveSettings,
     modifier: Modifier = Modifier,
 ) {
+    // A provider itself, rather than a row on its screen, wears its own
+    // tile: the logo its list row and its screen show.
+    if (entry.weight == EntryWeight.TOOL) {
+        val provider = remember(entry.route) {
+            providerOfRoute(entry.route)?.let { (_, key) -> ProviderTypes.of(providerKindOf(key)) }
+        }
+        if (provider != null) {
+            ProviderTile(provider, modifier = modifier)
+            return
+        }
+    }
     val tool = entry.tool
     if (tool != null) {
         // The tile's own wash keeps the raw accent; only the glyph inside is

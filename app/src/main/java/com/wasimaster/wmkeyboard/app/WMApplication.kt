@@ -131,6 +131,9 @@ open class WMApplication : Application() {
         // Where zinnia's handwriting models are downloaded to, for the
         // keyboard's panel and the Handwriting settings alike.
         com.wasimaster.wmkeyboard.core.handwriting.ZinniaModels.attach(filesDir)
+        // Where offline Whisper keeps its GPU verdicts and the kernels the
+        // driver compiled, before the keyboard can dictate. One small read.
+        com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu.attach(this)
         // Sync between devices: keeps its jobs in step with the settings and
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be
