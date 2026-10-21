@@ -22,7 +22,7 @@ import java.util.zip.GZIPInputStream
  * and asks the platform ICU. So the reference here is [Art]: `CaseMapper.
  * toLowerCase` transcribed from libcore (libart/src/main/java/java/lang/
  * CaseMapper.java), with the ICU calls it makes answered by ICU4J, which
- * Robolectric puts on the classpath at ICU 78, the same Unicode (17) as the
+ * the tests take at ICU 78 (the version Robolectric pins), the same Unicode (17) as the
  * Rust side's ICU4X. Rust has to equal it on every code point, every
  * code point in a sigma's context, every lone surrogate, and every word of
  * the bundled lists (and, with `PARITY_DOWNLOADS`, the data repo's lists).
@@ -156,7 +156,7 @@ class WordKeyParityTest {
         val surfaces = Mismatches("surface")
         val gate = Mismatches("learnable")
         for (c in everyCodePoint()) {
-            for (s in listOf("Α${c}Σ", "ΑΣ$c", "ΑΣ${c}Α", "Σ${c}", "e$c", "${c}A", "İ${c}Σ", "ΑΣ$c𐒰")) {
+            for (s in listOf("Α${c}Σ", "ΑΣ$c", "ΑΣ${c}Α", "Σ${c}", "e$c", "${c}A", "İ${c}Σ", "ΑΣ${c}𐒰")) {
                 checkWord(s, keys, surfaces, gate)
             }
         }
