@@ -1775,6 +1775,16 @@ internal fun LayoutOneHandedSettings(
                 default = SettingsDefaults.floatingFor(true),
             ) { scope.launch { repository.setFloatingKeyboard(true, it) } }
         }
+        // The platform's sideways text box over the app (#883).
+        item {
+            ToggleSetting(
+                R.string.layout_landscape_fullscreen_title,
+                stringResource(R.string.layout_landscape_fullscreen_subtitle),
+                settings.watch { it.layoutBehavior.landscapeFullscreen },
+                info = stringResource(R.string.layout_landscape_fullscreen_info),
+                default = SettingsDefaults.layoutBehavior.landscapeFullscreen,
+            ) { scope.launch { repository.setLandscapeFullscreen(it) } }
+        }
         item(visible = floating) {
             ChoiceSetting(
                 title = R.string.layout_floating_handle_title,

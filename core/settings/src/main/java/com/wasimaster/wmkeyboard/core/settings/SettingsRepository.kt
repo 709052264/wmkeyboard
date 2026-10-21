@@ -8058,6 +8058,13 @@ data class LayoutBehaviorSettings(
      */
     val edgeSwipeBack: Boolean = false,
     /**
+     * A phone held sideways types into the platform's full-screen editor, the
+     * text box with a Done button that covers the app (#883). On by default,
+     * which is Android's own behaviour; off, the app stays in view above the
+     * keys, as it does in portrait. Tablets never get it either way.
+     */
+    val landscapeFullscreen: Boolean = true,
+    /**
      * Asks Android to take away the bar it draws under the keyboard in gesture
      * navigation, with its hide-keyboard and switch-keyboard buttons (#582).
      * The keyboard has its own 🌐 key and Back already hides it, so the bar
@@ -10028,6 +10035,7 @@ class SettingsRepository(private val context: Context) {
         private val SYMBOLS_LONGPRESS_NUMPAD = booleanPreferencesKey("symbols_longpress_numpad")
         private val SYMBOLS_NUMPAD_KEY = booleanPreferencesKey("symbols_numpad_key")
         private val ENTER_LONGPRESS_EMOJI = booleanPreferencesKey("enter_longpress_emoji")
+        private val LANDSCAPE_FULLSCREEN = booleanPreferencesKey("landscape_fullscreen")
         private val SPACE_SWIPE_DOWN_HIDE = booleanPreferencesKey("space_swipe_down_hide")
         private val EDGE_SWIPE_BACK = booleanPreferencesKey("edge_swipe_back")
         private val PANEL_OVER_KEYS_EXTRA_HEIGHT_DP = intPreferencesKey("panel_over_keys_extra_height_dp")
@@ -12469,6 +12477,7 @@ class SettingsRepository(private val context: Context) {
             spaceSwipeDownHide =
                 p[SPACE_SWIPE_DOWN_HIDE] ?: defaults.layoutBehavior.spaceSwipeDownHide,
             edgeSwipeBack = p[EDGE_SWIPE_BACK] ?: defaults.layoutBehavior.edgeSwipeBack,
+            landscapeFullscreen = p[LANDSCAPE_FULLSCREEN] ?: defaults.layoutBehavior.landscapeFullscreen,
             hideSystemKeyboardBar =
                 p[HIDE_SYSTEM_KEYBOARD_BAR] ?: defaults.layoutBehavior.hideSystemKeyboardBar,
             extendEdgeKeys = p[EXTEND_EDGE_KEYS] ?: defaults.layoutBehavior.extendEdgeKeys,
@@ -18673,6 +18682,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEnterLongPressEmoji(value: Boolean) =
         editPrefs { it[ENTER_LONGPRESS_EMOJI] = value }
+
+    suspend fun setLandscapeFullscreen(value: Boolean) =
+        editPrefs { it[LANDSCAPE_FULLSCREEN] = value }
 
     suspend fun setSpaceSwipeDownHide(value: Boolean) =
         editPrefs { it[SPACE_SWIPE_DOWN_HIDE] = value }

@@ -6162,9 +6162,13 @@ open class WMKeyboardService : InputMethodService() {
      * and Gboard keep it to phones; so do we. Reads the configuration live
      * rather than [deviceForm]: `super.onConfigurationChanged` re-evaluates
      * this before that flow has caught up with an unfold.
+     *
+     * And not when the user has turned it off (#883): a phone held sideways
+     * then keeps the app in view above the keys.
      */
     override fun onEvaluateFullscreenMode(): Boolean =
         if (floatingNow() || voiceBarShowing() ||
+            !_uiState.value.settings.layoutBehavior.landscapeFullscreen ||
             handwritingFullScreen(_uiState.value) ||
             (pinnedNow() && isNullField()) ||
             DeviceForm.of(resources.configuration.smallestScreenWidthDp).isTablet
