@@ -134,6 +134,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandLess
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -1478,30 +1479,40 @@ private fun LayoutRow(
                         )
                     }
                 }
-                IconButton(onClick = onExport) {
-                    Icon(
-                        Icons.Outlined.Share,
-                        contentDescription =
-                            stringResource(R.string.layout_editor_export_desc, layout.name),
-                    )
-                }
-                IconButton(onClick = onDuplicate) {
-                    Icon(
-                        Icons.Outlined.ContentCopy,
-                        contentDescription =
-                            stringResource(R.string.layout_editor_duplicate_desc, layout.name),
-                    )
-                }
-                if (onDelete != null) {
-                    IconButton(onClick = onDelete) {
+                // Export, duplicate and delete share one menu: as three more
+                // buttons beside the switch they left the name a column a few
+                // letters wide on a phone. The row's swipe has them too.
+                var menu by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { menu = true }) {
                         Icon(
-                            if (deleteIsReset) Icons.Outlined.Refresh else Icons.Outlined.Delete,
-                            contentDescription = if (deleteIsReset) {
-                                stringResource(R.string.layout_editor_reset_desc, layout.name)
-                            } else {
-                                stringResource(R.string.layout_editor_delete_desc, layout.name)
-                            },
+                            Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.layout_editor_more_desc, layout.name),
                         )
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(exportDesc) },
+                            leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
+                            onClick = { menu = false; onExport() },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(duplicateDesc) },
+                            leadingIcon = { Icon(Icons.Outlined.ContentCopy, contentDescription = null) },
+                            onClick = { menu = false; onDuplicate() },
+                        )
+                        if (onDelete != null) {
+                            DropdownMenuItem(
+                                text = { Text(deleteDesc) },
+                                leadingIcon = {
+                                    Icon(
+                                        if (deleteIsReset) Icons.Outlined.Refresh else Icons.Outlined.Delete,
+                                        contentDescription = null,
+                                    )
+                                },
+                                onClick = { menu = false; onDelete() },
+                            )
+                        }
                     }
                 }
             }

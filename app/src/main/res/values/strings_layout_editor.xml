@@ -37,6 +37,7 @@
     <string name="layout_editor_duplicate_desc">Duplicate <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g></string>
     <string name="layout_editor_reset_desc">Reset <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g></string>
     <string name="layout_editor_delete_desc">Delete <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g></string>
+    <string name="layout_editor_more_desc">More options for <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g></string>
 
     <!-- Import dialog. %1$s is the name of the layout inside the file. -->
     <string name="layout_editor_import_confirm_title">Import <xliff:g id="layout_name" example="Probhat">%1$s</xliff:g>?</string>
