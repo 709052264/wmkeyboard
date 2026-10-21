@@ -5825,8 +5825,9 @@ data class WhisperSettings(
      * Words dictation should listen for, handed to the system recognizer and
      * the transcription server with each phrase (#305): the words the user
      * added by hand, the ones the keyboard learned that no word list has
-     * (names, jargon), and Android's personal dictionary. Offline Whisper
-     * cannot take a hint and ignores it.
+     * (names, jargon), and Android's personal dictionary. Whistle, Whisper
+     * models run by whisper.cpp and Offline Sherpa (as hotwords) take them
+     * too; the other offline engines cannot take a hint and ignore it.
      */
     val biasPersonalWords: Boolean = true,
     /**

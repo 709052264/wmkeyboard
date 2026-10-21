@@ -1,4 +1,5 @@
-// JNI surface for sherpa-onnx's C API: a streaming transducer recognizer,
+// JNI surface for sherpa-onnx's C API: a streaming transducer recognizer
+// (greedy, or by modified beam search with hotwords),
 // Silero voice activity detection (as a speech flag, or cutting the audio into
 // phrases for the Omnilingual model in omnilingual_jni.cpp) and the online
 // punctuation model. Kotlin side:
@@ -89,6 +90,43 @@ const SherpaOnnxOnlineStream* stream(jlong h) {
     return reinterpret_cast<const SherpaOnnxOnlineStream*>(h);
 }
 
+// A streaming transducer. A null [unit] decodes greedily; "bpe" or
+// "cjkchar+bpe" decodes by modified beam search, the only search that follows
+// a stream's hotwords, cutting them into pieces over [vocab].
+jlong newRecognizer(JNIEnv* env, jstring encoder, jstring decoder, jstring joiner, jstring tokens,
+                    jint threads, jfloat trailingSilence, jstring unit, jstring vocab, jfloat hotwordsScore) {
+    Chars enc(env, encoder), dec(env, decoder), join(env, joiner), tok(env, tokens);
+    Chars mode(env, unit), bpe(env, vocab);
+    SherpaOnnxOnlineRecognizerConfig config;
+    std::memset(&config, 0, sizeof(config));
+    config.feat_config.sample_rate = 16000;
+    config.feat_config.feature_dim = 80;
+    config.model_config.transducer.encoder = enc.get();
+    config.model_config.transducer.decoder = dec.get();
+    config.model_config.transducer.joiner = join.get();
+    config.model_config.tokens = tok.get();
+    config.model_config.num_threads = threads;
+    config.model_config.provider = "cpu";
+    if (mode.get()) {
+        config.decoding_method = "modified_beam_search";
+        config.model_config.modeling_unit = mode.get();
+        config.model_config.bpe_vocab = bpe.get();
+        config.hotwords_score = hotwordsScore;
+    } else {
+        config.decoding_method = "greedy_search";
+    }
+    config.max_active_paths = 4;
+    // The recognizer's own endpoint: trailing silence after words (rule 2).
+    // Silero decides first when the model is there; this is the fallback.
+    // Rule 1 (silence with no words yet) is pushed out of reach: the quiet
+    // before someone starts talking must never end the clip.
+    config.enable_endpoint = 1;
+    config.rule1_min_trailing_silence = 600.0f;
+    config.rule2_min_trailing_silence = trailingSilence;
+    config.rule3_min_utterance_length = 300.0f;
+    return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineRecognizer(&config));
+}
+
 void decodeReady(jlong rec, jlong s) {
     while (SherpaOnnxIsOnlineStreamReady(recognizer(rec), stream(s))) {
         SherpaOnnxDecodeOnlineStream(recognizer(rec), stream(s));
@@ -103,28 +141,18 @@ JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeRecognizer(
     JNIEnv* env, jclass, jstring encoder, jstring decoder, jstring joiner, jstring tokens,
     jint threads, jfloat trailingSilence) {
-    Chars enc(env, encoder), dec(env, decoder), join(env, joiner), tok(env, tokens);
-    SherpaOnnxOnlineRecognizerConfig config;
-    std::memset(&config, 0, sizeof(config));
-    config.feat_config.sample_rate = 16000;
-    config.feat_config.feature_dim = 80;
-    config.model_config.transducer.encoder = enc.get();
-    config.model_config.transducer.decoder = dec.get();
-    config.model_config.transducer.joiner = join.get();
-    config.model_config.tokens = tok.get();
-    config.model_config.num_threads = threads;
-    config.model_config.provider = "cpu";
-    config.decoding_method = "greedy_search";
-    config.max_active_paths = 4;
-    // The recognizer's own endpoint: trailing silence after words (rule 2).
-    // Silero decides first when the model is there; this is the fallback.
-    // Rule 1 (silence with no words yet) is pushed out of reach: the quiet
-    // before someone starts talking must never end the clip.
-    config.enable_endpoint = 1;
-    config.rule1_min_trailing_silence = 600.0f;
-    config.rule2_min_trailing_silence = trailingSilence;
-    config.rule3_min_utterance_length = 300.0f;
-    return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineRecognizer(&config));
+    return newRecognizer(env, encoder, decoder, joiner, tokens, threads, trailingSilence, nullptr, nullptr, 0.0f);
+}
+
+// The same transducer by modified beam search, for streams with hotwords.
+// [unit] is "bpe" or "cjkchar+bpe" and nothing else: sherpa-onnx exits the
+// process on any other.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeHotwordRecognizer(
+    JNIEnv* env, jclass, jstring encoder, jstring decoder, jstring joiner, jstring tokens,
+    jint threads, jfloat trailingSilence, jstring unit, jstring vocab, jfloat hotwordsScore) {
+    if (!unit || !vocab) return 0;
+    return newRecognizer(env, encoder, decoder, joiner, tokens, threads, trailingSilence, unit, vocab, hotwordsScore);
 }
 
 JNIEXPORT void JNICALL
@@ -135,6 +163,18 @@ Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeRecognizerFr
 JNIEXPORT jlong JNICALL
 Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeStream(JNIEnv*, jclass, jlong rec) {
     return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineStream(recognizer(rec)));
+}
+
+// A stream that listens for [hotwords]: UTF-8, one phrase a line, its words
+// separated by spaces, already spelled for the model by the Kotlin side.
+JNIEXPORT jlong JNICALL
+Java_com_wasimaster_wmkeyboard_core_voice_sherpa_SherpaNative_nativeHotwordStream(
+    JNIEnv* env, jclass, jlong rec, jbyteArray hotwords) {
+    const jsize n = hotwords ? env->GetArrayLength(hotwords) : 0;
+    if (n == 0) return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineStream(recognizer(rec)));
+    std::string text(static_cast<size_t>(n), '\0');
+    env->GetByteArrayRegion(hotwords, 0, n, reinterpret_cast<jbyte*>(&text[0]));
+    return reinterpret_cast<jlong>(SherpaOnnxCreateOnlineStreamWithHotwords(recognizer(rec), text.c_str()));
 }
 
 JNIEXPORT void JNICALL

@@ -28937,11 +28937,11 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * A fresh streaming utterance on [model]. Sherpa and Omnilingual end it by
-     * themselves after the pause set in "Stop after a pause". On
-     * [liveDispatcher] only.
+     * themselves after the pause set in "Stop after a pause". Sherpa listens
+     * for [words] ([liveBias]). On [liveDispatcher] only.
      */
-    private fun newLiveStream(model: EtModel): VoiceStream = when (model.engine) {
-        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs)
+    private fun newLiveStream(model: EtModel, words: List<String>): VoiceStream = when (model.engine) {
+        EtEngine.SHERPA -> SherpaEngine.newStream(filesDir, model, _uiState.value.settings.voiceBar.silenceStopMs, words)
         EtEngine.OMNILINGUAL -> OmnilingualEngine.newStream(
             filesDir,
             model,
@@ -28961,10 +28961,18 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch(SherpaNative.dispatcher) { runCatching { stream.close() } }
     }
 
+    /**
+     * The words a [model] that streams is told to listen for: the system
+     * recognizer's list for Sherpa, whose transducers take hotwords; none for
+     * the others. Read on the main thread, where the list is kept.
+     */
+    private fun liveBias(model: EtModel): List<String> =
+        if (model.engine == EtEngine.SHERPA) recognizerBias().words else emptyList()
+
     /** [pcm] through a [model] that downloads file by file, in one go. On [liveDispatcher] only. */
-    private fun transcribeWithEt(model: EtModel, pcm: FloatArray): String = when (model.engine) {
+    private fun transcribeWithEt(model: EtModel, pcm: FloatArray, words: List<String>): String = when (model.engine) {
         // The streaming loop run to its end.
-        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model).run {
+        EtEngine.ASR4ALL, EtEngine.SHERPA, EtEngine.OMNILINGUAL -> newLiveStream(model, words).run {
             feed(pcm)
             finish()
         }
@@ -29030,8 +29038,11 @@ open class WMKeyboardService : InputMethodService() {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
-            is OnDeviceVoice.Et -> return runBlocking(liveDispatcher(voice.model.engine)) {
-                punctuateDictation(voice.model, transcribeWithEt(voice.model, pcm), languages, tag)
+            is OnDeviceVoice.Et -> {
+                val words = liveBias(voice.model)
+                return runBlocking(liveDispatcher(voice.model.engine)) {
+                    punctuateDictation(voice.model, transcribeWithEt(voice.model, pcm, words), languages, tag)
+                }
             }
         }
         if (model.ggml) {
@@ -29119,8 +29130,9 @@ open class WMKeyboardService : InputMethodService() {
      * Gathers [voiceBiasPersonal] again off the main thread, at most every
      * [VOICE_BIAS_TTL_MS], and only while it can be used: the setting on and
      * an engine that takes a hint picked (the system recognizer, Whistle's
-     * keywords, or a whisper.cpp model's prompt; a LiteRT graph takes none,
-     * but which kind a clip goes to is only known per language). The server
+     * keywords, a whisper.cpp model's prompt, or Sherpa's hotwords; a LiteRT
+     * graph takes none, but which kind a clip goes to is only known per
+     * language). The server
      * engine gathers its own at the moment it sends, since it is already off
      * the main thread then.
      */
@@ -29350,8 +29362,9 @@ open class WMKeyboardService : InputMethodService() {
         asr4allCapture = null
         asr4allComposed = false
         asr4allJob?.cancel()
+        val words = liveBias(model)
         asr4allJob = serviceScope.launch(liveDispatcher(model.engine)) {
-            val stream = runCatching { newLiveStream(model) }.getOrNull() ?: return@launch
+            val stream = runCatching { newLiveStream(model, words) }.getOrNull() ?: return@launch
             val capture = Asr4AllCapture(stream)
             asr4allCapture = capture
             var shown = ""
@@ -29398,11 +29411,11 @@ open class WMKeyboardService : InputMethodService() {
      * stream has not had yet, then its finish, which settles punctuation and
      * capitals. Most of the clip is decoded by then, so this is quick.
      */
-    private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray): String {
+    private suspend fun finishAsr4All(model: EtModel, pcm: FloatArray, words: List<String>): String {
         asr4allJob?.cancelAndJoin()
         asr4allJob = null
         return withContext(liveDispatcher(model.engine)) {
-            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model))
+            val capture = asr4allCapture ?: Asr4AllCapture(newLiveStream(model, words))
             asr4allCapture = null
             if (pcm.size > capture.fed) capture.stream.feed(pcm.copyOfRange(capture.fed, pcm.size))
             capture.stream.finish()
@@ -29483,7 +29496,11 @@ open class WMKeyboardService : InputMethodService() {
         }
         val cpp = whisper?.ggml == true
         // Read here, on the main thread, where the bias list is kept.
-        val keywords = if (model is OnDeviceVoice.Whistle || cpp) recognizerBias().words else emptyList()
+        val keywords = when {
+            model is OnDeviceVoice.Whistle || cpp -> recognizerBias().words
+            model is OnDeviceVoice.Et -> liveBias(model.model)
+            else -> emptyList()
+        }
         _uiState.update {
             it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
         }
@@ -29518,9 +29535,9 @@ open class WMKeyboardService : InputMethodService() {
                         is OnDeviceVoice.Et -> punctuateDictation(
                             model.model,
                             if (liveEngine(model.model.engine)) {
-                                finishAsr4All(model.model, pcm)
+                                finishAsr4All(model.model, pcm, keywords)
                             } else {
-                                withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm) }
+                                withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm, keywords) }
                             },
                             languages,
                             tag,
@@ -49032,8 +49049,8 @@ open class WMKeyboardService : InputMethodService() {
         /** How long the recognizer's word list is used before it is gathered again. */
         private const val VOICE_BIAS_TTL_MS = 5 * 60_000L
 
-        /** The engines that take the user's words as a hint (#305, #548, #440). */
-        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper")
+        /** The engines that take the user's words as a hint (#305, #548, #440), Sherpa's as hotwords. */
+        private val VOICE_BIAS_ENGINES = setOf("system", "whistle", "whisper", EtEngine.SHERPA.id)
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L

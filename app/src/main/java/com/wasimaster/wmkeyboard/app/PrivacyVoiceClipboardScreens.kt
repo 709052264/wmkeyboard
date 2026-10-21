@@ -592,10 +592,12 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         }
     }
     // The group shows for the engines that read it (#305): Whistle takes it as
-    // keywords (#548), and offline Whisper's whisper.cpp models as their prompt
-    // (#440). Where only LiteRT graphs run, Whisper has no way to take a hint.
-    // asr4all, Sherpa and Omnilingual have no way to take one either.
-    if ((!usingWhisper || WhisperCatalog.cppAvailable) && etEngine == null) {
+    // keywords (#548), offline Whisper's whisper.cpp models as their prompt
+    // (#440), and Sherpa's transducers as hotwords. Where only LiteRT graphs
+    // run, Whisper has no way to take a hint. asr4all, Parakeet, Moonshine and
+    // Omnilingual have no way to take one either.
+    val etTakesWords = etEngine == null || etEngine == com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine.SHERPA
+    if ((!usingWhisper || WhisperCatalog.cppAvailable) && etTakesWords) {
         SettingsGroup(stringResource(R.string.voice_bias_group), foldKey = "voice_bias") {
             item {
                 ToggleSetting(

@@ -12,8 +12,10 @@ package com.wasimaster.wmkeyboard.core.voice
  * prompt is built most important last, and when a Whisper server has to cut,
  * it cuts the least important words first.
  *
- * Offline Whisper takes no hint at all: the graphs it runs have no prompt
- * input.
+ * Offline, Whistle takes the list as keywords, a whisper.cpp model as its
+ * prompt and a Sherpa transducer as hotwords
+ * ([com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaHotwords]). The LiteRT
+ * Whisper graphs take no hint at all: they have no prompt input.
  */
 object VoiceBias {
 
