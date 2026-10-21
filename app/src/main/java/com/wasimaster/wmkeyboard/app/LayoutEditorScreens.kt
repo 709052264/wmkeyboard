@@ -5849,18 +5849,7 @@ internal fun KeyEditSheet(
                 // types them, so a letter's arms left on the Shift it became
                 // would start typing under it.
                 val changed = !(catalog.firstOrNull { o -> o.matches(action) }?.matches(key.action) ?: false)
-                onChange {
-                    val relabel = changed && action != KeyAction.Text
-                    it.copy(
-                        action = action,
-                        role = it.role.takeIf { _ -> action == KeyAction.Text },
-                        label = if (relabel) "" else it.label,
-                        shiftLabel = if (relabel) null else it.shiftLabel,
-                        icon = if (relabel) null else it.icon,
-                        flick = if (relabel) emptyMap() else it.flick,
-                        flickShift = if (relabel) emptyMap() else it.flickShift,
-                    )
-                }
+                onChange { it.withEditedAction(action, changed) }
                 pickingAction = false
                 // Straight on to which tool, rather than leaving the key on
                 // whichever one the catalog entry had to name as its default.
@@ -6326,11 +6315,7 @@ private fun FlickFields(
     )
     // What an arm here takes over (#838): the fixed rules from the gestures
     // page, said where the arm is being given rather than discovered later.
-    val takesOver = when {
-        key.action == KeyAction.Shift || key.action is KeyAction.Mod -> R.string.layout_editor_flick_takes_modifier_drag
-        key.action == KeyAction.Symbols || key.action == KeyAction.Letters -> R.string.layout_editor_flick_takes_layer_peek
-        else -> 0
-    }
+    val takesOver = flickTakesOverNote(key)
     if (takesOver != 0) CaptionText(stringResource(takesOver))
     // Issue #410: a key that is all swipes, with nothing in the middle. The
     // switch empties the centre; turning it off gives the centre the first
@@ -8049,4 +8034,36 @@ internal fun KeyLayoutJsonScreen(
         },
         onBack = onDone,
     )
+}
+
+/**
+ * [this] key given [action] in the editor; [changed] is whether that is a
+ * different action from the one it had. A new action takes the old one's
+ * label and icon with it (issue #769), and its text arms (#838): since #789 an
+ * action key types them, so a letter's arms left on the Shift it became would
+ * start typing under it. Typing text keeps all of them.
+ */
+internal fun Key.withEditedAction(action: KeyAction, changed: Boolean): Key {
+    val relabel = changed && action != KeyAction.Text
+    return copy(
+        action = action,
+        role = role.takeIf { action == KeyAction.Text },
+        label = if (relabel) "" else label,
+        shiftLabel = if (relabel) null else shiftLabel,
+        icon = if (relabel) null else icon,
+        flick = if (relabel) emptyMap() else flick,
+        flickShift = if (relabel) emptyMap() else flickShift,
+    )
+}
+
+/**
+ * The note under a key's flick pad saying what an arm there takes over (#838),
+ * or 0 for a key where an arm takes nothing: the fixed rules from the gestures
+ * page, said where the arm is being given rather than discovered later.
+ */
+@StringRes
+internal fun flickTakesOverNote(key: Key): Int = when {
+    key.action == KeyAction.Shift || key.action is KeyAction.Mod -> R.string.layout_editor_flick_takes_modifier_drag
+    key.action == KeyAction.Symbols || key.action == KeyAction.Letters -> R.string.layout_editor_flick_takes_layer_peek
+    else -> 0
 }
