@@ -89,6 +89,7 @@ import com.wasimaster.wmkeyboard.app.SpecialAccessActivity
 import com.wasimaster.wmkeyboard.app.StoragePermissionActivity
 import com.wasimaster.wmkeyboard.core.media.GallerySaver
 import com.wasimaster.wmkeyboard.core.media.MediaMime
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.net.InternetGate
@@ -4055,6 +4056,9 @@ open class WMKeyboardService : InputMethodService() {
         }
         // A provider chosen in a panel's chooser: that panel's work again, asked of it.
         serviceScope.launch { ProviderPicks.changes.collect { onProviderPicked(it) } }
+        // What was sent is the receiving app's after a day: the copies made
+        // for it go then, whichever panel sent them.
+        serviceScope.launch(Dispatchers.IO) { MediaPrep.sweepSent(applicationContext) }
         // Dictation holds the audio focus while it listens, which is what
         // pauses a player (#485). Given back a moment after the microphone
         // closes rather than at once: a continuous session reopens it between

@@ -275,6 +275,8 @@ The model runs on the phone, and nothing you type leaves it. One download covers
 
 On test words the space bar wrote the right word 56%% of the time instead of 25%% in Bengali, and 49%% instead of 41%% in Hindi. The cost: a name or a rare word spelled exactly by the rules, but missing from the word list, can come out as a listed word that looks like it. About one such spelling in six did in Bengali, one in fifteen in Hindi. Words the list knows are left alone.</string>
     <!-- %1$s is the size on the phone, for example "13 MB". -->
+    <string name="languages_neural_phonetic_delete_title">Delete the neural suggestions model?</string>
+    <string name="languages_neural_phonetic_delete_body">Neural suggestions turn off on every language that has them. Turning them on again downloads the model again.</string>
     <string name="languages_neural_phonetic_model_ready">Ready, <xliff:g id="size" example="13 MB">%1$s</xliff:g></string>
     <!-- %1$s is the download size, for example "13 MB". -->
     <string name="languages_neural_phonetic_model_missing">Not downloaded, <xliff:g id="size" example="13 MB">%1$s</xliff:g>. Tap to download.</string>
@@ -664,7 +666,7 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <!-- Dialog after the user removes a language that has downloaded files. -->
     <string name="languages_data_delete_title">Delete the downloaded files?</string>
     <!-- %1$s is the language name, %2$s a data size like "4.2 MB". -->
-    <string name="languages_data_delete_body"><xliff:g id="language" example="German">%1$s</xliff:g> has a downloaded word list or emoji keywords. Delete them and get about <xliff:g id="size" example="4.2 MB">%2$s</xliff:g> of storage back?</string>
+    <string name="languages_data_delete_body"><xliff:g id="language" example="German">%1$s</xliff:g> has files downloaded for it, such as its word list, emoji keywords, spell checker or dictionaries. Delete them and get about <xliff:g id="size" example="4.2 MB">%2$s</xliff:g> of storage back?</string>
     <string name="languages_data_delete_dismiss_action">Keep them</string>
 
 </resources>

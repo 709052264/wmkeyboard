@@ -50,9 +50,11 @@ import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryStore
+import com.wasimaster.wmkeyboard.core.dictionaries.DivvunSpellerDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackEntry
+import com.wasimaster.wmkeyboard.core.dictionaries.VoikkoDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
@@ -81,7 +83,9 @@ import com.wasimaster.wmkeyboard.core.layout.composerType
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
+import com.wasimaster.wmkeyboard.core.prediction.DivvunRuntime
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
+import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
@@ -587,10 +591,43 @@ internal fun startLanguageDataDownload(
 private val AUTO_DOWNLOAD_SIZE = DictionaryCatalog.DictionarySize.LARGE
 
 /** Bytes a language's downloaded files are taking up right now. */
-internal fun downloadedLanguageBytes(filesDir: File, langId: String): Long =
-    DictionaryStore.downloadedFile(filesDir, langId).length() +
-        EmojiDictStore.packFile(filesDir, langId).length() +
-        NgramPackDownloadManager.packFile(filesDir, langId).length()
+internal fun downloadedLanguageBytes(context: Context, settings: KeyboardSettings, langId: String): Long =
+    languageDataFiles(context, settings, langId).sumOf { file ->
+        file.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+    }
+
+/**
+ * Every downloaded file only [langId] uses, which is what removing it may
+ * delete: its word list and phonetic index, emoji keywords, word pairs, CJK
+ * dictionaries, spellers and Bangla's Avro dictionary. The neural model is
+ * shared, so it counts only when no other language left on would still use
+ * it. One list, so the question, the size it quotes and the delete cannot
+ * disagree about what goes.
+ */
+private fun languageDataFiles(context: Context, settings: KeyboardSettings, langId: String): List<File> = buildList {
+    val filesDir = context.filesDir
+    add(DictionaryStore.downloadedFile(filesDir, langId))
+    add(DictionaryStore.phoneticFile(filesDir, langId))
+    add(EmojiDictStore.packFile(filesDir, langId))
+    add(NgramPackDownloadManager.packFile(filesDir, langId))
+    add(DivvunRuntime.bhfstFile(filesDir, langId))
+    add(DivvunRuntime.zhfstFile(filesDir, langId))
+    add(VoikkoRuntime.dictionaryDir(filesDir, langId))
+    CjkDictCatalog.forLang(langId).forEach { add(CjkDictStore.packDir(filesDir, it)) }
+    if (langId == PhoneticSchemes.BENGALI.languageId) add(AvroDictionaryDownloads.file(filesDir))
+}.filter(File::exists) + listOfNotNull(orphanedNeuralModel(context, settings, langId))
+
+/** IndicXlit's directory when [langId] is the last language on that has neural suggestions. */
+private fun orphanedNeuralModel(context: Context, settings: KeyboardSettings, langId: String): File? {
+    val neural = settings.suggestionStrip.neuralPhoneticLangs
+    if (langId !in neural) return null
+    val othersUsing = settings.enabledLayoutIds
+        .map { resolveLayout(settings.customLayouts, it).language().id }
+        .any { it != langId && it in neural }
+    if (othersUsing) return null
+    // The pack's own directory, which holds nothing else.
+    return IndicXlitModels.dir(context.noBackupFilesDir).parentFile?.takeIf { it.exists() }
+}
 
 /**
  * The download prompt, hoisted so every screen that can add a language asks the
@@ -705,20 +742,29 @@ private fun LanguageDataDownloadDialog(
 }
 
 /** Whether [langId] has anything downloaded that removing it could leave behind. */
-internal fun hasLanguageData(filesDir: File, langId: String): Boolean =
-    DictionaryStore.isDownloaded(filesDir, langId) ||
-        EmojiDictStore.isDownloaded(filesDir, langId) ||
-        NgramPackDownloadManager.isDownloaded(filesDir, langId)
+internal fun hasLanguageData(context: Context, settings: KeyboardSettings, langId: String): Boolean =
+    languageDataFiles(context, settings, langId).isNotEmpty()
 
-/** Deletes [langId]'s downloaded word list, emoji keywords and word pairs. */
-internal fun deleteLanguageData(filesDir: File, langId: String) {
+/** Deletes what [languageDataFiles] lists, each through its own store so its screen hears of it. */
+internal suspend fun deleteLanguageData(
+    context: Context,
+    repository: SettingsRepository,
+    settings: KeyboardSettings,
+    langId: String,
+) {
+    val filesDir = context.filesDir
+    val neural = orphanedNeuralModel(context, settings, langId) != null
     DictionaryStore.delete(filesDir, langId)
     WordlistDownloadManager.refresh(filesDir)
     // Leaves a "declined" mark behind, which is what stops the
     // automatic pass fetching the keywords straight back.
     EmojiDictDownloadManager.delete(filesDir, langId)
     NgramPackDownloadManager.delete(filesDir, langId)
+    DivvunSpellerDownloads.delete(filesDir, langId)
+    VoikkoDictionaryDownloads.delete(filesDir, langId)
+    CjkDictCatalog.forLang(langId).forEach { CjkDictDownloadManager.delete(filesDir, it) }
     if (langId == PhoneticSchemes.BENGALI.languageId) AvroDictionaryDownloads.delete(filesDir)
+    if (neural) deleteNeuralPhonetic(context, repository, settings)
 }
 
 /**
@@ -1022,7 +1068,7 @@ internal fun LanguageDetailScreen(
     if (pendingDelete) {
         LanguageDataDeleteDialog(
             language = lang,
-            bytes = downloadedLanguageBytes(filesDir, langId),
+            bytes = downloadedLanguageBytes(context, settings.value, langId),
             // Either answer removes the language: the dialog is about the
             // files on disk, not about the removal the user already asked for.
             onKeep = {
@@ -1031,8 +1077,11 @@ internal fun LanguageDetailScreen(
             },
             onDelete = {
                 pendingDelete = false
-                deleteLanguageData(filesDir, langId)
-                removeLanguage()
+                val before = settings.value
+                scope.launch {
+                    deleteLanguageData(context, repository, before, langId)
+                    if (removeLanguageLayouts(repository, settings, langId)) onRemoved()
+                }
             },
         )
     }
@@ -1490,7 +1539,7 @@ internal fun LanguageDetailScreen(
             item {
                 OutlinedButton(
                     onClick = {
-                        if (hasLanguageData(filesDir, langId)) pendingDelete = true else removeLanguage()
+                        if (hasLanguageData(context, settings.value, langId)) pendingDelete = true else removeLanguage()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -2157,7 +2206,7 @@ private fun PhoneticStripGroup(
                     scope.launch { repository.setNeuralPhonetic(langId, on) }
                 }
             }
-            item(visible = neuralOn) { NeuralPhoneticModelRow(settings) }
+            item(visible = neuralOn) { NeuralPhoneticModelRow(settings, repository) }
             // Only where it measured worth the swap it makes (IndicXlitModels.LEADS).
             if (IndicXlitModels.canLead(langId)) {
                 item(visible = neuralOn) {

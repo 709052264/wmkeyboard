@@ -63,15 +63,18 @@ internal fun LanguageSettings(
     removing?.let { language ->
         LanguageDataDeleteDialog(
             language = language,
-            bytes = downloadedLanguageBytes(context.filesDir, language.id),
+            bytes = downloadedLanguageBytes(context, settings.value, language.id),
             onKeep = {
                 removing = null
                 scope.launch { removeLanguageLayouts(repository, settings, language.id) }
             },
             onDelete = {
                 removing = null
-                deleteLanguageData(context.filesDir, language.id)
-                scope.launch { removeLanguageLayouts(repository, settings, language.id) }
+                val before = settings.value
+                scope.launch {
+                    deleteLanguageData(context, repository, before, language.id)
+                    removeLanguageLayouts(repository, settings, language.id)
+                }
             },
         )
     }
@@ -159,7 +162,7 @@ internal fun LanguageSettings(
                         swipeActions = if (languages.size > 1) {
                             listOf(
                                 deleteSwipeAction(removeLabel) {
-                                    if (hasLanguageData(context.filesDir, language.id)) {
+                                    if (hasLanguageData(context, settings.value, language.id)) {
                                         removing = language
                                     } else {
                                         scope.launch { removeLanguageLayouts(repository, settings, language.id) }

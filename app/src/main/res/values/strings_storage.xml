@@ -110,16 +110,18 @@
     <string name="storage_custom_wordlists_title">Your word lists</string>
     <string name="storage_custom_wordlists_subtitle">Word lists you imported yourself</string>
     <string name="storage_captures_title">Camera and scans</string>
-    <string name="storage_captures_subtitle">Photos and scans the keyboard took</string>
+    <string name="storage_captures_subtitle">Photos and scans the keyboard took. Each is deleted a day after it was taken</string>
     <string name="storage_settings_data_title">Settings</string>
     <string name="storage_settings_data_subtitle">Every setting, and the themes, layouts and modes you made</string>
 
     <string name="storage_cache_images_title">Image cache</string>
     <string name="storage_cache_images_subtitle">Thumbnails from the GIF, sticker and photo tools</string>
     <string name="storage_cache_media_title">Sent media</string>
-    <string name="storage_cache_media_subtitle">Copies of the GIFs and stickers you sent</string>
+    <string name="storage_cache_media_subtitle">Copies of the GIFs, stickers and pictures you sent. Each is deleted a day after it was sent</string>
     <string name="storage_cache_addons_title">Add-on downloads</string>
     <string name="storage_cache_addons_subtitle">Part-finished downloads, and add-on previews</string>
+    <string name="storage_neural_phonetic_title">Neural suggestions model</string>
+    <string name="storage_neural_phonetic_subtitle">Reads Indic words typed in English letters. One model serves every language, and deleting it turns neural suggestions off</string>
     <string name="storage_cache_llm_title">AI model working files</string>
     <string name="storage_cache_llm_subtitle">What the on-device AI built from its models. Rebuilt, slower once, the next time a model loads</string>
     <string name="storage_cache_temp_title">Temporary files</string>

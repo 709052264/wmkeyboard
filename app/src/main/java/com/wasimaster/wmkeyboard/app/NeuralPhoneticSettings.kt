@@ -1,22 +1,30 @@
 package com.wasimaster.wmkeyboard.app
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.storage.ConfirmDeleteDialog
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
+import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitDownloads
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Neural suggestions on a phonetic language's page: the switch, and under it
@@ -84,11 +92,27 @@ private fun rememberXlitDownload(settings: LiveSettings): () -> Unit {
     }
 }
 
-/** Where the download stands; a tap fetches it, or fetches it again after a failure. */
+/**
+ * Where the download stands; a tap fetches it, or fetches it again after a
+ * failure, and once it is here offers to delete it (so does a swipe).
+ */
 @Composable
-internal fun NeuralPhoneticModelRow(settings: LiveSettings) {
+internal fun NeuralPhoneticModelRow(settings: LiveSettings, repository: SettingsRepository) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val download = rememberXlitDownload(settings)
+    var confirmDelete by remember { mutableStateOf(false) }
+    if (confirmDelete) {
+        ConfirmDeleteDialog(
+            title = stringResource(R.string.languages_neural_phonetic_delete_title),
+            body = stringResource(R.string.languages_neural_phonetic_delete_body),
+            onDismiss = { confirmDelete = false },
+            onConfirm = {
+                confirmDelete = false
+                scope.launch { deleteNeuralPhonetic(context, repository, settings.value) }
+            },
+        )
+    }
     val status by IndicXlitDownloads.status.collectAsState()
     val module by FeatureModules.onnx.state.collectAsState()
     LaunchedEffect(Unit) { IndicXlitDownloads.refresh(context) }
@@ -112,15 +136,31 @@ internal fun NeuralPhoneticModelRow(settings: LiveSettings) {
             }
         IndicXlitDownloads.Status.NotDownloaded -> stringResource(R.string.languages_neural_phonetic_model_missing, toFetch)
     }
-    // A tap only does something while there is something to fetch, so the
-    // row only looks tappable then: no chevron, and no click, while the pack
-    // downloads or once it is here.
-    val actionable = status is IndicXlitDownloads.Status.NotDownloaded || status is IndicXlitDownloads.Status.Failed
+    // No click while the pack downloads; no chevron ever, since a tap opens
+    // nothing: it fetches, or asks to delete what is here.
+    val missing = status is IndicXlitDownloads.Status.NotDownloaded || status is IndicXlitDownloads.Status.Failed
+    val here = status is IndicXlitDownloads.Status.Downloaded
+    val deleteLabel = stringResource(CommonR.string.common_delete)
     WmRow(
         title = stringResource(R.string.languages_neural_phonetic_model_title),
         subtitle = value,
         icon = SettingsRowIcons[R.string.languages_neural_phonetic_model_title],
         highlightKey = R.string.languages_neural_phonetic_model_title,
-        onClick = if (actionable) download else null,
+        swipeActions = if (here) listOf(deleteSwipeAction(deleteLabel) { confirmDelete = true }) else emptyList(),
+        onClick = when {
+            missing -> download
+            here -> ({ confirmDelete = true })
+            else -> null
+        },
     )
+}
+
+/**
+ * Deletes the pack and turns neural suggestions off on every language that
+ * had them: a switch left on with no model behind it would sit there doing
+ * nothing until it fetched 13 MB nobody asked for.
+ */
+internal suspend fun deleteNeuralPhonetic(context: Context, repository: SettingsRepository, settings: KeyboardSettings) {
+    for (langId in settings.suggestionStrip.neuralPhoneticLangs) repository.setNeuralPhonetic(langId, false)
+    withContext(Dispatchers.IO) { IndicXlitDownloads.delete(context) }
 }

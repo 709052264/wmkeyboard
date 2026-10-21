@@ -64,6 +64,18 @@ object MediaPrep {
 
     const val SWEEP_AGE_MS = 24L * 60 * 60 * 1000
 
+    /**
+     * Deletes every copy the keyboard made for sending once it is a day old:
+     * GIFs, stickers and pictures under `cache/media`, camera shots and page
+     * scans. Each was written for one app to read once; keeping it longer
+     * only keeps a copy of what the user sent on the phone.
+     */
+    fun sweepSent(context: Context, maxAgeMs: Long = SWEEP_AGE_MS) {
+        val cutoff = System.currentTimeMillis() - maxAgeMs
+        listOf(File(context.cacheDir, "media"), File(context.filesDir, "camera"), File(context.filesDir, "docscan"))
+            .forEach { dir -> dir.walkBottomUp().filter { it.isFile && it.lastModified() < cutoff }.forEach { it.delete() } }
+    }
+
     // ---- Pictures ------------------------------------------------------
 
     /**

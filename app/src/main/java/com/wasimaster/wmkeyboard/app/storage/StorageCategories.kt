@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.STICKER_GENERATOR_ROUTE
+import com.wasimaster.wmkeyboard.app.deleteNeuralPhonetic
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
@@ -95,6 +96,7 @@ import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
 import java.io.File
+import kotlinx.coroutines.flow.first
 
 /**
  * Everything the app keeps on disk, named in words a user recognises.
@@ -601,6 +603,37 @@ internal object StorageCategories {
         // models useful and nothing without them, so they go together, and
         // deleting the text pack turns the feature off: a mode left on with
         // no model behind it would offer a download nobody asked for.
+        // One model for every Indic phonetic language, so it is one row; the
+        // switches go off with it, as on the language page.
+        StorageCategory(
+            id = "neural_phonetic",
+            title = R.string.storage_neural_phonetic_title,
+            subtitle = R.string.storage_neural_phonetic_subtitle,
+            icon = Icons.Outlined.AutoAwesome,
+            accent = Color(0xFF5C6BC0),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "languages",
+            pathsOf = { listOf(File(it.noBackupFiles, "xlit")) },
+            itemsOf = { env ->
+                val dir = File(env.roots.noBackupFiles, "xlit")
+                if (childrenOf(dir).isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        StorageItem(
+                            id = "xlit",
+                            label = env.context.getString(R.string.storage_neural_phonetic_title),
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                            directory = true,
+                        ),
+                    )
+                }
+            },
+            deleteOne = { env, _ -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
+            clearOf = { env -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
+        ),
         StorageCategory(
             id = "meaning_models",
             title = R.string.storage_meaning_title,
