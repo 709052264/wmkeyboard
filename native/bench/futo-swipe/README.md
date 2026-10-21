@@ -1,0 +1,50 @@
+# FUTO Swipe on real swipes
+
+The FUTO Swipe glide engine's decoder (`wm-engine`'s `glide::ctc`) measured on
+FUTO's MIT-licensed swipe.futo.org strokes, with the model's emissions
+computed once in Python so the decoder can be iterated on in Rust.
+
+1. Fetch the data and the models (MIT dataset, FUTO Model Weights License 1.0
+   for the weights; nothing here is committed):
+
+   ```bash
+   curl -L -o test.jsonl https://huggingface.co/datasets/futo-org/swipe.futo.org/resolve/d71bf5fd/test.jsonl
+   curl -L -o qwerty.json https://huggingface.co/datasets/futo-org/swipe.futo.org/resolve/d71bf5fd/swipe-5/layouts/qwerty.json
+   R=18328c3042b066952c0936b3771d492fe2ec289a
+   curl -L -o honorable_sturgeon_model_fp32.pte https://huggingface.co/futo-org/futo-swipe/resolve/$R/honorable_sturgeon/model_fp32.pte
+   curl -L -o magic_macaw_model_fp32.pte https://huggingface.co/futo-org/futo-swipe/resolve/$R/magic_macaw/model_fp32.pte
+   ```
+
+2. A Python with `executorch` 1.5.1 and `torch` (`uv venv && uv pip install executorch torch numpy`).
+
+3. Emissions, as the app computes them (`SwipeFrame.features`, the encoder, the
+   decoder): `python -I emit.py test.jsonl qwerty.json <models dir> test.bin`.
+   `loopify.py` redraws strokes with a loop on the doubled key (or a stray one
+   on a word with none), `truncate.py` cuts strokes of 6+ letters at a share
+   of their length; both write jsonl for `emit.py`.
+
+4. `cargo run --release --example ctc_glide_eval -- test.bin ../../app/dictionaries-src/en.txt [mode]`
+   from `native/wm-engine`; the example's header lists the modes.
+
+Measured 2026-10-21 (bundled en.txt, 38,049 test swipes whose word it holds):
+
+| | top-1 | top-4 |
+|---|---|---|
+| bare decoder | .9562 | .9921 |
+| loops (weight 2) | .9562 | .9921 |
+| look-ahead, Eager margin (cost 0.5) | .9560 | .9921 |
+| learned shapes (weight 10) | .9564 | .9921 |
+
+| subset | without | with |
+|---|---|---|
+| doubled key redrawn with a loop (3,055) | .9437 | .9460 |
+| stray loop on a word with no double (4,485) | .8954 | .8939 |
+| cut at 70% of the path (4,619), top-1 | .068 | .120 |
+| cut at 50% (4,619), top-1 | .0004 | .038 |
+| drawn before in the session (8,656) | .9812 | .9841 |
+| not drawn before (29,393) | .9488 | .9482 |
+
+Dropped: pause and wiggle marks (charging words that skip a paused key cost
+0.3 point of top-1 at weight 1 and 2.3 at weight 3: the model reads timing
+itself), the broad loop charge GlideBeam uses (+0.6 on looped doubles but
+−1 to −9 points on stray loops), and learned-shape seeding (.9564 to .9552).

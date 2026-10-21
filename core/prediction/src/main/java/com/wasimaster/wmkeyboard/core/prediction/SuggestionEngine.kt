@@ -1286,6 +1286,9 @@ class SuggestionEngine(
             limit = maxOf(limit, if (deep) GLIDE_DEEP_POOL else GLIDE_RERANK_POOL),
             deep = deep,
             vocabularyRank = glideTuning.vocabularyRank,
+            lookAhead = lookAhead,
+            shapes = shapes,
+            tuning = glideTuning,
         )
         if (neural != null) {
             return finishGlide(

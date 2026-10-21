@@ -10,10 +10,10 @@ import kotlin.math.sqrt
  * one only for an English layout, and [decode] answers null for any grid that
  * is not QWERTY, so the built-in decoder takes every case this one cannot.
  *
- * What it does not do, and [GlideBeam] still does: guess a word the stroke has
- * not finished spelling (the look-ahead), read pauses and loops as marks, or
- * use the shapes a user's own kept glides taught it. The model reads timing
- * and shape for itself, from the stroke as drawn.
+ * It takes three of [GlideBeam]'s readings of the stroke into the search
+ * ([CtcGlideBeam] says how): finishing a long word early, a loop for a
+ * doubled letter, and the shapes a user's own kept glides taught it. Pauses
+ * and wiggles it leaves to the model, which reads timing for itself.
  */
 class NeuralGlide(
     private val model: SwipeModel,
@@ -42,6 +42,9 @@ class NeuralGlide(
         limit: Int,
         deep: Boolean,
         vocabularyRank: Int,
+        lookAhead: Int,
+        shapes: GlideShapeSource?,
+        tuning: GlideBeam.Tuning,
     ): List<GlideBeam.Candidate>? {
         if (sources.isEmpty() || path.size < MIN_POINTS || keyWidth <= 0f) return null
         if (strokeLength(path) / keyWidth < MIN_STROKE_KEYS) return null
@@ -54,6 +57,8 @@ class NeuralGlide(
             limit = limit,
             width = if (deep) DEEP_WIDTH else WIDTH,
             vocabularyRank = if (deep) 0 else vocabularyRank,
+            stroke = CtcGlideBeam.Stroke(path, keys, keyWidth, tuning, shapes),
+            lookAhead = lookAhead,
         )
     }
 

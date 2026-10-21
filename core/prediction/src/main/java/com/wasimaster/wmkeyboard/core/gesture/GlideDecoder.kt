@@ -19,6 +19,12 @@ interface GlideDecoder {
      * caller decodes with [GlideBeam] instead. [deep] is the second look a
      * user asks for by undoing a glide; [vocabularyRank] caps the
      * dictionaries at their commonest words, 0 for no cap.
+     *
+     * [lookAhead], [shapes] and [tuning] are what [GlideBeam.decode] is
+     * given beside the stroke: how many guesses at an unfinished word may
+     * join the readings, the user's learned shapes for this grid, and the
+     * glide weights the marks in a stroke are read with. An engine uses
+     * those it can and ignores the rest.
      */
     @Suppress("LongParameterList")
     fun decode(
@@ -29,5 +35,8 @@ interface GlideDecoder {
         limit: Int,
         deep: Boolean = false,
         vocabularyRank: Int = 0,
+        lookAhead: Int = 0,
+        shapes: GlideShapeSource? = null,
+        tuning: GlideBeam.Tuning = GlideBeam.Tuning.DEFAULT,
     ): List<GlideBeam.Candidate>?
 }

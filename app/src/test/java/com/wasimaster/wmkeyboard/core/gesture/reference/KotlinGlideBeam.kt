@@ -146,6 +146,43 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
      * spread — and quantised to a byte a coordinate. Null when the stroke is
      * too short to be a glide.
      */
+    /**
+     * The loops [decode] would read in [path], found exactly as it finds
+     * them, for the CTC decoder: `wm-engine`'s `glide::Decoder::marks`.
+     */
+    fun marks(path: List<GesturePoint>, keys: GlideKeyMap, keyWidth: Float, ws: KotlinGlideWorkspace): KotlinGlideMarks? {
+        if (path.size < MIN_SAMPLES || keyWidth <= 0f || keys.keyCount == 0) return null
+        if (!resample(path, keyWidth, ws)) return null
+        ws.prepareKeys(keys.keyCount)
+        buildCosts(keys, ws)
+        buildDwell(keys, ws)
+        if (ws.arcStep <= 0f) return null
+        buildLoops(path, keyWidth, keys, ws)
+        val loops = ArrayList<Pair<Int, Float>>()
+        for (e in 0 until ws.loopCount) {
+            if (ws.loopScore[e] > 0f && ws.loopKey[e] >= 0) loops.add(ws.loopKey[e] to ws.loopScore[e])
+        }
+        return KotlinGlideMarks(loops, endsOnLoop(ws))
+    }
+
+    /** `glide::Decoder::prepare_shape`: the stroke ready for [learnedGain]. */
+    fun prepareShape(path: List<GesturePoint>, keyWidth: Float, ws: KotlinGlideWorkspace): Boolean {
+        if (path.size < MIN_SAMPLES || keyWidth <= 0f || !resample(path, keyWidth, ws)) return false
+        drawnShape(ws)
+        normalise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShapeX, ws.drawnShapeY)
+        return true
+    }
+
+    /**
+     * `glide::Decoder::learned_gain`: how much nearer the prepared stroke sits
+     * to [word] as the user drew it before than to its ideal path.
+     */
+    fun learnedGain(word: String, keys: GlideKeyMap, shapes: GlideShapeSource, ws: KotlinGlideWorkspace): Double {
+        if (tuning.learnedShapeGain <= 0.0 || shapes.shapesOf(word).isEmpty()) return 0.0
+        val ideal = shapeDistance(word, keys, ws) ?: return 0.0
+        return ideal - learnedDistance(word, ideal, shapes, ws)
+    }
+
     fun sampleShape(path: List<GesturePoint>, keyWidth: Float, ws: KotlinGlideWorkspace): ByteArray? {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f) return null
         if (!resample(path, keyWidth, ws)) return null
@@ -1577,5 +1614,40 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         private const val EPS = 1e-9
 
         private fun ln1p(v: Int): Double = ln(1.0 + v)
+    }
+}
+
+/**
+ * `glide::Marks`: the loops a stroke draws, each as its key and score (a
+ * doubled letter there), and whether it closes on one.
+ */
+data class KotlinGlideMarks(val loops: List<Pair<Int, Float>>, val endsOnLoop: Boolean) {
+
+    companion object {
+        /** The keys [word] visits in order, a letter typed twice in a row visiting once; -1 for no key. */
+        fun visits(word: String, keys: GlideKeyMap): List<Int> {
+            val out = ArrayList<Int>()
+            var at = 0
+            while (at < word.length) {
+                val cp = word.codePointAt(at)
+                at += Character.charCount(cp)
+                val key = keys.keyIndex(cp)
+                if (out.lastOrNull() != key || key < 0) out.add(key)
+            }
+            return out
+        }
+
+        /** Whether [word] types a letter twice in a row on [key]. */
+        fun doubles(word: String, key: Int, keys: GlideKeyMap): Boolean {
+            var at = 0
+            var previous = -1
+            while (at < word.length) {
+                val cp = word.codePointAt(at)
+                at += Character.charCount(cp)
+                if (cp == previous && keys.keyIndex(cp) == key) return true
+                previous = cp
+            }
+            return false
+        }
     }
 }
