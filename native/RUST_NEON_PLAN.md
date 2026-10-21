@@ -533,7 +533,8 @@ so every production trie now has a Rust twin.
   that is `core::slice::sort`'s stable sort instantiated once per
   comparator (121 copies in the step's code, 208 KB before stripping); the
   stores sort their exports, saves and evictions by distinct keys. Routing
-  them through a few shared sort-key types would get most of it back.
+  them through a few shared sort-key types would get most of it back
+  (done: see "Library size" below).
 
 ### Step 2 follow-up: the Kotlin walk deleted
 
@@ -781,6 +782,104 @@ segmentation Thai, Lao, Khmer and Burmese prediction lacked. ICU4X 2.3
   dictionaries are 1.77 MB. Nothing else from ICU4X is linked: the
   segmenter's Chinese/Japanese dictionary and the other break iterators
   are named by constructors this crate never calls.
+
+### Library size (done)
+
+By the end of the ICU4X step `libwm_engine_jni` had grown from 1.1 MB to
+2.7 MB on arm64. This pass shrank it without changing what it computes.
+
+**What was in it**, from `cargo bloat` on an unstripped arm64 release build
+and the linker map (2,716,488 B stripped, main 16d35c10b):
+
+| Piece | Size | Notes |
+|---|---|---|
+| `.text` | 1,582 KB | |
+| ... stable sort instantiations | 431 KB | 141 driftsort functions plus 92 shared small-sort helpers, one set per comparator closure: the stores (UserLexicon 95 KB, CorrectionMemory 56 KB), glide `Source` 47 KB, Hindi and Indic table builds 74 KB, fuzzy 31 KB |
+| ... JNI entry points | 370 KB | engine code inlined into each `Java_*` symbol |
+| ... std backtrace printing | 141 KB | gimli, addr2line, miniz_oxide and the demangler, reached from std's default panic hook |
+| ... hashbrown, drop glue, fmt, serde_json | 130 KB | per-type `reserve_rehash` (31 copies), drop glue (220), formatting, JSON |
+| `.rodata` | 726 KB | ICU4X LSTM models 310 KB; the four Khipro `.mim` files 196 KB; Zawgyi model 28 KB; normalizer, case and break data |
+| `.rela.dyn` | 123 KB | 5,272 relocations of 24 bytes, mostly pointers in the compiled-in tables |
+| `.eh_frame` + `.gcc_except_table` | 149 KB | unwind tables, needed by `catch_unwind` |
+| `.data.rel.ro` | 92 KB | |
+
+**What changed**, each measured with `build.sh` (stripped, all paths remapped):
+
+| Change | arm64-v8a | armeabi-v7a | x86_64 |
+|---|---|---|---|
+| Before (16d35c10b) | 2,716,488 | 2,082,712 | 3,029,264 |
+| Stable sorts through one instantiation (`wm_engine::sort`) | 2,324,752 (-391,736) | 1,781,496 (-301,216) | 2,516,168 (-513,096) |
+| Khipro specs compiled in deflated | 2,177,496 (-147,256) | 1,629,280 (-152,216) | 2,371,616 (-144,552) |
+| Relocations packed (`--pack-dyn-relocs=android`) | 2,065,864 (-111,632) | | |
+| `opt-level = "s"` for serde_json and miniz_oxide | 2,062,464 (-3,400) | 1,588,632 (-40,648 with the row above) | 2,246,392 (-125,224 with the row above) |
+| **After** | **2,062,464 (-24.1%)** | **1,588,632 (-23.7%)** | **2,246,392 (-25.8%)** |
+
+- **Sorts**: `wm_engine::sort::by` / `by_key` sort the positions `0..len`
+  as `u32` through one comparator behind `dyn`, then permute the slice in
+  place by following the permutation's cycles. A stable sort's output is
+  fixed by its comparator when the comparator is a total order, and every
+  caller's is (integers, UTF-16 order, `f64::total_cmp`), so the result is
+  the slice method's; `sort`'s own tests compare the two with ties,
+  owned elements and signed zeros. Every stable sort the Android library
+  links goes through it except `kth_best`, which sorts plain `f64` scores
+  inside the glide and fuzzy walks and keeps `slice::sort_by(f64::total_cmp)`
+  (duet's copy now names the same comparator, so the three share one
+  instantiation). The JSON exports insert into `serde_json::Map` instead of
+  collecting into it, which had instantiated `BTreeMap`'s sort once per
+  iterator type. `.text` 1,582 KB -> 1,232 KB.
+- **Khipro**: `build.rs` deflates the four `.mim` files into `OUT_DIR`
+  (miniz_oxide, level 10: 196 KB -> 30 KB) and `khipro` inflates a variant
+  once, when its spec is first parsed. The files in `data/khipro/` stay
+  verbatim for `update-khipro.sh`; a test checks each inflated spec against
+  its file byte for byte. Adds `miniz_oxide` (MIT/Zlib/Apache-2.0, pure
+  Rust, the crate std itself uses) as a dependency of `wm-engine`.
+- **Relocations**: APS2 is read by bionic from API 23 and minSdk is 24.
+  `llvm-readelf -r` decodes the same 5,272 relocations; `.rela.dyn` is
+  13.6 KB. Segments stay 16 KB aligned and the 146 exported JNI symbols are
+  the same on every ABI.
+
+**Measured and not taken**:
+
+- `--icf=safe` folds nothing (rustc emits no address-significance table);
+  `--icf=all` saves 27 KB on arm64 but may merge functions whose addresses
+  are compared, including NDK libunwind's C++, and could not be checked on a
+  device.
+- `opt-level = "s"` also for `jni` and `cesu8` saved another 2 KB; `jni`
+  runs on every crossing, so it stays at 3.
+- `panic = "abort"` is ruled out by `catch_unwind`, and with it the 149 KB
+  of unwind tables. The 141 KB of backtrace printing comes with std's
+  default panic hook from the precompiled std; dropping it needs
+  `-Z build-std` (nightly).
+- ICU4X's data is already only what the four constructors name. The LSTM
+  models (310 KB) are the floor for segmenting Thai, Lao, Khmer and
+  Burmese; storing them smaller would change their arithmetic.
+- The Zawgyi model deflates only 28 KB -> 22 KB; not worth a second
+  inflate path.
+
+**Behaviour**: `cargo test` in `wm-engine` (471 tests) green. On the JVM,
+the parity tests (`Native*ParityTest`, `WordKeyParityTest`), the Khipro
+tests, the prediction evals (`PredictionEvalTest`, `ContextMissRateTest`,
+`HabitGainTest`, the three rerank evals) and every glide eval under
+`core.gesture.eval` ran twice in `:app`, once against a host build of main
+before this pass (`WM_ENGINE_LIB`) and once against this one: 71 tests in
+32 classes green both times, and every class's printed output identical
+once timings are masked.
+
+`PredictionLatencyBench` and `GestureLatencyBench` alone, alternating
+before/after/before/after, load average 5 to 6.5 (other sessions idle but
+not gone), p50 / p99 in ms:
+
+| Bench | Before | After |
+|---|---|---|
+| keystroke (suggest + autocorrect) | 0.395 / 0.587, 0.405 / 0.620 | 0.408 / 0.603, 0.404 / 0.633 |
+| octopus keystroke | 0.447 / 0.758, 0.473 / 0.808 | 0.475 / 0.790, 0.510 / 1.051 |
+| suggest | 0.411 / 0.643, 0.452 / 0.727 | 0.419 / 0.673, 0.428 / 0.716 |
+| glide decode, full path | 2.687 / 10.450, 2.901 / 11.177 | 2.619 / 9.820, 2.570 / 9.891 |
+| glide stroke, 6 previews | 9.067 / 35.210, 9.386 / 36.609 | 9.419 / 36.420, 9.254 / 35.406 |
+
+Within run-to-run noise. A first after-run that shared its JVM fork with the
+evals read twice as slow on glide; alone it does not, so the benches have to
+run on their own. The phone column is owed, with the rest of this plan's.
 
 
 ## Rules for every step
