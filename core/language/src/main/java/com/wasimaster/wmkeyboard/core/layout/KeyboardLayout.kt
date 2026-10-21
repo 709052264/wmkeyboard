@@ -991,9 +991,16 @@ sealed interface FlickArm {
  * one. Forward delete on a flick of ⌫ is the arm people ask for. The delete
  * key's own handler gives an armed direction to the arm and leaves the swipe
  * the directions that have none.
+ *
+ * So are the caret keys whose hold repeats (#865): a still hold still
+ * repeats, and a flick before the repeat starts is an arm, word left or
+ * right on an arrow, page up or down.
  */
 fun Key.takesFlickActions(): Boolean = action != KeyAction.Space &&
-    (!holdIsSpokenFor() || action.deletesBackward() || action.deletesForward())
+    (
+        !holdIsSpokenFor() || action.deletesBackward() || action.deletesForward() ||
+            (action as? KeyAction.Edit)?.op?.repeats == true
+        )
 
 /**
  * What a flick towards [direction] does: an action arm where the key has one

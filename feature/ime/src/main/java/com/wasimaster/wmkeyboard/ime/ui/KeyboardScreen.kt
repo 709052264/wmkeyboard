@@ -28161,6 +28161,26 @@ private fun Modifier.pointerInputKey(
                 var armRepeated = false
                 // A chord ran before the finger reached an arm: the lift is the chord's.
                 var chordWon = false
+                // A caret key with arms (#865) still repeats on a still hold,
+                // as it does without them; once it has, arms are off and the
+                // lift adds nothing.
+                var centreRepeated = false
+                val centreRepeat = if (key.action is KeyAction.Edit && key.holdRepeats() &&
+                    !key.opensAlternatesPopup()
+                ) {
+                    scope.launch {
+                        delay(keyRepeat.startDelayMs.toLong())
+                        if (dir != null) return@launch
+                        centreRepeated = true
+                        while (true) {
+                            repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                            onKeyRepeat(key)
+                            delay(textEditing.repeatMs.toLong())
+                        }
+                    }
+                } else {
+                    null
+                }
                 val longJob = if (key.opensAlternatesPopup() || numpadHold || pickerHold) {
                     scope.launch {
                         delay(longPressDelayMs.toLong())
@@ -28203,6 +28223,11 @@ private fun Modifier.pointerInputKey(
                         change.consume()
                         continue
                     }
+                    // The hold is repeating the key: no arm now.
+                    if (centreRepeated) {
+                        change.consume()
+                        continue
+                    }
                     val offset = change.position - down.position
                     val dist = offset.getDistance()
                     if (dist > extremeDist) {
@@ -28241,6 +28266,7 @@ private fun Modifier.pointerInputKey(
                         // and says so under the finger.
                         if (dir != null) {
                             longJob?.cancel()
+                            centreRepeat?.cancel()
                             chordLabels?.cancel()
                             // One action wins (#875): the arm, unless a
                             // chord already ran during this hold.
@@ -28269,6 +28295,7 @@ private fun Modifier.pointerInputKey(
                 }
                 longJob?.cancel()
                 armRepeat?.cancel()
+                centreRepeat?.cancel()
                 chordLabels?.cancel()
                 // ?123 let go after a chord ran: the chord's, not a tap (#754).
                 val chorded = (chordTrigger && chordGate?.triggerUp(down.id) == true) || chordWon
@@ -28285,7 +28312,7 @@ private fun Modifier.pointerInputKey(
                 // shift label, so an armed Shift and the return agree on it.
                 val capital = dir?.takeIf { returned }?.let { key.flickShiftedText(it) }
                 when {
-                    armRepeated -> Unit
+                    armRepeated || centreRepeated -> Unit
                     // A chord ran during this hold: the arm the finger
                     // went on to does not type as well (#875).
                     chorded -> Unit

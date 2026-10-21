@@ -76,6 +76,15 @@ class FlickArmTest {
     }
 
     @Test
+    fun `the arrow keys take arms although their hold repeats`() {
+        // Issue #865: word left on a flick of ←.
+        val arms = mapOf(FlickDirection.LEFT to KeyAlternate(KeyAction.Edit(TextEditAction.WORD_LEFT)))
+        val arrow = Key("", action = KeyAction.Edit(TextEditAction.LEFT), flickActions = arms)
+        assertTrue(arrow.hasFlicks())
+        assertTrue(arrow.flickArm(FlickDirection.LEFT) is FlickArm.Action)
+    }
+
+    @Test
     fun `a corner arm is an arm like any other`() {
         // Issue #410: MessagEase's o carries all eight.
         val key = Key(
