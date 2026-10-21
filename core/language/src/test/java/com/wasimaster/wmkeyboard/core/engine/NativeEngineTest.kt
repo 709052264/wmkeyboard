@@ -78,6 +78,16 @@ class NativeEngineTest {
     }
 
     @Test fun yuvToRgbMatchesTheKotlinLoopOnPlanesAsImagesHandThemOver() {
+        val before = NativeEngine.forceKotlin
+        NativeEngine.forceKotlin = false
+        try {
+            yuvCases()
+        } finally {
+            NativeEngine.forceKotlin = before
+        }
+    }
+
+    private fun yuvCases() {
         val random = Random(7)
         fun direct(n: Int) = ByteBuffer.allocateDirect(n).also { b -> repeat(n) { b.put(it, random.nextInt(256).toByte()) } }
         for ((w, h) in listOf(1 to 1, 17 to 5, 64 to 9, 100 to 7)) {

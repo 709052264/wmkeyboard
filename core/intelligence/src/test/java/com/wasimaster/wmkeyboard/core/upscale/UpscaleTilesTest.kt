@@ -227,7 +227,7 @@ class UpscaleTilesTest {
 
     @Test
     fun theEnginesTileArithmeticIsTheKotlinLoopsBitForBit() {
-        assertTrue("libwm_engine_jni for this machine", NativeEngine.useNative)
+        assertTrue("libwm_engine_jni for this machine", NativeEngine.loaded)
         val random = Random(13)
         val before = NativeEngine.forceKotlin
         fun <T> both(run: () -> T): Pair<T, T> {
@@ -252,6 +252,7 @@ class UpscaleTilesTest {
                 val (k, n) = both { UpscaleTiles.output(output, outSide, tile) }
                 assertArrayEquals("output $tile", k, n)
             }
+            NativeEngine.forceKotlin = false
             val rgb = IntArray(9 * 4) { random.nextInt() }
             val alpha = IntArray(13 * 6) { random.nextInt() }
             val merged = rgb.copyOf()

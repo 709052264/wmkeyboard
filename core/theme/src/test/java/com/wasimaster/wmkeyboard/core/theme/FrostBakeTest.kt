@@ -75,17 +75,23 @@ class FrostBakeTest {
 
     @Test
     fun `the engine's blur is the Kotlin blur bit for bit`() {
-        assertTrue("libwm_engine_jni for this machine", NativeEngine.useNative)
+        assertTrue("libwm_engine_jni for this machine", NativeEngine.loaded)
         val random = Random(5)
-        for ((w, h) in listOf(1 to 1, 3 to 7, 17 to 5, 270 to 212, 61 to 33)) {
-            for (radius in listOf(1, 3, 8, 40)) {
-                val src = IntArray(w * h) { if (it % 9 == 0) -1 else random.nextInt() }
-                val kotlin = src.copyOf()
-                repeat(3) { FrostBake.boxBlur(kotlin, w, h, radius) }
-                val native = src.copyOf()
-                assertTrue(NativeEngine.boxBlur(native, w, h, radius, 3))
-                assertArrayEquals("${w}x$h r=$radius", kotlin, native)
+        val before = NativeEngine.forceKotlin
+        NativeEngine.forceKotlin = false
+        try {
+            for ((w, h) in listOf(1 to 1, 3 to 7, 17 to 5, 270 to 212, 61 to 33)) {
+                for (radius in listOf(1, 3, 8, 40)) {
+                    val src = IntArray(w * h) { if (it % 9 == 0) -1 else random.nextInt() }
+                    val kotlin = src.copyOf()
+                    repeat(3) { FrostBake.boxBlur(kotlin, w, h, radius) }
+                    val native = src.copyOf()
+                    assertTrue(NativeEngine.boxBlur(native, w, h, radius, 3))
+                    assertArrayEquals("${w}x$h r=$radius", kotlin, native)
+                }
             }
+        } finally {
+            NativeEngine.forceKotlin = before
         }
     }
 }
