@@ -103,49 +103,65 @@ class NetworkWatcher(private val context: Context) {
     }
 
     private fun publish(capabilities: NetworkCapabilities?) {
-        val cm = connectivity
-        val restricted = runCatching {
-            cm?.restrictBackgroundStatus ==
-                ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
-        }.getOrDefault(false)
-        if (capabilities == null) {
-            // No active network at all. Nothing is going to be fetched anyway,
-            // so the metered flags stay at their permissive values and the
-            // panels show their own offline errors rather than a data-saver
-            // notice that would blame the wrong thing.
-            _state.value = DeviceNetworkState(
-                online = false,
-                metered = false,
-                roaming = false,
+        _state.value = stateOf(connectivity, capabilities)
+    }
+
+    companion object {
+        /**
+         * The network as it stands, read once: for a decision made in the
+         * middle of a download, in a process that runs no watcher.
+         */
+        fun readNow(context: Context): DeviceNetworkState {
+            val cm = context.getSystemService(ConnectivityManager::class.java)
+            val capabilities = runCatching {
+                cm?.activeNetwork?.let { network -> cm.getNetworkCapabilities(network) }
+            }.getOrNull()
+            return stateOf(cm, capabilities)
+        }
+
+        private fun stateOf(cm: ConnectivityManager?, capabilities: NetworkCapabilities?): DeviceNetworkState {
+            val restricted = runCatching {
+                cm?.restrictBackgroundStatus ==
+                    ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
+            }.getOrDefault(false)
+            if (capabilities == null) {
+                // No active network at all. Nothing is going to be fetched anyway,
+                // so the metered flags stay at their permissive values and the
+                // panels show their own offline errors rather than a data-saver
+                // notice that would blame the wrong thing.
+                return DeviceNetworkState(
+                    online = false,
+                    metered = false,
+                    roaming = false,
+                    systemDataSaver = restricted,
+                )
+            }
+            // TEMPORARILY_NOT_METERED is a carrier saying this window is free —
+            // an unmetered hour on a metered plan — and it beats the standing bit.
+            // It only exists from API 30; below that the standing bit is all there
+            // is to read.
+            val temporarilyFree = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                capabilities.hasCapability(
+                    NetworkCapabilities.NET_CAPABILITY_TEMPORARILY_NOT_METERED,
+                )
+            val unmetered =
+                capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ||
+                    temporarilyFree
+            // NOT_ROAMING landed in API 28. Before that the keyboard cannot tell,
+            // and "cannot tell" has to mean not roaming: the roaming trigger is
+            // the strictest one, and firing it on every connection on an old phone
+            // would leave the user with a keyboard that never fetches anything.
+            val roaming = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
+                !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING)
+            return DeviceNetworkState(
+                online = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
+                metered = !unmetered,
+                // Roaming without a meter is not a network anyone is charged for;
+                // treating a roaming-flagged Wi-Fi bridge as expensive would fire
+                // the strictest trigger on a connection that costs nothing.
+                roaming = roaming && !unmetered,
                 systemDataSaver = restricted,
             )
-            return
         }
-        // TEMPORARILY_NOT_METERED is a carrier saying this window is free —
-        // an unmetered hour on a metered plan — and it beats the standing bit.
-        // It only exists from API 30; below that the standing bit is all there
-        // is to read.
-        val temporarilyFree = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-            capabilities.hasCapability(
-                NetworkCapabilities.NET_CAPABILITY_TEMPORARILY_NOT_METERED,
-            )
-        val unmetered =
-            capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED) ||
-                temporarilyFree
-        // NOT_ROAMING landed in API 28. Before that the keyboard cannot tell,
-        // and "cannot tell" has to mean not roaming: the roaming trigger is
-        // the strictest one, and firing it on every connection on an old phone
-        // would leave the user with a keyboard that never fetches anything.
-        val roaming = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
-            !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_ROAMING)
-        _state.value = DeviceNetworkState(
-            online = capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET),
-            metered = !unmetered,
-            // Roaming without a meter is not a network anyone is charged for;
-            // treating a roaming-flagged Wi-Fi bridge as expensive would fire
-            // the strictest trigger on a connection that costs nothing.
-            roaming = roaming && !unmetered,
-            systemDataSaver = restricted,
-        )
     }
 }

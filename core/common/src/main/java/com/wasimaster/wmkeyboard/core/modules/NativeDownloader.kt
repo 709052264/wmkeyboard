@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.modules
 
+import com.wasimaster.wmkeyboard.core.download.DataMirror
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceRepo
@@ -10,7 +12,6 @@ import java.io.FileOutputStream
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.io.RandomAccessFile
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlin.coroutines.coroutineContext
@@ -27,7 +28,6 @@ object NativeDownloader {
     const val RELEASE_TAG = "natives"
 
     private const val TIMEOUT_MS = 30_000
-    private const val BUFFER = 64 * 1024
     private const val USER_AGENT = "WMKeyboard native delivery"
 
     /** The release asset for a [NativeSource.Data] pin, or null when the data repository is not on GitHub. */
@@ -39,8 +39,8 @@ object NativeDownloader {
 
     /**
      * Downloads [pin] and installs it into [store]. [onBytes] gets this
-     * file's running byte count. Throws on any failure; a data download keeps
-     * its partial file for the next try, which resumes with a range request.
+     * file's running byte count. Throws on any failure; a data download goes
+     * through [FileDownloader], parallel and resumable piece by piece.
      */
     suspend fun fetch(pin: NativePin, store: NativeStore, onBytes: (Long) -> Unit) {
         val part = store.partOf(pin)
@@ -48,7 +48,15 @@ object NativeDownloader {
         when (val source = pin.source) {
             NativeSource.Data -> {
                 val url = dataUrl(pin) ?: throw IOException("the data repository is not on GitHub")
-                transfer(url, pin.size, part, onBytes)
+                val mirror = DataMirror.of(url)
+                FileDownloader.fetchVia(url, mirror, part, pin.size, NetSource.DOWNLOAD_NATIVE, onBytes = onBytes)
+                if (mirror != null) {
+                    coroutineContext.ensureActive()
+                    if (store.install(pin, part)) return
+                    // The mirror's copy may be the bad one: the origin's decides.
+                    FileDownloader.discard(part)
+                    FileDownloader.fetchVia(url, null, part, pin.size, NetSource.DOWNLOAD_NATIVE, onBytes = onBytes)
+                }
             }
             is NativeSource.Maven -> {
                 // The entry is read whole each time: it is a few MB out of an
@@ -67,49 +75,6 @@ object NativeDownloader {
         }
         coroutineContext.ensureActive()
         if (!store.install(pin, part)) throw IOException("${pin.name} did not match its pinned checksum")
-    }
-
-    private suspend fun transfer(url: String, size: Long, part: java.io.File, onBytes: (Long) -> Unit) {
-        val resumeFrom = part.length().takeIf { it in 1 until size } ?: 0L
-        if (resumeFrom == 0L) part.delete()
-        val connection = open(url)
-        val call = NetLog.call(NetSource.DOWNLOAD_NATIVE, "GET", url, route = NetLog.pathOf(url))
-        try {
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-            val status = connection.responseCode
-            call.status = status
-            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
-                throw IOException("HTTP $status for $url")
-            }
-            val already = if (status == HttpURLConnection.HTTP_PARTIAL) resumeFrom else 0L
-            call.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { output ->
-                    output.setLength(already)
-                    output.seek(already)
-                    val buffer = ByteArray(BUFFER)
-                    var written = already
-                    while (true) {
-                        coroutineContext.ensureActive()
-                        val n = input.read(buffer)
-                        if (n < 0) break
-                        written += n
-                        // Anything past the pinned size is not the pinned file.
-                        if (written > size) {
-                            part.delete()
-                            throw IOException("$url is longer than pinned")
-                        }
-                        output.write(buffer, 0, n)
-                        onBytes(written)
-                    }
-                }
-            }
-        } catch (t: Throwable) {
-            call.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            call.end()
-        }
     }
 
     private fun open(url: String): HttpURLConnection =

@@ -4,15 +4,11 @@ import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.os.Build
 import android.os.StatFs
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
-import kotlinx.coroutines.ensureActive
 import java.io.File
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
-import kotlin.coroutines.coroutineContext
 
 /** Why a download stopped short, in the terms the card has to explain. */
 internal class DownloadFailure(
@@ -66,7 +62,8 @@ internal object ApkStaging {
         val keep = listCache(context).name
         dir(context).listFiles()?.forEach { file ->
             if (file.name == keep) return@forEach
-            val name = file.name.removeSuffix(".part")
+            // A paused download's resume map goes with its `.part`.
+            val name = file.name.removeSuffix(".ranges").removeSuffix(".part")
             val parsed = ReleaseAssets.parseAssetName(name) ?: ReleaseAssets.parseDexMetadataName(name)
             val used = parsed != null && (
                 parsed.versionCode > installedVersionCode ||
@@ -78,19 +75,14 @@ internal object ApkStaging {
 }
 
 /**
- * Downloads one release asset, resuming a part-finished one.
- *
- * The shape is [com.wasimaster.wmkeyboard.core.addons.AddonDownloadManager]'s
- * `transfer`, for the same reasons and with the same handling of a server that
- * ignores the range: request the canonical release URL every time, never a
- * redirect target, because GitHub redirects to a signed CDN address whose
- * signature expires and would answer a resume with a refusal.
+ * Downloads one release asset through [FileDownloader]: parallel ranges into
+ * the `.part`, each piece resumed where it stopped. GitHub redirects a release
+ * URL to a signed CDN address whose signature expires; the downloader asks
+ * the release URL again when that address starts refusing.
  */
 internal object ApkDownload {
 
     private const val BUFFER_BYTES = 256 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val TIMEOUT_MS = 20_000
 
     /**
      * Room needed before starting: the file, plus as much again because
@@ -107,83 +99,32 @@ internal object ApkDownload {
     }
 
     /**
-     * Streams [candidate] into [part], appending to whatever is already there.
+     * Fetches [candidate] into [part], continuing whatever is already there.
      *
-     * [onProgress] is called with bytes written and the expected total, at most
-     * every quarter second, which is often enough to look continuous and rare
+     * [onProgress] is called with bytes on disk and the expected total a few
+     * times a second, which is often enough to look continuous and rare
      * enough not to recompose the card on every buffer.
      */
-    @Suppress("ThrowsCount")
     suspend fun transfer(
         candidate: UpdateCandidate,
         part: File,
         onProgress: (Long, Long) -> Unit,
     ) {
-        part.parentFile?.mkdirs()
-        val resumeFrom = if (part.exists()) part.length() else 0L
-        val connection = URL(candidate.url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(
-            NetSource.UPDATES,
-            "GET",
-            candidate.url,
-            route = NetLog.pathOf(candidate.url),
-            background = false,
-        )
+        // The release says how big the file is, so a different length is not
+        // the file the release described.
+        val size = candidate.sizeBytes.takeIf { it > 0 }
         try {
-            connection.connectTimeout = TIMEOUT_MS
-            connection.readTimeout = TIMEOUT_MS
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", GithubReleaseSource.USER_AGENT)
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-
-            netCall.status = connection.responseCode
-            val status = connection.responseCode
-            // A server that ignored the range sends 200 and the whole file, so
-            // what is on disk is worthless and this starts again. 416 means the
-            // partial is longer than the file now is, which is the same answer.
-            val appending = status == HttpURLConnection.HTTP_PARTIAL
-            if (status !in 200..299 && status != HttpURLConnection.HTTP_PARTIAL) {
-                throw DownloadFailure(UpdateFailure.NETWORK, keepPartial = false)
+            FileDownloader.fetch(candidate.url, part, size, NetSource.UPDATES, background = false) { written ->
+                onProgress(written, maxOf(size ?: 0L, written))
             }
-            if (!appending && resumeFrom > 0) part.delete()
-
-            val already = if (appending) resumeFrom else 0L
-            val total = candidate.sizeBytes.takeIf { it > 0 }
-                ?: (already + connection.contentLengthLong.coerceAtLeast(0L))
-
-            netCall.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { output ->
-                    output.setLength(already)
-                    output.seek(already)
-                    val buffer = ByteArray(BUFFER_BYTES)
-                    var written = already
-                    var lastReport = 0L
-                    while (true) {
-                        coroutineContext.ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        written += read
-                        // The release says how big the file is, so anything
-                        // past that is not the file the release described.
-                        if (candidate.sizeBytes > 0 && written > candidate.sizeBytes) {
-                            throw DownloadFailure(UpdateFailure.CORRUPT, keepPartial = false)
-                        }
-                        output.write(buffer, 0, read)
-                        val nowMs = System.currentTimeMillis()
-                        if (nowMs - lastReport >= PROGRESS_INTERVAL_MS) {
-                            lastReport = nowMs
-                            onProgress(written, total)
-                        }
-                    }
-                    onProgress(written, maxOf(total, written))
-                }
+        } catch (e: DownloadException) {
+            throw when (e) {
+                is DownloadException.Http -> DownloadFailure(UpdateFailure.NETWORK, keepPartial = false, e)
+                is DownloadException.WrongSize, is DownloadException.Mismatch ->
+                    DownloadFailure(UpdateFailure.CORRUPT, keepPartial = false, e)
+                is DownloadException.Interrupted, is DownloadException.Blocked ->
+                    DownloadFailure(UpdateFailure.NETWORK, keepPartial = true, e)
             }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
         }
     }
 

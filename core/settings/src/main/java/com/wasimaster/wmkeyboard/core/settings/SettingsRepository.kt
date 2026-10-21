@@ -27,6 +27,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderCodec
 import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
 import com.wasimaster.wmkeyboard.core.providers.ProviderRunner
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
+import com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate
 import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import com.wasimaster.wmkeyboard.core.settings.sink.S3Sink
@@ -11187,6 +11188,7 @@ class SettingsRepository(private val context: Context) {
             // Same reasoning for the network log's switch: whoever reads
             // settings keeps the log's idea of "on" current.
             NetLog.enabled = it.networkLog.keep
+            DataSaverDownloadGate.settings = it.dataSaver
             IntegrityChecks.enabled = it.verifyChecksums
         }
         .flowOn(Dispatchers.Default)

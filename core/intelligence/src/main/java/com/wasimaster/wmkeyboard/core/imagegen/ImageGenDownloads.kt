@@ -1,20 +1,18 @@
 package com.wasimaster.wmkeyboard.core.imagegen
 
+import com.wasimaster.wmkeyboard.core.ocr.screenText
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
+import com.wasimaster.wmkeyboard.core.download.DownloadException
 import android.content.Context
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import java.util.zip.ZipInputStream
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
@@ -35,8 +33,8 @@ import kotlinx.coroutines.launch
  * picture filter beside the first one, and the runtime module first wherever
  * it is delivered on demand, so the screen shows one bar for all of it.
  *
- * Each file goes to a `.part` beside it, resumes with a range request where
- * the server allows one, and gets its name only after its SHA-256 matched.
+ * Each file goes through [FileDownloader]: parallel ranges into a `.part`
+ * that resumes piece by piece, and its name only after its SHA-256 matched.
  * An NPU build arrives as Qualcomm's zip, checked whole and then unpacked;
  * the zip is deleted once its files are out.
  */
@@ -50,8 +48,6 @@ object ImageGenDownloads {
     }
 
     private const val SPACE_MARGIN_BYTES = 128L * 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val USER_AGENT = "WMKeyboard model downloader"
     private const val BUFFER_BYTES = 64 * 1024
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -163,7 +159,7 @@ object ImageGenDownloads {
         val total = parts.sumOf { it.second.bytes }
         // An NPU zip unpacks to about 1.6 times its size, beside it, before the zip goes.
         val unpack = model.npuBuild()?.zip?.bytes?.let { (it * 1.6).toLong() } ?: 0L
-        val staged = parts.sumOf { (f, p) -> File(f.path + ".part").length().coerceAtMost(p.bytes) }
+        val staged = parts.sumOf { (f, p) -> FileDownloader.bytesDone(File(f.path + ".part")).coerceAtMost(p.bytes) }
         val needed = total - staged + unpack + SPACE_MARGIN_BYTES
         if (StatFs(folder.path).availableBytes < needed) {
             throw FailedException(R.string.core_intel_ocr_download_error_no_space, (needed / 1e6).roundToInt().toString())
@@ -193,14 +189,12 @@ object ImageGenDownloads {
         onBytes: (Long) -> Unit,
     ) {
         val url = ImageGenModels.url(part) ?: throw FailedException(R.string.core_intel_semantic_no_source)
-        val staged = File(target.path + ".part")
-        fetch(url, part.bytes, staged, source, onBytes)
-        if (sha256(staged) != part.sha256) {
-            staged.delete()
-            throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
+        try {
+            FileDownloader.fetchVerified(url, target, part.bytes, part.sha256, source, what = part.fileName, onBytes = onBytes)
+        } catch (e: DownloadException) {
+            val (res, arg) = e.screenText()
+            throw FailedException(res, arg)
         }
-        target.delete()
-        if (!staged.renameTo(target)) throw IOException("could not move ${part.fileName} into place")
     }
 
     /** Unpacks [names] from Qualcomm's zip (one folder inside it) into [into], then stamps it complete. */
@@ -231,73 +225,6 @@ object ImageGenDownloads {
         File(staging, ImageGenModels.STAMP).writeText(zip.name)
         into.deleteRecursively()
         if (!staging.renameTo(into)) throw IOException("could not move ${into.name} into place")
-    }
-
-    /** Fetches [url] into [target], resuming a partial one, never past [size]. */
-    private suspend fun fetch(url: String, size: Long, target: File, source: NetSource, onBytes: (Long) -> Unit) {
-        val resumeFrom = target.length().takeIf { it in 1 until size } ?: 0L
-        if (resumeFrom == 0L) target.delete()
-        val connection = URL(url).openConnection() as HttpURLConnection
-        val call = NetLog.call(source, "GET", url, route = NetLog.pathOf(url))
-        try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            connection.setRequestProperty("Accept-Encoding", "identity")
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-            val status = connection.responseCode
-            call.status = status
-            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
-                throw FailedException(R.string.core_intel_ocr_download_error_http, status.toString())
-            }
-            val from = if (status == HttpURLConnection.HTTP_PARTIAL) resumeFrom else 0L
-            var written = from
-            var lastUpdate = 0L
-            call.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(target, "rw").use { out ->
-                    out.setLength(from)
-                    out.seek(from)
-                    val buffer = ByteArray(BUFFER_BYTES)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        if (written + read > size) {
-                            target.delete()
-                            throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
-                        }
-                        out.write(buffer, 0, read)
-                        written += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                            lastUpdate = now
-                            onBytes(written)
-                        }
-                    }
-                }
-            }
-            if (written != size) throw FailedException(R.string.core_intel_ocr_download_error_interrupted)
-        } catch (t: Throwable) {
-            call.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            call.end()
-        }
-    }
-
-    private fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(BUFFER_BYTES)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     /** This phone's NPU chip, for the screen: null when the NPU model is not offered. */

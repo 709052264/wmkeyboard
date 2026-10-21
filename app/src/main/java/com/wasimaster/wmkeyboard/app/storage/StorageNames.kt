@@ -172,7 +172,7 @@ internal object StorageNames {
      * installed package. None of them care which directory they are in.
      */
     private fun anywhereOf(name: String): Int? = when {
-        name.endsWith(".part") -> R.string.storage_item_partial_label
+        name.endsWith(".part") || name.endsWith(".part.ranges") -> R.string.storage_item_partial_label
         name.startsWith(".staging_") -> R.string.storage_file_staging_label
         name.endsWith(".tmp") -> R.string.storage_file_temp_label
         name == ".version" -> R.string.storage_file_version_marker_label

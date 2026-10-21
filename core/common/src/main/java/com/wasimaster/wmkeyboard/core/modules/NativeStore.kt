@@ -75,6 +75,8 @@ class NativeStore(val root: File) {
             val stale = when {
                 child.isDirectory -> child.name !in keep
                 child.name.endsWith(".part") -> child.name.removeSuffix(".part") !in keep
+                // A paused download's resume map (FileDownloader) lives as long as its `.part`.
+                child.name.endsWith(".part.ranges") -> child.name.removeSuffix(".part.ranges") !in keep
                 else -> true
             }
             if (stale) {

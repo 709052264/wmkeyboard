@@ -284,6 +284,25 @@ Every downloadable asset comes over HTTPS, but the integrity check behind
 it isn't uniform. Don't assume every download is checksummed just because
 some are.
 
+A large file doesn't come down as one long request. Models, feature
+libraries, conversion tables, spellers, interface language packs and app
+updates are fetched as up to twelve requests at once, each asking for its
+own piece of the file. GitHub, which hosts most of them, holds a single
+connection from Bangladesh to between 0.3 and 0.8 MB a second, and twelve
+side by side measured about 5 MB a second on a phone; a server that is fast
+on one connection, such as Maven Central, is no slower for it. Each request
+is its own row in [Network activity](/privacy/network-activity/), to the same
+host as before. The pieces are written into a `.part` file with a small
+`.ranges` file beside it that records how far each piece got, so a download
+that stops, whether you cancelled it, lost the signal or the app was closed,
+asks next time only for the bytes it doesn't have. A server that won't answer
+a request for part of a file is read in one go instead. None of this changes
+the checks in the table: a file is still measured and hashed whole before it
+is used. Word lists, word-pair data, emoji keywords and the other small packs
+that are unpacked as they arrive still come as one request, because a size
+tier stops reading part way through the file and fetching all of it first
+would cost more data.
+
 | Download | Source | Integrity check | Confirms before using mobile data? |
 |---|---|---|---|
 | Dictionaries and wordlists | the project's GitHub data repository | none beyond the gzip stream's own format check | Only from the "download everything for this language" button, which asks while [Data saver](/privacy/data-saver/) is on and its **Downloads** row is set to *Ask each time* (the default) |

@@ -227,11 +227,11 @@ private fun emptyOut(path: File) {
 /**
  * Deletes the sidecars an interrupted import or download leaves behind — every
  * store in the app stages into `.staging_<random>/` and downloads into `*.part`
- * — without touching the files the store itself is tracking.
+ * with its `*.part.ranges` resume map — without touching the files the store itself is tracking.
  */
 private fun sweepLeftovers(dir: File) {
     childrenOf(dir)
-        .filter { it.name.startsWith(".staging_") || it.name.endsWith(".part") }
+        .filter { it.name.startsWith(".staging_") || it.name.endsWith(".part") || it.name.endsWith(".part.ranges") }
         .forEach { it.deleteRecursively() }
 }
 

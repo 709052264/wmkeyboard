@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import android.os.StatFs
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
@@ -66,7 +67,7 @@ object StrongDenoise {
     fun isDownloaded(filesDir: File): Boolean = modelFile(filesDir).length() == BYTES
 
     fun bytesOnDisk(filesDir: File): Long =
-        rootDir(filesDir).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+        FileDownloader.bytesUnder(rootDir(filesDir))
 
     /** Whether this build can run it at all, counting a runtime not fetched yet. */
     val runtimeShipped: Boolean get() = SherpaNative.shipped

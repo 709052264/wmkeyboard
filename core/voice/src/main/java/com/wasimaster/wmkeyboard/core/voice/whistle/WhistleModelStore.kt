@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whistle
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import java.io.File
 import java.security.MessageDigest
@@ -26,7 +27,7 @@ object WhistleModelStore {
     fun isDownloaded(filesDir: File): Boolean = modelFile(filesDir).let { it.isFile && it.length() == MODEL_BYTES }
 
     fun bytesOnDisk(filesDir: File): Long =
-        listOf(modelFile(filesDir), partialFile(filesDir)).sumOf { if (it.isFile) it.length() else 0L }
+        (if (modelFile(filesDir).isFile) modelFile(filesDir).length() else 0L) + FileDownloader.bytesDone(partialFile(filesDir))
 
     fun hasValidChecksum(file: File): Boolean {
         if (!file.isFile || file.length() != MODEL_BYTES) return false

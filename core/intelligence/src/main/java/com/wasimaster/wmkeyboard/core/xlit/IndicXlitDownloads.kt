@@ -4,26 +4,22 @@ import android.content.Context
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.ocr.screenText
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,8 +30,8 @@ import kotlinx.coroutines.launch
  * delivered on demand (Play's `:feature:onnx`, or the pinned library on a
  * GitHub or F-Droid build), so the settings row shows one bar for both.
  *
- * Each file goes to a `.part` beside it, resumes with a range request where
- * the server allows one, and gets its name only after its SHA-256 matched.
+ * Each file goes through [FileDownloader]: parallel ranges into a `.part`
+ * that resumes piece by piece, and its name only after its SHA-256 matched.
  * Process-wide: the language screens and the keyboard read the same [status].
  */
 object IndicXlitDownloads {
@@ -52,9 +48,6 @@ object IndicXlitDownloads {
     }
 
     private const val SPACE_MARGIN_BYTES = 32L * 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val USER_AGENT = "WMKeyboard model downloader"
-    private const val BUFFER_BYTES = 64 * 1024
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
@@ -139,7 +132,7 @@ object IndicXlitDownloads {
         val dir = context.noBackupFilesDir
         for (part in IndicXlitModels.Part.entries) {
             IndicXlitModels.file(dir, part).delete()
-            IndicXlitModels.partFile(dir, part).delete()
+            FileDownloader.discard(IndicXlitModels.partFile(dir, part))
         }
         _status.value = Status.NotDownloaded
     }
@@ -150,7 +143,7 @@ object IndicXlitDownloads {
     private suspend fun download(dir: File, parts: List<IndicXlitModels.Part>, alreadyFetched: Long) {
         val folder = IndicXlitModels.dir(dir).apply { mkdirs() }
         val total = parts.sumOf { it.bytes }
-        val staged = parts.sumOf { IndicXlitModels.partFile(dir, it).length().coerceAtMost(it.bytes) }
+        val staged = parts.sumOf { FileDownloader.bytesDone(IndicXlitModels.partFile(dir, it)).coerceAtMost(it.bytes) }
         if (StatFs(folder.path).availableBytes < total - staged + SPACE_MARGIN_BYTES) {
             val neededMb = ((total - staged + SPACE_MARGIN_BYTES) / 1e6).roundToInt()
             throw FailedException(R.string.core_intel_ocr_download_error_no_space, neededMb.toString())
@@ -159,84 +152,21 @@ object IndicXlitDownloads {
         val grandTotal = alreadyFetched + total
         for (part in parts) {
             val url = IndicXlitModels.url(part) ?: throw FailedException(R.string.core_intel_semantic_no_source)
-            val partFile = IndicXlitModels.partFile(dir, part)
-            fetch(url, part.bytes, partFile) { written -> _status.value = Status.Downloading(done + written, grandTotal) }
-            if (sha256(partFile) != part.sha256) {
-                partFile.delete()
-                throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
+            try {
+                FileDownloader.fetchVerified(
+                    url = url,
+                    target = IndicXlitModels.file(dir, part),
+                    size = part.bytes,
+                    sha256 = part.sha256,
+                    source = NetSource.DOWNLOAD_XLIT,
+                    part = IndicXlitModels.partFile(dir, part),
+                    what = part.fileName,
+                ) { written -> _status.value = Status.Downloading(done + written, grandTotal) }
+            } catch (e: DownloadException) {
+                val (res, arg) = e.screenText()
+                throw FailedException(res, arg)
             }
-            val target = IndicXlitModels.file(dir, part)
-            target.delete()
-            if (!partFile.renameTo(target)) throw IOException("could not move ${part.fileName} into place")
             done += part.bytes
         }
-    }
-
-    /** Fetches [url] into [target], resuming a partial one, never past [size]. */
-    private suspend fun fetch(url: String, size: Long, target: File, onBytes: (Long) -> Unit) {
-        val resumeFrom = target.length().takeIf { it in 1 until size } ?: 0L
-        if (resumeFrom == 0L) target.delete()
-        val connection = URL(url).openConnection() as HttpURLConnection
-        val call = NetLog.call(NetSource.DOWNLOAD_XLIT, "GET", url, route = NetLog.pathOf(url))
-        try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            connection.setRequestProperty("Accept-Encoding", "identity")
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-            val status = connection.responseCode
-            call.status = status
-            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
-                throw FailedException(R.string.core_intel_ocr_download_error_http, status.toString())
-            }
-            val from = if (status == HttpURLConnection.HTTP_PARTIAL) resumeFrom else 0L
-            var written = from
-            var lastUpdate = 0L
-            call.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(target, "rw").use { out ->
-                    out.setLength(from)
-                    out.seek(from)
-                    val buffer = ByteArray(BUFFER_BYTES)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        // Longer than pinned is not the pinned file; stop paying for it.
-                        if (written + read > size) {
-                            target.delete()
-                            throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
-                        }
-                        out.write(buffer, 0, read)
-                        written += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                            lastUpdate = now
-                            onBytes(written)
-                        }
-                    }
-                }
-            }
-            if (written != size) throw FailedException(R.string.core_intel_ocr_download_error_interrupted)
-        } catch (t: Throwable) {
-            call.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            call.end()
-        }
-    }
-
-    private fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(BUFFER_BYTES)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 }

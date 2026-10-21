@@ -2,25 +2,20 @@ package com.wasimaster.wmkeyboard.core.voice.futoswipe
 
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
-import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.executorch.Tensor
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -140,8 +135,6 @@ object FutoSwipe {
         /** [messageArg] is the one argument [messageRes] takes, or "" for none. */
         data class Failed(@StringRes val messageRes: Int, val messageArg: String = "") : Status
     }
-
-    private const val USER_AGENT = "WMKeyboard model downloader"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var job: Job? = null
     private val _status = MutableStateFlow<Status>(Status.NotDownloaded)
@@ -196,47 +189,18 @@ object FutoSwipe {
     }
 
     private suspend fun fetch(f: ModelFile, target: File, base: Long) {
-        val part = File(target.parentFile, "${target.name}.part")
-        val connection = URL(f.url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(NetSource.DOWNLOAD_GLIDE, "GET", f.url, route = NetLog.pathOf(f.url))
         try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            netCall.status = connection.responseCode
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                throw Failed(R.string.core_voice_download_http_error, connection.responseCode.toString())
+            FileDownloader.fetchVerified(f.url, target, f.bytes, f.sha256, NetSource.DOWNLOAD_GLIDE, what = f.path) { written ->
+                _status.value = Status.Downloading(base + written, bytes)
             }
-            var written = 0L
-            netCall.countIn(connection.inputStream).use { input ->
-                part.outputStream().use { out ->
-                    val buffer = ByteArray(64 * 1024)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        out.write(buffer, 0, read)
-                        written += read
-                        _status.value = Status.Downloading(base + written, bytes)
-                    }
-                }
+        } catch (e: DownloadException) {
+            throw when (e) {
+                is DownloadException.Http -> Failed(R.string.core_voice_download_http_error, e.status.toString())
+                is DownloadException.Interrupted -> Failed(R.string.core_voice_download_interrupted_error)
+                is DownloadException.Blocked -> Failed(CommonR.string.common_error_download_held)
+                is DownloadException.WrongSize, is DownloadException.Mismatch -> Failed(R.string.core_voice_whistle_checksum_error)
             }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
         }
-        if (part.length() != f.bytes ||
-            !IntegrityChecks.accept(EtStore.sha256(part).equals(f.sha256, ignoreCase = true), f.path)
-        ) {
-            part.delete()
-            throw Failed(R.string.core_voice_whistle_checksum_error)
-        }
-        target.delete()
-        check(part.renameTo(target)) { "could not move the finished download into place" }
     }
 }
 

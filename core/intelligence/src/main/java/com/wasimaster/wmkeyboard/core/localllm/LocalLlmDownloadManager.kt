@@ -2,20 +2,17 @@ package com.wasimaster.wmkeyboard.core.localllm
 
 import android.os.StatFs
 import androidx.annotation.StringRes
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
 import java.net.HttpURLConnection
-import java.net.URL
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,7 +27,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
  * recomposition, rotation, and screen navigation; the settings UI just
  * collects [states]. Deliberately no WorkManager or foreground service
  * (the app uses neither): leaving the app can stop an in-flight download,
- * but the `.part` file plus an HTTP Range request make Resume pick up
+ * but [FileDownloader]'s `.part` and its resume map make Resume pick up
  * exactly where it stopped — including after process death.
  *
  * One download at a time: these are multi-GB files and parallel downloads
@@ -91,8 +88,6 @@ object LocalLlmDownloadManager {
 
     /** Free space to leave untouched after a download completes. */
     private const val SPACE_MARGIN_BYTES = 64L * 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val USER_AGENT = "WMKeyboard model downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var activeJob: Job? = null
@@ -125,7 +120,7 @@ object LocalLlmDownloadManager {
                     // Never clobber a live download's progress state.
                     model.id == activeId && isBusy && active != null -> active
                     LocalLlmStore.isDownloaded(filesDir, model) -> DownloadStatus.Downloaded
-                    part != null -> DownloadStatus.Paused(part.first.length(), part.second)
+                    part != null -> DownloadStatus.Paused(FileDownloader.bytesDone(part.first), part.second)
                     else -> DownloadStatus.NotDownloaded
                 }
             }
@@ -150,7 +145,13 @@ object LocalLlmDownloadManager {
         val projectorBytes = projector?.sizeBytes ?: 0L
         val total = sizeBytes + projectorBytes
         val projectorPart = projector?.let { LocalLlmStore.partFile(filesDir, model, it.fileName) }
-        set(model.id, DownloadStatus.Downloading((projectorPart?.length() ?: projectorBytes) + part.length(), total))
+        set(
+            model.id,
+            DownloadStatus.Downloading(
+                (projectorPart?.let(FileDownloader::bytesDone) ?: projectorBytes) + FileDownloader.bytesDone(part),
+                total,
+            ),
+        )
         activeJob = scope.launch {
             try {
                 if (projector != null && projectorPart != null) {
@@ -165,9 +166,9 @@ object LocalLlmDownloadManager {
                 // overwrites that with Paused(0, size), resurrecting a model
                 // the user just deleted.
                 if (part.isFile) {
-                    set(model.id, DownloadStatus.Paused(projectorBytes + part.length(), total))
+                    set(model.id, DownloadStatus.Paused(projectorBytes + FileDownloader.bytesDone(part), total))
                 } else if (projectorPart?.isFile == true) {
-                    set(model.id, DownloadStatus.Paused(projectorPart.length(), total))
+                    set(model.id, DownloadStatus.Paused(FileDownloader.bytesDone(projectorPart), total))
                 }
                 throw e
             } catch (e: FailedException) {
@@ -211,7 +212,7 @@ object LocalLlmDownloadManager {
         // spliced two uploads together, or a wrong file, never does.
         expectedSha256(model, fileName)?.let { expected ->
             if (!sha256Of(part).equals(expected, ignoreCase = true)) {
-                part.delete()
+                FileDownloader.discard(part)
                 throw FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_checksum)
             }
         }
@@ -226,18 +227,7 @@ object LocalLlmDownloadManager {
             ?: model.projector?.takeIf { it.fileName == fileName }?.sha256
 
     /** Hex SHA-256 of [file]'s contents. Reads the whole file: IO dispatcher only. */
-    fun sha256Of(file: File): String {
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(1024 * 1024)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
-    }
+    fun sha256Of(file: File): String = FileDownloader.sha256(file)
 
     fun delete(filesDir: File, model: LocalLlmModel) {
         if (model.id == activeId) cancel()
@@ -267,11 +257,11 @@ object LocalLlmDownloadManager {
         part: File,
         hfToken: String,
         progressBase: Long = 0L,
-        /** The whole download's size when it is more than this file; -1 for the server's count. */
+        /** The whole download's size when it is more than this file; -1 for this file's. */
         progressTotal: Long = -1L,
     ) {
         part.parentFile?.mkdirs()
-        var resumeFrom = part.length()
+        val resumeFrom = FileDownloader.bytesDone(part)
 
         val free = StatFs(part.parentFile!!.path).availableBytes
         if (free < sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) {
@@ -284,97 +274,40 @@ object LocalLlmDownloadManager {
         }
 
         val url = LocalLlmCatalog.downloadUrl(model, fileName)
-        val connection = URL(url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(NetSource.DOWNLOAD_LLM, "GET", url, route = NetLog.pathOf(url))
+        // The catalog's sizes are approximate, so the server's length is the
+        // file's; the pinned rows' hash decides after it lands.
+        val headers = if (hfToken.isNotBlank()) mapOf("Authorization" to "Bearer $hfToken") else emptyMap()
         try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            if (hfToken.isNotBlank()) {
-                connection.setRequestProperty("Authorization", "Bearer $hfToken")
-            }
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-
-            netCall.status = connection.responseCode
-            when (val status = connection.responseCode) {
-                HttpURLConnection.HTTP_PARTIAL -> Unit // appending below
-                HttpURLConnection.HTTP_OK -> {
-                    // Server ignored the Range (or none was sent) — start over.
-                    resumeFrom = 0
-                }
-                HttpURLConnection.HTTP_UNAUTHORIZED -> throw FailedException(
-                    FailReason.GATED_NO_TOKEN,
-                    if (hfToken.isBlank()) {
-                        R.string.core_intel_llm_download_error_gated_no_token
-                    } else {
-                        R.string.core_intel_llm_download_error_token_rejected
-                    },
-                )
-                HttpURLConnection.HTTP_FORBIDDEN -> throw FailedException(
-                    FailReason.LICENSE_NOT_ACCEPTED,
-                    R.string.core_intel_llm_download_error_licence,
-                )
-                else -> throw FailedException(
-                    FailReason.OTHER,
-                    R.string.core_intel_llm_download_error_http,
-                    status.toString(),
+            FileDownloader.fetch(url, part, null, NetSource.DOWNLOAD_LLM, headers = headers) { written ->
+                set(
+                    model.id,
+                    DownloadStatus.Downloading(progressBase + written, if (progressTotal >= 0) progressTotal else sizeBytes),
                 )
             }
-
-            val remaining = connection.contentLengthLong
-            val total = if (remaining >= 0) resumeFrom + remaining else -1L
-            var written = resumeFrom
-            var lastUpdate = 0L
-
-            netCall.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { out ->
-                    out.setLength(resumeFrom)
-                    out.seek(resumeFrom)
-                    val buffer = ByteArray(256 * 1024)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        out.write(buffer, 0, read)
-                        written += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                            lastUpdate = now
-                            set(
-                                model.id,
-                                DownloadStatus.Downloading(progressBase + written, if (progressTotal >= 0 && total >= 0) progressTotal else total),
-                            )
-                        }
-                    }
-                }
-            }
-
-            if (total >= 0) {
-                if (written != total) {
-                    throw FailedException(
-                        FailReason.NETWORK,
-                        R.string.core_intel_llm_download_error_truncated,
+        } catch (e: DownloadException) {
+            throw when (e) {
+                is DownloadException.Http -> when (e.status) {
+                    HttpURLConnection.HTTP_UNAUTHORIZED -> FailedException(
+                        FailReason.GATED_NO_TOKEN,
+                        if (hfToken.isBlank()) {
+                            R.string.core_intel_llm_download_error_gated_no_token
+                        } else {
+                            R.string.core_intel_llm_download_error_token_rejected
+                        },
                     )
+                    HttpURLConnection.HTTP_FORBIDDEN -> FailedException(
+                        FailReason.LICENSE_NOT_ACCEPTED,
+                        R.string.core_intel_llm_download_error_licence,
+                    )
+                    else -> FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_http, e.status.toString())
                 }
-            } else if (written < sizeBytes * 9 / 10) {
-                // No Content-Length to validate against. sizeBytes is only
-                // approximate, so use a loose floor: catch a grossly truncated
-                // body (clean EOF after a partial transfer) without false-
-                // rejecting a complete download whose real size differs a little
-                // from the catalog estimate. Otherwise a truncated file would be
-                // renamed into place and wrongly count as a valid model.
-                throw FailedException(
-                    FailReason.NETWORK,
-                    R.string.core_intel_llm_download_error_truncated,
-                )
+                is DownloadException.Interrupted ->
+                    FailedException(FailReason.NETWORK, R.string.core_intel_llm_download_error_truncated)
+                is DownloadException.Blocked ->
+                    FailedException(FailReason.NETWORK, CommonR.string.common_error_download_held)
+                is DownloadException.WrongSize, is DownloadException.Mismatch ->
+                    FailedException(FailReason.OTHER, R.string.core_intel_llm_download_error_checksum)
             }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
         }
     }
 }

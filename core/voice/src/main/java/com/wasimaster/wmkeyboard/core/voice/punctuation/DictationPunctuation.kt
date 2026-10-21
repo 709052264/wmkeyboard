@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.punctuation
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import android.os.StatFs
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.endpoints.GitForge
@@ -125,7 +126,7 @@ object DictationPunctuation {
     fun isDownloaded(filesDir: File): Boolean = Part.entries.all { file(filesDir, it).length() == it.bytes }
 
     fun bytesOnDisk(filesDir: File): Long =
-        rootDir(filesDir).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+        FileDownloader.bytesUnder(rootDir(filesDir))
 
     /** The release asset for [part], or null when the data repository is not on GitHub. */
     fun url(part: Part): String? {

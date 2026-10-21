@@ -63,6 +63,7 @@ open class WMApplication : Application() {
             DebugLog.setBuildTag(BuildConfig.FLAVOR)
             DebugLog.attach(this)
             NetLog.attach(this)
+            com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
             installOnDemandDelivery(this)
             return
         }
@@ -78,6 +79,8 @@ open class WMApplication : Application() {
         // The network activity log, before anything in this process can make
         // a request. Cheap: it reads two small files, or waits for the unlock.
         NetLog.attach(this)
+        // Data saving's say over a download the connection changes under.
+        com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)

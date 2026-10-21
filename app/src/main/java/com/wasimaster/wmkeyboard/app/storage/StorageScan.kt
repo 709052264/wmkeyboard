@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app.storage
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import android.app.usage.StorageStatsManager
 import android.content.Context
 import android.os.Build
@@ -341,7 +342,13 @@ internal fun diskUsage(root: File, blockSize: Long = DEFAULT_BLOCK): Long {
         val children = dir.listFiles() ?: continue
         for (child in children) {
             if (isLink(child)) continue
-            if (child.isDirectory) pending.addLast(child) else total += blocksFor(child.length(), blockSize)
+            if (child.isDirectory) {
+                pending.addLast(child)
+            } else {
+                // A paused download's `.part` is full length from its first byte; count what arrived.
+                val bytes = if (child.name.endsWith(".part")) FileDownloader.bytesDone(child) else child.length()
+                total += blocksFor(bytes, blockSize)
+            }
         }
     }
     return total

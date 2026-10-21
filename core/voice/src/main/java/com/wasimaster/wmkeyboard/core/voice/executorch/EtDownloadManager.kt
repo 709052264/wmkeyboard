@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
@@ -109,7 +110,7 @@ object EtDownloadManager {
         val dir = EtStore.dir(filesDir, model).apply { mkdirs() }
         val stillNeeded = model.files.sumOf { f ->
             val target = EtStore.file(filesDir, model, f)
-            if (target.length() == f.bytes) 0L else f.bytes - File(dir, "${f.name}.part").length()
+            if (target.length() == f.bytes) 0L else f.bytes - FileDownloader.bytesDone(File(dir, "${f.name}.part"))
         }
         if (StatFs(dir.path).availableBytes < stillNeeded + SPACE_MARGIN_BYTES) {
             throw PinnedDownload.FailedException(

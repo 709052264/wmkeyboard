@@ -1,23 +1,18 @@
 package com.wasimaster.wmkeyboard.core.dictionaries
 
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoBackend
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import java.util.zip.ZipException
 import java.util.zip.ZipInputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -64,8 +59,6 @@ object VoikkoDictionaryDownloads {
         /** The spelling library is not on the device, so nothing can be checked. */
         NO_LIBRARY,
     }
-
-    private const val USER_AGENT = "WMKeyboard Voikko dictionary downloader"
     private const val VERSION_NAME = "voikko.version"
 
     /** Ten times the Finnish dictionary: room for a bigger variant, not for a zip bomb. */
@@ -157,7 +150,7 @@ object VoikkoDictionaryDownloads {
     }
 
     private fun cleanUp(filesDir: File, langId: String) {
-        zipPart(filesDir, langId).delete()
+        FileDownloader.discard(zipPart(filesDir, langId))
         partDir(filesDir, langId).deleteRecursively()
     }
 
@@ -165,43 +158,12 @@ object VoikkoDictionaryDownloads {
         if (!VoikkoRuntime.moduleReady || !VoikkoRuntime.available) throw IOException("no Voikko library")
         val langId = entry.languageId
         val packed = zipPart(filesDir, langId).apply { parentFile?.mkdirs() }
-        val digest = MessageDigest.getInstance("SHA-256")
         val url = entry.url
-        val connection = URL(url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(NetSource.DOWNLOAD_WORDLIST, "GET", url, route = NetLog.pathOf(url))
-        try {
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            connection.setRequestProperty("Accept-Encoding", "identity")
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            netCall.status = connection.responseCode
-            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
-                throw IOException("HTTP ${connection.responseCode} for $url")
-            }
-            netCall.countIn(connection.inputStream).use { input ->
-                packed.outputStream().use { out ->
-                    val buffer = ByteArray(1 shl 16)
-                    var total = 0L
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val n = input.read(buffer)
-                        if (n < 0) break
-                        out.write(buffer, 0, n)
-                        digest.update(buffer, 0, n)
-                        total += n
-                        if (total > entry.packedBytes) throw IOException("$url is larger than its pin")
-                        set(langId, Status.Downloading(total, entry.packedBytes))
-                    }
-                }
-            }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            netCall.end()
-            connection.disconnect()
+        // The server's length is the archive's; the pin caps it and the hash decides.
+        FileDownloader.fetch(url, packed, null, NetSource.DOWNLOAD_WORDLIST, maxBytes = entry.packedBytes) {
+            set(langId, Status.Downloading(it, entry.packedBytes))
         }
-        val got = digest.digest().joinToString("") { "%02x".format(it) }
+        val got = FileDownloader.sha256(packed)
         if (got != entry.sha256) throw IOException("SHA-256 mismatch for $url: $got")
         val part = partDir(filesDir, langId)
         packed.inputStream().use { if (!unpack(it, part)) throw IOException("$url holds no dictionary") }
