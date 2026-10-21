@@ -700,6 +700,17 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "https://github.com/ceva-ip/DPDFNet",
             ),
         )
+        // Add punctuation and capitals: the model the phone downloads on
+        // request, run by libwmsherpa's token classifier.
+        add(
+            Attribution(
+                "punctuation-restoration-small",
+                R.string.about_bundled_punctuation_used,
+                "Horizon Labs, on mmBERT by Johns Hopkins University (MIT)",
+                "Apache-2.0", "apache-2.0.txt",
+                "https://huggingface.co/Horizon-Labs/punctuation-restoration-small",
+            ),
+        )
         add(
             Attribution(
                 "Omnilingual ASR",

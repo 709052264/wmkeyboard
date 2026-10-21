@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.semantic
 
+import com.wasimaster.wmkeyboard.core.text.GemmaTokenizer
 import java.io.ByteArrayOutputStream
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals

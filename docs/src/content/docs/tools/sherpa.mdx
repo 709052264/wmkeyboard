@@ -29,7 +29,7 @@ Offline Sherpa runs [sherpa-onnx](https://github.com/k2-fsa/sherpa-onnx), k2-fsa
 | Kroko Spanish | Spanish | 158 MB | CC-BY-SA-4.0 |
 | Zipformer Chinese | Mandarin | 169 MB | Apache-2.0 |
 | Zipformer ar en id ja ru th vi zh | Arabic, English, Indonesian, Japanese, Russian, Thai, Vietnamese, Mandarin | 341 MB | Apache-2.0 |
-| Punctuation (English) | adds punctuation and capitals to English | 8 MB | |
+| Punctuation (English) | punctuation and capitals for English; see below | 8 MB | |
 
 The sizes include Silero VAD (2 MB), a small voice detector every model carries so that deleting one never breaks another.
 
@@ -41,7 +41,7 @@ While you speak, the words go into the field as underlined composing text, rewri
 
 **Which model.** When two downloaded models know the language, the larger one dictates. The model list marks each one in use, and **Engine for each language** can pin a language to a particular model.
 
-**Punctuation.** Most of these models write plain words with no punctuation, and the English ones trained on audiobooks spell in capitals. Sherpa turns capitals into ordinary lower case; the keyboard then capitalises the start of a sentence. Download **Punctuation (English)** and English phrases from any Sherpa model also get commas, full stops, question marks and capitals for names, once the phrase is finished. Spoken punctuation ("comma", "full stop") works either way.
+**Punctuation.** Most of these models write plain words with no punctuation, and the English ones trained on audiobooks spell in capitals. Sherpa turns capitals into ordinary lower case. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a finished phrase gets full stops, commas, question marks and sentence capitals from a punctuation model for 88 languages, downloaded from that setting's row on the Voice typing screen. **Punctuation (English)** here does the same for English on its own, and with both on the phone an English phrase takes the multilingual model's marks and this one's capitals for names. The German, Spanish, Korean and eight-language models punctuate by themselves and are left as they are. Spoken punctuation ("comma", "full stop") works either way.
 
 ## Reduce background noise
 

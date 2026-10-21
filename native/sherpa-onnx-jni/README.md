@@ -24,6 +24,13 @@ character, the blank between them) is a few lines of Kotlin, and building
 sherpa-onnx's TTS would link espeak-ng, which is GPL-3.0, for phonemes these
 voices never use.
 
+Add punctuation and capitals runs here too (`tagger_jni.cpp`, driven by
+`core.voice.punctuation.DictationPunctuation`): a generic token classifier on
+ONNX Runtime's C++ API, used for Horizon Labs' punctuation-restoration-small
+(mmBERT-small, Apache-2.0), which puts full stops, commas and question marks
+into the bare words Sherpa and Omnilingual write. See
+[Choosing the punctuation model](#choosing-the-punctuation-model).
+
 Reduce background noise at Strong runs here too (`dpdfnet_jni.cpp`, driven by
 `core.voice.StrongDenoise`): sherpa-onnx's streaming speech denoiser over Ceva's
 DPDFNet baseline model (DeepFilterNet2 with dual-path RNN blocks, Apache-2.0,
@@ -111,6 +118,14 @@ Handles are `Long`s, 0 on failure; text crosses as UTF-8 byte arrays.
   sentence's samples, null on failure; inputs matched by name, a `sid` input
   fed 0), `nativeVitsFree`.
 
+- `nativeTagger(model, threads)`: a token classifier, 0 on failure or when the
+  model takes an input other than `input_ids` and `attention_mask`.
+  `nativeTag(handle, ids, count)` runs the first `count` ids as one (1, n)
+  int64 row, an all-ones mask beside it when the model has one, and returns
+  the argmax of the first output's (1, n, labels) logits for each id, specials
+  included; null when the run fails. `nativeTaggerFree`. Tokenising and
+  reading the labels back onto the words is Kotlin's (`PunctuationText`).
+
 - `nativeDenoiser(model, threads, delay, keep)`: a streaming DPDFNet denoiser,
   0 on failure (or a model whose rate is not 16 kHz). `nativeDenoise(handle,
   samples, count)` returns what is ready, `keep` times the input `delay`
@@ -157,3 +172,73 @@ noise of the baseline on accuracy at twice the work, and DeepFilterNet3 needs
 48 kHz audio and its own STFT and feature code (or the Rust runtime) on top,
 so the baseline is the one shipped. Peak RSS of the Python process running it
 was under 90 MB.
+
+## Choosing the punctuation model
+
+Measured on a Mac (2026-10-21) before anything was built. Held-out text in
+eight languages had its punctuation and case stripped to what an engine writes
+(lower case, no marks, apostrophes and in-number marks kept), each candidate
+restored it, and every word end was scored for the mark after it (full stop
+with `!` `;` `।` `。` and the like, comma, question mark): micro F1 over the
+three. Two sets: 200 FLORES-200 devtest paragraphs of one to three sentences of
+an article, the same articles in every language, and 200 groups of two or
+three Tatoeba sentences per language, short and conversational, about one
+in seven a question (FLORES has almost none).
+
+FLORES-200, punctuation F1:
+
+| Model | Phone size | en | bn | hi | es | ar | zh | ru | fr |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1-800-BAD-CODE punct_cap_seg_47 (int8) | 59 MB | 0.667 | 0.606 | 0.575 | 0.634 | 0.606 | 0.627 | 0.805 | 0.646 |
+| 1-800-BAD-CODE xlm-roberta pcs (fp32) | 1.1 GB | 0.802 | 0.691 | 0.711 | 0.782 | 0.673 | 0.808 | 0.871 | 0.815 |
+| sherpa-onnx CT-Transformer (zh, en) | 294 MB | 0.560 | | | | | 0.559 | | |
+| sherpa-onnx English online model | 7.5 MB | 0.659 | | | | | | | |
+| **Horizon punctuation-restoration-small, as shipped** | 151 MB | **0.805** | **0.730** | **0.776** | **0.838** | **0.726** | **0.830** | **0.900** | **0.853** |
+
+Tatoeba, punctuation F1 (English question marks alone: 0.95 shipped, 0.98
+xlm-roberta, 0.60 the English online model):
+
+| Model | en | bn | hi | es | ar | zh | ru | fr |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| punct_cap_seg_47 (int8) | 0.856 | 0.797 | 0.721 | 0.741 | 0.659 | 0.652 | 0.664 | 0.689 |
+| xlm-roberta pcs (fp32) | 0.895 | 0.881 | 0.804 | 0.776 | 0.715 | 0.716 | 0.824 | 0.830 |
+| English online model | 0.623 | | | | | | | |
+| **Shipped** | **0.935** | 0.858 | **0.857** | **0.800** | **0.741** | 0.657 | **0.860** | **0.853** |
+
+Capitals, FLORES, share of words whose first letter's case is right (en, es,
+ru, fr): xlm-roberta 0.977 to 0.981; punct_cap_seg 0.948 to 0.953; the English
+model 0.967. The shipped model writes no capitals: sentence starts by rule
+give 0.918 to 0.950, plus a capitals lexicon of the kind the keyboard's word
+lists hold 0.944 to 0.962, and for English the English model's capitals laid
+over its marks 0.970 (punctuation unchanged at 0.805).
+
+Cost, median per paragraph on two threads of a shared M2: CT-Transformer 3 to
+4 ms, the English model 5, punct_cap_seg 8 to 10, the shipped model 14 to 37
+(Bangla, whose words take more tokens, the slowest), xlm-roberta 92 to 147.
+Memory of an open session: the shipped model 87 MB, xlm-roberta 837 MB,
+CT-Transformer 980 MB.
+
+So: Horizon's model for every language it knows. It is first on marks in all
+eight on FLORES and in six on Tatoeba, where xlm-roberta leads Bangla and
+Chinese; its 88 languages against 47 for the other
+multilingual ones, and an eighth of xlm-roberta's run time. xlm-roberta's better
+truecasing does not pay for a 1.1 GB model that punctuates worse, and the
+keyboard has a capitals lexicon already. English keeps the English model as a
+second pass for names, and as the whole of it on a phone without the big model.
+
+Quantisation, on Bangla, Hindi, Spanish and Chinese (120 FLORES paragraphs):
+Horizon's own `model_quantized.onnx` (int8 token table only) matched fp32
+but ONNX Runtime folds its dequantised table into a 393 MB float constant;
+dynamic int8 MatMuls lost 0.02 to 0.03 F1 (commas); 4-bit weight-only
+MatMulNBits lost as much; 8-bit weight-only MatMulNBits with int8 compute
+(`accuracy_level` 4) matched fp32 and was the fastest of all. That is what
+ships, with the int8 table dequantised after its Gather and the weights in an
+external data file, which ONNX Runtime maps: 319 MB of private memory for
+the same weights inline, 87 MB mapped. Checked identical on ONNX Runtime
+1.30.0, the app's.
+
+The JVM side was run against the same files: `GemmaTokenizer` a word at a
+time gives Hugging Face tokenizers' ids on all 3,200 test texts, the bridge's
+labels through JNI match the Python session's, and `PunctuationText`
+reproduces the scores above.
+

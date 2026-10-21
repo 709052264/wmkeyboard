@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.semantic
 
+import com.wasimaster.wmkeyboard.core.text.GemmaTokenizer
 import kotlin.math.floor
 import kotlin.math.sqrt
 

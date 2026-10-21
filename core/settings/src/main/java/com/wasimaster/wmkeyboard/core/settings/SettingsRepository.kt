@@ -5787,6 +5787,14 @@ data class WhisperSettings(
      */
     val denoise: String = VoiceDenoise.OFF,
     /**
+     * Add punctuation and capitals: full stops, commas, question marks and
+     * sentence capitals for the offline engines that write bare words
+     * (`DictationPunctuation` in `:core:voice`). On by default; it only acts
+     * once a punctuation model for the language is on the phone, and never on
+     * an engine that punctuates for itself or in plain voice typing.
+     */
+    val punctuate: Boolean = true,
+    /**
      * The transcription server's API root for the "server" engine, e.g.
      * `http://192.168.1.10:8000/v1`. Any server that speaks OpenAI's
      * `/audio/transcriptions` works; see `TranscriptionClient.endpoint`.
@@ -10587,6 +10595,7 @@ class SettingsRepository(private val context: Context) {
         // A switch before the level: on read as Light, the only level it had.
         private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
         private val VOICE_DENOISE_LEVEL = stringPreferencesKey("voice_denoise_level")
+        private val VOICE_PUNCTUATE = booleanPreferencesKey("voice_punctuate")
         private val VOICE_SERVER_URL = stringPreferencesKey("voice_server_url")
         private val VOICE_SERVER_KEY = stringPreferencesKey("voice_server_key")
         private val VOICE_SERVER_MODEL = stringPreferencesKey("voice_server_model")
@@ -12811,6 +12820,7 @@ class SettingsRepository(private val context: Context) {
             denoise = p[VOICE_DENOISE_LEVEL]?.takeIf { it in VoiceDenoise.LEVELS }
                 ?: p[VOICE_DENOISE]?.let { if (it) VoiceDenoise.LIGHT else VoiceDenoise.OFF }
                 ?: defaults.whisper.denoise,
+            punctuate = p[VOICE_PUNCTUATE] ?: defaults.whisper.punctuate,
             serverUrl = p[VOICE_SERVER_URL] ?: defaults.whisper.serverUrl,
             serverKey = p[VOICE_SERVER_KEY] ?: defaults.whisper.serverKey,
             serverModel = p[VOICE_SERVER_MODEL] ?: defaults.whisper.serverModel,
@@ -14206,6 +14216,9 @@ class SettingsRepository(private val context: Context) {
             it[VOICE_DENOISE_LEVEL] = value
             it.remove(VOICE_DENOISE)
         }
+
+    suspend fun setVoicePunctuate(value: Boolean) =
+        editPrefs { it[VOICE_PUNCTUATE] = value }
 
     suspend fun setVoiceServerUrl(value: String) =
         editPrefs { it[VOICE_SERVER_URL] = value.trim().trimEnd('/') }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
+import com.wasimaster.wmkeyboard.core.text.GemmaTokenizer
 import java.io.Closeable
 
 /**

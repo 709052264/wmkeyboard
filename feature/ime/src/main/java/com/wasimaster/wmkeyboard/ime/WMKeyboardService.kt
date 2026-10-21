@@ -686,6 +686,7 @@ import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
 import com.wasimaster.wmkeyboard.core.voice.moonshine.MoonshineEngine
 import com.wasimaster.wmkeyboard.core.voice.parakeet.ParakeetEngine
+import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaEngine
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
@@ -8892,11 +8893,14 @@ open class WMKeyboardService : InputMethodService() {
         if (asr4allJob?.isActive != true && EtNative.isOpen) {
             serviceScope.launch(EtNative.dispatcher) { if (asr4allJob?.isActive != true) EtNative.release() }
         }
-        if (asr4allJob?.isActive != true && (SherpaEngine.isOpen || OmnilingualEngine.isOpen)) {
+        if (asr4allJob?.isActive != true &&
+            (SherpaEngine.isOpen || OmnilingualEngine.isOpen || DictationPunctuation.isOpen)
+        ) {
             serviceScope.launch(SherpaNative.dispatcher) {
                 if (asr4allJob?.isActive != true) {
                     SherpaEngine.release()
                     OmnilingualEngine.release()
+                    DictationPunctuation.release()
                 }
             }
         }
@@ -28958,15 +28962,66 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Whether [model]'s phrases get marks and capitals from
+     * [DictationPunctuation]: it writes none of its own, Add punctuation and
+     * capitals is on, and the typing mode is not plain, which types the words
+     * exactly as they were said. Nor in the keyboard's own boxes (#353): a
+     * search is a phrase, not a sentence.
+     */
+    private fun voicePunctuates(model: EtModel): Boolean =
+        DictationPunctuation.needed(model) && _uiState.value.settings.whisper.punctuate && !plainVoice() &&
+            !voiceSessionForField
+
+    /**
+     * [text], a finished phrase from [model] in [languages], punctuated when
+     * [voicePunctuates] says so and a model for the languages is on the
+     * phone; as it was otherwise, or when the model fails. The model runs on
+     * [SherpaNative.dispatcher].
+     *
+     * Spoken punctuation goes first, here rather than only at the commit:
+     * "comma" typed as a word would get a mark of the model's after it, and
+     * then its own. The model puts nothing after a mark already there, and
+     * the commit's own pass finds nothing left to turn into one.
+     */
+    private suspend fun punctuateDictation(model: EtModel, text: String, languages: List<String>, tag: String): String {
+        if (text.isBlank() || !voicePunctuates(model)) return text
+        val spoken = if (_uiState.value.settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        return withContext(SherpaNative.dispatcher) {
+            runCatching { DictationPunctuation.punctuate(filesDir, spoken, languages) }.getOrDefault(text)
+        }
+    }
+
+    /**
+     * Names in a punctuated phrase spelled the way the keyboard's word lists
+     * and its memory of the user's capitals spell them ("london" becomes
+     * "London"): the punctuation model writes only sentence capitals. Only
+     * words with no capital yet are asked about. Main thread, where the
+     * suggestion engine is used.
+     */
+    private fun withListCapitals(text: String): String {
+        val engine = suggestionEngine ?: return text
+        return VOICE_CASED_WORD.replace(text) { match ->
+            val word = match.value
+            if (word.any { it.isUpperCase() } || word.none { it.isLowerCase() }) {
+                word
+            } else {
+                engine.displayOf(word).takeIf { it != word && it.equals(word, ignoreCase = true) } ?: word
+            }
+        }
+    }
+
+    /**
      * [pcm] transcribed by [model] the way [finishWhisper] does it, for a clip
      * recorded for the server that could not be sent (#452). Blocking; call off
      * the main thread.
      */
-    private fun transcribeOnDevice(voice: OnDeviceVoice, pcm: FloatArray, languages: List<String>): String {
+    private fun transcribeOnDevice(voice: OnDeviceVoice, pcm: FloatArray, languages: List<String>, tag: String): String {
         val model = when (voice) {
             is OnDeviceVoice.Whisper -> voice.model
             OnDeviceVoice.Whistle -> return transcribeWithWhistle(pcm, languages, recognizerBias().words)
-            is OnDeviceVoice.Et -> return runBlocking(liveDispatcher(voice.model.engine)) { transcribeWithEt(voice.model, pcm) }
+            is OnDeviceVoice.Et -> return runBlocking(liveDispatcher(voice.model.engine)) {
+                punctuateDictation(voice.model, transcribeWithEt(voice.model, pcm), languages, tag)
+            }
         }
         if (model.ggml) {
             val translate = _uiState.value.settings.whisper.translate && model.supportsTranslate
@@ -29449,11 +29504,16 @@ open class WMKeyboardService : InputMethodService() {
                             )
                         }
                         OnDeviceVoice.Whistle -> transcribeWithWhistle(pcm, languages, keywords)
-                        is OnDeviceVoice.Et -> if (liveEngine(model.model.engine)) {
-                            finishAsr4All(model.model, pcm)
-                        } else {
-                            withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm) }
-                        }
+                        is OnDeviceVoice.Et -> punctuateDictation(
+                            model.model,
+                            if (liveEngine(model.model.engine)) {
+                                finishAsr4All(model.model, pcm)
+                            } else {
+                                withContext(liveDispatcher(model.model.engine)) { transcribeWithEt(model.model, pcm) }
+                            },
+                            languages,
+                            tag,
+                        )
                     }
                 }
             }
@@ -29464,11 +29524,13 @@ open class WMKeyboardService : InputMethodService() {
             // language that could be misread as one in another script, and
             // whisper.cpp's repair is made inside [transcribeWithCpp].
             val detected = whisper != null && !cpp && langToken == null && whisper.fixedLang == null
+            val punctuated = (model as? OnDeviceVoice.Et)?.model?.let(::voicePunctuates) == true
             withContext(Dispatchers.Main) {
                 if (gen != voiceGeneration) return@withContext
                 result
                     .map { if (detected) WhisperScript.rescueAmong(it.trim(), languages) else it.trim() }
                     .map { VoiceClipGate.clean(it, faint) }
+                    .map { if (punctuated) withListCapitals(it) else it }
                     .onSuccess { commitWhisperResult(it, tag, userStopped) }
                     .onFailure { e ->
                         // What asr4all typed as it heard stays, as the system
@@ -29585,13 +29647,15 @@ open class WMKeyboardService : InputMethodService() {
             } else {
                 null
             }
-            val heard = if (local != null) runCatching { transcribeOnDevice(local, pcm, languages) } else result
+            val heard = if (local != null) runCatching { transcribeOnDevice(local, pcm, languages, tag) } else result
+            val punctuated = (local as? OnDeviceVoice.Et)?.model?.let(::voicePunctuates) == true
             withContext(Dispatchers.Main) {
                 if (gen != voiceGeneration) return@withContext
                 // Told on the move, and forgotten once the server answers again.
                 if (local != null || heard.isSuccess) noteOfflineFallback(OFFLINE_FALLBACK_VOICE, local != null)
                 heard
                     .map { VoiceClipGate.clean(it, faint) }
+                    .map { if (punctuated) withListCapitals(it) else it }
                     .onSuccess { commitWhisperResult(it, tag, userStopped) }
                     .onFailure { e ->
                         _uiState.update {
@@ -48962,6 +49026,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How often the line under the microphone reads whisper.cpp's decoding so far. */
         private const val VOICE_PARTIAL_POLL_MS = 200L
+
+        /** A word of a punctuated phrase, for [withListCapitals]: letters, their marks and apostrophes. */
+        private val VOICE_CASED_WORD = Regex("[\\p{L}\\p{M}'’]+")
 
         /** Enough of a WebP to read the header flag that says it is animated. */
         private const val WEBP_HEADER_BYTES = 32

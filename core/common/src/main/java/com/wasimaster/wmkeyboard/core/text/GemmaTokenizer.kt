@@ -1,4 +1,4 @@
-package com.wasimaster.wmkeyboard.core.semantic
+package com.wasimaster.wmkeyboard.core.text
 
 import java.io.File
 import java.util.PriorityQueue
@@ -8,7 +8,9 @@ import java.util.PriorityQueue
  * (262,144 pieces, byte fallback, no normalisation, no dummy prefix), read
  * from the `.model` file itself and run the way SentencePiece's own
  * `bpe_model.cc` runs it, so a text comes out as the same ids the model was
- * trained on.
+ * trained on. Dictation's punctuation model (mmBERT, Gemma 2's 256,000
+ * pieces) uses it too, a word at a time (`core.voice.punctuation` in
+ * `:core:voice`).
  *
  * The algorithm, in SentencePiece's words: spaces become `▁`; the text is
  * cut into characters, except that a user-defined piece (`<|image>`, runs of

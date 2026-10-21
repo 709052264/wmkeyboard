@@ -95,6 +95,14 @@ class EtModel(
      * Never a choice of its own; kept on the device, it punctuates.
      */
     val punctuation: Boolean = false,
+    /**
+     * Whether what it writes carries marks and capitals of its own. Sherpa's
+     * transducers mostly spell bare words, and Omnilingual always does;
+     * those get [com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation]'s.
+     * Read from each model's tokens.txt: a model whose vocabulary has no
+     * full stop cannot write one.
+     */
+    val writesPunctuation: Boolean = engine != EtEngine.SHERPA && engine != EtEngine.OMNILINGUAL,
 ) {
     val bytes: Long get() = files.sumOf { it.bytes }
 
@@ -265,6 +273,7 @@ object EtCatalog {
                 EtFile("encoder-epoch-99-avg-1.int8.onnx", 126_968_852L, "8d0b1aa24fbedd4e3948564ab7facd151b8ce9b0c48fc987c541de2de3af5697"),
             ),
             languages = setOf("ko"),
+            writesPunctuation = true,
         ),
         // A French Zipformer trained on Common Voice and others (Apache-2.0), int8.
         EtModel(
@@ -293,6 +302,7 @@ object EtCatalog {
                 EtFile("encoder.onnx", 70_091_557L, "6e83993d6967ec7a3498b055b7e85ace85b5d64d1b1e8773cb29a43a11f5edb5"),
             ),
             languages = setOf("de"),
+            writesPunctuation = true,
         ),
         // Banafo's Kroko community model for Spanish (CC-BY-SA-4.0).
         EtModel(
@@ -307,6 +317,7 @@ object EtCatalog {
                 EtFile("encoder.onnx", 154_878_102L, "2d9f5ef87d1a5257f8a6687e21501c56f3aa2fcbfcfab9364dcc4ce4e06ae81b"),
             ),
             languages = setOf("es"),
+            writesPunctuation = true,
         ),
         // k2-fsa's Mandarin Zipformer (Apache-2.0), int8.
         EtModel(
@@ -335,6 +346,7 @@ object EtCatalog {
                 EtFile("encoder-epoch-75-avg-11-chunk-16-left-128.int8.onnx", 296_583_597L, "f9001ed7a9e46d0294438c1a30cd7c72d1cc4bdd4e7880edbcda36f67081e32e"),
             ),
             languages = setOf("ar", "en", "id", "ja", "ru", "th", "vi", "zh"),
+            writesPunctuation = true,
         ),
         // The sherpa-onnx project's online punctuation model for English:
         // punctuation and capitals in one pass. Not on k2-fsa's own Hugging
@@ -367,7 +379,7 @@ object EtCatalog {
 
     fun byId(id: String): EtModel? = models.firstOrNull { it.id == id }
 
-    /** Sherpa's punctuation model, which every English Sherpa model uses once it is downloaded. */
+    /** Sherpa's English punctuation model: English dictation from the engines that write no marks uses it once it is downloaded. */
     val sherpaPunctuation: EtModel get() = models.first { it.engine == EtEngine.SHERPA && it.punctuation }
 
     fun forEngine(engine: EtEngine): List<EtModel> = models.filter { it.engine == engine }

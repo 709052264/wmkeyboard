@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.sherpa
 
 import com.wasimaster.wmkeyboard.core.voice.VoiceStream
-import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtModel
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtStore
@@ -12,9 +11,9 @@ import java.util.Locale
  * Offline Sherpa dictation: a streaming Zipformer transducer per language,
  * decoded while the user speaks, so the words reach the field as they are
  * said. Silero VAD, carried beside every model, hears the end of a phrase
- * sooner and more surely than a loudness threshold, and the English
- * punctuation model, once downloaded, punctuates and capitalises the finished
- * phrase.
+ * sooner and more surely than a loudness threshold. Marks and capitals come
+ * after, for the models that write none, from
+ * [com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation].
  *
  * One model stays open between dictations, since opening one takes about as
  * long as a short phrase does to say, until another takes its place. Every
@@ -36,14 +35,12 @@ object SherpaEngine {
 
     private var recognizer = 0L
     private var recognizerDir: String? = null
-    private var punctuation = 0L
-    private var punctuationDir: String? = null
 
     /**
-     * Streams not yet closed. Each one uses the recognizer and punctuation
-     * handles, so [release] leaves them alone until this is back to 0: a
-     * memory trim between the microphone closing and the phrase finishing
-     * must not free what the finish is about to read.
+     * Streams not yet closed. Each one uses the recognizer handle, so
+     * [release] leaves it alone until this is back to 0: a memory trim
+     * between the microphone closing and the phrase finishing must not free
+     * what the finish is about to read.
      */
     private var liveStreams = 0
 
@@ -71,18 +68,15 @@ object SherpaEngine {
             0L
         }
         liveStreams++
-        return SherpaStream(rec, stream, vad, punctuationFor(filesDir, model), endpointMs > 0) { liveStreams-- }
+        return SherpaStream(rec, stream, vad, endpointMs > 0) { liveStreams-- }
     }
 
     /** Closes whatever is open, unless a stream still uses it. On [SherpaNative.dispatcher] only. */
     fun release() {
         if (liveStreams > 0) return
         if (recognizer != 0L) SherpaNative.nativeRecognizerFree(recognizer)
-        if (punctuation != 0L) SherpaNative.nativePunctuationFree(punctuation)
         recognizer = 0L
         recognizerDir = null
-        punctuation = 0L
-        punctuationDir = null
         isOpen = false
     }
 
@@ -117,34 +111,17 @@ object SherpaEngine {
         isOpen = true
         return handle
     }
-
-    /** The punctuation model, for an English [model] when it is downloaded; else 0. */
-    private fun punctuationFor(filesDir: File, model: EtModel): Long {
-        val punct = EtCatalog.sherpaPunctuation
-        if (!model.supports("en") || model.supports("zh")) return 0L
-        if (!EtStore.isDownloaded(filesDir, punct)) return 0L
-        val dir = EtStore.dir(filesDir, punct)
-        if (punctuation != 0L && punctuationDir == dir.path) return punctuation
-        if (punctuation != 0L) SherpaNative.nativePunctuationFree(punctuation)
-        punctuation = SherpaNative.nativePunctuation(
-            EtStore.file(filesDir, punct, "model.int8.onnx").path,
-            EtStore.file(filesDir, punct, "bpe.vocab").path,
-        )
-        punctuationDir = if (punctuation != 0L) dir.path else null
-        return punctuation
-    }
 }
 
 /**
- * One phrase through a Sherpa recognizer. Its recognizer and punctuation
- * model belong to [SherpaEngine] and outlive it; its stream and VAD are its
- * own, freed by [close], which [finish] calls.
+ * One phrase through a Sherpa recognizer. Its recognizer belongs to
+ * [SherpaEngine] and outlives it; its stream and VAD are its own, freed by
+ * [close], which [finish] calls.
  */
 class SherpaStream internal constructor(
     private val recognizer: Long,
     private var stream: Long,
     private var vad: Long,
-    private val punctuation: Long,
     private val endpoints: Boolean,
     private val onClose: () -> Unit,
 ) : VoiceStream, AutoCloseable {
@@ -171,8 +148,7 @@ class SherpaStream internal constructor(
         SherpaNative.nativeFinish(recognizer, stream)
         val raw = readable(SherpaNative.nativeText(recognizer, stream))
         close()
-        if (raw.isEmpty() || punctuation == 0L) return raw
-        return String(SherpaNative.nativePunctuate(punctuation, raw.toByteArray(Charsets.UTF_8)), Charsets.UTF_8).trim()
+        return raw
     }
 
     /**
@@ -197,7 +173,7 @@ class SherpaStream internal constructor(
     private companion object {
         /**
          * The models trained on audiobooks spell in capitals ("HELLO
-         * WORLD"); the keyboard's casing, or the punctuation model, decides
+         * WORLD"); the keyboard's casing, or the punctuation pass, decides
          * the case instead. Text with any small letter is left alone.
          */
         fun readable(bytes: ByteArray): String {

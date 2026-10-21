@@ -11,7 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * sherpa-onnx, through `native/sherpa-onnx-jni`: k2-fsa's speech toolkit over
  * Microsoft's ONNX Runtime, plus the VITS runner that reads text aloud with
- * Meta's MMS voices ([com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech]). Two libraries, both behind the `onnx` gate
+ * Meta's MMS voices ([com.wasimaster.wmkeyboard.core.voice.speech.MmsSpeech])
+ * and the token classifier that punctuates dictation. Two libraries, both behind the `onnx` gate
  * (`:feature:onnx` on Play): `libonnxruntime.so`, Microsoft's own build from
  * Maven Central, and `libwmsherpa.so`, this project's bridge, which names the
  * runtime as a dependency and so must come second. The runtime is about
@@ -127,6 +128,17 @@ object SherpaNative {
 
     /** [text] (UTF-8) punctuated and cased, UTF-8. */
     @JvmStatic external fun nativePunctuate(punctuation: Long, text: ByteArray): ByteArray
+
+    // A token classifier on ONNX Runtime: `input_ids` (and an all-ones
+    // `attention_mask` when the model takes one) in, a label per token out.
+    // Dictation's multilingual punctuation model
+    // ([com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation]).
+    @JvmStatic external fun nativeTagger(model: String, threads: Int): Long
+
+    @JvmStatic external fun nativeTaggerFree(tagger: Long)
+
+    /** The label (argmax) of each of the first [count] of [ids], specials included; null when the run fails. */
+    @JvmStatic external fun nativeTag(tagger: Long, ids: IntArray, count: Int): IntArray?
 
     // Speech out: one VITS voice (Meta's MMS-TTS). The text is turned into
     // token ids on the Kotlin side; this runs the network.

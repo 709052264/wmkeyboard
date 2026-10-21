@@ -82,51 +82,77 @@ internal fun VoiceDenoiseSetting(repository: SettingsRepository, settings: LiveS
 /** The Strong level's model: download, progress, delete. */
 @Composable
 private fun StrongDenoiseModelRow(settings: LiveSettings) {
-    val context = LocalContext.current
-    val filesDir = context.filesDir
+    val filesDir = LocalContext.current.filesDir
     val status by StrongDenoise.status.collectAsState()
+    LaunchedEffect(Unit) { StrongDenoise.refresh(filesDir) }
+    OnnxModelRow(
+        settings = settings,
+        title = stringResource(R.string.voice_denoise_model_title),
+        status = status,
+        ready = stringResource(R.string.voice_denoise_model_ready, formatBytes(StrongDenoise.BYTES)),
+        missing = stringResource(R.string.voice_denoise_model_missing, formatBytes(StrongDenoise.BYTES)),
+        bytes = StrongDenoise.BYTES,
+        onDownload = { StrongDenoise.download(filesDir) },
+        onCancel = StrongDenoise::cancel,
+        onDelete = { StrongDenoise.delete(filesDir) },
+    )
+}
+
+/**
+ * One downloadable model of a voice feature that runs on ONNX Runtime, as a
+ * row: download, progress, delete. Downloading also asks for the runtime's
+ * module, since a model with nothing to run it on would leave the feature
+ * off without saying why. A download of [bytes] over mobile data asks first
+ * past [ONNX_METERED_CONFIRM_BYTES], as the engines' own models do.
+ */
+@Composable
+internal fun OnnxModelRow(
+    settings: LiveSettings,
+    title: String,
+    status: Status,
+    ready: String,
+    missing: String,
+    bytes: Long,
+    onDownload: () -> Unit,
+    onCancel: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val context = LocalContext.current
     var meteredAsk by remember { mutableStateOf(false) }
     var meteredBlocked by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { StrongDenoise.refresh(filesDir) }
 
-    // The runtime comes with the model: a model with nothing to run it on
-    // would leave Strong running as Light without saying why.
     fun start() {
         if (!SherpaNative.moduleReady) SherpaNative.requestModule()
-        StrongDenoise.download(filesDir)
+        onDownload()
     }
 
     fun download() {
         when (downloadDecisionNow(context, settings.value)) {
-            MeteredDecision.ALLOWED -> start()
+            MeteredDecision.ALLOWED ->
+                if (isMeteredNow(context) && bytes >= ONNX_METERED_CONFIRM_BYTES) meteredAsk = true else start()
             MeteredDecision.ASK -> meteredAsk = true
             MeteredDecision.BLOCKED -> meteredBlocked = true
         }
     }
 
-    val title = stringResource(R.string.voice_denoise_model_title)
     WmRow(
         title = title,
-        subtitle = when (val s = status) {
-            Status.Downloaded -> stringResource(R.string.voice_denoise_model_ready, formatBytes(StrongDenoise.BYTES))
-            is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(s.bytes))
-            else -> stringResource(R.string.voice_denoise_model_missing, formatBytes(StrongDenoise.BYTES))
+        subtitle = when (status) {
+            Status.Downloaded -> ready
+            is Status.Paused -> stringResource(R.string.models_paused_progress, formatBytes(status.bytes))
+            else -> missing
         },
         swipeActions = if (status == Status.Downloaded) {
-            listOf(
-                deleteSwipeAction(stringResource(R.string.models_delete_model_desc, title)) {
-                    StrongDenoise.delete(filesDir)
-                },
-            )
+            listOf(deleteSwipeAction(stringResource(R.string.models_delete_model_desc, title)) { onDelete() })
         } else {
             emptyList()
         },
         trailing = {
             when (status) {
-                Status.Downloaded -> IconButton(onClick = { StrongDenoise.delete(filesDir) }) {
+                Status.Downloaded -> IconButton(onClick = onDelete) {
                     Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.models_delete_model_desc, title))
                 }
-                is Status.Downloading -> IconButton(onClick = { StrongDenoise.cancel() }) {
+                is Status.Downloading -> IconButton(onClick = onCancel) {
                     Icon(Icons.Outlined.Close, contentDescription = stringResource(R.string.models_cancel_download_desc))
                 }
                 is Status.Paused -> TextButton(onClick = { download() }) { Text(stringResource(R.string.models_resume_action)) }
@@ -138,21 +164,26 @@ private fun StrongDenoiseModelRow(settings: LiveSettings) {
             }
         },
     )
-    when (val s = status) {
+    when (status) {
         is Status.Downloading -> Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
             LinearProgressIndicator(
-                progress = { (s.bytes.toFloat() / s.total).coerceIn(0f, 1f) },
+                progress = { (status.bytes.toFloat() / status.total).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Text(
-                stringResource(R.string.models_download_progress, formatBytes(s.bytes), formatBytes(s.total), s.bytes * 100 / s.total),
+                stringResource(
+                    R.string.models_download_progress,
+                    formatBytes(status.bytes),
+                    formatBytes(status.total),
+                    status.bytes * 100 / status.total,
+                ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
         is Status.Failed -> CaptionText(
-            if (s.messageArg.isEmpty()) stringResource(s.messageRes) else stringResource(s.messageRes, s.messageArg),
+            if (status.messageArg.isEmpty()) stringResource(status.messageRes) else stringResource(status.messageRes, status.messageArg),
             error = true,
         )
         else -> Unit
@@ -169,3 +200,6 @@ private fun StrongDenoiseModelRow(settings: LiveSettings) {
     }
     if (meteredBlocked) MeteredBlockedDialog(onDismiss = { meteredBlocked = false })
 }
+
+/** Downloads above this size ask before using mobile data. */
+private const val ONNX_METERED_CONFIRM_BYTES = 100_000_000L

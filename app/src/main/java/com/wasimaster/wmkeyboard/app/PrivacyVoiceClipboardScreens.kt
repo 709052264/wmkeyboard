@@ -466,6 +466,13 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceSpokenPunctuation,
             ) { scope.launch { repository.setVoiceSpokenPunctuation(it) } }
         }
+        // Only Sherpa and Omnilingual write bare words; plain voice typing
+        // takes the words exactly as said.
+        if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN &&
+            etListed.any { it.onnx }
+        ) {
+            item { VoicePunctuationSetting(repository, settings, scope) }
+        }
         // Plain voice typing is the words exactly as said, so it is never
         // tidied (#499) and the row goes with the punctuation one above.
         if (typingMode != com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.TYPING_PLAIN) item {

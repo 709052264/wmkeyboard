@@ -81,6 +81,7 @@ import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.vocab.VocabDownloadManager
 import com.wasimaster.wmkeyboard.core.vocab.VocabPacks
 import com.wasimaster.wmkeyboard.core.voice.StrongDenoise
+import com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtCatalog
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtEngine
@@ -263,6 +264,7 @@ internal object StorageCategories {
     private const val ET_ITEM_PREFIX = "et:"
     private const val MMS_ITEM_PREFIX = "mms:"
     private const val DENOISE_ITEM_ID = "denoise"
+    private const val PUNCTUATION_ITEM_ID = "punctuation"
 
     fun byId(id: String): StorageCategory? = all.firstOrNull { it.id == id }
 
@@ -442,7 +444,8 @@ internal object StorageCategories {
                     WhisperStore.rootDir(it.files),
                     WhistleModelStore.rootDir(it.files),
                 ) + EtEngine.entries.map { engine -> EtStore.rootDir(it.files, engine) } +
-                    MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files)
+                    MmsVoices.rootDir(it.files) + StrongDenoise.rootDir(it.files) +
+                    DictationPunctuation.rootDir(it.files)
             },
             itemsOf = { env ->
                 childrenOf(WhisperStore.rootDir(env.roots.files)).map { dir ->
@@ -483,6 +486,15 @@ internal object StorageCategories {
                             files = listOf(dir),
                         )
                     },
+                    // Add punctuation and capitals' model, downloaded or part-way.
+                    DictationPunctuation.rootDir(env.roots.files).takeIf { it.isDirectory }?.let { dir ->
+                        StorageItem(
+                            id = PUNCTUATION_ITEM_ID,
+                            label = "Punctuation (mmBERT)",
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                        )
+                    },
                 ) + childrenOf(MmsVoices.rootDir(env.roots.files)).map { dir ->
                     // Read back's offline voices, one folder per language code.
                     StorageItem(
@@ -498,6 +510,8 @@ internal object StorageCategories {
                     WhistleModelDownloadManager.delete(env.roots.files)
                 } else if (item.id == DENOISE_ITEM_ID) {
                     StrongDenoise.delete(env.roots.files)
+                } else if (item.id == PUNCTUATION_ITEM_ID) {
+                    DictationPunctuation.delete(env.roots.files)
                 } else if (item.id.startsWith(ET_ITEM_PREFIX)) {
                     EtCatalog.byId(item.id.removePrefix(ET_ITEM_PREFIX))
                         ?.let { EtDownloadManager.delete(env.roots.files, it) }
@@ -520,6 +534,7 @@ internal object StorageCategories {
                 EtCatalog.models.forEach { EtDownloadManager.delete(env.roots.files, it) }
                 emptyOut(MmsVoices.rootDir(env.roots.files))
                 StrongDenoise.delete(env.roots.files)
+                DictationPunctuation.delete(env.roots.files)
             },
         ),
         StorageCategory(

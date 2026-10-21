@@ -29,7 +29,7 @@ Omnilingual is not a streaming model: it reads a whole phrase at once. While you
 
 **When dictation ends.** With **Stop after a pause** set, a longer pause of that length ends the dictation; with **Keep listening** on, the next one starts at once. With the setting off it runs until you press the microphone or two minutes pass. A phrase that runs past 20 seconds without a pause is cut at the next short breath, because the model reads at most 40 seconds at a time.
 
-**Plain words.** The model writes words without punctuation or capitals. The keyboard capitalises the start of a sentence, and spoken punctuation ("comma", "full stop") works as usual.
+**Plain words.** The model writes words without punctuation or capitals. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a punctuation model for 88 languages puts in full stops, commas, question marks and sentence capitals once it is downloaded from that setting's row on the Voice typing screen. Without it the keyboard capitalises the start of a dictation, and spoken punctuation ("comma", "full stop") works as usual.
 
 **Memory and speed.** The model takes about 1 GB of memory while it is open, so it suits a recent phone. The keyboard frees it when Android asks for memory back, and opening it closes Sherpa's model first. Measured on a Mac, it needs about 2.1 billion processor cycles per second of speech on one core; with four threads that comes to an estimated 0.3 seconds of waiting per second of speech on a flagship phone and about 0.5 on a mid-range one.
 
