@@ -35,9 +35,12 @@ internal fun NeuralPhoneticToggle(
 ) {
     val context = LocalContext.current
     val download = rememberXlitDownload(settings)
+    // The size to quote is what a download fetches now, the runtime included
+    // the first time, or the pack's own size once it is here.
+    val size = IndicXlitDownloads.bytesToFetch(context).takeIf { it > 0 } ?: IndicXlitModels.BYTES
     ToggleSetting(
         R.string.languages_neural_phonetic_title,
-        stringResource(R.string.languages_neural_phonetic_subtitle, formatBytes(IndicXlitModels.BYTES)),
+        stringResource(R.string.languages_neural_phonetic_subtitle, formatBytes(size)),
         on,
         info = stringResource(R.string.languages_neural_phonetic_info, languageName),
         default = SettingsDefaults.suggestionStrip.neuralPhoneticFor(langId),
@@ -60,7 +63,10 @@ private fun rememberXlitDownload(settings: LiveSettings): () -> Unit {
     var blocked by remember { mutableStateOf(false) }
     if (metered) {
         MeteredDownloadDialog(
-            detail = stringResource(R.string.languages_neural_phonetic_metered_body, formatBytes(IndicXlitModels.BYTES)),
+            detail = stringResource(
+                R.string.languages_neural_phonetic_metered_body,
+                formatBytes(IndicXlitDownloads.bytesToFetch(context).takeIf { it > 0 } ?: IndicXlitModels.BYTES),
+            ),
             onConfirm = {
                 metered = false
                 IndicXlitDownloads.start(context)
@@ -87,6 +93,7 @@ internal fun NeuralPhoneticModelRow(settings: LiveSettings) {
     val module by FeatureModules.onnx.state.collectAsState()
     LaunchedEffect(Unit) { IndicXlitDownloads.refresh(context) }
     val size = formatBytes(IndicXlitModels.BYTES)
+    val toFetch = formatBytes(IndicXlitDownloads.bytesToFetch(context).takeIf { it > 0 } ?: IndicXlitModels.BYTES)
     val value = when (val s = status) {
         is IndicXlitDownloads.Status.Downloaded -> stringResource(R.string.languages_neural_phonetic_model_ready, size)
         is IndicXlitDownloads.Status.Downloading ->
@@ -103,9 +110,17 @@ internal fun NeuralPhoneticModelRow(settings: LiveSettings) {
             } else {
                 stringResource(s.messageRes, s.messageArg)
             }
-        IndicXlitDownloads.Status.NotDownloaded -> stringResource(R.string.languages_neural_phonetic_model_missing, size)
+        IndicXlitDownloads.Status.NotDownloaded -> stringResource(R.string.languages_neural_phonetic_model_missing, toFetch)
     }
-    NavRow(R.string.languages_neural_phonetic_model_title, subtitle = value) {
-        if (status is IndicXlitDownloads.Status.NotDownloaded || status is IndicXlitDownloads.Status.Failed) download()
-    }
+    // A tap only does something while there is something to fetch, so the
+    // row only looks tappable then: no chevron, and no click, while the pack
+    // downloads or once it is here.
+    val actionable = status is IndicXlitDownloads.Status.NotDownloaded || status is IndicXlitDownloads.Status.Failed
+    WmRow(
+        title = stringResource(R.string.languages_neural_phonetic_model_title),
+        subtitle = value,
+        icon = SettingsRowIcons[R.string.languages_neural_phonetic_model_title],
+        highlightKey = R.string.languages_neural_phonetic_model_title,
+        onClick = if (actionable) download else null,
+    )
 }
