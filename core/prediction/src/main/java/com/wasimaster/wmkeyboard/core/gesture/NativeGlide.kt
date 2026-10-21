@@ -111,7 +111,11 @@ internal object NativeGlide {
         }
     }
 
-    /** [CtcGlideBeam.decode] natively, or null when a source has no twin. */
+    /**
+     * [CtcGlideBeam.decode] natively, or null when a source has no twin. Two
+     * crossings when [stroke] carries learned shapes, as [decode]: the walk
+     * names the readings, then the finish takes their shapes.
+     */
     @Suppress("LongParameterList")
     fun ctcDecode(
         scoring: CtcGlideBeam.Scoring,
@@ -120,22 +124,38 @@ internal object NativeGlide {
         limit: Int,
         width: Int,
         vocabularyRank: Int,
+        stroke: CtcGlideBeam.Stroke?,
+        lookAhead: Int,
     ): List<GlideBeam.Candidate>? {
         val s = Sources(sources, vocabularyRank)
         if (!s.complete) return null
         val weights = with(scoring) {
             doubleArrayOf(
                 lengthNorm.toDouble(), lengthBonus.toDouble(), freqWeight.toDouble(),
-                pruneNorm.toDouble(), pruneBonus.toDouble(),
+                pruneNorm.toDouble(), pruneBonus.toDouble(), lookAheadCost.toDouble(),
+                loopWeight.toDouble(), shapeWeight.toDouble(),
             )
         }
-        return candidates(
-            PredictionNative.ctcDecode(
-                emissions.logProbs, emissions.steps, s.handles.copyOf(s.count), s.kinds.copyOf(s.count),
-                s.weights.copyOf(s.count), s.tiers.copyOf(s.count), s.floors.copyOf(s.count),
-                limit, width, weights,
-            ),
+        val shapes = stroke?.shapes?.takeIf {
+            scoring.shapeWeight > 0f && stroke.tuning.learnedShapeGain > 0.0
+        }
+        val path = Path(stroke?.path.orEmpty())
+        val walked = PredictionNative.ctcDecode(
+            emissions.logProbs, emissions.steps, s.handles.copyOf(s.count), s.kinds.copyOf(s.count),
+            s.weights.copyOf(s.count), s.tiers.copyOf(s.count), s.floors.copyOf(s.count),
+            limit, width, weights,
+            stroke?.let { tuningArray(it.tuning) } ?: DoubleArray(0), path.xs, path.ys, path.ts,
+            stroke?.keys?.nativeHandle ?: 0L, stroke?.keyWidth ?: 0f, lookAhead, if (shapes != null) 1 else 0,
         )
+        if (shapes == null) return candidates(walked)
+        @Suppress("UNCHECKED_CAST")
+        val words = walked[0] as Array<String>
+        val ints = walked[2] as IntArray
+        val readCount = ints[ints.size - 1]
+        val stored = Array(words.size) { i ->
+            if (i < readCount) shapes.shapesOf(words[i]).toTypedArray() else NO_SHAPES
+        }
+        return candidates(PredictionNative.ctcFinish(words, stored))
     }
 
     /** [DuetBeam.decode] natively, or null when a source has no twin. */

@@ -25,6 +25,7 @@
 
 use crate::accents;
 use crate::proximity::KeyProximity;
+use crate::sort;
 use crate::strict_math;
 use crate::wmdict::Dict;
 use std::collections::HashMap;
@@ -615,7 +616,7 @@ pub fn search_units(
     // sort, as Kotlin's sortedByDescending is.
     let mut ordered: Vec<&WalkSource> = sources.iter().collect();
     if ordered.len() > 1 {
-        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
+        sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
     }
     let walk = Walk { typed, proximity, max_edits: edits, k, touch, habits, keys, ambiguous };
     for src in ordered {
@@ -625,7 +626,7 @@ pub fn search_units(
         floor = walk.one(src, &mut results, floor, ws);
     }
     let mut out: Vec<Candidate> = results.into_values().collect();
-    out.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
+    sort::by(&mut out, |a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
     out.truncate(k);
     out
 }
@@ -1194,6 +1195,41 @@ mod tests {
         assert!((hello.score - (500f64.ln() + 11f64.ln())).abs() < 1e-9);
     }
 
+    /// Which correction gate an eval run applies: the one-edit shape from
+    /// before slips, or `SlipFixes`' careful and eager modes.
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    enum Gate {
+        Old,
+        Careful,
+        Eager,
+    }
+
+    /// decideOrdinary's apply rule, roughly, under `gate`: the best fix with
+    /// no completion must clear the runner-up by ln 4. A reading that mixes
+    /// slips with a real edit is a target only when eager, and even then
+    /// never the runner-up that blocks a cleaner fix. A known word is the
+    /// caller's business.
+    fn fires(got: &[Candidate], gate: Gate) -> Option<&Candidate> {
+        let mixed = |c: &Candidate| c.slips > 0 && c.edits > c.slips;
+        let shaped: Vec<&Candidate> = got
+            .iter()
+            .take(AUTOCORRECT_K)
+            .filter(|c| c.completed_chars == 0 && c.edits >= 1 && c.edits - c.slips <= 1)
+            .filter(|c| match gate {
+                Gate::Old => c.edits == 1,
+                Gate::Careful => !mixed(c),
+                Gate::Eager => true,
+            })
+            .collect();
+        let best = shaped.first()?;
+        let runner = if gate == Gate::Eager && !mixed(best) {
+            shaped.iter().skip(1).find(|c| !mixed(c))
+        } else {
+            shaped.get(1)
+        };
+        (best.score - runner.map_or(1.0, |c| c.score) >= 4f64.ln()).then_some(*best)
+    }
+
     /// The eval's QWERTY: key centres in key widths, rows a key apart and
     /// staggered a quarter and three quarters of a key.
     fn qwerty_keys() -> Vec<(u16, f32, f32)> {
@@ -1307,7 +1343,6 @@ mod tests {
         };
         let ws = &mut Workspace::new();
         let q = KeyProximity::qwerty(false);
-        let gate = 4f64.ln();
         for (sx, sy) in [(0.25, 0.3), (0.35, 0.45), (0.45, 0.55)] {
             let mut cases = Vec::new();
             while cases.len() < 3000 {
@@ -1332,7 +1367,8 @@ mod tests {
                 }
             }
             println!("taps sigma ({sx}, {sy}): {} mistyped words", cases.len());
-            for radius in [0.0, 1.0, TouchModel::SLIP_SIGMAS * TouchModel::SIGMA, 1.5] {
+            for (radius, gate) in [(0.0, Gate::Old), (1.25, Gate::Careful), (1.25, Gate::Eager)] {
+                print!("  {gate:?}");
                 let model = TouchModel::new(keys.clone(), TouchModel::SIGMA).with_slip_radius(radius);
                 let (mut top1, mut top3, mut fired, mut right) = (0, 0, 0, 0);
                 let started = std::time::Instant::now();
@@ -1347,24 +1383,14 @@ mod tests {
                     if got.iter().take(3).any(|c| &c.word == meant) {
                         top3 += 1;
                     }
-                    // decideOrdinary's shape, roughly: a known word stands,
-                    // else the best one-edit-or-slips fix with no completion
-                    // must clear the runner-up by ln 4.
+                    // A known word stands.
                     if d.frequency_of(&String::from_utf16_lossy(typed)) > 0 {
                         continue;
                     }
-                    let shaped: Vec<&Candidate> = got
-                        .iter()
-                        .take(AUTOCORRECT_K)
-                        .filter(|c| c.completed_chars == 0 && c.edits >= 1 && c.edits - c.slips <= 1)
-                        .collect();
-                    if let Some(best) = shaped.first() {
-                        let runner = shaped.get(1).map_or(1.0, |c| c.score);
-                        if best.score - runner >= gate {
-                            fired += 1;
-                            if &best.word == meant {
-                                right += 1;
-                            }
+                    if let Some(best) = fires(&got, gate) {
+                        fired += 1;
+                        if &best.word == meant {
+                            right += 1;
                         }
                     }
                 }
@@ -1377,6 +1403,94 @@ mod tests {
                     if fired == 0 { 1.0 } else { right as f64 / fired as f64 },
                     right as f64 / n,
                     started.elapsed().as_micros() as f64 / n,
+                );
+            }
+        }
+    }
+
+    /// Words the list does not hold, typed right: how often autocorrect
+    /// rewrites them into something else, with and without slips. One word in
+    /// seven between ranks 3,000 and 60,000 is held out of the dictionary and
+    /// stands in for slang, names and anything newer than the list. Run with
+    /// `cargo test --release new_word_eval -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn new_word_eval() {
+        let mut entries = real();
+        entries.sort_by(|a, b| b.1.cmp(&a.1));
+        let mut kept = Vec::new();
+        let mut held = Vec::new();
+        for (rank, (w, f)) in entries.iter().enumerate() {
+            let plain = w.len() >= 4 && w.chars().all(|c| c.is_ascii_lowercase());
+            if plain && (3_000..60_000).contains(&rank) && rank % 7 == 0 {
+                held.push(w.clone());
+            } else {
+                kept.push((w.clone(), *f));
+            }
+        }
+        let d = Dict::open(wmdict::write(&PackedTrie::of(&kept))).unwrap();
+        let keys = qwerty_keys();
+        let nearest = |p: (f32, f32)| {
+            keys.iter()
+                .min_by(|a, b| {
+                    let da = (a.1 - p.0).powi(2) + (a.2 - p.1).powi(2);
+                    let db = (b.1 - p.0).powi(2) + (b.2 - p.1).powi(2);
+                    da.total_cmp(&db)
+                })
+                .unwrap()
+                .0
+        };
+        let mut seed = 0x9e37_79b9_7f4a_7c15u64;
+        let mut uniform = move || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed >> 11) as f64 / (1u64 << 53) as f64
+        };
+        let ws = &mut Workspace::new();
+        let q = KeyProximity::qwerty(false);
+        println!("{} held-out words", held.len());
+        for (sx, sy) in [(0.25, 0.3), (0.35, 0.45), (0.45, 0.55)] {
+            let mut cases = Vec::new();
+            let mut tries = 0;
+            while cases.len() < 3000 && tries < 200_000 {
+                tries += 1;
+                let word = &held[(uniform() * held.len() as f64) as usize % held.len()];
+                let mut taps = Vec::new();
+                for ch in word.chars() {
+                    let (x, y) = centre(ch);
+                    let (u1, u2) = (uniform().max(1e-12), uniform());
+                    let r = (-2.0 * u1.ln()).sqrt();
+                    let a = 2.0 * std::f64::consts::PI * u2;
+                    taps.push(Some((x + (r * a.cos() * sx) as f32, y + (r * a.sin() * sy) as f32)));
+                }
+                let typed: Vec<u16> = taps.iter().map(|p| nearest(p.unwrap())).collect();
+                // Typed right: every tap landed on its own key.
+                if typed == word.encode_utf16().collect::<Vec<_>>() {
+                    cases.push((typed, taps));
+                }
+            }
+            for (radius, gate) in [(0.0, Gate::Old), (1.25, Gate::Careful), (1.25, Gate::Eager)] {
+                let model = TouchModel::new(keys.clone(), TouchModel::SIGMA).with_slip_radius(radius);
+                let mut fired = 0;
+                let mut by_slips = 0;
+                for (typed, taps) in &cases {
+                    let scoring = TouchScoring::new(&model, taps.clone());
+                    let got = search_units(
+                        &[src(&d, 0.0)], typed, &q, 4, ws, default_max_edits(typed.len()), Some(&scoring), &NO_HABITS, None,
+                    );
+                    if let Some(best) = fires(&got, gate) {
+                        fired += 1;
+                        if best.slips >= 2 {
+                            by_slips += 1;
+                        }
+                    }
+                }
+                println!(
+                    "taps ({sx}, {sy}) {gate:?}: {} new words typed right, {:.3} rewritten ({:.3} by two or more slips)",
+                    cases.len(),
+                    fired as f64 / cases.len() as f64,
+                    by_slips as f64 / cases.len() as f64,
                 );
             }
         }

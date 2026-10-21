@@ -12,6 +12,7 @@
 //! "generation"}`.
 
 use crate::fuzzy::EditHabits;
+use crate::sort;
 use crate::user_lexicon::cmp_utf16;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -313,7 +314,7 @@ impl CorrectionMemory {
             None => list.push(Stored { fixed: fixed.to_string(), count: 1, gen: generation }),
         }
         // Stable, most used first, as Kotlin's sortByDescending.
-        list.sort_by(|a, b| b.count.cmp(&a.count));
+        sort::by(list, |a, b| b.count.cmp(&a.count));
         list.truncate(MAX_FIXES_PER_TYPED);
         if self.pairs.len() > MAX_PAIRS {
             // The longest untouched, ties by the spelling.
@@ -405,7 +406,7 @@ impl CorrectionMemory {
             .iter()
             .flat_map(|(t, l)| l.iter().map(move |s| (t.clone(), Taught { fixed: s.fixed.clone(), count: s.count })))
             .collect();
-        out.sort_by(|a, b| b.1.count.cmp(&a.1.count).then_with(|| cmp_utf16(&a.0, &b.0)));
+        sort::by(&mut out, |a, b| b.1.count.cmp(&a.1.count).then_with(|| cmp_utf16(&a.0, &b.0)));
         out
     }
 
@@ -440,7 +441,7 @@ impl CorrectionMemory {
             return out;
         }
         let mut keys: Vec<&String> = counts.keys().collect();
-        keys.sort_by(|a, b| cmp_utf16(a, b));
+        sort::by(&mut keys, |a, b| cmp_utf16(a, b));
         for key in keys {
             let s = shrink(counts[key]);
             if s <= 0.0 {
@@ -493,7 +494,7 @@ impl CorrectionMemory {
             }
         }
         let mut out: Vec<(String, i32)> = merged.into_iter().collect();
-        out.sort_by(|a, b| cmp_utf16(&a.0, &b.0));
+        sort::by(&mut out, |a, b| cmp_utf16(&a.0, &b.0));
         out
     }
 
@@ -542,7 +543,7 @@ impl CorrectionMemory {
         self.dirty = false;
         let mut root = Map::new();
         let mut keys: Vec<&String> = self.pairs.keys().collect();
-        keys.sort_by(|a, b| cmp_utf16(a, b));
+        sort::by(&mut keys, |a, b| cmp_utf16(a, b));
         if !keys.is_empty() {
             let mut pairs = Map::new();
             for k in keys {
@@ -554,13 +555,17 @@ impl CorrectionMemory {
         }
         if !self.habits.is_empty() {
             let mut layouts: Vec<&String> = self.habits.keys().collect();
-            layouts.sort_by(|a, b| cmp_utf16(a, b));
+            sort::by(&mut layouts, |a, b| cmp_utf16(a, b));
             let mut habits = Map::new();
             for layout in layouts {
                 let counts = &self.habits[layout];
                 let mut ks: Vec<&String> = counts.keys().collect();
-                ks.sort_by(|a, b| cmp_utf16(a, b));
-                habits.insert(layout.clone(), Value::Object(ks.into_iter().map(|k| (k.clone(), json!(counts[k]))).collect()));
+                sort::by(&mut ks, |a, b| cmp_utf16(a, b));
+                let mut layout_counts = Map::new();
+                for k in ks {
+                    layout_counts.insert(k.clone(), json!(counts[k]));
+                }
+                habits.insert(layout.clone(), Value::Object(layout_counts));
             }
             root.insert("habits".into(), Value::Object(habits));
         }
@@ -606,7 +611,7 @@ impl CorrectionMemory {
         for (typed, list) in pairs {
             let mut clean: Vec<Stored> = list.into_iter().filter(|s| s.count > 0 && !s.fixed.is_empty()).collect();
             if !clean.is_empty() {
-                clean.sort_by(|a, b| b.count.cmp(&a.count));
+                sort::by(&mut clean, |a, b| b.count.cmp(&a.count));
                 self.pairs.insert(typed, clean);
             }
         }

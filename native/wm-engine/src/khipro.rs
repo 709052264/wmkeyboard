@@ -52,6 +52,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use crate::sexp::Sexp;
+use crate::sort;
 
 /// Which spec a keystroke is read against: the edition, and whether the key
 /// came from a touchscreen or a hardware keyboard. Within an edition the two
@@ -93,19 +94,22 @@ impl Variant {
     }
 
     /// The `.mim` text, compiled in from the Android app's resources so both
-    /// implementations run the same upstream revision.
-    fn source(self) -> &'static str {
+    /// implementations run the same upstream revision. Deflated by build.rs,
+    /// inflated here once per variant, when its spec is parsed.
+    fn source(self) -> String {
         macro_rules! spec_file {
             ($name:literal) => {
-                include_str!(concat!("../data/khipro/", $name))
+                include_bytes!(concat!(env!("OUT_DIR"), "/", $name, ".deflate"))
             };
         }
-        match self {
+        let packed: &[u8] = match self {
             Variant::Touchscreen => spec_file!("bn-khipro-touchscreen.mim"),
             Variant::Desktop => spec_file!("bn-khipro.mim"),
             Variant::DarkTouchscreen => spec_file!("bn-khipro-dark-touchscreen.mim"),
             Variant::DarkDesktop => spec_file!("bn-khipro-dark.mim"),
-        }
+        };
+        let text = miniz_oxide::inflate::decompress_to_vec(packed).expect("bundled Khipro spec inflates");
+        String::from_utf8(text).expect("bundled Khipro spec is UTF-8")
     }
 
     fn spec(self) -> &'static Spec {
@@ -116,7 +120,7 @@ impl Variant {
             OnceLock::new(),
         ];
         SPECS[self as usize]
-            .get_or_init(|| Spec::parse(self.source()).expect("bundled Khipro spec parses"))
+            .get_or_init(|| Spec::parse(&self.source()).expect("bundled Khipro spec parses"))
     }
 }
 
@@ -489,7 +493,7 @@ impl Parser {
             })
             .collect();
         // Stable, so equal lengths keep the spec's own order.
-        entries.sort_by_key(|entry| std::cmp::Reverse(entry.key.len()));
+        sort::by_key(&mut entries, |entry| std::cmp::Reverse(entry.key.len()));
         Some((name, entries))
     }
 
@@ -632,6 +636,18 @@ mod tests {
     use super::*;
 
     const FIXTURES: &str = "../data/khipro/tests/";
+
+    #[test]
+    fn deflated_specs_inflate_to_the_files() {
+        for (variant, file) in [
+            (Variant::Touchscreen, include_str!("../data/khipro/bn-khipro-touchscreen.mim")),
+            (Variant::Desktop, include_str!("../data/khipro/bn-khipro.mim")),
+            (Variant::DarkTouchscreen, include_str!("../data/khipro/bn-khipro-dark-touchscreen.mim")),
+            (Variant::DarkDesktop, include_str!("../data/khipro/bn-khipro-dark.mim")),
+        ] {
+            assert_eq!(variant.source(), file, "{variant:?}");
+        }
+    }
 
     fn cases(text: &str) -> Vec<(String, String)> {
         text.lines()

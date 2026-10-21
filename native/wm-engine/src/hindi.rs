@@ -22,6 +22,8 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
+use crate::sort;
+
 const VIRAMA: char = '\u{94D}';
 const ANUSVARA: char = '\u{902}';
 const AA: &str = "आ";
@@ -197,7 +199,7 @@ fn build_tables() -> Tables {
     ];
     // Longest first; stable, so equal lengths keep the order above.
     let mut order: Vec<usize> = (0..specs.len()).collect();
-    order.sort_by_key(|&i| std::cmp::Reverse(specs[i].0.chars().count()));
+    sort::by_key(&mut order, |&i| std::cmp::Reverse(specs[i].0.chars().count()));
     let index_of = |m: &str| order.iter().position(|&i| specs[i].0 == m).unwrap();
     let rules: Vec<Rule> = order
         .iter()

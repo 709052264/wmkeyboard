@@ -9,6 +9,7 @@
 //! boost); evidence can lift it a bounded number of places. Logarithms are
 //! [`strict_math::log`], so the Kotlin original and this agree to the bit.
 
+use crate::sort;
 use crate::strict_math;
 use crate::user_lexicon::UserLexicon;
 use crate::wmng::Pack;
@@ -126,6 +127,6 @@ pub fn rerank<B: AsRef<[u8]>>(
     }
     // Stable, highest first: equal scores keep the engine's order, as
     // Kotlin's sortedByDescending does.
-    scored.sort_by(|a, b| b.1.total_cmp(&a.1));
+    sort::by(&mut scored, |a, b| b.1.total_cmp(&a.1));
     Some(scored.into_iter().map(|(i, _)| i).collect())
 }

@@ -8,6 +8,7 @@ import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideDecoder
 import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
+import com.wasimaster.wmkeyboard.core.gesture.GlideShapeSource
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.TrieWalker
 import java.io.File
@@ -118,6 +119,9 @@ class LatinImeGlide(
         limit: Int,
         deep: Boolean,
         vocabularyRank: Int,
+        lookAhead: Int,
+        shapes: GlideShapeSource?,
+        tuning: GlideBeam.Tuning,
     ): List<GlideBeam.Candidate>? {
         if (!LatinImeLibrary.isLoaded || path.size < MIN_POINTS || keyWidth <= 0f) return null
         if (LatinImeGeometry.spanKeys(path, keyWidth) < MIN_STROKE_KEYS) return null

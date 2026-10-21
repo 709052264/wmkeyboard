@@ -27,3 +27,10 @@ opt-level = 3
 # Every entry point catches panics and rethrows them as a Java exception, so
 # an abort would only ever come from the catch itself.
 panic = "unwind"
+
+# Size over speed for the crates that only run when a store is loaded or
+# saved (serde_json) and once per Khipro variant (miniz_oxide).
+[profile.release.package.serde_json]
+opt-level = "s"
+[profile.release.package.miniz_oxide]
+opt-level = "s"

@@ -258,7 +258,13 @@ internal object PredictionNative {
 
     external fun glideSampleShape(xs: FloatArray, ys: FloatArray, ts: LongArray, keyWidth: Float): ByteArray?
 
-    /** `CtcGlideBeam.decode`: the result shaped as [glideDecode]'s; [scoring] is lengthNorm, lengthBonus, freqWeight, pruneNorm, pruneBonus. */
+    /**
+     * `CtcGlideBeam.decode`: the result shaped as [glideDecode]'s, phases
+     * included; [scoring] is lengthNorm, lengthBonus, freqWeight, pruneNorm,
+     * pruneBonus, lookAheadCost, loopWeight, shapeWeight. The stroke ([tuning],
+     * the path, [keyMap], [keyWidth]) is where the loops and learned shapes are
+     * read; an empty [tuning] or a [keyMap] of 0 decodes the emissions alone.
+     */
     @Suppress("LongParameterList")
     external fun ctcDecode(
         logProbs: FloatArray,
@@ -271,7 +277,18 @@ internal object PredictionNative {
         limit: Int,
         width: Int,
         scoring: DoubleArray,
+        tuning: DoubleArray,
+        xs: FloatArray,
+        ys: FloatArray,
+        ts: LongArray,
+        keyMap: Long,
+        keyWidth: Float,
+        lookAhead: Int,
+        phase: Int,
     ): Array<Any>
+
+    /** The last phase-1 [ctcDecode] on this thread, finished with [shapes] per word. */
+    external fun ctcFinish(words: Array<String>, shapes: Array<Array<ByteArray>>): Array<Any>
 
     /** A plain `Trie`'s exact copy, for the walks (`sources.rs`); kind 2 in their source lists. */
     external fun trieFromEntries(words: Array<String>, frequencies: IntArray): Long

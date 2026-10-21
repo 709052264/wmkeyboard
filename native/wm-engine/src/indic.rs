@@ -25,6 +25,7 @@
 use std::collections::HashMap;
 
 use crate::indic_script::IndicScript;
+use crate::sort;
 
 pub const VIRAMA: char = '\u{94D}';
 pub const ANUSVARA: char = '\u{902}';
@@ -674,7 +675,7 @@ fn build_rules(profile: &Profile) -> Vec<Rule> {
             distinct.push(rule);
         }
     }
-    distinct.sort_by_key(|rule| std::cmp::Reverse(rule.m.chars().count()));
+    sort::by_key(&mut distinct, |rule| std::cmp::Reverse(rule.m.chars().count()));
     distinct
 }
 

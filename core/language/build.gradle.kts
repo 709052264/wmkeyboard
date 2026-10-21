@@ -66,6 +66,7 @@ val buildHostEngine by tasks.registering(Exec::class) {
     inputs.dir(rootProject.layout.projectDirectory.dir("app/src/main/assets/avro"))
     inputs.files(
         native.file("wm-engine/Cargo.toml"),
+        native.file("wm-engine/build.rs"),
         native.file("wm-engine-jni/Cargo.toml"),
         native.file("wm-engine-jni/Cargo.lock"),
         native.file("wm-engine-jni/build-host.sh"),

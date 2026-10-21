@@ -154,7 +154,8 @@
     <string name="search_kw_languages_neural_phonetic">ai model network indicxlit ai4bharat transliteration machine learning onnx banglish hinglish</string>
     <string name="search_kw_languages_phonetic_guide">key map keymap avro hinglish help cheat sheet chandrabindu hasant</string>
     <string name="search_kw_languages_ansi">bayanno sutonnymj unicode converter legacy bangla</string>
-    <string name="search_kw_languages_zawgyi">zawgyi zg unicode burmese myanmar font converter legacy padauk noto</string>
+    <string name="search_kw_languages_zawgyi_allowed">zg unicode myanmar font converter legacy padauk noto</string>
+    <string name="search_kw_languages_zawgyi_key_font">zg converter legacy padauk</string>
     <string name="search_kw_layout_floating">undock detached unpinned draggable</string>
     <string name="search_kw_layout_globe_emoji">globe world</string>
     <string name="search_kw_layout_hide_system_keyboard_bar">navbar navigation gesture chevron switcher</string>
@@ -183,7 +184,7 @@
     <string name="search_kw_tooldetail_weather_auto_fetch">offline automatic download</string>
     <string name="search_kw_tooldetail_camera_search_button">reverse image lens visual identify plant insect tineye yandex bing</string>
     <string name="search_kw_typing_auto_capitalize">autocaps autocapitalize autocapitalisation</string>
-    <string name="search_kw_typing_fix_several_slips">sloppy typos wrong fat fingers fast blind</string>
+    <string name="search_kw_typing_fix_several_slips">sloppy typos wrong fat fingers fast blind eager careful</string>
     <string name="search_kw_typing_autocorrect_confidence">threshold aggressive aggressiveness modest</string>
     <string name="search_kw_typing_autocorrect">auto replace changing</string>
     <string name="search_kw_typing_blacklist">banned ignore blocklist forbidden</string>

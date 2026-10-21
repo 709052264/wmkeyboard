@@ -41,7 +41,9 @@ import org.junit.Test
  *
  * [DuetBeam] gets the two-thumb eval's corpus, with and without its clock,
  * whole words and prefixes; [CtcGlideBeam] gets emissions peaked along
- * sampled words, with noise, at both beam widths and under the cap.
+ * sampled words, with noise, at both beam widths and under the cap, and
+ * then with the stroke they stand for: its loops, look-ahead and the
+ * learned shapes.
  */
 class NativeGlideParityTest {
 
@@ -268,5 +270,76 @@ class NativeGlideParityTest {
             }
         }
         println("ctc parity: $count decodes, $candidates candidates identical")
+    }
+
+    /**
+     * [CtcGlideBeam] with the stroke beside its emissions: the gesture
+     * corpus, a looping profile among it, each case's emissions peaked along
+     * its word (whole, or its first two thirds for a lifted finger), decoded
+     * with look-ahead, the loops and the learned shapes against
+     * [KotlinCtcGlideBeam] fed [KotlinGlideBeam]'s marks and learned gains.
+     */
+    @Test
+    fun everyNeuralReadingWithItsStrokeDecodesTheSame() {
+        val (entries, trie, packed) = dictionaries()
+        val user = userTrie()
+        val grid = GlideGrid.of(BuiltInLayouts.QWERTY)
+        val centers = grid.keyCenters(KEY_WIDTH)
+        val keys = GlideKeyMap.of(centers, KEY_WIDTH)
+        val layout = GlideKeyMap.fingerprint(centers, KEY_WIDTH)
+        val random = Random(SEED)
+        val corpus = SwipeCorpus(SEED, grid = grid)
+        val profiles = listOf(
+            SwipeCorpus.Noise.TYPICAL.profile,
+            SwipeCorpus.Noise.SLOPPY.profile,
+            SwipeCorpus.Noise.TYPICAL.profile.copy(letterDwell = 0.3f, loopOnDoubles = 1f),
+        )
+        val cases = profiles.flatMap { corpus.generate(entries, it, CASES) }
+        val store = GlideShapeStore(null)
+        val shaping = KotlinGlideBeam()
+        for (case in cases.filterIndexed { i, _ -> i % 4 == 0 }) {
+            val shape = shaping.sampleShape(case.path, KEY_WIDTH, KotlinGlideWorkspace()) ?: continue
+            store.learn(GlideShapeSample(layout, shape), case.intended)
+        }
+        val learned = store.forLayout(layout) ?: error("nothing learned")
+        var count = 0
+        val tunings = listOf(GlideBeam.Tuning(), GlideBeam.Tuning.WIGGLES_ON)
+        val scorings = listOf(
+            CtcGlideBeam.Scoring(),
+            CtcGlideBeam.Scoring(lookAheadCost = 0.2f, loopWeight = 0.7f, shapeWeight = 25f),
+        )
+        for (tuning in tunings) {
+            for (scoring in scorings) {
+                val beam = CtcGlideBeam(scoring) to KotlinCtcGlideBeam(scoring)
+                val glide = KotlinGlideBeam(tuning)
+                for ((index, case) in cases.withIndex()) {
+                    val word = if (index % 3 == 1) case.intended.take((case.intended.length * 2 + 2) / 3) else case.intended
+                    val emissions = emissionsFor(word, random, if (index % 2 == 0) 1.0f else 0.4f)
+                    if (emissions.steps == 0) continue
+                    val sources = withUser(if (index % 2 == 0) trie else packed, user)
+                    val shapes = if (index % 2 == 0) learned else null
+                    val lookAhead = if (index % 3 == 2) 0 else 3
+                    val marks = glide.marks(case.path, keys, KEY_WIDTH, KotlinGlideWorkspace())
+                    val shapeWs = KotlinGlideWorkspace()
+                    val prepared = shapes != null && glide.prepareShape(case.path, KEY_WIDTH, shapeWs)
+                    val gain: ((String) -> Double)? = shapes?.let { s ->
+                        { w: String -> if (prepared) glide.learnedGain(w, keys, s, shapeWs) else 0.0 }
+                    }
+                    val what = "#$index '${case.intended}' as '$word' look-ahead=$lookAhead shapes=${shapes != null}"
+                    val expected = beam.second.decode(
+                        emissions, sources, LIMIT, 100, 0,
+                        lookAhead = lookAhead, marks = marks, keys = keys.takeIf { marks != null }, gain = gain,
+                    )
+                    val actual = beam.first.decode(
+                        emissions, sources, LIMIT, 100, 0,
+                        stroke = CtcGlideBeam.Stroke(case.path, keys, KEY_WIDTH, tuning, shapes),
+                        lookAhead = lookAhead,
+                    )
+                    same(expected, actual, what)
+                    count++
+                }
+            }
+        }
+        println("ctc stroke parity: $count decodes, $candidates candidates identical")
     }
 }
