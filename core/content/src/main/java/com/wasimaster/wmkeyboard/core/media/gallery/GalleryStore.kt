@@ -75,6 +75,18 @@ object GalleryStore {
     private val dateColumn: String
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.MediaColumns.DATE_TAKEN else "datetaken"
 
+    /**
+     * Newest first, by when the picture was taken and, for one with no such
+     * date, when it reached the phone (#860). A PNG saved from a browser, a
+     * sticker or an edited copy carries no EXIF date, so its `datetaken` is
+     * NULL, and SQLite sorts NULL after every date: ordered on the column
+     * alone, the picture saved a minute ago landed at the bottom of Recents.
+     * `date_added` is in seconds and `datetaken` in milliseconds.
+     */
+    private val newestFirst: String
+        get() = "COALESCE($dateColumn, ${MediaStore.MediaColumns.DATE_ADDED} * 1000) DESC, " +
+            "${MediaStore.Files.FileColumns._ID} DESC"
+
     private val projection: Array<String>
         get() = buildList {
             add(MediaStore.Files.FileColumns._ID)
@@ -184,8 +196,7 @@ object GalleryStore {
         sentIds: List<Long> = emptyList(),
     ): List<GalleryItem> {
         val (where, args) = selection(album, filter, videos && canReadVideos(context), sentIds)
-        val order = "$dateColumn DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC"
-        val items = query(context.contentResolver, where, args, order, offset, limit) { readItem(it) }
+        val items = query(context.contentResolver, where, args, newestFirst, offset, limit) { readItem(it) }
         if (album.kind != AlbumKind.SENT) return items
         val rank = sentIds.withIndex().associate { (i, id) -> id to i }
         return items.sortedBy { rank[it.id] ?: Int.MAX_VALUE }
@@ -222,8 +233,7 @@ object GalleryStore {
         val sent = sentIds.toHashSet()
         runCatching {
             context.contentResolver.query(
-                filesUri, cols, typeClause(withVideos), null,
-                "$dateColumn DESC, ${MediaStore.MediaColumns.DATE_ADDED} DESC",
+                filesUri, cols, typeClause(withVideos), null, newestFirst,
             )
         }.getOrNull()?.use { c ->
             val id = c.getColumnIndex(MediaStore.Files.FileColumns._ID)
