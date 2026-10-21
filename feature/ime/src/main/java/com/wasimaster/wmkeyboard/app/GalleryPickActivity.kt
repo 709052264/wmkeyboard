@@ -31,7 +31,8 @@ import androidx.activity.result.contract.ActivityResultContracts
  * parked in a queue of its own ([consumeQr]) so the gallery tool, which
  * sends whatever lands in [consume], never sees it. The camera tool does the
  * same to translate or search a photo already on the phone (#807), in its
- * own queue too ([consumeCamera]).
+ * own queue too ([consumeCamera]), and the text reader to read one (#869),
+ * in a third ([consumeOcr]).
  */
 class GalleryPickActivity : ComponentActivity() {
 
@@ -48,6 +49,7 @@ class GalleryPickActivity : ComponentActivity() {
         private const val EXTRA_LIMIT = "limit"
         private const val EXTRA_QR = "qr"
         private const val EXTRA_CAMERA = "camera"
+        private const val EXTRA_OCR = "ocr"
 
         private val pending = ArrayDeque<Picked>()
 
@@ -56,6 +58,19 @@ class GalleryPickActivity : ComponentActivity() {
 
         @Volatile
         private var cameraPending: Uri? = null
+
+        @Volatile
+        private var ocrPending: Uri? = null
+
+        /** Hands over (and clears) the picture last picked for the text reader. */
+        fun consumeOcr(): Uri? = synchronized(pending) { ocrPending.also { ocrPending = null } }
+
+        /** One photo for the text reader to read; see [consumeOcr]. */
+        fun ocrIntent(context: Context): Intent =
+            Intent(context, GalleryPickActivity::class.java)
+                .putExtra(EXTRA_OCR, true)
+                .putExtra(EXTRA_LIMIT, 1)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
         /** Hands over (and clears) the picture last picked for the QR scanner. */
         fun consumeQr(): Uri? = synchronized(pending) { qrPending.also { qrPending = null } }
@@ -122,7 +137,8 @@ class GalleryPickActivity : ComponentActivity() {
         if (savedInstanceState != null) return
         val launched = runCatching {
             when {
-                intent.getBooleanExtra(EXTRA_QR, false) || intent.getBooleanExtra(EXTRA_CAMERA, false) ->
+                intent.getBooleanExtra(EXTRA_QR, false) || intent.getBooleanExtra(EXTRA_CAMERA, false) ||
+                    intent.getBooleanExtra(EXTRA_OCR, false) ->
                     single.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                 intent.getBooleanExtra(EXTRA_FILES, false) -> documents.launch(arrayOf("*/*"))
                 multiple != null -> multiple?.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
@@ -148,6 +164,11 @@ class GalleryPickActivity : ComponentActivity() {
         }
         if (intent.getBooleanExtra(EXTRA_CAMERA, false)) {
             uris.firstOrNull()?.let { synchronized(pending) { cameraPending = it } }
+            finish()
+            return
+        }
+        if (intent.getBooleanExtra(EXTRA_OCR, false)) {
+            uris.firstOrNull()?.let { synchronized(pending) { ocrPending = it } }
             finish()
             return
         }

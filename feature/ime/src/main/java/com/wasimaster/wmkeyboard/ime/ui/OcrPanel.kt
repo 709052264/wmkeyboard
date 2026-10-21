@@ -5,6 +5,8 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
+import com.wasimaster.wmkeyboard.app.GalleryPickActivity
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.format.Formatter
@@ -52,6 +54,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
@@ -159,6 +162,9 @@ private sealed interface OcrStage {
  * ([KeyboardUiState.ocrImage]) instead: no camera and no permission, the
  * picture where the viewfinder would be, and the read starts on its own.
  *
+ * A picture already on the phone can be read too (#869): the gallery button
+ * over the viewfinder picks one, which is then read the way a capture is.
+ *
  * [onTranslate] opens the Translate tool on the words picked (#807).
  */
 @Composable
@@ -227,6 +233,9 @@ private fun OcrContent(
     var camera by remember { mutableStateOf<Camera?>(null) }
     var torchOn by remember { mutableStateOf(false) }
     var viewSize by remember { mutableStateOf(IntSize.Zero) }
+    // A picture picked from the gallery (#869) is being read, or was last:
+    // shown whole, like a clip's, rather than cropped to the viewfinder.
+    var fromGallery by remember { mutableStateOf(false) }
 
     // A clip's picture (#371) stands in for the camera, which is then never
     // bound at all. Null while it loads; a failure when it will not decode.
@@ -371,9 +380,10 @@ private fun OcrContent(
         }
     }
 
-    fun capture(auto: Boolean = false) {
+    fun capture(auto: Boolean = false, picked: android.net.Uri? = null) {
         if (stage !is OcrStage.Viewfinder || viewSize == IntSize.Zero || !packReady) return
         if (!auto) feedback()
+        fromGallery = picked != null
         val readPack = pack
         val online = engine == OcrEngine.ONLINE
         val mlKit = if (!online && readPack == null) {
@@ -384,7 +394,13 @@ private fun OcrContent(
         // The online readers (#469, #727), or in pick mode the one the chooser is on.
         val readers = if (online) OnlineOcr.rows(state.settings, ProviderPicks.of(ProviderTool.OCR)) else emptyList()
         scope.launch {
-            val bitmap = if (clipImage != null) {
+            val bitmap = if (picked != null) {
+                withContext(Dispatchers.IO) { MediaPrep.decode(context, picked, CLIP_OCR_MAX_SIDE) }
+                    ?: run {
+                        Toast.makeText(context, R.string.ime_scanner_ocr_image_error, Toast.LENGTH_SHORT).show()
+                        null
+                    }
+            } else if (clipImage != null) {
                 clipBitmap?.getOrNull()
             } else {
                 withContext(Dispatchers.IO) {
@@ -451,6 +467,19 @@ private fun OcrContent(
         }
     }
 
+    // The gallery's pick lands when the picker hands the keyboard back, and
+    // is read once the language's data is there, by this composition's
+    // capture (the resume observer keeps the first one it was given).
+    var pickedPicture by remember { mutableStateOf<android.net.Uri?>(null) }
+    PermissionRecheck { GalleryPickActivity.consumeOcr()?.let { pickedPicture = it } }
+    LaunchedEffect(pickedPicture, packReady, viewSize) {
+        val uri = pickedPicture ?: return@LaunchedEffect
+        if (packReady && viewSize != IntSize.Zero && stage is OcrStage.Viewfinder) {
+            pickedPicture = null
+            capture(auto = true, picked = uri)
+        }
+    }
+
     // A clip's picture is read as soon as it and the language's data are
     // there, once: after that, Scan again waits for the shutter, so the
     // language can be changed first.
@@ -485,8 +514,8 @@ private fun OcrContent(
                     bitmap = current.bitmap.asImageBitmap(),
                     contentDescription = stringResource(R.string.ime_scanner_ocr_capture_desc),
                     modifier = Modifier.fillMaxSize(),
-                    // A copied picture is shown whole: it was not framed for this panel.
-                    contentScale = if (clipImage != null) ContentScale.Fit else ContentScale.Crop,
+                    // A copied or picked picture is shown whole: it was not framed for this panel.
+                    contentScale = if (clipImage != null || fromGallery) ContentScale.Fit else ContentScale.Crop,
                 )
                 Column(
                     modifier = Modifier.align(Alignment.Center),
@@ -596,8 +625,22 @@ private fun OcrContent(
                 onClose()
             }
         }
-        if (camera?.cameraInfo?.hasFlashUnit() == true) {
-            Box(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+        Row(
+            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // A picture already on the phone instead of the camera (#869).
+            if (clipImage == null) {
+                CameraChipButton(
+                    icon = Icons.Outlined.PhotoLibrary,
+                    description = stringResource(R.string.ime_scanner_ocr_picture_desc),
+                    active = false,
+                ) {
+                    feedback()
+                    runCatching { context.startActivity(GalleryPickActivity.ocrIntent(context)) }
+                }
+            }
+            if (camera?.cameraInfo?.hasFlashUnit() == true) {
                 CameraChipButton(
                     icon = if (torchOn) Icons.Outlined.FlashlightOn else Icons.Outlined.FlashlightOff,
                     description = stringResource(R.string.ime_scanner_torch_desc),

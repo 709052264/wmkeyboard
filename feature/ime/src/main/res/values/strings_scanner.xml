@@ -51,6 +51,7 @@
     <!-- QR code and barcode scanner panel. -->
     <string name="ime_scanner_qr_hint">Point the camera at a QR code or a barcode</string>
     <string name="ime_scanner_qr_picture_desc">Scan a code from a picture</string>
+    <string name="ime_scanner_ocr_picture_desc">Read text from a picture</string>
     <string name="ime_scanner_qr_picture_none">No QR code or barcode found in that picture</string>
     <string name="ime_scanner_qr_permission_body">The scanner needs the camera to read QR codes and barcodes. Your device does all of the decoding.</string>
     <!-- Camera zoom level pill. %1$f is the zoom, for example 2.5 for "2.5x". -->
