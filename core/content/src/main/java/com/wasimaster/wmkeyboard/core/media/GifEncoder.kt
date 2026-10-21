@@ -24,6 +24,12 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
     private var started = false
     private var finished = false
 
+    // Kept from frame to frame: a sticker is 30 to 60 of them, and each
+    // would otherwise allocate about a megabyte of tables.
+    private val palette = Palette()
+    private val lzw = Lzw(out)
+    private var indices = ByteArray(0)
+
     init {
         require(width in 1..MAX_DIMENSION && height in 1..MAX_DIMENSION) { "canvas $width x $height" }
     }
@@ -35,7 +41,7 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
         if (!started) writeHeader()
 
         val box = opaqueBounds(argb)
-        val palette = Palette.of(argb)
+        palette.build(argb)
         val bits = palette.bits
 
         // Graphic control: clear to background afterwards, index 0 is transparent.
@@ -55,13 +61,14 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
         out.write(LOCAL_TABLE_FLAG or (bits - 1))
         out.write(palette.rgb, 0, (1 shl bits) * RGB)
 
-        val indices = ByteArray(box.width * box.height)
+        val size = box.width * box.height
+        if (indices.size < size) indices = ByteArray(size)
         var at = 0
         for (y in box.top until box.top + box.height) {
             val row = y * width
             for (x in box.left until box.left + box.width) indices[at++] = palette.indexOf(argb[row + x])
         }
-        Lzw(out, maxOf(bits, MIN_CODE_BITS)).encode(indices)
+        lzw.encode(indices, size, maxOf(bits, MIN_CODE_BITS))
     }
 
     /** Writes the trailer. A file with no frames is still a valid, empty GIF. */
@@ -122,14 +129,149 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
     /**
      * A frame's colours: index 0 is transparent, the rest come from a median
      * cut over the frame's opaque pixels, counted at five bits a channel.
+     * One per encoder, rebuilt for every frame in the same arrays.
      */
-    private class Palette(val rgb: ByteArray, val bits: Int, private val lookup: ByteArray) {
+    private class Palette {
+
+        val rgb = ByteArray((MAX_COLOURS + 1) * RGB)
+        var bits = 1
+            private set
+        private val lookup = ByteArray(BUCKETS)
+
+        // Per bucket: how many pixels, and the sum of each true channel, so
+        // that a palette entry is the mean of what it stands for and not the
+        // corner of a bucket. Zero between frames.
+        private val count = IntArray(BUCKETS)
+        private val sums = LongArray(BUCKETS * RGB)
+
+        // The buckets in use, and the median cut's boxes: each is a run of
+        // `used` that one split turns into two.
+        private val used = IntArray(BUCKETS)
+        private val keyed = LongArray(BUCKETS)
+        private val boxFrom = IntArray(MAX_COLOURS)
+        private val boxUntil = IntArray(MAX_COLOURS)
+        private val boxPopulation = LongArray(MAX_COLOURS)
 
         fun indexOf(argb: Int): Byte =
             if (argb ushr ALPHA_SHIFT < OPAQUE_FROM) TRANSPARENT.toByte() else lookup[bucket(argb)]
 
-        /** A run of [used] buckets, which one split turns into two. */
-        private class Box(val from: Int, val until: Int, val population: Long)
+        fun build(argb: IntArray) {
+            for (pixel in argb) {
+                if (pixel ushr ALPHA_SHIFT < OPAQUE_FROM) continue
+                val at = bucket(pixel)
+                count[at]++
+                sums[at * RGB] += (pixel shr RED_SHIFT and BYTE).toLong()
+                sums[at * RGB + 1] += (pixel shr GREEN_SHIFT and BYTE).toLong()
+                sums[at * RGB + 2] += (pixel and BYTE).toLong()
+            }
+            var usedSize = 0
+            for (at in 0 until BUCKETS) if (count[at] > 0) used[usedSize++] = at
+            val boxes = split(usedSize)
+
+            // Entry 0 is the transparent one; the palette is padded to a
+            // power of two, which is the only size GIF can declare.
+            bits = 1
+            while (1 shl bits < boxes + 1) bits++
+            rgb.fill(0, 0, (1 shl bits) * RGB)
+            for (index in 0 until boxes) {
+                var n = 0L
+                var r = 0L
+                var g = 0L
+                var b = 0L
+                for (i in boxFrom[index] until boxUntil[index]) {
+                    val at = used[i]
+                    n += count[at]
+                    r += sums[at * RGB]
+                    g += sums[at * RGB + 1]
+                    b += sums[at * RGB + 2]
+                    lookup[at] = (index + 1).toByte()
+                }
+                val entry = (index + 1) * RGB
+                rgb[entry] = (r / n).toByte()
+                rgb[entry + 1] = (g / n).toByte()
+                rgb[entry + 2] = (b / n).toByte()
+            }
+            for (i in 0 until usedSize) {
+                val at = used[i]
+                count[at] = 0
+                sums[at * RGB] = 0
+                sums[at * RGB + 1] = 0
+                sums[at * RGB + 2] = 0
+            }
+        }
+
+        private fun population(from: Int, until: Int): Long {
+            var n = 0L
+            for (i in from until until) n += count[used[i]]
+            return n
+        }
+
+        /**
+         * Sorts `used[from, until)` by one channel. Through a key with
+         * the channel on top and the bucket underneath, because a range
+         * of an `IntArray` sorts by value and not by a comparator.
+         */
+        private fun sortByChannel(from: Int, until: Int, which: Int) {
+            for (i in from until until) keyed[i] = (channel(used[i], which).toLong() shl Int.SIZE_BITS) or used[i].toLong()
+            keyed.sort(from, until)
+            for (i in from until until) used[i] = keyed[i].toInt()
+        }
+
+        /**
+         * Median cut over the first [size] of `used`: keep halving the most
+         * populous box that still holds more than one colour. Returns how
+         * many boxes there are.
+         */
+        private fun split(size: Int): Int {
+            if (size == 0) return 0
+            boxFrom[0] = 0
+            boxUntil[0] = size
+            boxPopulation[0] = population(0, size)
+            var boxes = 1
+            while (boxes < MAX_COLOURS) {
+                // The first of the most populous, as a max over the boxes in order.
+                var at = -1
+                for (i in 0 until boxes) {
+                    if (boxUntil[i] - boxFrom[i] > 1 && (at < 0 || boxPopulation[i] > boxPopulation[at])) at = i
+                }
+                if (at < 0) break
+                val from = boxFrom[at]
+                val until = boxUntil[at]
+                // The channel this box is widest along; the first on a tie.
+                var widest = 0
+                var widestSpan = -1
+                for (which in 0 until RGB) {
+                    var lo = Int.MAX_VALUE
+                    var hi = Int.MIN_VALUE
+                    for (i in from until until) {
+                        val v = channel(used[i], which)
+                        if (v < lo) lo = v
+                        if (v > hi) hi = v
+                    }
+                    if (hi - lo > widestSpan) {
+                        widestSpan = hi - lo
+                        widest = which
+                    }
+                }
+                sortByChannel(from, until, widest)
+                // Cut where half the pixels are on each side, but never so
+                // that one side is empty.
+                var seen = 0L
+                var cut = from + 1
+                for (i in from until until - 1) {
+                    seen += count[used[i]]
+                    cut = i + 1
+                    if (seen * 2 >= boxPopulation[at]) break
+                }
+                boxUntil[at] = cut
+                boxPopulation[at] = population(from, cut)
+                boxFrom[boxes] = cut
+                boxUntil[boxes] = until
+                boxPopulation[boxes] = population(cut, until)
+                boxes++
+            }
+            return boxes
+        }
 
         companion object {
             const val TRANSPARENT = 0
@@ -147,112 +289,11 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
 
             private fun channel(bucket: Int, which: Int): Int =
                 bucket shr (BUCKET_BITS * (2 - which)) and CHANNEL_MASK
-
-            fun of(argb: IntArray): Palette {
-                // Per bucket: how many pixels, and the sum of each true channel,
-                // so that a palette entry is the mean of what it stands for and
-                // not the corner of a bucket.
-                val count = IntArray(BUCKETS)
-                val sums = LongArray(BUCKETS * RGB)
-                for (pixel in argb) {
-                    if (pixel ushr ALPHA_SHIFT < OPAQUE_FROM) continue
-                    val at = bucket(pixel)
-                    count[at]++
-                    sums[at * RGB] += (pixel shr RED_SHIFT and BYTE).toLong()
-                    sums[at * RGB + 1] += (pixel shr GREEN_SHIFT and BYTE).toLong()
-                    sums[at * RGB + 2] += (pixel and BYTE).toLong()
-                }
-                val used = (0 until BUCKETS).filter { count[it] > 0 }.toIntArray()
-                val boxes = split(used, count)
-
-                // Entry 0 is the transparent one; the palette is padded to a
-                // power of two, which is the only size GIF can declare.
-                var bits = 1
-                while (1 shl bits < boxes.size + 1) bits++
-                val rgb = ByteArray((1 shl bits) * RGB)
-                val lookup = ByteArray(BUCKETS)
-                boxes.forEachIndexed { index, box ->
-                    var n = 0L
-                    var r = 0L
-                    var g = 0L
-                    var b = 0L
-                    for (i in box.from until box.until) {
-                        val at = used[i]
-                        n += count[at]
-                        r += sums[at * RGB]
-                        g += sums[at * RGB + 1]
-                        b += sums[at * RGB + 2]
-                        lookup[at] = (index + 1).toByte()
-                    }
-                    val entry = (index + 1) * RGB
-                    rgb[entry] = (r / n).toByte()
-                    rgb[entry + 1] = (g / n).toByte()
-                    rgb[entry + 2] = (b / n).toByte()
-                }
-                return Palette(rgb, bits, lookup)
-            }
-
-            /**
-             * Sorts `used[from, until)` by one channel. Through a key with
-             * the channel on top and the bucket underneath, because a range
-             * of an `IntArray` sorts by value and not by a comparator.
-             */
-            private fun sortByChannel(used: IntArray, from: Int, until: Int, which: Int) {
-                val keyed = LongArray(until - from) { i ->
-                    (channel(used[from + i], which).toLong() shl Int.SIZE_BITS) or used[from + i].toLong()
-                }
-                keyed.sort()
-                for (i in keyed.indices) used[from + i] = keyed[i].toInt()
-            }
-
-            /** Median cut: keep halving the most populous box that still holds more than one colour. */
-            private fun split(used: IntArray, count: IntArray): List<Box> {
-                if (used.isEmpty()) return emptyList()
-                fun population(from: Int, until: Int): Long {
-                    var n = 0L
-                    for (i in from until until) n += count[used[i]]
-                    return n
-                }
-                val boxes = arrayListOf(Box(0, used.size, population(0, used.size)))
-                while (boxes.size < MAX_COLOURS) {
-                    val at = boxes.indices
-                        .filter { boxes[it].until - boxes[it].from > 1 }
-                        .maxByOrNull { boxes[it].population } ?: break
-                    val box = boxes[at]
-                    // The channel this box is widest along.
-                    val widest = (0 until RGB).maxByOrNull { which ->
-                        var lo = Int.MAX_VALUE
-                        var hi = Int.MIN_VALUE
-                        for (i in box.from until box.until) {
-                            val v = channel(used[i], which)
-                            if (v < lo) lo = v
-                            if (v > hi) hi = v
-                        }
-                        hi - lo
-                    } ?: 0
-                    sortByChannel(used, box.from, box.until, widest)
-                    // Cut where half the pixels are on each side, but never so
-                    // that one side is empty.
-                    var seen = 0L
-                    var cut = box.from + 1
-                    for (i in box.from until box.until - 1) {
-                        seen += count[used[i]]
-                        cut = i + 1
-                        if (seen * 2 >= box.population) break
-                    }
-                    boxes[at] = Box(box.from, cut, population(box.from, cut))
-                    boxes += Box(cut, box.until, population(cut, box.until))
-                }
-                return boxes
-            }
         }
     }
 
     /** GIF's flavour of LZW: variable-width codes, least significant bit first, in blocks of up to 255 bytes. */
-    private class Lzw(private val out: OutputStream, private val dataBits: Int) {
-
-        private val clear = 1 shl dataBits
-        private val end = clear + 1
+    private class Lzw(private val out: OutputStream) {
 
         // (prefix code, next byte) -> code, open addressing.
         private val keys = IntArray(TABLE_SIZE)
@@ -263,7 +304,12 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
         private var accumulator = 0
         private var accumulated = 0
 
-        fun encode(indices: ByteArray) {
+        /** Compresses the first [size] of [indices], codes starting one wider than [dataBits]. */
+        fun encode(indices: ByteArray, size: Int, dataBits: Int) {
+            val clear = 1 shl dataBits
+            val end = clear + 1
+            accumulator = 0
+            accumulated = 0
             out.write(dataBits)
             var width = dataBits + 1
             var next = end + 1
@@ -271,7 +317,7 @@ class GifEncoder(private val out: OutputStream, private val width: Int, private 
             emit(clear, width)
 
             var prefix = indices[0].toInt() and BYTE
-            for (i in 1 until indices.size) {
+            for (i in 1 until size) {
                 val byte = indices[i].toInt() and BYTE
                 val key = (prefix shl BYTE_BITS) or byte
                 var slot = (key * HASH_MULTIPLIER ushr HASH_SHIFT) and TABLE_MASK

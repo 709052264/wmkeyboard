@@ -46,7 +46,8 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
-    "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt"
+    "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt" \
+    "$REPO/core/content/src/main/java/com/wasimaster/wmkeyboard/core/media/GifEncoder.kt" ${EXTRA_SRC:-}
 fi
 
 case "$mode" in
