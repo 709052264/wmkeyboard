@@ -278,6 +278,10 @@
     <string name="ime_web_search_insert_desc">Insert the link</string>
     <string name="ime_web_search_answer_label">Answer from the search engine</string>
 
+    <!-- The search panel's tabs: web results and images. -->
+    <string name="ime_search_tab_all">All</string>
+    <string name="ime_search_tab_images">Images</string>
+
     <!-- Image search panel. -->
     <string name="ime_image_search_idle">Type a search and press enter.\nPress an image to insert it. Press and hold to insert its link.</string>
     <string name="ime_image_search_need_key_body">Image search needs an API key from Brave Search. Add a key in the settings for this tool.</string>

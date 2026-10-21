@@ -550,6 +550,7 @@ import com.wasimaster.wmkeyboard.ime.CaptureTarget
 import com.wasimaster.wmkeyboard.ime.CaptureSelectionAction
 import com.wasimaster.wmkeyboard.ime.CaptureVoiceAction
 import com.wasimaster.wmkeyboard.ime.PanelMode
+import com.wasimaster.wmkeyboard.ime.SearchTab
 import com.wasimaster.wmkeyboard.ime.RecentBarWord
 import com.wasimaster.wmkeyboard.core.tools.SmartSuggest
 import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
@@ -8635,7 +8636,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.GIF -> state.panel == PanelMode.GIF
     ToolbarTool.STICKER -> state.panel == PanelMode.STICKER
     ToolbarTool.WEB_SEARCH -> state.panel == PanelMode.WEB_SEARCH
-    ToolbarTool.IMAGE_SEARCH -> state.panel == PanelMode.IMAGE_SEARCH
+    ToolbarTool.IMAGE_SEARCH -> state.panel == PanelMode.WEB_SEARCH && state.searchTab == SearchTab.IMAGES
     ToolbarTool.OCR -> state.panel == PanelMode.OCR
     ToolbarTool.QR_SCAN -> state.panel == PanelMode.QR_SCAN
     ToolbarTool.DOC_SCAN -> false
@@ -13783,12 +13784,12 @@ private fun KeyboardBody(
                     state = state,
                     onSend = onCameraSend,
                     onRequestPermission = onCameraPermissionRequest,
-                    // Toggling the open panel closes it; opened from image
-                    // search, back goes back there, and from a clip (#807), to the clipboard.
+                    // Toggling the open panel closes it; opened from search,
+                    // back goes back there, and from a clip (#807), to the clipboard.
                     onClose = {
                         onPanelChange(
                             when {
-                                state.cameraSearchOnly -> PanelMode.IMAGE_SEARCH
+                                state.cameraSearchOnly -> PanelMode.WEB_SEARCH
                                 state.cameraImage != null -> PanelMode.CLIPBOARD
                                 else -> PanelMode.CAMERA
                             },
@@ -13982,36 +13983,19 @@ private fun KeyboardBody(
                         )
                     }
                 }
-                PanelMode.WEB_SEARCH -> FullBleedTool(
+                // Image search is this panel's Images tab (#879); the service
+                // never leaves IMAGE_SEARCH up, but it draws the same if it did.
+                PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH -> FullBleedTool(
                     state, title = "",
                     onClose = { onPanelChange(PanelMode.WEB_SEARCH) },
                     compact = state.mediaSearchActive,
                     headerActions = {
                         MediaHeaderSearchBar(
                             state = state,
-                            placeholder = stringResource(R.string.ime_web_search_hint),
-                            onQueryTap = onMediaQueryTap,
-                            onClear = onMediaQueryClear,
-                            attribution = searchAttribution(state.settings),
-                        )
-                    },
-                ) {
-                    WebSearchPanel(
-                        state = state,
-                        onRetry = onMediaRetry,
-                        onResult = onWebResult,
-                        onOpen = onWebResultOpen,
-                        onOpenToolSettings = onOpenToolSettings,
-                    )
-                }
-                PanelMode.IMAGE_SEARCH -> FullBleedTool(
-                    state, title = "",
-                    onClose = { onPanelChange(PanelMode.IMAGE_SEARCH) },
-                    compact = state.mediaSearchActive,
-                    headerActions = {
-                        MediaHeaderSearchBar(
-                            state = state,
-                            placeholder = stringResource(R.string.ime_image_search_hint),
+                            placeholder = stringResource(
+                                if (state.searchTab == SearchTab.IMAGES) R.string.ime_image_search_hint
+                                else R.string.ime_web_search_hint,
+                            ),
                             onQueryTap = onMediaQueryTap,
                             onClear = onMediaQueryClear,
                             attribution = searchAttribution(state.settings),
@@ -14019,11 +14003,13 @@ private fun KeyboardBody(
                         SearchByPhotoButton { onPanelChange(PanelMode.CAMERA) }
                     },
                 ) {
-                    ImageSearchPanel(
+                    WebSearchPanel(
                         state = state,
                         onRetry = onMediaRetry,
-                        onResult = onImageResult,
-                        onResultLink = onImageResultLink,
+                        onResult = onWebResult,
+                        onOpen = onWebResultOpen,
+                        onImageResult = onImageResult,
+                        onImageResultLink = onImageResultLink,
                         onOpenToolSettings = onOpenToolSettings,
                     )
                 }

@@ -2387,9 +2387,19 @@ internal fun ToolDetailSettings(
                 }
             }
         }
-        ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH -> {
+        // Image search is web search's Images tab (#879): its button stays,
+        // and its settings are all on web search's page.
+        ToolbarTool.IMAGE_SEARCH -> SettingsGroup {
+            item {
+                NavRow(
+                    title = R.string.tooldetail_image_search_moved_title,
+                    subtitle = stringResource(R.string.tooldetail_image_search_moved_subtitle),
+                ) { onNavigate(toolRoute(ToolbarTool.WEB_SEARCH)) }
+            }
+        }
+        ToolbarTool.WEB_SEARCH -> {
             // Who answers, in order: a SearXNG instance, Tavily, Brave. One
-            // list for both tools, as one service always answered both.
+            // list for both tabs, as one service always answered both.
             ProvidersGroup(
                 repository,
                 settings,
@@ -2417,7 +2427,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.resultCount.toFloat(),
                     ) { scope.launch { repository.setSearchResultCount(it.roundToInt()) } }
                 }
-                item(visible = tool == ToolbarTool.WEB_SEARCH) {
+                item {
                     ToggleSetting(
                         R.string.tooldetail_search_answer_title,
                         stringResource(R.string.tooldetail_search_answer_subtitle),
@@ -2426,7 +2436,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.showAnswer,
                     ) { scope.launch { repository.setSearchShowAnswer(it) } }
                 }
-                item(visible = tool == ToolbarTool.WEB_SEARCH) {
+                item {
                     ToggleSetting(
                         R.string.tooldetail_search_open_browser_title,
                         stringResource(R.string.tooldetail_search_open_browser_subtitle),
@@ -2434,7 +2444,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.openInBrowser,
                     ) { scope.launch { repository.setSearchOpenInBrowser(it) } }
                 }
-                item(visible = tool == ToolbarTool.IMAGE_SEARCH) {
+                item {
                     SliderSetting(
                         R.string.tooldetail_image_columns_title,
                         subtitle = stringResource(R.string.tooldetail_image_columns_subtitle),

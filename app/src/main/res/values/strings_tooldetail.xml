@@ -900,8 +900,10 @@
     <string name="tooldetail_modes_group">Modes</string>
     <string name="tooldetail_modes_edit_title">Edit the keyboard modes</string>
     <string name="tooldetail_modes_edit_subtitle">Setups for each app and each field, and what each one changes</string>
-    <string name="tooldetail_image_columns_title">Results per row</string>
-    <string name="tooldetail_image_columns_subtitle">How many image results sit side by side</string>
+    <string name="tooldetail_image_columns_title">Images per row</string>
+    <string name="tooldetail_image_columns_subtitle">How many images sit side by side on the Images tab</string>
+    <string name="tooldetail_image_search_moved_title">Settings are on Web search</string>
+    <string name="tooldetail_image_search_moved_subtitle">This button opens the Images tab of web search, and shares its settings</string>
     <string name="tooldetail_image_columns_info">Fewer columns means larger previews, which is easier to judge before you send one. More columns fits more results without scrolling. GIF results are not affected: they are laid out in justified rows so each one keeps its own shape. This setting is 3 by default.</string>
 
     <string name="tooldetail_launcher_recents_count_title">How many recent apps</string>

@@ -1,0 +1,18 @@
+package com.wasimaster.wmkeyboard.ime.ui
+
+import androidx.compose.runtime.staticCompositionLocalOf
+import com.wasimaster.wmkeyboard.ime.SearchTab
+
+/**
+ * What the search panel asks the service for beyond the result taps that
+ * KeyboardScreen already carries (#879). Provided by the service as a local
+ * rather than passed down as new KeyboardScreen parameters, which sits under
+ * the JVM's method-size ceiling. The defaults do nothing, for previews and the
+ * theme sandbox.
+ */
+internal class SearchActions(
+    /** A tab of the panel tapped. */
+    val onTab: (SearchTab) -> Unit = {},
+)
+
+internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }

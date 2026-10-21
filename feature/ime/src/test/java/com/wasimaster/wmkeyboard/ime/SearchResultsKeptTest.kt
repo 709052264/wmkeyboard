@@ -69,12 +69,14 @@ class SearchResultsKeptTest {
     }
 
     @Test
-    fun `reopening image search keeps its grid too`() {
+    fun `image search opens the search panel's Images tab, grid kept`() {
         val service = keyboard()
 
         service.onPanelChange(PanelMode.IMAGE_SEARCH)
 
         val state = service.uiState.value
+        assertEquals(PanelMode.WEB_SEARCH, state.panel)
+        assertEquals(SearchTab.IMAGES, state.searchTab)
         assertEquals(images, state.imageSearch)
         assertEquals("cat", state.mediaQuery)
         assertFalse(state.mediaSearchActive)
@@ -91,8 +93,8 @@ class SearchResultsKeptTest {
         assertEquals(WebSearchUi.Idle, state.webSearch)
         assertEquals("", state.mediaQuery)
         assertTrue("the keys go to the search box", state.mediaSearchActive)
-        // Only the open panel's results go.
-        assertEquals(images, state.imageSearch)
+        // Both tabs searched the cleared query, so both go (#879).
+        assertEquals(ImageSearchUi.Idle, state.imageSearch)
     }
 
     @Test

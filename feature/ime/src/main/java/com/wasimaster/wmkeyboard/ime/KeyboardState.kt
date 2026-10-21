@@ -1468,7 +1468,13 @@ sealed interface WebSearchUi {
     ) : WebSearchUi
 }
 
-/** Image search panel state. */
+/**
+ * The search panel's tabs (#879). Image search used to be a panel of its own;
+ * its tool, key and shortcut now open the [IMAGES] tab of web search.
+ */
+enum class SearchTab { ALL, IMAGES }
+
+/** Image search state: the search panel's Images tab. */
 sealed interface ImageSearchUi {
     data object NeedKey : ImageSearchUi
     data object Idle : ImageSearchUi
@@ -3878,7 +3884,12 @@ data class KeyboardUiState(
     val webSearch: WebSearchUi = WebSearchUi.Idle,
     val imageSearch: ImageSearchUi = ImageSearchUi.Idle,
     /**
-     * The camera was opened from the image search panel's camera button
+     * Which of the search panel's tabs is up (#879): web results or images.
+     * The two searches keep their own results, so switching back costs nothing.
+     */
+    val searchTab: SearchTab = SearchTab.ALL,
+    /**
+     * The camera was opened from the search panel's camera button
      * (#349): its confirm step offers Search in place of Send, and its back
      * button returns to image search. Set by [WMKeyboardService.onPanelChange]
      * on every panel change, so it only ever means anything while the camera

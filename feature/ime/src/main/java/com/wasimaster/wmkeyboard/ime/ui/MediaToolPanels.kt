@@ -124,6 +124,7 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.MediaUi
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.SearchTab
 import com.wasimaster.wmkeyboard.ime.WebSearchUi
 import okhttp3.OkHttpClient
 
@@ -1938,11 +1939,75 @@ internal fun BoxScope.MediaDownloadOverlay(progress: Float?) {
 // ---- web search panel ----
 
 /**
- * Web search results (full-bleed body; the search bar lives in the
- * [FullBleedTool] header): tap a result to insert its link.
+ * The search panel (full-bleed body; the search bar lives in the
+ * [FullBleedTool] header). Web results and images are its two tabs (#879):
+ * image search used to be a panel of its own, and its tool now opens the
+ * Images tab here.
  */
 @Composable
 internal fun WebSearchPanel(
+    state: KeyboardUiState,
+    onRetry: () -> Unit,
+    onResult: (WebResult) -> Unit,
+    onOpen: (WebResult) -> Unit,
+    onImageResult: (ImageResult) -> Unit,
+    onImageResultLink: (ImageResult) -> Unit,
+    onOpenToolSettings: (ToolbarTool) -> Unit,
+) {
+    val actions = LocalSearchActions.current
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
+            // Pick mode (#727): which search provider answers, over the results.
+            ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
+        }
+        when (state.searchTab) {
+            SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onOpenToolSettings)
+            SearchTab.IMAGES -> ImageResults(state, onRetry, onImageResult, onImageResultLink, onOpenToolSettings)
+        }
+    }
+}
+
+/** All and Images, over the search panel's results (#879). */
+@Composable
+private fun SearchTabChips(tab: SearchTab, onSelect: (SearchTab) -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    Row(
+        modifier = modifier.padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        for (entry in SearchTab.entries) {
+            val active = entry == tab
+            Text(
+                stringResource(
+                    when (entry) {
+                        SearchTab.ALL -> R.string.ime_search_tab_all
+                        SearchTab.IMAGES -> R.string.ime_search_tab_images
+                    },
+                ),
+                color = if (active) kb.chipActiveText else kb.chipText,
+                fontSize = 12.sp,
+                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+                maxLines = 1,
+                modifier = Modifier
+                    .clip(shape)
+                    .frostGlass(kb, shape, FrostSurface.CHIPS)
+                    .background(if (active) kb.chipActive else kb.chip)
+                    .chipBorder(kb, shape)
+                    .clickable { onSelect(entry) }
+                    .padding(horizontal = 14.dp, vertical = 4.dp),
+            )
+        }
+    }
+}
+
+/** The All tab: the engine's answer, then the web results. */
+@Composable
+private fun WebResults(
     state: KeyboardUiState,
     onRetry: () -> Unit,
     onResult: (WebResult) -> Unit,
@@ -1951,12 +2016,6 @@ internal fun WebSearchPanel(
 ) {
     val kb = LocalKbTheme.current
     Column(modifier = Modifier.fillMaxSize()) {
-        // Pick mode (#727): which search provider answers, over the results.
-        ProviderChooser(
-            ProviderTool.SEARCH,
-            state.settings,
-            Modifier.align(Alignment.End).padding(horizontal = 8.dp, vertical = 2.dp),
-        )
         when (val ui = state.webSearch) {
             WebSearchUi.NeedKey -> PanelNotice(
                 stringResource(R.string.ime_web_search_need_key_body),
@@ -2121,7 +2180,7 @@ private const val WebAnswerFoldedLines = 4
 // ---- image search panel ----
 
 /**
- * Camera button beside the image search box (#349): opens the camera tool
+ * Camera button beside the search box (#349, #879): opens the camera tool
  * with Search in place of Send, to search by a photo instead of by words.
  */
 @Composable
@@ -2135,11 +2194,11 @@ internal fun SearchByPhotoButton(onClick: () -> Unit) {
 }
 
 /**
- * Image search: grid of thumbnails; tap inserts the image itself (via
+ * The Images tab: grid of thumbnails; tap inserts the image itself (via
  * commitContent, like clipboard images), long-press inserts the image URL.
  */
 @Composable
-internal fun ImageSearchPanel(
+private fun ImageResults(
     state: KeyboardUiState,
     onRetry: () -> Unit,
     onResult: (ImageResult) -> Unit,
@@ -2147,16 +2206,11 @@ internal fun ImageSearchPanel(
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        ProviderChooser(
-            ProviderTool.SEARCH,
-            state.settings,
-            Modifier.align(Alignment.End).padding(horizontal = 8.dp, vertical = 2.dp),
-        )
         when (val ui = state.imageSearch) {
             ImageSearchUi.NeedKey -> PanelNotice(
                 stringResource(R.string.ime_image_search_need_key_body),
                 actionLabel = stringResource(R.string.ime_open_settings_action),
-                onAction = { onOpenToolSettings(ToolbarTool.IMAGE_SEARCH) },
+                onAction = { onOpenToolSettings(ToolbarTool.WEB_SEARCH) },
             )
             ImageSearchUi.Idle -> PanelNotice(stringResource(R.string.ime_image_search_idle))
             ImageSearchUi.Loading -> PanelSpinner()
@@ -2204,7 +2258,7 @@ private fun ImageGrid(
     val gridState = rememberLazyGridState()
     // Indexed against the deduped list, which is what the grid actually draws.
     PanelFocusTarget(
-        panel = PanelMode.IMAGE_SEARCH,
+        panel = PanelMode.WEB_SEARCH,
         count = uniqueResults.size,
         columns = columnCount,
         onActivate = { index ->
