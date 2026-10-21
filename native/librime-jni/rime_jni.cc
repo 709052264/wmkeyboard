@@ -146,16 +146,27 @@ RIME_JNI(jstring, nativeInput)(JNIEnv* env, jclass, jlong session) {
 
 // The candidates of the segment being composed, at most [limit]. [spans]
 // must hold limit + 1 ints: spans[0] gets the byte offset the segment starts
-// at, spans[i + 1] the byte offset candidate i ends at. Null when the session
-// is gone.
-RIME_JNI(jobjectArray, nativeMenu)(JNIEnv* env, jclass, jlong session, jint limit, jintArray spans) {
+// at, spans[i + 1] the byte offset candidate i ends at. [comments], when
+// given, must hold limit strings and gets each candidate's comment (the
+// spelling it was found under, where the schema hints spellings). Null when
+// the session is gone.
+RIME_JNI(jobjectArray, nativeMenu)(JNIEnv* env, jclass, jlong session, jint limit, jintArray spans,
+                                   jobjectArray comments) {
     if (limit <= 0 || env->GetArrayLength(spans) < limit + 1) return nullptr;
+    if (comments && env->GetArrayLength(comments) < limit) return nullptr;
     wmrime::Menu menu;
     if (!wmrime::GetMenu(static_cast<uint64_t>(session), static_cast<size_t>(limit), &menu)) return nullptr;
     std::vector<jint> out(menu.ends.size() + 1);
     out[0] = static_cast<jint>(menu.start);
     for (size_t i = 0; i < menu.ends.size(); ++i) out[i + 1] = menu.ends[i];
     env->SetIntArrayRegion(spans, 0, static_cast<jsize>(out.size()), out.data());
+    if (comments) {
+        for (size_t i = 0; i < menu.comments.size(); ++i) {
+            jstring comment = ToJava(env, menu.comments[i]);
+            env->SetObjectArrayElement(comments, static_cast<jsize>(i), comment);
+            env->DeleteLocalRef(comment);
+        }
+    }
     return ToArray(env, menu.texts);
 }
 

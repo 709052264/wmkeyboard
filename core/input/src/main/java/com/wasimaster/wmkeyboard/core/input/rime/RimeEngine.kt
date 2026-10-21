@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.Composer
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngine
 import com.wasimaster.wmkeyboard.core.input.composer.ConversionEngines
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.input.composer.PinyinComposer
 import com.wasimaster.wmkeyboard.core.script.ComposerType
 
 /**
@@ -55,7 +56,7 @@ object RimeEngine : ConversionEngine {
         val schema = schemaFor(method) ?: return null
         return synchronized(composers) {
             composers.getOrPut(Triple(type, langId, schema)) {
-                RimeComposer(base, schema, method) { optionsFor(langId) }
+                RimeComposer(base, schema, method, { optionsFor(langId) }, predictorFor(langId))
             }
         }
     }
@@ -73,6 +74,13 @@ object RimeEngine : ConversionEngine {
             pack.methods[method]?.takeIf { it in compiled }
         }
     }
+
+    /**
+     * Who offers 联想 after a commit: the built-in Mandarin predictor for
+     * Chinese, whichever method typed it, since it reads the Han text and not
+     * the keys. Its word pairs are Mandarin, so Cantonese gets none.
+     */
+    private fun predictorFor(langId: String): Composer? = if (langId == "zh") PinyinComposer else null
 
     fun methodOf(type: ComposerType): RimeMethod? = when (type) {
         ComposerType.PINYIN -> RimeMethod.PINYIN

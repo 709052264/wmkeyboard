@@ -61,8 +61,12 @@ object RimeRuntime {
 
     data class RimeSchema(val id: String, val name: String)
 
-    /** A menu, with how much of the asked-for input each candidate covers, in input characters. */
-    internal class Menu(val texts: List<String>, val consumed: IntArray)
+    /**
+     * A menu, with how much of the asked-for input each candidate covers, in
+     * input characters, and each candidate's comment: the spelling it was
+     * found under where the schema hints spellings (`xi an`), else empty.
+     */
+    internal class Menu(val texts: List<String>, val consumed: IntArray, val comments: List<String>)
 
     private const val TAG = "RimeRuntime"
 
@@ -276,12 +280,13 @@ object RimeRuntime {
         withSession { session ->
             val offset = syncLocked(session, schema, options, input) ?: return@withSession null
             val spans = IntArray(limit + 1)
-            val texts = RimeNative.nativeMenu(session, limit, spans) ?: return@withSession null
+            val comments = arrayOfNulls<String>(limit)
+            val texts = RimeNative.nativeMenu(session, limit, spans, comments) ?: return@withSession null
             val chars = byteToChar(mirrorInput)
             val consumed = IntArray(texts.size) { i ->
                 (chars(spans[i + 1]) - offset).coerceIn(1, input.length.coerceAtLeast(1))
             }
-            Menu(texts.toList(), consumed)
+            Menu(texts.toList(), consumed, List(texts.size) { i -> comments[i].orEmpty() })
         }
 
     /**

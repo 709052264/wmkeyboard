@@ -33,6 +33,13 @@ class KeyTouchModel(
      * makes a tap well inside a neighbour cheaper to read as a slip.
      */
     private val sigma: Double = SIGMA,
+    /**
+     * How far from a tap, in key widths, a key's centre may sit for the tap
+     * to be read as a slip of that key: a mistyped letter priced like the
+     * substitution it is, but outside the edit budget, so a word with every
+     * key a little wide is still one word. 0 turns slips off.
+     */
+    val slipRadius: Double = SLIP_SIGMAS * sigma,
 ) {
 
     private val keysArray: CharArray = centers.keys.toCharArray()
@@ -61,6 +68,15 @@ class KeyTouchModel(
         return -(dx * dx + dy * dy) / (2.0 * sigma * sigma)
     }
 
+    /** Whether [ch]'s key centre lies within [slipRadius] of [p]. */
+    fun withinSlip(p: TouchPoint, ch: Char): Boolean {
+        if (slipRadius <= 0.0) return false
+        val center = centers[ch] ?: return false
+        val dx = (p.x - center.x).toDouble()
+        val dy = (p.y - center.y).toDouble()
+        return dx * dx + dy * dy <= slipRadius * slipRadius
+    }
+
     /** The most likely intended key for a tap, or null off-keyboard. */
     fun bestKey(p: TouchPoint): Char? {
         var best: Char? = null
@@ -81,5 +97,12 @@ class KeyTouchModel(
     companion object {
         /** Tap-scatter sigma in key widths. */
         const val SIGMA = 0.5
+
+        /**
+         * The default slip reach, in sigmas: 1.25 key widths at [SIGMA], the
+         * keys either side of the one hit and the nearer diagonals. Measured
+         * by `wm-engine`'s `noisy_tap_eval` against 1.0 and 1.5.
+         */
+        const val SLIP_SIGMAS = 2.5
     }
 }

@@ -8892,6 +8892,13 @@ data class SuggestionStripSettings(
      */
     val mistypeTolerance: Int = 100,
     /**
+     * Read several mistyped keys in one word: a tap within reach of the key
+     * next door may be read as that key without spending the word's one-edit
+     * budget, so a word typed with three keys a little wide is still fixed.
+     * Off reads every off-key tap as an edit, as before.
+     */
+    val fixSeveralSlips: Boolean = true,
+    /**
      * Swipe down on the word suggestions to see more of them (#385): the
      * engine's deeper list, in a grid over the keys. Off by default, since a
      * downward swipe on the strip otherwise hides the keyboard when that is on.
@@ -10791,6 +10798,7 @@ class SettingsRepository(private val context: Context) {
         private val LEARN_FROM_CORRECTIONS = booleanPreferencesKey("learn_from_corrections")
         private val ADAPT_TO_TAPS = booleanPreferencesKey("adapt_to_taps")
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
+        private val FIX_SEVERAL_SLIPS = booleanPreferencesKey("fix_several_slips")
         private val SUGGESTIONS_SWIPE_FOR_MORE = booleanPreferencesKey("suggestions_swipe_for_more")
         private val SUGGESTIONS_SWIPE_UP_FOR_MORE = booleanPreferencesKey("suggestions_swipe_up_for_more")
         private val SUGGESTIONS_EXPANDED_GRID = booleanPreferencesKey("suggestions_expanded_grid")
@@ -12288,6 +12296,7 @@ class SettingsRepository(private val context: Context) {
             adaptToTaps = p[ADAPT_TO_TAPS] ?: defaults.suggestionStrip.adaptToTaps,
             mistypeTolerance = p[MISTYPE_TOLERANCE]?.coerceIn(50, 200)
                 ?: defaults.suggestionStrip.mistypeTolerance,
+            fixSeveralSlips = p[FIX_SEVERAL_SLIPS] ?: defaults.suggestionStrip.fixSeveralSlips,
             swipeForMore = p[SUGGESTIONS_SWIPE_FOR_MORE] ?: defaults.suggestionStrip.swipeForMore,
             swipeUpForMore = p[SUGGESTIONS_SWIPE_UP_FOR_MORE] ?: defaults.suggestionStrip.swipeUpForMore,
             expandedGrid = p[SUGGESTIONS_EXPANDED_GRID] ?: defaults.suggestionStrip.expandedGrid,
@@ -14734,6 +14743,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMistypeTolerance(value: Int) =
         editPrefs { it[MISTYPE_TOLERANCE] = value.coerceIn(50, 200) }
+
+    suspend fun setFixSeveralSlips(value: Boolean) =
+        editPrefs { it[FIX_SEVERAL_SLIPS] = value }
 
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }
