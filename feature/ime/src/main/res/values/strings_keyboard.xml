@@ -434,6 +434,14 @@
     <!-- The strip button on Bengali layouts. ANSI is the name of the encoding, not a word to translate. -->
     <string name="ime_ansi_button" translatable="false">ANSI</string>
     <string name="ime_ansi_output">ANSI output</string>
+    <!-- The strip button on Burmese layouts. Zawgyi is the name of the encoding, not a word to translate. -->
+    <string name="ime_zawgyi_button" translatable="false">Zawgyi</string>
+    <string name="ime_zawgyi_output">Zawgyi output</string>
+    <!-- Strip chip after a paste the keyboard found to be in Zawgyi, the old Burmese font encoding. Tapping it replaces the paste with Unicode. -->
+    <string name="ime_zawgyi_paste_offer">Pasted Zawgyi. Convert to Unicode</string>
+    <!-- Strip chip on a Burmese layout when the text box already holds Zawgyi. Tapping it makes the keyboard write Zawgyi in this text box. -->
+    <string name="ime_zawgyi_field_offer">This text is Zawgyi. Write Zawgyi here</string>
+    <string name="ime_zawgyi_offer_dismiss_desc">Leave it as it is</string>
     <string name="ime_tool_sound_haptics">Sound &amp; haptics</string>
     <string name="ime_tool_numpad">Numpad</string>
     <string name="ime_tool_handwriting">Handwriting</string>
@@ -834,6 +842,13 @@
     <!-- Selection bar: run the copy rules over the picked clips (#612). -->
     <string name="ime_clip_tidy">Tidy</string>
     <string name="ime_clip_tidy_none_toast">The copy rules change nothing in these clips</string>
+    <!-- Clipboard selection bar button: converts the picked clips' Burmese between Zawgyi (the old font encoding) and Unicode. -->
+    <string name="ime_clip_zawgyi">Zawgyi ⇄ Unicode</string>
+    <string name="ime_clip_zawgyi_none_toast">Nothing in these clips needed converting</string>
+    <plurals name="ime_clip_zawgyi_converted_toast">
+        <item quantity="one">Converted %1$d clip</item>
+        <item quantity="other">Converted %1$d clips</item>
+    </plurals>
     <plurals name="ime_clip_tidied_toast">
         <item quantity="one">%1$d clip tidied</item>
         <item quantity="other">%1$d clips tidied</item>

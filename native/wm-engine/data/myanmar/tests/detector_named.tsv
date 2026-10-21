@@ -1,0 +1,6 @@
+# name<TAB>text, the strings ZawgyiDetectorTest names, at v1.2.0+java
+allASCII	blah blah blah blah blah
+mixedUnicode	<span>blah blah ဒဂုန်ဦးစန်းငွေ </span> blah blah blah blah
+mixedZawgyi	blah blah blah blah blah သို႔သြားပါ။ blah blah blah
+strongUnicode	အပြည်ပြည်ဆိုင်ရာ လူ့အခွင့်အရေး ကြေညာစာတမ်း
+strongZawgyi	အျပည္ျပည္ဆိုင္ရာ လူ႔အခြင့္အေရး ေၾကညာစာတမ္း

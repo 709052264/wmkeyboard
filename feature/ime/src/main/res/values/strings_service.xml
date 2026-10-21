@@ -176,6 +176,10 @@
     <string name="ime_service_phonetic_english_needs_layout_toast">Only for Avro and Hindi phonetic</string>
     <string name="ime_service_ansi_on_toast">Bengali is written as ANSI, version %1$d</string>
     <string name="ime_service_ansi_off_toast">Bengali is written as Unicode</string>
+    <string name="ime_service_zawgyi_on_toast">Burmese is written as Zawgyi</string>
+    <string name="ime_service_zawgyi_off_toast">Burmese is written as Unicode</string>
+    <string name="ime_zawgyi_field_toast">Writing Zawgyi in this text box</string>
+    <string name="ime_zawgyi_paste_moved_toast">The pasted text is no longer before the cursor, so it was left as it is</string>
     <string name="ime_service_selection_actions_on_toast">Selection actions are on</string>
     <string name="ime_service_selection_actions_off_toast">Selection actions are off</string>
     <!-- Shown when the Fancy text tool turns the fancy keyboard on. %1$s is the style name, such as Bold. -->

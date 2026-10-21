@@ -771,6 +771,26 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "myanmar-tools",
+            R.string.about_bundled_myanmar_tools_used,
+            "Copyright 2017 Google LLC",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/google/myanmar-tools",
+        ),
+    )
+    // myanmar-tools compiles its converters from CLDR's transform, whose
+    // notice travels with the rules.
+    add(
+        Attribution(
+            "CLDR Zawgyi transform",
+            R.string.about_bundled_cldr_zawgyi_used,
+            "Copyright © 1991-2013 Unicode, Inc.",
+            "Unicode License v3", "unicode-3.0.txt",
+            "https://github.com/unicode-org/cldr",
+        ),
+    )
+    add(
+        Attribution(
             "Khipro",
             R.string.about_bundled_khipro_used,
             "Copyright (c) 2024 rank_coder, (c) 2026 KhiproTeam",
@@ -930,6 +950,13 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "Copyright Unicode, Inc. (CLDR annotations and emoji data)",
         "Unicode License v3", "unicode-3.0.txt",
         "https://github.com/KDE/kemoji",
+    ))
+    add(Attribution(
+        "Noto Sans Myanmar",
+        R.string.about_pack_noto_myanmar_used,
+        "Copyright 2022 The Noto Project Authors",
+        "SIL Open Font License 1.1", "ofl-1.1.txt",
+        "https://github.com/notofonts/myanmar",
     ))
     add(Attribution(
         "Noto Animated Emoji",

@@ -290,6 +290,19 @@ On test words the space bar wrote the right word 56%% of the time instead of 25%
     <string name="languages_ansi_version_title">ANSI version</string>
     <string name="languages_ansi_version_subtitle">Pick the one your ANSI font is made for</string>
     <string name="languages_ansi_version_info">The ANSI fonts do not all put the letters in the same places, so there are three versions. Version 2 is the common one, used by SutonnyMJ and most Bijoy fonts. If the text comes out as the wrong letters in your font, try another version.</string>
+    <string name="languages_zawgyi_group">Zawgyi</string>
+    <string name="languages_zawgyi_allowed_title">Allow Zawgyi output</string>
+    <string name="languages_zawgyi_allowed_subtitle">A Zawgyi button on the Burmese layouts writes text for Zawgyi fonts</string>
+    <string name="languages_zawgyi_allowed_info">Zawgyi is the font encoding most Burmese text was written in before Unicode, and many phones, apps and friends still use it. It uses the same characters as Unicode but puts them in a different order, so text written for one reads as broken letters in the other.
+
+With this on, every Burmese layout gets a Zawgyi button beside the suggestions. Tap it and what you type goes into the text box as Zawgyi. Tap it again for Unicode. Suggestions, autocorrect and the word list keep working in Unicode while you type.
+
+The word you are typing shows as Unicode until you finish it. When the text box already holds Zawgyi, the keyboard offers to write Zawgyi there even with the button off.</string>
+    <string name="languages_zawgyi_key_font_title">Unicode key font</string>
+    <string name="languages_zawgyi_key_font_subtitle">Draw the Burmese keys in Noto Sans Myanmar, for a phone whose own font is Zawgyi</string>
+    <string name="languages_zawgyi_key_font_info">A phone set up for Zawgyi has a Zawgyi font in place of its Myanmar font, and that font shows Unicode letters in the wrong order. The keyboard\'s keys and suggestions are Unicode, so on such a phone they can look broken.
+
+With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a Unicode font, whatever font the phone uses. The font is downloaded once from WM Keyboard\'s data repository (195 KB) the first time the keys need it. A Myanmar font you picked under Appearance still comes first.</string>
     <string name="languages_ansi_version_option">Version <xliff:g id="number" example="2">%1$d</xliff:g></string>
     <string name="languages_secondary_info">The keyboard offers words from these languages while you type <xliff:g id="language" example="Bengali">%1$s</xliff:g>. Autocorrect never changes them.</string>
     <!-- Toast after adding a romanized language pairs it with a same-script

@@ -194,6 +194,24 @@ class SelectionMacrosTest {
     }
 
     @Test
+    fun `zawgyi is offered on burmese and nowhere else`() {
+        val all = SelectionMacros.configurable.toSet()
+        fun offer(content: ContentFlags) = SelectionMacros.offer(SelectionKind.TEXT, all, MacroGates(content = content))
+        assertTrue(SelectionMacro.ZAWGYI in offer(ContentFlags(hasMyanmar = true)))
+        assertTrue(SelectionMacro.ZAWGYI in offer(ContentFlags(hasLatin = true, hasMyanmar = true)))
+        assertTrue(SelectionMacro.ZAWGYI !in offer(ContentFlags(hasLatin = true)))
+        assertTrue(SelectionMacro.ZAWGYI !in offer(ContentFlags(hasBengali = true)))
+        assertTrue(SelectionMacro.ZAWGYI in SelectionMacros.defaultMacros)
+        assertEquals(MacroCategory.CONVERT, SelectionMacro.ZAWGYI.category)
+        // Either encoding is Myanmar letters; the digits alone are not.
+        assertTrue(SelectionMacros.detectContent("\u1019\u103C\u1014\u103A\u1019\u102C").hasMyanmar)
+        assertTrue(SelectionMacros.detectContent("\u103B\u1019\u1014\u1039\u1019\u102C").hasMyanmar)
+        assertFalse(SelectionMacros.detectContent("\u1042\u1040\u1042\u1046").hasMyanmar)
+        assertTrue(SelectionMacros.detectContent("\u1042\u1040\u1042\u1046").hasForeignDigits)
+        assertFalse(SelectionMacros.detectContent("আমি ভালো").hasMyanmar)
+    }
+
+    @Test
     fun `translate ships on, just before the AI chip`() {
         // #434: the Translate tool is how a selection in a language the user
         // cannot read gets read, and it must not be mistaken for the AI's own.

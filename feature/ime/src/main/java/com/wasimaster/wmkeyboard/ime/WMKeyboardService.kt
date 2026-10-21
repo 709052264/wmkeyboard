@@ -704,6 +704,7 @@ import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
 import com.wasimaster.wmkeyboard.core.transliteration.SortedWords
 import com.wasimaster.wmkeyboard.core.transliteration.Khipro
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.ClipboardKeyAction
@@ -1846,6 +1847,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun appendComposing(text: String) {
         // Typing on is the answer to a chip about a download (#219).
         if (_uiState.value.glideWordListOffer != null) clearGlideWordListOffer()
+        // And to the one about a paste, which no longer sits behind the caret.
+        if (_uiState.value.zawgyiOffer is ZawgyiOffer.Pasted) clearZawgyiOffer()
         if (composing.isEmpty()) {
             val state = _uiState.value
             // A sentence's first word takes a capital because it opens the
@@ -2390,25 +2393,36 @@ open class WMKeyboardService : InputMethodService() {
     private var pendingUndo: PendingUndo? = null
 
     /**
-     * The ANSI encoding a Bengali layout on screen writes, or null while it
-     * writes Unicode (see [syncAnsiOutput]). Non-null is what routes every
-     * edit through [AnsiOutputConnection].
+     * The legacy encoding the layout on screen writes, or null while it writes
+     * Unicode (see [syncLegacyOutput]): ANSI on a Bengali layout, Zawgyi on a
+     * Burmese one. Non-null is what routes every edit through
+     * [LegacyOutputConnection].
      */
-    private var ansiOutputVersion: BijoyAnsi.Version? = null
+    private var outputEncoding: OutputEncoding? = null
 
-    /** The converting connection handed out last, kept for as long as its field and version last. */
-    private var ansiConnection: AnsiOutputConnection? = null
+    /** The converting connection handed out last, kept for as long as its field and encoding last. */
+    private var legacyConnection: LegacyOutputConnection? = null
 
     /**
-     * The field's connection, seen through the ANSI converter while a Bengali
-     * layout writes ANSI. Every edit the keyboard makes goes through here, so
+     * This field is written in Zawgyi because the user said so on the strip's
+     * offer ([ZawgyiOffer.Field]), whatever the Burmese layouts' own setting.
+     * Gone with the field.
+     */
+    private var zawgyiField = false
+
+    /** The field's Zawgyi offer has been made; it is not made twice in one field. */
+    private var zawgyiFieldOffered = false
+
+    /**
+     * The field's connection, seen through the converter while a layout writes
+     * a legacy encoding. Every edit the keyboard makes goes through here, so
      * this one place is the whole of the conversion's reach into the service.
      */
     override fun getCurrentInputConnection(): InputConnection? {
         val base = traced(super.getCurrentInputConnection() ?: return null)
-        val version = ansiOutputVersion ?: return base
-        ansiConnection?.let { if (it.base === base && it.version == version) return it }
-        return AnsiOutputConnection(base, version).also { ansiConnection = it }
+        val encoding = outputEncoding ?: return base
+        legacyConnection?.let { if (it.base === base && it.encoding == encoding) return it }
+        return LegacyOutputConnection(base, encoding).also { legacyConnection = it }
     }
 
     /** The connection [traced] last decided about, and what it decided. */
@@ -4938,7 +4952,7 @@ open class WMKeyboardService : InputMethodService() {
                 syncPhoneticAutoEnglish(settings, activeSpec)
                 syncPhoneticFixedStrip(settings, activeSpec)
                 syncPhoneticCandidateLists(settings)
-                syncAnsiOutput(settings, activeSpec)
+                syncLegacyOutput(settings, activeSpec)
                 if (settings.suggestionStrip.neuralPhoneticLangs.isEmpty()) indicXlit?.release()
                 glideSourcesEpoch.update { it + 1 }
             }
@@ -7110,6 +7124,10 @@ open class WMKeyboardService : InputMethodService() {
             // The last field's language mix must not color this one; the
             // entry re-read below re-seeds it from this field's own words.
             suggestionEngine?.clearFieldContext()
+            // A field found in Zawgyi was that field; this one is read afresh.
+            zawgyiField = false
+            zawgyiFieldOffered = false
+            clearZawgyiOffer()
         }
         // The Fancy tool's automatic pass, run here rather than when the
         // keyboard closed: this is the first moment the work is safe again (the
@@ -7317,7 +7335,7 @@ open class WMKeyboardService : InputMethodService() {
         // layout's answers, so the fixed strip never fixed anything (#575).
         syncPhoneticAutoEnglish(modeSettings, fieldSpec)
         syncPhoneticFixedStrip(modeSettings, fieldSpec)
-        syncAnsiOutput(modeSettings, fieldSpec)
+        syncLegacyOutput(modeSettings, fieldSpec)
         // GIFs and stickers queued in the last field don't follow the user
         // into this one; a restart is still the same field, so they go on.
         if (!restarting) mediaSendQueue.clear()
@@ -13410,16 +13428,31 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Turns ANSI output on or off for the layout now on screen ([spec]): on for
-     * a Bengali layout while Bengali's ANSI button is lit. A word still being
-     * typed commits in whatever the output was when it started, because the
-     * layout switch commits it before calling here.
+     * Picks the legacy encoding for the layout now on screen ([spec]): ANSI
+     * for a Bengali layout while Bengali's ANSI button is lit, Zawgyi for a
+     * Burmese one while its Zawgyi button is lit or the field was found to be
+     * Zawgyi and the user said to write it ([zawgyiField]), Unicode otherwise.
+     * A word still being typed commits in whatever the output was when it
+     * started, because the layout switch commits it before calling here.
      */
-    private fun syncAnsiOutput(settings: KeyboardSettings, spec: LayoutSpec) {
+    private fun syncLegacyOutput(settings: KeyboardSettings, spec: LayoutSpec) {
         val strip = settings.suggestionStrip
-        ansiOutputVersion = BijoyAnsi.Version.of(strip.bengaliAnsiVersion)
-            .takeIf { strip.bengaliAnsiFor(spec.language().id) }
-        if (ansiOutputVersion == null) ansiConnection = null
+        val langId = spec.language().id
+        setOutputEncoding(
+            when {
+                strip.bengaliAnsiFor(langId) -> OutputEncoding.Ansi(BijoyAnsi.Version.of(strip.bengaliAnsiVersion))
+                langId == "my" && (strip.burmeseZawgyiFor(langId) || zawgyiField) -> OutputEncoding.ZawgyiOutput
+                else -> null
+            },
+        )
+    }
+
+    /** [outputEncoding] set, with the strip's Zawgyi button lit to match. */
+    private fun setOutputEncoding(encoding: OutputEncoding?) {
+        outputEncoding = encoding
+        if (encoding == null) legacyConnection = null
+        val zawgyi = encoding == OutputEncoding.ZawgyiOutput
+        if (_uiState.value.zawgyiOutput != zawgyi) _uiState.update { it.copy(zawgyiOutput = zawgyi) }
     }
 
     /**
@@ -13855,7 +13888,7 @@ open class WMKeyboardService : InputMethodService() {
      * predicts from nothing rather than from the fragment it is inside.
      */
     private fun syncPreviousWordFromField(ic: InputConnection) {
-        val before = ic.getTextBeforeCursor(64, 0)
+        val before = readableContext(ic.getTextBeforeCursor(64, 0))
         setContextFrom(before)
         rebuildRecentWords(before)
         seedFieldLanguageMix()
@@ -14129,10 +14162,11 @@ open class WMKeyboardService : InputMethodService() {
             // engine's next commitText replaces wholesale, so every key would
             // overwrite the one before it.
             keymanSession == null &&
-            // ANSI in the field is Latin letters standing for Bengali glyphs.
-            // Composed again, it would be read, corrected and converted as
-            // though it were the Unicode the keyboard typed.
-            ansiOutputVersion == null &&
+            // ANSI in the field is Latin letters standing for Bengali glyphs,
+            // Zawgyi is Burmese in glyph order. Composed again, either would be
+            // read, corrected and converted as though it were the Unicode the
+            // keyboard typed.
+            outputEncoding == null &&
             // Last, so the one term that asks the engine anything is only
             // reached once the screen and the field have already said yes.
             composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
@@ -15954,10 +15988,10 @@ open class WMKeyboardService : InputMethodService() {
         if (state.composer.isConversion || state.layouts.ambiguousKeys) return null
         // Something else owns the keys or the field's text is not what it looks
         // like: a keyboard-owned field composes in its own buffer, a Keyman
-        // engine keeps its own context, and ANSI output is Latin letters
-        // standing for Bengali glyphs.
+        // engine keeps its own context, and ANSI or Zawgyi output is glyphs
+        // standing for the letters typed.
         if (state.captureTarget() != null || keymanSession != null) return null
-        if (ansiOutputVersion != null) return null
+        if (outputEncoding != null) return null
         val buffered = composing.toString()
         if (buffered.isNotEmpty()) {
             return carriedRomanWord(buffered)?.also { carryComposing(it) }
@@ -16057,7 +16091,7 @@ open class WMKeyboardService : InputMethodService() {
         bindEngineToLayout(spec, _uiState.value.settings)
         syncPhoneticAutoEnglish(_uiState.value.settings, spec)
         syncPhoneticFixedStrip(_uiState.value.settings, spec)
-        syncAnsiOutput(_uiState.value.settings, spec)
+        syncLegacyOutput(_uiState.value.settings, spec)
         // The carried word is still roman in the field; here is the first point
         // the new composer, the engine and the phonetic flags are all in place,
         // so this is where it becomes Bengali (or Devanagari) on screen.
@@ -17746,6 +17780,10 @@ open class WMKeyboardService : InputMethodService() {
             onAnsiOutputToggle()
             return
         }
+        if (action == StripOfferAction.ToggleZawgyi) {
+            onZawgyiOutputToggle()
+            return
+        }
         if (_uiState.value.learnOffer != null) {
             when (action) {
                 is StripOfferAction.Accept -> acceptLearnOffer()
@@ -17798,14 +17836,98 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
+        // Behind the snippet offer, which the strip shows in its place, and
+        // after every chip about the word being typed.
+        val zawgyiOffer = _uiState.value.zawgyiOffer
+        if (_uiState.value.snippetOffers == null && zawgyiOffer != null) {
+            when (action) {
+                is StripOfferAction.Accept -> acceptZawgyiOffer(zawgyiOffer)
+                StripOfferAction.Decline -> clearZawgyiOffer()
+                else -> Unit
+            }
+            return
+        }
         when (action) {
             is StripOfferAction.Accept -> onSnippetOfferPick(action.index)
             is StripOfferAction.Drill -> onSnippetOfferDrill(action.index)
             StripOfferAction.Back -> onSnippetOfferBack()
             StripOfferAction.Decline -> clearSnippetOffer()
             StripOfferAction.Explain -> Unit
-            StripOfferAction.ToggleAnsi -> Unit
+            StripOfferAction.ToggleAnsi, StripOfferAction.ToggleZawgyi -> Unit
         }
+    }
+
+    /**
+     * Puts the Zawgyi chip up for pasted [text] when it is Zawgyi beyond doubt
+     * and the field is not being written in Zawgyi anyway: pasted into a
+     * Unicode field it reads as garbage, and converting it is one tap.
+     */
+    private fun offerZawgyiForPaste(text: String) {
+        if (outputEncoding == OutputEncoding.ZawgyiOutput) return
+        if (text.length > MAX_ZAWGYI_PASTE || !Zawgyi.hasMyanmar(text)) return
+        if (!Zawgyi.isConfidentlyZawgyi(text)) return
+        _uiState.update { it.copy(zawgyiOffer = ZawgyiOffer.Pasted(text)) }
+    }
+
+    /**
+     * The text before the caret as the engine should read it. While the field
+     * is written in Zawgyi it holds glyph order, so it is turned back into the
+     * Unicode the user typed, or prediction reads every word as a misspelling.
+     * A Burmese field found to be in Zawgyi already, typed by someone else or
+     * before the keyboard, is read the same way, and asked about once: the
+     * strip offers to write Zawgyi here too.
+     */
+    private fun readableContext(before: CharSequence?): CharSequence? {
+        if (before == null || !Zawgyi.hasMyanmar(before)) return before
+        val text = before.toString()
+        // A field written in Zawgyi can still hold Unicode from before the
+        // button went on, so it is only read back when it leans Zawgyi.
+        if (outputEncoding == OutputEncoding.ZawgyiOutput) {
+            return if (Zawgyi.probability(text) > 0.5) Zawgyi.toUnicode(text) else before
+        }
+        if (_uiState.value.language.id != "my") return before
+        if (!Zawgyi.isConfidentlyZawgyi(text)) return before
+        if (!zawgyiFieldOffered && !_uiState.value.secureField) {
+            zawgyiFieldOffered = true
+            _uiState.update { it.copy(zawgyiOffer = ZawgyiOffer.Field) }
+        }
+        return Zawgyi.toUnicode(text)
+    }
+
+    /**
+     * The Zawgyi chip was tapped. Pasted text is replaced with its Unicode,
+     * provided it is still right behind the caret; a field found in Zawgyi is
+     * written in Zawgyi from here on, until the field is left.
+     */
+    private fun acceptZawgyiOffer(offer: ZawgyiOffer) {
+        vibrate()
+        clearZawgyiOffer()
+        when (offer) {
+            is ZawgyiOffer.Pasted -> {
+                val ic = currentInputConnection ?: return
+                commitComposing(ic, autocorrect = false)
+                val before = ic.getTextBeforeCursor(offer.text.length, 0)?.toString()
+                if (before != offer.text) {
+                    Toast.makeText(this, getString(R.string.ime_zawgyi_paste_moved_toast), Toast.LENGTH_SHORT).show()
+                    return
+                }
+                ic.beginBatchEdit()
+                ic.deleteSurroundingText(offer.text.length, 0)
+                ic.commitText(Zawgyi.toUnicode(offer.text), 1)
+                ic.endBatchEdit()
+            }
+            ZawgyiOffer.Field -> {
+                currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+                zawgyiField = true
+                syncLegacyOutput(_uiState.value.settings, activeLayoutSpec(_uiState.value.settings))
+                Toast.makeText(this, getString(R.string.ime_zawgyi_field_toast), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /** Takes the Zawgyi chip down, answered or overtaken by typing. */
+    private fun clearZawgyiOffer() {
+        if (_uiState.value.zawgyiOffer != null) _uiState.update { it.copy(zawgyiOffer = null) }
     }
 
     /**
@@ -31498,7 +31620,7 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * The strip's ANSI button on a Bengali layout: write Bijoy-era ANSI
      * (আ as Av) or Unicode. The settings collector switches the output once
-     * the write lands ([syncAnsiOutput]). A word still being typed commits in
+     * the write lands ([syncLegacyOutput]). A word still being typed commits in
      * the output it was started in only if it commits before that; it is
      * committed here first, so the switch starts cleanly at the next word.
      */
@@ -31519,6 +31641,31 @@ open class WMKeyboardService : InputMethodService() {
             Toast.LENGTH_SHORT,
         ).show()
         serviceScope.launch { settingsRepository.setBengaliAnsiOn(next) }
+    }
+
+    /**
+     * The strip's Zawgyi button on a Burmese layout: write Zawgyi or Unicode,
+     * the same way [onAnsiOutputToggle] does for Bengali. Turning it off also
+     * ends a Zawgyi field the strip's offer started, so the button always
+     * means what it shows.
+     */
+    fun onZawgyiOutputToggle() {
+        vibrate()
+        val strip = _uiState.value.settings.suggestionStrip
+        if (!strip.burmeseZawgyiAllowed) return
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
+        val next = !(strip.burmeseZawgyiOn || zawgyiField)
+        if (!next) zawgyiField = false
+        Toast.makeText(
+            this,
+            getString(if (next) R.string.ime_service_zawgyi_on_toast else R.string.ime_service_zawgyi_off_toast),
+            Toast.LENGTH_SHORT,
+        ).show()
+        serviceScope.launch { settingsRepository.setBurmeseZawgyiOn(next) }
+        // Switched here too, not only by the collector once the write lands:
+        // turning off a field the offer started writes a setting that already
+        // reads off, which the collector never sees.
+        if (_uiState.value.language.id == "my") setOutputEncoding(if (next) OutputEncoding.ZawgyiOutput else null)
     }
 
     /**
@@ -41235,6 +41382,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.LINES_UP -> moveSelectedLines(up = true)
             SelectionMacro.LINES_DOWN -> moveSelectedLines(up = false)
             SelectionMacro.DIGITS_LATIN -> DigitScripts.toAsciiDigits(text)?.let(::rewriteSelection)
+            SelectionMacro.ZAWGYI -> convertZawgyiSelection(offer, text)
             SelectionMacro.JSON_FORMAT -> JsonReformat.toggle(text)?.let(::rewriteSelection)
             SelectionMacro.BASE64_DECODE -> TextCodecs.base64Decode(text)?.let(::rewriteSelection)
             SelectionMacro.URL_DECODE -> TextCodecs.urlDecode(text)?.let(::rewriteSelection)
@@ -42035,6 +42183,32 @@ open class WMKeyboardService : InputMethodService() {
         romanizedConverters[languageId]?.let { (builtFrom, converter) -> if (builtFrom.sameAs(key)) return converter }
         return RomanizedConverter(backend.scheme, backend.spellings, backend.index)
             .also { romanizedConverters[languageId] = key to it }
+    }
+
+    /**
+     * The selection between Zawgyi and Unicode, whichever way the detector
+     * reads it. Written past the field's own conversion: the result is already
+     * in the encoding the user asked for, and a field written in Zawgyi would
+     * otherwise convert it a second time.
+     */
+    private fun convertZawgyiSelection(offer: SelectionMacroOffer, text: String) {
+        if (offer.busy != null) return
+        val seq = ++macroSeq
+        setMacroBusy(SelectionMacro.ZAWGYI)
+        macroJob?.cancel()
+        macroJob = serviceScope.launch {
+            val out = withContext(Dispatchers.Default) { Zawgyi.convertEitherWay(text) }
+            if (!offerStillLive(offer, seq)) return@launch
+            setMacroBusy(null)
+            if (out == text) return@launch
+            val legacy = currentInputConnection as? LegacyOutputConnection
+            legacy?.passThrough = true
+            try {
+                rewriteSelection(out)
+            } finally {
+                legacy?.passThrough = false
+            }
+        }
     }
 
     /** Both directions of both languages: [macro] says which. */
@@ -44730,6 +44904,9 @@ open class WMKeyboardService : InputMethodService() {
                 else -> commitToField(item.text)
             }
         }
+        // Zawgyi pasted into a Unicode field reads as garbage; the strip
+        // offers to convert it where it landed.
+        if (item.kind.isTextual && !item.sensitive) offerZawgyiForPaste(item.text)
         // Whether tapped from the panel or the strip chip, the recent-copy chip
         // has served its purpose once something was pasted. The row of recent
         // copies stays up for the next one, until a key is typed (#612).
@@ -45593,6 +45770,7 @@ open class WMKeyboardService : InputMethodService() {
         onEntityStripHidden = ::onClipboardEntityStripHidden,
         onCombineDeleteToggle = ::onClipCombineDeleteToggle,
         onTidy = ::onClipboardTidy,
+        onZawgyi = ::onClipboardZawgyi,
         onTags = ::onClipTagsStart,
         onTagAdd = ::onClipTagAdd,
         onQr = ::onClipboardQr,
@@ -46044,6 +46222,34 @@ open class WMKeyboardService : InputMethodService() {
         Toast.makeText(
             this,
             resources.getQuantityString(R.plurals.ime_clip_tidied_toast, changed, changed),
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    /**
+     * The clip selection bar's Zawgyi ⇄ Unicode: each picked clip holding
+     * Burmese is rewritten the other way, as the detector reads that clip.
+     * Clips marked sensitive are left alone, as Tidy leaves them.
+     */
+    fun onClipboardZawgyi(ids: List<Long>) {
+        if (!isClipboardAccessible()) return
+        vibrate()
+        val byId = clipboardStore.items().associateBy { it.id }
+        var changed = 0
+        for (id in ids) {
+            val item = byId[id]?.takeIf { it.kind.isTextual && !it.sensitive && Zawgyi.hasMyanmar(it.text) } ?: continue
+            val next = Zawgyi.convertEitherWay(item.text)
+            if (next != item.text && clipboardStore.editText(id, next) != null) changed++
+        }
+        if (changed == 0) {
+            Toast.makeText(this, getString(R.string.ime_clip_zawgyi_none_toast), Toast.LENGTH_SHORT).show()
+            return
+        }
+        saveClipboardSoon()
+        _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
+        Toast.makeText(
+            this,
+            resources.getQuantityString(R.plurals.ime_clip_zawgyi_converted_toast, changed, changed),
             Toast.LENGTH_SHORT,
         ).show()
     }
@@ -49806,6 +50012,9 @@ private class GlideRetryOffer(
  * Copy is what somebody selecting that much text is reaching for anyway.
  */
 private const val MAX_MACRO_SELECTION = 4000
+
+/** Pasted text longer than this is not read for Zawgyi: a long paste is rarely one encoding's mistake. */
+private const val MAX_ZAWGYI_PASTE = 4000
 
 /**
  * How long [WMKeyboardService.revealCaretAfterGrowth] waits before putting the

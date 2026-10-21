@@ -28,6 +28,10 @@
 //!   generated [`bijoy_tables`]; [`khipro_romanizer`]: Khipro run backwards;
 //!   [`phonetic_key_map`]: the key maps the settings pages draw.
 //!
+//! - [`zawgyi`]: Burmese in the Zawgyi font encoding, detected and converted
+//!   to and from Unicode, a port of google/myanmar-tools with its rules in
+//!   the generated [`zawgyi_rules`].
+//!
 //! - [`phonetic_index`] and the reverse-phonetic indexes over word lists:
 //!   [`bengali_index`], [`hindi_index`], [`indic_index`], [`urdu_index`]
 //!   (with the Arabic-script wrapper), and the Assamese one in [`assamese`].
@@ -118,3 +122,5 @@ pub mod user_lexicon;
 pub mod wmdict;
 pub mod wmng;
 pub mod wordlist;
+pub mod zawgyi;
+pub mod zawgyi_rules;

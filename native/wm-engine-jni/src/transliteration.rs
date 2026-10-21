@@ -9,7 +9,7 @@
 use std::ptr::null_mut;
 
 use jni::objects::{JClass, JString};
-use jni::sys::{jboolean, jint, jobjectArray, jstring, JNI_FALSE, JNI_TRUE};
+use jni::sys::{jboolean, jdouble, jint, jobjectArray, jstring, JNI_FALSE, JNI_TRUE};
 use jni::JNIEnv;
 
 use wm_engine::bengali_graphemes::VowelKeyForm;
@@ -243,6 +243,40 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_Engin
     guarded(&mut env, JNI_FALSE, |env| {
         let text = read(env, &text)?;
         Some(if wm_engine::bijoy::needs_conversion(&text) { JNI_TRUE } else { JNI_FALSE })
+    })
+}
+
+// ---- Zawgyi ---------------------------------------------------------------------
+
+string_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_zawgyiToUnicode, wm_engine::zawgyi::to_unicode);
+string_fn!(Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_zawgyiFromUnicode, wm_engine::zawgyi::to_zawgyi);
+string_fn!(
+    Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_zawgyiConvertEitherWay,
+    wm_engine::zawgyi::convert_either_way
+);
+
+/// `EngineNative.zawgyiProbability(text)`: negative infinity for text with no Myanmar in it.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_zawgyiProbability(
+    mut env: JNIEnv,
+    _class: JClass,
+    text: JString,
+) -> jdouble {
+    guarded(&mut env, f64::NEG_INFINITY, |env| {
+        let text = read(env, &text)?;
+        Some(wm_engine::zawgyi::zawgyi_probability(&text))
+    })
+}
+
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_transliteration_EngineNative_zawgyiConfident(
+    mut env: JNIEnv,
+    _class: JClass,
+    text: JString,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        let text = read(env, &text)?;
+        Some(if wm_engine::zawgyi::is_confidently_zawgyi(&text) { JNI_TRUE } else { JNI_FALSE })
     })
 }
 

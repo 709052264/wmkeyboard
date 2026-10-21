@@ -933,6 +933,8 @@ internal object SettingsRowIcons {
         put(R.string.languages_phonetic_english_switch_title) { Icons.Outlined.TouchApp }
         put(R.string.languages_ansi_allowed_title) { Icons.Outlined.FontDownload }
         put(R.string.languages_ansi_version_title) { Icons.Outlined.Numbers }
+        put(R.string.languages_zawgyi_allowed_title) { Icons.Outlined.SwapHoriz }
+        put(R.string.languages_zawgyi_key_font_title) { Icons.Outlined.FontDownload }
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
         put(R.string.typing_learn_threshold_title) { Icons.Outlined.School }

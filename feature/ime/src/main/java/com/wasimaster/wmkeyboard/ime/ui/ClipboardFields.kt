@@ -146,6 +146,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.PhoneFormats
 import com.wasimaster.wmkeyboard.core.clipboard.clipEditable
 import com.wasimaster.wmkeyboard.core.clipboard.clipPreviewText
 import com.wasimaster.wmkeyboard.core.clipboard.clipQueryMatcher
+import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 import com.wasimaster.wmkeyboard.core.clipboard.expiresAt
 import com.wasimaster.wmkeyboard.core.clipboard.orderKey
 import com.wasimaster.wmkeyboard.core.layout.PanelFieldKind
@@ -231,6 +232,8 @@ data class ClipboardPanelActions(
     val onCombineDeleteToggle: () -> Unit = {},
     /** The selection bar's Tidy: the copy rules run over these clips (#612). */
     val onTidy: (List<Long>) -> Unit = {},
+    /** The selection bar's Zawgyi: these clips' Burmese between Zawgyi and Unicode. */
+    val onZawgyi: (List<Long>) -> Unit = {},
     /** The hold popup's Tags: the editor opens on this clip's tags (#612). */
     val onTags: (ClipItem) -> Unit = {},
     /** A tag already in the history, pressed under the tags editor (#612). */
@@ -1083,6 +1086,10 @@ private fun ClipboardListField(
                             callbacks.actions.onTidy(selection)
                         }
                     } else null,
+                    onZawgyi = {
+                        session.selection.value = null
+                        callbacks.actions.onZawgyi(selection)
+                    },
                 )
                 session.tabbed -> Box(
                     modifier = Modifier.swipeTabs(session.tab.value.ordinal, ClipTab.entries.size) {
@@ -1231,11 +1238,17 @@ private fun ClipSelectionBar(
     onDelete: () -> Unit,
     /** Runs the copy rules over the picked clips (#612); none without rules. */
     onTidy: (() -> Unit)? = null,
+    /** Converts the picked clips between Zawgyi and Unicode; shown while one holds Burmese. */
+    onZawgyi: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     val textual = remember(picked, items) {
         val byId = items.associateBy { it.id }
         picked.count { byId[it]?.kind?.isTextual == true }
+    }
+    val burmese = remember(picked, items) {
+        val byId = items.associateBy { it.id }
+        picked.any { id -> byId[id]?.takeIf { it.kind.isTextual && !it.sensitive }?.let { Zawgyi.hasMyanmar(it.text) } == true }
     }
     Row(
         modifier = Modifier
@@ -1268,6 +1281,11 @@ private fun ClipSelectionBar(
         if (onTidy != null) {
             TextButton(onClick = onTidy, enabled = textual >= 1) {
                 Text(stringResource(R.string.ime_clip_tidy))
+            }
+        }
+        if (onZawgyi != null && burmese) {
+            TextButton(onClick = onZawgyi) {
+                Text(stringResource(R.string.ime_clip_zawgyi))
             }
         }
         TextButton(onClick = onCombine, enabled = textual >= 2) {

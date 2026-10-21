@@ -7,7 +7,7 @@ import com.wasimaster.wmkeyboard.core.engine.NativeEngine
  * `native/wm-engine-jni` over the `native/wm-engine` crate, which is the one
  * implementation of the phonetic engines the Android app and WMK Desktop
  * share. The Kotlin objects in this package ([AvroPhonetic], [Khipro],
- * [BijoyAnsi] and the rest) are facades over these calls and keep the
+ * [BijoyAnsi], [Zawgyi] and the rest) are facades over these calls and keep the
  * signatures the rest of the app always had.
  *
  * [NativeEngine] loads the library, on a device and in a JVM test alike.
@@ -50,6 +50,13 @@ internal object EngineNative {
     // Bijoy ANSI.
     external fun bijoy(text: String, version: Int, before: String): String
     external fun bijoyNeedsConversion(text: String): Boolean
+
+    // Zawgyi.
+    external fun zawgyiToUnicode(text: String): String
+    external fun zawgyiFromUnicode(text: String): String
+    external fun zawgyiConvertEitherWay(text: String): String
+    external fun zawgyiProbability(text: String): Double
+    external fun zawgyiConfident(text: String): Boolean
 
     // Bengali graphemes. Lengths are UTF-16 units; `previous` is a code point or -1.
     external fun clusterDeleteLength(text: String): Int

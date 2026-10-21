@@ -12,8 +12,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Area | Families | Features | Capabilities |
 |---|---|---|---|
 | Typing core: prediction, autocorrect, learning, spell check | 9 | 50 | 205 |
-| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 219 |
-| Languages, scripts, layouts, transliteration | 11 | 64 | 213 |
+| Input behaviour: glide, gestures, cursor, editing, keys | 11 | 80 | 220 |
+| Languages, scripts, layouts, transliteration | 11 | 65 | 220 |
 | Themes and appearance | 14 | 73 | 183 |
 | Emoji, GIFs, stickers, kaomoji | 16 | 96 | 94 |
 | Toolbar and the tool set | 10 | 88 | 364 |
@@ -23,7 +23,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **134** | **828** | **2273** |
+| **Total** | **134** | **829** | **2281** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -568,6 +568,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Content detectors behind switches — Dates and times (numeric in either order, month names in English and Bengali, DateSuggest phrases, zone abbreviations) and places (coordinates read exactly, addresses guessed conservatively) only run while a macro that needs them is on
     - Banglish both ways — To Bangla through the spelling map, then the phonetic index under the strip's own confidence rule, then literal Avro, letter runs only; to Banglish through the inverted map and a rule romaniser with the inherent vowel dropped where speech drops it
     - Hinglish both ways — To Hindi and To Hinglish, the same converter over the Hindi scheme; back to Latin through a schwa-deleting romaniser (करना to karna, नमस्ते to namaste), offered only while the Hindi phonetic layout is enabled
+    - Zawgyi both ways — Zawgyi ⇄ Unicode on Burmese text, the direction picked by myanmar-tools' detector; written past a Zawgyi field's own conversion so it is never converted twice
     - Grammar, AI and speech — Harper over the selection alone with every fix committed at once; AI buttons that run a chosen action on the selection and land in the AI panel, whose Replace now swaps the selection rather than the field; reading aloud through the vocabulary speaker with a chip that reads Stop
     - Intents with fallbacks — Contacts, Maps and Calendar each try two intents and toast when no app takes them; Calendar first opens the Calendar tool's composer, prefilled, while that tool is on and saves in the keyboard
     - One-time list reset — The on-list and the order carry a list version; a list stored under an older one reads as the shipped list, so every existing user gets the new actions once
@@ -797,6 +798,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Per-script pinned fonts `uncommon` — 25 scripts map to a specific Google font; Music to Noto Music, Braille to Noto Sans Symbols 2
     - Per-script font pickers — Curated alternative families per script, shown only while a language on that script is enabled
     - Per-glyph fallback — A glyph the pinned face lacks falls back to the system font rather than blanking
+  - Zawgyi for Burmese `RARE` — Google myanmar-tools' Markov detector and its CLDR-derived converters, ported into the Rust engine (no download) and held to upstream's own corpus and compatibility table
+    - Zawgyi output — A strip button on Burmese layouts writes Zawgyi; typing, the strip and prediction stay Unicode and the commit is converted, a letter-by-letter run rewritten whole so ေ lands in front of its consonant
+    - Context read back as Unicode — The text before the cursor goes through Zawgyi to Unicode before prediction reads it, in a Zawgyi field or one already holding Zawgyi
+    - Paste offer — Zawgyi pasted from the clipboard into a Unicode field gets a Convert to Unicode chip; already-Zawgyi text is never converted twice in a Zawgyi field
+    - Field offer — A Burmese text box already in Zawgyi offers to write Zawgyi there, for that box only
+    - Confidence bar — Acts unasked only at p ≥ 0.99999, four letters or more, and text the conversion changes; every Unicode line of the UDHR stays under it
+    - Clipboard conversion — Zawgyi ⇄ Unicode on picked clips, each converted the way it needs
+    - Unicode key font — Burmese keys in a keyboard-fetched Noto Sans Myanmar (SHA-pinned, 195 KB) for phones whose Myanmar font is Zawgyi
 - **Keyboard layouts** — 1,732 shipped layouts: 35 compiled built-ins + 1,697 JSON assets (862 of them converted Keyman keyboards)
   - Shipped catalogue — 20 Kotlin LayoutSpecs (boot-critical) plus 354 .wmlayout.json assets parsed off the main thread
     - Latin ergonomic alternates — QWERTY, AZERTY, Dvorak, Colemak, Workman, Halmak built in; BÉPO, Swiss German, LatAm Spanish, Turkish-Q as assets

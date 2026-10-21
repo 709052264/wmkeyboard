@@ -2416,6 +2416,22 @@ sealed interface StripOfferAction {
      * and riding this type costs the screen's call chain no parameter.
      */
     data object ToggleAnsi : StripOfferAction
+
+    /** The Zawgyi button beside the words on a Burmese layout, the same kind of button as [ToggleAnsi]. */
+    data object ToggleZawgyi : StripOfferAction
+}
+
+/**
+ * What the strip's Zawgyi chip is offering: text the keyboard found in
+ * Zawgyi, the pre-Unicode Burmese encoding, where it would otherwise be read
+ * or left as Unicode (see [com.wasimaster.wmkeyboard.core.transliteration.Zawgyi]).
+ */
+sealed interface ZawgyiOffer {
+    /** [text] was just pasted and is Zawgyi: tap to put its Unicode in its place. */
+    data class Pasted(val text: String) : ZawgyiOffer
+
+    /** The Burmese field being typed in already holds Zawgyi: tap to write Zawgyi in it too. */
+    data object Field : ZawgyiOffer
 }
 
 /**
@@ -3541,6 +3557,16 @@ data class KeyboardUiState(
      * language's page, where the pack downloads.
      */
     val conversionPackOffer: String? = null,
+    /**
+     * The strip's Zawgyi chip, or null: pasted text, or the field, found to
+     * be Zawgyi. Taken down by its ✕, by the next field, or by being answered.
+     */
+    val zawgyiOffer: ZawgyiOffer? = null,
+    /**
+     * Whether the Burmese layout on screen writes Zawgyi now, from its setting
+     * or from the strip's offer for this field; what lights the Zawgyi button.
+     */
+    val zawgyiOutput: Boolean = false,
     /**
      * The word the caret is sitting in that a swipe wrote, while the strip is
      * offering to search that swipe's path against every word list (#135), or

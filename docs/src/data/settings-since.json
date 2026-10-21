@@ -311,6 +311,8 @@
 		"langemoji_strip_tool_width_title": "0.6.0",
 		"languages_ansi_allowed_title": "0.5.13",
 		"languages_ansi_version_title": "0.5.13",
+		"languages_zawgyi_allowed_title": "0.6.3",
+		"languages_zawgyi_key_font_title": "0.6.3",
 		"languages_cjk_double_pinyin_custom_title": "0.5.14",
 		"languages_cjk_flex_import_title": "0.5.10",
 		"languages_cjk_full_width_space_title": "0.5.12",

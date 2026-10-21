@@ -1431,6 +1431,36 @@ internal fun LanguageDetailScreen(
         }
     }
 
+    // Burmese written in Zawgyi, the font encoding much Burmese text is still
+    // in, the same way: allowing it puts the Zawgyi button on the strip of
+    // every Burmese layout, and the button turns it on. The key font is for
+    // the phones Zawgyi users have, whose own Myanmar font may be a Zawgyi one.
+    if (langId == "my") {
+        val zawgyiAllowed = settings.watch { it.suggestionStrip.burmeseZawgyiAllowed }
+        SettingsGroup(stringResource(R.string.languages_zawgyi_group)) {
+            item {
+                ToggleSetting(
+                    R.string.languages_zawgyi_allowed_title,
+                    stringResource(R.string.languages_zawgyi_allowed_subtitle),
+                    zawgyiAllowed,
+                    info = stringResource(R.string.languages_zawgyi_allowed_info),
+                    default = SettingsDefaults.suggestionStrip.burmeseZawgyiAllowed,
+                ) { scope.launch { repository.setBurmeseZawgyiAllowed(it) } }
+            }
+            if (zawgyiAllowed) {
+                item {
+                    ToggleSetting(
+                        R.string.languages_zawgyi_key_font_title,
+                        stringResource(R.string.languages_zawgyi_key_font_subtitle),
+                        settings.watch { it.suggestionStrip.burmeseUnicodeKeyFont },
+                        info = stringResource(R.string.languages_zawgyi_key_font_info),
+                        default = SettingsDefaults.suggestionStrip.burmeseUnicodeKeyFont,
+                    ) { scope.launch { repository.setBurmeseUnicodeKeyFont(it) } }
+                }
+            }
+        }
+    }
+
     // The word list, emoji keywords and word pairs, one row each, with the
     // Download all that fetches whatever of them is missing.
     DictionariesGroup(lang, settings, repository, scope, onNavigate)
