@@ -918,21 +918,23 @@ private fun MessageBubble(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = if (fromUser) Arrangement.End else Arrangement.Start,
     ) {
+        // The user's turn is a bubble at the right; an answer is the page
+        // itself (#882), full width with no background, as long as it runs.
+        // A failed turn keeps its error colour so it still reads as one.
         Surface(
-            shape = RoundedCornerShape(
-                topStart = 16.dp,
-                topEnd = 16.dp,
-                bottomStart = if (fromUser) 16.dp else 4.dp,
-                bottomEnd = if (fromUser) 4.dp else 16.dp,
-            ),
+            shape = if (fromUser) {
+                RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 16.dp, bottomEnd = 4.dp)
+            } else {
+                RoundedCornerShape(12.dp)
+            },
             color = when {
                 message.failed -> MaterialTheme.colorScheme.errorContainer
                 fromUser -> MaterialTheme.colorScheme.primaryContainer
-                else -> MaterialTheme.colorScheme.surfaceVariant
+                else -> Color.Transparent
             },
-            modifier = Modifier.widthIn(max = 320.dp),
+            modifier = if (fromUser) Modifier.widthIn(max = 320.dp) else Modifier.fillMaxWidth(),
         ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            Column(Modifier.padding(horizontal = if (fromUser || message.failed) 12.dp else 4.dp, vertical = 8.dp)) {
                 if (message.images.isNotEmpty()) {
                     ChatPictures(message.images, Modifier.padding(bottom = 6.dp))
                 }
@@ -943,7 +945,7 @@ private fun MessageBubble(
                 if (message.toolUses.isNotEmpty()) {
                     val ink = when {
                         message.failed -> MaterialTheme.colorScheme.onErrorContainer
-                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        else -> MaterialTheme.colorScheme.onSurface
                     }
                     ToolUses(message.toolUses, ink, copy, Modifier.padding(bottom = 4.dp), onUndoMemory)
                 }
@@ -967,7 +969,7 @@ private fun MessageBubble(
                     val ink = if (fromUser) {
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
+                        MaterialTheme.colorScheme.onSurface
                     }
                     // Selectable here, where the keyboard's own chat cannot be:
                     // an activity window can hold selection handles, an IME
@@ -1076,12 +1078,9 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
     val context = LocalContext.current
     val toolRunning = run.tools.any { it.running }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-        Surface(
-            shape = RoundedCornerShape(16.dp, 16.dp, 16.dp, 4.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.widthIn(max = 320.dp),
-        ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        // Drawn as the finished answer will be: full width, no bubble (#882).
+        Box(Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(horizontal = 4.dp, vertical = 8.dp)) {
                 // The calls so far; the running one says what it is doing.
                 if (run.tools.isNotEmpty()) {
                     ToolUses(
@@ -1106,7 +1105,7 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                             )
                         }
                         if (split.output.isNotBlank()) {
-                            val ink = MaterialTheme.colorScheme.onSurfaceVariant
+                            val ink = MaterialTheme.colorScheme.onSurface
                             ChatMarkdown(
                                 split.output,
                                 ChatMarkdownColors(

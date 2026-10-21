@@ -480,7 +480,7 @@ private fun MessageBubble(
 ) {
     val kb = LocalKbTheme.current
     val fromUser = message.role == AiChatMessage.ROLE_USER
-    val ink = if (fromUser) kb.chipActiveText else kb.chipText
+    val ink = if (fromUser) kb.chipActiveText else answerInk(kb)
     val colors = ChatMarkdownColors(
         text = ink,
         dim = ink.copy(alpha = ink.alpha * 0.6f),
@@ -492,14 +492,24 @@ private fun MessageBubble(
     ) {
         Row {
             if (fromUser) Spacer(Modifier.width(BUBBLE_INSET))
+            // The user's turn is a bubble at the right; an answer is the page
+            // itself (#882), full width and on the panel, as long as it runs.
             Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .clip(bubbleShape(fromUser))
-                    .frostGlass(kb, bubbleShape(fromUser), FrostSurface.CHIPS)
-                    .background(if (fromUser) kb.chipActive else kb.chip)
-                    .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                modifier = if (fromUser) {
+                    Modifier
+                        .weight(1f, fill = false)
+                        .clip(bubbleShape(fromUser))
+                        .frostGlass(kb, bubbleShape(fromUser), FrostSurface.CHIPS)
+                        .background(kb.chipActive)
+                        .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
+                        .padding(horizontal = 10.dp, vertical = 7.dp)
+                } else {
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
+                        .padding(horizontal = 2.dp, vertical = 3.dp)
+                },
             ) {
                 // The pictures a message carried, over its words (#698).
                 if (message.images.isNotEmpty()) {
@@ -537,7 +547,6 @@ private fun MessageBubble(
                 }
                 if (message.stopped) Caption(stringResource(R.string.ime_ai_chat_stopped), colors.dim)
             }
-            if (!fromUser) Spacer(Modifier.width(BUBBLE_INSET))
         }
         if (actionsOut) {
             MessageActions(message, copied, canRegenerate, canEdit, focusedAction, onCopy, onReport, onChat)
@@ -655,19 +664,18 @@ private fun ToolUses(
 private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean, onChat: (AiChatAction) -> Unit) {
     val kb = LocalKbTheme.current
     val split = remember(run.partial, run.implicitThink) { AiThinking.split(run.partial, run.implicitThink) }
+    val ink = answerInk(kb)
     val colors = ChatMarkdownColors(
-        text = kb.chipText,
-        dim = kb.chipText.copy(alpha = kb.chipText.alpha * 0.6f),
-        codeBackground = kb.chipText.copy(alpha = 0.10f),
+        text = ink,
+        dim = ink.copy(alpha = ink.alpha * 0.6f),
+        codeBackground = ink.copy(alpha = 0.10f),
     )
     Row(Modifier.fillMaxWidth()) {
+        // Drawn as the finished answer will be: full width, no bubble (#882).
         Column(
             modifier = Modifier
-                .weight(1f, fill = false)
-                .clip(bubbleShape(fromUser = false))
-                .frostGlass(kb, bubbleShape(fromUser = false), FrostSurface.CHIPS)
-                .background(kb.chip)
-                .padding(horizontal = 10.dp, vertical = 7.dp),
+                .weight(1f)
+                .padding(horizontal = 2.dp, vertical = 3.dp),
         ) {
             // The calls so far, the running one saying what it is doing.
             val toolRunning = run.tools.any { it.running }
@@ -684,7 +692,7 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                             reasoning,
                             // Dimmed by alpha, as the actions' result is: some
                             // themes draw their secondary text in the same white.
-                            color = kb.chipText.copy(alpha = 0.45f),
+                            color = ink.copy(alpha = 0.45f),
                             fontSize = 13.sp,
                             lineHeight = 18.sp,
                             modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 5.dp) else Modifier,
@@ -709,7 +717,6 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                 }
             }
         }
-        Spacer(Modifier.width(BUBBLE_INSET))
     }
 }
 
@@ -1342,6 +1349,12 @@ private fun ChatIconButton(
     }
 }
 
+/**
+ * An answer's ink. It stands on the panel itself rather than on a chip, so it
+ * takes the colour the panel's own headlines are drawn in.
+ */
+private fun answerInk(kb: KbTheme): Color = kb.modifierKeyText
+
 private fun bubbleShape(fromUser: Boolean) = RoundedCornerShape(
     topStart = 14.dp,
     topEnd = 14.dp,
@@ -1349,7 +1362,7 @@ private fun bubbleShape(fromUser: Boolean) = RoundedCornerShape(
     bottomEnd = if (fromUser) 4.dp else 14.dp,
 )
 
-/** Kept clear on a bubble's far side, so whose turn it is reads from the margin. */
+/** Kept clear left of the user's bubble, so whose turn it is reads from the margin. */
 private val BUBBLE_INSET = 36.dp
 private val COMPOSER_MAX_HEIGHT = 78.dp
 private val DRAFT_PICTURE_SIZE = 48.dp
