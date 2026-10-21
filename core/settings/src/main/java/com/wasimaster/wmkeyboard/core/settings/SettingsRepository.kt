@@ -55,6 +55,7 @@ import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticStripSource
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
+import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
@@ -8896,9 +8897,10 @@ data class SuggestionStripSettings(
      * Read several mistyped keys in one word: a tap within reach of the key
      * next door may be read as that key without spending the word's one-edit
      * budget, so a word typed with three keys a little wide is still fixed.
-     * Off reads every off-key tap as an edit, as before.
+     * See [SlipFixes] for what each level applies; off reads every off-key
+     * tap as an edit, as before.
      */
-    val fixSeveralSlips: Boolean = true,
+    val slipFixes: SlipFixes = SlipFixes.CAREFUL,
     /**
      * Swipe down on the word suggestions to see more of them (#385): the
      * engine's deeper list, in a grid over the keys. Off by default, since a
@@ -10799,7 +10801,7 @@ class SettingsRepository(private val context: Context) {
         private val LEARN_FROM_CORRECTIONS = booleanPreferencesKey("learn_from_corrections")
         private val ADAPT_TO_TAPS = booleanPreferencesKey("adapt_to_taps")
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
-        private val FIX_SEVERAL_SLIPS = booleanPreferencesKey("fix_several_slips")
+        private val SLIP_FIXES = stringPreferencesKey("slip_fixes")
         private val SUGGESTIONS_SWIPE_FOR_MORE = booleanPreferencesKey("suggestions_swipe_for_more")
         private val SUGGESTIONS_SWIPE_UP_FOR_MORE = booleanPreferencesKey("suggestions_swipe_up_for_more")
         private val SUGGESTIONS_EXPANDED_GRID = booleanPreferencesKey("suggestions_expanded_grid")
@@ -12297,7 +12299,9 @@ class SettingsRepository(private val context: Context) {
             adaptToTaps = p[ADAPT_TO_TAPS] ?: defaults.suggestionStrip.adaptToTaps,
             mistypeTolerance = p[MISTYPE_TOLERANCE]?.coerceIn(50, 200)
                 ?: defaults.suggestionStrip.mistypeTolerance,
-            fixSeveralSlips = p[FIX_SEVERAL_SLIPS] ?: defaults.suggestionStrip.fixSeveralSlips,
+            slipFixes = p[SLIP_FIXES]
+                ?.let { runCatching { SlipFixes.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestionStrip.slipFixes,
             swipeForMore = p[SUGGESTIONS_SWIPE_FOR_MORE] ?: defaults.suggestionStrip.swipeForMore,
             swipeUpForMore = p[SUGGESTIONS_SWIPE_UP_FOR_MORE] ?: defaults.suggestionStrip.swipeUpForMore,
             expandedGrid = p[SUGGESTIONS_EXPANDED_GRID] ?: defaults.suggestionStrip.expandedGrid,
@@ -14745,8 +14749,8 @@ class SettingsRepository(private val context: Context) {
     suspend fun setMistypeTolerance(value: Int) =
         editPrefs { it[MISTYPE_TOLERANCE] = value.coerceIn(50, 200) }
 
-    suspend fun setFixSeveralSlips(value: Boolean) =
-        editPrefs { it[FIX_SEVERAL_SLIPS] = value }
+    suspend fun setSlipFixes(value: SlipFixes) =
+        editPrefs { it[SLIP_FIXES] = value.name }
 
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }

@@ -100,6 +100,14 @@ class SuggestionEngine(
      * discrete adjacency weights, so hardware keyboards, pasted text and
      * re-armed words behave exactly as before.
      */
+    /**
+     * Whether a reading that mixes slips with a real edit may be applied
+     * ([SlipFixes]). [SlipFixes.OFF] is the touch model's business (no slip
+     * reach at all); here it reads like [SlipFixes.CAREFUL].
+     */
+    @Volatile
+    var slipFixes: SlipFixes = SlipFixes.CAREFUL
+
     @Volatile
     private var touchModelField: KeyTouchModel? = null
     var touchModel: KeyTouchModel?
@@ -4703,8 +4711,11 @@ class SuggestionEngine(
             // landed a little wide ("rgw" for "the") is one kind of error made
             // several times, so any number of slips plus at most one real
             // edit is a fix in place, as long as nothing was completed.
+            // Slips mixed with a real edit apply only when eager: that mix
+            // is what rewrites a correctly typed new word (see [SlipFixes]).
             val correctionShaped = if (c.slips > 0) {
-                c.completedChars == 0 && c.edits - c.slips <= 1
+                c.completedChars == 0 && c.edits - c.slips <= 1 &&
+                    (slipFixes == SlipFixes.EAGER || !mixesSlips(c))
             } else when (c.edits) {
                 // The typed word with its accents put back is a fix in place:
                 // same letters, same length.
@@ -4810,10 +4821,17 @@ class SuggestionEngine(
         // With no runner-up, a synthetic floor stands in: an unopposed but weak
         // candidate (rare word reached by an expensive edit) must not fire just
         // because nothing else was nearby.
+        // An eager mixed reading never stands as the runner-up that blocks a
+        // cleaner fix: it is the speculative one of the two.
+        val runnerUp = if (top != null && !mixesSlips(top)) {
+            candidates.drop(1).firstOrNull { !mixesSlips(it) }
+        } else {
+            candidates.getOrNull(1)
+        }
         val margin = if (top == null) {
             Double.NEGATIVE_INFINITY
         } else {
-            top.score - (candidates.getOrNull(1)?.score ?: SOLO_RUNNER_UP_SCORE)
+            top.score - (runnerUp?.score ?: SOLO_RUNNER_UP_SCORE)
         }
         // A candidate the user has already rejected once. It still ranks, but
         // it neither fires nor gets asked about: being told twice is worse
@@ -4873,6 +4891,9 @@ class SuggestionEngine(
             ?.word
         return CorrectionDecision(offer = offer?.let { matchCase(word, it) })
     }
+
+    /** A reading that spends slips and a real edit together. */
+    private fun mixesSlips(c: FuzzyBeamSearch.ScoredCandidate): Boolean = c.slips > 0 && c.edits > c.slips
 
     /**
      * How far a correction cleared its bar, mapped onto 0..1.

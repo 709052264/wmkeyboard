@@ -264,6 +264,7 @@ import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.NgramPack
 import com.wasimaster.wmkeyboard.core.prediction.NgramReranker
 import com.wasimaster.wmkeyboard.core.prediction.KeyTouchModel
+import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.TextWordScan
 import com.wasimaster.wmkeyboard.core.prediction.WordSegments
 import com.wasimaster.wmkeyboard.core.prediction.WordContext
@@ -1053,8 +1054,8 @@ open class WMKeyboardService : InputMethodService() {
     /** The mistype tolerance the engine's touch model was last built with (#385). */
     private var toleranceApplied = 100
 
-    /** Whether the engine's touch model was last built reading several slips per word. */
-    private var slipsApplied = true
+    /** The several-missed-keys level the engine's touch model was last built with. */
+    private var slipsApplied = SlipFixes.CAREFUL
 
     /**
      * The word the user has gone back into and is editing, if any; see
@@ -1925,8 +1926,9 @@ open class WMKeyboardService : InputMethodService() {
         tapAdaptApplied = adaptSetting
         val tolerance = _uiState.value.settings.suggestionStrip.mistypeTolerance
         toleranceApplied = tolerance
-        val slips = _uiState.value.settings.suggestionStrip.fixSeveralSlips
+        val slips = _uiState.value.settings.suggestionStrip.slipFixes
         slipsApplied = slips
+        suggestionEngine?.slipFixes = slips
         val sigma = KeyTouchModel.SIGMA * tolerance / 100.0
         // The typing beam walks the trie one UTF-16 unit at a time, so its touch
         // model is keyed by Char: a letter outside the BMP has no single unit to
@@ -1939,7 +1941,7 @@ open class WMKeyboardService : InputMethodService() {
             },
             sigma = sigma,
             // Off, every off-key tap is an edit again, as it always was.
-            slipRadius = if (slips) KeyTouchModel.SLIP_SIGMAS * sigma else 0.0,
+            slipRadius = if (slips == SlipFixes.OFF) 0.0 else KeyTouchModel.SLIP_SIGMAS * sigma,
         )
     }
 
@@ -4772,7 +4774,7 @@ open class WMKeyboardService : InputMethodService() {
                 hwKeyboardArmed = nowArmed
                 if (settings.suggestionStrip.adaptToTaps != tapAdaptApplied ||
                     settings.suggestionStrip.mistypeTolerance != toleranceApplied ||
-                    settings.suggestionStrip.fixSeveralSlips != slipsApplied
+                    settings.suggestionStrip.slipFixes != slipsApplied
                 ) {
                     applyTouchModel()
                 }

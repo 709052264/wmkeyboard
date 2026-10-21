@@ -197,6 +197,7 @@ import com.wasimaster.wmkeyboard.core.settings.LanguageDetectionStrength
 import com.wasimaster.wmkeyboard.core.settings.MeteredPolicy
 import com.wasimaster.wmkeyboard.core.settings.QrEccLevel
 import com.wasimaster.wmkeyboard.core.settings.FunctionKeyToolbarMode
+import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
 import com.wasimaster.wmkeyboard.core.script.ComposerType
@@ -559,6 +560,9 @@ internal object ChoiceOptionIcons {
         for (level in UndoMemory.entries.filter { it != UndoMemory.OFF }) {
             put(level) { Icons.Outlined.History }
         }
+        put(SlipFixes.OFF) { Icons.Outlined.Block }
+        put(SlipFixes.CAREFUL) { Icons.Outlined.TouchApp }
+        put(SlipFixes.EAGER) { Icons.Outlined.TouchApp }
 
         // ---- Accessibility: colour vision ----
         // The three deficiencies share a glyph because they are the same kind

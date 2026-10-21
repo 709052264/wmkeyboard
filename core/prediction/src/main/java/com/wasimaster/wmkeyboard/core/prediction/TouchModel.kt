@@ -22,6 +22,21 @@ data class TouchPoint(
 )
 
 /**
+ * How autocorrect treats a word read with several slips
+ * ([KeyTouchModel.slipRadius]), the "Fix several missed keys" setting.
+ *
+ * [OFF] reads no slips at all: every off-key tap is an edit, as before.
+ * [CAREFUL] applies a slips-only reading, but leaves one that also needs a
+ * letter added, dropped or swapped to the strip. Measured on words held out
+ * of the list and typed right, that mix is what rewrote new words, names and
+ * slang into something else; held back, the false rewrites fall to where
+ * they were without slips, and fixes of wide taps still rise.
+ * [EAGER] applies the mixed readings too, for a dictionary that already
+ * holds every word its owner types.
+ */
+enum class SlipFixes { OFF, CAREFUL, EAGER }
+
+/**
  * Per-key 2D Gaussian likelihood. [centers] maps each committed character to
  * its key center in key-width units.
  */
