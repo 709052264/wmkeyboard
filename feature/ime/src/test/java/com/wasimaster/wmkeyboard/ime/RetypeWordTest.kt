@@ -3,7 +3,13 @@ package com.wasimaster.wmkeyboard.ime
 import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -54,15 +60,35 @@ class RetypeWordTest {
 
     @Test
     fun `a strip refresh still waiting does not replace the offer`() {
-        val (service, _) = keyboard("hello ")
-        "form".forEach { service.onText(it.toString()) }
-        service.onKey(com.wasimaster.wmkeyboard.core.layout.Key(" ", action = com.wasimaster.wmkeyboard.core.layout.KeyAction.Space))
-        val end = "hello form ".length
-        service.onUpdateSelection(end, end, end, end, -1, -1)
+        val (service, _) = keyboard("hello form ")
+        // A refresh queued from before (#872: one that really is pending, so
+        // the test fails if Retype stops calling it off).
+        @Suppress("UNCHECKED_CAST")
+        val ui = service.field("_uiState") as MutableStateFlow<KeyboardUiState>
+        val pending = (service.field("serviceScope") as CoroutineScope).launch {
+            yield()
+            ui.update { it.copy(suggestions = listOf("STALE")) }
+        }
+        WMKeyboardService::class.java.getDeclaredField("suggestionJob")
+            .apply { isAccessible = true }
+            .set(service, pending)
         service.retype()
         org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle()
         assertEquals("form", service.uiState.value.suggestions.first())
     }
+
+    @Test
+    fun `an editor that will not say where its caret is is not offered Retype`() {
+        // #872: the word menu offered it, and choosing it did nothing.
+        val (service, _) = keyboard("hello form ", extracting = false)
+        val target = WMKeyboardService::class.java.getDeclaredMethod("retypeTarget")
+            .apply { isAccessible = true }
+            .invoke(service)
+        assertNull(target)
+    }
+
+    private fun GlideKeyboard.field(name: String): Any? =
+        WMKeyboardService::class.java.getDeclaredField(name).apply { isAccessible = true }.get(this)
 
     private fun GlideKeyboard.retype() = onTextEdit(TextEditAction.RETYPE_WORD, haptic = false)
 

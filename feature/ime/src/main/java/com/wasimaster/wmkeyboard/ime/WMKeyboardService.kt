@@ -14438,6 +14438,9 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isNotEmpty()) return _uiState.value.composingPreview.ifEmpty { composing.toString() }
         val ic = currentInputConnection ?: return null
         if (expectedSelStart < 0 || expectedSelStart != expectedSelEnd) return null
+        // [retypeWord] wants the caret proven before it deletes, so an editor
+        // that will not say where it is is offered nothing (#872).
+        if (!caretProvenAt(ic, expectedSelStart)) return null
         val before = runCatching { ic.getTextBeforeCursor(RETYPE_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return null
         val body = if (before.endsWith(' ') && !before.endsWith("  ")) before.dropLast(1) else before
         val word = body.takeLastWhile { isComposingWordChar(it) }
