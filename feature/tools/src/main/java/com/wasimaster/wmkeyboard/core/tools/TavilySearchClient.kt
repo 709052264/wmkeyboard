@@ -32,7 +32,8 @@ object TavilySearchClient {
     /**
      * Blocking; call on an IO dispatcher. Throws on failure.
      *
-     * [advanced] is Tavily's deeper search, two credits instead of one (#470).
+     * [depth] is Tavily's `search_depth`: `advanced` costs two credits, the
+     * others one (#470, #879).
      * [answer] asks for the short answer Tavily writes from the results, which
      * costs nothing more. [source] is what the network log files the request
      * under: the search tool, unless the AI tool ran the search itself (#470).
@@ -42,12 +43,12 @@ object TavilySearchClient {
         apiKey: String,
         count: Int,
         safe: Boolean,
-        advanced: Boolean = false,
+        depth: String = DEFAULT_DEPTH,
         answer: Boolean = false,
         source: NetSource = NetSource.WEB_SEARCH,
     ): WebSearchPage {
         val body = post(
-            requestBody(query, count, safe, images = false, advanced = advanced, answer = answer),
+            requestBody(query, count, safe, images = false, depth = depth, answer = answer),
             apiKey,
             source,
         )
@@ -55,8 +56,14 @@ object TavilySearchClient {
     }
 
     /** Blocking; call on an IO dispatcher. Throws on failure. */
-    fun imageSearch(query: String, apiKey: String, count: Int, safe: Boolean): List<ImageResult> =
-        parseImages(post(requestBody(query, count, safe, images = true), apiKey, NetSource.IMAGE_SEARCH))
+    fun imageSearch(
+        query: String,
+        apiKey: String,
+        count: Int,
+        safe: Boolean,
+        depth: String = DEFAULT_DEPTH,
+    ): List<ImageResult> =
+        parseImages(post(requestBody(query, count, safe, images = true, depth = depth), apiKey, NetSource.IMAGE_SEARCH))
             .take(count.coerceIn(1, MAX_RESULTS))
 
     private fun post(body: String, apiKey: String, source: NetSource): String =
@@ -73,25 +80,24 @@ object TavilySearchClient {
         )
 
     /**
-     * `basic` depth, the one-credit search, unless [advanced]. `safe_search`
-     * is sent either way: Tavily refuses it only at the `fast` depths, which
-     * this never asks for.
+     * The search at [depth]. `safe_search` is left out at the two fast
+     * depths, which refuse it outright rather than ignore it.
      */
     internal fun requestBody(
         query: String,
         count: Int,
         safe: Boolean,
         images: Boolean,
-        advanced: Boolean = false,
+        depth: String = DEFAULT_DEPTH,
         answer: Boolean = false,
     ): String =
         buildJsonObject {
             put("query", query.trim())
-            put("search_depth", if (advanced) "advanced" else "basic")
+            put("search_depth", depth)
             put("max_results", count.coerceIn(1, MAX_RESULTS))
             put("include_answer", answer)
             put("include_images", images)
-            put("safe_search", safe)
+            if (depth !in FAST_DEPTHS) put("safe_search", safe)
         }.toString()
 
     /** Tavily's written answer, or null when it gave none. */
@@ -150,4 +156,10 @@ object TavilySearchClient {
 
     /** Tavily's own ceiling for `max_results`. */
     private const val MAX_RESULTS = 20
+
+    /** Tavily's one-credit default. */
+    const val DEFAULT_DEPTH = "basic"
+
+    /** The depths that take no `safe_search`. */
+    private val FAST_DEPTHS = setOf("fast", "ultra-fast")
 }

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.TavilyDepth
 import android.content.Context
 import android.text.format.Formatter
 import androidx.annotation.PluralsRes
@@ -207,7 +208,8 @@ private fun kindSummary(row: ResolvedProvider, type: ProviderType, settings: Key
         )
         ProviderTypes.TAVILY.id -> ProviderSummary(
             setupParts(row, type) + listOfNotNull(
-                SummaryPart.Phrase(R.string.providers_summary_tavily_advanced).takeIf { settings.webSearch.tavilyAdvanced },
+                SummaryPart.Phrase(tavilyDepthLabel(settings.webSearch.tavilyDepth))
+                    .takeIf { settings.webSearch.tavilyDepth != TavilyDepth.BASIC },
             ),
         )
         // Harper is English only, so the kind of English is its choice.

@@ -75,10 +75,21 @@ class TavilySearchClientTest {
     @Test
     fun `advanced depth and the answer are asked for only when wanted`() {
         val body = Json.parseToJsonElement(
-            TavilySearchClient.requestBody("cats", count = 5, safe = false, images = false, advanced = true, answer = true),
+            TavilySearchClient.requestBody("cats", count = 5, safe = false, images = false, depth = "advanced", answer = true),
         ).jsonObject
         assertEquals("advanced", body["search_depth"]!!.jsonPrimitive.content)
         assertTrue(body["include_answer"]!!.jsonPrimitive.boolean)
+    }
+
+    @Test
+    fun `the fast depths leave SafeSearch out, which they refuse`() {
+        for (depth in listOf("fast", "ultra-fast")) {
+            val body = Json.parseToJsonElement(
+                TavilySearchClient.requestBody("cats", count = 5, safe = true, images = false, depth = depth),
+            ).jsonObject
+            assertEquals(depth, body["search_depth"]!!.jsonPrimitive.content)
+            assertNull(body["safe_search"])
+        }
     }
 
     @Test

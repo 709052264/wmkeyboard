@@ -45,7 +45,7 @@ object SearchProviders {
                 row.apiKey,
                 count,
                 safe,
-                advanced = settings.webSearch.tavilyAdvanced,
+                depth = settings.webSearch.tavilyDepth.apiValue,
                 answer = answer,
                 source = source,
             )
@@ -63,7 +63,8 @@ object SearchProviders {
         ask(settings, pick) { row, backend ->
             when (backend) {
                 SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe)
-                SearchBackend.TAVILY -> TavilySearchClient.imageSearch(query, row.apiKey, count, safe)
+                SearchBackend.TAVILY ->
+                    TavilySearchClient.imageSearch(query, row.apiKey, count, safe, settings.webSearch.tavilyDepth.apiValue)
                 SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe)
             }
         }

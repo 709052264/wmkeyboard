@@ -58,14 +58,20 @@ Every setting for both tabs is on **Tools / Web search**. **Tools / Image search
 - **Results for each search**: a slider from 1 to 20, defaulting to **8**. ("Each search uses one API request either way," the app notes.) 20 is the most the Brave and Tavily APIs give for one request.
 - **Show the answer from the search engine**: on by default. Shows the box described above when the engine sends an answer. On Tavily the answer costs no extra credits.
 - **Open results in the browser**: off by default. A tap on a result opens it in your browser, and the button beside it inserts the link.
-- **Advanced search**: on Tavily's own screen (press its row on the list), off by default. Tavily's deeper search, which picks the parts of each page that match your query more closely, for 2 credits a search instead of 1.
+- **Search depth**: on Tavily's own screen (press its row on the list), **Basic** by default. Tavily's API has four depths:
+  - **Ultra fast**: the quickest answer, with one short summary of each page. 1 credit.
+  - **Fast**: quicker than Basic, with results nearly as good. 1 credit.
+  - **Basic**: the balance of speed and good results. 1 credit.
+  - **Advanced**: the deeper search, which picks the parts of each page that match your query more closely. 2 credits.
+
+  Tavily takes no SafeSearch at the two fast depths, so results aren't filtered there whatever **SafeSearch** says.
 - **Images per row**: 3 by default. How many images sit side by side on the Images tab, from 2 to 5. Fewer columns means bigger previews, which is easier to judge before you send one.
 
 The settings page's own caption: "Web and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows 'via Brave'." That attribution is a small **"via Brave"** label inside the search bar, at its right end (just before the **✕** when there's a search to clear). It reads **"via Tavily"** while Tavily answers, and a SearXNG instance, being your own server, gets no label.
 
 ### Searching with Tavily
 
-[Tavily](https://tavily.com) is a search API built for AI tools, and it works as a third backend for both tabs. Sign up at `app.tavily.com` for a key. The free plan gives 1,000 credits a month, and each search the keyboard makes uses one: it asks for Tavily's `basic` search unless you turn on **Advanced search**, which uses two. The answer Tavily writes for the query is free, and shows above the results while **Show the answer from the search engine** is on.
+[Tavily](https://tavily.com) is a search API built for AI tools, and it works as a third backend for both tabs. Sign up at `app.tavily.com` for a key. The free plan gives 1,000 credits a month, and each search the keyboard makes uses one: it asks for Tavily's `basic` search unless you pick another **Search depth**, and only **Advanced** uses two. The answer Tavily writes for the query is free, and shows above the results while **Show the answer from the search engine** is on.
 
 - **All** looks the same as with Brave: a title, the site, and a snippet. The snippet is the passages Tavily picked from the page, joined with "…".
 - **Images** has no image index of its own behind it. Tavily sends back the pictures it found on the pages of its results, so a search usually finds fewer pictures than Brave, with no title under them. Tapping and long-pressing work as they do with Brave.

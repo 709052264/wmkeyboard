@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.TavilyDepth
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.providers.ProviderCredential
@@ -158,9 +159,9 @@ class ProviderSummaryTest {
 
     @Test
     fun `Tavily says when it searches deeper`() {
-        val advanced = settings.copy(webSearch = settings.webSearch.copy(tavilyAdvanced = true))
+        val advanced = settings.copy(webSearch = settings.webSearch.copy(tavilyDepth = TavilyDepth.ADVANCED))
         assertEquals(
-            listOf(phrase(R.string.providers_summary_key_set), phrase(R.string.providers_summary_tavily_advanced)),
+            listOf(phrase(R.string.providers_summary_key_set), phrase(R.string.tooldetail_tavily_depth_advanced)),
             providerSummary(row(ProviderTypes.TAVILY, apiKey = "tv"), advanced, null).parts,
         )
     }
