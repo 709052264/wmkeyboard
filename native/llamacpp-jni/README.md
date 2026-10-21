@@ -197,11 +197,69 @@ UTF-8 streaming; `<|im_start|>system` inside a user message stayed 17 text
 tokens; an abort from another thread ended the answer within one token; and
 scoring put "tomorow" 11 nats below "tomorrow" under Qwen.
 
-Library sizes (stripped): arm64 6.4 MB each, armeabi-v7a 4.4 MB, x86_64
-6.9 MB. About 2.6 MB of that is llama.cpp's code for the model architectures
+Library sizes (stripped), with libmtmd since 2026-10-21: arm64 7.15 MB
+each, the OpenCL build 10.1 MB, armeabi-v7a 4.9 MB, x86_64 7.7 MB. libmtmd
+added about 0.8 MB to each; the OpenCL backend and its kernels (embedded as
+OpenCL C source, compiled by the phone's driver on first use) about 3 MB.
+Before that: arm64 6.4 MB each, armeabi-v7a 4.4 MB, x86_64 6.9 MB. About 2.6 MB of that is llama.cpp's code for the model architectures
 it knows, and roughly 1.5 MB the chat templates' Jinja interpreter and
 template analysis, built at `-Os`. llama itself at `-Os` would save another
 12% but looked slower on a small model in these noisy runs, so it stays at
 `-O3`.
+
+### GPU and pictures, 2026-10-21
+
+The same harness with the bridge built twice for the Mac: CPU only, and with
+`WM_GPU=metal` (Metal, which no phone has, standing in for "a GPU backend"),
+4 threads, greedy, a 510-token prompt and a 128-token answer, four runs each,
+best and worst shown. A first round under a load average of 90 to 130 from
+other sessions starved the CPU (24 and 16 tokens/s for Qwen); the round below
+ran at a load of 10 to 22, still above the four performance cores, so the CPU
+column is low against the quiet runs above (173 and 89 for Qwen).
+
+| Model | CPU prompt | CPU answer | Metal prompt | Metal answer |
+|---|---|---|---|---|
+| Qwen 2.5 0.5B Q4_K_M | 67 to 79 tokens/s | 33 to 41 tokens/s | 1,916 to 3,470 tokens/s | 55 to 100 tokens/s |
+| Gemma 3 1B Q4_K_M | 23 to 36 tokens/s | 7 to 23 tokens/s | 1,221 to 1,857 tokens/s | 27 to 44 tokens/s |
+
+What carries over to a phone is the shape, not the numbers. Reading the
+prompt is one large matrix product per layer, which a GPU does many times
+faster; the answer is one token at a time, bound by memory bandwidth and, for
+a model this small, by the cost of launching each step on the GPU, so it
+gains little or nothing. Metal's kernels, Apple's unified memory and its
+driver are not Adreno's, so no ratio here is a phone's.
+
+Estimates for phones, not measured (no phone was available), from the one
+public Adreno 830 run with llama.cpp's OpenCL backend (Snapdragon 8 Elite,
+Qwen 2.5 Coder 1.5B Q8_0: 579 tokens/s reading a prompt and 21 to 31
+writing, ngl 99; llama.cpp discussion 23736) scaled by model size. Take them
+as plus or minus a factor of two:
+
+| Model | Snapdragon 8 Elite, GPU | 8 Elite, CPU (v82 build) | Snapdragon 8 Gen 2 or 3, GPU |
+|---|---|---|---|
+| Qwen 2.5 0.5B Q4_K_M | prompt 1,000 to 1,500, answer 30 to 45 | prompt 150 to 300, answer 40 to 60 | prompt 600 to 1,000, answer 25 to 35 |
+| Gemma 3 1B Q4_K_M | prompt 600 to 900, answer 25 to 35 | prompt 80 to 150, answer 25 to 35 | prompt 400 to 600, answer 20 to 30 |
+
+So on Adreno the GPU is worth it for long prompts (a screenshot's few
+hundred picture tokens, a page of text to rewrite): seconds become a
+fraction of a second. For a short prompt and a long answer it is about even
+with the CPU, and for the 0.5B model the CPU can be faster. Q4_0 files would
+be faster on the GPU still (Qualcomm's first target); the catalog keeps
+Q4_K_M. Mali phones (the CPH2481's G57 among them) run on the CPU as before.
+
+Pictures, checked with SmolVLM 500M Q8_0 and its Q8_0 projector on a
+1080 x 2160 chat screenshot (scaled to 512 x 1024, 236 positions with the
+question): on the CPU and on Metal alike (greedy, so the same words) it
+named the contact and read "Can you bring the book I lent you last week?"
+off the last bubble, though its first summary of the chat was muddled.
+A Qwen2-VL run, the M-RoPE case the explicit positions are for, was set up
+but lost to a reboot of the Mac before it finished: positions after a
+picture in a Qwen-VL model are checked by reading the code, not by a run. A
+follow-up turn without the picture kept the 4 tokens before it and decoded
+the rest; the picture sent again after that turn kept the 51 tokens before
+its position. Prompt with the picture: 5.1 s on Metal, 64 s on the starved
+CPU. That third prompt carried a message with `<__media__>` typed in it,
+which stayed text: unescaped, it would have been a second marker for one
+picture, and the prompt would have failed.
 
 Nothing here has run on a phone yet.
