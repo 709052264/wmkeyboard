@@ -1,8 +1,9 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
-import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.prediction.eval.QwertyGeometry
 import com.wasimaster.wmkeyboard.core.prediction.eval.TypoCorpus
+import com.wasimaster.wmkeyboard.core.prediction.reference.KotlinBeamWorkspace
+import com.wasimaster.wmkeyboard.core.prediction.reference.KotlinFuzzyBeamSearch
 import java.io.File
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
@@ -12,8 +13,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 /**
- * [FuzzyBeamSearch] gives the same answer in Rust as in Kotlin
- * (native/RUST_NEON_PLAN.md Phase 2 step 2): every candidate, in order, with
+ * [FuzzyBeamSearch], which runs in Rust, gives the same answer as the Kotlin
+ * walk it replaced ([KotlinFuzzyBeamSearch], kept as the reference;
+ * native/RUST_NEON_PLAN.md Phase 2 step 2): every candidate, in order, with
  * bit-identical scores, edit costs, edit counts, completion lengths, tiers
  * and accent counts.
  *
@@ -32,6 +34,8 @@ class NativeFuzzyParityTest {
 
     private val beam = FuzzyBeamSearch()
     private val workspace = BeamWorkspace()
+    private val reference = KotlinFuzzyBeamSearch()
+    private val referenceWorkspace = KotlinBeamWorkspace()
 
     private fun entries(name: String): List<Pair<String, Int>> {
         val file = listOf(File("dictionaries-src/$name.txt"), File("app/dictionaries-src/$name.txt"))
@@ -60,16 +64,8 @@ class NativeFuzzyParityTest {
         keys: KeySets? = null,
         proximity: KeyProximity = KeyProximity.QWERTY,
     ) {
-        val before = NativeEngine.forceKotlin
-        val kotlin = try {
-            NativeEngine.forceKotlin = true
-            beam.search(sources, typed, proximity, limit, workspace, maxEdits, touch, habits, keys)
-        } finally {
-            NativeEngine.forceKotlin = before
-        }
-        val runs = FuzzyBeamSearch.nativeRuns.get()
+        val kotlin = reference.search(sources, typed, proximity, limit, referenceWorkspace, maxEdits, touch, habits, keys)
         val rust = beam.search(sources, typed, proximity, limit, workspace, maxEdits, touch, habits, keys)
-        assertEquals("$what: the search did not run in Rust", runs + 1, FuzzyBeamSearch.nativeRuns.get())
         val label = "$what '$typed' limit=$limit edits=$maxEdits"
         assertEquals("$label: words", kotlin.map { it.word }, rust.map { it.word })
         for (i in kotlin.indices) {

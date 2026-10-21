@@ -1,7 +1,10 @@
-package com.wasimaster.wmkeyboard.core.gesture
+package com.wasimaster.wmkeyboard.core.gesture.reference
 
+import com.wasimaster.wmkeyboard.core.gesture.DuetBeam
+import com.wasimaster.wmkeyboard.core.gesture.GesturePoint
+import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
+import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import kotlin.math.sqrt
-
 /**
  * The loop search [GlideBeam] and [DuetBeam] share: the places a stroke went
  * round on itself or rubbed back and forth, found as windows of a fine
@@ -14,7 +17,7 @@ import kotlin.math.sqrt
  * One per workspace, reused across decodes, so a search allocates nothing
  * once its arrays have grown to the longest stroke seen.
  */
-internal class LoopScan {
+class KotlinLoopScan {
 
     /**
      * The stroke resampled finely, for the loop search alone: [fineCount]

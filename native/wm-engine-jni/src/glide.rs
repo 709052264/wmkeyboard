@@ -10,22 +10,21 @@
 
 use std::cell::RefCell;
 use std::ptr::null_mut;
-use std::sync::{Arc, LazyLock, RwLockReadGuard};
+use std::sync::{Arc, LazyLock};
 
 use jni::objects::{JByteArray, JClass, JDoubleArray, JFloatArray, JIntArray, JLongArray, JObject, JObjectArray, JString};
-use jni::sys::{jfloat, jint, jlong, jobjectArray};
+use jni::sys::{jboolean, jfloat, jint, jlong, jobjectArray};
 use jni::JNIEnv;
 
-use wm_engine::fuzzy::{Tier, Walker};
+use wm_engine::fuzzy::Tier;
+use wm_engine::glide::ctc::{CtcDecoder, Scoring, CLASSES};
+use wm_engine::glide::duet::{Duet, DuetDecoder, Token};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Candidate, Decoder, LearnedShapes, Point, Ranked, Source, Tuning};
-use wm_engine::user_lexicon::UserLexicon;
-use wm_engine::wmdict::Dict;
 
-use crate::dict::{DictBytes, DICTS};
 use crate::guard::{give_all_units, give_ints, guarded, object, read_units, throw_state};
 use crate::handles::Registry;
-use crate::lexicon::{Store, LEXICONS};
+use crate::sources::with_walkers;
 
 static KEYMAPS: LazyLock<Registry<KeyMap>> = LazyLock::new(Registry::new);
 
@@ -33,6 +32,8 @@ thread_local! {
     static DECODER: RefCell<Decoder> = RefCell::new(Decoder::new(Tuning::default()));
     /// The walk waiting for its shapes, and the key map it ran on.
     static PENDING: RefCell<Option<(Ranked, Arc<KeyMap>)>> = const { RefCell::new(None) };
+    static CTC: RefCell<CtcDecoder> = RefCell::new(CtcDecoder::default());
+    static DUET: RefCell<DuetDecoder> = RefCell::new(DuetDecoder::default());
 }
 
 fn floats(env: &mut JNIEnv, a: &JFloatArray) -> Option<Vec<f32>> {
@@ -100,6 +101,52 @@ fn path(env: &mut JNIEnv, xs: &JFloatArray, ys: &JFloatArray, ts: &JLongArray) -
     Some(xs.iter().zip(&ys).zip(&ts).map(|((&x, &y), &t)| Point { x, y, t }).collect())
 }
 
+/// The sources of a decode as Kotlin passes them: handles, kinds and tiers
+/// as for `fuzzySearch`, and each source's vocabulary cap as a frequency.
+struct SourceSpec {
+    handles: Vec<i64>,
+    kinds: Vec<i32>,
+    weights: Vec<f64>,
+    tiers: Vec<i32>,
+    floors: Vec<i32>,
+}
+
+impl SourceSpec {
+    fn read(
+        env: &mut JNIEnv,
+        dicts: &JLongArray,
+        kinds: &JIntArray,
+        weights: &JDoubleArray,
+        tiers: &JIntArray,
+        floors: &JIntArray,
+    ) -> Option<SourceSpec> {
+        Some(SourceSpec {
+            handles: longs(env, dicts)?,
+            kinds: ints(env, kinds)?,
+            weights: doubles(env, weights)?,
+            tiers: ints(env, tiers)?,
+            floors: ints(env, floors)?,
+        })
+    }
+}
+
+/// `f` over the sources `spec` names, each trie held for the length of the call.
+fn with_sources<R>(env: &mut JNIEnv, spec: &SourceSpec, f: impl FnOnce(&[Source]) -> R) -> Option<R> {
+    with_walkers(env, &spec.handles, &spec.kinds, |walkers| {
+        let sources: Vec<Source> = walkers
+            .iter()
+            .enumerate()
+            .map(|(i, &walker)| Source {
+                walker,
+                log_weight: spec.weights[i],
+                tier: if spec.tiers[i] == 1 { Tier::User } else { Tier::Dictionary },
+                min_frequency: spec.floors[i],
+            })
+            .collect();
+        f(&sources)
+    })
+}
+
 /// `glideKeyMapOpen(keyX, keyY, codePoints, keyOf)`.
 #[no_mangle]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_glideKeyMapOpen(
@@ -130,8 +177,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 
 /// `found` as `glideDecode` returns it: `Object[] { String[] words,
 /// double[] [score, shapeCost] per word, int[] [user tier, ahead] per word
-/// plus `extra` }`.
-fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Option<jobjectArray> {
+/// plus `extra` }`, and `drawn` as a fourth element, a `byte[]`, when given.
+fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32], drawn: Option<&[i8]>) -> Option<jobjectArray> {
     let reals: Vec<f64> = found.iter().flat_map(|c| [c.score, c.shape_cost]).collect();
     let mut flags: Vec<i32> = found.iter().flat_map(|c| [(c.tier == Tier::User) as i32, c.ahead]).collect();
     flags.extend_from_slice(extra);
@@ -141,10 +188,15 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Opti
     env.set_double_array_region(&doubles, 0, &reals).ok()?;
     let ints = give_ints(env, &flags)?;
     let class = env.find_class("java/lang/Object").ok()?;
-    let out = env.new_object_array(3, &class, JObject::null()).ok()?;
+    let out = env.new_object_array(if drawn.is_some() { 4 } else { 3 }, &class, JObject::null()).ok()?;
     env.set_object_array_element(&out, 0, &words).ok()?;
     env.set_object_array_element(&out, 1, &doubles).ok()?;
     env.set_object_array_element(&out, 2, &ints).ok()?;
+    if let Some(drawn) = drawn {
+        let bytes: Vec<u8> = drawn.iter().map(|&b| b as u8).collect();
+        let array = env.byte_array_from_slice(&bytes).ok()?;
+        env.set_object_array_element(&out, 3, &array).ok()?;
+    }
     Some(out.into_raw())
 }
 
@@ -154,8 +206,8 @@ fn give_candidates(env: &mut JNIEnv, found: &[Candidate], extra: &[i32]) -> Opti
 /// `kinds` and `tiers` as for `fuzzySearch`; `minFrequencies` is each
 /// source's vocabulary cap. Phase 0 decodes outright; phase 1 stops before
 /// the shape channel and returns every word it will score, readings first
-/// (the int array's last slot then holds the reading count), for
-/// `glideFinish`. Null when the stroke is no decode at all.
+/// (the int array's last slot then holds the reading count) and the drawn
+/// stroke quantised for the seeding, for `glideFinish`. Null when the stroke is no decode at all.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_glideDecode(
@@ -182,57 +234,28 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         };
         let path = path(env, &xs, &ys, &ts)?;
         let keys = object!(env, KEYMAPS, keymap);
-        let handles = longs(env, &dicts)?;
-        let kinds = ints(env, &kinds)?;
-        let weights = doubles(env, &weights)?;
-        let tiers = ints(env, &tiers)?;
-        let floors = ints(env, &min_frequencies)?;
-        let mut held: Vec<Arc<Dict<DictBytes>>> = Vec::new();
-        let mut stores: Vec<Arc<Store>> = Vec::new();
-        for (&handle, &kind) in handles.iter().zip(&kinds) {
-            if kind == 1 {
-                stores.push(object!(env, LEXICONS, handle));
-            } else {
-                held.push(object!(env, DICTS, handle));
-            }
-        }
-        let guards: Vec<RwLockReadGuard<UserLexicon>> =
-            stores.iter().map(|s| s.lexicon.read().unwrap_or_else(|e| e.into_inner())).collect();
-        let (mut next_dict, mut next_lexicon) = (0, 0);
-        let mut sources: Vec<Source> = Vec::with_capacity(handles.len());
-        for i in 0..handles.len() {
-            let walker: &dyn Walker = if kinds[i] == 1 {
-                next_lexicon += 1;
-                guards[next_lexicon - 1].trie()
-            } else {
-                next_dict += 1;
-                held[next_dict - 1].as_ref()
-            };
-            sources.push(Source {
-                walker,
-                log_weight: weights[i],
-                tier: if tiers[i] == 1 { Tier::User } else { Tier::Dictionary },
-                min_frequency: floors[i],
-            });
-        }
+        let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
         let limit = limit.max(0) as usize;
         let look_ahead = look_ahead.max(0) as usize;
-        let ranked = DECODER.with_borrow_mut(|decoder| {
-            decoder.tuning = tuning;
-            decoder.decode_ranked(&path, &keys, key_width, &sources, limit, look_ahead)
-        });
-        drop(sources);
-        drop(guards);
+        let ranked = with_sources(env, &spec, |sources| {
+            DECODER.with_borrow_mut(|decoder| {
+                decoder.tuning = tuning;
+                decoder.decode_ranked(&path, &keys, key_width, sources, limit, look_ahead)
+            })
+        })?;
         let Some(ranked) = ranked else { return Some(null_mut()) };
         if phase == 0 {
             let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, None, None));
-            return give_candidates(env, &found, &[]);
+            return give_candidates(env, &found, &[], None);
         }
         let mut all: Vec<Candidate> = ranked.read.clone();
         all.extend(ranked.guesses.iter().cloned());
         let read_count = ranked.read.len() as i32;
+        // The seeding compares the stroke as the walk left the workspace,
+        // before the shape channel runs, so it is taken now.
+        let drawn = DECODER.with_borrow_mut(|decoder| decoder.drawn_shape8());
         PENDING.with_borrow_mut(|p| *p = Some((ranked, keys.clone())));
-        give_candidates(env, &all, &[read_count])
+        give_candidates(env, &all, &[read_count], Some(&drawn))
     })
 }
 
@@ -269,7 +292,9 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                 env.delete_local_ref(bytes).ok()?;
             }
             env.delete_local_ref(list).ok()?;
-            learned.insert(units, stored);
+            // A word can be both a reading and a guess; only the reading
+            // carries its shapes, and it comes first.
+            learned.entry(units).or_insert(stored);
         }
         let near = if seeds.is_null() {
             None
@@ -286,7 +311,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             Some(near)
         };
         let found = DECODER.with_borrow_mut(|decoder| decoder.finish(ranked, &keys, Some(&learned), near.as_deref()));
-        give_candidates(env, &found, &[])
+        give_candidates(env, &found, &[], None)
     })
 }
 
@@ -351,5 +376,134 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let Some(shape) = shape else { return Some(null_mut()) };
         let bytes: Vec<u8> = shape.into_iter().map(|b| b as u8).collect();
         env.byte_array_from_slice(&bytes).ok().map(|a| a.into_raw())
+    })
+}
+
+/// `ctcDecode(logProbs, steps, dicts, kinds, weights, tiers, minFrequencies,
+/// limit, width, scoring)`: `CtcGlideBeam.decode` over a model's emissions,
+/// `steps` rows of a..z and blank; `scoring` is `[lengthNorm, lengthBonus,
+/// freqWeight, pruneNorm, pruneBonus]`. The result is shaped as
+/// `glideDecode`'s.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_ctcDecode(
+    mut env: JNIEnv,
+    _class: JClass,
+    log_probs: JFloatArray,
+    steps: jint,
+    dicts: JLongArray,
+    kinds: JIntArray,
+    weights: JDoubleArray,
+    tiers: JIntArray,
+    min_frequencies: JIntArray,
+    limit: jint,
+    width: jint,
+    scoring: JDoubleArray,
+) -> jobjectArray {
+    guarded(&mut env, null_mut(), |env| {
+        let lp = floats(env, &log_probs)?;
+        let steps = steps.max(0) as usize;
+        if lp.len() < steps * CLASSES {
+            return throw_state(env, "wm-engine: fewer emissions than steps");
+        }
+        let weights_in = doubles(env, &scoring)?;
+        if weights_in.len() < 5 {
+            return throw_state(env, "wm-engine: a full CTC scoring");
+        }
+        let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
+        let (limit, width) = (limit.max(0) as usize, width.max(0) as usize);
+        let found = with_sources(env, &spec, |sources| {
+            CTC.with_borrow_mut(|ctc| {
+                ctc.scoring = Scoring {
+                    length_norm: weights_in[0] as f32,
+                    length_bonus: weights_in[1] as f32,
+                    freq_weight: weights_in[2] as f32,
+                    prune_norm: weights_in[3] as f32,
+                    prune_bonus: weights_in[4] as f32,
+                    width,
+                };
+                ctc.decode(&lp, steps, sources, limit, width)
+            })
+        })?;
+        give_candidates(env, &found, &[], None)
+    })
+}
+
+/// `duetDecode(tuning, duet, tokenKinds, tokenSizes, xs, ys, ts, keyMap,
+/// keyWidth, dicts, kinds, weights, tiers, minFrequencies, limit, partial)`:
+/// `DuetBeam.decode`. Each token is a tap (kind 0, one point) or a swipe
+/// (kind 1, its whole path); their points run on in `xs`, `ys` and `ts`,
+/// `tokenSizes[i]` of them for token `i`. `duet` is `[orderSlackMs,
+/// tapWindowMs, tapSigma, tapNearRadius, tapMaxCost, tapRepeatCost,
+/// samplesPerKey, minSamples]`. The result is shaped as `glideDecode`'s.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_duetDecode(
+    mut env: JNIEnv,
+    _class: JClass,
+    tuning_values: JDoubleArray,
+    duet_values: JDoubleArray,
+    token_kinds: JIntArray,
+    token_sizes: JIntArray,
+    xs: JFloatArray,
+    ys: JFloatArray,
+    ts: JLongArray,
+    keymap: jlong,
+    key_width: jfloat,
+    dicts: JLongArray,
+    kinds: JIntArray,
+    weights: JDoubleArray,
+    tiers: JIntArray,
+    min_frequencies: JIntArray,
+    limit: jint,
+    partial: jboolean,
+) -> jobjectArray {
+    guarded(&mut env, null_mut(), |env| {
+        let Some(tuning) = tuning(&doubles(env, &tuning_values)?) else {
+            return throw_state(env, "wm-engine: a full glide tuning");
+        };
+        let d = doubles(env, &duet_values)?;
+        if d.len() < 8 {
+            return throw_state(env, "wm-engine: a full duet tuning");
+        }
+        let duet = Duet {
+            order_slack_ms: d[0] as i64,
+            tap_window_ms: d[1] as i64,
+            tap_sigma: d[2] as f32,
+            tap_near_radius: d[3] as f32,
+            tap_max_cost: d[4] as f32,
+            tap_repeat_cost: d[5] as f32,
+            samples_per_key: d[6] as f32,
+            min_samples: d[7] as i32,
+        };
+        let token_kinds = ints(env, &token_kinds)?;
+        let token_sizes = ints(env, &token_sizes)?;
+        let points = path(env, &xs, &ys, &ts)?;
+        let mut tokens = Vec::with_capacity(token_kinds.len());
+        let mut at = 0usize;
+        for (&kind, &size) in token_kinds.iter().zip(&token_sizes) {
+            let size = size.max(0) as usize;
+            if size == 0 || at + size > points.len() {
+                return throw_state(env, "wm-engine: a token without its points");
+            }
+            tokens.push(if kind == 1 {
+                Token::Swipe(points[at..at + size].to_vec())
+            } else {
+                let p = points[at];
+                Token::Tap { x: p.x, y: p.y, t: p.t }
+            });
+            at += size;
+        }
+        let keys = object!(env, KEYMAPS, keymap);
+        let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
+        let limit = limit.max(0) as usize;
+        let found = with_sources(env, &spec, |sources| {
+            DUET.with_borrow_mut(|decoder| {
+                decoder.tuning = tuning;
+                decoder.duet = duet;
+                decoder.decode(&tokens, &keys, key_width, sources, limit, partial != 0)
+            })
+        })?;
+        give_candidates(env, &found, &[], None)
     })
 }

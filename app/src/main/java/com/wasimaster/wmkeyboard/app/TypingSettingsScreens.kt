@@ -555,15 +555,6 @@ internal fun TypingCorrectionsSettings(
         }
         item {
             ToggleSetting(
-                R.string.typing_native_prediction_title,
-                stringResource(R.string.typing_native_prediction_subtitle),
-                settings.watch { it.suggestionStrip.nativePrediction },
-                info = stringResource(R.string.typing_native_prediction_info),
-                default = SettingsDefaults.suggestionStrip.nativePrediction,
-            ) { scope.launch { repository.setNativePrediction(it) } }
-        }
-        item {
-            ToggleSetting(
                 R.string.typing_auto_apostrophe_title,
                 stringResource(R.string.typing_auto_apostrophe_subtitle),
                 settings.watch { it.autoText.apostrophe },
