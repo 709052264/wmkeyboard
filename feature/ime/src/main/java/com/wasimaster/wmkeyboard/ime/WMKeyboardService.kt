@@ -26475,6 +26475,9 @@ open class WMKeyboardService : InputMethodService() {
             duetWord.active -> duetWord.copy()
             composingIsTyped() ->
                 DuetWord().takeIf { it.seed(composing, composingTouchFrame(), keys, keyWidthPx) } ?: return null
+            // A new word whose first strokes overlap (#871): both thumbs'
+            // strokes from the start, not one until the other lifts.
+            composing.isEmpty() && liveDuetStrokes.size > 1 -> DuetWord()
             else -> return null
         }
         // The whole word: every stroke still down, this one among them, in
