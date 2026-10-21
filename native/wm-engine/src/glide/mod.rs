@@ -17,6 +17,7 @@ pub mod loops;
 pub mod workspace;
 
 use crate::fuzzy::{Tier, Walker};
+use crate::kernels::band;
 use crate::strict_math;
 use keymap::KeyMap;
 use loops::{is_joiner, is_non_word, LoopScan};
@@ -714,17 +715,34 @@ impl Decoder {
             let ease_j = if j == n - 1 { tail } else { 0.0 };
             let mut best_prev = UNREACHABLE;
             let mut i = from;
-            while i <= to {
-                let at = self.ws.cols[prev_column + i as usize];
+            // Sample 0 eases by the lead too; the rest of the band is one
+            // kernel call (kernels::band, the same arithmetic four at a time).
+            if i == 0 && i <= to {
+                let at = self.ws.cols[prev_column];
                 if at < UNREACHABLE {
-                    let travelled = arc_j - self.ws.arc_at[i as usize];
+                    let travelled = arc_j - self.ws.arc_at[0];
                     let gap = travelled - span;
-                    let v = at + self.gap_charge(gap, if i == 0 { lead + ease_j } else { ease_j });
+                    let v = at + self.gap_charge(gap, lead + ease_j);
                     if v < best_prev {
                         best_prev = v;
                     }
                 }
-                i += 1;
+                i = 1;
+            }
+            if i <= to {
+                let (a, b) = (i as usize, to as usize + 1);
+                let v = band::min_arc(
+                    &self.ws.cols[prev_column + a..prev_column + b],
+                    &self.ws.arc_at[a..b],
+                    arc_j,
+                    span,
+                    ease_j,
+                    self.tuning.gap_weight,
+                    UNREACHABLE,
+                );
+                if v < best_prev {
+                    best_prev = v;
+                }
             }
             let value = if best_prev >= UNREACHABLE { UNREACHABLE } else { best_prev + self.ws.point_cost[j * key_count + key] };
             self.ws.scratch[j] = value;
@@ -752,6 +770,15 @@ impl Decoder {
         for k in 0..key_count {
             self.ws.remain[last + k] = if self.ws.end_key[k] { 0.0 } else { UNREACHABLE };
         }
+        // The near keys' costs and remainders again, key by key in sample
+        // order, for the band kernel to read in runs.
+        for x in 0..count {
+            let k = self.ws.near_list[x];
+            for j in 0..n {
+                self.ws.point_cost_t[k * SAMPLE_POINTS + j] = self.ws.point_cost[j * key_count + k];
+            }
+            self.ws.remain_t[k * SAMPLE_POINTS + n - 1] = self.ws.remain[last + k];
+        }
         let (start_slack, end_slack) = (self.tuning.start_slack(), self.tuning.end_slack());
         for j in (0..n - 1).rev() {
             let base = j * key_count;
@@ -770,22 +797,43 @@ impl Decoder {
                     let lo = 1.max((expected - self.tuning.gap_window) as i32);
                     let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
                     let end = (n as i32 - 1).min(j as i32 + hi);
-                    let mut i = j as i32 + lo;
-                    while i <= end {
-                        let iu = i as usize;
+                    let start = j as i32 + lo;
+                    // The band up to the last sample is one kernel call over
+                    // `to`'s costs and remainders in sample order; the last
+                    // sample eases by the end anchor too.
+                    let last = if end == n as i32 - 1 { end - 1 } else { end };
+                    if start <= last {
+                        let (a, b) = (start as usize, last as usize + 1);
+                        let row = to * SAMPLE_POINTS;
+                        let v = band::min_ahead(
+                            &self.ws.point_cost_t[row + a..row + b],
+                            &self.ws.remain_t[row + a..row + b],
+                            &self.ws.arc_at[a..b],
+                            arc_j,
+                            span,
+                            lead,
+                            self.tuning.gap_weight,
+                            UNREACHABLE,
+                        );
+                        if v < best {
+                            best = v;
+                        }
+                    }
+                    if end == n as i32 - 1 && start <= end {
+                        let iu = n - 1;
                         let rest = self.ws.remain[iu * key_count + to];
                         if rest < UNREACHABLE {
                             let gap = self.ws.arc_at[iu] - arc_j - span;
-                            let ease = if iu == n - 1 { lead + self.anchor_lead(n - 1, to as i32, end_slack, keys) } else { lead };
+                            let ease = lead + self.anchor_lead(n - 1, to as i32, end_slack, keys);
                             let v = self.gap_charge(gap, ease) + self.ws.point_cost[iu * key_count + to] + rest;
                             if v < best {
                                 best = v;
                             }
                         }
-                        i += 1;
                     }
                 }
                 self.ws.remain[base + from] = best;
+                self.ws.remain_t[from * SAMPLE_POINTS + j] = best;
             }
         }
     }
@@ -1426,4 +1474,121 @@ fn kth_best(results: &HashMap<Vec<u16>, Candidate>, k: usize, scores: &mut Vec<f
     scores.extend(results.values().map(|c| c.score));
     scores.sort_by(f64::total_cmp);
     scores[size - k]
+}
+
+#[cfg(test)]
+mod kernel_parity {
+    //! The band kernels (`kernels::band`) against their scalar references
+    //! through whole decodes: the scalar path is the loop the Kotlin oracles
+    //! were matched against, so equal decodes here keep that parity.
+
+    use super::duet::{DuetDecoder, Token};
+    use super::*;
+    use crate::kernels::testing::{Rng, FORCE};
+    use crate::kernels::{active, set_force_scalar};
+    use crate::user_lexicon::UserTrie;
+
+    const ROWS: [(&str, f32); 3] = [("qwertyuiop", 0.0), ("asdfghjkl", 0.5), ("zxcvbnm", 1.5)];
+    const KEY_W: f32 = 60.0;
+    const KEY_H: f32 = 84.0;
+
+    fn centre(c: char) -> (f32, f32) {
+        for (row, (letters, offset)) in ROWS.iter().enumerate() {
+            if let Some(i) = letters.find(c) {
+                return ((offset + i as f32 + 0.5) * KEY_W, (row as f32 + 0.5) * KEY_H);
+            }
+        }
+        unreachable!()
+    }
+
+    fn keymap() -> KeyMap {
+        let mut letters: Vec<char> = ROWS.iter().flat_map(|(l, _)| l.chars()).collect();
+        letters.sort();
+        let xs = letters.iter().map(|&c| centre(c).0 / KEY_W).collect();
+        let ys = letters.iter().map(|&c| centre(c).1 / KEY_W).collect();
+        let cps = letters.iter().map(|&c| c as i32).collect();
+        KeyMap::new(xs, ys, cps, (0..letters.len() as i32).collect())
+    }
+
+    fn gauss(r: &mut Rng) -> f32 {
+        let u = (r.f32() as f64).max(1e-9);
+        ((-2.0 * u.ln()).sqrt() * (2.0 * std::f64::consts::PI * r.f32() as f64).cos()) as f32
+    }
+
+    /// The Phase 0 harness's swipe: jittered corners, a point every 4 ms.
+    fn swipe(word: &str, r: &mut Rng) -> Vec<Point> {
+        let corners: Vec<(f32, f32)> = word
+            .chars()
+            .map(|c| {
+                let (x, y) = centre(c);
+                (x + gauss(r) * 0.2 * KEY_W, y + gauss(r) * 0.2 * KEY_H)
+            })
+            .collect();
+        let mut out = vec![Point { x: corners[0].0, y: corners[0].1, t: 0 }];
+        let mut t = 0;
+        for w in corners.windows(2) {
+            let ((ax, ay), (bx, by)) = (w[0], w[1]);
+            let len = ((bx - ax) * (bx - ax) + (by - ay) * (by - ay)).sqrt();
+            let steps = ((len / KEY_W * 35.0 / 4.0) as usize).max(1);
+            for s in 1..=steps {
+                t += 4;
+                let f = s as f32 / steps as f32;
+                out.push(Point { x: ax + (bx - ax) * f + gauss(r) * 1.5, y: ay + (by - ay) * f + gauss(r) * 1.5, t });
+            }
+        }
+        out
+    }
+
+    fn both<T: PartialEq + std::fmt::Debug>(mut run: impl FnMut() -> T) -> T {
+        set_force_scalar(true);
+        let reference = run();
+        set_force_scalar(false);
+        let kernels = run();
+        assert_eq!(reference, kernels);
+        kernels
+    }
+
+    #[test]
+    fn decodes_are_the_same_with_and_without_the_band_kernels() {
+        let _pinned = FORCE.lock().unwrap_or_else(|e| e.into_inner());
+        let text = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../app/dictionaries-src/en.txt")).unwrap();
+        let entries = crate::wordlist::parse(&text);
+        let mut trie = UserTrie::new();
+        for (w, f) in &entries {
+            trie.insert(w, *f);
+        }
+        let sources = [Source { walker: &trie, log_weight: 0.0, tier: Tier::Dictionary, min_frequency: 0 }];
+        let keys = keymap();
+        let words: Vec<&str> = entries
+            .iter()
+            .map(|(w, _)| w.as_str())
+            .filter(|w| (3..=10).contains(&w.len()) && w.chars().all(|c| c.is_ascii_lowercase()))
+            .take(4000)
+            .collect();
+        let mut r = Rng::new(7);
+        let mut decoder = Decoder::new(Tuning::default());
+        let mut duet = DuetDecoder::default();
+        let mut candidates = 0;
+        for _ in 0..150 {
+            let word = words[r.below(words.len() as u64) as usize];
+            let path = swipe(word, &mut r);
+            for ahead in [0, 1] {
+                candidates += both(|| decoder.decode(&path, &keys, KEY_W, &sources, 8, None, ahead)).len();
+            }
+            // Live previews: the stroke so far, six times.
+            for step in 1..=6 {
+                let upto = path.len() * step / 6;
+                if upto >= 3 {
+                    both(|| decoder.decode(&path[..upto], &keys, KEY_W, &sources, 8, None, 1));
+                }
+            }
+            for partial in [false, true] {
+                let tokens = [Token::Swipe(path.clone())];
+                candidates += both(|| duet.decode(&tokens, &keys, KEY_W, &sources, 8, partial)).len();
+            }
+        }
+        #[cfg(target_arch = "aarch64")]
+        assert!(active().neon, "the kernels must have run");
+        assert!(candidates > 1000, "{candidates} candidates");
+    }
 }

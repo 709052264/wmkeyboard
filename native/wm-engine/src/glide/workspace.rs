@@ -32,6 +32,10 @@ pub struct Workspace {
     pub arc_step: f32,
     pub point_cost: Vec<f32>,
     pub remain: Vec<f32>,
+    /// `point_cost` and `remain` of the near keys, key by key
+    /// (`key * SAMPLE_POINTS + sample`): what `build_remain`'s band reads.
+    pub point_cost_t: Vec<f32>,
+    pub remain_t: Vec<f32>,
     pub near_list: Vec<usize>,
     pub near_count: usize,
 
@@ -94,6 +98,8 @@ impl Workspace {
             arc_step: 0.0,
             point_cost: Vec::new(),
             remain: Vec::new(),
+            point_cost_t: Vec::new(),
+            remain_t: Vec::new(),
             near_list: Vec::new(),
             near_count: 0,
             pause_at: [0; SAMPLE_POINTS],
@@ -166,6 +172,10 @@ impl Workspace {
         }
         if self.remain.len() < needed {
             self.remain.resize(needed, 0.0);
+        }
+        if self.point_cost_t.len() < needed {
+            self.point_cost_t.resize(needed, 0.0);
+            self.remain_t.resize(needed, 0.0);
         }
         self.near_list.clear();
         self.near_list.resize(key_count, 0);

@@ -28,6 +28,7 @@
 //! native fast path when a device misbehaves.
 
 pub mod argmax;
+pub mod band;
 pub mod box_average;
 pub mod dot;
 pub mod gif;
@@ -108,6 +109,7 @@ mod tests {
 
     #[test]
     fn forcing_scalar_hides_every_feature() {
+        let _pinned = testing::FORCE.lock().unwrap_or_else(|e| e.into_inner());
         set_force_scalar(true);
         assert_eq!(Features::SCALAR, active());
         set_force_scalar(false);

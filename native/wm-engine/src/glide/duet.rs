@@ -11,6 +11,7 @@ use super::loops::{is_joiner, is_non_word, LoopScan};
 use super::workspace::{NO_LABEL, UNREACHABLE};
 use super::{by_score, Candidate, Point, Source, Tuning, MAX_POPS, RESULT_K};
 use crate::fuzzy::Tier;
+use crate::kernels::band;
 use crate::strict_math;
 
 pub const MAX_TOKENS: usize = 24;
@@ -1023,17 +1024,26 @@ impl DuetDecoder {
             let ease_j = if j == n - 1 { tail } else { 0.0 };
             let mut best_prev = UNREACHABLE;
             let mut i = from;
-            while i <= to {
-                let at = ws.cols[prev + i as usize];
+            // Sample 0 eases by the lead too; the rest of the band is one
+            // kernel call (kernels::band, the same arithmetic four at a time).
+            if i == 0 && i <= to {
+                let at = ws.cols[prev];
                 if at < UNREACHABLE {
-                    let gap = (j as i32 - i) as f32 * step - span;
-                    let over = (if gap < 0.0 { -gap } else { gap }) - (if i == 0 { lead + ease_j } else { ease_j });
+                    let gap = j as i32 as f32 * step - span;
+                    let over = (if gap < 0.0 { -gap } else { gap }) - (lead + ease_j);
                     let v = at + if over > 0.0 { gap_weight * over } else { 0.0 };
                     if v < best_prev {
                         best_prev = v;
                     }
                 }
-                i += 1;
+                i = 1;
+            }
+            if i <= to {
+                let cols = &ws.cols[prev + i as usize..prev + to as usize + 1];
+                let v = band::min_steps(cols, j as i32 - i, step, span, ease_j, gap_weight, UNREACHABLE);
+                if v < best_prev {
+                    best_prev = v;
+                }
             }
             let value = if best_prev >= UNREACHABLE {
                 UNREACHABLE

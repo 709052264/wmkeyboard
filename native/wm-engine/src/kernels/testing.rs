@@ -1,6 +1,10 @@
 //! What every kernel's parity test needs: seeded inputs and a tolerance
 //! check against the scalar reference.
 
+/// Held by every test that flips [`super::set_force_scalar`], so one does
+/// not pin another's kernels halfway through.
+pub static FORCE: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 /// A small deterministic generator (xorshift64*), so a failing case
 /// reproduces from its seed without a dependency.
 pub struct Rng(u64);
@@ -22,6 +26,16 @@ impl Rng {
     /// Uniform in [-1, 1).
     pub fn unit(&mut self) -> f32 {
         (self.next_u64() >> 40) as f32 / (1u64 << 23) as f32 - 1.0
+    }
+
+    /// Uniform in [0, 1).
+    pub fn f32(&mut self) -> f32 {
+        (self.next_u64() >> 40) as f32 / (1u64 << 24) as f32
+    }
+
+    /// Uniform in [0, n).
+    pub fn below(&mut self, n: u64) -> u64 {
+        self.next_u64() % n
     }
 
     pub fn floats(&mut self, n: usize) -> Vec<f32> {
