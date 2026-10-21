@@ -591,8 +591,9 @@ private fun MessageActions(
     }
 }
 
+/** A code block's header action; the search panel's answer draws its code blocks the same way (#879). */
 @Composable
-private fun CodeAction(label: String, colors: ChatMarkdownColors, onClick: () -> Unit) {
+internal fun CodeAction(label: String, colors: ChatMarkdownColors, onClick: () -> Unit) {
     Text(
         label,
         color = colors.text,

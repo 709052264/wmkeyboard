@@ -3212,6 +3212,7 @@ open class WMKeyboardService : InputMethodService() {
             onCopy = ::onSearchCopy,
             onOpen = ::openSearchLink,
             onSaveImage = ::onSearchImageSave,
+            onInsertText = ::onSearchInsertText,
         )
     }
     private var imageSearchJob: Job? = null
@@ -37357,6 +37358,12 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /** Insert on the engine's answer or one of its code blocks (#879). */
+    fun onSearchInsertText(text: String) {
+        vibrate()
+        commitToField(text)
+    }
+
     /** Copy in the search panel (#879): the engine's answer, or a result's link. */
     fun onSearchCopy(text: String) {
         vibrate()
@@ -38310,9 +38317,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Tapped a web result: insert its URL at the cursor. The panel's answer
-     * box (#470) comes through here too, as a result with no address, and
-     * inserts its text.
+     * Tapped a web result, or Insert the link on a result's menu: insert its
+     * URL at the cursor. The answer box inserts through [onSearchInsertText].
      */
     fun onWebResultSelect(result: WebResult) {
         vibrate()

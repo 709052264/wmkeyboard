@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,6 +70,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -122,6 +124,7 @@ import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.WebResult
+import com.wasimaster.wmkeyboard.core.tools.AiMarkdown
 import com.wasimaster.wmkeyboard.ime.ImageSearchUi
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -2020,7 +2023,7 @@ private fun SearchResultMenu(
             menu.result.contextUrl.ifEmpty { menu.result.imageUrl },
         )
     }
-    fun run(action: () -> Unit) {
+    fun closeThen(action: () -> Unit) {
         onDismiss()
         action()
     }
@@ -2050,13 +2053,13 @@ private fun SearchResultMenu(
                 modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
             )
             if (menu is SearchMenu.Image) {
-                MediaActionRow(stringResource(R.string.ime_search_menu_insert_image)) { run { onInsertImage(menu.result) } }
+                MediaActionRow(stringResource(R.string.ime_search_menu_insert_image)) { closeThen { onInsertImage(menu.result) } }
             }
-            MediaActionRow(stringResource(R.string.ime_web_search_open_desc)) { run { actions.onOpen(page) } }
-            MediaActionRow(stringResource(R.string.ime_web_search_insert_desc)) { run { onInsertLink(link) } }
-            MediaActionRow(stringResource(R.string.ime_search_menu_copy_link)) { run { actions.onCopy(link) } }
+            MediaActionRow(stringResource(R.string.ime_web_search_open_desc)) { closeThen { actions.onOpen(page) } }
+            MediaActionRow(stringResource(R.string.ime_web_search_insert_desc)) { closeThen { onInsertLink(link) } }
+            MediaActionRow(stringResource(R.string.ime_search_menu_copy_link)) { closeThen { actions.onCopy(link) } }
             if (menu is SearchMenu.Image) {
-                MediaActionRow(stringResource(R.string.ime_search_menu_save_image)) { run { actions.onSaveImage(menu.result) } }
+                MediaActionRow(stringResource(R.string.ime_search_menu_save_image)) { closeThen { actions.onSaveImage(menu.result) } }
             }
         }
     }
@@ -2159,9 +2162,7 @@ private fun WebResults(
                     LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
                         ui.answer?.let { answer ->
                             item(key = "answer") {
-                                WebSearchAnswer(answer) {
-                                    onResult(WebResult(title = "", snippet = answer, url = "", displayUrl = ""))
-                                }
+                                WebSearchAnswer(answer)
                             }
                         }
                         if (ui.images.isNotEmpty()) {
@@ -2280,12 +2281,23 @@ private fun MoreResultsButton(loading: Boolean, noMore: Boolean) {
  * The backend's own answer to the query, above the results (#470): Tavily's
  * written answer, a SearXNG instance's instant answer. Folded to a few lines,
  * a tap opens the rest. Two icons beside its label (#879): Copy puts the whole
- * of it on the clipboard, Insert in the field.
+ * of it on the clipboard, Insert in the field, as plain text.
+ *
+ * Drawn as the AI chat draws an answer (#879): LaTeX formulas typeset,
+ * otherwise Markdown, with code blocks in the chat's boxes and their own
+ * Copy and Insert. A plain answer, which most are, reads as it always did.
  */
 @Composable
-private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
+private fun WebSearchAnswer(answer: String) {
     val kb = LocalKbTheme.current
+    val actions = LocalSearchActions.current
     var expanded by remember(answer) { mutableStateOf(false) }
+    val colors = ChatMarkdownColors(
+        text = kb.chipText,
+        dim = kb.chipText.copy(alpha = kb.chipText.alpha * 0.6f),
+        codeBackground = kb.chipText.copy(alpha = 0.10f),
+        link = kb.accent,
+    )
     val shape = kb.cardShape()
     Column(
         modifier = Modifier
@@ -2312,17 +2324,21 @@ private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
                     .weight(1f)
                     .padding(start = 6.dp),
             )
-            val onCopy = LocalSearchActions.current.onCopy
-            AnswerAction(Icons.Outlined.ContentCopy, stringResource(CommonR.string.common_copy)) { onCopy(answer) }
-            AnswerAction(Icons.AutoMirrored.Outlined.Input, stringResource(R.string.ime_insert_action), onInsert)
+            AnswerAction(Icons.Outlined.ContentCopy, stringResource(CommonR.string.common_copy)) { actions.onCopy(answer) }
+            AnswerAction(Icons.AutoMirrored.Outlined.Input, stringResource(R.string.ime_insert_action)) {
+                actions.onInsertText(AiMarkdown.strip(answer).ifBlank { answer })
+            }
         }
-        Text(
+        ChatMarkdown(
             answer,
-            color = kb.chipText,
-            fontSize = 13.sp,
-            lineHeight = 18.sp,
-            maxLines = if (expanded) Int.MAX_VALUE else WebAnswerFoldedLines,
-            overflow = TextOverflow.Ellipsis,
+            colors,
+            // Folded, as many lines as the plain answer showed; the tap that
+            // opens the rest is the box's own.
+            modifier = if (expanded) Modifier else Modifier.heightIn(max = WebAnswerFoldedHeight).clipToBounds(),
+            codeActions = { block ->
+                CodeAction(stringResource(CommonR.string.common_copy), colors) { actions.onCopy(block.code) }
+                CodeAction(stringResource(R.string.ime_insert_action), colors) { actions.onInsertText(block.code) }
+            },
         )
     }
 }
@@ -2396,8 +2412,8 @@ private fun imageTap(
     SearchResultTap.OPEN -> { result -> onOpen(result.contextUrl.ifEmpty { result.imageUrl }) }
 }
 
-/** How many lines of the answer show before a tap opens the rest. */
-private const val WebAnswerFoldedLines = 4
+/** How much of the answer shows before a tap opens the rest: four lines of it. */
+private val WebAnswerFoldedHeight = 76.dp
 
 // ---- image search panel ----
 

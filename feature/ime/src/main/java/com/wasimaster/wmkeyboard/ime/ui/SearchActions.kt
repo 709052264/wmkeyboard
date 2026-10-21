@@ -22,6 +22,8 @@ internal class SearchActions(
     val onOpen: (String) -> Unit = {},
     /** Downloads a picture result into the gallery. */
     val onSaveImage: (ImageResult) -> Unit = {},
+    /** Puts text in the field as it is: the answer, or one of its code blocks. */
+    val onInsertText: (String) -> Unit = {},
 )
 
 internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }
