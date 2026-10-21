@@ -813,6 +813,7 @@ and the linker map (2,716,488 B stripped, main 16d35c10b):
 | Relocations packed (`--pack-dyn-relocs=android`) | 2,065,864 (-111,632) | | |
 | `opt-level = "s"` for serde_json and miniz_oxide | 2,062,464 (-3,400) | 1,588,632 (-40,648 with the row above) | 2,246,392 (-125,224 with the row above) |
 | **After** | **2,062,464 (-24.1%)** | **1,588,632 (-23.7%)** | **2,246,392 (-25.8%)** |
+| Merged onto main 0afd03d6a (CTC stroke readings), against its library | 2,737,336 -> 2,083,280 | 2,095,424 -> 1,601,392 | 3,053,648 -> 2,270,776 |
 
 - **Sorts**: `wm_engine::sort::by` / `by_key` sort the positions `0..len`
   as `u32` through one comparator behind `dyn`, then permute the slice in
@@ -863,7 +864,9 @@ tests, the prediction evals (`PredictionEvalTest`, `ContextMissRateTest`,
 `core.gesture.eval` ran twice in `:app`, once against a host build of main
 before this pass (`WM_ENGINE_LIB`) and once against this one: 71 tests in
 32 classes green both times, and every class's printed output identical
-once timings are masked.
+once timings are masked. After merging main 0afd03d6a (the CTC stroke
+readings, whose new sorts go through `sort` too) the same run against a
+host build of that main: 72 tests, identical output.
 
 `PredictionLatencyBench` and `GestureLatencyBench` alone, alternating
 before/after/before/after, load average 5 to 6.5 (other sessions idle but
