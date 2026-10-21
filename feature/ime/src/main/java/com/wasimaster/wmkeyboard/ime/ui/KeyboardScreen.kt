@@ -28489,172 +28489,128 @@ private fun Modifier.pointerInputKey(
             // ?123 is a chord's trigger (#754); every other key may be its partner.
             val chordTrigger = key.action == KeyAction.Symbols
             val presses = HashMap<PointerId, Press>()
-            awaitPointerEventScope {
-                while (true) {
-                    val event = awaitPointerEvent()
-                    for (change in event.changes) {
-                        val press = presses[change.id]
-                        when {
-                            press == null && change.changedToDown() -> {
-                                val p = Press()
-                                presses[change.id] = p
-                                setPressed(true)
-                                // Space press buzz is gated on its own toggle;
-                                // the key sound (if on) still plays either way.
-                                if (key.action == KeyAction.Space && !vibrateOnSpace) {
-                                    onKeySound()
-                                } else {
-                                    onKeyPress()
-                                }
-                                // A braille dot key chords: it reports the press
-                                // itself (the chord engine gathers dots on the way
-                                // down, commits when the last finger lifts) and has
-                                // no tap-vs-long-press distinction, so no timer.
-                                // Through the un-debounced sink: the tremor filter
-                                // would eat the up half of a quick chord and leave
-                                // the engine counting a finger that already left.
-                                if (key.action is KeyAction.BrailleDot) {
-                                    onKeyRepeat(key)
-                                    continue
-                                }
-                                if (chordTrigger && chordGate?.active == true) {
-                                    val trigger = change.id
-                                    chordGate.triggerDown(trigger)
-                                    p.chordLabels = scope.launch {
-                                        delay(CHORD_LABEL_DELAY_MS)
-                                        chordGate.showLabels(trigger)
+            // The loop only ever ends by cancellation: this pointerInput
+            // restarting under a held finger. The presses still in the map never
+            // saw a lift, and their repeat jobs run in the key's own scope, so
+            // without this the key stayed lit and kept repeating (#665).
+            try {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        for (change in event.changes) {
+                            val press = presses[change.id]
+                            when {
+                                press == null && change.changedToDown() -> {
+                                    val p = Press()
+                                    presses[change.id] = p
+                                    setPressed(true)
+                                    // Space press buzz is gated on its own toggle;
+                                    // the key sound (if on) still plays either way.
+                                    if (key.action == KeyAction.Space && !vibrateOnSpace) {
+                                        onKeySound()
+                                    } else {
+                                        onKeyPress()
                                     }
-                                } else if (!chordTrigger) {
-                                    chordGate?.otherDown()
-                                }
-                                // One timer, two meanings: on a repeating key it
-                                // is how long before the repeat starts, and on
-                                // every other key it is how long before the
-                                // accent popup opens. They were the same number
-                                // until the repeat got its own, so pick here
-                                // rather than after the wait.
-                                // Issue #57: a spacebar carrying alternates has
-                                // given its hold away, so it stops repeating —
-                                // the repeat is the default the popup replaces,
-                                // and a second tap still types a second space.
-                                // A text-editing key repeats when its operation
-                                // does (the moves, backspace), at the text-edit
-                                // tool's own cadence; Home, End and the selection
-                                // commands hold to their alternates instead. And
-                                // any key at all repeats when its author said so
-                                // (issue #231) — the answer lives on the key so
-                                // the sheet that offers the switch and the draw
-                                // that drops the hint cannot disagree with this.
-                                val editOp = (key.action as? KeyAction.Edit)?.op
-                                val repeats = key.holdRepeats()
-                                val id = change.id
-                                p.job = scope.launch {
-                                    delay(
-                                        if (repeats) keyRepeat.startDelayMs.toLong()
-                                        else longPressDelayMs.toLong(),
-                                    )
-                                    // A thumb waiting its turn under two-thumb
-                                    // typing (#737): no popup, no hold action,
-                                    // no repeat. The press stays a tap, and the
-                                    // two-thumb loop takes even that away if the
-                                    // thumb rests on to its lift.
-                                    if (restGate?.quiets(id) == true) return@launch
-                                    // ?123 held for a chord (#754). A finger that
-                                    // landed on another key meanwhile is the chord
-                                    // under way, so no popup and no number pad. And
-                                    // with nothing else for the hold to do, it
-                                    // waits for the lift to switch layer, rather
-                                    // than switching under a partner about to tap.
-                                    if (chordGate?.isTrigger(id) == true &&
-                                        (chordGate.partnerLanded ||
-                                            (!key.opensAlternatesPopup() && !key.hasHoldAction() &&
-                                                !symbolsLongPressNumpad))
-                                    ) {
-                                        return@launch
+                                    // A braille dot key chords: it reports the press
+                                    // itself (the chord engine gathers dots on the way
+                                    // down, commits when the last finger lifts) and has
+                                    // no tap-vs-long-press distinction, so no timer.
+                                    // Through the un-debounced sink: the tremor filter
+                                    // would eat the up half of a quick chord and leave
+                                    // the engine counting a finger that already left.
+                                    if (key.action is KeyAction.BrailleDot) {
+                                        onKeyRepeat(key)
+                                        continue
                                     }
-                                    restGate?.longPressed(id)
-                                    p.longPressFired = true
-                                    if (repeats) {
-                                        // Space and the two deletes each hold to
-                                        // a different purpose, so each has its
-                                        // own cadence.
-                                        val deletesBack = key.action.deletesBackward()
-                                        val deletesFwd = key.action.deletesForward()
-                                        // A held delete key can clear whole
-                                        // words (issue #216), which is slower
-                                        // on purpose and so keeps its own
-                                        // number. The text-edit pad's delete
-                                        // keys are delete keys too (issue
-                                        // #226), so they count here as well.
-                                        val holdWords = textEditing.deleteHoldDeletesWords &&
-                                            (deletesBack || deletesFwd)
-                                        val intervalMs = when {
-                                            key.action == KeyAction.Space -> keyRepeat.spaceMs
-                                            holdWords -> keyRepeat.wordDeleteMs
-                                            // Before the edit-key cadence, so a
-                                            // delete key on the pad repeats at
-                                            // the delete interval like every
-                                            // other delete key (issue #226).
-                                            deletesBack || deletesFwd -> keyRepeat.deleteMs
-                                            editOp != null -> textEditing.repeatMs
-                                            // Everything left is a key an author
-                                            // turned the repeat on for.
-                                            else -> keyRepeat.customKeyMs
-                                        }.toLong()
-                                        // Held backspace stops once there is
-                                        // nothing left to delete — no point
-                                        // buzzing against an empty field. ⌦
-                                        // runs out at the other end of the text,
-                                        // so it polls its own predicate.
-                                        while (
-                                            when {
-                                                deletesBack -> canDelete()
-                                                deletesFwd -> canForwardDelete()
-                                                else -> true
-                                            }
-                                        ) {
-                                            repeatFeedback(
-                                                vibrateOnRepeat, soundOnRepeat,
-                                                onKeyPress, onKeySound, onKeyHaptic,
-                                            )
-                                            // The swipe's one-step call is what
-                                            // knows how to take a word; the key
-                                            // itself only ever takes one
-                                            // character.
-                                            if (holdWords) {
-                                                deleteSwipe.onDeleteUnit(true, deletesFwd)
-                                            } else {
-                                                onKeyRepeat(key)
-                                            }
-                                            delay(intervalMs)
+                                    if (chordTrigger && chordGate?.active == true) {
+                                        val trigger = change.id
+                                        chordGate.triggerDown(trigger)
+                                        p.chordLabels = scope.launch {
+                                            delay(CHORD_LABEL_DELAY_MS)
+                                            chordGate.showLabels(trigger)
                                         }
-                                    } else if (key.clipboardAction != null) {
-                                        // Clipboard shortcut replaces the alternates popup
-                                        // on this key; the action fires immediately.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        key.clipboardAction?.let(onClipboardKey)
-                                    } else if (key.hasHoldAction()) {
-                                        // The hold runs one action outright, no
-                                        // popup in between. A move or a delete
-                                        // keeps going while the finger stays
-                                        // down, after the same pause a held key
-                                        // takes before it repeats; the lift
-                                        // cancels this job and so stops it.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        key.holdActionKey()?.let { held ->
-                                            if (!held.flickArmRepeats()) {
-                                                onKey(held)
-                                                return@launch
-                                            }
-                                            val deletesBack = held.action.deletesBackward()
-                                            val deletesFwd = held.action.deletesForward()
-                                            val intervalMs = if (deletesBack || deletesFwd) {
-                                                keyRepeat.deleteMs
-                                            } else {
-                                                textEditing.repeatMs
+                                    } else if (!chordTrigger) {
+                                        chordGate?.otherDown()
+                                    }
+                                    // One timer, two meanings: on a repeating key it
+                                    // is how long before the repeat starts, and on
+                                    // every other key it is how long before the
+                                    // accent popup opens. They were the same number
+                                    // until the repeat got its own, so pick here
+                                    // rather than after the wait.
+                                    // Issue #57: a spacebar carrying alternates has
+                                    // given its hold away, so it stops repeating —
+                                    // the repeat is the default the popup replaces,
+                                    // and a second tap still types a second space.
+                                    // A text-editing key repeats when its operation
+                                    // does (the moves, backspace), at the text-edit
+                                    // tool's own cadence; Home, End and the selection
+                                    // commands hold to their alternates instead. And
+                                    // any key at all repeats when its author said so
+                                    // (issue #231) — the answer lives on the key so
+                                    // the sheet that offers the switch and the draw
+                                    // that drops the hint cannot disagree with this.
+                                    val editOp = (key.action as? KeyAction.Edit)?.op
+                                    val repeats = key.holdRepeats()
+                                    val id = change.id
+                                    p.job = scope.launch {
+                                        delay(
+                                            if (repeats) keyRepeat.startDelayMs.toLong()
+                                            else longPressDelayMs.toLong(),
+                                        )
+                                        // A thumb waiting its turn under two-thumb
+                                        // typing (#737): no popup, no hold action,
+                                        // no repeat. The press stays a tap, and the
+                                        // two-thumb loop takes even that away if the
+                                        // thumb rests on to its lift.
+                                        if (restGate?.quiets(id) == true) return@launch
+                                        // ?123 held for a chord (#754). A finger that
+                                        // landed on another key meanwhile is the chord
+                                        // under way, so no popup and no number pad. And
+                                        // with nothing else for the hold to do, it
+                                        // waits for the lift to switch layer, rather
+                                        // than switching under a partner about to tap.
+                                        if (chordGate?.isTrigger(id) == true &&
+                                            (chordGate.partnerLanded ||
+                                                (!key.opensAlternatesPopup() && !key.hasHoldAction() &&
+                                                    !symbolsLongPressNumpad))
+                                        ) {
+                                            return@launch
+                                        }
+                                        restGate?.longPressed(id)
+                                        p.longPressFired = true
+                                        if (repeats) {
+                                            // Space and the two deletes each hold to
+                                            // a different purpose, so each has its
+                                            // own cadence.
+                                            val deletesBack = key.action.deletesBackward()
+                                            val deletesFwd = key.action.deletesForward()
+                                            // A held delete key can clear whole
+                                            // words (issue #216), which is slower
+                                            // on purpose and so keeps its own
+                                            // number. The text-edit pad's delete
+                                            // keys are delete keys too (issue
+                                            // #226), so they count here as well.
+                                            val holdWords = textEditing.deleteHoldDeletesWords &&
+                                                (deletesBack || deletesFwd)
+                                            val intervalMs = when {
+                                                key.action == KeyAction.Space -> keyRepeat.spaceMs
+                                                holdWords -> keyRepeat.wordDeleteMs
+                                                // Before the edit-key cadence, so a
+                                                // delete key on the pad repeats at
+                                                // the delete interval like every
+                                                // other delete key (issue #226).
+                                                deletesBack || deletesFwd -> keyRepeat.deleteMs
+                                                editOp != null -> textEditing.repeatMs
+                                                // Everything left is a key an author
+                                                // turned the repeat on for.
+                                                else -> keyRepeat.customKeyMs
                                             }.toLong()
-                                            onKeyRepeat(held)
-                                            delay(keyRepeat.startDelayMs.toLong())
+                                            // Held backspace stops once there is
+                                            // nothing left to delete — no point
+                                            // buzzing against an empty field. ⌦
+                                            // runs out at the other end of the text,
+                                            // so it polls its own predicate.
                                             while (
                                                 when {
                                                     deletesBack -> canDelete()
@@ -28666,143 +28622,207 @@ private fun Modifier.pointerInputKey(
                                                     vibrateOnRepeat, soundOnRepeat,
                                                     onKeyPress, onKeySound, onKeyHaptic,
                                                 )
-                                                onKeyRepeat(held)
+                                                // The swipe's one-step call is what
+                                                // knows how to take a word; the key
+                                                // itself only ever takes one
+                                                // character.
+                                                if (holdWords) {
+                                                    deleteSwipe.onDeleteUnit(true, deletesFwd)
+                                                } else {
+                                                    onKeyRepeat(key)
+                                                }
                                                 delay(intervalMs)
                                             }
+                                        } else if (key.clipboardAction != null) {
+                                            // Clipboard shortcut replaces the alternates popup
+                                            // on this key; the action fires immediately.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            key.clipboardAction?.let(onClipboardKey)
+                                        } else if (key.hasHoldAction()) {
+                                            // The hold runs one action outright, no
+                                            // popup in between. A move or a delete
+                                            // keeps going while the finger stays
+                                            // down, after the same pause a held key
+                                            // takes before it repeats; the lift
+                                            // cancels this job and so stops it.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            key.holdActionKey()?.let { held ->
+                                                if (!held.flickArmRepeats()) {
+                                                    onKey(held)
+                                                    return@launch
+                                                }
+                                                val deletesBack = held.action.deletesBackward()
+                                                val deletesFwd = held.action.deletesForward()
+                                                val intervalMs = if (deletesBack || deletesFwd) {
+                                                    keyRepeat.deleteMs
+                                                } else {
+                                                    textEditing.repeatMs
+                                                }.toLong()
+                                                onKeyRepeat(held)
+                                                delay(keyRepeat.startDelayMs.toLong())
+                                                while (
+                                                    when {
+                                                        deletesBack -> canDelete()
+                                                        deletesFwd -> canForwardDelete()
+                                                        else -> true
+                                                    }
+                                                ) {
+                                                    repeatFeedback(
+                                                        vibrateOnRepeat, soundOnRepeat,
+                                                        onKeyPress, onKeySound, onKeyHaptic,
+                                                    )
+                                                    onKeyRepeat(held)
+                                                    delay(intervalMs)
+                                                }
+                                            }
+                                        } else if (key.opensAlternatesPopup()) {
+                                            p.holdsAlternates = alternates != null
+                                            // Characters, actions, or both: any key with
+                                            // alternates opens the popup, which is what
+                                            // puts them on the enter key (issue #22).
+                                            //
+                                            // Tactile cue that the long press registered and the
+                                            // finger can be released (alternates are open / the
+                                            // long-press action fired). Delete/space skip it:
+                                            // their repeat loop already buzzes per repeat.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            openAlternates()
+                                        } else if (key.action == KeyAction.Symbols &&
+                                            symbolsLongPressNumpad
+                                        ) {
+                                            // Opt-in: long-pressing ?123 opens the
+                                            // numpad panel instead of acting like a tap.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            onKey(key.copy(action = KeyAction.Numpad))
+                                        } else if (key.action == KeyAction.LanguageSwitch) {
+                                            // Tap cycles to the next language; the
+                                            // long press opens the full picker.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            openLanguagePicker()
+                                        } else if (
+                                            editOp == TextEditAction.SELECT &&
+                                            textEditing.selectionModeHold
+                                        ) {
+                                            // Issue #41: the same momentary arm the
+                                            // Selection mode tool's hold gives —
+                                            // selection extends while the finger is
+                                            // down and stops when it lifts. Below
+                                            // the alternates branch on purpose: a
+                                            // Select key the user has hung a second
+                                            // action on keeps that action, and the
+                                            // panel editor says so as it is bound.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            p.armedSelection = true
+                                            onSelectionHold(true)
+                                        } else if (editOp == TextEditAction.NO_SPACE) {
+                                            // Issue #863: a hold arms No space for
+                                            // the next key, as a double tap does,
+                                            // the way a hold locks Shift.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            onKey(Key(label = key.label, action = KeyAction.Edit(TextEditAction.NO_SPACE_NEXT)))
+                                        } else {
+                                            // No alternates: long press behaves like a tap.
+                                            if (hapticOnLongPress) onKeyPress()
+                                            onKey(key)
                                         }
-                                    } else if (key.opensAlternatesPopup()) {
-                                        p.holdsAlternates = alternates != null
-                                        // Characters, actions, or both: any key with
-                                        // alternates opens the popup, which is what
-                                        // puts them on the enter key (issue #22).
-                                        //
-                                        // Tactile cue that the long press registered and the
-                                        // finger can be released (alternates are open / the
-                                        // long-press action fired). Delete/space skip it:
-                                        // their repeat loop already buzzes per repeat.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        openAlternates()
-                                    } else if (key.action == KeyAction.Symbols &&
-                                        symbolsLongPressNumpad
-                                    ) {
-                                        // Opt-in: long-pressing ?123 opens the
-                                        // numpad panel instead of acting like a tap.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        onKey(key.copy(action = KeyAction.Numpad))
-                                    } else if (key.action == KeyAction.LanguageSwitch) {
-                                        // Tap cycles to the next language; the
-                                        // long press opens the full picker.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        openLanguagePicker()
-                                    } else if (
-                                        editOp == TextEditAction.SELECT &&
-                                        textEditing.selectionModeHold
-                                    ) {
-                                        // Issue #41: the same momentary arm the
-                                        // Selection mode tool's hold gives —
-                                        // selection extends while the finger is
-                                        // down and stops when it lifts. Below
-                                        // the alternates branch on purpose: a
-                                        // Select key the user has hung a second
-                                        // action on keeps that action, and the
-                                        // panel editor says so as it is bound.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        p.armedSelection = true
-                                        onSelectionHold(true)
-                                    } else if (editOp == TextEditAction.NO_SPACE) {
-                                        // Issue #863: a hold arms No space for
-                                        // the next key, as a double tap does,
-                                        // the way a hold locks Shift.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        onKey(Key(label = key.label, action = KeyAction.Edit(TextEditAction.NO_SPACE_NEXT)))
-                                    } else {
-                                        // No alternates: long press behaves like a tap.
-                                        if (hapticOnLongPress) onKeyPress()
-                                        onKey(key)
                                     }
                                 }
-                            }
-                            // Another handler claimed the pointer (glide typing
-                            // consumed the move/up on the Initial pass): the
-                            // press must not commit.
-                            press != null && change.isConsumed -> {
-                                press.job?.cancel()
-                                // A layer peek took ?123 (#108): no longer a chord's trigger.
-                                press.chordLabels?.cancel()
-                                chordGate?.triggerUp(change.id)
-                                if (press.holdsAlternates) alternates?.cancel()
-                                if (press.armedSelection) onSelectionHold(false)
-                                presses.remove(change.id)
-                                if (presses.isEmpty()) setPressed(false)
-                                onKeyRelease()
-                                // The chord engine counted this finger on the way
-                                // down; a stolen pointer still has to count as a
-                                // lift or the engine waits forever for it.
-                                if (key.action is KeyAction.BrailleDot) {
-                                    onKeyRepeat(brailleRelease(key))
-                                }
-                            }
-                            press != null && change.changedToUp() -> {
-                                change.consume()
-                                press.job?.cancel()
-                                press.chordLabels?.cancel()
-                                // ?123 let go after a chord ran: that was the
-                                // chord's, not a tap switching layer (#754).
-                                val chorded = chordGate?.triggerUp(change.id) == true
-                                if (press.armedSelection) onSelectionHold(false)
-                                presses.remove(change.id)
-                                if (presses.isEmpty()) setPressed(false)
-                                onKeyRelease()
-                                if (key.action is KeyAction.BrailleDot) {
-                                    // No bounds test: the dot was gathered on the
-                                    // press, so the lift only closes the chord —
-                                    // sliding off cannot un-press what already
-                                    // counted, it just must not strand the engine.
-                                    onKeyRepeat(brailleRelease(key))
-                                    continue
-                                }
-                                // Forgiving bounds: a sloppy fast tap that drifts
-                                // slightly off the cell still commits; a deliberate
-                                // slide well away (≥ half a key beyond the edge)
-                                // cancels, preserving slide-off-to-cancel.
-                                val inBounds =
-                                    change.position.x > -size.width * 0.5f &&
-                                        change.position.x < size.width * 1.5f &&
-                                        change.position.y > -size.height * 0.5f &&
-                                        change.position.y < size.height * 1.5f
-                                when {
-                                    chorded -> Unit
-                                    // Smart key-hit may swap in a likelier
-                                    // neighbour chosen when this pointer went down.
-                                    // Tapped while ?123 is held, a key runs its
-                                    // chord instead, if it has one (#754).
-                                    !press.longPressFired ->
-                                        if (inBounds && chordGate?.tap(key) != true) {
-                                            onKey(smartResolve(key, change.id))
-                                        }
-                                    // The lift chooses: whatever the popup has
-                                    // highlighted, which is the first entry when
-                                    // the finger never moved off the key. No
-                                    // bounds test of its own — the highlight is
-                                    // already null once the finger has strayed
-                                    // out of reach of the popup.
-                                    press.holdsAlternates -> {
-                                        alternates?.commit()
-                                        if (hapticOnLongPressRelease) onKeyPress()
+                                // Another handler claimed the pointer (glide typing
+                                // consumed the move/up on the Initial pass): the
+                                // press must not commit.
+                                press != null && change.isConsumed -> {
+                                    press.job?.cancel()
+                                    // A layer peek took ?123 (#108): no longer a chord's trigger.
+                                    press.chordLabels?.cancel()
+                                    chordGate?.triggerUp(change.id)
+                                    if (press.holdsAlternates) alternates?.cancel()
+                                    if (press.armedSelection) onSelectionHold(false)
+                                    presses.remove(change.id)
+                                    if (presses.isEmpty()) setPressed(false)
+                                    onKeyRelease()
+                                    // The chord engine counted this finger on the way
+                                    // down; a stolen pointer still has to count as a
+                                    // lift or the engine waits forever for it.
+                                    if (key.action is KeyAction.BrailleDot) {
+                                        onKeyRepeat(brailleRelease(key))
                                     }
-                                    hapticOnLongPressRelease -> onKeyPress()
                                 }
-                            }
-                            // Steering an open popup. Last, so a lift or a
-                            // stolen pointer is dealt with first; the popup is
-                            // in a window of its own, so these moves keep
-                            // arriving here even under it.
-                            press != null && press.holdsAlternates && change.pressed -> {
-                                alternates?.moveTo(change.position, reachPx, steerPx)
-                                change.consume()
+                                press != null && change.changedToUp() -> {
+                                    change.consume()
+                                    press.job?.cancel()
+                                    press.chordLabels?.cancel()
+                                    // ?123 let go after a chord ran: that was the
+                                    // chord's, not a tap switching layer (#754).
+                                    val chorded = chordGate?.triggerUp(change.id) == true
+                                    if (press.armedSelection) onSelectionHold(false)
+                                    presses.remove(change.id)
+                                    if (presses.isEmpty()) setPressed(false)
+                                    onKeyRelease()
+                                    if (key.action is KeyAction.BrailleDot) {
+                                        // No bounds test: the dot was gathered on the
+                                        // press, so the lift only closes the chord —
+                                        // sliding off cannot un-press what already
+                                        // counted, it just must not strand the engine.
+                                        onKeyRepeat(brailleRelease(key))
+                                        continue
+                                    }
+                                    // Forgiving bounds: a sloppy fast tap that drifts
+                                    // slightly off the cell still commits; a deliberate
+                                    // slide well away (≥ half a key beyond the edge)
+                                    // cancels, preserving slide-off-to-cancel.
+                                    val inBounds =
+                                        change.position.x > -size.width * 0.5f &&
+                                            change.position.x < size.width * 1.5f &&
+                                            change.position.y > -size.height * 0.5f &&
+                                            change.position.y < size.height * 1.5f
+                                    when {
+                                        chorded -> Unit
+                                        // Smart key-hit may swap in a likelier
+                                        // neighbour chosen when this pointer went down.
+                                        // Tapped while ?123 is held, a key runs its
+                                        // chord instead, if it has one (#754).
+                                        !press.longPressFired ->
+                                            if (inBounds && chordGate?.tap(key) != true) {
+                                                onKey(smartResolve(key, change.id))
+                                            }
+                                        // The lift chooses: whatever the popup has
+                                        // highlighted, which is the first entry when
+                                        // the finger never moved off the key. No
+                                        // bounds test of its own — the highlight is
+                                        // already null once the finger has strayed
+                                        // out of reach of the popup.
+                                        press.holdsAlternates -> {
+                                            alternates?.commit()
+                                            if (hapticOnLongPressRelease) onKeyPress()
+                                        }
+                                        hapticOnLongPressRelease -> onKeyPress()
+                                    }
+                                }
+                                // Steering an open popup. Last, so a lift or a
+                                // stolen pointer is dealt with first; the popup is
+                                // in a window of its own, so these moves keep
+                                // arriving here even under it.
+                                press != null && press.holdsAlternates && change.pressed -> {
+                                    alternates?.moveTo(change.position, reachPx, steerPx)
+                                    change.consume()
+                                }
                             }
                         }
                     }
+                }
+            } finally {
+                if (presses.isNotEmpty()) {
+                    for ((id, press) in presses) {
+                        press.job?.cancel()
+                        press.chordLabels?.cancel()
+                        chordGate?.triggerUp(id)
+                        if (press.holdsAlternates) alternates?.cancel()
+                        if (press.armedSelection) onSelectionHold(false)
+                        // The chord engine counted this finger on the way down.
+                        if (key.action is KeyAction.BrailleDot) onKeyRepeat(brailleRelease(key))
+                    }
+                    presses.clear()
+                    setPressed(false)
                 }
             }
         }
