@@ -11402,7 +11402,18 @@ open class WMKeyboardService : InputMethodService() {
         if (verdict is GlideVerdict.Cancel) return
         val chosen = (verdict as? GlideVerdict.Word)?.word
         val steadiness = _uiState.value.settings.gesture.previewSteadiness
+        // Under two-thumb typing a swipe that lands against letters is the
+        // next piece of their word, as in the app's own field (#831): one
+        // word, read again whole, with no space put in front of it.
+        // Two-thumb only: an ordinary glide here ends with no space, and the
+        // next one brings it (#300), so it must never join the last.
+        val joins = chosen == null && segments.size == 1 &&
+            _uiState.value.settings.gesture.twoThumbGlide && swipeJoinsWord(_uiState.value)
         gestureJob = serviceScope.launch {
+            if (joins && captureJoinSwipe(target, segments.single(), keys, keyWidthPx)) {
+                consumeShift()
+                return@launch
+            }
             for ((index, segment) in segments.withIndex()) {
                 val last = index == segments.lastIndex
                 val reading = withContext(Dispatchers.Default) {
@@ -11426,6 +11437,47 @@ open class WMKeyboardService : InputMethodService() {
             }
             consumeShift()
         }
+    }
+
+    /**
+     * A two-thumb swipe in a keyboard-owned field joining the letters right
+     * before its caret (#831). Those letters go in as taps where their keys
+     * are, the swipe after them, and the word is read as the app's field
+     * reads a two-thumb word; the reading replaces the letters, with no space
+     * after it, so the next swipe or tap carries on the same word. False, with
+     * nothing written, when no letters touch the caret, or they are not all
+     * on this grid: the swipe is then a word of its own.
+     */
+    private suspend fun captureJoinSwipe(
+        target: CaptureTarget,
+        segment: List<GesturePoint>,
+        keys: List<KeyCenter>,
+        keyWidthPx: Float,
+    ): Boolean {
+        val start = _uiState.value.captureCaretText()?.takeIf { !it.hasSelection } ?: return false
+        val span = start.wordAtCaret()
+        val head = span.typed.takeIf { it.isNotEmpty() && span.end == start.at } ?: return false
+        val gestures = DuetWord()
+        if (!gestures.seed(head, null, keys, keyWidthPx)) return false
+        gestures.addSwipe(segment, keys, keyWidthPx)
+        val tokens = gestures.snapshot()
+        val read = withContext(Dispatchers.Default) {
+            duetReading(tokens, null, keys, keyWidthPx).words.firstOrNull()
+                ?: duetPrefix(tokens, keys, keyWidthPx)
+        } ?: gestures.literal()
+        // The letters set the word's case, as typed letters do in the field.
+        val word = when {
+            head.length > 1 && head.all { !it.isLetter() || it.isUpperCase() } -> read.uppercase()
+            head.first().isUpperCase() -> read.replaceFirstChar { it.uppercase() }
+            else -> read
+        }
+        val state = _uiState.value
+        if (state.captureTarget() != target) return true
+        val before = state.captureCaretText() ?: return true
+        // Something else wrote the box while the word was read.
+        if (before != start) return true
+        captureWrite(target, before, before.replacedWordAtCaret(word, spaceAfter = false))
+        return true
     }
 
     /**
@@ -26309,6 +26361,9 @@ open class WMKeyboardService : InputMethodService() {
         // the search queries, the AI instruction, a plugin's box, the Find
         // fields, the Learn speller. Nothing reaches the app behind the panel.
         state.captureTarget()?.let { target ->
+            // A tap that rolled into a swipe under two thumbs is the tap
+            // there too (#831), not a one-letter glide spaced off its word.
+            if (verdict is GlideVerdict.Leader && duetStrokeAsTap(state, points, keys, keyWidthPx)) return
             captureGlide(
                 target, listOf(points), keys, keyWidthPx, verdict,
                 shiftForGlide(state.shiftState, verdict.caseAt(0)),

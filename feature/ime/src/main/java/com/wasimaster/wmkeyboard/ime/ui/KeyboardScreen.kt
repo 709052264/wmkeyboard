@@ -17679,7 +17679,12 @@ private fun KeyRows(
         gesture.apostropheKey != GlideApostropheKey.SPACE
     // Two-thumb typing (#638) runs its own pointer loop. Only on the app's
     // field: a test run and the keyboard's own boxes keep the one-finger glide.
-    val twoThumbOn = gesture.twoThumbGlide && state.panel == PanelMode.NONE && !state.typingTestActive
+    // And a panel's own text box that has the keys, a plugin's included
+    // (#831): with the one-finger loop there, two thumbs at once drew one
+    // stroke between them. Not the word card's spelling bar, which takes a
+    // glide as the whole word.
+    val twoThumbOn = gesture.twoThumbGlide && !state.typingTestActive &&
+        (state.panel == PanelMode.NONE || (state.keysTakenByKeyboard && !state.wordSpellActive))
     // Multi-finger swipes (#647): the letters, and since #712 the keys under a
     // tool whose own box has them (the translator, a search, a note), never a
     // typing test. The bindings are read live inside the loop, and so is the
