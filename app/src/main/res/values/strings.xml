@@ -31,6 +31,8 @@
     <string name="handwriting_module_title">Handwriting recognition</string>
     <string name="speech_module_title">Offline voice engines</string>
     <string name="onnx_module_title">ONNX Runtime</string>
+    <!-- :feature:opus, the audio compressor for transcription server uploads. -->
+    <string name="opus_module_title">Voice upload compression</string>
     <string name="executorch_module_title">Offline voice and glide models</string>
     <string name="grammar_module_title">Grammar checker</string>
     <string name="spell_module_title">Hunspell spell checker</string>

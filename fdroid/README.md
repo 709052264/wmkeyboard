@@ -139,6 +139,11 @@ build. The runtime itself is Microsoft's MIT-licensed AAR on Maven Central,
 read on the phone after the download opt-in, like every other delivered
 library.
 
+`native/opus-jni` (libopus at a pinned tag, CMake and Ninja, plus a small
+hand-written Ogg writer) builds `libwmopus.so` into `core/voice/src/opus/jniLibs`,
+the compressor for transcription server uploads. The next entry's `scandelete`
+needs that directory too (`python3 native/gates.py scandelete` lists it).
+
 The Mozc engine for Japanese adds `native/mozc-jni` (Mozc's converter, into
 `core/input/src/mozc/jniLibs`), and with it the first library that builds
 with Bazel rather than CMake or Cargo: Mozc supports no other build. The

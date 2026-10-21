@@ -62,6 +62,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.voice.OpusEncoder
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtNative
 import com.wasimaster.wmkeyboard.core.input.mozc.MozcRuntime
@@ -621,6 +622,18 @@ private val bundledAttributions: List<Attribution> = buildList {
                 "Copyright (c) 2017 Mozilla, (c) 2007-2017 Jean-Marc Valin, (c) 2005-2017 Xiph.Org Foundation",
                 "BSD-3-Clause", "bsd-rnnoise.txt",
                 "https://github.com/xiph/rnnoise",
+            ),
+        )
+    }
+    if (OpusEncoder.shipped) {
+        add(
+            Attribution(
+                "Opus",
+                R.string.about_bundled_opus_used,
+                "Copyright (c) 2001-2023 Xiph.Org, Skype Limited, Octasic, Jean-Marc Valin, Timothy B. Terriberry, " +
+                    "CSIRO, Gregory Maxwell, Mark Borgerding, Erik de Castro Lopo, Mozilla, Amazon",
+                "BSD-3-Clause", "bsd-opus.txt",
+                "https://opus-codec.org",
             ),
         )
     }

@@ -146,6 +146,7 @@ class NetLogStore(
                 count = old.count + single.count,
                 bytesIn = old.bytesIn + single.bytesIn,
                 bytesOut = old.bytesOut + single.bytesOut,
+                bytesSaved = old.bytesSaved + single.bytesSaved,
                 durationMs = old.durationMs + single.durationMs,
             )
         } else {

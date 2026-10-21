@@ -41,6 +41,8 @@ data class NetEntry(
     @SerialName("e") val error: String? = null,
     @SerialName("up") val bytesOut: Long = 0,
     @SerialName("dn") val bytesIn: Long = 0,
+    /** Upload bytes the sender's compression saved, summed over [count]; see [NetCall.bytesSaved]. */
+    @SerialName("sv") val bytesSaved: Long = 0,
     /** Summed over [count]; divide for the mean. */
     @SerialName("ms") val durationMs: Long = 0,
     @SerialName("inc") val incognito: Boolean = false,
