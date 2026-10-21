@@ -730,6 +730,15 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "ICU4X",
+            R.string.about_bundled_icu4x_used,
+            "Copyright © 2020-2024 Unicode, Inc.",
+            "Unicode License v3", "unicode-3.0.txt",
+            "https://github.com/unicode-org/icu4x",
+        ),
+    )
+    add(
+        Attribution(
             "gemoji",
             R.string.about_bundled_gemoji_used,
             "Copyright (c) 2019 GitHub, Inc.",

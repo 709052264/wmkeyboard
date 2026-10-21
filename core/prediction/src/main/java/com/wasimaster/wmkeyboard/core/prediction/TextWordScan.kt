@@ -1,5 +1,7 @@
 package com.wasimaster.wmkeyboard.core.prediction
 
+import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
+
 /**
  * Reads a piece of already-written text the way the keyboard would have read
  * it had it been typed (#174): the words in it, how often each appears and in
@@ -17,8 +19,15 @@ package com.wasimaster.wmkeyboard.core.prediction
  *  - a whitespace-separated chunk that looks like a link, an email address or a
  *    handle (`://`, `@`, `www.`): its pieces are not words anyone typed;
  *  - a token that is not learnable, such as a number ("2024");
- *  - a token in a script written without spaces (Chinese, Japanese, Thai…),
- *    where a run of letters between spaces is a phrase, not a word.
+ *  - a token in a script written without spaces that has no segmenter here
+ *    (Chinese, Japanese, Tibetan, Javanese), where a run of letters between
+ *    spaces is a phrase, not a word.
+ *
+ * Thai, Lao, Khmer and Burmese are written without spaces too, but
+ * [WordSegments] finds the words inside their runs, so each is scanned as
+ * the words it holds and pairs run across them. Burmese the detector is sure
+ * is Zawgyi is skipped as before: the segmenter reads Unicode Burmese, and
+ * Zawgyi uses the same code points for other things.
  *
  * A sentence ender or a line break also ends the run, so no pair crosses a full
  * stop or a paragraph — the rule [WordContext.completedWordBefore] applies to
@@ -90,6 +99,50 @@ object TextWordScan {
             prev3 = null
         }
 
+        // Burmese is only segmented as Unicode; asked once per text, and only
+        // when a Burmese token turns up.
+        val zawgyi by lazy(LazyThreadSafetyMode.NONE) { Zawgyi.isConfidentlyZawgyi(text.toString()) }
+
+        /** Whether the segmenter can split [token]: all its spaceless letters are in its four scripts. */
+        fun segmentable(token: String): Boolean =
+            token.all { !isSpaceless(it) || WordSegments.isSegmentedScript(it.code) } &&
+                !(zawgyi && token.any { Zawgyi.isMyanmar(it) })
+
+        /** Counts one word at [start] and the pairs it ends. */
+        fun take(token: String, start: Int, initial: Boolean) {
+            if (!WordContext.isLearnableWord(token)) {
+                breakRun()
+                return
+            }
+            val key = WordKey.of(token)
+            val tally = tallies.getOrPut(key) { Tally(key, start, token.length, WordKey.surface(token)) }
+            tally.count++
+            if (!initial) {
+                val surface = WordKey.surface(token)
+                tally.midSentence[surface] = (tally.midSentence[surface] ?: 0) + 1
+            }
+            val p1 = prev1
+            val p2 = prev2
+            val p3 = prev3
+            if (p1 != null) {
+                val pair = p1 to key
+                pairCounts[pair] = (pairCounts[pair] ?: 0) + 1
+                if (p2 != null) {
+                    val triple = Triple(p2, p1, key)
+                    tripleCounts[triple] = (tripleCounts[triple] ?: 0) + 1
+                    val skip = p2 to key
+                    skipCounts[skip] = (skipCounts[skip] ?: 0) + 1
+                    if (p3 != null) {
+                        val skip2 = p3 to key
+                        skip2Counts[skip2] = (skip2Counts[skip2] ?: 0) + 1
+                    }
+                }
+            }
+            prev3 = p2
+            prev2 = p1
+            prev1 = key
+        }
+
         var i = 0
         val n = text.length
         while (i < n) {
@@ -135,37 +188,18 @@ object TextWordScan {
                 val token = text.subSequence(start, j).toString()
                 val initial = sentenceStart
                 sentenceStart = false
-                if (!WordContext.isLearnableWord(token) || token.any { isSpaceless(it) }) {
+                if (token.any { isSpaceless(it) } && !segmentable(token)) {
                     breakRun()
                     continue
                 }
-                val key = WordKey.of(token)
-                val tally = tallies.getOrPut(key) { Tally(key, start, j - start, WordKey.surface(token)) }
-                tally.count++
-                if (!initial) {
-                    val surface = WordKey.surface(token)
-                    tally.midSentence[surface] = (tally.midSentence[surface] ?: 0) + 1
+                if (!WordSegments.hasSegmentedScript(token)) {
+                    take(token, start, initial)
+                    continue
                 }
-                val p1 = prev1
-                val p2 = prev2
-                val p3 = prev3
-                if (p1 != null) {
-                    val pair = p1 to key
-                    pairCounts[pair] = (pairCounts[pair] ?: 0) + 1
-                    if (p2 != null) {
-                        val triple = Triple(p2, p1, key)
-                        tripleCounts[triple] = (tripleCounts[triple] ?: 0) + 1
-                        val skip = p2 to key
-                        skipCounts[skip] = (skipCounts[skip] ?: 0) + 1
-                        if (p3 != null) {
-                            val skip2 = p3 to key
-                            skip2Counts[skip2] = (skip2Counts[skip2] ?: 0) + 1
-                        }
-                    }
+                val at = WordSegments.ranges(token)
+                for (k in at.indices step 2) {
+                    take(token.substring(at[k], at[k + 1]), start + at[k], initial && k == 0)
                 }
-                prev3 = p2
-                prev2 = p1
-                prev1 = key
             }
             i = chunkEnd
         }

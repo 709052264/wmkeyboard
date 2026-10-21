@@ -265,6 +265,7 @@ import com.wasimaster.wmkeyboard.core.prediction.NgramPack
 import com.wasimaster.wmkeyboard.core.prediction.NgramReranker
 import com.wasimaster.wmkeyboard.core.prediction.KeyTouchModel
 import com.wasimaster.wmkeyboard.core.prediction.TextWordScan
+import com.wasimaster.wmkeyboard.core.prediction.WordSegments
 import com.wasimaster.wmkeyboard.core.prediction.WordContext
 import com.wasimaster.wmkeyboard.core.prediction.WordOrigin
 import com.wasimaster.wmkeyboard.core.prediction.WordRevision
@@ -19422,7 +19423,17 @@ open class WMKeyboardService : InputMethodService() {
          */
         unspelled: Boolean = false,
     ) {
-        val parts = word.split(' ')
+        // Thai, Lao, Khmer and Burmese put no space between words, so a run
+        // typed in one go is a phrase: split it where [WordSegments] finds
+        // the words, unless the whole run is itself a word the keyboard
+        // knows (a list word the segmenter would cut in two stays whole).
+        val parts = word.split(' ').flatMap { part ->
+            if (WordSegments.hasSegmentedScript(part) && !isKnownWord(part.trim { !WordContext.isWordChar(it) })) {
+                WordSegments.split(part)
+            } else {
+                listOf(part)
+            }
+        }
         // The pattern gate follows what went into the field, not what the
         // lexicon was allowed to keep, so it is fed on both paths.
         for (part in parts) pushRecentWord(part)
