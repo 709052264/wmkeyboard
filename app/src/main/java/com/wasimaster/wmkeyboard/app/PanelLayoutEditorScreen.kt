@@ -73,8 +73,12 @@ import com.wasimaster.wmkeyboard.core.layout.rowScaledKeyHeight
 import com.wasimaster.wmkeyboard.core.layout.secondaryLayouts
 import com.wasimaster.wmkeyboard.core.layout.spanRowWidths
 import com.wasimaster.wmkeyboard.core.layout.validatePanelLayout
+import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.TextEditAction
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.isUsableTool
 import com.wasimaster.wmkeyboard.ime.ui.KbTheme
 import com.wasimaster.wmkeyboard.ime.ui.keyShape
 import kotlinx.coroutines.launch
@@ -359,6 +363,23 @@ internal fun PanelLayoutEditorScreen(
         },
     )
 
+    // The switch to GIFs and stickers draws nothing while neither of their
+    // tools is on: a switch with only the emoji panel in it goes nowhere. A
+    // grid that places it says so here, or the cell reads as broken (#856).
+    val switchIdle = settings.watch { !mediaSwitchReachable(it) }
+    if (switchIdle && spec.grid.rows.any { row -> row.any { (it.action as? KeyAction.Field)?.kind == PanelFieldKind.MEDIA_TABS } }) {
+        SettingsGroup(stringResource(R.string.panel_layout_media_tabs_idle_group)) {
+            item {
+                NavRow(
+                    title = R.string.panel_layout_media_tabs_idle_title,
+                    subtitle = stringResource(R.string.panel_layout_media_tabs_idle_body),
+                    route = toolRoute(ToolbarTool.GIF),
+                    onClick = { onNavigate(toolRoute(ToolbarTool.GIF)) },
+                )
+            }
+        }
+    }
+
     val findings = validatePanelLayout(spec)
     if (findings.isNotEmpty()) {
         SettingsGroup(
@@ -404,6 +425,16 @@ internal fun PanelLayoutEditorScreen(
         )
     }
 }
+
+/**
+ * Whether the emoji panel's switch has somewhere to go: the GIF or the Sticker
+ * tool switched on and usable. The keyboard's own test (`mediaTabs`) lives in
+ * the IME module; this is the same rule for the editor.
+ */
+internal fun mediaSwitchReachable(settings: KeyboardSettings): Boolean =
+    listOf(ToolbarTool.GIF, ToolbarTool.STICKER).any { tool ->
+        tool in settings.enabledTools && isSupportedTool(tool) && isUsableTool(tool, settings)
+    }
 
 /**
  * The panel's grid as the preview draws it, with the row heights the keyboard

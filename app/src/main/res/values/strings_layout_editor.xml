@@ -671,6 +671,9 @@
     <string name="panel_layout_value_default">Standard</string>
     <string name="panel_layout_value_custom">Your own</string>
     <string name="panel_layout_editor_caption">Press a cell to change it. Component cells hold the live parts of the panel. Rows with a component share the height that the key rows leave.</string>
+    <string name="panel_layout_media_tabs_idle_group">Switch to GIFs and stickers</string>
+    <string name="panel_layout_media_tabs_idle_title">Turn on the GIF or Sticker tool</string>
+    <string name="panel_layout_media_tabs_idle_body">The switch stays empty on the keyboard until one of the two tools is on: with only emoji in it, there is nowhere to switch to.</string>
     <string name="panel_layout_live_caption">The keyboard uses your changes at once.</string>
     <string name="panel_layout_reset_title">Use the standard layout</string>
     <string name="panel_layout_reset_subtitle">Go back to the panel the app ships with</string>
