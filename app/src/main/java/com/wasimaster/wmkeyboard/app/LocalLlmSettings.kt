@@ -110,6 +110,8 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
 
     LaunchedEffect(Unit) { LocalLlmDownloadManager.refresh(filesDir) }
     LaunchedEffect(states, customModels, importing) {
+        // Runs after every delete: what the engine built for a model is gone with it.
+        withContext(Dispatchers.IO) { LocalLlmStore.pruneEngineCache(filesDir, context.cacheDir) }
         storageUsed = withContext(Dispatchers.IO) { LocalLlmStore.totalBytesUsed(filesDir) }
         orphanBytes = withContext(Dispatchers.IO) { LocalLlmStore.orphanBytes(filesDir) }
         builds = withContext(Dispatchers.IO) {
@@ -387,7 +389,10 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
         Row(modifier = Modifier.padding(horizontal = 16.dp)) {
             TextButton(onClick = {
                 scope.launch {
-                    withContext(Dispatchers.IO) { LocalLlmStore.deleteOrphans(filesDir) }
+                    withContext(Dispatchers.IO) {
+                        LocalLlmStore.deleteOrphans(filesDir)
+                        LocalLlmStore.pruneEngineCache(filesDir, context.cacheDir)
+                    }
                     orphanBytes = 0
                     storageUsed = withContext(Dispatchers.IO) {
                         LocalLlmStore.totalBytesUsed(filesDir)

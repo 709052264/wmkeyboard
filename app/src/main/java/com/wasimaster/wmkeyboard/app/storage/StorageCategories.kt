@@ -1325,6 +1325,15 @@ internal object StorageCategories {
             pathsOf = { listOf(File(it.cache, "media")) },
         ),
         StorageCategory(
+            id = "cache_llm",
+            title = R.string.storage_cache_llm_title,
+            subtitle = R.string.storage_cache_llm_subtitle,
+            icon = Icons.Outlined.Psychology,
+            accent = Color(0xFF9575CD),
+            group = StorageGroup.CACHE,
+            pathsOf = { listOf(LocalLlmStore.engineCacheDir(it.cache)) },
+        ),
+        StorageCategory(
             id = "cache_addons",
             title = R.string.storage_cache_addons_title,
             subtitle = R.string.storage_cache_addons_subtitle,

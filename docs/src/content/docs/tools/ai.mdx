@@ -506,6 +506,8 @@ Adding **On your device** to the list puts the whole model manager on that row's
 
 Above that sits a line reporting how much storage your models take in total, partial downloads included. That figure is usually bigger than the one beside **Your models**, which only sums the finished ones you can see.
 
+The first time a model loads, the engine also builds working files from it, about the model's own size again, and keeps them so later loads are fast. They count as a cache: **Settings → About → Storage** lists them as **AI model working files** under **Caches**, and **Free up** there clears them, at the cost of one slower load. Deleting a model deletes its working files with it.
+
 ### About "Provider maximum"
 
 This one is worth understanding, because the old default was the reason a long **Improve** used to come back with only the first part rewritten. **Provider maximum** leaves the ceiling out of the request entirely and lets the service apply its own, which for a modern model is far more than any number you'd pick by hand. It's the right choice for long text.

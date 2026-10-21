@@ -120,6 +120,8 @@
     <string name="storage_cache_media_subtitle">Copies of the GIFs and stickers you sent</string>
     <string name="storage_cache_addons_title">Add-on downloads</string>
     <string name="storage_cache_addons_subtitle">Part-finished downloads, and add-on previews</string>
+    <string name="storage_cache_llm_title">AI model working files</string>
+    <string name="storage_cache_llm_subtitle">What the on-device AI built from its models. Rebuilt, slower once, the next time a model loads</string>
     <string name="storage_cache_temp_title">Temporary files</string>
     <string name="storage_cache_temp_subtitle">Key sounds the app built, and files it shared</string>
     <string name="storage_other_cache_title">Other cached files</string>

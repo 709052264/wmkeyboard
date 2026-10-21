@@ -24,6 +24,8 @@ object LocalLlmStore {
     /** Prefix marking an imported file in the aiLocalModelId setting. */
     const val CUSTOM_PREFIX = "custom:"
 
+    private const val ENGINE_CACHE = "litertlm"
+
     private val MODEL_EXTENSIONS = ModelFormat.entries.map { it.extension }.toSet()
 
     fun modelsDir(filesDir: File): File = File(filesDir, "models")
@@ -148,6 +150,28 @@ object LocalLlmStore {
         if (projector != null && customModels(filesDir).none { GgufFile.projectorFor(it) == projector }) {
             projector.delete()
         }
+    }
+
+    /**
+     * Where LiteRT-LM keeps what it builds from a model on its first load
+     * (repacked weights, compiled GPU programs), about one model's size each.
+     * It is a cache: the engine builds it again, slower once, when it is gone.
+     */
+    fun engineCacheDir(cacheDir: File): File = File(cacheDir, ENGINE_CACHE)
+
+    /**
+     * Deletes what the engine built for models no longer on disk. Its files
+     * are named after the model file, so one whose name starts with no
+     * model's is left over from a model that was deleted or replaced.
+     */
+    fun pruneEngineCache(filesDir: File, cacheDir: File) {
+        val stems = modelsDir(filesDir).walkTopDown()
+            .filter { it.isFile && it.extension != "part" }
+            .map { it.nameWithoutExtension }
+            .toList()
+        engineCacheDir(cacheDir).listFiles().orEmpty()
+            .filter { cached -> stems.none { cached.name.startsWith(it) } }
+            .forEach { it.deleteRecursively() }
     }
 
     /** Bytes on disk across all models, finished and partial. */

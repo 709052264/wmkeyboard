@@ -14,6 +14,7 @@ import com.google.ai.edge.litertlm.SamplerConfig
 import com.wasimaster.wmkeyboard.core.localllm.AcceleratorVerdicts
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
 import com.wasimaster.wmkeyboard.core.localllm.LlmRuntime
+import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.localllm.NpuRouting
 import com.wasimaster.wmkeyboard.core.localllm.NpuRuntime
 import com.wasimaster.wmkeyboard.core.localllm.NpuSupport
@@ -625,7 +626,7 @@ class LitertLmRuntime : LlmRuntime {
         contextTokens: Int,
         vision: Boolean,
     ): Engine {
-        val cache = File(context.cacheDir, "litertlm").apply { mkdirs() }
+        val cache = LocalLlmStore.engineCacheDir(context.cacheDir).apply { mkdirs() }
         val engine = Engine(
             EngineConfig(
                 modelPath = modelFile.absolutePath,
