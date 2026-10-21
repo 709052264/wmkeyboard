@@ -514,6 +514,7 @@ import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
 import com.wasimaster.wmkeyboard.core.tools.SearchProviders
+import com.wasimaster.wmkeyboard.core.tools.SearchMore
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
@@ -3206,6 +3207,7 @@ open class WMKeyboardService : InputMethodService() {
     private val searchActions by lazy {
         com.wasimaster.wmkeyboard.ime.ui.SearchActions(
             onTab = ::onSearchTab,
+            onMore = ::onSearchMore,
         )
     }
     private var imageSearchJob: Job? = null
@@ -37254,6 +37256,107 @@ open class WMKeyboardService : InputMethodService() {
         if (shown != query && !loading) runSearch(tab, query)
     }
 
+    /**
+     * More results at the end of the open tab (#879): the same search again,
+     * for its next page, added under what is shown. Pressed again, it fetches
+     * the page after; when one brings nothing new the button goes. A failure
+     * keeps what is shown and says why in a toast.
+     */
+    fun onSearchMore() {
+        val state = _uiState.value
+        if (state.panel != PanelMode.WEB_SEARCH) return
+        if (dataSaverStatus.decide(MeteredFeature.WEB_SEARCH) != MeteredDecision.ALLOWED) {
+            toast(R.string.ime_service_search_more_metered)
+            return
+        }
+        vibrate()
+        when (state.searchTab) {
+            SearchTab.ALL -> loadMoreWeb(state.webSearch as? WebSearchUi.Ready ?: return)
+            SearchTab.IMAGES -> loadMoreImages(state.imageSearch as? ImageSearchUi.Ready ?: return)
+        }
+    }
+
+    private fun loadMoreWeb(shown: WebSearchUi.Ready) {
+        if (shown.loadingMore || shown.noMore) return
+        val settings = _uiState.value.settings
+        val more = SearchMore(shown.page + 1, shown.results.map { searchDomain(it.url) })
+        _uiState.update { it.copy(webSearch = shown.copy(loadingMore = true)) }
+        webSearchJob = serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    SearchProviders.web(
+                        settings,
+                        shown.query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        answer = false,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                        more = more,
+                    )
+                }
+            }
+            val now = _uiState.value.webSearch as? WebSearchUi.Ready
+            // A new search or a cleared bar while this was out: it is no longer wanted.
+            if (now == null || now.query != shown.query) return@launch
+            result.onFailure { toast(requestErrorText(it, R.string.ime_service_search_error)) }
+            val seen = now.results.mapTo(HashSet()) { it.url }
+            val added = result.getOrNull()?.results.orEmpty().filter { seen.add(it.url) }
+            _uiState.update {
+                it.copy(
+                    webSearch = now.copy(
+                        results = now.results + added,
+                        page = if (result.isSuccess) more.page else now.page,
+                        loadingMore = false,
+                        noMore = result.isSuccess && added.isEmpty(),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun loadMoreImages(shown: ImageSearchUi.Ready) {
+        if (shown.loadingMore || shown.noMore) return
+        val settings = _uiState.value.settings
+        val more = SearchMore(
+            shown.page + 1,
+            shown.results.map { searchDomain(it.contextUrl.ifEmpty { it.imageUrl }) },
+        )
+        _uiState.update { it.copy(imageSearch = shown.copy(loadingMore = true)) }
+        imageSearchJob = serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    SearchProviders.images(
+                        settings,
+                        shown.query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                        more = more,
+                    )
+                }
+            }
+            val now = _uiState.value.imageSearch as? ImageSearchUi.Ready
+            if (now == null || now.query != shown.query) return@launch
+            result.onFailure { toast(requestErrorText(it, R.string.ime_service_search_error)) }
+            val seen = now.results.mapTo(HashSet()) { it.imageUrl }
+            val added = result.getOrNull().orEmpty().filter { seen.add(it.imageUrl) }
+            _uiState.update {
+                it.copy(
+                    imageSearch = now.copy(
+                        results = now.results + added,
+                        page = if (result.isSuccess) more.page else now.page,
+                        loadingMore = false,
+                        noMore = result.isSuccess && added.isEmpty(),
+                    ),
+                )
+            }
+        }
+    }
+
+    /** The site of [url] as Tavily's `exclude_domains` takes it: the host, without "www.". */
+    private fun searchDomain(url: String): String =
+        url.substringAfter("://").substringBefore('/').substringBefore(':').removePrefix("www.")
+
     /** Runs [query] on the search panel's [tab]. */
     private fun runSearch(tab: SearchTab, query: String) = when (tab) {
         SearchTab.ALL -> runWebSearch(query)
@@ -42639,6 +42742,10 @@ open class WMKeyboardService : InputMethodService() {
 
     private fun toast(@StringRes id: Int) {
         Toast.makeText(this, getString(id), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun toast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
     }
 
     /** Opens a search-style panel already carrying [query], and runs it. */

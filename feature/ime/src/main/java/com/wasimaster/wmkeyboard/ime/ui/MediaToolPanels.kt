@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -2117,8 +2118,44 @@ private fun WebResults(
                                 }
                             }
                         }
+                        item(key = "more") { MoreResultsButton(ui.loadingMore, ui.noMore) }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * More results, after the last result of either tab (#879): the same search
+ * for its next page. A spinner while it loads; once a page brings nothing
+ * new it says so instead of offering another.
+ */
+@Composable
+private fun MoreResultsButton(loading: Boolean, noMore: Boolean) {
+    val kb = LocalKbTheme.current
+    val onMore = LocalSearchActions.current.onMore
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        when {
+            loading -> CircularProgressIndicator(Modifier.size(22.dp), color = kb.accent, strokeWidth = 2.5.dp)
+            noMore -> Text(stringResource(R.string.ime_search_no_more), color = kb.secondaryText, fontSize = 12.sp)
+            else -> {
+                val shape = kb.chipShape()
+                Text(
+                    stringResource(R.string.ime_search_more),
+                    color = kb.chipText,
+                    fontSize = 13.sp,
+                    modifier = Modifier
+                        .clip(shape)
+                        .frostGlass(kb, shape, FrostSurface.CHIPS)
+                        .background(kb.chip)
+                        .chipBorder(kb, shape)
+                        .clickable(onClick = onMore)
+                        .padding(horizontal = 18.dp, vertical = 8.dp),
+                )
             }
         }
     }
@@ -2226,6 +2263,8 @@ private fun ImageResults(
                 } else {
                     ImageGrid(
                         results = ui.results,
+                        loadingMore = ui.loadingMore,
+                        noMore = ui.noMore,
                         downloadingId = state.mediaDownloadingId,
                         progress = state.mediaDownloadProgress,
                         columnCount = state.settings.emoji.mediaGridColumns,
@@ -2242,6 +2281,8 @@ private fun ImageResults(
 @Composable
 private fun ImageGrid(
     results: List<ImageResult>,
+    loadingMore: Boolean,
+    noMore: Boolean,
     downloadingId: String?,
     progress: Float?,
     /** Columns, from the user's setting. Two gives a bigger look before sending. */
@@ -2299,5 +2340,6 @@ private fun ImageGrid(
                 if (downloadingId == result.imageUrl) MediaDownloadOverlay(progress)
             }
         }
+        item(key = "more", span = { GridItemSpan(maxLineSpan) }) { MoreResultsButton(loadingMore, noMore) }
     }
 }

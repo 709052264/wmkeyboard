@@ -281,6 +281,9 @@
     <!-- The search panel's tabs: web results and images. -->
     <string name="ime_search_tab_all">All</string>
     <string name="ime_search_tab_images">Images</string>
+    <!-- At the end of the search results: fetches the next page of the same search. -->
+    <string name="ime_search_more">More results</string>
+    <string name="ime_search_no_more">No more results</string>
 
     <!-- Image search panel. -->
     <string name="ime_image_search_idle">Type a search and press enter.\nPress an image to insert it. Press and hold to insert its link.</string>

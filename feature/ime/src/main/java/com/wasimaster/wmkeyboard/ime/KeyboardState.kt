@@ -1465,6 +1465,12 @@ sealed interface WebSearchUi {
         val query: String,
         /** The backend's own short answer, shown above the results (#470). */
         val answer: String? = null,
+        /** Further pages loaded by More results (#879), 0 for none. */
+        val page: Int = 0,
+        /** A further page is on its way. */
+        val loadingMore: Boolean = false,
+        /** The last further page brought nothing new: More results goes. */
+        val noMore: Boolean = false,
     ) : WebSearchUi
 }
 
@@ -1485,6 +1491,10 @@ sealed interface ImageSearchUi {
     data class Ready(
         val results: List<com.wasimaster.wmkeyboard.core.tools.ImageResult>,
         val query: String,
+        /** As on [WebSearchUi.Ready]: More results' pages (#879). */
+        val page: Int = 0,
+        val loadingMore: Boolean = false,
+        val noMore: Boolean = false,
     ) : ImageSearchUi
 }
 

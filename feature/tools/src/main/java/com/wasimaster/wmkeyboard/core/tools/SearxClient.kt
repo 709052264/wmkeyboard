@@ -42,8 +42,9 @@ object SearxClient {
         count: Int,
         safe: Boolean,
         source: NetSource = NetSource.WEB_SEARCH,
+        page: Int = 0,
     ): WebSearchPage {
-        val body = get(searchUrl(instance, query, categories = "general", safe = safe), source)
+        val body = get(searchUrl(instance, query, categories = "general", safe = safe, page = page), source)
         return WebSearchPage(parseWeb(body).take(count.coerceIn(1, 50)), parseAnswer(body))
     }
 
@@ -63,9 +64,9 @@ object SearxClient {
         }
     }
 
-    /** Blocking; call on an IO dispatcher. Throws on failure. */
-    fun imageSearch(query: String, instance: String, count: Int, safe: Boolean): List<ImageResult> =
-        parseImages(get(searchUrl(instance, query, categories = "images", safe = safe), NetSource.IMAGE_SEARCH))
+    /** Blocking; call on an IO dispatcher. Throws on failure. [page] counts from 0. */
+    fun imageSearch(query: String, instance: String, count: Int, safe: Boolean, page: Int = 0): List<ImageResult> =
+        parseImages(get(searchUrl(instance, query, categories = "images", safe = safe, page = page), NetSource.IMAGE_SEARCH))
             .take(count.coerceIn(1, 50))
 
     /**
@@ -135,13 +136,15 @@ object SearxClient {
      * SearXNG takes no result-count parameter — it answers with a page and the
      * caller keeps what it wants — so [webSearch] and [imageSearch] trim rather
      * than ask. `safesearch` is 0/1/2 for off/moderate/strict, and images get
-     * the strict end for the same reason the Brave path does.
+     * the strict end for the same reason the Brave path does. [page] is the
+     * instance's own page, which `pageno` counts from 1 (#879).
      */
     internal fun searchUrl(
         instance: String,
         query: String,
         categories: String,
         safe: Boolean,
+        page: Int = 0,
     ): String {
         val safesearch = when {
             !safe -> 0
@@ -154,6 +157,7 @@ object SearxClient {
             append("&format=json")
             append("&categories=$categories")
             append("&safesearch=$safesearch")
+            if (page > 0) append("&pageno=${page + 1}")
         }
     }
 

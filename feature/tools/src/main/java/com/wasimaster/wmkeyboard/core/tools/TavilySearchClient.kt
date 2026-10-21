@@ -4,6 +4,7 @@ import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoint
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
@@ -46,9 +47,10 @@ object TavilySearchClient {
         depth: String = DEFAULT_DEPTH,
         answer: Boolean = false,
         source: NetSource = NetSource.WEB_SEARCH,
+        excludeDomains: List<String> = emptyList(),
     ): WebSearchPage {
         val body = post(
-            requestBody(query, count, safe, images = false, depth = depth, answer = answer),
+            requestBody(query, count, safe, images = false, depth = depth, answer = answer, excludeDomains = excludeDomains),
             apiKey,
             source,
         )
@@ -62,8 +64,15 @@ object TavilySearchClient {
         count: Int,
         safe: Boolean,
         depth: String = DEFAULT_DEPTH,
+        excludeDomains: List<String> = emptyList(),
     ): List<ImageResult> =
-        parseImages(post(requestBody(query, count, safe, images = true, depth = depth), apiKey, NetSource.IMAGE_SEARCH))
+        parseImages(
+            post(
+                requestBody(query, count, safe, images = true, depth = depth, excludeDomains = excludeDomains),
+                apiKey,
+                NetSource.IMAGE_SEARCH,
+            ),
+        )
             .take(count.coerceIn(1, MAX_RESULTS))
 
     private fun post(body: String, apiKey: String, source: NetSource): String =
@@ -82,6 +91,10 @@ object TavilySearchClient {
     /**
      * The search at [depth]. `safe_search` is left out at the two fast
      * depths, which refuse it outright rather than ignore it.
+     *
+     * [excludeDomains] is how More results asks for something new (#879):
+     * Tavily has no page number, so the sites already shown are left out,
+     * up to the 150 it takes.
      */
     internal fun requestBody(
         query: String,
@@ -90,6 +103,7 @@ object TavilySearchClient {
         images: Boolean,
         depth: String = DEFAULT_DEPTH,
         answer: Boolean = false,
+        excludeDomains: List<String> = emptyList(),
     ): String =
         buildJsonObject {
             put("query", query.trim())
@@ -98,6 +112,9 @@ object TavilySearchClient {
             put("include_answer", answer)
             put("include_images", images)
             if (depth !in FAST_DEPTHS) put("safe_search", safe)
+            if (excludeDomains.isNotEmpty()) {
+                put("exclude_domains", JsonArray(excludeDomains.distinct().take(MAX_EXCLUDED).map(::JsonPrimitive)))
+            }
         }.toString()
 
     /** Tavily's written answer, or null when it gave none. */
@@ -124,9 +141,27 @@ object TavilySearchClient {
      * The top-level `images` list: bare addresses, or `{url, description}`
      * objects when descriptions were asked for. Both shapes are read, so a
      * change of request can never empty the grid.
+     *
+     * Each result also lists the pictures from its own page; an image found
+     * there gets that page as its [ImageResult.contextUrl], which More results
+     * leaves out next time and the result menu can open.
      */
     internal fun parseImages(body: String): List<ImageResult> {
-        val images = Json.parseToJsonElement(body).jsonObject["images"]?.jsonArray.orEmpty()
+        val root = Json.parseToJsonElement(body).jsonObject
+        val images = root["images"]?.jsonArray.orEmpty()
+        val pageOf = HashMap<String, String>()
+        for (result in root["results"]?.jsonArray.orEmpty()) {
+            val item = result as? JsonObject ?: continue
+            val page = item.text("url") ?: continue
+            for (image in (item["images"] as? JsonArray).orEmpty()) {
+                val url = when (image) {
+                    is JsonPrimitive -> image.content.takeIf { image.isString }
+                    is JsonObject -> image.text("url")
+                    else -> null
+                } ?: continue
+                pageOf.getOrPut(url) { page }
+            }
+        }
         return images.mapNotNull { element ->
             val url: String
             val title: String
@@ -146,7 +181,7 @@ object TavilySearchClient {
                 thumbUrl = url,
                 imageUrl = url,
                 mime = BraveSearchClient.mimeFromUrl(url),
-                contextUrl = "",
+                contextUrl = pageOf[url].orEmpty(),
             )
         }.distinctBy { it.imageUrl }
     }
@@ -159,6 +194,9 @@ object TavilySearchClient {
 
     /** Tavily's one-credit default. */
     const val DEFAULT_DEPTH = "basic"
+
+    /** Tavily's ceiling for `exclude_domains`. */
+    private const val MAX_EXCLUDED = 150
 
     /** The depths that take no `safe_search`. */
     private val FAST_DEPTHS = setOf("fast", "ultra-fast")

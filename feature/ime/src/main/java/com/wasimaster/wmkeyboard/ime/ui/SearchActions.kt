@@ -13,6 +13,8 @@ import com.wasimaster.wmkeyboard.ime.SearchTab
 internal class SearchActions(
     /** A tab of the panel tapped. */
     val onTab: (SearchTab) -> Unit = {},
+    /** More results, at the end of the open tab's results. */
+    val onMore: () -> Unit = {},
 )
 
 internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }

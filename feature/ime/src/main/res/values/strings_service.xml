@@ -195,6 +195,7 @@
 
     <!-- Tools: search, articles, exchange rates, QR codes. -->
     <string name="ime_service_search_error">The search did not work</string>
+    <string name="ime_service_search_more_metered">Data saving is on, so no more results are fetched on mobile data</string>
     <!-- Search by photo (#349): the camera tool's Search button. -->
     <string name="ime_service_photo_search_no_app">No app on this phone can search with a photo</string>
     <string name="ime_service_photo_search_no_browser">No browser on this phone can open the results</string>
