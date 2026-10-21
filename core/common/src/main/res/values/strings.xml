@@ -89,5 +89,7 @@
     <string name="common_error_network">No connection. Check your network and try again.</string>
     <string name="common_error_no_internet_permission">This build of the keyboard cannot connect to the internet.</string>
     <string name="common_error_timeout">The request took too long. Try again.</string>
+    <!-- A download that stopped because data saving holds downloads on the connection it moved to. What arrived is kept. -->
+    <string name="common_error_download_held">Paused: data saving holds downloads on this connection. It continues where it stopped.</string>
 
 </resources>

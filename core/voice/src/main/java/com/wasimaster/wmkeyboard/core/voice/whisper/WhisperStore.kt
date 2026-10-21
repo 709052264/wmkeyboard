@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.whisper
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import java.io.File
 
 /**
@@ -73,7 +74,7 @@ object WhisperStore {
 
     /** Bytes already on disk for this model, finished and partial. */
     fun bytesOnDisk(filesDir: File, model: WhisperModel): Long =
-        modelDir(filesDir, model).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+        FileDownloader.bytesUnder(modelDir(filesDir, model))
 
     /**
      * Resolves the whisperModelId setting to a downloaded model, or null when

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.executorch
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.voice.sherpa.OmnilingualLanguages
 import com.wasimaster.wmkeyboard.core.voice.sherpa.SherpaNative
 import java.io.File
@@ -416,7 +417,7 @@ object EtStore {
             .maxByOrNull { it.millions }
 
     fun bytesOnDisk(filesDir: File, model: EtModel): Long =
-        dir(filesDir, model).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+        FileDownloader.bytesUnder(dir(filesDir, model))
 
     fun delete(filesDir: File, model: EtModel) {
         dir(filesDir, model).deleteRecursively()

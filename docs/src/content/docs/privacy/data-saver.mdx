@@ -116,6 +116,13 @@ screen. Either one holding is enough to skip the automatic refresh.
 - **The settings app asks separately.** A download you start from the
   settings screens shows its own confirmation, with the size, and that yes
   doesn't carry into the keyboard either.
+- **A running download notices the connection change.** A model or
+  feature library download asks before each piece it fetches. If the phone
+  moves from Wi-Fi to a connection that turns data saver on, and the
+  **Downloads** row is set to *Turn off*, it stops at the next piece and
+  says it is paused. What arrived is kept, and the next attempt carries on
+  from there. At *Ask each time* it goes on, since you were asked when it
+  started.
 - **Nothing is rewritten.** Data saver is a view of your settings, applied
   on the way out. Turning it off can't lose your configuration, because it
   never touched it.

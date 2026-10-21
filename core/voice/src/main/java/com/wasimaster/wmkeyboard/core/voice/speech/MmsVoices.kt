@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.voice.speech
 
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import android.content.Context
 import java.io.File
 import java.util.Locale
@@ -124,7 +125,7 @@ object MmsVoices {
     }
 
     fun bytesOnDisk(filesDir: File, voice: MmsVoice): Long =
-        dir(filesDir, voice).walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+        FileDownloader.bytesUnder(dir(filesDir, voice))
 
     /** Every voice's folder, for the storage screen. */
     fun rootDir(filesDir: File): File = File(filesDir, DIR)

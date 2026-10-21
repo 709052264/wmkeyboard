@@ -4,22 +4,17 @@ import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.os.StatFs
 import androidx.annotation.StringRes
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.voice.R
 import java.io.File
-import java.security.MessageDigest
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,8 +27,8 @@ import kotlinx.coroutines.launch
  * Process-level singleton with its own IO scope so progress survives
  * recomposition, navigation, and process death; the settings UI just collects
  * [states]. No WorkManager/foreground service (the app uses neither): leaving
- * the app can stop a download, but the `.part` file plus an HTTP Range request
- * resume exactly where it stopped.
+ * the app can stop a download, but [FileDownloader]'s `.part` and its resume
+ * map continue every piece exactly where it stopped.
  *
  * A LiteRT model is **two files** (the `.tflite` and its `filters_vocab_*.bin`),
  * downloaded sequentially into one directory; both must land before the model
@@ -72,8 +67,6 @@ object WhisperDownloadManager {
 
     /** Free space to leave untouched after a download completes. */
     private const val SPACE_MARGIN_BYTES = 64L * 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val USER_AGENT = "WMKeyboard model downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var activeJob: Job? = null
@@ -172,7 +165,7 @@ object WhisperDownloadManager {
         // A whisper.cpp model carries a known hash; a file of the right name
         // and size that fails it is someone else's, and not installed.
         if (model?.sha256 != null &&
-            !IntegrityChecks.accept(sha256Of(file).equals(model.sha256, ignoreCase = true), name)
+            !IntegrityChecks.accept(FileDownloader.sha256(file).equals(model.sha256, ignoreCase = true), name)
         ) {
             return null
         }
@@ -270,7 +263,7 @@ object WhisperDownloadManager {
 
         // Space preflight for everything still missing, up front.
         val stillNeeded = parts.filter { !it.finalFile.isFile }
-            .sumOf { it.approxBytes - it.partFile.length() }
+            .sumOf { it.approxBytes - FileDownloader.bytesDone(it.partFile) }
         val free = StatFs(dir.path).availableBytes
         if (free < stillNeeded + SPACE_MARGIN_BYTES) {
             val neededMb = ((stillNeeded + SPACE_MARGIN_BYTES) / 1e6).roundToInt()
@@ -292,90 +285,38 @@ object WhisperDownloadManager {
             doneBytes += p.finalFile.length()
         }
         model.sha256?.let { expected ->
-            if (!IntegrityChecks.accept(sha256Of(graph.finalFile).equals(expected, ignoreCase = true), model.id)) {
+            if (!IntegrityChecks.accept(FileDownloader.sha256(graph.finalFile).equals(expected, ignoreCase = true), model.id)) {
                 graph.finalFile.delete()
                 throw FailedException(FailReason.OTHER, R.string.core_voice_whistle_checksum_error)
             }
         }
     }
 
-    private fun sha256Of(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(1 shl 20)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
-    }
-
     private suspend fun downloadPart(modelId: String, p: Part, baseBytes: Long, grandTotal: Long) {
-        var resumeFrom = p.partFile.length()
-        val connection = URL(p.url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(NetSource.DOWNLOAD_WHISPER, "GET", p.url, route = NetLog.pathOf(p.url))
+        // The catalog's sizes are approximate for the LiteRT files, so the
+        // server's length is the one that counts here; the hash decides for
+        // whisper.cpp models after the last file lands.
         try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-
-            netCall.status = connection.responseCode
-            when (val status = connection.responseCode) {
-                HttpURLConnection.HTTP_PARTIAL -> Unit
-                HttpURLConnection.HTTP_OK -> resumeFrom = 0
-                else -> throw FailedException(
+            FileDownloader.fetch(p.url, p.partFile, null, NetSource.DOWNLOAD_WHISPER) { written ->
+                set(modelId, DownloadStatus.Downloading(baseBytes + written, grandTotal))
+            }
+        } catch (e: DownloadException) {
+            throw when (e) {
+                is DownloadException.Http -> FailedException(
                     FailReason.OTHER,
                     R.string.core_voice_download_http_error,
-                    status.toString(),
+                    e.status.toString(),
                 )
+                is DownloadException.Interrupted ->
+                    FailedException(FailReason.NETWORK, R.string.core_voice_download_interrupted_error)
+                is DownloadException.Blocked ->
+                    FailedException(FailReason.NETWORK, CommonR.string.common_error_download_held)
+                is DownloadException.WrongSize, is DownloadException.Mismatch ->
+                    FailedException(FailReason.OTHER, R.string.core_voice_whistle_checksum_error)
             }
-
-            val remaining = connection.contentLengthLong
-            val fileTotal = if (remaining >= 0) resumeFrom + remaining else -1L
-            var written = resumeFrom
-            var lastUpdate = 0L
-
-            netCall.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(p.partFile, "rw").use { out ->
-                    out.setLength(resumeFrom)
-                    out.seek(resumeFrom)
-                    val buffer = ByteArray(256 * 1024)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        out.write(buffer, 0, read)
-                        written += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                            lastUpdate = now
-                            set(modelId, DownloadStatus.Downloading(baseBytes + written, grandTotal))
-                        }
-                    }
-                }
-            }
-
-            val incomplete =
-                if (fileTotal >= 0) written != fileTotal else written < p.approxBytes * 9 / 10
-            if (incomplete) {
-                throw FailedException(
-                    FailReason.NETWORK,
-                    R.string.core_voice_download_interrupted_error,
-                )
-            }
-            check(p.partFile.renameTo(p.finalFile)) {
-                "could not move the finished download into place"
-            }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
+        }
+        check(p.partFile.renameTo(p.finalFile)) {
+            "could not move the finished download into place"
         }
     }
 }
