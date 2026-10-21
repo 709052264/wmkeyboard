@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
@@ -257,17 +258,11 @@ private fun SearchStrings.providerEntry(
     weight: EntryWeight? = null,
 ): SettingsSearchEntry {
     val host = providerHostTool(tool)
-    val above = when {
-        host != null -> crumb(R.string.home_tools_title, toolTitle(host))
-        tool == ProviderTool.VOICE -> crumb(R.string.home_voice_title)
-        tool == ProviderTool.PHOTOS -> crumb(R.string.photo_services_title)
-        else -> crumb(R.string.home_typing_title, R.string.typing_group_suggestions_title)
-    }
     val route = providerRoute(tool, type)
     return SettingsSearchEntry(
         title = getString(title),
         subtitle = if (subtitle == 0) "" else getString(subtitle),
-        screenPath = above + getString(type.labelRes),
+        screenPath = providerListPath(tool) + getString(type.labelRes),
         route = route,
         weight = weight ?: if (host != null) EntryWeight.DETAIL else EntryWeight.NORMAL,
         tool = host,
@@ -275,6 +270,102 @@ private fun SearchStrings.providerEntry(
         keywords = searchKeywordsFor(title).let { if (it == 0) "" else getString(it) },
         key = "$route#${resourceName(title)}",
     )
+}
+
+/** The path to the screen [tool]'s list is drawn on. */
+private fun SearchStrings.providerListPath(tool: ProviderTool): List<String> {
+    val host = providerHostTool(tool)
+    return when {
+        host != null -> crumb(R.string.home_tools_title, toolTitle(host))
+        tool == ProviderTool.VOICE -> crumb(R.string.home_voice_title)
+        tool == ProviderTool.PHOTOS -> crumb(R.string.photo_services_title)
+        else -> crumb(R.string.home_typing_title, R.string.typing_group_suggestions_title)
+    }
+}
+
+/**
+ * Every kind of provider, once for each list it can join, so a service is
+ * found by its own name ("DeepL", "Whisper", "Ollama") and opens its own
+ * screen. That screen shows the kind's first row on the list, or offers to
+ * add it. Weighted as a tool's page: a provider is a destination too, and
+ * its name lands an exact hit the same way, while a tool or a screen called
+ * exactly what was typed still comes first.
+ *
+ * The on-device translators are left out where this build has no engine
+ * for them, as their model rows are. What else a phone cannot run (a voice
+ * engine whose library is missing, anything online in the no-internet
+ * build) is only known on the phone, so the search screen drops those
+ * itself ([searchableProviderEntries]).
+ */
+private fun SearchStrings.providerKindRows(): List<SettingsSearchEntry> =
+    ProviderTool.entries.flatMap { tool ->
+        ProviderTypes.serving(tool).filter(::providerKindIndexed).map { type ->
+            providerEntry(tool, type, type.labelRes, type.descriptionRes(tool), weight = EntryWeight.TOOL)
+        }
+    }
+
+/** Whether this build has [type] at all; see [providerKindRows]. */
+private fun providerKindIndexed(type: ProviderType): Boolean = when (type.id) {
+    ProviderTypes.ML_KIT.id -> OnDeviceTranslator.AVAILABLE
+    ProviderTypes.BERGAMOT.id -> BergamotTranslator.available
+    ProviderTypes.NLLB.id -> NllbTranslator.available
+    else -> true
+}
+
+/**
+ * The rows the user has that the kind entries do not name: a second key or
+ * server, and any row given a nickname. Each opens that row's own screen,
+ * and reads under its name what the row is set up with ([subtitle], the
+ * line its list row shows). Built on the phone from the settings, beside
+ * the index rather than in it: the index is read once per language and
+ * kept, and these change whenever a list does.
+ */
+internal fun SearchStrings.providerInstanceRows(
+    rows: (ProviderTool) -> List<ResolvedProvider>,
+    subtitle: (ProviderTool, ResolvedProvider) -> String,
+): List<SettingsSearchEntry> = ProviderTool.entries.flatMap { tool ->
+    rows(tool)
+        .filter { it.type != null && (it.key != it.typeId || it.customName.isNotEmpty()) }
+        .map { row ->
+            val title = row.customName.ifEmpty { getString(checkNotNull(row.type).labelRes) }
+            val route = providerRoute(tool, row.key)
+            SettingsSearchEntry(
+                title = title,
+                subtitle = subtitle(tool, row),
+                screenPath = providerListPath(tool) + title,
+                route = route,
+                weight = EntryWeight.TOOL,
+                tool = providerHostTool(tool),
+                // Names the row, not a resource: a nickname has none.
+                key = "$route#$PROVIDER_INSTANCE_KEY",
+            )
+        }
+}
+
+/**
+ * The name half of an instance entry's [SettingsSearchEntry.key]. Not shaped
+ * like a resource name, so no link and no route check can take it for one.
+ */
+private const val PROVIDER_INSTANCE_KEY = "provider-instance"
+
+/**
+ * [index] without what this phone cannot open, plus [instances]: the entries
+ * of a provider kind ([providerKindRows], and the rows on its screen) are
+ * dropped when the kind cannot run here and no list has it. A kind already
+ * on a list stays findable, since its screen is where it is removed.
+ */
+internal fun searchableProviderEntries(
+    index: List<SettingsSearchEntry>,
+    instances: List<SettingsSearchEntry>,
+    runnable: (ProviderTool, ProviderType) -> Boolean,
+    listed: (ProviderTool, String) -> Boolean,
+): List<SettingsSearchEntry> {
+    val kept = index.filter { entry ->
+        val (tool, key) = providerOfRoute(entry.route) ?: return@filter true
+        val type = ProviderTypes.of(providerKindOf(key)) ?: return@filter true
+        runnable(tool, type) || listed(tool, type.id)
+    }
+    return (kept + instances).distinctBy { it.key }
 }
 
 /** Rows on the Typing screen, in screen order. */
@@ -324,6 +415,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_learn_corrections_title, R.string.typing_learn_corrections_subtitle),
         row(R.string.typing_adapt_taps_title, R.string.typing_adapt_taps_subtitle),
         row(R.string.typing_mistype_tolerance_title, R.string.typing_mistype_tolerance_subtitle),
+        row(R.string.typing_fix_several_slips_title, R.string.typing_fix_several_slips_subtitle),
         row(R.string.typing_skip_all_caps_title, R.string.typing_skip_all_caps_subtitle),
         row(R.string.typing_autocorrect_on_enter_title, R.string.typing_autocorrect_on_enter_subtitle),
         row(R.string.typing_autocorrect_on_punctuation_title, R.string.typing_autocorrect_on_punctuation_subtitle),
@@ -2844,6 +2936,9 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         .map { "tool/${it.name}" }.toSet()
     val all = sectionRows() +
         toolRows() +
+        // After the tools: a step of a result's path names the first screen
+        // the index has by that name, and a tool's page is that screen.
+        providerKindRows() +
         sectionChildRows() +
         typingRows() +
         typingCorrectionsRows() +
@@ -2866,7 +2961,9 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
         emojiPanelRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + storageRows() + otherRows()
-    all.filterNot { it.route in unsupported }.distinctBy { it.key }
+    // A provider's screen goes with the tool page its list is on.
+    all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }
+        .distinctBy { it.key }
 }
 
 /** The index in the language [res] is configured for. */

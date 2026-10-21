@@ -92,7 +92,7 @@ class KotlinFuzzyBeamSearch {
         ws.reset()
         ws.pushState(
             node = walker.root, pos = 0, cost = 0.0, editSpend = 0.0, edits = 0, comp = 0, accents = 0,
-            parent = -1, viaLabel = KotlinBeamWorkspace.NO_LABEL,
+            slips = 0, parent = -1, viaLabel = KotlinBeamWorkspace.NO_LABEL,
             bound = src.logWeight + ln1p(walker.maxSubtree(walker.root)),
         )
         var pops = 0
@@ -107,12 +107,13 @@ class KotlinFuzzyBeamSearch {
             val edits = ws.edits[s].toInt()
             val comp = ws.comp[s].toInt()
             val accents = ws.accents[s].toInt()
+            val slips = ws.slips[s].toInt()
 
             if (pos == n) {
                 if (walker.isWord(node)) {
                     val score = src.logWeight + ln1p(walker.frequency(node)) - cost
                     if (score > floor - EPS || results.size < k) {
-                        emit(ws.materialize(s), score, editSpend, edits, comp, accents, src.tier, results)
+                        emit(ws.materialize(s), score, editSpend, edits, comp, accents, slips, src.tier, results)
                         if (results.size >= k) floor = kthBest(results, k, ws)
                     }
                 }
@@ -129,7 +130,7 @@ class KotlinFuzzyBeamSearch {
                     pushIfViable(
                         ws, src, walker, floor,
                         node = child, pos = n, cost = cost + step, editSpend = editSpend,
-                        edits = edits, comp = comp + 1, accents = accents, parent = s,
+                        edits = edits, comp = comp + 1, accents = accents, slips = slips, parent = s,
                         viaLabel = ws.children.labels[i],
                     )
                 }
@@ -156,7 +157,7 @@ class KotlinFuzzyBeamSearch {
                         ws, src, walker, floor,
                         node = joined, pos = pos, cost = cost + COST_ACCENT,
                         editSpend = editSpend,
-                        edits = edits, comp = comp, accents = accents + 1, parent = s,
+                        edits = edits, comp = comp, accents = accents + 1, slips = slips, parent = s,
                         viaLabel = ZWNJ,
                     )
                 }
@@ -172,7 +173,7 @@ class KotlinFuzzyBeamSearch {
                         node = matched, pos = pos + 1,
                         cost = cost + matchCost(touch, pos, expected),
                         editSpend = editSpend,
-                        edits = edits, comp = comp, accents = accents, parent = s,
+                        edits = edits, comp = comp, accents = accents, slips = slips, parent = s,
                         viaLabel = expected,
                     )
                 }
@@ -188,7 +189,7 @@ class KotlinFuzzyBeamSearch {
                         node = ws.children.nodes[i], pos = pos + 1,
                         cost = cost + matchCost(touch, pos, expected) + COST_ACCENT,
                         editSpend = editSpend,
-                        edits = edits, comp = comp, accents = accents + 1, parent = s,
+                        edits = edits, comp = comp, accents = accents + 1, slips = slips, parent = s,
                         viaLabel = label,
                     )
                 }
@@ -209,7 +210,7 @@ class KotlinFuzzyBeamSearch {
                         node = ws.children.nodes[i], pos = pos + 1,
                         cost = cost + matchCost(touch, pos, label),
                         editSpend = editSpend,
-                        edits = edits, comp = comp, accents = accents, parent = s,
+                        edits = edits, comp = comp, accents = accents, slips = slips, parent = s,
                         viaLabel = label,
                     )
                 }
@@ -225,7 +226,7 @@ class KotlinFuzzyBeamSearch {
                         link = ws.pushRecord(
                             node = at, pos = pos, cost = cost,
                             editSpend = editSpend, edits = edits, comp = comp,
-                            accents = accents, parent = link, viaLabel = spelled[j],
+                            accents = accents, slips = slips, parent = link, viaLabel = spelled[j],
                         )
                     }
                     val last = walker.child(at, spelled[spelled.length - 1])
@@ -235,17 +236,45 @@ class KotlinFuzzyBeamSearch {
                             node = last, pos = pos + 1,
                             cost = cost + matchCost(touch, pos, spelled[0]),
                             editSpend = editSpend,
-                            edits = edits, comp = comp, accents = accents, parent = link,
+                            edits = edits, comp = comp, accents = accents, slips = slips, parent = link,
                             viaLabel = spelled[spelled.length - 1],
                         )
                     }
                 }
             }
 
-            if (edits < maxEdits && editSpend < MAX_EDIT_COST) {
+            // The edits on this path that are not slips: what the budget counts.
+            val budget = edits - slips
+            // Slips: a tap that landed within reach of another key reads as
+            // that key at the substitution's price, but spends nothing of the
+            // edit budget, and further slips pay no second-edit surcharge. The
+            // first slip on a path that already holds a real edit pays it,
+            // as a real edit after a slip does below.
+            if (keySet == null) {
+                for (i in 0 until count) {
+                    val label = ws.children.labels[i]
+                    if (label == expected || Accents.isAccentOf(label, expected)) continue
+                    if (!slipReach(touch, pos, expected, label, maxEdits, keys)) continue
+                    val mixed = if (budget > 0 && slips == 0) SECOND_EDIT_SURCHARGE else 0.0
+                    val subCost = discounted(
+                        substitutionCost(touch, pos, expected, label, proximity),
+                        habits.substitution(expected, label),
+                    )
+                    pushIfViable(
+                        ws, src, walker, floor,
+                        node = ws.children.nodes[i], pos = pos + 1, cost = cost + subCost + mixed,
+                        editSpend = editSpend,
+                        edits = edits + 1, comp = comp, accents = accents, slips = slips + 1, parent = s,
+                        viaLabel = label,
+                    )
+                }
+            }
+
+            if (budget < maxEdits && editSpend < MAX_EDIT_COST) {
                 // Budget gates compare base edit costs; the second-edit
                 // surcharge and touch/match adjustments are ranking signal,
-                // not budget spend.
+                // not budget spend. Any earlier edit, slips included, makes
+                // this one a second.
                 val surcharge = (if (edits + 1 >= 2) SECOND_EDIT_SURCHARGE else 0.0) +
                     if (keys?.isAmbiguous == true) AMBIGUOUS_EDIT_SURCHARGE else 0.0
                 // Deletion: the typed char was an extra keypress — skip it.
@@ -266,7 +295,7 @@ class KotlinFuzzyBeamSearch {
                         ws, src, walker, floor,
                         node = node, pos = pos + 1, cost = cost + delCost + surcharge,
                         editSpend = editSpend + delCost,
-                        edits = edits + 1, comp = comp, accents = accents, parent = s,
+                        edits = edits + 1, comp = comp, accents = accents, slips = slips, parent = s,
                         viaLabel = KotlinBeamWorkspace.NO_LABEL,
                     )
                 }
@@ -284,7 +313,9 @@ class KotlinFuzzyBeamSearch {
                     // Likewise a letter already taken as the typed one with its
                     // accent left off.
                     val accented = keySet == null && Accents.isAccentOf(label, expected)
-                    if (label != expected && !onKey && !accented) {
+                    if (label != expected && !onKey && !accented &&
+                        !slipReach(touch, pos, expected, label, maxEdits, keys)
+                    ) {
                         val subCost = discounted(
                             substitutionCost(touch, pos, expected, label, proximity),
                             habits.substitution(expected, label),
@@ -294,7 +325,7 @@ class KotlinFuzzyBeamSearch {
                                 ws, src, walker, floor,
                                 node = child, pos = pos + 1, cost = cost + subCost + surcharge,
                                 editSpend = editSpend + subCost,
-                                edits = edits + 1, comp = comp, accents = accents, parent = s,
+                                edits = edits + 1, comp = comp, accents = accents, slips = slips, parent = s,
                                 viaLabel = label,
                             )
                         }
@@ -316,7 +347,7 @@ class KotlinFuzzyBeamSearch {
                             ws, src, walker, floor,
                             node = child, pos = pos, cost = cost + insCost + surcharge,
                             editSpend = editSpend + insCost,
-                            edits = edits + 1, comp = comp, accents = accents, parent = s,
+                            edits = edits + 1, comp = comp, accents = accents, slips = slips, parent = s,
                             viaLabel = label,
                         )
                     }
@@ -355,14 +386,14 @@ class KotlinFuzzyBeamSearch {
                             val link = ws.pushRecord(
                                 node = first, pos = pos + 1, cost = cost,
                                 editSpend = editSpend, edits = edits, comp = comp,
-                                accents = accents, parent = s, viaLabel = typed[pos + 1],
+                                accents = accents, slips = slips, parent = s, viaLabel = typed[pos + 1],
                             )
                             pushIfViable(
                                 ws, src, walker, floor,
                                 node = second, pos = pos + 2,
                                 cost = cost + transposeCost + surcharge,
                                 editSpend = editSpend + transposeCost,
-                                edits = edits + 1, comp = comp, accents = accents, parent = link,
+                                edits = edits + 1, comp = comp, accents = accents, slips = slips, parent = link,
                                 viaLabel = typed[pos],
                             )
                         }
@@ -386,12 +417,32 @@ class KotlinFuzzyBeamSearch {
         edits: Int,
         comp: Int,
         accents: Int,
+        slips: Int,
         parent: Int,
         viaLabel: Char,
     ) {
         val bound = src.logWeight + ln1p(walker.maxSubtree(node)) - cost
         if (bound < floor - EPS) return
-        ws.pushState(node, pos, cost, editSpend, edits, comp, accents, parent, viaLabel, bound)
+        ws.pushState(node, pos, cost, editSpend, edits, comp, accents, slips, parent, viaLabel, bound)
+    }
+
+    /**
+     * Whether reading [label] for the typed [expected] is a slip: the tap
+     * landed within the model's slip reach of [label]'s key. Never on an
+     * ambiguous board, nor in a walk that allows no edits at all.
+     */
+    @Suppress("LongParameterList")
+    private fun slipReach(
+        touch: TouchScoring?,
+        pos: Int,
+        expected: Char,
+        label: Char,
+        maxEdits: Int,
+        keys: KeySets?,
+    ): Boolean {
+        if (keys?.isAmbiguous == true || maxEdits == 0) return false
+        val p = touch?.points?.getOrNull(pos) ?: return false
+        return touch.model.knows(expected) && touch.model.withinSlip(p, label)
     }
 
     /**
@@ -443,6 +494,7 @@ class KotlinFuzzyBeamSearch {
         edits: Int,
         completedChars: Int,
         accents: Int,
+        slips: Int,
         tier: Tier,
         results: HashMap<String, ScoredCandidate>,
     ) {
@@ -457,12 +509,13 @@ class KotlinFuzzyBeamSearch {
         )
         results[word] = if (existing == null || score > existing.score) {
             ScoredCandidate(
-                word, score, editCost, edits, completedChars, tier, dictScore, userScore, accents,
+                word, score, editCost, edits, completedChars, tier, dictScore, userScore, accents, slips,
             )
         } else {
             ScoredCandidate(
                 word, existing.score, existing.editCost, existing.edits,
                 existing.completedChars, existing.tier, dictScore, userScore, existing.accents,
+                existing.slips,
             )
         }
     }
@@ -608,6 +661,7 @@ class KotlinBeamWorkspace(initialCapacity: Int = 256) {
     var edits = ByteArray(initialCapacity); private set
     var comp = ByteArray(initialCapacity); private set
     var accents = ByteArray(initialCapacity); private set
+    var slips = ByteArray(initialCapacity); private set
     var parent = IntArray(initialCapacity); private set
     var viaLabel = CharArray(initialCapacity); private set
     var bound = DoubleArray(initialCapacity); private set
@@ -635,6 +689,7 @@ class KotlinBeamWorkspace(initialCapacity: Int = 256) {
         edits: Int,
         comp: Int,
         accents: Int,
+        slips: Int,
         parent: Int,
         viaLabel: Char,
     ): Int {
@@ -647,6 +702,7 @@ class KotlinBeamWorkspace(initialCapacity: Int = 256) {
         this.edits[id] = edits.toByte()
         this.comp[id] = comp.toByte()
         this.accents[id] = accents.toByte()
+        this.slips[id] = slips.toByte()
         this.parent[id] = parent
         this.viaLabel[id] = viaLabel
         this.bound[id] = 0.0
@@ -662,11 +718,12 @@ class KotlinBeamWorkspace(initialCapacity: Int = 256) {
         edits: Int,
         comp: Int,
         accents: Int,
+        slips: Int,
         parent: Int,
         viaLabel: Char,
         bound: Double,
     ): Int {
-        val id = pushRecord(node, pos, cost, editSpend, edits, comp, accents, parent, viaLabel)
+        val id = pushRecord(node, pos, cost, editSpend, edits, comp, accents, slips, parent, viaLabel)
         this.bound[id] = bound
         heapPush(id)
         return id
@@ -717,6 +774,7 @@ class KotlinBeamWorkspace(initialCapacity: Int = 256) {
         edits = edits.copyOf(capacity)
         comp = comp.copyOf(capacity)
         accents = accents.copyOf(capacity)
+        slips = slips.copyOf(capacity)
         parent = parent.copyOf(capacity)
         viaLabel = viaLabel.copyOf(capacity)
         bound = bound.copyOf(capacity)

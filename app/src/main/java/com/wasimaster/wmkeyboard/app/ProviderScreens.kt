@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
-import android.net.Uri
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -113,7 +112,6 @@ import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.tools.AiClient
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
-import com.wasimaster.wmkeyboard.core.settings.ProviderProblem
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.providerChain
@@ -121,7 +119,6 @@ import com.wasimaster.wmkeyboard.core.settings.providerCredentials
 import com.wasimaster.wmkeyboard.core.settings.providerMode
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
-import com.wasimaster.wmkeyboard.core.grammar.GrammarProviders
 import com.wasimaster.wmkeyboard.core.ui.ScrollRail
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import kotlinx.coroutines.launch
@@ -185,6 +182,11 @@ internal fun ProvidersGroup(
 
     val on = rows.filter { it.entry.enabled }
     val off = rows.filterNot { it.entry.enabled }
+    // What each row that is on is set up with, from its kind's own settings
+    // and what is on the phone; read live, so a model downloaded or chosen
+    // on the provider's screen shows here on the way back.
+    val facts = rememberProviderFacts(on.mapTo(HashSet()) { it.typeId }, settings)
+    val summaries = settings.watch { s -> on.associate { it.key to providerSummary(it, s, facts[it.typeId]) } }
     SettingsGroup(
         stringResource(titleRes),
         // What a settings search lands on; one list per page.
@@ -202,6 +204,7 @@ internal fun ProvidersGroup(
             } else {
                 ProviderList(
                     rows = on,
+                    summaries = summaries,
                     // Only the rows that are on move; the ones that are off keep
                     // their places, which nothing reads while they are off.
                     onReorder = { ordered ->
@@ -444,6 +447,14 @@ internal fun providerRoute(tool: ProviderTool, key: String): String =
 /** [providerRoute] for a kind, for the search index and links. */
 internal fun providerRoute(tool: ProviderTool, type: ProviderType): String = providerRoute(tool, type.id)
 
+/** The list and the row key (or kind id) a [providerRoute] names; null for any other route. */
+internal fun providerOfRoute(route: String): Pair<ProviderTool, String>? {
+    val parts = route.split('/')
+    if (parts.size != 3 || parts[0] != PROVIDER_PAGE_ROUTE.substringBefore('/')) return null
+    val tool = ProviderTool.of(parts[1]) ?: return null
+    return tool to java.net.URLDecoder.decode(parts[2], "UTF-8")
+}
+
 /** What the editor sheet is editing: one credential of one type, new or saved, and the list row it was opened from. */
 internal data class ProviderEditTarget(
     val type: ProviderType,
@@ -487,72 +498,19 @@ private fun credentialLabel(type: ProviderType, credential: ProviderCredential):
     else -> stringResource(type.labelRes)
 }
 
-/** How much of a key a row shows: enough to tell two apart, too little to use. */
-private const val KEY_TAIL = 4
-
-
 /** The name a row goes by: the one the user gave a server, else its kind's. */
 internal fun providerTitle(context: Context, row: ResolvedProvider): String =
     row.customName.ifEmpty { row.type?.let { context.getString(it.labelRes) } ?: row.typeId }
 
-/** A server's host, which is what tells two servers of one kind apart. */
-private fun hostOf(url: String): String =
-    runCatching { Uri.parse(if ("://" in url) url else "https://$url").host }.getOrNull()?.ifBlank { null } ?: url
-
-/** The line under a row's name, and whether it reports a problem. */
-@Composable
-internal fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
-    val type = row.type
-    return when (row.problem) {
-        ProviderProblem.NEEDS_KEY -> stringResource(R.string.providers_status_needs_key) to true
-        ProviderProblem.NEEDS_SIGN_IN -> stringResource(
-            when (HomeKind.of(type?.id.orEmpty())) {
-                HomeKind.HUE -> R.string.providers_status_needs_pairing
-                HomeKind.GOOGLE_HOME -> R.string.providers_status_needs_grant
-                else -> R.string.providers_status_needs_sign_in
-            },
-        ) to true
-        ProviderProblem.NEEDS_SERVER -> stringResource(R.string.providers_status_needs_server) to true
-        ProviderProblem.NEEDS_MODEL -> stringResource(R.string.providers_status_needs_model) to true
-        ProviderProblem.NEEDS_PACKS -> stringResource(R.string.providers_status_needs_packs) to true
-        ProviderProblem.UNAVAILABLE -> stringResource(R.string.providers_status_unavailable) to true
-        ProviderProblem.UNKNOWN -> stringResource(R.string.providers_status_unknown) to true
-        null -> modelAfter(row, when {
-            !row.entry.enabled -> stringResource(R.string.providers_status_off)
-            // A home reads as what it is called, else where it is.
-            HomeKind.of(type?.id.orEmpty()) != null -> row.credential?.extra?.get("instance_name")?.takeIf { it.isNotBlank() }
-                ?: row.url.takeIf { it.isNotBlank() }?.let(::hostOf)
-                ?: stringResource(R.string.providers_status_signed_in)
-            type?.onDevice == true -> stringResource(R.string.providers_status_on_device)
-            // Said plainly on the row itself: this one sends what you write away.
-            type === ProviderTypes.LANGUAGETOOL -> stringResource(
-                R.string.providers_status_sends_text,
-                hostOf(runCatching { GrammarProviders.serverOf(row).base }.getOrDefault(row.url)),
-            )
-            // A front end's engine beside its host: two Mozhi rows may differ in nothing else.
-            row.url.isNotBlank() -> type?.credential?.engine(row.model)
-                ?.let { hostOf(row.url) + stringResource(R.string.providers_tag_separator) + it.label }
-                ?: hostOf(row.url)
-            row.usesBuiltInKey -> stringResource(R.string.providers_status_builtin_key)
-            row.apiKey.length > KEY_TAIL * 2 -> stringResource(R.string.providers_status_your_key_ending, row.apiKey.takeLast(KEY_TAIL))
-            row.apiKey.isNotBlank() -> stringResource(R.string.providers_status_your_key)
-            else -> stringResource(R.string.providers_status_no_key)
-        }) to false
-    }
-}
-
 /**
- * [status] with the model after it, for an AI service or a transcription
- * server: two rows of one service often differ in nothing else. A front
- * end's engine is in the model field too, and is shown on its own already.
+ * What a row is set up with, and whether that stops it working: the Setup
+ * row on its screen, and the banner over it. The list row says more
+ * ([providerSummary]).
  */
 @Composable
-private fun modelAfter(row: ResolvedProvider, status: String): String {
-    val type = row.type ?: return status
-    val shows = type.credential.model && type.credential.engines.isEmpty() &&
-        (ProviderTool.AI in type.serves || ProviderTool.VOICE in type.serves)
-    if (!shows || row.model.isBlank() || !row.entry.enabled) return status
-    return status + stringResource(R.string.providers_tag_separator) + row.model
+internal fun providerStatus(row: ResolvedProvider): Pair<String, Boolean> {
+    val summary = providerSetupSummary(row)
+    return summary.text() to summary.problem
 }
 
 /**
@@ -569,6 +527,7 @@ private fun modelAfter(row: ResolvedProvider, status: String): String {
 @Composable
 private fun ProviderList(
     rows: List<ResolvedProvider>,
+    summaries: Map<String, ProviderSummary>,
     onReorder: (List<ResolvedProvider>) -> Unit,
     onToggle: (ResolvedProvider, Boolean) -> Unit,
     onOpen: (ResolvedProvider) -> Unit,
@@ -598,6 +557,7 @@ private fun ProviderList(
                 val dragging = dragKey == row.key
                 ProviderRow(
                     row = row,
+                    summary = summaries[row.key] ?: ProviderSummary(emptyList()),
                     position = index + 1,
                     modifier = Modifier
                         .onSizeChanged { heights[row.key] = it.height }
@@ -669,6 +629,7 @@ private fun ProviderList(
 @Composable
 private fun ProviderRow(
     row: ResolvedProvider,
+    summary: ProviderSummary,
     position: Int,
     modifier: Modifier,
     handle: Modifier,
@@ -681,7 +642,8 @@ private fun ProviderRow(
 ) {
     val context = LocalContext.current
     val title = providerTitle(context, row)
-    val (status, problem) = providerStatus(row)
+    val status = summary.text()
+    val problem = summary.problem
     val upLabel = stringResource(R.string.providers_move_up)
     val downLabel = stringResource(R.string.providers_move_down)
     val shape = MaterialTheme.shapes.medium
@@ -756,7 +718,7 @@ private fun ProviderRow(
                         status,
                         style = MaterialTheme.typography.bodySmall,
                         color = if (problem) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -856,7 +818,7 @@ private fun ProviderSwitch(checked: Boolean, onToggle: (Boolean) -> Unit, enable
  * picture that vanishes on one theme sits on its own plate.
  */
 @Composable
-internal fun ProviderTile(type: ProviderType?, active: Boolean = true) {
+internal fun ProviderTile(type: ProviderType?, active: Boolean = true, modifier: Modifier = Modifier) {
     val logo = type?.let { ProviderLogos.of(it.id) }
     val dark = isSystemInDarkTheme()
     val accent = when {
@@ -866,10 +828,10 @@ internal fun ProviderTile(type: ProviderType?, active: Boolean = true) {
         else -> readableMark(providerAccent(type), dark)
     }
     if (logo == null) {
-        WmIconTile(icon = providerIcon(type), accent = accent)
+        WmIconTile(icon = providerIcon(type), accent = accent, modifier = modifier)
         return
     }
-    WmIconTile(accent) {
+    WmIconTile(accent, modifier) {
         val plate = logo.backdrop?.takeIf { active }
         Box(
             contentAlignment = Alignment.Center,

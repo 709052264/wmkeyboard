@@ -60,7 +60,7 @@ internal object NativeFuzzySearch {
         }
         val k = maxOf(limit * 2, FuzzyBeamSearch.AUTOCORRECT_K)
         val doubles = DoubleArray(k * 4)
-        val ints = IntArray(k * 4)
+        val ints = IntArray(k * 5)
         val model = touch?.model
         val points = touch?.points?.let { taps ->
             FloatArray(taps.size * 2) { i ->
@@ -75,7 +75,8 @@ internal object NativeFuzzySearch {
         val words = PredictionNative.fuzzySearch(
             handles.copyOf(count), kinds.copyOf(count), weights.copyOf(count), tiers.copyOf(count),
             typed, proximity.nativeHandle, limit, maxEdits, habits.nativeHandle,
-            model?.keyOrder, model?.centerPairs, model?.sigmaValue ?: KeyTouchModel.SIGMA, points,
+            model?.keyOrder, model?.centerPairs, model?.sigmaValue ?: KeyTouchModel.SIGMA,
+            model?.slipRadius ?: 0.0, points,
             keys?.rawSets, keys?.rawSpellings, doubles, ints,
         )
         return List(words.size) { i ->
@@ -83,12 +84,13 @@ internal object NativeFuzzySearch {
                 word = words[i],
                 score = doubles[i * 4],
                 editCost = doubles[i * 4 + 1],
-                edits = ints[i * 4],
-                completedChars = ints[i * 4 + 1],
-                tier = if (ints[i * 4 + 2] == 1) FuzzyBeamSearch.Tier.USER else FuzzyBeamSearch.Tier.DICTIONARY,
+                edits = ints[i * 5],
+                completedChars = ints[i * 5 + 1],
+                tier = if (ints[i * 5 + 2] == 1) FuzzyBeamSearch.Tier.USER else FuzzyBeamSearch.Tier.DICTIONARY,
                 dictScore = doubles[i * 4 + 2],
                 userScore = doubles[i * 4 + 3],
-                accents = ints[i * 4 + 3],
+                accents = ints[i * 5 + 3],
+                slips = ints[i * 5 + 4],
             )
         }
     }
