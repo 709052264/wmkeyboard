@@ -27,6 +27,8 @@
 //! `NativeEngine` on the Kotlin side), so one setting rules out the whole
 //! native fast path when a device misbehaves.
 
+pub mod argmax;
+pub mod box_average;
 pub mod dot;
 
 #[cfg(test)]

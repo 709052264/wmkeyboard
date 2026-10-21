@@ -165,7 +165,7 @@ Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order
 |---|---|---|---|---|
 | Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **port** | 10x or more: a 3×3 integer stencil on 16 u8 lanes, no gathers. A RuntimeShader would also do it on API 33+ |
 | Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **port** | 4-8x on the dots with `vfmaq_f32`; at 20k the f32 scan is 61 MB and memory-bound, so int8 + `sdot` (also 4x less memory) is what reaches the top of that. `dot_rows_f32` and `dot_i8` already exist. Keep the top-k in Kotlin, or select instead of sorting |
-| OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page |
+| OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays. **Done** (host), see below | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page. Measured on the host: box average 15.0 to 2.8 ms (5.3x), argmax 0.23 to 0.060 ms per piece (3.8x), the whole `read` 43-45 to 21-22 ms |
 | GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
 | Glide shape scoring (`GlideBeam`, `DuetBeam`, `CtcGlideBeam`) | 2.2 / 6.7 ms per decode, 7.6 / 19.7 ms per stroke of previews; the distance loop is 1 µs | per swipe | **skip as a Phase 1 kernel**; Phase 2 step 4 ports the decoders | the time is in `advance`, a banded min-plus DP called per trie node. A JNI call per node would cost more than it saves, so vectorise its band (4-lane min/select, perhaps 2x on a decode) inside the Rust decoder |
 | Cutout, NSFW filter, sticker generator glue | 0.42, 0.05 and 0.012-0.61 ms | per cutout, picture or UNet step, each beside a network that takes hundreds of ms to seconds | **skip** | under 1% of the action |
@@ -175,7 +175,55 @@ None is "port only for desktop": the glide decoders are the shared piece, and
 Phase 2 already moves them.
 
 Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
-Kernel sessions may start in the order above.
+Kernel sessions may start in the order above. OCR done on the host.
+
+### OCR kernels (done)
+
+`kernels/box_average.rs` (`box_average_bgr`) and `kernels/argmax.rs`
+(`argmax_rows`), JNI `NativeEngine.nativeBoxAverageBgr` (one crossing per
+photo) and `nativeArgmaxRows` (one per block of logits, 40 × 18,385 per
+piece). `PaddleOcrPipeline.detectorInput` and `ctcDecode` call
+`NativeEngine.boxAverageBgr` / `argmaxRows`, which answer false when
+`useNative` is off or the library is absent, and the Kotlin loops run then.
+A photo the detector grows (scale 1 or more) stays on the Kotlin bilinear.
+
+- Box average: not pairwise adds after all. A box is 6 or 7 photo pixels
+  wide at 12 MP and its edges move with `floor`/`ceil`, so the kernel sums
+  each box's rows down every column first (`vld4q_u8` splits sixteen ARGB
+  pixels into planes, `uaddw` widens into `u16`, six registers per sixteen
+  columns), stores the sums `[b, g, r, 0]` per column, then adds each
+  output pixel's columns as one `u32x4` and normalises the three channels
+  in one vector. Integer sums and the same IEEE divides and subtracts in the
+  same order make it bit-identical to the Kotlin, not just close. A box
+  taller than 257 rows (a photo over about 165,000 pixels on its long side)
+  would overflow the `u16` sums and takes the scalar reference.
+- Argmax: four accumulators of four lanes, each a value and an index moved
+  only on a strict `fcmgt`, reduced by largest value, then smallest index
+  among the lanes equal to it, then the tail by the same strict rule. So a
+  tie gives the first index, `-0.0` ties `0.0`, a NaN never wins and a row
+  starting with a NaN answers 0, all as the Kotlin scan does.
+- Parity: Rust tests compare NEON with the reference bit for bit (ten photo
+  sizes including every column tail, saturated white, tall boxes; argmax
+  over `testing::LENGTHS` and 18,385 with ties, zeros, NaNs and
+  infinities). `PaddleOcrNativeParityTest` (`:core:intelligence`) compares
+  the Kotlin with the native path on generated pages of printed text (AWT,
+  level, tilted and vertical lines, sensor noise; 4000×3000, 3024×4032,
+  641×480, 1203×1601, 2000×37, 37×2000, 4096², and the grown sizes): the
+  detector input bit for bit, `ctcDecode`'s text and confidence over six
+  kinds of logits, and the lines of a whole `read` through a stand-in
+  runtime whose detector and recognizer answer from the pixels they are
+  given, so any difference upstream would change the text. No PaddleOCR
+  graph runs on the JVM, so that stand-in is as close to the real models
+  as the test gets; the kernels being exact is what carries the result.
+- Speed (`native/bench/phase0/run.sh host only=ocr`, `WM_NATIVE=kotlin` for
+  the before, two runs each, load average 6.8-7.6): `detectorInput` 12 MP
+  14.8-15.3 to 2.76-2.88 ms; `ctcDecode` 0.224-0.234 to 0.060 ms; `read`
+  minus inference 43.1-45.1 to 21.0-21.6 ms. What is left of `read` is
+  mostly `strip`'s bilinear and the bench's stand-in copying 2.9 MB of
+  logits per piece. Phone not measured (no pairing).
+- Size: libwm_engine_jni arm64-v8a 2,010,704 -> 2,024,160 B (+13,456),
+  armeabi-v7a 1,462,992 -> 1,470,160 (+7,168), x86_64 2,297,184 ->
+  2,309,832 (+12,648).
 
 ## Phase 2: prediction core in Rust
 

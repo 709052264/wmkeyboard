@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.ocr
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.ceil
@@ -60,6 +61,7 @@ internal object PaddleOcrPipeline {
 
     private val MEAN = floatArrayOf(0.485f, 0.456f, 0.406f)
     private val STD = floatArrayOf(0.229f, 0.224f, 0.225f)
+    private val NORM = MEAN + STD
 
     /**
      * A text region in photo pixels: its centre, its size along and across
@@ -120,13 +122,18 @@ internal object PaddleOcrPipeline {
      * Fits the photo into [input], a [DET_SIDE] square, top left, at one
      * scale, normalised BGR. The rest of the square stays 0, which is the
      * mean colour after normalising. Shrinks by averaging each output
-     * pixel's whole footprint, so fine print does not alias away.
+     * pixel's whole footprint, so fine print does not alias away; that
+     * shrink runs in the native engine's NEON kernel when it can
+     * (`kernels/box_average.rs`, bit for bit the loop below).
      */
     fun detectorInput(pixels: IntArray, width: Int, height: Int, input: FloatArray): Letterbox {
-        input.fill(0f)
         val scale = DET_SIDE.toFloat() / max(width, height)
         val outW = (width * scale).roundToInt().coerceIn(1, DET_SIDE)
         val outH = (height * scale).roundToInt().coerceIn(1, DET_SIDE)
+        if (scale < 1f && NativeEngine.boxAverageBgr(pixels, width, height, scale, outW, outH, DET_SIDE, NORM, input)) {
+            return Letterbox(scale, outW, outH)
+        }
+        input.fill(0f)
         val rgb = FloatArray(3)
         for (y in 0 until outH) {
             for (x in 0 until outW) {
@@ -396,10 +403,31 @@ internal object PaddleOcrPipeline {
      * blank) dropped. [charset] maps class to text, see [charset].
      */
     fun ctcDecode(output: FloatArray, steps: Int, classes: Int, charset: List<String>): Line {
+        val bests = bestClasses(output, steps, classes)
         val text = StringBuilder()
         var previous = 0
         var sum = 0f
         var count = 0
+        for (t in 0 until steps) {
+            val best = bests[t]
+            if (best != 0 && best != previous) {
+                text.append(charset.getOrElse(best) { "" })
+                sum += output[t * classes + best]
+                count++
+            }
+            previous = best
+        }
+        return Line(text.toString(), if (count == 0) 0f else sum / count)
+    }
+
+    /**
+     * The first best class at each step: in the native engine's NEON
+     * kernel when it can (`kernels/argmax.rs`, the same strict `>` scan),
+     * else here.
+     */
+    private fun bestClasses(output: FloatArray, steps: Int, classes: Int): IntArray {
+        val bests = IntArray(steps)
+        if (output.size == steps * classes && NativeEngine.argmaxRows(output, classes, bests)) return bests
         for (t in 0 until steps) {
             var best = 0
             var bestValue = output[t * classes]
@@ -407,14 +435,9 @@ internal object PaddleOcrPipeline {
                 val value = output[t * classes + k]
                 if (value > bestValue) { best = k; bestValue = value }
             }
-            if (best != 0 && best != previous) {
-                text.append(charset.getOrElse(best) { "" })
-                sum += bestValue
-                count++
-            }
-            previous = best
+            bests[t] = best
         }
-        return Line(text.toString(), if (count == 0) 0f else sum / count)
+        return bests
     }
 
     /**

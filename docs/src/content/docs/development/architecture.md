@@ -227,7 +227,11 @@ On the Rust side, `wm-engine`'s `kernels` module holds the data-parallel
 loops. Each has a scalar reference, an aarch64 NEON version on the stable
 intrinsics, and a dispatcher that reads the CPU features once at run time
 (`dotprod` and `fp16` are optional extensions), with a test comparing every
-SIMD version against the reference. In `wm-engine-jni`, every entry point
+SIMD version against the reference. Kernels serve more than prediction: the
+scanner's PaddleOCR reader shrinks the photo for its detector and picks each
+recogniser step's best class through them (`box_average`, `argmax`), and the
+same "Native prediction engine" switch sends those back to Kotlin. In
+`wm-engine-jni`, every entry point
 runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
 exception instead of killing the keyboard. Data that outlives a call, such as
 a mapped dictionary, stays in Rust behind a `handles::Registry` handle.
