@@ -24,6 +24,9 @@ import androidx.core.content.FileProvider
 import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OutlinedFlag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
@@ -955,16 +958,7 @@ private fun MessageBubble(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
-                    onRetry?.let {
-                        TextButton(onClick = it) {
-                            Icon(
-                                Icons.Outlined.Refresh,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 4.dp),
-                            )
-                            Text(stringResource(ImeR.string.ime_ai_chat_retry))
-                        }
-                    }
+                    onRetry?.let { MessageAction(Icons.Outlined.Refresh, ImeR.string.ime_ai_chat_retry, it) }
                 } else {
                     val ink = if (fromUser) {
                         MaterialTheme.colorScheme.onPrimaryContainer
@@ -1013,13 +1007,15 @@ private fun MessageBubble(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Row(modifier = Modifier.align(Alignment.End)) {
-                        BubbleAction(CommonR.string.common_copy) { copy(message.content) }
-                        onRegenerate?.let { BubbleAction(ImeR.string.ime_ai_chat_regenerate, it) }
-                        onEdit?.let { BubbleAction(CommonR.string.common_edit, it) }
+                    // Plain icons with no fill behind them (#882): under an
+                    // answer at its start, under the user's bubble at its end.
+                    Row(modifier = Modifier.align(if (fromUser) Alignment.End else Alignment.Start)) {
+                        MessageAction(Icons.Outlined.ContentCopy, CommonR.string.common_copy) { copy(message.content) }
+                        onRegenerate?.let { MessageAction(Icons.Outlined.Refresh, ImeR.string.ime_ai_chat_regenerate, it) }
+                        onEdit?.let { MessageAction(Icons.Outlined.Edit, CommonR.string.common_edit, it) }
                         // Only ever on an answer in a Play Store build;
                         // reportFor returns null for everything else.
-                        onReport?.let { BubbleAction(ImeR.string.ime_ai_chat_report_action, it) }
+                        onReport?.let { MessageAction(Icons.Outlined.OutlinedFlag, ImeR.string.ime_ai_chat_report_action, it) }
                     }
                 }
             }
@@ -1056,7 +1052,20 @@ private fun ToolUses(
     )
 }
 
-/** One of the small text buttons under a message. */
+/** One of the icons under a message: no fill, named for TalkBack. */
+@Composable
+private fun MessageAction(icon: ImageVector, @StringRes label: Int, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+        Icon(
+            icon,
+            contentDescription = stringResource(label),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp),
+        )
+    }
+}
+
+/** One of the small text buttons: a code block's Copy, and the attachment line's. */
 @Composable
 private fun BubbleAction(@StringRes label: Int, onClick: () -> Unit) {
     TextButton(

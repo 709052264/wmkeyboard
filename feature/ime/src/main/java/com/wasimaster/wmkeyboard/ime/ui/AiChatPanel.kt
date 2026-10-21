@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Input
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -41,7 +42,12 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OutlinedFlag
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
@@ -554,8 +560,11 @@ private fun MessageBubble(
     }
 }
 
-/** What can be done with one message, under its bubble. The indices mirror [Transcript]'s RESULTS list. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * What can be done with one message, under it: plain icons with no chip
+ * behind them (#882), each named by a long press. The indices mirror
+ * [Transcript]'s RESULTS list.
+ */
 @Composable
 private fun MessageActions(
     message: AiChatMessage,
@@ -568,47 +577,71 @@ private fun MessageActions(
     onChat: (AiChatAction) -> Unit,
 ) {
     val fromUser = message.role == AiChatMessage.ROLE_USER
-    FlowRow(
-        modifier = Modifier.padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    Row(
+        modifier = Modifier.padding(top = 1.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (message.failed) {
             if (canRegenerate) {
-                ToolPanelChip(
+                MessageAction(
+                    Icons.Outlined.Refresh,
                     stringResource(R.string.ime_ai_chat_retry),
-                    selected = true,
-                    modifier = Modifier.focusRing(focusedAction == 0),
+                    Modifier.focusRing(focusedAction == 0, CircleShape),
                 ) { onChat(AiChatAction.Retry) }
             }
-            return@FlowRow
+            return@Row
         }
         // Insert leads on an answer, which is what the user is here to take
         // away. Their own message has no use for it.
         if (!fromUser) {
-            ToolPanelChip(
+            MessageAction(
+                Icons.AutoMirrored.Outlined.Input,
                 stringResource(R.string.ime_ai_insert),
-                selected = true,
-                modifier = Modifier.focusRing(focusedAction == 0),
+                Modifier.focusRing(focusedAction == 0, CircleShape),
             ) { onChat(AiChatAction.Insert(message.content)) }
         }
-        ToolPanelChip(
+        MessageAction(
+            if (copied) Icons.Outlined.Check else Icons.Outlined.ContentCopy,
             stringResource(if (copied) R.string.ime_ai_chat_copied else CommonR.string.common_copy),
-            modifier = Modifier.focusRing(!fromUser && focusedAction == 1),
+            Modifier.focusRing(!fromUser && focusedAction == 1, CircleShape),
         ) { onCopy(message.content) }
         if (!fromUser && canRegenerate) {
-            ToolPanelChip(
+            MessageAction(
+                Icons.Outlined.Refresh,
                 stringResource(R.string.ime_ai_chat_regenerate),
-                modifier = Modifier.focusRing(focusedAction == 2),
+                Modifier.focusRing(focusedAction == 2, CircleShape),
             ) { onChat(AiChatAction.Regenerate) }
         }
         if (canEdit) {
-            ToolPanelChip(stringResource(CommonR.string.common_edit)) { onChat(AiChatAction.EditLast) }
+            MessageAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) { onChat(AiChatAction.EditLast) }
         }
         // Play asks for a way to report generated content on every surface that
         // shows it; the other channels have no such rule, as on the chat screen.
         if (!fromUser && BuildConfig.ENABLE_PLAY_STORE && message.content.isNotBlank()) {
-            ToolPanelChip(stringResource(R.string.ime_ai_chat_report_action)) { onReport() }
+            MessageAction(Icons.Outlined.OutlinedFlag, stringResource(R.string.ime_ai_chat_report_action)) { onReport() }
+        }
+    }
+}
+
+/** One of [MessageActions]' icons: no fill, no border, the answer's own ink. */
+@Composable
+private fun MessageAction(icon: ImageVector, description: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = description,
+                tint = answerInk(kb).copy(alpha = 0.75f),
+                modifier = Modifier.size(17.dp),
+            )
         }
     }
 }
