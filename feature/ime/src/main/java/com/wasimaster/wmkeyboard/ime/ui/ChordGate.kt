@@ -120,6 +120,21 @@ internal class ChordGate {
         return ran
     }
 
+    /**
+     * `?123` itself went out to one of its flick arms (#875). Before any chord
+     * has run, the arm wins: the key stops being a trigger, its faces go, and
+     * a partner tapped from here types its own letter. Once a chord has run
+     * the press is the chord's, and true says the arm types nothing.
+     */
+    fun armTaken(id: PointerId): Boolean {
+        if (trigger != id) return false
+        if (fired) return true
+        trigger = null
+        partnerLanded = false
+        labels.value = null
+        return false
+    }
+
     /** A finger landed on some other key. */
     fun otherDown() {
         if (trigger != null) partnerLanded = true

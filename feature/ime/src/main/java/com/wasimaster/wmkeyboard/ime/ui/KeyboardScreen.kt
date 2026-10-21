@@ -28156,6 +28156,8 @@ private fun Modifier.pointerInputKey(
                 // the gesture has done its typing and the lift adds nothing.
                 var armRepeat: Job? = null
                 var armRepeated = false
+                // A chord ran before the finger reached an arm: the lift is the chord's.
+                var chordWon = false
                 val longJob = if (key.opensAlternatesPopup() || numpadHold || pickerHold) {
                     scope.launch {
                         delay(longPressDelayMs.toLong())
@@ -28237,6 +28239,9 @@ private fun Modifier.pointerInputKey(
                         if (dir != null) {
                             longJob?.cancel()
                             chordLabels?.cancel()
+                            // One action wins (#875): the arm, unless a
+                            // chord already ran during this hold.
+                            if (chordTrigger && chordGate?.armTaken(down.id) == true) chordWon = true
                             onKeyHaptic()
                         }
                         armRepeat?.cancel()
@@ -28263,7 +28268,7 @@ private fun Modifier.pointerInputKey(
                 armRepeat?.cancel()
                 chordLabels?.cancel()
                 // ?123 let go after a chord ran: the chord's, not a tap (#754).
-                val chorded = chordTrigger && chordGate?.triggerUp(down.id) == true
+                val chorded = (chordTrigger && chordGate?.triggerUp(down.id) == true) || chordWon
                 setPressed(false)
                 onKeyRelease()
                 setFlickDirection(null)
@@ -28278,7 +28283,9 @@ private fun Modifier.pointerInputKey(
                 val capital = dir?.takeIf { returned }?.let { key.flickShiftedText(it) }
                 when {
                     armRepeated -> Unit
-                    chorded && chosen == null -> Unit
+                    // A chord ran during this hold: the arm the finger
+                    // went on to does not type as well (#875).
+                    chorded -> Unit
                     holdRan && chosen == null -> if (hapticOnLongPressRelease) onKeyPress()
                     chosen != null && capital != null -> onKey(chosen.copy(output = capital, shiftLabel = capital))
                     chosen != null -> onKey(chosen)
