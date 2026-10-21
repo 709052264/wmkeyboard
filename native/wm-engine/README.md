@@ -43,7 +43,9 @@ the two apps share word lists as files, not just engines.
 
 The crate does no I/O. Its tables are compiled in with `include_str!`: the
 Khipro specs and their upstream conformance tables under `data/khipro/`
-(`scripts/update-khipro.sh` refreshes them), and ibus-avro's grammar files from
+(`scripts/update-khipro.sh` refreshes them; `build.rs` deflates the four
+specs into the library, 196 KB of text down to about 30 KB, and `khipro`
+inflates one on first use), and ibus-avro's grammar files from
 the Android app's own `app/src/main/assets/avro/*.json`, which the Kotlin
 dictionary walk still reads too, so the two cannot run different revisions.
 The Bijoy tables in `src/bijoy_tables.rs` were generated from the Kotlin

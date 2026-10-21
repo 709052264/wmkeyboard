@@ -26,6 +26,12 @@ icu_locale_core = { version = "2.3", default-features = false }
 icu_normalizer = { version = "2.3", default-features = false, features = ["compiled_data"] }
 icu_properties = { version = "2.3", default-features = false, features = ["compiled_data"] }
 icu_segmenter = { version = "2.3", default-features = false, features = ["compiled_data", "lstm"] }
+# The Khipro specs are compiled in deflated (build.rs) and inflated on first
+# use: 196 KB of text down to about 30 KB.
+miniz_oxide = "0.9"
+
+[build-dependencies]
+miniz_oxide = "0.9"
 
 [profile.release]
 lto = true
