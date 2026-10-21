@@ -85,11 +85,16 @@ internal fun LanguageSettings(
     // layout, not just each language, so AZERTY and QWERTY keep distinct slots.
     var reordering by rememberSaveable { mutableStateOf(false) }
     val switchOrderItem = stringResource(R.string.langemoji_lang_switch_order_item_label)
-    val layoutLabel: (List<LayoutSpec>, String) -> String = { customLayouts, id ->
+    val layoutLabel: (List<LayoutSpec>, Map<String, String>, String) -> String = { customLayouts, names, id ->
         val layout = resolveLayout(customLayouts, id)
         val language = layout.language().displayName
-        // A layout named after its own language would say it twice.
-        if (layout.name == language) language else switchOrderItem.format(language, layout.name)
+        when {
+            // The name the keyboard shows for it, when the user gave it one.
+            !names[id].isNullOrBlank() -> names.getValue(id)
+            // A layout named after its own language would say it twice.
+            layout.name == language -> language
+            else -> switchOrderItem.format(language, layout.name)
+        }
     }
     // What decides which rows the groups hold; each row reads its own value.
     val canReorder = settings.watch { it.enabledLayoutIds.size > 1 }
@@ -124,9 +129,10 @@ internal fun LanguageSettings(
     ) {
         item(visible = editing) {
             val customLayouts = settings.watch { it.customLayouts }
+            val displayNames = settings.watch { it.layoutDisplayNames }
             ReorderableColumn(
                 settings.watch { it.enabledLayoutIds },
-                label = { layoutLabel(customLayouts, it) },
+                label = { layoutLabel(customLayouts, displayNames, it) },
                 onReorder = { scope.launch { repository.setEnabledLayoutIds(it) } },
                 modifier = Modifier.padding(horizontal = 16.dp),
                 // The same pencil is the way out of the list: a language

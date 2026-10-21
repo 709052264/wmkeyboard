@@ -3112,6 +3112,13 @@ data class KeyboardSettings(
     val recentLayoutIds: List<String> = emptyList(),
     /** User-created layouts, and edits shadowing a built-in by reusing its id. */
     val customLayouts: List<LayoutSpec> = emptyList(),
+    /**
+     * Names the user gave layouts for the keyboard to show, by layout id: the
+     * spacebar, the switch preview, the hold-drag picker and the Switch order
+     * list. A layout with no entry is named automatically, by
+     * `layoutSwitchLabel`'s language / layout rule.
+     */
+    val layoutDisplayNames: Map<String, String> = emptyMap(),
     /** Languages of [enabledLayoutIds], deduped, in switch order. */
     val enabledLanguages: List<LanguageDef> =
         listOf(LanguageRegistry.byId("en"), LanguageRegistry.byId("bn")),
@@ -9508,6 +9515,14 @@ private fun encodeEndpointMap(map: Map<String, String>): String = endpointJson.e
 private fun decodeEndpointMap(raw: String): Map<String, String> =
     runCatching { endpointJson.decodeFromString(stringMapSerializer, raw) }.getOrDefault(emptyMap())
 
+/** Layout names as a JSON object, like the addresses above: a name the user types can hold any character. */
+private fun encodeLayoutDisplayNames(map: Map<String, String>): String =
+    endpointJson.encodeToString(stringMapSerializer, map)
+
+private fun decodeLayoutDisplayNames(raw: String): Map<String, String> =
+    runCatching { endpointJson.decodeFromString(stringMapSerializer, raw) }.getOrDefault(emptyMap())
+        .filterValues { it.isNotBlank() }
+
 private fun encodeRepoMap(map: Map<String, RepoLocation>): String =
     endpointJson.encodeToString(repoMapSerializer, map.mapValues { it.value.toFields() })
 
@@ -9604,6 +9619,7 @@ class SettingsRepository(private val context: Context) {
         private val ENABLED_LAYOUT_IDS = stringPreferencesKey("enabled_layout_ids")
         private val RECENT_LAYOUT_IDS = stringPreferencesKey("recent_layout_ids")
         private val CUSTOM_LAYOUTS = stringPreferencesKey("custom_layouts")
+        private val LAYOUT_DISPLAY_NAMES = stringPreferencesKey("layout_display_names")
         private val SECONDARY_LANGUAGES = stringPreferencesKey("secondary_languages")
         private val AUTO_PAIR_ROMANIZED_DONE =
             booleanPreferencesKey("auto_pair_romanized_done")
@@ -11296,6 +11312,8 @@ class SettingsRepository(private val context: Context) {
             recentLayoutIds = p[RECENT_LAYOUT_IDS]?.split(',')?.filter { it.isNotEmpty() }
                 ?: defaults.recentLayoutIds,
             customLayouts = customLayouts,
+            layoutDisplayNames = p.decoded(LAYOUT_DISPLAY_NAMES) { decodeLayoutDisplayNames(it) }
+                ?: defaults.layoutDisplayNames,
             enabledLanguages = layoutSelection.enabledLanguages,
             secondaryLanguages = p.decoded(SECONDARY_LANGUAGES) { decodeSecondaryLanguages(it) }
                 ?: defaults.secondaryLanguages,
@@ -15019,6 +15037,26 @@ class SettingsRepository(private val context: Context) {
         }
 
     /**
+     * Names [layoutId] [name] wherever the keyboard names the current layout.
+     * A blank name goes back to the automatic one.
+     */
+    suspend fun setLayoutDisplayName(layoutId: String, name: String) =
+        editPrefs { prefs ->
+            val current = prefs[LAYOUT_DISPLAY_NAMES]?.let { decodeLayoutDisplayNames(it) }.orEmpty()
+            val trimmed = name.trim()
+            val next = if (trimmed.isEmpty()) current - layoutId else current + (layoutId to trimmed)
+            if (next != current) writeLayoutDisplayNames(prefs, next)
+        }
+
+    private fun writeLayoutDisplayNames(prefs: MutablePreferences, names: Map<String, String>) {
+        if (names.isEmpty()) {
+            prefs.remove(LAYOUT_DISPLAY_NAMES)
+        } else {
+            prefs[LAYOUT_DISPLAY_NAMES] = encodeLayoutDisplayNames(names)
+        }
+    }
+
+    /**
      * Adds a layout, or replaces the stored one with the same id.
      *
      * Deliberately does *not* repair. The editor saves on every keystroke, so
@@ -15072,6 +15110,10 @@ class SettingsRepository(private val context: Context) {
             val current = prefs[CUSTOM_LAYOUTS]?.let { LayoutCodec.decodeList(it) }.orEmpty()
             prefs[CUSTOM_LAYOUTS] = LayoutCodec.encodeList(current.filter { it.id != id })
             if (isShippedLayoutId(id)) return@editPrefs
+            // A name given to a layout that is gone would wait for the next
+            // layout to reuse its id.
+            val names = prefs[LAYOUT_DISPLAY_NAMES]?.let { decodeLayoutDisplayNames(it) }.orEmpty()
+            if (id in names) writeLayoutDisplayNames(prefs, names - id)
             val kept = prefs[ENABLED_LAYOUT_IDS]?.let { stored ->
                 stored.split(',')
                     .filter { it.isNotEmpty() && it != id }

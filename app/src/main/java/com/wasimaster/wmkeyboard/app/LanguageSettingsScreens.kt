@@ -928,6 +928,7 @@ private fun LayoutsGroup(
             spec.keyman?.let { it to spec.name }
         }
     }
+    val named = settings.watch { s -> listed.filter { it in s.enabledLayoutIds } }
     // #464: QWERTZ for English. The way in used to be duplicating a layout in
     // the editor and changing its language there, which nobody found.
     var borrowing by remember { mutableStateOf(false) }
@@ -938,6 +939,11 @@ private fun LayoutsGroup(
         // that fetches them, naming it.
         for ((binding, name) in keymanListed) {
             item { KeymanRulesRow(binding, name, rulesRefresh) }
+        }
+        // What each switched-on layout is called on the spacebar and in the
+        // switcher, and the way to call it something else.
+        for (layoutId in named) {
+            item(key = "name:$layoutId") { LayoutNameRow(layoutId, settings, repository, scope) }
         }
         item {
             WmRow(

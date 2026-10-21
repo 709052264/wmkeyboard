@@ -87,7 +87,10 @@ object SyncKeys {
         /** The layouts switched between, the extra languages, and the per-app choices. */
         LAYOUTS(
             "layouts",
-            setOf("enabled_layout_ids", "secondary_languages", "per_app_layout_map", "per_app_language_enabled"),
+            setOf(
+                "enabled_layout_ids", "secondary_languages", "per_app_layout_map", "per_app_language_enabled",
+                "layout_display_names",
+            ),
             emptyList(),
         ),
         ;

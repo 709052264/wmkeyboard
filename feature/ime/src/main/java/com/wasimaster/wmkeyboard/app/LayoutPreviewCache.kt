@@ -243,6 +243,7 @@ internal object LayoutPreviewCache {
                     shown.enabledLayoutIds,
                     shown.customLayouts,
                     shown.layoutBehavior.spacebarDisplay,
+                    shown.layoutDisplayNames,
                 ),
                 (shown.enabledLayoutIds.size > 1).toString(),
             ).joinToString("\u0000"),

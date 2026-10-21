@@ -23903,6 +23903,7 @@ internal fun KeyButton(
                                 switchIds,
                                 settings.customLayouts,
                                 settings.layoutBehavior.spacebarDisplay,
+                                settings.layoutDisplayNames,
                             )
                             val chipFontSize = (14 * settings.popup.fontScale).sp
                             val chipFont = layoutLabelFont(label, chipLayoutId, settings.customLayouts)
@@ -23982,6 +23983,7 @@ internal fun KeyButton(
                     currentLayoutId = layoutId,
                     customLayouts = settings.customLayouts,
                     displayMode = settings.layoutBehavior.spacebarDisplay,
+                    displayNames = settings.layoutDisplayNames,
                     highlightIndex = pickerDragIndex,
                     onPick = onPick,
                     onOtherKeyboards = onOtherKeyboards,
@@ -23994,6 +23996,7 @@ internal fun KeyButton(
                     currentLayoutId = layoutId,
                     customLayouts = settings.customLayouts,
                     displayMode = settings.layoutBehavior.spacebarDisplay,
+                    displayNames = settings.layoutDisplayNames,
                     highlightIndex = pickerDragIndex,
                     onPick = onPick,
                     onOtherKeyboards = onOtherKeyboards,
@@ -25493,6 +25496,7 @@ private fun LanguagePickerPopup(
     currentLayoutId: String,
     customLayouts: List<LayoutSpec>,
     displayMode: SpacebarDisplay,
+    displayNames: Map<String, String>,
     onPick: (String) -> Unit,
     onOtherKeyboards: () -> Unit,
     onDismiss: () -> Unit,
@@ -25555,7 +25559,8 @@ private fun LanguagePickerPopup(
                     for ((index, layoutId) in enabledLayoutIds.withIndex()) {
                         val selected = layoutId == currentLayoutId
                         val dragged = index == highlightIndex
-                        val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
+                        val label =
+                            layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode, displayNames)
                         Text(
                             text = label,
                             fontFamily = layoutLabelFont(label, layoutId, customLayouts),
@@ -25641,6 +25646,7 @@ private fun LanguageCarouselPopup(
     currentLayoutId: String,
     customLayouts: List<LayoutSpec>,
     displayMode: SpacebarDisplay,
+    displayNames: Map<String, String>,
     onPick: (String) -> Unit,
     onOtherKeyboards: () -> Unit,
     onDismiss: () -> Unit,
@@ -25699,7 +25705,8 @@ private fun LanguageCarouselPopup(
                         for ((index, layoutId) in enabledLayoutIds.withIndex()) {
                             val selected = layoutId == currentLayoutId
                             val dragged = index == highlightIndex
-                            val label = layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode)
+                            val label =
+                                layoutSwitchLabel(layoutId, enabledLayoutIds, customLayouts, displayMode, displayNames)
                             Text(
                                 text = label,
                                 fontFamily = layoutLabelFont(label, layoutId, customLayouts),
@@ -25823,13 +25830,19 @@ private const val LatinExtendedEnd = 0x024F
  * picker). Follows the same rule as the spacebar label: the language name, the
  * layout name, or "Language (Layout)" — and always the combined form when more
  * than one enabled layout shares the language, so the rows stay distinct.
+ *
+ * A name the user gave the layout ([customNames], from
+ * `KeyboardSettings.layoutDisplayNames`) wins over all of that: they chose it
+ * to tell their layouts apart, so the same-language rule has nothing to add.
  */
-internal fun layoutSwitchLabel(
+fun layoutSwitchLabel(
     layoutId: String,
     enabledLayoutIds: List<String>,
     customLayouts: List<LayoutSpec>,
     mode: SpacebarDisplay,
+    customNames: Map<String, String> = emptyMap(),
 ): String {
+    customNames[layoutId]?.takeIf { it.isNotBlank() }?.let { return it }
     val spec = resolveLayout(customLayouts, layoutId)
     // The short half of the registry's "native · english" display name — the
     // full form overflows the preview row and picker with even three
@@ -26656,6 +26669,7 @@ internal fun spacebarText(state: KeyboardUiState): String {
         state.settings.enabledLayoutIds,
         state.settings.customLayouts,
         state.settings.layoutBehavior.spacebarDisplay,
+        state.settings.layoutDisplayNames,
     )
     val label = state.settings.spacebarLabel
     return if (label.isEmpty()) name else label.replace("%s", name)

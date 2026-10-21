@@ -54,6 +54,20 @@
     <string name="languages_layout_keep_one">At least one layout must stay on.</string>
 
     <!--
+      A row per switched-on layout under the cards, and its dialog: the name the
+      keyboard shows for that layout on the spacebar and in the language
+      switcher. %1$s in the title is the layout's own name, for example
+      "QWERTY"; %1$s in the subtitle is what the keyboard shows now, for
+      example "English (QWERTY)" or a name the user typed.
+    -->
+    <string name="languages_layout_name_title">Name for <xliff:g id="layout" example="QWERTY">%1$s</xliff:g></string>
+    <string name="languages_layout_name_subtitle">The keyboard shows “<xliff:g id="name" example="English (QWERTY)">%1$s</xliff:g>”</string>
+    <string name="languages_layout_name_body">This name is shown on the spacebar, in the switch preview and in the language picker. Leave it empty to use the automatic name.</string>
+    <string name="languages_layout_name_field_label">Name on the keyboard</string>
+    <string name="languages_layout_name_rename_action">Rename</string>
+    <string name="languages_layout_name_reset_action">Use the automatic name</string>
+
+    <!--
       Issue #464: a layout of another language, such as QWERTZ for English.
       %1$s is the English name of the language whose screen this is.
     -->

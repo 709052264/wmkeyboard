@@ -109,6 +109,7 @@ internal fun LanguageSwitchOverlay(
                             enabledLayoutIds = state.settings.enabledLayoutIds,
                             customLayouts = state.settings.customLayouts,
                             mode = state.settings.layoutBehavior.spacebarDisplay,
+                            customNames = state.settings.layoutDisplayNames,
                         ),
                         color = if (highlighted) kb.accent else kb.popupText,
                         fontSize = 13.sp,
