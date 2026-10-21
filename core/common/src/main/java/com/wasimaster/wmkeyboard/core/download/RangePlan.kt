@@ -76,20 +76,17 @@ internal class RangePlan(val total: Long, val pieces: List<Piece>) {
             return RangePlan(total, pieces.sortedBy { it.start })
         }
 
-        /** [total] bytes in pieces of [pieceSize], the first [firstLength] long. */
-        fun split(total: Long, firstLength: Long, pieceSize: Long): RangePlan {
+        /**
+         * [total] bytes whose first [prefix] are already on disk, the rest in
+         * pieces of [pieceSize], the first of them [firstLength] long.
+         */
+        fun split(total: Long, prefix: Long, firstLength: Long, pieceSize: Long): RangePlan {
             val pieces = ArrayList<Piece>()
-            val first = firstLength.coerceAtMost(total)
-            if (first > 0) pieces += Piece(0, first, 0)
-            pieces += cut(first, total, pieceSize)
-            return RangePlan(total, pieces)
-        }
-
-        /** [total] bytes whose first [prefix] are already on disk; the rest in pieces of [pieceSize]. */
-        fun resumed(total: Long, prefix: Long, pieceSize: Long): RangePlan {
-            val pieces = ArrayList<Piece>()
-            if (prefix > 0) pieces += Piece(0, prefix, prefix)
-            pieces += cut(prefix, total, pieceSize)
+            val have = prefix.coerceIn(0, total)
+            if (have > 0) pieces += Piece(0, have, have)
+            val firstEnd = minOf(total, have + firstLength)
+            if (firstEnd > have) pieces += Piece(have, firstEnd, have)
+            pieces += cut(firstEnd, total, pieceSize)
             return RangePlan(total, pieces)
         }
 

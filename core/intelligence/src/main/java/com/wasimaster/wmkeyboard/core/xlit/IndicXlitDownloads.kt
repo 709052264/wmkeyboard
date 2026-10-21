@@ -10,6 +10,7 @@ import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import com.wasimaster.wmkeyboard.core.ocr.screenText
 import com.wasimaster.wmkeyboard.intelligence.R
 import java.io.File
 import java.io.IOException
@@ -162,13 +163,8 @@ object IndicXlitDownloads {
                     what = part.fileName,
                 ) { written -> _status.value = Status.Downloading(done + written, grandTotal) }
             } catch (e: DownloadException) {
-                throw when (e) {
-                    is DownloadException.Http -> FailedException(R.string.core_intel_ocr_download_error_http, e.status.toString())
-                    is DownloadException.Interrupted -> FailedException(R.string.core_intel_ocr_download_error_interrupted)
-                    is DownloadException.Blocked -> FailedException(CommonR.string.common_error_download_held)
-                    is DownloadException.WrongSize, is DownloadException.Mismatch ->
-                        FailedException(R.string.core_intel_ocr_download_error_mismatch)
-                }
+                val (res, arg) = e.screenText()
+                throw FailedException(res, arg)
             }
             done += part.bytes
         }

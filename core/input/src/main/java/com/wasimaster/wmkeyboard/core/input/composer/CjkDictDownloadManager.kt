@@ -3,15 +3,14 @@ package com.wasimaster.wmkeyboard.core.input.composer
 import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.os.StatFs
 import androidx.annotation.StringRes
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.input.R
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
 import java.util.concurrent.ConcurrentLinkedQueue
-import java.net.HttpURLConnection
-import java.net.URL
 import java.security.MessageDigest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,8 +27,8 @@ import kotlinx.coroutines.launch
 /**
  * Downloads [CjkDictCatalog] packs into [CjkDictStore]'s layout, resumably.
  *
- * Modeled on `LocalLlmDownloadManager` (process singleton, own IO scope, `.part`
- * + HTTP Range resume) but for small files, so it adds a SHA-256 verify before
+ * Modeled on `LocalLlmDownloadManager` (process singleton, own IO scope,
+ * [FileDownloader]'s resumable `.part`) but for small files, so it adds a SHA-256 verify before
  * the finished file is moved into place — a corrupt conversion table would
  * silently mistranslate, which is worse than falling back to the bundled base.
  * No Hugging Face token or gating: packs are on plain public hosting.
@@ -62,8 +61,6 @@ object CjkDictDownloadManager {
     enum class FailReason { NETWORK, NO_SPACE, CHECKSUM, UNAVAILABLE, OTHER }
 
     private const val SPACE_MARGIN_BYTES = 8L * 1024 * 1024
-    private const val PROGRESS_INTERVAL_MS = 250L
-    private const val USER_AGENT = "WMKeyboard dictionary downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile private var activeJob: Job? = null
@@ -94,7 +91,7 @@ object CjkDictDownloadManager {
                     waiting.any { it.second.id == pack.id } && active != null -> active
                     CjkDictStore.isDownloaded(filesDir, pack) -> DownloadStatus.Downloaded
                     CjkDictStore.partFile(filesDir, pack).isFile -> DownloadStatus.Paused(
-                        CjkDictStore.partFile(filesDir, pack).length(), pack.sizeBytes,
+                        FileDownloader.bytesDone(CjkDictStore.partFile(filesDir, pack)), pack.sizeBytes,
                     )
                     else -> DownloadStatus.NotDownloaded
                 }
@@ -115,7 +112,7 @@ object CjkDictDownloadManager {
             if (pack.id == activeId || waiting.any { it.second.id == pack.id }) continue
             if (isBusy) {
                 waiting.add(filesDir to pack)
-                set(pack.id, DownloadStatus.Downloading(CjkDictStore.partFile(filesDir, pack).length(), pack.sizeBytes))
+                set(pack.id, DownloadStatus.Downloading(FileDownloader.bytesDone(CjkDictStore.partFile(filesDir, pack)), pack.sizeBytes))
             } else {
                 start(filesDir, pack)
             }
@@ -138,7 +135,7 @@ object CjkDictDownloadManager {
         while (true) {
             val (filesDir, pack) = waiting.poll() ?: return
             val part = CjkDictStore.partFile(filesDir, pack)
-            set(pack.id, if (part.isFile) DownloadStatus.Paused(part.length(), pack.sizeBytes) else DownloadStatus.NotDownloaded)
+            set(pack.id, if (part.isFile) DownloadStatus.Paused(FileDownloader.bytesDone(part), pack.sizeBytes) else DownloadStatus.NotDownloaded)
         }
     }
 
@@ -156,7 +153,7 @@ object CjkDictDownloadManager {
         }
         activeId = pack.id
         val part = CjkDictStore.partFile(filesDir, pack)
-        set(pack.id, DownloadStatus.Downloading(part.length(), pack.sizeBytes))
+        set(pack.id, DownloadStatus.Downloading(FileDownloader.bytesDone(part), pack.sizeBytes))
         val job = scope.launch {
             try {
                 downloadInto(pack, part)
@@ -167,12 +164,12 @@ object CjkDictDownloadManager {
                 CjkDictStore.dropLegacy(filesDir, pack)
                 set(pack.id, DownloadStatus.Downloaded)
             } catch (e: kotlinx.coroutines.CancellationException) {
-                if (part.isFile) set(pack.id, DownloadStatus.Paused(part.length(), pack.sizeBytes))
+                if (part.isFile) set(pack.id, DownloadStatus.Paused(FileDownloader.bytesDone(part), pack.sizeBytes))
                 throw e
             } catch (e: FailedException) {
                 // A checksum failure means the .part is garbage — drop it so a
                 // retry starts clean instead of resuming a poisoned file.
-                if (e.reason == FailReason.CHECKSUM) part.delete()
+                if (e.reason == FailReason.CHECKSUM) FileDownloader.discard(part)
                 set(pack.id, DownloadStatus.Failed(e.reason, e.messageRes, e.messageArg))
             } catch (e: Exception) {
                 // The system writes its own message in English only, so it goes
@@ -224,7 +221,7 @@ object CjkDictDownloadManager {
             CjkDictStore.dropLegacy(filesDir, pack)
             set(pack.id, DownloadStatus.Downloaded)
         } finally {
-            part.delete()
+            FileDownloader.discard(part)
         }
     }
 
@@ -273,11 +270,7 @@ object CjkDictDownloadManager {
 
     private suspend fun downloadInto(pack: CjkDictPack, part: File) {
         part.parentFile?.mkdirs()
-        // A partial longer than the finished pack can only be junk left by an
-        // earlier bad resume. Resuming past the end would just fail forever and
-        // strand the row on "Download" that never completes, so start over.
-        if (part.length() > pack.sizeBytes) part.delete()
-        var resumeFrom = part.length()
+        val resumeFrom = FileDownloader.bytesDone(part).coerceAtMost(pack.sizeBytes)
 
         val free = StatFs(part.parentFile!!.path).availableBytes
         if (free < pack.sizeBytes - resumeFrom + SPACE_MARGIN_BYTES) {
@@ -287,72 +280,28 @@ object CjkDictDownloadManager {
             )
         }
 
-        val connection = URL(pack.url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(NetSource.DOWNLOAD_CJK, "GET", pack.url, route = NetLog.pathOf(pack.url))
+        // FileDownloader asks for the bytes as they are on the server
+        // (Accept-Encoding: identity): the packs are served gzipped, and a
+        // range counted in decoded bytes would land mid-stream. The server's
+        // length is the pack's; its SHA-256 decides after.
         try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 30_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            // Ask for the bytes as they are on the server. Left alone,
-            // HttpURLConnection advertises gzip and silently inflates the reply,
-            // so what lands in the `.part` is *decoded* bytes while `Range` below
-            // counts *encoded* ones — and the packs are served
-            // `Content-Encoding: gzip`. Resuming then asks for a compressed
-            // offset, gets a mid-stream gzip fragment, and the inflater dies on
-            // its missing header ("ID1ID2 … != 1f8b"). Identity keeps the file,
-            // the resume offset and the pack's SHA-256 in one coordinate space.
-            connection.setRequestProperty("Accept-Encoding", "identity")
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-
-            netCall.status = connection.responseCode
-            when (val status = connection.responseCode) {
-                HttpURLConnection.HTTP_PARTIAL -> Unit
-                HttpURLConnection.HTTP_OK -> resumeFrom = 0 // server ignored Range
-                else -> throw FailedException(
+            FileDownloader.fetch(pack.url, part, null, NetSource.DOWNLOAD_CJK) { written ->
+                set(pack.id, DownloadStatus.Downloading(written, pack.sizeBytes))
+            }
+        } catch (e: DownloadException) {
+            throw when (e) {
+                is DownloadException.Http -> FailedException(
                     FailReason.OTHER,
                     R.string.core_input_cjk_download_error_http,
-                    status.toString(),
+                    e.status.toString(),
                 )
+                is DownloadException.Interrupted ->
+                    FailedException(FailReason.NETWORK, R.string.core_input_cjk_download_error_truncated)
+                is DownloadException.Blocked ->
+                    FailedException(FailReason.NETWORK, CommonR.string.common_error_download_held)
+                is DownloadException.WrongSize, is DownloadException.Mismatch ->
+                    FailedException(FailReason.CHECKSUM, R.string.core_input_cjk_download_error_checksum)
             }
-
-            val remaining = connection.contentLengthLong
-            val total = if (remaining >= 0) resumeFrom + remaining else -1L
-            var written = resumeFrom
-            var lastUpdate = 0L
-
-            netCall.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { out ->
-                    out.setLength(resumeFrom)
-                    out.seek(resumeFrom)
-                    val buffer = ByteArray(64 * 1024)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        out.write(buffer, 0, read)
-                        written += read
-                        val now = System.currentTimeMillis()
-                        if (now - lastUpdate >= PROGRESS_INTERVAL_MS) {
-                            lastUpdate = now
-                            set(pack.id, DownloadStatus.Downloading(written, total))
-                        }
-                    }
-                }
-            }
-
-            if (total >= 0 && written != total) {
-                throw FailedException(
-                    FailReason.NETWORK,
-                    R.string.core_input_cjk_download_error_truncated,
-                )
-            }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
         }
     }
 

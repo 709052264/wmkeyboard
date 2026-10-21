@@ -8,7 +8,7 @@ import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.modules.NativeConsent
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.CancellationException
@@ -27,10 +27,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import java.text.BreakIterator
 import java.util.Locale
 import kotlin.coroutines.coroutineContext
@@ -99,10 +95,6 @@ object NllbTranslator {
 
     /** Greedy search: a beam of two costs a third more time for little a reader would notice. */
     private const val BEAM = 1
-
-    private const val TIMEOUT_MS = 30_000
-    private const val BUFFER = 64 * 1024
-    private const val USER_AGENT = "WMKeyboard translation models"
 
     /** Written last into the model's folder, once every file in it is verified. */
     private const val COMPLETE = ".complete"
@@ -252,7 +244,7 @@ object NllbTranslator {
         var done = 0L
         for (file in FILES) {
             val target = File(dir, file.name)
-            if (target.length() == file.bytes && sha256(target) == file.sha256) {
+            if (target.length() == file.bytes && FileDownloader.sha256(target) == file.sha256) {
                 done += file.bytes
                 continue
             }
@@ -261,7 +253,7 @@ object NllbTranslator {
             val before = done
             transfer(file.url, file.bytes, part) { bytes -> progress(before + bytes) }
             coroutineContext.ensureActive()
-            if (part.length() != file.bytes || sha256(part) != file.sha256) {
+            if (part.length() != file.bytes || FileDownloader.sha256(part) != file.sha256) {
                 part.delete()
                 throw IOException("${file.name} did not match its pinned checksum")
             }
@@ -279,66 +271,9 @@ object NllbTranslator {
         }
     }
 
-    /** Downloads [url] into [part], resuming a partial file with a range request. */
+    /** Downloads [url] into [part] through [FileDownloader]: parallel, and resumed piece by piece. */
     private suspend fun transfer(url: String, size: Long, part: File, onBytes: (Long) -> Unit) {
-        val resumeFrom = part.length().takeIf { it in 1 until size } ?: 0L
-        if (resumeFrom == 0L) part.delete()
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = TIMEOUT_MS
-            readTimeout = TIMEOUT_MS
-            instanceFollowRedirects = true
-            setRequestProperty("User-Agent", USER_AGENT)
-            setRequestProperty("Accept-Encoding", "identity")
-            if (resumeFrom > 0) setRequestProperty("Range", "bytes=$resumeFrom-")
-        }
-        val call = NetLog.call(NetSource.DOWNLOAD_TRANSLATE, "GET", url, route = NetLog.pathOf(url))
-        try {
-            val status = connection.responseCode
-            call.status = status
-            if (status != HttpURLConnection.HTTP_OK && status != HttpURLConnection.HTTP_PARTIAL) {
-                throw IOException("HTTP $status for $url")
-            }
-            val already = if (status == HttpURLConnection.HTTP_PARTIAL) resumeFrom else 0L
-            call.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { output ->
-                    output.setLength(already)
-                    output.seek(already)
-                    val buffer = ByteArray(BUFFER)
-                    var written = already
-                    while (true) {
-                        coroutineContext.ensureActive()
-                        val n = input.read(buffer)
-                        if (n < 0) break
-                        written += n
-                        if (written > size) {
-                            part.delete()
-                            throw IOException("$url is longer than pinned")
-                        }
-                        output.write(buffer, 0, n)
-                        onBytes(written)
-                    }
-                }
-            }
-        } catch (t: Throwable) {
-            call.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            call.end()
-        }
-    }
-
-    private fun sha256(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(BUFFER)
-            while (true) {
-                val n = input.read(buffer)
-                if (n < 0) break
-                digest.update(buffer, 0, n)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
+        FileDownloader.fetch(url, part, size, NetSource.DOWNLOAD_TRANSLATE, onBytes = onBytes)
     }
 
     /**

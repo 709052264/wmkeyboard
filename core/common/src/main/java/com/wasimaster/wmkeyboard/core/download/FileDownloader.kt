@@ -64,6 +64,7 @@ object FileDownloader {
     private const val SAVE_EVERY_TICKS = 4
     private const val CONNECT_TIMEOUT_MS = 15_000
     private const val READ_TIMEOUT_MS = 30_000
+    private const val HTTP_RANGE_NOT_SATISFIABLE = 416
     const val USER_AGENT = "WMKeyboard model downloader"
 
     /**
@@ -113,6 +114,10 @@ object FileDownloader {
      * says when [size] is null. Returns the length. [onBytes] hears the bytes
      * on disk a few times a second and once at the end, from a worker thread.
      *
+     * [headers] go with every request to [url] itself, never to the address
+     * it redirects to: a token for the host the user gave it to, not for its
+     * storage provider.
+     *
      * Throws a [DownloadException] for a failure the caller can name, any
      * other [IOException] for the network, and [CancellationException] when
      * cancelled; each leaves the `.part` and its map for the next try, except
@@ -124,11 +129,12 @@ object FileDownloader {
         size: Long?,
         source: NetSource,
         connections: Int = CONNECTIONS,
+        headers: Map<String, String> = emptyMap(),
         onBytes: (Long) -> Unit = {},
     ): Long = withContext(Dispatchers.IO) {
         require(size == null || size >= 0) { "negative size" }
         part.parentFile?.mkdirs()
-        val job = Job(url, part, size, source, connections.coerceAtLeast(1), onBytes)
+        val job = Job(url, part, size, source, connections.coerceAtLeast(1), headers, onBytes)
         try {
             job.run()
         } catch (_: NoRangesException) {
@@ -155,9 +161,10 @@ object FileDownloader {
         part: File = File(target.parentFile, "${target.name}.part"),
         what: String = target.name,
         connections: Int = CONNECTIONS,
+        headers: Map<String, String> = emptyMap(),
         onBytes: (Long) -> Unit = {},
     ) {
-        fetch(url, part, size, source, connections, onBytes)
+        fetch(url, part, size, source, connections, headers, onBytes)
         val matches = withContext(Dispatchers.IO) { sha256(part).equals(sha256, ignoreCase = true) }
         if (!IntegrityChecks.accept(matches, what)) {
             // Wrong bytes cannot be resumed into right ones.
@@ -195,6 +202,7 @@ object FileDownloader {
         val size: Long?,
         val source: NetSource,
         val connections: Int,
+        val headers: Map<String, String>,
         val onBytes: (Long) -> Unit,
     ) {
         private val ranges = rangesOf(part)
@@ -211,19 +219,30 @@ object FileDownloader {
                 fetchPieces(plan, first = null)
                 return plan.total
             }
-            // Fresh: the first piece's request also says whether ranges work
-            // and, when [size] is null, how long the file is.
-            val firstEnd = (size?.let { pieceSize(it, connections) } ?: MIN_PIECE) - 1
-            val first = open(0L..firstEnd, url)
+            // Fresh, or a `.part` from the one-stream loops whose bytes are
+            // the file's start: the first piece's request also says whether
+            // ranges work and, when [size] is null, how long the file is.
+            val prefix = legacyPrefix()
+            val firstLength = size?.let { pieceSize(it, connections) } ?: MIN_PIECE
+            val first = open(prefix until prefix + firstLength, url)
             when (val status = first.connection.responseCode) {
-                HttpURLConnection.HTTP_OK -> return runOneStream(first)
+                HttpURLConnection.HTTP_OK -> {
+                    if (prefix > 0) discard(part)
+                    return runOneStream(first)
+                }
                 HttpURLConnection.HTTP_PARTIAL -> Unit
                 else -> {
                     first.close(null)
+                    // Asked for bytes past the end: the old `.part` was not this file's start.
+                    if (status == HTTP_RANGE_NOT_SATISFIABLE && prefix > 0) {
+                        discard(part)
+                        return run()
+                    }
                     throw DownloadException.Http(status)
                 }
             }
             val total = try {
+                if (startOf(first.connection)?.let { it != prefix } == true) throw NoRangesException()
                 totalOf(first.connection) ?: size ?: throw IOException("no length for $url")
             } catch (t: Throwable) {
                 first.close(t)
@@ -235,14 +254,19 @@ object FileDownloader {
                 throw DownloadException.WrongSize(size, total)
             }
             resolved = first.connection.url.toString()
-            val fresh = RangePlan.split(total, firstEnd + 1, pieceSize(total, connections))
+            val fresh = RangePlan.split(total, prefix, firstLength, pieceSize(total, connections))
             RandomAccessFile(part, "rw").use { it.setLength(total) }
             fresh.write(ranges)
             fetchPieces(fresh, first)
             return total
         }
 
-        /** The plan on disk, or null to start fresh. Clears anything that does not add up. */
+        /**
+         * The plan on disk, or null to start from the first request. Clears a
+         * map that does not add up. A `.part` with no map that is already
+         * [size] long (the one-stream loops stopped between the last byte and
+         * the rename) counts as done, and the hash decides.
+         */
         private fun resume(): RangePlan? {
             if (ranges.exists()) {
                 val saved = RangePlan.read(ranges)
@@ -252,25 +276,32 @@ object FileDownloader {
                 discard(part)
                 return null
             }
-            // A `.part` from the one-stream loops: its bytes are the file's start.
-            val legacy = part.length()
-            if (!part.isFile || legacy == 0L || size == null || legacy > size) {
-                if (part.exists()) part.delete()
-                return null
+            if (size != null && size > 0 && part.isFile && part.length() == size) {
+                return RangePlan(size, listOf(RangePlan.Piece(0, size, size)))
             }
-            val plan = RangePlan.resumed(size, legacy, pieceSize(size, connections))
-            RandomAccessFile(part, "rw").use { it.setLength(size) }
-            plan.write(ranges)
-            return plan
+            return null
+        }
+
+        /** The bytes of a `.part` the one-stream loops left, which are the file's start; 0 for none. */
+        private fun legacyPrefix(): Long {
+            if (ranges.exists() || !part.isFile) return 0L
+            val length = part.length()
+            if (length == 0L || (size != null && length >= size)) {
+                part.delete()
+                return 0L
+            }
+            return length
         }
 
         /**
          * Fetches every unfinished piece of [plan] on up to [connections]
-         * workers. [first], when given, is the open response for piece 0.
+         * workers. [first], when given, is the open response for the first
+         * piece not yet on disk.
          */
         private suspend fun fetchPieces(plan: RangePlan, first: Opened?) {
             done.set(plan.done)
-            val queue = ArrayDeque(plan.pieces.filter { !it.complete && (first == null || it.start != 0L) })
+            val head = plan.pieces.first { !it.complete }
+            val queue = ArrayDeque(plan.pieces.filter { !it.complete && (first == null || it !== head) })
             RandomAccessFile(part, "rw").use { file ->
                 val channel = file.channel
                 try {
@@ -279,7 +310,6 @@ object FileDownloader {
                         coroutineScope {
                             if (first != null) {
                                 launch {
-                                    val head = plan.pieces.first()
                                     try {
                                         streamPiece(head, channel, first)
                                     } catch (e: IOException) {
@@ -328,20 +358,25 @@ object FileDownloader {
         private suspend fun fetchPiece(piece: RangePlan.Piece, channel: FileChannel) {
             var attempt = 0
             while (!piece.complete) {
+                val address = resolved
                 try {
-                    streamPiece(piece, channel, open(piece.next..piece.last, resolved))
+                    streamPiece(piece, channel, open(piece.next..piece.last, address))
                 } catch (e: IOException) {
+                    // A redirect target can expire (GitHub's are signed for
+                    // an hour): ask the original address again, once, at once.
+                    if (address != url && e is DownloadException.Http && e.status in 400..499) {
+                        resolved = url
+                        continue
+                    }
                     attempt++
                     if (!retryable(e) || attempt >= ATTEMPTS) throw e
-                    // A redirect target can expire (GitHub's are signed for minutes).
-                    resolved = url
                     delay(1_000L shl attempt)
                 }
             }
         }
 
         private fun retryable(e: IOException): Boolean = when (e) {
-            is DownloadException.Http -> e.status >= 500 || e.status == 403 || e.status == 410
+            is DownloadException.Http -> e.status >= 500
             is DownloadException.Interrupted -> true
             is DownloadException -> false
             is NoRangesException -> false
@@ -488,6 +523,7 @@ object FileDownloader {
                     // Offsets in a range are offsets into the file as stored.
                     setRequestProperty("Accept-Encoding", "identity")
                     if (range != null) setRequestProperty("Range", "bytes=${range.first}-${range.last}")
+                    if (address == this@Job.url) headers.forEach { (name, value) -> setRequestProperty(name, value) }
                 }
             } catch (t: Throwable) {
                 call.fail(t)

@@ -151,6 +151,35 @@ class FileDownloaderTest {
         assertEquals((data.size - half).toLong(), server.bytesServed.get())
     }
 
+    @Test fun aOneStreamPartIsResumedWithoutAPinnedSize() = runBlocking {
+        val half = data.size / 3
+        part().writeBytes(data.copyOf(half))
+        val total = FileDownloader.fetch(server.url, part(), null, NetSource.DOWNLOAD_NATIVE)
+        assertEquals(data.size.toLong(), total)
+        assertArrayEquals(data, part().readBytes())
+        assertEquals((data.size - half).toLong(), server.bytesServed.get())
+    }
+
+    @Test fun headersGoOnlyToTheAddressGiven() = runBlocking {
+        FileDownloader.fetch(
+            server.redirectUrl, part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE,
+            headers = mapOf("Authorization" to "Bearer secret"),
+        )
+        assertArrayEquals(data, part().readBytes())
+        assertEquals(1, server.authorisedRedirects.get())
+        // At most the probe, which the HTTP stack itself carried through the redirect.
+        assertTrue("token sent ${server.authorisedFiles.get()} times", server.authorisedFiles.get() <= 1)
+    }
+
+    @Test fun anExpiredRedirectIsAskedForAgain() = runBlocking {
+        // The signed address from /go stops working a while after the next one is handed out.
+        server.signed = true
+        server.rotateAfter = 2
+        FileDownloader.fetch(server.redirectUrl, part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE)
+        assertArrayEquals(data, part().readBytes())
+        assertTrue(server.redirects.get() > 1)
+    }
+
     @Test fun aWrongHashDeletesTheBytes() = runBlocking {
         val target = File(temp.root, "model.bin")
         try {
@@ -233,7 +262,7 @@ class FileDownloaderTest {
     }
 
     @Test fun planRoundTrips() {
-        val plan = RangePlan.split(10_000_000, 1_000_000, 3_000_000)
+        val plan = RangePlan.split(10_000_000, 0, 1_000_000, 3_000_000)
         plan.pieces[1].advance(1234)
         val file = File(temp.root, "x.ranges")
         plan.write(file)
@@ -271,8 +300,18 @@ class FileDownloaderTest {
         @Volatile var stallAfter = -1
         @Volatile var onStall: () -> Unit = {}
 
+        /** /go hands out `/file?t=<token>`; only the newest two tokens are served. */
+        @Volatile var signed = false
+
+        /** With [signed], the token changes after this many requests for the file. */
+        @Volatile var rotateAfter = Int.MAX_VALUE
+        private val token = AtomicInteger(1)
+        private val sinceRotation = AtomicInteger()
+
         val requests = AtomicInteger()
         val redirects = AtomicInteger()
+        val authorisedRedirects = AtomicInteger()
+        val authorisedFiles = AtomicInteger()
         val bytesServed = AtomicLong()
         val maxConcurrent = AtomicInteger()
         val completionOrder: MutableList<Long> = Collections.synchronizedList(ArrayList())
@@ -291,7 +330,9 @@ class FileDownloaderTest {
             val requestLine = input.readLine() ?: return
             val headers = generateSequence { input.readLine()?.takeIf { it.isNotEmpty() } }
                 .associate { it.substringBefore(':').lowercase() to it.substringAfter(':').trim() }
-            val path = requestLine.split(' ')[1]
+            val target = requestLine.split(' ')[1]
+            val path = target.substringBefore('?')
+            val query = target.substringAfter('?', "")
             val out = client.getOutputStream()
             fun head(status: String, vararg lines: String) {
                 val text = (listOf("HTTP/1.1 $status") + lines + "Connection: close").joinToString("\r\n") + "\r\n\r\n"
@@ -301,10 +342,24 @@ class FileDownloaderTest {
             when (path) {
                 "/go" -> {
                     redirects.incrementAndGet()
-                    head("302 Found", "Location: $url", "Content-Length: 0")
+                    if ("authorization" in headers) authorisedRedirects.incrementAndGet()
+                    val location = if (signed) "$url?t=${token.get()}" else url
+                    head("302 Found", "Location: $location", "Content-Length: 0")
                     return
                 }
-                "/file" -> Unit
+                "/file" -> {
+                    if ("authorization" in headers) authorisedFiles.incrementAndGet()
+                    val t = query.removePrefix("t=").toIntOrNull()
+                    // An address stays good until the one after it is handed out and used up.
+                    if (signed && (t == null || t < token.get() - 1)) {
+                        head("403 Forbidden", "Content-Length: 0")
+                        return
+                    }
+                    if (signed && sinceRotation.incrementAndGet() >= rotateAfter) {
+                        sinceRotation.set(0)
+                        token.incrementAndGet()
+                    }
+                }
                 else -> {
                     head("404 Not Found", "Content-Length: 0")
                     return
