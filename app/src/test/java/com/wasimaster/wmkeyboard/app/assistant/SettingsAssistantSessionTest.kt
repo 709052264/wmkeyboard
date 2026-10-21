@@ -339,4 +339,32 @@ class SettingsAssistantSessionTest {
         assertEquals(1, outside.asked)
         assertEquals("reply: Here it is.", texts().last())
     }
+
+    @Test
+    fun `clearing the chat forgets a data saver ask`() = runTest {
+        onTestScheduler()
+        val outside = FakeOutside(cloud).apply { decision = MeteredDecision.ASK }
+        ask(outside, "first")
+        advanceUntilIdle()
+        session.clear()
+
+        // #873: an unrelated question after Clear is asked about again.
+        ask(outside, "something else")
+        advanceUntilIdle()
+        assertEquals(0, outside.asked)
+        assertEquals("text:${R.string.settings_assistant_metered_ask}", (items().last() as Item.Reply).text)
+    }
+
+    @Test
+    fun `stopping a run in flight keeps its late answer out`() = runTest {
+        onTestScheduler()
+        val outside = FakeOutside(cloud)
+        outside.answers.addLast { "late" }
+        ask(outside, "q")
+        // #877: the switch turned off before the answer came back.
+        session.stop()
+        advanceUntilIdle()
+        assertEquals(listOf("user: q"), texts())
+        assertFalse(session.busy.value)
+    }
 }

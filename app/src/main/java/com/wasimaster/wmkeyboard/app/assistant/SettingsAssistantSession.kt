@@ -268,16 +268,20 @@ internal object SettingsAssistantSession {
         _partial.value = ""
     }
 
+    /**
+     * A new conversation. A Data Saver yes was given to the question that
+     * asked for it (#873), so the cleared chat's next question asks again.
+     */
     fun clear() {
         stop()
         _items.value = emptyList()
         refs.clear()
+        meteredAsked = false
     }
 
-    /** [clear], and forgets a Data Saver ask and a model pick too, so one JVM test (#828) starts where no other left it. */
+    /** [clear], and forgets a model pick too, so one JVM test (#828) starts where no other left it. */
     internal fun resetForTest() {
         clear()
-        meteredAsked = false
         _chosen.value = null
     }
 

@@ -2471,7 +2471,11 @@ private fun SettingsNavGraph(
             // Turned off (#830): a link or a back stack that still names the
             // route opens nothing, and the assistant sends nothing.
             if (!settings.watch { it.appUi.settingsAssistant }) {
-                LaunchedEffect(Unit) { navController.popBackStack() }
+                LaunchedEffect(Unit) {
+                    // However it was turned off (#877), a run still out ends here.
+                    com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantSession.stop()
+                    navController.popBackStack()
+                }
                 return@composable
             }
             LockedRoute("ai_chat", onCancel = { navController.popBackStack() }) {

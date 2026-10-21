@@ -121,7 +121,12 @@ internal fun AiHubSettings(
                 stringResource(R.string.toolai_hub_settings_assistant_subtitle),
                 assistant,
                 default = SettingsDefaults.appUi.settingsAssistant,
-            ) { scope.launch { repository.setSettingsAssistant(it) } }
+            ) { on ->
+                // Off sends nothing more (#877): a question still out is
+                // retired, and its late answer goes nowhere.
+                if (!on) com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantSession.stop()
+                scope.launch { repository.setSettingsAssistant(on) }
+            }
         }
         item(visible = assistant) {
             NavRow(
