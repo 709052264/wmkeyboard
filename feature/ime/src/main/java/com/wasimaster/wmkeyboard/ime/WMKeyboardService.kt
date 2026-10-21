@@ -3209,6 +3209,8 @@ open class WMKeyboardService : InputMethodService() {
             onTab = ::onSearchTab,
             onMore = ::onSearchMore,
             onCopy = ::onSearchCopy,
+            onOpen = ::openSearchLink,
+            onSaveImage = ::onSearchImageSave,
         )
     }
     private var imageSearchJob: Job? = null
@@ -38262,11 +38264,35 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Tapped an image-search cell: download the full image and commit it. */
     fun onImageResultSelect(result: ImageResult) {
-        val mime = when (result.mime) {
-            "image/gif", "image/png", "image/webp", "image/jpeg" -> result.mime
-            else -> "image/jpeg"
+        insertDownloadedImage(result.imageUrl, result.imageUrl, searchImageMime(result))
+    }
+
+    /** What an image result is sent and saved as: its own type when it is one we know. */
+    private fun searchImageMime(result: ImageResult): String = when (result.mime) {
+        "image/gif", "image/png", "image/webp", "image/jpeg" -> result.mime
+        else -> "image/jpeg"
+    }
+
+    /**
+     * Save to gallery on an image result's menu (#879): the full picture,
+     * downloaded with the cell's spinner over it, into Pictures/WM Keyboard.
+     */
+    fun onSearchImageSave(result: ImageResult) {
+        if (_uiState.value.mediaDownloadingId != null) return
+        vibrate()
+        val mime = searchImageMime(result)
+        startMediaDownload(result.imageUrl)
+        mediaInsertJob = serviceScope.launch {
+            val file = withContext(Dispatchers.IO) {
+                downloadMediaFile(result.imageUrl, mime, trackProgress = true)
+            }
+            endMediaDownload()
+            if (file == null) {
+                toast(R.string.ime_service_media_download_error_toast)
+                return@launch
+            }
+            saveToGalleryIfEnabled(file, mime, enabled = true, namePrefix = "Search", confirm = true)
         }
-        insertDownloadedImage(result.imageUrl, result.imageUrl, mime)
     }
 
     /** Long-pressed an image-search cell: insert the image's URL as text. */
@@ -38286,11 +38312,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Open a web result in the browser (leaves the keyboard). */
-    fun onWebResultOpen(result: WebResult) {
+    fun onWebResultOpen(result: WebResult) = openSearchLink(result.url)
+
+    /** Opens [url] in the browser, from the search panel (leaves the keyboard). */
+    private fun openSearchLink(url: String) {
         vibrate()
         runCatching {
             startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(result.url)).apply {
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 },
             )

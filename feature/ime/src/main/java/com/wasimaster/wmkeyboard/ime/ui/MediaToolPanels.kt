@@ -107,6 +107,7 @@ import coil3.gif.GifDecoder
 import coil3.memory.MemoryCache
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.tools.GifItem
@@ -1954,25 +1955,115 @@ internal fun WebSearchPanel(
     onResult: (WebResult) -> Unit,
     onOpen: (WebResult) -> Unit,
     onImageResult: (ImageResult) -> Unit,
-    onImageResultLink: (ImageResult) -> Unit,
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
     val actions = LocalSearchActions.current
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
-            // Pick mode (#727): which search provider answers, over the results.
-            ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
+    // The result whose menu is open (#879), drawn over the whole panel.
+    var menu by remember { mutableStateOf<SearchMenu?>(null) }
+    // A new search, or the other tab, leaves no menu behind for a result gone.
+    LaunchedEffect(state.searchTab, state.webSearch is WebSearchUi.Ready, state.imageSearch is ImageSearchUi.Ready) {
+        menu = null
+    }
+    val onMenu: (SearchMenu) -> Unit = { menu = it }
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
+                // Pick mode (#727): which search provider answers, over the results.
+                ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
+            }
+            when (state.searchTab) {
+                SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onMenu, onOpenToolSettings)
+                SearchTab.IMAGES -> ImageResults(state, onRetry, onImageResult, onMenu, onOpenToolSettings)
+            }
         }
-        when (state.searchTab) {
-            SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onOpenToolSettings)
-            SearchTab.IMAGES -> ImageResults(state, onRetry, onImageResult, onImageResultLink, onOpenToolSettings)
+        menu?.let { shown ->
+            SearchResultMenu(
+                menu = shown,
+                onInsertLink = { link -> onResult(WebResult(title = "", snippet = link, url = link, displayUrl = "")) },
+                onInsertImage = onImageResult,
+                onDismiss = { menu = null },
+            )
         }
     }
 }
+
+/** A search result whose menu is open (#879). */
+private sealed interface SearchMenu {
+    data class Web(val result: WebResult) : SearchMenu
+    data class Image(val result: ImageResult) : SearchMenu
+}
+
+/**
+ * The menu of one search result (#879), over the panel: open it in the
+ * browser, insert its link, copy the link, and for a picture also insert the
+ * picture itself and save it to the gallery. A tap outside closes it.
+ */
+@Composable
+private fun SearchResultMenu(
+    menu: SearchMenu,
+    onInsertLink: (String) -> Unit,
+    onInsertImage: (ImageResult) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val kb = LocalKbTheme.current
+    val actions = LocalSearchActions.current
+    val (title, link, page) = when (menu) {
+        is SearchMenu.Web -> Triple(menu.result.title, menu.result.url, menu.result.url)
+        is SearchMenu.Image -> Triple(
+            menu.result.title,
+            menu.result.imageUrl,
+            // The page a picture is on reads better than the bare file, when known.
+            menu.result.contextUrl.ifEmpty { menu.result.imageUrl },
+        )
+    }
+    fun run(action: () -> Unit) {
+        onDismiss()
+        action()
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.45f))
+            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onDismiss() },
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .widthIn(max = 320.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(kb.popup)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 6.dp),
+        ) {
+            Text(
+                title.ifBlank { hostOf(page) },
+                color = kb.popupText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 8.dp),
+            )
+            if (menu is SearchMenu.Image) {
+                MediaActionRow(stringResource(R.string.ime_search_menu_insert_image)) { run { onInsertImage(menu.result) } }
+            }
+            MediaActionRow(stringResource(R.string.ime_web_search_open_desc)) { run { actions.onOpen(page) } }
+            MediaActionRow(stringResource(R.string.ime_web_search_insert_desc)) { run { onInsertLink(link) } }
+            MediaActionRow(stringResource(R.string.ime_search_menu_copy_link)) { run { actions.onCopy(link) } }
+            if (menu is SearchMenu.Image) {
+                MediaActionRow(stringResource(R.string.ime_search_menu_save_image)) { run { actions.onSaveImage(menu.result) } }
+            }
+        }
+    }
+}
+
+/** The host of an address, for a result with no title of its own. */
+private fun hostOf(url: String): String = url.substringAfter("://").substringBefore('/')
 
 /** All and Images, over the search panel's results (#879). */
 @Composable
@@ -2015,6 +2106,7 @@ private fun WebResults(
     onRetry: () -> Unit,
     onResult: (WebResult) -> Unit,
     onOpen: (WebResult) -> Unit,
+    onMenu: (SearchMenu) -> Unit,
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
     val kb = LocalKbTheme.current
@@ -2039,11 +2131,16 @@ private fun WebResults(
                 } else {
                     val focused = state.focusedIndex()
                     val listState = rememberLazyListState()
-                    // Issue #470: the row can open the page instead, with the
-                    // side button inserting the link, for a user who searches to
-                    // read rather than to share.
-                    val openFirst = state.settings.webSearch.openInBrowser
-                    val rowAction = if (openFirst) onOpen else onResult
+                    // What a tap does is the user's (#470, #879): the menu, or
+                    // straight to inserting or opening, with the side button
+                    // doing the other of the two. A long press is the menu.
+                    val tap = state.settings.webSearch.resultTap
+                    val openFirst = tap == SearchResultTap.OPEN
+                    val rowAction: (WebResult) -> Unit = when (tap) {
+                        SearchResultTap.MENU -> { result -> onMenu(SearchMenu.Web(result)) }
+                        SearchResultTap.INSERT -> onResult
+                        SearchResultTap.OPEN -> onOpen
+                    }
                     val sideAction = if (openFirst) onResult else onOpen
                     // The answer box is the list's first item when there is one,
                     // so focus indices start after it.
@@ -2069,7 +2166,10 @@ private fun WebResults(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { rowAction(result) }
+                                    .combinedClickable(
+                                        onClick = { rowAction(result) },
+                                        onLongClick = { onMenu(SearchMenu.Web(result)) },
+                                    )
                                     .focusRing(index == focused, RoundedCornerShape(8.dp))
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -2100,7 +2200,7 @@ private fun WebResults(
                                         )
                                     }
                                 }
-                                IconHint(
+                                if (tap != SearchResultTap.MENU) IconHint(
                                     stringResource(
                                         if (openFirst) R.string.ime_web_search_insert_desc
                                         else R.string.ime_web_search_open_desc,
@@ -2244,17 +2344,20 @@ internal fun SearchByPhotoButton(onClick: () -> Unit) {
 }
 
 /**
- * The Images tab: grid of thumbnails; tap inserts the image itself (via
- * commitContent, like clipboard images), long-press inserts the image URL.
+ * The Images tab: grid of thumbnails. A tap opens the picture's menu, or
+ * does what the user picked instead: inserts the image itself (via
+ * commitContent, like clipboard images) or opens its page. A long press is
+ * always the menu (#879).
  */
 @Composable
 private fun ImageResults(
     state: KeyboardUiState,
     onRetry: () -> Unit,
     onResult: (ImageResult) -> Unit,
-    onResultLink: (ImageResult) -> Unit,
+    onMenu: (SearchMenu) -> Unit,
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
+    val onOpen = LocalSearchActions.current.onOpen
     Column(modifier = Modifier.fillMaxSize()) {
         when (val ui = state.imageSearch) {
             ImageSearchUi.NeedKey -> PanelNotice(
@@ -2281,8 +2384,12 @@ private fun ImageResults(
                         downloadingId = state.mediaDownloadingId,
                         progress = state.mediaDownloadProgress,
                         columnCount = state.settings.emoji.mediaGridColumns,
-                        onResult = onResult,
-                        onResultLink = onResultLink,
+                        onResult = when (state.settings.webSearch.resultTap) {
+                            SearchResultTap.MENU -> { result -> onMenu(SearchMenu.Image(result)) }
+                            SearchResultTap.INSERT -> onResult
+                            SearchResultTap.OPEN -> { result -> onOpen(result.contextUrl.ifEmpty { result.imageUrl }) }
+                        },
+                        onResultLink = { result -> onMenu(SearchMenu.Image(result)) },
                         focused = state.focusedIndex(),
                     )
                 }

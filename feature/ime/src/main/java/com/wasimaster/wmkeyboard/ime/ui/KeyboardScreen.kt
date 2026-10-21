@@ -14009,7 +14009,6 @@ private fun KeyboardBody(
                         onResult = onWebResult,
                         onOpen = onWebResultOpen,
                         onImageResult = onImageResult,
-                        onImageResultLink = onImageResultLink,
                         onOpenToolSettings = onOpenToolSettings,
                     )
                 }

@@ -25,6 +25,7 @@ import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.app.media.MusicApps
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
+import com.wasimaster.wmkeyboard.core.settings.SearchResultTap
 import com.wasimaster.wmkeyboard.core.settings.LauncherOpenMode
 import com.wasimaster.wmkeyboard.core.settings.MAX_SEARCH_RESULTS
 import com.wasimaster.wmkeyboard.ime.AppLaunchModes
@@ -2437,12 +2438,28 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setSearchShowAnswer(it) } }
                 }
                 item {
-                    ToggleSetting(
+                    ChoiceSetting(
                         R.string.tooldetail_search_open_browser_title,
-                        stringResource(R.string.tooldetail_search_open_browser_subtitle),
-                        settings.watch { it.webSearch.openInBrowser },
-                        default = SettingsDefaults.webSearch.openInBrowser,
-                    ) { scope.launch { repository.setSearchOpenInBrowser(it) } }
+                        subtitle = stringResource(R.string.tooldetail_search_open_browser_subtitle),
+                        options = listOf(
+                            SearchResultTap.MENU to stringResource(R.string.tooldetail_search_tap_menu),
+                            SearchResultTap.INSERT to stringResource(R.string.tooldetail_search_tap_insert),
+                            SearchResultTap.OPEN to stringResource(R.string.tooldetail_search_tap_open),
+                        ),
+                        selected = settings.watch { it.webSearch.resultTap },
+                        default = SettingsDefaults.webSearch.resultTap,
+                        detail = { tap ->
+                            ChoiceDetail(
+                                stringResource(
+                                    when (tap) {
+                                        SearchResultTap.MENU -> R.string.tooldetail_search_tap_menu_desc
+                                        SearchResultTap.INSERT -> R.string.tooldetail_search_tap_insert_desc
+                                        SearchResultTap.OPEN -> R.string.tooldetail_search_tap_open_desc
+                                    },
+                                ),
+                            )
+                        },
+                    ) { scope.launch { repository.setSearchResultTap(it) } }
                 }
                 item {
                     SliderSetting(

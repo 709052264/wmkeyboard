@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
 import androidx.compose.runtime.staticCompositionLocalOf
+import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.ime.SearchTab
 
 /**
@@ -17,6 +18,10 @@ internal class SearchActions(
     val onMore: () -> Unit = {},
     /** Copies text to the clipboard: the engine's answer, a result's link. */
     val onCopy: (String) -> Unit = {},
+    /** Opens an address in the browser: a result's page, or a picture's. */
+    val onOpen: (String) -> Unit = {},
+    /** Downloads a picture result into the gallery. */
+    val onSaveImage: (ImageResult) -> Unit = {},
 )
 
 internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }
