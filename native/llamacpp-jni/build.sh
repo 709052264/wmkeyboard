@@ -2,7 +2,8 @@
 # Builds libwmllama*.so (llamacpp_jni.cpp over llama.cpp + ggml, with
 # llama.cpp's chat-template code and libmtmd for pictures) for every ABI, and
 # the arm64 OpenCL variant for Adreno GPUs, and copies them into
-# core/intelligence/src/llama/jniLibs/. Fetches llama.cpp, and the OpenCL
+# core/intelligence/src/llama/jniLibs/ (the OpenCL one into
+# core/intelligence/src/llamagpu/jniLibs/, its own gate). Fetches llama.cpp, and the OpenCL
 # headers and loader, at the pinned commits (pin.sh) unless LLAMA_SRC,
 # OPENCL_HEADERS_SRC and OPENCL_LOADER_SRC point at checkouts of them. Needs
 # CMake, Ninja and Python 3 on PATH. See README.md.
@@ -18,6 +19,9 @@ REPO=$(cd "$HERE/../.." && pwd)
 # :feature:llama split carries them alone on Play. F-Droid's recipe
 # scandeletes the same path.
 OUT=${LLAMA_OUT:-$REPO/core/intelligence/src/llama/jniLibs}
+# The OpenCL build is a gate of its own (`llamagpu`): only an Adreno phone
+# with Compute on GPU fetches it.
+GPU_OUT=${LLAMA_GPU_OUT:-$REPO/core/intelligence/src/llamagpu/jniLibs}
 NDK=${ANDROID_NDK:-${ANDROID_NDK_HOME:-}}
 [ -n "$NDK" ] && [ -f "$NDK/build/cmake/android.toolchain.cmake" ] || {
     echo "Set ANDROID_NDK to an NDK install (r27 or newer)" >&2; exit 1; }
@@ -81,10 +85,13 @@ build() {
         -DWM_LLAMA_BUILD="$LLAMA_BUILD" -DWM_LLAMA_COMMIT="$LLAMA_SHORT" "$@" > "$out.log" 2>&1 \
         || { tail -30 "$out.log"; exit 1; }
     cmake --build "$out" --target wmllama >> "$out.log" 2>&1 || { tail -40 "$out.log"; exit 1; }
-    local dest=$OUT/$abi
+    local dest=${DEST_ROOT:-$OUT}/$abi
     mkdir -p "$dest"
     "$BIN/llvm-strip" --strip-unneeded -o "$dest/lib$name.so" "$out/lib$name.so"
     echo "$abi lib$name.so: $(wc -c < "$dest/lib$name.so") bytes"
+    # Each configuration's build tree is a few hundred megabytes: gone before
+    # the next one starts.
+    rm -rf "$out"
 }
 
 # WMKB_ABIS narrows the build to some of the three (native/build-fdroid-libs.sh).
@@ -114,7 +121,7 @@ if wanted arm64-v8a && [ "${WMKB_LLAMA_GPU:-1}" = 1 ]; then
         -DBUILD_TESTING=OFF -DENABLE_OPENCL_LAYERS=OFF > "$WORK/cl-loader.log" 2>&1 \
         && cmake --build "$WORK/cl-loader" --target OpenCL >> "$WORK/cl-loader.log" 2>&1 \
         || { tail -30 "$WORK/cl-loader.log"; exit 1; }
-    build arm64-v8a wmllama_opencl -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=opencl \
+    DEST_ROOT=$GPU_OUT build arm64-v8a wmllama_opencl -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=opencl \
         -DOpenCL_INCLUDE_DIR="$CL_HEADERS" -DOpenCL_LIBRARY="$WORK/cl-loader/libOpenCL.so"
 fi
 # armeabi-v7a: small models only in practice (a 32-bit process cannot map

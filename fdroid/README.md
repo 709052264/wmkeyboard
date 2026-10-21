@@ -163,7 +163,8 @@ From the release after 0.6.2 the script also builds `native/llamacpp-jni`
 models) into `core/intelligence/src/llama/jniLibs`, the runtime for GGUF
 models; the next entry's `scandelete` needs that path added. Nothing is
 fetched at configure time: no KleidiAI, no OpenSSL, no web UI. On arm64 it
-adds `libwmllama_opencl.so`, llama.cpp's OpenCL backend for Adreno GPUs: the
+adds `libwmllama_opencl.so` in `core/intelligence/src/llamagpu/jniLibs` (a
+second path for `scandelete`), llama.cpp's OpenCL backend for Adreno GPUs: the
 script clones Khronos's OpenCL-Headers and OpenCL-ICD-Loader at pinned tags
 (Apache-2.0), builds the loader only to link against, and ships neither; the
 phone's own `libOpenCL.so` is what the library opens. The OpenCL kernels are

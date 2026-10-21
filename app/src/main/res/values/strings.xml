@@ -49,6 +49,9 @@
     <!-- :feature:llama, llama.cpp behind GGUF models for on-device AI.
          llama.cpp and GGUF stay in Latin letters. -->
     <string name="llama_module_title">llama.cpp for GGUF models</string>
+    <!-- :feature:llamagpu, llama.cpp's build for Adreno GPUs (Compute = GPU
+         for GGUF models). llama.cpp, GGUF and Adreno stay in Latin letters. -->
+    <string name="llamagpu_module_title">llama.cpp for Adreno GPUs</string>
     <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
          Google's scanner is missing. -->
     <string name="docscan_module_title">Built-in document scanner</string>

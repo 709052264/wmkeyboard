@@ -6,8 +6,11 @@ bundles; llama.cpp runs any GGUF, so a user can download one of the curated
 GGUF rows or import whatever model they like. `LocalLlmEngine` routes a GGUF
 here and everything else to LiteRT-LM, which stays the default. Kotlin entry
 point: `com.wasimaster.wmkeyboard.core.localllm.LlamaNative`, wrapped by
-`LlamaModel`/`LlamaSession` (plain Kotlin) and `LlamaCppRuntime` (the
-`LlmRuntime` implementation, Android) in the same package.
+`LlamaModel`/`LlamaSession`/`LlamaVision` (plain Kotlin) and
+`LlamaCppRuntime` (the `LlmRuntime` implementation, Android) in the same
+package. Every build carries libmtmd, llama.cpp's multimodal library, so a
+vision model reads pictures through its projector (`mmproj` GGUF), and on
+arm64 a third build adds the OpenCL backend for Adreno GPUs.
 
 The built libraries are committed under `core/intelligence/src/llama/jniLibs/`,
 a directory of their own so the Play split carries nothing else. GitHub builds
@@ -25,17 +28,26 @@ ANDROID_NDK=~/Library/Android/sdk/ndk/27.3.13750724 native/llamacpp-jni/build.sh
 It needs CMake and Ninja on `PATH`, and fetches llama.cpp at the release
 `pin.sh` names unless `LLAMA_SRC` points at a checkout of it. The committed
 libraries were built with NDK r27 (`27.3.13750724`); F-Droid's recipe names
-r29, which builds different bytes. Four configurations, a few minutes each.
+r29, which builds different bytes. Five configurations, a few minutes each.
+The OpenCL one also clones Khronos's OpenCL-Headers and OpenCL-ICD-Loader at
+the tags `pin.sh` names (or uses `OPENCL_HEADERS_SRC`/`OPENCL_LOADER_SRC`),
+and needs Python 3 for llama.cpp's kernel-embedding script.
 
 ## Provenance
 
 llama.cpp release `b11753`, commit `d8d92973c8c21bb4dd5d592f0fec26fe2cd1e654`,
-unmodified: `libllama`, ggml's CPU backend and `common/` (for the chat
-templates and their Jinja interpreter) built as static libraries and linked
-into one shared library with `llamacpp_jni.cpp` and libc++ static. llama.cpp
-and ggml are MIT (`LICENSE` is upstream's); the chat code includes
-nlohmann/json (MIT). Both are in `app/src/main/assets/licenses/mit-llama-cpp.txt`.
-No HTTP, OpenSSL, OpenMP, KleidiAI or GPU backend is built.
+unmodified: `libllama`, ggml's CPU backend, `common/` (for the chat templates
+and their Jinja interpreter) and `tools/mtmd` (libmtmd, the projectors of
+vision models) built as static libraries and linked into one shared library
+with `llamacpp_jni.cpp` and libc++ static; the OpenCL build adds ggml's
+OpenCL backend with its kernels embedded as source. llama.cpp and ggml are
+MIT (`LICENSE` is upstream's); the chat code includes nlohmann/json (MIT).
+Both are in `app/src/main/assets/licenses/mit-llama-cpp.txt`. libmtmd's
+vendored decoders (stb_image, miniaudio) and hashes (xxHash, SHA) are not in
+the library: pictures arrive as decoded RGB from Kotlin, and the linker drops
+the code nothing calls (checked with `strings` on the arm64 build). The OpenCL headers and ICD
+loader (Apache-2.0) are only compiled and linked against, never shipped. No
+HTTP, OpenSSL, OpenMP, KleidiAI, Vulkan or Metal backend is built for a phone.
 
 ## One ggml or two
 
@@ -57,18 +69,61 @@ other's symbols.
 | arm64-v8a | `libwmllama.so` | ARMv8.0, every 64-bit phone |
 | arm64-v8a | `libwmllama_v82.so` | ARMv8.2 with dot product and fp16 |
 | armeabi-v7a | `libwmllama.so` | ARMv7 with NEON; small models only (32-bit address space) |
+| arm64-v8a | `libwmllama_opencl.so` | ARMv8.2 as above, plus the OpenCL backend for Adreno; in `core/intelligence/src/llamagpu/jniLibs`, gate `llamagpu` |
 | x86_64 | `libwmllama.so` | SSE4.2, as the Android ABI guarantees |
 
 `LlamaNative` loads the ARMv8.2 build only when every core's `Features` line
 in `/proc/cpuinfo` lists `asimddp`, `asimdhp` and `fphp`, the same rule as
 whisper.cpp's. Quantized matrix maths runs several times faster with them.
 
+The OpenCL build is a gate of its own (`llamagpu`, the `:feature:llamagpu`
+split on Play), so only an Adreno phone with Compute on GPU downloads its
+10 MB; `LlamaCpp.prepareGpu` asks for it when GPU is picked with a GGUF model
+on the phone, and the first GPU answer does too. The three arm64 builds bind
+the same JNI names, so a process keeps whichever it loaded first. `LlamaCppRuntime` asks for the OpenCL build
+(`LlamaNative.wantGpuLibrary`) when Compute is GPU (or NPU) on an Adreno
+phone (`/dev/kgsl-3d0`, or `Build.SOC_MANUFACTURER` QTI) with ARMv8.2 cores.
+It links to `libOpenCL.so` by name, which the app declares as an optional
+native library; a phone whose namespace has none fails the load and gets the
+ARMv8.2 build. With Compute on CPU in a process that holds the OpenCL build,
+models open with an empty device list (`gpu_layers` 0), so the GPU backend
+never starts. A process that loaded a CPU build first cannot switch: the
+keyboard recycles itself once out of sight (`LlamaCpp.waitsForGpuRestart`).
+
+## Which GPU backend
+
+llama.cpp has two that reach Android phones. The OpenCL backend is
+Qualcomm's: matrix kernels written for Adreno, verified on Adreno 750 and
+830, tuned first for Q4_0 and since for the K-quants. It refuses every GPU
+but Adreno and Intel (`ggml_opencl_is_device_supported`), and calls `exit(1)`
+in kernel set-up on an unknown family, so it must never load elsewhere. The
+Vulkan backend runs on any Vulkan 1.2 GPU, Mali included, but every public
+report on Mali has it slower than the CPU or hanging (llama.cpp discussion
+9464: 24 s through Vulkan against 1.6 s on the CPU for the same prompt; a
+Radxa Orion O6 with a Mali-G720 "far below CPU"), its precompiled SPIR-V
+shaders would add tens of megabytes, and no phone here could check it. So
+only OpenCL is built, and Mali, PowerVR and Xclipse phones run GGUF models on
+the CPU.
+
+GPU verdicts mirror LiteRT-LM's (`AcceleratorVerdicts`, files
+`llama-gpu-failed`/`llama-gpu-attempt` in the no-backup dir): a model that
+fails to load or answer on the GPU is marked and reloads on the CPU; a native
+crash leaves the attempt file and counts as a failure in the next process;
+`llama-gpu-library-*` does the same for starting the OpenCL backend itself
+(`nativeGpuDevices`), so a driver that dies there costs one crash, not one
+per process. Verdicts reset after a system or app update.
+
 ## Contract with Kotlin
 
 Handles are native pointers as `Long`; 0 means failure.
 
-- `nativeModelOpen(path, useMmap)`, `nativeModelClose(model)`. Opening reads
-  the GGUF's chat template too (ChatML when it has none).
+- `nativeGpuDevices() -> ByteArray`: `name\tdescription` per GPU device the
+  loaded build found; empty for a CPU build. Starts the GPU backend.
+- `nativeModelOpen(path, useMmap, gpuLayers)`, `nativeModelClose(model)`.
+  Opening reads the GGUF's chat template too (ChatML when it has none).
+  `gpuLayers` 0 passes an empty device list, so neither the model nor its
+  contexts touch a GPU (no KV offload, no op offload); more offloads that
+  many layers (`ALL_LAYERS` = 999).
 - `nativeModelInfo(model) -> LongArray`: params, bytes, trained context,
   layers, heads, KV heads, embedding width, sliding window, has-template,
   vocabulary. `LlamaModelInfo` names them and estimates the KV cache per token.
@@ -85,6 +140,21 @@ Handles are native pointers as `Long`; 0 means failure.
   Returns the prompt's length, or -1 too long, -2 aborted, -3 decode failed,
   -4 template failed.
 - `nativePromptRaw(session, text, addSpecial)`: the same for raw text.
+- `nativeVisionOpen(model, mmprojPath, useGpu, threads)`,
+  `nativeVisionClose(vision)`: a projector over a loaded model, or 0 when it
+  will not load (a projector for another model, an audio-only one).
+- `nativePromptChatImages(session, vision, roles, contents, rgb, widths,
+  heights, enableThinking)`: `nativePromptChat` with pictures (RGB bytes,
+  three per pixel) at the start of the last user message. The template is
+  rendered with libmtmd's marker there (the marker is broken up wherever it
+  appears in a message), the rendered parts go to
+  `mtmd_tokenize_from_parts` keeping each part's special-token rule, and the
+  picture chunks are encoded and decoded by
+  `mtmd_helper_eval_chunk_single`. Text is decoded at explicit positions
+  (`Session::n_past`), because a Qwen-VL picture takes fewer positions than
+  embeddings (M-RoPE). The session records a picture's cache cells as
+  `IMAGE_TOKEN` (-2), and prefix reuse stops at the first picture of the
+  cache or the prompt. -5 when the projector failed.
 - `nativeNext(session) -> ByteArray?`: samples and decodes one token. UTF-8 of
   whole characters only (empty while one is incomplete); null once the answer
   is over, for the reason `nativeStopReason` gives: 0 end of turn, 1 window

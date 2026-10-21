@@ -36,6 +36,16 @@ object LlamaCpp {
     fun requestModule() = FeatureModules.llama.requestInstall()
 
     /**
+     * Fetches the OpenCL build (gate `llamagpu`) ahead of the first GGUF
+     * answer, when Compute is set to GPU on a phone that can use it; does
+     * nothing anywhere else. Its own download, so that only Adreno phones
+     * with GPU picked pay for it.
+     */
+    fun prepareGpu() {
+        if (LlamaGpu.usable && !FeatureModules.llamaGpu.installed) FeatureModules.llamaGpu.requestInstall()
+    }
+
+    /**
      * The vision projector that goes with [modelFile]: a catalog model's own
      * (downloaded beside it), else a projector beside an imported file
      * ([GgufFile.projectorFor]). Null when the model cannot read pictures.
@@ -128,6 +138,9 @@ internal object LlamaGpu {
             (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && Build.SOC_MANUFACTURER.equals("QTI", ignoreCase = true)) ||
             Build.HARDWARE.equals("qcom", ignoreCase = true)
     }
+
+    /** An Adreno GPU beside cores that run the OpenCL build (ARMv8.2): the phones it is for. */
+    val usable: Boolean get() = adreno && LlamaNative.gpuLibraryPossible
 
     @Volatile
     private var devices: List<String>? = null
@@ -222,7 +235,13 @@ internal class LlamaCppRuntime : LlmRuntime {
      * down here since the last update.
      */
     fun gpuLibraryWanted(context: Context, backend: LocalLlmBackend): Boolean {
-        if (backend == LocalLlmBackend.CPU || !LlamaGpu.adreno || !LlamaNative.gpuLibraryPossible) return false
+        if (backend == LocalLlmBackend.CPU || !LlamaGpu.usable) return false
+        // Still to come: this process runs on the CPU, and the next one
+        // loads the GPU build once it is here.
+        if (!FeatureModules.llamaGpu.installed) {
+            FeatureModules.llamaGpu.requestInstall()
+            return false
+        }
         lock.lock()
         try {
             libraryVerdicts.load(context)
@@ -558,7 +577,7 @@ internal class LlamaCppRuntime : LlmRuntime {
         val wanted = if (contextTokens > 0) contextTokens else DEFAULT_CONTEXT
         val gpuKey = AcceleratorVerdicts.key(context, modelFile)
         val wantGpu = backend != LocalLlmBackend.CPU && gpuKey !in gpuVerdicts && gpuReady(context)
-        waitsForGpuRestart = backend != LocalLlmBackend.CPU && LlamaGpu.adreno && LlamaNative.gpuLibraryPossible &&
+        waitsForGpuRestart = backend != LocalLlmBackend.CPU && LlamaGpu.usable && FeatureModules.llamaGpu.installed &&
             !LlamaNative.gpuLibrary && libraryKey(context) !in libraryVerdicts
         val key = "${modelFile.path}|${modelFile.length()}|${modelFile.lastModified()}|$wanted|" +
             if (wantGpu) "gpu" else "cpu"
