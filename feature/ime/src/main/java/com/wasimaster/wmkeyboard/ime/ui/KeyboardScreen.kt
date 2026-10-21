@@ -3732,9 +3732,12 @@ private fun TopBar(
     // the row takes in the bar order, since that is where it will appear.
     val barOrder = state.settings.barOrder
     val toolsRowAbove = barOrder.indexOf(BarRow.TOOLS) < barOrder.indexOf(BarRow.TOPBAR)
+    // The number pad types into the field, and a snippet it triggers (#815)
+    // is offered on the strip: the toolbar must not cover the chip (#876).
+    val numpadOffer = state.panel == PanelMode.NUMPAD && state.snippetOffers != null
     val wantToolbar = !toolsOwnRow &&
         (
-            state.panel != PanelMode.NONE || toolbarOverride ||
+            (state.panel != PanelMode.NONE && !numpadOffer) || toolbarOverride ||
                 (!hasSuggestions && emptySettled && !suggestionsFirst)
             )
 
