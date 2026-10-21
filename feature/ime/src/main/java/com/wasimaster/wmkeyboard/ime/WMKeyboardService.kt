@@ -13356,6 +13356,10 @@ open class WMKeyboardService : InputMethodService() {
         // incognito and with learning off too. Other corrections of the same
         // typed word stay live.
         suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+        // The restored word's commit was worked out while the rejection still
+        // waited, so it holds the very correction just turned down: Enter,
+        // or Space, would apply it straight back from there (#866).
+        commitResolution = null
         val state = _uiState.value
         if (state.settings.learnFromTyping &&
             !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
