@@ -143,9 +143,9 @@ object AiMemoryRecall {
                     file.parentFile?.mkdirs()
                     index.write(file)
                 }
-                index.score(vector) { it in byId }
+                index.search(vector, TUNING) { it in byId }
             }
-            MeaningRank.select(hits, TUNING).mapNotNull { byId[it.key] }
+            hits.mapNotNull { byId[it.key] }
         }.getOrNull().orEmpty()
     }
 

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Phase 0 benchmark harness for native/RUST_NEON_PLAN.md. No Gradle: compiles
 # Phase0Bench.kt with the Kotlin compiler from the Gradle cache against the
-# release classes jars a previous build left in a checkout (plus Samplers.kt
-# from source, which is newer than most checkouts' last build), then
+# release classes jars a previous build left in a checkout (plus Samplers.kt,
+# VectorIndex.kt, MeaningRank.kt and NativeEngine.kt from source, newer than
+# most checkouts' last build), then
 #   host     runs it on this machine's JVM
 #   dex      d8s it (plus the jars and kotlin-stdlib) into out/bench.dex
 #   device   pushes the dex and runs it under ART with app_process
@@ -42,7 +43,10 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
   rm -rf "$OUT/classes"
   java -cp "$KCP" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 17 \
     -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
-    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt"
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
+    "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt"
 fi
 
 case "$mode" in

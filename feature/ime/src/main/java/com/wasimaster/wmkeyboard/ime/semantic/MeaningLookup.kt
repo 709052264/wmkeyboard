@@ -79,7 +79,7 @@ internal class MeaningLookup(
         if (live.isEmpty()) return emptyList()
         val index = indexOf(space)
         if (index.size == 0) return emptyList()
-        return MeaningRank.select(index.score(vector) { it in live }, MeaningRank.TEXT)
+        return index.search(vector, MeaningRank.TEXT) { it in live }
     }
 
     companion object {

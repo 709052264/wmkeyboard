@@ -58,14 +58,21 @@ object MeaningRank {
     /** The hits of [scored] (best first, as [VectorIndex.score] returns them) worth showing. */
     fun select(scored: List<Hit>, tuning: Tuning): List<Hit> {
         if (scored.isEmpty()) return emptyList()
-        val best = scored.first().score
-        val bar = if (scored.size >= tuning.minForMedian) {
-            maxOf(tuning.floor, best - tuning.fromBest, median(scored) + tuning.aboveMedian)
+        val bar = bar(scored.first().score, scored.size, tuning) { median(scored) }
+        return scored.asSequence().takeWhile { it.score >= bar }.take(tuning.limit).toList()
+    }
+
+    /**
+     * The score a hit needs, given the [best] of [count] scored items;
+     * [median] is asked only when there are enough of them to have one.
+     * [VectorIndex.search] reaches the same bar without sorting.
+     */
+    internal inline fun bar(best: Float, count: Int, tuning: Tuning, median: () -> Float): Float =
+        if (count >= tuning.minForMedian) {
+            maxOf(tuning.floor, best - tuning.fromBest, median() + tuning.aboveMedian)
         } else {
             maxOf(tuning.floor, tuning.smallSetBar, best - tuning.fromBest)
         }
-        return scored.asSequence().takeWhile { it.score >= bar }.take(tuning.limit).toList()
-    }
 
     /**
      * The keyword matches first, in their own order, then what was found only

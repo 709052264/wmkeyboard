@@ -31,6 +31,8 @@ import com.wasimaster.wmkeyboard.core.ocr.PaddleRuntime
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
 import com.wasimaster.wmkeyboard.core.prediction.Trie
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
+import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.stickers.CutoutMask
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
@@ -114,18 +116,27 @@ object Phase0Bench {
         val d = 768
         val r = Random(1)
         for (count in intArrayOf(1_000, 5_000, 20_000)) {
-            val index = VectorIndex(d)
             val raw = Array(count) { unitVector(r, d) }
+            val heap = usedHeap()
+            val index = VectorIndex(d)
             raw.forEachIndexed { i, v -> index.put("item/$i", 0L, v) }
+            val bytes = usedHeap() - heap
+            println(String.format(Locale.ROOT, "VectorIndex ${count}x$d heap %.1f MB (keys and stamps included)", bytes / 1e6))
             val q = unitVector(r, d)
-            bench("VectorIndex.score ${count}x$d", "per search (300 ms debounce)") { index.score(q) }
-            // The same dot products with no Hit objects and no sort: the part
-            // NEON would replace.
-            val stored = Array(count) { index.vectorOf("item/$it")!! }
+            for (native in listOf(false, true)) {
+                if (native && !NativeEngine.loaded) continue
+                NativeEngine.forceKotlin = !native
+                val how = if (native) "native" else "kotlin"
+                bench("VectorIndex.score ${count}x$d $how", "every hit, sorted") { index.score(q) }
+                bench("VectorIndex.search ${count}x$d $how", "per search (300 ms debounce)") { index.search(q, MeaningRank.TEXT) }
+            }
+            NativeEngine.forceKotlin = false
+            // The same dot products with no Hit objects and no sort, on the
+            // f32 vectors: the part the kernel replaces.
             val out = FloatArray(count)
-            bench("  dots only ${count}x$d", "share of the above") {
+            bench("  dots only ${count}x$d kotlin f32", "share of the above") {
                 for (i in 0 until count) {
-                    val v = stored[i]
+                    val v = raw[i]
                     var dot = 0f
                     for (k in 0 until d) dot += v[k] * q[k]
                     out[i] = dot
@@ -133,6 +144,12 @@ object Phase0Bench {
                 out
             }
         }
+    }
+
+    private fun usedHeap(): Long {
+        val rt = Runtime.getRuntime()
+        repeat(3) { System.gc(); Thread.sleep(50) }
+        return rt.totalMemory() - rt.freeMemory()
     }
 
     // ---- GIF encoding -------------------------------------------------------------
