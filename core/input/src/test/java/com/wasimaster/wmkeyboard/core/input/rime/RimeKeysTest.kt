@@ -44,6 +44,22 @@ class RimeKeysTest {
     }
 
     @Test
+    fun `a picked T9 syllable is set off from the digits after it`() {
+        // xi picked from the column, then 26 typed: RIME reads xi26 as xiao.
+        val input = RimeKeys.translate(RimeMethod.T9_PINYIN, "xi26")
+        assertEquals("xi'26", input.input)
+        // The added mark goes with the syllable before it.
+        assertEquals(2, input.bufferChars(2))
+        assertEquals(2, input.bufferChars(3))
+        assertEquals(4, input.bufferChars(5))
+        // Already separated, or digits only: nothing added.
+        assertEquals("xi'an", RimeKeys.translate(RimeMethod.T9_PINYIN, "xi'an").input)
+        assertEquals("xi'26", RimeKeys.translate(RimeMethod.T9_PINYIN, "xi'26").input)
+        assertEquals("9426", RimeKeys.translate(RimeMethod.T9_PINYIN, "9426").input)
+        assertEquals("xi'an'9", RimeKeys.translate(RimeMethod.T9_PINYIN, "xi'an9").input)
+    }
+
+    @Test
     fun `bufferChars clamps outside the input`() {
         val input = RimeKeys.translate(RimeMethod.PINYIN, "ni")
         assertEquals(0, input.bufferChars(-1))

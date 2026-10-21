@@ -73,11 +73,14 @@ as UTF-8 byte offsets into the input, as librime counts them.
   by an explicit deploy.
 - `nativeCreateSession()`, `nativeSelectSchema`, `nativeSetOption`,
   `nativeSetInput(session, input)`: one session, given the whole reading.
-- `nativeMenu(session, limit, spans)`: candidates of the segment being
-  composed. `spans[0]` is where that segment starts, `spans[i + 1]` where
-  candidate `i` ends. This is librime's own `Candidate::end()`, read through
-  its C++ classes because the C API does not expose it, and it is what makes
-  the keyboard's prefix commit exact: picking 你 for `nihao` consumes `ni`.
+- `nativeMenu(session, limit, spans, comments)`: candidates of the segment
+  being composed. `spans[0]` is where that segment starts, `spans[i + 1]`
+  where candidate `i` ends. This is librime's own `Candidate::end()`, read
+  through its C++ classes because the C API does not expose it, and it is
+  what makes the keyboard's prefix commit exact: picking 你 for `nihao`
+  consumes `ni`. `comments`, when not null, gets each candidate's comment,
+  which in a schema with `spelling_hints` is the spelling it was found under:
+  the T9 pad reads its syllables from there (`xi an` for 西安 typed `94'26`).
 - `nativeSelect(session, index)`: picks candidate `index` the way a tap does.
   When the pick finishes the input, the session commits and its user
   dictionary learns the phrase.
@@ -94,4 +97,6 @@ rime_host_test shared/ user/ luna_pinyin nihaoshijie 1 0
 ```
 
 prints the menu for `nihaoshijie`, picks 你好 (index 1), shows the next
-segment starting at byte 5, picks 世界 and reports the commit.
+segment starting at byte 5, picks 世界 and reports the commit. Each run
+deploys every schema in `shared/` first, which takes over a minute with Rime
+Ice; `RIME_SKIP_DEPLOY=1` starts on what the last run compiled into `user/`.
