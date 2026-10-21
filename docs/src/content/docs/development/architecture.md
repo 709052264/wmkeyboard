@@ -223,8 +223,15 @@ On the Rust side, `wm-engine`'s `kernels` module holds the data-parallel
 loops. Each has a scalar reference, an aarch64 NEON version on the stable
 intrinsics, and a dispatcher that reads the CPU features once at run time
 (`dotprod` and `fp16` are optional extensions), with a test comparing every
-SIMD version against the reference. In `wm-engine-jni`, every entry point
-runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
+SIMD version against the reference. Kernels serve more than prediction: the
+scanner's PaddleOCR reader shrinks the photo for its detector and picks each
+recogniser step's best class through them (`box_average`, `argmax`). Those two
+keep their Kotlin loops, which run when the library is missing or
+`forceKotlin` is set. The sticker GIF encoder (`wm_engine::gif`, behind
+`GifEncoder` when a field takes no WebP) is Rust whole, with NEON for its
+per-pixel loops (`kernels/gif.rs`), and has no Kotlin copy left in the app:
+like prediction's, its old Kotlin is the reference `GifParityTest` checks the
+bytes against (`feature/ime/src/test/.../core/media/reference`). In `wm-engine-jni`, every entry point runs inside `guard::guarded`, so a Rust panic arrives in Kotlin as an
 exception instead of killing the keyboard. Data that outlives a call, such as
 a mapped dictionary, stays in Rust behind a `handles::Registry` handle.
 Calls are batched, one crossing per query or per array.

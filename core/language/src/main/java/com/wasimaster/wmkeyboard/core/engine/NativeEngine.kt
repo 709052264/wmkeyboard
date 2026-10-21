@@ -27,7 +27,9 @@ import java.io.File
  * migrated piece back to its Kotlin copy, and a setting drove it. Every
  * copy has since been deleted from the app, kept in the test sources as the
  * reference its parity test compares against, so prediction runs in Rust
- * regardless, as the transliteration engines always did.
+ * regardless, as the transliteration engines always did. The OCR kernels
+ * ([boxAverageBgr], [argmaxRows]) still answer false while [useNative] is
+ * off, and their callers run the Kotlin loops they replaced.
  */
 object NativeEngine {
     const val LIBRARY = "wm_engine_jni"
@@ -157,8 +159,50 @@ object NativeEngine {
             false
         }
 
+    /**
+     * The ARGB photo [pixels] ([width] × [height]) shrunk at [scale] (under
+     * 1) by averaging each output pixel's whole box of photo pixels, into
+     * the [outW] × [outH] corner of [out], rows [stride] pixels apart, three
+     * floats per pixel: BGR, each `(value / 255 - mean) / std`. The rest of
+     * [out] is zeroed. [norm] is the three means, then the three deviations.
+     * Bit for bit what `PaddleOcrPipeline.detectorInput` computes in Kotlin;
+     * NEON on arm64. False, with [out] untouched, when [useNative] is off,
+     * the library predates the kernel, or the shape is not one the kernel
+     * takes: run the Kotlin then.
+     */
+    fun boxAverageBgr(
+        pixels: IntArray, width: Int, height: Int, scale: Float,
+        outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
+    ): Boolean = useNative && try {
+        nativeBoxAverageBgr(pixels, width, height, scale, outW, outH, stride, norm, out)
+    } catch (_: UnsatisfiedLinkError) {
+        false
+    }
+
+    /**
+     * The index of the first largest value in each [cols]-wide row of
+     * [data] into [out], one per row, as a strict `>` scan from index 0
+     * finds it (so a NaN never wins). True when it ran: false when
+     * [useNative] is off, the library predates the kernel or [out] could
+     * not take every row, and then the caller runs its Kotlin. NEON on arm64.
+     */
+    fun argmaxRows(data: FloatArray, cols: Int, out: IntArray): Boolean {
+        if (!useNative || cols <= 0) return false
+        val rows = data.size / cols
+        return rows <= out.size && try {
+            nativeArgmaxRows(data, cols, out) == rows
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+    }
+
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
     private external fun nativeSharpen(src: IntArray, width: Int, first: Int, count: Int, amount: Float, out: IntArray): Int
+    private external fun nativeBoxAverageBgr(
+        pixels: IntArray, width: Int, height: Int, scale: Float,
+        outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
+    ): Boolean
+    private external fun nativeArgmaxRows(data: FloatArray, cols: Int, out: IntArray): Int
 }

@@ -88,7 +88,8 @@ Fixes these runs found in Kotlin, unmeasured and out of scope here:
 value depends only on the key, so it could be one table per anchor filled in
 `buildCosts`. `VectorIndex.score` sorts every hit when its callers keep a few.
 `GifEncoder.Palette.of` builds its used-bucket list through a boxed
-`(0 until BUCKETS).filter` on every frame.
+`(0 until BUCKETS).filter` on every frame (fixed before the Rust port, see
+"GIF encoder" under Phase 1).
 
 ## Shared infrastructure
 
@@ -166,8 +167,8 @@ Verdicts from Phase 0, host Kotlin cost (see the table there). In priority order
 |---|---|---|---|---|
 | Photo editor sharpen (`PhotoEditRenderer.sharpenInPlace`) | 67 ms at the 2048 px preview, 257 ms at 12 MP | per adjust change in the editor while sharpen is on; per photo sent | **done** (`kernels/sharpen.rs`) | measured 18x at 2048 px and 11x at 12 MP in the renderer's bands (host); see the status line below |
 | Embedding dot products (`VectorIndex.score`) | 0.74 / 3.8 / 17 ms at 1k / 5k / 20k vectors, 80-88% in the dots | per meaning search, per AI memory recall, per sticker in a tagging pass | **done** (f32; int8 measured and not adopted, see below) | measured 7-8x per search: 0.094 / 0.48 / 2.0 ms on the host |
-| OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page |
-| GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first |
+| OCR pre/post-processing (`PaddleOcrPipeline`) | 42 ms per page outside inference | per OCR read | **port** `detectorInput`'s box average and `ctcDecode`'s argmax (75% of it); `strip` stays. **Done** (host), see below | 4-8x on those two: u8 pairwise sums and a 4-lane max with index. At 5x, roughly 42 to 17 ms per page. Measured on the host: box average 15.0 to 2.8 ms (5.3x), argmax 0.23 to 0.060 ms per piece (3.8x), the whole `read` 43-45 to 21-22 ms |
+| GIF encoding (`GifEncoder`) | 4.4 ms a frame, 135 ms per 30-frame GIF | per animated sticker sent into a GIF-only field | **port, last**, as mostly scalar Rust. **Done** (host), see below | small from NEON: 43% is LZW's serial hash chain and 38% median cut. There is no nearest-colour search or dithering to vectorise (the palette is a lookup table). Rust's gain is bounds checks and allocation, maybe 2x. Try the Kotlin boxing fix first. Measured on the host: the Kotlin fix 4.36 to 3.65 ms a frame, then Rust 1.59 ms (2.7x over Phase 0), 130.5 to 47.7 ms a GIF |
 | Glide shape scoring (`GlideBeam`, `DuetBeam`, `CtcGlideBeam`) | 2.2 / 6.7 ms per decode, 7.6 / 19.7 ms per stroke of previews; the distance loop is 1 µs | per swipe | **skip as a Phase 1 kernel**; Phase 2 step 4 ports the decoders | the time is in `advance`, a banded min-plus DP called per trie node. A JNI call per node would cost more than it saves, so vectorise its band (4-lane min/select, perhaps 2x on a decode) inside the Rust decoder |
 | Cutout, NSFW filter, sticker generator glue | 0.42, 0.05 and 0.012-0.61 ms | per cutout, picture or UNet step, each beside a network that takes hundreds of ms to seconds | **skip** | under 1% of the action |
 | Audio glue (PCM16 to float, energy, `WhisperMel`, `WavEncoder`) | 1 µs per 100 ms chunk; 5.5 ms mel and 0.06 ms WAV per utterance | per chunk; per utterance | **skip** | under 1% of capture or inference. No Kotlin resampler exists: capture is at 16 kHz already |
@@ -177,7 +178,9 @@ Phase 2 already moves them.
 
 Status: verdicts in from host numbers; the phone column is owed (see Phase 0).
 Kernel sessions may start in the order above. Embedding dot products: done
-(f32), host numbers only.
+(f32), host numbers only. OCR kernels: done, host only. GIF encoder: done,
+host only, the last item: **Phase 1 is done** on host numbers; the phone
+column is still owed for every kernel.
 
 **Sharpen: done 2026-10-21, host only.** `kernels::sharpen::sharpen_argb`,
 `NativeEngine.sharpen` (false without the library or with `useNative` off,
@@ -275,6 +278,111 @@ few thousandths reorders them. The int8 build was fast, 0.029 / 0.17 /
 fp16 rows (half the memory, widened to f32 with `vcvt` and summed with
 `vfmaq_f32`) keep the ranking and would be the next step if the 20k scan
 matters on a phone.
+
+### OCR kernels (done)
+
+`kernels/box_average.rs` (`box_average_bgr`) and `kernels/argmax.rs`
+(`argmax_rows`), JNI `NativeEngine.nativeBoxAverageBgr` (one crossing per
+photo) and `nativeArgmaxRows` (one per block of logits, 40 × 18,385 per
+piece). `PaddleOcrPipeline.detectorInput` and `ctcDecode` call
+`NativeEngine.boxAverageBgr` / `argmaxRows`, which answer false when
+`useNative` is off (the library is absent, or `forceKotlin` is set), and
+the Kotlin loops run then. Unlike prediction's, these Kotlin copies stay.
+A photo the detector grows (scale 1 or more) stays on the Kotlin bilinear.
+
+- Box average: not pairwise adds after all. A box is 6 or 7 photo pixels
+  wide at 12 MP and its edges move with `floor`/`ceil`, so the kernel sums
+  each box's rows down every column first (`vld4q_u8` splits sixteen ARGB
+  pixels into planes, `uaddw` widens into `u16`, six registers per sixteen
+  columns), stores the sums `[b, g, r, 0]` per column, then adds each
+  output pixel's columns as one `u32x4` and normalises the three channels
+  in one vector. Integer sums and the same IEEE divides and subtracts in the
+  same order make it bit-identical to the Kotlin, not just close. A box
+  taller than 257 rows (a photo over about 165,000 pixels on its long side)
+  would overflow the `u16` sums and takes the scalar reference.
+- Argmax: four accumulators of four lanes, each a value and an index moved
+  only on a strict `fcmgt`, reduced by largest value, then smallest index
+  among the lanes equal to it, then the tail by the same strict rule. So a
+  tie gives the first index, `-0.0` ties `0.0`, a NaN never wins and a row
+  starting with a NaN answers 0, all as the Kotlin scan does.
+- Parity: Rust tests compare NEON with the reference bit for bit (ten photo
+  sizes including every column tail, saturated white, tall boxes; argmax
+  over `testing::LENGTHS` and 18,385 with ties, zeros, NaNs and
+  infinities). `PaddleOcrNativeParityTest` (`:core:intelligence`) compares
+  the Kotlin with the native path on generated pages of printed text (AWT,
+  level, tilted and vertical lines, sensor noise; 4000×3000, 3024×4032,
+  641×480, 1203×1601, 2000×37, 37×2000, 4096², and the grown sizes): the
+  detector input bit for bit, `ctcDecode`'s text and confidence over six
+  kinds of logits, and the lines of a whole `read` through a stand-in
+  runtime whose detector and recognizer answer from the pixels they are
+  given, so any difference upstream would change the text. No PaddleOCR
+  graph runs on the JVM, so that stand-in is as close to the real models
+  as the test gets; the kernels being exact is what carries the result.
+- Speed (`native/bench/phase0/run.sh host only=ocr`, `WM_NATIVE=kotlin` for
+  the before, two runs each, load average 6.8-7.6): `detectorInput` 12 MP
+  14.8-15.3 to 2.76-2.88 ms; `ctcDecode` 0.224-0.234 to 0.060 ms; `read`
+  minus inference 43.1-45.1 to 21.0-21.6 ms. What is left of `read` is
+  mostly `strip`'s bilinear and the bench's stand-in copying 2.9 MB of
+  logits per piece. Phone not measured (no pairing).
+- Size, against a build of the main it merged into (55a8517e0, with the
+  sharpen kernel): libwm_engine_jni arm64-v8a 2,120,680 -> 2,129,208 B
+  (+8,528), armeabi-v7a 1,546,856 -> 1,550,248 (+3,392), x86_64 2,426,960
+  -> 2,433,080 (+6,120). Segment padding makes these jumpy: main's build
+  with and without sharpen is the same size, and the same two kernels
+  measured +4,048 / +1,296 / +2,816 on the main before it.
+
+### GIF encoder (done, in Rust)
+
+`wm_engine::gif` holds the whole encoder: the header, `FrameEncoder::frame`
+(bounds, palette, index mapping, LZW, with its tables kept for the next
+frame) and an in-memory `Encoder` for WMK Desktop. The per-pixel loops are
+the kernel family `kernels/gif.rs`. JNI `gif.rs` serves `GifNative`
+(`core/content`): a frame is one crossing, its pixels pinned and its bytes
+returned as one `byte[]`, with the tables in a thread-local. `GifEncoder`
+keeps its API and writes what Rust returns; it calls `requireLoaded`, so
+there is no Kotlin fallback. The Kotlin encoder moved to
+`feature/ime/src/test/.../core/media/reference/KotlinGifEncoder.kt`, as
+prediction's did, and `GifParityTest` compares whole `.gif` files from the
+two: the animated WebP fixture and a lossy 512 px WebP sticker decoded on
+Robolectric's native graphics, 30 smooth sticker frames, flat cartoon
+frames, and edge cases (one pixel, one row or column, nothing drawn, alpha
+127 against 128, 1 to 300 colours, noise that refills the code table,
+delays past both clamps, no frames).
+
+- The Kotlin fix came first and is in the oracle too: `Palette.of` built its
+  used-bucket list through a boxed `(0 until BUCKETS).filter`, its median
+  cut boxed indices on every split, and each frame allocated about a
+  megabyte of histogram, lookup and hash tables. The encoder now keeps them
+  and clears what the frame used. Same bytes.
+- Exactness is free here: everything is integer. The median cut sorts by
+  (channel, bucket) as Kotlin's `LongArray` key did; buckets are distinct,
+  so a run over 96 long sorts by setting a bit per key in a 2^15-bit map and
+  reading the bits back, and a shorter one with `sort_unstable`. LZW's
+  output depends only on what its table holds, so the Kotlin hash became a
+  table indexed by `prefix << data_bits | index` (2 MB at 8 bits), cleared
+  through the list of slots it set rather than wholesale.
+- NEON, where it is lane-parallel: the bounds test sixteen pixels per step
+  (alpha 128 and up is the top bit) and, in a row that draws anything,
+  read only in from each end; the histogram and the index mapping work out
+  four buckets at a time with shifts, masks and the opacity select, and
+  leave the table accesses to scalar code, since NEON has no scatter or
+  gather. The histogram also folds runs of one bucket into lane sums, one
+  table update per run: Kotlin's per-pixel update waits on the last when
+  neighbours share a bucket.
+- Host, Phase 0 harness, same runs. The Kotlin fix: 4.36 to 3.65 ms a
+  512² frame, 130.5 to 109.3 ms a 30-frame GIF. Then Rust, against the
+  fixed Kotlin: 3.61 to 1.59 ms a frame (1.98 with the kernels pinned to
+  scalar), 108.2 to 47.7 ms a GIF (59.6 scalar). From Phase 0's 4.4 / 135
+  ms that is 2.7x. Inside Rust, a frame of the bench's smooth sticker is
+  about 0.40 ms histogram, 0.37 median cut, 0.63 LZW, 0.07 index mapping
+  and 0.02 bounds (0.41 for the scalar bounds). The histogram's run folding
+  does nothing for that sticker, whose bucket changes every two or three
+  pixels, but takes a flat cartoon frame's histogram from 0.49 to 0.09 ms.
+  Phone column owed.
+- Size, against the main it merged into (c8d8068f3, with the OCR
+  kernels): libwm_engine_jni arm64-v8a 2,129,208 -> 2,149,240 B (+20,032),
+  armeabi-v7a 1,550,248 -> 1,562,240 (+11,992), x86_64 2,433,080 ->
+  2,453,056 (+19,976).
 
 ## Phase 2: prediction core in Rust
 

@@ -2,15 +2,18 @@
 # Phase 0 benchmark harness for native/RUST_NEON_PLAN.md. No Gradle: compiles
 # Phase0Bench.kt with the Kotlin compiler from the Gradle cache against the
 # release classes jars a previous build left in a checkout (plus Samplers.kt,
-# VectorIndex.kt, MeaningRank.kt, NativeEngine.kt, GifEncoder.kt and the
-# Kotlin GIF encoder kept in the tests from source, which are newer than most
-# checkouts' last build; EXTRA_SRC adds more), then
+# PaddleOcrPipeline.kt, VectorIndex.kt, MeaningRank.kt, NativeEngine.kt,
+# GifEncoder.kt and the Kotlin GIF encoder kept in the tests from source,
+# which shadow the jars' copies, so a kernel's before and after time this
+# checkout's code; EXTRA_SRC adds more), then
 #   host     runs it on this machine's JVM
 #   dex      d8s it (plus the jars and kotlin-stdlib) into out/bench.dex
 #   device   pushes the dex and runs it under ART with app_process
 #
 # Usage: native/bench/phase0/run.sh <host|dex|device> [only=vector,gif,ocr,image,glide,audio] [budget=1]
 # Env:   CHECKOUT  checkout whose core/*/build jars to use (default: this one)
+#        WM_NATIVE=kotlin  the Kotlin paths and scalar kernels (the "before"); the
+#                  host library is found from the working directory, as in tests
 #        OUT       work dir (default: native/bench/phase0/out, gitignored)
 set -euo pipefail
 
@@ -45,6 +48,7 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
   java -cp "$KCP" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 17 \
     -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/ocr/PaddleOcrPipeline.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/VectorIndex.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
     "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt" \
