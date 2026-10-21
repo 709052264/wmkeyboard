@@ -25801,11 +25801,44 @@ open class WMKeyboardService : InputMethodService() {
             redecodeDuet(commit = false, backspaced = removed)
             return true
         }
+        val keys = duetWord.keys
+        val keyWidthPx = duetWord.keyWidthPx
+        val typed = duetWord.typedText().orEmpty()
         // The setter ends the gestures and any decode of them.
-        composing = StringBuilder(duetWord.typedText().orEmpty())
+        composing = StringBuilder(typed)
         updateComposingText(ic)
-        refreshSuggestions()
+        // The swipe just taken out off a word begun with taps can come back as
+        // the next word too (#870), and the strip's merged reading is stale
+        // from this moment: picked, it would type the swipe back in.
+        if (removed != null && typed.isNotEmpty() && _uiState.value.settings.gesture.twoThumbGlide) {
+            offerBackspacedSwipe(typed, removed, keys, keyWidthPx)
+        } else {
+            refreshSuggestions()
+        }
         return true
+    }
+
+    /**
+     * The "↪ tail" chip for [removed], read off the main thread, once the
+     * word left behind it is [typed] letters with no swipe (#870). Until it
+     * is read the strip is empty; a swipe that reads as nothing gets the
+     * ordinary strip for the letters.
+     */
+    private fun offerBackspacedSwipe(typed: String, removed: GlideToken.Swipe, keys: List<KeyCenter>, keyWidthPx: Float) {
+        suggestionJob?.cancel()
+        _uiState.update { it.copy(suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap()) }
+        val generation = duetGeneration
+        duetJob = serviceScope.launch {
+            val tail = withContext(Dispatchers.Default) { loneSwipeWord(removed.points, keys, keyWidthPx) }
+            if (generation != duetGeneration || composing.toString() != typed) return@launch
+            if (tail.isNullOrEmpty()) {
+                refreshSuggestions()
+                return@launch
+            }
+            val split = DuetSplit("↪ $tail", null, tail, removed, keys, keyWidthPx)
+            duetSplit = split
+            _uiState.update { it.copy(suggestions = listOf(split.chip)) }
+        }
     }
 
     /**

@@ -93,6 +93,26 @@ class TwoThumbSplitTest {
     }
 
     @Test
+    fun `backspace on a word begun with taps offers the swipe, and drops the merged reading`() {
+        // #870: no swipe left in the word, so the chip was never offered,
+        // and the strip's stale "qw tail" typed the swipe back in.
+        val (service, editor) = keyboard(settings())
+        words(service)
+        val tail = tail(service)
+        service.onKey(Key("q"))
+        service.onKey(Key("w"))
+        middle(service)
+        drain(service)
+        service.onKey(Key("⌫", action = KeyAction.Delete))
+        drain(service)
+        assertTrue(strip(service).toString(), "↪ $tail" in strip(service))
+        assertTrue(strip(service).toString(), "qw $tail" !in strip(service))
+        service.onSuggestionTapped("↪ $tail")
+        drain(service)
+        assertEquals("qw $tail", editor.text.toString())
+    }
+
+    @Test
     fun `one swipe offers no split`() {
         val (service, _) = keyboard(settings())
         words(service)
