@@ -21710,7 +21710,9 @@ private fun typesQuestionMark(key: Key, mark: String): Boolean {
 internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     if (numericPadActive(state)) {
         state.layouts.numeric?.let { pad ->
-            return if (state.layouts.numericAuthored) pad else pad.withNumpadActionKeys(state)
+            // Mode keys on a pad draw their mode's name too (#874).
+            val names = state.settings.keyboardModes.associate { it.id to it.name }
+            return (if (state.layouts.numericAuthored) pad else pad.withNumpadActionKeys(state)).withModeKeyNames(names)
         }
     }
     val grid = when (state.layoutMode) {
@@ -21935,7 +21937,8 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         questionMark == null && questionSwap == null && periodAlternates.isEmpty() &&
         !reorderAlternates && !numpadOnHold && !fancyDigits
     ) {
-        return base
+        // With every rewrite off, mode keys still draw their mode's name (#874).
+        return base.withModeKeyNames(modeNames)
     }
     val bottom = base.rows.lastIndex
     // copy rather than KeyboardLayout(name, rows): a positional rebuild
@@ -22195,6 +22198,19 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
         }
     }
     return base.copy(rows = rewritten)
+}
+
+/**
+ * [this] with every key's mode bindings labelled by [withModeNames], for the
+ * paths that return a layout without the per-key pass (#874). The same
+ * layout when no key is bound to a mode.
+ */
+private fun KeyboardLayout.withModeKeyNames(names: Map<String, String>): KeyboardLayout {
+    var changed = false
+    val named = rows.map { row ->
+        row.map { key -> key.withModeNames(names).also { if (it !== key) changed = true } }
+    }
+    return if (changed) copy(rows = named) else this
 }
 
 /**

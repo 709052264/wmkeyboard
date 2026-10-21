@@ -177,6 +177,23 @@ class CurrentLayoutTest {
         assertEquals(KeyAction.KanaVariant, currentLayout(kanaPad(settings, ready = true)).rows[0][0].action)
     }
 
+    /**
+     * #874: with every adaptation off the grid comes back as it is, except
+     * that a mode key with no label of its own still draws its mode's name.
+     */
+    @Test
+    fun `a mode key is named on the untouched grid too`() {
+        val base = state(settings = plain())
+        val letters = base.layouts.letters
+        val rows = letters.rows.toMutableList()
+        rows[0] = listOf(Key("", action = KeyAction.Mode("code"))) + rows[0].drop(1)
+        val settings = plain().copy(
+            keyboardModes = listOf(com.wasimaster.wmkeyboard.core.settings.KeyboardMode(id = "code", name = "Code")),
+        )
+        val s = base.copy(settings = settings, layouts = base.layouts.copy(letters = letters.copy(rows = rows)))
+        assertEquals("Code", currentLayout(s).rows[0][0].label)
+    }
+
     private fun plain(): KeyboardSettings = KeyboardSettings(
         globeAsEmoji = false,
         swapCommaAndGlobe = false,
