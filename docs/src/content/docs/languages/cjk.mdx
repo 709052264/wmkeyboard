@@ -414,7 +414,7 @@ Until all three are in place, and while a compile is running, the language keeps
 | Cangjie 5 (倉頡五代) | cangjie5, cangjie5_express | Cangjie | LGPL-3.0 |
 | Jyutping (粵拼) | jyut6ping3 | Cantonese Jyutping | CC BY 4.0 and ODbL |
 
-Each pack carries its upstream licence in a `licenses` folder inside the zip. The Rime Ice pack leaves out its Tencent word-vector list, the largest table, which would take minutes to compile on a phone. RIME's Lua plugin is not in this build either, so the Lua parts of Rime Ice (its date, calculator and correction scripts) are skipped and the rest of the schema works.
+Each pack carries its upstream licence in a `licenses` folder inside the zip. The Rime Ice pack leaves out its Tencent word-vector list, the largest table, which would take minutes to compile on a phone. RIME's Lua plugin is not in this build either, so the Lua parts of Rime Ice (its date, calculator and correction scripts) are skipped and the rest of the schema works. It would make the library a third bigger and let any imported schema run its own code inside the keyboard, and the keyboard already has date, time and Chinese numeral shortcuts of its own.
 
 **Which schema a layout uses.** Once something is compiled, a picker appears per kind of layout: **Pinyin layouts**, **9-key Pinyin layout**, **Zhuyin layout**, **Cangjie layout** and **Stroke layout** for Chinese, **Jyutping layout** for Cantonese. **Automatic** takes the first downloaded pack that serves the layout, in the order of the table above. Cangjie Quick has no RIME schema here and stays on the built-in engine.
 

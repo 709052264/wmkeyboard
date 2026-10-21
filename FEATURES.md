@@ -1038,6 +1038,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Same keys — Zhuyin glyphs map onto the Dachen keys, Cangjie radicals onto letters, strokes onto h s p n z; a schema picker per kind of layout
     - Exact prefix commit — Spans are librime's own candidate ends; Simplified, Traditional, Taiwan and Hong Kong forms are librime filter switches inside its menu
     - Learns whole phrases — A pick goes to RIME's user dictionary; picking 你好 then 世界 teaches 你好世界. Not in incognito or password fields
+    - 9-key Pinyin with the syllable column — Rime Ice's `t9` schema; a picked syllable reaches RIME set off by `'` (its T9 algebra reads `xi26` as xiao), the column leads with the syllable RIME's first candidate spells, and the composing text shows that spelling
+    - 联想 after a commit — Chinese gets the built-in Mandarin predictor (word pairs pack plus your habits) whichever schema typed it; librime-predict, keyed on the exact last commit, found almost nothing after RIME's phrase commits on held-out text. Cantonese gets none
+    - No Lua — librime-lua measured at +0.92 MiB (+34%) on arm64; left out, since Lua's io/os would let any imported schema run code in the keyboard. Rime Ice's Lua components are skipped
     - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
   - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.34. Built-in stays the default
     - Own library on its own gate — `libwmmozc.so` (native/mozc-jni: Mozc's converter with Abseil and Protocol Buffers, built with Mozc's own Bazel Android config; 16 KB pages, JNI symbols only) behind the `mozc` gate: `:feature:mozc` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in

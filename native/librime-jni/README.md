@@ -42,7 +42,13 @@ machine out of it.
 All unmodified. Left out on purpose: glog (librime logs nothing in this
 build), snappy (user dictionaries are small and never leave this library),
 and every librime plugin, Lua included, so schemas that call Lua components
-(Rime Ice's date, calculator and correction scripts) skip them. The
+(Rime Ice's date, calculator and correction scripts) skip them. librime-lua
+(`hchunhui/librime-lua` 6da5d6c with Lua 5.4.7) was measured linked in: the
+arm64 library grows from 2,871,624 to 3,837,288 bytes, a third. It stays
+out: what Rime Ice's scripts add the keyboard mostly has already (date and
+time shortcuts, Chinese numerals), and Lua runs with its `io` and `os`
+libraries in the keyboard's process, so any imported schema zip would run
+code that sees every keystroke. The
 licences of all of it are in the app as
 `app/src/main/assets/licenses/rime-third-party.txt`.
 
