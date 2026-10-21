@@ -21,6 +21,7 @@ pub use crate::language_mix::{AppLanguageMix, FieldLanguageMix, Prior};
 use crate::proximity::KeyProximity;
 use crate::wmdict::{self, Dict, PackedTrie};
 use crate::wmng::Pack;
+use crate::word_key;
 use crate::{apostrophes, correction_memory};
 use std::cell::{OnceCell, RefCell};
 use std::cmp::Ordering;
@@ -197,9 +198,9 @@ fn ln1p(v: f64) -> f64 {
     (1.0 + v).ln()
 }
 
-/// The key a word is filed under.
+/// The key a word is filed under: the phone's `WordKey.of`.
 pub fn key_of(word: &str) -> String {
-    word.to_lowercase()
+    word_key::of_str(word)
 }
 
 /// A word list as a source: the dictionary, and the rank histogram the
@@ -291,13 +292,10 @@ impl Followers {
     }
 }
 
-/// Whether `word` could be learned: a letter or digit at each end, no
-/// longer than the lexicon keeps.
+/// Whether `word` could be learned: the phone's gate
+/// (`WordContext.isLearnableWord`), no longer than the lexicon keeps.
 fn learnable(key: &str) -> bool {
-    let (Some(first), Some(last)) = (key.chars().next(), key.chars().last()) else {
-        return false;
-    };
-    first.is_alphanumeric() && last.is_alphanumeric() && key.chars().count() <= MAX_WORD_LENGTH
+    word_key::is_learnable_str(key) && key.encode_utf16().count() <= MAX_WORD_LENGTH
 }
 
 /// The user's own words and phrases: the Kotlin `UserLexicon`, in memory.

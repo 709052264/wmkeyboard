@@ -3,26 +3,25 @@
 //!
 //! The Kotlin side folds every word to its key (`WordKey`) and judges
 //! learnability before calling; this side holds the store, its learning
-//! rules and its file format. A store is shared by the IME's threads, so it
+//! rules and its file format, and folds and judges on its own when it loads
+//! a file (`wm_engine::word_key`, the same rules). A store is shared by the IME's threads, so it
 //! sits behind a read-write lock: learning takes it for writing, lookups and
 //! the fuzzy walk for reading.
 
 use std::ptr::null_mut;
-use std::sync::{LazyLock, Mutex, RwLock};
+use std::sync::{LazyLock, RwLock};
 
-use jni::objects::{JBooleanArray, JClass, JIntArray, JObject, JObjectArray, JString};
+use jni::objects::{JClass, JIntArray, JObject, JObjectArray, JString};
 use jni::sys::{jboolean, jint, jlong, jobjectArray, jstring, JNI_FALSE, JNI_TRUE};
 use jni::JNIEnv;
 
-use wm_engine::user_lexicon::{PendingLoad, UserLexicon};
+use wm_engine::user_lexicon::UserLexicon;
 
 use crate::guard::{give_all_units, give_ints, give_units, guarded, object, read, read_units};
 use crate::handles::Registry;
 
 pub struct Store {
     pub lexicon: RwLock<UserLexicon>,
-    /// A parsed file waiting for the caller's verdicts.
-    pending: Mutex<Option<PendingLoad>>,
 }
 
 pub static LEXICONS: LazyLock<Registry<Store>> = LazyLock::new(Registry::new);
@@ -100,7 +99,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     _class: JClass,
 ) -> jlong {
     guarded(&mut env, 0, |_| {
-        Some(LEXICONS.insert(Store { lexicon: RwLock::new(UserLexicon::new()), pending: Mutex::new(None) }))
+        Some(LEXICONS.insert(Store { lexicon: RwLock::new(UserLexicon::new()) }))
     })
 }
 
@@ -116,62 +115,20 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `lexBeginLoad(handle, json)`: `[Array<String> strings, Array<String> shapes]`
-/// for the caller to judge, or null when the text is not a snapshot.
+/// `lexLoad(handle, json)`: reads a saved file into the store; false when
+/// the text is not a snapshot, and nothing is loaded.
 #[no_mangle]
-pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexBeginLoad(
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexLoad(
     mut env: JNIEnv,
     _class: JClass,
     handle: jlong,
     json: JString,
-) -> jobjectArray {
-    guarded(&mut env, null_mut(), |env| {
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
         let store = object!(env, LEXICONS, handle);
         let json = read(env, &json)?;
-        let Some(pending) = UserLexicon::begin_load(&json) else {
-            *store.pending.lock().unwrap_or_else(|e| e.into_inner()) = None;
-            return Some(null_mut());
-        };
-        let strings = give_strings(env, &pending.strings)?;
-        // SAFETY: local references just returned.
-        let strings = unsafe { JObject::from_raw(strings) };
-        let shapes = give_strings(env, &pending.shapes)?;
-        let shapes = unsafe { JObject::from_raw(shapes) };
-        *store.pending.lock().unwrap_or_else(|e| e.into_inner()) = Some(pending);
-        let out: JObjectArray = env.new_object_array(2, "java/lang/Object", JObject::null()).ok()?;
-        env.set_object_array_element(&out, 0, &strings).ok()?;
-        env.set_object_array_element(&out, 1, &shapes).ok()?;
-        Some(out.into_raw())
-    })
-}
-
-/// `lexFinishLoad(handle, learnable, shapeKeys)`: the verdicts for the last
-/// `lexBeginLoad`, in its order.
-#[no_mangle]
-pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_lexFinishLoad(
-    mut env: JNIEnv,
-    _class: JClass,
-    handle: jlong,
-    learnable: JBooleanArray,
-    shape_keys: JObjectArray,
-) {
-    guarded(&mut env, (), |env| {
-        let store = object!(env, LEXICONS, handle);
-        let Some(pending) = store.pending.lock().unwrap_or_else(|e| e.into_inner()).take() else {
-            return Some(());
-        };
-        let mut verdicts = vec![0u8; env.get_array_length(&learnable).ok()? as usize];
-        env.get_boolean_array_region(&learnable, 0, &mut verdicts).ok()?;
-        let verdicts: Vec<bool> = verdicts.iter().map(|&b| b != 0).collect();
-        let len = env.get_array_length(&shape_keys).ok()?;
-        let mut keys = Vec::with_capacity(len as usize);
-        for i in 0..len {
-            let item = JString::from(env.get_object_array_element(&shape_keys, i).ok()?);
-            keys.push(string(env, &item)?);
-            env.delete_local_ref(item).ok()?;
-        }
-        store.lexicon.write().unwrap_or_else(|e| e.into_inner()).finish_load(pending, &verdicts, &keys);
-        Some(())
+        let loaded = store.lexicon.write().unwrap_or_else(|e| e.into_inner()).load(&json);
+        Some(if loaded { JNI_TRUE } else { JNI_FALSE })
     })
 }
 

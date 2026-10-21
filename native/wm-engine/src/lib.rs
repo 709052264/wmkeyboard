@@ -51,6 +51,11 @@
 //!   its offer, certainty and complexity, missing-space splits, and an
 //!   in-memory user lexicon.
 //!
+//! - [`word_key`]: the key every store files a word under and the gate on
+//!   which words may be learned, as Android's runtime folds them; with
+//!   [`segment`], the words inside a run of Thai, Lao, Khmer or Burmese.
+//!   Both on ICU4X.
+//!
 //! - [`cjk`]: Chinese Pinyin (full, Double, Jianpin, fuzzy), Cantonese
 //!   Jyutping and Japanese romaji/kana conversion over one lattice decoder,
 //!   with the Simplified → Traditional tables and the user's pick history.
@@ -110,6 +115,7 @@ pub mod predict;
 pub mod proximity;
 pub mod punjabi;
 pub mod rerank;
+pub mod segment;
 pub mod sexp;
 pub mod strict_math;
 pub mod tamil;
@@ -120,6 +126,7 @@ pub mod urdu_index;
 pub mod urdu_romanizer;
 pub mod user_lexicon;
 pub mod wmdict;
+pub mod word_key;
 pub mod wmng;
 pub mod wordlist;
 pub mod zawgyi;
