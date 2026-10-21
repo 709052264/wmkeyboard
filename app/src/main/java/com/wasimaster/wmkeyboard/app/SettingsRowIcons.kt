@@ -951,6 +951,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_learned_corrections_clear_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_adapt_taps_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_mistype_tolerance_title) { Icons.Outlined.TouchApp }
+        put(R.string.typing_fix_several_slips_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_suggestion_pages_title) { Icons.Outlined.UnfoldMore }
         put(R.string.typing_suggestion_swipe_up_title) { Icons.Outlined.UnfoldMore }
         put(R.string.typing_suggestion_expanded_grid_title) { Icons.Outlined.GridOn }
