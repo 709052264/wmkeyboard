@@ -11532,6 +11532,7 @@ private fun ToolboxGrid(
     }
     FlowRow(
         modifier = Modifier
+            .highFrameRateWhile(gridScroll.isScrollInProgress)
             .verticalScroll(gridScroll)
             .onGloballyPositioned {
                 gridCoords = it

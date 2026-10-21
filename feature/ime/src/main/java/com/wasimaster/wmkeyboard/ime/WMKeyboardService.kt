@@ -7533,15 +7533,7 @@ open class WMKeyboardService : InputMethodService() {
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
-        for (page in DocScanActivity.consumePendingPages()) {
-            saveToGalleryIfEnabled(
-                page,
-                MediaMime.JPEG,
-                _uiState.value.settings.scanner.docSaveToGallery,
-                "SCAN",
-            )
-            commitImageFile(page, MediaMime.JPEG)
-        }
+        commitScanPages(DocScanActivity.consumePendingPages())
         // Fresh field: re-arm the on-keyboard writing hint and check the model
         // up front so the first swipe writes rather than nagging.
         hwModelHintShown = false
@@ -45176,6 +45168,63 @@ open class WMKeyboardService : InputMethodService() {
         }
 
         copyRefusedImage(file)
+    }
+
+    /**
+     * A finished scan's pages, into the field that asked for them (#848).
+     *
+     * One page goes the way any picture does. Several go one after another, a
+     * moment apart, for as long as that field keeps the keyboard and takes
+     * them. A chat app may not: WhatsApp opens its own send screen on the
+     * first picture, which ends the field, and every page after it was lost.
+     * What the field did not take goes to that app's share screen together,
+     * where WhatsApp sends the pages as one album; with no app to aim at, the
+     * system's share sheet.
+     */
+    private fun commitScanPages(pages: List<File>) {
+        if (pages.isEmpty()) return
+        val save = _uiState.value.settings.scanner.docSaveToGallery
+        for (page in pages) saveToGalleryIfEnabled(page, MediaMime.JPEG, save, "SCAN")
+        if (pages.size == 1) {
+            commitImageFile(pages.single(), MediaMime.JPEG)
+            return
+        }
+        fun field() = currentInputEditorInfo?.let { it.packageName to it.fieldId }
+        val asked = field()
+        serviceScope.launch {
+            for ((index, page) in pages.withIndex()) {
+                if (index > 0) delay(MEDIA_QUEUE_GAP_MS)
+                if (field() != asked || !tryCommit(page, MediaMime.JPEG)) {
+                    sharePages(pages.subList(index, pages.size), asked?.first)
+                    return@launch
+                }
+            }
+        }
+    }
+
+    /** [files] (JPEGs) on [app]'s share screen, or the system's share sheet; a toast says how many went. */
+    private fun sharePages(files: List<File>, app: String?) {
+        val uris = files.mapNotNull {
+            runCatching { FileProvider.getUriForFile(this, clipboardFileProviderAuthority, it) }.getOrNull()
+        }
+        if (uris.isEmpty()) return
+        val intent = Intent(Intent.ACTION_SEND_MULTIPLE)
+            .putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            .setType(MediaMime.JPEG)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        // The grant travels on the clip data; the extra alone carries none.
+        intent.clipData = ClipData(ClipDescription("scan", arrayOf(MediaMime.JPEG)), ClipData.Item(uris.first()))
+            .also { clip -> uris.drop(1).forEach { clip.addItem(ClipData.Item(it)) } }
+        // The launch itself is the test: package visibility hides another
+        // app's share screen from a query, never from a launch.
+        val chooser = Intent.createChooser(intent, null)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        val shared = (app != null && runCatching { startActivity(Intent(intent).setPackage(app)) }.isSuccess) ||
+            runCatching { startActivity(chooser) }.isSuccess
+        if (shared) {
+            val text = resources.getQuantityString(R.plurals.ime_docscan_pages_shared, uris.size, uris.size)
+            Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+        }
     }
 
     /** The camera's Copy on a translated photo (#807): the picture on the clipboard. */
