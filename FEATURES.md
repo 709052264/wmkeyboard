@@ -19,11 +19,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Toolbar and the tool set | 10 | 88 | 364 |
 | Clipboard, snippets, text expansion | 7 | 37 | 191 |
 | AI, voice, handwriting, scanning | 12 | 81 | 168 |
-| Privacy, backup, storage, statistics | 14 | 69 | 173 |
+| Privacy, backup, storage, statistics | 14 | 70 | 180 |
 | Accessibility, form factors, platform integration | 13 | 61 | 111 |
 | Extensibility: addons, plugins, imports, formats | 5 | 35 | 164 |
 | Modes, rows, field adaptation, runtime | 12 | 97 | 203 |
-| **Total** | **134** | **829** | **2281** |
+| **Total** | **134** | **830** | **2288** |
 
 ## Typing core: prediction, autocorrect, learning, spell check
 
@@ -3019,6 +3019,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Consent — F-Droid edition: off until Privacy › Downloads › Download feature libraries, worded per F-Droid's inclusion policy. Qualcomm's licence is accepted before the NPU runtime is fetched.
   - Import and storage — A library file whose hash matches a pin installs through the offline import; Storage lists them as Feature libraries.
   - Off with `-Pwmkb.nativeDelivery=false`, and always off on Play and in the no-internet build.
+- **Parallel, resumable downloads** `uncommon` — One downloader (`FileDownloader` in :core:common) behind models, feature libraries, CJK tables, spellers, interface language packs and GitHub app updates.
+  - Twelve ranged requests per file — Pieces from a queue into one preallocated `.part`, so a slow connection holds up only its own piece; GitHub gives 0.3 to 0.8 MB/s per connection from Bangladesh, twelve measured about 5 MB/s on the phone (2026-10-21)
+  - Every piece resumes — A `.part.ranges` map records how far each piece got; a stopped download asks only for the missing bytes, and an old one-stream `.part` counts as the file's start
+  - Falls back to one stream — A server that answers a range request with the whole file is read in one go
+  - Expired redirects re-asked — A 4xx from GitHub's signed CDN address sends the next request back to the release URL; tokens (Hugging Face) go only to the address given, never to the redirect target
+  - Dropped pieces retried — Up to three tries per piece from where it stopped, with backoff; a 5xx is retried, a 4xx is not
+  - Data saving's say mid-download — Before every request, `DataSaverDownloadGate` stops a download that finds itself on a connection where data saving holds downloads (Downloads: Turn off), keeping what arrived
+  - Same checks as before — Length and SHA-256 over the finished file before it is renamed into place; each request is a Network activity row under the feature's own source
 
 - **App lock** — Optional check in front of the settings screens and destructive buttons the user picks: BiometricPrompt, or the app's own PIN, password or pattern.
   - App-own secret — PIN (4–16 digits, own number pad, no IME), password (4+ chars) or 3×3 pattern (4+ dots, jumped middle dot joins); salted PBKDF2-SHA256 hash, 120k iterations, never the secret.

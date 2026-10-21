@@ -132,11 +132,51 @@ object FileDownloader {
         headers: Map<String, String> = emptyMap(),
         background: Boolean = source.background,
         onBytes: (Long) -> Unit = {},
+    ): Long = fetchVia(url, DataMirror.of(url), part, size, source, connections, headers, background, onBytes)
+
+    /**
+     * [fetch] from [mirror] first when there is one, then from [url] for
+     * whatever the mirror did not deliver: the pieces it wrote are kept.
+     */
+    internal suspend fun fetchVia(
+        url: String,
+        mirror: String?,
+        part: File,
+        size: Long?,
+        source: NetSource,
+        connections: Int = CONNECTIONS,
+        headers: Map<String, String> = emptyMap(),
+        background: Boolean = source.background,
+        onBytes: (Long) -> Unit = {},
     ): Long = withContext(Dispatchers.IO) {
         require(size == null || size >= 0) { "negative size" }
         part.parentFile?.mkdirs()
+        if (mirror != null) {
+            try {
+                return@withContext attempt(mirror, part, size, source, background, connections, emptyMap(), onBytes)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: DownloadException.Blocked) {
+                throw e
+            } catch (_: IOException) {
+                // Down, or without this file: the origin carries on.
+            }
+        }
+        attempt(url, part, size, source, background, connections, headers, onBytes)
+    }
+
+    private suspend fun attempt(
+        url: String,
+        part: File,
+        size: Long?,
+        source: NetSource,
+        background: Boolean,
+        connections: Int,
+        headers: Map<String, String>,
+        onBytes: (Long) -> Unit,
+    ): Long {
         val job = Job(url, part, size, source, background, connections.coerceAtLeast(1), headers, onBytes)
-        try {
+        return try {
             job.run()
         } catch (_: NoRangesException) {
             // Ranges worked before and do not now (another mirror, a proxy):
@@ -164,17 +204,41 @@ object FileDownloader {
         connections: Int = CONNECTIONS,
         headers: Map<String, String> = emptyMap(),
         onBytes: (Long) -> Unit = {},
+    ) = fetchVerifiedVia(url, DataMirror.of(url), target, size, sha256, source, part, what, connections, headers, onBytes)
+
+    internal suspend fun fetchVerifiedVia(
+        url: String,
+        mirror: String?,
+        target: File,
+        size: Long?,
+        sha256: String,
+        source: NetSource,
+        part: File = File(target.parentFile, "${target.name}.part"),
+        what: String = target.name,
+        connections: Int = CONNECTIONS,
+        headers: Map<String, String> = emptyMap(),
+        onBytes: (Long) -> Unit = {},
     ) {
-        fetch(url, part, size, source, connections, headers, onBytes = onBytes)
-        val matches = withContext(Dispatchers.IO) { sha256(part).equals(sha256, ignoreCase = true) }
-        if (!IntegrityChecks.accept(matches, what)) {
+        fetchVia(url, mirror, part, size, source, connections, headers, onBytes = onBytes)
+        if (!matches(part, sha256, what)) {
             // Wrong bytes cannot be resumed into right ones.
             discard(part)
-            throw DownloadException.Mismatch()
+            if (mirror == null) throw DownloadException.Mismatch()
+            // The mirror's copy may be the bad one: the origin's decides.
+            fetchVia(url, null, part, size, source, connections, headers, onBytes = onBytes)
+            if (!matches(part, sha256, what)) {
+                discard(part)
+                throw DownloadException.Mismatch()
+            }
         }
         target.delete()
         if (!part.renameTo(target)) throw IOException("could not move ${target.name} into place")
         rangesOf(part).delete()
+    }
+
+    private suspend fun matches(part: File, sha256: String, what: String): Boolean {
+        val same = withContext(Dispatchers.IO) { sha256(part).equals(sha256, ignoreCase = true) }
+        return IntegrityChecks.accept(same, what)
     }
 
     /** The SHA-256 of [file], lower-case hex. */

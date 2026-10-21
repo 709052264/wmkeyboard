@@ -261,6 +261,76 @@ class FileDownloaderTest {
         assertArrayEquals(data, part().readBytes())
     }
 
+    @Test fun aMirrorIsTriedFirst() = runBlocking {
+        val origin = FakeRangeServer(data)
+        try {
+            FileDownloader.fetchVia(origin.url, server.url, part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE)
+            assertArrayEquals(data, part().readBytes())
+            assertEquals(0, origin.requests.get())
+        } finally {
+            origin.stop()
+        }
+    }
+
+    @Test fun aMirrorWithoutTheFileFallsBackToTheOrigin() = runBlocking {
+        val origin = FakeRangeServer(data)
+        try {
+            FileDownloader.fetchVia(origin.url, server.url + "-missing", part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE)
+            assertArrayEquals(data, part().readBytes())
+            assertEquals(data.size.toLong(), origin.bytesServed.get())
+        } finally {
+            origin.stop()
+        }
+    }
+
+    @Test fun theOriginCarriesOnFromTheMirrorsPieces() = runBlocking {
+        // Every answer from the mirror breaks off after 300 KB, so it gives up.
+        server.cutFirst = Int.MAX_VALUE
+        server.cutAt = 300_000
+        val origin = FakeRangeServer(data)
+        try {
+            FileDownloader.fetchVia(origin.url, server.url, part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE)
+            assertArrayEquals(data, part().readBytes())
+            assertTrue(
+                "the origin sent only what the mirror had not: ${origin.bytesServed.get()}",
+                origin.bytesServed.get() < data.size,
+            )
+        } finally {
+            origin.stop()
+        }
+    }
+
+    @Test fun aBadCopyOnTheMirrorIsReplacedFromTheOrigin() = runBlocking {
+        server.stop()
+        server = FakeRangeServer(Random(8).nextBytes(data.size))
+        val origin = FakeRangeServer(data)
+        val target = File(temp.root, "model.bin")
+        try {
+            FileDownloader.fetchVerifiedVia(origin.url, server.url, target, data.size.toLong(), sha, NetSource.DOWNLOAD_NATIVE)
+            assertArrayEquals(data, target.readBytes())
+            assertEquals(data.size.toLong(), origin.bytesServed.get())
+        } finally {
+            origin.stop()
+        }
+    }
+
+    @Test fun onlyTheMirroredReleasesMoveToTheMirror() {
+        val origin = "https://github.com/wasi-master/wmkeyboard-data/releases/download/"
+        val base = "https://mirror.example/"
+        assertEquals(
+            "https://mirror.example/models/abc-encoder.onnx",
+            DataMirror.mirrored(origin + "models/abc-encoder.onnx", origin, base),
+        )
+        assertEquals(
+            "https://mirror.example/natives/abc-libwmx.so",
+            DataMirror.mirrored(origin + "natives/abc-libwmx.so", origin, base),
+        )
+        assertEquals(null, DataMirror.mirrored(origin + "language-packs/bn.zip", origin, base))
+        assertEquals(null, DataMirror.mirrored(origin + "models/a/b", origin, base))
+        assertEquals(null, DataMirror.mirrored("https://github.com/someone/else/releases/download/models/x", origin, base))
+        assertEquals(null, DataMirror.mirrored("https://huggingface.co/x/resolve/main/models/y", origin, base))
+    }
+
     @Test fun planRoundTrips() {
         val plan = RangePlan.split(10_000_000, 0, 1_000_000, 3_000_000)
         plan.pieces[1].advance(1234)
