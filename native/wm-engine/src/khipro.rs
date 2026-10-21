@@ -52,6 +52,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use crate::sexp::Sexp;
+use crate::sort;
 
 /// Which spec a keystroke is read against: the edition, and whether the key
 /// came from a touchscreen or a hardware keyboard. Within an edition the two
@@ -489,7 +490,7 @@ impl Parser {
             })
             .collect();
         // Stable, so equal lengths keep the spec's own order.
-        entries.sort_by_key(|entry| std::cmp::Reverse(entry.key.len()));
+        sort::by_key(&mut entries, |entry| std::cmp::Reverse(entry.key.len()));
         Some((name, entries))
     }
 

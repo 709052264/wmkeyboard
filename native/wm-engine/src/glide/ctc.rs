@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use super::loops::{is_joiner, is_non_word};
 use super::{by_score, Candidate, Source};
 use crate::fuzzy::Tier;
+use crate::sort;
 use crate::strict_math;
 
 /// a..z, then blank.
@@ -186,7 +187,7 @@ impl CtcDecoder {
             self.search(src, log_probs, steps, width, &mut best);
         }
         let mut out: Vec<Candidate> = best.into_values().collect();
-        out.sort_by(by_score);
+        sort::by(&mut out, by_score);
         out.truncate(limit);
         out
     }

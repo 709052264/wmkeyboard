@@ -117,6 +117,7 @@ pub mod punjabi;
 pub mod rerank;
 pub mod segment;
 pub mod sexp;
+pub mod sort;
 pub mod strict_math;
 pub mod tamil;
 pub mod telugu;

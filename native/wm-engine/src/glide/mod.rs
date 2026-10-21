@@ -17,6 +17,7 @@ pub mod loops;
 pub mod workspace;
 
 use crate::fuzzy::{Tier, Walker};
+use crate::sort;
 use crate::strict_math;
 use keymap::KeyMap;
 use loops::{is_joiner, is_non_word, LoopScan};
@@ -290,7 +291,7 @@ impl Decoder {
         let mut floor = f64::NEG_INFINITY;
         let mut ordered: Vec<&Source> = sources.iter().collect();
         let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
-        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
+        sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
             if root_bound(src) < floor - EPS {
                 continue;
@@ -298,7 +299,7 @@ impl Decoder {
             floor = self.search_one(src, keys, k, &mut results, floor, ahead.as_mut(), &mut budget);
         }
         let mut read: Vec<Candidate> = results.into_values().collect();
-        read.sort_by(by_score);
+        sort::by(&mut read, by_score);
         let guesses = ahead.map(|a| a.into_values().collect()).unwrap_or_default();
         Some(Ranked { read, guesses, look_ahead, limit })
     }
@@ -331,7 +332,7 @@ impl Decoder {
                     read.push(Candidate { word: word.clone(), score: top, shape_cost: 0.0, tier: Tier::Dictionary, ahead: 0 });
                 }
             }
-            read.sort_by(by_score);
+            sort::by(&mut read, by_score);
             read.truncate(limit);
         }
         if guesses.is_empty() {
@@ -343,7 +344,7 @@ impl Decoder {
         completions.truncate(look_ahead);
         let mut all = read;
         all.extend(completions);
-        all.sort_by(by_score);
+        sort::by(&mut all, by_score);
         all
     }
 
@@ -1183,7 +1184,7 @@ impl Decoder {
                 Some(d) => Candidate { score: candidate.score - weight * d, ..candidate },
             });
         }
-        rescored.sort_by(by_score);
+        sort::by(&mut rescored, by_score);
         rescored
     }
 

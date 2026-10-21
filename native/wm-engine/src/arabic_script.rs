@@ -24,6 +24,8 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::sort;
+
 pub const ALIF: char = '\u{627}';
 pub const MADDA: char = '\u{622}';
 pub const WAO: char = '\u{648}';
@@ -206,7 +208,7 @@ impl Engine {
                 forms: Some(i),
             }))
             .collect();
-        rules.sort_by_key(|rule| std::cmp::Reverse(rule.matches.len()));
+        sort::by_key(&mut rules, |rule| std::cmp::Reverse(rule.matches.len()));
         let mut by_first: HashMap<char, Vec<usize>> = HashMap::new();
         for (i, rule) in rules.iter().enumerate() {
             by_first.entry(rule.matches[0]).or_default().push(i);

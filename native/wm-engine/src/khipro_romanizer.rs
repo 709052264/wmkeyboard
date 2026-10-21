@@ -19,6 +19,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use crate::khipro::{self, Variant};
+use crate::sort;
 
 /// Longest key sequence read off Khipro for a single piece.
 const MAX_KEYS: usize = 3;
@@ -220,7 +221,7 @@ fn cut(word: &str) -> Option<Cut> {
     }
     let done = cuts[n].take()?;
     let mut candidates = distinct_by_keys(done);
-    candidates.sort_by_key(|c| c.keys.len());
+    sort::by_key(&mut candidates, |c| c.keys.len());
     candidates
         .into_iter()
         .take(FINAL_TRIES)
@@ -240,7 +241,7 @@ fn distinct_by_keys(cuts: Vec<Cut>) -> Vec<Cut> {
 /// word and pushes the right one out.
 fn prune(cuts: Vec<Cut>, typed: &str) -> Vec<Cut> {
     let mut distinct = distinct_by_keys(cuts);
-    distinct.sort_by_key(|c| c.keys.len());
+    sort::by_key(&mut distinct, |c| c.keys.len());
     if distinct.len() <= BEAM {
         return distinct;
     }

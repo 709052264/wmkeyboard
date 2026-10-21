@@ -11,6 +11,7 @@ use super::loops::{is_joiner, is_non_word, LoopScan};
 use super::workspace::{NO_LABEL, UNREACHABLE};
 use super::{by_score, Candidate, Point, Source, Tuning, MAX_POPS, RESULT_K};
 use crate::fuzzy::Tier;
+use crate::sort;
 use crate::strict_math;
 
 pub const MAX_TOKENS: usize = 24;
@@ -389,7 +390,7 @@ impl DuetDecoder {
         let mut floor = f64::NEG_INFINITY;
         let root_bound = |s: &Source| s.log_weight + ln1p(s.walker.max_subtree(s.walker.root()));
         let mut ordered: Vec<&Source> = sources.iter().collect();
-        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
+        sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
         for src in ordered {
             if root_bound(src) < floor - EPS {
                 continue;
@@ -397,7 +398,7 @@ impl DuetDecoder {
             floor = self.search_one(src, keys, k, &mut results, floor, partial);
         }
         let mut out: Vec<Candidate> = results.into_values().collect();
-        out.sort_by(by_score);
+        sort::by(&mut out, by_score);
         out.truncate(limit);
         out
     }
@@ -411,7 +412,7 @@ impl DuetDecoder {
         let clockless = tokens.iter().all(|t| t.t_start() == 0 && t.t_end() == 0);
         let mut sorted: Vec<&Token> = tokens.iter().collect();
         if !clockless {
-            sorted.sort_by_key(|t| t.t_start());
+            sort::by_key(&mut sorted, |t| t.t_start());
         }
         for (i, &token) in sorted.iter().enumerate() {
             let prepared = match token {
@@ -1099,7 +1100,7 @@ impl DuetDecoder {
         let scores = &mut self.ws.score_scratch;
         scores.clear();
         scores.extend(results.values().map(|c| c.score));
-        scores.sort_by(|a, b| a.total_cmp(b));
+        scores.sort_by(f64::total_cmp);
         scores[size - k]
     }
 }

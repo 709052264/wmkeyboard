@@ -30,6 +30,7 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
+use crate::sort;
 use crate::unicode::{is_letter, is_mark};
 
 const HASANT: char = '\u{9CD}';
@@ -195,7 +196,7 @@ fn build_tables() -> Tables {
     // Longest first; stable, so equal lengths keep the order above. The
     // buckets inherit that order, so the first prefix hit in a bucket is the
     // greedy longest match.
-    rules.sort_by_key(|rule| std::cmp::Reverse(rule.matches.len()));
+    sort::by_key(&mut rules, |rule| std::cmp::Reverse(rule.matches.len()));
     let mut by_first: HashMap<char, Vec<Rule>> = HashMap::new();
     for rule in rules {
         by_first.entry(rule.matches[0]).or_default().push(rule);

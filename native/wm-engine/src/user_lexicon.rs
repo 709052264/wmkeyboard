@@ -22,6 +22,7 @@
 
 use crate::completer;
 use crate::fuzzy::Walker;
+use crate::sort;
 use crate::strict_math;
 use crate::word_key;
 use serde_json::{Map, Value};
@@ -315,7 +316,7 @@ impl Followers {
     fn ordered(&mut self) -> &[String] {
         if self.sorted.is_none() {
             let mut all: Vec<(&String, &i32)> = self.counts.iter().collect();
-            all.sort_by(|a, b| b.1.cmp(a.1).then_with(|| cmp_utf16(a.0, b.0)));
+            sort::by(&mut all, |a, b| b.1.cmp(a.1).then_with(|| cmp_utf16(a.0, b.0)));
             self.sorted = Some(all.into_iter().map(|(k, _)| k.clone()).collect());
         }
         self.sorted.as_deref().unwrap_or(&[])
@@ -562,7 +563,7 @@ impl UserLexicon {
             .filter(|key| key.split(TRIGRAM_SEPARATOR).any(|part| part == old_key))
             .cloned()
             .collect();
-        contexts.sort_by(|a, b| cmp_utf16(a, b));
+        sort::by(&mut contexts, |a, b| cmp_utf16(a, b));
         for context in contexts {
             let Some(moved) = self.trigrams.remove(&context) else { continue };
             let rewritten = context
@@ -693,7 +694,7 @@ impl UserLexicon {
             .get(prev)
             .map(|f| f.counts.iter().map(|(k, v)| (k.clone(), *v)).collect())
             .unwrap_or_default();
-        out.sort_by(|a, b| cmp_utf16(&a.0, &b.0));
+        sort::by(&mut out, |a, b| cmp_utf16(&a.0, &b.0));
         out
     }
 
@@ -720,7 +721,7 @@ impl UserLexicon {
     /// order.
     pub fn all_words(&self) -> Vec<(String, i32)> {
         let mut keys: Vec<&String> = self.words.keys().collect();
-        keys.sort_by(|a, b| cmp_utf16(a, b));
+        sort::by(&mut keys, |a, b| cmp_utf16(a, b));
         keys.into_iter()
             .map(|k| (self.word_case.get(k).cloned().unwrap_or_else(|| k.clone()), self.words[k]))
             .collect()
@@ -824,7 +825,7 @@ impl UserLexicon {
             };
             let mut evictable: Vec<(bool, f64, String)> =
                 self.words.keys().map(|w| (sticky(w), score(w), w.clone())).collect();
-            evictable.sort_by(|a, b| {
+            sort::by(&mut evictable, |a, b| {
                 a.0.cmp(&b.0).then_with(|| a.1.total_cmp(&b.1)).then_with(|| cmp_utf16(&a.2, &b.2))
             });
             let excess = self.words.len() - EVICT_TO;
@@ -857,7 +858,7 @@ impl UserLexicon {
         ] {
             if store.len() > cap {
                 let mut heads: Vec<(i32, String)> = store.iter().map(|(k, f)| (f.total(), k.clone())).collect();
-                heads.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| cmp_utf16(&a.1, &b.1)));
+                sort::by(&mut heads, |a, b| a.0.cmp(&b.0).then_with(|| cmp_utf16(&a.1, &b.1)));
                 let excess = store.len() - cap;
                 for (_, head) in heads.into_iter().take(excess) {
                     store.remove(&head);
@@ -875,18 +876,28 @@ impl UserLexicon {
         let mut out = Map::new();
         fn sorted<V: Clone>(map: &HashMap<String, V>) -> Vec<(&String, V)> {
             let mut all: Vec<(&String, V)> = map.iter().map(|(k, v)| (k, v.clone())).collect();
-            all.sort_by(|a, b| cmp_utf16(a.0, b.0));
+            sort::by(&mut all, |a, b| cmp_utf16(a.0, b.0));
             all
         }
+        // Inserted one by one: collecting into a `Map` instantiates its sort
+        // once per iterator type.
         fn object<V: Into<Value> + Clone>(map: &HashMap<String, V>) -> Value {
-            Value::Object(sorted(map).into_iter().map(|(k, v)| (k.clone(), v.into())).collect())
+            let mut out = Map::new();
+            for (k, v) in sorted(map) {
+                out.insert(k.clone(), v.into());
+            }
+            Value::Object(out)
         }
         fn nested(map: &HashMap<String, Followers>) -> Value {
-            Value::Object(sorted(map).into_iter().map(|(k, f)| (k.clone(), object(&f.counts))).collect())
+            let mut out = Map::new();
+            for (k, f) in sorted(map) {
+                out.insert(k.clone(), object(&f.counts));
+            }
+            Value::Object(out)
         }
         fn set(set: &HashSet<String>) -> Value {
             let mut all: Vec<&String> = set.iter().collect();
-            all.sort_by(|a, b| cmp_utf16(a, b));
+            sort::by(&mut all, |a, b| cmp_utf16(a, b));
             Value::Array(all.into_iter().map(|s| Value::String(s.clone())).collect())
         }
         if !self.words.is_empty() {

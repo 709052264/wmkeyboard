@@ -8,6 +8,7 @@
 //! caller's business; [`CorrectionStats::to_json`] and
 //! [`CorrectionStats::from_json`] are the text.
 
+use crate::sort;
 use crate::user_lexicon::cmp_utf16;
 use serde_json::{json, Map, Value};
 use std::collections::HashMap;
@@ -368,7 +369,7 @@ impl CorrectionStats {
         self.dirty = false;
         let mut root = Map::new();
         let mut keys: Vec<&String> = self.pairs.keys().collect();
-        keys.sort_by(|a, b| cmp_utf16(a, b));
+        sort::by(&mut keys, |a, b| cmp_utf16(a, b));
         if !keys.is_empty() {
             let mut pairs = Map::new();
             for k in keys {

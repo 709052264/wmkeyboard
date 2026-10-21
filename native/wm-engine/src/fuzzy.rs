@@ -25,6 +25,7 @@
 
 use crate::accents;
 use crate::proximity::KeyProximity;
+use crate::sort;
 use crate::strict_math;
 use crate::wmdict::Dict;
 use std::collections::HashMap;
@@ -575,7 +576,7 @@ pub fn search_units(
     // sort, as Kotlin's sortedByDescending is.
     let mut ordered: Vec<&WalkSource> = sources.iter().collect();
     if ordered.len() > 1 {
-        ordered.sort_by(|a, b| root_bound(b).total_cmp(&root_bound(a)));
+        sort::by(&mut ordered, |a, b| root_bound(b).total_cmp(&root_bound(a)));
     }
     let walk = Walk { typed, proximity, max_edits: edits, k, touch, habits, keys, ambiguous };
     for src in ordered {
@@ -585,7 +586,7 @@ pub fn search_units(
         floor = walk.one(src, &mut results, floor, ws);
     }
     let mut out: Vec<Candidate> = results.into_values().collect();
-    out.sort_by(|a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
+    sort::by(&mut out, |a, b| b.score.total_cmp(&a.score).then_with(|| a.word.cmp(&b.word)));
     out.truncate(k);
     out
 }
