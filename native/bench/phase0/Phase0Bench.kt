@@ -30,16 +30,22 @@ import com.wasimaster.wmkeyboard.core.media.GifEncoder
 import com.wasimaster.wmkeyboard.core.media.reference.KotlinGifEncoder
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrPipeline
 import com.wasimaster.wmkeyboard.core.ocr.PaddleRuntime
+import com.wasimaster.wmkeyboard.core.prediction.BeamWorkspace
 import com.wasimaster.wmkeyboard.core.prediction.DictionaryLoader
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
+import com.wasimaster.wmkeyboard.core.prediction.KeyProximity
 import com.wasimaster.wmkeyboard.core.prediction.Trie
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.semantic.VectorIndex
 import com.wasimaster.wmkeyboard.core.stickers.CutoutMask
+import com.wasimaster.wmkeyboard.core.theme.FrostBake
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleModels
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleTiles
 import com.wasimaster.wmkeyboard.core.voice.WavEncoder
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperMel
 import java.io.File
 import java.io.OutputStream
+import java.nio.ByteBuffer
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
@@ -97,8 +103,12 @@ object Phase0Bench {
         if (on("gif")) gif()
         if (on("ocr")) ocr()
         if (on("image")) images()
-        if (on("glide")) glide(File(dict))
+        if (on("glide") || on("duet")) glide(File(dict), duetOnly = !on("glide"))
         if (on("audio")) audio()
+        if (on("frost")) frost()
+        if (on("upscale")) upscale()
+        if (on("webm")) webm()
+        if (on("fuzzy")) fuzzy(File(dict))
         println("done")
     }
 
@@ -474,7 +484,7 @@ object Phase0Bench {
         return SwipeEmissions(steps, out)
     }
 
-    private fun glide(dictFile: File) {
+    private fun glide(dictFile: File, duetOnly: Boolean) {
         val entries = dictFile.inputStream().use { DictionaryLoader.loadEntries(it) }
         val trie = Trie().apply { entries.forEach { (word, f) -> insert(word, f) } }
         val sources = trie.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
@@ -487,9 +497,10 @@ object Phase0Bench {
         val paths = words.map { swipe(it, r) }
         println("glide: ${entries.size} words, ${paths.size} swipes, mean ${paths.sumOf { it.size } / paths.size} points")
 
+        var i = 0
+        if (duetOnly) return duet(paths, keys, sources)
         val beam = GlideBeam()
         val ws = GlideWorkspace()
-        var i = 0
         var hits = 0
         for ((w, p) in words.zip(paths)) if (beam.decode(p, keys, KEY_W, sources, ws).firstOrNull()?.word == w) hits++
         println("glide: GlideBeam top-1 on these swipes ${hits * 100 / words.size}%")
@@ -503,29 +514,9 @@ object Phase0Bench {
                 if (upTo >= 3) beam.decode(p.subList(0, upTo), keys, KEY_W, sources, ws)
             }
         }
-        // buildCosts' loop (copied; it is private) at the size the decode just
-        // used: every resampled point against every key. This is the part a
-        // four-lane kernel would take.
-        beam.decode(paths[0], keys, KEY_W, sources, ws)
-        val n = ws.samples
-        val kc = keys.keyCount
-        val cost = FloatArray(n * kc)
-        val near = BooleanArray(kc)
-        val px = ws.pathX.copyOf(n)
-        val py = ws.pathY.copyOf(n)
-        bench("  buildCosts loop ${n}x$kc (copied)", "share of one decode") {
-            for (s in 0 until n) {
-                val base = s * kc
-                for (k in 0 until kc) {
-                    val dx = px[s] - keys.keyX[k]
-                    val dy = py[s] - keys.keyY[k]
-                    val scaled = (dx * dx + dy * dy) * 2f
-                    cost[base + k] = if (scaled > 9f) 9f else scaled
-                    if (scaled <= 1f) near[k] = true
-                }
-            }
-            cost
-        }
+        // Phase 0 also timed buildCosts' loop here, copied off the Kotlin
+        // workspace (1 us a decode). The decoders are Rust now (Phase 2 step
+        // 4) and the workspace holds only its sizes, so that copy is gone.
 
         val ctc = CtcGlideBeam()
         val ems = paths.map { emissions(it) }
@@ -533,11 +524,218 @@ object Phase0Bench {
             ctc.decode(ems[i++ % ems.size], sources)
         }
 
+        duet(paths, keys, sources)
+    }
+
+    private fun duet(paths: List<List<GesturePoint>>, keys: GlideKeyMap, sources: List<FuzzyBeamSearch.WalkSource>) {
+        var i = 0
         val duet = DuetBeam()
         val dws = DuetWorkspace()
         val tokens = paths.map { listOf<GlideToken>(GlideToken.Swipe(it)) }
         bench("DuetBeam.decode (one-swipe word)", "per two-thumb word") {
             duet.decode(tokens[i++ % tokens.size], keys, KEY_W, sources, dws)
+        }
+    }
+
+    // ---- Round 2: frosted glass, upscaler glue, WebM frames, the fuzzy walk ----
+
+    /** A board-sized backdrop: soft gradients with some texture, opaque. */
+    private fun backdrop(w: Int, h: Int): IntArray {
+        val r = Random(13)
+        return IntArray(w * h) { i ->
+            val x = i % w
+            val y = i / w
+            val rr = (128 + 90 * sin(x * 0.013f) + r.nextInt(20)).toInt().coerceIn(0, 255)
+            val gg = (128 + 90 * cos(y * 0.017f) + r.nextInt(20)).toInt().coerceIn(0, 255)
+            val bb = ((x + y) * 255 / (w + h)).coerceIn(0, 255)
+            (0xFF shl 24) or (rr shl 16) or (gg shl 8) or bb
+        }
+    }
+
+    /**
+     * FrostBake.bake's pixel work: three boxBlur passes on the quarter-size
+     * copy (the real function). The surrounding createScaledBitmap, getPixels,
+     * setPixels and the colour-filtered upscale draw are Skia's and not here.
+     */
+    private fun frost() {
+        // Board sizes: phone portrait and landscape, a tablet, and a whole
+        // wallpaper band at phone size, each at the bake's quarter size.
+        for ((w, h, what) in listOf(
+            Triple(1080, 850, "phone portrait board"),
+            Triple(2400, 700, "phone landscape board"),
+            Triple(2560, 1100, "tablet board"),
+            Triple(1440, 3200, "whole QHD screen"),
+        )) {
+            val sw = max(8, w / 4)
+            val sh = max(8, h / 4)
+            val src = backdrop(sw, sh)
+            val px = IntArray(src.size)
+            for (blur in floatArrayOf(10f, 25f)) {
+                val radius = FrostBake.radiusFor(blur, sw, sh)
+                bench("FrostBake 3x boxBlur ${sw}x$sh r=$radius ($what)", "per bake: theme/wallpaper/slider change, cached") {
+                    System.arraycopy(src, 0, px, 0, src.size)
+                    repeat(3) { FrostBake.boxBlur(px, sw, sh, radius) }
+                    px
+                }
+            }
+        }
+    }
+
+    /**
+     * The upscaler's Kotlin around the network: UpscaleTiles.pass with a
+     * stand-in network that answers a prepared tile (so input and output run,
+     * not MNN), the alpha merge loop UpscaleEngine.run puts each tile through
+     * (copied: it sits in a lambda over a Bitmap), and bleed/alphaAsGrey.
+     */
+    private fun upscale() {
+        val side = UpscaleModels.TILE
+        val outSide = side * UpscaleModels.SCALE
+        val r = Random(17)
+        val answer = FloatArray(3 * outSide * outSide) { r.nextFloat() }
+        val network = { _: FloatArray, _: Int -> answer }
+        for ((w, h, what) in listOf(Triple(512, 512, "sticker x2"), Triple(1024, 1024, "sticker x4, 2nd pass"), Triple(1920, 1080, "1080p photo x2"))) {
+            val px = photo(w, h)
+            val tiles = UpscaleTiles.tiles(w, h, UpscaleTiles.side(w, h)).size
+            bench("Upscale pass glue ${w}x$h ($tiles tiles, no network)", "per upscale pass ($what)", minWarm = 3, maxCalls = 40) {
+                UpscaleTiles.pass(px, w, h, network, { false }) { _, _, _, _, rgb -> sink = rgb }
+            }
+            // The last pass's alpha merge: every output pixel once.
+            val outW = w * 2
+            val bigAlpha = IntArray(outW * h * 2) { r.nextInt() }
+            val tileRgb = IntArray(outSide * outSide) { r.nextInt() }
+            bench("Upscale alpha merge ${outW}x${h * 2} (copied loop)", "per upscale with alpha ($what)", minWarm = 3, maxCalls = 40) {
+                var y = 0
+                while (y < h * 2) {
+                    var x = 0
+                    while (x < outW) {
+                        val tw = min(outSide, outW - x)
+                        val th = min(outSide, h * 2 - y)
+                        for (row in 0 until th) {
+                            val from = (y + row) * outW + x
+                            for (col in 0 until tw) {
+                                val i = row * tw + col
+                                tileRgb[i] = (UpscaleTiles.greyToAlpha(bigAlpha[from + col]) shl 24) or (tileRgb[i] and 0xFFFFFF)
+                            }
+                        }
+                        x += outSide
+                    }
+                    y += outSide
+                }
+                tileRgb
+            }
+        }
+        // bleed on a sticker: a round opaque blob on transparent black.
+        val s = 512
+        val sticker = stickerFrame(s, 0).map { if ((it ushr 24) < 255) it and 0xFFFFFF else it }.toIntArray()
+        val work = IntArray(sticker.size)
+        bench("Upscale alphaAsGrey 512^2", "per upscale with alpha") { UpscaleTiles.alphaAsGrey(sticker) }
+        bench("Upscale bleed 512^2 sticker (16 rings)", "per upscale with alpha", minWarm = 3, maxCalls = 40) {
+            System.arraycopy(sticker, 0, work, 0, sticker.size)
+            UpscaleTiles.bleed(work, s, s)
+        }
+    }
+
+    // WebmFrames.rgbOf and lumaOf (private, over android.media.Image), copied
+    // onto direct ByteBuffers laid out as an Image's planes: I420
+    // (pixelStride 1) and the semi-planar layout hardware decoders hand back
+    // (chroma pixelStride 2, U and V interleaved).
+    private class Planes(val y: ByteBuffer, val yRow: Int, val u: ByteBuffer, val v: ByteBuffer, val cRow: Int, val cPixel: Int)
+
+    private fun planes(w: Int, h: Int, semi: Boolean): Planes {
+        val r = Random(19)
+        val y = ByteBuffer.allocateDirect(w * h).also { b -> repeat(w * h) { b.put(it, (16 + r.nextInt(220)).toByte()) } }
+        val cw = (w + 1) / 2
+        val ch = (h + 1) / 2
+        return if (semi) {
+            val uv = ByteBuffer.allocateDirect(cw * ch * 2).also { b -> repeat(cw * ch * 2) { b.put(it, (16 + r.nextInt(224)).toByte()) } }
+            val v = uv.duplicate().also { it.position(1) }.slice()
+            Planes(y, w, uv, v, cw * 2, 2)
+        } else {
+            val u = ByteBuffer.allocateDirect(cw * ch).also { b -> repeat(cw * ch) { b.put(it, (16 + r.nextInt(224)).toByte()) } }
+            val v = ByteBuffer.allocateDirect(cw * ch).also { b -> repeat(cw * ch) { b.put(it, (16 + r.nextInt(224)).toByte()) } }
+            Planes(y, w, u, v, cw, 1)
+        }
+    }
+
+    private fun rgbOf(p: Planes, width: Int, height: Int): IntArray {
+        val out = IntArray(width * height)
+        for (row in 0 until height) {
+            val yRow = row * p.yRow
+            val cRow = row / 2
+            for (col in 0 until width) {
+                val luma = p.y.get(yRow + col).toInt() and 0xFF
+                val cCol = col / 2
+                val cb = (p.u.get(cRow * p.cRow + cCol * p.cPixel).toInt() and 0xFF) - 128
+                val cr = (p.v.get(cRow * p.cRow + cCol * p.cPixel).toInt() and 0xFF) - 128
+                val c = 298 * (luma - 16)
+                val rr = ((c + 409 * cr + 128) shr 8).coerceIn(0, 0xFF)
+                val g = ((c - 100 * cb - 208 * cr + 128) shr 8).coerceIn(0, 0xFF)
+                val b = ((c + 516 * cb + 128) shr 8).coerceIn(0, 0xFF)
+                out[row * width + col] = (rr shl 16) or (g shl 8) or b
+            }
+        }
+        return out
+    }
+
+    private fun lumaOf(p: Planes, width: Int, height: Int): ByteArray {
+        val out = ByteArray(width * height)
+        for (row in 0 until height) {
+            val from = row * p.yRow
+            for (col in 0 until width) out[row * width + col] = p.y.get(from + col)
+        }
+        return out
+    }
+
+    private fun webm() {
+        val side = 512
+        for (semi in listOf(false, true)) {
+            val p = planes(side, side, semi)
+            val layout = if (semi) "semi-planar" else "I420"
+            bench("WebmFrames rgbOf 512^2 $layout (copied)", "per colour frame, ~90 per video sticker") { rgbOf(p, side, side) }
+        }
+        val p = planes(side, side, false)
+        bench("WebmFrames lumaOf 512^2 (copied)", "per alpha frame") { lumaOf(p, side, side) }
+        val rgb = rgbOf(p, side, side)
+        val alpha = lumaOf(p, side, side)
+        val pixels = IntArray(side * side)
+        bench("WebmFrames compose 512^2 (copied)", "per frame") {
+            for (i in pixels.indices) {
+                val a = alpha[i].toInt() and 0xFF
+                pixels[i] = (a shl 24) or (rgb[i] and 0xFFFFFF)
+            }
+            pixels
+        }
+    }
+
+    /**
+     * The Rust correction walk through FuzzyBeamSearch.search: dictionary
+     * words with one typo of each kind, as the keyboard searches per keystroke
+     * (the prefix typed so far, limit 10). For its split, sample the process.
+     */
+    private fun fuzzy(dictFile: File) {
+        val entries = dictFile.inputStream().use { DictionaryLoader.loadEntries(it) }
+        val trie = Trie().apply { entries.forEach { (word, f) -> insert(word, f) } }
+        val sources = trie.walkers().map { FuzzyBeamSearch.WalkSource(it, 0.0, FuzzyBeamSearch.Tier.DICTIONARY) }
+        val r = Random(23)
+        val words = entries.map { it.first }.filter { w -> w.length in 4..10 && w.all { it in 'a'..'z' } }.take(3000).shuffled(r).take(200)
+        val typos = words.map { w ->
+            val i = r.nextInt(w.length)
+            when (r.nextInt(4)) {
+                0 -> w.removeRange(i, i + 1)
+                1 -> w.substring(0, i) + ('a' + r.nextInt(26)) + w.substring(i)
+                2 -> w.substring(0, i) + ('a' + r.nextInt(26)) + w.substring(i + 1)
+                else -> if (i + 1 < w.length) w.substring(0, i) + w[i + 1] + w[i] + w.substring(i + 2) else w
+            }
+        }
+        val prefixes = typos.flatMap { t -> (1..t.length).map { t.substring(0, it) } }
+        val search = FuzzyBeamSearch()
+        val ws = BeamWorkspace()
+        var i = 0
+        bench("FuzzyBeamSearch.search whole typo word", "per keystroke (end of word)") {
+            search.search(sources, typos[i++ % typos.size], KeyProximity.QWERTY, 10, ws)
+        }
+        bench("FuzzyBeamSearch.search every prefix", "per keystroke") {
+            search.search(sources, prefixes[i++ % prefixes.size], KeyProximity.QWERTY, 10, ws)
         }
     }
 

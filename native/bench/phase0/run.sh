@@ -3,14 +3,14 @@
 # Phase0Bench.kt with the Kotlin compiler from the Gradle cache against the
 # release classes jars a previous build left in a checkout (plus Samplers.kt,
 # PaddleOcrPipeline.kt, VectorIndex.kt, MeaningRank.kt, NativeEngine.kt,
-# GifEncoder.kt and the Kotlin GIF encoder kept in the tests from source,
+# GifEncoder.kt, FrostBake.kt, UpscaleTiles.kt and the Kotlin GIF encoder kept in the tests from source,
 # which shadow the jars' copies, so a kernel's before and after time this
 # checkout's code; EXTRA_SRC adds more), then
 #   host     runs it on this machine's JVM
 #   dex      d8s it (plus the jars and kotlin-stdlib) into out/bench.dex
 #   device   pushes the dex and runs it under ART with app_process
 #
-# Usage: native/bench/phase0/run.sh <host|dex|device> [only=vector,gif,ocr,image,glide,audio] [budget=1]
+# Usage: native/bench/phase0/run.sh <host|dex|device> [only=vector,gif,ocr,image,glide,audio,frost,upscale,webm,fuzzy] [budget=1]
 # Env:   CHECKOUT  checkout whose core/*/build jars to use (default: this one)
 #        WM_NATIVE=kotlin  the Kotlin paths and scalar kernels (the "before"); the
 #                  host library is found from the working directory, as in tests
@@ -30,6 +30,8 @@ cached() { find "$GC/$1" -name "$2" ! -name '*sources*' | sort | tail -1; }
 STDLIB="$(cached org.jetbrains.kotlin/kotlin-stdlib/$KV "kotlin-stdlib-$KV.jar")"
 KCP="$(cached org.jetbrains.kotlin/kotlin-compiler-embeddable/$KV '*.jar'):$STDLIB:$(cached org.jetbrains.kotlin/kotlin-script-runtime '*.jar'):$(cached org.jetbrains.kotlin/kotlin-reflect '*.jar'):$(cached org.jetbrains.kotlin/kotlin-daemon-embeddable/$KV '*.jar'):$(cached org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.10.2 '*.jar'):$(cached org.jetbrains/annotations '*.jar')"
 ANDROID_JAR="$SDK/platforms/android-36/android.jar"
+# KeyProximity's layouts are kotlinx.serialization classes.
+SERIAL="$(cached org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.12.0 '*.jar'):$(cached org.jetbrains.kotlinx/kotlinx-serialization-json-jvm/1.12.0 '*.jar')"
 
 MODULES="common config content intelligence prediction voice language input emoji"
 mkdir -p "$OUT/lib"
@@ -45,6 +47,9 @@ FRIENDS="$(echo "$LIBS" | tr ':' ',')"
 
 if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || [ "$HERE/Phase0Bench.kt" -nt "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ]; then
   rm -rf "$OUT/classes"
+  # The fuzzy walk's bridge, so it matches this checkout's engine library
+  # when the jars come from an older build.
+  PRED="$REPO/core/prediction/src/main/java/com/wasimaster/wmkeyboard/core/prediction"
   java -cp "$KCP" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -no-stdlib -no-reflect -jvm-target 17 \
     -Xfriend-paths="$FRIENDS" -cp "$STDLIB:$LIBS:$ANDROID_JAR" -d "$OUT/classes" "$HERE/Phase0Bench.kt" \
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/Samplers.kt" \
@@ -53,6 +58,10 @@ if [ ! -f "$OUT/classes/com/wasimaster/wmkeyboard/bench/Phase0Bench.class" ] || 
     "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/semantic/MeaningRank.kt" \
     "$REPO/core/language/src/main/java/com/wasimaster/wmkeyboard/core/engine/NativeEngine.kt" \
     "$REPO/core/content/src/main/java/com/wasimaster/wmkeyboard/core/media/GifEncoder.kt" \
+    "$REPO/core/theme/src/main/java/com/wasimaster/wmkeyboard/core/theme/FrostBake.kt" \
+    "$PRED/FuzzyBeamSearch.kt" "$PRED/NativeFuzzySearch.kt" "$PRED/NativeWordKey.kt" "$PRED/PredictionNative.kt" "$PRED/TouchModel.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/upscale/UpscaleTiles.kt" \
+    "$REPO/core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/upscale/UpscaleModels.kt" \
     "$REPO/feature/ime/src/test/java/com/wasimaster/wmkeyboard/core/media/reference/KotlinGifEncoder.kt" ${EXTRA_SRC:-}
 fi
 
@@ -60,7 +69,7 @@ case "$mode" in
   host)
     # android.jar last: its stubs only satisfy class loading; nothing here calls them.
     # NativeEngine finds this checkout's host build (native/wm-engine-jni/build-host.sh).
-    java -Xss8m -cp "$OUT/classes:$STDLIB:$LIBS:$ANDROID_JAR" com.wasimaster.wmkeyboard.bench.Phase0Bench "$REPO/app/dictionaries-src/en.txt" "$@"
+    java -Xss8m -cp "$OUT/classes:$STDLIB:$SERIAL:$LIBS:$ANDROID_JAR" com.wasimaster.wmkeyboard.bench.Phase0Bench "$REPO/app/dictionaries-src/en.txt" "$@"
     ;;
   dex|device)
     if [ ! -f "$OUT/bench.dex.jar" ] || [ "$OUT/classes" -nt "$OUT/bench.dex.jar" ]; then
@@ -70,7 +79,7 @@ case "$mode" in
       fresh=$(cd "$OUT/classes" && find com -name '*.class' ! -path 'com/wasimaster/wmkeyboard/bench/*')
       for jar in $(echo "$LIBS" | tr ':' ' '); do zip -q -d "$jar" $fresh >/dev/null 2>&1 || true; done
       "$SDK/build-tools/36.0.0/d8" --release --min-api 31 --lib "$ANDROID_JAR" --output "$OUT/bench.dex.jar" \
-        "$OUT/bench-classes.jar" "$STDLIB" $(echo "$LIBS" | tr ':' ' ')
+        "$OUT/bench-classes.jar" "$STDLIB" $(echo "$SERIAL" | tr ':' ' ') $(echo "$LIBS" | tr ':' ' ')
     fi
     [ "$mode" = dex ] && exit 0
     adb push "$OUT/bench.dex.jar" /data/local/tmp/wmbench.jar >/dev/null
