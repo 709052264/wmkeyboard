@@ -116,7 +116,7 @@ object FileDownloader {
      *
      * [headers] go with every request to [url] itself, never to the address
      * it redirects to: a token for the host the user gave it to, not for its
-     * storage provider.
+     * storage provider. [background] marks the log rows as [NetLog.call] does.
      *
      * Throws a [DownloadException] for a failure the caller can name, any
      * other [IOException] for the network, and [CancellationException] when
@@ -130,11 +130,12 @@ object FileDownloader {
         source: NetSource,
         connections: Int = CONNECTIONS,
         headers: Map<String, String> = emptyMap(),
+        background: Boolean = source.background,
         onBytes: (Long) -> Unit = {},
     ): Long = withContext(Dispatchers.IO) {
         require(size == null || size >= 0) { "negative size" }
         part.parentFile?.mkdirs()
-        val job = Job(url, part, size, source, connections.coerceAtLeast(1), headers, onBytes)
+        val job = Job(url, part, size, source, background, connections.coerceAtLeast(1), headers, onBytes)
         try {
             job.run()
         } catch (_: NoRangesException) {
@@ -164,7 +165,7 @@ object FileDownloader {
         headers: Map<String, String> = emptyMap(),
         onBytes: (Long) -> Unit = {},
     ) {
-        fetch(url, part, size, source, connections, headers, onBytes)
+        fetch(url, part, size, source, connections, headers, onBytes = onBytes)
         val matches = withContext(Dispatchers.IO) { sha256(part).equals(sha256, ignoreCase = true) }
         if (!IntegrityChecks.accept(matches, what)) {
             // Wrong bytes cannot be resumed into right ones.
@@ -201,6 +202,7 @@ object FileDownloader {
         val part: File,
         val size: Long?,
         val source: NetSource,
+        val background: Boolean,
         val connections: Int,
         val headers: Map<String, String>,
         val onBytes: (Long) -> Unit,
@@ -513,7 +515,7 @@ object FileDownloader {
         /** Opens [address], for [range] when given; the status line is read before this returns. */
         fun open(range: LongRange?, address: String): Opened {
             if (!gate.allows(source)) throw DownloadException.Blocked()
-            val call = NetLog.call(source, "GET", url, route = NetLog.pathOf(url))
+            val call = NetLog.call(source, "GET", url, route = NetLog.pathOf(url), background = background)
             val connection = try {
                 (URL(address).openConnection() as HttpURLConnection).apply {
                     connectTimeout = CONNECT_TIMEOUT_MS

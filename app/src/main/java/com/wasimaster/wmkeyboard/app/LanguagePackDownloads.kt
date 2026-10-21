@@ -7,15 +7,12 @@ import androidx.annotation.RequiresApi
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.app.updates.GithubReleases
 import com.wasimaster.wmkeyboard.core.modules.LanguagePackResources
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
-import com.wasimaster.wmkeyboard.core.netlog.track
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
-import java.net.HttpURLConnection
-import java.net.URL
 
 /**
  * Fetching and checking interface language packs ([LanguagePackResources])
@@ -30,8 +27,6 @@ internal object LanguagePackDownloads {
 
     /** Whether this build fetches its interface languages (the standard GitHub build, Android 11+). */
     val active: Boolean get() = BuildConfig.LANGUAGE_PACKS && LanguagePackResources.supported
-
-    private const val TIMEOUT_MS = 30_000
     private const val MAX_BYTES = 16L * 1024 * 1024
 
     /** English is the APK's own: no pack. */
@@ -63,7 +58,7 @@ internal object LanguagePackDownloads {
             target.parentFile?.mkdirs()
             val part = File(target.parentFile, "${target.name}.part")
             val ok = runCatching { download(url(tag), part) }.isSuccess && install(context, part, target)
-            part.delete()
+            FileDownloader.discard(part)
             ok
         }
     }
@@ -79,33 +74,9 @@ internal object LanguagePackDownloads {
         return qualifier.takeIf { install(context, staged, target) }.also { staged.delete() }
     }
 
-    private fun download(url: String, part: File) {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = TIMEOUT_MS
-            readTimeout = TIMEOUT_MS
-            instanceFollowRedirects = true
-        }
-        NetLog.call(NetSource.DOWNLOAD_LANGUAGE, "GET", url, route = NetLog.pathOf(url)).track { call ->
-            try {
-                call.status = connection.responseCode
-                if (connection.responseCode != HttpURLConnection.HTTP_OK) throw IOException("HTTP ${connection.responseCode}")
-                call.countIn(connection.inputStream).use { input ->
-                    part.outputStream().use { out ->
-                        val buffer = ByteArray(64 * 1024)
-                        var total = 0L
-                        while (true) {
-                            val n = input.read(buffer)
-                            if (n < 0) break
-                            total += n
-                            if (total > MAX_BYTES) throw IOException("$url is larger than a language pack")
-                            out.write(buffer, 0, n)
-                        }
-                    }
-                }
-            } finally {
-                connection.disconnect()
-            }
-        }
+    private suspend fun download(url: String, part: File) {
+        FileDownloader.fetch(url, part, null, NetSource.DOWNLOAD_LANGUAGE)
+        if (part.length() > MAX_BYTES) throw IOException("$url is larger than a language pack")
     }
 
     /** Checks [staged] and moves it to [target], reloading the packs. */

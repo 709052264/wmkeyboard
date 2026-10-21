@@ -1,22 +1,16 @@
 package com.wasimaster.wmkeyboard.core.stickers
 
-import com.wasimaster.wmkeyboard.core.integrity.IntegrityChecks
 import android.content.Context
 import android.graphics.Bitmap
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.modules.NativeDelivery
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules.awaitInstalled
-import com.wasimaster.wmkeyboard.core.netlog.NetLog
+import com.wasimaster.wmkeyboard.core.download.DownloadException
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import java.io.File
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -34,11 +28,6 @@ import kotlinx.coroutines.withContext
  * two are one download with one bar.
  */
 internal object LocalSubjectCutout {
-
-    private const val USER_AGENT = "WMKeyboard model downloader"
-    private const val CONNECT_TIMEOUT_MS = 15_000
-    private const val READ_TIMEOUT_MS = 30_000
-    private const val BUFFER_BYTES = 64 * 1024
 
     /** Two editors cannot be open at once, but two taps on one row can land. */
     private val downloading = Mutex()
@@ -99,75 +88,21 @@ internal object LocalSubjectCutout {
     private suspend fun download(filesDir: File, onProgress: (Float) -> Unit): Boolean {
         CutoutModel.dir(filesDir).mkdirs()
         val part = CutoutModel.partFile(filesDir)
-        // A part that is already the full length failed its digest last time
-        // or was never checked; either way there is nothing to resume.
-        if (part.length() >= CutoutModel.SIZE_BYTES) part.delete()
-        var resumeFrom = part.length()
-        val connection = URL(CutoutModel.url).openConnection() as HttpURLConnection
-        val netCall = NetLog.call(
-            NetSource.DOWNLOAD_CUTOUT,
-            "GET",
-            CutoutModel.url,
-            route = NetLog.pathOf(CutoutModel.url),
-        )
-        try {
-            connection.connectTimeout = CONNECT_TIMEOUT_MS
-            connection.readTimeout = READ_TIMEOUT_MS
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("User-Agent", USER_AGENT)
-            if (resumeFrom > 0) connection.setRequestProperty("Range", "bytes=$resumeFrom-")
-            netCall.status = connection.responseCode
-            when (connection.responseCode) {
-                HttpURLConnection.HTTP_PARTIAL -> Unit
-                HttpURLConnection.HTTP_OK -> resumeFrom = 0
-                else -> return false
-            }
-            var written = resumeFrom
-            netCall.countIn(connection.inputStream).use { input ->
-                RandomAccessFile(part, "rw").use { out ->
-                    out.setLength(resumeFrom)
-                    out.seek(resumeFrom)
-                    val buffer = ByteArray(BUFFER_BYTES)
-                    while (true) {
-                        currentCoroutineContext().ensureActive()
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        // A mirror that answers with something far larger is
-                        // not going to pass the digest; stop paying for it.
-                        if (written + read > CutoutModel.SIZE_BYTES) return false
-                        out.write(buffer, 0, read)
-                        written += read
-                        onProgress((written.toFloat() / CutoutModel.SIZE_BYTES).coerceIn(0f, 1f))
-                    }
-                }
-            }
-        } catch (t: Throwable) {
-            netCall.fail(t)
-            throw t
-        } finally {
-            connection.disconnect()
-            netCall.end()
+        return try {
+            FileDownloader.fetchVerified(
+                url = CutoutModel.url,
+                target = CutoutModel.file(filesDir),
+                size = CutoutModel.SIZE_BYTES,
+                sha256 = CutoutModel.SHA256,
+                source = NetSource.DOWNLOAD_CUTOUT,
+                part = part,
+                what = CutoutModel.FILE_NAME,
+            ) { written -> onProgress((written.toFloat() / CutoutModel.SIZE_BYTES).coerceIn(0f, 1f)) }
+            true
+        } catch (_: DownloadException) {
+            // Short or held keeps the part for the next try; a wrong file was deleted.
+            false
         }
-        // Short means interrupted: keep the part, the next try resumes it.
-        if (part.length() < CutoutModel.SIZE_BYTES) return false
-        if (!IntegrityChecks.accept(sha256Of(part) == CutoutModel.SHA256, CutoutModel.FILE_NAME)) {
-            part.delete()
-            return false
-        }
-        return part.renameTo(CutoutModel.file(filesDir))
-    }
-
-    private fun sha256Of(file: File): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        file.inputStream().use { input ->
-            val buffer = ByteArray(BUFFER_BYTES)
-            while (true) {
-                val read = input.read(buffer)
-                if (read < 0) break
-                digest.update(buffer, 0, read)
-            }
-        }
-        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     /**

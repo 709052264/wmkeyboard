@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.SystemClock
+import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
 import kotlinx.coroutines.CancellationException
@@ -122,7 +123,7 @@ internal object GithubUpdateManager {
             // who walked away from it is not left without updates.
             if (userAsked || _state.value !is UpdateState.Failed) return
             candidate?.takeIf(::isAllLanguages)?.let { target ->
-                ApkStaging.partFile(app, target).delete()
+                FileDownloader.discard(ApkStaging.partFile(app, target))
                 ApkStaging.apkFile(app, target).delete()
             }
             candidate = null
@@ -260,7 +261,7 @@ internal object GithubUpdateManager {
         running = scope.launch {
             previous?.cancelAndJoin()
             candidate?.takeIf(::isAllLanguages)?.let { target ->
-                ApkStaging.partFile(app, target).delete()
+                FileDownloader.discard(ApkStaging.partFile(app, target))
                 ApkStaging.apkFile(app, target).delete()
             }
             candidate = null
@@ -286,10 +287,10 @@ internal object GithubUpdateManager {
             ApkDownload.requireSpace(
                 dir = ApkStaging.dir(context),
                 sizeBytes = target.sizeBytes,
-                alreadyHave = if (part.exists()) part.length() else 0L,
+                alreadyHave = FileDownloader.bytesDone(part),
             )
             _state.value = UpdateState.Downloading(
-                bytesDownloaded = if (part.exists()) part.length() else 0L,
+                bytesDownloaded = FileDownloader.bytesDone(part),
                 totalBytes = target.sizeBytes,
             )
             ApkDownload.transfer(target, part) { written, total ->
@@ -301,12 +302,12 @@ internal object GithubUpdateManager {
                 // one download in this app that replaces the app itself, so
                 // "we could not check it" has to mean "we do not install it".
                 DebugLog.w(TAG, "release published no checksum for ${target.assetName}")
-                part.delete()
+                FileDownloader.discard(part)
                 _state.value = UpdateState.Failed(false, UpdateFailure.CORRUPT)
                 return
             }
             if (!ApkDownload.verify(part, target, expected)) {
-                part.delete()
+                FileDownloader.discard(part)
                 _state.value = UpdateState.Failed(false, UpdateFailure.CORRUPT)
                 return
             }
@@ -323,7 +324,7 @@ internal object GithubUpdateManager {
             backToAvailable(context, target)
             throw cancelled
         } catch (failure: DownloadFailure) {
-            if (!failure.keepPartial) part.delete()
+            if (!failure.keepPartial) FileDownloader.discard(part)
             _state.value = UpdateState.Failed(false, failure.reason)
         } catch (error: Exception) {
             DebugLog.w(TAG, "update download failed: ${error.message.orEmpty()}")
@@ -352,20 +353,20 @@ internal object GithubUpdateManager {
             sha256 = null,
         )
         try {
-            part.delete()
+            FileDownloader.discard(part)
             ApkDownload.transfer(asset, part) { _, _ -> }
             val expected = fetchChecksum(asset)
             if (expected == null || !ApkDownload.verify(part, asset, expected)) {
-                part.delete()
+                FileDownloader.discard(part)
                 return
             }
             file.delete()
-            if (!part.renameTo(file)) part.delete()
+            if (!part.renameTo(file)) FileDownloader.discard(part)
         } catch (cancelled: CancellationException) {
-            part.delete()
+            FileDownloader.discard(part)
             throw cancelled
         } catch (error: Exception) {
-            part.delete()
+            FileDownloader.discard(part)
             DebugLog.d(TAG, "no dex metadata for ${target.assetName}: ${error.message.orEmpty()}")
         }
     }
