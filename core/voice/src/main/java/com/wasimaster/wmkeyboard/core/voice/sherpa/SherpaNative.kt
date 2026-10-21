@@ -63,9 +63,32 @@ object SherpaNative {
         trailingSilence: Float,
     ): Long
 
+    /**
+     * The same transducer by modified beam search, the only search that
+     * follows a stream's hotwords ([nativeHotwordStream]). [modelingUnit] is
+     * "bpe" or "cjkchar+bpe", nothing else (sherpa-onnx exits on any other);
+     * hotwords are cut into pieces over [bpeVocab] ([SherpaHotwords.vocab]),
+     * each matching piece worth [hotwordsScore]. Not in a bridge built before
+     * hotwords: that one throws [UnsatisfiedLinkError].
+     */
+    @JvmStatic external fun nativeHotwordRecognizer(
+        encoder: String,
+        decoder: String,
+        joiner: String,
+        tokens: String,
+        threads: Int,
+        trailingSilence: Float,
+        modelingUnit: String,
+        bpeVocab: String,
+        hotwordsScore: Float,
+    ): Long
+
     @JvmStatic external fun nativeRecognizerFree(recognizer: Long)
 
     @JvmStatic external fun nativeStream(recognizer: Long): Long
+
+    /** A stream listening for [hotwords]: UTF-8, one phrase a line ([SherpaHotwords.lines]). */
+    @JvmStatic external fun nativeHotwordStream(recognizer: Long, hotwords: ByteArray): Long
 
     @JvmStatic external fun nativeStreamFree(stream: Long)
 

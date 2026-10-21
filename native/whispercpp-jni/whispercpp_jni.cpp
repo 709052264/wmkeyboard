@@ -5,11 +5,17 @@
 // Text crosses the boundary as UTF-8 byte arrays, never through NewStringUTF:
 // Whisper's byte-level tokens split multibyte characters, and JNI's modified
 // UTF-8 has no room for a half character or a four-byte emoji.
+//
+// The same file builds the CPU libraries (bound to WhisperCpp) and the
+// OpenCL one (WM_GPU, bound to WhisperCppGpu). Different JNI names let both
+// sit in one process, so Compute can change, and a GPU that fails can hand
+// the clip to the CPU build, without a restart.
 
 #include <jni.h>
 
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <cstring>
 #include <mutex>
 #include <string>
@@ -17,10 +23,23 @@
 
 #include "whisper.h"
 
+#ifdef WM_GPU
+#include "ggml-backend.h"
+#endif
+
+#ifndef WM_JNI_CLASS
+#define WM_JNI_CLASS WhisperCpp
+#endif
+#define WM_JNI_NAME2(cls, name) Java_com_wasimaster_wmkeyboard_core_voice_whisper_##cls##_##name
+#define WM_JNI_NAME(cls, name) WM_JNI_NAME2(cls, name)
+#define JNI_FN(name) WM_JNI_NAME(WM_JNI_CLASS, name)
+
 namespace {
 
 struct Session {
     whisper_context* ctx = nullptr;
+    // whisper.cpp put the model on a GPU device (the OpenCL build only).
+    bool on_gpu = false;
     // One transcription at a time per model; Kotlin serialises too.
     std::mutex run_mutex;
     std::atomic<bool> abort{false};
@@ -93,26 +112,93 @@ bool onAbort(void* user_data) {
 // nowhere anyway.
 void quiet(ggml_log_level, const char*, void*) {}
 
+#ifdef WM_GPU
+// whisper.cpp falls back to the CPU on its own when the GPU backend will not
+// start, and says so only in its log: this listens for the line that names
+// the backend it took, and for the one after it when that backend then fails
+// to start. Set around whisper_init only, under Kotlin's lock.
+std::atomic<bool> g_gpu_taken{false};
+
+void watchBackend(ggml_log_level, const char* text, void*) {
+    if (!text) return;
+    if (std::strstr(text, "whisper_backend_init_gpu: using ")) g_gpu_taken = true;
+    if (std::strstr(text, "whisper_backend_init_gpu: failed to initialize")) g_gpu_taken = false;
+}
+#endif
+
 }  // namespace
 
+#ifdef WM_GPU
+/**
+ * Starts ggml's OpenCL backend and lists the GPU devices it accepted, one
+ * description a line ("QUALCOMM Adreno(TM) 740"), as UTF-8; empty when it
+ * found none. [cacheDir] keeps the kernels the driver compiles, which takes
+ * seconds on first use, for the next process.
+ */
+extern "C" JNIEXPORT jbyteArray JNICALL
+JNI_FN(nativeGpuInit)(JNIEnv* env, jclass, jstring cacheDir) {
+    whisper_log_set(quiet, nullptr);
+    if (cacheDir) {
+        const char* dir = env->GetStringUTFChars(cacheDir, nullptr);
+        if (dir) {
+            setenv("GGML_OPENCL_KERNEL_CACHE_DIR", dir, 0);
+            env->ReleaseStringUTFChars(cacheDir, dir);
+        }
+    }
+    std::string out;
+    for (size_t i = 0; i < ggml_backend_dev_count(); ++i) {
+        ggml_backend_dev_t dev = ggml_backend_dev_get(i);
+        const auto type = ggml_backend_dev_type(dev);
+        if (type != GGML_BACKEND_DEVICE_TYPE_GPU && type != GGML_BACKEND_DEVICE_TYPE_IGPU) continue;
+        const char* desc = ggml_backend_dev_description(dev);
+        out += desc ? desc : ggml_backend_dev_name(dev);
+        out += '\n';
+    }
+    return bytes(env, out);
+}
+
+/** Whether the model behind [handle] went to the GPU, not the CPU fallback. */
+extern "C" JNIEXPORT jboolean JNICALL
+JNI_FN(nativeOnGpu)(JNIEnv*, jclass, jlong handle) {
+    auto* s = reinterpret_cast<Session*>(handle);
+    return s && s->on_gpu ? JNI_TRUE : JNI_FALSE;
+}
+#endif
+
+#ifdef WM_GPU
 extern "C" JNIEXPORT jlong JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeOpen(
-    JNIEnv* env, jclass, jstring path) {
+JNI_FN(nativeOpen)(JNIEnv* env, jclass, jstring path, jboolean useGpu) {
+#else
+extern "C" JNIEXPORT jlong JNICALL
+JNI_FN(nativeOpen)(JNIEnv* env, jclass, jstring path) {
+#endif
     whisper_log_set(quiet, nullptr);
     const char* p = env->GetStringUTFChars(path, nullptr);
     if (!p) return 0;
     whisper_context_params params = whisper_context_default_params();
+#ifdef WM_GPU
+    params.use_gpu = useGpu == JNI_TRUE;
+    g_gpu_taken = false;
+    if (params.use_gpu) whisper_log_set(watchBackend, nullptr);
+#else
     params.use_gpu = false;
+#endif
     whisper_context* ctx = whisper_init_from_file_with_params(p, params);
     env->ReleaseStringUTFChars(path, p);
+#ifdef WM_GPU
+    whisper_log_set(quiet, nullptr);
+#endif
     if (!ctx) return 0;
     auto* s = new Session();
     s->ctx = ctx;
+#ifdef WM_GPU
+    s->on_gpu = params.use_gpu && g_gpu_taken.load();
+#endif
     return reinterpret_cast<jlong>(s);
 }
 
 extern "C" JNIEXPORT void JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeClose(JNIEnv*, jclass, jlong handle) {
+JNI_FN(nativeClose)(JNIEnv*, jclass, jlong handle) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (!s) return;
     {
@@ -129,7 +215,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeClose(JNIEnv*
  * Returns "<code>\n<text>" as UTF-8 bytes, or null when it was stopped.
  */
 extern "C" JNIEXPORT jbyteArray JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeTranscribe(
+JNI_FN(nativeTranscribe)(
     JNIEnv* env, jclass, jlong handle, jfloatArray audio, jobjectArray languages, jboolean translate,
     jstring prompt, jint beam_size, jint threads) {
     auto* s = reinterpret_cast<Session*>(handle);
@@ -267,7 +353,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeTranscribe(
 
 /** What has been decoded so far, as UTF-8 bytes; empty before the first token. */
 extern "C" JNIEXPORT jbyteArray JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativePartial(JNIEnv* env, jclass, jlong handle) {
+JNI_FN(nativePartial)(JNIEnv* env, jclass, jlong handle) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (!s) return bytes(env, "");
     std::string text;
@@ -280,7 +366,7 @@ Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativePartial(JNIEn
 
 /** Ends the running transcription at the next step; it returns null. */
 extern "C" JNIEXPORT void JNICALL
-Java_com_wasimaster_wmkeyboard_core_voice_whisper_WhisperCpp_nativeAbort(JNIEnv*, jclass, jlong handle) {
+JNI_FN(nativeAbort)(JNIEnv*, jclass, jlong handle) {
     auto* s = reinterpret_cast<Session*>(handle);
     if (s) s->abort = true;
 }

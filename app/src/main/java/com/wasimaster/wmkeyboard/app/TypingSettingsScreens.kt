@@ -543,6 +543,17 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.suggestionStrip.mistypeTolerance.toFloat(),
             ) { scope.launch { repository.setMistypeTolerance((it.toInt() + 5) / 10 * 10) } }
         }
+        // Several slips per word: also outside the autocorrect gate, since
+        // the same reading ranks the strip.
+        item {
+            ToggleSetting(
+                R.string.typing_fix_several_slips_title,
+                stringResource(R.string.typing_fix_several_slips_subtitle),
+                settings.watch { it.suggestionStrip.fixSeveralSlips },
+                info = stringResource(R.string.typing_fix_several_slips_info),
+                default = SettingsDefaults.suggestionStrip.fixSeveralSlips,
+            ) { scope.launch { repository.setFixSeveralSlips(it) } }
+        }
         item { ForgetTapModelRow(repository) }
         item {
             ToggleSetting(

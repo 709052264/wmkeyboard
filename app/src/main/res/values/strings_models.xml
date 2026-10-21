@@ -206,4 +206,15 @@
     <string name="models_whisper_fallback_subtitle">Used when a language has no model of its own</string>
     <string name="models_whisper_fallback_info">You can pin a model to each language in the list below. This is the one used for every language you have not pinned. Automatic picks the best downloaded model that covers the language you are typing in, which is usually what you want; choose a model here if you would rather always use the same one.</string>
     <string name="models_whisper_fallback_auto">Automatic</string>
+    <!-- Compute on the Offline Whisper engine screen: where the GGML (whisper.cpp) models run. -->
+    <string name="models_whisper_compute_title">Compute</string>
+    <string name="models_whisper_compute_auto">Automatic</string>
+    <string name="models_whisper_compute_cpu" translatable="false">CPU</string>
+    <string name="models_whisper_compute_gpu" translatable="false">GPU</string>
+    <string name="models_whisper_compute_subtitle">Where the GGML models run. Automatic uses the GPU for Base and larger models</string>
+    <!-- %1$s is the name the GPU driver gives, e.g. "QUALCOMM Adreno(TM) 740". -->
+    <string name="models_whisper_compute_subtitle_named">Automatic uses the <xliff:g id="gpu" example="QUALCOMM Adreno(TM) 740">%1$s</xliff:g> for Base and larger models</string>
+    <string name="models_whisper_compute_no_gpu">This phone has no GPU that whisper.cpp can use, so the models run on the CPU</string>
+    <string name="models_whisper_compute_failed">The GPU did not run Whisper on this phone, so the models run on the CPU. Select GPU to try again</string>
+    <string name="models_whisper_compute_info">This applies to the GGML models only. The LiteRT models always run on the CPU. The GPU reads speech faster on phones with a Qualcomm Snapdragon chip (an Adreno GPU), mostly with the larger models, where reading a phrase takes the most time. Other GPUs are not used. The first use of the GPU after an install or update can take some seconds while the GPU prepares. If the GPU does not start, has not enough memory for the model, or stops during a phrase, the app gives that phrase to the CPU, and from then on the CPU runs the model on this phone. Select GPU again to try it again. Automatic keeps the Tiny models on the CPU, which is about as fast for them.</string>
 </resources>

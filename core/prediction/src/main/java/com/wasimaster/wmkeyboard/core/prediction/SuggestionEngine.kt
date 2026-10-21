@@ -1624,7 +1624,7 @@ class SuggestionEngine(
             FuzzyBeamSearch.ScoredCandidate(
                 c.word, c.score - LANG_MISMATCH_DAMP, c.editCost, c.edits,
                 c.completedChars, c.tier, c.dictScore, c.userScore - LANG_MISMATCH_DAMP,
-                c.accents,
+                c.accents, c.slips,
             )
         }
         if (!changed) return ranked
@@ -4696,7 +4696,13 @@ class SuggestionEngine(
             // one-extra-letter pure completion. An edited-then-completed
             // inflection ("questiom" -> "questions") must be neither a target
             // nor the runner-up that blocks the real fix.
-            val correctionShaped = when (c.edits) {
+            // Slips are the exception to "one edit": a word whose taps each
+            // landed a little wide ("rgw" for "the") is one kind of error made
+            // several times, so any number of slips plus at most one real
+            // edit is a fix in place, as long as nothing was completed.
+            val correctionShaped = if (c.slips > 0) {
+                c.completedChars == 0 && c.edits - c.slips <= 1
+            } else when (c.edits) {
                 // The typed word with its accents put back is a fix in place:
                 // same letters, same length.
                 0 -> if (c.accents > 0) {
@@ -4738,7 +4744,7 @@ class SuggestionEngine(
                 CorrectionStats.Penalty.PENALIZED -> FuzzyBeamSearch.ScoredCandidate(
                     c.word, c.score - PAIR_PENALTY, c.editCost, c.edits,
                     c.completedChars, c.tier,
-                    Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, c.accents,
+                    Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, c.accents, c.slips,
                 )
                 // A pair on probation keeps its honest score, because the only
                 // thing it is here to do is clear the offer margin, and a
@@ -4749,7 +4755,7 @@ class SuggestionEngine(
                 CorrectionStats.Penalty.PROBATION -> FuzzyBeamSearch.ScoredCandidate(
                     c.word, c.score, c.editCost, c.edits,
                     c.completedChars, c.tier,
-                    Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, c.accents,
+                    Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, c.accents, c.slips,
                 )
                 CorrectionStats.Penalty.NONE -> c
             }
@@ -4894,7 +4900,11 @@ class SuggestionEngine(
         lower: String,
         candidate: FuzzyBeamSearch.ScoredCandidate,
     ): Double {
-        val shape = (candidate.editCost / FuzzyBeamSearch.COST_SUB_FAR).coerceIn(0.0, 1.0)
+        // A slip spends nothing of the edit budget, so editCost never sees it;
+        // each one counts as half a far substitution here, which puts a word
+        // rewritten at two or more keys at the top of the scale.
+        val spent = candidate.editCost + candidate.slips * FuzzyBeamSearch.COST_SUB_FAR / 2
+        val shape = (spent / FuzzyBeamSearch.COST_SUB_FAR).coerceIn(0.0, 1.0)
         val length = ((lower.length - PLAIN_WORD_LENGTH) / PLAIN_WORD_SPAN).coerceIn(0.0, 1.0)
         return COMPLEXITY_SHAPE_WEIGHT * shape + (1.0 - COMPLEXITY_SHAPE_WEIGHT) * length
     }

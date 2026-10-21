@@ -33,6 +33,17 @@ class WhisperCppPlanTest {
     }
 
     @Test
+    fun `auto asks for the GPU from Base up, the explicit choices always win`() {
+        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.AUTO))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.BASE), WhisperCompute.AUTO))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TURBO), WhisperCompute.AUTO))
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.TINY), WhisperCompute.GPU))
+        assertEquals(false, WhisperCppPlan.wantsGpu(model(WhisperSize.LARGE), WhisperCompute.CPU))
+        // An unknown stored value reads as Auto.
+        assertEquals(true, WhisperCppPlan.wantsGpu(model(WhisperSize.SMALL), "npu"))
+    }
+
+    @Test
     fun `every dictation language is named, in order, in Whisper's spelling`() {
         assertEquals(listOf("bn", "en"), WhisperCppPlan.languages(model(WhisperSize.SMALL), listOf("bn", "en")))
         // Bokmål is Whisper's "no"; a language Whisper lacks is left out.

@@ -57,6 +57,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PhoneticCandidateList
 import com.wasimaster.wmkeyboard.core.prediction.SuggestionEngine
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.voice.VoiceDenoise
+import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
@@ -5779,6 +5780,13 @@ data class WhisperSettings(
     /** Force Whisper to translate speech to English instead of transcribing verbatim. */
     val translate: Boolean = false,
     /**
+     * Where the GGML (whisper.cpp) models run: [WhisperCompute.AUTO] (the GPU
+     * for Base and larger where the phone has an Adreno GPU, else the CPU),
+     * [WhisperCompute.CPU] or [WhisperCompute.GPU]. A GPU that fails hands
+     * the clip to the CPU. LiteRT graphs always run on the CPU.
+     */
+    val compute: String = WhisperCompute.AUTO,
+    /**
      * Noise reduction in front of the on-device engines (Whisper, Whistle,
      * the ExecuTorch engines, Sherpa): [VoiceDenoise.OFF], [VoiceDenoise.LIGHT]
      * (RNNoise) or [VoiceDenoise.STRONG] (DPDFNet on ONNX Runtime, which falls
@@ -5825,8 +5833,9 @@ data class WhisperSettings(
      * Words dictation should listen for, handed to the system recognizer and
      * the transcription server with each phrase (#305): the words the user
      * added by hand, the ones the keyboard learned that no word list has
-     * (names, jargon), and Android's personal dictionary. Offline Whisper
-     * cannot take a hint and ignores it.
+     * (names, jargon), and Android's personal dictionary. Whistle, Whisper
+     * models run by whisper.cpp and Offline Sherpa (as hotwords) take them
+     * too; the other offline engines cannot take a hint and ignore it.
      */
     val biasPersonalWords: Boolean = true,
     /**
@@ -8884,6 +8893,13 @@ data class SuggestionStripSettings(
      */
     val mistypeTolerance: Int = 100,
     /**
+     * Read several mistyped keys in one word: a tap within reach of the key
+     * next door may be read as that key without spending the word's one-edit
+     * budget, so a word typed with three keys a little wide is still fixed.
+     * Off reads every off-key tap as an edit, as before.
+     */
+    val fixSeveralSlips: Boolean = true,
+    /**
      * Swipe down on the word suggestions to see more of them (#385): the
      * engine's deeper list, in a grid over the keys. Off by default, since a
      * downward swipe on the strip otherwise hides the keyboard when that is on.
@@ -10592,6 +10608,7 @@ class SettingsRepository(private val context: Context) {
         private val WHISPER_MODEL_ID = stringPreferencesKey("whisper_model_id")
         private val WHISPER_MODEL_BY_LANG = stringPreferencesKey("whisper_model_by_lang")
         private val WHISPER_TRANSLATE = booleanPreferencesKey("whisper_translate")
+        private val WHISPER_COMPUTE = stringPreferencesKey("whisper_compute")
         // A switch before the level: on read as Light, the only level it had.
         private val VOICE_DENOISE = booleanPreferencesKey("voice_denoise")
         private val VOICE_DENOISE_LEVEL = stringPreferencesKey("voice_denoise_level")
@@ -10782,6 +10799,7 @@ class SettingsRepository(private val context: Context) {
         private val LEARN_FROM_CORRECTIONS = booleanPreferencesKey("learn_from_corrections")
         private val ADAPT_TO_TAPS = booleanPreferencesKey("adapt_to_taps")
         private val MISTYPE_TOLERANCE = intPreferencesKey("mistype_tolerance")
+        private val FIX_SEVERAL_SLIPS = booleanPreferencesKey("fix_several_slips")
         private val SUGGESTIONS_SWIPE_FOR_MORE = booleanPreferencesKey("suggestions_swipe_for_more")
         private val SUGGESTIONS_SWIPE_UP_FOR_MORE = booleanPreferencesKey("suggestions_swipe_up_for_more")
         private val SUGGESTIONS_EXPANDED_GRID = booleanPreferencesKey("suggestions_expanded_grid")
@@ -12279,6 +12297,7 @@ class SettingsRepository(private val context: Context) {
             adaptToTaps = p[ADAPT_TO_TAPS] ?: defaults.suggestionStrip.adaptToTaps,
             mistypeTolerance = p[MISTYPE_TOLERANCE]?.coerceIn(50, 200)
                 ?: defaults.suggestionStrip.mistypeTolerance,
+            fixSeveralSlips = p[FIX_SEVERAL_SLIPS] ?: defaults.suggestionStrip.fixSeveralSlips,
             swipeForMore = p[SUGGESTIONS_SWIPE_FOR_MORE] ?: defaults.suggestionStrip.swipeForMore,
             swipeUpForMore = p[SUGGESTIONS_SWIPE_UP_FOR_MORE] ?: defaults.suggestionStrip.swipeUpForMore,
             expandedGrid = p[SUGGESTIONS_EXPANDED_GRID] ?: defaults.suggestionStrip.expandedGrid,
@@ -12817,6 +12836,7 @@ class SettingsRepository(private val context: Context) {
             modelByLang = p[WHISPER_MODEL_BY_LANG]?.let { decodeWhisperModelByLang(it) }
                 ?: defaults.whisper.modelByLang,
             translate = p[WHISPER_TRANSLATE] ?: defaults.whisper.translate,
+            compute = p[WHISPER_COMPUTE]?.takeIf { it in WhisperCompute.CHOICES } ?: defaults.whisper.compute,
             denoise = p[VOICE_DENOISE_LEVEL]?.takeIf { it in VoiceDenoise.LEVELS }
                 ?: p[VOICE_DENOISE]?.let { if (it) VoiceDenoise.LIGHT else VoiceDenoise.OFF }
                 ?: defaults.whisper.denoise,
@@ -14211,6 +14231,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setWhisperTranslate(value: Boolean) =
         editPrefs { it[WHISPER_TRANSLATE] = value }
 
+    suspend fun setWhisperCompute(value: String) =
+        editPrefs { it[WHISPER_COMPUTE] = value }
+
     suspend fun setVoiceDenoise(value: String) =
         editPrefs {
             it[VOICE_DENOISE_LEVEL] = value
@@ -14721,6 +14744,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMistypeTolerance(value: Int) =
         editPrefs { it[MISTYPE_TOLERANCE] = value.coerceIn(50, 200) }
+
+    suspend fun setFixSeveralSlips(value: Boolean) =
+        editPrefs { it[FIX_SEVERAL_SLIPS] = value }
 
     suspend fun setSuggestionsSwipeForMore(value: Boolean) =
         editPrefs { it[SUGGESTIONS_SWIPE_FOR_MORE] = value }

@@ -27,7 +27,10 @@ import kotlinx.coroutines.flow.StateFlow
  * GGML models; there is no stub.
  *
  * One model is open at a time, and kept open between clips, since loading it
- * takes as long as a short phrase does to say.
+ * takes as long as a short phrase does to say. It is open on the CPU builds,
+ * or on the OpenCL one ([WhisperCppGpu]) when the caller asks for the GPU and
+ * the phone has one that build runs on; a GPU that cannot open the model, or
+ * fails on a clip, hands it to the CPU builds and is not asked again.
  */
 object WhisperCpp {
 
@@ -44,6 +47,9 @@ object WhisperCpp {
 
     @Volatile private var handle = 0L
     private var openPath: String? = null
+
+    /** [handle] is the OpenCL library's, not a CPU build's. */
+    @Volatile private var openGpu = false
 
     private val library = GatedLibrary({ FeatureModules.speech }, ::load)
 
@@ -73,7 +79,7 @@ object WhisperCpp {
         return runCatching { FeatureModules.loadLibrary("wmwhispercpp") }.isSuccess
     }
 
-    private fun hasArmV82Features(): Boolean = runCatching {
+    internal fun hasArmV82Features(): Boolean = runCatching {
         val features = File("/proc/cpuinfo").readLines()
             .filter { it.startsWith("Features") }
             .map { it.substringAfter(':').trim().split(' ').toSet() }
@@ -84,14 +90,16 @@ object WhisperCpp {
     private val threads: Int get() = Runtime.getRuntime().availableProcessors().coerceIn(2, 4)
 
     /**
-     * Opens [modelFile] if it is not the model already open. Called while the
-     * phrase is still being said, so the first clip does not wait for it.
+     * Opens [modelFile] if it is not the model already open, on the GPU when
+     * [gpu] asks for it and the phone can. Called while the phrase is still
+     * being said, so the first clip does not wait for it; on the GPU's first
+     * use that includes the driver compiling its kernels, which takes seconds.
      * Blocking; call off the main thread. Throws [WhisperException].
      */
-    fun warm(modelFile: File) {
+    fun warm(modelFile: File, gpu: Boolean = false) {
         lock.lock()
         try {
-            openLocked(modelFile)
+            openLocked(modelFile, gpu)
         } finally {
             lock.unlock()
         }
@@ -106,6 +114,7 @@ object WhisperCpp {
      * @param translate English out, whatever language comes in.
      * @param prompt words to steer spelling and vocabulary towards, or null.
      * @param beamSize 1 decodes greedily; more keeps that many hypotheses.
+     * @param gpu run it on the GPU where the phone can ([WhisperCppPlan.wantsGpu]).
      * Blocking; call off the main thread. Throws [WhisperException].
      */
     fun transcribe(
@@ -115,21 +124,39 @@ object WhisperCpp {
         translate: Boolean,
         prompt: String?,
         beamSize: Int,
+        gpu: Boolean = false,
     ): Result? {
         lock.lock()
         try {
-            val h = openLocked(modelFile)
+            val codes = languages.toTypedArray()
+            var h = openLocked(modelFile, gpu)
+            if (openGpu) {
+                try {
+                    val bytes = WhisperCppGpu.attempt(WhisperCppGpu.modelKey(modelFile)) {
+                        WhisperCppGpu.transcribe(h, pcm, codes, translate, prompt, beamSize, threads)
+                    }
+                    return bytes?.let(::result)
+                } catch (_: IllegalStateException) {
+                    // The GPU failed on this clip and is not asked again for
+                    // this model: the CPU builds take it, and the next ones.
+                    h = openLocked(modelFile, gpu)
+                }
+            }
             val bytes = try {
-                nativeTranscribe(h, pcm, languages.toTypedArray(), translate, prompt, beamSize, threads)
+                nativeTranscribe(h, pcm, codes, translate, prompt, beamSize, threads)
             } catch (e: IllegalStateException) {
                 throw WhisperException(R.string.core_voice_whisper_transcribe_error, cause = e)
             } ?: return null
-            val out = String(bytes, Charsets.UTF_8)
-            val language = out.substringBefore('\n').ifEmpty { null }
-            return Result(out.substringAfter('\n').trim(), language)
+            return result(bytes)
         } finally {
             lock.unlock()
         }
+    }
+
+    private fun result(bytes: ByteArray): Result {
+        val out = String(bytes, Charsets.UTF_8)
+        val language = out.substringBefore('\n').ifEmpty { null }
+        return Result(out.substringAfter('\n').trim(), language)
     }
 
     /**
@@ -141,7 +168,7 @@ object WhisperCpp {
         val bytes = synchronized(handleLock) {
             val h = handle
             if (h == 0L) return ""
-            nativePartial(h)
+            if (openGpu) WhisperCppGpu.partial(h) else nativePartial(h)
         }
         // A byte-level token can end half way through a character.
         return String(bytes, Charsets.UTF_8).trimEnd('\uFFFD').trim()
@@ -150,7 +177,8 @@ object WhisperCpp {
     /** Stops the running transcription at its next step; it returns null. Any thread. */
     fun abort() = synchronized(handleLock) {
         val h = handle
-        if (h != 0L) nativeAbort(h)
+        if (h == 0L) return@synchronized
+        if (openGpu) WhisperCppGpu.abort(h) else nativeAbort(h)
     }
 
     /** Closes the open model. Skipped while a transcription holds it, so trim-memory never waits. */
@@ -163,7 +191,7 @@ object WhisperCpp {
         }
     }
 
-    private fun openLocked(modelFile: File): Long {
+    private fun openLocked(modelFile: File, gpu: Boolean): Long {
         if (!available) {
             // Play, before the split is here: the same error the LiteRT
             // graphs give while their interpreter is on its way.
@@ -171,20 +199,42 @@ object WhisperCpp {
             error("whisper.cpp is not available in this build")
         }
         val path = modelFile.canonicalPath
-        if (handle != 0L && openPath == path) return handle
+        val key = if (gpu) WhisperCppGpu.modelKey(modelFile) else ""
+        val onGpu = gpu && WhisperCppGpu.ready(key)
+        if (handle != 0L && openPath == path && openGpu == onGpu) return handle
         closeLocked()
+        if (onGpu) {
+            // Null when the driver or the memory said no on the way in: a
+            // model too big for what the GPU may take comes back as no handle,
+            // and one whose backend would not start comes back on the CPU.
+            val h = runCatching { WhisperCppGpu.attempt(key) { WhisperCppGpu.open(path, true) } }.getOrDefault(0L)
+            if (h != 0L && WhisperCppGpu.onGpu(h)) {
+                setOpen(h, path, gpu = true)
+                return h
+            }
+            if (h != 0L) WhisperCppGpu.close(h)
+            WhisperCppGpu.fail(key)
+        }
         val h = nativeOpen(path)
         if (h == 0L) throw WhisperException(R.string.core_voice_whisper_model_load_error)
+        setOpen(h, path, gpu = false)
+        return h
+    }
+
+    private fun setOpen(h: Long, path: String, gpu: Boolean) = synchronized(handleLock) {
         handle = h
         openPath = path
-        return h
+        openGpu = gpu
     }
 
     private fun closeLocked() = synchronized(handleLock) {
         val h = handle
         handle = 0L
         openPath = null
-        if (h != 0L) nativeClose(h)
+        if (h != 0L) {
+            if (openGpu) WhisperCppGpu.close(h) else nativeClose(h)
+        }
+        openGpu = false
     }
 
     @JvmStatic private external fun nativeOpen(path: String): Long
