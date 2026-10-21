@@ -54,6 +54,13 @@ data class AiChatMessage(
      * file from before files still decodes.
      */
     val files: List<AiChatFile> = emptyList(),
+    /**
+     * What a reasoning model thought before it answered (#882), every round
+     * of it, for the chat's folded Reasoning step. Never sent back to the
+     * model: [promptText] leaves it out, as every provider asks. Defaulted,
+     * so a file from before reasoning was kept still decodes.
+     */
+    val reasoning: String = "",
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -219,6 +226,7 @@ class AiChatStore(private val storageFile: File?) {
         val stored = message.copy(
             content = message.content.cut(),
             attachment = message.attachment.cut(),
+            reasoning = message.reasoning.cut(),
         )
         val title = old.title.ifEmpty {
             if (stored.role == AiChatMessage.ROLE_USER) titleFrom(stored.content) else ""

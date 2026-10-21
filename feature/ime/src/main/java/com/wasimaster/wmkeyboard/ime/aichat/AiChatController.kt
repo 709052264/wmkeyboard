@@ -448,11 +448,13 @@ object AiChatController {
         runSeq++
         if (current.choice.provider == AiProvider.ON_DEVICE) LocalLlmEngine.stop()
         val store = store(context.applicationContext)
+        val parts = AiThinking.parts(current.partial, current.implicitThink)
         store.appendMessage(
             current.conversationId,
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = AiThinking.split(current.partial, current.implicitThink).output.trim(),
+                content = parts.output.trim(),
+                reasoning = parts.reasoning,
                 timestamp = System.currentTimeMillis(),
                 provider = current.choice.provider.name,
                 model = modelName(current.choice),
@@ -888,8 +890,6 @@ object AiChatController {
             return
         }
         val store = store(context)
-        val implicitThink =
-            choice.provider == AiProvider.ON_DEVICE && isReasoningModel(choice.localModelId)
         // Kept with the answer — or with the failure, since a run that died
         // after searching still searched.
         val toolUses = AiToolActivity.settle(
@@ -897,11 +897,14 @@ object AiChatController {
             context.getString(R.string.ime_ai_chat_error_generic),
         )
         val message = if (raw != null) {
-            val stripped = AiThinking.split(raw, implicitThink).output.trim()
-                .ifBlank { raw.trim() }
+            // Every round's reasoning, kept apart for the folded step (#882).
+            // A finished answer with no marks at all did not reason this
+            // time, whatever the model's name says, so implicit is off here.
+            val parts = AiThinking.parts(raw)
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = stripped,
+                content = parts.output.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" },
+                reasoning = parts.reasoning,
                 timestamp = System.currentTimeMillis(),
                 provider = choice.provider.name,
                 model = modelName(choice),

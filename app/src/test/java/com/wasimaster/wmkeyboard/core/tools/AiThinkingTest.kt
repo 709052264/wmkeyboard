@@ -86,4 +86,35 @@ class AiThinkingTest {
             AiThinking.reasoning(part, implicitThink = true)
         }
     }
+
+    @Test
+    fun `parts gathers every round's reasoning and leaves none in the answer`() {
+        val parts = AiThinking.parts("<think>look it up</think>Searching.\n\n<think>found it</think>It is 5.")
+        assertEquals("look it up\n\nfound it", parts.reasoning)
+        assertEquals("Searching.\n\nIt is 5.", parts.output)
+        assertFalse(parts.thinking)
+    }
+
+    @Test
+    fun `parts reads a close with no opener as reasoning before it`() {
+        val parts = AiThinking.parts("weighing it</think>Yes.")
+        assertEquals("weighing it", parts.reasoning)
+        assertEquals("Yes.", parts.output)
+    }
+
+    @Test
+    fun `parts says an open passage is still thinking`() {
+        val parts = AiThinking.parts("First.<think>now then")
+        assertEquals("now then", parts.reasoning)
+        assertEquals("First.", parts.output)
+        assertTrue(parts.thinking)
+    }
+
+    @Test
+    fun `parts under implicit think treats unmarked text as reasoning`() {
+        val parts = AiThinking.parts("still going", implicitThink = true)
+        assertEquals("still going", parts.reasoning)
+        assertEquals("", parts.output)
+        assertTrue(parts.thinking)
+    }
 }

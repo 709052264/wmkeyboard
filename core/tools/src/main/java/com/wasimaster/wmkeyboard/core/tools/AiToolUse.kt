@@ -92,6 +92,8 @@ data class AiToolResult(
             error = error,
             awaitingApproval = false,
             details = "",
+            arguments = call.arguments.trim().take(AiToolActivity.KEPT_CHARS),
+            output = content.trim().take(AiToolActivity.KEPT_CHARS),
         )
 }
 
@@ -172,6 +174,14 @@ data class AiToolActivity(
      * still decodes.
      */
     val memory: AiMemoryNote? = null,
+    /**
+     * The arguments the model wrote, as it wrote them, and what the call
+     * handed back to it, each cut to [KEPT_CHARS] (#882): what the chat's
+     * chain of steps shows when a call is tapped open. Empty while it runs,
+     * and in a message stored before they were kept.
+     */
+    val arguments: String = "",
+    val output: String = "",
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -179,6 +189,9 @@ data class AiToolActivity(
     val isMcp: Boolean get() = server.isNotEmpty()
 
     companion object {
+        /** How much of [arguments] and [output] is kept with a message. */
+        const val KEPT_CHARS = 4000
+
         /** A call the model just asked for, before it has run. */
         fun started(call: AiToolCall): AiToolActivity = AiToolActivity(
             tool = call.name,

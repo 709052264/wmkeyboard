@@ -277,7 +277,7 @@ fun ChatToolUses(
  * of it is that the user sees what the model decided to remember.
  */
 @Composable
-private fun MemorySaveLine(note: AiMemoryNote, colors: ChatMarkdownColors, fontSize: TextUnit, onUndo: (() -> Unit)?) {
+internal fun MemorySaveLine(note: AiMemoryNote, colors: ChatMarkdownColors, fontSize: TextUnit, onUndo: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .padding(top = 3.dp)
@@ -489,7 +489,7 @@ private fun ToolUseLines(
 /** One page: its title, and where it is. Tap opens it, a long press copies the address. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SourceLine(
+internal fun SourceLine(
     source: AiToolSource,
     fullAddress: Boolean,
     colors: ChatMarkdownColors,
@@ -769,7 +769,7 @@ private fun builtInLine(use: AiToolActivity, labels: ToolLabels): String {
  * to send.
  */
 @Composable
-private fun ApprovalCard(
+internal fun ApprovalCard(
     use: AiToolActivity,
     colors: ChatMarkdownColors,
     fontSize: TextUnit,
@@ -865,7 +865,7 @@ internal fun openToolLink(context: Context, url: String) {
  * A record, or a call inside one, sliding up into place as it fades in.
  * ModulateAlpha so the fade never cuts off a line drawn past the block's edge.
  */
-private fun Modifier.arrival(progress: Animatable<Float, AnimationVector1D>): Modifier = graphicsLayer {
+internal fun Modifier.arrival(progress: Animatable<Float, AnimationVector1D>): Modifier = graphicsLayer {
     val p = progress.value
     if (p >= 1f) return@graphicsLayer
     alpha = p

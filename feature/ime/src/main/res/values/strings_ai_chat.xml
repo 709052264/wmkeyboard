@@ -245,4 +245,10 @@
     <string name="ime_ai_chat_file_too_big">That file is too big to send (14 MB at most)</string>
     <string name="ime_ai_chat_file_unreadable">That file could not be read as text, sound, video or PDF</string>
     <string name="ime_ai_chat_file_remove_desc">Remove file</string>
+    <!-- The chat's steps before an answer (#882): the folded reasoning, and a tool call opened up. -->
+    <string name="ime_ai_chat_reasoning">Reasoning</string>
+    <!-- %1$s is the tool's own name as the model calls it, such as web_search. -->
+    <string name="ime_ai_chat_tool_call">%1$s call</string>
+    <string name="ime_ai_chat_tool_arguments">Arguments</string>
+    <string name="ime_ai_chat_tool_output">Output</string>
 </resources>

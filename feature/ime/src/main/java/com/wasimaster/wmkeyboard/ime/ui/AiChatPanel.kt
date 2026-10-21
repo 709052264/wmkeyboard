@@ -427,7 +427,7 @@ private fun Transcript(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (live != null) {
-                    item(key = "live") { StreamingBubble(live, state.settings.ai.showThinking, onChat) }
+                    item(key = "live") { StreamingBubble(live, onChat) }
                 }
                 itemsIndexed(
                     messages.asReversed(),
@@ -522,10 +522,9 @@ private fun MessageBubble(
                     ChatPictures(message.images, MESSAGE_PICTURE_SIZE, Modifier.padding(bottom = 5.dp))
                 }
                 if (message.files.isNotEmpty()) ChatFiles(message.files, ink, Modifier.padding(bottom = 5.dp))
-                // What the answer was built on, over the answer.
-                if (message.toolUses.isNotEmpty()) {
-                    ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp), onUndoMemory)
-                }
+                // How the answer came to be, over it: the reasoning, then each
+                // tool call, as steps down to the answer (#882).
+                Chain(message.reasoning, live = false, message.toolUses, colors, onChat, onUndoMemory)
                 when {
                     message.failed -> Text(message.error, color = kb.accent, fontSize = 13.sp, lineHeight = 18.sp)
                     // The user's own words are drawn as written: an asterisk
@@ -666,24 +665,26 @@ private fun Caption(text: String, color: Color) {
     Text(text, color = color, fontSize = 10.sp, lineHeight = 13.sp, modifier = Modifier.padding(top = 3.dp))
 }
 
-/** [ChatToolUses] in the bubble's colours, its links opened and copied the keyboard's way. */
+/** [ChatChain] in the answer's colours, its links opened and copied the keyboard's way. */
 @Composable
-private fun ToolUses(
+private fun Chain(
+    reasoning: String,
+    live: Boolean,
     uses: List<AiToolActivity>,
     colors: ChatMarkdownColors,
     onChat: (AiChatAction) -> Unit,
-    modifier: Modifier = Modifier,
     /** Undo for a memory save; only a stored answer has one to take back. */
     onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    ChatToolUses(
+    ChatChain(
+        reasoning = reasoning,
+        reasoningLive = live,
         uses = uses,
         colors = colors,
         errorColor = LocalKbTheme.current.accent,
         onOpen = { openToolLink(context, it) },
         onCopy = { onChat(AiChatAction.Copy(it)) },
-        modifier = modifier,
         // Only a running call ever asks, so a stored answer's record never
         // shows the buttons.
         onApproval = { onChat(AiChatAction.ToolApproval(it)) },
@@ -694,9 +695,8 @@ private fun ToolUses(
 
 /** The answer forming: its text as it arrives, or what the model is doing until there is some. */
 @Composable
-private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean, onChat: (AiChatAction) -> Unit) {
+private fun StreamingBubble(run: AiChatController.ChatRun, onChat: (AiChatAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val split = remember(run.partial, run.implicitThink) { AiThinking.split(run.partial, run.implicitThink) }
     val ink = answerInk(kb)
     val colors = ChatMarkdownColors(
         text = ink,
@@ -710,37 +710,21 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                 .weight(1f)
                 .padding(horizontal = 2.dp, vertical = 3.dp),
         ) {
-            // The calls so far, the running one saying what it is doing.
+            // The reasoning so far and the calls so far, the running one
+            // saying what it is doing, as the steps the stored answer keeps.
+            val parts = remember(run.partial, run.implicitThink) { AiThinking.parts(run.partial, run.implicitThink) }
             val toolRunning = run.tools.any { it.running }
-            if (run.tools.isNotEmpty()) ToolUses(run.tools, colors, onChat, Modifier.padding(bottom = 4.dp))
-            val reasoning = remember(run.partial, run.implicitThink, showThinking) {
-                if (showThinking) AiThinking.reasoning(run.partial, run.implicitThink) else ""
-            }
+            Chain(parts.reasoning, live = parts.thinking, run.tools, colors, onChat)
             when {
-                // The reasoning dimmed, then the answer as markdown, so its
-                // tables and maths take shape while it streams.
-                reasoning.isNotEmpty() || split.output.isNotBlank() -> {
-                    if (reasoning.isNotEmpty()) {
-                        Text(
-                            reasoning,
-                            // Dimmed by alpha, as the actions' result is: some
-                            // themes draw their secondary text in the same white.
-                            color = ink.copy(alpha = 0.45f),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp,
-                            modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 5.dp) else Modifier,
-                        )
-                    }
-                    if (split.output.isNotBlank()) ChatMarkdown(split.output, colors)
-                }
-                // The line over this one already says which tool is running
-                // and on what; "Using a tool" under it would only repeat it.
-                toolRunning && !split.thinking -> Unit
+                // The answer as markdown, so its tables and maths take shape
+                // while it streams.
+                parts.output.isNotBlank() -> ChatMarkdown(parts.output, colors)
+                // The steps above already say what is happening: the model is
+                // reasoning, or a tool is running.
+                parts.thinking || toolRunning -> Unit
                 else -> {
                     Text(
-                        stringResource(
-                            if (split.thinking) R.string.ime_ai_chat_thinking else run.phase.labelRes,
-                        ),
+                        stringResource(run.phase.labelRes),
                         color = kb.secondaryText,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,

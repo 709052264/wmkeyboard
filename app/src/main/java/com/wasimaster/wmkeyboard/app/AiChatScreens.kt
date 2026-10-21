@@ -125,7 +125,7 @@ import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController.ModelChoice
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdown
 import com.wasimaster.wmkeyboard.ime.ui.ChatMarkdownColors
-import com.wasimaster.wmkeyboard.ime.ui.ChatToolUses
+import com.wasimaster.wmkeyboard.ime.ui.ChatChain
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R as ImeR
 
@@ -478,7 +478,7 @@ internal fun AiChatScreen(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 run?.takeIf { it.conversationId == activeId }?.let { live ->
-                    item(key = "live") { StreamingBubble(live, settings.watch { it.ai.showThinking }) }
+                    item(key = "live") { StreamingBubble(live) }
                 }
                 itemsIndexed(messages.asReversed()) { reversedIndex, message ->
                     // asReversed() is a view, so the position in the stored
@@ -942,15 +942,15 @@ private fun MessageBubble(
                     ChatPictures(message.images, Modifier.padding(bottom = 6.dp))
                 }
                 if (message.files.isNotEmpty()) ChatFileChips(message.files, Modifier.padding(bottom = 6.dp))
-                // What the answer was built on, over the answer — kept on a
-                // failed turn too, since a run that died after searching
-                // still searched.
-                if (message.toolUses.isNotEmpty()) {
+                // How the answer came to be, over it (#882): the reasoning,
+                // then each tool call — kept on a failed turn too, since a run
+                // that died after searching still searched.
+                if (!fromUser) {
                     val ink = when {
                         message.failed -> MaterialTheme.colorScheme.onErrorContainer
                         else -> MaterialTheme.colorScheme.onSurface
                     }
-                    ToolUses(message.toolUses, ink, copy, Modifier.padding(bottom = 4.dp), onUndoMemory)
+                    Chain(message.reasoning, live = false, message.toolUses, ink, copy, onUndoMemory)
                 }
                 if (message.failed) {
                     Text(
@@ -1023,17 +1023,20 @@ private fun MessageBubble(
     }
 }
 
-/** [ChatToolUses] in Material colours: a page opens in the browser, an address copies. */
+/** [ChatChain] in Material colours: a page opens in the browser, an address copies. */
 @Composable
-private fun ToolUses(
+private fun Chain(
+    reasoning: String,
+    live: Boolean,
     uses: List<AiToolActivity>,
     ink: Color,
     onCopy: (String) -> Unit,
-    modifier: Modifier = Modifier,
     onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val uriHandler = LocalUriHandler.current
-    ChatToolUses(
+    ChatChain(
+        reasoning = reasoning,
+        reasoningLive = live,
         uses = uses,
         colors = ChatMarkdownColors(
             text = ink,
@@ -1043,8 +1046,8 @@ private fun ToolUses(
         errorColor = MaterialTheme.colorScheme.error,
         onOpen = { url -> runCatching { uriHandler.openUri(url) } },
         onCopy = onCopy,
-        modifier = modifier,
         fontSize = MaterialTheme.typography.labelMedium.fontSize,
+        textSize = MaterialTheme.typography.bodyMedium.fontSize,
         // The same controller runs the keyboard's chat, so a question asked
         // here is the one asked there; either screen can answer it (#573).
         onApproval = { AiChatController.answerTool(it) },
@@ -1077,76 +1080,45 @@ private fun BubbleAction(@StringRes label: Int, onClick: () -> Unit) {
 }
 
 /**
- * The answer forming. With "show reasoning" on, the whole raw stream renders
- * with the think block dimmed (the keyboard panel's grayThinking treatment);
- * off, reasoning stays behind a progress caption until answer text arrives.
+ * The answer forming, drawn as the finished one will be (#882): the reasoning
+ * and the tool calls so far as folded steps, then the answer, its tables and
+ * maths taking shape as they stream. Before any of it, a progress line.
  */
 @Composable
-private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean) {
-    val split = AiThinking.split(run.partial, run.implicitThink)
+private fun StreamingBubble(run: AiChatController.ChatRun) {
+    val parts = AiThinking.parts(run.partial, run.implicitThink)
     val context = LocalContext.current
     val toolRunning = run.tools.any { it.running }
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-        // Drawn as the finished answer will be: full width, no bubble (#882).
-        Box(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(horizontal = 4.dp, vertical = 8.dp)) {
-                // The calls so far; the running one says what it is doing.
-                if (run.tools.isNotEmpty()) {
-                    ToolUses(
-                        run.tools,
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                        { copyText(context, it) },
-                        Modifier.padding(bottom = 4.dp),
-                    )
-                }
-                val reasoning = if (showThinking) AiThinking.reasoning(run.partial, run.implicitThink) else ""
-                when {
-                    // The reasoning dimmed, then the answer drawn as the finished
-                    // one will be: tables and maths take shape as they stream
-                    // rather than showing as raw text until the end.
-                    reasoning.isNotEmpty() || split.output.isNotBlank() -> {
-                        if (reasoning.isNotEmpty()) {
-                            Text(
-                                reasoning,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f),
-                                modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 6.dp) else Modifier,
-                            )
-                        }
-                        if (split.output.isNotBlank()) {
-                            val ink = MaterialTheme.colorScheme.onSurface
-                            ChatMarkdown(
-                                split.output,
-                                ChatMarkdownColors(
-                                    text = ink,
-                                    dim = ink.copy(alpha = 0.65f),
-                                    codeBackground = ink.copy(alpha = 0.10f),
-                                ),
-                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
-                            )
-                        }
-                    }
-                    // The line above already names the tool and what it is on.
-                    toolRunning && !split.thinking -> Unit
-                    else -> Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.width(16.dp).height(16.dp),
-                            strokeWidth = 2.dp,
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            stringResource(
-                                if (split.thinking) {
-                                    ImeR.string.ime_ai_chat_thinking
-                                } else {
-                                    run.phase.labelRes
-                                },
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
+    val ink = MaterialTheme.colorScheme.onSurface
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp, vertical = 8.dp),
+    ) {
+        Chain(parts.reasoning, live = parts.thinking, run.tools, ink, { copyText(context, it) })
+        when {
+            parts.output.isNotBlank() -> ChatMarkdown(
+                parts.output,
+                ChatMarkdownColors(
+                    text = ink,
+                    dim = ink.copy(alpha = 0.65f),
+                    codeBackground = ink.copy(alpha = 0.10f),
+                ),
+                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+            )
+            // The steps above already say what is happening.
+            parts.thinking || toolRunning -> Unit
+            else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                CircularProgressIndicator(
+                    modifier = Modifier.width(16.dp).height(16.dp),
+                    strokeWidth = 2.dp,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    stringResource(run.phase.labelRes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
