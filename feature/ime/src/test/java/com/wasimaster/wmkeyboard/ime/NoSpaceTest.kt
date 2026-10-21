@@ -8,8 +8,10 @@ import com.wasimaster.wmkeyboard.core.settings.TextEditAction
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import android.os.Looper
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 
 /**
  * No space (#851): the keyboard's own space after a word comes back out, the
@@ -79,5 +81,37 @@ class NoSpaceTest {
         service.noSpace()
         service.onText(".")
         assertEquals("foot.", editor.text.toString())
+    }
+
+    /** The editor reports a caret move, and its echo is handled. */
+    private fun GlideKeyboard.caret(from: Int, to: Int) {
+        onUpdateSelection(from, from, to, to, -1, -1)
+        shadowOf(Looper.getMainLooper()).idle()
+    }
+
+    @Test
+    fun `the editor reporting No space's own edit keeps the next glide joined`() {
+        val (service, editor) = keyboard()
+        service.glide("foot")
+        service.caret(0, 5)
+        service.noSpace()
+        assertEquals("foot", editor.text.toString())
+        // #867: the echo of the space coming out is not the user moving the caret.
+        service.caret(5, 4)
+        service.glide("ball")
+        assertEquals("football ", editor.text.toString())
+    }
+
+    @Test
+    fun `a caret the user moves after it still calls the join off`() {
+        val (service, editor) = keyboard()
+        service.glide("foot")
+        service.caret(0, 5)
+        service.noSpace()
+        service.caret(5, 4)
+        // The user taps elsewhere: any caret but the one No space left.
+        service.caret(4, 2)
+        service.glide("ball")
+        assertEquals("foot ball ", editor.text.toString())
     }
 }

@@ -3033,6 +3033,13 @@ open class WMKeyboardService : InputMethodService() {
     private var glueNextWord = false
 
     /**
+     * The caret No space's own edit left, or -1 when not known (#867). Its
+     * echo reports the caret settling there, which is not the user moving it,
+     * so it leaves [glueNextWord] armed.
+     */
+    private var glueCaret = -1
+
+    /**
      * The No space action (#851), Nintype's spaceless key. The first of these
      * that applies:
      *  - the keyboard has just put a space after a word (a glide or a pick):
@@ -3050,6 +3057,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun noSpace() {
         val ic = currentInputConnection ?: return
         val state = _uiState.value
+        var spaceTaken = false
         when {
             composing.isNotEmpty() -> {
                 allUpArmed = false
@@ -3059,6 +3067,7 @@ open class WMKeyboardService : InputMethodService() {
             pendingWordSpace -> {
                 if (ic.getTextBeforeCursor(1, 0)?.toString() != " ") return
                 ic.deleteSurroundingText(1, 0)
+                spaceTaken = true
                 pendingWordSpace = false
                 // The word is the user's to edit letter by letter now: a
                 // backspace takes one letter, not the glided word whole.
@@ -3069,6 +3078,12 @@ open class WMKeyboardService : InputMethodService() {
             else -> return
         }
         glueNextWord = true
+        // Only the space branch moved the caret, one place back.
+        glueCaret = when {
+            expectedSelStart < 0 || expectedSelStart != expectedSelEnd -> -1
+            spaceTaken -> expectedSelStart - 1
+            else -> expectedSelStart
+        }
     }
 
     /**
@@ -14078,8 +14093,10 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun restartSuggestionsAtCursor(ic: InputConnection, newSelStart: Int) {
         // The caret went somewhere: the next word is not the one No space
-        // meant to join on (#851).
-        glueNextWord = false
+        // meant to join on (#851). The echo of No space's own edit, landing
+        // where it left the caret, is not that (#867).
+        if (!glueNextWord || newSelStart != glueCaret) glueNextWord = false
+        glueCaret = -1
         scheduleRecentBar()
         // The caret settling where a Retype left it (#791): the strip stays on
         // the word that was taken out, rather than predicting past it.
