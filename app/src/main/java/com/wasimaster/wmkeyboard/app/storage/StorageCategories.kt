@@ -1351,13 +1351,10 @@ internal object StorageCategories {
             icon = Icons.Outlined.Cached,
             accent = Color(0xFF90A4AE),
             group = StorageGroup.CACHE,
-            // The loose files sitting straight in the cache root: shared log
-            // exports, manifests, half-imported word lists. Naming them one
-            // prefix at a time would go stale the first time one is added.
-            pathsOf = { roots ->
-                listOf(File(roots.cache, "keysounds"), File(roots.cache, "diagnostics")) +
-                    childrenOf(roots.cache).filter { it.isFile }
-            },
+            pathsOf = ::tempPaths,
+            // One row per directory: what is inside one is a pack's pieces or
+            // a share's copies, named by nothing but a number.
+            itemsOf = { env -> tempPaths(env.roots).filter(File::exists).map { env.namedItem(it) } },
         ),
         StorageCategory(
             id = OTHER_CACHE,
@@ -1370,6 +1367,20 @@ internal object StorageCategories {
             itemsOf = { env -> unclaimedItems(env, cacheSide = true) },
         ),
     )
+
+    /**
+     * The app's own scratch directories in the cache root, each refilled the
+     * next time its screen needs it, and the loose files sitting straight in
+     * the root: shared log exports, manifests, half-imported word lists.
+     * Naming those one prefix at a time would go stale the first time one is
+     * added.
+     */
+    private fun tempPaths(roots: StorageRoots): List<File> = listOf(
+        "keysounds", "diagnostics", "layout-previews", "rboard", "gboard_preview",
+        "telegram_stickers", "signal_stickers", "notes", "send", "remote-restore",
+        "keyman-rules", "import_preview", "link-import", "offline_import", "emotic-import",
+        "upscale", "imagegen",
+    ).map { File(roots.cache, it) } + childrenOf(roots.cache).filter { it.isFile }
 
     // ---- the rest ----
 
@@ -1475,8 +1486,22 @@ internal object StorageCategories {
                 .flatMap { top -> if (top.name == "files") childrenOf(top) else listOf(top) }
         }
         return candidates
-            .filterNot { it.absolutePath in claimed }
+            .flatMap { unclaimedUnder(it, claimed) }
             .map { env.namedItem(it, detail = residualDetail(env, it), deletable = false) }
+    }
+
+    /**
+     * [file] when no category counts it, or the parts of it none does when a
+     * category counts something inside it: `files/ocr` holds two packs that
+     * the text scanner's row already counts, and listing the directory whole
+     * would count them twice under a name that says nothing.
+     */
+    private fun unclaimedUnder(file: File, claimed: Set<String>): List<File> {
+        val path = file.absolutePath
+        if (path in claimed) return emptyList()
+        val prefix = path + File.separator
+        if (claimed.none { it.startsWith(prefix) }) return listOf(file)
+        return childrenOf(file).flatMap { unclaimedUnder(it, claimed) }
     }
 
     /**

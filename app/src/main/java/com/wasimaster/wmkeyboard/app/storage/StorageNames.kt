@@ -89,6 +89,16 @@ internal object StorageNames {
         "debug/crashes.log" to R.string.storage_file_crash_log_label,
         "diagnostics/wmkeyboard-log.txt" to R.string.storage_file_debug_log_label,
         "theme_photos/pool.json" to R.string.storage_file_photo_pool_label,
+
+        // The same name in the cache and in files/ means two things.
+        "cache/notes" to R.string.storage_file_shared_notes_label,
+        "files/notes" to R.string.storage_file_notes_label,
+        "cache/send" to R.string.storage_file_send_queue_label,
+        "files/send" to R.string.storage_file_send_history_label,
+        "files/backup" to R.string.storage_file_backup_staging_label,
+        "files/clock" to R.string.storage_file_clock_label,
+        "files/kaomoji" to R.string.storage_file_kaomoji_label,
+        "files/keyman" to R.string.storage_file_keyman_label,
     )
 
     // ---- named wherever they turn up ----
@@ -105,15 +115,44 @@ internal object StorageNames {
         "litertlm" to R.string.storage_file_llm_cache_label,
         "keysounds" to R.string.storage_file_keysound_cache_label,
         "diagnostics" to R.string.storage_file_diagnostics_label,
+        "layout-previews" to R.string.storage_file_layout_previews_label,
+        "rboard" to R.string.storage_file_rboard_label,
+        "gboard_preview" to R.string.storage_file_gboard_preview_label,
+        "telegram_stickers" to R.string.storage_file_telegram_stickers_label,
+        "signal_stickers" to R.string.storage_file_signal_stickers_label,
+        "remote-restore" to R.string.storage_file_remote_restore_label,
+        "keyman-rules" to R.string.storage_file_keyman_downloads_label,
+        "import_preview" to R.string.storage_file_import_preview_label,
+        "link-import" to R.string.storage_file_link_import_label,
+        "offline_import" to R.string.storage_file_offline_import_label,
+        "emotic-import" to R.string.storage_file_kaomoji_import_label,
+        "upscale" to R.string.storage_file_upscale_label,
+        "imagegen" to R.string.storage_file_imagegen_label,
+
+        "homeassistant" to R.string.storage_file_smart_home_label,
+        "kdeconnect" to R.string.storage_file_kdeconnect_label,
+        "gif_collections" to R.string.storage_file_gif_collections_label,
+        "handwriting_imports" to R.string.storage_file_ink_imports_label,
+        "gallery_sent.txt" to R.string.storage_file_gallery_sent_label,
+
+        // Written by Google's libraries (MediaPipe, ML Kit, Play services'
+        // flag and download services), not by this app.
+        "drishti_asset_cache" to R.string.storage_file_mediapipe_label,
+        "mlkit_digital_ink_recognition" to R.string.storage_file_ink_models_label,
+        "mdd_pds_config" to R.string.storage_file_gms_config_label,
+        "phenotype_storage_info" to R.string.storage_file_gms_config_label,
+        "gms_icing_mdd_garbage_file" to R.string.storage_file_gms_config_label,
 
         "no_backup" to R.string.storage_file_no_backup_label,
         "shared_prefs" to R.string.storage_file_shared_prefs_label,
         "databases" to R.string.storage_file_databases_label,
         "code_cache" to R.string.storage_file_code_cache_label,
         "oat" to R.string.storage_file_code_cache_label,
+        "oat_primary" to R.string.storage_file_code_cache_label,
         "cache" to R.string.storage_file_cache_label,
         "files" to R.string.storage_file_app_files_label,
         "profileInstalled" to R.string.storage_file_profile_installed_label,
+        "profileinstaller_profileWrittenFor_lastUpdateTime.dat" to R.string.storage_file_profile_installed_label,
         "lib" to R.string.storage_file_native_libs_label,
         "app_webview" to R.string.storage_file_webview_data_label,
     )
