@@ -45,6 +45,8 @@ kotlin {
 
 dependencies {
     api(project(":core:common"))
+    // NativeEngine: the frosted-glass blur runs on the engine's NEON kernel.
+    implementation(project(":core:language"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
@@ -60,3 +62,7 @@ dependencies {
     // internals anyway.
     testImplementation(libs.junit)
 }
+
+// FrostBakeTest reaches the engine's blur, which loads libwm_engine_jni for
+// this machine; :core:language builds it (see the comment on its task).
+tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }

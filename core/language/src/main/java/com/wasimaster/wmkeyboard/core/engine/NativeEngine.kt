@@ -223,6 +223,22 @@ object NativeEngine {
         false
     }
 
+    /**
+     * [passes] rounds of a horizontal then a vertical box blur of [radius]
+     * over the ARGB [pixels] ([width] × [height]), in place, in one call:
+     * each channel summed over `2 * radius + 1` pixels, edges clamped to
+     * their own pixel, divided and truncated. Bit for bit `FrostBake`'s
+     * Kotlin `boxBlur`; NEON on arm64. False, with [pixels] untouched, when
+     * [useNative] is off, the library predates the kernel or the shape does
+     * not fit: run the Kotlin then.
+     */
+    fun boxBlur(pixels: IntArray, width: Int, height: Int, radius: Int, passes: Int): Boolean =
+        useNative && width >= 0 && height >= 0 && width.toLong() * height <= pixels.size && try {
+            nativeBoxBlur(pixels, width, height, radius, passes)
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
@@ -232,6 +248,7 @@ object NativeEngine {
         outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
     ): Boolean
     private external fun nativeArgmaxRows(data: FloatArray, cols: Int, out: IntArray): Int
+    private external fun nativeBoxBlur(pixels: IntArray, width: Int, height: Int, radius: Int, passes: Int): Boolean
     private external fun nativeYuvToRgb(
         y: ByteBuffer, yLimit: Int, yRow: Int, yPixel: Int,
         u: ByteBuffer, uLimit: Int, uRow: Int, uPixel: Int,

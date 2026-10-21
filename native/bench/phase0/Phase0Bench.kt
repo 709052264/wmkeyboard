@@ -577,6 +577,15 @@ object Phase0Bench {
                     repeat(3) { FrostBake.boxBlur(px, sw, sh, radius) }
                     px
                 }
+                if (!NativeEngine.useNative) continue
+                val native = src.copyOf()
+                check(NativeEngine.boxBlur(native, sw, sh, radius, 3)) { "native blur refused the picture" }
+                check(native.contentEquals(px)) { "native blur differs from Kotlin" }
+                bench("FrostBake 3x boxBlur ${sw}x$sh r=$radius (NativeEngine)", "per bake") {
+                    System.arraycopy(src, 0, px, 0, src.size)
+                    NativeEngine.boxBlur(px, sw, sh, radius, 3)
+                    px
+                }
             }
         }
     }

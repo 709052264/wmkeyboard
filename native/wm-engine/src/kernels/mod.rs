@@ -30,6 +30,7 @@
 pub mod argmax;
 pub mod band;
 pub mod box_average;
+pub mod box_blur;
 pub mod dot;
 pub mod gif;
 pub mod sharpen;

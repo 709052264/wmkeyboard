@@ -242,3 +242,36 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_n
         Some(if done == Some(true) { JNI_TRUE } else { JNI_FALSE })
     })
 }
+
+/// `NativeEngine.boxBlur(pixels, width, height, radius, passes)`: `passes`
+/// rounds of the frosted-glass bake's horizontal then vertical box blur over
+/// ARGB `pixels`, in place, in one crossing (`kernels::box_blur`). False,
+/// with nothing changed, when the shape does not fit the array.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeBoxBlur(
+    mut env: JNIEnv,
+    _class: JClass,
+    pixels: JIntArray,
+    width: jint,
+    height: jint,
+    radius: jint,
+    passes: jint,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        if width < 0 || height < 0 || radius < 0 || passes < 0 {
+            return Some(JNI_FALSE);
+        }
+        let (w, h) = (width as usize, height as usize);
+        // The pass in between lands here, not in a second Java array.
+        let mut scratch = vec![0u32; w.checked_mul(h)?];
+        let pixels = pixels.as_raw();
+        // SAFETY: an int[] read and written as u32 colour ints; the closure
+        // makes no JNI call while it is pinned.
+        let done = unsafe {
+            with_critical::<u32, _>(env.get_raw(), pixels, true, |px| {
+                kernels::box_blur::box_blur_argb(px, w, h, radius as usize, passes as usize, &mut scratch)
+            })
+        };
+        Some(if done == Some(true) { JNI_TRUE } else { JNI_FALSE })
+    })
+}

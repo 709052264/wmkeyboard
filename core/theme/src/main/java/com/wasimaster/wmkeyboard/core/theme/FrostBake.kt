@@ -6,6 +6,7 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Rect
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -17,8 +18,9 @@ import kotlin.math.roundToInt
  * surfaces need the blurred *pixels* at their own position — a key draws the
  * slice of the backdrop under it through an image shader — and because that
  * has to look the same on Android 8 as on 15. The blur is three box passes on
- * a quarter-size copy, which is within a hair of a Gaussian and costs a few
- * milliseconds on a background thread for a board-sized image.
+ * a quarter-size copy, which is within a hair of a Gaussian. The engine's
+ * NEON kernel runs them (about 1 ms for a phone's board); [boxBlur] is what
+ * it computes, bit for bit, and runs when the engine cannot.
  */
 object FrostBake {
 
@@ -44,7 +46,9 @@ object FrostBake {
         small.getPixels(pixels, 0, smallW, 0, 0, smallW, smallH)
         if (small !== source) small.recycle()
         val radius = radiusFor(blur, smallW, smallH)
-        if (radius > 0) repeat(PASSES) { boxBlur(pixels, smallW, smallH, radius) }
+        if (radius > 0 && !NativeEngine.boxBlur(pixels, smallW, smallH, radius, PASSES)) {
+            repeat(PASSES) { boxBlur(pixels, smallW, smallH, radius) }
+        }
         val blurred = Bitmap.createBitmap(smallW, smallH, Bitmap.Config.ARGB_8888)
         blurred.setPixels(pixels, 0, smallW, 0, 0, smallW, smallH)
         val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
