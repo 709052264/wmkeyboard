@@ -13747,18 +13747,14 @@ private fun KeyboardBody(
                     location = toolHold.location,
                     photo = toolHold.photo,
                 )
-                PanelMode.OCR -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
-                    OcrPanel(
-                        state = state,
-                        onInsert = onScannedInsert,
-                        onRequestPermission = onCameraPermissionRequest,
-                        // Opened on a clip's picture (#371), back goes back to the clipboard.
-                        onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
-                        onTranslate = toolHold.photo.onTranslateText,
-                    )
-                } else {
-                    onPanelChange(PanelMode.SNIPPETS)
-                }
+                PanelMode.OCR -> OcrPanel(
+                    state = state,
+                    onInsert = onScannedInsert,
+                    onRequestPermission = onCameraPermissionRequest,
+                    // Opened on a clip's picture (#371), back goes back to the clipboard.
+                    onClose = { onPanelChange(if (state.ocrImage != null) PanelMode.CLIPBOARD else PanelMode.OCR) },
+                    onTranslate = toolHold.photo.onTranslateText,
+                )
                 PanelMode.QR_SCAN -> QrScanPanel(
                     state = state,
                     onInsert = onScannedInsert,

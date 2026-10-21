@@ -11,6 +11,11 @@ built static with its CPU backend only, under a small JNI layer:
 - `wm_imagegen_jni.cpp` is the surface `ImageGenNative` in
   `core/intelligence/.../imagegen/` binds to.
 
+The JNI surface knows nothing of pictures, so the scanner's PaddleOCR reader
+uses it too in builds without LiteRT (`MnnPaddleRuntime` in
+`core/intelligence/.../ocr/`): its detector and recogniser are `.mnn` modules
+with an `image` input and a `probs` output, run the same way.
+
 Everything else (the CLIP tokenizer, the schedulers, classifier-free guidance,
 the loop) is Kotlin, so a cancel lands between two network calls and the CPU and
 NPU paths share one loop.

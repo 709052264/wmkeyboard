@@ -50,7 +50,7 @@ Two rules apply to plugins that don't apply to the other thirteen addon types. A
 
 ### Build / edition
 
-WM Keyboard is one app in three builds: the standard one (GitHub and Google Play), the offline one with no internet permission (GitHub), and F-Droid's. Up to 0.6.2 there were two editions instead, Full and Lite, and F-Droid shipped Lite. The F-Droid build is compiled with `wmkb.enableFdroid`, which leaves out Google's SDKs (ML Kit, LiteRT, LiteRT-LM) and with them the Text scan/OCR tool (handwriting, the QR & barcode scanner and the document scanner stay, on zinnia, zxing-cpp and the built-in scanner) and two nested options <Flavor edition="google" /> inside tools every build has: Whisper's LiteRT models inside Voice typing, and the on-device LLM choice inside AI writing tools.
+WM Keyboard is one app in three builds: the standard one (GitHub and Google Play), the offline one with no internet permission (GitHub), and F-Droid's. Up to 0.6.2 there were two editions instead, Full and Lite, and F-Droid shipped Lite. The F-Droid build is compiled with `wmkb.enableFdroid`, which leaves out Google's SDKs (ML Kit, LiteRT, LiteRT-LM) but no tool (handwriting, text scan, the QR & barcode scanner and the document scanner stay, on zinnia, PaddleOCR run by MNN, zxing-cpp and the built-in scanner) and two nested options <Flavor edition="google" /> inside tools every build has: Whisper's LiteRT models inside Voice typing, and the on-device LLM choice inside AI writing tools.
 
 All builds share a package name and signing key, so installing one over another is a normal update with your data intact. Check which you have at <SettingsPath path="About / App / Version" />. Full comparison: [Which build you have](/start/editions/).
 

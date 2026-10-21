@@ -50,6 +50,5 @@
       Scanner panel. The F-Droid build of the app leaves out the text
       scanner, so this message fills the panel in place of the camera.
     -->
-    <string name="ime_scanner_ocr_unavailable_info">This version of the app does not have text scanning.</string>
 
 </resources>

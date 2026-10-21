@@ -86,7 +86,6 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.tasks.Task
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
@@ -99,10 +98,8 @@ import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognizer
 import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
-import com.wasimaster.wmkeyboard.ime.ocr.MlKitRecognizers
+import com.wasimaster.wmkeyboard.ime.ocr.MlKitOcr
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.FocusRegion
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -110,11 +107,8 @@ import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
 import java.io.File
 import java.util.Locale
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 
 // ---- OCR (text recognition) tool ----
@@ -149,9 +143,17 @@ private sealed interface OcrStage {
  * (#757), or with Tesseract, which covers most other scripts; both of those
  * once their data is downloaded. The setting and the text's language pick
  * which ([OcrLanguages.offlinePack], [OcrLanguages.mlKitRecognizer]). Either
- * way the photo never leaves the phone. Unlike the other tool panels this one covers
- * the toolbar too ([keyRowsHeight] + [TopBarHeight]): reading text off a
- * photo needs all the room the keyboard has.
+ * way the photo never leaves the phone, unless the setting is the online
+ * reader.
+ *
+ * In every build: ML Kit is reached only through [MlKitOcr], which F-Droid's
+ * build stands in for. There PaddleOCR reads Chinese, Japanese and Latin
+ * script on MNN, and a language nothing here reads says so and points at the
+ * online reader ([OcrLanguages.readable]).
+ *
+ * Unlike the other tool panels this one covers the toolbar too
+ * ([keyRowsHeight] + [TopBarHeight]): reading text off a photo needs all the
+ * room the keyboard has.
  *
  * Opened from an image clip's Extract text (#371), it reads that picture
  * ([KeyboardUiState.ocrImage]) instead: no camera and no permission, the
@@ -240,11 +242,10 @@ private fun OcrContent(
         }
     }
     // One ML Kit recognizer per script read so far, made on first use.
-    val recognizers = remember { mutableMapOf<MlKitScript, TextRecognizer>() }
+    val recognizers = remember { MlKitOcr.Readers() }
     DisposableEffect(Unit) {
         onDispose {
-            recognizers.values.forEach { runCatching { it.close() } }
-            recognizers.clear()
+            recognizers.close()
             TesseractOcr.release()
             PaddleOcr.release()
         }
@@ -254,7 +255,8 @@ private fun OcrContent(
     // Paddle, the pack. Starts as the keyboard's language; the chip steps
     // through the other enabled languages without switching the keyboard.
     val filesDir = context.filesDir
-    val engine = state.settings.scanner.ocrEngine
+    // ML Kit or Tesseract chosen in a build without it reads as Automatic.
+    val engine = OcrLanguages.usable(state.settings.scanner.ocrEngine, TesseractOcr.available)
     val packStates by OcrPacks.states.collectAsState()
     // Which packs are on disk decides between Paddle and an older Tesseract
     // pack for Chinese and Japanese; packStates keys it so a finished
@@ -265,31 +267,41 @@ private fun OcrContent(
     }
     var ocrLanguage by remember(chipLanguages) {
         mutableStateOf(
-            if (OcrLanguages.packFor(state.language) != null) state.language
-            else chipLanguages.firstOrNull() ?: state.language
+            if (OcrLanguages.packFor(state.language) != null &&
+                OcrLanguages.readable(engine, state.language, TesseractOcr.available, onDisk)
+            ) {
+                state.language
+            } else {
+                chipLanguages.firstOrNull() ?: state.language
+            }
         )
     }
     val pack = remember(engine, ocrLanguage, onDisk) {
         OcrLanguages.offlinePack(engine, ocrLanguage, TesseractOcr.available, onDisk)
     }
     val paddle = pack == PaddleOcrModel.PACK
+    // F-Droid's build reads a language only with a pack (or online); one no
+    // pack covers there gets a message instead of a viewfinder.
+    val readable = remember(engine, ocrLanguage, onDisk) {
+        OcrLanguages.readable(engine, ocrLanguage, TesseractOcr.available, onDisk)
+    }
     LaunchedEffect(pack) { if (pack != null) OcrPacks.refresh(filesDir, listOf(pack)) }
     val packStatus = pack?.let { packStates[it] }
-    // Play: a pack on disk reads only once the split with its reader is here
-    // too (Tesseract's own, or the LiteRT interpreter for Paddle); until then
-    // the prompt's download fetches the split.
+    // A pack on disk reads only once the library that reads it is here too
+    // (Tesseract's own; for Paddle the LiteRT interpreter, or MNN in the
+    // sticker generator's library); until then the prompt's download fetches it.
     val ocrModule by (if (paddle) PaddleOcr.moduleState else TesseractOcr.moduleState).collectAsState()
     // ML Kit's own Latin reader brings a library of its own, which a build with
     // native delivery fetches the first time; the pack prompt's place shows
     // that download instead.
     val scannerModule by FeatureModules.scanner.state.collectAsState()
-    val needsLibrary = engine != OcrEngine.ONLINE && pack == null &&
+    val needsLibrary = MlKitOcr.IN_BUILD && engine != OcrEngine.ONLINE && pack == null &&
         OcrLanguages.mlKitRecognizer(ocrLanguage) == MlKitScript.LATIN
     val libraryReady = remember(needsLibrary, scannerModule) {
-        !needsLibrary || MlKitRecognizers.ready(MlKitScript.LATIN)
+        !needsLibrary || MlKitOcr.ready(MlKitScript.LATIN)
     }
-    val packReady = remember(pack, packStatus, ocrModule, libraryReady) {
-        libraryReady && (
+    val packReady = remember(pack, packStatus, ocrModule, libraryReady, readable) {
+        readable && libraryReady && (
             pack == null || (
                 ocrModule == ModuleState.Installed && (
                     packStatus == OcrPacks.Status.Downloaded ||
@@ -365,9 +377,7 @@ private fun OcrContent(
         val readPack = pack
         val online = engine == OcrEngine.ONLINE
         val mlKit = if (!online && readPack == null) {
-            OcrLanguages.mlKitRecognizer(ocrLanguage).let { script ->
-                recognizers.getOrPut(script) { MlKitRecognizers.client(script) }
-            }
+            OcrLanguages.mlKitRecognizer(ocrLanguage).also(recognizers::prepare)
         } else {
             null
         }
@@ -394,13 +404,8 @@ private fun OcrContent(
                         readWithTesseract(filesDir, readPack, bitmap)
                     } else {
                         var id = 0
-                        checkNotNull(mlKit).process(InputImage.fromBitmap(bitmap, 0)).await()
-                            .textBlocks
-                            .flatMap { block ->
-                                block.lines.map { line ->
-                                    line.elements.map { OcrWord(id++, it.text) }
-                                }
-                            }
+                        recognizers.read(checkNotNull(mlKit), bitmap)
+                            .map { line -> line.map { OcrWord(id++, it) } }
                     }
                 }
             }
@@ -435,7 +440,7 @@ private fun OcrContent(
                     )
                 }
                 // Play: the script's model is still on its way from Play services.
-                MlKitRecognizers.isDownloading(failure) -> OcrStage.Done(
+                MlKitOcr.isDownloading(failure) -> OcrStage.Done(
                     OcrResult(bitmap, emptyList(), R.string.ime_scanner_ocr_model_downloading),
                 )
                 else -> {
@@ -531,8 +536,10 @@ private fun OcrContent(
             null
         }
 
-        if (!packReady && (pack != null || needsLibrary)) {
-            if (pack != null) {
+        if (!packReady && (pack != null || needsLibrary || !readable)) {
+            if (!readable) {
+                PanelCenteredMessage(stringResource(R.string.ime_scanner_ocr_no_reader_body, ocrLanguageName(ocrLanguage)))
+            } else if (pack != null) {
                 OcrPackPrompt(state, ocrLanguage, pack, packStatus, filesDir)
             } else {
                 ScannerLibraryPrompt(state)
@@ -1049,14 +1056,4 @@ private fun OcrResultView(
             }
         }
     }
-}
-
-/**
- * Suspends over a Play Services [Task]. A failed task throws its exception:
- * cancelling the continuation instead would unwind the capture as if the
- * panel had closed, and leave it on the reading spinner.
- */
-private suspend fun <T> Task<T>.await(): T = suspendCancellableCoroutine { cont ->
-    addOnSuccessListener { cont.resume(it) }
-    addOnFailureListener { if (cont.isActive) cont.resumeWithException(it) }
 }

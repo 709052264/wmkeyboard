@@ -991,15 +991,19 @@ private val dataPackAttributions: List<Attribution> = buildList {
             "https://github.com/xuebinqin/U-2-Net",
         ))
     }
-    if (BuildConfig.ENABLE_WHISPER) {
-        add(Attribution(
-            "PaddleOCR PP-OCRv5 models",
-            R.string.about_pack_paddle_used,
-            "Copyright PaddlePaddle Authors; LiteRT conversion by iFleey (PPOCRv5-Android)",
-            "Apache-2.0", "apache-2.0.txt",
-            "https://github.com/PaddlePaddle/PaddleOCR",
-        ))
-    }
+    // Every build: the LiteRT conversion where LiteRT is, our MNN export of
+    // the same weights in F-Droid's (the data repository's export_ppocrv5_mnn.py).
+    add(Attribution(
+        "PaddleOCR PP-OCRv5 models",
+        R.string.about_pack_paddle_used,
+        if (BuildConfig.ENABLE_WHISPER) {
+            "Copyright PaddlePaddle Authors; LiteRT conversion by iFleey (PPOCRv5-Android)"
+        } else {
+            "Copyright PaddlePaddle Authors"
+        },
+        "Apache-2.0", "apache-2.0.txt",
+        "https://github.com/PaddlePaddle/PaddleOCR",
+    ))
     if (BuildConfig.ENABLE_LITERT_LM) {
         add(Attribution(
             "On-device AI models (Gemma, Qwen, SmolLM2)",

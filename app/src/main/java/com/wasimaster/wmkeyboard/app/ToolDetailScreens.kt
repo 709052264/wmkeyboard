@@ -2463,7 +2463,11 @@ internal fun ToolDetailSettings(
                 item {
                     ChoiceSetting(
                         R.string.tooldetail_ocr_engine_title,
-                        info = stringResource(R.string.tooldetail_ocr_engine_info),
+                        info = stringResource(
+                            // F-Droid's build: PaddleOCR or online, nothing else.
+                            if (BuildConfig.ENABLE_ML_KIT_SCANNERS || TesseractOcr.available) R.string.tooldetail_ocr_engine_info
+                            else R.string.tooldetail_ocr_engine_info_paddle,
+                        ),
                         // Only what this build has: F-Droid's has neither
                         // ML Kit nor Tesseract, and a choice of either
                         // restored from a backup reads as Automatic.
@@ -2499,7 +2503,10 @@ internal fun ToolDetailSettings(
             if (usableEngine != OcrEngine.ML_KIT && usableEngine != OcrEngine.ONLINE) {
                 SectionHeader(
                     stringResource(R.string.tooldetail_ocr_packs_header),
-                    info = stringResource(R.string.tooldetail_ocr_packs_info),
+                    info = stringResource(
+                        if (BuildConfig.ENABLE_ML_KIT_SCANNERS || TesseractOcr.available) R.string.tooldetail_ocr_packs_info
+                        else R.string.tooldetail_ocr_packs_info_paddle,
+                    ),
                 )
                 OcrPackManager(settings)
             }

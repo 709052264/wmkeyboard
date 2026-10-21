@@ -278,9 +278,9 @@ fun toolOpensScreen(tool: ToolbarTool): Boolean = when (tool) {
 // Handwriting is in every build: where ML Kit's recogniser is not
 // (F-Droid's), zinnia still reads Chinese and Japanese, and the panel says
 // so for any other language. So is the QR scanner, which reads with
-// zxing-cpp where ML Kit's barcode reader is not.
+// zxing-cpp where ML Kit's barcode reader is not, and text scan, which reads
+// with PaddleOCR on MNN where neither ML Kit nor LiteRT is.
 fun isSupportedTool(tool: ToolbarTool): Boolean = when {
-    !BuildConfig.ENABLE_ML_KIT_SCANNERS && tool == ToolbarTool.OCR -> false
     !BuildConfig.ENABLE_GRAMMAR && tool == ToolbarTool.GRAMMAR -> false
     // The document scanner is offered everywhere: Google's (an activity
     // inside Play services) where it can run, the built-in OpenCV one

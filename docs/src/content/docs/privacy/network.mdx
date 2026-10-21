@@ -186,11 +186,13 @@ what's already in the table above:
   The [text scanner](/tools/scanner/#which-languages-it-reads) fetches one
   file per language, 0.4 MB to 12 MB, only when you press **Download** for
   it. The request names the language and nothing else.
-- **`raw.githubusercontent.com/iFleey/PPOCRv5-Android`** <Flavor edition="google" />
+- **`raw.githubusercontent.com/iFleey/PPOCRv5-Android`**
   holds PaddleOCR's PP-OCRv5 models converted for LiteRT, pinned to one
   commit. The [text scanner](/tools/scanner/#which-languages-it-reads)
   fetches its three files, 11 MB together, only when you press **Download**
-  for Chinese or Japanese where ML Kit can't read them. The requests carry
+  for Chinese or Japanese where ML Kit can't read them. The F-Droid build
+  fetches only the list of characters from here, and the two models, in MNN's
+  format, from the data repository's `models` release. The requests carry
   nothing about you.
 - **`huggingface.co`** is the source for offline Whisper, Whistle, Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual speech models,
   the FUTO Swipe glide models, the NLLB-200 translation model and on-device AI models. Most are public. A couple of gated on-device models
@@ -299,7 +301,7 @@ some are.
 | Text scanner languages (Tesseract) <Flavor edition="google" /> | the Tesseract project's `tessdata_fast` 4.1.0 on GitHub | none beyond the file arriving at the length the server announced; a file Tesseract can't load is not read | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | NLLB-200 translation model | Hugging Face, `JustFrederik/nllb-200-distilled-600M-ct2-int8` pinned to one revision | SHA-256 and exact size of each of its four files before the model is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks; its licence is asked for first. See [Translate](/tools/translate/#on-device-translation) |
 | Firefox Translations models (on-device translation) | Mozilla's attachment server, `firefox-settings-attachments.cdn.mozilla.net`, the files Firefox's own Remote Settings point at | SHA-256 and exact size of each download, and again of each file after it is unpacked, against values built into the app | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks. See [Translate](/tools/translate/#firefox-translations-models) |
-| Text scanner models for Chinese and Japanese (PaddleOCR) <Flavor edition="google" /> | PPOCRv5-Android on GitHub, pinned to one commit | SHA-256 of each of the three files | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
+| Text scanner models for Chinese and Japanese (PaddleOCR) | PPOCRv5-Android on GitHub, pinned to one commit; on the F-Droid build, where they read Latin-script text too, the two models (21 MB) come from the data repository's `models` release instead | SHA-256 of each of the three files | Yes, from the scanner's button and from the settings page. See [Scanner](/tools/scanner/#which-languages-it-reads) |
 | On-device AI models | Hugging Face, per model | no checksum, a file-size floor only | Yes, at 500 MB. See [AI tools](/tools/ai/#local-models) |
 | [Search by meaning](/smart/search-by-meaning/) model (EmbeddingGemma 2) | the data repository's `models` release on GitHub, about 155 MB for text and 220 MB more for pictures. Fetched when you pick it, never on its own | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
 | [Sticker generator](/emoji/sticker-generator/) models: SDXS and the picture filter | the data repository's `models` release on GitHub, about 970 MB together. Fetched when you pick the model and accept its licence | SHA-256 and exact size of every file, checked against values built into the app before it is used | Only while [Data saver](/privacy/data-saver/)'s **Downloads** row asks |
