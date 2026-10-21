@@ -28,6 +28,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
@@ -1807,7 +1809,7 @@ private class OpenLayout(private val settings: LiveSettings, val id: String) {
         settings.watch { pick(findLayout(it.customLayouts, id) ?: GoneLayout) }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 internal fun KeyLayoutEditorScreen(
     repository: SettingsRepository,
@@ -2407,7 +2409,15 @@ internal fun KeyLayoutEditorScreen(
     // The layer tabs ride in the pinned strip with the grid, above it (issue
     // #769). On the page under a grid whose height changes with the layer,
     // the next tab moved out from under the finger every time one was picked.
-    RegisterPinned {
+    //
+    // Not while the keyboard is up. Tabs, chips and grid take most of a phone's
+    // height on their own, and with the keyboard under them the page below was
+    // left no room at all: a key's Label field, once focused, sat behind the
+    // keyboard, and the window panned up onto an empty grey strip where the
+    // field and the key's settings should have been (#614). The grid comes
+    // back the moment the keyboard goes.
+    val imeUp = WindowInsets.isImeVisible
+    if (!imeUp) RegisterPinned {
         Column {
             if (!secondary) {
                 LayerChips(
