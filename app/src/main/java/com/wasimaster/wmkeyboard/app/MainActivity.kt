@@ -1009,6 +1009,11 @@ private fun SettingsNavGraph(
         exitTransition = { slideOutHorizontally(spec) { -it / parallax } },
         popEnterTransition = { slideInHorizontally(spec) { -it / parallax } },
         popExitTransition = { slideOutHorizontally(spec) { it } },
+        // A back gesture plays its own pair, which navigation-compose
+        // defaults to a shrink and a fade: the same slides here, so going
+        // back by gesture reads as the way in played in reverse.
+        predictivePopEnterTransition = { slideInHorizontally(spec) { -it / parallax } },
+        predictivePopExitTransition = { slideOutHorizontally(spec) { it } },
     ) {
         composable("onboarding") {
             OnboardingScreen(
