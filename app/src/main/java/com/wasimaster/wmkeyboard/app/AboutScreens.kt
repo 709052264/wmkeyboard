@@ -887,6 +887,16 @@ private val dataPackAttributions: List<Attribution> = buildList {
         "CreativeML Open RAIL-M", "creativeml-openrail-m.txt",
         "https://huggingface.co/qualcomm/Stable-Diffusion-v1.5",
     ))
+    // The upscaler's two networks (sticker editor, photo editor, small
+    // stickers sent as a 512 square): nagadomi's own weights, exported to MNN
+    // by the data repository's export_upscalers_mnn.py.
+    add(Attribution(
+        "waifu2x UpConv7 (art and photo)",
+        R.string.about_pack_waifu2x_used,
+        "Copyright (C) 2015 nagadomi; MNN conversion by WM Keyboard",
+        "MIT", "mit-waifu2x.txt",
+        "https://github.com/nagadomi/waifu2x",
+    ))
     add(Attribution(
         "NSFW image detection (Falconsai)",
         R.string.about_pack_nsfw_used,

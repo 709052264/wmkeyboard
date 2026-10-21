@@ -81,10 +81,13 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerOutline
 import com.wasimaster.wmkeyboard.core.stickers.StickerPackStore
 import com.wasimaster.wmkeyboard.core.stickers.SubjectCutout
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
+import com.wasimaster.wmkeyboard.core.upscale.Upscaler
 import java.io.ByteArrayOutputStream
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -272,6 +275,8 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
     var downloadProgress by remember { mutableFloatStateOf(-1f) }
     var error by remember { mutableStateOf<String?>(null) }
     var saving by remember { mutableStateOf(false) }
+    // The upscale under way, for its Cancel button; null when none is.
+    var upscaling by remember { mutableStateOf<Job?>(null) }
 
     // Whether the one-tap cutout is even a thing in this build. False on F-Droid,
     // where the brushes are the whole story and a disabled button would only
@@ -358,6 +363,45 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
         }
     }
 
+    /**
+     * Enlarges the crop with the upscaler (see Upscaler): the network's
+     * picture replaces the crop, the erased parts are scaled to match, and
+     * the upscaled picture becomes this sticker's source from here on.
+     */
+    fun runUpscale(factor: Int) {
+        upscaling = scope.launch {
+            error = null
+            busy = context.getString(R.string.import_sticker_editor_upscale_progress)
+            downloadProgress = 0f
+            var failed = false
+            try {
+                val result = Upscaler.upscale(context, state.base, UpscaleKind.ART, factor) { event ->
+                    when (event) {
+                        is Upscaler.Event.Downloading -> {
+                            busy = context.getString(R.string.import_sticker_editor_upscale_download_progress)
+                            downloadProgress = if (event.total > 0) event.bytes.toFloat() / event.total else 0f
+                        }
+                        is Upscaler.Event.Working -> {
+                            busy = context.getString(R.string.import_sticker_editor_upscale_progress)
+                            downloadProgress = event.done.toFloat() / event.total.coerceAtLeast(1)
+                        }
+                        is Upscaler.Event.Failed -> failed = true
+                        is Upscaler.Event.Done -> Unit
+                    }
+                }
+                if (result == null) {
+                    if (failed) error = context.getString(R.string.import_sticker_editor_upscale_error)
+                } else {
+                    dissolving { state.adoptUpscaled(result) }
+                }
+            } finally {
+                busy = null
+                downloadProgress = -1f
+                upscaling = null
+            }
+        }
+    }
+
     fun save() {
         saving = true
         // A pan or a pinch that was never followed by a tab change has not
@@ -366,6 +410,9 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
         val edit = state.exportState(brushPx)
         scope.launch {
             val result = withContext(Dispatchers.IO) {
+                // An upscaled crop is the picture this sticker comes from now:
+                // a later edit has to start from it, not from the small one.
+                val upscaledOriginal = if (state.upscaled) StickerImage.encodeOriginal(state.source) else null
                 val flat = state.render()
                 val processed: ProcessedSticker? = StickerImage.encodeStill(flat)
                 flat.recycle()
@@ -377,13 +424,13 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
                         store.addSticker(
                             request.packId,
                             it,
-                            original = StickerImage.encodeOriginal(request.bytes),
+                            original = upscaledOriginal ?: StickerImage.encodeOriginal(request.bytes),
                         )
                     } else {
                         // A re-edit already has an original on file — see
                         // StickerPackStore.replaceStickerImage for the one
                         // that gets promoted when it does not.
-                        store.replaceStickerImage(request.packId, request.stickerId, it)
+                        store.replaceStickerImage(request.packId, request.stickerId, it, original = upscaledOriginal)
                     }
                 }
                 // Beside the picture, so opening this sticker again resumes
@@ -457,6 +504,9 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
                 }
                 Spacer(Modifier.height(8.dp))
                 Text(busy.orEmpty(), style = MaterialTheme.typography.labelLarge)
+                upscaling?.let { job ->
+                    TextButton(onClick = { job.cancel() }) { Text(stringResource(CommonR.string.common_cancel)) }
+                }
             }
         }
     }
@@ -523,16 +573,20 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
         }
     }
 
-    if (cutoutSupported) {
+    // Read so a crop or an upscale that changed the picture's size redraws the offer.
+    @Suppress("UNUSED_EXPRESSION")
+    state.version
+    val upscaleFactor = upscaleFactorFor(state.base.width, state.base.height)
+    if (cutoutSupported || upscaleFactor > 0) {
         // Leaves with the crop step's arrival and comes back after it, rather
-        // than blinking: it is the one row on the screen that comes and goes.
+        // than blinking: these are the rows on the screen that come and go.
         AnimatedVisibility(
             visible = mode != EditorMode.CROP,
             enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
             exit = if (reduceMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
         ) {
             SettingsGroup {
-                item {
+                if (cutoutSupported) item {
                     WmRow(
                         title = stringResource(R.string.import_sticker_editor_cutout_action),
                         icon = SettingsRowIcons[R.string.import_sticker_editor_cutout_action],
@@ -550,6 +604,30 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
                         // Still drawn for a moment as the crop step opens, and
                         // a cut-out there would run on a crop not yet made.
                         onClick = { if (mode != EditorMode.CROP) runCutout() },
+                    )
+                }
+                if (upscaleFactor > 0) item {
+                    val width = state.base.width
+                    val height = state.base.height
+                    val size = stringResource(
+                        R.string.import_sticker_editor_upscale_size,
+                        width, height, width * upscaleFactor, height * upscaleFactor,
+                    )
+                    val download = Upscaler.downloadBytes(context, UpscaleKind.ART)
+                    WmRow(
+                        title = stringResource(R.string.import_sticker_editor_upscale_action),
+                        icon = SettingsRowIcons[R.string.import_sticker_editor_upscale_action],
+                        subtitle = if (download > 0L) {
+                            stringResource(
+                                R.string.import_sticker_editor_upscale_download_subtitle,
+                                size,
+                                android.text.format.Formatter.formatShortFileSize(context, download),
+                            )
+                        } else {
+                            stringResource(R.string.import_sticker_editor_upscale_subtitle, upscaleFactor, size)
+                        },
+                        enabled = busy == null,
+                        onClick = { if (mode != EditorMode.CROP) runUpscale(upscaleFactor) },
                     )
                 }
             }
@@ -595,6 +673,24 @@ internal fun StickerEditorScreen(request: StickerEditRequest, onDone: () -> Unit
         )
     }
 }
+
+/**
+ * What Upscale offers for a crop of [width] by [height]: ×4 for one 256
+ * pixels or less on its long side, ×2 up to [UPSCALE_MAX_EDGE], nothing for
+ * larger ones, which are already as large as a sticker is kept
+ * (StickerImage.MAX_STILL_SIZE) or near it.
+ */
+private fun upscaleFactorFor(width: Int, height: Int): Int {
+    val long = maxOf(width, height)
+    return when {
+        long <= UPSCALE_X4_EDGE -> 4
+        long <= UPSCALE_MAX_EDGE -> 2
+        else -> 0
+    }
+}
+
+private const val UPSCALE_X4_EDGE = 256
+private const val UPSCALE_MAX_EDGE = 640
 
 /** How far outside the crop frame, in dp, a touch still takes hold of an edge. */
 private const val CROP_GRAB_DP = 24
@@ -882,10 +978,18 @@ private fun canvasBitmap(width: Int, height: Int): Bitmap =
  * the signal instead, read inside every draw and bumped by every change.
  */
 private class EditorState(
-    val source: Bitmap,
+    source: Bitmap,
     restored: StickerEditState? = null,
     restoredMask: Bitmap? = null,
 ) {
+
+    /** The picture the crop is taken from: the decoded one, or what Upscale made of the crop. */
+    var source by mutableStateOf(source)
+        private set
+
+    /** Whether [source] is an upscale, which the save keeps as the sticker's original. */
+    var upscaled = false
+        private set
 
     /** The part of [source] to keep, in its pixels. The crop step moves it. */
     var crop by mutableStateOf(CropRect(0f, 0f, source.width.toFloat(), source.height.toFloat()))
@@ -1083,6 +1187,30 @@ private class EditorState(
         paint.strokeWidth = brushPx * unit
         AndroidCanvas(mask).drawLine(from.x, from.y, to.x, to.y, paint)
         if (erase) masked = true
+        recompose()
+    }
+
+    /**
+     * Makes [up], the upscaled crop, the picture: the source, uncropped, with
+     * the erased parts scaled to its size. The undo steps go, being masks of
+     * the old size.
+     */
+    fun adoptUpscaled(up: Bitmap) {
+        val scaledMask = Bitmap.createScaledBitmap(mask, up.width, up.height, true)
+        val newMask = if (scaledMask.isMutable) scaledMask else scaledMask.copy(Bitmap.Config.ARGB_8888, true).also { scaledMask.recycle() }
+        base.recycle()
+        mask.recycle()
+        subject.recycle()
+        undo.forEach { it.recycle() }
+        undo.clear()
+        undoDepth = 0
+        source = up
+        crop = CropRect(0f, 0f, up.width.toFloat(), up.height.toFloat())
+        croppedFrom = Rect(0, 0, up.width, up.height)
+        base = up.copy(Bitmap.Config.ARGB_8888, true)
+        mask = newMask
+        subject = canvasBitmap(up.width, up.height)
+        upscaled = true
         recompose()
     }
 

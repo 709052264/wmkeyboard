@@ -146,6 +146,16 @@
     <string name="ime_gallery_tool_stickers">Stickers</string>
     <string name="ime_gallery_tool_filters">Filters</string>
     <string name="ime_gallery_tool_adjust">Adjust</string>
+    <string name="ime_gallery_tool_upscale">Upscale</string>
+    <string name="ime_gallery_upscale_photo">Photo</string>
+    <string name="ime_gallery_upscale_art">Drawing or text</string>
+    <string name="ime_gallery_upscale_factor">×%1$d: %2$d × %3$d</string>
+    <string name="ime_gallery_upscale_done">Upscaled ×%1$d: %2$d × %3$d</string>
+    <string name="ime_gallery_upscale_undo">Original size</string>
+    <string name="ime_gallery_upscale_working">The app upscales the photo…</string>
+    <string name="ime_gallery_upscale_downloading">The app gets the upscaler…</string>
+    <string name="ime_gallery_upscale_too_large">This photo is too large to upscale.</string>
+    <string name="ime_gallery_upscale_failed">The app cannot upscale this photo now.</string>
     <string name="ime_gallery_crop_rotate">Turn a quarter</string>
     <string name="ime_gallery_crop_mirror">Mirror</string>
     <string name="ime_gallery_crop_straighten">Straighten</string>

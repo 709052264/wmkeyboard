@@ -50,6 +50,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenDownloads
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenImport
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenModels
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleModels
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
@@ -251,6 +252,9 @@ internal object StorageCategories {
      * because that is the only thing it is for.
      */
     private const val STICKER_CUTOUT_ITEM = "sticker_cutout_model"
+
+    /** The upscaler's networks, listed with the sticker generator's models. */
+    private const val UPSCALER_ITEM = "upscaler_models"
 
     /** Whistle's item among the Whisper model directories, whose ids are catalog ids. */
     private const val WHISTLE_ITEM_ID = "whistle"
@@ -637,8 +641,9 @@ internal object StorageCategories {
             },
             clearOf = { env -> turnMeaningOff(env) },
         ),
-        // The sticker generator's models, catalog and imported, and the
-        // picture filter; all of it comes back with one download.
+        // The sticker generator's models, catalog and imported, the picture
+        // filter, and the upscaler's two small networks that share its
+        // runtime; all of it comes back with one download.
         StorageCategory(
             id = "sticker_models",
             title = R.string.storage_stickergen_title,
@@ -671,11 +676,29 @@ internal object StorageCategories {
                         directory = true,
                     )
                 }
-                catalog + imported
+                val upscaleDir = UpscaleModels.dir(env.roots.noBackupFiles)
+                val upscaler = if (childrenOf(upscaleDir).isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        StorageItem(
+                            id = UPSCALER_ITEM,
+                            label = env.context.getString(R.string.storage_upscaler_item),
+                            bytes = diskUsage(upscaleDir, env.roots.blockSize),
+                            files = listOf(upscaleDir),
+                            directory = true,
+                        ),
+                    )
+                }
+                catalog + imported + upscaler
             },
             deleteOne = { env, item ->
                 val model = ImageGenModels.Catalog.byId(item.id)
-                if (model != null) ImageGenDownloads.delete(env.context, model) else ImageGenImport.delete(env.context, item.id)
+                when {
+                    item.id == UPSCALER_ITEM -> UpscaleModels.dir(env.roots.noBackupFiles).deleteRecursively()
+                    model != null -> ImageGenDownloads.delete(env.context, model)
+                    else -> ImageGenImport.delete(env.context, item.id)
+                }
             },
             clearOf = { env ->
                 ImageGenModels.Catalog.entries.forEach { ImageGenDownloads.cancel(it) }

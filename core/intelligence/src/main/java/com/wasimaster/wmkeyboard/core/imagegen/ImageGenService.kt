@@ -10,6 +10,9 @@ import android.os.Message
 import android.os.Messenger
 import android.os.Process
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleEngine
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleRequest
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -23,6 +26,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  * generation runs on the other, so a cancel lands while a picture is being
  * drawn. Every event goes back to the requester as it happens. The model is
  * let go when nothing has asked for a while.
+ *
+ * The upscaler ([UpscaleEngine]) runs here too, on the same worker thread:
+ * it is the same MNN library, and one process holding one big picture job at
+ * a time is what keeps either from running a phone out of memory.
  */
 class ImageGenService : Service() {
 
@@ -32,6 +39,7 @@ class ImageGenService : Service() {
     private lateinit var workHandler: Handler
     private lateinit var messenger: Messenger
     private var engine: ImageGenEngine? = null
+    private var upscaler: UpscaleEngine? = null
 
     /** The running request's id and its cancel flag. */
     @Volatile private var running: Pair<Int, AtomicBoolean>? = null
@@ -52,6 +60,8 @@ class ImageGenService : Service() {
         workHandler.post {
             engine?.close()
             engine = null
+            upscaler?.close()
+            upscaler = null
         }
         worker.quitSafely()
         control.quitSafely()
@@ -89,6 +99,41 @@ class ImageGenService : Service() {
                 workHandler.removeCallbacks(release)
                 workHandler.post { run(id, request, flag, replyTo) }
             }
+            UPSCALE -> {
+                running?.second?.set(true)
+                val flag = AtomicBoolean(false)
+                val id = message.arg1
+                val replyTo = message.replyTo
+                val request = upscaleFromBundle(message.data)
+                running = id to flag
+                workHandler.removeCallbacks(release)
+                workHandler.post { upscale(id, request, flag, replyTo) }
+            }
+        }
+    }
+
+    private fun upscale(id: Int, request: UpscaleRequest, cancelled: AtomicBoolean, replyTo: Messenger?) {
+        fun send(event: ImageGenEvent) {
+            val (what, data) = encode(event)
+            runCatching { replyTo?.send(Message.obtain(null, what, id, 0).apply { this.data = data }) }
+        }
+        try {
+            val started = System.currentTimeMillis()
+            val upscaler = upscaler ?: UpscaleEngine(applicationContext).also { upscaler = it }
+            val done = !cancelled.get() && upscaler.run(request, cancelled) { tile, tiles ->
+                send(ImageGenEvent.Progress(0, tile, tiles, null))
+            }
+            if (done) send(ImageGenEvent.Image(0, File(request.output), 0L, System.currentTimeMillis() - started))
+            send(ImageGenEvent.Done)
+        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+            DebugLog.w(TAG, "upscale failed: ${t.javaClass.simpleName}: ${t.message}")
+            upscaler?.close()
+            upscaler = null
+            send(ImageGenEvent.Failed(t.message ?: t.javaClass.simpleName))
+        } finally {
+            if (running?.first == id) running = null
+            workHandler.removeCallbacks(release)
+            workHandler.postDelayed(release, IDLE_MS)
         }
     }
 
@@ -119,6 +164,8 @@ class ImageGenService : Service() {
     private val release = Runnable {
         engine?.close()
         engine = null
+        upscaler?.close()
+        upscaler = null
     }
 
     companion object {
@@ -127,6 +174,7 @@ class ImageGenService : Service() {
         internal const val GENERATE = 1
         internal const val CANCEL = 2
         internal const val VERIFY = 3
+        internal const val UPSCALE = 4
         internal const val VERIFIED = 16
 
         internal const val LOADING = 10
@@ -166,6 +214,20 @@ class ImageGenService : Service() {
             variants = b.getInt("variants", 1),
             // A request that did not say is filtered.
             safetyFilter = b.getBoolean("safety", true),
+        )
+
+        internal fun upscaleToBundle(r: UpscaleRequest) = Bundle().apply {
+            putString("input", r.input)
+            putString("output", r.output)
+            putString("kind", r.kind.name)
+            putInt("factor", r.factor)
+        }
+
+        internal fun upscaleFromBundle(b: Bundle) = UpscaleRequest(
+            input = b.getString("input").orEmpty(),
+            output = b.getString("output").orEmpty(),
+            kind = UpscaleKind.entries.firstOrNull { it.name == b.getString("kind") } ?: UpscaleKind.ART,
+            factor = b.getInt("factor", 2),
         )
 
         internal fun encode(e: ImageGenEvent): Pair<Int, Bundle> = when (e) {

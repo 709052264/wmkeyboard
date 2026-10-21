@@ -401,6 +401,8 @@ import com.wasimaster.wmkeyboard.core.stickers.StickerAddResult
 import com.wasimaster.wmkeyboard.core.support.Support
 import com.wasimaster.wmkeyboard.core.stickers.StickerImage
 import com.wasimaster.wmkeyboard.core.stickers.StickerTriggerIndex
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
+import com.wasimaster.wmkeyboard.core.upscale.Upscaler
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_OUTCOMES_FILE
 import com.wasimaster.wmkeyboard.core.settings.GLIDE_SHAPES_FILE
@@ -45152,6 +45154,7 @@ open class WMKeyboardService : InputMethodService() {
         // kept in its own shape goes to them as a letterboxed copy, and as
         // itself everywhere else.
         if (chosen != null && MediaMime.needsSquareSticker(chosen, editorInfo?.packageName)) {
+            if (commitUpscaledSquare(file, chosen, editorInfo)) return
             val square = squareStickerCopy(file)
             if (square != null && tryCommit(square, chosen)) return
         }
@@ -45302,6 +45305,67 @@ open class WMKeyboardService : InputMethodService() {
                 // within reach without putting it anywhere it was not sent.
                 !sameField -> copyRefusedImage(file)
                 !converted || !tryCommit(gif, MediaMime.GIF) -> sendAsItIs()
+            }
+        }
+        return true
+    }
+
+    /**
+     * A small still sticker on its way to WhatsApp or Messenger, which take
+     * only a 512 square: enlarged with the upscaler first (its network for
+     * drawings), so it arrives sharp rather than stretched, then squared like
+     * any other. Only when the upscaler is already on the phone; it is never
+     * downloaded for this. The square is kept in the media cache like
+     * [squareStickerCopy]'s, under its own name.
+     *
+     * Runs off the main thread and commits when it is done, as long as the
+     * same field still has the keyboard; past [UPSCALE_SEND_TIMEOUT_MS], or on
+     * any failure, the plain square goes instead. False when it does not apply
+     * and the caller should go on as usual.
+     */
+    private fun commitUpscaledSquare(file: File, chosen: String, editorInfo: EditorInfo?): Boolean {
+        if (editorInfo == null) return false
+        val media = File(cacheDir, "media").apply { mkdirs() }
+        val target = File(media, "${file.nameWithoutExtension}_square_sr.webp")
+        if (target.isFile && target.length() > 0L) return tryCommit(target, chosen)
+        if (!Upscaler.ready(this, UpscaleKind.ART) || isAnimatedWebp(file)) return false
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.path, bounds)
+        val long = maxOf(bounds.outWidth, bounds.outHeight)
+        if (long <= 0 || long >= SMALL_STICKER_EDGE) return false
+        val factor = if (long * 2 >= StickerImage.TARGET_SIZE) 2 else 4
+        val sentToPackage = editorInfo.packageName
+        val sentToField = editorInfo.fieldId
+        serviceScope.launch {
+            val square = withContext(Dispatchers.IO) {
+                val enlarged = File(Upscaler.workDir(this@WMKeyboardService), "${file.nameWithoutExtension}_x$factor.png")
+                try {
+                    var done = false
+                    withTimeoutOrNull(UPSCALE_SEND_TIMEOUT_MS) {
+                        Upscaler.upscale(this@WMKeyboardService, file, enlarged, UpscaleKind.ART, factor).collect {
+                            if (it is Upscaler.Event.Done) done = true
+                        }
+                    }
+                    if (!done) return@withContext null
+                    val bytes = StickerImage.squareCopy(enlarged.readBytes()) ?: return@withContext null
+                    target.writeBytes(bytes)
+                    target
+                } catch (e: java.io.IOException) {
+                    DebugLog.w("ime", "sticker upscale failed: ${e.message}")
+                    null
+                } finally {
+                    enlarged.delete()
+                }
+            }
+            val now = currentInputEditorInfo
+            val sameField = now != null && now.packageName == sentToPackage && now.fieldId == sentToField
+            when {
+                !sameField -> copyRefusedImage(file)
+                square != null && tryCommit(square, chosen) -> Unit
+                else -> {
+                    val plain = squareStickerCopy(file)
+                    if ((plain == null || !tryCommit(plain, chosen)) && !tryCommit(file, chosen)) copyRefusedImage(file)
+                }
             }
         }
         return true
@@ -48696,6 +48760,16 @@ open class WMKeyboardService : InputMethodService() {
 
         /** Enough of a WebP to read the header flag that says it is animated. */
         private const val WEBP_HEADER_BYTES = 32
+
+        /**
+         * A still sticker shorter than this on its long side is upscaled
+         * before it goes out as WhatsApp's or Messenger's 512 square (see
+         * commitUpscaledSquare); a larger one only needs a little stretching.
+         */
+        private const val SMALL_STICKER_EDGE = 384
+
+        /** How long a send waits for the upscaler before the plain square goes instead. */
+        private const val UPSCALE_SEND_TIMEOUT_MS = 20_000L
 
         /** Pause between two queued GIF/sticker sends. */
         private const val MEDIA_QUEUE_GAP_MS = 350L

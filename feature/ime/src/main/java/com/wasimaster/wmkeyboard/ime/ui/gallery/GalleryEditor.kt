@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.ime.ui.gallery
 
 import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -55,8 +56,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Compar
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.RestartAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SaveAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SaveAs
+import com.wasimaster.wmkeyboard.core.media.gallery.GalleryItem
 import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropRect
+import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEdit
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEditRenderer
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.StickerLayer
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
@@ -93,8 +96,12 @@ internal fun GalleryEditor(state: KeyboardUiState, ui: GalleryUi, editor: Editor
     val history = ui.edits[item.id]
     val typing = state.galleryText?.takeIf { it.field == GalleryTextField.LAYER }
 
-    val source by produceState<Bitmap?>(null, item.id) {
-        value = withContext(Dispatchers.IO) { MediaPrep.decode(context, item.uri, PREVIEW_EDGE) }
+    // The upscaler's copy once the edit has one: the rest of the edit is in
+    // fractions of the picture, so it draws on either the same way.
+    val upscaled = ui.upscaledFile(item.id, edit)
+    val source by produceState<Bitmap?>(null, item.id, upscaled) {
+        val from = upscaled?.let(Uri::fromFile) ?: item.uri
+        value = withContext(Dispatchers.IO) { MediaPrep.decode(context, from, PREVIEW_EDGE) }
     }
     val stickers = remember { PreviewStickers() }
 
@@ -158,6 +165,7 @@ internal fun GalleryEditor(state: KeyboardUiState, ui: GalleryUi, editor: Editor
                     edit = edit,
                     pictureRatio = base?.let { it.width.toFloat() / it.height } ?: 1f,
                     source = source,
+                    photoSize = photoSize(item, source, edit),
                     callbacks = callbacks,
                     onBrushSizing = { held ->
                         sizing = true
@@ -243,6 +251,20 @@ private fun SaveRow(icon: ImageVector, title: String, body: String, enabled: Boo
             Text(body, color = kb.popupText.copy(alpha = 0.7f * alpha), fontSize = 12.sp, lineHeight = 15.sp)
         }
     }
+}
+
+/**
+ * The photo's own size, upright and before any upscale: the library's
+ * measurement where it has one, else the preview's, which is the photo's own
+ * size for any photo small enough to upscale.
+ */
+private fun photoSize(item: GalleryItem, preview: Bitmap?, edit: PhotoEdit): Pair<Int, Int> {
+    if (item.width > 0 && item.height > 0) {
+        return if (item.orientation % 180 == 0) item.width to item.height else item.height to item.width
+    }
+    val p = preview ?: return 0 to 0
+    val f = edit.upscale?.factor ?: 1
+    return p.width / f to p.height / f
 }
 
 /** Sticker pictures for the preview, decoded once per editor. */

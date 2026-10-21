@@ -26,11 +26,14 @@ import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.EditHistory
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEdit
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEditRenderer
+import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoUpscale
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.StickerLayer
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.TextLayer
 import com.wasimaster.wmkeyboard.core.settings.GalleryCaption
 import com.wasimaster.wmkeyboard.core.settings.GalleryFallback
 import com.wasimaster.wmkeyboard.core.settings.GallerySettings
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleKind
+import com.wasimaster.wmkeyboard.core.upscale.Upscaler
 import com.wasimaster.wmkeyboard.ime.ui.gallery.trimGalleryImageMemory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +42,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -123,6 +127,7 @@ internal class GalleryController(
     private var noticeJob: Job? = null
     private var indexJob: Job? = null
     private var searchJob: Job? = null
+    private var upscaleJob: Job? = null
     private var open = false
 
     /** The field the picks were made for; a different one drops them. */
@@ -486,6 +491,7 @@ internal class GalleryController(
             is GalleryAction.OpenEditor -> openEditor(action.id)
             GalleryAction.CloseEditor -> {
                 endTextIfAny()
+                upscaleJob?.cancel()
                 _state.update { it.copy(editor = null) }
             }
             is GalleryAction.Tool -> {
@@ -524,6 +530,9 @@ internal class GalleryController(
             is GalleryAction.Compare -> editor { it.copy(comparing = action.on) }
             is GalleryAction.SaveMenu -> editor { it.copy(saveMenuOpen = action.open) }
             is GalleryAction.SaveEdit -> saveEdit(action.replace)
+            is GalleryAction.UpscaleArt -> editor { it.copy(upscaleArt = action.art, upscaleFailed = false) }
+            is GalleryAction.Upscale -> upscale(action.factor)
+            GalleryAction.CancelUpscale -> upscaleJob?.cancel()
         }
     }
 
@@ -662,7 +671,10 @@ internal class GalleryController(
         // Editing a photo is choosing it.
         if (_state.value.selection.none { it.id == id }) toggle(item)
         if (_state.value.selection.none { it.id == id }) return
-        _state.update { it.copy(editor = EditorUi(itemId = id), sendMenuOpen = false) }
+        // A PNG is most often a screenshot or a drawing, which the network
+        // for drawings and text enlarges better; anything else is a photo.
+        val art = item.mime == "image/png" || item.mime == "image/gif"
+        _state.update { it.copy(editor = EditorUi(itemId = id, upscaleArt = art), sendMenuOpen = false) }
     }
 
     private fun editor(change: (EditorUi) -> EditorUi) = _state.update { it.copy(editor = it.editor?.let(change)) }
@@ -728,6 +740,74 @@ internal class GalleryController(
         editor { it.copy(selectedLayer = layer.id) }
     }
 
+    // ---- Upscaling ----------------------------------------------------------------
+
+    /**
+     * Enlarges the photo open in the editor by [factor] with the upscaler, in
+     * the sticker generator's process, and makes that an undoable step: the
+     * edit says which copy it draws on ([PhotoEdit.upscale]), and the copy
+     * waits in the media cache under [GalleryUi.upscaled]. The photo is read
+     * at the size the result can take ([MediaPrep.MAX_DECODE_EDGE] over the
+     * factor); the tool only offers a factor a photo is small enough for.
+     */
+    private fun upscale(factor: Int) {
+        val e = _state.value.editor ?: return
+        if (upscaleJob?.isActive == true) return
+        val item = _state.value.selection.firstOrNull { it.id == e.itemId } ?: return
+        val want = PhotoUpscale(factor, e.upscaleArt)
+        val key = upscaleKey(item.id, want)
+        endTextIfAny()
+        host.haptic()
+        if (_state.value.upscaled[key]?.isFile == true) {
+            history { it.push(it.current.copy(upscale = want)) }
+            return
+        }
+        editor { it.copy(upscaling = UpscaleProgress(), upscaleFailed = false) }
+        upscaleJob = scope.launch {
+            var input: File? = null
+            var ok = false
+            try {
+                input = withContext(Dispatchers.IO) {
+                    val photo = MediaPrep.decode(app, item.uri, MediaPrep.MAX_DECODE_EDGE / factor) ?: return@withContext null
+                    val alpha = photo.hasAlpha()
+                    val file = File(Upscaler.workDir(app), "photo_${System.nanoTime()}.${if (alpha) "png" else "jpg"}")
+                    val format = if (alpha) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.JPEG
+                    file.outputStream().use { photo.compress(format, UPSCALE_INPUT_QUALITY, it) }
+                    photo.recycle()
+                    file
+                }
+                val source = input ?: return@launch
+                val out = File(MediaPrep.outputDir(app), "UPSCALED_${System.nanoTime()}.${source.extension}")
+                val kind = if (want.art) UpscaleKind.ART else UpscaleKind.PHOTO
+                Upscaler.upscale(app, source, out, kind, factor).collect { event ->
+                    when (event) {
+                        is Upscaler.Event.Downloading -> editor {
+                            it.copy(upscaling = UpscaleProgress(if (event.total > 0) event.bytes.toFloat() / event.total else -1f, downloading = true))
+                        }
+                        is Upscaler.Event.Working -> editor {
+                            it.copy(upscaling = UpscaleProgress(event.done.toFloat() / event.total.coerceAtLeast(1)))
+                        }
+                        is Upscaler.Event.Done -> {
+                            ok = true
+                            _state.update { s -> s.copy(upscaled = s.upscaled + (key to event.file)) }
+                            // The step goes on this photo only while its editor is still the open one.
+                            if (_state.value.editor?.itemId == item.id) history { it.push(it.current.copy(upscale = want)) }
+                        }
+                        is Upscaler.Event.Failed -> Unit
+                    }
+                }
+            } finally {
+                input?.delete()
+                val failed = !ok && isActive
+                editor { if (it.itemId == item.id) it.copy(upscaling = null, upscaleFailed = failed) else it }
+            }
+        }
+    }
+
+    /** Where the photo's pixels are read for its edit: the upscaled copy, or the photo. */
+    private fun sourceOf(item: GalleryItem, edit: PhotoEdit): Uri =
+        _state.value.upscaledFile(item.id, edit)?.let(Uri::fromFile) ?: item.uri
+
     // ---- Saving to the gallery ---------------------------------------------------
 
     /**
@@ -754,7 +834,7 @@ internal class GalleryController(
             var asking = false
             try {
                 val kept = withContext(Dispatchers.IO) {
-                    MediaPrep.renderToKeep(app, item) { bmp -> PhotoEditRenderer.render(bmp, edit, StickerCache()) }
+                    MediaPrep.renderToKeep(app, item, sourceOf(item, edit)) { bmp -> PhotoEditRenderer.render(bmp, edit, StickerCache()) }
                 }
                 if (kept == null) {
                     notice(GalleryNotice.Kind.SAVE_FAILED)
@@ -886,7 +966,7 @@ internal class GalleryController(
             !mime.startsWith("image/") ->
                 MediaPrep.copyAsIs(app, item, mime, item.name.substringAfterLast('.', MediaPrep.extensionFor(mime)), opts)
             edit.isEmpty -> MediaPrep.prepareImage(app, item, opts)
-            else -> MediaPrep.prepareImage(app, item, opts) { bmp -> PhotoEditRenderer.render(bmp, edit, stickers) }
+            else -> MediaPrep.prepareImage(app, item, opts, sourceOf(item, edit)) { bmp -> PhotoEditRenderer.render(bmp, edit, stickers) }
         }
     }
 
@@ -907,6 +987,7 @@ internal class GalleryController(
         val items = s.selection
         val edits = items.associate { it.id to s.editOf(it.id) }
         val field = host.field()
+        upscaleJob?.cancel()
         _state.update { it.copy(sending = SendProgress(0, items.size), sendMenuOpen = false, editor = null, viewer = null) }
         sendJob = scope.launch {
             try {
@@ -1074,6 +1155,9 @@ internal class GalleryController(
         private const val NOTICE_MS = 2600L
         private const val REFRESH_DEBOUNCE_MS = 450L
         private const val STICKER_STAGGER = 5
+
+        /** The photo handed to the upscaler, when it has no transparency: a JPEG close enough to lossless. */
+        private const val UPSCALE_INPUT_QUALITY = 98
 
         /** The narrowest type that covers every one of [mimes]: `image/jpeg`, `image/*`, or `*/*`. */
         fun commonMime(mimes: List<String>): String {

@@ -10,6 +10,7 @@ import android.os.HandlerThread
 import android.os.IBinder
 import android.os.Message
 import android.os.Messenger
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleRequest
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -58,7 +59,20 @@ object ImageGen {
      * [ImageGenEvent.Blocked] per variant, then [ImageGenEvent.Done] or
      * [ImageGenEvent.Failed], after which the flow completes.
      */
-    fun generate(context: Context, request: ImageGenRequest): Flow<ImageGenEvent> = callbackFlow {
+    fun generate(context: Context, request: ImageGenRequest): Flow<ImageGenEvent> =
+        ask(context, ImageGenService.GENERATE, ImageGenService.toBundle(request))
+
+    /**
+     * Enlarges a picture (see [com.wasimaster.wmkeyboard.core.upscale.UpscaleEngine]):
+     * [ImageGenEvent.Progress] per tile (step of steps), one
+     * [ImageGenEvent.Image] with the output file unless it was cancelled, then
+     * [ImageGenEvent.Done] or [ImageGenEvent.Failed]. Cancelling the
+     * collection stops it within a tile.
+     */
+    fun upscale(context: Context, request: UpscaleRequest): Flow<ImageGenEvent> =
+        ask(context, ImageGenService.UPSCALE, ImageGenService.upscaleToBundle(request))
+
+    private fun ask(context: Context, what: Int, request: Bundle): Flow<ImageGenEvent> = callbackFlow {
         val id = nextId.getAndIncrement()
         var finished = false
         handler.removeCallbacks(unbind)
@@ -71,8 +85,8 @@ object ImageGen {
         }
         val messenger = connect(context)
         val sent = messenger != null && runCatching {
-            messenger.send(Message.obtain(null, ImageGenService.GENERATE, id, 0).apply {
-                data = ImageGenService.toBundle(request)
+            messenger.send(Message.obtain(null, what, id, 0).apply {
+                data = request
                 replyTo = replies
             })
         }.isSuccess

@@ -497,6 +497,13 @@
     <string name="import_sticker_editor_cutout_download_progress">The app gets the background remover…</string>
     <string name="import_sticker_editor_cutout_none_error">The app found no subject in this image. Use the eraser.</string>
     <string name="import_sticker_editor_cutout_error">The app cannot remove the background now.</string>
+    <string name="import_sticker_editor_upscale_action">Upscale</string>
+    <string name="import_sticker_editor_upscale_subtitle">Redraw it sharp at %1$d times the size: %2$s</string>
+    <string name="import_sticker_editor_upscale_download_subtitle">Redraw it sharp at a larger size: %1$s. Get the upscaler first. It is a %2$s download.</string>
+    <string name="import_sticker_editor_upscale_size">%1$d × %2$d → %3$d × %4$d</string>
+    <string name="import_sticker_editor_upscale_progress">The app upscales the sticker…</string>
+    <string name="import_sticker_editor_upscale_download_progress">The app gets the upscaler…</string>
+    <string name="import_sticker_editor_upscale_error">The app cannot upscale this sticker now.</string>
     <string name="import_sticker_editor_brush_size_label">Brush size</string>
     <string name="import_sticker_editor_border_width_label">Border width</string>
     <!-- Caption over the choice of border color. -->

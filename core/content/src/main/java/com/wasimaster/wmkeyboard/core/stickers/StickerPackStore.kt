@@ -432,12 +432,16 @@ class StickerPackStore(private var baseDir: File?) {
      * it is about to replace: an edit is destructive, and the state before it
      * is the best starting point still available. Later edits leave that first
      * original alone, so erasing a background twice cannot eat the photo.
+     *
+     * [original], when given, replaces the kept original outright: the editor
+     * passes the picture it upscaled, which is the sticker's source from then on.
      */
     @Synchronized
     fun replaceStickerImage(
         packId: String,
         stickerId: String,
         processed: ProcessedSticker,
+        original: ByteArray? = null,
     ): StickerAddResult {
         val index = packs.indexOfFirst { it.id == packId }
         if (index < 0) return StickerAddResult.PackMissing
@@ -446,7 +450,9 @@ class StickerPackStore(private var baseDir: File?) {
         if (at < 0) return StickerAddResult.PackMissing
         val dir = packDir(packId) ?: return StickerAddResult.WriteFailed
         val previous = stickers[at]
-        if (!previous.animated && originalFor(stickerId) == null) {
+        if (original != null) {
+            writeOriginal(stickerId, original)
+        } else if (!previous.animated && originalFor(stickerId) == null) {
             runCatching { File(dir, previous.fileName).readBytes() }
                 .getOrNull()
                 ?.let { writeOriginal(stickerId, it) }

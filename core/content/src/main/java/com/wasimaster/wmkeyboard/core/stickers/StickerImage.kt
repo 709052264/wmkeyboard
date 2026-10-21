@@ -273,6 +273,29 @@ object StickerImage {
     }
 
     /**
+     * [bitmap] as the copy the editor re-opens later, at up to
+     * [ORIGINAL_SIZE]: for a picture the editor made itself, such as an
+     * upscaled crop, which is what a later edit has to start from.
+     */
+    fun encodeOriginal(bitmap: Bitmap): ByteArray? {
+        val longest = maxOf(bitmap.width, bitmap.height)
+        val sized = if (longest <= ORIGINAL_SIZE) {
+            bitmap
+        } else {
+            val scale = ORIGINAL_SIZE.toFloat() / longest
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * scale).toInt().coerceAtLeast(1),
+                (bitmap.height * scale).toInt().coerceAtLeast(1),
+                true,
+            )
+        }
+        val encoded = encodeWebpAt(sized, ORIGINAL_QUALITY)
+        if (sized !== bitmap) sized.recycle()
+        return encoded
+    }
+
+    /**
      * Encodes an edited bitmap as sticker bytes, in whatever shape the edit
      * left it. Anything past [MAX_STILL_SIZE] is scaled down first.
      */

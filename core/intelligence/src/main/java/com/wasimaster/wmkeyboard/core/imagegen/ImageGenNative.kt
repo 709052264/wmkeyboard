@@ -14,7 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * Nothing here is specific to pictures, so the scanner's PaddleOCR reader
  * runs its graphs through it too where the build has no LiteRT
- * ([com.wasimaster.wmkeyboard.core.ocr.MnnPaddleRuntime]): one MNN in the app.
+ * ([com.wasimaster.wmkeyboard.core.ocr.MnnPaddleRuntime]), and so does the
+ * upscaler ([com.wasimaster.wmkeyboard.core.upscale.UpscaleEngine]): one MNN
+ * in the app.
  *
  * Calls on one handle must not overlap; the generator's service makes them
  * all on one thread, the scanner on its own.

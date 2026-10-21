@@ -16,6 +16,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Language
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Photo
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Public
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Save
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
@@ -145,6 +146,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
     NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
     NetSource.DOWNLOAD_IMAGEGEN -> R.string.netlog_source_download_imagegen to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_UPSCALE -> R.string.netlog_source_download_upscale to R.string.netlog_sent_download
     NetSource.DOWNLOAD_XLIT -> R.string.netlog_source_download_xlit to R.string.netlog_sent_download
     NetSource.DOWNLOAD_VOICE_OUT -> R.string.netlog_source_download_voice_out to R.string.netlog_sent_download
     NetSource.DOWNLOAD_NATIVE -> R.string.netlog_source_download_native to R.string.netlog_sent_download
@@ -197,6 +199,7 @@ private fun fallbackIcon(source: NetSource): ImageVector = when (source) {
     NetSource.DOWNLOAD_CUTOUT -> Icons.Outlined.ContentCut
     NetSource.DOWNLOAD_SEMANTIC -> Icons.Outlined.ImageSearch
     NetSource.DOWNLOAD_IMAGEGEN -> Icons.Outlined.AutoAwesome
+    NetSource.DOWNLOAD_UPSCALE -> Icons.Outlined.PhotoSizeSelectLarge
     NetSource.ADDONS -> Icons.Outlined.Extension
     NetSource.LINK_IMPORT, NetSource.LINK_PREVIEW -> Icons.Outlined.Link
     NetSource.KEYMAN -> Icons.Outlined.Keyboard

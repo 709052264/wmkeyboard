@@ -1651,11 +1651,18 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Re-cropping warns first — Within a session the edit is destructive, so a new crop asks before discarding the mask
     - Stickers with no original reopen as themselves — The version being replaced is kept as the original from then on
   - Animated stickers skip the editor `uncommon` — No still to edit and no encoder to reassemble an animation.
+  - Upscale `RARE` — Redraws a small crop ×4 (256 px or less on its long side) or ×2 (up to 640 px) with waifu2x's UpConv7 drawing network, on the phone.
+    - Same process and engine as the sticker generator — UpscaleEngine in `:imagegen` on libwmimagegen (MNN, CPU, float32); no new native library or gate
+    - Tiled — 128 px tiles read with the 7 px the network eats around them, so a 4096 px result never needs the whole picture as floats; cancel lands between tiles
+    - Transparency through the network too — the alpha as a grey picture after the colour; colour under transparent pixels bled in from the edge first so no dark fringe
+    - Upscaled crop becomes the kept original — a later edit starts from it; the erased parts are scaled to match, the undo steps go
+    - 2.2 MB download — `sr-waifu2x-upconv7-art.mnn` from the data repository's models release, SHA-256 pinned; listed as Upscaler under the sticker generator on the storage screen
 - **Sending mechanics** `uncommon` — MIME negotiation over commitContent, with fallbacks rather than silent failure.
   - WhatsApp sticker MIME offered first `RARE` — image/webp.wasticker before plain image/webp when send mode is Sticker.
     - Only for real WebP bytes — A GIF can never carry the sticker MIME, so animated results always send as images
     - Separate defaults — Stickers default to Sticker mode, GIFs to Image
   - WebP→PNG re-encode fallback `RARE` — When the field rejects WebP but advertises PNG; skipped for animated sources.
+  - Small stickers upscaled for the 512 square `RARE` — A still under 384 px going to WhatsApp or Messenger is upscaled ×2 or ×4 first when the upscaler is already on the phone (never downloaded for this); 20 s timeout, then the plain square; cached as `<name>_square_sr.webp`.
   - Clipboard fallback with a toast `uncommon` — If no candidate MIME matches, the file goes to the clipboard via FileProvider and says so.
   - Pre-send acceptsRichMedia gate `uncommon` — Fields taking no images never start a download; a vibration and a standing notice instead.
   - Debug line per commit `RARE` — Logs the chosen MIME, the mode and everything the field advertised.
@@ -1884,6 +1891,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Pages inserted one at a time — JPEG, same path as a camera-tool photo
     - Gallery import allowed — Alongside the camera capture
     - Save to gallery — Off by default; writes to Pictures/WM Keyboard
+- **Gallery photo editor: Upscale** `RARE` — The editor's seventh tool redraws a photo ×2 or ×4 on the phone (waifu2x UpConv7, a photo network and a drawing-and-text network; a PNG starts on the drawing one).
+  - Offered up to 4,096 px out — ×2 for photos up to 2,048 px on the long side, ×4 up to 1,024
+  - An undoable edit step — PhotoEdit.upscale names the copy; the rest of the edit is in fractions, so crops, drawings and text land where they were
+  - Progress bar and Cancel — runs in the sticker generator's `:imagegen` process, never the keyboard's
+  - The sent and saved copies read the upscaled file — still capped by the send bar's quality chip
+  - Measured before choosing (Apple M2, MNN CPU, 4 threads) — 1080p ×2 in 2.7 s against 11.8 s for realesr-animevideov3 and 23.6 s for realesr-general-x4v3; ONNX Runtime 3–5× slower on the same network
 - **Online tools** `uncommon` — 8 tools in the Online group
   - Translate — Type-and-translate panel with its own search bar
     - 68 languages — TranslateClient.languages; source is detected, or picked from the source chip for the visit

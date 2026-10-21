@@ -1726,6 +1726,7 @@ internal object SettingsRowIcons {
         put(R.string.import_sticker_editor_brush_size_label) { Icons.Outlined.Brush }
         put(R.string.import_sticker_editor_border_width_label) { Icons.Outlined.LineWeight }
         put(R.string.import_sticker_editor_cutout_action) { Icons.Outlined.ContentCut }
+        put(R.string.import_sticker_editor_upscale_action) { Icons.Outlined.PhotoSizeSelectLarge }
         put(R.string.import_sticker_pack_rename_subtitle) { Icons.Outlined.DriveFileRenameOutline }
         put(R.string.import_signal_added_title) { Icons.Outlined.CheckCircle }
         put(R.string.import_telegram_added_title) { Icons.Outlined.CheckCircle }

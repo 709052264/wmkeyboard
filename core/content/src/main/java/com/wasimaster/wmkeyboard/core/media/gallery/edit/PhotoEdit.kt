@@ -33,6 +33,12 @@ data class PhotoEdit(
     val strokes: List<Stroke> = emptyList(),
     val texts: List<TextLayer> = emptyList(),
     val stickers: List<StickerLayer> = emptyList(),
+    /**
+     * The photo enlarged by the upscaler before anything else is drawn on it,
+     * or null for the photo as it is. Every other field is in fractions of the
+     * picture, so none of them changes when this does.
+     */
+    val upscale: PhotoUpscale? = null,
 ) {
     val isEmpty: Boolean get() = this == NONE
 
@@ -70,6 +76,9 @@ data class PhotoEdit(
         const val MAX_STRAIGHTEN = 45f
     }
 }
+
+/** How the upscaler enlarged the photo: by [factor] (2 or 4), with its network for drawings when [art]. */
+data class PhotoUpscale(val factor: Int, val art: Boolean)
 
 /** A point as fractions of the turned picture. */
 data class NPoint(val x: Float, val y: Float) {

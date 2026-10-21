@@ -141,7 +141,7 @@ object ImageGenDownloads {
         _states.update { it + (id to status) }
     }
 
-    private class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
+    internal class FailedException(@StringRes val messageRes: Int, val messageArg: String = "") : IOException()
 
     /** What is still missing, each with where it goes. */
     private fun missingParts(dir: File, model: ImageGenModels.Catalog): List<Pair<File, ImageGenModels.Part>> {
@@ -181,10 +181,20 @@ object ImageGenDownloads {
         }
     }
 
-    private suspend fun fetchVerified(part: ImageGenModels.Part, target: File, onBytes: (Long) -> Unit) {
+    /**
+     * [part] into [target], through a `.part` beside it that resumes and is
+     * renamed only once its SHA-256 matches. Also the upscaler's way in
+     * (com.wasimaster.wmkeyboard.core.upscale.Upscaler), logged as [source].
+     */
+    internal suspend fun fetchVerified(
+        part: ImageGenModels.Part,
+        target: File,
+        source: NetSource = NetSource.DOWNLOAD_IMAGEGEN,
+        onBytes: (Long) -> Unit,
+    ) {
         val url = ImageGenModels.url(part) ?: throw FailedException(R.string.core_intel_semantic_no_source)
         val staged = File(target.path + ".part")
-        fetch(url, part.bytes, staged, onBytes)
+        fetch(url, part.bytes, staged, source, onBytes)
         if (sha256(staged) != part.sha256) {
             staged.delete()
             throw FailedException(R.string.core_intel_ocr_download_error_mismatch)
@@ -224,11 +234,11 @@ object ImageGenDownloads {
     }
 
     /** Fetches [url] into [target], resuming a partial one, never past [size]. */
-    private suspend fun fetch(url: String, size: Long, target: File, onBytes: (Long) -> Unit) {
+    private suspend fun fetch(url: String, size: Long, target: File, source: NetSource, onBytes: (Long) -> Unit) {
         val resumeFrom = target.length().takeIf { it in 1 until size } ?: 0L
         if (resumeFrom == 0L) target.delete()
         val connection = URL(url).openConnection() as HttpURLConnection
-        val call = NetLog.call(NetSource.DOWNLOAD_IMAGEGEN, "GET", url, route = NetLog.pathOf(url))
+        val call = NetLog.call(source, "GET", url, route = NetLog.pathOf(url))
         try {
             connection.connectTimeout = 15_000
             connection.readTimeout = 30_000

@@ -111,6 +111,9 @@ enum class NetSource(
     /** The sticker generator's models and picture filter (data repository, or Qualcomm's bucket for NPU builds). */
     DOWNLOAD_IMAGEGEN("download_imagegen"),
 
+    /** The upscaler's two networks (data repository): the sticker editor's and the photo editor's Upscale. */
+    DOWNLOAD_UPSCALE("download_upscale"),
+
     /** IndicXlit, the neural readings on the Indic phonetic layouts. */
     DOWNLOAD_XLIT("download_xlit"),
 

@@ -14,7 +14,9 @@ built static with its CPU backend only, under a small JNI layer:
 The JNI surface knows nothing of pictures, so the scanner's PaddleOCR reader
 uses it too in builds without LiteRT (`MnnPaddleRuntime` in
 `core/intelligence/.../ocr/`): its detector and recogniser are `.mnn` modules
-with an `image` input and a `probs` output, run the same way.
+with an `image` input and a `probs` output, run the same way. So does the
+upscaler (`core/intelligence/.../upscale/`): waifu2x's UpConv7 networks, an
+`image` input and an `upscaled` output, run a 142-pixel tile at a time.
 
 Everything else (the CLIP tokenizer, the schedulers, classifier-free guidance,
 the loop) is Kotlin, so a cancel lands between two network calls and the CPU and

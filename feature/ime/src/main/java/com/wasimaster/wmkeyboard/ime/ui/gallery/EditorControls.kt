@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -67,6 +68,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InvertColors
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.LightMode
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Opacity
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Rotate90DegreesCw
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Thermostat
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
@@ -75,6 +77,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WbSunny
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DarkMode
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CenterFocusStrong
+import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.AdjustKnob
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.BrushKind
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.CropAspect
@@ -84,6 +87,9 @@ import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoEditRenderer
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.PhotoFilter
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.TextAlign
 import com.wasimaster.wmkeyboard.core.media.gallery.edit.TextStyle
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleModels
+import com.wasimaster.wmkeyboard.core.upscale.UpscaleTiles
+import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.gallery.EditorTool
 import com.wasimaster.wmkeyboard.ime.gallery.EditorUi
@@ -94,7 +100,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
-/** The rail of the editor's six tools. */
+/** The rail of the editor's tools. */
 @Composable
 internal fun ToolRail(tool: EditorTool, act: (GalleryAction) -> Unit) {
     val kb = LocalKbTheme.current
@@ -132,6 +138,7 @@ private fun toolIcon(t: EditorTool): ImageVector = when (t) {
     EditorTool.STICKER -> Icons.Outlined.EmojiEmotions
     EditorTool.FILTER -> Icons.Outlined.FilterBAndW
     EditorTool.ADJUST -> Icons.Outlined.Tune
+    EditorTool.UPSCALE -> Icons.Outlined.PhotoSizeSelectLarge
 }
 
 private fun toolLabel(t: EditorTool): Int = when (t) {
@@ -141,6 +148,7 @@ private fun toolLabel(t: EditorTool): Int = when (t) {
     EditorTool.STICKER -> R.string.ime_gallery_tool_stickers
     EditorTool.FILTER -> R.string.ime_gallery_tool_filters
     EditorTool.ADJUST -> R.string.ime_gallery_tool_adjust
+    EditorTool.UPSCALE -> R.string.ime_gallery_tool_upscale
 }
 
 /** The open tool's own controls, over the rail. */
@@ -150,6 +158,8 @@ internal fun EditorControls(
     edit: PhotoEdit,
     pictureRatio: Float,
     source: Bitmap?,
+    /** The photo's own width and height, before any upscale: what the Upscale tool offers factors for. */
+    photoSize: Pair<Int, Int>,
     callbacks: GalleryCallbacks,
     onBrushSizing: (held: Boolean) -> Unit,
 ) {
@@ -162,6 +172,7 @@ internal fun EditorControls(
             EditorTool.STICKER -> StickerControls(callbacks)
             EditorTool.FILTER -> FilterControls(edit, source, act)
             EditorTool.ADJUST -> AdjustControls(editor, edit, act)
+            EditorTool.UPSCALE -> UpscaleControls(editor, edit, photoSize, act)
         }
     }
 }
@@ -477,6 +488,84 @@ private fun filterLabel(f: PhotoFilter): Int = when (f) {
     PhotoFilter.RETRO -> R.string.ime_gallery_filter_retro
     PhotoFilter.LUSH -> R.string.ime_gallery_filter_lush
     PhotoFilter.DUSK -> R.string.ime_gallery_filter_dusk
+}
+
+// ---- Upscale ----------------------------------------------------------------
+
+/**
+ * The photo redrawn larger by the upscaler: which network (photos, or drawings
+ * and text), then a factor, each shown with the size it gives. Only factors
+ * that keep the photo within [MediaPrep.MAX_DECODE_EDGE] are offered. While
+ * it runs, a bar and Cancel; once it is done, the size it has and a way back.
+ */
+@Composable
+private fun UpscaleControls(editor: EditorUi, edit: PhotoEdit, photoSize: Pair<Int, Int>, act: (GalleryAction) -> Unit) {
+    val (w, h) = photoSize
+    val upscaling = editor.upscaling
+    val applied = edit.upscale
+    ChipRow {
+        DarkChip(stringResource(R.string.ime_gallery_upscale_photo), selected = !editor.upscaleArt) {
+            act(GalleryAction.UpscaleArt(false))
+        }
+        DarkChip(stringResource(R.string.ime_gallery_upscale_art), selected = editor.upscaleArt) {
+            act(GalleryAction.UpscaleArt(true))
+        }
+    }
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        when {
+            upscaling != null -> {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(if (upscaling.downloading) R.string.ime_gallery_upscale_downloading else R.string.ime_gallery_upscale_working),
+                        color = OnPhoto,
+                        fontSize = 12.sp,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    if (upscaling.fraction >= 0f) {
+                        LinearProgressIndicator(progress = { upscaling.fraction }, modifier = Modifier.fillMaxWidth())
+                    } else {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                    }
+                }
+                DarkChip(stringResource(CommonR.string.common_cancel), selected = false) { act(GalleryAction.CancelUpscale) }
+            }
+            applied != null -> {
+                Text(
+                    stringResource(R.string.ime_gallery_upscale_done, applied.factor, w * applied.factor, h * applied.factor),
+                    color = OnPhoto,
+                    fontSize = 12.sp,
+                    modifier = Modifier.weight(1f),
+                )
+                DarkChip(stringResource(R.string.ime_gallery_upscale_undo), selected = false) {
+                    act(GalleryAction.EditCommit(edit.copy(upscale = null)))
+                }
+            }
+            w <= 0 || h <= 0 || UpscaleTiles.largestFactor(w, h, MediaPrep.MAX_DECODE_EDGE) == 0 -> Text(
+                stringResource(R.string.ime_gallery_upscale_too_large),
+                color = OnPhoto.copy(alpha = 0.8f),
+                fontSize = 12.sp,
+            )
+            else -> UpscaleModels.FACTORS.filter { maxOf(w, h) * it <= MediaPrep.MAX_DECODE_EDGE }.forEach { f ->
+                DarkChip(
+                    stringResource(R.string.ime_gallery_upscale_factor, f, w * f, h * f),
+                    selected = false,
+                    icon = Icons.Outlined.PhotoSizeSelectLarge,
+                ) { act(GalleryAction.Upscale(f)) }
+            }
+        }
+    }
+    if (editor.upscaleFailed && upscaling == null) {
+        Text(
+            stringResource(R.string.ime_gallery_upscale_failed),
+            color = OnPhoto.copy(alpha = 0.8f),
+            fontSize = 11.sp,
+            modifier = Modifier.padding(horizontal = 14.dp),
+        )
+    }
 }
 
 // ---- Adjust -----------------------------------------------------------------
