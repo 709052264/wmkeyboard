@@ -1976,7 +1976,7 @@ internal fun WebSearchPanel(
                 ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
             }
             when (state.searchTab) {
-                SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onMenu, onOpenToolSettings)
+                SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onImageResult, onMenu, onOpenToolSettings)
                 SearchTab.IMAGES -> ImageResults(state, onRetry, onImageResult, onMenu, onOpenToolSettings)
             }
         }
@@ -2106,9 +2106,11 @@ private fun WebResults(
     onRetry: () -> Unit,
     onResult: (WebResult) -> Unit,
     onOpen: (WebResult) -> Unit,
+    onImageResult: (ImageResult) -> Unit,
     onMenu: (SearchMenu) -> Unit,
     onOpenToolSettings: (ToolbarTool) -> Unit,
 ) {
+    val openLink = LocalSearchActions.current.onOpen
     val kb = LocalKbTheme.current
     Column(modifier = Modifier.fillMaxSize()) {
         when (val ui = state.webSearch) {
@@ -2142,9 +2144,9 @@ private fun WebResults(
                         SearchResultTap.OPEN -> onOpen
                     }
                     val sideAction = if (openFirst) onResult else onOpen
-                    // The answer box is the list's first item when there is one,
-                    // so focus indices start after it.
-                    val lead = if (ui.answer != null) 1 else 0
+                    // The answer box and its pictures lead the list when there
+                    // are any, so focus indices start after them.
+                    val lead = (if (ui.answer != null) 1 else 0) + (if (ui.images.isNotEmpty()) 1 else 0)
                     PanelFocusTarget(
                         panel = PanelMode.WEB_SEARCH,
                         count = ui.results.size,
@@ -2160,6 +2162,17 @@ private fun WebResults(
                                 WebSearchAnswer(answer) {
                                     onResult(WebResult(title = "", snippet = answer, url = "", displayUrl = ""))
                                 }
+                            }
+                        }
+                        if (ui.images.isNotEmpty()) {
+                            item(key = "answerImages") {
+                                AnswerImages(
+                                    ui.images,
+                                    state.mediaDownloadingId,
+                                    state.mediaDownloadProgress,
+                                    imageTap(state.settings.webSearch.resultTap, onImageResult, onMenu, openLink),
+                                    onLongPress = { onMenu(SearchMenu.Image(it)) },
+                                )
                             }
                         }
                         itemsIndexed(ui.results) { index, result ->
@@ -2324,6 +2337,65 @@ private fun AnswerAction(icon: ImageVector, label: String, onClick: () -> Unit) 
     }
 }
 
+/**
+ * A few pictures for the query under the engine's answer (#879): the ones
+ * Tavily sends with it, at no extra cost. A tap does what it does on the
+ * Images tab; a long press is the menu.
+ */
+@Composable
+private fun AnswerImages(
+    images: List<ImageResult>,
+    downloadingId: String?,
+    progress: Float?,
+    onTap: (ImageResult) -> Unit,
+    onLongPress: (ImageResult) -> Unit,
+) {
+    val loader = rememberMediaImageLoader()
+    val kb = LocalKbTheme.current
+    LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        itemsIndexed(images, key = { _, image -> image.imageUrl }) { _, image ->
+            Box(
+                modifier = Modifier
+                    .size(width = 96.dp, height = 72.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .frostGlass(kb, RoundedCornerShape(8.dp), FrostSurface.CHIPS)
+                    .background(kb.chip)
+                    .pointerInput(image.imageUrl, downloadingId == null) {
+                        detectTapGestures(
+                            onTap = { if (downloadingId == null) onTap(image) },
+                            onLongPress = { onLongPress(image) },
+                        )
+                    },
+            ) {
+                AsyncImage(
+                    model = image.thumbUrl,
+                    contentDescription = image.title,
+                    imageLoader = loader,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop,
+                )
+                if (downloadingId == image.imageUrl) MediaDownloadOverlay(progress)
+            }
+        }
+    }
+}
+
+/** What a tap on a picture result does, from Tap a result (#879). */
+private fun imageTap(
+    tap: SearchResultTap,
+    onInsert: (ImageResult) -> Unit,
+    onMenu: (SearchMenu) -> Unit,
+    onOpen: (String) -> Unit,
+): (ImageResult) -> Unit = when (tap) {
+    SearchResultTap.MENU -> { result -> onMenu(SearchMenu.Image(result)) }
+    SearchResultTap.INSERT -> onInsert
+    SearchResultTap.OPEN -> { result -> onOpen(result.contextUrl.ifEmpty { result.imageUrl }) }
+}
+
 /** How many lines of the answer show before a tap opens the rest. */
 private const val WebAnswerFoldedLines = 4
 
@@ -2384,11 +2456,7 @@ private fun ImageResults(
                         downloadingId = state.mediaDownloadingId,
                         progress = state.mediaDownloadProgress,
                         columnCount = state.settings.emoji.mediaGridColumns,
-                        onResult = when (state.settings.webSearch.resultTap) {
-                            SearchResultTap.MENU -> { result -> onMenu(SearchMenu.Image(result)) }
-                            SearchResultTap.INSERT -> onResult
-                            SearchResultTap.OPEN -> { result -> onOpen(result.contextUrl.ifEmpty { result.imageUrl }) }
-                        },
+                        onResult = imageTap(state.settings.webSearch.resultTap, onResult, onMenu, onOpen),
                         onResultLink = { result -> onMenu(SearchMenu.Image(result)) },
                         focused = state.focusedIndex(),
                     )

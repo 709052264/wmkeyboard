@@ -1465,6 +1465,8 @@ sealed interface WebSearchUi {
         val query: String,
         /** The backend's own short answer, shown above the results (#470). */
         val answer: String? = null,
+        /** Pictures for the query under the answer on the All tab (#879). */
+        val images: List<com.wasimaster.wmkeyboard.core.tools.ImageResult> = emptyList(),
         /** Further pages loaded by More results (#879), 0 for none. */
         val page: Int = 0,
         /** A further page is on its way. */

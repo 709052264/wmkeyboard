@@ -515,6 +515,7 @@ import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
 import com.wasimaster.wmkeyboard.core.tools.SearchProviders
 import com.wasimaster.wmkeyboard.core.tools.SearchMore
+import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
@@ -37853,10 +37854,17 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     webSearch = result.fold(
                         onSuccess = { page ->
+                            val answer = page.answer.takeIf { settings.webSearch.showAnswer }
                             WebSearchUi.Ready(
                                 page.results,
                                 query,
-                                answer = page.answer.takeIf { settings.webSearch.showAnswer },
+                                answer = answer,
+                                // Under the answer (#879): Tavily's own, else the
+                                // Images tab's for this query when it has them.
+                                images = if (answer == null) emptyList() else page.images.ifEmpty {
+                                    (it.imageSearch as? ImageSearchUi.Ready)?.takeIf { shown -> shown.query == query }
+                                        ?.results.orEmpty().take(TavilySearchClient.ANSWER_IMAGES)
+                                },
                             )
                         },
                         onFailure = { e ->

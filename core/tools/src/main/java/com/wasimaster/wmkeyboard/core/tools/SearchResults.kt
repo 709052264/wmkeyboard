@@ -17,6 +17,8 @@ data class WebResult(
 data class WebSearchPage(
     val results: List<WebResult>,
     val answer: String? = null,
+    /** Pictures for the query, shown under the answer (#879); Tavily's, which come free with it. */
+    val images: List<ImageResult> = emptyList(),
 )
 
 /**

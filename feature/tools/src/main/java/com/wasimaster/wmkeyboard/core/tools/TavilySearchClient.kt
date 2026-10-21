@@ -34,7 +34,8 @@ object TavilySearchClient {
      * Blocking; call on an IO dispatcher. Throws on failure.
      *
      * [depth] is Tavily's `search_depth`: `advanced` costs two credits, the
-     * others one (#470, #879).
+     * others one (#470, #879). With [answer], the pictures Tavily found come
+     * too, for the strip under the answer (#879): they cost nothing more.
      * [answer] asks for the short answer Tavily writes from the results, which
      * costs nothing more. [source] is what the network log files the request
      * under: the search tool, unless the AI tool ran the search itself (#470).
@@ -50,11 +51,15 @@ object TavilySearchClient {
         excludeDomains: List<String> = emptyList(),
     ): WebSearchPage {
         val body = post(
-            requestBody(query, count, safe, images = false, depth = depth, answer = answer, excludeDomains = excludeDomains),
+            requestBody(query, count, safe, images = answer, depth = depth, answer = answer, excludeDomains = excludeDomains),
             apiKey,
             source,
         )
-        return WebSearchPage(parseWeb(body), if (answer) parseAnswer(body) else null)
+        return WebSearchPage(
+            parseWeb(body),
+            if (answer) parseAnswer(body) else null,
+            if (answer) parseImages(body).take(ANSWER_IMAGES) else emptyList(),
+        )
     }
 
     /** Blocking; call on an IO dispatcher. Throws on failure. */
@@ -191,6 +196,9 @@ object TavilySearchClient {
 
     /** Tavily's own ceiling for `max_results`. */
     private const val MAX_RESULTS = 20
+
+    /** How many pictures go under the answer. */
+    const val ANSWER_IMAGES = 5
 
     /** Tavily's one-credit default. */
     const val DEFAULT_DEPTH = "basic"
