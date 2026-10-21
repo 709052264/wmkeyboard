@@ -3208,6 +3208,7 @@ open class WMKeyboardService : InputMethodService() {
         com.wasimaster.wmkeyboard.ime.ui.SearchActions(
             onTab = ::onSearchTab,
             onMore = ::onSearchMore,
+            onCopy = ::onSearchCopy,
         )
     }
     private var imageSearchJob: Job? = null
@@ -37351,6 +37352,13 @@ open class WMKeyboardService : InputMethodService() {
                 )
             }
         }
+    }
+
+    /** Copy in the search panel (#879): the engine's answer, or a result's link. */
+    fun onSearchCopy(text: String) {
+        vibrate()
+        KeyboardClipboard.copy(this, text)
+        maybeToastCopied()
     }
 
     /** The site of [url] as Tavily's `exclude_domains` takes it: the host, without "www.". */

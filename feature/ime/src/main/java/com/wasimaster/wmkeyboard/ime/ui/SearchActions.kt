@@ -15,6 +15,8 @@ internal class SearchActions(
     val onTab: (SearchTab) -> Unit = {},
     /** More results, at the end of the open tab's results. */
     val onMore: () -> Unit = {},
+    /** Copies text to the clipboard: the engine's answer, a result's link. */
+    val onCopy: (String) -> Unit = {},
 )
 
 internal val LocalSearchActions = staticCompositionLocalOf { SearchActions() }

@@ -45,7 +45,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Input
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AddLink
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AutoAwesome
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
@@ -57,7 +59,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,6 +71,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -2164,7 +2166,8 @@ private fun MoreResultsButton(loading: Boolean, noMore: Boolean) {
 /**
  * The backend's own answer to the query, above the results (#470): Tavily's
  * written answer, a SearXNG instance's instant answer. Folded to a few lines,
- * a tap opens the rest, and Insert puts the whole of it in the field.
+ * a tap opens the rest. Two icons beside its label (#879): Copy puts the whole
+ * of it on the clipboard, Insert in the field.
  */
 @Composable
 private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
@@ -2196,9 +2199,9 @@ private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
                     .weight(1f)
                     .padding(start = 6.dp),
             )
-            TextButton(onClick = onInsert) {
-                Text(stringResource(R.string.ime_insert_action), color = kb.accent, fontSize = 13.sp)
-            }
+            val onCopy = LocalSearchActions.current.onCopy
+            AnswerAction(Icons.Outlined.ContentCopy, stringResource(CommonR.string.common_copy)) { onCopy(answer) }
+            AnswerAction(Icons.AutoMirrored.Outlined.Input, stringResource(R.string.ime_insert_action), onInsert)
         }
         Text(
             answer,
@@ -2208,6 +2211,16 @@ private fun WebSearchAnswer(answer: String, onInsert: () -> Unit) {
             maxLines = if (expanded) Int.MAX_VALUE else WebAnswerFoldedLines,
             overflow = TextOverflow.Ellipsis,
         )
+    }
+}
+
+/** One of the answer box's icon buttons, its name on a long press. */
+@Composable
+private fun AnswerAction(icon: ImageVector, label: String, onClick: () -> Unit) {
+    IconHint(label) {
+        IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
+            Icon(icon, contentDescription = label, modifier = Modifier.size(18.dp), tint = LocalKbTheme.current.accent)
+        }
     }
 }
 
