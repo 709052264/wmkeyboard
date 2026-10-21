@@ -6,7 +6,7 @@ use jni::sys::{jboolean, jfloat, jint, JNI_FALSE, JNI_TRUE};
 use jni::JNIEnv;
 
 use wm_engine::kernels;
-use wm_engine::kernels::yuv;
+use wm_engine::kernels::{upscale, yuv};
 
 use crate::guard::{guarded, with_critical};
 
@@ -273,5 +273,102 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_n
             })
         };
         Some(if done == Some(true) { JNI_TRUE } else { JNI_FALSE })
+    })
+}
+
+/// `NativeEngine.upscaleInput(...)`: `UpscaleTiles.input` in one crossing
+/// (`kernels::upscale::planar_input`). False, writing nothing, when the
+/// arrays do not fit the shape.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeUpscaleInput(
+    mut env: JNIEnv,
+    _class: JClass,
+    pixels: JIntArray,
+    width: jint,
+    height: jint,
+    x0: jint,
+    y0: jint,
+    side: jint,
+    out: JFloatArray,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        if width <= 0 || height <= 0 || side < 0 {
+            return Some(JNI_FALSE);
+        }
+        let (pixels, out) = (pixels.as_raw(), out.as_raw());
+        // SAFETY: an int[] read as u32 and a float[]; the closures make no
+        // JNI call while they are pinned.
+        let done = unsafe {
+            let raw = env.get_raw();
+            with_critical::<u32, _>(raw, pixels, false, |px| {
+                with_critical::<f32, _>(raw, out, true, |out| {
+                    upscale::planar_input(px, width as usize, height as usize, x0 as i64, y0 as i64, side as usize, out)
+                })
+            })
+        };
+        Some(if done.flatten() == Some(true) { JNI_TRUE } else { JNI_FALSE })
+    })
+}
+
+/// `NativeEngine.upscaleOutput(...)`: `UpscaleTiles.output` in one crossing
+/// (`kernels::upscale::packed_output`). False, writing nothing, when the
+/// arrays do not fit the shape.
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeUpscaleOutput(
+    mut env: JNIEnv,
+    _class: JClass,
+    output: JFloatArray,
+    out_side: jint,
+    w: jint,
+    h: jint,
+    out: JIntArray,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        if out_side < 0 || w < 0 || h < 0 {
+            return Some(JNI_FALSE);
+        }
+        let (output, out) = (output.as_raw(), out.as_raw());
+        // SAFETY: a float[] and an int[] written as u32; the closures make
+        // no JNI call while they are pinned.
+        let done = unsafe {
+            let raw = env.get_raw();
+            with_critical::<f32, _>(raw, output, false, |o| {
+                with_critical::<u32, _>(raw, out, true, |out| upscale::packed_output(o, out_side as usize, w as usize, h as usize, out))
+            })
+        };
+        Some(if done.flatten() == Some(true) { JNI_TRUE } else { JNI_FALSE })
+    })
+}
+
+/// `NativeEngine.mergeAlpha(...)`: `UpscaleEngine`'s alpha merge of one
+/// tile in one crossing (`kernels::upscale::merge_alpha`). False, writing
+/// nothing, when the arrays do not fit the shape.
+#[no_mangle]
+#[allow(clippy::too_many_arguments)]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_engine_NativeEngine_nativeMergeAlpha(
+    mut env: JNIEnv,
+    _class: JClass,
+    rgb: JIntArray,
+    w: jint,
+    h: jint,
+    alpha: JIntArray,
+    alpha_row: jint,
+    from: jint,
+) -> jboolean {
+    guarded(&mut env, JNI_FALSE, |env| {
+        if w < 0 || h < 0 || alpha_row < 0 || from < 0 {
+            return Some(JNI_FALSE);
+        }
+        let (rgb, alpha) = (rgb.as_raw(), alpha.as_raw());
+        // SAFETY: two int[]s as u32; the closures make no JNI call while
+        // they are pinned.
+        let done = unsafe {
+            let raw = env.get_raw();
+            with_critical::<u32, _>(raw, alpha, false, |a| {
+                with_critical::<u32, _>(raw, rgb, true, |p| upscale::merge_alpha(p, w as usize, h as usize, a, alpha_row as usize, from as usize))
+            })
+        };
+        Some(if done.flatten() == Some(true) { JNI_TRUE } else { JNI_FALSE })
     })
 }

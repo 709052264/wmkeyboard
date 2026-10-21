@@ -34,6 +34,7 @@ pub mod box_blur;
 pub mod dot;
 pub mod gif;
 pub mod sharpen;
+pub mod upscale;
 pub mod yuv;
 
 #[cfg(test)]

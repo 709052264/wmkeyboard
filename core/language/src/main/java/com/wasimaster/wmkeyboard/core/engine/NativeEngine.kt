@@ -239,6 +239,48 @@ object NativeEngine {
             false
         }
 
+    /**
+     * `UpscaleTiles.input` in one call: the [side] × [side] square at
+     * ([x0], [y0]) of the ARGB [pixels] ([width] × [height]) into [out] as
+     * three planes of `channel / 255`, edge pixels repeated outside. Bit for
+     * bit the Kotlin; NEON on arm64. False, with [out] untouched, when
+     * [useNative] is off, the library predates the kernel or the arrays do
+     * not fit: run the Kotlin then.
+     */
+    fun upscaleInput(pixels: IntArray, width: Int, height: Int, x0: Int, y0: Int, side: Int, out: FloatArray): Boolean =
+        useNative && try {
+            nativeUpscaleInput(pixels, width, height, x0, y0, side, out)
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+
+    /**
+     * `UpscaleTiles.output` in one call: the top-left [w] × [h] of the
+     * network's [output] (three planes of [outSide] squared, 0 to 1) as
+     * opaque ARGB into [out]. Bit for bit the Kotlin's rounding; NEON on
+     * arm64. False, with [out] untouched, as for [upscaleInput].
+     */
+    fun upscaleOutput(output: FloatArray, outSide: Int, w: Int, h: Int, out: IntArray): Boolean =
+        useNative && try {
+            nativeUpscaleOutput(output, outSide, w, h, out)
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+
+    /**
+     * `UpscaleEngine`'s alpha merge in one call: each pixel of the [w] ×
+     * [h] tile [rgb] takes as alpha the mean of the grey [alpha] pixel at
+     * its place, [alpha] being rows [alphaRow] apart from index [from].
+     * Bit for bit the Kotlin; NEON on arm64. False, with [rgb] untouched, as
+     * for [upscaleInput].
+     */
+    fun mergeAlpha(rgb: IntArray, w: Int, h: Int, alpha: IntArray, alphaRow: Int, from: Int): Boolean =
+        useNative && try {
+            nativeMergeAlpha(rgb, w, h, alpha, alphaRow, from)
+        } catch (_: UnsatisfiedLinkError) {
+            false
+        }
+
     private external fun setForceScalar(on: Boolean)
     private external fun nativeCpuFeatures(): Int
     private external fun nativeDotRows(query: FloatArray, matrix: FloatArray, dim: Int, out: FloatArray): Int
@@ -248,6 +290,11 @@ object NativeEngine {
         outW: Int, outH: Int, stride: Int, norm: FloatArray, out: FloatArray,
     ): Boolean
     private external fun nativeArgmaxRows(data: FloatArray, cols: Int, out: IntArray): Int
+    private external fun nativeUpscaleInput(
+        pixels: IntArray, width: Int, height: Int, x0: Int, y0: Int, side: Int, out: FloatArray,
+    ): Boolean
+    private external fun nativeUpscaleOutput(output: FloatArray, outSide: Int, w: Int, h: Int, out: IntArray): Boolean
+    private external fun nativeMergeAlpha(rgb: IntArray, w: Int, h: Int, alpha: IntArray, alphaRow: Int, from: Int): Boolean
     private external fun nativeBoxBlur(pixels: IntArray, width: Int, height: Int, radius: Int, passes: Int): Boolean
     private external fun nativeYuvToRgb(
         y: ByteBuffer, yLimit: Int, yRow: Int, yPixel: Int,

@@ -106,6 +106,7 @@ object Phase0Bench {
         if (on("glide") || on("duet")) glide(File(dict), duetOnly = !on("glide"))
         if (on("audio")) audio()
         if (on("frost")) frost()
+        if (on("renderfx")) renderEffect()
         if (on("upscale")) upscale()
         if (on("webm")) webm()
         if (on("fuzzy")) fuzzy(File(dict))
@@ -591,6 +592,74 @@ object Phase0Bench {
     }
 
     /**
+     * The blur RenderEffect gives on Android 12+, for comparison with the
+     * bake's box passes: the quarter-size board drawn through a
+     * RenderNode with a blur effect by a HardwareRenderer into an
+     * ImageReader, waited for, then (as the bake needs pixels) copied back.
+     * Phone only. Not the same picture: a Gaussian, Skia's sigma, GPU
+     * rounding, and only on API 31+.
+     */
+    private fun renderEffect() {
+        if (System.getProperty("java.vm.name") != "Dalvik") return println("renderfx: phone only")
+        if (android.os.Looper.myLooper() == null) android.os.Looper.prepare()
+        for ((w, h, what) in listOf(Triple(270, 212, "phone portrait board"), Triple(360, 800, "whole QHD screen"))) {
+            val src = backdrop(w, h)
+            val bitmap = android.graphics.Bitmap.createBitmap(src, w, h, android.graphics.Bitmap.Config.ARGB_8888)
+            val reader = android.media.ImageReader.newInstance(
+                w, h, android.graphics.PixelFormat.RGBA_8888, 2,
+                android.hardware.HardwareBuffer.USAGE_GPU_SAMPLED_IMAGE or android.hardware.HardwareBuffer.USAGE_GPU_COLOR_OUTPUT,
+            )
+            val node = android.graphics.RenderNode("blur").apply {
+                setPosition(0, 0, w, h)
+                // Three box passes of radius 8 are a Gaussian of about sigma 8.
+                setRenderEffect(android.graphics.RenderEffect.createBlurEffect(8f, 8f, android.graphics.Shader.TileMode.CLAMP))
+                val canvas = beginRecording()
+                canvas.drawBitmap(bitmap, 0f, 0f, null)
+                endRecording()
+            }
+            val renderer = android.graphics.HardwareRenderer().apply {
+                setSurface(reader.surface)
+                setContentRoot(node)
+            }
+            val out = IntArray(w * h)
+            var frames = 0
+            fun draw(readBack: Boolean): Any? {
+                // Re-recorded each time: an unchanged node draws no new frame.
+                node.beginRecording().also { it.drawBitmap(bitmap, 0f, 0f, null) }
+                node.endRecording()
+                renderer.createRenderRequest().setWaitForPresent(true).syncAndDraw()
+                val image = reader.acquireLatestImage() ?: error("no frame from the HardwareRenderer")
+                frames++
+                image.use {
+                    if (!readBack) return it
+                    val hw = android.graphics.Bitmap.wrapHardwareBuffer(it.hardwareBuffer!!, null)!!
+                    val soft = hw.copy(android.graphics.Bitmap.Config.ARGB_8888, false)
+                    soft.getPixels(out, 0, w, 0, 0, w, h)
+                    soft.recycle()
+                    hw.recycle()
+                }
+                return out
+            }
+            checkNotNull(draw(true)) { "no frame from the HardwareRenderer" }
+            bench("RenderEffect blur ${w}x$h, GPU only ($what)", "per bake on API 31+") { draw(false) }
+            bench("RenderEffect blur ${w}x$h + readback ($what)", "per bake on API 31+") { draw(true) }
+            val box = src.copyOf()
+            check(NativeEngine.boxBlur(box, w, h, 8, 3))
+            val off = box.indices.count { box[it] != out[it] }
+            var sum = 0L
+            var worst = 0
+            for (i in box.indices) for (shift in intArrayOf(0, 8, 16)) {
+                val d = kotlin.math.abs((box[i] shr shift and 0xFF) - (out[i] shr shift and 0xFF))
+                sum += d
+                worst = max(worst, d)
+            }
+            println(String.format(Locale.ROOT, "  RenderEffect vs box passes: %d of %d pixels differ, mean %.2f, worst %d levels a channel; %d frames drawn", off, box.size, sum / (3.0 * box.size), worst, frames))
+            renderer.destroy()
+            reader.close()
+        }
+    }
+
+    /**
      * The upscaler's Kotlin around the network: UpscaleTiles.pass with a
      * stand-in network that answers a prepared tile (so input and output run,
      * not MNN), the alpha merge loop UpscaleEngine.run puts each tile through
@@ -605,9 +674,15 @@ object Phase0Bench {
         for ((w, h, what) in listOf(Triple(512, 512, "sticker x2"), Triple(1024, 1024, "sticker x4, 2nd pass"), Triple(1920, 1080, "1080p photo x2"))) {
             val px = photo(w, h)
             val tiles = UpscaleTiles.tiles(w, h, UpscaleTiles.side(w, h)).size
-            bench("Upscale pass glue ${w}x$h ($tiles tiles, no network)", "per upscale pass ($what)", minWarm = 3, maxCalls = 40) {
-                UpscaleTiles.pass(px, w, h, network, { false }) { _, _, _, _, rgb -> sink = rgb }
+            for (native in listOf(false, true)) {
+                if (native && !NativeEngine.loaded) continue
+                NativeEngine.forceKotlin = !native
+                val how = if (native) "native" else "kotlin"
+                bench("Upscale pass glue ${w}x$h ($tiles tiles, no network) $how", "per upscale pass ($what)", minWarm = 3, maxCalls = 40) {
+                    UpscaleTiles.pass(px, w, h, network, { false }) { _, _, _, _, rgb -> sink = rgb }
+                }
             }
+            NativeEngine.forceKotlin = false
             // The last pass's alpha merge: every output pixel once.
             val outW = w * 2
             val bigAlpha = IntArray(outW * h * 2) { r.nextInt() }
@@ -631,6 +706,20 @@ object Phase0Bench {
                     y += outSide
                 }
                 tileRgb
+            }
+            if (NativeEngine.useNative) {
+                bench("Upscale alpha merge ${outW}x${h * 2} (NativeEngine)", "per upscale with alpha ($what)", minWarm = 3, maxCalls = 40) {
+                    var y = 0
+                    while (y < h * 2) {
+                        var x = 0
+                        while (x < outW) {
+                            NativeEngine.mergeAlpha(tileRgb, min(outSide, outW - x), min(outSide, h * 2 - y), bigAlpha, outW, y * outW + x)
+                            x += outSide
+                        }
+                        y += outSide
+                    }
+                    tileRgb
+                }
             }
         }
         // bleed on a sticker: a round opaque blob on transparent black.

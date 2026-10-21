@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.upscale
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenEngine
 import com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative
 import java.io.Closeable
@@ -84,7 +85,7 @@ class UpscaleEngine internal constructor(private val context: Context) : Closeab
         val out = Bitmap.createBitmap(outWidth, height * UpscaleModels.SCALE, Bitmap.Config.ARGB_8888)
         try {
             val finished = tiles(net, colour, width, height, cancelled) { x, y, w, h, rgb ->
-                if (bigAlpha != null) {
+                if (bigAlpha != null && !NativeEngine.mergeAlpha(rgb, w, h, bigAlpha, outWidth, y * outWidth + x)) {
                     for (row in 0 until h) {
                         val from = (y + row) * outWidth + x
                         for (col in 0 until w) {

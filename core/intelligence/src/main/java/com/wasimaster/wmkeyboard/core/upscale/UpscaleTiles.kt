@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.upscale
 
+import com.wasimaster.wmkeyboard.core.engine.NativeEngine
 import kotlin.math.roundToInt
 
 /**
@@ -75,6 +76,8 @@ object UpscaleTiles {
      * outside the picture take the nearest edge pixel.
      */
     fun input(pixels: IntArray, width: Int, height: Int, x0: Int, y0: Int, inSide: Int, out: FloatArray) {
+        // The engine's NEON kernel computes exactly this loop, in one call.
+        if (NativeEngine.upscaleInput(pixels, width, height, x0, y0, inSide, out)) return
         val plane = inSide * inSide
         for (row in 0 until inSide) {
             val sy = (y0 + row).coerceIn(0, height - 1) * width
@@ -98,6 +101,7 @@ object UpscaleTiles {
         val h = tile.height * UpscaleModels.SCALE
         val plane = outSide * outSide
         val out = IntArray(w * h)
+        if (NativeEngine.upscaleOutput(output, outSide, w, h, out)) return out
         for (y in 0 until h) {
             val row = y * outSide
             for (x in 0 until w) {
@@ -148,46 +152,84 @@ object UpscaleTiles {
             n++
         }
         if (!anyKnown || n == pixels.size.toLong()) return
-        repeat(rings) {
-            val newly = ArrayList<Int>()
-            val colours = ArrayList<Int>()
-            for (y in 0 until height) {
-                for (x in 0 until width) {
-                    val i = y * width + x
-                    if (known[i]) continue
-                    var r = 0
-                    var g = 0
-                    var b = 0
-                    var c = 0
-                    for (dy in -1..1) {
-                        val ny = y + dy
-                        if (ny !in 0 until height) continue
-                        for (dx in -1..1) {
-                            val nx = x + dx
-                            if ((dx == 0 && dy == 0) || nx !in 0 until width) continue
-                            val j = ny * width + nx
-                            if (!known[j]) continue
-                            val p = pixels[j]
-                            r += (p shr 16) and 0xFF
-                            g += (p shr 8) and 0xFF
-                            b += p and 0xFF
-                            c++
-                        }
-                    }
-                    if (c == 0) continue
-                    newly += i
-                    colours += (r / c shl 16) or (g / c shl 8) or (b / c)
-                }
+        // A ring is every unknown pixel touching a known one, coloured from
+        // the pixels known before the ring and then made known. Only the
+        // first ring needs the whole picture searched: the next one can only
+        // be beside what the last ring added, so it is gathered from there.
+        var ring = IntArray(pixels.size)
+        var next = IntArray(pixels.size)
+        val queued = BooleanArray(pixels.size)
+        val colours = IntArray(pixels.size)
+        var count = 0
+        for (i in pixels.indices) {
+            if (!known[i] && touchesKnown(known, i, width, height)) {
+                ring[count++] = i
+                queued[i] = true
             }
-            if (newly.isEmpty()) return
-            for (k in newly.indices) {
-                val i = newly[k]
+        }
+        repeat(rings) {
+            if (count == 0) return
+            for (k in 0 until count) colours[k] = meanOfKnownAround(pixels, known, ring[k], width, height)
+            for (k in 0 until count) {
+                val i = ring[k]
                 pixels[i] = (pixels[i] and ALPHA_MASK) or colours[k]
                 known[i] = true
             }
+            var nextCount = 0
+            for (k in 0 until count) {
+                val i = ring[k]
+                val x = i % width
+                val y = i / width
+                for (ny in maxOf(0, y - 1)..minOf(height - 1, y + 1)) {
+                    for (nx in maxOf(0, x - 1)..minOf(width - 1, x + 1)) {
+                        val j = ny * width + nx
+                        if (!known[j] && !queued[j]) {
+                            queued[j] = true
+                            next[nextCount++] = j
+                        }
+                    }
+                }
+            }
+            val done = ring
+            ring = next
+            next = done
+            count = nextCount
         }
         val mean = ((sr / n).toInt() shl 16) or ((sg / n).toInt() shl 8) or (sb / n).toInt()
         for (i in pixels.indices) if (!known[i]) pixels[i] = (pixels[i] and ALPHA_MASK) or mean
+    }
+
+    private fun touchesKnown(known: BooleanArray, i: Int, width: Int, height: Int): Boolean {
+        val x = i % width
+        val y = i / width
+        for (ny in maxOf(0, y - 1)..minOf(height - 1, y + 1)) {
+            for (nx in maxOf(0, x - 1)..minOf(width - 1, x + 1)) {
+                if (known[ny * width + nx]) return true
+            }
+        }
+        return false
+    }
+
+    /** The mean colour of the known pixels around [i], whose own pixel is unknown. */
+    private fun meanOfKnownAround(pixels: IntArray, known: BooleanArray, i: Int, width: Int, height: Int): Int {
+        val x = i % width
+        val y = i / width
+        var r = 0
+        var g = 0
+        var b = 0
+        var c = 0
+        for (ny in maxOf(0, y - 1)..minOf(height - 1, y + 1)) {
+            for (nx in maxOf(0, x - 1)..minOf(width - 1, x + 1)) {
+                val j = ny * width + nx
+                if (!known[j]) continue
+                val p = pixels[j]
+                r += (p shr 16) and 0xFF
+                g += (p shr 8) and 0xFF
+                b += p and 0xFF
+                c++
+            }
+        }
+        return (r / c shl 16) or (g / c shl 8) or (b / c)
     }
 
     /** Whether any pixel of [pixels] is less than opaque. */
