@@ -48,13 +48,61 @@
     <string name="providers_status_unavailable">Not available in this build</string>
     <string name="providers_status_unknown">Added by a newer version of the app</string>
     <string name="providers_status_off">Off</string>
-    <string name="providers_status_on_device">On the phone</string>
     <!-- A LanguageTool row in the grammar tool's list. %1$s is the server's host. -->
     <string name="providers_status_sends_text">Sends your text to %1$s</string>
-    <string name="providers_status_builtin_key">Uses the key in this build</string>
-    <string name="providers_status_your_key">Uses your key</string>
-    <string name="providers_status_your_key_ending">Uses your key ending %1$s</string>
-    <string name="providers_status_no_key">No key needed</string>
+
+    <!-- The one line under a provider on its list (ProviderSummary.kt). The parts are joined with a middle dot, for example "Server: my.example.org · Model: llama3". -->
+    <!-- %1$s is a server's host name, such as translate.example.org. -->
+    <string name="providers_summary_server">Server: %1$s</string>
+    <!-- %1$s is a model's name, such as Base (English) or gpt-4o. -->
+    <string name="providers_summary_model">Model: %1$s</string>
+    <!-- An AI service with no model named: the service picks its own. -->
+    <string name="providers_summary_default_model">Default model</string>
+    <string name="providers_summary_key_set">Key set</string>
+    <!-- %1$s is the last four characters of the key, which tell two keys apart. -->
+    <string name="providers_summary_key_ending">Key ending %1$s</string>
+    <string name="providers_summary_key_builtin">Key in this build</string>
+    <!-- A service whose key is optional, used without one. -->
+    <string name="providers_summary_no_key">No key</string>
+    <string name="providers_summary_no_key_needed">No key needed</string>
+    <string name="providers_summary_on_device">On the phone</string>
+    <!-- A provider with one model, which is downloaded. -->
+    <string name="providers_summary_model_ready">Model on the phone</string>
+    <string name="providers_summary_not_downloaded">Not downloaded</string>
+    <!-- A voice engine or an on-device AI with no model on the phone. -->
+    <string name="providers_summary_no_model">No model downloaded</string>
+    <!-- %1$d is how much of the download is done, 0 to 100. -->
+    <string name="providers_summary_downloading">Downloading, %1$d%%</string>
+    <!-- A download whose size is not known yet. -->
+    <string name="providers_summary_downloading_wait">Downloading</string>
+    <string name="providers_summary_paused">Download paused</string>
+    <!-- The other models on the phone besides the one named before it. -->
+    <plurals name="providers_summary_more_models">
+        <item quantity="one">%1$d more model</item>
+        <item quantity="other">%1$d more models</item>
+    </plurals>
+    <!-- Languages an on-device translator has downloaded, English not counted. -->
+    <plurals name="providers_summary_languages">
+        <item quantity="one">%1$d language on the phone</item>
+        <item quantity="other">%1$d languages on the phone</item>
+    </plurals>
+    <string name="providers_summary_no_languages">No languages downloaded</string>
+    <plurals name="providers_summary_packs">
+        <item quantity="one">%1$d pack on the phone</item>
+        <item quantity="other">%1$d packs on the phone</item>
+    </plurals>
+    <string name="providers_summary_no_packs">No packs on the phone</string>
+    <plurals name="providers_summary_dictionaries">
+        <item quantity="one">%1$d dictionary imported</item>
+        <item quantity="other">%1$d dictionaries imported</item>
+    </plurals>
+    <string name="providers_summary_no_dictionaries">No dictionaries imported</string>
+    <!-- The phone's speech recognizer, set to use the model on the phone when it has one. -->
+    <string name="providers_summary_system_on_device">Model on the phone first</string>
+    <!-- The phone's speech recognizer, set to always use the recognizer service. -->
+    <string name="providers_summary_system_online">Always the recognizer service</string>
+    <string name="providers_summary_deepl_write">DeepL Write on</string>
+    <string name="providers_summary_tavily_advanced">Advanced search</string>
 
     <string name="providers_move_up">Move up</string>
     <string name="providers_move_down">Move down</string>

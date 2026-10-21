@@ -1,14 +1,24 @@
 #!/usr/bin/env bash
 # Builds libwmwhispercpp*.so (whispercpp_jni.cpp over whisper.cpp + ggml, CPU
-# backend) for every ABI and copies them into core/voice/src/main/jniLibs/.
-# Fetches whisper.cpp at the pinned commit unless WHISPER_SRC points at a
-# checkout of it. Needs CMake and Ninja on PATH. See README.md.
+# backend) for every ABI, and the arm64 OpenCL variant for Adreno GPUs, and
+# copies them into core/voice/src/main/jniLibs/. Fetches whisper.cpp, and the
+# OpenCL headers and loader, at the pinned commits unless WHISPER_SRC,
+# OPENCL_HEADERS_SRC and OPENCL_LOADER_SRC point at checkouts of them. Needs
+# CMake, Ninja and Python 3 on PATH. See README.md.
 #
 #   ANDROID_NDK=/path/to/ndk native/whispercpp-jni/build.sh
 set -euo pipefail
 
 WHISPER_TAG=v1.9.5
 WHISPER_COMMIT=d1be6fde11ac6e0407606b4e42fe72d34add8037
+# What the OpenCL variant compiles and links against: Khronos's headers, and
+# its ICD loader built only to have a libOpenCL.so to link to. Neither ships:
+# on the phone the library finds the vendor's own libOpenCL.so by that name.
+# The same pins as native/llamacpp-jni/pin.sh.
+OPENCL_HEADERS_TAG=v2025.07.22
+OPENCL_HEADERS_COMMIT=8a97ebc88daa3495d6f57ec10bb515224400186f
+OPENCL_LOADER_TAG=v2025.07.22
+OPENCL_LOADER_COMMIT=ad770a1b64c6b8d5f2ed4e153f22e4f45939f27f
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
@@ -47,6 +57,19 @@ fi
 got=$(git -C "$SRC" rev-parse HEAD)
 [ "$got" = "$WHISPER_COMMIT" ] || { echo "whisper.cpp is at $got, expected $WHISPER_COMMIT" >&2; exit 1; }
 
+# dir, env override, tag, commit, GitHub repository
+khronos() {
+    local dir=$1 src=$2 tag=$3 commit=$4 repo=$5
+    if [ -z "$src" ]; then
+        src=$WORK/$dir
+        retry fresh_clone "$src" --quiet --depth 1 --branch "$tag" "https://github.com/KhronosGroup/$repo"
+    fi
+    local at
+    at=$(git -C "$src" rev-parse HEAD)
+    [ "$at" = "$commit" ] || { echo "$repo is at $at, expected $commit" >&2; exit 1; }
+    echo "$src"
+}
+
 # Every path on the build machine is mapped out of the library (__FILE__ in
 # asserts, the NDK's libc++ headers), so two machines with the same NDK build
 # the same bytes. F-Droid's reproducible build relies on that.
@@ -80,6 +103,24 @@ wanted() { case " ${WMKB_ABIS:-arm64-v8a armeabi-v7a x86_64} " in *" $1 "*) retu
 if wanted arm64-v8a; then
     build arm64-v8a wmwhispercpp     -DGGML_CPU_ARM_ARCH=armv8-a
     build arm64-v8a wmwhispercpp_v82 -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16
+fi
+# arm64 with OpenCL: the ARMv8.2 build plus Qualcomm's Adreno backend, bound
+# to its own JNI class (WhisperCppGpu) so it loads beside a CPU build. It
+# links to libOpenCL.so by name, which the loader built here provides at link
+# time and the phone's vendor library at run time; a phone whose app
+# namespace offers none fails the load and dictates on the CPU build.
+if wanted arm64-v8a && [ "${WMKB_WHISPER_GPU:-1}" = 1 ]; then
+    CL_HEADERS=$(khronos OpenCL-Headers "${OPENCL_HEADERS_SRC:-}" "$OPENCL_HEADERS_TAG" "$OPENCL_HEADERS_COMMIT" OpenCL-Headers)
+    CL_LOADER=$(khronos OpenCL-ICD-Loader "${OPENCL_LOADER_SRC:-}" "$OPENCL_LOADER_TAG" "$OPENCL_LOADER_COMMIT" OpenCL-ICD-Loader)
+    cmake -S "$CL_LOADER" -B "$WORK/cl-loader" -G Ninja \
+        -DCMAKE_TOOLCHAIN_FILE="$NDK/build/cmake/android.toolchain.cmake" \
+        -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-24 -DCMAKE_BUILD_TYPE=Release \
+        -DOPENCL_ICD_LOADER_HEADERS_DIR="$CL_HEADERS" -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS=ON \
+        -DBUILD_TESTING=OFF -DENABLE_OPENCL_LAYERS=OFF > "$WORK/cl-loader.log" 2>&1 \
+        && cmake --build "$WORK/cl-loader" --target OpenCL >> "$WORK/cl-loader.log" 2>&1 \
+        || { tail -30 "$WORK/cl-loader.log"; exit 1; }
+    build arm64-v8a wmwhispercpp_opencl -DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16 -DWM_GPU=opencl \
+        -DOpenCL_INCLUDE_DIR="$CL_HEADERS" -DOpenCL_LIBRARY="$WORK/cl-loader/libOpenCL.so"
 fi
 if wanted armeabi-v7a; then
     build armeabi-v7a wmwhispercpp

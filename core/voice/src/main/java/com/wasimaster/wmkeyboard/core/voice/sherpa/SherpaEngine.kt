@@ -15,9 +15,14 @@ import java.util.Locale
  * after, for the models that write none, from
  * [com.wasimaster.wmkeyboard.core.voice.punctuation.DictationPunctuation].
  *
+ * Words to listen for (#305) become hotwords ([SherpaHotwords]), which only
+ * modified beam search follows. It costs more than greedy search, so a
+ * phrase with no words this model can spell is decoded greedily.
+ *
  * One model stays open between dictations, since opening one takes about as
- * long as a short phrase does to say, until another takes its place. Every
- * call here runs on [SherpaNative.dispatcher].
+ * long as a short phrase does to say, until another takes its place (or the
+ * same one is needed with the other search). Every call here runs on
+ * [SherpaNative.dispatcher].
  */
 object SherpaEngine {
 
@@ -33,8 +38,32 @@ object SherpaEngine {
     /** The pause that ends a phrase when the user has not set one. */
     private const val DEFAULT_ENDPOINT_MS = 1_200
 
+    /**
+     * What each token of a hotword adds to a path that is spelling it:
+     * sherpa-onnx's own default, kept after measuring seven models on
+     * synthetic clips. Above 1.0 more weight found at most one more rare name
+     * (English 9 to 11 of 75 from 1 without hotwords, Russian 5 of 8 from 2,
+     * Chinese 19 of 30 from 13); at 2.0 a 195-word list began to change
+     * ordinary English sentences (8.3% of words wrong became 8.9%), and at
+     * 3.0 it tacked words on (10.8%). Bengali found nothing at any weight.
+     */
+    const val HOTWORDS_SCORE = 1.5f
+
+    /** The vocabulary [SherpaHotwords.vocab] writes, kept in the model's folder. */
+    private const val VOCAB_FILE = "hotwords.vocab"
+
     private var recognizer = 0L
     private var recognizerDir: String? = null
+    private var recognizerBeam = false
+
+    /** A `libwmsherpa.so` from before hotwords: every phrase is decoded greedily. */
+    private var bridgeMissing = false
+
+    /** A model folder whose beam recognizer would not open; it is decoded greedily. */
+    private var beamFailedDir: String? = null
+
+    /** How the open model's folder spells hotwords, read once from its tokens.txt. */
+    private var spelling: Pair<String, SherpaHotwords>? = null
 
     /**
      * Streams not yet closed. Each one uses the recognizer handle, so
@@ -55,11 +84,18 @@ object SherpaEngine {
 
     /**
      * A fresh phrase on [model]. [endpointMs] is the pause that ends it, or 0
-     * for none (the user stops it). Throws when the model will not load.
+     * for none (the user stops it). [words] are the words to listen for, most
+     * important first; the ones the model cannot spell are dropped. Throws
+     * when the model will not load.
      */
-    fun newStream(filesDir: File, model: EtModel, endpointMs: Int): SherpaStream {
-        val rec = recognizerFor(filesDir, model)
-        val stream = SherpaNative.nativeStream(rec)
+    fun newStream(filesDir: File, model: EtModel, endpointMs: Int, words: List<String> = emptyList()): SherpaStream {
+        val hotwords = if (words.isEmpty() || bridgeMissing) emptyList() else spellingFor(filesDir, model).lines(words)
+        val rec = recognizerFor(filesDir, model, beam = hotwords.isNotEmpty())
+        val stream = if (recognizerBeam) {
+            SherpaNative.nativeHotwordStream(rec, hotwords.joinToString("\n").toByteArray(Charsets.UTF_8))
+        } else {
+            SherpaNative.nativeStream(rec)
+        }
         check(stream != 0L) { "sherpa-onnx could not start a stream" }
         val vadFile = EtStore.file(filesDir, model, "silero_vad.onnx")
         val vad = if (endpointMs > 0 && vadFile.isFile) {
@@ -77,13 +113,41 @@ object SherpaEngine {
         if (recognizer != 0L) SherpaNative.nativeRecognizerFree(recognizer)
         recognizer = 0L
         recognizerDir = null
+        spelling = null
         isOpen = false
     }
 
-    private fun recognizerFor(filesDir: File, model: EtModel): Long {
+    private fun spellingFor(filesDir: File, model: EtModel): SherpaHotwords {
+        val dir = EtStore.dir(filesDir, model).path
+        spelling?.let { (forDir, known) -> if (forDir == dir) return known }
+        val parsed = SherpaHotwords.parse(EtStore.file(filesDir, model, "tokens.txt").readText())
+        spelling = dir to parsed
+        return parsed
+    }
+
+    /**
+     * The vocabulary sherpa-onnx cuts hotwords with, written whole before it
+     * is named: its reader exits the process on a line it cannot parse.
+     */
+    private fun vocabFor(filesDir: File, model: EtModel, hotwords: SherpaHotwords): File {
+        val file = File(EtStore.dir(filesDir, model), VOCAB_FILE)
+        val text = hotwords.vocab()
+        if (file.isFile && file.length() == text.toByteArray(Charsets.UTF_8).size.toLong()) return file
+        val part = File(file.path + ".part")
+        part.writeText(text, Charsets.UTF_8)
+        check(part.renameTo(file)) { "could not write ${file.name}" }
+        return file
+    }
+
+    /**
+     * [model]'s recognizer, by beam search when [beam] asks and it can be
+     * had, greedy otherwise; [recognizerBeam] says which it is.
+     */
+    private fun recognizerFor(filesDir: File, model: EtModel, beam: Boolean = false): Long {
         require(model.engine == EtEngine.SHERPA && !model.punctuation)
         val dir = EtStore.dir(filesDir, model)
-        if (recognizer != 0L && recognizerDir == dir.path) return recognizer
+        val wanted = beam && !bridgeMissing && beamFailedDir != dir.path
+        if (recognizer != 0L && recognizerDir == dir.path && recognizerBeam == wanted) return recognizer
         check(SherpaNative.available) {
             if (SherpaNative.moduleReady) "ONNX Runtime is not in this build"
             else "ONNX Runtime is still downloading"
@@ -97,17 +161,48 @@ object SherpaEngine {
         // Omnilingual's gigabyte goes back first.
         OmnilingualEngine.release()
         fun part(prefix: String) = model.files.first { it.name.startsWith(prefix) }.let { EtStore.file(filesDir, model, it) }.path
-        val handle = SherpaNative.nativeRecognizer(
-            part("encoder"),
-            part("decoder"),
-            part("joiner"),
-            part("tokens"),
-            THREADS,
-            DEFAULT_ENDPOINT_MS / 1000f,
-        )
+        val beamed = if (wanted) {
+            try {
+                val hotwords = spellingFor(filesDir, model)
+                SherpaNative.nativeHotwordRecognizer(
+                    part("encoder"),
+                    part("decoder"),
+                    part("joiner"),
+                    part("tokens"),
+                    THREADS,
+                    DEFAULT_ENDPOINT_MS / 1000f,
+                    hotwords.unit,
+                    vocabFor(filesDir, model, hotwords).path,
+                    HOTWORDS_SCORE,
+                )
+            } catch (_: UnsatisfiedLinkError) {
+                bridgeMissing = true
+                0L
+            } catch (_: Exception) {
+                0L
+            }
+        } else {
+            0L
+        }
+        // A beam recognizer that will not open leaves a greedy one: the
+        // words go unheard, the dictation still works.
+        if (wanted && beamed == 0L) beamFailedDir = dir.path
+        val handle = if (beamed != 0L) {
+            beamed
+        } else {
+            SherpaNative.nativeRecognizer(
+                part("encoder"),
+                part("decoder"),
+                part("joiner"),
+                part("tokens"),
+                THREADS,
+                DEFAULT_ENDPOINT_MS / 1000f,
+            )
+        }
         check(handle != 0L) { "${model.label} did not load" }
         recognizer = handle
         recognizerDir = dir.path
+        recognizerBeam = beamed != 0L
         isOpen = true
         return handle
     }

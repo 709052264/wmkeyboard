@@ -6,7 +6,8 @@
 //! walk ([`glideDecode`] with `phase` 1), which returns the words the shape
 //! channel will score, and [`glideFinish`] with those words' shapes. Without
 //! learned shapes it is the one call (`phase` 0). The walk's state between
-//! the two stays in this thread's decoder.
+//! the two stays in this thread's decoder. `ctcDecode` and `ctcFinish` are
+//! the same pair for `CtcGlideBeam`.
 
 use std::cell::RefCell;
 use std::ptr::null_mut;
@@ -17,7 +18,7 @@ use jni::sys::{jboolean, jfloat, jint, jlong, jobjectArray};
 use jni::JNIEnv;
 
 use wm_engine::fuzzy::Tier;
-use wm_engine::glide::ctc::{CtcDecoder, Scoring, CLASSES};
+use wm_engine::glide::ctc::{CtcDecoder, CtcRanked, Scoring, Stroke as CtcStroke, CLASSES};
 use wm_engine::glide::duet::{Duet, DuetDecoder, Token};
 use wm_engine::glide::keymap::KeyMap;
 use wm_engine::glide::{Candidate, Decoder, LearnedShapes, Point, Ranked, Source, Tuning};
@@ -28,11 +29,17 @@ use crate::sources::with_walkers;
 
 static KEYMAPS: LazyLock<Registry<KeyMap>> = LazyLock::new(Registry::new);
 
+/// A CTC decode's stroke: the glide tuning its loops are read with, the
+/// path and the key map.
+type CtcStrokeOf = (Tuning, Vec<Point>, Arc<KeyMap>);
+
 thread_local! {
     static DECODER: RefCell<Decoder> = RefCell::new(Decoder::new(Tuning::default()));
     /// The walk waiting for its shapes, and the key map it ran on.
     static PENDING: RefCell<Option<(Ranked, Arc<KeyMap>)>> = const { RefCell::new(None) };
     static CTC: RefCell<CtcDecoder> = RefCell::new(CtcDecoder::default());
+    /// The CTC walk waiting for its shapes, with the stroke it read.
+    static CTC_PENDING: RefCell<Option<(CtcRanked, Option<CtcStrokeOf>, f32)>> = const { RefCell::new(None) };
     static DUET: RefCell<DuetDecoder> = RefCell::new(DuetDecoder::default());
 }
 
@@ -259,6 +266,32 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
+/// `words[i]`'s learned shapes, `shapes[i]` (a `byte[][]`, possibly empty).
+fn learned_shapes(env: &mut JNIEnv, words: &JObjectArray, shapes: &JObjectArray) -> Option<LearnedShapes> {
+    let mut learned: LearnedShapes = LearnedShapes::new();
+    let count = env.get_array_length(words).ok()?;
+    for i in 0..count {
+        let word = JString::from(env.get_object_array_element(words, i).ok()?);
+        let mut units = Vec::new();
+        read_units(env, &word, &mut units)?;
+        env.delete_local_ref(word).ok()?;
+        let list = JObjectArray::from(env.get_object_array_element(shapes, i).ok()?);
+        let n = env.get_array_length(&list).ok()?;
+        let mut stored = Vec::with_capacity(n as usize);
+        for j in 0..n {
+            let bytes = JByteArray::from(env.get_object_array_element(&list, j).ok()?);
+            let v: Vec<u8> = env.convert_byte_array(&bytes).ok()?;
+            stored.push(v.into_iter().map(|b| b as i8).collect());
+            env.delete_local_ref(bytes).ok()?;
+        }
+        env.delete_local_ref(list).ok()?;
+        // A word can be both a reading and a guess; only the reading
+        // carries its shapes, and it comes first.
+        learned.entry(units).or_insert(stored);
+    }
+    Some(learned)
+}
+
 /// `glideFinish(words, shapes, seeds)`: the last phase-1 decode on this
 /// thread, finished with each of `words`' learned shapes (`shapes[i]`, a
 /// `byte[][]`, possibly empty) and, when seeding is on, the words whose
@@ -275,27 +308,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         let Some((ranked, keys)) = PENDING.with_borrow_mut(|p| p.take()) else {
             return throw_state(env, "wm-engine: glideFinish without a phase-1 glideDecode on this thread");
         };
-        let mut learned: LearnedShapes = LearnedShapes::new();
-        let count = env.get_array_length(&words).ok()?;
-        for i in 0..count {
-            let word = JString::from(env.get_object_array_element(&words, i).ok()?);
-            let mut units = Vec::new();
-            read_units(env, &word, &mut units)?;
-            env.delete_local_ref(word).ok()?;
-            let list = JObjectArray::from(env.get_object_array_element(&shapes, i).ok()?);
-            let n = env.get_array_length(&list).ok()?;
-            let mut stored = Vec::with_capacity(n as usize);
-            for j in 0..n {
-                let bytes = JByteArray::from(env.get_object_array_element(&list, j).ok()?);
-                let v: Vec<u8> = env.convert_byte_array(&bytes).ok()?;
-                stored.push(v.into_iter().map(|b| b as i8).collect());
-                env.delete_local_ref(bytes).ok()?;
-            }
-            env.delete_local_ref(list).ok()?;
-            // A word can be both a reading and a guess; only the reading
-            // carries its shapes, and it comes first.
-            learned.entry(units).or_insert(stored);
-        }
+        let learned = learned_shapes(env, &words, &shapes)?;
         let near = if seeds.is_null() {
             None
         } else {
@@ -379,11 +392,16 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     })
 }
 
-/// `ctcDecode(logProbs, steps, dicts, kinds, weights, tiers, minFrequencies,
-/// limit, width, scoring)`: `CtcGlideBeam.decode` over a model's emissions,
-/// `steps` rows of a..z and blank; `scoring` is `[lengthNorm, lengthBonus,
-/// freqWeight, pruneNorm, pruneBonus]`. The result is shaped as
-/// `glideDecode`'s.
+/// `ctcDecode(logProbs, steps, dicts, kinds, weights, tiers,
+/// minFrequencies, limit, width, scoring, tuning, xs, ys, ts, keyMap,
+/// keyWidth, lookAhead, phase)`: `CtcGlideBeam.decode`. `scoring` is
+/// `[lengthNorm, lengthBonus, freqWeight, pruneNorm, pruneBonus,
+/// lookAheadCost, loopWeight, shapeWeight]`. The stroke (`tuning`, the path,
+/// `keyMap`, `keyWidth`) is what the loops are read from and the learned
+/// shapes compared with; an empty `tuning` or a `keyMap` of 0 decodes the
+/// emissions alone. Phases as `glideDecode`'s: phase 1 returns every reading,
+/// then the guesses, with the reading count in the last int, for
+/// `ctcFinish` on the same thread.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_ctcDecode(
@@ -399,6 +417,14 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     limit: jint,
     width: jint,
     scoring: JDoubleArray,
+    tuning_values: JDoubleArray,
+    xs: JFloatArray,
+    ys: JFloatArray,
+    ts: JLongArray,
+    keymap: jlong,
+    key_width: jfloat,
+    look_ahead: jint,
+    phase: jint,
 ) -> jobjectArray {
     guarded(&mut env, null_mut(), |env| {
         let lp = floats(env, &log_probs)?;
@@ -407,12 +433,27 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             return throw_state(env, "wm-engine: fewer emissions than steps");
         }
         let weights_in = doubles(env, &scoring)?;
-        if weights_in.len() < 5 {
+        if weights_in.len() < 8 {
             return throw_state(env, "wm-engine: a full CTC scoring");
         }
+        let tuning_in = doubles(env, &tuning_values)?;
+        let stroke = if tuning_in.is_empty() || keymap == 0 {
+            None
+        } else {
+            let Some(tuning) = tuning(&tuning_in) else {
+                return throw_state(env, "wm-engine: a full glide tuning");
+            };
+            Some((tuning, path(env, &xs, &ys, &ts)?, object!(env, KEYMAPS, keymap)))
+        };
         let spec = SourceSpec::read(env, &dicts, &kinds, &weights, &tiers, &min_frequencies)?;
         let (limit, width) = (limit.max(0) as usize, width.max(0) as usize);
-        let found = with_sources(env, &spec, |sources| {
+        let marks = stroke.as_ref().and_then(|(tuning, path, keys)| {
+            DECODER.with_borrow_mut(|decoder| {
+                decoder.tuning = tuning.clone();
+                decoder.marks(path, keys, key_width)
+            })
+        });
+        let ranked = with_sources(env, &spec, |sources| {
             CTC.with_borrow_mut(|ctc| {
                 ctc.scoring = Scoring {
                     length_norm: weights_in[0] as f32,
@@ -421,10 +462,55 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
                     prune_norm: weights_in[3] as f32,
                     prune_bonus: weights_in[4] as f32,
                     width,
+                    look_ahead_cost: weights_in[5] as f32,
+                    loop_weight: weights_in[6] as f32,
+                    shape_weight: weights_in[7] as f32,
                 };
-                ctc.decode(&lp, steps, sources, limit, width)
+                let keys = stroke.as_ref().map(|(_, _, keys)| keys.as_ref());
+                let stroke_in = CtcStroke {
+                    look_ahead: look_ahead.max(0) as usize,
+                    marks: marks.zip(keys),
+                };
+                ctc.walk(&lp, steps, sources, limit, width, &stroke_in)
             })
         })?;
+        if phase == 0 || stroke.is_none() {
+            let found = CTC.with_borrow(|ctc| ctc.finish(ranked, &mut |_| 0.0));
+            return give_candidates(env, &found, &[], None);
+        }
+        let mut all: Vec<Candidate> = ranked.read.clone();
+        all.extend(ranked.guesses.iter().cloned());
+        let read_count = ranked.read.len() as i32;
+        CTC_PENDING.with_borrow_mut(|p| *p = Some((ranked, stroke, key_width)));
+        give_candidates(env, &all, &[read_count], None)
+    })
+}
+
+/// `ctcFinish(words, shapes)`: the last phase-1 `ctcDecode` on this thread,
+/// finished with each of `words`' learned shapes (`shapes[i]`, possibly
+/// empty).
+#[no_mangle]
+pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_ctcFinish(
+    mut env: JNIEnv,
+    _class: JClass,
+    words: JObjectArray,
+    shapes: JObjectArray,
+) -> jobjectArray {
+    guarded(&mut env, null_mut(), |env| {
+        let Some((ranked, stroke, key_width)) = CTC_PENDING.with_borrow_mut(|p| p.take()) else {
+            return throw_state(env, "wm-engine: ctcFinish without a phase-1 ctcDecode on this thread");
+        };
+        let learned = learned_shapes(env, &words, &shapes)?;
+        let found = match stroke {
+            None => CTC.with_borrow(|ctc| ctc.finish(ranked, &mut |_| 0.0)),
+            Some((tuning, path, keys)) => DECODER.with_borrow_mut(|decoder| {
+                decoder.tuning = tuning;
+                let prepared = decoder.prepare_shape(&path, key_width);
+                CTC.with_borrow(|ctc| {
+                    ctc.finish(ranked, &mut |word| if prepared { decoder.learned_gain(word, &keys, &learned) } else { 0.0 })
+                })
+            }),
+        };
         give_candidates(env, &found, &[], None)
     })
 }

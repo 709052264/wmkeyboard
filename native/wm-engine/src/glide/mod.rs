@@ -163,6 +163,38 @@ pub struct Source<'a> {
 /// them; empty for a word they have never glided.
 pub type LearnedShapes = HashMap<Vec<u16>, Vec<Vec<i8>>>;
 
+/// The marks [`Decoder::marks`] reads in a stroke that a decoder which does
+/// not walk the stroke itself can use: each loop as its key and score (a
+/// doubled letter there), and whether the stroke closes on a loop (the word
+/// ends there).
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Marks {
+    pub loops: Vec<(i32, f32)>,
+    pub ends_on_loop: bool,
+}
+
+impl Marks {
+    /// The keys `word` visits in order, a letter typed twice in a row
+    /// visiting its key once: what a stroke can tell apart. -1 for a letter
+    /// the map has no key for.
+    pub fn visits(word: &[u16], keys: &KeyMap) -> Vec<i32> {
+        let mut out: Vec<i32> = Vec::new();
+        for (cp, _) in code_points(word) {
+            let key = keys.key_index(cp);
+            if out.last() != Some(&key) || key < 0 {
+                out.push(key);
+            }
+        }
+        out
+    }
+
+    /// Whether `word` types a letter twice in a row on `key`.
+    pub fn doubles(word: &[u16], key: i32, keys: &KeyMap) -> bool {
+        let letters = code_points(word);
+        letters.windows(2).any(|w| w[0].0 == w[1].0 && keys.key_index(w[1].0) == key)
+    }
+}
+
 const MIN_STROKE_LENGTH: f32 = 0.5;
 const MIN_SAMPLES: usize = 3;
 const MIN_WORD_LENGTH: i32 = 2;
@@ -369,6 +401,56 @@ impl Decoder {
         let mut out = vec![0i8; 2 * SHAPE_POINTS];
         quantise(&self.ws.drawn_shape_x, &self.ws.drawn_shape_y, &mut out);
         out
+    }
+
+    /// `marks`: the loops `decode` would read in the stroke, found exactly as
+    /// it finds them, for a decoder that does not walk the stroke itself
+    /// (`ctc`). `None` when `decode` would not read the stroke at all.
+    pub fn marks(&mut self, path: &[Point], keys: &KeyMap, key_width: f32) -> Option<Marks> {
+        if path.len() < MIN_SAMPLES || key_width <= 0.0 || keys.key_count() == 0 {
+            return None;
+        }
+        if !self.resample(path, key_width) {
+            return None;
+        }
+        self.ws.prepare_keys(keys.key_count());
+        self.build_costs(keys);
+        self.build_dwell(keys);
+        if self.ws.arc_step <= 0.0 {
+            return None;
+        }
+        self.build_loops(path, key_width, keys);
+        let mut marks = Marks { ends_on_loop: self.ends_on_loop(), ..Marks::default() };
+        for e in 0..self.ws.loop_count {
+            if self.ws.loop_score[e] > 0.0 && self.ws.loop_key[e] >= 0 {
+                marks.loops.push((self.ws.loop_key[e], self.ws.loop_score[e]));
+            }
+        }
+        Some(marks)
+    }
+
+    /// The stroke resampled as the shape channel reads it, ready for
+    /// [`Decoder::learned_gain`]; false when it is too short to have a shape.
+    pub fn prepare_shape(&mut self, path: &[Point], key_width: f32) -> bool {
+        if path.len() < MIN_SAMPLES || key_width <= 0.0 || !self.resample(path, key_width) {
+            return false;
+        }
+        self.drawn_shape();
+        normalise_in_place(&mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
+        true
+    }
+
+    /// How much nearer the stroke [`Decoder::prepare_shape`] took sits to
+    /// `word` as the user has drawn it before than to the textbook path
+    /// through its keys: the shape channel's own learned-shape benefit, in
+    /// its normalised distance units, 0 for a word with no stored shapes and
+    /// never more than `learned_shape_gain`.
+    pub fn learned_gain(&mut self, word: &[u16], keys: &KeyMap, shapes: &LearnedShapes) -> f64 {
+        if self.tuning.learned_shape_gain <= 0.0 || shapes.get(word).is_none_or(|s| s.is_empty()) {
+            return 0.0;
+        }
+        let Some(ideal) = self.shape_distance(word, keys) else { return 0.0 };
+        ideal - self.learned_distance(word, ideal, Some(shapes))
     }
 
     /// `align`: where `word`'s keys landed along the stroke.

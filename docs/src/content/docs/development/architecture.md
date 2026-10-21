@@ -155,6 +155,14 @@ RIME's half (`core/input/.../rime/`):
   through `RimeKeys`, and looked up by index, so prefix commit stays exact.
   Simplified and Traditional are librime filter switches, applied inside its
   menu before any span is measured, never to a finished list.
+  On the 9-key pad the syllable column and its picks stay `base`'s
+  (`T9PinyinComposer`): `RimeKeys` puts a `'` after a picked syllable, since
+  Rime Ice's T9 algebra spells each syllable in letters and digits mixed and
+  would read `xi26` as `xiao`, and the column and composing text follow the
+  spelling librime hints in its first candidate's comment. 联想 is the
+  built-in Mandarin predictor (`PinyinComposer.predictions`), handed in by
+  `RimeEngine` for Chinese: librime-predict looks up the exact last commit,
+  which RIME's phrase commits rarely match.
 - `RimeStore` keeps the unpacked packs, imports and compiled tables under
   `filesDir/rime`, in credential-protected storage beside the other learned
   words. `restrictedToDirectBoot()` empties `rimeLanguages`, so a locked

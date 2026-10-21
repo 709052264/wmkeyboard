@@ -4137,7 +4137,6 @@
     <string name="models_llm_account_title">Hugging Face paskyra</string>
     <string name="models_llm_available_title">Galima atsisiųsti</string>
     <string name="models_llm_catalog_info">Geriausi modeliai yra viršuje, o ne mažiausi. Viršuje esantis modelis rašo geriau, bet atsisiuntimas yra didesnis, atsakymas lėtesnis ir jam reikia daugiau atminties. Ribojamam modeliui reikia „Hugging Face“ paskyros. Pridėkite savo prieigos raktą aukščiau, tada vieną kartą patvirtinkite licenciją modelio puslapyje.</string>
-    <string name="models_llm_compute_info">GPU parinktis yra eksperimentinė. Programa automatiškai persijungia į CPU, jei GPU nepasileidžia arba jei modelis sustoja atsakymo metu. GPU atmintis yra daug mažesnė nei sistemos atmintis, todėl dideliam modeliui dažnai reikia CPU. Pasirinkite CPU čia, jei GPU ir toliau neveikia.</string>
     <string name="models_llm_compute_title">Skaičiavimas</string>
     <string name="models_llm_empty">Jūsų įrenginyje dar nėra modelio. Atsisiųskite vieną žemiau, kad galėtumėte naudoti DI neprisijungę.</string>
     <string name="models_llm_gated_desc">Šiam modeliui reikalingas „Hugging Face“ prieigos raktas</string>
@@ -4148,7 +4147,6 @@
     <string name="models_llm_import_error_no_space">Nepakanka vietos saugykloje šiam %1$s failui.</string>
     <string name="models_llm_import_error_not_a_model">Tai nėra modelio failas. Programai reikia .litertlm arba .task failo.</string>
     <string name="models_llm_import_error_open">Programa negali atidaryti pasirinkto failo.</string>
-    <string name="models_llm_import_info">Galite importuoti bet kokį „LiteRT-LM“ modelį .litertlm arba .task failo formatu. Pavyzdžiui, modelį, kurį patys konvertavote arba atsisiuntėte naršyklėje.</string>
     <string name="models_llm_import_title">Importuoti savo</string>
     <string name="models_llm_importing_label">Importuojama...</string>
     <string name="models_llm_license_action">Licencijos ir modelio puslapis</string>

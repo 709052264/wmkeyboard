@@ -4138,7 +4138,6 @@
     <string name="models_llm_account_title">हगिंग फेस (Hugging Face) खाते</string>
     <string name="models_llm_available_title">डाउनलोड करण्यासाठी उपलब्ध</string>
     <string name="models_llm_catalog_info">सर्वोत्तम मॉडेल्स सर्वात वर आहेत, सर्वात लहान नाहीत. वरचे मॉडेल अधिक चांगले लिहिते, परंतु डाउनलोड मोठे असते, उत्तर हळू मिळते आणि त्याला अधिक मेमरीची आवश्यकता असते. गेटेड मॉडेलसाठी हगिंग फेस (Hugging Face) खात्याची आवश्यकता असते. तुमचे टोकन वर जोडा, त्यानंतर मॉडेल पृष्ठावरील परवाना एकदा स्वीकारा.</string>
-    <string name="models_llm_compute_info">GPU पर्याय प्रायोगिक आहे. जर GPU सुरू झाला नाही, किंवा उत्तरादरम्यान मॉडेल थांबले तर ॲप आपोआप CPU वर स्विच होते. GPU मेमरी सिस्टम मेमरीपेक्षा खूप लहान असते, त्यामुळे मोठ्या मॉडेलला वारंवार CPU ची गरज पडते. जर GPU सतत अयशस्वी होत असेल तर येथे CPU निवडा.</string>
     <string name="models_llm_compute_title">कंप्युट</string>
     <string name="models_llm_empty">तुमच्या डिव्हाइसवर अद्याप कोणतेही मॉडेल नाही. AI ऑफलाइन वापरण्यासाठी खाली एक डाउनलोड करा.</string>
     <string name="models_llm_gated_desc">या मॉडेलला हगिंग फेस टोकनची आवश्यकता आहे</string>
@@ -4149,7 +4148,6 @@
     <string name="models_llm_import_error_no_space">%1$s च्या या फाईलसाठी पुरेशी स्टोरेज जागा नाही.</string>
     <string name="models_llm_import_error_not_a_model">ही मॉडेल फाइल नाही. ॲपला .litertlm फाइल किंवा .task फाइलची आवश्यकता आहे.</string>
     <string name="models_llm_import_error_open">ॲप निवडलेली फाईल उघडू शकत नाही.</string>
-    <string name="models_llm_import_info">तुम्ही कोणतीही LiteRT-LM मॉडेल .litertlm फाईल किंवा .task फाईलमध्ये इंपोर्ट करू शकता. उदाहरणार्थ, तुम्ही स्वतः रूपांतरित केलेले किंवा ब्राउझरमध्ये डाउनलोड केलेले मॉडेल.</string>
     <string name="models_llm_import_title">तुमचे स्वतःचे आयात करा</string>
     <string name="models_llm_importing_label">आयात करत आहे...</string>
     <string name="models_llm_license_action">परवाना आणि मॉडेल पृष्ठ</string>

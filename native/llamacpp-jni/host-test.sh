@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Builds libwmllama for this Mac (or Linux) from the same CMakeLists.txt the
 # phone libraries come from, so the JNI bridge and LlamaNative's Kotlin can be
-# checked on a desktop JVM without a phone. CPU backend only, like the phones.
+# checked on a desktop JVM without a phone. CPU backend only, like the phones'
+# CPU builds, unless WM_GPU=metal asks for Apple's GPU, which is there to
+# measure what a GPU backend changes; no phone runs it.
 #
-#   LLAMA_SRC=/path/to/llama.cpp native/llamacpp-jni/host-test.sh [out-dir]
+#   LLAMA_SRC=/path/to/llama.cpp [WM_GPU=metal] native/llamacpp-jni/host-test.sh [out-dir]
 #
 # Prints the library's path. LLAMA_SRC must be the pinned commit (build.sh
 # says which); without it the script clones that commit into a temp dir.
@@ -33,7 +35,7 @@ cp "$(ls "$NDK"/toolchains/llvm/prebuilt/*/sysroot/usr/include/jni.h | head -1)"
 ARCH_FLAGS=()
 case "$(uname -m)" in arm64|aarch64) ARCH_FLAGS=(-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16) ;; esac
 cmake -S "$HERE" -B "$OUT/build" -G Ninja -DCMAKE_BUILD_TYPE=Release "${ARCH_FLAGS[@]}" \
-    -DLLAMA_SRC="$SRC" -DWM_LLAMA_BUILD="$LLAMA_BUILD" -DWM_LLAMA_COMMIT="$LLAMA_SHORT" \
+    -DLLAMA_SRC="$SRC" -DWM_LLAMA_BUILD="$LLAMA_BUILD" -DWM_LLAMA_COMMIT="$LLAMA_SHORT" -DWM_GPU="${WM_GPU:-}" \
     -DCMAKE_CXX_FLAGS="-I$OUT/jni" \
     > "$OUT/configure.log" 2>&1 || { tail -30 "$OUT/configure.log"; exit 1; }
 cmake --build "$OUT/build" --target wmllama > "$OUT/build.log" 2>&1 || { tail -40 "$OUT/build.log"; exit 1; }

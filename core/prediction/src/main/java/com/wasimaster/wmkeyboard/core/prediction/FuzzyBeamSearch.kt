@@ -79,6 +79,14 @@ class FuzzyBeamSearch {
          * counts them.
          */
         val accents: Int = 0,
+        /**
+         * Of [edits], the substitutions read as slips: a tap that landed
+         * within [KeyTouchModel.slipRadius] of the key meant. Counted among
+         * the edits, so every gate that distrusts an edited word still does,
+         * but never against the edit budget: `rgw` with three wide taps
+         * reaches `the` at three edits, three of them slips.
+         */
+        val slips: Int = 0,
     )
 
     @Suppress("LongParameterList", "UNUSED_PARAMETER")

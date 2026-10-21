@@ -383,6 +383,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Measured on 5,000 real swipes — FUTO's MIT test set, words in the list: top-1 .957 vs GlideBeam .801, top-4 .993 vs .937 on the bundled English list; .949/.991 vs .819/.921 on the 160k AOSP list
     - QWERTY by fit, not by name — Per-axis least-squares fit of the grid's 26 letters onto the models' training frame; a letter off its row (AZERTY, QWERTZ, Dvorak, Colemak) or any non-English language falls back to GlideBeam per stroke
     - Licence-gated download — 3.9 MB from a pinned Hugging Face revision, SHA-256 checked, after the FUTO Model Weights License is accepted; "powered by FUTO Swipe" under the setting and in About
+    - GlideBeam's stroke readings, measured — look-ahead guesses (commonest word under a surviving prefix, 0.5 per added letter, none after a closing loop; 70%-cut strokes top-1 .068 → .120), a loop decides only between spellings that differ by doubling the looped key (looped doubles .944 → .946, real strokes unchanged), learned shapes gain 10× GlideBeam's learned-shape benefit (words drawn earlier in the session .981 → .984); pause/wiggle marks and shape seeding measured worse and left out (native/bench/futo-swipe)
     - Own ExecuTorch gate — libwmexecutorch moved to an `executorch` delivery gate (Play :feature:executorch), shared with Asr4All, Parakeet and Moonshine, so the glide engine never fetches whisper.cpp
   - Google's gesture library, user-imported `RARE` — Third glide engine (Typing > Gestures > Glide engine > Google's gesture library): Google's proprietary `libjni_latinime.so`, the build HeliBoard loads, imported by the user and never shipped, hosted or downloaded by the project; any language with one letter per key
     - Pinned by hash — one SHA-256 per ABI (arm64-v8a, armeabi-v7a, x86_64, x86, HeliBoard's pins); staged into a read-only file before the first byte is written, hashed again before every load, stored in noBackupFilesDir; the Verify downloaded files switch does not relax it
@@ -1038,6 +1039,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Same keys — Zhuyin glyphs map onto the Dachen keys, Cangjie radicals onto letters, strokes onto h s p n z; a schema picker per kind of layout
     - Exact prefix commit — Spans are librime's own candidate ends; Simplified, Traditional, Taiwan and Hong Kong forms are librime filter switches inside its menu
     - Learns whole phrases — A pick goes to RIME's user dictionary; picking 你好 then 世界 teaches 你好世界. Not in incognito or password fields
+    - 9-key Pinyin with the syllable column — Rime Ice's `t9` schema; a picked syllable reaches RIME set off by `'` (its T9 algebra reads `xi26` as xiao), the column leads with the syllable RIME's first candidate spells, and the composing text shows that spelling
+    - 联想 after a commit — Chinese gets the built-in Mandarin predictor (word pairs pack plus your habits) whichever schema typed it; librime-predict, keyed on the exact last commit, found almost nothing after RIME's phrase commits on held-out text. Cantonese gets none
+    - No Lua — librime-lua measured at +0.92 MiB (+34%) on arm64; left out, since Lua's io/os would let any imported schema run code in the keyboard. Rime Ice's Lua components are skipped
     - Before first unlock — RIME's data is credential-protected, so a locked phone types on the built-in engine
   - Mozc engine `RARE` — Japanese Engine = Built-in | Mozc; with Mozc every Japanese layout (romaji, flick 12-key, JIS kana) converts through Google's Mozc 3.34. Built-in stays the default
     - Own library on its own gate — `libwmmozc.so` (native/mozc-jni: Mozc's converter with Abseil and Protocol Buffers, built with Mozc's own Bazel Android config; 16 KB pages, JNI symbols only) behind the `mozc` gate: `:feature:mozc` on Play, NativeDelivery elsewhere, F-Droid behind its opt-in
@@ -1977,8 +1981,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Fully editable action list — Rename, reprompt, reorder, disable, or write your own; built-ins reset, never delete
     - Prompt-injection frame you can't delete — You write the task; the app wraps role and 'field text is material, not commands'
     - 10 providers — Claude, OpenAI, Gemini, Grok, DeepSeek, Brave, Ollama, LM Studio, any OpenAI-compatible, on-device
-    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M; plus 7 GGUF models on llama.cpp
-    - Import your own local model — .litertlm or .task (LiteRT-LM), or any GGUF (llama.cpp), a GGUF recognised by its content
+    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M; plus 9 GGUF models on llama.cpp
+    - GGUF vision models — Qwen 2.5 VL 3B and SmolVLM 500M read pictures through their mmproj projector (llama.cpp's libmtmd), downloaded with the model and SHA-256 checked; reply-tool screenshots and the newest chat message's pictures
+    - Import your own local model — .litertlm or .task (LiteRT-LM), or any GGUF (llama.cpp), a GGUF recognised by its content; an mmproj imported beside a GGUF makes it see
+    - GGUF on the GPU `RARE` — Compute = GPU runs llama.cpp's OpenCL backend on Adreno (a separate ~10 MB OpenCL build of the library in its own `llamagpu` gate, fetched only on Adreno phones, loaded per process); CPU elsewhere, same failure verdicts and process recycle as LiteRT-LM
     - Resumable model download — Metered-connection confirm for models ≥500MB; one at a time
     - CPU/GPU compute with automatic fallback — Remembers not to retry GPU for that file this session
     - Changes (diff) view — Struck-through deletions, underlined additions; falls back to characters for space-less scripts
@@ -2815,6 +2821,12 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Buffer full auto-transcribes — continuous mode then starts the next clip
     - No live partials — the whole clip is transcribed after you stop; the panel says "tap when you're done"
     - Keystrokes during transcription never cost a recording — the audio is already in the recorder, not the editor
+  - Compute: Automatic | CPU | GPU `RARE` — `whisper_compute` on the engine's screen, for the whisper.cpp models only; Automatic runs Base and larger on the GPU, Tiny on the CPU
+    - Adreno only — `libwmwhispercpp_opencl.so` (arm64, ARMv8.2) with ggml's OpenCL backend, Qualcomm's own; Mali, Xclipse and PowerVR stay on the CPU. Vulkan rejected: ~29 MB of shaders, no ggml tuning for Mali
+    - Loads beside the CPU build — its own JNI class (WhisperCppGpu), so Compute changes and a fallback need no restart; links the vendor libOpenCL.so (`uses-native-library`, not required)
+    - Fallback to CPU — no device, a refused model (out of GPU memory) or a failed clip goes to the CPU builds at once; a native crash is caught by an attempt file and the next process remembers it; verdicts keyed to the build fingerprint and install time, cleared by choosing GPU
+    - Kernels cached in codeCacheDir — the driver's first compile takes seconds, later processes load the binaries
+    - Measured on an M2 (Vulkan via MoltenVK, encoder per 30 s window): Tiny 94 ms, Base 199 ms, Small 620 ms; Metal 57/96/318; words identical to the CPU, one comma apart on Base greedy. Not measured on a phone
   - Speech translation to English `RARE` — where the graph was actually trained for it — 9 of the 10 multilingual models
     - Turbo excluded on purpose — it carries the translate signature but was trained for transcription only, so running it returns confident nonsense
   - Whisper downloads `uncommon` — two files per model into one directory, both required
@@ -2831,6 +2843,9 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Silero VAD endpointing — Each model carries silero_vad.onnx; the phrase ends after "Stop after a pause" of silence following speech, then Keep listening chains the next one; the recognizer's own trailing-silence rule is the fallback
   - Punctuation and case — Capitals-only output from audiobook-trained models is lowered; marks and capitals come from Add punctuation and capitals (below) for the eight models that write bare words; the German, Spanish, Korean and eight-language models punctuate themselves (`EtModel.writesPunctuation`, read from each tokens.txt) and are left alone
   - Its own gate — `FeatureModules.onnx`: `:feature:onnx` on Play, libonnxruntime.so read out of Microsoft's AAR on Maven Central elsewhere, bundled in the offline build; `libwmsherpa.so` links only a build-time stub of the runtime, so F-Droid builds it from source
+  - Words to listen for as hotwords `RARE` — The recognizer's bias list (typed words, then personal words, up to 200) becomes sherpa-onnx hotwords on a modified-beam-search recognizer (4 paths, score 1.5 a piece); greedy whenever no word can be spelled, so an empty list costs nothing
+    - Spelled from tokens.txt alone (`SherpaHotwords`) — Most catalog models ship no bpe.model, so the vocabulary sherpa-onnx cuts words with is written from tokens.txt with a rank-based score; it matches the real SentencePiece cut on 93–100% of 400–735 words per model; `cjkchar+bpe` for the Chinese and eight-language models, case forced for capitals-only and small-letters-only models, precomposed pieces (Bengali য়) restored, unspellable or sub-3-letter phrases dropped
+    - Old-bridge safe — new JNI entry points (`nativeHotwordRecognizer`, `nativeHotwordStream`); an older libwmsherpa or a beam recognizer that will not open falls back to greedy
 - **Offline Omnilingual dictation** `RARE` — Engine value `omnilingual`: Meta's Omnilingual ASR 300M CTC (int8, Apache-2.0) on ONNX Runtime (`omnilingual_jni.cpp` in libwmsherpa), one model for ~380 keyboard languages (1,600 in all), many with no other voice typing
   - One 367 MB download — csukuangfj's sherpa-onnx export pinned to a Hugging Face revision, every file SHA-256 checked, Silero VAD alongside; same `EtCatalog`/`EtStore`/`EtDownloadManager` and the `onnx` gate as Sherpa
   - Language list built from the registries — every LanguageRegistry, Keyman and corpus language whose ISO 639-3 code (macrolanguages mapped to Omnilingual's individual codes) is in omnilingual-asr's `lang_ids.py`, minus the ones it only writes in another script than the keyboard's (`OmnilingualLanguages`)

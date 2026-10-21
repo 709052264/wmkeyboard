@@ -11,7 +11,21 @@ Some tools can get the same thing from more than one service. GIFs can come from
 
 ## The list
 
-The providers that are **on** come first, in the order the tool asks them. Each row shows its place in the order, its logo, its name, a line saying what it is set up with (your key, the key in this build, a server address, a model, or files on the phone), a chevron, and its switch behind a thin rule.
+The providers that are **on** come first, in the order the tool asks them. Each row shows its place in the order, its logo, its name, one line saying what it is set up with, a chevron, and its switch behind a thin rule.
+
+The line comes from the provider's own settings, so it changes as soon as you change them on the provider's screen:
+
+| Provider | The line says, for example |
+|---|---|
+| A voice engine or the on-device AI | *Model:* and the model it uses, then its size. The engines that pick their own model name the biggest one on the phone and count the rest. While a model downloads, how far it is; with no model, *No model downloaded*. |
+| The phone's speech recognizer | *Model on the phone first* or *Always the recognizer service* |
+| An on-device translator | How many languages are on the phone, English not counted |
+| Your own server, or a front end | *Server:* and its address, then its engine or model |
+| An AI service | Its model, or *Default model*, and its key |
+| A service with a key | *Key set*, *Key ending* and the last four characters, *Key in this build*, *No key*, or *No key needed* |
+| DeepL, Tavily | Their key, then *DeepL Write on* or *Advanced search* when you turned those on |
+| Harper | The kind of English it checks |
+| Offline GIF packs, vocabulary packs, imported or offline dictionaries | How many are on the phone, or whether the dictionary is downloaded |
 
 - **Drag the number** at the start of a row (the grip under it) to change the order. Only the providers that are on move, since the tool asks no other. With TalkBack, the row's actions include **Move up** and **Move down**.
 - **Press a row** to open that provider's own screen. Everything the provider has is there, see below.
@@ -22,7 +36,7 @@ The providers that are **off** sit under the list, each folded to its name, a sh
 
 **List settings**, a fold at the end, holds how the tool uses its list (see below), **Two of the same provider** when a kind is on the list twice, and **Reset to default** once you have changed the list.
 
-A row with a problem says what it needs in red: an API key, a server address, a model name, or an imported GIF pack. Such a row is skipped until it is fixed.
+A row with a problem says what it needs in red: an API key, a server address, a model name, an imported GIF pack, or a model to download. Such a row is skipped until it is fixed.
 
 ## A provider's own screen
 
@@ -35,6 +49,10 @@ Pressing a row opens a screen for that one provider, with its description and ta
 - **Remove** takes the provider out of this tool's list. If no other tool uses its key or server, the key and address are deleted too, and the dialog says so first.
 
 A problem shows as a banner at the top with a **Set up** button. A search result or a link can open a provider's screen before it is on the list; the banner then offers to **Add** it.
+
+## Finding a provider in search
+
+Every provider is a result in the settings search under its own name: search for *DeepL*, *Whisper* or *Ollama* and the result opens that provider's screen, with the path of the list it is on (*Tools › Translate*) under it. A provider that can join several lists, such as Wiktionary, has a result for each. A second server or key, and any provider you gave a nickname, is a result of its own, found by that nickname and showing its server or key under it. Providers this phone cannot run are left out, unless one of your lists has them.
 
 Rows show the service's own logo where the app carries one. The logos are small vector drawings from [Simple Icons](https://simpleicons.org/) or from each project's own repository, and are in the app itself, so drawing them never reaches the network. A one-colour logo is lightened on a dark theme when the brand's colour is close to black, and a logo whose colours would vanish on one theme (KLIPY, Lingva, Tavily) sits on a small plate of its own.
 

@@ -4141,7 +4141,6 @@
     <string name="models_llm_account_title">Račun Hugging Face</string>
     <string name="models_llm_available_title">Na voljo za prenos</string>
     <string name="models_llm_catalog_info">Najboljši modeli so na vrhu, ne najmanjši. Model na vrhu piše bolje, vendar je prenos večji, odgovor počasnejši in potrebuje več pomnilnika. Zaščiten model potrebuje račun Hugging Face. Dodajte svoj žeton zgoraj, nato enkrat sprejmite licenco na strani modela.</string>
-    <string name="models_llm_compute_info">Možnost GPE je eksperimentalna. Aplikacija samodejno preklopi na CPE, če se GPE ne zažene ali če se model ustavi med odgovorom. Pomnilnik GPE je veliko manjši od sistemskega pomnilnika, zato velik model pogosto potrebuje CPE. Tukaj izberite CPE, če GPE še naprej ne deluje.</string>
     <string name="models_llm_compute_title">Izračun</string>
     <string name="models_llm_empty">V vaši napravi še ni nobenega modela. Prenesite ga spodaj za uporabo umetne inteligence brez povezave.</string>
     <string name="models_llm_gated_desc">Ta model potrebuje žeton Hugging Face</string>
@@ -4152,7 +4151,6 @@
     <string name="models_llm_import_error_no_space">Ni dovolj prostora za to datoteko velikosti %1$s.</string>
     <string name="models_llm_import_error_not_a_model">To ni datoteka modela. Aplikacija potrebuje datoteko .litertlm ali .task.</string>
     <string name="models_llm_import_error_open">Aplikacija ne more odpreti izbrane datoteke.</string>
-    <string name="models_llm_import_info">Uvozite lahko kateri koli model LiteRT-LM v datoteki .litertlm ali .task. Na primer model, ki ste ga sami pretvorili ali prenesli v brskalniku.</string>
     <string name="models_llm_import_title">Uvozite svoje</string>
     <string name="models_llm_importing_label">Uvažanje...</string>
     <string name="models_llm_license_action">Stran z licenco in modelom</string>

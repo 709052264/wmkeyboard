@@ -4138,7 +4138,6 @@
     <string name="models_llm_account_title">Účet Hugging Face</string>
     <string name="models_llm_available_title">K dispozícii na stiahnutie</string>
     <string name="models_llm_catalog_info">Najlepšie modely sú na začiatku, nie tie najmenšie. Model na začiatku píše lepšie, ale sťahovanie je väčšie, odpoveď je pomalšia a potrebuje viac pamäte. Uzamknutý model vyžaduje účet Hugging Face. Pridajte svoj token vyššie a potom raz prijmite licenciu na stránke modelu.</string>
-    <string name="models_llm_compute_info">Možnosť GPU je experimentálna. Aplikácia sa automaticky prepne na CPU, ak sa GPU nespustí alebo ak sa model počas odpovede zastaví. Pamäť GPU je oveľa menšia ako systémová pamäť, takže veľký model často potrebuje CPU. Ak GPU naďalej zlyháva, vyberte tu CPU.</string>
     <string name="models_llm_compute_title">Výpočet</string>
     <string name="models_llm_empty">Vo vašom zariadení zatiaľ nie je žiadny model. Stiahnite si jeden nižšie, aby ste mohli používať AI offline.</string>
     <string name="models_llm_gated_desc">Tento model vyžaduje token Hugging Face</string>
@@ -4149,7 +4148,6 @@
     <string name="models_llm_import_error_no_space">Pre tento súbor s veľkosťou %1$s nie je dostatok úložného priestoru.</string>
     <string name="models_llm_import_error_not_a_model">Toto nie je súbor modelu. Aplikácia vyžaduje súbor .litertlm alebo .task.</string>
     <string name="models_llm_import_error_open">Aplikácia nemôže otvoriť vybraný súbor.</string>
-    <string name="models_llm_import_info">Môžete importovať akýkoľvek model LiteRT-LM v súbore .litertlm alebo .task. Napríklad model, ktorý ste sami skonvertovali alebo stiahli v prehliadači.</string>
     <string name="models_llm_import_title">Importovať vlastný</string>
     <string name="models_llm_importing_label">Importuje sa…</string>
     <string name="models_llm_license_action">Stránka s licenciou a modelom</string>

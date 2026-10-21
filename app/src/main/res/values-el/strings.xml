@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">Λογαριασμός Hugging Face</string>
     <string name="models_llm_available_title">Διαθέσιμα για λήψη</string>
     <string name="models_llm_catalog_info">Τα καλύτερα μοντέλα βρίσκονται στην κορυφή, όχι τα μικρότερα. Ένα μοντέλο στην κορυφή γράφει καλύτερα, αλλά η λήψη είναι μεγαλύτερη, η απάντηση είναι πιο αργή και χρειάζεται περισσότερη μνήμη. Ένα μοντέλο με περιορισμένη πρόσβαση απαιτεί λογαριασμό Hugging Face. Προσθέστε το διακριτικό σας παραπάνω και, στη συνέχεια, αποδεχτείτε την άδεια χρήσης στη σελίδα του μοντέλου μία φορά.</string>
-    <string name="models_llm_compute_info">Η επιλογή GPU είναι πειραματική. Η εφαρμογή αλλάζει αυτόματα σε CPU εάν η GPU δεν ξεκινήσει ή εάν ένα μοντέλο σταματήσει κατά τη διάρκεια μιας απάντησης. Η μνήμη της GPU είναι πολύ μικρότερη από τη μνήμη του συστήματος, επομένως ένα μεγάλο μοντέλο χρειάζεται συχνά την CPU. Επιλέξτε CPU εδώ εάν η GPU συνεχίζει να αποτυγχάνει.</string>
     <string name="models_llm_compute_title">Υπολογισμός</string>
     <string name="models_llm_empty">Δεν υπάρχει ακόμα κανένα μοντέλο στη συσκευή σας. Πραγματοποιήστε λήψη ενός παρακάτω για να χρησιμοποιήσετε την τεχνητή νοημοσύνη εκτός σύνδεσης.</string>
     <string name="models_llm_gated_desc">Αυτό το μοντέλο απαιτεί ένα διακριτικό Hugging Face</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">Δεν υπάρχει αρκετός αποθηκευτικός χώρος για αυτό το αρχείο μεγέθους %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Αυτό δεν είναι αρχείο μοντέλου. Η εφαρμογή απαιτεί ένα αρχείο .litertlm ή .task.</string>
     <string name="models_llm_import_error_open">Η εφαρμογή δεν μπορεί να ανοίξει το επιλεγμένο αρχείο.</string>
-    <string name="models_llm_import_info">Μπορείτε να εισαγάγετε οποιοδήποτε μοντέλο LiteRT-LM σε αρχείο .litertlm ή .task. Για παράδειγμα, ένα μοντέλο που μετατρέψατε μόνοι σας ή κατεβάσατε από ένα πρόγραμμα περιήγησης.</string>
     <string name="models_llm_import_title">Εισαγωγή δικού σας</string>
     <string name="models_llm_importing_label">Εισαγωγή…</string>
     <string name="models_llm_license_action">Σελίδα άδειας χρήσης και μοντέλου</string>

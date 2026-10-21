@@ -4133,7 +4133,6 @@
     <string name="models_llm_account_title">Hugging Face -tili</string>
     <string name="models_llm_available_title">Ladattavissa</string>
     <string name="models_llm_catalog_info">Parhaat mallit ovat listan kärjessä, eivät pienimmät. Listan kärjessä oleva malli kirjoittaa paremmin, mutta lataus on suurempi, vastaus hitaampi ja se vaatii enemmän muistia. Suojattu malli vaatii Hugging Face -tilin. Lisää tunnuksesi yläpuolelle ja hyväksy sitten lisenssi mallisivulla kertaalleen.</string>
-    <string name="models_llm_compute_info">GPU-vaihtoehto on kokeellinen. Sovellus vaihtaa automaattisesti CPU:hun, jos GPU ei käynnisty tai jos malli pysähtyy vastauksen aikana. GPU-muisti on paljon pienempi kuin järjestelmän muisti, joten suuri malli tarvitsee usein CPU:ta. Valitse tästä CPU, jos GPU epäonnistuu toistuvasti.</string>
     <string name="models_llm_compute_title">Laskenta</string>
     <string name="models_llm_empty">Laitteellasi ei ole vielä mallia. Lataa yksi alta käyttääksesi tekoälyä offline-tilassa.</string>
     <string name="models_llm_gated_desc">Tämä malli vaatii Hugging Face -tunnisteen</string>
@@ -4144,7 +4143,6 @@
     <string name="models_llm_import_error_no_space">Tallennustila ei riitä tälle %1$s tiedostolle.</string>
     <string name="models_llm_import_error_not_a_model">Tämä ei ole mallitiedosto. Sovellus tarvitsee .litertlm- tai .task-tiedoston.</string>
     <string name="models_llm_import_error_open">Sovellus ei voi avata valittua tiedostoa.</string>
-    <string name="models_llm_import_info">Voit tuoda minkä tahansa LiteRT-LM-mallin .litertlm- tai .task-tiedostona. Esimerkiksi mallin, jonka olet itse muuntanut tai ladannut selaimella.</string>
     <string name="models_llm_import_title">Tuo omasi</string>
     <string name="models_llm_importing_label">Tuodaan...</string>
     <string name="models_llm_license_action">Lisenssi- ja mallisivu</string>

@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.core.input.rime
 
 import com.wasimaster.wmkeyboard.core.input.composer.Composer
+import com.wasimaster.wmkeyboard.core.input.composer.T9Pinyin
 
 /**
  * A Chinese conversion composer backed by librime: the candidates, their
@@ -19,12 +20,24 @@ import com.wasimaster.wmkeyboard.core.input.composer.Composer
  * characters, and indexed by position, never by text. RIME's Simplified and
  * Traditional switches run inside its menu ([RimeOptions]); nothing rewrites
  * a candidate after its span is known.
+ *
+ * On the 9-key pad the syllable column is [base]'s, since what a digit run
+ * can spell is the keypad's business, but led by the syllable RIME's own
+ * first candidate reads there, and the composing region shows RIME's
+ * spelling, so the column, the region and the strip agree.
+ *
+ * RIME has no 联想 of its own (librime-predict keys on the exact text of the
+ * last commit, and RIME commits whole phrases), so after a commit [predictor]
+ * answers: the built-in Mandarin one, over the word pairs and the user's own
+ * habits, whichever schema typed the text.
  */
 class RimeComposer internal constructor(
     val base: Composer,
     val schema: String,
     private val method: RimeMethod,
     private val options: () -> RimeOptions,
+    /** What follows a commit (联想); null where nothing predicts (Cantonese). */
+    private val predictor: Composer? = null,
 ) : Composer {
 
     private class Ranked(
@@ -33,6 +46,8 @@ class RimeComposer internal constructor(
         val texts: List<String>,
         /** Buffer characters each candidate consumes; null when [base] ranked it. */
         val consumed: IntArray?,
+        /** Each candidate's spelling as RIME hints it (`xi an`), or empty; null when [base] ranked it. */
+        val comments: List<String>?,
     )
 
     @Volatile private var last: Ranked? = null
@@ -52,9 +67,36 @@ class RimeComposer internal constructor(
     override val isConversion: Boolean get() = true
     override val keepsUnconvertedReading: Boolean get() = base.keepsUnconvertedReading
     override val readsLatinLetters: Boolean get() = base.readsLatinLetters
-    override fun composeBuffer(buffer: String): String = base.composeBuffer(buffer)
-    override fun finishBuffer(buffer: String): String = base.finishBuffer(buffer)
-    override fun typedReading(buffer: String): String = base.typedReading(buffer)
+    override fun pickReading(buffer: String, reading: String): String? = base.pickReading(buffer, reading)
+
+    /** On the 9-key pad, RIME's spelling of what its first candidate covers (`xi'an`); else [base]'s. */
+    override fun composeBuffer(buffer: String): String =
+        if (method == RimeMethod.T9_PINYIN) spelled(buffer) ?: base.composeBuffer(buffer) else base.composeBuffer(buffer)
+
+    override fun finishBuffer(buffer: String): String =
+        if (method == RimeMethod.T9_PINYIN) composeBuffer(buffer) else base.finishBuffer(buffer)
+
+    override fun typedReading(buffer: String): String =
+        if (method == RimeMethod.T9_PINYIN) composeBuffer(buffer).replace("'", "") else base.typedReading(buffer)
+
+    /**
+     * [base]'s syllables for the first undecided digit run, with the one
+     * RIME's first candidate reads there moved to the top: the column leads
+     * with what the strip is showing.
+     */
+    override fun readings(buffer: String): List<String> {
+        val found = base.readings(buffer)
+        if (method != RimeMethod.T9_PINYIN || found.isEmpty()) return found
+        val next = spelledNext(buffer) ?: return found
+        return if (next in found) listOf(next) + (found - next) else found
+    }
+
+    override fun predictions(context: String, limit: Int): List<String> =
+        predictor?.predictions(context, limit).orEmpty()
+
+    override fun learnPrediction(context: String, picked: String) {
+        predictor?.learnPrediction(context, picked)
+    }
 
     // RIME needs no CJK pack of the built-in kind, and offers none.
     override val missingPack: String? get() = null
@@ -102,13 +144,59 @@ class RimeComposer internal constructor(
         val input = RimeKeys.translate(method, buffer)
         val menu = if (input.input.isEmpty()) null else RimeRuntime.menu(schema, opts, input.input, DEPTH)
         val ranked = if (menu != null) {
-            Ranked(key, generation, menu.texts, IntArray(menu.texts.size) { i -> input.bufferChars(menu.consumed[i]).coerceIn(1, buffer.length) })
+            val consumed = IntArray(menu.texts.size) { i -> input.bufferChars(menu.consumed[i]).coerceIn(1, buffer.length) }
+            Ranked(key, generation, menu.texts, consumed, menu.comments)
         } else {
             // Not cached under the RIME key: the next call may find RIME back.
-            return Ranked("", -1, base.candidates(buffer, DEPTH), null)
+            return Ranked("", -1, base.candidates(buffer, DEPTH), null, null)
         }
         last = ranked
         return ranked
+    }
+
+    /**
+     * The first candidate RIME found under a spelling of its keys, as that
+     * spelling's syllables and the buffer characters it covers. A spelling
+     * counts only when it is exactly the keys typed, letter for digit: Rime
+     * Ice also finds words by their initials and by loose spellings, and
+     * `9` shown as `yi` (一, found by its initial) would put letters on
+     * screen nobody typed.
+     */
+    private fun spelling(buffer: String): Pair<List<String>, Int>? {
+        val ranked = ranked(buffer)
+        val comments = ranked.comments ?: return null
+        val consumed = ranked.consumed ?: return null
+        for (i in comments.indices) {
+            val syllables = comments[i].split(' ').filter { it.isNotEmpty() }
+            if (syllables.isEmpty() || syllables.any { s -> s.any { it !in 'a'..'z' } }) continue
+            val covered = consumed[i]
+            return if (keys(buffer.substring(0, covered)) == keys(syllables.joinToString(""))) syllables to covered else null
+        }
+        return null
+    }
+
+    /** [buffer] as [spelling] spells it, `'` between syllables, with what it does not cover as [base] shows it. */
+    private fun spelled(buffer: String): String? {
+        val (syllables, covered) = spelling(buffer) ?: return null
+        val rest = buffer.substring(covered).trimStart('\'')
+        val head = syllables.joinToString("'")
+        return if (rest.isEmpty()) head else head + "'" + base.composeBuffer(rest)
+    }
+
+    /**
+     * The syllable [spelling] reads the first undecided digit run as: past
+     * the syllables already picked, which sit in the buffer as letters.
+     */
+    private fun spelledNext(buffer: String): String? {
+        val digit = buffer.indexOfFirst { it.isDigit() }
+        if (digit < 0) return null
+        val (syllables, _) = spelling(buffer) ?: return null
+        val picked = buffer.substring(0, digit).filter { it.isLetter() }.lowercase()
+        var spelled = ""
+        var k = 0
+        while (spelled.length < picked.length && k < syllables.size) spelled += syllables[k++]
+        if (spelled != picked) return null
+        return syllables.getOrNull(k)
     }
 
     /** The input characters behind [bufferChars] buffer characters. */
@@ -119,6 +207,13 @@ class RimeComposer internal constructor(
     }
 
     private companion object {
+        /** [text]'s keys on the 9-key pad: letters as their digits, digits as they are, marks dropped. */
+        fun keys(text: String): String = buildString {
+            for (c in text) {
+                if (c.isDigit()) append(c) else if (c.isLetter()) append(T9Pinyin.encode(c.toString()))
+            }
+        }
+
         /** What the strip shows, as the built-in composers do. */
         const val STRIP = 12
 

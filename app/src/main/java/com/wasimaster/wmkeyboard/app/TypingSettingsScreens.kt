@@ -24,6 +24,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextOverflow
 import com.wasimaster.wmkeyboard.core.media.hasNotificationAccess
 import com.wasimaster.wmkeyboard.core.prediction.OctopusKind
+import com.wasimaster.wmkeyboard.core.prediction.SlipFixes
 import com.wasimaster.wmkeyboard.core.prediction.UndoMemory
 import com.wasimaster.wmkeyboard.core.settings.FlickDistanceRange
 import com.wasimaster.wmkeyboard.core.settings.FlickReachRange
@@ -542,6 +543,23 @@ internal fun TypingCorrectionsSettings(
                 info = stringResource(R.string.typing_mistype_tolerance_info),
                 default = SettingsDefaults.suggestionStrip.mistypeTolerance.toFloat(),
             ) { scope.launch { repository.setMistypeTolerance((it.toInt() + 5) / 10 * 10) } }
+        }
+        // Several slips per word: also outside the autocorrect gate, since
+        // the same reading ranks the strip.
+        item {
+            ChoiceSetting(
+                R.string.typing_fix_several_slips_title,
+                subtitle = stringResource(R.string.typing_fix_several_slips_subtitle),
+                info = stringResource(R.string.typing_fix_several_slips_info),
+                options = listOf(
+                    SlipFixes.OFF to stringResource(R.string.typing_fix_several_slips_off),
+                    SlipFixes.CAREFUL to stringResource(R.string.typing_fix_several_slips_careful),
+                    SlipFixes.EAGER to stringResource(R.string.typing_fix_several_slips_eager),
+                ),
+                selected = settings.watch { it.suggestionStrip.slipFixes },
+                default = SettingsDefaults.suggestionStrip.slipFixes,
+                detail = { level -> ChoiceDetail(stringResource(slipFixesDescRes(level))) },
+            ) { scope.launch { repository.setSlipFixes(it) } }
         }
         item { ForgetTapModelRow(repository) }
         item {
@@ -3401,6 +3419,12 @@ private fun detectionStrengthDescRes(strength: LanguageDetectionStrength): Int =
  * How long an undone correction stays undone, for the sheet. Each line says
  * what the level costs the user, not how the store spells it.
  */
+private fun slipFixesDescRes(level: SlipFixes): Int = when (level) {
+    SlipFixes.OFF -> R.string.typing_fix_several_slips_off_desc
+    SlipFixes.CAREFUL -> R.string.typing_fix_several_slips_careful_desc
+    SlipFixes.EAGER -> R.string.typing_fix_several_slips_eager_desc
+}
+
 private fun undoMemoryDescRes(level: UndoMemory): Int = when (level) {
     UndoMemory.OFF -> R.string.typing_undo_memory_off_desc
     UndoMemory.LIGHT -> R.string.typing_undo_memory_light_desc

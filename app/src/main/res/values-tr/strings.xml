@@ -4130,7 +4130,6 @@
     <string name="models_llm_account_title">Hugging Face hesabı</string>
     <string name="models_llm_available_title">İndirilebilir</string>
     <string name="models_llm_catalog_info">En iyi modeller en üsttekilerdir, en küçükleri değil. En üstteki bir model daha iyi yazar ancak indirme boyutu daha büyüktür, yanıt daha yavaştır ve daha fazla bellek gerektirir. Korumalı bir model, Hugging Face hesabı gerektirir. Belirtecinizi yukarıya ekleyin, ardından model sayfasındaki lisansı bir kez kabul edin.</string>
-    <string name="models_llm_compute_info">GPU seçeneği deneyseldir. GPU başlamazsa veya bir yanıt sırasında model durursa uygulama otomatik olarak CPU\'ya geçer. GPU belleği sistem belleğinden çok daha küçük olduğundan, büyük bir model genellikle CPU\'ya ihtiyaç duyar. GPU hata vermeye devam ederse buradan CPU\'yu seçin.</string>
     <string name="models_llm_compute_title">Hesaplama</string>
     <string name="models_llm_empty">Cihazınızda henüz bir model yok. Yapay zekayı çevrimdışı kullanmak için aşağıdan bir tane indirin.</string>
     <string name="models_llm_gated_desc">Bu model bir Hugging Face belirteci gerektirir</string>
@@ -4141,7 +4140,6 @@
     <string name="models_llm_import_error_no_space">Bu %1$s dosyası için yeterli depolama alanı yok.</string>
     <string name="models_llm_import_error_not_a_model">Bu bir model dosyası değil. Uygulama için .litertlm veya .task uzantılı bir dosya gerekir.</string>
     <string name="models_llm_import_error_open">Uygulama seçilen dosyayı açamıyor.</string>
-    <string name="models_llm_import_info">Herhangi bir LiteRT-LM modelini .litertlm veya .task dosyası olarak içe aktarabilirsiniz. Örneğin, kendinizin dönüştürdüğü veya tarayıcıdan indirdiğiniz bir model.</string>
     <string name="models_llm_import_title">Kendinizinkini içe aktarın</string>
     <string name="models_llm_importing_label">İçe aktarılıyor…</string>
     <string name="models_llm_license_action">Lisans ve model sayfası</string>

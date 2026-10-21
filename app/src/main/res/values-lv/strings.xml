@@ -4141,7 +4141,6 @@
     <string name="models_llm_account_title">Hugging Face konts</string>
     <string name="models_llm_available_title">Pieejams lejupielādei</string>
     <string name="models_llm_catalog_info">Labākie modeļi ir augšpusē, nevis mazākie. Modelis augšpusē raksta labāk, bet lejupielāde ir lielāka, atbilde ir lēnāka, un tam ir nepieciešams vairāk atmiņas. Slēgtam modelim ir nepieciešams Hugging Face konts. Pievienojiet savu pilnvaru (token) augstāk, pēc tam vienu reizi pieņemiet licenci modeļa lapā.</string>
-    <string name="models_llm_compute_info">GPU opcija ir eksperimentāla. Lietotne automātiski pārslēdzas uz CPU, ja GPU nesāk darboties vai ja modelis apstājas atbildes laikā. GPU atmiņa ir daudz mazāka nekā sistēmas atmiņa, tāpēc lielam modelim bieži ir nepieciešams CPU. Šeit atlasiet CPU, ja GPU turpina nedarboties.</string>
     <string name="models_llm_compute_title">Skaitļošana</string>
     <string name="models_llm_empty">Jūsu ierīcē vēl nav neviena modeļa. Lejupielādējiet kādu no tālāk redzamajiem, lai izmantotu AI bezsaistē.</string>
     <string name="models_llm_gated_desc">Šim modelim ir nepieciešama Hugging Face pilnvara</string>
@@ -4152,7 +4151,6 @@
     <string name="models_llm_import_error_no_space">Šim %1$s failam nav pietiekami daudz vietas krātuvē.</string>
     <string name="models_llm_import_error_not_a_model">Šis nav modeļa fails. Lietotnei ir nepieciešams .litertlm fails vai .task fails.</string>
     <string name="models_llm_import_error_open">Lietotne nevar atvērt atlasīto failu.</string>
-    <string name="models_llm_import_info">Varat importēt jebkuru LiteRT-LM modeli .litertlm vai .task failā. Piemēram, modeli, kuru pats konvertējāt vai lejupielādējāt pārlūkprogrammā.</string>
     <string name="models_llm_import_title">Importēt savu</string>
     <string name="models_llm_importing_label">Importē...</string>
     <string name="models_llm_license_action">Licence un modeļa lapa</string>

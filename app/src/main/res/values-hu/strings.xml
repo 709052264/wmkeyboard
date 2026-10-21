@@ -4131,7 +4131,6 @@
     <string name="models_llm_account_title">Hugging Face fiók</string>
     <string name="models_llm_available_title">Letölthető</string>
     <string name="models_llm_catalog_info">A legjobb modellek vannak felül, nem a legkisebbek. A felül lévő modell jobban ír, de a letöltése nagyobb, a válasz lassabb, és több memóriát igényel. A korlátozott modellhez Hugging Face fiók szükséges. Add meg a tokenedet fent, majd fogadd el a licencet a modell oldalán egyszer.</string>
-    <string name="models_llm_compute_info">A GPU opció kísérleti jellegű. Az alkalmazás automatikusan CPU-ra vált, ha a GPU nem indul el, vagy ha egy modell leáll válaszadás közben. A GPU memória sokkal kisebb, mint a rendszermemória, ezért egy nagy modell gyakran igényli a CPU-t. Válaszd a CPU-t itt, ha a GPU továbbra is hibát jelez.</string>
     <string name="models_llm_compute_title">Számítás</string>
     <string name="models_llm_empty">Még nincs modell az eszközödön. Tölts le egyet alább az AI offline használatához.</string>
     <string name="models_llm_gated_desc">Ehhez a modellhez Hugging Face token szükséges</string>
@@ -4142,7 +4141,6 @@
     <string name="models_llm_import_error_no_space">Nincs elég tárhely ehhez a(z) %1$s méretű fájlhoz.</string>
     <string name="models_llm_import_error_not_a_model">Ez nem egy modellfájl. Az alkalmazásnak .litertlm vagy .task fájlra van szüksége.</string>
     <string name="models_llm_import_error_open">Az alkalmazás nem tudja megnyitni a kiválasztott fájlt.</string>
-    <string name="models_llm_import_info">Bármilyen LiteRT-LM modellt importálhat .litertlm vagy .task fájlként. Például egy olyan modellt, amelyet saját maga konvertált, vagy böngészőben töltött le.</string>
     <string name="models_llm_import_title">Saját importálása</string>
     <string name="models_llm_importing_label">Importálás…</string>
     <string name="models_llm_license_action">Licenc és modell oldal</string>

@@ -11,7 +11,6 @@
     <string name="core_intel_llm_engine_error_gpu">মডেলটি GPU-তে ব্যর্থ হয়েছে। GPU মেমরি সিস্টেম মেমরির চেয়ে অনেক ছোট। পরবর্তী প্রচেষ্টায় CPU ব্যবহার করা হবে। সবসময় CPU ব্যবহার করতে, সেটিংসে Compute-কে CPU-তে সেট করুন। আপনি একটি ছোট মডেলও নির্বাচন করতে পারেন।</string>
     <string name="core_intel_llm_engine_error_load">মডেলটি লোড হয়নি। ফাইলটি সম্ভবত ক্ষতিগ্রস্ত। সেটিংসে গিয়ে মডেলটি মুছে ফেলুন এবং আবার ডাউনলোড করুন।</string>
     <string name="core_intel_llm_engine_error_memory">মডেলটির মেমরি শেষ হয়ে গেছে, অথবা এটি ব্যর্থ হয়েছে। একটি ছোট মডেল নির্বাচন করুন।</string>
-    <string name="core_intel_llm_engine_error_vision">এই মডেলটি ছবি পড়তে পারে না। জেম্মা ৪ পারে।</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">পূর্ববর্তী প্রজন্মের একটি ছোট জেম্মা। এটি ভালো মানের এবং ৪কে টোকেনের কনটেক্সট সাপোর্ট করে।</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">গুগলের সবচেয়ে ছোট জেম্মা। এটি সব ডিভাইসে দ্রুত কাজ করে।</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">সবচেয়ে নতুন জেম্মা জেনারেশন। এটি আপনার ডিভাইসে সেরা মানের পারফরম্যান্স দেয়।</string>

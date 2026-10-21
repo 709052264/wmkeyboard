@@ -247,6 +247,8 @@ Autopilot nudges which key a borderline tap resolves to, biasing toward whicheve
 
 **Mistype tolerance** (100% by default, 50% to 200%) sets how far into a neighbouring key a tap may land and still be read as a slip of the key you meant. Every tap is scored by where it landed, so a tap near a key's edge can already count as its neighbour; raise this if you type fast and loose and want the keyboard to look further, lower it if you type carefully and want the key you hit trusted. It moves both the strip's candidates and autocorrect's pick, so it stays on the Automatic corrections screen, along with **Learn where my taps land**, when Autocorrect is turned off.
 
+**Fix several missed keys** (Careful by default) applies that reading to every letter of a word at once. Without it, each tap read as the key next door counts as one mistake, and autocorrect fixes one mistake per word. With it, a word typed fast with three keys a little wide, `rgw` with each finger just left of the key meant, is read as `the`. Only keys within reach of where your finger landed qualify (about one and a quarter keys at 100% tolerance, further as you raise it). **Careful** fixes those words, but a fix that also needs a letter added or removed is only offered in the strip. That mix is what most often turns a correctly typed word the keyboard hasn't learned yet, a new name or a bit of slang, into some other word; held back, such rewrites stay about as rare as they were without this setting. A word you keep typing is learned after a few uses, and from then on it's never changed. **Eager** applies it as well, for when your dictionary already holds every word you type. **Off** goes back to one fix per word. A word the keyboard knows is never changed, and typing with no tap positions, from a hardware keyboard or a paste, is corrected as before.
+
 ## Spell checking in other apps
 
 Android has a spell checker of its own, separate from the keyboard: it draws the red underline under a misspelt word in apps that ask for one, and offers fixes when you tap it. WM Keyboard can be that spell checker. Open the phone's **Settings**, search for **Spell checker** (usually under System, Languages & input), and pick **WM Keyboard spell checker**. It then checks words against the same word lists the suggestion strip uses: a word list you downloaded for the language, the built-in list for English, and the words the keyboard has learned from you. The fixes it offers are the ones autocorrect and the strip would give. A language with no word list on the phone gets no underlines at all, rather than every word marked wrong. For English it adds Harper's grammar marks on top. Nothing runs until you choose it there, and switching back is the same setting. See [System spell checker](/smart/spell-checker/) for the details.
@@ -274,6 +276,7 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Learned corrections | (a screen) | Autocorrect on |
 | Learn where my taps land | On | Autocorrect on |
 | Mistype tolerance | 100% (50&ndash;200%) | |
+| Fix several missed keys | Careful (Off / Careful / Eager) | |
 | Skip words in capital letters | On | Autocorrect on |
 | Correct the word before Enter | On | Autocorrect on |
 | Correct the word before punctuation | Off | Autocorrect on |

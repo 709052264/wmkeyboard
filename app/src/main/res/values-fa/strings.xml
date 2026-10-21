@@ -4142,7 +4142,6 @@
     <string name="models_llm_account_title">حساب Hugging Face</string>
     <string name="models_llm_available_title">قابل دانلود</string>
     <string name="models_llm_catalog_info">بهترین مدل‌ها در بالا قرار دارند، نه کوچک‌ترین آن‌ها. مدلی که در بالا قرار دارد بهتر می‌نویسد، اما حجم دانلود آن بیشتر است، پاسخ‌دهی آن کندتر است و به حافظه بیشتری نیاز دارد. یک مدل محدود شده به حساب کاربری Hugging Face نیاز دارد. توکن خود را در بالا اضافه کنید، سپس یک بار مجوز را در صفحه مدل بپذیرید.</string>
-    <string name="models_llm_compute_info">گزینه پردازنده گرافیکی (GPU) آزمایشی است. اگر پردازنده گرافیکی شروع به کار نکند یا مدل در حین پاسخ‌دهی متوقف شود، برنامه به‌طور خودکار به پردازنده مرکزی (CPU) تغییر وضعیت می‌دهد. حافظه پردازنده گرافیکی بسیار کمتر از حافظه سیستم است، بنابراین یک مدل بزرگ اغلب به پردازنده مرکزی نیاز دارد. اگر پردازنده گرافیکی همچنان با خطا مواجه می‌شود، در اینجا پردازنده مرکزی را انتخاب کنید.</string>
     <string name="models_llm_compute_title">محاسبات</string>
     <string name="models_llm_empty">هنوز مدلی روی دستگاه شما نیست. برای استفاده از هوش مصنوعی به صورت آفلاین، یکی را در زیر دانلود کنید.</string>
     <string name="models_llm_gated_desc">این مدل به توکن Hugging Face نیاز دارد</string>
@@ -4153,7 +4152,6 @@
     <string name="models_llm_import_error_no_space">فضای ذخیره‌سازی کافی برای این فایل %1$s وجود ندارد.</string>
     <string name="models_llm_import_error_not_a_model">این یک فایل مدل نیست. برنامه به یک فایل .litertlm یا .task نیاز دارد.</string>
     <string name="models_llm_import_error_open">برنامه نمی‌تواند فایل انتخاب‌شده را باز کند.</string>
-    <string name="models_llm_import_info">شما می‌توانید هر مدل LiteRT-LM را در یک فایل .litertlm یا .task وارد کنید. برای مثال، مدلی که خودتان تبدیل کرده‌اید یا در مرورگر دانلود کرده‌اید.</string>
     <string name="models_llm_import_title">وارد کردن مدل خودتان</string>
     <string name="models_llm_importing_label">در حال وارد کردن...</string>
     <string name="models_llm_license_action">صفحه مجوز و مدل</string>

@@ -5,8 +5,9 @@ import java.io.File
 import java.io.IOException
 
 /**
- * A GGUF model opened by llama.cpp. The weights are memory-mapped, so opening
- * is cheap until the first prompt touches them. Plain Kotlin over
+ * A GGUF model opened by llama.cpp. On the CPU the weights are memory-mapped,
+ * so opening is cheap until the first prompt touches them; on a GPU
+ * ([onGpu]) they are uploaded to it while it opens. Plain Kotlin over
  * [LlamaNative], with nothing from Android, so it runs on a desktop JVM
  * against a host build of the library (native/llamacpp-jni/host-test.sh).
  */
@@ -14,6 +15,8 @@ internal class LlamaModel private constructor(
     val file: File,
     val handle: Long,
     val info: LlamaModelInfo,
+    /** Its layers were offloaded to a GPU device. */
+    val onGpu: Boolean,
 ) : Closeable {
 
     @Volatile
@@ -35,12 +38,52 @@ internal class LlamaModel private constructor(
     }
 
     companion object {
-        /** Opens [file], or null when llama.cpp cannot read it as a model. */
-        fun open(file: File, useMmap: Boolean = true): LlamaModel? {
-            val handle = LlamaNative.nativeModelOpen(file.path, useMmap)
+        /**
+         * Opens [file], or null when llama.cpp cannot read it as a model (or
+         * the GPU could not take it). [gpuLayers] 0 keeps it on the CPU.
+         */
+        fun open(file: File, useMmap: Boolean = true, gpuLayers: Int = 0): LlamaModel? {
+            val handle = LlamaNative.nativeModelOpen(file.path, useMmap, gpuLayers)
             if (handle == 0L) return null
-            return LlamaModel(file, handle, LlamaModelInfo.of(LlamaNative.nativeModelInfo(handle)))
+            return LlamaModel(file, handle, LlamaModelInfo.of(LlamaNative.nativeModelInfo(handle)), gpuLayers > 0)
         }
+    }
+}
+
+/**
+ * A vision model's projector (its `mmproj` GGUF) over the [LlamaModel] it
+ * belongs to: what turns a picture into the embeddings a prompt carries.
+ * Close it before the model.
+ */
+internal class LlamaVision private constructor(
+    val model: LlamaModel,
+    val file: File,
+    val handle: Long,
+) : Closeable {
+
+    @Volatile
+    private var closed = false
+
+    override fun close() {
+        if (closed) return
+        closed = true
+        LlamaNative.nativeVisionClose(handle)
+    }
+
+    companion object {
+        /** Opens [file] for [model], or null when it is no projector of pictures for it. */
+        fun open(model: LlamaModel, file: File, useGpu: Boolean, threads: Int): LlamaVision? {
+            val handle = LlamaNative.nativeVisionOpen(model.handle, file.path, useGpu, threads)
+            if (handle == 0L) return null
+            return LlamaVision(model, file, handle)
+        }
+    }
+}
+
+/** A picture as llama.cpp's projector takes it: [width] by [height] pixels, RGB, three bytes each. */
+internal class LlamaImage(val width: Int, val height: Int, val rgb: ByteArray) {
+    init {
+        require(width > 0 && height > 0 && rgb.size == width * height * 3) { "not $width x $height RGB" }
     }
 }
 
@@ -112,6 +155,33 @@ internal class LlamaSession(
             handle,
             Array(messages.size) { messages[it].role },
             Array(messages.size) { messages[it].text.toByteArray(Charsets.UTF_8) },
+            enableThinking,
+        )
+        if (result < 0) throw LlamaPromptException(result)
+        return result
+    }
+
+    /**
+     * [promptChat] with [images] at the start of the last user message, read
+     * by [vision]. Throws [LlamaPromptException] as [promptChat] does, with
+     * [LlamaNative.PROMPT_IMAGE_FAILED] when the projector cannot read one.
+     */
+    fun promptChatImages(
+        vision: LlamaVision,
+        messages: List<LlamaMessage>,
+        images: List<LlamaImage>,
+        enableThinking: Boolean = true,
+    ): Int {
+        if (images.isEmpty()) return promptChat(messages, enableThinking)
+        abortRequested = false
+        val result = LlamaNative.nativePromptChatImages(
+            handle,
+            vision.handle,
+            Array(messages.size) { messages[it].role },
+            Array(messages.size) { messages[it].text.toByteArray(Charsets.UTF_8) },
+            Array(images.size) { images[it].rgb },
+            IntArray(images.size) { images[it].width },
+            IntArray(images.size) { images[it].height },
             enableThinking,
         )
         if (result < 0) throw LlamaPromptException(result)

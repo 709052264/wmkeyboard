@@ -186,6 +186,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.typing_auto_capitalize_title, R.string.search_kw_typing_auto_capitalize)
     put(R.string.typing_autocorrect_confidence_title, R.string.search_kw_typing_autocorrect_confidence)
     put(R.string.typing_autocorrect_title, R.string.search_kw_typing_autocorrect)
+    put(R.string.typing_fix_several_slips_title, R.string.search_kw_typing_fix_several_slips)
     put(R.string.typing_blacklist_title, R.string.search_kw_typing_blacklist)
     put(R.string.typing_block_offensive_title, R.string.search_kw_typing_block_offensive)
     put(R.string.typing_contact_names_title, R.string.search_kw_typing_contact_names)

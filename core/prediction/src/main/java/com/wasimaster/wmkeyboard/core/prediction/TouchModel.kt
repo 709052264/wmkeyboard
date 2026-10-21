@@ -22,6 +22,21 @@ data class TouchPoint(
 )
 
 /**
+ * How autocorrect treats a word read with several slips
+ * ([KeyTouchModel.slipRadius]), the "Fix several missed keys" setting.
+ *
+ * [OFF] reads no slips at all: every off-key tap is an edit, as before.
+ * [CAREFUL] applies a slips-only reading, but leaves one that also needs a
+ * letter added, dropped or swapped to the strip. Measured on words held out
+ * of the list and typed right, that mix is what rewrote new words, names and
+ * slang into something else; held back, the false rewrites fall to where
+ * they were without slips, and fixes of wide taps still rise.
+ * [EAGER] applies the mixed readings too, for a dictionary that already
+ * holds every word its owner types.
+ */
+enum class SlipFixes { OFF, CAREFUL, EAGER }
+
+/**
  * Per-key 2D Gaussian likelihood. [centers] maps each committed character to
  * its key center in key-width units.
  */
@@ -33,6 +48,13 @@ class KeyTouchModel(
      * makes a tap well inside a neighbour cheaper to read as a slip.
      */
     private val sigma: Double = SIGMA,
+    /**
+     * How far from a tap, in key widths, a key's centre may sit for the tap
+     * to be read as a slip of that key: a mistyped letter priced like the
+     * substitution it is, but outside the edit budget, so a word with every
+     * key a little wide is still one word. 0 turns slips off.
+     */
+    val slipRadius: Double = SLIP_SIGMAS * sigma,
 ) {
 
     private val keysArray: CharArray = centers.keys.toCharArray()
@@ -61,6 +83,15 @@ class KeyTouchModel(
         return -(dx * dx + dy * dy) / (2.0 * sigma * sigma)
     }
 
+    /** Whether [ch]'s key centre lies within [slipRadius] of [p]. */
+    fun withinSlip(p: TouchPoint, ch: Char): Boolean {
+        if (slipRadius <= 0.0) return false
+        val center = centers[ch] ?: return false
+        val dx = (p.x - center.x).toDouble()
+        val dy = (p.y - center.y).toDouble()
+        return dx * dx + dy * dy <= slipRadius * slipRadius
+    }
+
     /** The most likely intended key for a tap, or null off-keyboard. */
     fun bestKey(p: TouchPoint): Char? {
         var best: Char? = null
@@ -81,5 +112,12 @@ class KeyTouchModel(
     companion object {
         /** Tap-scatter sigma in key widths. */
         const val SIGMA = 0.5
+
+        /**
+         * The default slip reach, in sigmas: 1.25 key widths at [SIGMA], the
+         * keys either side of the one hit and the nearer diagonals. Measured
+         * by `wm-engine`'s `noisy_tap_eval` against 1.0 and 1.5.
+         */
+        const val SLIP_SIGMAS = 2.5
     }
 }

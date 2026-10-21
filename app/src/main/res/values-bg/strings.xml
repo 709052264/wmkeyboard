@@ -4138,7 +4138,6 @@
     <string name="models_llm_account_title">Профил в Hugging Face</string>
     <string name="models_llm_available_title">Налично за изтегляне</string>
     <string name="models_llm_catalog_info">Най-добрите модели са най-отгоре, а не най-малките. Моделът най-отгоре пише по-добре, но изтеглянето е по-голямо, отговорът е по-бавен и се нуждае от повече памет. За ограничен модел е необходим акаунт в Hugging Face. Добавете своя токен по-горе, след което приемете лиценза на страницата на модела еднократно.</string>
-    <string name="models_llm_compute_info">Опцията за графичен процесор (GPU) е експериментална. Приложението автоматично превключва към централния процесор (CPU), ако графичният процесор не се стартира или ако моделът спре по време на отговор. Паметта на графичния процесор е много по-малка от системната памет, така че големите модели често се нуждаят от централния процесор. Изберете CPU тук, ако графичният процесор продължава да дава грешки.</string>
     <string name="models_llm_compute_title">Изчисления</string>
     <string name="models_llm_empty">На устройството ви все още няма модел. Изтеглете такъв по-долу, за да използвате изкуствен интелект офлайн.</string>
     <string name="models_llm_gated_desc">Този модел изисква токен от Hugging Face</string>
@@ -4149,7 +4148,6 @@
     <string name="models_llm_import_error_no_space">Няма достатъчно място за съхранение за този файл от %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Това не е модел файл. Приложението се нуждае от .litertlm файл или .task файл.</string>
     <string name="models_llm_import_error_open">Приложението не може да отвори избрания файл.</string>
-    <string name="models_llm_import_info">Можете да импортирате всеки LiteRT-LM модел във файл .litertlm или .task. Например модел, който сте конвертирали сами или сте изтеглили в браузър.</string>
     <string name="models_llm_import_title">Импортирайте свой собствен</string>
     <string name="models_llm_importing_label">Импортиране...</string>
     <string name="models_llm_license_action">Лиценз и страница на модела</string>

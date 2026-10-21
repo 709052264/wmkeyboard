@@ -4147,7 +4147,6 @@
     <string name="models_llm_account_title">I-akhawunti ye-Hugging Face</string>
     <string name="models_llm_available_title">Iyatholakala ukuze ilandwe</string>
     <string name="models_llm_catalog_info">Amamodeli angcono kakhulu asemaphethelweni, hhayi amancane. Imodeli esemaphethelweni ibhala kangcono, kodwa ukulanda kwayo kukhulu, impendulo ihamba kancane, futhi idinga inkumbulo eyengeziwe. Imodeli evaliwe idinga i-akhawunti ye-Hugging Face. Engeza ithokheni yakho ngenhla, bese wamukela ilayisensi ekhasini lemodeli kanye.</string>
-    <string name="models_llm_compute_info">Inketho ye-GPU iyisilingo. Uhlelo lokusebenza lushintshela ku-CPU ngokuzenzakalelayo uma i-GPU ingaqali, noma uma imodeli imisa phakathi nempendulo. Inkumbulo ye-GPU incane kakhulu kunenkumbulo yesistimu, ngakho imodeli enkulu idinga i-CPU njalo. Khetha i-CPU lapha uma i-GPU iqhubeka nokwehluleka.</string>
     <string name="models_llm_compute_title">Bala</string>
     <string name="models_llm_empty">Ayikho imodeli kudivayisi yakho okwamanje. Landa eyodwa ngezansi ukuze usebenzise i-AI ungaxhunyiwe ku-inthanethi.</string>
     <string name="models_llm_gated_desc">Le modeli idinga ithokheni ye-Hugging Face</string>
@@ -4158,7 +4157,6 @@
     <string name="models_llm_import_error_no_space">Ayikho indawo eyanele yokugcina le fayela ye-%1$s.</string>
     <string name="models_llm_import_error_not_a_model">Lona akuyona ifayela lemodeli. Uhlelo lokusebenza ludinga ifayela le-.litertlm noma ifayela le-.task.</string>
     <string name="models_llm_import_error_open">Uhlelo lokusebenza alukwazi ukuvula ifayela elikhethiwe.</string>
-    <string name="models_llm_import_info">Ungangenisa noma yimuphi umodeli we-LiteRT-LM kufayela le-.litertlm noma ifayela le-.task. Isibonelo, imodeli oyiguqule wena noma oyilande kusiphequluli.</string>
     <string name="models_llm_import_title">Ngenisa eyakho</string>
     <string name="models_llm_importing_label">Ingenisa...</string>
     <string name="models_llm_license_action">Ilayisensi nekhasi lemodeli</string>

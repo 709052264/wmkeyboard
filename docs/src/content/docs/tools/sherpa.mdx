@@ -43,6 +43,18 @@ While you speak, the words go into the field as underlined composing text, rewri
 
 **Punctuation.** Most of these models write plain words with no punctuation, and the English ones trained on audiobooks spell in capitals. Sherpa turns capitals into ordinary lower case. With [Add punctuation and capitals](/tools/voice/#adding-punctuation-and-capitals) on, the default, a finished phrase gets full stops, commas, question marks and sentence capitals from a punctuation model for 88 languages, downloaded from that setting's row on the Voice typing screen. **Punctuation (English)** here does the same for English on its own, and with both on the phone an English phrase takes the multilingual model's marks and this one's capitals for names. The German, Spanish, Korean and eight-language models punctuate by themselves and are left as they are. Spoken punctuation ("comma", "full stop") works either way.
 
+## Words to listen for
+
+<SettingsPath path="Voice typing / Words to listen for" />
+
+Sherpa listens for the same [words to listen for](/tools/voice/#words-to-listen-for) the system recognizer gets: the names and terms you typed into **More words to listen for**, then your own words from the dictionary when **Listen for my words** is on. They go to the model as hotwords. While it decodes, a guess that spells one of your words gets a small bonus for each piece of the word it has spelled so far, and the bonus is taken back if the guess turns away before the word is complete. A name the model was close to hearing then comes out the way you spell it.
+
+The model can only write a word in the pieces it was trained on, so each word is first spelled in that model's pieces. Words it has no pieces for are left out: German umlauts for the English models, Bangla letters for any model but the Bengali one, and characters the Chinese model has never seen, which is most rare characters in Chinese names. The eight-language model takes Chinese characters and plain Latin words, but not words in Arabic, Cyrillic, Thai or Vietnamese letters. Words under three letters are left out too, so a stray initial does not turn up wherever a word starts with it.
+
+**What it costs.** Hotwords need a slower search: Sherpa keeps four guesses open instead of one. The search only runs when some of your words can be spelled by the model, so with an empty list, or **Listen for my words** off and nothing typed in, Sherpa decodes the quicker way. Switching between the two loads the model again, once.
+
+**What to expect.** Hotwords help a name the model nearly heard; they cannot teach it a sound it has never heard. On synthetic test sentences with 15 rare names (Siobhan, Okonkwo, Ljubljana, Kubernetes and the like) read by five voices, the English model got the name right 1 time in 75 without the list and 9 to 11 times with it, whether the list held just those names or 195 words. Ordinary sentences came out as before: no word from the list was ever typed into a sentence that did not have it.
+
 ## Reduce background noise
 
 <SettingsPath path="Voice typing / Reduce background noise" />
@@ -51,11 +63,9 @@ Not Sherpa's own, but worth knowing about here: **Reduce background noise** clea
 
 ## Sherpa, Whisper or the others
 
-For Bangla, Sherpa is the only offline engine that shows the words while you speak; [Whisper](/tools/whisper/) understands more accents and rarer words but types the phrase when you stop. For English, [Asr4All](/tools/asr4all/) streams too and punctuates on its own, [Moonshine](/tools/moonshine/) is the smallest, and Whisper takes your own words as hints. Sherpa is the one to pick for live text in a language the others do not stream in. For a language none of them knows, [Omnilingual](/tools/omnilingual/) runs on the same runtime and covers about 380 keyboard languages, a phrase at a time.
+For Bangla, Sherpa is the only offline engine that shows the words while you speak; [Whisper](/tools/whisper/) understands more accents and rarer words but types the phrase when you stop. For English, [Asr4All](/tools/asr4all/) streams too and punctuates on its own, [Moonshine](/tools/moonshine/) is the smallest, and Whisper (on whisper.cpp) takes your own words as a prompt, which it reads more freely than Sherpa's hotwords. Sherpa is the one to pick for live text in a language the others do not stream in. For a language none of them knows, [Omnilingual](/tools/omnilingual/) runs on the same runtime and covers about 380 keyboard languages, a phrase at a time.
 
 ## Details & edge cases
-
-**No words to listen for.** Sherpa's models take no list of names or terms, so **Words to listen for** does not show while it is the engine.
 
 **Several languages at once.** A dictation that listens for more than one language at a time needs one Sherpa model that knows all of them, which only the eight-language model can be. Otherwise the panel asks for a model.
 

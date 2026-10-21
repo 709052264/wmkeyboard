@@ -63,10 +63,12 @@ internal object PredictionNative {
      * its [kinds] entry is 0, a user lexicon ([lexNew]) when 1. Tiers are 0
      * (dictionary) or 1 (user); [habits] is 0 for none. The touch frame is absent when
      * [touchKeys] is null: [touchCenters] holds an x, y per key and
-     * [touchPoints] an x, y per typed character, NaN where unknown.
+     * [touchPoints] an x, y per typed character, NaN where unknown;
+     * [slipRadius] is how far a tap reaches for a slip, 0 for none.
      * For result `i`, [doublesOut] holds score, editCost, dictScore and
-     * userScore at `4i`, and [intsOut] edits, completedChars, tier and
-     * accents; both must hold `4 * max(limit * 2, 8)`.
+     * userScore at `4i`, and [intsOut] edits, completedChars, tier, accents
+     * and slips at `5i`; they must hold four and five per word of
+     * `max(limit * 2, 8)`.
      */
     @Suppress("LongParameterList")
     external fun fuzzySearch(
@@ -82,6 +84,7 @@ internal object PredictionNative {
         touchKeys: CharArray?,
         touchCenters: FloatArray?,
         sigma: Double,
+        slipRadius: Double,
         touchPoints: FloatArray?,
         keySets: Array<String>?,
         keySpellings: Array<Array<String>?>?,
@@ -255,7 +258,13 @@ internal object PredictionNative {
 
     external fun glideSampleShape(xs: FloatArray, ys: FloatArray, ts: LongArray, keyWidth: Float): ByteArray?
 
-    /** `CtcGlideBeam.decode`: the result shaped as [glideDecode]'s; [scoring] is lengthNorm, lengthBonus, freqWeight, pruneNorm, pruneBonus. */
+    /**
+     * `CtcGlideBeam.decode`: the result shaped as [glideDecode]'s, phases
+     * included; [scoring] is lengthNorm, lengthBonus, freqWeight, pruneNorm,
+     * pruneBonus, lookAheadCost, loopWeight, shapeWeight. The stroke ([tuning],
+     * the path, [keyMap], [keyWidth]) is where the loops and learned shapes are
+     * read; an empty [tuning] or a [keyMap] of 0 decodes the emissions alone.
+     */
     @Suppress("LongParameterList")
     external fun ctcDecode(
         logProbs: FloatArray,
@@ -268,7 +277,18 @@ internal object PredictionNative {
         limit: Int,
         width: Int,
         scoring: DoubleArray,
+        tuning: DoubleArray,
+        xs: FloatArray,
+        ys: FloatArray,
+        ts: LongArray,
+        keyMap: Long,
+        keyWidth: Float,
+        lookAhead: Int,
+        phase: Int,
     ): Array<Any>
+
+    /** The last phase-1 [ctcDecode] on this thread, finished with [shapes] per word. */
+    external fun ctcFinish(words: Array<String>, shapes: Array<Array<ByteArray>>): Array<Any>
 
     /** A plain `Trie`'s exact copy, for the walks (`sources.rs`); kind 2 in their source lists. */
     external fun trieFromEntries(words: Array<String>, frequencies: IntArray): Long

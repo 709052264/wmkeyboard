@@ -3,6 +3,7 @@ package com.wasimaster.wmkeyboard.core.gesture.reference
 import com.wasimaster.wmkeyboard.core.gesture.CtcGlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideBeam
 import com.wasimaster.wmkeyboard.core.gesture.GlideJoiners
+import com.wasimaster.wmkeyboard.core.gesture.GlideKeyMap
 import com.wasimaster.wmkeyboard.core.gesture.SwipeEmissions
 import com.wasimaster.wmkeyboard.core.prediction.ChildBuffer
 import com.wasimaster.wmkeyboard.core.prediction.FuzzyBeamSearch
@@ -55,7 +56,14 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
      * not with [GlideBeam]'s. [GlideBeam.Candidate.shapeCost] is the path's
      * negated, length-normalised log-probability, low when the stroke read
      * cleanly as the word.
+     *
+     * [lookAhead] guesses may join the readings, unless [marks] says the
+     * stroke closes on a loop; [marks]' loops (on [keys]) decide between
+     * spellings that differ only by doubling the looped key; [gain] is each
+     * reading's learned-shape benefit ([KotlinGlideBeam.learnedGain]).
+     * `wm-engine`'s `CtcDecoder::walk` then `finish`.
      */
+    @Suppress("LongParameterList")
     fun decode(
         emissions: SwipeEmissions,
         sources: List<FuzzyBeamSearch.WalkSource>,
@@ -63,14 +71,77 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
         width: Int = scoring.width,
         /** How many of a dictionary's commonest words may be read; 0 for all. See [GlideBeam.Tuning.vocabularyRank]. */
         vocabularyRank: Int = 0,
+        lookAhead: Int = 0,
+        marks: KotlinGlideMarks? = null,
+        keys: GlideKeyMap? = null,
+        gain: ((String) -> Double)? = null,
     ): List<GlideBeam.Candidate> {
         if (limit <= 0 || sources.isEmpty() || emissions.steps == 0) return emptyList()
         ensure(width)
+        val guessing = lookAhead > 0 && marks?.endsOnLoop != true
         val best = HashMap<String, GlideBeam.Candidate>()
-        for (src in sources) search(src, emissions, width, vocabularyRank, best)
-        return best.values.sortedWith(
-            compareByDescending<GlideBeam.Candidate> { it.score }.thenBy { it.word },
-        ).take(limit)
+        val ahead = HashMap<String, GlideBeam.Candidate>()
+        for (src in sources) search(src, emissions, width, vocabularyRank, best, if (guessing) ahead else null)
+        val order = compareByDescending<GlideBeam.Candidate> { it.score }.thenBy { it.word }
+        var read = best.values.toMutableList()
+        var guesses = ahead.values.toMutableList()
+        if (marks != null && keys != null) chargeLoops(read, guesses, marks, keys)
+        read.sortWith(order)
+        guesses.sortWith(order)
+        // finish
+        val weight = scoring.shapeWeight.toDouble()
+        if (weight > 0.0 && gain != null) {
+            var moved = false
+            read = read.map { c ->
+                val g = gain(c.word)
+                if (g > 0.0) {
+                    moved = true
+                    GlideBeam.Candidate(c.word, c.score + weight * g, c.shapeCost, c.tier, c.ahead)
+                } else {
+                    c
+                }
+            }.toMutableList()
+            if (moved) read.sortWith(order)
+        }
+        val kept = read.take(limit)
+        if (guesses.isEmpty() || lookAhead == 0) return kept
+        val readWords = kept.mapTo(HashSet()) { it.word }
+        guesses = guesses.filter { it.word !in readWords }.take(lookAhead).toMutableList()
+        return (guesses + kept).sortedWith(order)
+    }
+
+    /** `CtcDecoder::charge_loops`. */
+    private fun chargeLoops(
+        read: MutableList<GlideBeam.Candidate>,
+        guesses: MutableList<GlideBeam.Candidate>,
+        marks: KotlinGlideMarks,
+        keys: GlideKeyMap,
+    ) {
+        val weight = scoring.loopWeight
+        if (weight <= 0f || marks.loops.isEmpty()) return
+        fun drawn(c: GlideBeam.Candidate) = c.word.dropLast(c.ahead)
+        val doubled = ArrayList<Pair<List<Int>, Int>>()
+        for (c in read + guesses) {
+            val word = drawn(c)
+            for ((own, _) in marks.loops) {
+                if (KotlinGlideMarks.doubles(word, own, keys)) doubled.add(KotlinGlideMarks.visits(word, keys) to own)
+            }
+        }
+        if (doubled.isEmpty()) return
+        for (list in listOf(read, guesses)) {
+            for (i in list.indices) {
+                val c = list[i]
+                val word = drawn(c)
+                val visits = KotlinGlideMarks.visits(word, keys)
+                var cost = 0f
+                for ((own, score) in marks.loops) {
+                    if (!KotlinGlideMarks.doubles(word, own, keys) && doubled.any { it.second == own && it.first == visits }) {
+                        cost += score
+                    }
+                }
+                if (cost > 0f) list[i] = GlideBeam.Candidate(c.word, c.score - (weight * cost).toDouble(), c.shapeCost, c.tier, c.ahead)
+            }
+        }
     }
 
     private fun search(
@@ -79,6 +150,7 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
         width: Int,
         vocabularyRank: Int,
         best: HashMap<String, GlideBeam.Candidate>,
+        ahead: HashMap<String, GlideBeam.Candidate>?,
     ) {
         val walker = src.walker
         val minFrequency = walker.frequencyAtRank(vocabularyRank)
@@ -144,6 +216,56 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
             if (existing == null || existing.score < score) {
                 best[word] = GlideBeam.Candidate(word, score.toDouble(), -path.toDouble(), src.tier)
             }
+        }
+        if (ahead != null) {
+            for (h in 0 until curCount) {
+                if (curDepth[h] >= MIN_LOOKAHEAD_PREFIX) lookAhead(src, minFrequency, curNode[h], curDepth[h], curScore[h], ahead)
+            }
+        }
+    }
+
+    /** `CtcDecoder::look_ahead`: the commonest word under a surviving prefix, when commoner than the prefix. */
+    @Suppress("LongParameterList", "ReturnCount")
+    private fun lookAhead(
+        src: FuzzyBeamSearch.WalkSource,
+        minFrequency: Int,
+        node: Int,
+        depth: Int,
+        pathScore: Float,
+        ahead: HashMap<String, GlideBeam.Candidate>,
+    ) {
+        val walker = src.walker
+        val best = walker.maxSubtree(node)
+        if (best < minFrequency || best <= walker.frequency(node)) return
+        val word = StringBuilder(spelled.word(node) ?: return)
+        val drawn = word.length
+        var at = node
+        while (word.length < MAX_LOOKAHEAD_WORD) {
+            if (walker.isWord(at) && walker.frequency(at) == best) break
+            val count = walker.childrenInto(at, children)
+            var next = -1
+            for (i in 0 until count) {
+                if (walker.maxSubtree(children.nodes[i]) == best) {
+                    next = i
+                    break
+                }
+            }
+            if (next < 0) return
+            word.append(children.labels[next])
+            at = children.nodes[next]
+        }
+        if (word.length <= drawn || !walker.isWord(at)) return
+        val guess = word.toString()
+        if (src.tier == FuzzyBeamSearch.Tier.DICTIONARY && GlideJoiners.isNonWord(guess)) return
+        val extra = guess.length - drawn
+        val length = depth.toFloat()
+        val path = pathScore / length.pow(scoring.lengthNorm)
+        val score = path + scoring.lengthBonus * length +
+            scoring.freqWeight * (src.logWeight + ln(1.0 + best)).toFloat() -
+            scoring.lookAheadCost * extra
+        val existing = ahead[guess]
+        if (existing == null || existing.score < score) {
+            ahead[guess] = GlideBeam.Candidate(guess, score.toDouble(), -path.toDouble(), src.tier, extra)
         }
     }
 
@@ -363,5 +485,7 @@ class KotlinCtcGlideBeam(private val scoring: Scoring = Scoring()) {
         /** As [GlideBeam]: a stroke never reads as a single letter. */
         private const val MIN_WORD_LENGTH = 2
         private const val MAX_WORD = 64
+        private const val MIN_LOOKAHEAD_PREFIX = 3
+        private const val MAX_LOOKAHEAD_WORD = 24
     }
 }

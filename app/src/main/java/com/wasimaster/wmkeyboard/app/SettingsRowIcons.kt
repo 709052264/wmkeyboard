@@ -951,6 +951,7 @@ internal object SettingsRowIcons {
         put(R.string.typing_learned_corrections_clear_title) { Icons.Outlined.DeleteSweep }
         put(R.string.typing_adapt_taps_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_mistype_tolerance_title) { Icons.Outlined.TouchApp }
+        put(R.string.typing_fix_several_slips_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_suggestion_pages_title) { Icons.Outlined.UnfoldMore }
         put(R.string.typing_suggestion_swipe_up_title) { Icons.Outlined.UnfoldMore }
         put(R.string.typing_suggestion_expanded_grid_title) { Icons.Outlined.GridOn }
@@ -1500,6 +1501,7 @@ internal object SettingsRowIcons {
         put(R.string.voice_server_test_title) { Icons.Outlined.Dns }
         put(R.string.voice_hold_title) { Icons.Outlined.TouchApp }
         put(R.string.models_whisper_fallback_title) { Icons.Outlined.Memory }
+        put(R.string.models_whisper_compute_title) { Icons.Outlined.Speed }
         put(R.string.tooldetail_grammar_dialect_title) { Icons.Outlined.Language }
         put(R.string.tooldetail_grammar_debounce_title) { Icons.Outlined.Timer }
         put(R.string.tooldetail_grammar_system_title) { Icons.Outlined.Public }

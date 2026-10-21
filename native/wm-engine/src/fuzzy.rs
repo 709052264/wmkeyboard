@@ -120,10 +120,18 @@ pub struct TouchModel {
     keys: Vec<(u16, f32, f32)>,
     index: HashMap<u16, usize>,
     sigma: f64,
+    /// How far from a tap, in key widths, a key's centre may sit for the tap
+    /// to be read as a slip of that key: a mistyped letter priced like the
+    /// substitution it is, but outside the edit budget. 0 turns slips off.
+    slip_radius: f64,
 }
 
 impl TouchModel {
     pub const SIGMA: f64 = 0.5;
+    /// The default slip reach, in sigmas: 1.25 key widths at the default
+    /// sigma, which takes in the keys either side of the one hit and, on a
+    /// staggered board, the nearer diagonals.
+    pub const SLIP_SIGMAS: f64 = 2.5;
 
     pub fn new(keys: Vec<(u16, f32, f32)>, sigma: f64) -> TouchModel {
         let mut index = HashMap::with_capacity(keys.len());
@@ -131,11 +139,31 @@ impl TouchModel {
             // A Kotlin map holds a key once; its centre is the last one put.
             index.insert(key, i);
         }
-        TouchModel { keys, index, sigma }
+        TouchModel { keys, index, sigma, slip_radius: TouchModel::SLIP_SIGMAS * sigma }
+    }
+
+    /// The same model with slips reaching `radius` key widths (0: none).
+    pub fn with_slip_radius(mut self, radius: f64) -> TouchModel {
+        self.slip_radius = radius;
+        self
     }
 
     pub fn knows(&self, key: u16) -> bool {
         self.index.contains_key(&key)
+    }
+
+    /// Whether `key`'s centre lies within the slip reach of `p`.
+    pub fn within_slip(&self, p: (f32, f32), key: u16) -> bool {
+        if self.slip_radius <= 0.0 {
+            return false;
+        }
+        let Some(&i) = self.index.get(&key) else {
+            return false;
+        };
+        let (_, cx, cy) = self.keys[i];
+        let dx = (p.0 - cx) as f64;
+        let dy = (p.1 - cy) as f64;
+        dx * dx + dy * dy <= self.slip_radius * self.slip_radius
     }
 
     /// ln P(tap at `p` | key), up to a constant: `-(d^2) / (2 sigma^2)`.
@@ -252,6 +280,10 @@ pub struct Candidate {
     pub user_score: f64,
     /// Letters read as their accented form; not edits.
     pub accents: u32,
+    /// Of [`Candidate::edits`], the substitutions read as slips: a tap that
+    /// landed within reach of the meant key. Counted among the edits, but
+    /// never against the edit budget.
+    pub slips: u32,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -269,6 +301,8 @@ pub struct ScoredCandidate {
     pub user_score: f64,
     /// Letters read as their accented form; not edits.
     pub accents: u32,
+    /// Of the edits, the slips ([`Candidate::slips`]).
+    pub slips: u32,
 }
 
 pub fn ln(x: f64) -> f64 {
@@ -371,6 +405,7 @@ pub struct Workspace {
     edits: Vec<u8>,
     comp: Vec<u8>,
     accents: Vec<u8>,
+    slips: Vec<u8>,
     parent: Vec<i32>,
     via: Vec<u16>,
     bound: Vec<f64>,
@@ -392,6 +427,7 @@ impl Workspace {
         self.edits.clear();
         self.comp.clear();
         self.accents.clear();
+        self.slips.clear();
         self.parent.clear();
         self.via.clear();
         self.bound.clear();
@@ -409,6 +445,7 @@ impl Workspace {
         edits: u32,
         comp: u32,
         accents: u32,
+        slips: u32,
         parent: i32,
         via: u16,
     ) -> i32 {
@@ -421,6 +458,7 @@ impl Workspace {
         self.edits.push(edits as u8);
         self.comp.push(comp as u8);
         self.accents.push(accents as u8);
+        self.slips.push(slips as u8);
         self.parent.push(parent);
         self.via.push(via);
         self.bound.push(0.0);
@@ -438,11 +476,12 @@ impl Workspace {
         edits: u32,
         comp: u32,
         accents: u32,
+        slips: u32,
         parent: i32,
         via: u16,
         bound: f64,
     ) {
-        let id = self.record(node, pos, cost, edit, edits, comp, accents, parent, via);
+        let id = self.record(node, pos, cost, edit, edits, comp, accents, slips, parent, via);
         self.bound[id as usize] = bound;
         self.heap.push(id as u32);
         let mut i = self.heap.len() - 1;
@@ -545,6 +584,7 @@ pub fn search(
             dict_score: c.dict_score,
             user_score: c.user_score,
             accents: c.accents,
+            slips: c.slips,
         })
         .collect()
 }
@@ -641,6 +681,19 @@ impl Walk<'_> {
         }
     }
 
+    /// Whether reading `label` for the typed `expected` is a slip: the tap
+    /// landed within the model's slip reach of `label`'s key. Never on an
+    /// ambiguous board, where every keystroke already fans out, nor in a walk
+    /// that allows no edits at all.
+    fn slip_reach(&self, pos: usize, expected: u16, label: u16) -> bool {
+        if self.ambiguous || self.max_edits == 0 {
+            return false;
+        }
+        let Some(touch) = self.touch else { return false };
+        let Some(p) = touch.point(pos) else { return false };
+        touch.model.knows(expected) && touch.model.within_slip(p, label)
+    }
+
     fn one(&self, src: &WalkSource, results: &mut HashMap<Vec<u16>, Candidate>, floor_in: f64, ws: &mut Workspace) -> f64 {
         let mut floor = floor_in;
         let w = src.walker;
@@ -648,16 +701,16 @@ impl Walk<'_> {
         let n = typed.len();
         ws.reset();
         let root = w.root();
-        ws.state(root, 0, 0.0, 0.0, 0, 0, 0, -1, NO_LABEL, src.log_weight + ln1p(w.max_subtree(root)));
+        ws.state(root, 0, 0.0, 0.0, 0, 0, 0, 0, -1, NO_LABEL, src.log_weight + ln1p(w.max_subtree(root)));
         let mut pops = 0;
         let mut children = std::mem::take(&mut ws.children);
         macro_rules! push {
-            ($node:expr, $pos:expr, $cost:expr, $edit:expr, $edits:expr, $comp:expr, $acc:expr, $parent:expr, $via:expr) => {{
+            ($node:expr, $pos:expr, $cost:expr, $edit:expr, $edits:expr, $comp:expr, $acc:expr, $slips:expr, $parent:expr, $via:expr) => {{
                 let node = $node;
                 let cost = $cost;
                 let bound = src.log_weight + ln1p(w.max_subtree(node)) - cost;
                 if !(bound < floor - EPS) {
-                    ws.state(node, $pos, cost, $edit, $edits, $comp, $acc, $parent, $via, bound);
+                    ws.state(node, $pos, cost, $edit, $edits, $comp, $acc, $slips, $parent, $via, bound);
                 }
             }};
         }
@@ -674,13 +727,14 @@ impl Walk<'_> {
             let edits = ws.edits[s] as u32;
             let comp = ws.comp[s] as u32;
             let acc = ws.accents[s] as u32;
+            let slips = ws.slips[s] as u32;
             let parent = s as i32;
 
             if pos == n {
                 if w.is_word(node) {
                     let score = src.log_weight + ln1p(w.frequency(node)) - cost;
                     if score > floor - EPS || results.len() < self.k {
-                        emit(ws.materialize(s), score, edit, edits, comp, acc, src.tier, results);
+                        emit(ws.materialize(s), score, edit, edits, comp, acc, slips, src.tier, results);
                         if results.len() >= self.k {
                             floor = kth_best(results, self.k, &mut ws.scores);
                         }
@@ -690,7 +744,7 @@ impl Walk<'_> {
                 let step = if edits > 0 { cost_completion_after_edit() } else { COMPLETION_STEP };
                 w.children_into(node, &mut children);
                 for &(label, child) in &children {
-                    push!(child, n, cost + step, edit, edits, comp + 1, acc, parent, label);
+                    push!(child, n, cost + step, edit, edits, comp + 1, acc, slips, parent, label);
                 }
                 continue;
             }
@@ -701,14 +755,14 @@ impl Walk<'_> {
             // A half-space the word is spelled with and the typing left out.
             if expected != ZWNJ {
                 if let Some(joined) = find(&children, ZWNJ) {
-                    push!(joined, pos, cost + cost_accent(), edit, edits, comp, acc + 1, parent, ZWNJ);
+                    push!(joined, pos, cost + cost_accent(), edit, edits, comp, acc + 1, slips, parent, ZWNJ);
                 }
             }
             match key_set {
                 None => {
                     // The typed character itself.
                     if let Some(matched) = find(&children, expected) {
-                        push!(matched, pos + 1, cost + self.match_cost(pos, expected), edit, edits, comp, acc, parent, expected);
+                        push!(matched, pos + 1, cost + self.match_cost(pos, expected), edit, edits, comp, acc, slips, parent, expected);
                     }
                     // The same key with its accent left off.
                     for &(label, child) in &children {
@@ -723,6 +777,7 @@ impl Walk<'_> {
                             edits,
                             comp,
                             acc + 1,
+                            slips,
                             parent,
                             label
                         );
@@ -734,7 +789,7 @@ impl Walk<'_> {
                         if !set.contains(&label) {
                             continue;
                         }
-                        push!(child, pos + 1, cost + self.match_cost(pos, label), edit, edits, comp, acc, parent, label);
+                        push!(child, pos + 1, cost + self.match_cost(pos, label), edit, edits, comp, acc, slips, parent, label);
                     }
                     // A letter on the key a word list spells in several units.
                     if let Some(spellings) = self.keys.and_then(|k| k.spellings_at(pos)) {
@@ -746,18 +801,45 @@ impl Walk<'_> {
                                     None => continue 'spelled,
                                     Some(next) => at = next,
                                 }
-                                link = ws.record(at, pos, cost, edit, edits, comp, acc, link, unit);
+                                link = ws.record(at, pos, cost, edit, edits, comp, acc, slips, link, unit);
                             }
                             let last_unit = spelled[spelled.len() - 1];
                             if let Some(last) = w.child(at, last_unit) {
-                                push!(last, pos + 1, cost + self.match_cost(pos, spelled[0]), edit, edits, comp, acc, link, last_unit);
+                                push!(last, pos + 1, cost + self.match_cost(pos, spelled[0]), edit, edits, comp, acc, slips, link, last_unit);
                             }
                         }
                     }
                 }
             }
 
-            if edits < self.max_edits && edit < MAX_EDIT_COST {
+            // The edits on this path that are not slips: what the budget counts.
+            let budget = edits - slips;
+            // Slips: a tap that landed within reach of another key reads as
+            // that key at the substitution's price, but spends nothing of the
+            // edit budget, and further slips pay no second-edit surcharge. A
+            // finger that lands a little wide on every key of a word has made
+            // one kind of error several times, not several mistakes (Fleksy's
+            // US 9,024,882 reads whole words from the taps' shape the same
+            // way). Mixing kinds is still speculation stacked on speculation,
+            // so the first slip on a path that already holds a real edit pays
+            // the surcharge, as a real edit after a slip does below. The noisy
+            // tap eval (`noisy_tap_eval`) is where both rules were measured.
+            if key_set.is_none() {
+                for &(label, child) in &children {
+                    if label == expected || accents::is_accent_of(label, expected) || !self.slip_reach(pos, expected, label) {
+                        continue;
+                    }
+                    let mixed = if budget > 0 && slips == 0 { SECOND_EDIT_SURCHARGE } else { 0.0 };
+                    let sub = discounted(
+                        self.substitution_cost(pos, expected, label),
+                        self.habits.substitution(expected, label),
+                    );
+                    push!(child, pos + 1, cost + sub + mixed, edit, edits + 1, comp, acc, slips + 1, parent, label);
+                }
+            }
+
+            if budget < self.max_edits && edit < MAX_EDIT_COST {
+                // Any earlier edit, slips included, makes this one a second.
                 let surcharge = (if edits + 1 >= 2 { SECOND_EDIT_SURCHARGE } else { 0.0 })
                     + if self.ambiguous { AMBIGUOUS_EDIT_SURCHARGE } else { 0.0 };
                 // Deletion: the typed character was an extra keypress.
@@ -767,18 +849,18 @@ impl Walk<'_> {
                     self.habits.deletion(expected),
                 );
                 if edit + del <= MAX_EDIT_COST {
-                    push!(node, pos + 1, cost + del + surcharge, edit + del, edits + 1, comp, acc, parent, NO_LABEL);
+                    push!(node, pos + 1, cost + del + surcharge, edit + del, edits + 1, comp, acc, slips, parent, NO_LABEL);
                 }
                 for &(label, child) in &children {
                     let on_key = key_set.is_some_and(|set| set.contains(&label));
                     let accented = key_set.is_none() && accents::is_accent_of(label, expected);
-                    if label != expected && !on_key && !accented {
+                    if label != expected && !on_key && !accented && !self.slip_reach(pos, expected, label) {
                         let sub = discounted(
                             self.substitution_cost(pos, expected, label),
                             self.habits.substitution(expected, label),
                         );
                         if edit + sub <= MAX_EDIT_COST {
-                            push!(child, pos + 1, cost + sub + surcharge, edit + sub, edits + 1, comp, acc, parent, label);
+                            push!(child, pos + 1, cost + sub + surcharge, edit + sub, edits + 1, comp, acc, slips, parent, label);
                         }
                     }
                     // Insertion: the word has `label` here and the typing missed it.
@@ -789,7 +871,7 @@ impl Walk<'_> {
                         self.habits.insertion(label),
                     );
                     if edit + ins <= MAX_EDIT_COST {
-                        push!(child, pos, cost + ins + surcharge, edit + ins, edits + 1, comp, acc, parent, label);
+                        push!(child, pos, cost + ins + surcharge, edit + ins, edits + 1, comp, acc, slips, parent, label);
                     }
                 }
                 // Transposition of the next two typed characters, priced by hand.
@@ -807,8 +889,8 @@ impl Walk<'_> {
                 {
                     if let Some(first) = find(&children, typed[pos + 1]) {
                         if let Some(second) = w.child(first, typed[pos]) {
-                            let link = ws.record(first, pos + 1, cost, edit, edits, comp, acc, parent, typed[pos + 1]);
-                            push!(second, pos + 2, cost + transpose + surcharge, edit + transpose, edits + 1, comp, acc, link, typed[pos]);
+                            let link = ws.record(first, pos + 1, cost, edit, edits, comp, acc, slips, parent, typed[pos + 1]);
+                            push!(second, pos + 2, cost + transpose + surcharge, edit + transpose, edits + 1, comp, acc, slips, link, typed[pos]);
                         }
                     }
                 }
@@ -827,6 +909,7 @@ fn emit(
     edits: u32,
     completed: u32,
     accents: u32,
+    slips: u32,
     tier: Tier,
     results: &mut HashMap<Vec<u16>, Candidate>,
 ) {
@@ -847,6 +930,7 @@ fn emit(
             dict_score,
             user_score,
             accents,
+            slips,
         },
     };
     results.insert(word, next);
@@ -1109,6 +1193,307 @@ mod tests {
         let hello = r.iter().find(|c| c.word == "hello").unwrap();
         assert_eq!(Tier::User, hello.tier);
         assert!((hello.score - (500f64.ln() + 11f64.ln())).abs() < 1e-9);
+    }
+
+    /// Which correction gate an eval run applies: the one-edit shape from
+    /// before slips, or `SlipFixes`' careful and eager modes.
+    #[derive(Clone, Copy, Debug, PartialEq)]
+    enum Gate {
+        Old,
+        Careful,
+        Eager,
+    }
+
+    /// decideOrdinary's apply rule, roughly, under `gate`: the best fix with
+    /// no completion must clear the runner-up by ln 4. A reading that mixes
+    /// slips with a real edit is a target only when eager, and even then
+    /// never the runner-up that blocks a cleaner fix. A known word is the
+    /// caller's business.
+    fn fires(got: &[Candidate], gate: Gate) -> Option<&Candidate> {
+        let mixed = |c: &Candidate| c.slips > 0 && c.edits > c.slips;
+        let shaped: Vec<&Candidate> = got
+            .iter()
+            .take(AUTOCORRECT_K)
+            .filter(|c| c.completed_chars == 0 && c.edits >= 1 && c.edits - c.slips <= 1)
+            .filter(|c| match gate {
+                Gate::Old => c.edits == 1,
+                Gate::Careful => !mixed(c),
+                Gate::Eager => true,
+            })
+            .collect();
+        let best = shaped.first()?;
+        let runner = if gate == Gate::Eager && !mixed(best) {
+            shaped.iter().skip(1).find(|c| !mixed(c))
+        } else {
+            shaped.get(1)
+        };
+        (best.score - runner.map_or(1.0, |c| c.score) >= 4f64.ln()).then_some(*best)
+    }
+
+    /// The eval's QWERTY: key centres in key widths, rows a key apart and
+    /// staggered a quarter and three quarters of a key.
+    fn qwerty_keys() -> Vec<(u16, f32, f32)> {
+        let mut keys = Vec::new();
+        for (row, (letters, offset)) in [("qwertyuiop", 0.0f32), ("asdfghjkl", 0.25), ("zxcvbnm", 0.75)].iter().enumerate() {
+            for (col, ch) in letters.chars().enumerate() {
+                keys.push((ch as u16, offset + col as f32, row as f32));
+            }
+        }
+        keys
+    }
+
+    fn centre(ch: char) -> (f32, f32) {
+        let (_, x, y) = qwerty_keys().into_iter().find(|k| k.0 == ch as u16).unwrap();
+        (x, y)
+    }
+
+    /// A tap `share` of the way from `from`'s centre to `to`'s.
+    fn toward(from: char, to: char, share: f32) -> Option<(f32, f32)> {
+        let (a, b) = (centre(from), centre(to));
+        Some((a.0 + (b.0 - a.0) * share, a.1 + (b.1 - a.1) * share))
+    }
+
+    fn touch_search(d: &Dict, typed: &str, taps: Vec<Option<(f32, f32)>>, model: &TouchModel) -> Vec<Candidate> {
+        let units: Vec<u16> = typed.encode_utf16().collect();
+        let scoring = TouchScoring::new(model, taps);
+        search_units(
+            &[src(d, 0.0)],
+            &units,
+            &KeyProximity::qwerty(false),
+            4,
+            &mut Workspace::new(),
+            default_max_edits(units.len()),
+            Some(&scoring),
+            &NO_HABITS,
+            None,
+        )
+    }
+
+    #[test]
+    fn three_wide_taps_are_three_slips_not_three_edits() {
+        let d = dict(&[("the", 1000), ("rho", 5)]);
+        // Every tap a little past the edge of the key meant: "rgw" for "the".
+        let taps = vec![toward('t', 'r', 0.55), toward('h', 'g', 0.55), toward('e', 'w', 0.55)];
+        let model = TouchModel::new(qwerty_keys(), TouchModel::SIGMA);
+        let got = touch_search(&d, "rgw", taps.clone(), &model);
+        let the = got.iter().find(|c| c.word == "the".encode_utf16().collect::<Vec<_>>()).expect("the");
+        assert_eq!((3, 3), (the.edits, the.slips));
+        assert_eq!(0.0, the.edit_cost, "slips spend nothing of the budget");
+        // Without slips a three-letter word allows one edit, and "the" is out of reach.
+        let off = model.clone().with_slip_radius(0.0);
+        assert!(touch_search(&d, "rgw", taps, &off).iter().all(|c| c.word != "the".encode_utf16().collect::<Vec<_>>()));
+    }
+
+    #[test]
+    fn a_slip_leaves_the_edit_budget_for_a_real_edit() {
+        let d = dict(&[("thew", 50)]);
+        // "rhw" for "thew": r for t is a slip, and the missing e is the one
+        // edit a three-letter word allows.
+        let taps = vec![toward('t', 'r', 0.55), Some(centre('h')), Some(centre('w'))];
+        let model = TouchModel::new(qwerty_keys(), TouchModel::SIGMA);
+        let got = touch_search(&d, "rhw", taps, &model);
+        assert_eq!(1, got.len());
+        assert_eq!((2, 1), (got[0].edits, got[0].slips));
+    }
+
+    #[test]
+    fn a_far_key_is_never_a_slip() {
+        let d = dict(&[("cat", 100)]);
+        // A tap dead on q, typed "qat": c is four keys away.
+        let model = TouchModel::new(qwerty_keys(), TouchModel::SIGMA);
+        let got = touch_search(&d, "qat", vec![Some(centre('q')), Some(centre('a')), Some(centre('t'))], &model);
+        assert!(got.iter().all(|c| c.slips == 0));
+    }
+
+    /// The noisy-tap walk eval: words from the real list typed by a Gaussian
+    /// finger, read with and without slips. Prints a table; run with
+    /// `cargo test --release noisy_tap_eval -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn noisy_tap_eval() {
+        let entries = real();
+        let d = Dict::open(wmdict::write(&PackedTrie::of(&entries))).unwrap();
+        let usable: Vec<&(String, i32)> = entries
+            .iter()
+            .filter(|(w, _)| w.len() >= 3 && w.chars().all(|c| c.is_ascii_lowercase()))
+            .collect();
+        let mut cumulative = Vec::with_capacity(usable.len());
+        let mut total = 0f64;
+        for (_, f) in &usable {
+            total += (*f).max(1) as f64;
+            cumulative.push(total);
+        }
+        let keys = qwerty_keys();
+        let nearest = |p: (f32, f32)| {
+            keys.iter()
+                .min_by(|a, b| {
+                    let da = (a.1 - p.0).powi(2) + (a.2 - p.1).powi(2);
+                    let db = (b.1 - p.0).powi(2) + (b.2 - p.1).powi(2);
+                    da.total_cmp(&db)
+                })
+                .unwrap()
+                .0
+        };
+        let mut seed = 0x2545_f491_4f6c_dd1du64;
+        let mut uniform = move || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed >> 11) as f64 / (1u64 << 53) as f64
+        };
+        let ws = &mut Workspace::new();
+        let q = KeyProximity::qwerty(false);
+        for (sx, sy) in [(0.25, 0.3), (0.35, 0.45), (0.45, 0.55)] {
+            let mut cases = Vec::new();
+            while cases.len() < 3000 {
+                let target = uniform() * total;
+                let i = cumulative.partition_point(|&c| c <= target).min(usable.len() - 1);
+                let word = &usable[i].0;
+                let mut taps = Vec::new();
+                for ch in word.chars() {
+                    let (x, y) = centre(ch);
+                    let g = |u: &mut dyn FnMut() -> f64| {
+                        let (u1, u2) = (u().max(1e-12), u());
+                        (-2.0 * u1.ln()).sqrt() * (2.0 * std::f64::consts::PI * u2).cos()
+                    };
+                    let nx = g(&mut uniform) * sx;
+                    let ny = g(&mut uniform) * sy;
+                    taps.push(Some((x + nx as f32, y + ny as f32)));
+                }
+                let typed: Vec<u16> = taps.iter().map(|p| nearest(p.unwrap())).collect();
+                let meant: Vec<u16> = word.encode_utf16().collect();
+                if typed != meant {
+                    cases.push((meant, typed, taps));
+                }
+            }
+            println!("taps sigma ({sx}, {sy}): {} mistyped words", cases.len());
+            for (radius, gate) in [(0.0, Gate::Old), (1.25, Gate::Careful), (1.25, Gate::Eager)] {
+                print!("  {gate:?}");
+                let model = TouchModel::new(keys.clone(), TouchModel::SIGMA).with_slip_radius(radius);
+                let (mut top1, mut top3, mut fired, mut right) = (0, 0, 0, 0);
+                let started = std::time::Instant::now();
+                for (meant, typed, taps) in &cases {
+                    let scoring = TouchScoring::new(&model, taps.clone());
+                    let got = search_units(
+                        &[src(&d, 0.0)], typed, &q, 4, ws, default_max_edits(typed.len()), Some(&scoring), &NO_HABITS, None,
+                    );
+                    if got.first().is_some_and(|c| &c.word == meant) {
+                        top1 += 1;
+                    }
+                    if got.iter().take(3).any(|c| &c.word == meant) {
+                        top3 += 1;
+                    }
+                    // A known word stands.
+                    if d.frequency_of(&String::from_utf16_lossy(typed)) > 0 {
+                        continue;
+                    }
+                    if let Some(best) = fires(&got, gate) {
+                        fired += 1;
+                        if &best.word == meant {
+                            right += 1;
+                        }
+                    }
+                }
+                let n = cases.len() as f64;
+                println!(
+                    "  reach {radius:.2}: walk top1 {:.3} top3 {:.3} | autocorrect fired {:.3} precision {:.3} recall {:.3} | {:.0} us/search",
+                    top1 as f64 / n,
+                    top3 as f64 / n,
+                    fired as f64 / n,
+                    if fired == 0 { 1.0 } else { right as f64 / fired as f64 },
+                    right as f64 / n,
+                    started.elapsed().as_micros() as f64 / n,
+                );
+            }
+        }
+    }
+
+    /// Words the list does not hold, typed right: how often autocorrect
+    /// rewrites them into something else, with and without slips. One word in
+    /// seven between ranks 3,000 and 60,000 is held out of the dictionary and
+    /// stands in for slang, names and anything newer than the list. Run with
+    /// `cargo test --release new_word_eval -- --ignored --nocapture`.
+    #[test]
+    #[ignore]
+    fn new_word_eval() {
+        let mut entries = real();
+        entries.sort_by(|a, b| b.1.cmp(&a.1));
+        let mut kept = Vec::new();
+        let mut held = Vec::new();
+        for (rank, (w, f)) in entries.iter().enumerate() {
+            let plain = w.len() >= 4 && w.chars().all(|c| c.is_ascii_lowercase());
+            if plain && (3_000..60_000).contains(&rank) && rank % 7 == 0 {
+                held.push(w.clone());
+            } else {
+                kept.push((w.clone(), *f));
+            }
+        }
+        let d = Dict::open(wmdict::write(&PackedTrie::of(&kept))).unwrap();
+        let keys = qwerty_keys();
+        let nearest = |p: (f32, f32)| {
+            keys.iter()
+                .min_by(|a, b| {
+                    let da = (a.1 - p.0).powi(2) + (a.2 - p.1).powi(2);
+                    let db = (b.1 - p.0).powi(2) + (b.2 - p.1).powi(2);
+                    da.total_cmp(&db)
+                })
+                .unwrap()
+                .0
+        };
+        let mut seed = 0x9e37_79b9_7f4a_7c15u64;
+        let mut uniform = move || {
+            seed ^= seed << 13;
+            seed ^= seed >> 7;
+            seed ^= seed << 17;
+            (seed >> 11) as f64 / (1u64 << 53) as f64
+        };
+        let ws = &mut Workspace::new();
+        let q = KeyProximity::qwerty(false);
+        println!("{} held-out words", held.len());
+        for (sx, sy) in [(0.25, 0.3), (0.35, 0.45), (0.45, 0.55)] {
+            let mut cases = Vec::new();
+            let mut tries = 0;
+            while cases.len() < 3000 && tries < 200_000 {
+                tries += 1;
+                let word = &held[(uniform() * held.len() as f64) as usize % held.len()];
+                let mut taps = Vec::new();
+                for ch in word.chars() {
+                    let (x, y) = centre(ch);
+                    let (u1, u2) = (uniform().max(1e-12), uniform());
+                    let r = (-2.0 * u1.ln()).sqrt();
+                    let a = 2.0 * std::f64::consts::PI * u2;
+                    taps.push(Some((x + (r * a.cos() * sx) as f32, y + (r * a.sin() * sy) as f32)));
+                }
+                let typed: Vec<u16> = taps.iter().map(|p| nearest(p.unwrap())).collect();
+                // Typed right: every tap landed on its own key.
+                if typed == word.encode_utf16().collect::<Vec<_>>() {
+                    cases.push((typed, taps));
+                }
+            }
+            for (radius, gate) in [(0.0, Gate::Old), (1.25, Gate::Careful), (1.25, Gate::Eager)] {
+                let model = TouchModel::new(keys.clone(), TouchModel::SIGMA).with_slip_radius(radius);
+                let mut fired = 0;
+                let mut by_slips = 0;
+                for (typed, taps) in &cases {
+                    let scoring = TouchScoring::new(&model, taps.clone());
+                    let got = search_units(
+                        &[src(&d, 0.0)], typed, &q, 4, ws, default_max_edits(typed.len()), Some(&scoring), &NO_HABITS, None,
+                    );
+                    if let Some(best) = fires(&got, gate) {
+                        fired += 1;
+                        if best.slips >= 2 {
+                            by_slips += 1;
+                        }
+                    }
+                }
+                println!(
+                    "taps ({sx}, {sy}) {gate:?}: {} new words typed right, {:.3} rewritten ({:.3} by two or more slips)",
+                    cases.len(),
+                    fired as f64 / cases.len() as f64,
+                    by_slips as f64 / cases.len() as f64,
+                );
+            }
+        }
     }
 
     #[test]

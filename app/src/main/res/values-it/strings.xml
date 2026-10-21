@@ -4131,7 +4131,6 @@
     <string name="models_llm_account_title">Account Hugging Face</string>
     <string name="models_llm_available_title">Disponibile per il download</string>
     <string name="models_llm_catalog_info">I modelli migliori sono in alto, non quelli più piccoli. Un modello in alto scrive meglio, ma il download è più grande, la risposta è più lenta e richiede più memoria. Un modello protetto richiede un account Hugging Face. Aggiungi il tuo token sopra, quindi accetta la licenza sulla pagina del modello una volta.</string>
-    <string name="models_llm_compute_info">L\'opzione GPU è sperimentale. L\'app passa automaticamente alla CPU se la GPU non si avvia o se un modello si interrompe durante una risposta. La memoria della GPU è molto inferiore alla memoria di sistema, quindi un modello di grandi dimensioni necessita spesso della CPU. Seleziona CPU qui se la GPU continua a non funzionare.</string>
     <string name="models_llm_compute_title">Calcolo</string>
     <string name="models_llm_empty">Non c\'è ancora nessun modello sul tuo dispositivo. Scaricane uno qui sotto per usare l\'IA offline.</string>
     <string name="models_llm_gated_desc">Questo modello richiede un token Hugging Face</string>
@@ -4142,7 +4141,6 @@
     <string name="models_llm_import_error_no_space">Non c\'è abbastanza spazio di archiviazione per questo file di %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Questo non è un file modello. L\'app richiede un file .litertlm o un file .task.</string>
     <string name="models_llm_import_error_open">L\'app non può aprire il file selezionato.</string>
-    <string name="models_llm_import_info">Puoi importare qualsiasi modello LiteRT-LM in un file .litertlm o .task. Ad esempio, un modello che hai convertito tu stesso o scaricato in un browser.</string>
     <string name="models_llm_import_title">Importa il tuo</string>
     <string name="models_llm_importing_label">Importazione in corso...</string>
     <string name="models_llm_license_action">Pagina della licenza e del modello</string>

@@ -49,11 +49,12 @@
     {
       "id": "speech",
       "property": "speech",
-      "doc": "`:feature:speech`: the whisper.cpp and Whistle native libraries behind the GGML Whisper models and Whistle (`:core:voice`). Only the libraries move; their Kotlin stays in the base.",
+      "doc": "`:feature:speech`: the whisper.cpp and Whistle native libraries behind the GGML Whisper models and Whistle (`:core:voice`), with whisper.cpp's OpenCL build for Adreno GPUs on arm64 (Compute on the Offline Whisper screen). Only the libraries move; their Kotlin stays in the base.",
       "play": "split",
       "libraries": [
         { "name": "libwmwhispercpp.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh" },
         { "name": "libwmwhispercpp_v82.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
+        { "name": "libwmwhispercpp_opencl.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/whispercpp-jni/build.sh", "abis": ["arm64-v8a"] },
         { "name": "libwmwhistle.so", "dir": "core/voice/src/whistle/jniLibs", "abis": ["arm64-v8a"] },
         { "name": "libwmdenoise.so", "dir": "core/voice/src/main/jniLibs", "fdroidBuild": "native/rnnoise-jni/build.sh" }
       ]
@@ -166,11 +167,20 @@
     {
       "id": "llama",
       "property": "llama",
-      "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`). LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",
+      "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`), with libmtmd for vision models' projectors; the OpenCL build for Adreno GPUs is the `llamagpu` gate. LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",
       "play": "split",
       "libraries": [
         { "name": "libwmllama.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.localllm.LlamaNative"] },
         { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+      ]
+    },
+    {
+      "id": "llamagpu",
+      "property": "llamaGpu",
+      "doc": "`:feature:llamagpu`: llama.cpp's OpenCL build for Adreno GPUs (`:core:intelligence`), a third arm64 libwmllama that a process loads instead of a CPU one when Compute is GPU on an Adreno phone. Its own gate so that nobody else downloads it; asked for by `LlamaCpp` and the Compute chips.",
+      "play": "split",
+      "libraries": [
+        { "name": "libwmllama_opencl.so", "dir": "core/intelligence/src/llamagpu/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
       ]
     },
     {
