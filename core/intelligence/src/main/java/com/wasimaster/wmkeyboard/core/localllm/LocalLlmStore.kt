@@ -161,16 +161,18 @@ object LocalLlmStore {
 
     /**
      * Deletes what the engine built for models no longer on disk. Its files
-     * are named after the model file, so one whose name starts with no
-     * model's is left over from a model that was deleted or replaced.
+     * are named for the model file and carry its size
+     * (`gemma-4-E2B-it.litertlm.xnnpack_cache_<mtime>_<bytes>`), so one that
+     * matches no model's name and size is left over from a model that was
+     * deleted, or replaced by a newer file of the same name.
      */
     fun pruneEngineCache(filesDir: File, cacheDir: File) {
-        val stems = modelsDir(filesDir).walkTopDown()
+        val models = modelsDir(filesDir).walkTopDown()
             .filter { it.isFile && it.extension != "part" }
-            .map { it.nameWithoutExtension }
+            .map { it.name to "_${it.length()}" }
             .toList()
         engineCacheDir(cacheDir).listFiles().orEmpty()
-            .filter { cached -> stems.none { cached.name.startsWith(it) } }
+            .filter { cached -> models.none { (name, size) -> cached.name.startsWith(name) && size in cached.name } }
             .forEach { it.deleteRecursively() }
     }
 

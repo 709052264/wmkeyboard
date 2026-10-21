@@ -134,11 +134,21 @@ internal object StorageNames {
         "gif_collections" to R.string.storage_file_gif_collections_label,
         "handwriting_imports" to R.string.storage_file_ink_imports_label,
         "gallery_sent.txt" to R.string.storage_file_gallery_sent_label,
+        "bergamot" to R.string.storage_file_bergamot_label,
+        "xlit" to R.string.storage_file_xlit_label,
+        "backup_install_id" to R.string.storage_file_backup_id_label,
+        "otp_capture.xml" to R.string.storage_file_otp_capture_label,
+        "androidx.work.workdb" to R.string.storage_file_work_db_label,
+        "androidx.work.workdb-wal" to R.string.storage_file_work_db_label,
+        "androidx.work.workdb-shm" to R.string.storage_file_work_db_label,
 
         // Written by Google's libraries (MediaPipe, ML Kit, Play services'
         // flag and download services), not by this app.
         "drishti_asset_cache" to R.string.storage_file_mediapipe_label,
         "mlkit_digital_ink_recognition" to R.string.storage_file_ink_models_label,
+        "com.google.mlkit.translate.models" to R.string.storage_file_mlkit_translate_label,
+        "com.google.mlkit.RemoteConfig" to R.string.storage_file_gms_config_label,
+        "com.google.mlkit.InstallationId" to R.string.storage_file_gms_config_label,
         "mdd_pds_config" to R.string.storage_file_gms_config_label,
         "phenotype_storage_info" to R.string.storage_file_gms_config_label,
         "gms_icing_mdd_garbage_file" to R.string.storage_file_gms_config_label,

@@ -243,6 +243,15 @@
     <string name="storage_file_no_backup_label">Files kept out of backups</string>
     <string name="storage_file_shared_prefs_label">Preference files</string>
     <string name="storage_file_databases_label">Databases</string>
+    <string name="storage_file_llm_cpu_weights_label">%1$s: weights laid out for the processor</string>
+    <string name="storage_file_llm_gpu_weights_label">%1$s: weights laid out for the graphics chip</string>
+    <string name="storage_file_llm_gpu_programs_label">%1$s: programs built for the graphics chip</string>
+    <string name="storage_file_bergamot_label">Offline translation models</string>
+    <string name="storage_file_mlkit_translate_label">Translation models from Google</string>
+    <string name="storage_file_xlit_label">Neural suggestions model</string>
+    <string name="storage_file_backup_id_label">This phone\'s backup name</string>
+    <string name="storage_file_otp_capture_label">Whether codes are read from notifications</string>
+    <string name="storage_file_work_db_label">Background jobs waiting to run</string>
     <string name="storage_file_layout_previews_label">Layout pictures for the pickers</string>
     <string name="storage_file_rboard_label">Rboard theme list and downloads</string>
     <string name="storage_file_gboard_preview_label">Gboard theme being imported</string>

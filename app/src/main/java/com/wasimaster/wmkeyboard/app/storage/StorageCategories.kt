@@ -1332,6 +1332,7 @@ internal object StorageCategories {
             accent = Color(0xFF9575CD),
             group = StorageGroup.CACHE,
             pathsOf = { listOf(LocalLlmStore.engineCacheDir(it.cache)) },
+            itemsOf = { env -> childrenOf(LocalLlmStore.engineCacheDir(env.roots.cache)).map { engineCacheItem(env, it) } },
         ),
         StorageCategory(
             id = "cache_addons",
@@ -1367,6 +1368,29 @@ internal object StorageCategories {
             itemsOf = { env -> unclaimedItems(env, cacheSide = true) },
         ),
     )
+
+    /**
+     * One of LiteRT-LM's files, named for its model and what it holds:
+     * `gemma-4-E2B-it.litertlm_<mtime>_<bytes>_mldrift_program_cache.bin` is
+     * "gemma-4-E2B-it: GPU programs".
+     */
+    private fun engineCacheItem(env: StorageEnv, file: File): StorageItem {
+        val name = file.name
+        val kind = when {
+            "mldrift_program" in name -> R.string.storage_file_llm_gpu_programs_label
+            "mldrift_weight" in name -> R.string.storage_file_llm_gpu_weights_label
+            "xnnpack" in name -> R.string.storage_file_llm_cpu_weights_label
+            else -> 0
+        }
+        val model = name.substringBefore(".litertlm").substringBefore(".task")
+        return StorageItem(
+            id = file.absolutePath,
+            label = if (kind == 0) name else env.context.getString(kind, model),
+            detail = name.takeIf { kind != 0 },
+            bytes = diskUsage(file, env.roots.blockSize),
+            files = listOf(file),
+        )
+    }
 
     /**
      * The app's own scratch directories in the cache root, each refilled the
