@@ -521,6 +521,7 @@ object AiChatController {
             emptyList()
         }
         var lastPartialAt = 0L
+        val noThink = !settings.ai.chatReasoning && isReasoningModel(choice.localModelId)
         return AiToolLoop.run(
             // The round below ignores this: the session was built with its own
             // prompt above and keeps it. Passing the bare one here is what
@@ -545,8 +546,11 @@ object AiChatController {
         ) { _, roundTurns, _, roundPartial ->
             // The session remembers every earlier round itself, so only the
             // newest message is sent: the user's on round one, the tool
-            // results on the rounds after it.
-            val text = roundTurns.last().text
+            // results on the rounds after it. With the Reasoning switch off a
+            // Qwen-style model is asked not to think, by the soft switch its
+            // chat template reads off the end of the user's turn (#882).
+            val last = roundTurns.last()
+            val text = if (noThink && last.role == AiClient.ChatRole.USER) last.text + " /no_think" else last.text
             val pictures = picturesPending
             picturesPending = emptyList()
             val answer = if (pictures.isEmpty()) {
@@ -641,6 +645,9 @@ object AiChatController {
         val config = AiClient.config(chosen).copy(
             netSource = NetSource.AI_CHAT,
             sessionId = UUID.nameUUIDFromBytes("wmkb-chat-$conversationId".toByteArray()).toString(),
+            // The message box's Reasoning switch (#882); a provider with no
+            // field for it is sent nothing.
+            reasoning = settings.ai.chatReasoning,
         )
         val conversation = store(context).get(conversationId)
         val kept = conversation?.messages.orEmpty().withIndex().filter { !it.value.failed }
@@ -939,6 +946,21 @@ object AiChatController {
 
     private fun modelName(choice: ModelChoice): String =
         if (choice.provider == AiProvider.ON_DEVICE) choice.localModelId else ""
+
+    /**
+     * Whether the message box's Reasoning switch does anything for [choice]
+     * (#882): a cloud model whose request has a field for it, or an
+     * on-device model that reasons, which is asked not to by `/no_think`.
+     * Where it does nothing the switch is not shown.
+     */
+    fun reasoningSwitch(settings: KeyboardSettings, choice: ModelChoice?): Boolean = when {
+        choice == null -> false
+        choice.provider == AiProvider.ON_DEVICE -> isReasoningModel(choice.localModelId)
+        else -> {
+            val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+            AiClient.controlsReasoning(chosen)
+        }
+    }
 
     /** Same sniff as the keyboard: catalog flag, else the model's name. */
     private fun isReasoningModel(modelId: String?): Boolean {

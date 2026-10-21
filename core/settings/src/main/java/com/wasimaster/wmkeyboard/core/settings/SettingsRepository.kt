@@ -4773,6 +4773,14 @@ data class AiSettings(
      */
     val panelChat: Boolean = false,
     /**
+     * The chat's Reasoning switch (#882), by the message box on both chats:
+     * on asks a model that can reason to do so and to show it, off asks it
+     * not to. Only sent where the provider has a field for it
+     * (`AiClient.controlsReasoning`). On, so a model that reasons by default
+     * goes on doing so.
+     */
+    val chatReasoning: Boolean = true,
+    /**
      * How much text before the cursor a "carry this on" action sends, in
      * characters.
      *
@@ -11068,6 +11076,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_KEEP_CHATS = booleanPreferencesKey("ai_keep_chats")
         private val AI_CHAT_ENTER_SENDS = booleanPreferencesKey("ai_chat_enter_sends")
         private val AI_PANEL_CHAT = booleanPreferencesKey("ai_panel_chat")
+        private val AI_CHAT_REASONING = booleanPreferencesKey("ai_chat_reasoning")
         private val AI_DOWNLOAD_UNMETERED = booleanPreferencesKey("ai_download_unmetered_only")
         private val AI_BEFORE_CURSOR_CHARS = intPreferencesKey("ai_before_cursor_chars")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
@@ -13364,6 +13373,7 @@ class SettingsRepository(private val context: Context) {
             keepChats = p[AI_KEEP_CHATS] ?: defaults.ai.keepChats,
             chatEnterSends = p[AI_CHAT_ENTER_SENDS] ?: defaults.ai.chatEnterSends,
             panelChat = p[AI_PANEL_CHAT] ?: defaults.ai.panelChat,
+            chatReasoning = p[AI_CHAT_REASONING] ?: defaults.ai.chatReasoning,
             beforeCursorChars = p[AI_BEFORE_CURSOR_CHARS]
                 ?: defaults.ai.beforeCursorChars,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
@@ -18056,6 +18066,8 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[AI_CHAT_ENTER_SENDS] = value }
 
     suspend fun setAiPanelChat(value: Boolean) = editPrefs { it[AI_PANEL_CHAT] = value }
+
+    suspend fun setAiChatReasoning(value: Boolean) = editPrefs { it[AI_CHAT_REASONING] = value }
 
     suspend fun setAiBeforeCursorChars(value: Int) =
         editPrefs { it[AI_BEFORE_CURSOR_CHARS] = value.coerceIn(500, 32_000) }

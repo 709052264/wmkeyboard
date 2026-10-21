@@ -42,9 +42,13 @@ Answers are drawn with their formatting: headings, lists, bold, inline code and 
 
 Maths written in LaTeX is drawn as maths. A formula on its own line, between `$$` signs, inside `\[` and `\]`, in a ` ```math ` block or as a bare `\begin{aligned}`, is set the way a textbook sets it: fractions stacked, roots under their bar, limits over and under a sum, matrices in brackets that grow with them. A wide one scrolls sideways: its cut-off edge fades out and a thin bar under it shows how much more there is, as on a wide table or code block. A formula inside a sentence, between single `$` signs or `\(` and `\)`, sits on the line: `$x^2$` is a small raised 2, and a fraction or a matrix is drawn in place at the size of the text around it. A dollar amount is left alone, so "it costs $5 or $10" stays a sentence. When an answer is inserted into a field, which can't draw any of this, the maths is written out in Unicode instead: `x²`, `√(x+1)`, `(a+b)/c`.
 
+### The message box
+
+The message box is one rounded box. What you write is at the top; along its bottom edge sit its controls: the **Reasoning** switch at the start (see [The Reasoning switch](#the-reasoning-switch)), and **+** and the send arrow at the end. While an answer streams, the send arrow becomes **Stop**.
+
 ### The + menu
 
-The **+** button left of the message box opens a row of icons over it. Long-press an icon to see its name.
+The **+** button in the message box opens a row of icons over it. Long-press an icon to see its name.
 
 - **Pictures from the gallery** opens the system photo picker. Pick several at once.
 - **A file** opens the system file picker, for a text file, a recording, a video or a PDF. See [Sending files](#sending-files).
@@ -102,7 +106,7 @@ Titles aren't something you type. The first line of your first message becomes t
 
 ### Sending pictures
 
-The **+** button left of the message box opens a sheet with **Pictures from the gallery**, **A file**, **Take a photo** and **Paste**. The gallery is the system photo picker, which needs no permission; **Take a photo** asks for the camera the first time. Pick up to four pictures for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
+The **+** button in the message box opens a sheet with **Pictures from the gallery**, **A file**, **Take a photo** and **Paste**. The gallery is the system photo picker, which needs no permission; **Take a photo** asks for the camera the first time. Pick up to four pictures for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
 
 What the model does with them depends on what it can take:
 
@@ -163,7 +167,21 @@ Your pick is remembered for next time, and each conversation also remembers the 
 
 ## Sending, stopping, retrying
 
-Type in the box and hit send. While the answer streams, the send button becomes **Stop**.
+Type in the box and hit send. The app's message box is laid out like the keyboard's: what you write at the top, with the **Reasoning** switch, **+** and send along its bottom edge. While the answer streams, the send button becomes **Stop**.
+
+### The Reasoning switch
+
+**Reasoning**, at the bottom left of the message box, turns a model's reasoning on or off for your next messages. It's one setting for both chats, on by default, and it only shows for a model it does something for:
+
+| Model | On | Off |
+|---|---|---|
+| Claude | Claude thinks as much as it decides the question needs, and its thinking shows in the [Reasoning step](#reasoning-and-tool-calls) | No thinking |
+| Gemini | Gemini's thoughts come back and show in the Reasoning step | Thinking off on Gemini 2.5 Flash and Flash-Lite. Gemini 2.5 Pro and Gemini 3 can't stop thinking, so they're set to the least they allow |
+| Ollama | The model's own default, which for a thinking model is to think | No thinking |
+| OpenAI reasoning models (GPT-5, o-series) | The model's own default | Low reasoning effort, the least every one of them accepts |
+| On-device reasoning models (Qwen 3 and the like) | The model reasons, as before | `/no_think` is added to your message, which those models read as "answer straight away" |
+
+Other providers have no field for it that they all agree on, so the switch isn't there for them.
 
 - **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. A LiteRT-LM model's generation is a native call that can't truly be interrupted. It finishes quietly in the background instead, and the model's own memory of the conversation is kept in step with what you can see. A [GGUF model](/tools/ai/#gguf-models-on-llamacpp) stops at once, and remembers exactly the partial answer.
 - **A failed turn** shows the error in its own bubble with a **Retry** button. Only the newest failed message gets one, because retrying something from the middle of a transcript would answer out of order. Retry re-sends the message the failure was answering, so nothing is duplicated.

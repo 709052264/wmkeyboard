@@ -1842,6 +1842,8 @@ sealed interface AiChatAction {
     data class OpenInApp(val list: Boolean = false) : AiChatAction
     /** The answer at [index] of the conversation, reported (Play builds). */
     data class Report(val index: Int) : AiChatAction
+    /** Flips the chat's Reasoning switch (#882), the setting both chats share. */
+    data object ToggleReasoning : AiChatAction
     /** Shows or hides the composer's "+" menu (#882). */
     data object ToggleAttachMenu : AiChatAction
     /** The "+" menu's Image (the photo picker), File (the document picker) or Photo (the camera), by [mode]. */

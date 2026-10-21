@@ -251,4 +251,7 @@
     <string name="ime_ai_chat_tool_call">%1$s call</string>
     <string name="ime_ai_chat_tool_arguments">Arguments</string>
     <string name="ime_ai_chat_tool_output">Output</string>
+    <!-- The chat composer's Reasoning switch (#882), as TalkBack reads its state. -->
+    <string name="ime_ai_chat_reasoning_on_desc">The model reasons before it answers</string>
+    <string name="ime_ai_chat_reasoning_off_desc">The model answers without reasoning</string>
 </resources>

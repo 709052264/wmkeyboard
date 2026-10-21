@@ -35319,6 +35319,10 @@ open class WMKeyboardService : InputMethodService() {
                     it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
                 }
             is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
+            AiChatAction.ToggleReasoning -> {
+                val on = !state.settings.ai.chatReasoning
+                serviceScope.launch { settingsRepository.setAiChatReasoning(on) }
+            }
             is AiChatAction.RemoveFile ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(files = it.aiChat.files - action.file)) }
             is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)

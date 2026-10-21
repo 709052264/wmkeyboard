@@ -31,9 +31,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Input
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AudioFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
@@ -265,17 +270,22 @@ internal fun AiChatPanel(
                 if (!chat.composing && choices.size > 1) {
                     ModelRow(choices, choice, enabled = run == null, onChat)
                 }
+                val reasoning = remember(choice, state.settings.ai, state.settings.providers) {
+                    AiChatController.reasoningSwitch(state.settings, choice)
+                }
                 Transcript(
                     state = state,
                     messages = conversation?.messages.orEmpty(),
                     live = live,
                     busy = run != null,
+                    reasoning = reasoning,
                     onChat = onChat,
                     modifier = Modifier.weight(1f),
                 )
                 Composer(
                     state = state,
                     generating = run != null,
+                    reasoning = reasoning,
                     // Pictures alone are a message, as on the chat screen.
                     canSend = choice != null && run == null &&
                         (chat.draft.isNotBlank() || chat.images.isNotEmpty() || chat.files.isNotEmpty()),
@@ -358,6 +368,8 @@ private fun Transcript(
     messages: List<AiChatMessage>,
     live: AiChatController.ChatRun?,
     busy: Boolean,
+    /** The composer shows its Reasoning switch; see [ComposerSlots]. */
+    reasoning: Boolean,
     onChat: (AiChatAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -394,7 +406,7 @@ private fun Transcript(
         copied = index
     }
     ChatFocusTargets(
-        chips = composerTargets(state, busy, onChat),
+        chips = composerTargets(state, busy, reasoning, onChat),
         results = when {
             lastAnswer == null || last == null -> emptyList()
             last.failed -> listOf { onChat(AiChatAction.Retry) }
@@ -848,27 +860,32 @@ private fun attachAction(item: AttachItem): AiChatAction = when (item) {
 }
 
 /**
- * The composer's ring slots, in the order [Composer] draws them: the "+"
- * button, the field, Send, then the menu's buttons while it is up; -1 is a
- * slot not on screen.
+ * The composer's ring slots, in the order [Composer] draws them: the field,
+ * then its controls along the bottom (the Reasoning switch where [reasoning]
+ * says the model has one, "+", Send), then the menu's buttons while it is up;
+ * -1 is a slot not on screen.
  */
-private class ComposerSlots(state: KeyboardUiState) {
-    val plus = 0
-    val field = 1
-    val send = 2
+private class ComposerSlots(state: KeyboardUiState, reasoning: Boolean) {
+    val field = 0
+    val reasoning = if (reasoning) 1 else -1
+    private val shift = if (reasoning) 1 else 0
+    val plus = 1 + shift
+    val send = 2 + shift
     val menu: List<AttachItem> = if (state.aiChat.attachMenu) attachItems(state) else emptyList()
-    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 3 + it }
+    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 3 + shift + it }
 }
 
 /** What Enter does on each of the composer's ring slots. Mirrors [ComposerSlots]. */
 private fun composerTargets(
     state: KeyboardUiState,
     generating: Boolean,
+    reasoning: Boolean,
     onChat: (AiChatAction) -> Unit,
 ): List<() -> Unit> = buildList<() -> Unit> {
-    val slots = ComposerSlots(state)
-    add { onChat(AiChatAction.ToggleAttachMenu) }
+    val slots = ComposerSlots(state, reasoning)
     add { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) }
+    if (slots.reasoning >= 0) add { onChat(AiChatAction.ToggleReasoning) }
+    add { onChat(AiChatAction.ToggleAttachMenu) }
     add { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
     slots.menu.forEach { item -> add { onChat(attachAction(item)) } }
 }
@@ -1068,13 +1085,14 @@ fun fileIcon(file: AiChatFile): ImageVector = when {
 private fun Composer(
     state: KeyboardUiState,
     generating: Boolean,
+    reasoning: Boolean,
     canSend: Boolean,
     onChat: (AiChatAction) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    val slots = ComposerSlots(state)
+    val slots = ComposerSlots(state, reasoning)
     val shape = kb.cardShape()
     Column(
         modifier = Modifier
@@ -1100,91 +1118,136 @@ private fun Composer(
                 onRemove = { onChat(AiChatAction.RemoveFile(it)) },
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
+        // One box (#882): what is being written, and under it the controls
+        // that belong to it, the Reasoning switch at the start and "+" and
+        // Send at the end. A tap on the box anywhere but a control is a tap
+        // on the field.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .focusRing(focused == slots.field, shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background(kb.chip)
+                .chipBorder(kb, shape)
+                .clickable(enabled = !chat.composing, indication = null, interactionSource = null) {
+                    onChat(AiChatAction.FocusComposer)
+                }
+                .padding(start = 10.dp, end = 5.dp, top = 7.dp, bottom = 5.dp),
         ) {
-            ChatIconButton(
-                Icons.Outlined.Add,
-                stringResource(R.string.ime_ai_chat_attach_menu_desc),
-                active = chat.attachMenu,
-                modifier = Modifier.focusRing(focused == slots.plus, CircleShape),
-            ) { onChat(AiChatAction.ToggleAttachMenu) }
-            Spacer(Modifier.width(6.dp))
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(shape)
-                    .focusRing(focused == slots.field, shape)
-                    .background(kb.chip)
-                    .chipBorder(kb, shape)
-                    .clickable(enabled = !chat.composing) { onChat(AiChatAction.FocusComposer) }
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
-            ) {
-                chat.attachment?.let { attachment ->
-                    Text(
-                        when {
-                            // A tool's text is named by the tool it came from (#352).
-                            attachment.label.isNotEmpty() -> stringResource(
-                                if (attachment.fromSelection) {
-                                    R.string.ime_ai_chat_attached_tool_selection
-                                } else {
-                                    R.string.ime_ai_chat_attached_tool
-                                },
-                                attachment.label,
-                            )
-                            else -> pluralStringResource(
-                                if (attachment.fromSelection) {
-                                    R.plurals.ime_ai_chat_attached_selection
-                                } else {
-                                    R.plurals.ime_ai_chat_attached_field
-                                },
-                                attachment.text.length,
-                                attachment.text.length,
-                            )
-                        },
-                        color = kb.accent,
-                        fontSize = 10.sp,
-                        lineHeight = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = 3.dp),
-                    )
-                }
-                val hint = stringResource(R.string.ime_ai_chat_composer_hint)
-                if (chat.composing) {
-                    // The caret, and a tap that moves it, come from the capture
-                    // ladder's own editor; this field is one of its buffers.
-                    ClipEditText(
-                        text = chat.draft,
-                        placeholder = hint,
-                        textColor = kb.chipText,
-                        placeholderColor = kb.secondaryText,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
-                    )
-                } else {
-                    Text(
-                        chat.draft.ifEmpty { hint },
-                        color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
-                        fontSize = 14.sp,
-                        lineHeight = 19.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+            chat.attachment?.let { attachment ->
+                Text(
+                    when {
+                        // A tool's text is named by the tool it came from (#352).
+                        attachment.label.isNotEmpty() -> stringResource(
+                            if (attachment.fromSelection) {
+                                R.string.ime_ai_chat_attached_tool_selection
+                            } else {
+                                R.string.ime_ai_chat_attached_tool
+                            },
+                            attachment.label,
+                        )
+                        else -> pluralStringResource(
+                            if (attachment.fromSelection) {
+                                R.plurals.ime_ai_chat_attached_selection
+                            } else {
+                                R.plurals.ime_ai_chat_attached_field
+                            },
+                            attachment.text.length,
+                            attachment.text.length,
+                        )
+                    },
+                    color = kb.accent,
+                    fontSize = 10.sp,
+                    lineHeight = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = 3.dp, end = 5.dp),
+                )
             }
-            Spacer(Modifier.width(6.dp))
-            ChatIconButton(
-                if (generating) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.Send,
-                stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
-                active = true,
-                enabled = generating || canSend,
-                size = 36.dp,
-                modifier = Modifier.focusRing(focused == slots.send, CircleShape),
-            ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+            val hint = stringResource(R.string.ime_ai_chat_composer_hint)
+            if (chat.composing) {
+                // The caret, and a tap that moves it, come from the capture
+                // ladder's own editor; this field is one of its buffers.
+                ClipEditText(
+                    text = chat.draft,
+                    placeholder = hint,
+                    textColor = kb.chipText,
+                    placeholderColor = kb.secondaryText,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 5.dp)
+                        .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
+                )
+            } else {
+                Text(
+                    chat.draft.ifEmpty { hint },
+                    color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(end = 5.dp),
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (reasoning) {
+                    ReasoningSwitch(
+                        on = state.settings.ai.chatReasoning,
+                        modifier = Modifier.focusRing(focused == slots.reasoning, CircleShape),
+                    ) { onChat(AiChatAction.ToggleReasoning) }
+                }
+                Spacer(Modifier.weight(1f))
+                ChatIconButton(
+                    Icons.Outlined.Add,
+                    stringResource(R.string.ime_ai_chat_attach_menu_desc),
+                    active = chat.attachMenu,
+                    modifier = Modifier.focusRing(focused == slots.plus, CircleShape),
+                ) { onChat(AiChatAction.ToggleAttachMenu) }
+                Spacer(Modifier.width(6.dp))
+                ChatIconButton(
+                    if (generating) Icons.Outlined.Stop else Icons.Outlined.ArrowUpward,
+                    stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
+                    active = true,
+                    enabled = generating || canSend,
+                    modifier = Modifier.focusRing(focused == slots.send, CircleShape),
+                ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
+            }
         }
+    }
+}
+
+/**
+ * The Reasoning switch at the start of the composer's controls (#882): a
+ * small pill, lit while the model is asked to reason. It is the chat's own
+ * setting, the same one the app's chat shows, and only here for a model it
+ * does something for.
+ */
+@Composable
+private fun ReasoningSwitch(on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = RoundedCornerShape(50)
+    val ink = if (on) kb.chipActiveText else kb.chipText.copy(alpha = kb.chipText.alpha * 0.75f)
+    val label = stringResource(R.string.ime_ai_chat_reasoning)
+    val state = stringResource(if (on) R.string.ime_ai_chat_reasoning_on_desc else R.string.ime_ai_chat_reasoning_off_desc)
+    Row(
+        modifier = modifier
+            .clip(shape)
+            .background(if (on) kb.chipActive else Color.Transparent)
+            .border(1.dp, ink.copy(alpha = if (on) 0f else 0.35f), shape)
+            .toggleable(value = on, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { onClick() })
+            .semantics { stateDescription = state }
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Psychology, contentDescription = null, tint = ink, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(label, color = ink, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Medium, maxLines = 1)
     }
 }
 

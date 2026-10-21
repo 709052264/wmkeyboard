@@ -131,4 +131,35 @@ class AiClientChatBodyTest {
         assertEquals(1, normalized.size)
         assertEquals("question\n\nagain", normalized.single().text)
     }
+
+    @Test
+    fun `the reasoning switch reaches each provider's own field`() {
+        fun parse(text: String) = json.parseToJsonElement(text).jsonObject
+        val claudeOn = parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(reasoning = true), "s", chat, 1000))
+        assertEquals("adaptive", claudeOn["thinking"]!!.jsonObject["type"]!!.jsonPrimitive.content)
+        val claudeOff = parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(reasoning = false), "s", chat, 1000))
+        assertEquals("disabled", claudeOff["thinking"]!!.jsonObject["type"]!!.jsonPrimitive.content)
+        assertNull(parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC), "s", chat, 1000))["thinking"])
+
+        val flashOff = parse(AiClient.geminiBody("s", chat, null, reasoning = false, model = "gemini-2.5-flash"))
+        assertEquals(
+            0,
+            flashOff["generationConfig"]!!.jsonObject["thinkingConfig"]!!.jsonObject["thinkingBudget"]!!.jsonPrimitive.content.toInt(),
+        )
+        val threeOff = parse(AiClient.geminiBody("s", chat, null, reasoning = false, model = "gemini-3.5-flash"))
+        assertEquals(
+            "minimal",
+            threeOff["generationConfig"]!!.jsonObject["thinkingConfig"]!!.jsonObject["thinkingLevel"]!!.jsonPrimitive.content,
+        )
+        assertNull(parse(AiClient.geminiBody("s", chat, null))["generationConfig"])
+
+        val ollamaOff = parse(AiClient.ollamaBody(config(AiProvider.OLLAMA).copy(reasoning = false), "s", chat, null))
+        assertEquals("false", ollamaOff["think"]!!.jsonPrimitive.content)
+        assertNull(parse(AiClient.ollamaBody(config(AiProvider.OLLAMA).copy(reasoning = true), "s", chat, null))["think"])
+
+        val gptOff = AiClient.Config(AiProvider.OPENAI, "k", "gpt-5.6-luna", "", reasoning = false)
+        assertEquals("low", parse(AiClient.openAiCompatibleBody(gptOff, "s", chat, null))["reasoning_effort"]!!.jsonPrimitive.content)
+        val plainOff = config(AiProvider.OPENAI).copy(reasoning = false)
+        assertNull(parse(AiClient.openAiCompatibleBody(plainOff, "s", chat, null))["reasoning_effort"])
+    }
 }

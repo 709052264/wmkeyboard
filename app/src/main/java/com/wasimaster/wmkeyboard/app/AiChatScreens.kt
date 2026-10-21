@@ -23,7 +23,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.core.content.FileProvider
 import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
+import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OutlinedFlag
@@ -68,7 +73,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
@@ -83,7 +87,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScaffoldDefaults
 import androidx.compose.material3.TopAppBarDefaults
@@ -617,6 +620,9 @@ internal fun AiChatScreen(
                 },
                 onStop = { AiChatController.stop(context) },
                 onAttach = { attachSheet = true }.takeIf { run == null },
+                reasoning = settings.watch { it.ai.chatReasoning }
+                    .takeIf { AiChatController.reasoningSwitch(settings.value, choice) },
+                onReasoning = { on -> scope.launch { SettingsRepository(context.applicationContext).setAiChatReasoning(on) } },
             )
         }
     }
@@ -1170,6 +1176,11 @@ private fun ChatPictures(names: List<String>, modifier: Modifier = Modifier, onR
 
 private val PICTURE_SIZE = 72.dp
 
+/**
+ * The message box (#882): one rounded box holding what is being written, and
+ * under it the controls that belong to it, the Reasoning switch at the start
+ * and "+" and Send at the end, the same as the keyboard's chat.
+ */
 @Composable
 private fun Composer(
     draft: String,
@@ -1180,37 +1191,68 @@ private fun Composer(
     onStop: () -> Unit,
     /** Opens the "+" sheet; null while an answer is coming in. */
     onAttach: (() -> Unit)? = null,
+    /** The Reasoning switch's state; null hides it, for a model it does nothing for. */
+    reasoning: Boolean? = null,
+    onReasoning: (Boolean) -> Unit = {},
 ) {
-    Row(
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.Bottom,
     ) {
-        IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
-            Icon(Icons.Outlined.Add, contentDescription = stringResource(ImeR.string.ime_ai_chat_attach_menu_desc))
-        }
-        OutlinedTextField(
-            value = draft,
-            onValueChange = onDraft,
-            placeholder = { Text(stringResource(ImeR.string.ime_ai_chat_composer_hint)) },
-            modifier = Modifier.weight(1f),
-            maxLines = 5,
-        )
-        Spacer(Modifier.width(8.dp))
-        if (generating) {
-            FilledIconButton(onClick = onStop) {
-                Icon(
-                    Icons.Outlined.Stop,
-                    contentDescription = stringResource(ImeR.string.ime_ai_chat_stop),
-                )
-            }
-        } else {
-            FilledIconButton(onClick = onSend, enabled = canSend) {
-                Icon(
-                    Icons.AutoMirrored.Outlined.Send,
-                    contentDescription = stringResource(ImeR.string.ime_ai_chat_send),
-                )
+        Column(Modifier.padding(start = 4.dp, end = 6.dp, top = 2.dp, bottom = 6.dp)) {
+            TextField(
+                value = draft,
+                onValueChange = onDraft,
+                placeholder = { Text(stringResource(ImeR.string.ime_ai_chat_composer_hint)) },
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 6,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                ),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (reasoning != null) {
+                    FilterChip(
+                        selected = reasoning,
+                        onClick = { onReasoning(!reasoning) },
+                        label = { Text(stringResource(ImeR.string.ime_ai_chat_reasoning)) },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Psychology, contentDescription = null, modifier = Modifier.size(18.dp))
+                        },
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = { onAttach?.invoke() }, enabled = onAttach != null) {
+                    Icon(Icons.Outlined.Add, contentDescription = stringResource(ImeR.string.ime_ai_chat_attach_menu_desc))
+                }
+                if (generating) {
+                    FilledIconButton(onClick = onStop) {
+                        Icon(
+                            Icons.Outlined.Stop,
+                            contentDescription = stringResource(ImeR.string.ime_ai_chat_stop),
+                        )
+                    }
+                } else {
+                    FilledIconButton(onClick = onSend, enabled = canSend) {
+                        Icon(
+                            Icons.Outlined.ArrowUpward,
+                            contentDescription = stringResource(ImeR.string.ime_ai_chat_send),
+                        )
+                    }
+                }
             }
         }
     }
