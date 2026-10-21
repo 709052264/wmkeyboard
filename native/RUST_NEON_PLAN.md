@@ -378,7 +378,19 @@ them so no caller changed.
   byte-identical reports before (step 3's merge, Kotlin decoders) and after.
   The only test changes are three loop tests that read the decoder's
   workspace, which now read the oracle's.
-SIZE_LATENCY_PLACEHOLDER
+- Latency (`GestureLatencyBench` and `PredictionLatencyBench`, before at
+  step 3's merge and after, alternating, two runs each; the machine was not
+  idle, load average 8-17 with other sessions building): a whole stroke
+  with six previews p50 13.5/14.3 -> 10.4/11.3 ms, p99 48.9/55.0 -> 42.3/43.7
+  ms; one decode against the 4x lexicon p50 4.45/4.41 -> 3.42/4.54 ms; with
+  a 6,445-word shape store 4.15/3.59 -> 3.12/2.68 ms. Typing walks the same
+  Rust code before and after, and its keystroke p50 (0.382/0.345 -> 0.490/
+  0.382 ms) moved with the load, not the change. Worth re-running idle.
+- Size: arm64-v8a 2,010,704 -> 2,116,264 B (+105,560), armeabi-v7a
+  1,462,992 -> 1,544,696 (+81,704), x86_64 2,297,184 -> 2,423,656
+  (+126,472), against step 3's libraries, which already carried an unwired
+  early build of the stroke decoder. The whole of glide against a step-3
+  arm64 build without it: 1,887,872 -> 2,116,264 (+228,392).
 
 ### Step 5: what stays in Kotlin, and what porting it would take
 
