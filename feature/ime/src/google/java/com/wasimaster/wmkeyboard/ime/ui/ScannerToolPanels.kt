@@ -1,12 +1,10 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
-import com.wasimaster.wmkeyboard.core.modules.DownloadedModuleGate
 import com.wasimaster.wmkeyboard.core.modules.FeatureModules
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.tools.OnlineOcr
 import com.wasimaster.wmkeyboard.ime.ProviderPicks
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.text.format.Formatter
@@ -17,8 +15,6 @@ import android.view.Surface
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.camera.core.Camera
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.core.UseCaseGroup
@@ -31,8 +27,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.detectTransformGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,7 +45,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
@@ -59,19 +52,16 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Deselect
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FlashlightOn
-import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Translate
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -96,12 +86,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.gms.tasks.Task
 import com.wasimaster.wmkeyboard.common.R as CommonR
-import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
-import com.wasimaster.wmkeyboard.core.clipboard.LinkPreview
 import com.wasimaster.wmkeyboard.core.modules.ModuleState
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
@@ -113,28 +99,17 @@ import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.settings.MeteredDecision
 import com.wasimaster.wmkeyboard.core.settings.MeteredFeature
-import com.wasimaster.wmkeyboard.core.tools.EggLinks
-import com.wasimaster.wmkeyboard.core.tools.LinkPreviewClient
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognizer
 import com.wasimaster.wmkeyboard.core.ocr.MlKitScript
 import com.wasimaster.wmkeyboard.ime.ocr.MlKitRecognizers
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import com.wasimaster.wmkeyboard.ime.FocusRegion
-import com.wasimaster.wmkeyboard.ime.KeyboardClipboard
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
-import com.wasimaster.wmkeyboard.ime.kdeconnect.KdeConnectHub
-import com.wasimaster.wmkeyboard.core.kdeconnect.KdePairCode
-import com.wasimaster.wmkeyboard.core.media.gallery.MediaPrep
-import com.wasimaster.wmkeyboard.app.GalleryPickActivity
-import android.net.Uri
 import java.io.File
 import java.util.Locale
-import java.util.concurrent.Executors
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlinx.coroutines.Dispatchers
@@ -736,7 +711,7 @@ private fun OcrPackPrompt(
                     fontSize = 12.sp,
                 )
             }
-            OcrPromptButton(Icons.Outlined.Close, stringResource(CommonR.string.common_cancel)) {
+            ScannerPromptButton(Icons.Outlined.Close, stringResource(CommonR.string.common_cancel)) {
                 feedback()
                 OcrPacks.cancel(pack)
             }
@@ -761,7 +736,7 @@ private fun OcrPackPrompt(
             textAlign = TextAlign.Center,
         )
         if (!meteredBlocked) {
-            OcrPromptButton(
+            ScannerPromptButton(
                 Icons.Outlined.FileDownload,
                 stringResource(
                     when {
@@ -780,111 +755,6 @@ private fun OcrPackPrompt(
                 }
             }
         }
-    }
-}
-
-/**
- * The scanner's reading library on a build with native delivery
- * ([FeatureModules.scanner]): ML Kit's bundled text and barcode readers,
- * fetched the first time either is opened. The same shape as
- * [OcrPackPrompt], data saver asked on the button.
- */
-@Composable
-private fun ScannerLibraryPrompt(state: KeyboardUiState) {
-    val kb = LocalKbTheme.current
-    val context = LocalContext.current
-    val feedback = LocalKeyPressFeedback.current
-    val gate = FeatureModules.scanner
-    val module by gate.state.collectAsState()
-    var meteredAsked by remember { mutableStateOf(false) }
-    var meteredBlocked by remember { mutableStateOf(false) }
-    val size = (gate as? DownloadedModuleGate)?.missingBytes ?: 0L
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        val current = module
-        if (current is ModuleState.Installing) {
-            if (current.totalBytes > 0L) {
-                CircularProgressIndicator(
-                    progress = { (current.bytes.toFloat() / current.totalBytes).coerceIn(0f, 1f) },
-                    color = kb.accent,
-                )
-            } else {
-                CircularProgressIndicator(color = kb.accent)
-            }
-            Text(
-                stringResource(R.string.ime_scanner_library_downloading),
-                color = kb.secondaryText,
-                fontSize = 13.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 12.dp),
-            )
-            return@Column
-        }
-        val consent = (current as? ModuleState.Missing)?.consent
-        Text(
-            when {
-                consent != null -> stringResource(R.string.ime_scanner_library_consent)
-                meteredBlocked -> stringResource(R.string.ime_metered_off_body)
-                meteredAsked -> stringResource(R.string.ime_metered_ask_body)
-                (current as? ModuleState.Missing)?.failed == true -> stringResource(R.string.ime_scanner_library_failed)
-                else -> stringResource(R.string.ime_scanner_library_body, Formatter.formatShortFileSize(context, size))
-            },
-            color = kb.secondaryText,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-        )
-        if (!meteredBlocked && consent == null) {
-            OcrPromptButton(
-                Icons.Outlined.FileDownload,
-                stringResource(
-                    when {
-                        meteredAsked -> R.string.ime_metered_allow_action
-                        (current as? ModuleState.Missing)?.failed == true -> CommonR.string.common_retry
-                        else -> CommonR.string.common_download
-                    },
-                ),
-            ) {
-                feedback()
-                when (state.dataSaver.decide(MeteredFeature.DOWNLOADS)) {
-                    MeteredDecision.ALLOWED -> gate.requestInstall()
-                    MeteredDecision.BLOCKED -> meteredBlocked = true
-                    MeteredDecision.ASK -> if (meteredAsked) gate.requestInstall() else meteredAsked = true
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OcrPromptButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    val kb = LocalKbTheme.current
-    Row(
-        modifier = Modifier
-            .padding(top = 12.dp)
-            .clip(RoundedCornerShape(kb.toolRadiusDp.dp))
-            .background(kb.toolCircleActive)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp), tint = kb.toolCircleActiveIcon)
-        Text(
-            label,
-            color = kb.toolCircleActiveIcon,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(start = 6.dp),
-        )
     }
 }
 
@@ -1179,594 +1049,6 @@ private fun OcrResultView(
             }
         }
     }
-}
-
-// ---- barcode / QR scanner tool ----
-
-/** A decoded barcode frozen on screen, awaiting insert/copy/rescan. */
-private class ScannedCode(val value: String, @StringRes val formatLabelRes: Int)
-
-/**
- * Barcode & QR scanner: a live viewfinder that decodes continuously
- * (ML Kit, on-device); the first hit freezes into a result card with
- * insert and copy actions. Insert types the barcode's text into the
- * editor, like any other key press. The button in the bottom-left corner
- * reads a code off a saved picture instead, picked with Android's photo
- * picker, and lands on the same card.
- */
-@Composable
-internal fun QrScanPanel(
-    state: KeyboardUiState,
-    onInsert: (String) -> Unit,
-    onOpenUrl: (String) -> Unit,
-    onRequestPermission: () -> Unit,
-    onClose: () -> Unit,
-) {
-    // Full-bleed like the OCR tool: the toolbar hides, the viewfinder
-    // absorbs its height and the back button sits at the very top instead
-    // of below a blank strip.
-    val height = keyRowsHeight(state) + fullBleedHiddenRows(state)
-    val context = LocalContext.current
-
-    var hasPermission by remember { mutableStateOf(hasCameraPermission(context)) }
-    PermissionRecheck { hasPermission = hasCameraPermission(context) }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height),
-    ) {
-        val scannerModule by FeatureModules.scanner.state.collectAsState()
-        val libraryReady = remember(scannerModule) { MlKitRecognizers.barcodeReady() }
-        if (hasPermission && !libraryReady) {
-            ScannerLibraryPrompt(state)
-        } else if (hasPermission) {
-            QrScanContent(
-                state = state,
-                onInsert = onInsert,
-                onOpenUrl = onOpenUrl,
-                haptics = state.settings.scanner.qrScanHaptics,
-                autoInsert = state.settings.scanner.qrScanAutoInsert,
-                linkPreviews = state.settings.scanner.qrScanLinkPreviews,
-            )
-        } else {
-            CameraPermissionPrompt(
-                stringResource(R.string.ime_scanner_qr_permission_body),
-                onRequestPermission,
-            )
-        }
-        val feedback = LocalKeyPressFeedback.current
-        Box(modifier = Modifier.align(Alignment.TopStart).padding(8.dp)) {
-            CameraChipButton(
-                icon = Icons.AutoMirrored.Outlined.ArrowBack,
-                description = stringResource(R.string.ime_scanner_qr_close_desc),
-                active = false,
-            ) {
-                feedback()
-                onClose()
-            }
-        }
-    }
-}
-
-@Composable
-private fun QrScanContent(
-    state: KeyboardUiState,
-    onInsert: (String) -> Unit,
-    onOpenUrl: (String) -> Unit,
-    haptics: Boolean,
-    autoInsert: Boolean,
-    linkPreviews: Boolean,
-) {
-    val kb = LocalKbTheme.current
-    val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
-    val feedback = LocalKeyPressFeedback.current
-    val scope = rememberCoroutineScope()
-
-    var result by remember { mutableStateOf<ScannedCode?>(null) }
-    // A computer's pairing code (WMK Desktop): pairs straight away rather
-    // than typing the link. The name it shows while that happens.
-    var pairingWith by remember { mutableStateOf<String?>(null) }
-    // A picked picture being decoded and read.
-    var readingPicture by remember { mutableStateOf(false) }
-    var camera by remember { mutableStateOf<Camera?>(null) }
-    var torchOn by remember { mutableStateOf(false) }
-    // Current zoom, driven by pinch and shown as a pill. Zooming into a
-    // small or distant code is often the difference between a decode and
-    // not. Resets to 1x whenever the camera rebinds (e.g. after Rescan).
-    var zoomRatio by remember(camera) { mutableFloatStateOf(1f) }
-
-    val provider by produceState<ProcessCameraProvider?>(null) {
-        value = withContext(Dispatchers.IO) { ProcessCameraProvider.getInstance(context).get() }
-    }
-    val scanner = remember { BarcodeScanning.getClient() }
-    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
-    DisposableEffect(Unit) {
-        onDispose {
-            scanner.close()
-            analysisExecutor.shutdown()
-        }
-    }
-
-    val previewView = remember {
-        PreviewView(context).apply {
-            scaleType = PreviewView.ScaleType.FILL_CENTER
-            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
-        }
-    }
-
-    // A decoded code, from the camera or a picture: freeze into the result
-    // card either way. With auto-insert the text is already committed and
-    // the card shows what went in (Rescan re-arms).
-    fun found(hit: Barcode) {
-        val raw = hit.rawValue
-        if (raw.isNullOrEmpty() || result != null) return
-        if (haptics) feedback()
-        result = ScannedCode(raw, barcodeFormatLabelRes(hit.format))
-        val pair = KdePairCode.parse(raw)
-        if (pair != null) {
-            KdeConnectHub.attach(context)
-            if (KdeConnectHub.pairByCode(raw)) pairingWith = pair.name
-        } else if (autoInsert) {
-            onInsert(raw)
-        }
-    }
-
-    // A picture back from the photo picker. Collected on every resume: the
-    // picker is its own activity, so the keyboard comes back with the pick.
-    fun readPicture(uri: Uri) {
-        readingPicture = true
-        scope.launch {
-            val hit = withContext(Dispatchers.Default) {
-                val bitmap = MediaPrep.decode(context, uri, QR_PICTURE_MAX_SIDE) ?: return@withContext null
-                runCancellable {
-                    scanner.process(InputImage.fromBitmap(bitmap, 0)).await()
-                        .firstOrNull { !it.rawValue.isNullOrEmpty() }
-                }.getOrNull()
-            }
-            readingPicture = false
-            if (hit == null) {
-                Toast.makeText(context, R.string.ime_scanner_qr_picture_none, Toast.LENGTH_SHORT).show()
-            } else {
-                found(hit)
-            }
-        }
-    }
-    PermissionRecheck { GalleryPickActivity.consumeQr()?.let(::readPicture) }
-
-    // Decode frames only while there's no result on screen. A frame is
-    // skipped when the previous one is still being decoded (busy flag)
-    // instead of queueing — barcodes don't need every frame.
-    val scanning = result == null
-    DisposableEffect(provider, scanning) {
-        val cameraProvider = provider
-        var busy = false
-        if (cameraProvider != null && scanning) {
-            val preview = Preview.Builder().build().also {
-                it.surfaceProvider = previewView.surfaceProvider
-            }
-            val analysis = ImageAnalysis.Builder()
-                .setResolutionSelector(
-                    ResolutionSelector.Builder()
-                        .setResolutionStrategy(
-                            ResolutionStrategy(
-                                Size(1280, 720),
-                                ResolutionStrategy.FALLBACK_RULE_CLOSEST_LOWER_THEN_HIGHER,
-                            )
-                        )
-                        .build()
-                )
-                .build()
-            analysis.setAnalyzer(analysisExecutor) { proxy ->
-                if (busy || result != null) {
-                    proxy.close()
-                    return@setAnalyzer
-                }
-                busy = true
-                // toBitmap + rotation instead of the mediaImage path: one
-                // copy per analyzed frame, but no experimental CameraX API.
-                val bitmap = proxy.toBitmap()
-                val rotation = proxy.imageInfo.rotationDegrees
-                proxy.close()
-                scanner.process(InputImage.fromBitmap(bitmap, rotation))
-                    .addOnSuccessListener { barcodes ->
-                        barcodes.firstOrNull { !it.rawValue.isNullOrEmpty() }?.let(::found)
-                    }
-                    .addOnCompleteListener { busy = false }
-            }
-            camera = runCatching {
-                cameraProvider.unbindAll()
-                cameraProvider.bindToLifecycle(
-                    lifecycleOwner,
-                    backOrFrontSelector(cameraProvider) ?: return@runCatching null,
-                    preview,
-                    analysis,
-                )
-            }.getOrNull()
-            camera?.cameraControl?.enableTorch(torchOn)
-        }
-        onDispose {
-            camera = null
-            runCatching { cameraProvider?.unbindAll() }
-        }
-    }
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        val code = result
-        if (code != null) {
-            // A scanned code that is a bare URL gets an Open button and,
-            // when link previews are on, its page title/description below.
-            val url = remember(code) { ClipLinks.asUrl(code.value) }
-            var preview by remember(code) { mutableStateOf<LinkPreview?>(null) }
-            if (linkPreviews && url != null) {
-                LaunchedEffect(url) {
-                    preview = withContext(Dispatchers.IO) { LinkPreviewClient.fetch(url) }
-                }
-            }
-            // The ring lives on this result card only; the viewfinder below
-            // publishes nothing. Open leads when the code is a URL.
-            PanelFocusTarget(
-                panel = PanelMode.QR_SCAN,
-                region = FocusRegion.ACTIONS,
-                count = if (url != null) 4 else 3,
-                columns = 4,
-            ) { index ->
-                val slot = if (url != null) index else index + 1
-                when (slot) {
-                    0 -> url?.let { feedback(); onOpenUrl(it) }
-                    1 -> { feedback(); result = null; pairingWith = null }
-                    2 -> {
-                        feedback()
-                        copyPlainText(context, code.value)
-                        Toast.makeText(
-                            context,
-                            R.string.ime_scanner_copied_toast,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                    3 -> onInsert(code.value)
-                }
-            }
-            val focusedAction = state.focusedIndex(FocusRegion.ACTIONS)
-                ?.let { if (url != null) it else it + 1 }
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                LinkPreviewCard(linkPreviews && url != null && pairingWith == null, preview)
-                pairingWith?.let { name ->
-                    Text(
-                        stringResource(R.string.ime_kde_pairing_by_code, name.ifEmpty { stringResource(R.string.ime_kde_pairing_by_code_unnamed) }),
-                        color = kb.suggestionText,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Medium,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                }
-                // Easter egg: the one link every QR scanner eventually meets.
-                // Matched on the raw payload, not on `url` — ClipLinks.asUrl
-                // only accepts a bare URL and a rickroll deserves recognition
-                // even when it travels with company.
-                if (remember(code) { EggLinks.isRickroll(code.value) }) {
-                    Text(
-                        stringResource(R.string.ime_qr_rickroll_info),
-                        color = kb.secondaryText,
-                        fontSize = 12.sp,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(4.dp))
-                }
-                Text(
-                    code.value,
-                    color = kb.suggestionText,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    stringResource(code.formatLabelRes),
-                    color = kb.secondaryText,
-                    fontSize = 12.sp,
-                )
-                Spacer(Modifier.height(12.dp))
-                // Open (URLs only) gets its own row above the rest, so the
-                // primary action isn't crowded in with Rescan/Copy/Insert.
-                if (url != null) {
-                    CaptureActionButton(
-                        icon = Icons.AutoMirrored.Outlined.OpenInNew,
-                        label = stringResource(R.string.ime_scanner_qr_open_action),
-                        accent = false,
-                        focused = focusedAction == 0,
-                    ) {
-                        feedback()
-                        onOpenUrl(url)
-                    }
-                    Spacer(Modifier.height(10.dp))
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        12.dp, Alignment.CenterHorizontally,
-                    ),
-                ) {
-                    CaptureActionButton(
-                        icon = Icons.Outlined.Refresh,
-                        label = stringResource(R.string.ime_scanner_scan_again_action),
-                        accent = false,
-                        focused = focusedAction == 1,
-                    ) {
-                        feedback()
-                        result = null
-                        pairingWith = null
-                    }
-                    CaptureActionButton(
-                        icon = Icons.Outlined.ContentCopy,
-                        label = stringResource(CommonR.string.common_copy),
-                        accent = false,
-                        focused = focusedAction == 2,
-                    ) {
-                        feedback()
-                        copyPlainText(context, code.value)
-                        Toast.makeText(
-                            context,
-                            R.string.ime_scanner_copied_toast,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                    }
-                    CaptureActionButton(
-                        icon = Icons.AutoMirrored.Outlined.Send,
-                        label = stringResource(R.string.ime_scanner_insert_action),
-                        accent = true,
-                        focused = focusedAction == 3,
-                    ) { onInsert(code.value) }
-                }
-            }
-            return@Box
-        }
-
-        val activeProvider = provider
-        if (activeProvider != null && backOrFrontSelector(activeProvider) == null) {
-            PanelCenteredMessage(stringResource(R.string.ime_scanner_no_camera))
-            return@Box
-        }
-
-        AndroidView(
-            factory = { previewView },
-            modifier = Modifier
-                .fillMaxSize()
-                // Pinch to zoom, clamped to what the lens supports.
-                .pointerInput(camera) {
-                    detectTransformGestures { _, _, gestureZoom, _ ->
-                        val cam = camera ?: return@detectTransformGestures
-                        val info = cam.cameraInfo.zoomState.value
-                        val minZoom = info?.minZoomRatio ?: 1f
-                        val maxZoom = info?.maxZoomRatio ?: 1f
-                        val current = info?.zoomRatio ?: zoomRatio
-                        val next = (current * gestureZoom).coerceIn(minZoom, maxZoom)
-                        cam.cameraControl.setZoomRatio(next)
-                        zoomRatio = next
-                    }
-                },
-        )
-
-        if (zoomRatio > 1.05f) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 10.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.Black.copy(alpha = 0.45f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    stringResource(R.string.ime_scanner_qr_zoom_label, zoomRatio),
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-            }
-        }
-
-        Text(
-            stringResource(R.string.ime_scanner_qr_hint),
-            color = Color.White,
-            fontSize = 12.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                // Clear of the picture button in the corner.
-                .padding(start = 60.dp, end = 60.dp, bottom = 10.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.Black.copy(alpha = 0.35f))
-                .padding(horizontal = 10.dp, vertical = 4.dp),
-        )
-        Box(modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)) {
-            CameraChipButton(
-                icon = Icons.Outlined.PhotoLibrary,
-                description = stringResource(R.string.ime_scanner_qr_picture_desc),
-                active = false,
-            ) {
-                feedback()
-                runCatching { context.startActivity(GalleryPickActivity.qrIntent(context)) }
-            }
-        }
-        if (readingPicture) {
-            Box(
-                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(color = Color.White)
-            }
-        }
-        if (camera?.cameraInfo?.hasFlashUnit() == true) {
-            Box(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {
-                CameraChipButton(
-                    icon = if (torchOn) Icons.Outlined.FlashlightOn else Icons.Outlined.FlashlightOff,
-                    description = stringResource(R.string.ime_scanner_torch_desc),
-                    active = torchOn,
-                ) {
-                    feedback()
-                    torchOn = !torchOn
-                    camera?.cameraControl?.enableTorch(torchOn)
-                }
-            }
-        }
-    }
-}
-
-/** The longest side a picked picture is read at: plenty for a code, and never the full camera frame. */
-private const val QR_PICTURE_MAX_SIDE = 2048
-
-/**
- * The fetched page title/site/description for a scanned link, shown above
- * the raw URL. A small spinner stands in while the fetch is in flight;
- * a failed or empty fetch renders nothing (the URL alone still shows).
- */
-@Composable
-private fun LinkPreviewCard(enabled: Boolean, preview: LinkPreview?) {
-    if (!enabled) return
-    val kb = LocalKbTheme.current
-    if (preview == null) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            CircularProgressIndicator(
-                color = kb.secondaryText,
-                strokeWidth = 2.dp,
-                modifier = Modifier.size(14.dp),
-            )
-            Text(
-                stringResource(R.string.ime_scanner_qr_link_progress),
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-        return
-    }
-    if (preview.failed || preview.isEmpty) return
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (preview.title.isNotBlank()) {
-            Text(
-                preview.title,
-                color = kb.suggestionText,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        if (preview.siteName.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(preview.siteName, color = kb.secondaryText, fontSize = 11.sp)
-        }
-        if (preview.description.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                preview.description,
-                color = kb.secondaryText,
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Spacer(Modifier.height(10.dp))
-    }
-}
-
-// ---- shared bits ----
-
-/**
- * Re-runs [onResume] when the keyboard comes back to the foreground — the
- * camera-permission dialog lives in a trampoline activity, so the panel
- * has to re-check the permission once it regains focus.
- */
-@Composable
-private fun PermissionRecheck(onResume: () -> Unit) {
-    val lifecycleOwner = LocalLifecycleOwner.current
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) onResume()
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
-}
-
-/** The camera-permission explainer + "Allow the camera" button. */
-@Composable
-private fun CameraPermissionPrompt(message: String, onRequestPermission: () -> Unit) {
-    val kb = LocalKbTheme.current
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            message,
-            color = kb.toolbarIcon,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(horizontal = 24.dp),
-        )
-        Spacer(Modifier.height(10.dp))
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(kb.keyRadiusDp.dp))
-                .background(kb.toolCircleActive)
-                .pointerInput(Unit) { detectTapGestures { onRequestPermission() } }
-                .padding(horizontal = 20.dp, vertical = 10.dp),
-        ) {
-            Text(
-                stringResource(R.string.ime_scanner_permission_action),
-                color = kb.toolCircleActiveIcon,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-            )
-        }
-    }
-}
-
-/** Back camera, else front, else null — scanners never need a lens switch. */
-private fun backOrFrontSelector(provider: ProcessCameraProvider): CameraSelector? = when {
-    provider.hasCameraSafe(CameraSelector.DEFAULT_BACK_CAMERA) -> CameraSelector.DEFAULT_BACK_CAMERA
-    provider.hasCameraSafe(CameraSelector.DEFAULT_FRONT_CAMERA) -> CameraSelector.DEFAULT_FRONT_CAMERA
-    else -> null
-}
-
-private fun copyPlainText(context: Context, text: String) {
-    KeyboardClipboard.copy(context, text, "scanned text")
-}
-
-@StringRes
-private fun barcodeFormatLabelRes(format: Int): Int = when (format) {
-    Barcode.FORMAT_QR_CODE -> R.string.ime_scanner_format_qr_code
-    Barcode.FORMAT_AZTEC -> R.string.ime_scanner_format_aztec
-    Barcode.FORMAT_CODABAR -> R.string.ime_scanner_format_codabar
-    Barcode.FORMAT_CODE_39 -> R.string.ime_scanner_format_code_39
-    Barcode.FORMAT_CODE_93 -> R.string.ime_scanner_format_code_93
-    Barcode.FORMAT_CODE_128 -> R.string.ime_scanner_format_code_128
-    Barcode.FORMAT_DATA_MATRIX -> R.string.ime_scanner_format_data_matrix
-    Barcode.FORMAT_EAN_8 -> R.string.ime_scanner_format_ean_8
-    Barcode.FORMAT_EAN_13 -> R.string.ime_scanner_format_ean_13
-    Barcode.FORMAT_ITF -> R.string.ime_scanner_format_itf
-    Barcode.FORMAT_PDF417 -> R.string.ime_scanner_format_pdf417
-    Barcode.FORMAT_UPC_A -> R.string.ime_scanner_format_upc_a
-    Barcode.FORMAT_UPC_E -> R.string.ime_scanner_format_upc_e
-    else -> R.string.ime_scanner_format_generic
 }
 
 /**

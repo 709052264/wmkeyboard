@@ -258,6 +258,7 @@ Builds:
       - core/intelligence/src/llama/jniLibs
       - core/intelligence/src/zinnia/jniLibs
       - core/intelligence/src/docscan/jniLibs
+      - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
       - native/voikko-jni/jniLibs
@@ -300,6 +301,7 @@ Builds:
       - core/intelligence/src/llama/jniLibs
       - core/intelligence/src/zinnia/jniLibs
       - core/intelligence/src/docscan/jniLibs
+      - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
       - native/voikko-jni/jniLibs
@@ -342,6 +344,7 @@ Builds:
       - core/intelligence/src/llama/jniLibs
       - core/intelligence/src/zinnia/jniLibs
       - core/intelligence/src/docscan/jniLibs
+      - core/intelligence/src/zxing/jniLibs
       - core/intelligence/src/imagegen/jniLibs
       - core/intelligence/src/imagegennpu/jniLibs
       - native/voikko-jni/jniLibs

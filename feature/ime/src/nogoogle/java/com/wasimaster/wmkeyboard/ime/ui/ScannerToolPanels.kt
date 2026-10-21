@@ -13,9 +13,10 @@ import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
 
 /**
- * F-Droid stand-ins for the ML Kit scanner panels. The OCR and QR tools
- * are hidden in that build, so these are unreachable; they exist so
- * KeyboardScreen's panel switch keeps compiling.
+ * F-Droid stand-in for the ML Kit text scanner panel. The OCR tool is hidden
+ * in that build, so this is unreachable; it exists so KeyboardScreen's panel
+ * switch keeps compiling. The QR scanner needs no stand-in: it lives in
+ * src/main and reads with zxing-cpp here.
  */
 @Composable
 internal fun OcrPanel(
@@ -25,15 +26,6 @@ internal fun OcrPanel(
     onClose: () -> Unit,
     onTranslate: (String) -> Unit = {},
 ) = UnavailablePanel(state, stringResource(R.string.ime_scanner_ocr_unavailable_info))
-
-@Composable
-internal fun QrScanPanel(
-    state: KeyboardUiState,
-    onInsert: (String) -> Unit,
-    onOpenUrl: (String) -> Unit,
-    onRequestPermission: () -> Unit,
-    onClose: () -> Unit,
-) = UnavailablePanel(state, stringResource(R.string.ime_scanner_qr_unavailable_info))
 
 @Composable
 private fun UnavailablePanel(state: KeyboardUiState, message: String) {

@@ -666,6 +666,10 @@
     <string name="tooldetail_qr_scan_preview_title">Load link details</string>
     <string name="tooldetail_qr_scan_preview_subtitle">When a code is a web link, get the page title and description and show them above it. This needs an internet connection</string>
     <string name="tooldetail_qr_scan_info">Decoding runs on your device with ML Kit. It works offline and uploads nothing. It reads QR codes and the common product barcode formats, such as EAN, UPC and Code 128. Insert types the text of the code at the cursor. A link also gets an Open button.</string>
+    <!-- zxing-cpp is the name of an open-source barcode library. Keep it as it is. -->
+    <string name="tooldetail_qr_scan_zxing_info">Decoding runs on your device with zxing-cpp, without Google services. It works offline and uploads nothing. It reads QR codes, Data Matrix, Aztec, PDF417 and the product and industrial barcodes, such as EAN, UPC and Code 128. Insert types the text of the code at the cursor. A link also gets an Open button.</string>
+    <string name="tooldetail_qr_scan_zxing_title">Read codes with zxing-cpp</string>
+    <string name="tooldetail_qr_scan_zxing_subtitle">Use the open-source reader instead of ML Kit. It is a separate download of about 1 MB</string>
 
     <!-- Document scanner tool. -->
     <string name="tooldetail_doc_scan_gallery_title">Save to the gallery</string>

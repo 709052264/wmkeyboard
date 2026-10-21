@@ -231,6 +231,15 @@ ANDROID_NDK=/opt/homebrew/share/android-ndk native/docscan-jni/build.sh
 
 The script fetches OpenCV at its pinned commit and builds the three ABIs one after another, deleting each build tree before the next. `native/docscan-jni/opencv.cmake` holds the OpenCV options: no IPP, KleidiCV or any other accelerator that downloads a binary at configure time. To try detection and the clean-up modes on photos without a phone, `native/docscan-jni/desktop/check.sh <photos> <out>` builds the same `docscan.cpp` against a host OpenCV and writes each photo's outline, flattened page and filtered versions; `desktop/make_samples.py` makes synthetic test photos with known corners.
 
+The QR scanner's open-source reader, used where ML Kit's barcode reader can't run or isn't picked, is [zxing-cpp](https://github.com/zxing-cpp/zxing-cpp) v3.1.1 with its readers only (no writers, so none of its bundled libzint), built static under a small JNI bridge into `libwmzxing.so` from `native/zxingcpp-jni/`. `ZxingNative.kt` in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/barcode/` is the Kotlin entry point, the prebuilt files sit under `core/intelligence/src/zxing/jniLibs/<abi>/`, and the gate is `zxing` in `native/gates.json`: pinned for download on GitHub, the on-demand `:feature:zxing` split on Play, built from source on F-Droid. Rebuild after you edit `native/zxingcpp-jni/`:
+
+```sh
+# Needs git, CMake and Ninja; NDK r29 reproduces the committed bytes
+ANDROID_NDK=/opt/homebrew/share/android-ndk native/zxingcpp-jni/build.sh
+```
+
+`build.sh --desktop DIR` builds the same library for the Mac, for checking the bridge in a plain JVM against zxing-cpp's own sample images; `native/zxingcpp-jni/README.md` has the recipe and the last results.
+
 ## Rebuilding the sticker generator's libraries
 
 The [sticker generator](/emoji/sticker-generator/) runs on two native libraries. `libwmimagegen.so`, from `native/imagegen-jni/`, is [MNN](https://github.com/alibaba/MNN) 3.6.1 built static with only its CPU backend, under a small JNI bridge (`imagegen.cpp`) that loads one `.mnn` module per handle and moves tensors in and out; the denoising loop, the schedulers and the CLIP tokenizer are Kotlin, in `core/intelligence/src/main/java/com/wasimaster/wmkeyboard/core/imagegen/`. Its prebuilt files sit under `core/intelligence/src/imagegen/jniLibs/<abi>/`. GitHub builds pin them for download (gate `imagegen` in `native/gates.json`), Play builds ship them in the on-demand `:feature:imagegen` split, and F-Droid builds them from source through `native/build-fdroid-libs.sh`.

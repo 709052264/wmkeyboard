@@ -27796,7 +27796,7 @@ open class WMKeyboardService : InputMethodService() {
             is KdeAction.Notice -> kdeNotice(action.text)
             KdeAction.OpenSettings -> openToolSettings(ToolbarTool.KDE_CONNECT)
             KdeAction.OpenDevices -> openRoute(KdeConnectHub.DEVICES_ROUTE)
-            KdeAction.ScanPairCode -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) onPanelChange(PanelMode.QR_SCAN)
+            KdeAction.ScanPairCode -> onPanelChange(PanelMode.QR_SCAN)
         }
     }
 
@@ -39448,7 +39448,7 @@ open class WMKeyboardService : InputMethodService() {
                 override fun openSettings() = openToolSettings(ToolbarTool.SEND_FILES)
                 override fun openRoute(route: String) = this@WMKeyboardService.openRoute(route)
                 override fun openScanner() {
-                    if (BuildConfig.ENABLE_ML_KIT_SCANNERS) onPanelChange(PanelMode.QR_SCAN)
+                    onPanelChange(PanelMode.QR_SCAN)
                 }
                 override fun openGallery() {
                     if (com.wasimaster.wmkeyboard.app.ChannelFeatures.GALLERY_BROWSER) {
@@ -39487,7 +39487,7 @@ open class WMKeyboardService : InputMethodService() {
                         )
                     }
                 }
-                override fun canScan() = BuildConfig.ENABLE_ML_KIT_SCANNERS
+                override fun canScan() = true
                 override fun openLinkOffer() = onSendLinkOfferOpen()
                 override fun clearLinkOffer() = clearSendLinkOffer()
             },

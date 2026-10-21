@@ -13758,17 +13758,13 @@ private fun KeyboardBody(
                 } else {
                     onPanelChange(PanelMode.SNIPPETS)
                 }
-                PanelMode.QR_SCAN -> if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
-                    QrScanPanel(
-                        state = state,
-                        onInsert = onScannedInsert,
-                        onOpenUrl = onScannedUrlOpen,
-                        onRequestPermission = onCameraPermissionRequest,
-                        onClose = { onPanelChange(PanelMode.QR_SCAN) },
-                    )
-                } else {
-                    onPanelChange(PanelMode.SNIPPETS)
-                }
+                PanelMode.QR_SCAN -> QrScanPanel(
+                    state = state,
+                    onInsert = onScannedInsert,
+                    onOpenUrl = onScannedUrlOpen,
+                    onRequestPermission = onCameraPermissionRequest,
+                    onClose = { onPanelChange(PanelMode.QR_SCAN) },
+                )
                 PanelMode.VOICE -> VoicePanel(
                     state = state,
                     onToggle = onVoiceToggle,

@@ -50,6 +50,9 @@
     <!-- :feature:docscan, the built-in document scanner (OpenCV) used where
          Google's scanner is missing. -->
     <string name="docscan_module_title">Built-in document scanner</string>
+    <!-- :feature:zxing, the zxing-cpp barcode reader the QR scanner uses
+         where ML Kit's is missing or not picked. -->
+    <string name="zxing_module_title">QR and barcode reader</string>
     <!-- :feature:imagegen, the sticker generator's runtime (MNN, and the NPU runner). -->
     <string name="imagegen_module_title">Sticker generator</string>
     <!-- The same for :feature:npu, the runtime behind Compute = NPU for

@@ -1763,7 +1763,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - The F-Droid build has 2 fewer — OCR and QR scan are compiled out; Handwriting stays, with zinnia reading Chinese and Japanese
+    - The F-Droid build has 1 fewer — OCR is compiled out; Handwriting stays, with zinnia reading Chinese and Japanese, and QR scan stays, reading with zxing-cpp
     - Doc scan is everywhere — Google's scanner where Play services runs it, the built-in OpenCV scanner elsewhere
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
@@ -1868,7 +1868,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Show private screens — Non-exported activities listed dimmed with a lock
     - No QUERY_ALL_PACKAGES — Reads the same launcher list the home screen sees
     - Sort A–Z or most recent — Labels under icons can be hidden
-- **Scanners** `uncommon` — 3 camera-driven tools, all ML Kit, not in the F-Droid build
+- **Scanners** `uncommon` — 3 camera-driven tools; the F-Droid build has QR scan (zxing-cpp) and the built-in document scanner, not text scan
   - Text scan (OCR) `uncommon` — Full-bleed viewfinder, on-device recognition: ML Kit for Latin script, Tesseract (per-language download) for 100+ languages in most other scripts
     - Words as tappable chips grouped by line — Trim the capture down before inserting
     - Start with everything selected — On by default; off makes chips opt-in instead
@@ -2250,7 +2250,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 |---|---|
 | Handwriting tool and handwrite-with-swipes | every build; the F-Droid build reads only Chinese and Japanese (zinnia, no ML Kit); each language model is an 8-26MB ML Kit download or a 26-52MB zinnia one |
 | Text scan (OCR) | not in the F-Droid build (ML Kit text recognition + Tesseract library); needs CAMERA permission |
-| QR & barcode scanner | not in the F-Droid build (ML Kit barcode); needs CAMERA permission; link details need network |
+| QR & barcode scanner | every build: ML Kit where it can run, zxing-cpp (an on-demand library, about 1.1 MB) on F-Droid and on Play without Play services; needs CAMERA permission; link details need network |
 | Document scanner | every build: Google's scanner with Play services, the built-in OpenCV scanner without (its library is an on-demand download, about 2.5 MB) |
 | Grammar tool | every build (BuildConfig.ENABLE_GRAMMAR, Harper Rust JNI; F-Droid compiles it from source); LanguageTool checker needs the network and the user switching it on, public server or self-hosted on every build |
 | AI On-device provider and its 8-model catalog | not in the F-Droid build; 2 of the 8 models need a Hugging Face token and licence acceptance |
@@ -2874,6 +2874,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Link preview for URL payloads — off by default; fetches page title and description, and an Open button appears
     - Pinch to zoom with a percentage pill above 1.05x
     - Rescan re-arms the decoder
+    - Two readers behind one BarcodeReader interface (ime/scan) `RARE` — ML Kit's where it can run (bundled model off Play, Play services' on Play), zxing-cpp everywhere else: the F-Droid build, a Play install without Play services, or "Read codes with zxing-cpp" (off by default, shown only where ML Kit can run)
+      - zxing-cpp v3.1.1, readers only, as libwmzxing.so (~1.1 MB arm64, native/zxingcpp-jni) — every format it reads, including Micro QR, rMQR, MicroPDF417, MaxiCode, DataBar and Telepen (labelled "Barcode")
+      - One JNI crossing per frame on the Y plane's direct ByteBuffer, no copy; light-on-dark codes tried on every other frame; a gallery picture read at full effort
+      - UPC-A and UPC-E come back as ML Kit gives them (12 and 8 digits), not ISO's 13-digit EAN-13
+      - Library delivery — `zxing` native gate: pinned download on GitHub, built from source by the F-Droid recipe (opt-in download), the :feature:zxing split on Play; download prompt in place of the viewfinder
   - Document scanner `RARE` — hands off to Play services' GmsDocumentScanner (edge detection, crop, cleanup) through an invisible trampoline activity
     - Built-in scanner (PageScanActivity) `RARE` — OpenCV core + imgproc as libwmdocscan.so (~2.4 MB arm64), no Google code: what F-Droid, de-Googled phones and a failed Google scanner get, and a per-tool "Use the built-in scanner" switch elsewhere
       - Live page outline in the viewfinder — CameraX ImageAnalysis at 640×480, every 120 ms, same 4:3 frame as preview and photo
@@ -2918,7 +2923,8 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | On-device LLM provider and its whole model catalog | not in the F-Droid build (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent there |
 | Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
 | Handwriting panel and handwrite-with-swipes | every build; without ML Kit (F-Droid) only Chinese and Japanese, through zinnia |
-| Text scan (OCR) and QR/barcode scanner | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text + barcode) |
+| Text scan (OCR) | not in the F-Droid build (BuildConfig.ENABLE_ML_KIT_SCANNERS; ML Kit text) |
+| QR/barcode scanner | every build; BarcodeEngine.useZxing picks zxing-cpp where ML Kit cannot run or when picked |
 | Document scanner | every build and phone: Google's scanner where Play services can run it, the built-in OpenCV scanner (on-demand library) everywhere else |
 | Every cloud AI provider (Anthropic, OpenAI, Gemini, xAI, DeepSeek, Brave) | needs a user-supplied API key and network; no bundled or proxied key exists |
 | Ollama and LM Studio providers | needs a reachable server address on the user's network; traffic is plain HTTP (cleartext allowed app-wide) |
@@ -3429,7 +3435,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - microG answers both probes the same way, by design — The feature is offered and its own failure path takes over per module.
     - Probed answers cached for the process, primed in both onCreate paths — Defaults to 'available' before priming so a tool never disappears on a device that supports it.
   - Drive backup destination behind a gms/nogms source seam `uncommon` — Only the OAuth token provider is gated; the Drive REST calls are ordinary HTTP and compile everywhere.
-  - F-Droid build `uncommon` — wmkb.enableFdroid leaves out ML Kit, LiteRT and LiteRT-LM (src/nogoogle stands in): handwriting, OCR, QR scan, doc scan, local LLM and LiteRT Whisper. The full/lite flavours of 0.6.2 and earlier are gone.
+  - F-Droid build `uncommon` — wmkb.enableFdroid leaves out ML Kit, LiteRT and LiteRT-LM (src/nogoogle stands in): ML Kit handwriting (zinnia stands in for Chinese and Japanese), OCR, ML Kit QR scan (zxing-cpp stands in), Google's doc scan (the built-in one stands in), local LiteRT-LM models and LiteRT Whisper. The full/lite flavours of 0.6.2 and earlier are gone.
 - **Notification listener and special access** `RARE` — One prominent-disclosure layer for the three grants Android hands out on a system Settings screen rather than a permission dialog.
   - One notification-listener component worn by two features `RARE` — Media control needs only the grant; the OTP chip reads notification text, gated per notification.
     - Renaming the class would silently revoke existing users' grant — Android grants notification access per component.
@@ -3458,7 +3464,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Clipboard 'show source app' | needs the usage-access grant |
 | Play In-App Updates (card, About rows, flexible/immediate flows) | play-channel builds only (wmkb.enablePlayStore); also requires the install to have come from Play and a network call |
 | Document scanner tool | not in the F-Droid build (ML Kit) and hidden entirely on devices without Google Play services |
-| Handwriting, OCR, QR scan, LiteRT Whisper dictation, LiteRT-LM local models | not in the F-Droid build (ML Kit / LiteRT; GGUF models on llama.cpp are) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
+| OCR, LiteRT Whisper dictation, LiteRT-LM local models | not in the F-Droid build (ML Kit / LiteRT; GGUF models on llama.cpp are) — power saving's 'drop on-device models' and the direct-boot restriction both fall back to system alternatives |
 | Offline Whisper dictation, the sticker editor's own background remover, handwriting recognition | on Play, each runtime is an on-demand split fetched on first use (:feature:litert for the LiteRT interpreter the first two share, :feature:handwriting for ML Kit's ink recogniser); the language-to-model mapping for handwriting is compiled in (InkModelTags) so the tool knows what it is offering before the split arrives; sideload builds compile the same bridges into :core:voice, :core:content and :core:intelligence |
 | Google Drive backup destination | GMS-enabled builds only (wmkb.enableGms); reports unavailable in F-Droid builds |
 | Servers screen (Advanced) and per-tool server fields | F-Droid builds only (wmkb.enableFdroid) |

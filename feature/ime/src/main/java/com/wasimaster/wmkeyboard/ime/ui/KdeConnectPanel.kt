@@ -358,10 +358,8 @@ private fun DeviceList(kb: KbTheme, state: KeyboardUiState, hub: KdeState, canGo
             Spacer(Modifier.width(6.dp))
             ToolPanelChip(stringResource(R.string.ime_kde_add_by_address)) { onKde(KdeAction.HostEntry(true)) }
             // A WMK Desktop pairing code; the scanner pairs when it sees one.
-            if (com.wasimaster.wmkeyboard.config.BuildConfig.ENABLE_ML_KIT_SCANNERS) {
-                Spacer(Modifier.width(6.dp))
-                ToolPanelChip(stringResource(R.string.ime_kde_scan_code)) { onKde(KdeAction.ScanPairCode) }
-            }
+            Spacer(Modifier.width(6.dp))
+            ToolPanelChip(stringResource(R.string.ime_kde_scan_code)) { onKde(KdeAction.ScanPairCode) }
         }
         val motion = kb.motion.any
         LazyColumn(Modifier.weight(1f).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {

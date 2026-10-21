@@ -12,7 +12,7 @@ import PhoneFrame from '@components/PhoneFrame.astro';
 import SettingsPath from '@components/SettingsPath.astro';
 import Flavor from '@components/Flavor.astro';
 
-Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="google" />: F-Droid's build has only the document scanner, its built-in one. The QR scanner runs on Google ML Kit; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language. The document scanner uses Google's scanner where Google Play services can run it and the keyboard's own everywhere else.
+Three camera-driven tools live under one Scanners group. **Text scan (OCR)** reads printed words into your field. **QR and barcode scanner** decodes a code and inserts or opens its value. **Document scanner** captures a paper document as a cropped, cleaned-up image. <Flavor edition="google" />: F-Droid's build has no text scan; its QR scanner reads with zxing-cpp and its document scanner is the built-in one. The QR scanner reads with Google ML Kit or zxing-cpp; text scan reads with ML Kit, PaddleOCR or Tesseract, depending on the language. The document scanner uses Google's scanner where Google Play services can run it and the keyboard's own everywhere else.
 
 <PhoneFrame caption="Text scan (OCR): a full-bleed camera view with recognized words ready to tap.">
   {/* shot: tools/ocr-viewfinder */}
@@ -68,6 +68,15 @@ The first code it decodes freezes into a result card with **Scan again**, **Copy
 
 To read a code that's already on your phone, such as a screenshot of a QR code, tap the picture button in the bottom-left corner of the camera view. Android's photo picker opens, and the photo you choose is read the same way, on-device, landing on the same result card. When the picture holds no code, a short message says so and the camera view stays up. The photo picker needs no storage permission.
 
+### Which reader decodes codes
+
+Two readers can decode what the camera sees, and the result card is the same with either.
+
+- **ML Kit** is Google's barcode reader. It is the default wherever it can run: the GitHub builds, which carry its model, and the Google Play copy on a phone with Google Play services, which supplies the model.
+- **zxing-cpp** is an open-source reader (Apache-2.0). The F-Droid build reads with it, since ML Kit is a Google library, and so does the Google Play copy on a phone without Google Play services. Anywhere else, turn on **Read codes with zxing-cpp** in the options below to use it instead of ML Kit. Besides the formats above it reads Micro QR, rMQR, MicroPDF417, MaxiCode, GS1 DataBar, Telepen and the Code 39 variants, which the card labels "Barcode" when it has no name for them. It also tries light codes on a dark background, such as a QR code on a phone in dark mode.
+
+zxing-cpp is a separate download of about 1 MB, fetched the first time the scanner opens with it: from Google Play on the Play build, and from GitHub elsewhere, which on F-Droid's build waits until you turn on [Download feature libraries](/reference/settings/privacy/#downloads). Until it's on your phone, the scanner shows its size and a **Download** button in place of the camera. A UPC code reads as its own 12 or 8 digits with either reader.
+
 ## Options
 
 All three scanners have their own settings screen, and all three start with the same header rows before anything tool-specific:
@@ -80,6 +89,7 @@ All three scanners have their own settings screen, and all three start with the 
 
 <SettingsPath path="Tools / QR and barcode scanner / Options" />
 
+- **Read codes with zxing-cpp**: off by default, and shown only where ML Kit's reader can run. Decodes with the open-source reader instead; see [which reader decodes codes](#which-reader-decodes-codes). The caption above the rows names the reader in use.
 - **Insert automatically**: off by default. With it on, the scanned code's text types into your field the instant it's spotted, with no confirm tap.
 - **Vibrate on detection**: on by default. A short buzz when a code is spotted.
 - **Load link details**: off by default. When a scanned value is a web link, it fetches the page's title and description to show above the result. That needs a network connection. [Power Saving mode](/typing/power-saving/) force-disables this row while its background-network toggle is on.
@@ -146,4 +156,4 @@ Once you're back in your app, each captured page is inserted exactly like a Came
 
 ## Why not on F-Droid
 
-OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. QR/barcode scanning depends on ML Kit's barcode-scanning library. Google's document scanner depends on Google Play services' document scanner module. Those are Google's, so the F-Droid build leaves text scan and QR scanning out entirely, rather than hiding them behind a toggle. Its document scanner is the built-in one, which has no Google code in it. See [Which build you have](/start/editions/) if you're deciding between builds.
+OCR depends on ML Kit's text-recognition library (and its Chinese, Japanese, Korean and Devanagari ones, whose models Google Play services fetches) on a Tesseract library built into the app, about 1.7 MB on a 64-bit phone, and on the LiteRT engine that offline voice typing also uses, for PaddleOCR. PaddleOCR adds no models to the app: they arrive with the download. Google's document scanner depends on Google Play services' document scanner module. Those are Google's, so the F-Droid build leaves text scan out entirely, rather than hiding it behind a toggle. Its document scanner is the built-in one and its QR scanner reads with zxing-cpp, neither of which has any Google code in it. See [Which build you have](/start/editions/) if you're deciding between builds.

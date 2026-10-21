@@ -196,6 +196,13 @@ which F-Droid's build uses in place of Google's. The next entry's
 with the options in `native/docscan-jni/opencv.cmake`: IPP, KleidiCV, FastCV
 and the other prebuilt accelerators are off.
 
+From the release after 0.6.2 the script also builds `native/zxingcpp-jni`
+(zxing-cpp v3.1.1, readers only, static, Apache-2.0) into
+`core/intelligence/src/zxing/jniLibs`: the QR and barcode reader, which
+brings the QR scanner back to F-Droid's build in place of ML Kit's. The next
+entry's `scandelete` needs that path added. Its configure step downloads
+nothing: the writers, and with them the bundled libzint, are off.
+
 The script also builds `native/imagegen-jni` (MNN 3.6.1 at a pinned commit,
 CPU backend only, static) into `core/intelligence/src/imagegen/jniLibs`: the
 sticker generator's runtime. The next entry's `scandelete` needs that path

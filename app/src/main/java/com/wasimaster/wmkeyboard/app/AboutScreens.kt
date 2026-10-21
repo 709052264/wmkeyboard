@@ -396,6 +396,27 @@ private val bundledAttributions: List<Attribution> = buildList {
             "https://github.com/opencv/opencv",
         ),
     )
+    // The QR scanner's reader without ML Kit, in every build: packaged,
+    // pinned for download, or a Play split. Readers only, with the libzueci
+    // copy upstream carries; see native/zxingcpp-jni.
+    add(
+        Attribution(
+            "zxing-cpp",
+            R.string.about_bundled_zxingcpp_used,
+            "Copyright 2016 ZXing authors, Nu-book Inc., Axel Waggershauser and zxing-cpp contributors",
+            "Apache-2.0", "apache-2.0.txt",
+            "https://github.com/zxing-cpp/zxing-cpp",
+        ),
+    )
+    add(
+        Attribution(
+            "libzueci",
+            R.string.about_bundled_zueci_used,
+            "Copyright (C) 2022 gitlost; Copyright (c) 2008-2009 Bjoern Hoehrmann",
+            "BSD-3-Clause / MIT", "bsd-3-clause-zueci.txt",
+            "https://sourceforge.net/projects/libzueci/",
+        ),
+    )
     if (BuildConfig.ENABLE_ML_KIT_SCANNERS) {
         // Compiled into one native library for the text scanner; see
         // native/tesseract-jni.

@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
@@ -1788,6 +1789,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_select_all_title, R.string.tooldetail_ocr_select_all_subtitle),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_engine_title),
     toolEntry(ToolbarTool.OCR, R.string.tooldetail_ocr_packs_header),
+    // A choice only where ML Kit's reader can run; elsewhere zxing-cpp is all there is.
+    toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_zxing_title, R.string.tooldetail_qr_scan_zxing_subtitle)
+        .takeIf { BarcodeEngine.mlKitUsable },
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_auto_title, R.string.tooldetail_qr_scan_auto_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_haptics_title, R.string.tooldetail_qr_scan_haptics_subtitle),
     toolEntry(ToolbarTool.QR_SCAN, R.string.tooldetail_qr_scan_preview_title, R.string.tooldetail_qr_scan_preview_subtitle),

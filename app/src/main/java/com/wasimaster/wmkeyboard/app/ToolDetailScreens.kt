@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
 import com.wasimaster.wmkeyboard.app.media.MusicApps
 import com.wasimaster.wmkeyboard.app.launcher.LauncherCombos
@@ -2495,10 +2496,22 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.QR_SCAN -> {
+            val zxing = BarcodeEngine.useZxing(settings.watch { it.scanner.qrZxing })
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
-                info = stringResource(R.string.tooldetail_qr_scan_info),
+                info = stringResource(if (zxing) R.string.tooldetail_qr_scan_zxing_info else R.string.tooldetail_qr_scan_info),
             ) {
+                // Only a choice where ML Kit's reader can run at all.
+                if (BarcodeEngine.mlKitUsable) {
+                    item {
+                        ToggleSetting(
+                            R.string.tooldetail_qr_scan_zxing_title,
+                            stringResource(R.string.tooldetail_qr_scan_zxing_subtitle),
+                            settings.watch { it.scanner.qrZxing },
+                            default = SettingsDefaults.scanner.qrZxing,
+                        ) { scope.launch { repository.setQrScanZxing(it) } }
+                    }
+                }
                 item {
                     ToggleSetting(
                         R.string.tooldetail_qr_scan_auto_title,
