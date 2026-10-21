@@ -359,10 +359,17 @@ object AiClient {
      * reasons. Another OpenAI-shaped service has no field all of them agree
      * on, so the switch is not offered there.
      */
-    fun controlsReasoning(provider: AiProvider, model: String): Boolean = when (provider) {
-        AiProvider.ANTHROPIC, AiProvider.GEMINI, AiProvider.OLLAMA -> true
-        AiProvider.OPENAI -> REASONING_MODEL_HINTS.any { it in model.lowercase() }
-        else -> false
+    fun controlsReasoning(provider: AiProvider, model: String): Boolean {
+        val name = model.lowercase()
+        return when (provider) {
+            // Claude 3 models before 3.7 have no thinking to switch.
+            AiProvider.ANTHROPIC -> !name.startsWith("claude-3") || "3-7" in name
+            // Gemini 1.5 and 2.0 do not think, and may refuse the field.
+            AiProvider.GEMINI -> "1.5" !in name && "2.0" !in name
+            AiProvider.OLLAMA -> true
+            AiProvider.OPENAI -> REASONING_MODEL_HINTS.any { it in name }
+            else -> false
+        }
     }
 
     /** [controlsReasoning] for the model [settings] would send to. */
@@ -1098,7 +1105,8 @@ object AiClient {
         put("stream", true)
         // The chat's Reasoning switch (#882): adaptive lets Claude decide how
         // much to think, and its thinking streams back in its own blocks.
-        config.reasoning?.let { on -> putJsonObject("thinking") { put("type", if (on) "adaptive" else "disabled") } }
+        config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }
+            ?.let { on -> putJsonObject("thinking") { put("type", if (on) "adaptive" else "disabled") } }
         if (tools.isNotEmpty()) {
             put("tools", buildJsonArray {
                 for (tool in tools) {
@@ -1566,7 +1574,10 @@ object AiClient {
         onPartial: (String) -> Unit,
         isActive: () -> Boolean,
     ): Completion {
-        val body = geminiBody(system, turns, maxTokens, tools, config.reasoning, config.model)
+        val body = geminiBody(
+            system, turns, maxTokens, tools,
+            config.reasoning?.takeIf { controlsReasoning(config.provider, config.model) }, config.model,
+        )
         return runStream(
             source = config.netSource,
             url = ServiceEndpoints.base(ServiceEndpoint.GEMINI) + "/v1beta/models/" +

@@ -140,6 +140,8 @@ class AiClientChatBodyTest {
         val claudeOff = parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC).copy(reasoning = false), "s", chat, 1000))
         assertEquals("disabled", claudeOff["thinking"]!!.jsonObject["type"]!!.jsonPrimitive.content)
         assertNull(parse(AiClient.anthropicBody(config(AiProvider.ANTHROPIC), "s", chat, 1000))["thinking"])
+        val oldClaude = AiClient.Config(AiProvider.ANTHROPIC, "k", "claude-3-5-haiku-latest", "", reasoning = true)
+        assertNull(parse(AiClient.anthropicBody(oldClaude, "s", chat, 1000))["thinking"])
 
         val flashOff = parse(AiClient.geminiBody("s", chat, null, reasoning = false, model = "gemini-2.5-flash"))
         assertEquals(

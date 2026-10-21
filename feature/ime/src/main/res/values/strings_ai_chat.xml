@@ -272,4 +272,5 @@
     <string name="ime_ai_chat_rename_ask">Rename this chat to “%1$s”?</string>
     <string name="ime_ai_chat_rename_accept">Accept</string>
     <string name="ime_ai_chat_rename_decline">Decline</string>
+    <string name="ime_ai_chat_error_only_reasoning">The model spent its whole answer reasoning and wrote no reply. Try again, or turn Reasoning off.</string>
 </resources>

@@ -481,6 +481,9 @@ object AiChatController {
         scope.launch {
             val raw = runCatching {
                 if (choice.provider == AiProvider.ON_DEVICE) {
+                    // One model on the phone: a message sent meanwhile goes
+                    // first, and the title is not worth making it wait.
+                    if (isGenerating) return@runCatching ""
                     val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
                         ?: return@runCatching ""
                     LocalLlmEngine.generate(
@@ -1015,10 +1018,15 @@ object AiChatController {
             // A finished answer with no marks at all did not reason this
             // time, whatever the model's name says, so implicit is off here.
             val parts = AiThinking.parts(raw)
+            val answer = parts.output.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" }
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = parts.output.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" },
+                content = answer,
                 reasoning = parts.reasoning,
+                // Reasoning and no answer: cut off at the ceiling while it
+                // thought. A failed turn, so it offers Retry rather than
+                // standing there blank under its Reasoning step.
+                error = if (answer.isEmpty()) context.getString(R.string.ime_ai_chat_error_only_reasoning) else "",
                 timestamp = System.currentTimeMillis(),
                 provider = choice.provider.name,
                 model = modelName(choice),
