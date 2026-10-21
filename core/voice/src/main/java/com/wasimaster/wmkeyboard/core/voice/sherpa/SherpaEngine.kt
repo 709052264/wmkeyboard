@@ -39,8 +39,13 @@ object SherpaEngine {
     private const val DEFAULT_ENDPOINT_MS = 1_200
 
     /**
-     * What each token of a hotword adds to a path that is spelling it.
-     * sherpa-onnx's own default is 1.5; HOTWORDS_SCORE_NOTE.
+     * What each token of a hotword adds to a path that is spelling it:
+     * sherpa-onnx's own default, kept after measuring seven models on
+     * synthetic clips. Above 1.0 more weight found at most one more rare name
+     * (English 9 to 11 of 75 from 1 without hotwords, Russian 5 of 8 from 2,
+     * Chinese 19 of 30 from 13); at 2.0 a 195-word list began to change
+     * ordinary English sentences (8.3% of words wrong became 8.9%), and at
+     * 3.0 it tacked words on (10.8%). Bengali found nothing at any weight.
      */
     const val HOTWORDS_SCORE = 1.5f
 
