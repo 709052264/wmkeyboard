@@ -20,7 +20,8 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  *
  * Chinese and Japanese can also read with PaddleOCR, whose one pack
  * ([PaddleOcrModel.PACK]) covers both and reads them far better than
- * tessdata_fast; see [offlinePack].
+ * tessdata_fast; see [offlinePack]. Its recognizer reads Latin script too,
+ * which F-Droid's build, with neither ML Kit nor Tesseract, falls back on.
  *
  * Never a catalogue on its own: the lists the user sees come from their
  * enabled languages through [packsFor].
@@ -35,17 +36,27 @@ object OcrLanguages {
     internal var extraScriptsOverride: Boolean? = null
 
     private val extraScripts: Boolean
-        get() = extraScriptsOverride ?: (BuildConfig.ENABLE_ML_KIT_SCANNERS && PlayServices.available)
+        get() = extraScriptsOverride ?: (mlKit && PlayServices.available)
 
     /**
-     * Whether this build can run PaddleOCR: every one but F-Droid's, since the
-     * LiteRT interpreter it runs on ships wherever Whisper's does (in the
-     * APK, or in Play's :feature:litert split). Null asks the build; tests set it.
+     * Whether the build has ML Kit's text recognizers at all: every one but
+     * F-Droid's. Null asks the build; tests set it.
+     */
+    internal var mlKitOverride: Boolean? = null
+
+    private val mlKit: Boolean
+        get() = mlKitOverride ?: BuildConfig.ENABLE_ML_KIT_SCANNERS
+
+    /**
+     * Whether this build can run PaddleOCR: every one, on the LiteRT
+     * interpreter Whisper brings where the build has it and on the MNN
+     * library the sticker generator brings in F-Droid's (see
+     * [PaddleOcrModel.runtime]). Null asks the build; tests set it.
      */
     internal var paddleOverride: Boolean? = null
 
     private val paddle: Boolean
-        get() = paddleOverride ?: BuildConfig.ENABLE_WHISPER
+        get() = paddleOverride ?: true
 
     /** The tessdata_fast release the downloads are pinned to. */
     const val SOURCE_TAG = "4.1.0"
@@ -67,12 +78,32 @@ object OcrLanguages {
     }
 
     /**
-     * Whether PaddleOCR can read [language]: Chinese in either script, and
-     * Japanese, in a build that can run it.
+     * Whether PaddleOCR reads [language] in a build that can run it: Chinese
+     * in either script and Japanese, its own; and Latin script, which its
+     * recognizer also reads, only in a build with neither ML Kit nor
+     * Tesseract ([tesseractAvailable]) to read it better.
      */
-    fun paddleReads(language: LanguageDef): Boolean =
-        paddle && language.id !in notText &&
-            (language.script == ScriptId.HAN || language.script == ScriptId.JAPANESE)
+    fun paddleReads(language: LanguageDef, tesseractAvailable: Boolean = true): Boolean =
+        paddle && language.id !in notText && when (language.script) {
+            ScriptId.HAN, ScriptId.JAPANESE -> true
+            ScriptId.LATIN -> !mlKit && !tesseractAvailable
+            else -> false
+        }
+
+    /**
+     * [engine] as this build can honour it: ML Kit in a build without it,
+     * or Tesseract without its library, read as Auto, so a choice restored
+     * from another build's backup still reads with what is here.
+     */
+    fun usable(engine: OcrEngine, tesseractAvailable: Boolean): OcrEngine = when {
+        engine == OcrEngine.ML_KIT && !mlKit -> OcrEngine.AUTO
+        engine == OcrEngine.TESSERACT && !tesseractAvailable -> OcrEngine.AUTO
+        else -> engine
+    }
+
+    /** The engines the settings offer in this build, Auto first. */
+    fun engines(tesseractAvailable: Boolean): List<OcrEngine> =
+        OcrEngine.entries.filter { usable(it, tesseractAvailable) == it }
 
     /** The download size of [pack] in bytes, or 0 for a name this table does not know. */
     fun sizeOf(pack: String): Long =
@@ -96,17 +127,20 @@ object OcrLanguages {
      * The packs [languages] need under [engine], each with the languages it
      * serves, in the order the languages come in. Languages with no pack are
      * left out. Under Auto, Chinese and Japanese list Paddle's pack where
-     * ML Kit does not read them.
+     * ML Kit does not read them, and so does Latin script where neither
+     * ML Kit nor Tesseract ([tesseractAvailable]) is in the build.
      */
     fun packsFor(
         languages: List<LanguageDef>,
         engine: OcrEngine = OcrEngine.AUTO,
+        tesseractAvailable: Boolean = true,
     ): List<Pair<String, List<LanguageDef>>> =
         languages.mapNotNull { lang ->
-            val pack = if (engine == OcrEngine.AUTO && paddleReads(lang) && mlKitScript(lang) == null) {
+            val auto = usable(engine, tesseractAvailable) == OcrEngine.AUTO
+            val pack = if (auto && paddleReads(lang, tesseractAvailable) && mlKitScript(lang) == null) {
                 PaddleOcrModel.PACK
             } else {
-                packFor(lang)
+                packFor(lang)?.takeIf { tesseractAvailable }
             }
             pack?.let { it to lang }
         }
@@ -120,7 +154,8 @@ object OcrLanguages {
      * [onDisk] says whether a pack is downloaded: under Auto, Chinese and
      * Japanese read with Paddle unless only their Tesseract pack is there, so
      * a pack fetched before Paddle existed keeps working and the download
-     * offered is always Paddle's.
+     * offered is always Paddle's. Null too when nothing in this build reads
+     * [language] offline (see [readable]).
      */
     fun offlinePack(
         engine: OcrEngine,
@@ -129,15 +164,16 @@ object OcrLanguages {
         onDisk: (String) -> Boolean = { false },
     ): String? {
         val pack = packFor(language) ?: return null
-        return when (engine) {
+        return when (usable(engine, tesseractAvailable)) {
             OcrEngine.ML_KIT, OcrEngine.ONLINE -> null
             OcrEngine.TESSERACT -> pack.takeIf { tesseractAvailable }
             OcrEngine.AUTO -> when {
                 // ML Kit reads its five scripts better than tessdata_fast does,
                 // CJK above all (#757), and needs no download.
                 mlKitScript(language) != null -> null
-                // So does Paddle, where ML Kit's Chinese and Japanese are missing.
-                paddleReads(language) ->
+                // So does Paddle, where ML Kit's Chinese and Japanese are
+                // missing, and for Latin script where nothing else is.
+                paddleReads(language, tesseractAvailable) ->
                     if (tesseractAvailable && !onDisk(PaddleOcrModel.PACK) && onDisk(pack)) pack
                     else PaddleOcrModel.PACK
                 else -> pack.takeIf { tesseractAvailable }
@@ -155,7 +191,7 @@ object OcrLanguages {
      * Paddle or Tesseract.
      */
     fun mlKitScript(language: LanguageDef): MlKitScript? {
-        if (language.id in notText) return null
+        if (language.id in notText || !mlKit) return null
         if (language.script != ScriptId.LATIN && !extraScripts) return null
         return when (language.script) {
             ScriptId.LATIN -> MlKitScript.LATIN
@@ -170,7 +206,8 @@ object OcrLanguages {
     /**
      * The recognizer ML Kit reads [language] with when it reads it at all:
      * a script ML Kit has no recognizer for falls back to the Latin one, as
-     * it always did under [OcrEngine.ML_KIT].
+     * it always did under [OcrEngine.ML_KIT]. Meaningless in a build without
+     * ML Kit, where [readable] decides instead.
      */
     fun mlKitRecognizer(language: LanguageDef): MlKitScript = mlKitScript(language) ?: MlKitScript.LATIN
 
@@ -189,9 +226,22 @@ object OcrLanguages {
     ): List<LanguageDef> {
         // The online model reads any script, so the language changes nothing there.
         if (engine == OcrEngine.ONLINE) return emptyList()
-        return enabled.filter { packFor(it) != null }
+        return enabled.filter { packFor(it) != null && readable(engine, it, tesseractAvailable, onDisk) }
             .distinctBy { route(engine, it, tesseractAvailable, onDisk) }
     }
+
+    /**
+     * Whether anything in this build reads [language] under [engine]: always
+     * online and wherever ML Kit is; without ML Kit (F-Droid's build) only a
+     * pack, Paddle's or Tesseract's.
+     */
+    fun readable(
+        engine: OcrEngine,
+        language: LanguageDef,
+        tesseractAvailable: Boolean,
+        onDisk: (String) -> Boolean = { false },
+    ): Boolean = engine == OcrEngine.ONLINE || mlKit ||
+        offlinePack(engine, language, tesseractAvailable, onDisk) != null
 
     /**
      * What reads [language] under [engine], as a key: two languages with the

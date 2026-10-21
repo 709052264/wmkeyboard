@@ -185,7 +185,7 @@
     {
       "id": "imagegen",
       "property": "imagegen",
-      "doc": "`:feature:imagegen`: the sticker generator's runtimes (`:core:intelligence`): MNN on the CPU (`libwmimagegen`) and, arm64 only, the runner that drives Qualcomm AI Hub's Stable Diffusion on the NPU through the Qualcomm runtime (`libwmimagegen_qnn`, never built for F-Droid: it is compiled against Qualcomm's QNN headers). Only the libraries move; the models are separate downloads.",
+      "doc": "`:feature:imagegen`: the sticker generator's runtimes (`:core:intelligence`): MNN on the CPU (`libwmimagegen`, also the scanner's PaddleOCR runtime in builds without LiteRT, F-Droid's) and, arm64 only, the runner that drives Qualcomm AI Hub's Stable Diffusion on the NPU through the Qualcomm runtime (`libwmimagegen_qnn`, never built for F-Droid: it is compiled against Qualcomm's QNN headers). Only the libraries move; the models are separate downloads.",
       "play": "split",
       "libraries": [
         { "name": "libwmimagegen.so", "dir": "core/intelligence/src/imagegen/jniLibs", "fdroidBuild": "native/imagegen-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.imagegen.ImageGenNative"] },

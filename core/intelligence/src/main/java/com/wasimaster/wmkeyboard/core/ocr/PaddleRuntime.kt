@@ -4,15 +4,17 @@ import java.io.Closeable
 import java.io.File
 
 /**
- * The seam between the scanner's PaddleOCR reader and the LiteRT interpreter
- * that runs its two graphs. `PaddleOcr` reaches the
- * implementation, `LitertPaddleRuntime`, only by reflection, see
- * [PaddleModule.BRIDGE_CLASS], because the class lives in a different place
- * per channel, exactly as Whisper's and the sticker cutout's do:
+ * The seam between the scanner's PaddleOCR reader and the runtime that runs
+ * its two graphs: LiteRT wherever the build has it, MNN in the one that does
+ * not (F-Droid's; see [PaddleOcrModel.runtime]).
  *
- * - Play builds: in the on-demand `:feature:litert` module, fetched with the
- *   first download of Paddle's pack (see [OcrPacks.start]).
- * - Every other build but F-Droid's: compiled straight into `:core:intelligence` (the
+ * - [MnnPaddleRuntime] is in every build and constructed directly.
+ * - `LitertPaddleRuntime` is reached only by reflection, see
+ *   [PaddleModule.BRIDGE_CLASS], because the class lives in a different
+ *   place per channel, exactly as Whisper's and the sticker cutout's do: on
+ *   Play in the on-demand `:feature:litert` module, fetched with the first
+ *   download of Paddle's pack (see [OcrPacks.start]); in every other build
+ *   but F-Droid's compiled straight into `:core:intelligence` (the
  *   `src/paddlebridge` source directory).
  *
  * Only the graphs run on the other side. Fitting the photo to them and making

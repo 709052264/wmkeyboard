@@ -133,6 +133,7 @@ import com.wasimaster.wmkeyboard.core.settings.OcrEngine
 import com.wasimaster.wmkeyboard.core.ocr.OcrLanguages
 import com.wasimaster.wmkeyboard.core.ocr.OcrPacks
 import com.wasimaster.wmkeyboard.core.ocr.PaddleOcrModel
+import com.wasimaster.wmkeyboard.core.ocr.TesseractOcr
 import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.settings.TranslateEngine
 import com.wasimaster.wmkeyboard.core.settings.DeepLWriteStyle
@@ -2463,13 +2464,20 @@ internal fun ToolDetailSettings(
                     ChoiceSetting(
                         R.string.tooldetail_ocr_engine_title,
                         info = stringResource(R.string.tooldetail_ocr_engine_info),
-                        options = listOf(
-                            OcrEngine.AUTO to stringResource(R.string.tooldetail_ocr_engine_auto),
-                            OcrEngine.ML_KIT to stringResource(R.string.tooldetail_ocr_engine_mlkit),
-                            OcrEngine.TESSERACT to stringResource(R.string.tooldetail_ocr_engine_tesseract),
-                            OcrEngine.ONLINE to stringResource(R.string.tooldetail_ocr_engine_online),
-                        ),
-                        selected = settings.watch { it.scanner.ocrEngine },
+                        // Only what this build has: F-Droid's has neither
+                        // ML Kit nor Tesseract, and a choice of either
+                        // restored from a backup reads as Automatic.
+                        options = OcrLanguages.engines(TesseractOcr.available).map { engine ->
+                            engine to stringResource(
+                                when (engine) {
+                                    OcrEngine.AUTO -> R.string.tooldetail_ocr_engine_auto
+                                    OcrEngine.ML_KIT -> R.string.tooldetail_ocr_engine_mlkit
+                                    OcrEngine.TESSERACT -> R.string.tooldetail_ocr_engine_tesseract
+                                    OcrEngine.ONLINE -> R.string.tooldetail_ocr_engine_online
+                                },
+                            )
+                        },
+                        selected = settings.watch { OcrLanguages.usable(it.scanner.ocrEngine, TesseractOcr.available) },
                         default = SettingsDefaults.scanner.ocrEngine,
                     ) { scope.launch { repository.setOcrEngine(it) } }
                 }
@@ -2487,7 +2495,8 @@ internal fun ToolDetailSettings(
                     info = stringResource(R.string.tooldetail_ocr_online_info),
                 )
             }
-            if (settings.watch { it.scanner.ocrEngine != OcrEngine.ML_KIT && it.scanner.ocrEngine != OcrEngine.ONLINE }) {
+            val usableEngine = settings.watch { OcrLanguages.usable(it.scanner.ocrEngine, TesseractOcr.available) }
+            if (usableEngine != OcrEngine.ML_KIT && usableEngine != OcrEngine.ONLINE) {
                 SectionHeader(
                     stringResource(R.string.tooldetail_ocr_packs_header),
                     info = stringResource(R.string.tooldetail_ocr_packs_info),
@@ -4313,7 +4322,9 @@ private fun OcrPackManager(settings: LiveSettings) {
     val filesDir = context.filesDir
     val enabledLanguages = settings.watch { it.enabledLanguages }
     val engine = settings.watch { it.scanner.ocrEngine }
-    val packs = remember(enabledLanguages, engine) { OcrLanguages.packsFor(enabledLanguages, engine) }
+    val packs = remember(enabledLanguages, engine) {
+        OcrLanguages.packsFor(enabledLanguages, engine, TesseractOcr.available)
+    }
     val states by OcrPacks.states.collectAsState()
     LaunchedEffect(packs) { OcrPacks.refresh(filesDir, packs.map { it.first }) }
     val decide = rememberDownloadDecision(settings)
@@ -4420,7 +4431,9 @@ private fun OcrPackManager(settings: LiveSettings) {
                 val names = languages.joinToString(", ") { it.displayName }
                 if (pack == PaddleOcrModel.PACK) {
                     // Three files, imported one by one under their own names.
-                    PaddleOcrModel.Part.entries.map { OfflineLink("$names (${it.fileName})", PaddleOcrModel.url(it)) }
+                    PaddleOcrModel.parts().mapNotNull { part ->
+                        PaddleOcrModel.url(part)?.let { OfflineLink("$names (${part.fileName})", it) }
+                    }
                 } else {
                     listOf(OfflineLink(names, OcrLanguages.downloadUrl(pack)))
                 }
