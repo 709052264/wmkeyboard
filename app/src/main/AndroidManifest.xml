@@ -349,6 +349,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.MainActivity"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:launchMode="singleTop">
             <!--
@@ -524,6 +525,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ImportFileActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/import_file_label"
@@ -790,6 +792,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ImportLinkActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/import_link_label"
@@ -860,6 +863,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.FileEditorActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:label="@string/file_editor_label"
@@ -889,6 +893,7 @@
              both live in. No noHistory: the picker's result has to come back. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.kdeconnect.KdeFilePickerActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:taskAffinity=""
@@ -1023,6 +1028,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.AskAiActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="true"
             android:label="@string/ask_ai_label"
@@ -1043,6 +1049,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.LookupActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:label="@string/lookup_label"
@@ -1094,6 +1101,7 @@
              comes back to this activity. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.GalleryPickActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
@@ -1103,6 +1111,7 @@
         <!-- The Send files tool's document picker (#729), the same shape. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.SendPickActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
@@ -1140,6 +1149,7 @@
              and back returns to the field rather than to the settings app. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.ClipImageViewerActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:noHistory="true"
@@ -1166,6 +1176,7 @@
              because this activity is the *caller*, not the callee. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.DocScanActivity"
+            android:enableOnBackInvokedCallback="true"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"
@@ -1180,6 +1191,7 @@
              a turn of the phone must not drop it. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.PageScanActivity"
+            android:enableOnBackInvokedCallback="true"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden|uiMode"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -1200,6 +1212,7 @@
         -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.CrashReportActivity"
+            android:enableOnBackInvokedCallback="true"
             android:process=":crash"
             android:exported="false"
             android:excludeFromRecents="true"
@@ -1379,6 +1392,7 @@
              recents so an answered alarm leaves nothing behind. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.clock.ClockRingActivity"
+            android:enableOnBackInvokedCallback="true"
             android:directBootAware="true"
             android:excludeFromRecents="true"
             android:exported="false"
