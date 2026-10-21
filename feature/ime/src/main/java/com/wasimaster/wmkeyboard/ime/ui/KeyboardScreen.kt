@@ -27944,6 +27944,8 @@ private fun Modifier.pointerInputKey(
             } finally {
                 if (caretDragOpen) onCaretDrag(false)
                 spaceTouchpad?.active = false
+                // A no-op after a lift; after a cancel, the press that never saw one (#665).
+                setPressed(false)
             }
         }
     } else if (
@@ -28045,112 +28047,125 @@ private fun Modifier.pointerInputKey(
                         delay(repeatMs)
                     }
                 }
-                while (true) {
-                    val event = awaitPointerEvent()
-                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                    if (!change.pressed) {
-                        change.consume()
-                        break
-                    }
-                    // Once the hold has started repeating the press is a hold, and
-                    // stays one. A thumb resting on the key for the length of a
-                    // long URL rolls a few pixels sideways, and turning that into
-                    // a swipe cancelled the repeat under it: delete just stopped,
-                    // the finger still down (#662).
-                    if (armed && !swiping && !longPressFired) {
-                        val offset = change.position - down.position
-                        val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
-                        if (live != arm) {
-                            arm = live
-                            setFlickDirection(live)
-                            armRepeat?.cancel()
-                            armRepeat = null
-                            if (live != null) {
-                                flicked = true
-                                repeat.cancel()
-                                onKeyHaptic()
-                                // A forward delete or an arrow on the arm keeps
-                                // going while the finger stays out on it.
-                                armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
-                                    scope.launch {
-                                        delay(keyRepeat.startDelayMs.toLong())
-                                        armRepeated = true
-                                        while (true) {
-                                            repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                            onKeyRepeat(armKey)
-                                            delay(keyRepeat.deleteMs.toLong())
+                // Cancelled with the finger down (see the flick key's handler),
+                // the repeat kept deleting until the field was empty (#665).
+                var lifted = false
+                try {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (!change.pressed) {
+                            change.consume()
+                            break
+                        }
+                        // Once the hold has started repeating the press is a hold, and
+                        // stays one. A thumb resting on the key for the length of a
+                        // long URL rolls a few pixels sideways, and turning that into
+                        // a swipe cancelled the repeat under it: delete just stopped,
+                        // the finger still down (#662).
+                        if (armed && !swiping && !longPressFired) {
+                            val offset = change.position - down.position
+                            val live = resolveFlickDirection(offset.x, offset.y, flickSlopPx, hasArm)
+                            if (live != arm) {
+                                arm = live
+                                setFlickDirection(live)
+                                armRepeat?.cancel()
+                                armRepeat = null
+                                if (live != null) {
+                                    flicked = true
+                                    repeat.cancel()
+                                    onKeyHaptic()
+                                    // A forward delete or an arrow on the arm keeps
+                                    // going while the finger stays out on it.
+                                    armRepeat = key.flickKey(live)?.takeIf { it.flickArmRepeats() }?.let { armKey ->
+                                        scope.launch {
+                                            delay(keyRepeat.startDelayMs.toLong())
+                                            armRepeated = true
+                                            while (true) {
+                                                repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                                                onKeyRepeat(armKey)
+                                                delay(keyRepeat.deleteMs.toLong())
+                                            }
                                         }
                                     }
                                 }
                             }
+                            if (flicked) {
+                                change.consume()
+                                continue
+                            }
                         }
-                        if (flicked) {
+                        if (swipeOn && !swiping && !longPressFired && abs(change.position.x - down.position.x) > swipeSlopPx) {
+                            swiping = true
+                            repeat.cancel()
+                            anchorX = down.position.x
+                        }
+                        if (swiping) {
+                            // Claim the drag so nothing upstream reinterprets it.
                             change.consume()
-                            continue
-                        }
-                    }
-                    if (swipeOn && !swiping && !longPressFired && abs(change.position.x - down.position.x) > swipeSlopPx) {
-                        swiping = true
-                        repeat.cancel()
-                        anchorX = down.position.x
-                    }
-                    if (swiping) {
-                        // Claim the drag so nothing upstream reinterprets it.
-                        change.consume()
-                        // How far the finger has gone *the way the deletion
-                        // goes* since the anchor; negative is a drag back.
-                        fun travelled(): Float = (change.position.x - anchorX) * dir
-                        while (travelled() >= stepPx(taken)) {
-                            // Held over the whole iteration: the anchor only
-                            // walks for a step that was actually taken, so a
-                            // swipe stopped by the start of the text does not
-                            // silently owe the drag back an extra step before
-                            // the preview starts shrinking again.
-                            val step = stepPx(taken)
-                            if (previewing) {
-                                val covered = deleteSwipe.onSelect(taken + 1, byWord, forward)
-                                if (covered >= 0) {
-                                    // A preview that stops growing has reached
-                                    // the start of the text: no buzz, and no
-                                    // step, for a drag that deletes nothing.
-                                    if (covered <= taken) break
-                                    anchorX += step * dir
-                                    taken = covered
-                                    stepFeedback()
-                                    continue
+                            // How far the finger has gone *the way the deletion
+                            // goes* since the anchor; negative is a drag back.
+                            fun travelled(): Float = (change.position.x - anchorX) * dir
+                            while (travelled() >= stepPx(taken)) {
+                                // Held over the whole iteration: the anchor only
+                                // walks for a step that was actually taken, so a
+                                // swipe stopped by the start of the text does not
+                                // silently owe the drag back an extra step before
+                                // the preview starts shrinking again.
+                                val step = stepPx(taken)
+                                if (previewing) {
+                                    val covered = deleteSwipe.onSelect(taken + 1, byWord, forward)
+                                    if (covered >= 0) {
+                                        // A preview that stops growing has reached
+                                        // the start of the text: no buzz, and no
+                                        // step, for a drag that deletes nothing.
+                                        if (covered <= taken) break
+                                        anchorX += step * dir
+                                        taken = covered
+                                        stepFeedback()
+                                        continue
+                                    }
+                                    // No preview to be had here (a panel search owns
+                                    // backspace, or the editor will not say where its
+                                    // cursor is). Bank what is already selected and
+                                    // delete outright from here on.
+                                    if (taken > 0) deleteSwipe.onCommit()
+                                    previewing = false
+                                    taken = 0
                                 }
-                                // No preview to be had here (a panel search owns
-                                // backspace, or the editor will not say where its
-                                // cursor is). Bank what is already selected and
-                                // delete outright from here on.
-                                if (taken > 0) deleteSwipe.onCommit()
-                                previewing = false
+                                if (!canDeleteHere()) break
+                                anchorX += step * dir
+                                taken++
+                                stepFeedback()
+                                deleteSwipe.onDeleteUnit(byWord, forward)
+                            }
+                            if (previewing) {
+                                // Dragging back gives the text back a unit at a
+                                // time — the whole point of selecting first. The
+                                // step returned is the one that was spent to take
+                                // the unit, so the gesture retraces its own path.
+                                while (taken > 0 && -travelled() >= stepPx(taken - 1)) {
+                                    anchorX -= stepPx(taken - 1) * dir
+                                    taken--
+                                    stepFeedback()
+                                    deleteSwipe.onSelect(taken, byWord, forward)
+                                }
+                            } else if (travelled() < 0f) {
+                                // Nothing to give back once the text is gone, so a
+                                // reversal only re-anchors and resets the
+                                // acceleration: it stops the run, never replays it.
+                                anchorX = change.position.x
                                 taken = 0
                             }
-                            if (!canDeleteHere()) break
-                            anchorX += step * dir
-                            taken++
-                            stepFeedback()
-                            deleteSwipe.onDeleteUnit(byWord, forward)
                         }
-                        if (previewing) {
-                            // Dragging back gives the text back a unit at a
-                            // time — the whole point of selecting first. The
-                            // step returned is the one that was spent to take
-                            // the unit, so the gesture retraces its own path.
-                            while (taken > 0 && -travelled() >= stepPx(taken - 1)) {
-                                anchorX -= stepPx(taken - 1) * dir
-                                taken--
-                                stepFeedback()
-                                deleteSwipe.onSelect(taken, byWord, forward)
-                            }
-                        } else if (travelled() < 0f) {
-                            // Nothing to give back once the text is gone, so a
-                            // reversal only re-anchors and resets the
-                            // acceleration: it stops the run, never replays it.
-                            anchorX = change.position.x
-                            taken = 0
-                        }
+                    }
+                    lifted = true
+                } finally {
+                    if (!lifted) {
+                        repeat.cancel()
+                        armRepeat?.cancel()
+                        if (flicked) setFlickDirection(null)
+                        setPressed(false)
                     }
                 }
                 repeat.cancel()
@@ -28291,88 +28306,111 @@ private fun Modifier.pointerInputKey(
                 } else {
                     null
                 }
-                while (true) {
-                    val event = awaitPointerEvent()
-                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                    if (change.isConsumed) { stolen = true; break }
-                    if (!change.pressed) { change.consume(); break }
-                    // The popup is up: the finger is choosing in it, not picking
-                    // a kana arm. The two cannot both read this drag, and the
-                    // popup is the one the user is looking at.
-                    if (longFired && alternates != null) {
-                        alternates.moveTo(change.position, reachPx, steerPx)
-                        change.consume()
-                        continue
-                    }
-                    // The hold is repeating the key: no arm now.
-                    if (centreRepeated) {
-                        change.consume()
-                        continue
-                    }
-                    val offset = change.position - down.position
-                    val dist = offset.getDistance()
-                    if (dist > extremeDist) {
-                        extremeDist = dist
-                        extreme = change.position
-                    }
-                    // Only directions the key actually defines count, so a
-                    // flick toward an empty arm falls back to the centre tap
-                    // rather than committing nothing. An arm with a capital of
-                    // its own is the arm the finger *reached*, and a return
-                    // towards the centre asks for that capital; any other arm
-                    // follows the finger, so coming back inside the slop is the
-                    // cancel it always was on a kana pad.
-                    val live = resolveFlickDirection(offset.x, offset.y, slopPx, hasArm)
-                    val peak = resolveFlickDirection(
-                        extreme.x - down.position.x, extreme.y - down.position.y, slopPx, hasArm,
-                    )
-                    val resolved: FlickDirection?
-                    val nowReturned: Boolean
-                    if (peak != null && key.flickShiftedText(peak) != null) {
-                        resolved = peak
-                        nowReturned = flickReturned(extremeDist, (change.position - extreme).getDistance())
-                    } else {
-                        resolved = live
-                        nowReturned = false
-                    }
-                    if (nowReturned != returned) {
-                        returned = nowReturned
-                        setFlickReturned(returned)
-                    }
-                    if (resolved != dir) {
-                        dir = resolved
-                        setFlickDirection(dir)
-                        // Committing to a flick arm cancels the pending long
-                        // press, and the chord a still ?123 would have been,
-                        // and says so under the finger.
-                        if (dir != null) {
-                            longJob?.cancel()
-                            centreRepeat?.cancel()
-                            chordLabels?.cancel()
-                            // One action wins (#875): the arm, unless a
-                            // chord already ran during this hold.
-                            if (chordTrigger && chordGate?.armTaken(down.id) == true) chordWon = true
-                            onKeyHaptic()
+                // The handler can be cancelled with the finger still down: its
+                // pointerInput restarts when any of its keys change, a settings
+                // write under a held key among them. The jobs above run in the
+                // key's own scope, which outlives that, so a cancelled gesture
+                // left the press lit, its cross popup up over the keys around
+                // it, and a repeating arm firing forever: a stuck key, dead
+                // neighbours, and text deleting itself (#665).
+                var lifted = false
+                try {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        if (change.isConsumed) { stolen = true; break }
+                        if (!change.pressed) { change.consume(); break }
+                        // The popup is up: the finger is choosing in it, not picking
+                        // a kana arm. The two cannot both read this drag, and the
+                        // popup is the one the user is looking at.
+                        if (longFired && alternates != null) {
+                            alternates.moveTo(change.position, reachPx, steerPx)
+                            change.consume()
+                            continue
                         }
-                        armRepeat?.cancel()
-                        armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() }?.let { arm ->
-                            val intervalMs = when {
-                                arm.action is KeyAction.Edit && !arm.action.deletesBackward() &&
-                                    !arm.action.deletesForward() -> textEditing.repeatMs
-                                else -> keyRepeat.deleteMs
-                            }.toLong()
-                            scope.launch {
-                                delay(keyRepeat.startDelayMs.toLong())
-                                armRepeated = true
-                                while (true) {
-                                    repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
-                                    onKeyRepeat(arm)
-                                    delay(intervalMs)
+                        // The hold is repeating the key: no arm now.
+                        if (centreRepeated) {
+                            change.consume()
+                            continue
+                        }
+                        val offset = change.position - down.position
+                        val dist = offset.getDistance()
+                        if (dist > extremeDist) {
+                            extremeDist = dist
+                            extreme = change.position
+                        }
+                        // Only directions the key actually defines count, so a
+                        // flick toward an empty arm falls back to the centre tap
+                        // rather than committing nothing. An arm with a capital of
+                        // its own is the arm the finger *reached*, and a return
+                        // towards the centre asks for that capital; any other arm
+                        // follows the finger, so coming back inside the slop is the
+                        // cancel it always was on a kana pad.
+                        val live = resolveFlickDirection(offset.x, offset.y, slopPx, hasArm)
+                        val peak = resolveFlickDirection(
+                            extreme.x - down.position.x, extreme.y - down.position.y, slopPx, hasArm,
+                        )
+                        val resolved: FlickDirection?
+                        val nowReturned: Boolean
+                        if (peak != null && key.flickShiftedText(peak) != null) {
+                            resolved = peak
+                            nowReturned = flickReturned(extremeDist, (change.position - extreme).getDistance())
+                        } else {
+                            resolved = live
+                            nowReturned = false
+                        }
+                        if (nowReturned != returned) {
+                            returned = nowReturned
+                            setFlickReturned(returned)
+                        }
+                        if (resolved != dir) {
+                            dir = resolved
+                            setFlickDirection(dir)
+                            // Committing to a flick arm cancels the pending long
+                            // press, and the chord a still ?123 would have been,
+                            // and says so under the finger.
+                            if (dir != null) {
+                                longJob?.cancel()
+                                centreRepeat?.cancel()
+                                chordLabels?.cancel()
+                                // One action wins (#875): the arm, unless a
+                                // chord already ran during this hold.
+                                if (chordTrigger && chordGate?.armTaken(down.id) == true) chordWon = true
+                                onKeyHaptic()
+                            }
+                            armRepeat?.cancel()
+                            armRepeat = dir?.let { key.flickKey(it) }?.takeIf { it.flickArmRepeats() }?.let { arm ->
+                                val intervalMs = when {
+                                    arm.action is KeyAction.Edit && !arm.action.deletesBackward() &&
+                                        !arm.action.deletesForward() -> textEditing.repeatMs
+                                    else -> keyRepeat.deleteMs
+                                }.toLong()
+                                scope.launch {
+                                    delay(keyRepeat.startDelayMs.toLong())
+                                    armRepeated = true
+                                    while (true) {
+                                        repeatFeedback(vibrateOnRepeat, soundOnRepeat, onKeyPress, onKeySound, onKeyHaptic)
+                                        onKeyRepeat(arm)
+                                        delay(intervalMs)
+                                    }
                                 }
                             }
                         }
+                        change.consume()
                     }
-                    change.consume()
+                    lifted = true
+                } finally {
+                    if (!lifted) {
+                        longJob?.cancel()
+                        armRepeat?.cancel()
+                        centreRepeat?.cancel()
+                        chordLabels?.cancel()
+                        if (chordTrigger) chordGate?.triggerUp(down.id)
+                        if (longFired) alternates?.cancel()
+                        setPressed(false)
+                        setFlickDirection(null)
+                        setFlickReturned(false)
+                    }
                 }
                 longJob?.cancel()
                 armRepeat?.cancel()
