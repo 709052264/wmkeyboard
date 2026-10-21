@@ -394,7 +394,8 @@ private fun OcrContent(
         // The online readers (#469, #727), or in pick mode the one the chooser is on.
         val readers = if (online) OnlineOcr.rows(state.settings, ProviderPicks.of(ProviderTool.OCR)) else emptyList()
         scope.launch {
-            val bitmap = if (picked != null) {
+            // Parenthesised so the `?:` covers every branch, not just the last.
+            val bitmap = (if (picked != null) {
                 withContext(Dispatchers.IO) { MediaPrep.decode(context, picked, CLIP_OCR_MAX_SIDE) }
                     ?: run {
                         Toast.makeText(context, R.string.ime_scanner_ocr_image_error, Toast.LENGTH_SHORT).show()
@@ -408,7 +409,7 @@ private fun OcrContent(
                         imageCapture.awaitCapture(context).use { it.toFramedBitmap(mirror = false) }
                     }.getOrNull()
                 }
-            } ?: return@launch
+            }) ?: return@launch
             stage = OcrStage.Recognizing(bitmap)
             val read = withContext(Dispatchers.Default) {
                 runCancellable {
