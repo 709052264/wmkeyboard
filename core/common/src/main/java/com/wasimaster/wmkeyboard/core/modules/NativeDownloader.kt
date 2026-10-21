@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.modules
 
+import com.wasimaster.wmkeyboard.core.download.DataMirror
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
 import com.wasimaster.wmkeyboard.core.endpoints.GitForge
 import com.wasimaster.wmkeyboard.core.endpoints.ServiceEndpoints
@@ -47,7 +48,15 @@ object NativeDownloader {
         when (val source = pin.source) {
             NativeSource.Data -> {
                 val url = dataUrl(pin) ?: throw IOException("the data repository is not on GitHub")
-                FileDownloader.fetch(url, part, pin.size, NetSource.DOWNLOAD_NATIVE, onBytes = onBytes)
+                val mirror = DataMirror.of(url)
+                FileDownloader.fetchVia(url, mirror, part, pin.size, NetSource.DOWNLOAD_NATIVE, onBytes = onBytes)
+                if (mirror != null) {
+                    coroutineContext.ensureActive()
+                    if (store.install(pin, part)) return
+                    // The mirror's copy may be the bad one: the origin's decides.
+                    FileDownloader.discard(part)
+                    FileDownloader.fetchVia(url, null, part, pin.size, NetSource.DOWNLOAD_NATIVE, onBytes = onBytes)
+                }
             }
             is NativeSource.Maven -> {
                 // The entry is read whole each time: it is a few MB out of an

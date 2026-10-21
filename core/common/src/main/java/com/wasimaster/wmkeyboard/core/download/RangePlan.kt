@@ -32,6 +32,9 @@ internal class RangePlan(val total: Long, val pieces: List<Piece>) {
     }
 
     val done: Long get() = pieces.sumOf { it.next - it.start }
+
+    /** A copy of where every piece is now, for a writer that must not see later progress. */
+    fun snapshot(): RangePlan = RangePlan(total, pieces.map { Piece(it.start, it.end, it.next) })
     val complete: Boolean get() = pieces.all { it.complete }
 
     /** Writes the plan through a temporary file, so a reader never sees half of it. */

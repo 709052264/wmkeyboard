@@ -12,7 +12,6 @@ import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 
 /**
  * Fetching and checking interface language packs ([LanguagePackResources])
@@ -75,8 +74,7 @@ internal object LanguagePackDownloads {
     }
 
     private suspend fun download(url: String, part: File) {
-        FileDownloader.fetch(url, part, null, NetSource.DOWNLOAD_LANGUAGE)
-        if (part.length() > MAX_BYTES) throw IOException("$url is larger than a language pack")
+        FileDownloader.fetch(url, part, null, NetSource.DOWNLOAD_LANGUAGE, maxBytes = MAX_BYTES)
     }
 
     /** Checks [staged] and moves it to [target], reloading the packs. */

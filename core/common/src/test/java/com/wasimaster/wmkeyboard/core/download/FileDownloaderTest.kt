@@ -167,8 +167,8 @@ class FileDownloaderTest {
         )
         assertArrayEquals(data, part().readBytes())
         assertEquals(1, server.authorisedRedirects.get())
-        // At most the probe, which the HTTP stack itself carried through the redirect.
-        assertTrue("token sent ${server.authorisedFiles.get()} times", server.authorisedFiles.get() <= 1)
+        // Redirects are followed by hand, so the token never reaches the target.
+        assertEquals(0, server.authorisedFiles.get())
     }
 
     @Test fun anExpiredRedirectIsAskedForAgain() = runBlocking {
@@ -243,6 +243,37 @@ class FileDownloaderTest {
         FileDownloader.gate = DownloadGate { true }
         FileDownloader.fetch(server.url, part(), data.size.toLong(), NetSource.DOWNLOAD_NATIVE)
         assertArrayEquals(data, part().readBytes())
+    }
+
+    @Test fun aCapStopsAFileWithNoPinnedSize() = runBlocking {
+        try {
+            FileDownloader.fetch(server.url, part(), null, NetSource.DOWNLOAD_NATIVE, maxBytes = 1_000_000)
+            fail("longer than the cap")
+        } catch (_: DownloadException.WrongSize) {
+        }
+        assertFalse(part().exists())
+        server.ranges = false
+        try {
+            FileDownloader.fetch(server.url, part(), null, NetSource.DOWNLOAD_NATIVE, maxBytes = 1_000_000)
+            fail("longer than the cap, in one stream")
+        } catch (_: DownloadException.WrongSize) {
+        }
+        assertTrue("stopped early: ${server.bytesServed.get()}", server.bytesServed.get() < data.size)
+    }
+
+    @Test fun theGateIsAskedInsideAPiece() = runBlocking {
+        val big = Random(9).nextBytes(20 * 1024 * 1024)
+        server.stop()
+        server = FakeRangeServer(big)
+        val asked = AtomicInteger()
+        // Yes to the requests and the first in-piece question, then no.
+        FileDownloader.gate = DownloadGate { asked.incrementAndGet() <= 2 }
+        try {
+            FileDownloader.fetch(server.url, part(), big.size.toLong(), NetSource.DOWNLOAD_NATIVE, connections = 1)
+            fail()
+        } catch (_: DownloadException.Blocked) {
+        }
+        assertTrue(FileDownloader.bytesDone(part()) in 1 until big.size.toLong())
     }
 
     @Test fun aSmallFileIsOneRequest() = runBlocking {

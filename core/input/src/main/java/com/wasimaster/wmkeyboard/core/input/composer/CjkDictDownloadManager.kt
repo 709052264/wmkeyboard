@@ -285,7 +285,7 @@ object CjkDictDownloadManager {
         // range counted in decoded bytes would land mid-stream. The server's
         // length is the pack's; its SHA-256 decides after.
         try {
-            FileDownloader.fetch(pack.url, part, null, NetSource.DOWNLOAD_CJK) { written ->
+            FileDownloader.fetch(pack.url, part, null, NetSource.DOWNLOAD_CJK, maxBytes = pack.sizeBytes) { written ->
                 set(pack.id, DownloadStatus.Downloading(written, pack.sizeBytes))
             }
         } catch (e: DownloadException) {

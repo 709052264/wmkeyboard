@@ -168,10 +168,9 @@ object DivvunSpellerDownloads {
         val dir = DivvunRuntime.languageDir(filesDir, langId).apply { mkdirs() }
         val packed = File(dir, PACKAGE_PART)
         // The server's length is the package's; the pin caps it and the hash decides.
-        FileDownloader.fetch(entry.url, packed, null, NetSource.DOWNLOAD_WORDLIST) {
+        FileDownloader.fetch(entry.url, packed, null, NetSource.DOWNLOAD_WORDLIST, maxBytes = entry.packedBytes) {
             set(langId, Status.Downloading(it, entry.packedBytes))
         }
-        if (packed.length() > entry.packedBytes) throw IOException("${entry.url} is larger than its pin")
         val got = FileDownloader.sha256(packed)
         if (got != entry.sha256) throw IOException("SHA-256 mismatch for ${entry.url}: $got")
         val target = DivvunRuntime.bhfstFile(filesDir, langId)

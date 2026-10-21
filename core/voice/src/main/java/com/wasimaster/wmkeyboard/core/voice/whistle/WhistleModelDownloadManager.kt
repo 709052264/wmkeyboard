@@ -72,7 +72,7 @@ object WhistleModelDownloadManager {
             } catch (e: CancellationException) {
                 // delete() cancels and then wipes; the unwinding job must not
                 // bring a Paused back for a file that is gone.
-                _status.value = if (part.length() > 0) {
+                _status.value = if (FileDownloader.bytesDone(part) > 0) {
                     Status.Paused(FileDownloader.bytesDone(part), WhistleModelStore.MODEL_BYTES)
                 } else {
                     Status.NotDownloaded

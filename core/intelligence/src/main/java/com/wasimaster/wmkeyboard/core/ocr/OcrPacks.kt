@@ -165,7 +165,7 @@ object OcrPacks {
      * caller's thread.
      */
     fun installPaddle(filesDir: File, part: PaddleOcrModel.Part, source: File): Boolean {
-        if (sha256(source) != part.sha256) return false
+        if (FileDownloader.sha256(source) != part.sha256) return false
         cancel(PaddleOcrModel.PACK)
         val staged = paddlePartFile(filesDir, part)
         staged.parentFile?.mkdirs()

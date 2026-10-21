@@ -160,10 +160,9 @@ object VoikkoDictionaryDownloads {
         val packed = zipPart(filesDir, langId).apply { parentFile?.mkdirs() }
         val url = entry.url
         // The server's length is the archive's; the pin caps it and the hash decides.
-        FileDownloader.fetch(url, packed, null, NetSource.DOWNLOAD_WORDLIST) {
+        FileDownloader.fetch(url, packed, null, NetSource.DOWNLOAD_WORDLIST, maxBytes = entry.packedBytes) {
             set(langId, Status.Downloading(it, entry.packedBytes))
         }
-        if (packed.length() > entry.packedBytes) throw IOException("$url is larger than its pin")
         val got = FileDownloader.sha256(packed)
         if (got != entry.sha256) throw IOException("SHA-256 mismatch for $url: $got")
         val part = partDir(filesDir, langId)

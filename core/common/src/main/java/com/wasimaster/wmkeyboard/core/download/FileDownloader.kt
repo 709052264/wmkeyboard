@@ -14,6 +14,7 @@ import java.net.UnknownHostException
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,8 @@ object FileDownloader {
     private const val CONNECT_TIMEOUT_MS = 15_000
     private const val READ_TIMEOUT_MS = 30_000
     private const val HTTP_RANGE_NOT_SATISFIABLE = 416
+    private const val MAX_REDIRECTS = 5
+    private const val GATE_EVERY_BYTES = 4L shl 20
     const val USER_AGENT = "WMKeyboard model downloader"
 
     /**
@@ -117,6 +120,8 @@ object FileDownloader {
      * [headers] go with every request to [url] itself, never to the address
      * it redirects to: a token for the host the user gave it to, not for its
      * storage provider. [background] marks the log rows as [NetLog.call] does.
+     * [maxBytes] caps a file whose exact length is not pinned: a longer one
+     * stops at the first sign of it with [DownloadException.WrongSize].
      *
      * Throws a [DownloadException] for a failure the caller can name, any
      * other [IOException] for the network, and [CancellationException] when
@@ -131,8 +136,9 @@ object FileDownloader {
         connections: Int = CONNECTIONS,
         headers: Map<String, String> = emptyMap(),
         background: Boolean = source.background,
+        maxBytes: Long? = null,
         onBytes: (Long) -> Unit = {},
-    ): Long = fetchVia(url, DataMirror.of(url), part, size, source, connections, headers, background, onBytes)
+    ): Long = fetchVia(url, DataMirror.of(url), part, size, source, connections, headers, background, maxBytes, onBytes)
 
     /**
      * [fetch] from [mirror] first when there is one, then from [url] for
@@ -147,35 +153,49 @@ object FileDownloader {
         connections: Int = CONNECTIONS,
         headers: Map<String, String> = emptyMap(),
         background: Boolean = source.background,
+        maxBytes: Long? = null,
         onBytes: (Long) -> Unit = {},
     ): Long = withContext(Dispatchers.IO) {
         require(size == null || size >= 0) { "negative size" }
         part.parentFile?.mkdirs()
-        if (mirror != null) {
-            try {
-                return@withContext attempt(mirror, part, size, source, background, connections, emptyMap(), onBytes)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: DownloadException.Blocked) {
-                throw e
-            } catch (_: IOException) {
-                // Down, or without this file: the origin carries on.
+        val limits = Limits(size, maxBytes)
+        try {
+            if (mirror != null) {
+                try {
+                    return@withContext attempt(mirror, part, limits, source, background, connections, emptyMap(), onBytes)
+                } catch (e: DownloadException.Blocked) {
+                    throw e
+                } catch (_: IOException) {
+                    // Down, or without this file: the origin carries on,
+                    // unless what stopped it was the download being cancelled.
+                    ensureActive()
+                }
             }
+            attempt(url, part, limits, source, background, connections, headers, onBytes)
+        } catch (e: IOException) {
+            // Cancelling closes the sockets, and a read that was blocked in one
+            // throws an IOException as it unwinds: the caller hears the cancel.
+            ensureActive()
+            throw e
         }
-        attempt(url, part, size, source, background, connections, headers, onBytes)
+    }
+
+    /** The pinned length, if any, and a cap for a file without one. */
+    private class Limits(val size: Long?, val maxBytes: Long?) {
+        fun tooLong(length: Long): Boolean = maxBytes != null && length > maxBytes
     }
 
     private suspend fun attempt(
         url: String,
         part: File,
-        size: Long?,
+        limits: Limits,
         source: NetSource,
         background: Boolean,
         connections: Int,
         headers: Map<String, String>,
         onBytes: (Long) -> Unit,
     ): Long {
-        val job = Job(url, part, size, source, background, connections.coerceAtLeast(1), headers, onBytes)
+        val job = Job(url, part, limits, source, background, connections.coerceAtLeast(1), headers, onBytes)
         return try {
             job.run()
         } catch (_: NoRangesException) {
@@ -264,13 +284,14 @@ object FileDownloader {
     private class Job(
         val url: String,
         val part: File,
-        val size: Long?,
+        val limits: Limits,
         val source: NetSource,
         val background: Boolean,
         val connections: Int,
         val headers: Map<String, String>,
         val onBytes: (Long) -> Unit,
     ) {
+        private val size = limits.size
         private val ranges = rangesOf(part)
         private val done = AtomicLong()
 
@@ -314,16 +335,23 @@ object FileDownloader {
                 first.close(t)
                 throw t
             }
-            if (size != null && total != size) {
+            if ((size != null && total != size) || limits.tooLong(total)) {
                 first.close(null)
                 discard(part)
-                throw DownloadException.WrongSize(size, total)
+                throw DownloadException.WrongSize(size ?: limits.maxBytes ?: total, total)
             }
-            resolved = first.connection.url.toString()
+            resolved = first.finalUrl
             val fresh = RangePlan.split(total, prefix, firstLength, pieceSize(total, connections))
-            RandomAccessFile(part, "rw").use { it.setLength(total) }
-            fresh.write(ranges)
-            fetchPieces(fresh, first)
+            try {
+                // The map before the length: a full-length `.part` with no map
+                // would read as a finished one-stream download.
+                fresh.write(ranges)
+                RandomAccessFile(part, "rw").use { it.setLength(total) }
+                fetchPieces(fresh, first)
+            } catch (t: Throwable) {
+                first.close(t)
+                throw t
+            }
             return total
         }
 
@@ -413,9 +441,11 @@ object FileDownloader {
                 delay(TICK_MS)
                 onBytes(done.get())
                 if (++ticks % SAVE_EVERY_TICKS == 0) {
-                    // The map may only claim bytes that reached the file.
+                    // The map may only claim bytes that reached the file: read
+                    // where the pieces are, then force, then write what was read.
+                    val snapshot = plan.snapshot()
                     channel.force(false)
-                    plan.write(ranges)
+                    snapshot.write(ranges)
                 }
             }
         }
@@ -460,7 +490,7 @@ object FileDownloader {
                 }
                 val from = startOf(connection)
                 if (from != null && from != piece.next) throw NoRangesException()
-                if (opened.requested == url) resolved = connection.url.toString()
+                if (opened.requested == url) resolved = opened.finalUrl
                 coroutineScope { copy(opened, piece, channel) }
                 opened.close(null)
             } catch (t: Throwable) {
@@ -484,8 +514,15 @@ object FileDownloader {
                 val input: InputStream = opened.call.countIn(opened.connection.inputStream)
                 input.use {
                     val buffer = ByteArray(BUFFER)
+                    var sinceAsked = 0L
                     while (!piece.complete) {
                         coroutineContext.ensureActive()
+                        // A piece can be tens of megabytes: data saving is asked
+                        // again every few, not only before the request.
+                        if (sinceAsked >= GATE_EVERY_BYTES) {
+                            sinceAsked = 0
+                            if (!gate.allows(source)) throw DownloadException.Blocked()
+                        }
                         val want = minOf(buffer.size.toLong(), piece.end - piece.next).toInt()
                         val read = it.read(buffer, 0, want)
                         if (read < 0) throw DownloadException.Interrupted()
@@ -494,6 +531,7 @@ object FileDownloader {
                         while (wrap.hasRemaining()) at += channel.write(wrap, at)
                         piece.advance(read.toLong())
                         done.addAndGet(read.toLong())
+                        sinceAsked += read
                     }
                 }
             } finally {
@@ -515,6 +553,9 @@ object FileDownloader {
                 val announced = connection.contentLengthLong.takeIf { it >= 0 }
                 if (size != null && announced != null && announced != size) {
                     throw DownloadException.WrongSize(size, announced)
+                }
+                if (announced != null && limits.tooLong(announced)) {
+                    throw DownloadException.WrongSize(limits.maxBytes ?: announced, announced)
                 }
                 ranges.delete()
                 var written = 0L
@@ -539,6 +580,14 @@ object FileDownloader {
                                     // Longer than pinned is not the pinned file; stop paying for it.
                                     if (size != null && written + read > size) {
                                         throw DownloadException.WrongSize(size, written + read)
+                                    }
+                                    if (limits.tooLong(written + read)) {
+                                        throw DownloadException.WrongSize(limits.maxBytes ?: 0L, written + read)
+                                    }
+                                    if (written / GATE_EVERY_BYTES != (written + read) / GATE_EVERY_BYTES &&
+                                        !gate.allows(source)
+                                    ) {
+                                        throw DownloadException.Blocked()
                                     }
                                     out.write(buffer, 0, read)
                                     written += read
@@ -566,9 +615,15 @@ object FileDownloader {
             }
         }
 
-        /** A request on its way and its log row. */
-        class Opened(val connection: HttpURLConnection, val call: NetCall, val requested: String) {
+        /**
+         * A request on its way and its log row. [requested] is the address
+         * asked for, [finalUrl] the one that answered after redirects.
+         */
+        class Opened(val connection: HttpURLConnection, val call: NetCall, val requested: String, val finalUrl: String) {
+            private val closed = AtomicBoolean(false)
+
             fun close(t: Throwable?) {
+                if (!closed.compareAndSet(false, true)) return
                 if (t != null && t !is CancellationException) call.fail(t)
                 runCatching { call.status = connection.responseCode }
                 connection.disconnect()
@@ -576,36 +631,57 @@ object FileDownloader {
             }
         }
 
-        /** Opens [address], for [range] when given; the status line is read before this returns. */
+        /**
+         * Opens [address], for [range] when given, following redirects here
+         * rather than in the HTTP stack, so [headers] go to [url] itself and
+         * to nothing it redirects to. The status line is read before this
+         * returns.
+         */
         fun open(range: LongRange?, address: String): Opened {
             if (!gate.allows(source)) throw DownloadException.Blocked()
             val call = NetLog.call(source, "GET", url, route = NetLog.pathOf(url), background = background)
-            val connection = try {
-                (URL(address).openConnection() as HttpURLConnection).apply {
-                    connectTimeout = CONNECT_TIMEOUT_MS
-                    readTimeout = READ_TIMEOUT_MS
-                    instanceFollowRedirects = true
-                    setRequestProperty("User-Agent", USER_AGENT)
-                    // Offsets in a range are offsets into the file as stored.
-                    setRequestProperty("Accept-Encoding", "identity")
-                    if (range != null) setRequestProperty("Range", "bytes=${range.first}-${range.last}")
-                    if (address == this@Job.url) headers.forEach { (name, value) -> setRequestProperty(name, value) }
-                }
-            } catch (t: Throwable) {
-                call.fail(t)
-                call.end()
-                throw t
-            }
             try {
-                call.status = connection.responseCode
+                var target = address
+                repeat(MAX_REDIRECTS + 1) {
+                    val connection = connect(range, target)
+                    val status = try {
+                        connection.responseCode
+                    } catch (t: Throwable) {
+                        connection.disconnect()
+                        throw t
+                    }
+                    val location = if (status in 300..399) connection.getHeaderField("Location") else null
+                    if (location == null) {
+                        call.status = status
+                        return Opened(connection, call, address, target)
+                    }
+                    connection.disconnect()
+                    val next = URL(URL(target), location)
+                    // Never from https down to plain http, and never off the web.
+                    if (next.protocol != "https" && (next.protocol != "http" || URL(target).protocol == "https")) {
+                        throw IOException("refused a redirect to ${next.protocol}")
+                    }
+                    target = next.toString()
+                }
+                throw IOException("too many redirects for $url")
             } catch (t: Throwable) {
                 call.fail(t)
                 call.end()
-                connection.disconnect()
                 throw t
             }
-            return Opened(connection, call, address)
         }
+
+        private fun connect(range: LongRange?, target: String): HttpURLConnection =
+            (URL(target).openConnection() as HttpURLConnection).apply {
+                connectTimeout = CONNECT_TIMEOUT_MS
+                readTimeout = READ_TIMEOUT_MS
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", USER_AGENT)
+                // Offsets in a range are offsets into the file as stored.
+                setRequestProperty("Accept-Encoding", "identity")
+                if (range != null) setRequestProperty("Range", "bytes=${range.first}-${range.last}")
+                if (target == this@Job.url) headers.forEach { (name, value) -> setRequestProperty(name, value) }
+            }
 
         /** The full length from a 206's `Content-Range: bytes a-b/total`. */
         private fun totalOf(connection: HttpURLConnection): Long? =
