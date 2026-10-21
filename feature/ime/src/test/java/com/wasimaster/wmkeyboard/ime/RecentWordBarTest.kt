@@ -66,10 +66,11 @@ class RecentWordBarTest {
         initial: String,
         secure: Boolean = false,
         kind: FieldKind = FieldKind.TEXT,
+        extracting: Boolean = true,
     ): Pair<GlideKeyboard, RecordingEditor> {
         val (service, editor) = glideKeyboard(
             state = glideReadyState(settings = settings, secureField = secure, fieldKind = kind, fieldNoSuggestions = false),
-            editor = ExtractingEditor(initial),
+            editor = if (extracting) ExtractingEditor(initial) else RecordingEditor(initial = initial),
         )
         val end = initial.length
         service.onUpdateSelection(end, end, end, end, -1, -1)
@@ -173,5 +174,47 @@ class RecentWordBarTest {
         idle()
         service.echo()
         assertEquals("what that now ", editor.text.toString())
+    }
+
+    /** [typeWord] with the editor's echo first, before the bar's posted read. */
+    private fun GlideKeyboard.typeWordEchoFirst(word: String) {
+        word.forEach { onText(it.toString()) }
+        onKey(space)
+        echo()
+    }
+
+    @Test
+    fun `an editor that will not say where its caret is keeps its words, the echo early or late`() {
+        // #868: the bar's read ran before the caret echo, from the caret
+        // before the word, and placed every word wrong.
+        for (echoFirst in listOf(false, true)) {
+            val (service, _) = keyboard(on, "", extracting = false)
+            for (word in listOf("cheap", "flights")) {
+                if (echoFirst) service.typeWordEchoFirst(word) else service.typeWord(word)
+            }
+            assertEquals(listOf("cheap", "flights"), service.words())
+
+            val (other, _) = keyboard(on, "form here ", extracting = false)
+            for (word in listOf("now", "then", "we", "go")) {
+                if (echoFirst) other.typeWordEchoFirst(word) else other.typeWord(word)
+            }
+            assertEquals(listOf("then", "we", "go"), other.words())
+        }
+    }
+
+    @Test
+    fun `a word retyped where another stood takes its place`() {
+        val (service, editor) = keyboard(on, "")
+        service.typeWord("hello")
+        service.typeWord("form")
+        assertEquals(listOf("hello", "form"), service.words())
+        // #868: the editor deletes "form " and reports the caret at 6.
+        editor.text.setLength(6)
+        service.onUpdateSelection(11, 11, 6, 6, -1, -1)
+        carets[service] = 6
+        idle()
+        service.typeWord("from")
+        assertEquals("hello from ", editor.text.toString())
+        assertEquals(listOf("hello", "from"), service.words())
     }
 }

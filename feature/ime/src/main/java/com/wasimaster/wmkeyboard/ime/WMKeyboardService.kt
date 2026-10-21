@@ -7815,6 +7815,7 @@ open class WMKeyboardService : InputMethodService() {
         if (undoCaretSnapBack(newSelStart, newSelEnd)) return
         expectedSelStart = newSelStart
         expectedSelEnd = newSelEnd
+        recentEchoOwed = false
         if (recentBarAwaitsEcho) scheduleRecentBar()
         noteTypedCaret(oldSelEnd, newSelStart, newSelEnd)
         // The space commit's echo is the first one with no composing region:
@@ -43954,6 +43955,14 @@ open class WMKeyboardService : InputMethodService() {
     private var recentBarAwaitsEcho = false
 
     /**
+     * A word was noted for the bar and the editor has not reported a caret
+     * since (#868). In an editor that will not say where its caret is, the
+     * last caret it reported is then the one before that word, and a read
+     * placed from it would put every word in the wrong place.
+     */
+    private var recentEchoOwed = false
+
+    /**
      * How long the word being typed is in the field (#817): what the
      * composing region shows, not the keystrokes behind it. Telex shows
      * `hướng` for the seven keys `huowngs`, and the keystroke count cut two
@@ -43997,6 +44006,7 @@ open class WMKeyboardService : InputMethodService() {
                 emptyList()
             }
             recentPending += part to offers
+            recentEchoOwed = true
         }
     }
 
@@ -44009,7 +44019,10 @@ open class WMKeyboardService : InputMethodService() {
         if (state.composesForSuggestions || !recentBarAllowed(state)) return
         val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull() ?: return
         val word = before.takeLastWhile { isComposingWordChar(it) }
-        if (word.any { it.isLetter() } && word.length < before.length) recentPending += word to emptyList()
+        if (word.any { it.isLetter() } && word.length < before.length) {
+            recentPending += word to emptyList()
+            recentEchoOwed = true
+        }
         scheduleRecentBar()
     }
 
@@ -44043,7 +44056,13 @@ open class WMKeyboardService : InputMethodService() {
         // for rewritten and dropped. The keyboard's own settings fields
         // report the caret a beat late, which on the phone left the row
         // empty. So a read the editor does not vouch for waits for its echo.
-        val stale = currentInputConnection?.let { !caretStillAt(it, expectedSelStart) } == true
+        // One that reaches the start of the field needs no caret at all; an
+        // editor that never vouches waits for the echo of the word (#868).
+        val ic = currentInputConnection
+        val stale = read != null && !read.anchored && ic != null && (
+            !caretStillAt(ic, expectedSelStart) ||
+                (recentEchoOwed && ic.getExtractedText(ExtractedTextRequest(), 0) == null)
+            )
         if (read == null || stale) {
             // Not "no words": the caret is not known until the echo of the
             // keyboard's own edit, and an empty bar stayed empty until the
@@ -44058,7 +44077,13 @@ open class WMKeyboardService : InputMethodService() {
                 while (at >= 0 && read.words[at].second != word) at--
                 if (at < 0) break
                 val start = read.words[at].first
-                if (recentEntries.none { it.start == start }) recentEntries += RecentEntry(start, word, null, offers)
+                // A word written again where an older one stood, deleted and
+                // retyped in place (#868): the new one takes its place.
+                val there = recentEntries.firstOrNull { it.start == start }
+                if (there == null || there.word != word) {
+                    if (there != null) recentEntries.remove(there)
+                    recentEntries += RecentEntry(start, word, null, offers)
+                }
                 at--
             }
             recentPending.clear()
@@ -44093,8 +44118,12 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.recentBar.isNotEmpty()) _uiState.update { it.copy(recentBar = emptyList()) }
     }
 
-    /** What the field reads before the caret: where that text starts and ends, and its words. */
-    private class RecentRead(val origin: Int, val end: Int, val words: List<Pair<Int, String>>)
+    /**
+     * What the field reads before the caret: where that text starts and ends,
+     * and its words. [anchored] when the read reached the start of the field,
+     * so its places hold whatever caret the editor last reported.
+     */
+    private class RecentRead(val origin: Int, val end: Int, val words: List<Pair<Int, String>>, val anchored: Boolean)
 
     /**
      * The words written before the caret, oldest first, as (start, word)
@@ -44104,12 +44133,13 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun recentRead(): RecentRead? {
         val ic = currentInputConnection ?: return null
-        val caret = expectedSelStart.takeIf { it >= 0 } ?: return null
         val before = runCatching { ic.getTextBeforeCursor(RECENT_BAR_LOOKBEHIND, 0)?.toString() }.getOrNull()
             ?: return null
         // The word in the composing region is not written yet.
         val written = before.dropLast(composingShownLength().coerceAtMost(before.length))
-        val origin = caret - before.length
+        // Short of the whole lookbehind, the read starts at the field's start.
+        val anchored = before.length < RECENT_BAR_LOOKBEHIND
+        val origin = if (anchored) 0 else (expectedSelStart.takeIf { it >= 0 } ?: return null) - before.length
         val found = ArrayList<Pair<Int, String>>()
         var i = 0
         while (i < written.length) {
@@ -44124,7 +44154,7 @@ open class WMKeyboardService : InputMethodService() {
             if (start == 0 && before.length >= RECENT_BAR_LOOKBEHIND) continue
             if (word.any { it.isLetter() }) found += (origin + start) to word
         }
-        return RecentRead(origin, origin + written.length, found)
+        return RecentRead(origin, origin + written.length, found, anchored)
     }
 
     /**
