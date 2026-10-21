@@ -126,19 +126,21 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
 }
 
 /// `fuzzySearch(dicts, kinds, weights, tiers, typed, proximity, limit, maxEdits,
-/// habits, touchKeys, touchCenters, sigma, touchPoints, keySets,
+/// habits, touchKeys, touchCenters, sigma, slipRadius, touchPoints, keySets,
 /// keySpellings, doublesOut, intsOut)`.
 ///
 /// `kinds` say what each handle is (see `sources`): 0 a dictionary, 1 a user lexicon (its
 /// trie). `tiers` are 0 for the dictionary tier, 1 for the user tier. `habits` is
 /// 0 for none. The touch frame is absent when `touchKeys` is null: keys
 /// with their centres as x, y pairs in the model's order, and a tap per
-/// typed character as x, y with NaN for an unknown one. `keySets` is null
+/// typed character as x, y with NaN for an unknown one; `slipRadius` is the
+/// slip reach in key widths, 0 for none. `keySets` is null
 /// on an ordinary board; `keySpellings[pos]` may be null.
 ///
 /// Returns the words, best first; for word `i`, `doublesOut[4i..4i+4]` are
-/// score, editCost, dictScore, userScore and `intsOut[4i..4i+4]` are edits,
-/// completedChars, tier, accents. Both must hold `4 * max(limit * 2, 8)`.
+/// score, editCost, dictScore, userScore and `intsOut[5i..5i+5]` are edits,
+/// completedChars, tier, accents, slips. `doublesOut` must hold
+/// `4 * max(limit * 2, 8)` and `intsOut` five per word.
 #[no_mangle]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_PredictionNative_fuzzySearch(
@@ -156,6 +158,7 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
     touch_keys: JCharArray,
     touch_centers: JFloatArray,
     sigma: jdouble,
+    slip_radius: jdouble,
     touch_points: JFloatArray,
     key_sets: JObjectArray,
     key_spellings: JObjectArray,
@@ -187,7 +190,8 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
             Some(TouchModel::new(
                 keys.iter().enumerate().map(|(i, &k)| (k, centers[2 * i], centers[2 * i + 1])).collect(),
                 sigma,
-            ))
+            )
+            .with_slip_radius(slip_radius))
         };
         let points = if touch_points.is_null() { Vec::new() } else { floats(env, &touch_points)? };
         let touch = model.as_ref().map(|model| {
@@ -240,10 +244,16 @@ pub extern "system" fn Java_com_wasimaster_wmkeyboard_core_prediction_Prediction
         })?;
 
         let mut reals = Vec::with_capacity(found.len() * 4);
-        let mut ints = Vec::with_capacity(found.len() * 4);
+        let mut ints = Vec::with_capacity(found.len() * 5);
         for c in &found {
             reals.extend_from_slice(&[c.score, c.edit_cost, c.dict_score, c.user_score]);
-            ints.extend_from_slice(&[c.edits as i32, c.completed_chars as i32, (c.tier == Tier::User) as i32, c.accents as i32]);
+            ints.extend_from_slice(&[
+                c.edits as i32,
+                c.completed_chars as i32,
+                (c.tier == Tier::User) as i32,
+                c.accents as i32,
+                c.slips as i32,
+            ]);
         }
         if env.get_array_length(&doubles_out).ok()? < reals.len() as i32 || env.get_array_length(&ints_out).ok()? < ints.len() as i32 {
             return throw_state(env, "wm-engine: the out arrays are too short");
