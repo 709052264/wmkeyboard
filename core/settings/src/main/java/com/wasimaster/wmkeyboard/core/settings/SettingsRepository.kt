@@ -63,6 +63,7 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCompute
 import com.wasimaster.wmkeyboard.prediction.R as PredictionR
 import com.wasimaster.wmkeyboard.core.snippets.MultiExpandMode
 import com.wasimaster.wmkeyboard.core.layout.AlternateColumnsRange
+import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.isShippedLayoutId
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
 import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
@@ -11190,12 +11191,19 @@ class SettingsRepository(private val context: Context) {
         // frame it was trying to appear. [mapPreferences] touches no Context,
         // so it is free to move; its one piece of outside state is the
         // shipped-layout catalogue, whose JSON half parses a layout the first
-        // time it is resolved — one more reason this belongs off main. The
-        // keyboard re-resolves the layout for itself on every field focus
-        // rather than relying on this object's copy, so a mapping that ran
-        // before the layout index was read is not what decides which grid
-        // gets drawn.
-        .map { mapPreferences(it) }
+        // time it is resolved — one more reason this belongs off main.
+        //
+        // The index has to be read before the first mapping. Unread, every
+        // JSON asset layout (most languages that are not English) resolves to
+        // the built-in default, and [KeyboardSettings.activeLayoutId] is the
+        // *resolved* id: a keyboard process that started cold opened on English
+        // in every field until the user switched by hand, with English nowhere
+        // on their list (#884). [AssetLayouts.load] is idempotent, so after the
+        // first emission this is a flag check.
+        .map {
+            AssetLayouts.load(context.assets)
+            mapPreferences(it)
+        }
         // Every reader of settings also brings the service addresses up to date,
         // so a download manager deep in a feature module reads the address the
         // user set without being handed the settings. See [ServiceEndpoints].
