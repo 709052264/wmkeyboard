@@ -493,11 +493,13 @@ Kotlin implementations are deleted from production and kept under
 trie crosses to the fuzzy walk and the reranker by handle (`LexiconTrie`),
 so every production trie now has a Rust twin.
 
-- What stays in Kotlin: Unicode case folding (`WordKey.of`) and the
-  learnability gate (`WordContext.isLearnableWord`). A load is two phases:
-  Rust parses the file, Kotlin judges and folds each word, Rust builds. The
-  reranker's caller folds the context and candidates the same way, and the
-  correction stores take keys already folded.
+- What stayed in Kotlin: Unicode case folding (`WordKey.of`) and the
+  learnability gate (`WordContext.isLearnableWord`), so a load was two
+  phases (Rust parsed the file, Kotlin judged and folded each word, Rust
+  built). Both are in Rust now, on ICU4X, and a load is one call; see
+  "Unicode on ICU4X" below. The reranker's caller still folds the context
+  and candidates in Kotlin, and the correction stores take keys already
+  folded.
 - Ties made deterministic first (dfda1e508): wherever the Kotlin stores let
   `HashMap` iteration order pick a winner (trie children, follower and pair
   eviction, compaction), they now break ties by the word, and the Rust port
@@ -627,8 +629,15 @@ the learning calls), porting the rest would mean:
   the per-field mix): `language_mix` is ported; the field seeding and the
   language registry lookups are not.
 - **Casing and display** (`displayOf`, `DictionaryCapitals`, `WordCase`):
-  small, but Unicode case folding is the JVM's; desktop would take ICU4X
-  or Rust's own tables and accept that a handful of folds differ.
+  small. The fold itself is in Rust now (`word_key`, see "Unicode on
+  ICU4X"), so desktop files words under the phone's keys; what is left is
+  the display side: mapping a key back to its capitals (`displayOf`
+  through the lexicon, `DictionaryCapitals`' shape tries) and matching the
+  typed case (`WordCase`, `matchCase`), which need case mapping the other
+  way (uppercase, titlecase) and would take `icu_casemap`'s.
+- **Word segmentation for desktop.** `segment::words` is there; desktop's
+  `predict` reads context and learns words by whitespace still, and would
+  call it where the phone's `WordContext` and the service's `learn` do.
 - **What desktop already has twice.** `predict::Lexicon` predates
   `user_lexicon::UserLexicon` and keeps its own trie and n-gram maps. It
   should become a wrapper over `UserLexicon`, as the correction stores'
@@ -645,7 +654,134 @@ would be an engine-level parity harness (Kotlin `SuggestionEngine` against
 `Predictor` on the prediction eval's sessions), then moving one entry point
 at a time behind it.
 
-Status: steps 1 to 4 done, step 5 written up; Phase 2 complete.
+Status: steps 1 to 4 done, step 5 written up; Phase 2 complete. The
+word key, the learnability gate and word segmentation followed on ICU4X
+(below).
+
+### Unicode on ICU4X: the word key and word segmentation (done)
+
+What Phase 2 left in Kotlin because Rust had no Unicode tables, plus the
+segmentation Thai, Lao, Khmer and Burmese prediction lacked. ICU4X 2.3
+(Unicode 17, Unicode-3.0 licence): `icu_casemap`, `icu_normalizer`,
+`icu_properties`, `icu_segmenter`, compiled data, default features off.
+
+- **`word_key`**: `WordKey.of` / `surface` and `WordContext.isLearnableWord`
+  on UTF-16 units. Kotlin's `lowercase()` is `toLowerCase(Locale.ROOT)`,
+  which on ART is libcore's `CaseMapper`
+  (libart/src/main/java/java/lang/CaseMapper.java), not ICU's full
+  lowercase, and the port follows it: a string holding U+0130 or a high
+  surrogate goes whole to ICU's root lowercase (full mappings, Unicode's
+  Final_Sigma with case-ignorable skipping); any other string is the simple
+  mapping (`u_tolower`) per unit, with Σ final when the unit before is Lu,
+  Ll or Lt and the unit after is not. Root locale: no Turkish, Azeri or
+  Lithuanian rules. NFC through `icu_normalizer`, with `WordKey`'s
+  below-U+0300 shortcut. Lone surrogates pass through: ICU4X's UTF-16
+  normaliser maps them to U+FFFD, so the valid runs between them are
+  folded and normalised one at a time, which is exact because a lone
+  surrogate is a non-ignorable, uncased starter and no context crosses it.
+- **One-phase load**: `UserLexicon::load` folds and judges the file's words
+  itself (`lexLoad` replaced `lexBeginLoad` / `lexFinishLoad`). WMK Desktop's
+  `predict::Lexicon` now keys and gates with `word_key` too, instead of
+  `str::to_lowercase` and an alphanumeric-ends check. The typing path still
+  folds in Kotlin: a crossing per word would cost more than the fold.
+- **Parity** (`WordKeyParityTest`, `:app`): Rust against `CaseMapper`
+  transcribed over ICU4J 78, which Robolectric already puts on the test
+  classpath and which is Unicode 17 like ICU4X. Every code point alone;
+  every code point in eight sigma and composing contexts (each
+  supplementary one is also a check of ICU4X's Final_Sigma against ICU's);
+  every lone surrogate in five contexts; the bundled en and bn lists and,
+  with `PARITY_DOWNLOADS`, the data repo's lists, each word as listed,
+  capitalised and in capitals. Every one agrees, key, surface and gate:
+  with the data repo's 431 lists at 20,000 words each, 7.1M words and
+  17.6M spellings. One assumption is checked rather than taken: no BMP character
+  lowercases out of the BMP, so Java's narrowing to a `char` loses nothing.
+- **What a phone does differently** is Unicode version only. A phone folds
+  with its own ICU, so it folds a character its Unicode lacks to itself
+  and does not count it as a letter. Counted by age over every code point
+  (the BMP only for the gate, which reads UTF-16 units): Android 14 and 15
+  (Unicode 15.0, 15.1) differ on 55 folds and 44 letters, Android 16
+  (Unicode 16.0) on 28 and 35, Android 7 (Unicode 8.0) on 255 and 369.
+  They are characters added since: on Android 14 to 16, Latin additions in
+  A7C0-A7DF, U+1C89 and new supplementary scripts; on Android 7 to 9 also
+  Georgian Mtavruli (U+1C90 on, Unicode 11), which a Georgian all-caps word
+  would hit. A store folded on such a phone and
+  re-read here can disagree only on those characters, and a load re-folds
+  only the capital spellings it keeps, which then go unremembered; nothing
+  is dropped. HotSpot, where the JVM tests run Kotlin, differs from the
+  phone in two ways the test accounts for (JDK 21's Unicode 15.0 and
+  OpenJDK's word-boundary final-sigma rule): over every code point and
+  four sigma contexts, 491 differences are characters newer than Unicode
+  15.0, 58,523 are sigma contexts, and none is anything else. On the word
+  lists HotSpot differs on 123 spellings, all of them the sigma rule.
+- **A phone quirk the lists found**: polytonic Greek in capitals. τῆς
+  uppercases to `ΤΗ͂Σ` (no capital eta with perispomeni exists, so the
+  accent comes apart), and ART folds that to `τῆσ`: the unit before the Σ
+  is the accent, which is not a cased letter, so the Σ is not final.
+  HotSpot and ICU skip the accent and give `τῆς`, the list's spelling. So
+  on a phone, an ancient or Pontic Greek word typed in capitals misses its
+  dictionary entry (grc 109 spellings, pnt 12). Rust gives the phone's
+  answer, as it must for the stores to agree; fixing it means
+  `WordKey.of` reading Final_Sigma ICU's way on both sides (Kotlin and
+  `word_key`), after which a key already stored the old way (`τῆσ`) would
+  no longer be found. Left as a follow-up.
+- **`segment`**: ICU4X's word segmenter with its LSTM models for Thai,
+  Lao, Khmer and Burmese. LSTM because of size: the four models are
+  310 KB of data, the four dictionaries 1.77 MB, and the dictionary
+  constructor also links the Chinese/Japanese dictionary (3.8 MB on arm64
+  in a measured build). Chinese and Japanese are left whole, as before.
+  JNI `segmentWords`, Kotlin `WordSegments`.
+- **Where text was split into words, and now is segmented**: nothing in
+  prediction used Android's `BreakIterator`. `TextWordScan` (Learn from
+  text) skipped every token in a spaceless script; it now scans Thai,
+  Lao, Khmer and Burmese tokens as their words, pairs included, and still
+  skips Han, kana, Tibetan, Javanese and Burmese the detector is sure is
+  Zawgyi. `WordContext.completedWordBefore` / `lastTwoWords` /
+  `lastThreeWords` read a run ending at the caret as one unfinished word
+  (no context at all); they now take the run's last words, reading only
+  its last 32 characters, with the words before the run filling in. The
+  service's `learn` split a commit at spaces only; it now also splits a
+  run in those scripts the keyboard does not know as a whole word.
+- **Evals**: there is no Thai, Lao, Khmer or Burmese prediction eval (the
+  `core.prediction.eval` family is English), so before and after could
+  not be measured there. `wm-engine/tests/segment_eval.rs` (ignored; reads
+  the data repo's top 20,000 list words) scores the segmenter on runs of
+  two to six list words written together. Before this step none of those
+  boundaries was found, since the whole run was one word:
+
+  | | Boundary precision | Boundary recall | F1 | Words exact | µs per char (host) |
+  |---|---|---|---|---|---|
+  | Thai, LSTM | 0.450 | 0.752 | 0.563 | 0.322 | 15.5 |
+  | Lao, LSTM | 0.774 | 0.922 | 0.841 | 0.792 | 13.3 |
+  | Khmer, LSTM | 0.178 | 0.845 | 0.295 | 0.126 | 13.9 |
+  | Burmese, LSTM | 0.402 | 0.831 | 0.542 | 0.319 | 13.6 |
+  | Thai, dictionary | 0.354 | 0.760 | 0.483 | 0.319 | 0.22 |
+  | Lao, dictionary | 0.740 | 0.929 | 0.824 | 0.825 | 0.23 |
+  | Khmer, dictionary | 0.191 | 0.947 | 0.318 | 0.168 | 0.20 |
+  | Burmese, dictionary | 0.403 | 0.961 | 0.568 | 0.452 | 0.24 |
+
+  Low precision is mostly the lists, not the segmenter: both segmenters
+  cut the same list entries, which are often compounds or phrases (the
+  Khmer list is mostly multi-word entries with zero-width spaces, filtered
+  out here; the Thai one, from subtitles, has fragments like `เธ` near the
+  top). Recall is the number that says the words are found. The
+  dictionary segmenter is about 70 times faster; at 15 µs a character the
+  LSTM costs about 0.5 ms for a 32-character context read on the host,
+  which is why the context window is capped. The phone column is owed,
+  with the rest of this plan's.
+- **Size**, against a fresh build of the main this branched from
+  (f72a36bca, with the Zawgyi port; same size as its committed library):
+  libwm_engine_jni arm64-v8a 2,232,944 -> 2,716,488 B (+483,544, +22%),
+  armeabi-v7a 1,622,272 -> 2,082,712 (+460,440), x86_64 2,538,744 ->
+  3,029,264 (+490,520). Measured piece by piece in a bare arm64 cdylib with
+  the same profile: the segmenter about 373 KB (310 KB of it the four LSTM
+  models, the rest word and grapheme break rules and the inference code),
+  NFC about 73 KB, case mapping about 29 KB, the general-category map a few
+  KB. The models are the floor for segmenting these scripts at all: ICU4X
+  ships them as f32 matrices and has no smaller variant, and the
+  dictionaries are 1.77 MB. Nothing else from ICU4X is linked: the
+  segmenter's Chinese/Japanese dictionary and the other break iterators
+  are named by constructors this crate never calls.
+
 
 ## Rules for every step
 
