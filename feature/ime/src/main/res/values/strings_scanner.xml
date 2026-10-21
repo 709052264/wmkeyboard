@@ -90,6 +90,10 @@
 
     <!-- Document scanner trampoline (DocScanActivity). -->
     <!-- The built-in document scanner (PageScanActivity), used where Google's is missing. -->
+    <plurals name="ime_docscan_pages_shared">
+        <item quantity="one">The app did not take the last page here, so it opens in the app\'s share screen</item>
+        <item quantity="other">The app did not take <xliff:g id="count" example="3">%d</xliff:g> pages here, so they open together in the app\'s share screen</item>
+    </plurals>
     <string name="ime_docscan_library_body">The document scanner needs a one-time download of its library.</string>
     <string name="ime_docscan_library_body_sized">The document scanner needs a one-time download of its library, <xliff:g id="size" example="2.4 MB">%1$s</xliff:g>.</string>
     <string name="ime_docscan_library_downloading">Downloading the document scanner…</string>

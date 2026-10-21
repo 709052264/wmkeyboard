@@ -111,7 +111,7 @@ One row for each download the languages you type in need, with its size, a **Dow
 
 ## Scanning a document
 
-**Document scanner** has two scanners behind it, and both work the same way from the keyboard's side: the scan runs full screen, outside the keyboard (an IME can't host that kind of flow itself), and the pages come back as JPEGs.
+**Document scanner** has two scanners behind it, and both work the same way from the keyboard's side: the scan runs full screen, outside the keyboard (an IME can't host that kind of flow itself), and the pages come back as JPEGs. They go into the field you scanned for, one after another. Some chat apps take only the first: WhatsApp opens its own send screen on it. Whatever pages the field didn't take then open together in that app's share screen, so WhatsApp sends them all as one album, and a toast says how many went that way.
 
 - **Google's scanner** is the default on a phone with Google Play services. Edge detection, cropping and cleanup happen in Google's own UI, and gallery import is allowed alongside the camera.
 - **The built-in scanner** is the keyboard's own, built on [OpenCV](https://opencv.org/). It is what the F-Droid build and phones without Google Play services use, and on any other phone you can pick it with **Use the built-in scanner**. If Google's scanner fails to start, the built-in one opens in its place.
