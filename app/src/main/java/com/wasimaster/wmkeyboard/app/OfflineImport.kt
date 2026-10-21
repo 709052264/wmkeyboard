@@ -437,16 +437,19 @@ internal object OfflineImport {
             }
             return attempt(name) {
                 // A catalog model goes where its download would, so its row
-                // reads as downloaded; anything else is the user's own.
+                // reads as downloaded, and so does a catalog model's vision
+                // projector; anything else is the user's own, a projector
+                // included, which then pairs with the imported model beside it.
                 val model = LocalLlmCatalog.models.firstOrNull { it.fileName == name }
+                    ?: LocalLlmCatalog.models.firstOrNull { it.projector?.fileName == name }
                 // A pinned catalog file has to be the pinned bytes, as its
                 // download would be checked.
-                val expected = model?.let { LocalLlmDownloadManager.expectedSha256(it) }
+                val expected = model?.let { LocalLlmDownloadManager.expectedSha256(it, name) }
                 if (expected != null && !LocalLlmDownloadManager.sha256Of(file).equals(expected, ignoreCase = true)) {
                     return@attempt Outcome(name, false, R.string.offline_import_mismatch)
                 }
                 val target = if (model != null) {
-                    LocalLlmStore.modelFile(filesDir, model)
+                    LocalLlmStore.modelFile(filesDir, model, name)
                 } else {
                     File(LocalLlmStore.customDir(filesDir), if (gguf) "$name.${ModelFormat.GGUF.extension}" else name)
                 }

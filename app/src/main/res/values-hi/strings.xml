@@ -4148,7 +4148,6 @@
     <string name="models_llm_account_title">Hugging Face अकाउंट</string>
     <string name="models_llm_available_title">डाउनलोड के लिए उपलब्ध</string>
     <string name="models_llm_catalog_info">सबसे अच्छे मॉडल सबसे ऊपर हैं, न कि सबसे छोटे। सबसे ऊपर वाला मॉडल बेहतर लिखता है, लेकिन डाउनलोड बड़ा है, उत्तर धीमा है, और इसे अधिक मेमोरी की आवश्यकता है। गेटेड मॉडल को Hugging Face खाते की आवश्यकता होती है। अपना टोकन ऊपर जोड़ें, फिर मॉडल पेज पर एक बार लाइसेंस स्वीकार करें।</string>
-    <string name="models_llm_compute_info">GPU विकल्प प्रयोगात्मक है। यदि GPU शुरू नहीं होता है, या यदि कोई मॉडल उत्तर के दौरान रुक जाता है, तो ऐप स्वचालित रूप से CPU पर बदल जाता है। GPU मेमोरी सिस्टम मेमोरी की तुलना में बहुत छोटी होती है, इसलिए एक बड़े मॉडल को अक्सर CPU की आवश्यकता होती है। यदि GPU विफल रहता है तो यहाँ CPU चुनें।</string>
     <string name="models_llm_compute_title">कंप्यूट</string>
     <string name="models_llm_empty">आपके डिवाइस पर अभी तक कोई मॉडल नहीं है। AI को ऑफ़लाइन उपयोग करने के लिए नीचे एक डाउनलोड करें।</string>
     <string name="models_llm_gated_desc">इस मॉडल को Hugging Face टोकन की आवश्यकता है</string>
@@ -4159,7 +4158,6 @@
     <string name="models_llm_import_error_no_space">%1$s की इस फ़ाइल के लिए पर्याप्त स्टोरेज नहीं है।</string>
     <string name="models_llm_import_error_not_a_model">यह एक मॉडल फ़ाइल नहीं है। ऐप को .litertlm फ़ाइल या .task फ़ाइल की आवश्यकता है।</string>
     <string name="models_llm_import_error_open">ऐप चुनी गई फ़ाइल को नहीं खोल सकता।</string>
-    <string name="models_llm_import_info">आप किसी भी LiteRT-LM मॉडल को .litertlm फ़ाइल या .task फ़ाइल में आयात कर सकते हैं। उदाहरण के लिए, कोई ऐसा मॉडल जिसे आपने स्वयं कनवर्ट किया हो या ब्राउज़र में डाउनलोड किया हो।</string>
     <string name="models_llm_import_title">अपना खुद का आयात करें</string>
     <string name="models_llm_importing_label">आयात किया जा रहा है...</string>
     <string name="models_llm_license_action">लाइसेंस और मॉडल पेज</string>

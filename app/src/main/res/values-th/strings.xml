@@ -4128,7 +4128,6 @@
     <string name="models_llm_account_title">บัญชี Hugging Face</string>
     <string name="models_llm_available_title">พร้อมให้ดาวน์โหลด</string>
     <string name="models_llm_catalog_info">โมเดลที่ดีที่สุดจะอยู่ที่ด้านบน ไม่ใช่โมเดลที่มีขนาดเล็กที่สุด โมเดลที่อยู่ด้านบนเขียนได้ดีกว่า แต่มีขนาดดาวน์โหลดที่ใหญ่กว่า คำตอบช้ากว่า และต้องการหน่วยความจำมากกว่า โมเดลที่จำกัดการเข้าถึงจำเป็นต้องมีบัญชี Hugging Face ให้เพิ่มโทเค็นของคุณไว้ด้านบน จากนั้นกดยอมรับใบอนุญาตบนหน้าโมเดลหนึ่งครั้ง</string>
-    <string name="models_llm_compute_info">ตัวเลือก GPU เป็นแบบทดลอง แอปจะเปลี่ยนไปใช้ CPU โดยอัตโนมัติหาก GPU ไม่เริ่มทำงาน หรือหากโมเดลหยุดทำงานระหว่างการตอบ หน่วยความจำ GPU มีขนาดเล็กกว่าหน่วยความจำระบบมาก ดังนั้นโมเดลขนาดใหญ่จึงมักต้องใช้ CPU เลือก CPU ที่นี่หาก GPU ยังคงทำงานล้มเหลว</string>
     <string name="models_llm_compute_title">การประมวลผล</string>
     <string name="models_llm_empty">ยังไม่มีโมเดลในอุปกรณ์ของคุณ ดาวน์โหลดโมเดลด้านล่างเพื่อใช้งาน AI แบบออฟไลน์</string>
     <string name="models_llm_gated_desc">โมเดลนี้ต้องการโทเค็น Hugging Face</string>
@@ -4139,7 +4138,6 @@
     <string name="models_llm_import_error_no_space">พื้นที่จัดเก็บไม่เพียงพอสำหรับไฟล์ขนาด %1$s นี้</string>
     <string name="models_llm_import_error_not_a_model">นี่ไม่ใช่ไฟล์โมเดล แอปต้องการไฟล์ .litertlm หรือ .task</string>
     <string name="models_llm_import_error_open">แอปไม่สามารถเปิดไฟล์ที่เลือกได้</string>
-    <string name="models_llm_import_info">คุณสามารถนำเข้าโมเดล LiteRT-LM ใดก็ได้ในไฟล์ .litertlm หรือ .task เช่น โมเดลที่คุณแปลงเองหรือดาวน์โหลดจากเบราว์เซอร์</string>
     <string name="models_llm_import_title">นำเข้าของคุณเอง</string>
     <string name="models_llm_importing_label">กำลังนำเข้า...</string>
     <string name="models_llm_license_action">หน้าใบอนุญาตและโมเดล</string>

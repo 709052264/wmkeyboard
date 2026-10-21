@@ -9,7 +9,10 @@ import java.io.File
  *
  * A model with NPU builds (#804) can have one of those beside its standard
  * file, `filesDir/models/<id>/<npu fileName>`: the same directory, so deleting
- * the model deletes both, and [orphanDirs] needs no second rule.
+ * the model deletes both, and [orphanDirs] needs no second rule. A GGUF vision
+ * model's projector sits beside it the same way. An imported model's
+ * projector is imported into custom/ beside it, where [customModels] leaves
+ * it out: it is no model to pick.
  *
  * The atomic-rename contract: a final (non-.part) file exists only if its
  * download completed with the expected byte count, so presence == valid.
@@ -41,6 +44,10 @@ object LocalLlmStore {
             ?.let { modelFile(filesDir, model, it.fileName) }
             ?.takeIf { it.isFile }
 
+    /** [model]'s projector, where it goes; null for a model without one. */
+    fun projectorFile(filesDir: File, model: LocalLlmModel): File? =
+        model.projector?.let { modelFile(filesDir, model, it.fileName) }
+
     /** Whether the standard file, the one every backend runs, is on disk. */
     fun hasStandard(filesDir: File, model: LocalLlmModel): Boolean =
         modelFile(filesDir, model).isFile
@@ -55,8 +62,17 @@ object LocalLlmStore {
     fun customModels(filesDir: File): List<File> =
         customDir(filesDir).listFiles()
             .orEmpty()
-            .filter { it.isFile && it.extension.lowercase() in MODEL_EXTENSIONS }
+            .filter { it.isFile && it.extension.lowercase() in MODEL_EXTENSIONS && !isProjector(it) }
             .sortedBy { it.name.lowercase() }
+
+    /** Imported projectors: GGUF files in custom/ that read pictures for a model there. */
+    fun customProjectors(filesDir: File): List<File> =
+        customDir(filesDir).listFiles()
+            .orEmpty()
+            .filter { it.isFile && isProjector(it) }
+
+    private fun isProjector(file: File): Boolean =
+        file.extension.equals(GgufFile.EXTENSION, ignoreCase = true) && GgufFile.isProjector(file)
 
     /**
      * Resolves the aiLocalModelId setting — a catalog id or a
@@ -120,9 +136,18 @@ object LocalLlmStore {
         modelDir(filesDir, model).deleteRecursively()
     }
 
+    /**
+     * Deletes an imported model, and its projector when no other imported
+     * model pairs with it: the projector has no row of its own to delete it by.
+     */
     fun deleteCustom(filesDir: File, name: String) {
         if (name != File(name).name) return
-        File(customDir(filesDir), name).delete()
+        val file = File(customDir(filesDir), name)
+        val projector = GgufFile.projectorFor(file)
+        file.delete()
+        if (projector != null && customModels(filesDir).none { GgufFile.projectorFor(it) == projector }) {
+            projector.delete()
+        }
     }
 
     /** Bytes on disk across all models, finished and partial. */

@@ -159,10 +159,16 @@ not in the APK or the library: it is a CJK pack download, like the built-in
 engine's.
 
 From the release after 0.6.2 the script also builds `native/llamacpp-jni`
-(llama.cpp at a pinned release tag, CMake, CPU backend only) into
-`core/intelligence/src/llama/jniLibs`, the runtime for GGUF models; the next
-entry's `scandelete` needs that path added. Nothing is fetched at configure
-time: no KleidiAI, no OpenSSL, no web UI.
+(llama.cpp at a pinned release tag, CMake, with its libmtmd for vision
+models) into `core/intelligence/src/llama/jniLibs`, the runtime for GGUF
+models; the next entry's `scandelete` needs that path added. Nothing is
+fetched at configure time: no KleidiAI, no OpenSSL, no web UI. On arm64 it
+adds `libwmllama_opencl.so`, llama.cpp's OpenCL backend for Adreno GPUs: the
+script clones Khronos's OpenCL-Headers and OpenCL-ICD-Loader at pinned tags
+(Apache-2.0), builds the loader only to link against, and ships neither; the
+phone's own `libOpenCL.so` is what the library opens. The OpenCL kernels are
+embedded as source text by a Python script from llama.cpp, so the build
+needs `python3`, which the recipe's image already has.
 
 The NLLB translation engine adds `native/ctranslate2-jni` (OpenNMT's
 CTranslate2 and Google's SentencePiece at pinned tags, CMake, CPU only with

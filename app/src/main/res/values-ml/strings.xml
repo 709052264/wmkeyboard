@@ -4145,7 +4145,6 @@
     <string name="models_llm_account_title">ഹഗ്ഗിംഗ് ഫേസ് അക്കൗണ്ട്</string>
     <string name="models_llm_available_title">ഡൗൺലോഡ് ചെയ്യാൻ ലഭ്യമാണ്</string>
     <string name="models_llm_catalog_info">ഏറ്റവും മികച്ച മോഡലുകൾ മുകളിലുണ്ട്, ഏറ്റവും ചെറിയവയല്ല. മുകളിലുള്ള ഒരു മോഡൽ മികച്ച രീതിയിൽ എഴുതുന്നു, എന്നാൽ ഡൗൺലോഡ് വലുതാണ്, ഉത്തരം ലഭിക്കാൻ സമയമെടുക്കും, കൂടാതെ കൂടുതൽ മെമ്മറി ആവശ്യമാണ്. ഒരു ഗേറ്റഡ് മോഡലിന് ഹഗ്ഗിംഗ് ഫേസ് (Hugging Face) അക്കൗണ്ട് ആവശ്യമാണ്. നിങ്ങളുടെ ടോക്കൺ മുകളിൽ ചേർക്കുക, തുടർന്ന് മോഡൽ പേജിൽ ലൈസൻസ് ഒരിക്കൽ അംഗീകരിക്കുക.</string>
-    <string name="models_llm_compute_info">GPU ഓപ്ഷൻ പരീക്ഷണാത്മകമാണ്. GPU ആരംഭിക്കുന്നില്ലെങ്കിലോ അല്ലെങ്കിൽ ഉത്തരം നൽകുന്നതിനിടയിൽ മോഡൽ നിലയ്ക്കുകയോ ചെയ്താൽ ആപ്പ് സ്വയമേവ CPU-ലേക്ക് മാറുന്നു. GPU മെമ്മറി സിസ്റ്റം മെമ്മറിയേക്കാൾ വളരെ കുറവായതിനാൽ, ഒരു വലിയ മോഡലിന് പലപ്പോഴും CPU ആവശ്യമാണ്. GPU പരാജയപ്പെടുകയാണെങ്കിൽ ഇവിടെ CPU തിരഞ്ഞെടുക്കുക.</string>
     <string name="models_llm_compute_title">Compute</string>
     <string name="models_llm_empty">നിങ്ങളുടെ ഉപകരണത്തിൽ ഇതുവരെ മോഡലുകളൊന്നുമില്ല. AI ഓഫ്‌ലൈനായി ഉപയോഗിക്കാൻ താഴെ നിന്ന് ഒന്ന് ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="models_llm_gated_desc">ഈ മോഡലിന് ഒരു ഹഗ്ഗിംഗ് ഫേസ് (Hugging Face) ടോക്കൺ ആവശ്യമാണ്</string>
@@ -4156,7 +4155,6 @@
     <string name="models_llm_import_error_no_space">%1$s എന്ന ഈ ഫയലിനായി മതിയായ സ്റ്റോറേജ് ഇല്ല.</string>
     <string name="models_llm_import_error_not_a_model">ഇതൊരു മോഡൽ ഫയലല്ല. ആപ്പിന് ഒരു .litertlm ഫയലോ .task ഫയലോ ആവശ്യമാണ്.</string>
     <string name="models_llm_import_error_open">തിരഞ്ഞെടുത്ത ഫയൽ തുറക്കാൻ ആപ്പിന് കഴിയില്ല.</string>
-    <string name="models_llm_import_info">നിങ്ങൾക്ക് ഏത് LiteRT-LM മോഡലും .litertlm ഫയലായോ .task ഫയലായോ ഇമ്പോർട്ട് ചെയ്യാം. ഉദാഹരണത്തിന്, നിങ്ങൾ സ്വയം പരിവർത്തനം ചെയ്തതോ ബ്രൗസറിൽ നിന്ന് ഡൗൺലോഡ് ചെയ്തതോ ആയ ഒരു മോഡൽ.</string>
     <string name="models_llm_import_title">നിങ്ങളുടേത് ഇംപോർട്ട് ചെയ്യുക</string>
     <string name="models_llm_importing_label">ഇമ്പോർട്ട് ചെയ്യുന്നു...</string>
     <string name="models_llm_license_action">ലൈസൻസും മോഡൽ പേജും</string>

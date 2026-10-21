@@ -13,6 +13,7 @@ import com.wasimaster.wmkeyboard.core.reply.ReplyShots
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmCatalog
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
+import com.wasimaster.wmkeyboard.core.localllm.VisionUnsupportedException
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
@@ -503,6 +504,15 @@ object AiChatController {
         )
         val sessionSystem = AiPrompts.chatPrompt() + memoryPart + AiToolProtocol.instructions(tools)
         val chat = obtainSession(context, settings.ai, conversationId, choice, modelFile, sessionSystem)
+        // A model that can see (a vision GGUF with its projector) is sent the
+        // newest message's pictures with it, once, on the first round; the
+        // older ones it reads through the tools, like any on-device model.
+        // One that turns out not to see gets the words alone.
+        var picturesPending = if (LocalLlmCatalog.canSee(choice.localModelId) != false) {
+            newestPictureBytes(context, conversationId)
+        } else {
+            emptyList()
+        }
         var lastPartialAt = 0L
         return AiToolLoop.run(
             // The round below ignores this: the session was built with its own
@@ -529,8 +539,29 @@ object AiChatController {
             // The session remembers every earlier round itself, so only the
             // newest message is sent: the user's on round one, the tool
             // results on the rounds after it.
-            AiClient.Completion(chat.sendMessage(roundTurns.last().text, roundPartial))
+            val text = roundTurns.last().text
+            val pictures = picturesPending
+            picturesPending = emptyList()
+            val answer = if (pictures.isEmpty()) {
+                chat.sendMessage(text, roundPartial)
+            } else {
+                try {
+                    chat.sendMessage(text, pictures, roundPartial)
+                } catch (_: VisionUnsupportedException) {
+                    chat.sendMessage(text, roundPartial)
+                }
+            }
+            AiClient.Completion(answer)
         }.text
+    }
+
+    /** The newest user message's pictures as their files' bytes; one that is gone is left out. */
+    private fun newestPictureBytes(context: Context, conversationId: Long): List<ByteArray> {
+        val newest = store(context).get(conversationId)?.messages
+            ?.lastOrNull { it.role == AiChatMessage.ROLE_USER && !it.failed } ?: return emptyList()
+        return newest.images.mapNotNull { name ->
+            AiChatImages.file(context, name)?.let { runCatching { it.readBytes() }.getOrNull() }
+        }
     }
 
     /**
@@ -773,8 +804,9 @@ object AiChatController {
 
     /**
      * What the keyboard module lends the chat's tools (#698), with the
-     * conversation's pictures. Only a remote provider that takes pictures sees
-     * them; an on-device chat is text, and reads them through the tools.
+     * conversation's pictures. A remote provider that takes pictures sees
+     * them; an on-device chat reads them through the tools, though a vision
+     * GGUF model is also sent the newest message's own ([runOnDevice]).
      */
     private fun toolHost(
         context: Context,

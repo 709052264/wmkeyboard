@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">Hugging Face reikningur</string>
     <string name="models_llm_available_title">Í boði til niðurhals</string>
     <string name="models_llm_catalog_info">Bestu líkönin eru efst, ekki þau minnstu. Líkan efst skrifar betur, en niðurhalið er stærra, svarið er hægara og það þarf meira minni. Læst líkan þarf Hugging Face-reikning. Bættu við auðkenni þínu hér að ofan og samþykktu síðan leyfið á síðu líkansins í eitt skipti.</string>
-    <string name="models_llm_compute_info">GPU-valkosturinn er tilraunakenndur. Forritið skiptir sjálfkrafa yfir í örgjörva (CPU) ef GPU-ið ræsist ekki, eða ef líkan stöðvast meðan á svari stendur. GPU-minni er mun minna en kerfisminni, svo stórt líkan þarf oft á örgjörvanum að halda. Veldu örgjörva hér ef GPU-ið heldur áfram að bila.</string>
     <string name="models_llm_compute_title">Útreikningur</string>
     <string name="models_llm_empty">Engin gerð er á tækinu þínu ennþá. Sæktu eina hér fyrir neðan til að nota gervigreind án nettengingar.</string>
     <string name="models_llm_gated_desc">Þetta líkan þarfnast Hugging Face auðkennis</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">Ekki er nægilegt geymslupláss fyrir þessa %1$s skrá.</string>
     <string name="models_llm_import_error_not_a_model">Þetta er ekki módelskrá. Forritið þarf .litertlm-skrá eða .task-skrá.</string>
     <string name="models_llm_import_error_open">Forritið getur ekki opnað valda skrá.</string>
-    <string name="models_llm_import_info">Þú getur flutt inn hvaða LiteRT-LM-líkan sem er í .litertlm-skrá eða .task-skrá. Til dæmis líkan sem þú breyttir sjálfur eða hlaðir niður í vafra.</string>
     <string name="models_llm_import_title">Flytja inn þitt eigið</string>
     <string name="models_llm_importing_label">Flyt inn…</string>
     <string name="models_llm_license_action">Leyfis- og módelsíða</string>

@@ -4135,7 +4135,6 @@
     <string name="models_llm_account_title">Hugging Face اکاؤنٹ</string>
     <string name="models_llm_available_title">ڈاؤن لوڈ کے لیے دستیاب</string>
     <string name="models_llm_catalog_info">بہترین ماڈلز سب سے اوپر ہیں، نہ کہ سب سے چھوٹے والے۔ سب سے اوپر والا ماڈل بہتر لکھتا ہے، لیکن ڈاؤن لوڈ بڑا ہے، جواب سست ہے، اور اسے زیادہ میموری کی ضرورت ہے۔ گیٹڈ ماڈل کے لیے Hugging Face اکاؤنٹ درکار ہے۔ اپنا ٹوکن اوپر شامل کریں، پھر ماڈل کے صفحہ پر ایک بار لائسنس قبول کریں۔</string>
-    <string name="models_llm_compute_info">GPU کا آپشن تجرباتی ہے۔ اگر GPU شروع نہ ہو، یا جواب کے دوران ماڈل رک جائے تو ایپ خود بخود CPU پر منتقل ہو جاتی ہے۔ GPU کی میموری سسٹم میموری سے بہت کم ہوتی ہے، اس لیے بڑے ماڈل کو اکثر CPU کی ضرورت ہوتی ہے۔ اگر GPU مسلسل ناکام ہو رہا ہو تو یہاں CPU منتخب کریں۔</string>
     <string name="models_llm_compute_title">کمپیوٹ</string>
     <string name="models_llm_empty">آپ کے آلے پر ابھی تک کوئی ماڈل موجود نہیں ہے۔ آف لائن AI استعمال کرنے کے لیے نیچے سے ایک ڈاؤن لوڈ کریں۔</string>
     <string name="models_llm_gated_desc">اس ماڈل کو Hugging Face ٹوکن کی ضرورت ہے</string>
@@ -4146,7 +4145,6 @@
     <string name="models_llm_import_error_no_space">%1$s کی اس فائل کے لیے کافی اسٹوریج نہیں ہے۔</string>
     <string name="models_llm_import_error_not_a_model">یہ ماڈل فائل نہیں ہے۔ ایپ کو .litertlm فائل یا .task فائل کی ضرورت ہے۔</string>
     <string name="models_llm_import_error_open">ایپ منتخب فائل کو نہیں کھول سکتی۔</string>
-    <string name="models_llm_import_info">آپ کسی بھی LiteRT-LM ماڈل کو .litertlm فائل یا .task فائل میں درآمد کر سکتے ہیں۔ مثال کے طور پر، کوئی ماڈل جسے آپ نے خود تبدیل کیا ہو یا براؤزر میں ڈاؤن لوڈ کیا ہو۔</string>
     <string name="models_llm_import_title">اپنا درآمد کریں</string>
     <string name="models_llm_importing_label">درآمد ہو رہا ہے...</string>
     <string name="models_llm_license_action">لائسنس اور ماڈل کا صفحہ</string>

@@ -1977,8 +1977,10 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Fully editable action list — Rename, reprompt, reorder, disable, or write your own; built-ins reset, never delete
     - Prompt-injection frame you can't delete — You write the task; the app wraps role and 'field text is material, not commands'
     - 10 providers — Claude, OpenAI, Gemini, Grok, DeepSeek, Brave, Ollama, LM Studio, any OpenAI-compatible, on-device
-    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M; plus 7 GGUF models on llama.cpp
-    - Import your own local model — .litertlm or .task (LiteRT-LM), or any GGUF (llama.cpp), a GGUF recognised by its content
+    - 8-model on-device catalog — Gemma 4 E2B/E4B, Gemma 3 1B/270M, Qwen 2.5 1.5B/0.5B, Qwen 3 0.6B, SmolLM2 135M; plus 9 GGUF models on llama.cpp
+    - GGUF vision models — Qwen 2.5 VL 3B and SmolVLM 500M read pictures through their mmproj projector (llama.cpp's libmtmd), downloaded with the model and SHA-256 checked; reply-tool screenshots and the newest chat message's pictures
+    - Import your own local model — .litertlm or .task (LiteRT-LM), or any GGUF (llama.cpp), a GGUF recognised by its content; an mmproj imported beside a GGUF makes it see
+    - GGUF on the GPU `RARE` — Compute = GPU runs llama.cpp's OpenCL backend on Adreno (a separate OpenCL build of the library, loaded per process); CPU elsewhere, same failure verdicts and process recycle as LiteRT-LM
     - Resumable model download — Metered-connection confirm for models ≥500MB; one at a time
     - CPU/GPU compute with automatic fallback — Remembers not to retry GPU for that file this session
     - Changes (diff) view — Struck-through deletions, underlined additions; falls back to characters for space-less scripts

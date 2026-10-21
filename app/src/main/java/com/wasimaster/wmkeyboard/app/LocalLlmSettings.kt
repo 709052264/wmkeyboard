@@ -151,7 +151,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
 
     fun requestDownload(model: LocalLlmModel, target: String? = npuTarget()) {
         val metered = isMeteredNow(context)
-        val size = LocalLlmCatalog.downloadTarget(model, target).second
+        val size = LocalLlmCatalog.downloadSize(model, target)
         when (downloadDecisionNow(context, settings.value)) {
             MeteredDecision.BLOCKED -> meteredBlocked = true
             MeteredDecision.ASK -> meteredPending = model to target
@@ -222,13 +222,13 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             ) to { requestDownload(model, npuSoc) }
             !wantsNpu && !hasStandard -> stringResource(
                 R.string.models_llm_get_standard_build_action,
-                formatBytes(model.sizeBytes),
+                formatBytes(model.downloadBytes),
             ) to { requestDownload(model, null) }
             else -> null
         }
         CatalogModelRow(
             model = model,
-            sizeBytes = if (wantsNpu) npuBuild!!.sizeBytes else model.sizeBytes,
+            sizeBytes = if (wantsNpu) npuBuild!!.sizeBytes else model.downloadBytes,
             npuBuildOnDisk = hasNpu,
             secondBuild = secondBuild,
             status = states[model.id] ?: DownloadStatus.NotDownloaded,
@@ -254,8 +254,9 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
     // numbers the user sees (catalog sizes + custom file lengths), unlike the
     // storage caption below which also counts partial and orphaned files.
     if (yours.isNotEmpty() || customModels.isNotEmpty()) {
-        val downloadedBytes = yours.sumOf { it.sizeBytes } +
-            customModels.sumOf { it.length() }
+        val downloadedBytes = yours.sumOf { it.downloadBytes } +
+            customModels.sumOf { it.length() } +
+            remember(customModels) { LocalLlmStore.customProjectors(filesDir).sumOf { it.length() } }
         SectionHeader(
             stringResource(R.string.models_llm_yours_title),
             trailing = formatBytes(downloadedBytes),
@@ -393,7 +394,7 @@ internal fun LocalLlmModelManager(repository: SettingsRepository, settings: Live
             detail = stringResource(
                 R.string.models_metered_body,
                 model.displayName,
-                formatBytes(LocalLlmCatalog.downloadTarget(model, target).second),
+                formatBytes(LocalLlmCatalog.downloadSize(model, target)),
             ),
             onConfirm = {
                 startDownload(model, target)
@@ -815,10 +816,12 @@ private fun DownloadProgress(bytes: Long, total: Long) {
 }
 
 /**
- * SAF picker that copies the chosen .litertlm/.task/.gguf into the custom
- * models directory via a .part + rename, so a killed copy never leaves a file
- * that looks importable. A GGUF is also told by its content, so one whose
- * name lost its extension still imports, and gets it back.
+ * SAF picker that copies the chosen .litertlm/.task/.gguf files into the
+ * custom models directory via a .part + rename, so a killed copy never leaves
+ * a file that looks importable. A GGUF is also told by its content, so one
+ * whose name lost its extension still imports, and gets it back. Several
+ * files at once, so a GGUF vision model and its `mmproj` projector come in
+ * together; the projector then pairs with the model beside it.
  */
 @Composable
 private fun ImportModelButton(
@@ -829,13 +832,15 @@ private fun ImportModelButton(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
+        ActivityResultContracts.OpenMultipleDocuments(),
+    ) { uris ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
         onStart()
         scope.launch {
             val error = withContext(Dispatchers.IO) {
-                runCatching { importModel(context, uri) }.exceptionOrNull()?.message
+                // Every file is tried; the first failure is the one reported.
+                uris.mapNotNull { uri -> runCatching { importModel(context, uri) }.exceptionOrNull()?.message }
+                    .firstOrNull()
             }
             onDone(error)
         }

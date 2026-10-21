@@ -4126,7 +4126,6 @@
     <string name="models_llm_account_title">Hugging Face 账户</string>
     <string name="models_llm_available_title">可供下载</string>
     <string name="models_llm_catalog_info">最好的模型在顶部，而不是最小的模型。顶部的模型书写效果更好，但下载量更大，回答速度更慢，并且需要更多内存。受限模型需要 Hugging Face 帐户。在上方添加您的令牌，然后在模型页面上接受一次许可。</string>
-    <string name="models_llm_compute_info">GPU 选项为实验性功能。如果 GPU 无法启动，或者模型在回答过程中停止，应用会自动切换到 CPU。GPU 内存远小于系统内存，因此大型模型通常需要使用 CPU。如果 GPU 持续失败，请在此处选择 CPU。</string>
     <string name="models_llm_compute_title">计算</string>
     <string name="models_llm_empty">您的设备上尚无模型。请在下方下载一个以离线使用 AI。</string>
     <string name="models_llm_gated_desc">此模型需要 Hugging Face 令牌</string>
@@ -4137,7 +4136,6 @@
     <string name="models_llm_import_error_no_space">存储空间不足，无法容纳此 %1$s 的文件。</string>
     <string name="models_llm_import_error_not_a_model">这不是模型文件。应用需要 .litertlm 文件或 .task 文件。</string>
     <string name="models_llm_import_error_open">应用无法打开所选文件。</string>
-    <string name="models_llm_import_info">您可以导入 .litertlm 或 .task 文件格式的任何 LiteRT-LM 模型。例如，您自己转换或从浏览器下载的模型。</string>
     <string name="models_llm_import_title">导入您自己的模型</string>
     <string name="models_llm_importing_label">正在导入…</string>
     <string name="models_llm_license_action">许可协议与模型页面</string>

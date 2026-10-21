@@ -4141,7 +4141,6 @@
     <string name="models_llm_account_title">Cont Hugging Face</string>
     <string name="models_llm_available_title">Disponibil pentru descărcare</string>
     <string name="models_llm_catalog_info">Cele mai bune modele sunt în partea de sus, nu cele mai mici. Un model din partea de sus scrie mai bine, dar descărcarea este mai mare, răspunsul este mai lent și are nevoie de mai multă memorie. Un model restricționat necesită un cont Hugging Face. Adăugați jetonul mai sus, apoi acceptați licența pe pagina modelului o singură dată.</string>
-    <string name="models_llm_compute_info">Opțiunea GPU este experimentală. Aplicația trece automat la CPU dacă GPU-ul nu pornește sau dacă un model se oprește în timpul unui răspuns. Memoria GPU este mult mai mică decât memoria sistemului, așa că un model mare are nevoie frecvent de CPU. Selectați CPU aici dacă GPU-ul continuă să eșueze.</string>
     <string name="models_llm_compute_title">Calcul</string>
     <string name="models_llm_empty">Niciun model nu este încă pe dispozitivul tău. Descarcă unul mai jos pentru a utiliza AI offline.</string>
     <string name="models_llm_gated_desc">Acest model necesită un token Hugging Face</string>
@@ -4152,7 +4151,6 @@
     <string name="models_llm_import_error_no_space">Nu există suficient spațiu de stocare pentru acest fișier de %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Acesta nu este un fișier model. Aplicația are nevoie de un fișier .litertlm sau .task.</string>
     <string name="models_llm_import_error_open">Aplicația nu poate deschide fișierul selectat.</string>
-    <string name="models_llm_import_info">Poți importa orice model LiteRT-LM într-un fișier .litertlm sau .task. De exemplu, un model pe care l-ai convertit singur sau l-ai descărcat dintr-un browser.</string>
     <string name="models_llm_import_title">Importă propriul model</string>
     <string name="models_llm_importing_label">Se importă…</string>
     <string name="models_llm_license_action">Licență și pagină model</string>

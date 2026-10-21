@@ -1,9 +1,11 @@
-# libwmllama: llamacpp_jni.cpp over a static llama.cpp + ggml (CPU backend
-# only) and llama.cpp's own chat-template code (common/chat.cpp and its Jinja
-# interpreter), so a GGUF's template renders the way its authors wrote it.
-# Driven by build.sh, which passes the llama.cpp tree in LLAMA_SRC and the
-# instruction set per variant; see README.md. The same file builds the host
-# library host-test.sh loads into a desktop JVM.
+# libwmllama: llamacpp_jni.cpp over a static llama.cpp + ggml, llama.cpp's
+# own chat-template code (common/chat.cpp and its Jinja interpreter), so a
+# GGUF's template renders the way its authors wrote it, and libmtmd, which
+# reads a picture through a vision model's projector (its mmproj file).
+# Driven by build.sh, which passes the llama.cpp tree in LLAMA_SRC, the
+# instruction set per variant and, for the GPU variants, WM_GPU; see
+# README.md. The same file builds the host library host-test.sh loads into a
+# desktop JVM.
 cmake_minimum_required(VERSION 3.18)
 project(wmllama C CXX)
 
@@ -13,8 +15,12 @@ if (NOT EXISTS "${LLAMA_SRC}/include/llama.h")
     message(FATAL_ERROR "LLAMA_SRC must point at a llama.cpp checkout")
 endif()
 set(WM_LIB_NAME "wmllama" CACHE STRING "output library name")
+# The GPU backend built in beside the CPU one: empty for none, "opencl"
+# (Adreno), "vulkan" (every other phone GPU) or "metal" (the Mac host build,
+# for measuring only). build.sh passes each backend's headers and tools.
+set(WM_GPU "" CACHE STRING "GPU backend: empty, opencl, vulkan or metal")
 
-# Static, CPU only, nothing but the library and the chat-template code.
+# Static, nothing but the library, the chat-template code and libmtmd.
 set(BUILD_SHARED_LIBS        OFF CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_COMMON       ON  CACHE BOOL "" FORCE)
 set(LLAMA_BUILD_TESTS        OFF CACHE BOOL "" FORCE)
@@ -28,6 +34,9 @@ set(LLAMA_OPENSSL            OFF CACHE BOOL "" FORCE)
 set(LLAMA_SUBPROCESS         OFF CACHE BOOL "" FORCE)
 set(LLAMA_LLGUIDANCE         OFF CACHE BOOL "" FORCE)
 set(LLAMA_ALL_WARNINGS       OFF CACHE BOOL "" FORCE)
+# libmtmd alone, without the tools around it. Its video path needs ffmpeg as
+# a subprocess, which LLAMA_SUBPROCESS=OFF already turns off.
+set(LLAMA_BUILD_MTMD         ON  CACHE BOOL "" FORCE)
 # The build number and commit go into build-info.cpp. From git they depend on
 # how deep the clone is; fixed here so every checkout builds the same bytes.
 set(LLAMA_BUILD_NUMBER       "${WM_LLAMA_BUILD}"  CACHE STRING "" FORCE)
@@ -39,11 +48,28 @@ set(GGML_NATIVE              OFF CACHE BOOL "" FORCE)
 set(GGML_BACKEND_DL          OFF CACHE BOOL "" FORCE)
 # No compiler cache, whatever the machine has: the build is what it compiles.
 set(GGML_CCACHE              OFF CACHE BOOL "" FORCE)
-# No GPU backends: Metal would come along on the Mac host build otherwise.
-set(GGML_METAL               OFF CACHE BOOL "" FORCE)
+# One GPU backend at most, and only the one asked for: Metal would come along
+# on the Mac host build otherwise.
 set(GGML_BLAS                OFF CACHE BOOL "" FORCE)
+set(GGML_METAL               OFF CACHE BOOL "" FORCE)
 set(GGML_VULKAN              OFF CACHE BOOL "" FORCE)
 set(GGML_OPENCL              OFF CACHE BOOL "" FORCE)
+if (WM_GPU STREQUAL "opencl")
+    # Qualcomm's backend: Adreno's own matrix kernels, compiled by the
+    # phone's driver from the source embedded in the library. It refuses
+    # every GPU but Adreno and Intel, so LlamaNative loads it on Adreno only.
+    set(GGML_OPENCL                      ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_EMBED_KERNELS        ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_USE_ADRENO_KERNELS   ON  CACHE BOOL "" FORCE)
+    set(GGML_OPENCL_PROFILING            OFF CACHE BOOL "" FORCE)
+elseif (WM_GPU STREQUAL "vulkan")
+    set(GGML_VULKAN                      ON  CACHE BOOL "" FORCE)
+elseif (WM_GPU STREQUAL "metal")
+    set(GGML_METAL                       ON  CACHE BOOL "" FORCE)
+    set(GGML_METAL_EMBED_LIBRARY         ON  CACHE BOOL "" FORCE)
+elseif (NOT WM_GPU STREQUAL "")
+    message(FATAL_ERROR "WM_GPU must be empty, opencl, vulkan or metal, not '${WM_GPU}'")
+endif()
 # KleidiAI would be fetched at configure time; the plain CPU kernels it
 # replaces are what every other build of ours runs.
 set(GGML_CPU_KLEIDIAI        OFF CACHE BOOL "" FORCE)
@@ -56,10 +82,13 @@ add_subdirectory("${LLAMA_SRC}" llama EXCLUDE_FROM_ALL)
 # an -Os build of it looked slower on a small model (README.md), for 12% off
 # the library.
 target_compile_options(llama-common PRIVATE -Os)
+# The projector code runs once per picture, and most of it is the dozens of
+# vision architectures a given model does not use: built for size as well.
+target_compile_options(mtmd PRIVATE -Os)
 
 add_library(wmllama SHARED llamacpp_jni.cpp)
 set_target_properties(wmllama PROPERTIES OUTPUT_NAME "${WM_LIB_NAME}")
-target_link_libraries(wmllama PRIVATE llama-common llama)
+target_link_libraries(wmllama PRIVATE llama-common mtmd llama)
 target_compile_options(wmllama PRIVATE -fvisibility=hidden -ffunction-sections -fdata-sections)
 
 if (ANDROID)

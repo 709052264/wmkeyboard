@@ -40,8 +40,8 @@ object LocalLlmEngine {
      * completes.
      */
     /** llama.cpp for a GGUF, LiteRT-LM for everything else. */
-    private fun runtimeFor(context: Context, modelFile: File): LlmRuntime =
-        if (LlamaCpp.handles(modelFile)) LlamaCpp.runtime(context) else runtime(context)
+    private fun runtimeFor(context: Context, modelFile: File, backend: LocalLlmBackend): LlmRuntime =
+        if (LlamaCpp.handles(modelFile)) LlamaCpp.runtime(context, backend) else runtime(context)
 
     private fun runtime(context: Context): LlmRuntime {
         runtime?.let { return it }
@@ -84,7 +84,7 @@ object LocalLlmEngine {
         system: String,
         user: String,
         onPartial: ((String) -> Unit)? = null,
-    ): String = runtimeFor(context, modelFile)
+    ): String = runtimeFor(context, modelFile, backend)
         .generate(context, modelFile, backend, contextTokens, system, user, onPartial)
 
     /**
@@ -104,7 +104,7 @@ object LocalLlmEngine {
         user: String,
         images: List<ByteArray>,
         onPartial: ((String) -> Unit)? = null,
-    ): String = runtimeFor(context, modelFile)
+    ): String = runtimeFor(context, modelFile, backend)
         .generateWithImages(context, modelFile, backend, contextTokens, system, user, images, onPartial)
 
     /**
@@ -122,7 +122,7 @@ object LocalLlmEngine {
         contextTokens: Int,
         system: String,
     ): ChatSession = ChatSession(
-        runtimeFor(context, modelFile).chatSession(context, modelFile, backend, contextTokens, system),
+        runtimeFor(context, modelFile, backend).chatSession(context, modelFile, backend, contextTokens, system),
     )
 
     /** Wrapper keeping the public session type stable across channels. */
@@ -132,6 +132,15 @@ object LocalLlmEngine {
 
         fun sendMessage(user: String, onPartial: ((String) -> Unit)? = null): String =
             delegate.sendMessage(user, onPartial)
+
+        /**
+         * [sendMessage] with pictures on this message, for a model that can
+         * see. Throws [VisionUnsupportedException] where it cannot, or where
+         * the runtime's chats take no pictures (LiteRT-LM's): send the words
+         * alone then.
+         */
+        fun sendMessage(user: String, images: List<ByteArray>, onPartial: ((String) -> Unit)? = null): String =
+            delegate.sendMessage(user, images, onPartial)
 
         fun seed(transcript: List<ChatReplay.Turn>) = delegate.seed(transcript)
 
@@ -163,14 +172,26 @@ object LocalLlmEngine {
     /**
      * Cheap: whether a GPU engine has come and gone in this process, which is
      * when its memory can outlive it. Say yes before paying for
-     * [strandedGpuMemoryKb].
+     * [strandedGpuMemoryKb]. Either runtime's: llama.cpp's OpenCL backend
+     * keeps a context for the life of the process as LiteRT-LM's does.
      */
-    fun gpuMemoryMayBeStranded(): Boolean = runtime?.gpuMemoryMayBeStranded() == true
+    fun gpuMemoryMayBeStranded(): Boolean =
+        runtime?.gpuMemoryMayBeStranded() == true || LlamaCpp.gpuMemoryMayBeStranded()
 
     /**
      * Graphics memory left behind by GPU engines that are gone, in KB; 0 when
      * none is. Only the process ending gives it back. Reads the process's
-     * memory maps — never on the main thread.
+     * memory maps — never on the main thread. Each runtime measures the whole
+     * process against what it held before its own first GPU engine, so the
+     * larger reading is the one from the earlier start.
      */
-    fun strandedGpuMemoryKb(): Long = runtime?.strandedGpuMemoryKb() ?: 0L
+    fun strandedGpuMemoryKb(): Long =
+        maxOf(runtime?.strandedGpuMemoryKb() ?: 0L, LlamaCpp.strandedGpuMemoryKb())
+
+    /**
+     * Compute = GPU applies to a GGUF model only from the next process (see
+     * [LlamaCpp.waitsForGpuRestart]): the keyboard may recycle its process
+     * when it is out of sight, as for stranded GPU memory.
+     */
+    fun waitsForGpuRestart(): Boolean = LlamaCpp.waitsForGpuRestart
 }

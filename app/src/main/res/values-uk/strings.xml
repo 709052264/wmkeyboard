@@ -4134,7 +4134,6 @@
     <string name="models_llm_account_title">Обліковий запис Hugging Face</string>
     <string name="models_llm_available_title">Доступно для завантаження</string>
     <string name="models_llm_catalog_info">Найкращі моделі знаходяться вгорі, а не найменші. Модель вгорі пише краще, але завантаження більше, відповідь повільніша, і потрібно більше пам\'яті. Для закритої моделі потрібен обліковий запис Hugging Face. Додайте свій токен вище, а потім один раз прийміть ліцензію на сторінці моделі.</string>
-    <string name="models_llm_compute_info">Опція GPU є експериментальною. Додаток автоматично перемикається на CPU, якщо GPU не запускається або якщо модель зупиняється під час відповіді. Пам\'ять GPU значно менша за системну пам\'ять, тому велика модель часто потребує CPU. Виберіть тут CPU, якщо GPU продовжує працювати зі збоями.</string>
     <string name="models_llm_compute_title">Обчислення</string>
     <string name="models_llm_empty">На вашому пристрої ще немає жодної моделі. Завантажте одну нижче, щоб використовувати ШІ офлайн.</string>
     <string name="models_llm_gated_desc">Для цієї моделі потрібен токен Hugging Face</string>
@@ -4145,7 +4144,6 @@
     <string name="models_llm_import_error_no_space">Недостатньо місця для цього файлу розміром %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Це не файл моделі. Додатку потрібен файл .litertlm або .task.</string>
     <string name="models_llm_import_error_open">Додаток не може відкрити вибраний файл.</string>
-    <string name="models_llm_import_info">Ви можете імпортувати будь-яку модель LiteRT-LM у файлі .litertlm або .task. Наприклад, модель, яку ви конвертували самостійно або завантажили в браузері.</string>
     <string name="models_llm_import_title">Імпортувати власну</string>
     <string name="models_llm_importing_label">Імпорт…</string>
     <string name="models_llm_license_action">Ліцензія та сторінка моделі</string>

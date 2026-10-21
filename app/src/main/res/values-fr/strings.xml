@@ -4130,7 +4130,6 @@
     <string name="models_llm_account_title">Compte Hugging Face</string>
     <string name="models_llm_available_title">Disponible au téléchargement</string>
     <string name="models_llm_catalog_info">Les meilleurs modèles sont en haut, pas les plus petits. Un modèle en haut écrit mieux, mais le téléchargement est plus lourd, la réponse est plus lente et il nécessite plus de mémoire. Un modèle restreint nécessite un compte Hugging Face. Ajoutez votre jeton ci-dessus, puis acceptez la licence sur la page du modèle une seule fois.</string>
-    <string name="models_llm_compute_info">L\'option GPU est expérimentale. L\'application bascule automatiquement sur le CPU si le GPU ne démarre pas, ou si un modèle s\'arrête pendant une réponse. La mémoire GPU est beaucoup plus petite que la mémoire système, donc un grand modèle nécessite fréquemment le CPU. Sélectionnez CPU ici si le GPU continue d\'échouer.</string>
     <string name="models_llm_compute_title">Calcul</string>
     <string name="models_llm_empty">Aucun modèle n\'est encore sur votre appareil. Téléchargez-en un ci-dessous pour utiliser l\'IA hors ligne.</string>
     <string name="models_llm_gated_desc">Ce modèle nécessite un jeton Hugging Face</string>
@@ -4141,7 +4140,6 @@
     <string name="models_llm_import_error_no_space">Il n\'y a pas assez d\'espace de stockage pour ce fichier de %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Ce n\'est pas un fichier de modèle. L\'application nécessite un fichier .litertlm ou .task.</string>
     <string name="models_llm_import_error_open">L\'application ne peut pas ouvrir le fichier sélectionné.</string>
-    <string name="models_llm_import_info">Vous pouvez importer n\'importe quel modèle LiteRT-LM dans un fichier .litertlm ou .task. Par exemple, un modèle que vous avez converti vous-même ou téléchargé dans un navigateur.</string>
     <string name="models_llm_import_title">Importer le vôtre</string>
     <string name="models_llm_importing_label">Importation…</string>
     <string name="models_llm_license_action">Licence et page du modèle</string>

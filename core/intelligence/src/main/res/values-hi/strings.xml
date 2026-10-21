@@ -11,7 +11,6 @@
     <string name="core_intel_llm_engine_error_gpu">मॉडल GPU पर विफल हो गया। GPU मेमोरी सिस्टम मेमोरी से बहुत छोटी है। अगला प्रयास CPU का उपयोग करता है। हमेशा CPU का उपयोग करने के लिए, सेटिंग्स में कंप्यूट को CPU पर सेट करें। आप एक छोटा मॉडल भी चुन सकते हैं।</string>
     <string name="core_intel_llm_engine_error_load">मॉडल लोड नहीं हुआ। फ़ाइल शायद क्षतिग्रस्त है। सेटिंग्स में मॉडल को हटाएं और इसे फिर से डाउनलोड करें।</string>
     <string name="core_intel_llm_engine_error_memory">मॉडल की मेमोरी खत्म हो गई है, या यह विफल हो गया है। एक छोटा मॉडल चुनें।</string>
-    <string name="core_intel_llm_engine_error_vision">यह मॉडल चित्र नहीं पढ़ सकता। जेम्मा 4 पढ़ सकता है।</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">पिछली पीढ़ी का एक छोटा जेम्मा (Gemma)। इसमें अच्छी गुणवत्ता और 4K टोकन का कॉन्टेक्स्ट है।</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">गूगल का सबसे छोटा जेम्मा। यह सभी डिवाइस पर तेज़ है।</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">नवीनतम जेम्मा पीढ़ी। यह आपके डिवाइस पर शीर्ष गुणवत्ता प्रदान करती है।</string>

@@ -166,11 +166,12 @@
     {
       "id": "llama",
       "property": "llama",
-      "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`). LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",
+      "doc": "`:feature:llama`: llama.cpp, the on-device AI runtime for GGUF models (`:core:intelligence`), with libmtmd for vision models' projectors and, on arm64, an OpenCL build for Adreno GPUs (Compute = GPU). LiteRT-LM, the default runtime, has its own gate (`LlmModule`); only a GGUF model asks for this one.",
       "play": "split",
       "libraries": [
         { "name": "libwmllama.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "keep": ["com.wasimaster.wmkeyboard.core.localllm.LlamaNative"] },
-        { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
+        { "name": "libwmllama_v82.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] },
+        { "name": "libwmllama_opencl.so", "dir": "core/intelligence/src/llama/jniLibs", "fdroidBuild": "native/llamacpp-jni/build.sh", "abis": ["arm64-v8a"] }
       ]
     },
     {

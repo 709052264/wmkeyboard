@@ -11,7 +11,6 @@
     <string name="core_intel_llm_engine_error_gpu">GPU에서 모델 실행에 실패했습니다. GPU 메모리가 시스템 메모리보다 훨씬 작습니다. 다음 시도에서는 CPU를 사용합니다. 항상 CPU를 사용하려면 설정에서 연산을 CPU로 설정하세요. 더 작은 모델을 선택할 수도 있습니다.</string>
     <string name="core_intel_llm_engine_error_load">모델을 불러오지 못했습니다. 파일이 손상되었을 가능성이 높습니다. 설정에서 모델을 삭제하고 다시 다운로드하세요.</string>
     <string name="core_intel_llm_engine_error_memory">모델 메모리가 부족하거나 오류가 발생했습니다. 더 작은 모델을 선택하세요.</string>
-    <string name="core_intel_llm_engine_error_vision">이 모델은 사진을 읽을 수 없습니다. Gemma 4는 가능합니다.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">이전 세대의 소형 Gemma 모델입니다. 품질이 우수하며 4K 토큰의 컨텍스트를 지원합니다.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Google에서 제공하는 가장 작은 Gemma 모델입니다. 모든 기기에서 빠르게 작동합니다.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">최신 Gemma 세대입니다. 기기에서 최고 품질을 제공합니다.</string>

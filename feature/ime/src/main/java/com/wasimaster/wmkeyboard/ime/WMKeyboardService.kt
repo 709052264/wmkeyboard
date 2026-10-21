@@ -8986,7 +8986,7 @@ open class WMKeyboardService : InputMethodService() {
      * volatile read.
      */
     private fun scheduleGpuRecycle() {
-        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded() && !LocalLlmEngine.waitsForGpuRestart()) return
         gpuRecycleJob?.cancel()
         gpuRecycleJob = serviceScope.launch {
             delay(GPU_RECYCLE_DELAY_MS)
@@ -9003,16 +9003,28 @@ open class WMKeyboardService : InputMethodService() {
      * keyboard again on the next field, and [persistentSurface] already plans
      * for a show landing in a new process.
      *
+     * The same when Compute = GPU waits for a new process to reach a GGUF
+     * model: llama.cpp's GPU build of its library can only load in a process
+     * that has not loaded a CPU build yet.
+     *
      * Only with the keyboard away, no screen of the app started (they share
      * this process) and no model download running, and only after the stores
      * are on disk.
      */
     private suspend fun recycleIfGpuStranded() {
-        if (!LocalLlmEngine.gpuMemoryMayBeStranded()) return
+        val restartForGpu = LocalLlmEngine.waitsForGpuRestart()
+        if (!LocalLlmEngine.gpuMemoryMayBeStranded() && !restartForGpu) return
         if (keyboardVisible || StartedActivities.count > 0 || LocalLlmDownloadManager.isBusy) return
         val strandedKb = withContext(Dispatchers.Default) { LocalLlmEngine.strandedGpuMemoryKb() }
-        if (strandedKb < GPU_STRANDED_KB) return
-        DebugLog.i("ime", "recycling the process: ${strandedKb / 1024} MB of GPU memory left by the model")
+        if (strandedKb < GPU_STRANDED_KB && !restartForGpu) return
+        DebugLog.i(
+            "ime",
+            if (strandedKb >= GPU_STRANDED_KB) {
+                "recycling the process: ${strandedKb / 1024} MB of GPU memory left by the model"
+            } else {
+                "recycling the process: Compute = GPU needs llama.cpp's GPU build"
+            },
+        )
         withContext(persistDispatcher) {
             saveLearningStores()
             clipboardStore.save()

@@ -4143,7 +4143,6 @@
     <string name="models_llm_account_title">Hugging Face račun</string>
     <string name="models_llm_available_title">Dostupno za preuzimanje</string>
     <string name="models_llm_catalog_info">Najbolji modeli su na vrhu, a ne oni najmanji. Model na vrhu piše bolje, ali preuzimanje je veće, odgovor je sporiji i treba mu više memorije. Zaštićeni model zahtijeva Hugging Face račun. Dodajte svoj token iznad, a zatim jednom prihvatite licencu na stranici modela.</string>
-    <string name="models_llm_compute_info">Opcija GPU-a je eksperimentalna. Aplikacija se automatski prebacuje na CPU ako se GPU ne pokrene ili ako model stane tijekom odgovora. Memorija GPU-a je puno manja od sistemske memorije, pa velikom modelu često treba CPU. Ovdje odaberite CPU ako GPU i dalje ne radi.</string>
     <string name="models_llm_compute_title">Izračun</string>
     <string name="models_llm_empty">Na vašem uređaju još nema modela. Preuzmite jedan u nastavku za korištenje umjetne inteligencije izvan mreže.</string>
     <string name="models_llm_gated_desc">Ovaj model treba Hugging Face token</string>
@@ -4154,7 +4153,6 @@
     <string name="models_llm_import_error_no_space">Nema dovoljno prostora za ovu datoteku od %1$s.</string>
     <string name="models_llm_import_error_not_a_model">Ovo nije datoteka modela. Aplikaciji je potrebna .litertlm datoteka ili .task datoteka.</string>
     <string name="models_llm_import_error_open">Aplikacija ne može otvoriti odabranu datoteku.</string>
-    <string name="models_llm_import_info">Možete uvesti bilo koji LiteRT-LM model u .litertlm ili .task datoteci. Na primjer, model koji ste sami pretvorili ili preuzeli u pregledniku.</string>
     <string name="models_llm_import_title">Uvezite vlastiti</string>
     <string name="models_llm_importing_label">Uvoz...</string>
     <string name="models_llm_license_action">Stranica s licencom i modelom</string>

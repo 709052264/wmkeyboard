@@ -4141,7 +4141,6 @@
     <string name="models_llm_account_title">حساب Hugging Face</string>
     <string name="models_llm_available_title">متاح للتنزيل</string>
     <string name="models_llm_catalog_info">أفضل النماذج موجودة في الأعلى، وليست الأصغر حجمًا. النموذج الموجود في الأعلى يكتب بشكل أفضل، لكن التنزيل أكبر، والإجابة أبطأ، ويحتاج إلى ذاكرة أكبر. يتطلب النموذج المقيد حساب Hugging Face. أضف الرمز الخاص بك أعلاه، ثم اقبل الترخيص على صفحة النموذج مرة واحدة.</string>
-    <string name="models_llm_compute_info">خيار وحدة معالجة الرسومات (GPU) تجريبي. يتحول التطبيق إلى وحدة المعالجة المركزية (CPU) تلقائياً إذا لم تبدأ وحدة معالجة الرسومات، أو إذا توقف النموذج أثناء الإجابة. ذاكرة وحدة معالجة الرسومات أصغر بكثير من ذاكرة النظام، لذا غالباً ما يحتاج النموذج الكبير إلى وحدة المعالجة المركزية. اختر وحدة المعالجة المركزية هنا إذا استمر فشل وحدة معالجة الرسومات.</string>
     <string name="models_llm_compute_title">حوسبة</string>
     <string name="models_llm_empty">لا يوجد نموذج على جهازك بعد. قم بتنزيل واحد أدناه لاستخدام الذكاء الاصطناعي دون اتصال بالإنترنت.</string>
     <string name="models_llm_gated_desc">يحتاج هذا النموذج إلى رمز Hugging Face</string>
@@ -4152,7 +4151,6 @@
     <string name="models_llm_import_error_no_space">لا توجد مساحة تخزين كافية لهذا الملف بحجم %1$s.</string>
     <string name="models_llm_import_error_not_a_model">هذا ليس ملف نموذج. يحتاج التطبيق إلى ملف .litertlm أو ملف .task.</string>
     <string name="models_llm_import_error_open">لا يمكن للتطبيق فتح الملف المحدد.</string>
-    <string name="models_llm_import_info">يمكنك استيراد أي نموذج LiteRT-LM بصيغة .litertlm أو .task. على سبيل المثال، نموذج قمت بتحويله بنفسك أو قمت بتنزيله من المتصفح.</string>
     <string name="models_llm_import_title">استيراد ملفك الخاص</string>
     <string name="models_llm_importing_label">جاري الاستيراد...</string>
     <string name="models_llm_license_action">صفحة الترخيص والنموذج</string>

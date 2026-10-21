@@ -1,7 +1,6 @@
 package com.wasimaster.wmkeyboard.core.localllm
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -80,7 +79,13 @@ class LocalLlmCatalogTest {
                 "https://huggingface.co/${model.repo}/resolve/${model.revision}/${model.fileName}",
                 LocalLlmCatalog.downloadUrl(model),
             )
-            assertFalse(model.id, model.vision)
+            // A row sees exactly when it brings a projector, pinned the same way.
+            assertEquals(model.id, model.vision, model.projector != null)
+            model.projector?.let { projector ->
+                assertTrue(model.id, projector.sha256.matches(Regex("[0-9a-f]{64}")))
+                assertTrue(model.id, projector.fileName.endsWith(".gguf") && projector.fileName != model.fileName)
+                assertEquals(model.sizeBytes + projector.sizeBytes, model.downloadBytes)
+            }
             assertTrue(model.id, model.npuBuilds.isEmpty())
         }
     }
@@ -91,8 +96,8 @@ class LocalLlmCatalogTest {
         assertEquals(LocalLlmRuntime.LITERT_LM, LocalLlmCatalog.runtimeOf("custom:mine.litertlm"))
         assertEquals(LocalLlmRuntime.LLAMA_CPP, LocalLlmCatalog.runtimeOf("gguf-qwen3-0.6b"))
         assertNull(LocalLlmCatalog.runtimeOf(""))
-        // llama.cpp here has no vision projector: an imported GGUF never sees.
-        assertEquals(false, LocalLlmCatalog.canSee("custom:mine.gguf"))
+        // An imported GGUF sees when a projector sits beside it: unknown until tried.
+        assertNull(LocalLlmCatalog.canSee("custom:mine.gguf"))
         assertNull(LocalLlmCatalog.canSee("custom:mine.litertlm"))
     }
 }

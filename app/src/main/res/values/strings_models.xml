@@ -139,7 +139,7 @@
     <!-- The second list of models, run by llama.cpp. GGUF is the file format
          and llama.cpp the engine; both stay in Latin letters. -->
     <string name="models_llm_gguf_title">GGUF models (llama.cpp)</string>
-    <string name="models_llm_gguf_info">These models run on llama.cpp, a second engine that runs any GGUF file. It uses the CPU only, so Compute does not apply to them, and they cannot read pictures. The models above, which run on LiteRT-LM, stay the default. Each file is checked against the one the catalogue names before you can use it.</string>
+    <string name="models_llm_gguf_info">These models run on llama.cpp, a second engine that runs any GGUF file. With Compute set to GPU, they use the GPU on a phone with a Snapdragon chip (an Adreno GPU), and the CPU on other phones. The models that read pictures download a second file, the projector, with them. The models above, which run on LiteRT-LM, stay the default. Each file is checked against the one the catalogue names before you can use it.</string>
     <!-- Under a model row. %1$s is the engine name, llama.cpp. -->
     <string name="models_llm_runtime_label">Runs on <xliff:g id="runtime" example="llama.cpp">%1$s</xliff:g></string>
     <string name="models_llm_llama_module_missing_info">llama.cpp is an extra part of the keyboard that downloads when you first need it. Download it to use GGUF models.</string>
@@ -147,13 +147,13 @@
     <string name="models_llm_llama_module_metered_body">llama.cpp is a separate download of a few megabytes.</string>
 
     <string name="models_llm_import_title">Import your own</string>
-    <string name="models_llm_import_info">You can import any LiteRT-LM model in a .litertlm file or a .task file, and any GGUF model, which llama.cpp runs. For example, a model that you converted yourself or downloaded in a browser.</string>
+    <string name="models_llm_import_info">You can import any LiteRT-LM model in a .litertlm file or a .task file, and any GGUF model, which llama.cpp runs. For example, a model that you converted yourself or downloaded in a browser. For a GGUF model that reads pictures, also select its mmproj file. You can select both files at the same time.</string>
     <string name="models_llm_import_action">Import model file</string>
     <string name="models_llm_importing_label">Importing…</string>
 
     <string name="models_llm_compute_title">Compute</string>
     <!-- CPU and GPU name the two compute backends. They stay in English. -->
-    <string name="models_llm_compute_info">The GPU option is experimental. The app changes to the CPU automatically if the GPU does not start, or if a model stops during an answer. The GPU memory is much smaller than the system memory, so a large model frequently needs the CPU. Select CPU here if the GPU continues to fail.</string>
+    <string name="models_llm_compute_info">The GPU option is experimental. The app changes to the CPU automatically if the GPU does not start, or if a model stops during an answer. The GPU memory is much smaller than the system memory, so a large model frequently needs the CPU. Select CPU here if the GPU continues to fail. GGUF models use only an Adreno GPU, the GPU in Snapdragon chips. If a GGUF model already ran on the CPU, the GPU starts to work for it after the keyboard restarts.</string>
 
     <!-- Below the Compute choices, only on a phone whose chip has an NPU
          build. NPU, GPU and CPU stay in English. %1$s lists the model names,
