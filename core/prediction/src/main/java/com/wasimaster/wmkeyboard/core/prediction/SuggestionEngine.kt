@@ -4144,7 +4144,8 @@ class SuggestionEngine(
      * they were correcting. The engine's own decision stands when it agrees.
      * A spelling that is itself a word gives way only after
      * [CorrectionMemory.APPLY_KNOWN_AT] fixes and with the bigram context as a
-     * second witness ([RevisionAdvisor.precedes]); a pair the user has since
+     * second witness ([RevisionAdvisor.precedes]), unless the user has put it
+     * on Never suggest; a pair the user has since
      * undone is the penalty memory's to hold back, and is left to it.
      */
     private fun withTaughtFix(
@@ -4157,9 +4158,13 @@ class SuggestionEngine(
         val fixed = taught.fixed
         if (fixed == lower || fixed.split(' ').any { suppressed(it) }) return ordinary
         if (correctionStats.penalty(lower, fixed) != CorrectionStats.Penalty.NONE) return ordinary
-        val knownTyped = inDictionaries(lower) ||
-            userLexicon.isEstablished(lower, learnedWordMinCount) ||
-            contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
+        // A spelling the user put on Never suggest is one they do not mean,
+        // whatever list holds it (#881): their fix is taught as for a typo.
+        val knownTyped = !blacklisted(lower) && (
+            inDictionaries(lower) ||
+                userLexicon.isEstablished(lower, learnedWordMinCount) ||
+                contacts.contains(lower) || apps.contains(lower) || spellAccepted(word)
+            )
         fun applied() = CorrectionDecision(
             apply = matchCase(word, fixed),
             // Two fixes is sure enough to act on and unsure enough to show the

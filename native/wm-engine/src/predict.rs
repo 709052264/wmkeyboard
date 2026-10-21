@@ -1490,10 +1490,13 @@ impl Predictor {
         if self.stats.penalty(lower, &fixed) != Penalty::None {
             return ordinary;
         }
-        let known_typed = self.in_dictionaries(lower)
-            || self
-                .lexicon
-                .is_established(lower, self.learned_word_min_count);
+        // A spelling on Never suggest is one the user does not mean,
+        // whatever list holds it (#881): their fix is taught as for a typo.
+        let known_typed = !self.blacklist.contains(&key_of(lower))
+            && (self.in_dictionaries(lower)
+                || self
+                    .lexicon
+                    .is_established(lower, self.learned_word_min_count));
         let applied = || {
             let edits = correction_memory::distance(lower, &fixed) as f64;
             let shape = (edits / 2.0).clamp(0.0, 1.0);
