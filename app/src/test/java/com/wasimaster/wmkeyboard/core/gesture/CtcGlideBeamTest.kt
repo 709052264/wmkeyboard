@@ -94,19 +94,25 @@ class CtcGlideBeamTest {
     private val grid = GlideGrid.of(BuiltInLayouts.QWERTY)
     private val keys = GlideKeyMap.of(grid.keyCenters(SwipeCorpus.KEY_WIDTH), SwipeCorpus.KEY_WIDTH)
 
-    private fun stroke(word: String, loops: Boolean = false, shapes: GlideShapeSource? = null): CtcGlideBeam.Stroke {
-        val profile = SwipeCorpus.Noise.CLEAN.profile.copy(loopOnDoubles = if (loops) 1f else 0f)
+    private fun stroke(
+        word: String,
+        loops: Boolean = false,
+        noise: SwipeCorpus.Noise = SwipeCorpus.Noise.CLEAN,
+    ): CtcGlideBeam.Stroke {
+        val profile = noise.profile.copy(loopOnDoubles = if (loops) 1f else 0f)
         val path = requireNotNull(SwipeCorpus(7L, grid = grid).swipe(word, profile))
-        return CtcGlideBeam.Stroke(path, keys, SwipeCorpus.KEY_WIDTH, GlideBeam.Tuning.DEFAULT, shapes)
+        return CtcGlideBeam.Stroke(path, keys, SwipeCorpus.KEY_WIDTH, GlideBeam.Tuning.DEFAULT, null)
     }
 
     @Test
     fun aStrokeLiftedPartWayOffersTheWordItWasSpelling() {
+        // One reading kept, so "dictionary" is not among the readings: read
+        // whole, it would pay for four letters the steps never showed.
         val lexicon = sources("dictionary" to 900, "dictate" to 100, "dict" to 50)
-        val read = beam.decode(emissions("_d_i_c_t_i_"), lexicon, limit = 4, stroke = stroke("dicti"), lookAhead = 2)
+        val read = beam.decode(emissions("_d_i_c_t_i_"), lexicon, limit = 1, stroke = stroke("dicti"), lookAhead = 2)
         val guess = read.first { it.word == "dictionary" }
         assertEquals(5, guess.ahead)
-        assertTrue(beam.decode(emissions("_d_i_c_t_i_"), lexicon, limit = 4).none { it.ahead > 0 })
+        assertTrue(beam.decode(emissions("_d_i_c_t_i_"), lexicon, limit = 1).none { it.ahead > 0 })
     }
 
     @Test
@@ -130,8 +136,9 @@ class CtcGlideBeamTest {
 
     @Test
     fun aWordDrawnTheWayTheUserDrewItBeforeGains() {
+        // A noisy hand: a clean stroke is the ideal path, with nothing to gain.
         val word = "then"
-        val drawn = stroke(word)
+        val drawn = stroke(word, noise = SwipeCorpus.Noise.TYPICAL)
         val shape = requireNotNull(GlideBeam().sampleShape(drawn.path, SwipeCorpus.KEY_WIDTH, GlideWorkspace()))
         val layout = GlideKeyMap.fingerprint(grid.keyCenters(SwipeCorpus.KEY_WIDTH), SwipeCorpus.KEY_WIDTH)
         val store = GlideShapeStore(null).apply { learn(GlideShapeSample(layout, shape), word) }
