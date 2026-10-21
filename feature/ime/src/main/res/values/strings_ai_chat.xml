@@ -254,4 +254,15 @@
     <!-- The chat composer's Reasoning switch (#882), as TalkBack reads its state. -->
     <string name="ime_ai_chat_reasoning_on_desc">The model reasons before it answers</string>
     <string name="ime_ai_chat_reasoning_off_desc">The model answers without reasoning</string>
+    <!-- The chat list (#882): picking several chats with a long press, and renaming one. -->
+    <plurals name="ime_ai_chat_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="ime_ai_chat_delete_selected">Delete the selected chats</string>
+    <string name="ime_ai_chat_rename">Rename</string>
+    <string name="ime_ai_chat_rename_title">Rename chat</string>
+    <!-- %1$s is the chat's title. -->
+    <string name="ime_ai_chat_rename_desc">Rename %1$s</string>
+    <string name="ime_ai_chat_rename_hint">The chat's new name</string>
 </resources>

@@ -388,6 +388,12 @@
     <string name="toolai_ai_chat_delete_title">Delete this chat?</string>
     <!-- %1$s is the name of the conversation. -->
     <string name="toolai_ai_chat_delete_body">This deletes "%1$s". You cannot undo this.</string>
+    <!-- The chat list's bulk delete (#882), after picking chats with a long press. -->
+    <plurals name="toolai_ai_chat_delete_many_title">
+        <item quantity="one">Delete %1$d chat?</item>
+        <item quantity="other">Delete %1$d chats?</item>
+    </plurals>
+    <string name="toolai_ai_chat_delete_many_body">The chats you picked are deleted for good. You cannot undo this.</string>
 
     <string name="toolai_ai_history_group_title">History</string>
     <string name="toolai_ai_history_title">Keep a history of the results</string>

@@ -25,6 +25,14 @@ import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.focus.focusRequester
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import androidx.compose.material3.TextField
@@ -151,6 +159,25 @@ internal fun AiChatListScreen(
     val conversations = remember(version) { store.items() }
     var confirmDelete by remember { mutableStateOf<AiChatConversation?>(null) }
     val reduceMotion = LocalReduceMotion.current
+    // A long press starts picking chats (#882); a chat deleted meanwhile
+    // leaves the selection with it.
+    var picked by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    val selected = picked.filterTo(HashSet()) { id -> conversations.any { it.id == id } }
+    val selecting = selected.isNotEmpty()
+    var confirmBulk by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf<AiChatConversation?>(null) }
+    BackHandler(enabled = selecting) { picked = emptySet() }
+    if (selecting) {
+        RegisterDock {
+            ChatSelectionBar(
+                count = selected.size,
+                allPicked = selected.size == conversations.size,
+                onClear = { picked = emptySet() },
+                onSelectAll = { picked = conversations.mapTo(HashSet()) { it.id } },
+                onDelete = { confirmBulk = true },
+            )
+        }
+    }
 
     // Nothing to list yet: skip the empty list and land in a chat directly.
     // The caller replaces this screen in the back stack, and a chat only
@@ -212,12 +239,49 @@ internal fun AiChatListScreen(
                 // list is newest first, so a chat that moves up glides there.
                 ConversationRow(
                     conversation = conversation,
-                    onClick = { onOpenChat(conversation.id) },
+                    selecting = selecting,
+                    checked = conversation.id in selected,
+                    onClick = {
+                        if (selecting) picked = selected.toggled(conversation.id) else onOpenChat(conversation.id)
+                    },
+                    onLongClick = { picked = selected.toggled(conversation.id) },
+                    onRename = { renaming = conversation },
                     onDelete = { confirmDelete = conversation },
                     modifier = listItemMotion(reduceMotion),
                 )
             }
         }
+    }
+
+    if (confirmBulk) {
+        AlertDialog(
+            onDismissRequest = { confirmBulk = false },
+            title = {
+                Text(pluralStringResource(R.plurals.toolai_ai_chat_delete_many_title, selected.size, selected.size))
+            },
+            text = { Text(stringResource(R.string.toolai_ai_chat_delete_many_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    AiChatController.deleteConversations(context, selected)
+                    picked = emptySet()
+                    confirmBulk = false
+                }) { Text(stringResource(CommonR.string.common_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmBulk = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
+
+    renaming?.let { chat ->
+        RenameChatDialog(
+            current = chat.title,
+            onDismiss = { renaming = null },
+            onRename = { title ->
+                AiChatController.renameConversation(context, chat.id, title)
+                renaming = null
+            },
+        )
     }
 
     confirmDelete?.let { doomed ->
@@ -249,32 +313,117 @@ internal fun AiChatListScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ConversationRow(
     conversation: AiChatConversation,
+    selecting: Boolean,
+    checked: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
+    onRename: () -> Unit,
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    WmRow(
-        title = conversation.title.ifBlank {
-            stringResource(ImeR.string.ime_ai_chat_untitled)
-        },
+    val title = conversation.title.ifBlank { stringResource(ImeR.string.ime_ai_chat_untitled) }
+    // While picking chats the row is a checkbox, and a swipe is one more
+    // thing a finger meant for the next tick could set off.
+    SwipeActionsRow(
+        actions = listOf(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete)),
         modifier = modifier,
-        subtitle = DateUtils.getRelativeTimeSpanString(conversation.updatedAt).toString(),
-        swipeActions = listOf(deleteSwipeAction(stringResource(CommonR.string.common_delete), onDelete)),
-        trailing = {
+        enabled = !selecting,
+    ) {
+        Box(Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick)) {
+            WmRow(
+                title = title,
+                subtitle = DateUtils.getRelativeTimeSpanString(conversation.updatedAt).toString(),
+                leading = if (selecting) ({ Checkbox(checked = checked, onCheckedChange = { onClick() }) }) else null,
+                trailing = if (selecting) {
+                    null
+                } else {
+                    {
+                        Row {
+                            IconButton(onClick = onRename) {
+                                Icon(
+                                    Icons.Outlined.DriveFileRenameOutline,
+                                    contentDescription = stringResource(ImeR.string.ime_ai_chat_rename_desc, title),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                            IconButton(onClick = onDelete) {
+                                Icon(
+                                    Icons.Outlined.Delete,
+                                    contentDescription = stringResource(CommonR.string.common_delete),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        }
+                    }
+                },
+            )
+        }
+    }
+}
+
+/** The bar under a selection of chats (#882): how many, Select all, and Delete. */
+@Composable
+private fun ChatSelectionBar(
+    count: Int,
+    allPicked: Boolean,
+    onClear: () -> Unit,
+    onSelectAll: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Surface(tonalElevation = 3.dp) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onClear) {
+                Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
+            }
+            Text(
+                pluralStringResource(ImeR.plurals.ime_ai_chat_selected_count, count, count),
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onSelectAll, enabled = !allPicked) {
+                Icon(Icons.Outlined.SelectAll, contentDescription = stringResource(CommonR.string.common_select_all))
+            }
             IconButton(onClick = onDelete) {
-                Icon(
-                    Icons.Outlined.Delete,
-                    contentDescription = stringResource(CommonR.string.common_delete),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Icon(Icons.Outlined.Delete, contentDescription = stringResource(ImeR.string.ime_ai_chat_delete_selected))
+            }
+        }
+    }
+}
+
+/** A chat's new name (#882), typed over the old one. */
+@Composable
+private fun RenameChatDialog(current: String, onDismiss: () -> Unit, onRename: (String) -> Unit) {
+    var name by remember { mutableStateOf(androidx.compose.ui.text.input.TextFieldValue(current, androidx.compose.ui.text.TextRange(0, current.length))) }
+    val focus = remember { androidx.compose.ui.focus.FocusRequester() }
+    LaunchedEffect(Unit) { runCatching { focus.requestFocus() } }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(ImeR.string.ime_ai_chat_rename_title)) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it.copy(text = it.text.take(AiChatStore.MAX_RENAME)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().focusRequester(focus),
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = { onRename(name.text) }, enabled = name.text.isNotBlank()) {
+                Text(stringResource(ImeR.string.ime_ai_chat_rename))
             }
         },
-        onClick = onClick,
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) } },
     )
 }
+
+private fun Set<Long>.toggled(id: Long): Set<Long> = if (id in this) this - id else this + id
 
 /**
  * One conversation. Owns its whole Scaffold (SettingsSearchScreen precedent)

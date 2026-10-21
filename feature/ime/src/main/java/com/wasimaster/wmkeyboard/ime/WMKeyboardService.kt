@@ -10638,7 +10638,10 @@ open class WMKeyboardService : InputMethodService() {
             // A chat message is free text, so Enter is a line break unless the
             // user asked for it to send (#280); the Send button always sends.
             CaptureTarget.AI_CHAT ->
-                if (state.settings.ai.chatEnterSends) {
+                if (state.aiChat.renaming >= 0) {
+                    // Enter keeps a chat's new name (#882): a name has one line.
+                    onAiChatAction(AiChatAction.CommitRename)
+                } else if (state.settings.ai.chatEnterSends) {
                     onAiChatAction(AiChatAction.Send)
                 } else {
                     captureTyped("\n")
@@ -35126,7 +35129,14 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The composer's text, written by the capture ladder. */
     private fun aiChatDraft(text: String) {
-        _uiState.update { it.copy(aiChat = it.aiChat.copy(draft = text.take(AiChatStore.MAX_TEXT))) }
+        _uiState.update {
+            // A chat's new name is typed through the same field (#882).
+            if (it.aiChat.renaming >= 0) {
+                it.copy(aiChat = it.aiChat.copy(renameDraft = text.take(AiChatStore.MAX_RENAME)))
+            } else {
+                it.copy(aiChat = it.aiChat.copy(draft = text.take(AiChatStore.MAX_TEXT)))
+            }
+        }
     }
 
     /** The model the next message goes to: the one picked, else the last used. */
@@ -35228,7 +35238,8 @@ open class WMKeyboardService : InputMethodService() {
             AiChatAction.FocusComposer ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true)) }
             AiChatAction.BlurComposer ->
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false)) }
+                // Putting the keys away while naming a chat drops the name.
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false, renaming = -1L, renameDraft = "")) }
             AiChatAction.Send -> aiChatSend()
             AiChatAction.Stop -> AiChatController.stop(this)
             AiChatAction.Retry -> aiChatChoice()?.let {
@@ -35258,7 +35269,15 @@ open class WMKeyboardService : InputMethodService() {
             }
             AiChatAction.NewChat ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(conversationId = -1L, showSessions = false, composing = true))
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            conversationId = -1L,
+                            showSessions = false,
+                            composing = true,
+                            picked = emptySet(),
+                            renaming = -1L,
+                        ),
+                    )
                 }
             is AiChatAction.Open ->
                 _uiState.update {
@@ -35267,6 +35286,8 @@ open class WMKeyboardService : InputMethodService() {
                             conversationId = action.conversationId,
                             showSessions = false,
                             composing = false,
+                            picked = emptySet(),
+                            renaming = -1L,
                             // A conversation comes back on the model it was
                             // last had with, when that model is still here.
                             modelKey = aiChatModelKeyOf(action.conversationId) ?: it.aiChat.modelKey,
@@ -35281,8 +35302,58 @@ open class WMKeyboardService : InputMethodService() {
             }
             AiChatAction.ToggleSessions ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(showSessions = !it.aiChat.showSessions, composing = false))
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            showSessions = !it.aiChat.showSessions,
+                            composing = false,
+                            picked = emptySet(),
+                            renaming = -1L,
+                            renameDraft = "",
+                        ),
+                    )
                 }
+            is AiChatAction.TogglePick ->
+                _uiState.update {
+                    val picked = it.aiChat.picked
+                    val id = action.conversationId
+                    it.copy(aiChat = it.aiChat.copy(picked = if (id in picked) picked - id else picked + id))
+                }
+            AiChatAction.PickAll -> {
+                val all = AiChatController.store(this).items().mapTo(HashSet()) { it.id }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(picked = all)) }
+            }
+            AiChatAction.ClearPicks -> _uiState.update { it.copy(aiChat = it.aiChat.copy(picked = emptySet())) }
+            AiChatAction.DeletePicked -> {
+                val doomed = chat.picked
+                AiChatController.deleteConversations(this, doomed)
+                _uiState.update {
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            picked = emptySet(),
+                            conversationId = if (it.aiChat.conversationId in doomed) -1L else it.aiChat.conversationId,
+                        ),
+                    )
+                }
+            }
+            is AiChatAction.StartRename -> {
+                val title = AiChatController.store(this).get(action.conversationId)?.title.orEmpty()
+                _uiState.update {
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            renaming = action.conversationId,
+                            renameDraft = title,
+                            picked = emptySet(),
+                            composing = true,
+                        ),
+                    )
+                }
+            }
+            AiChatAction.CommitRename -> {
+                if (chat.renaming >= 0) AiChatController.renameConversation(this, chat.renaming, chat.renameDraft)
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(renaming = -1L, renameDraft = "", composing = false)) }
+            }
+            AiChatAction.CancelRename ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(renaming = -1L, renameDraft = "", composing = false)) }
             is AiChatAction.PickModel ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(modelKey = action.key)) }
             AiChatAction.ToggleAttachment -> {

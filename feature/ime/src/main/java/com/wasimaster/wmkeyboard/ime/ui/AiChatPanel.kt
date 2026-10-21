@@ -48,6 +48,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -1251,7 +1255,13 @@ private fun ReasoningSwitch(on: Boolean, modifier: Modifier = Modifier, onClick:
     }
 }
 
-/** The conversation list, in place of the transcript. */
+/**
+ * The conversation list, in place of the transcript. A long press on a chat
+ * starts picking (#882): taps then tick chats on and off, and the row over
+ * the list has Select all and Delete. The pencil on a chat types a new name
+ * for it in place, with the keys under the panel.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Sessions(
     state: KeyboardUiState,
@@ -1259,8 +1269,12 @@ private fun Sessions(
     onChat: (AiChatAction) -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    val chat = state.aiChat
+    val picked = chat.picked.filterTo(HashSet()) { id -> conversations.any { it.id == id } }
+    val picking = picked.isNotEmpty()
     // Delete is two taps on the same chip, not a dialog: a dialog over an IME
-    // window is a popup, and the list has nowhere to put one.
+    // window is a popup, and the list has nowhere to put one. [ALL_PICKED]
+    // stands for the selection's Delete.
     var doomed by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(doomed) {
         if (doomed != null) {
@@ -1268,12 +1282,29 @@ private fun Sessions(
             doomed = null
         }
     }
+    val top: List<() -> Unit> = if (picking) {
+        listOf(
+            { onChat(AiChatAction.ClearPicks) },
+            { onChat(AiChatAction.PickAll) },
+            {
+                if (doomed == ALL_PICKED) {
+                    doomed = null
+                    onChat(AiChatAction.DeletePicked)
+                } else {
+                    doomed = ALL_PICKED
+                }
+            },
+        )
+    } else {
+        listOf({ onChat(AiChatAction.NewChat) }, { onChat(AiChatAction.OpenInApp(list = true)) })
+    }
     ChatFocusTargets(
         chips = emptyList(),
-        results = listOf<() -> Unit>(
-            { onChat(AiChatAction.NewChat) },
-            { onChat(AiChatAction.OpenInApp(list = true)) },
-        ) + conversations.map { { onChat(AiChatAction.Open(it.id)) } },
+        results = top + conversations.map { conversation ->
+            {
+                if (picking) onChat(AiChatAction.TogglePick(conversation.id)) else onChat(AiChatAction.Open(conversation.id))
+            }
+        },
     )
     val focused = state.focusedIndex(FocusRegion.RESULTS)
     LazyColumn(
@@ -1282,16 +1313,49 @@ private fun Sessions(
         contentPadding = PaddingValues(vertical = 2.dp),
     ) {
         item(key = "top") {
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                ToolPanelChip(
-                    stringResource(R.string.ime_ai_chat_new),
-                    selected = true,
-                    modifier = Modifier.focusRing(focused == 0),
-                ) { onChat(AiChatAction.NewChat) }
-                ToolPanelChip(
-                    stringResource(R.string.ime_ai_chat_open_in_app),
-                    modifier = Modifier.focusRing(focused == 1),
-                ) { onChat(AiChatAction.OpenInApp(list = true)) }
+            if (picking) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ChatIconButton(
+                        Icons.Outlined.Close,
+                        stringResource(CommonR.string.common_cancel),
+                        modifier = Modifier.focusRing(focused == 0, CircleShape),
+                    ) { onChat(AiChatAction.ClearPicks) }
+                    Text(
+                        pluralStringResource(R.plurals.ime_ai_chat_selected_count, picked.size, picked.size),
+                        color = kb.chipText,
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ChatIconButton(
+                        Icons.Outlined.SelectAll,
+                        stringResource(CommonR.string.common_select_all),
+                        enabled = picked.size < conversations.size,
+                        modifier = Modifier.focusRing(focused == 1, CircleShape),
+                    ) { onChat(AiChatAction.PickAll) }
+                    val confirming = doomed == ALL_PICKED
+                    ToolPanelChip(
+                        stringResource(if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete),
+                        selected = confirming,
+                        modifier = Modifier.focusRing(focused == 2),
+                    ) { top[2]() }
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    ToolPanelChip(
+                        stringResource(R.string.ime_ai_chat_new),
+                        selected = true,
+                        modifier = Modifier.focusRing(focused == 0),
+                    ) { onChat(AiChatAction.NewChat) }
+                    ToolPanelChip(
+                        stringResource(R.string.ime_ai_chat_open_in_app),
+                        modifier = Modifier.focusRing(focused == 1),
+                    ) { onChat(AiChatAction.OpenInApp(list = true)) }
+                }
             }
         }
         if (conversations.isEmpty()) {
@@ -1306,10 +1370,17 @@ private fun Sessions(
             }
         }
         itemsIndexed(conversations, key = { _, conversation -> conversation.id }) { index, conversation ->
-            val current = conversation.id == state.aiChat.conversationId
+            val current = conversation.id == chat.conversationId
+            val checked = conversation.id in picked
             val shape = kb.cardShape()
+            if (chat.renaming == conversation.id) {
+                RenameRow(chat.renameDraft, onChat, Modifier.animateItem())
+                return@itemsIndexed
+            }
             // The swipe deletes at once: reaching the red button is already the
-            // second deliberate step the chip's two taps stand in for.
+            // second deliberate step the chip's two taps stand in for. Not
+            // while picking, where a finger meant for the next tick could set
+            // it off.
             KbSwipeActionsRow(
                 actions = listOf(
                     kbDeleteSwipeAction(stringResource(CommonR.string.common_delete)) {
@@ -1319,22 +1390,41 @@ private fun Sessions(
                 ),
                 reduceMotion = state.settings.reduceMotion,
                 modifier = Modifier.animateItem(),
+                enabled = !picking,
             ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape)
-                    .focusRing(focused == index + 2, shape)
-                    .background(kb.chip)
+                    .focusRing(focused == index + top.size, shape)
+                    .background(if (checked) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
-                    .clickable { onChat(AiChatAction.Open(conversation.id)) }
+                    .combinedClickable(
+                        onClick = {
+                            if (picking) {
+                                onChat(AiChatAction.TogglePick(conversation.id))
+                            } else {
+                                onChat(AiChatAction.Open(conversation.id))
+                            }
+                        },
+                        onLongClick = { onChat(AiChatAction.TogglePick(conversation.id)) },
+                    )
                     .padding(start = 10.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val ink = if (checked) kb.chipActiveText else kb.chipText
+                if (picking) {
+                    Icon(
+                        if (checked) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                        contentDescription = null,
+                        tint = ink,
+                        modifier = Modifier.padding(end = 8.dp).size(18.dp),
+                    )
+                }
                 Column(Modifier.weight(1f)) {
                     Text(
                         conversation.title.ifBlank { stringResource(R.string.ime_ai_chat_untitled) },
-                        color = if (current) kb.accent else kb.chipText,
+                        color = if (current && !checked) kb.accent else ink,
                         fontSize = 13.sp,
                         lineHeight = 17.sp,
                         fontWeight = if (current) FontWeight.Medium else FontWeight.Normal,
@@ -1343,29 +1433,77 @@ private fun Sessions(
                     )
                     Text(
                         DateUtils.getRelativeTimeSpanString(conversation.updatedAt).toString(),
-                        color = kb.secondaryText,
+                        color = if (checked) ink.copy(alpha = ink.alpha * 0.7f) else kb.secondaryText,
                         fontSize = 10.sp,
                         lineHeight = 13.sp,
                         maxLines = 1,
                     )
                 }
-                val confirming = doomed == conversation.id
-                ToolPanelChip(
-                    stringResource(
-                        if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete,
-                    ),
-                    selected = confirming,
-                ) {
-                    if (confirming) {
-                        doomed = null
-                        onChat(AiChatAction.Delete(conversation.id))
-                    } else {
-                        doomed = conversation.id
+                if (!picking) {
+                    val title = conversation.title.ifBlank { stringResource(R.string.ime_ai_chat_untitled) }
+                    MessageAction(
+                        Icons.Outlined.DriveFileRenameOutline,
+                        stringResource(R.string.ime_ai_chat_rename_desc, title),
+                    ) { onChat(AiChatAction.StartRename(conversation.id)) }
+                    Spacer(Modifier.width(4.dp))
+                    val confirming = doomed == conversation.id
+                    ToolPanelChip(
+                        stringResource(
+                            if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete,
+                        ),
+                        selected = confirming,
+                    ) {
+                        if (confirming) {
+                            doomed = null
+                            onChat(AiChatAction.Delete(conversation.id))
+                        } else {
+                            doomed = conversation.id
+                        }
                     }
                 }
             }
             }
         }
+    }
+}
+
+/**
+ * A chat's name being typed (#882), in its row's place: the keyboard's own
+ * field, with the keys under the panel, and a tick to keep it and a cross to
+ * drop it. Enter keeps it too, and Back drops it.
+ */
+@Composable
+private fun RenameRow(draft: String, onChat: (AiChatAction) -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(kb.chip)
+            .border(1.5.dp, kb.accent, shape)
+            .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ClipEditText(
+            text = draft,
+            placeholder = stringResource(R.string.ime_ai_chat_rename_hint),
+            textColor = kb.chipText,
+            placeholderColor = kb.secondaryText,
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 20.dp, max = 40.dp),
+        )
+        ChatIconButton(Icons.Outlined.Close, stringResource(CommonR.string.common_cancel)) {
+            onChat(AiChatAction.CancelRename)
+        }
+        Spacer(Modifier.width(4.dp))
+        ChatIconButton(
+            Icons.Outlined.Check,
+            stringResource(R.string.ime_ai_chat_rename),
+            active = true,
+            enabled = draft.isNotBlank(),
+        ) { onChat(AiChatAction.CommitRename) }
     }
 }
 
@@ -1449,3 +1587,6 @@ private val DRAFT_PICTURE_SIZE = 48.dp
 private val MESSAGE_PICTURE_SIZE = 56.dp
 private const val COPIED_FLASH_MS = 1200L
 private const val DELETE_CONFIRM_MS = 3000L
+
+/** What the two-tap Delete is waiting on when it is the selection's, not one chat's. */
+private const val ALL_PICKED = Long.MIN_VALUE

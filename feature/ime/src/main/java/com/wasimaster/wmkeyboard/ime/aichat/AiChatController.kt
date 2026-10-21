@@ -382,6 +382,29 @@ object AiChatController {
         touchStore()
     }
 
+    /** Deletes several conversations at once (#882): the list's selection. */
+    fun deleteConversations(context: Context, ids: Collection<Long>) {
+        if (ids.isEmpty()) return
+        val store = store(context.applicationContext)
+        for (id in ids) {
+            closeSessionFor(id)
+            synchronized(memoryTails) { memoryTails.remove(id) }
+            store.delete(id)
+        }
+        store.save()
+        pruneImages(context.applicationContext, store)
+        touchStore()
+    }
+
+    /** The user's own name for a conversation (#882); false when it is gone or [title] is blank. */
+    fun renameConversation(context: Context, conversationId: Long, title: String): Boolean {
+        val store = store(context.applicationContext)
+        if (!store.rename(conversationId, title, byUser = true)) return false
+        store.save()
+        touchStore()
+        return true
+    }
+
     private fun launchGeneration(
         appContext: Context,
         settings: KeyboardSettings,

@@ -131,6 +131,12 @@ data class AiChatConversation(
     /** Last on-device model id used, when [provider] is ON_DEVICE. */
     val localModelId: String = "",
     val messages: List<AiChatMessage> = emptyList(),
+    /**
+     * The user named this chat themselves (#882), so nothing renames it
+     * behind their back: not the automatic title, not a model's own
+     * `rename_chat`, which asks first anyway. Defaulted for older files.
+     */
+    val titleByUser: Boolean = false,
 ) {
     /** Every picture sent in this conversation, in order: picture 1 first. */
     val images: List<String> get() = messages.filter { !it.failed }.flatMap { it.images }
@@ -328,6 +334,21 @@ class AiChatStore(private val storageFile: File?) {
         conversations.removeAll { it.id == id }
     }
 
+    /**
+     * Gives the conversation [title] (#882), cut to [MAX_RENAME] characters,
+     * leaving its time alone so a rename does not move it up the list.
+     * [byUser] marks a name the user typed, which an automatic title then
+     * leaves alone. False when the conversation is gone or [title] is blank.
+     */
+    @Synchronized
+    fun rename(id: Long, title: String, byUser: Boolean): Boolean {
+        val at = conversations.indexOfFirst { it.id == id }
+        val clean = title.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.take(MAX_RENAME).orEmpty()
+        if (at < 0 || clean.isEmpty()) return false
+        conversations[at] = conversations[at].copy(title = clean, titleByUser = byUser || conversations[at].titleByUser)
+        return true
+    }
+
     @Synchronized
     fun clear() {
         conversations.clear()
@@ -412,6 +433,9 @@ class AiChatStore(private val storageFile: File?) {
         const val MAX_MESSAGES = 200
         const val MAX_TEXT = 20_000
         const val MAX_TITLE = 48
+
+        /** A title the user or a model gave, which is not cut on a word but only held to a length. */
+        const val MAX_RENAME = 80
 
         /** Pictures one message may carry. */
         const val MAX_IMAGES = 4
