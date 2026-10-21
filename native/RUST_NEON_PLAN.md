@@ -1054,15 +1054,32 @@ there is 7.5 ms at 20k, so fp16 would save about 2 ms and half the
 memory.
 
 The bar was that the top hits match the way f32's do, and they do not.
-Measured on the real EmbeddingGemma 2 outputs the dot-product session
-embedded (4,200 documents, 380 queries, the 1,716 emoji vectors), fp16
-kept the same set of hits, in the same order, for 311 of 380 text queries,
-368 of 380 AI-memory queries, 351 of 380 emoji queries and 989 of 1,000
-sticker-tag queries; the top hit changed only for 1 in 1,000. f32 in a
-different summation order (the NEON kernel against the Kotlin loop) moves
-scores by about 1e-6, against fp16's 1.6e-4, and keeps the set. A ranking
-that changes for 3 to 18% of queries is a visible change, so the rows stay
-f32. Revisit with a tuning whose separation is wider than fp16's error.
+Measured on real EmbeddingGemma 2 outputs, re-embedded the way the
+dot-product session did it (`embed_corpus.py` with the pinned models
+release files, SHA-256 checked: 4,200 documents from the docs site and
+the app's English, Bengali and French strings, 380 queries) plus the
+1,716 shipped emoji vectors. Scores were summed in each implementation's
+order in float32: the Kotlin loop as the reference, the NEON `dot_f32`
+(two four-lane `fmla` accumulators, pairwise reduce), and that same NEON
+order over rows rounded to half precision. "Same hits" is
+`MeaningRank.select`'s whole answer, hits and order, under the shipped
+tunings:
+
+| Search | f32, NEON order: same hits / top hit | fp16 rows: same hits / top hit | Largest score error, f32 / fp16 |
+|---|---|---|---|
+| Text, 4,200 documents | 379 / 380, 380 / 380 | 297 / 380, 380 / 380 | 1.7e-6 / 1.6e-4 |
+| Text, a 300-item clipboard | 380 / 380, 380 / 380 | 322 / 380, 380 / 380 | 1.6e-6 / 1.2e-4 |
+| AI memory, 60 facts | 380 / 380, 380 / 380 | 367 / 380, 379 / 380 | 1.4e-6 / 1.3e-4 |
+| Emoji by meaning | 380 / 380, 380 / 380 | 357 / 380, 380 / 380 | 1.6e-6 / 9.6e-5 |
+| Sticker tags, 1,000 documents against the emoji | 1,000 / 1,000, 1,000 / 1,000 | 983 / 1,000, 997 / 1,000 | 1.7e-6 / 9.4e-5 |
+| Emoji against emoji (tags) | 500 / 500, 500 / 500 | 500 / 500, 500 / 500 | 1.8e-6 / 1.1e-4 |
+
+The f32 kernel's different summation order moves a score by under 2e-6
+and changes one answer in 2,320 searches. fp16 moves scores by about
+1e-4, enough to reorder hits the tunings keep 0.01-0.02 apart, and changes
+the answer for up to 22% of text searches, and the top hit for 4 of them.
+That is a visible change, so the rows stay f32. It would take a tuning
+whose separations sit well clear of 1e-4 to revisit this.
 
 ### The fuzzy walk (not a kernel)
 
