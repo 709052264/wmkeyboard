@@ -14,10 +14,10 @@ Typing never needs the internet. Layouts, prediction, autocorrect, gesture typin
 
 Every GitHub release has an **offline** build: the standard app with the internet permission taken out, so Android refuses every connection it tries. From 0.6.4 it is about the size of the standard build, because it leaves out the same two things the standard build downloads only when you want them:
 
-- **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 1.3 MB.
+- **Interface languages.** The app's own screens are in English. Each of the other 48 languages is one small file on the release page, `wmkeyboard-<version>-vc<code>-lang-<code>.apk`, about 2 MB.
 - **Feature libraries.** The native code behind offline voice typing, grammar and spell checking, the scanners, handwriting, the RIME and Mozc engines, on-device translation and on-device AI. Each library is one file.
 
-Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it, which made it ten times the size of the standard one.
+Typing, prediction, autocorrect, gesture typing, the clipboard and every tool that needs neither of those work straight after install. For the rest, fetch the files you want on another device and import them; nothing is pushed at you that you never use. Up to 0.6.3 the offline build carried all of it: 275 MB for `arm64-v8a`, against about 22 MB now.
 
 ### Interface languages
 

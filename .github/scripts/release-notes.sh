@@ -101,7 +101,7 @@ often a few days behind).
 
 **In your language:** the app opens in English. Go to **Settings › About › App
 language** and pick yours; it downloads in a few seconds (Android 11 or later).
-On Android 7 to 10, get the **Offline** download below instead: it has every
+On Android 7 to 10, get **Offline, all languages** below instead: it has every
 language built in.
 
 **Keyboard languages are not affected:** every layout and dictionary is in every
@@ -135,7 +135,8 @@ cat <<EOF
 
 The standard build with \`android.permission.INTERNET\` taken out of the
 manifest, so Android refuses every connection the app tries to make. It is as
-small as the standard build because it leaves out the same things: the
+small as the standard build (about 22 MB for arm64-v8a, where 0.6.3's offline
+build was 275 MB) because it leaves out the same things: the
 interface is English, and the libraries behind features like offline voice
 typing, grammar checking, the scanner, handwriting, on-device translation and
 on-device AI are not built in. It cannot download them, so you fetch the ones
@@ -147,7 +148,8 @@ typing and the clipboard need nothing. The app cannot check for its own updates,
 so come back here for new versions
 ([how importing works](https://wmkeyboard.pages.dev/privacy/offline/)).
 
-**All languages** is the same build with all 48 interface languages built in.
+**All languages** is the same build with all 48 interface languages built in
+(about 100 MB, universal only).
 Take it on Android 7 to 10, which cannot load a language pack, or to skip
 importing one. Both are signed with the same key as the standard build, so any
 of them installs over another without losing a setting.
