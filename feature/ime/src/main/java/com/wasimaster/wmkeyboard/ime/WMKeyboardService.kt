@@ -23361,10 +23361,12 @@ open class WMKeyboardService : InputMethodService() {
         // still the one open, or still the one the pause just typed.
         duetSplit?.takeIf { it.chip == suggestion }?.let { split ->
             duetSplit = null
-            val live = if (split.committed) {
-                composing.isEmpty() && lastGestureWord != null && stripReplacesGestureWord
-            } else {
-                duetWord.active
+            val live = when {
+                split.committed -> composing.isEmpty() && lastGestureWord != null && stripReplacesGestureWord
+                // The swipe Backspace took off a word begun with taps (#870):
+                // what is left is the letters, no longer gestures.
+                split.head == null && !duetWord.active -> composing.isNotEmpty()
+                else -> duetWord.active
             }
             if (live) {
                 splitOffLastSwipe(ic, split)
