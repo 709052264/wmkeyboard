@@ -319,6 +319,25 @@ does not read build logic, so it flags strings this build never resolves:
   `if (playStoreChannel)` / `if (gmsChannel)` blocks, which are false for this
   recipe, so they are never on the compile classpath. The blocks are left empty
   by the `sed`, which is valid Kotlin.
+* every ML Kit and Google services dependency (from 0.6.3). Up to 0.6.2 they
+  were `fullImplementation(...)`, which the scanner skips for a recipe that
+  builds `lite`. With the flavour gone they are plain `implementation(...)`
+  inside `if (googleSdks)`, `if (playStoreChannel)` and similar blocks, all
+  false under `wmkb.enableFdroid=true`, and the scanner flags each one. One
+  `sed` deletes every line naming `libs.mlkit.` or a `com.google.android.gms:`
+  coordinate in `:feature:ime`, `:core:intelligence` and the three Play-only
+  modules (`:feature:translate`, `:feature:handwriting`, `:feature:googlehome`,
+  which this build does not include but the scanner reads anyway). The other
+  deletes `libs.mlkit.dynamic.feature.support` in `app/build.gradle.kts`,
+  which carries an `exclude` block, from its line to the block's closing
+  brace, the first line that is eight spaces and a `}`. Comments and the
+  Google Home folder path still mention both names; the scanner reads only
+  dependency declarations, so they pass.
+
+The same release replaced `scandelete`: the `src/full` paths went with the
+flavour, and fdroidserver fails on a listed path that does not exist, so the
+list is now `feature/llm/src/main/jniLibs`, `native/whistle-jni/prebuilt` and
+everything `python3 native/gates.py scandelete` prints.
 
 Deleting the lines rather than listing the files in `scanignore` is deliberate:
 `scanignore` asks a packager to take the build file on trust, and this way the
