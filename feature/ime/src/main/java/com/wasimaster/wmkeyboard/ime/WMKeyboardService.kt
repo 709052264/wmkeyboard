@@ -7355,13 +7355,25 @@ open class WMKeyboardService : InputMethodService() {
         // enabled a FORCE_ASCII field used to open on the built-in English one,
         // which a user who removed English then met in every field that set
         // the flag (#783).
+        //
+        // The active mode's layout goes on in the same place (#885): applyMode
+        // only rewrites the settings' activeLayoutId, and the grid is resolved
+        // from the base, so Passwords → Layout → QWERTY never left Bangla. As a
+        // field override it lasts for this field, a globe or spacebar switch
+        // still takes the user off it, and the next field without the mode
+        // opens on their own layout again. FORCE_ASCII still outranks it when
+        // the mode names a layout the field cannot take.
         val current = base ?: _uiState.value.settings
         val baseSpec = resolveLayout(current.customLayouts, baseLayoutId(current))
+        val modeSpec = activeMode?.layoutId
+            ?.takeIf { it in current.enabledLayoutIds }
+            ?.let { id -> resolveLayout(current.customLayouts, id).takeIf { it.id == id } }
         fieldLayoutOverride = when {
-            info.forcesAscii() && baseSpec.script().id != ScriptId.LATIN ->
+            info.forcesAscii() && (modeSpec ?: baseSpec).script().id != ScriptId.LATIN ->
                 current.enabledLayoutIds.firstOrNull {
                     resolveLayout(current.customLayouts, it).script().id == ScriptId.LATIN
                 }
+            modeSpec != null -> modeSpec.id.takeIf { it != baseSpec.id }
             // hintLocales names a language, not a layout, so it picks the first
             // enabled layout that types that language.
             else -> info.hintedLanguage(current.enabledLanguages)
