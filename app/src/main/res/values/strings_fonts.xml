@@ -128,8 +128,8 @@
     <string name="fonts_tool_gif_desc">Search for GIFs (KLIPY, GIPHY) and send them from the keyboard</string>
     <string name="fonts_tool_sticker_desc">Search for stickers. They are transparent and ready for a chat</string>
     <!-- Brave is the name of the search service. -->
-    <string name="fonts_tool_web_search_desc">Search the web with Brave and insert the link of a result</string>
-    <string name="fonts_tool_image_search_desc">Search for images from the keyboard. Press an image to send it</string>
+    <string name="fonts_tool_web_search_desc">Search the web and images, and insert a link or a picture</string>
+    <string name="fonts_tool_image_search_desc">Opens web search on its Images tab</string>
     <string name="fonts_tool_ocr_desc">Point the camera at printed text and type it. You select only the words you need</string>
     <string name="fonts_tool_qr_scan_desc">Scan a QR code or a barcode and insert its text</string>
     <string name="fonts_tool_doc_scan_desc">Scan a document and send it as an image</string>

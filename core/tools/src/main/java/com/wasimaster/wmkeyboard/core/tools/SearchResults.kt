@@ -17,6 +17,19 @@ data class WebResult(
 data class WebSearchPage(
     val results: List<WebResult>,
     val answer: String? = null,
+    /** Pictures for the query, shown under the answer (#879); Tavily's, which come free with it. */
+    val images: List<ImageResult> = emptyList(),
+)
+
+/**
+ * A further page of a search already on screen: the panel's More results
+ * (#879). [page] is 1 for the first page after the one shown. [excludeDomains]
+ * are the sites already shown, for Tavily, which has no paging of its own and
+ * instead takes sites to leave out; Brave and SearXNG page by number.
+ */
+data class SearchMore(
+    val page: Int,
+    val excludeDomains: List<String> = emptyList(),
 )
 
 /** One image hit from the image search tool. */

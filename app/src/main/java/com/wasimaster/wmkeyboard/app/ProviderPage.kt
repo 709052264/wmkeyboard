@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import com.wasimaster.wmkeyboard.core.settings.TavilyDepth
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -360,6 +361,21 @@ internal fun ProviderOwnSettings(
     }
 }
 
+/** A [TavilyDepth]'s name, on its settings row and in the list's summary. */
+internal fun tavilyDepthLabel(depth: TavilyDepth): Int = when (depth) {
+    TavilyDepth.ULTRA_FAST -> R.string.tooldetail_tavily_depth_ultra_fast
+    TavilyDepth.FAST -> R.string.tooldetail_tavily_depth_fast
+    TavilyDepth.BASIC -> R.string.tooldetail_tavily_depth_basic
+    TavilyDepth.ADVANCED -> R.string.tooldetail_tavily_depth_advanced
+}
+
+private fun tavilyDepthDesc(depth: TavilyDepth): Int = when (depth) {
+    TavilyDepth.ULTRA_FAST -> R.string.tooldetail_tavily_depth_ultra_fast_desc
+    TavilyDepth.FAST -> R.string.tooldetail_tavily_depth_fast_desc
+    TavilyDepth.BASIC -> R.string.tooldetail_tavily_depth_basic_desc
+    TavilyDepth.ADVANCED -> R.string.tooldetail_tavily_depth_advanced_desc
+}
+
 /** Tavily's search depth. */
 @Composable
 private fun TavilySettings(repository: SettingsRepository, settings: LiveSettings) {
@@ -369,13 +385,15 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
         info = stringResource(R.string.tooldetail_tavily_info),
     ) {
         item {
-            ToggleSetting(
+            ChoiceSetting(
                 R.string.tooldetail_tavily_advanced_title,
-                stringResource(R.string.tooldetail_tavily_advanced_subtitle),
-                settings.watch { it.webSearch.tavilyAdvanced },
+                subtitle = stringResource(R.string.tooldetail_tavily_advanced_subtitle),
+                options = TavilyDepth.entries.map { it to stringResource(tavilyDepthLabel(it)) },
+                selected = settings.watch { it.webSearch.tavilyDepth },
                 info = stringResource(R.string.tooldetail_tavily_advanced_info),
-                default = SettingsDefaults.webSearch.tavilyAdvanced,
-            ) { scope.launch { repository.setSearchTavilyAdvanced(it) } }
+                default = SettingsDefaults.webSearch.tavilyDepth,
+                detail = { depth -> ChoiceDetail(stringResource(tavilyDepthDesc(depth))) },
+            ) { scope.launch { repository.setSearchTavilyDepth(it) } }
         }
     }
 }

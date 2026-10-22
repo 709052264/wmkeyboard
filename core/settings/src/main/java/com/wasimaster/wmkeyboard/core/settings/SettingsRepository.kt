@@ -3063,6 +3063,25 @@ val MediaPerRowRange = 1..6
 val MediaGridSpacingRange = 0..12
 
 /**
+ * What a tap on a search result does (#879). [MENU] asks: open, insert,
+ * copy, and for a picture send or save. [INSERT] puts the link in the field,
+ * or a picture itself; [OPEN] opens the page in the browser.
+ */
+enum class SearchResultTap { MENU, INSERT, OPEN }
+
+/**
+ * Tavily's `search_depth` (#879). [apiValue] is the word its API takes.
+ * Advanced costs two credits a search and the rest one; the two fast depths
+ * take no SafeSearch, so it is not sent with them.
+ */
+enum class TavilyDepth(val apiValue: String) {
+    ULTRA_FAST("ultra-fast"),
+    FAST("fast"),
+    BASIC("basic"),
+    ADVANCED("advanced"),
+}
+
+/**
  * The web, image and encyclopedia search tools.
  *
  * Grouped because `KeyboardSettings` is at the JVM's 255-argument ceiling for
@@ -3086,10 +3105,10 @@ data class WebSearchSettings(
     val resultCount: Int = 8,
     /** Show the short answer the backend writes for a web search above its results (#470). */
     val showAnswer: Boolean = true,
-    /** A tapped web result opens in the browser, and the side button inserts its link instead (#470). */
-    val openInBrowser: Boolean = false,
-    /** Tavily's advanced search: better results for two credits a search instead of one (#470). */
-    val tavilyAdvanced: Boolean = false,
+    /** What a tap on a search result does (#470, #879); a long press always opens the menu. */
+    val resultTap: SearchResultTap = SearchResultTap.MENU,
+    /** How deep Tavily searches (#470, #879): Basic unless the user picks another. */
+    val tavilyDepth: TavilyDepth = TavilyDepth.BASIC,
     /** Wikipedia subdomain the encyclopedia tool reads (en, bn, de …). */
     val wikiLanguage: String = "en",
     /** Insert Wikipedia links as `[Title](url)` instead of the bare URL. */
@@ -10872,8 +10891,12 @@ class SettingsRepository(private val context: Context) {
         private val SEARCH_SAFE = booleanPreferencesKey("search_safe")
         private val SEARCH_RESULT_COUNT = intPreferencesKey("search_result_count")
         private val SEARCH_SHOW_ANSWER = booleanPreferencesKey("search_show_answer")
+        /** The old Open results in the browser, read only while [SEARCH_RESULT_TAP] is unset. */
         private val SEARCH_OPEN_IN_BROWSER = booleanPreferencesKey("search_open_in_browser")
+        private val SEARCH_RESULT_TAP = stringPreferencesKey("search_result_tap")
+        /** The old on/off for Advanced, read only while [SEARCH_TAVILY_DEPTH] is unset. */
         private val SEARCH_TAVILY_ADVANCED = booleanPreferencesKey("search_tavily_advanced")
+        private val SEARCH_TAVILY_DEPTH = stringPreferencesKey("search_tavily_depth")
         private val WIKI_LANGUAGE = stringPreferencesKey("wiki_language")
         private val WIKI_LINKS_MARKDOWN = booleanPreferencesKey("wiki_links_markdown")
         // Tab-separated (symbols are single graphemes; some are commas).
@@ -13197,8 +13220,14 @@ class SettingsRepository(private val context: Context) {
             safe = p[SEARCH_SAFE] ?: defaults.webSearch.safe,
             resultCount = p[SEARCH_RESULT_COUNT] ?: defaults.webSearch.resultCount,
             showAnswer = p[SEARCH_SHOW_ANSWER] ?: defaults.webSearch.showAnswer,
-            openInBrowser = p[SEARCH_OPEN_IN_BROWSER] ?: defaults.webSearch.openInBrowser,
-            tavilyAdvanced = p[SEARCH_TAVILY_ADVANCED] ?: defaults.webSearch.tavilyAdvanced,
+            // Open results in the browser, the switch this replaced, keeps
+            // its pick; left at its default, the menu is the new default.
+            resultTap = SearchResultTap.entries.firstOrNull { it.name == p[SEARCH_RESULT_TAP] }
+                ?: SearchResultTap.OPEN.takeIf { p[SEARCH_OPEN_IN_BROWSER] == true }
+                ?: defaults.webSearch.resultTap,
+            tavilyDepth = TavilyDepth.entries.firstOrNull { it.name == p[SEARCH_TAVILY_DEPTH] }
+                ?: TavilyDepth.ADVANCED.takeIf { p[SEARCH_TAVILY_ADVANCED] == true }
+                ?: defaults.webSearch.tavilyDepth,
             wikiLanguage = p[WIKI_LANGUAGE] ?: defaults.webSearch.wikiLanguage,
             wikiLinksMarkdown = p[WIKI_LINKS_MARKDOWN]
                 ?: defaults.webSearch.wikiLinksMarkdown,
@@ -20316,11 +20345,11 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSearchShowAnswer(value: Boolean) =
         editPrefs { it[SEARCH_SHOW_ANSWER] = value }
 
-    suspend fun setSearchOpenInBrowser(value: Boolean) =
-        editPrefs { it[SEARCH_OPEN_IN_BROWSER] = value }
+    suspend fun setSearchResultTap(value: SearchResultTap) =
+        editPrefs { it[SEARCH_RESULT_TAP] = value.name }
 
-    suspend fun setSearchTavilyAdvanced(value: Boolean) =
-        editPrefs { it[SEARCH_TAVILY_ADVANCED] = value }
+    suspend fun setSearchTavilyDepth(value: TavilyDepth) =
+        editPrefs { it[SEARCH_TAVILY_DEPTH] = value.name }
 
     suspend fun setWikiLanguage(value: String) =
         editPrefs { it[WIKI_LANGUAGE] = value.trim().lowercase() }

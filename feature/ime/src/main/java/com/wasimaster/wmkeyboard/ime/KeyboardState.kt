@@ -1465,10 +1465,24 @@ sealed interface WebSearchUi {
         val query: String,
         /** The backend's own short answer, shown above the results (#470). */
         val answer: String? = null,
+        /** Pictures for the query under the answer on the All tab (#879). */
+        val images: List<com.wasimaster.wmkeyboard.core.tools.ImageResult> = emptyList(),
+        /** Further pages loaded by More results (#879), 0 for none. */
+        val page: Int = 0,
+        /** A further page is on its way. */
+        val loadingMore: Boolean = false,
+        /** The last further page brought nothing new: More results goes. */
+        val noMore: Boolean = false,
     ) : WebSearchUi
 }
 
-/** Image search panel state. */
+/**
+ * The search panel's tabs (#879). Image search used to be a panel of its own;
+ * its tool, key and shortcut now open the [IMAGES] tab of web search.
+ */
+enum class SearchTab { ALL, IMAGES }
+
+/** Image search state: the search panel's Images tab. */
 sealed interface ImageSearchUi {
     data object NeedKey : ImageSearchUi
     data object Idle : ImageSearchUi
@@ -1479,6 +1493,10 @@ sealed interface ImageSearchUi {
     data class Ready(
         val results: List<com.wasimaster.wmkeyboard.core.tools.ImageResult>,
         val query: String,
+        /** As on [WebSearchUi.Ready]: More results' pages (#879). */
+        val page: Int = 0,
+        val loadingMore: Boolean = false,
+        val noMore: Boolean = false,
     ) : ImageSearchUi
 }
 
@@ -3878,7 +3896,12 @@ data class KeyboardUiState(
     val webSearch: WebSearchUi = WebSearchUi.Idle,
     val imageSearch: ImageSearchUi = ImageSearchUi.Idle,
     /**
-     * The camera was opened from the image search panel's camera button
+     * Which of the search panel's tabs is up (#879): web results or images.
+     * The two searches keep their own results, so switching back costs nothing.
+     */
+    val searchTab: SearchTab = SearchTab.ALL,
+    /**
+     * The camera was opened from the search panel's camera button
      * (#349): its confirm step offers Search in place of Send, and its back
      * button returns to image search. Set by [WMKeyboardService.onPanelChange]
      * on every panel change, so it only ever means anything while the camera

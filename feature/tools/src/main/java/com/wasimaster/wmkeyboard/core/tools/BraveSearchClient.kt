@@ -23,6 +23,9 @@ object BraveSearchClient {
      *
      * [source] is what the network log files the request under. It is the
      * search tool unless the AI tool ran the search itself (#470).
+     *
+     * [page] counts pages of [count] from 0, for More results (#879). Brave
+     * gives ten: past [MAX_WEB_PAGE] this returns nothing rather than ask.
      */
     fun webSearch(
         query: String,
@@ -30,25 +33,42 @@ object BraveSearchClient {
         count: Int,
         safe: Boolean,
         source: NetSource = NetSource.WEB_SEARCH,
+        page: Int = 0,
     ): List<WebResult> {
+        if (page > MAX_WEB_PAGE) return emptyList()
         val url = ServiceEndpoints.base(ServiceEndpoint.BRAVE_SEARCH) + "/res/v1/web/search" +
             "?q=${ToolHttp.encode(query.trim())}" +
             "&count=${count.coerceIn(1, 20)}" +
+            (if (page > 0) "&offset=$page" else "") +
             "&safesearch=${if (safe) "moderate" else "off"}"
         return parseWeb(ToolHttp.get(url, headers = headers(apiKey), source = source, route = "/res/v1/web/search"))
     }
 
-    /** Blocking; call on an IO dispatcher. Throws on failure. */
-    fun imageSearch(query: String, apiKey: String, count: Int, safe: Boolean): List<ImageResult> {
+    /**
+     * Blocking; call on an IO dispatcher. Throws on failure.
+     *
+     * The image API has no offset, so a further [page] asks for that many
+     * more pictures in one list, up to Brave's 200, and keeps only the new tail.
+     */
+    fun imageSearch(query: String, apiKey: String, count: Int, safe: Boolean, page: Int = 0): List<ImageResult> {
+        val each = count.coerceIn(1, 20)
+        val skip = each * page
+        if (skip >= MAX_IMAGES) return emptyList()
         // Image search only knows strict/off — no "moderate".
         val url = ServiceEndpoints.base(ServiceEndpoint.BRAVE_SEARCH) + "/res/v1/images/search" +
             "?q=${ToolHttp.encode(query.trim())}" +
-            "&count=${count.coerceIn(1, 20)}" +
+            "&count=${(skip + each).coerceAtMost(MAX_IMAGES)}" +
             "&safesearch=${if (safe) "strict" else "off"}"
         return parseImages(
             ToolHttp.get(url, headers = headers(apiKey), source = NetSource.IMAGE_SEARCH, route = "/res/v1/images/search"),
-        )
+        ).drop(skip)
     }
+
+    /** Brave's last web page: `offset` takes 0 to 9. */
+    private const val MAX_WEB_PAGE = 9
+
+    /** The most pictures Brave lists for one image search. */
+    private const val MAX_IMAGES = 200
 
     private fun headers(apiKey: String) = mapOf(
         "X-Subscription-Token" to apiKey,

@@ -270,7 +270,7 @@
     <string name="ime_gif_item_desc">GIF</string>
 
     <!-- Web search panel. -->
-    <string name="ime_web_search_idle">Type a search and press enter.\nPress a result to insert its link.</string>
+    <string name="ime_web_search_idle">Type a search and press enter.\nPress a result to open it, insert its link or copy it.</string>
     <string name="ime_web_search_need_key_body">Web search needs an API key from Brave Search. Add a key in the settings for this tool.</string>
     <!-- %1$s is what the user typed in the search box. -->
     <string name="ime_web_search_empty">No results for “<xliff:g id="query" example="weather">%1$s</xliff:g>”</string>
@@ -278,8 +278,19 @@
     <string name="ime_web_search_insert_desc">Insert the link</string>
     <string name="ime_web_search_answer_label">Answer from the search engine</string>
 
+    <!-- The search panel's tabs: web results and images. -->
+    <string name="ime_search_tab_all">All</string>
+    <string name="ime_search_tab_images">Images</string>
+    <!-- At the end of the search results: fetches the next page of the same search. -->
+    <string name="ime_search_more">More results</string>
+    <string name="ime_search_no_more">No more results</string>
+    <!-- A search result's menu, opened by a tap or a long press on it. -->
+    <string name="ime_search_menu_copy_link">Copy the link</string>
+    <string name="ime_search_menu_insert_image">Insert the picture</string>
+    <string name="ime_search_menu_save_image">Save to the gallery</string>
+
     <!-- Image search panel. -->
-    <string name="ime_image_search_idle">Type a search and press enter.\nPress an image to insert it. Press and hold to insert its link.</string>
+    <string name="ime_image_search_idle">Type a search and press enter.\nPress an image to insert it, save it or copy its link.</string>
     <string name="ime_image_search_need_key_body">Image search needs an API key from Brave Search. Add a key in the settings for this tool.</string>
     <!-- %1$s is what the user typed in the search box. -->
     <string name="ime_image_search_empty">No images for “<xliff:g id="query" example="weather">%1$s</xliff:g>”</string>

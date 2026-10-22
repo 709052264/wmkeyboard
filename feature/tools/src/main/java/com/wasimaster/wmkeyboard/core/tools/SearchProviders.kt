@@ -37,19 +37,25 @@ object SearchProviders {
         answer: Boolean,
         source: NetSource = NetSource.WEB_SEARCH,
         pick: String? = null,
+        /** A further page of the same search (#879); null, the first. */
+        more: SearchMore? = null,
     ): WebSearchPage = ask(settings, pick) { row, backend ->
+        val page = more?.page ?: 0
         when (backend) {
-            SearchBackend.SEARXNG -> SearxClient.webSearch(query, row.url, count, safe, source = source)
+            SearchBackend.SEARXNG -> SearxClient.webSearch(query, row.url, count, safe, source = source, page = page)
             SearchBackend.TAVILY -> TavilySearchClient.webSearch(
                 query,
                 row.apiKey,
                 count,
                 safe,
-                advanced = settings.webSearch.tavilyAdvanced,
-                answer = answer,
+                depth = settings.webSearch.tavilyDepth.apiValue,
+                // The answer came with the first page; a second would only repeat it.
+                answer = answer && more == null,
                 source = source,
+                excludeDomains = more?.excludeDomains.orEmpty(),
             )
-            SearchBackend.BRAVE -> WebSearchPage(BraveSearchClient.webSearch(query, row.apiKey, count, safe, source = source))
+            SearchBackend.BRAVE ->
+                WebSearchPage(BraveSearchClient.webSearch(query, row.apiKey, count, safe, source = source, page = page))
         }
     }
 
@@ -59,12 +65,21 @@ object SearchProviders {
         count: Int,
         safe: Boolean,
         pick: String? = null,
+        more: SearchMore? = null,
     ): List<ImageResult> =
         ask(settings, pick) { row, backend ->
+            val page = more?.page ?: 0
             when (backend) {
-                SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe)
-                SearchBackend.TAVILY -> TavilySearchClient.imageSearch(query, row.apiKey, count, safe)
-                SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe)
+                SearchBackend.SEARXNG -> SearxClient.imageSearch(query, row.url, count, safe, page = page)
+                SearchBackend.TAVILY -> TavilySearchClient.imageSearch(
+                    query,
+                    row.apiKey,
+                    count,
+                    safe,
+                    settings.webSearch.tavilyDepth.apiValue,
+                    excludeDomains = more?.excludeDomains.orEmpty(),
+                )
+                SearchBackend.BRAVE -> BraveSearchClient.imageSearch(query, row.apiKey, count, safe, page = page)
             }
         }
 

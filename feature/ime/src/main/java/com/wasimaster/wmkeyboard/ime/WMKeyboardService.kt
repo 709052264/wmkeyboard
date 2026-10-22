@@ -514,6 +514,8 @@ import com.wasimaster.wmkeyboard.core.tools.DeepLClient
 import com.wasimaster.wmkeyboard.core.tools.OnlineTranslate
 import com.wasimaster.wmkeyboard.core.tools.TranslateProviders
 import com.wasimaster.wmkeyboard.core.tools.SearchProviders
+import com.wasimaster.wmkeyboard.core.tools.SearchMore
+import com.wasimaster.wmkeyboard.core.tools.TavilySearchClient
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.deeplLive
 import com.wasimaster.wmkeyboard.core.tools.GiphyClient
@@ -3201,6 +3203,18 @@ open class WMKeyboardService : InputMethodService() {
     /** The in-flight fetch of an animated emoji preview; one at a time. */
     private var animatedEmojiJob: Job? = null
     private var webSearchJob: Job? = null
+
+    /** The search panel's own actions (#879); see [com.wasimaster.wmkeyboard.ime.ui.SearchActions]. */
+    private val searchActions by lazy {
+        com.wasimaster.wmkeyboard.ime.ui.SearchActions(
+            onTab = ::onSearchTab,
+            onMore = ::onSearchMore,
+            onCopy = ::onSearchCopy,
+            onOpen = ::openSearchLink,
+            onSaveImage = ::onSearchImageSave,
+            onInsertText = ::onSearchInsertText,
+        )
+    }
     private var imageSearchJob: Job? = null
 
     // ---- media control state ----
@@ -5635,6 +5649,7 @@ open class WMKeyboardService : InputMethodService() {
                 LocalHandwritingFullScreen provides hwFullScreenControls,
                 LocalWindowFrost provides windowFrost,
                 com.wasimaster.wmkeyboard.ime.ui.LocalClipChipDelete provides ::onClipChipDelete,
+                com.wasimaster.wmkeyboard.ime.ui.LocalSearchActions provides searchActions,
             ) {
                 ServiceKeyboardContent()
             }
@@ -8866,10 +8881,10 @@ open class WMKeyboardService : InputMethodService() {
                 .takeIf { (state.gif as? MediaUi.Metered)?.canAllow == true }
             PanelMode.STICKER -> MeteredFeature.MEDIA_SEARCH
                 .takeIf { (state.sticker as? MediaUi.Metered)?.canAllow == true }
-            PanelMode.WEB_SEARCH -> MeteredFeature.WEB_SEARCH
-                .takeIf { (state.webSearch as? WebSearchUi.Metered)?.canAllow == true }
-            PanelMode.IMAGE_SEARCH -> MeteredFeature.WEB_SEARCH
-                .takeIf { (state.imageSearch as? ImageSearchUi.Metered)?.canAllow == true }
+            PanelMode.WEB_SEARCH -> MeteredFeature.WEB_SEARCH.takeIf {
+                (state.webSearch as? WebSearchUi.Metered)?.canAllow == true ||
+                    (state.imageSearch as? ImageSearchUi.Metered)?.canAllow == true
+            }
             else -> null
         } ?: return
         grantMetered(feature)
@@ -27433,8 +27448,8 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.TRANSLATE -> onPanelChange(PanelMode.TRANSLATE)
             ToolbarTool.GIF -> onPanelChange(PanelMode.GIF)
             ToolbarTool.STICKER -> onPanelChange(PanelMode.STICKER)
-            ToolbarTool.WEB_SEARCH -> onPanelChange(PanelMode.WEB_SEARCH)
-            ToolbarTool.IMAGE_SEARCH -> onPanelChange(PanelMode.IMAGE_SEARCH)
+            ToolbarTool.WEB_SEARCH -> openSearchTab(SearchTab.ALL)
+            ToolbarTool.IMAGE_SEARCH -> openSearchTab(SearchTab.IMAGES)
             ToolbarTool.OCR -> onPanelChange(PanelMode.OCR)
             ToolbarTool.QR_SCAN -> onPanelChange(PanelMode.QR_SCAN)
             // Not a panel: the scanner is a full-screen Google activity.
@@ -27524,6 +27539,12 @@ open class WMKeyboardService : InputMethodService() {
      * press-time feedback of their own, so they keep it.
      */
     fun onPanelChange(panel: PanelMode, haptic: Boolean = true) {
+        // Image search is web search's Images tab now (#879). Whatever still
+        // asks for its panel, a key, a macro or a docs shot, lands there.
+        if (panel == PanelMode.IMAGE_SEARCH) {
+            openSearchTab(SearchTab.IMAGES, haptic)
+            return
+        }
         if (panel == PanelMode.CLIPBOARD && !isClipboardAccessible()) return
         // Voice typing switched off (#578): nothing opens the panel. One
         // already open still closes, through the toggle below.
@@ -27671,18 +27692,16 @@ open class WMKeyboardService : InputMethodService() {
                         (it.toolPrefill as? ToolPrefill.Gif)?.query ?: restored.query
                     PanelMode.WIKIPEDIA ->
                         (it.toolPrefill as? ToolPrefill.Lookup)?.term ?: restored.query
-                    PanelMode.WEB_SEARCH, PanelMode.IMAGE_SEARCH ->
-                        keptSearchQuery(it, next) ?: restored.query
+                    PanelMode.WEB_SEARCH -> keptSearchQuery(it) ?: restored.query
                     else -> restored.query
                 },
-                // Web/image search and translate open straight into their
-                // search box (there is nothing to show yet), unless the last
-                // search's results are still there to read (#347); gif/sticker
-                // open on their previous search, or trending. Wikipedia
-                // keeps a previous article/results if it has one.
+                // Web search and translate open straight into their search box
+                // (there is nothing to show yet), unless the last search's
+                // results are still there to read (#347); gif/sticker open on
+                // their previous search, or trending. Wikipedia keeps a
+                // previous article/results if it has one.
                 mediaSearchActive = next == PanelMode.TRANSLATE || next == PanelMode.QR_GEN ||
-                    ((next == PanelMode.WEB_SEARCH || next == PanelMode.IMAGE_SEARCH) &&
-                        keptSearchQuery(it, next) == null) ||
+                    (next == PanelMode.WEB_SEARCH && keptSearchQuery(it) == null) ||
                     (next == PanelMode.WIKIPEDIA && it.wiki !is WikiUi.Article && it.wiki !is WikiUi.SearchResults),
                 mediaDownloadingId = null,
                 mediaDownloadProgress = null,
@@ -27722,9 +27741,9 @@ open class WMKeyboardService : InputMethodService() {
                 // The drill-down never outlives the panel: reopening the tool
                 // lands on the grid, not on whatever app was open last time.
                 launcherDetail = if (next == PanelMode.APP_LAUNCHER) it.launcherDetail else null,
-                // Only the image search panel's camera button opens the
-                // camera for searching (#349); every other way in is for sending.
-                cameraSearchOnly = next == PanelMode.CAMERA && it.panel == PanelMode.IMAGE_SEARCH,
+                // Only the search panel's camera button opens the camera for
+                // searching (#349); every other way in is for sending.
+                cameraSearchOnly = next == PanelMode.CAMERA && it.panel == PanelMode.WEB_SEARCH,
                 // Only a clip's Extract text sets this, after the change (#371).
                 ocrImage = null,
                 // Only a clip's Translate sets this, after the change (#807).
@@ -27819,10 +27838,6 @@ open class WMKeyboardService : InputMethodService() {
                         it.webSearch is WebSearchUi.Ready -> it.webSearch
                         else -> WebSearchUi.Idle
                     },
-                )
-            }
-            PanelMode.IMAGE_SEARCH -> _uiState.update {
-                it.copy(
                     imageSearch = when {
                         !hasSearchKey() -> ImageSearchUi.NeedKey
                         it.imageSearch is ImageSearchUi.Ready -> it.imageSearch
@@ -37200,17 +37215,170 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The query behind the web or image search results [panel] would reopen
-     * on, or null when there are none to keep. Results live in memory only,
-     * until a new search or the clear button replaces them (#347).
+     * The query behind the search results the panel would reopen on, or null
+     * when there are none to keep: the open tab's first, else the other's.
+     * Results live in memory only, until a new search or the clear button
+     * replaces them (#347).
      */
-    private fun keptSearchQuery(state: KeyboardUiState, panel: PanelMode): String? {
+    private fun keptSearchQuery(state: KeyboardUiState): String? {
         if (!ToolApiKeys.hasSearchProvider(state.settings)) return null
-        return when (panel) {
-            PanelMode.WEB_SEARCH -> (state.webSearch as? WebSearchUi.Ready)?.query
-            PanelMode.IMAGE_SEARCH -> (state.imageSearch as? ImageSearchUi.Ready)?.query
-            else -> null
+        val web = (state.webSearch as? WebSearchUi.Ready)?.query
+        val images = (state.imageSearch as? ImageSearchUi.Ready)?.query
+        return if (state.searchTab == SearchTab.IMAGES) images ?: web else web ?: images
+    }
+
+    /**
+     * The web and image search tools (#879): one panel, opened on [tab]. While
+     * the panel is up on that tab this closes it, as any tool's second press
+     * does; on the other tab it switches over.
+     */
+    private fun openSearchTab(tab: SearchTab, haptic: Boolean = true) {
+        val state = _uiState.value
+        if (state.panel == PanelMode.WEB_SEARCH && state.searchTab != tab) {
+            onSearchTab(tab)
+            return
         }
+        if (state.panel != PanelMode.WEB_SEARCH) _uiState.update { it.copy(searchTab = tab) }
+        onPanelChange(PanelMode.WEB_SEARCH, haptic)
+    }
+
+    /**
+     * A tab of the search panel tapped (#879). The query already searched is
+     * searched on the new tab too, unless that tab holds its results already
+     * or the box is still being typed into.
+     */
+    fun onSearchTab(tab: SearchTab) {
+        val state = _uiState.value
+        if (state.searchTab == tab) return
+        vibrate()
+        _uiState.update { it.copy(searchTab = tab, panelFocus = null) }
+        val query = state.mediaQuery.trim()
+        if (query.isEmpty() || state.mediaSearchActive) return
+        val (shown, loading) = when (tab) {
+            SearchTab.ALL -> (state.webSearch as? WebSearchUi.Ready)?.query to (state.webSearch == WebSearchUi.Loading)
+            SearchTab.IMAGES -> (state.imageSearch as? ImageSearchUi.Ready)?.query to (state.imageSearch == ImageSearchUi.Loading)
+        }
+        if (shown != query && !loading) runSearch(tab, query)
+    }
+
+    /**
+     * More results at the end of the open tab (#879): the same search again,
+     * for its next page, added under what is shown. Pressed again, it fetches
+     * the page after; when one brings nothing new the button goes. A failure
+     * keeps what is shown and says why in a toast.
+     */
+    fun onSearchMore() {
+        val state = _uiState.value
+        if (state.panel != PanelMode.WEB_SEARCH) return
+        if (dataSaverStatus.decide(MeteredFeature.WEB_SEARCH) != MeteredDecision.ALLOWED) {
+            toast(R.string.ime_service_search_more_metered)
+            return
+        }
+        vibrate()
+        when (state.searchTab) {
+            SearchTab.ALL -> loadMoreWeb(state.webSearch as? WebSearchUi.Ready ?: return)
+            SearchTab.IMAGES -> loadMoreImages(state.imageSearch as? ImageSearchUi.Ready ?: return)
+        }
+    }
+
+    private fun loadMoreWeb(shown: WebSearchUi.Ready) {
+        if (shown.loadingMore || shown.noMore) return
+        val settings = _uiState.value.settings
+        val more = SearchMore(shown.page + 1, shown.results.map { searchDomain(it.url) })
+        _uiState.update { it.copy(webSearch = shown.copy(loadingMore = true)) }
+        webSearchJob = serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    SearchProviders.web(
+                        settings,
+                        shown.query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        answer = false,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                        more = more,
+                    )
+                }
+            }
+            val now = _uiState.value.webSearch as? WebSearchUi.Ready
+            // A new search or a cleared bar while this was out: it is no longer wanted.
+            if (now == null || now.query != shown.query) return@launch
+            result.onFailure { toast(requestErrorText(it, R.string.ime_service_search_error)) }
+            val seen = now.results.mapTo(HashSet()) { it.url }
+            val added = result.getOrNull()?.results.orEmpty().filter { seen.add(it.url) }
+            _uiState.update {
+                it.copy(
+                    webSearch = now.copy(
+                        results = now.results + added,
+                        page = if (result.isSuccess) more.page else now.page,
+                        loadingMore = false,
+                        noMore = result.isSuccess && added.isEmpty(),
+                    ),
+                )
+            }
+        }
+    }
+
+    private fun loadMoreImages(shown: ImageSearchUi.Ready) {
+        if (shown.loadingMore || shown.noMore) return
+        val settings = _uiState.value.settings
+        val more = SearchMore(
+            shown.page + 1,
+            shown.results.map { searchDomain(it.contextUrl.ifEmpty { it.imageUrl }) },
+        )
+        _uiState.update { it.copy(imageSearch = shown.copy(loadingMore = true)) }
+        imageSearchJob = serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    SearchProviders.images(
+                        settings,
+                        shown.query,
+                        settings.webSearch.resultCount,
+                        settings.webSearch.safe,
+                        pick = ProviderPicks.of(ProviderTool.SEARCH),
+                        more = more,
+                    )
+                }
+            }
+            val now = _uiState.value.imageSearch as? ImageSearchUi.Ready
+            if (now == null || now.query != shown.query) return@launch
+            result.onFailure { toast(requestErrorText(it, R.string.ime_service_search_error)) }
+            val seen = now.results.mapTo(HashSet()) { it.imageUrl }
+            val added = result.getOrNull().orEmpty().filter { seen.add(it.imageUrl) }
+            _uiState.update {
+                it.copy(
+                    imageSearch = now.copy(
+                        results = now.results + added,
+                        page = if (result.isSuccess) more.page else now.page,
+                        loadingMore = false,
+                        noMore = result.isSuccess && added.isEmpty(),
+                    ),
+                )
+            }
+        }
+    }
+
+    /** Insert on the engine's answer or one of its code blocks (#879). */
+    fun onSearchInsertText(text: String) {
+        vibrate()
+        commitToField(text)
+    }
+
+    /** Copy in the search panel (#879): the engine's answer, or a result's link. */
+    fun onSearchCopy(text: String) {
+        vibrate()
+        KeyboardClipboard.copy(this, text)
+        maybeToastCopied()
+    }
+
+    /** The site of [url] as Tavily's `exclude_domains` takes it: the host, without "www.". */
+    private fun searchDomain(url: String): String =
+        url.substringAfter("://").substringBefore('/').substringBefore(':').removePrefix("www.")
+
+    /** Runs [query] on the search panel's [tab]. */
+    private fun runSearch(tab: SearchTab, query: String) = when (tab) {
+        SearchTab.ALL -> runWebSearch(query)
+        SearchTab.IMAGES -> runImageSearch(query)
     }
 
     /**
@@ -37220,8 +37388,10 @@ open class WMKeyboardService : InputMethodService() {
     fun onMediaQueryClear() {
         vibrate()
         val panel = _uiState.value.panel
-        if (panel == PanelMode.WEB_SEARCH) webSearchJob?.cancel()
-        if (panel == PanelMode.IMAGE_SEARCH) imageSearchJob?.cancel()
+        if (panel == PanelMode.WEB_SEARCH) {
+            webSearchJob?.cancel()
+            imageSearchJob?.cancel()
+        }
         val idle = hasSearchKey()
         _uiState.update {
             it.copy(
@@ -37230,7 +37400,7 @@ open class WMKeyboardService : InputMethodService() {
                 mediaAction = null,
                 panelFocus = null,
                 webSearch = if (panel == PanelMode.WEB_SEARCH && idle) WebSearchUi.Idle else it.webSearch,
-                imageSearch = if (panel == PanelMode.IMAGE_SEARCH && idle) ImageSearchUi.Idle else it.imageSearch,
+                imageSearch = if (panel == PanelMode.WEB_SEARCH && idle) ImageSearchUi.Idle else it.imageSearch,
             )
         }
     }
@@ -37267,8 +37437,7 @@ open class WMKeyboardService : InputMethodService() {
                 mediaLiveSearchJob?.cancel()
                 refreshMedia(query)
             }
-            PanelMode.WEB_SEARCH -> runWebSearch(query)
-            PanelMode.IMAGE_SEARCH -> runImageSearch(query)
+            PanelMode.WEB_SEARCH -> runSearch(state.searchTab, query)
             PanelMode.WIKIPEDIA -> runWikiSearch(query)
             PanelMode.TRANSLATE -> scheduleTranslate(immediate = true)
             else -> {}
@@ -37283,8 +37452,7 @@ open class WMKeyboardService : InputMethodService() {
         grantMeteredForPanel(_uiState.value)
         when (_uiState.value.panel) {
             PanelMode.GIF, PanelMode.STICKER -> refreshMedia(_uiState.value.mediaQuery.trim())
-            PanelMode.WEB_SEARCH -> runWebSearch(_uiState.value.mediaQuery.trim())
-            PanelMode.IMAGE_SEARCH -> runImageSearch(_uiState.value.mediaQuery.trim())
+            PanelMode.WEB_SEARCH -> runSearch(_uiState.value.searchTab, _uiState.value.mediaQuery.trim())
             PanelMode.WIKIPEDIA -> {
                 val query = _uiState.value.mediaQuery.trim()
                 if (query.isNotEmpty()) runWikiSearch(query)
@@ -37646,8 +37814,8 @@ open class WMKeyboardService : InputMethodService() {
         when {
             tool == ProviderTool.TRANSLATE && state.panel == PanelMode.TRANSLATE ->
                 scheduleTranslate(immediate = true, force = true)
-            tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH -> runWebSearch(state.mediaQuery.trim())
-            tool == ProviderTool.SEARCH && state.panel == PanelMode.IMAGE_SEARCH -> runImageSearch(state.mediaQuery.trim())
+            tool == ProviderTool.SEARCH && state.panel == PanelMode.WEB_SEARCH ->
+                runSearch(state.searchTab, state.mediaQuery.trim())
             tool == ProviderTool.DICTIONARY && state.panel == PanelMode.DICTIONARY &&
                 state.dictionaryQuery.isNotBlank() -> onDictionaryLookup(state.dictionaryQuery)
         }
@@ -37693,10 +37861,17 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     webSearch = result.fold(
                         onSuccess = { page ->
+                            val answer = page.answer.takeIf { settings.webSearch.showAnswer }
                             WebSearchUi.Ready(
                                 page.results,
                                 query,
-                                answer = page.answer.takeIf { settings.webSearch.showAnswer },
+                                answer = answer,
+                                // Under the answer (#879): Tavily's own, else the
+                                // Images tab's for this query when it has them.
+                                images = if (answer == null) emptyList() else page.images.ifEmpty {
+                                    (it.imageSearch as? ImageSearchUi.Ready)?.takeIf { shown -> shown.query == query }
+                                        ?.results.orEmpty().take(TavilySearchClient.ANSWER_IMAGES)
+                                },
                             )
                         },
                         onFailure = { e ->
@@ -38104,11 +38279,35 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Tapped an image-search cell: download the full image and commit it. */
     fun onImageResultSelect(result: ImageResult) {
-        val mime = when (result.mime) {
-            "image/gif", "image/png", "image/webp", "image/jpeg" -> result.mime
-            else -> "image/jpeg"
+        insertDownloadedImage(result.imageUrl, result.imageUrl, searchImageMime(result))
+    }
+
+    /** What an image result is sent and saved as: its own type when it is one we know. */
+    private fun searchImageMime(result: ImageResult): String = when (result.mime) {
+        "image/gif", "image/png", "image/webp", "image/jpeg" -> result.mime
+        else -> "image/jpeg"
+    }
+
+    /**
+     * Save to gallery on an image result's menu (#879): the full picture,
+     * downloaded with the cell's spinner over it, into Pictures/WM Keyboard.
+     */
+    fun onSearchImageSave(result: ImageResult) {
+        if (_uiState.value.mediaDownloadingId != null) return
+        vibrate()
+        val mime = searchImageMime(result)
+        startMediaDownload(result.imageUrl)
+        mediaInsertJob = serviceScope.launch {
+            val file = withContext(Dispatchers.IO) {
+                downloadMediaFile(result.imageUrl, mime, trackProgress = true)
+            }
+            endMediaDownload()
+            if (file == null) {
+                toast(R.string.ime_service_media_download_error_toast)
+                return@launch
+            }
+            saveToGalleryIfEnabled(file, mime, enabled = true, namePrefix = "Search", confirm = true)
         }
-        insertDownloadedImage(result.imageUrl, result.imageUrl, mime)
     }
 
     /** Long-pressed an image-search cell: insert the image's URL as text. */
@@ -38118,9 +38317,8 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * Tapped a web result: insert its URL at the cursor. The panel's answer
-     * box (#470) comes through here too, as a result with no address, and
-     * inserts its text.
+     * Tapped a web result, or Insert the link on a result's menu: insert its
+     * URL at the cursor. The answer box inserts through [onSearchInsertText].
      */
     fun onWebResultSelect(result: WebResult) {
         vibrate()
@@ -38128,11 +38326,14 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /** Open a web result in the browser (leaves the keyboard). */
-    fun onWebResultOpen(result: WebResult) {
+    fun onWebResultOpen(result: WebResult) = openSearchLink(result.url)
+
+    /** Opens [url] in the browser, from the search panel (leaves the keyboard). */
+    private fun openSearchLink(url: String) {
         vibrate()
         runCatching {
             startActivity(
-                Intent(Intent.ACTION_VIEW, Uri.parse(result.url)).apply {
+                Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 },
             )
@@ -42594,8 +42795,15 @@ open class WMKeyboardService : InputMethodService() {
         Toast.makeText(this, getString(id), Toast.LENGTH_SHORT).show()
     }
 
+    private fun toast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+    }
+
     /** Opens a search-style panel already carrying [query], and runs it. */
     private fun openMacroSearch(panel: PanelMode, query: String) {
+        if (panel == PanelMode.WEB_SEARCH && _uiState.value.panel != panel) {
+            _uiState.update { it.copy(searchTab = SearchTab.ALL) }
+        }
         onPanelChange(panel)
         if (_uiState.value.panel != panel) return
         _uiState.update { it.copy(mediaQuery = query) }

@@ -7,6 +7,7 @@ import com.wasimaster.wmkeyboard.core.settings.hasSearchKey
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.int
+import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
@@ -75,10 +76,54 @@ class TavilySearchClientTest {
     @Test
     fun `advanced depth and the answer are asked for only when wanted`() {
         val body = Json.parseToJsonElement(
-            TavilySearchClient.requestBody("cats", count = 5, safe = false, images = false, advanced = true, answer = true),
+            TavilySearchClient.requestBody("cats", count = 5, safe = false, images = false, depth = "advanced", answer = true),
         ).jsonObject
         assertEquals("advanced", body["search_depth"]!!.jsonPrimitive.content)
         assertTrue(body["include_answer"]!!.jsonPrimitive.boolean)
+    }
+
+    @Test
+    fun `more results leave out the sites already shown, and only then`() {
+        val first = Json.parseToJsonElement(
+            TavilySearchClient.requestBody("cats", count = 5, safe = true, images = false),
+        ).jsonObject
+        assertNull(first["exclude_domains"])
+        val more = Json.parseToJsonElement(
+            TavilySearchClient.requestBody(
+                "cats", count = 5, safe = true, images = false,
+                excludeDomains = listOf("a.com", "b.org", "a.com") + List(200) { "s$it.net" },
+            ),
+        ).jsonObject
+        val excluded = more["exclude_domains"]!!.jsonArray.map { it.jsonPrimitive.content }
+        assertEquals(listOf("a.com", "b.org"), excluded.take(2))
+        assertEquals(150, excluded.size)
+    }
+
+    @Test
+    fun `an image keeps the page it was found on`() {
+        val images = TavilySearchClient.parseImages(
+            """{"images":["https://i/a.jpg","https://i/b.jpg"],
+               "results":[{"url":"https://p.com/cats","images":["https://i/a.jpg"]}]}""",
+        )
+        assertEquals("https://p.com/cats", images[0].contextUrl)
+        assertEquals("", images[1].contextUrl)
+    }
+
+    @Test
+    fun `searxng pages count from one`() {
+        assertFalse("pageno" in SearxClient.searchUrl("s.example", "cats", "general", safe = true))
+        assertTrue(SearxClient.searchUrl("s.example", "cats", "general", safe = true, page = 1).endsWith("&pageno=2"))
+    }
+
+    @Test
+    fun `the fast depths leave SafeSearch out, which they refuse`() {
+        for (depth in listOf("fast", "ultra-fast")) {
+            val body = Json.parseToJsonElement(
+                TavilySearchClient.requestBody("cats", count = 5, safe = true, images = false, depth = depth),
+            ).jsonObject
+            assertEquals(depth, body["search_depth"]!!.jsonPrimitive.content)
+            assertNull(body["safe_search"])
+        }
     }
 
     @Test
