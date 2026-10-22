@@ -19,7 +19,7 @@ The Rows & bars screen controls the strip of rows that stack above and below the
 
 <SettingsPath path="Rows & bars" />
 
-The screen has four groups, top to bottom: Row order, Fancy text, Dictionary bar, and Symbol row. Row order is a list you drag, and the keys themselves are one of the rows in it: drag a row above **Keyboard** to draw it over the keys, or below **Keyboard** to draw it under them. The Symbol row group is one row that is both a switch and a door: the switch turns the row on, and tapping the rest of the row opens the **Symbol row** page, which holds the row's height, lines and scrolling and the Symbol sets group.
+The screen has five groups, top to bottom: Row order, Fancy text, Recent words, Dictionary bar, and Symbol row. Row order is a list you drag, and the keys themselves are one of the rows in it: drag a row above **Keyboard** to draw it over the keys, or below **Keyboard** to draw it under them. The Symbol row group is one row that is both a switch and a door: the switch turns the row on, and tapping the rest of the row opens the **Symbol row** page, which holds the row's height, lines and scrolling and the Symbol sets group.
 
 ### Fancy text
 
@@ -30,6 +30,18 @@ The screen has four groups, top to bottom: Row order, Fancy text, Dictionary bar
 | Fancy text | Toggle | Off |
 
 **Fancy text** reads On while the fancy keyboard is the active layout, however it got there. Switching it on adds Fancy Text to your language list if it isn't there and makes it the active keyboard, so the styles row appears above the keys. Switching it off returns to the first other language in your list and takes Fancy Text back out of it, unless the Fancy text tool's **Keep the language after you turn it off** option is on. That is what the toolbar tool does, so the two never disagree about what "off" leaves behind. The row of styles starts with **Normal**, which types plain letters without leaving the fancy keyboard. See [Fancy Text](/languages/fancy-text/) for the styles themselves.
+
+### Recent words
+
+<SettingsPath path="Rows & bars / Recent words" />
+
+| Setting | Control | Default |
+|---|---|---|
+| Recent words | Toggle | Off |
+| Where the recent words go *(shown while Recent words is on)* | A row of their own / At the start of the strip | A row of their own |
+| Keep the row's height *(shown with A row of their own)* | Toggle | Off |
+
+**Recent words** is the same switch as the one under Typing → Suggestions: the last three words you wrote, each followed by what else it could have been, so you can fix one after typing past it (see [Fixing a word you've typed past](/smart/suggestions/#fixing-a-word-youve-typed-past)). **Where the recent words go** puts them in a row of their own, which is listed in Row order below and sits over the suggestion strip until you move it, or at the left end of the strip itself, with the suggestions after them. At the start of the strip they take no height, and they stop at a fixed width, scrolling past it, so the suggestions keep most of the strip. **Keep the row's height** stops the row coming and going: without it the row is only there while it has words, so the keyboard grows after your first word and shrinks again whenever a chat app empties the box on send. With it on, the row keeps its place, empty, between messages.
 
 ### Dictionary bar
 
@@ -75,10 +87,11 @@ One thing about the row has no setting behind it, so it's worth saying here rath
 | Tools row | Yes, while the tools have a row of their own | Off (the toolbar is off) / Behind the arrow button, depending on **Where the tools go** under Appearance |
 | Dictionary bar | Yes | On / Off, depending on the Dictionary bar toggle above |
 | Selection actions | Yes | Off / On the suggestion strip / On, depending on [Selection actions](/reference/settings/selection-actions/) under Advanced |
+| Recent words | Yes, while they have a row of their own | On / Off, depending on the Recent words toggle above |
 | Sticker suggestions | Yes, while **Offer your stickers as you type** is on | Shows when what you type matches one of your stickers / Opens from the sticker chip on the suggestion strip, depending on **Where they show** under [Stickers](/emoji/stickers/#stickers-as-you-type) |
 | Keyboard | Yes | Always shown |
 
-**Default order: Sticker suggestions, Emoji row, Tools row, Selection actions, Suggestions & toolbar, Symbol row, Dictionary bar, Fancy text styles, Keyboard.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. **Keyboard** stands for the key grid itself, and every row moves, the keys included: drag a row above it to have that row draw over the keys, or below it to have that row draw under them. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys; one saved before the tools row existed gets that row just above the suggestion strip, where it always drew. An order saved before the selection actions row existed gets that row just above the suggestion strip too, which is where it draws by default. An order saved before the sticker suggestions row existed gets it at the very top. An order saved before the keys had their own slot keeps every row above them, exactly where it drew before.
+**Default order: Sticker suggestions, Emoji row, Tools row, Selection actions, Recent words, Suggestions & toolbar, Symbol row, Dictionary bar, Fancy text styles, Keyboard.** Each row's status line is read-only here. The emoji row's line is driven by the **Emoji row** setting on the [Emoji](/reference/settings/emoji/) screen, and the symbol row's and fancy text row's by the toggles above. This list controls the stacking order and nothing else. **Keyboard** stands for the key grid itself, and every row moves, the keys included: drag a row above it to have that row draw over the keys, or below it to have that row draw under them. A hidden row keeps its slot empty rather than collapsing the stack, so turning it back on doesn't change where it lands. An order saved before the fancy text row existed gets it appended at the bottom, nearest the keys; one saved before the tools row existed gets that row just above the suggestion strip, where it always drew. An order saved before the selection actions row existed gets that row just above the suggestion strip too, which is where it draws by default. An order saved before the sticker suggestions row existed gets it at the very top. One saved before recent words were a row of their own gets that row just above the suggestion strip, where it always drew. An order saved before the keys had their own slot keeps every row above them, exactly where it drew before.
 
 The selection actions row is the one row here whose slot can sit empty for a reason that isn't a setting: it only draws while text is selected, and it takes no height the rest of the time, unless **Show with nothing selected** is on, in which case it stays up at the caret with Select all and Paste. It disappears from screen entirely when [Selection actions](/smart/selection-actions/) is off, or when that feature is set to draw over the suggestion strip instead.
 

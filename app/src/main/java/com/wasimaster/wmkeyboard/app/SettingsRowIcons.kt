@@ -817,6 +817,8 @@ internal object SettingsRowIcons {
         put(R.string.rows_symbol_row_title) { Icons.Outlined.Tag }
         put(R.string.rows_fancy_title) { Icons.Outlined.TextFormat }
         put(R.string.rows_dictionary_bar_title) { SymbolIcons.Dictionary }
+        put(R.string.rows_recent_words_placement_title) { Icons.Outlined.ViewAgenda }
+        put(R.string.rows_recent_words_steady_title) { Icons.Outlined.Height }
         put(R.string.rows_symbol_row_height_title) { Icons.Outlined.Height }
         put(R.string.rows_symbol_row_lines_title) { Icons.Outlined.ViewAgenda }
         put(R.string.rows_symbol_row_scroll_title) { Icons.Outlined.SwapHoriz }

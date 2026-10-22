@@ -6576,7 +6576,29 @@ data class RowSettings(
      * to.
      */
     val dictionaryBarFilter: String = "",
+    /**
+     * Where the recent words go while [SuggestionStripSettings.recentWordBar]
+     * is on (#894): a row of their own, at [BarRow.RECENT]'s place in the
+     * order, or at the start of the strip, which costs no height.
+     */
+    val recentWordPlacement: RecentWordPlacement = RecentWordPlacement.OWN_ROW,
+    /**
+     * The recent words' own row keeps its height while it has no words
+     * (#894), so the keyboard does not shrink when a chat app empties the
+     * field on send and grow again with the next message's first word. Off,
+     * the row is there only while it has words. Nothing to hold inline.
+     */
+    val recentWordSteady: Boolean = false,
 )
+
+/** Where [RowSettings.recentWordPlacement] puts the recent words. */
+enum class RecentWordPlacement {
+    /** A row of their own, moved and stacked under Rows & bars like the others. */
+    OWN_ROW,
+
+    /** At the start of the suggestion strip, the suggestions after them. */
+    INLINE,
+}
 
 /** Whether [langId]'s emoji keyword packs are read; see [EmojiSettings.disabledKeywordLangs]. */
 fun EmojiSettings.keywordsEnabledFor(langId: String): Boolean = langId !in disabledKeywordLangs
@@ -9027,9 +9049,12 @@ data class SuggestionStripSettings(
      */
     val skipTypedWord: Boolean = false,
     /**
-     * The recent-word bar (#787): the last words written in this field, at the
-     * start of the strip, each one tap from what else it could have been. Off
-     * by default; it takes width from the live suggestions.
+     * The recent words (#787, #814): the last words written in this field,
+     * each one tap from what else it could have been. Off by default. A row
+     * of its own over the strip, [BarRow.RECENT] in the row order, or at the
+     * start of the strip instead; see [RowSettings.recentWordPlacement] and
+     * [RowSettings.recentWordSteady] for where it goes and whether its row
+     * keeps its height while empty.
      */
     val recentWordBar: Boolean = false,
     /**
@@ -10281,6 +10306,8 @@ class SettingsRepository(private val context: Context) {
         private val MANUAL_MODE_DURATION = stringPreferencesKey("manual_mode_duration")
         private val DICTIONARY_BAR_ENABLED = booleanPreferencesKey("dictionary_bar_enabled")
         private val DICTIONARY_BAR_FILTER = stringPreferencesKey("dictionary_bar_filter")
+        private val RECENT_WORD_PLACEMENT = stringPreferencesKey("recent_word_placement")
+        private val RECENT_WORD_STEADY = booleanPreferencesKey("recent_word_steady")
         private val CONJUNCT_BACKSPACE_LANGUAGES = stringPreferencesKey("conjunct_backspace_languages")
 
         /**
@@ -12113,6 +12140,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.rows.manualModeDuration,
             dictionaryBarEnabled = p[DICTIONARY_BAR_ENABLED] ?: defaults.rows.dictionaryBarEnabled,
             dictionaryBarFilter = p[DICTIONARY_BAR_FILTER] ?: defaults.rows.dictionaryBarFilter,
+            recentWordPlacement = p[RECENT_WORD_PLACEMENT]
+                ?.let { runCatching { RecentWordPlacement.valueOf(it) }.getOrNull() }
+                ?: defaults.rows.recentWordPlacement,
+            recentWordSteady = p[RECENT_WORD_STEADY] ?: defaults.rows.recentWordSteady,
         )
 
     private fun readCjk(p: Preferences, defaults: KeyboardSettings) =
@@ -19302,6 +19333,12 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDictionaryBarEnabled(value: Boolean) =
         editPrefs { it[DICTIONARY_BAR_ENABLED] = value }
+
+    suspend fun setRecentWordPlacement(value: RecentWordPlacement) =
+        editPrefs { it[RECENT_WORD_PLACEMENT] = value.name }
+
+    suspend fun setRecentWordSteady(value: Boolean) =
+        editPrefs { it[RECENT_WORD_STEADY] = value }
 
     /** The bar's language filter: a language id, or null for every language. */
     suspend fun setDictionaryBarFilter(langId: String?) =

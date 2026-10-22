@@ -30,7 +30,7 @@ import kotlinx.serialization.json.jsonArray
  * [sanitizeBarOrder] fills the gap, so a build that predates a constant
  * still decodes an order written by a newer one.
  */
-enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STICKERS, KEYBOARD }
+enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STICKERS, RECENT, KEYBOARD }
 
 /**
  * The shipped stacking: emoji on top because it is reached for most, the
@@ -47,12 +47,16 @@ enum class BarRow { TOPBAR, EMOJI, SYMBOL, FANCY, TOOLS, DICTIONARY, MACROS, STI
  * on top too, since [sanitizeBarOrder] slots a missing row above the first
  * row that follows it in this list.
  *
+ * The recent words (#894) go directly above the strip, where they drew before
+ * they were a row of their own; [sanitizeBarOrder] puts them there for an
+ * order stored before they were.
+ *
  * The keys come last, so every row sits above them — which is also where
  * [sanitizeBarOrder] puts the keys for an order stored before they were an
  * entry, keeping that user's keyboard exactly as it was.
  */
 val DefaultBarOrder: List<BarRow> = listOf(
-    BarRow.STICKERS, BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.TOPBAR, BarRow.SYMBOL,
+    BarRow.STICKERS, BarRow.EMOJI, BarRow.TOOLS, BarRow.MACROS, BarRow.RECENT, BarRow.TOPBAR, BarRow.SYMBOL,
     BarRow.DICTIONARY, BarRow.FANCY, BarRow.KEYBOARD,
 )
 

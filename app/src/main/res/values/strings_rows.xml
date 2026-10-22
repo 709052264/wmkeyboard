@@ -166,6 +166,14 @@
     <string name="rows_dictionary_bar_subtitle">A row of chips above the keys that turns each dictionary on or off</string>
     <string name="rows_dictionary_bar_info">The bar lists every dictionary on the device: each language\'s word list, its emoji keywords, and every word list that you imported. A coloured chip is on; tap it to turn that dictionary off, and tap again to turn it back on. The chip at the left edge of the bar filters the row to one language, or shows all of them. The same switches live on each language\'s own settings screen.</string>
 
+    <string name="rows_recent_words_placement_title">Where the recent words go</string>
+    <string name="rows_recent_words_placement_row">A row of their own</string>
+    <string name="rows_recent_words_placement_inline">At the start of the strip</string>
+    <string name="rows_recent_words_placement_info">A row of their own sits in the row order above, over the suggestion strip unless you move it, and keeps the strip\'s full width for the suggestions. At the start of the strip, the recent words take its left end and the suggestions follow them, so the keyboard never grows for them.</string>
+    <string name="rows_recent_words_steady_title">Keep the row\'s height</string>
+    <string name="rows_recent_words_steady_subtitle">The row stays while it is empty, so the keyboard doesn\'t change height between messages</string>
+    <string name="rows_recent_words_steady_info">Without this, the row is there only while it has words to show, so the keyboard grows by it after your first word and shrinks again when a chat app empties the box on send. With it on, the row keeps its place empty instead.</string>
+
     <string name="rows_row_order_title">Row order</string>
     <string name="rows_row_order_caption">The rows stack from top to bottom in this order. Rows above Keyboard sit over the keys, rows below it sit under them. A hidden row keeps its slot.</string>
     <string name="rows_move_up_desc">Move up</string>

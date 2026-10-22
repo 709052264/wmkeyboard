@@ -4,6 +4,8 @@ import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.DefaultBarOrder
 import com.wasimaster.wmkeyboard.core.settings.GifSettings
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
+import com.wasimaster.wmkeyboard.core.settings.RowSettings
 import com.wasimaster.wmkeyboard.core.settings.ToolbarBehavior
 import com.wasimaster.wmkeyboard.core.settings.ToolbarPlacement
 import org.junit.Assert.assertEquals
@@ -64,6 +66,14 @@ class BarRowListTest {
         // Moved while hidden, it keeps the place it was stored at.
         val stored = DefaultBarOrder - BarRow.STICKERS + BarRow.STICKERS
         assertEquals(stored.last(), barOrderMerged(barRowsListed(stored, off), stored).last())
+    }
+
+    @Test
+    fun `recent words are listed only while they have a row of their own`() {
+        val ownRow = barRowsListed(DefaultBarOrder, KeyboardSettings())
+        assertEquals(true, BarRow.RECENT in ownRow)
+        val inline = KeyboardSettings(rows = RowSettings(recentWordPlacement = RecentWordPlacement.INLINE))
+        assertEquals(ownRow - BarRow.RECENT, barRowsListed(DefaultBarOrder, inline))
     }
 
     @Test

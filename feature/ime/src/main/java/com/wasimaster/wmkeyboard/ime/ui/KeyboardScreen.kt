@@ -416,6 +416,7 @@ import com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit
 import com.wasimaster.wmkeyboard.core.settings.BarRow
 import com.wasimaster.wmkeyboard.core.settings.barRowsAboveKeys
 import com.wasimaster.wmkeyboard.core.settings.barRowsBelowKeys
+import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.LatinAccents
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
@@ -13425,49 +13426,70 @@ private fun KeyboardBody(
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits
                                 // directly over the strip it belongs to.
-                                // The recent words (#814), in their own row so
-                                // the strip keeps its width.
-                                if (recentRowShown(state)) RecentWordRow(state.recentBar, suggestionHold)
                                 if (phoneticCandidateBarShown(state)) PhoneticCandidateBar(state, onSuggestion)
-                                WithNetActivityDot(
-                                    state.settings.networkLog.showOnKeyboard,
-                                    state.settings.toolColorOverrides,
-                                ) { TopBar(
-                                    state,
-                                    toolsRowOpen = toolsRowOpen,
-                                    onToolsRowToggle = { toolsRowOpen = !toolsRowOpen },
-                                    onSuggestion = onSuggestion,
-                                    suggestionHold = suggestionHold,
-                                    onJoinSuggestion = onJoinSuggestion,
-                                    onRevisionSuggestion = onRevisionSuggestion,
-                                    onCandidate = onCandidate,
-                                    onCandidatesExpand = onCandidatesExpand,
-                                    onEmoji = onEmoji,
-                                    onEmojiSuggestion = onEmojiSuggestion,
-                                    onPunctuation = onPunctuation,
-                                    onPanelChange = onPanelChange,
-                                    onToolTap = onToolTap,
-                                    drag = drag,
-                                    onVoiceToggle = onVoiceToggle,
-                                    onVoiceUndo = onVoiceUndo,
-                                    onVoicePermissionRequest = onVoicePermissionRequest,
-                                    onOpenVoiceSettings = onOpenVoiceSettings,
-                                    onVoiceAction = onVoiceRailKey,
-                                    onDismissInlineSuggestions = onDismissInlineSuggestions,
-                                    onSmartAccept = onSmartAccept,
-                                    onSmartOpen = onSmartOpen,
-                                    vocab = toolHold.vocab,
-                                    stickerOffer = toolHold.stickerOffer,
-                                    onStripOfferAction = onStripOfferAction,
-                                    onClipboardSuggestion = onClipboardItem,
-                                    onClipboardSuggestionDismiss = onClipboardSuggestionDismiss,
-                                    onRecentClipsToggle = onRecentClipsToggle,
-                                    onClipboardEntity = onClipboardEntity,
-                                    onOtpAccept = onOtpAccept,
-                                    onOtpDismiss = onOtpDismiss,
-                                    onEmojiRowShown = onEmojiRowShown,
-                                    onSwipeDownHide = onHideKeyboard,
-                                ) }
+                                @Composable
+                                fun StripWithDot() {
+                                    WithNetActivityDot(
+                                        state.settings.networkLog.showOnKeyboard,
+                                        state.settings.toolColorOverrides,
+                                    ) { TopBar(
+                                        state,
+                                        toolsRowOpen = toolsRowOpen,
+                                        onToolsRowToggle = { toolsRowOpen = !toolsRowOpen },
+                                        onSuggestion = onSuggestion,
+                                        suggestionHold = suggestionHold,
+                                        onJoinSuggestion = onJoinSuggestion,
+                                        onRevisionSuggestion = onRevisionSuggestion,
+                                        onCandidate = onCandidate,
+                                        onCandidatesExpand = onCandidatesExpand,
+                                        onEmoji = onEmoji,
+                                        onEmojiSuggestion = onEmojiSuggestion,
+                                        onPunctuation = onPunctuation,
+                                        onPanelChange = onPanelChange,
+                                        onToolTap = onToolTap,
+                                        drag = drag,
+                                        onVoiceToggle = onVoiceToggle,
+                                        onVoiceUndo = onVoiceUndo,
+                                        onVoicePermissionRequest = onVoicePermissionRequest,
+                                        onOpenVoiceSettings = onOpenVoiceSettings,
+                                        onVoiceAction = onVoiceRailKey,
+                                        onDismissInlineSuggestions = onDismissInlineSuggestions,
+                                        onSmartAccept = onSmartAccept,
+                                        onSmartOpen = onSmartOpen,
+                                        vocab = toolHold.vocab,
+                                        stickerOffer = toolHold.stickerOffer,
+                                        onStripOfferAction = onStripOfferAction,
+                                        onClipboardSuggestion = onClipboardItem,
+                                        onClipboardSuggestionDismiss = onClipboardSuggestionDismiss,
+                                        onRecentClipsToggle = onRecentClipsToggle,
+                                        onClipboardEntity = onClipboardEntity,
+                                        onOtpAccept = onOtpAccept,
+                                        onOtpDismiss = onOtpDismiss,
+                                        onEmojiRowShown = onEmojiRowShown,
+                                        onSwipeDownHide = onHideKeyboard,
+                                    ) }
+                                }
+                                // At the start of the strip, when the recent
+                                // words are set to go there rather than in a
+                                // row of their own (#894).
+                                val inlineRecent = recentWordsInline(state)
+                                if (inlineRecent) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        RecentWordRow(
+                                            state.recentBar,
+                                            suggestionHold,
+                                            Modifier.widthIn(max = InlineRecentMaxWidth).height(topBarHeight(state.settings)),
+                                        )
+                                        VerticalDivider(
+                                            modifier = Modifier.height(20.dp),
+                                            thickness = SuggestionDividerWidth,
+                                            color = MaterialTheme.colorScheme.outlineVariant,
+                                        )
+                                        Box(Modifier.weight(1f)) { StripWithDot() }
+                                    }
+                                } else {
+                                    StripWithDot()
+                                }
                             }
                         }
                         BarRow.EMOJI -> if (showEmojiRow) {
@@ -13576,6 +13598,20 @@ private fun KeyboardBody(
                             val trayFitsPanel = !fullBleed || state.panel == PanelMode.EMOJI
                             if (trayFitsPanel && !lockHidden && !clipboardSearching && !emojiSearching) {
                                 StickerTrayRow(state, toolHold.stickerOffer)
+                            }
+                        }
+                        // The recent words in a row of their own (#814, #894),
+                        // wherever the order puts it. They go with the strip,
+                        // so whatever takes the strip away takes them too;
+                        // kept steady, the row holds its height while empty.
+                        BarRow.RECENT -> if (
+                            state.wordSpell == null && topBarVisible && !stripMacros &&
+                            !stripGivenToCapture && recentRowShown(state)
+                        ) {
+                            if (state.recentBar.isEmpty()) {
+                                Spacer(Modifier.fillMaxWidth().height(RecentRowHeight))
+                            } else {
+                                RecentWordRow(state.recentBar, suggestionHold)
                             }
                         }
                         // Stands for the keys themselves: the split below draws
@@ -31527,10 +31563,24 @@ internal fun signedRank(steps: Int): String = when {
 /** Height of the recent-word row (#814): a touch target's worth, since every word in it is one. */
 internal val RecentRowHeight = 48.dp
 
-/** Whether the recent-word row is up: it has words, the setting is on and the strip is showing. */
+/**
+ * Whether the recent-word row is up: the setting is on, the words have a row
+ * of their own, the strip is showing, and the row has words or keeps its
+ * height without them (#894).
+ */
 internal fun recentRowShown(state: KeyboardUiState): Boolean =
+    state.settings.suggestionStrip.recentWordBar &&
+        state.settings.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW &&
+        !state.settings.toolbarBehavior.stripHidden &&
+        (state.recentBar.isNotEmpty() || state.settings.rows.recentWordSteady)
+
+/** Whether the recent words sit at the start of the strip instead (#894). */
+internal fun recentWordsInline(state: KeyboardUiState): Boolean =
     state.recentBar.isNotEmpty() && state.settings.suggestionStrip.recentWordBar &&
-        !state.settings.toolbarBehavior.stripHidden
+        state.settings.rows.recentWordPlacement == RecentWordPlacement.INLINE
+
+/** How wide the recent words may grow at the start of the strip; they scroll past it. */
+private val InlineRecentMaxWidth = 168.dp
 
 /**
  * The recent-word row (#787, #814, #842): the last words written, newest on
@@ -31541,14 +31591,16 @@ internal fun recentRowShown(state: KeyboardUiState): Boolean =
  * starting at the newest.
  */
 @Composable
-internal fun RecentWordRow(words: List<RecentBarWord>, hold: SuggestionHoldCallbacks) {
+internal fun RecentWordRow(
+    words: List<RecentBarWord>,
+    hold: SuggestionHoldCallbacks,
+    modifier: Modifier = Modifier.fillMaxWidth().height(RecentRowHeight),
+) {
     val kb = LocalKbTheme.current
     val scroll = rememberScrollState()
     LaunchedEffect(words) { scroll.scrollTo(scroll.maxValue) }
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(RecentRowHeight)
+        modifier = modifier
             .horizontalScroll(scroll)
             .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,

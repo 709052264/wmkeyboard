@@ -2354,6 +2354,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         ),
         entry(R.string.rows_fancy_title, R.string.rows_fancy_subtitle, R.string.home_rows_title, "rows"),
         entry(R.string.rows_dictionary_bar_title, R.string.rows_dictionary_bar_subtitle, R.string.home_rows_title, "rows"),
+        entry(R.string.rows_recent_words_placement_title, R.string.rows_recent_words_placement_info, R.string.home_rows_title, "rows"),
+        entry(R.string.rows_recent_words_steady_title, R.string.rows_recent_words_steady_subtitle, R.string.home_rows_title, "rows"),
         entry(R.string.modes_enabled_title, R.string.modes_enabled_subtitle, R.string.home_modes_title, "modes"),
         entry(R.string.modes_drag_edits_title, R.string.modes_drag_edits_subtitle, R.string.home_modes_title, "modes"),
         mode(R.string.modes_use_title, R.string.modes_use_subtitle),

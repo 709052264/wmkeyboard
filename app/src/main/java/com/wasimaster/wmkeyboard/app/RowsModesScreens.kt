@@ -100,6 +100,7 @@ import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardModeCodec
 import com.wasimaster.wmkeyboard.core.settings.DefaultKeyboardModes
 import com.wasimaster.wmkeyboard.core.settings.ManualModeDuration
+import com.wasimaster.wmkeyboard.core.settings.RecentWordPlacement
 import com.wasimaster.wmkeyboard.core.settings.SymbolRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.SymbolRowLinesRange
 import com.wasimaster.wmkeyboard.core.settings.SymbolRowScroll
@@ -161,6 +162,7 @@ private fun barRowTitle(row: BarRow, settings: KeyboardSettings): Int = when (ro
     BarRow.DICTIONARY -> R.string.rows_dictionary_bar_title
     BarRow.MACROS -> R.string.rows_bar_macros_title
     BarRow.STICKERS -> R.string.rows_bar_stickers_title
+    BarRow.RECENT -> R.string.typing_recent_word_bar_title
     BarRow.KEYBOARD -> R.string.rows_bar_keyboard_title
 }
 
@@ -206,6 +208,8 @@ private fun barRowStatus(row: BarRow, settings: KeyboardSettings): Int? = when (
     } else {
         R.string.rows_bar_stickers_button_subtitle
     }
+    // Only listed while it has a row of its own ([barRowsListed]).
+    BarRow.RECENT -> CommonR.string.common_off.takeUnless { settings.suggestionStrip.recentWordBar }
     BarRow.KEYBOARD -> null
 }
 
@@ -224,6 +228,7 @@ private fun barRowShown(row: BarRow, settings: KeyboardSettings): Boolean = when
     BarRow.MACROS -> settings.selectionMacros.enabled &&
         settings.selectionMacros.placement == SelectionMacroPlacement.OWN_ROW
     BarRow.STICKERS -> settings.gif.stickerSuggest
+    BarRow.RECENT -> settings.suggestionStrip.recentWordBar
     BarRow.KEYBOARD -> true
 }
 
@@ -241,6 +246,8 @@ internal fun barRowsListed(order: List<BarRow>, settings: KeyboardSettings): Lis
         when (row) {
             BarRow.TOOLS -> settings.toolbarBehavior.placement.isOwnRow
             BarRow.STICKERS -> settings.gif.stickerSuggest
+            // Inline they are part of the strip's entry, as the tools are.
+            BarRow.RECENT -> settings.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW
             else -> true
         }
     }
@@ -349,6 +356,11 @@ private fun BarRowPreview(row: BarRow, shown: Boolean) {
                     modifier = Modifier.size(12.dp),
                     tint = scheme.onSurfaceVariant,
                 )
+            }
+            // A word and the chips of what else it could be, twice.
+            BarRow.RECENT -> repeat(2) {
+                PreviewGlyph("abc")
+                PreviewPill(22.dp, scheme.secondaryContainer)
             }
             BarRow.KEYBOARD -> PreviewKeys(scheme.outline)
         }
@@ -509,6 +521,42 @@ internal fun RowsSettings(
                 settings.watch { fancyTextOn(it) },
                 info = stringResource(R.string.rows_fancy_info),
             ) { on -> scope.launch { setFancyTextOn(repository, settings.value, on) } }
+        }
+    }
+    // The recent words (#894): the switch the Suggestions screen also has,
+    // and where they go. A row of their own is listed in the order above.
+    val recentOn = settings.watch { it.suggestionStrip.recentWordBar }
+    val recentOwnRow = settings.watch { it.rows.recentWordPlacement == RecentWordPlacement.OWN_ROW }
+    SettingsGroup(stringResource(R.string.typing_recent_word_bar_title)) {
+        item {
+            ToggleSetting(
+                R.string.typing_recent_word_bar_title,
+                stringResource(R.string.typing_recent_word_bar_subtitle),
+                settings.watch { it.suggestionStrip.recentWordBar },
+                info = stringResource(R.string.typing_recent_word_bar_info),
+                default = SettingsDefaults.suggestionStrip.recentWordBar,
+            ) { scope.launch { repository.setRecentWordBar(it) } }
+        }
+        item(visible = recentOn) {
+            ChoiceSetting(
+                title = R.string.rows_recent_words_placement_title,
+                info = stringResource(R.string.rows_recent_words_placement_info),
+                options = listOf(
+                    RecentWordPlacement.OWN_ROW to stringResource(R.string.rows_recent_words_placement_row),
+                    RecentWordPlacement.INLINE to stringResource(R.string.rows_recent_words_placement_inline),
+                ),
+                selected = settings.watch { it.rows.recentWordPlacement },
+                default = SettingsDefaults.rows.recentWordPlacement,
+            ) { scope.launch { repository.setRecentWordPlacement(it) } }
+        }
+        item(visible = recentOn && recentOwnRow) {
+            ToggleSetting(
+                R.string.rows_recent_words_steady_title,
+                stringResource(R.string.rows_recent_words_steady_subtitle),
+                settings.watch { it.rows.recentWordSteady },
+                info = stringResource(R.string.rows_recent_words_steady_info),
+                default = SettingsDefaults.rows.recentWordSteady,
+            ) { scope.launch { repository.setRecentWordSteady(it) } }
         }
     }
     SettingsGroup(stringResource(R.string.rows_dictionary_bar_title)) {
