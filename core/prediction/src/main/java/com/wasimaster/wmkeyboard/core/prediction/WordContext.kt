@@ -149,7 +149,10 @@ object WordContext {
      *  - [SENTENCE_START] when a sentence ender lies between the last word
      *    and the caret ("Hello. " — the next word starts a sentence and
      *    "hello" is not its context). Known limitation, accepted: "Dr. "
-     *    reads as a sentence start too;
+     *    reads as a sentence start too. A line break counts the same way: a
+     *    new line is a new item, line or paragraph, not the rest of the one
+     *    above, so "Hearty\nBall\n" offers openers rather than words that
+     *    follow "ball" (#889);
          *  - otherwise the last word, in the one spelling every store keys on
      *    ("Hello, " -> "hello"). See [WordKey]: the text here is read back out
      *    of the field, so it can hold anything any keyboard or paste put there.
@@ -167,7 +170,7 @@ object WordContext {
         // The run of separators between the last word and the caret.
         var i = text.length - 1
         while (i >= 0 && !isWordCharAt(text, i)) {
-            if (text[i] in enders) return SENTENCE_START
+            if (text[i] in enders || text[i] == '\n') return SENTENCE_START
             i--
         }
         if (i < 0) return null

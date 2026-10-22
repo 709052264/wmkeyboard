@@ -3616,9 +3616,14 @@ private fun TopBar(
     // rests, the chevron is not offered for them, and the first key moves the
     // caret off the start, at which point the candidates take the row as they
     // always did.
+    // The same goes for the openers after a sentence end or at the start of a
+    // new line (#889): a new line is not the line above going on, and the
+    // toolbar is what someone starting one reaches for.
     // Not in an email field, where the strip only ever holds addresses: the
     // remembered ones are offered at the start of the field on purpose (#475).
-    val openersAtRest = !suggestionsFirst && state.caretAtFieldStart &&
+    val atSentenceStart = state.caretAtFieldStart ||
+        (state.suggestions.isNotEmpty() && state.suggestions === state.sentenceOpeners)
+    val openersAtRest = !suggestionsFirst && atSentenceStart &&
         state.fieldKind != FieldKind.EMAIL &&
         state.composingPreview.isEmpty() &&
         (state.suggestions.isNotEmpty() || state.emojiSuggestions.isNotEmpty())

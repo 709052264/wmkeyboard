@@ -3320,6 +3320,13 @@ data class KeyboardUiState(
      * bar only rests on those when "Suggestion strip always visible" is on.
      */
     val caretAtFieldStart: Boolean = false,
+    /**
+     * The list the strip was last given as sentence openers: words predicted
+     * with nothing typed after a sentence end or a line break (#889). Compared
+     * by identity with [suggestions], so any other path that writes the strip
+     * replaces the list and the two stop matching without a flag to clear.
+     */
+    val sentenceOpeners: List<String> = emptyList(),
     val composingPreview: String = "",
     /**
      * The roman buffer [composingPreview] was transliterated from, mirrored

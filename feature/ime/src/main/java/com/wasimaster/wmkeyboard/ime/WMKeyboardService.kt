@@ -15315,6 +15315,13 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         val listMarker = (listStep as? ListContinuation.Step.Continue)?.marker
+        // A line break starts the next line afresh: the word before it is not
+        // the context of the first one after it (#889), as a full stop's is not.
+        if (action == null) {
+            previousWord = WordContext.SENTENCE_START
+            previousWord2 = null
+            previousWord3 = null
+        }
         if (action != null) {
             ic.performEditorAction(action)
             // The action is the app's to answer, and a message box answers it by
@@ -23008,9 +23015,14 @@ open class WMKeyboardService : InputMethodService() {
             // up pointing at the wrong span — so it waits for the space rather
             // than risking the word being typed.
             val undo = undoableCorrection?.typed?.takeIf { typed.isEmpty() }
+            // Nothing typed after a sentence end or a line break: these are
+            // openers, which rest behind the toolbar like the ones at the start
+            // of the field (#889).
+            val openers = typed.isEmpty() && previousWord == WordContext.SENTENCE_START
             _uiState.update {
                 it.copy(
                     suggestions = results,
+                    sentenceOpeners = if (openers) results else emptyList(),
                     phoneticCandidates = candidateBar,
                     emojiSuggestions = shownEmojis,
                     punctuationSuggestions = punct,
