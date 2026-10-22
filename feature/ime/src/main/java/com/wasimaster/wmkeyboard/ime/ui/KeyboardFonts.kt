@@ -534,8 +534,9 @@ object KeyboardFonts {
      * script face alone, as before), below Android 12 for [DEFAULT_ID] (see
      * [systemLatinFont]), and when either font has no file to build
      * from: a Google face that has never been fetched and cannot be now, or an
-     * installed font since deleted. Blocking — a Google face is a provider round
-     * trip — so callers ask off the main thread. Kept for the process per pair.
+     * installed font since deleted. Blocking: two local files ([isLocal]) take
+     * milliseconds, but a Google face is a provider round trip, so a pair with
+     * one is asked for off the main thread. Kept for the process per pair.
      */
     fun latinFirstFamily(context: Context, latinId: String, scriptFontId: String): FontFamily? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
@@ -552,6 +553,9 @@ object KeyboardFonts {
         synchronized(chains) { chains[key] = family }
         return family
     }
+
+    /** Whether [id] is a font on this device, not a Google face the provider has to serve. */
+    fun isLocal(id: String): Boolean = !id.startsWith(GOOGLE_PREFIX)
 
     /** [latinFirstFamily] if it has already been built, without building it. */
     fun cachedLatinFirstFamily(latinId: String, scriptFontId: String): FontFamily? =

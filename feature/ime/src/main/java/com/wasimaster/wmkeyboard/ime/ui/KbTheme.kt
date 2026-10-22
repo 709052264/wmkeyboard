@@ -1471,9 +1471,8 @@ fun KeyboardThemeProvider(
     // the theme's, else the system's own Latin font) and a script face, the two
     // are chained per glyph instead, Latin first. System default counts too: a
     // ROM or font app may have replaced the system's Latin font, and an Avro
-    // board drew its keys in the Bengali face's Latin instead (#670). Built off
-    // the main thread: a Google face is a provider round trip. Until it lands,
-    // and below Android 10 (12 for the system font), the script face alone.
+    // board drew its keys in the Bengali face's Latin instead (#670). Below
+    // Android 10 (12 for the system font), the script face alone.
     val latinFirstIds = remember(
         scriptId,
         layoutFontId,
@@ -1501,18 +1500,32 @@ fun KeyboardThemeProvider(
         ) ?: return@remember null
         (latinId to scriptFontId).takeIf { latinId != scriptFontId }
     }
-    val chainedFontFamily by produceState<FontFamily?>(null, latinFirstIds) {
-        val (latinId, scriptFontId) = latinFirstIds ?: run {
-            value = null
-            return@produceState
-        }
-        // Already built once this process: no frame in the script face alone.
-        value = KeyboardFonts.cachedLatinFirstFamily(latinId, scriptFontId)
-        if (value != null) return@produceState
-        value = withContext(Dispatchers.IO) {
-            KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
+    // Settled in the very composition that switched the board whenever it can
+    // be: one frame in the script face alone, then the chain, made every Latin
+    // label jump on a switch to Avro. Built from local files that takes a few
+    // milliseconds, once per process. A Google face is a provider round trip,
+    // so that pair alone is built off the main thread and lands a frame late.
+    val chainNow = remember(latinFirstIds) {
+        latinFirstIds?.let { (latinId, scriptFontId) ->
+            KeyboardFonts.cachedLatinFirstFamily(latinId, scriptFontId)
+                ?: if (KeyboardFonts.isLocal(latinId) && KeyboardFonts.isLocal(scriptFontId)) {
+                    KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
+                } else {
+                    null
+                }
         }
     }
+    // Keyed by the pair it was built for: produceState keeps its last value
+    // until the effect runs, and a chain for the previous board must not draw
+    // a frame of this one.
+    val chainLate by produceState<Pair<Pair<String, String>, FontFamily?>?>(null, latinFirstIds) {
+        val ids = latinFirstIds ?: return@produceState
+        if (chainNow != null) return@produceState
+        value = ids to withContext(Dispatchers.IO) {
+            KeyboardFonts.latinFirstFamily(context, ids.first, ids.second)
+        }
+    }
+    val chainedFontFamily = chainNow ?: chainLate?.takeIf { it.first == latinFirstIds }?.second
     val boardFontFamily = chainedFontFamily ?: keyFontFamily
     // See [LocalScriptLabelFont]. Resolved per script on first ask, then kept
     // for as long as the font settings and the theme stay what they are.
