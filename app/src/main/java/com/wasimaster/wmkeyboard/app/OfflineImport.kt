@@ -201,7 +201,7 @@ internal object OfflineImport {
                 // A handwriting pack is a zip ML Kit unpacks itself, and a
                 // published RIME pack is checked against its pin whole, so
                 // both are installed as files rather than opened here.
-                if (!isZip(staged) || CjkDictCatalog.byFileName(name) != null || InkPackImports.isPack(context, staged)) {
+                if (!isZip(staged) || keptWhole(name) || InkPackImports.isPack(context, staged)) {
                     files += staged
                     return@forEachIndexed
                 }
@@ -239,6 +239,16 @@ internal object OfflineImport {
             staging.deleteRecursively()
         }
     }
+
+    /**
+     * Zips installed as they are rather than opened: a published RIME pack,
+     * checked against its pin whole, and any APK. An APK is a zip too, and an
+     * interface language pack has to reach [LanguagePackDownloads.import]
+     * intact for its signature to be checked; unpacked, it is a manifest and a
+     * resource table nothing here uses.
+     */
+    internal fun keptWhole(name: String): Boolean =
+        name.endsWith(".apk", ignoreCase = true) || CjkDictCatalog.byFileName(name) != null
 
     /**
      * Sorts [files] by what they are, then installs them. Sorting first is
