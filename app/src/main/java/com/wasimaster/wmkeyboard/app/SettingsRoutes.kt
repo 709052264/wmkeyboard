@@ -125,6 +125,7 @@ internal object SettingsRoutes {
         "signal_stickers",
         "whatsapp_stickers",
         "telegram_stickers",
+        "sticker_generator",
         "vocab/packs",
         "vocab/lists",
         "vocab/list/{packId}",

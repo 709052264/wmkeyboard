@@ -17776,8 +17776,9 @@ private fun KeyRows(
     // (#831): with the one-finger loop there, two thumbs at once drew one
     // stroke between them. Not the word card's spelling bar, which takes a
     // glide as the whole word.
+    val twoThumbTarget = state.captureTarget()
     val twoThumbOn = gesture.twoThumbGlide && !state.typingTestActive &&
-        (state.panel == PanelMode.NONE || (state.keysTakenByKeyboard && !state.wordSpellActive))
+        (state.panel == PanelMode.NONE || (twoThumbTarget != null && twoThumbTarget != CaptureTarget.WORD_SPELL))
     // Multi-finger swipes (#647): the letters, and since #712 the keys under a
     // tool whose own box has them (the translator, a search, a note), never a
     // typing test. The bindings are read live inside the loop, and so is the
