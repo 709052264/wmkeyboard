@@ -68,6 +68,10 @@ pub struct Workspace {
     pub drawn_shape_x: [f32; SHAPE_POINTS],
     pub drawn_shape_y: [f32; SHAPE_POINTS],
     pub drawn_shape8: [i8; 2 * SHAPE_POINTS],
+    /// The drawn shape with its doubling loops cut, what the ideal paths are
+    /// compared against (see `Decoder::plain_shape`).
+    pub plain_shape_x: [f32; SHAPE_POINTS],
+    pub plain_shape_y: [f32; SHAPE_POINTS],
     pub ideal_shape_x: [f32; SHAPE_POINTS],
     pub ideal_shape_y: [f32; SHAPE_POINTS],
     pub learned_shape_x: [f32; SHAPE_POINTS],
@@ -129,6 +133,8 @@ impl Workspace {
             drawn_shape_x: [0.0; SHAPE_POINTS],
             drawn_shape_y: [0.0; SHAPE_POINTS],
             drawn_shape8: [0; 2 * SHAPE_POINTS],
+            plain_shape_x: [0.0; SHAPE_POINTS],
+            plain_shape_y: [0.0; SHAPE_POINTS],
             ideal_shape_x: [0.0; SHAPE_POINTS],
             ideal_shape_y: [0.0; SHAPE_POINTS],
             learned_shape_x: [0.0; SHAPE_POINTS],

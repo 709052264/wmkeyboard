@@ -250,7 +250,7 @@ class DuetBeamTest {
         // costs less than meet's doubling and meet comes last. A loop on the e
         // puts meet straight after met, whose lead in frequency is more than a
         // loop is meant to overcome.
-        val from = sourcesOf(listOf("met" to 1757, "net" to 805, "meet" to 300))
+        val from = sourcesOf(listOf("met" to 1757, "net" to 805, "meet" to 150))
         val m = centers.getValue('m'.code)
         val plain = decodeFrom(from, GlideToken.Tap(m.x, m.y, 0L), swipe("et", 200L))
         assertEquals(listOf("met", "net", "meet"), plain)

@@ -135,12 +135,13 @@ class GlideAlternateCountTest {
      * And the part that was broken. The engine always honoured its limit; the
      * bug was on the caller's side, where a hardcoded 4 meant a six-slot strip
      * could never be filled by a swipe. So what is worth pinning here is that
-     * a limit above four is not silently a four: this stroke has five words in
-     * it, and asking for six returns all five rather than the first four.
+     * a limit above four is not silently a four: this stroke has at least six
+     * words in it (six since #886 opened the stroke's ends to a long first or
+     * last reach), and asking for six returns six rather than the first four.
      */
     @Test
     fun `a limit above four is honoured rather than clamped`() {
-        assertEquals(5, glide(6).size)
+        assertEquals(6, glide(6).size)
         assertEquals(5, glide(5).size)
         assertEquals(4, glide(4).size)
     }

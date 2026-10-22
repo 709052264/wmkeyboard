@@ -30,7 +30,7 @@ class GlideBeamTest {
         "hello" to 900, "help" to 700, "held" to 300, "hell" to 200, "ho" to 400,
         "the" to 1000, "they" to 800, "then" to 700, "them" to 650,
         "was" to 900, "war" to 400, "what" to 850, "good" to 800,
-        "god" to 300, "food" to 500, "test" to 400, "text" to 350,
+        "god" to 600, "food" to 500, "test" to 400, "text" to 350,
     )
 
     private val beam = GlideBeam()
@@ -237,12 +237,22 @@ class GlideBeamTest {
     }
 
     @Test
-    fun `an unmarked doubling loses to the single spelling`() {
+    fun `an unmarked doubling loses a near tie to the single spelling`() {
         // The stroke is identical either way — the o is one key, crossed once —
-        // so the only thing that can separate "good" from "god" is a mark
-        // drawn on the o. "good" is the commoner word by frequency, and that
-        // deliberately is not enough on its own.
+        // so on shape the two spellings tie. "good" is a little commoner here,
+        // and the small charge on a doubling no loop marks keeps "god" ahead:
+        // a mark on the o is what settles a close call.
         assertEquals("god", decode(gestureFor("god")).first())
+    }
+
+    @Test
+    fun `an unmarked doubling still wins when it is the far commoner word`() {
+        // Issue #886: the charge used to be worth more than a list's whole
+        // range of frequencies, so `all` lost to `al`, `been` to `ben` and
+        // `ill` to anything the stroke passed near. Frequency decides again
+        // once the doubled word is clearly the commoner one.
+        val src = sourcesOf(listOf("all" to 9000, "al" to 900))
+        assertEquals("all", decode(gestureFor("al"), from = src).first())
     }
 
     @Test

@@ -72,8 +72,8 @@ impl Default for Tuning {
             gap_weight: 2.0,
             gap_window: 14.0,
             shape_weight: 2.5,
-            repeat_cost: 0.1,
-            unlooped_repeat: 0.4,
+            repeat_cost: 0.05,
+            unlooped_repeat: 0.1,
             dwell_full: 3.0,
             unclaimed_dwell: 2.0,
             loop_extent: 0.8,
@@ -438,6 +438,7 @@ impl Decoder {
         }
         self.drawn_shape();
         normalise_in_place(&mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
+        self.plain_shape(false);
         true
     }
 
@@ -792,7 +793,12 @@ impl Decoder {
         self.ws.scratch[0] = UNREACHABLE;
         let mut best = UNREACHABLE;
         for j in 1..n {
-            let from = 0.max(j as i32 - hi);
+            // The stroke's two ends are open past the band (#886): the first
+            // letter may stand any distance before the next and the last any
+            // distance after the one before, the extra travel paying the gap
+            // charge. A loop the scan missed, or collapsed only in part, used
+            // to put `ill`'s second key out of reach of its first entirely.
+            let from = if j == n - 1 { 0 } else { 0.max(j as i32 - hi) };
             let to = j as i32 - lo;
             let arc_j = self.ws.arc_at[j];
             let ease_j = if j == n - 1 { tail } else { 0.0 };
@@ -800,7 +806,7 @@ impl Decoder {
             let mut i = from;
             // Sample 0 eases by the lead too; the rest of the band is one
             // kernel call (kernels::band, the same arithmetic four at a time).
-            if i == 0 && i <= to {
+            if 0 <= to {
                 let at = self.ws.cols[prev_column];
                 if at < UNREACHABLE {
                     let travelled = arc_j - self.ws.arc_at[0];
@@ -810,7 +816,7 @@ impl Decoder {
                         best_prev = v;
                     }
                 }
-                i = 1;
+                i = i.max(1);
             }
             if i <= to {
                 let (a, b) = (i as usize, to as usize + 1);
@@ -879,7 +885,9 @@ impl Decoder {
                     let expected = span / step;
                     let lo = 1.max((expected - self.tuning.gap_window) as i32);
                     let hi = lo.max((expected + self.tuning.gap_window) as i32 + 1) + self.ws.collapsed_samples;
-                    let end = (n as i32 - 1).min(j as i32 + hi);
+                    // Open to the last sample from anywhere, and from the
+                    // first to anywhere, as in `advance`.
+                    let end = if j == 0 { n as i32 - 1 } else { (n as i32 - 1).min(j as i32 + hi) };
                     let start = j as i32 + lo;
                     // The band up to the last sample is one kernel call over
                     // `to`'s costs and remainders in sample order; the last
@@ -902,7 +910,7 @@ impl Decoder {
                             best = v;
                         }
                     }
-                    if end == n as i32 - 1 && start <= end {
+                    if start <= n as i32 - 1 {
                         let iu = n - 1;
                         let rest = self.ws.remain[iu * key_count + to];
                         if rest < UNREACHABLE {
@@ -1299,6 +1307,7 @@ impl Decoder {
         }
         self.drawn_shape();
         normalise_in_place(&mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
+        self.plain_shape(true);
         let learned = shapes.filter(|_| self.tuning.learned_shape_gain > 0.0);
         let mut rescored = Vec::with_capacity(ranked.len());
         for candidate in ranked {
@@ -1349,8 +1358,8 @@ impl Decoder {
         normalise_in_place(&mut self.ws.ideal_shape_x, &mut self.ws.ideal_shape_y);
         let mut sum = 0f64;
         for j in 0..SHAPE_POINTS {
-            let dx = self.ws.drawn_shape_x[j] - self.ws.ideal_shape_x[j];
-            let dy = self.ws.drawn_shape_y[j] - self.ws.ideal_shape_y[j];
+            let dx = self.ws.plain_shape_x[j] - self.ws.ideal_shape_x[j];
+            let dy = self.ws.plain_shape_y[j] - self.ws.ideal_shape_y[j];
             sum += (dx * dx + dy * dy).sqrt() as f64;
         }
         Some(sum / SHAPE_POINTS as f64)
@@ -1420,6 +1429,58 @@ impl Decoder {
             let (px, py) = (self.ws.path_x, self.ws.path_y);
             resample_polyline(&px, &py, self.ws.samples, &mut self.ws.drawn_shape_x, &mut self.ws.drawn_shape_y);
         }
+    }
+}
+
+impl Decoder {
+    /// `plainShape`: the normalised drawn shape into `plain_shape_*`, with the
+    /// stroke's doubling loops cut to their chords when `loops` says this
+    /// stroke's loops have been built. Only the ideal paths are compared
+    /// against it: no word's ideal path has a loop in it, so a circle left in
+    /// the shape matched the words that zigzag where it was drawn better than
+    /// the word it doubled, and "need" lost to "needed", "bee" to "bede"
+    /// (#886). The learned shapes keep the raw stroke they were stored from.
+    fn plain_shape(&mut self, loops: bool) {
+        if loops && self.shape_without_loops() {
+            normalise_in_place(&mut self.ws.plain_shape_x, &mut self.ws.plain_shape_y);
+        } else {
+            self.ws.plain_shape_x = self.ws.drawn_shape_x;
+            self.ws.plain_shape_y = self.ws.drawn_shape_y;
+        }
+    }
+
+    /// The stroke resampled into the plain shape with every doubling loop's
+    /// inside left out, as [`Decoder::collapse_arc`] collapses the arc; false,
+    /// with nothing written, when the stroke has none.
+    fn shape_without_loops(&mut self) -> bool {
+        let n = self.ws.samples;
+        let mut cut = false;
+        let mut xs = [0f32; SAMPLE_POINTS];
+        let mut ys = [0f32; SAMPLE_POINTS];
+        let mut count = 0usize;
+        let mut e = 0usize;
+        for j in 0..n {
+            while e < self.ws.loop_count && j >= self.ws.loop_to[e] {
+                e += 1;
+            }
+            let inside = e < self.ws.loop_count
+                && self.ws.loop_score[e] > 0.0
+                && self.ws.loop_key[e] >= 0
+                && j > self.ws.loop_from[e]
+                && j < self.ws.loop_to[e];
+            if inside {
+                cut = true;
+                continue;
+            }
+            xs[count] = self.ws.path_x[j];
+            ys[count] = self.ws.path_y[j];
+            count += 1;
+        }
+        if !cut || count < 2 {
+            return false;
+        }
+        resample_polyline(&xs, &ys, count, &mut self.ws.plain_shape_x, &mut self.ws.plain_shape_y);
+        true
     }
 }
 

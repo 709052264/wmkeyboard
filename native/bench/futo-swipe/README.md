@@ -48,3 +48,19 @@ Dropped: pause and wiggle marks (charging words that skip a paused key cost
 0.3 point of top-1 at weight 1 and 2.3 at weight 3: the model reads timing
 itself), the broad loop charge GlideBeam uses (+0.6 on looped doubles but
 −1 to −9 points on stray loops), and learned-shape seeding (.9564 to .9552).
+
+## GlideBeam on the same strokes
+
+`GlideRealSwipeEval` in `:app`'s tests runs the built-in decoder over the
+same files: `WM_FUTO_DIR=<folder with qwerty.json and the jsonl files>
+./gradlew :app:testIntlDebugUnitTest --tests "*GlideRealSwipeEval"`. Measured
+2026-10-22 on the first 8,000 test strokes over the bundled en.txt, before and
+after #886 (the doubling charge cut to 0.05 + 0.1, loops cut out of the shape
+channel, the stroke's ends open past the gap band):
+
+| | before | after |
+|---|---|---|
+| all strokes (6,052) | .7740 | .7791 |
+| short words with a doubled letter (81) | .1975 | .6543 |
+| doubled key redrawn with a loop (482) | .7552 | .8154 |
+| stray loop on a word with no double (4,385) | .8041 | .7977 |

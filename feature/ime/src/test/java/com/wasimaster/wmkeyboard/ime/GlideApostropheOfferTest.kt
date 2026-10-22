@@ -127,7 +127,9 @@ class GlideApostropheOfferTest {
 
     @Test
     fun `two-thumb taps and a swipe offer the contraction behind the word they read`() {
-        for ((tapped, swiped, offered) in listOf(Triple("i", "ts", "it's"), Triple("w", "ed", "we'd"))) {
+        // Not w + ed for we'd: that stroke draws "weed" as well, the commoner
+        // word, which the reading rightly prefers since #886.
+        for ((tapped, swiped, offered) in listOf(Triple("i", "ts", "it's"), Triple("w", "ere", "we're"))) {
             val read = tapped + swiped
             val (service, editor) = keyboard(settings())
             type(service, tapped)

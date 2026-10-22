@@ -114,8 +114,13 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
         /** Nats per unit of alignment cost — the dial that trades shape against
          * the language model. */
         val shapeWeight: Double = 2.5,
-        /** Flat charge for a doubled letter, which the stroke's shape cannot show. */
-        val repeatCost: Float = 0.1f,
+        /**
+         * Flat charge for a doubled letter, which the stroke's shape cannot show.
+         *
+         * 0.1 until 2026-10-22, lowered with [unloopedRepeat] (#886); the
+         * measurement is written up there.
+         */
+        val repeatCost: Float = 0.05f,
         /**
          * Extra charge for a doubled letter the finger did *not* loop on.
          *
@@ -131,8 +136,21 @@ class GlideBeam(private val tuning: Tuning = Tuning()) {
          * i as for the i, and a hold on the f of `of` had to be long enough to
          * double it or it did nothing (issue #337). A pause now says only the
          * first thing — see [unclaimedDwell] — and a doubling asks for a loop.
+         *
+         * Kept small (#886). The language model's term is `ln(1 + f)` over a
+         * list whose frequencies are already logarithms, so the most common
+         * doubled words stand only a little above the rare single spellings
+         * the same stroke draws: at 0.4, with [repeatCost] 0.1 and
+         * [shapeWeight] 2.5, the charge was worth 1.25 there and `all` lost to
+         * `al`, `been` to `ben` and `ill` to whatever passed near it. On 8,000
+         * real swipe.futo.org strokes over the bundled list, short doubled
+         * words read right .20 -> .64 (0.05 and 0.1), strokes looped on the
+         * doubled key .78 -> .81 and the whole set .7741 -> .7768; over the
+         * AOSP list .36 -> .49 on the short doubles and .6931 -> .6923 on the
+         * whole set. A stray loop on a word with no doubled letter costs .4 to
+         * .55 points, which is the price of a loop being cheaper to claim.
          */
-        val unloopedRepeat: Float = 0.4f,
+        val unloopedRepeat: Float = 0.1f,
         /**
          * How many times the stroke's own even pace a step has to take for the
          * finger to read as having stopped dead there.

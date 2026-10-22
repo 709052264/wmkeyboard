@@ -178,6 +178,14 @@ class KotlinGlideWorkspace {
     val drawnShapeX = FloatArray(SHAPE_POINTS)
     val drawnShapeY = FloatArray(SHAPE_POINTS)
 
+    /**
+     * [drawnShapeX]/[drawnShapeY] with every doubling loop cut to its chord,
+     * normalised the same way: what a word's ideal path, which never loops,
+     * is compared against. The same as the drawn shape on a stroke with none.
+     */
+    val plainShapeX = FloatArray(SHAPE_POINTS)
+    val plainShapeY = FloatArray(SHAPE_POINTS)
+
     /** The drawn shape as the shape store keeps one, for comparing against learned shapes. */
     val drawnShape8 = ByteArray(2 * SHAPE_POINTS)
     val idealShapeX = FloatArray(SHAPE_POINTS)

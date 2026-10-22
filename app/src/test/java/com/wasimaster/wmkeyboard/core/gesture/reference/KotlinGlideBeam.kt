@@ -170,6 +170,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         if (path.size < MIN_SAMPLES || keyWidth <= 0f || !resample(path, keyWidth, ws)) return false
         drawnShape(ws)
         normalise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShapeX, ws.drawnShapeY)
+        plainShape(ws, loops = false)
         return true
     }
 
@@ -649,11 +650,23 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         out[0] = KotlinGlideWorkspace.UNREACHABLE
         var best = KotlinGlideWorkspace.UNREACHABLE
         for (j in 1 until n) {
-            val from = maxOf(0, j - hi)
+            // The stroke's two ends are open past the band (#886): the first
+            // letter may stand any distance before the next and the last any
+            // distance after the one before, the extra travel paying the gap
+            // charge. A loop the scan missed, or collapsed only in part, used
+            // to put `ill`'s second key out of reach of its first entirely.
+            val from = if (j == n - 1) 0 else maxOf(0, j - hi)
             val to = j - lo
             val arcJ = arc[j]
             val easeJ = if (j == n - 1) tail else 0f
             var bestPrev = KotlinGlideWorkspace.UNREACHABLE
+            if (from > 0 && to >= 0) {
+                val at = prev[prevColumn]
+                if (at < KotlinGlideWorkspace.UNREACHABLE) {
+                    val v = at + gapCharge(arcJ - arc[0] - span, lead + easeJ)
+                    if (v < bestPrev) bestPrev = v
+                }
+            }
             var i = from
             while (i <= to) {
                 val at = prev[prevColumn + i]
@@ -730,22 +743,23 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
                     val expected = span / step
                     val lo = maxOf(1, (expected - tuning.gapWindow).toInt())
                     val hi = maxOf(lo, (expected + tuning.gapWindow).toInt() + 1) + ws.collapsedSamples
-                    val end = minOf(n - 1, j + hi)
-                    var i = j + lo
-                    while (i <= end) {
+                    // Open to the last sample from anywhere, and from the
+                    // first to anywhere, as in [advance].
+                    val end = if (j == 0) n - 1 else minOf(n - 1, j + hi)
+                    fun reach(i: Int) {
                         val rest = remain[i * keyCount + to]
-                        if (rest < KotlinGlideWorkspace.UNREACHABLE) {
-                            val gap = arc[i] - arcJ - span
-                            val ease = if (i == n - 1) {
-                                lead + anchorLead(n - 1, to, tuning.endSlack, keys, ws)
-                            } else {
-                                lead
-                            }
-                            val v = gapCharge(gap, ease) + cost[i * keyCount + to] + rest
-                            if (v < best) best = v
+                        if (rest >= KotlinGlideWorkspace.UNREACHABLE) return
+                        val gap = arc[i] - arcJ - span
+                        val ease = if (i == n - 1) {
+                            lead + anchorLead(n - 1, to, tuning.endSlack, keys, ws)
+                        } else {
+                            lead
                         }
-                        i++
+                        val v = gapCharge(gap, ease) + cost[i * keyCount + to] + rest
+                        if (v < best) best = v
                     }
+                    for (i in j + lo..end) reach(i)
+                    if (end < n - 1 && j + lo <= n - 1) reach(n - 1)
                 }
                 remain[base + from] = best
             }
@@ -1239,6 +1253,7 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         if (weight <= 0.0 || ranked.isEmpty()) return ranked
         drawnShape(ws)
         normalise(ws.drawnShapeX, ws.drawnShapeY, ws.drawnShapeX, ws.drawnShapeY)
+        plainShape(ws, loops = true)
         val learned = shapes?.takeIf { tuning.learnedShapeGain > 0.0 }
 
         val rescored = ArrayList<Candidate>(ranked.size)
@@ -1314,8 +1329,8 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
 
         var sum = 0.0
         for (j in 0 until KotlinGlideWorkspace.SHAPE_POINTS) {
-            val dx = ws.drawnShapeX[j] - ws.idealShapeX[j]
-            val dy = ws.drawnShapeY[j] - ws.idealShapeY[j]
+            val dx = ws.plainShapeX[j] - ws.idealShapeX[j]
+            val dy = ws.plainShapeY[j] - ws.idealShapeY[j]
             sum += sqrt(dx * dx + dy * dy).toDouble()
         }
         return sum / KotlinGlideWorkspace.SHAPE_POINTS
@@ -1452,6 +1467,54 @@ class KotlinGlideBeam(private val tuning: Tuning = Tuning()) {
         } else {
             resamplePolyline(ws.pathX, ws.pathY, ws.samples, ws.drawnShapeX, ws.drawnShapeY)
         }
+    }
+
+    /**
+     * Fills [KotlinGlideWorkspace.plainShapeX]/[KotlinGlideWorkspace.plainShapeY]
+     * from the normalised drawn shape, with the stroke's doubling loops cut to
+     * their chords when [loops] says this stroke's loops have been built.
+     * Only the ideal paths are compared against it: no word's ideal path has
+     * a loop in it, so a circle left in the shape matched the words that
+     * zigzag where it was drawn better than the word it doubled, and `need`
+     * lost to `needed`, `bee` to `bede` (#886). The learned shapes keep the
+     * raw stroke, since they were stored from raw strokes.
+     */
+    private fun plainShape(ws: KotlinGlideWorkspace, loops: Boolean) {
+        if (loops && shapeWithoutLoops(ws)) {
+            normalise(ws.plainShapeX, ws.plainShapeY, ws.plainShapeX, ws.plainShapeY)
+        } else {
+            ws.drawnShapeX.copyInto(ws.plainShapeX)
+            ws.drawnShapeY.copyInto(ws.plainShapeY)
+        }
+    }
+
+    /**
+     * The stroke resampled into the plain shape with every doubling loop's
+     * inside left out, as the arc collapses it ([collapseArc]); false, with
+     * nothing written, when the stroke has none.
+     */
+    private fun shapeWithoutLoops(ws: KotlinGlideWorkspace): Boolean {
+        val n = ws.samples
+        var cut = false
+        val xs = FloatArray(n)
+        val ys = FloatArray(n)
+        var count = 0
+        var e = 0
+        for (j in 0 until n) {
+            while (e < ws.loopCount && j >= ws.loopTo[e]) e++
+            val inside = e < ws.loopCount && ws.loopScore[e] > 0f && ws.loopKey[e] >= 0 &&
+                j > ws.loopFrom[e] && j < ws.loopTo[e]
+            if (inside) {
+                cut = true
+                continue
+            }
+            xs[count] = ws.pathX[j]
+            ys[count] = ws.pathY[j]
+            count++
+        }
+        if (!cut || count < 2) return false
+        resamplePolyline(xs, ys, count, ws.plainShapeX, ws.plainShapeY)
+        return true
     }
 
     /** Resamples a [count]-point polyline to [KotlinGlideWorkspace.SHAPE_POINTS] by arc length. */
