@@ -35243,6 +35243,11 @@ open class WMKeyboardService : InputMethodService() {
         }
         // openRoute buzzes on its own.
         if (action !is AiChatAction.OpenInApp) vibrate()
+        // Two halves rather than one `when`: each branch that copies the ui
+        // state inlines a call carrying every one of its fields, and the
+        // single `when` took this method past the 10,000 dex instructions at
+        // which ART stops compiling it.
+        if (aiChatSessionAction(action, chat)) return
         when (action) {
             is AiChatAction.SetMode -> {
                 _uiState.update {
@@ -35287,6 +35292,62 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             }
+            is AiChatAction.PickModel ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(modelKey = action.key)) }
+            AiChatAction.ToggleAttachment -> {
+                val next = if (chat.attachment != null) null else aiChatAttachmentFromField()
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next, attachMenu = false)) }
+            }
+            AiChatAction.Paste -> {
+                if (!isClipboardAccessible()) return
+                val clip = KeyboardClipboard.held ?: clipboardStore.latestText().orEmpty()
+                if (clip.isEmpty()) return
+                // Through the ladder, so it lands at the caret like typed text.
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true, attachMenu = false)) }
+                captureTyped(clip)
+            }
+            is AiChatAction.Insert -> commitToField(
+                if (action.raw) action.text else AiMarkdown.strip(action.text).ifBlank { action.text },
+            )
+            is AiChatAction.Copy -> KeyboardClipboard.copy(this, action.text)
+            is AiChatAction.Starter -> {
+                // Read outside the update: it flushes the composing word, and
+                // an update's block can run more than once.
+                val quoted = chat.attachment ?: if (action.attach) aiChatAttachmentFromField() else null
+                _uiState.update {
+                    it.copy(aiChat = it.aiChat.copy(draft = action.text, attachment = quoted, composing = true))
+                }
+            }
+            is AiChatAction.OpenInApp ->
+                openRoute(
+                    if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
+                )
+            is AiChatAction.Report -> aiChatReport(action.index)
+            AiChatAction.ToggleAttachMenu ->
+                _uiState.update {
+                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
+                }
+            is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
+            AiChatAction.ToggleReasoning -> {
+                val on = !state.settings.ai.chatReasoning
+                serviceScope.launch { settingsRepository.setAiChatReasoning(on) }
+            }
+            is AiChatAction.RemoveFile ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(files = it.aiChat.files - action.file)) }
+            is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
+            is AiChatAction.RemovePicture -> {
+                chatPictureFrom.remove(action.name)
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(images = it.aiChat.images - action.name)) }
+            }
+            is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
+            // The conversation list's, handled by aiChatSessionAction above.
+            else -> Unit
+        }
+    }
+
+    /** [onAiChatAction]'s conversation list: new, open, delete, pick, rename. False when [action] is not one of them. */
+    private fun aiChatSessionAction(action: AiChatAction, chat: AiChatUi): Boolean {
+        when (action) {
             AiChatAction.NewChat ->
                 _uiState.update {
                     it.copy(
@@ -35374,55 +35435,9 @@ open class WMKeyboardService : InputMethodService() {
             }
             AiChatAction.CancelRename ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(renaming = -1L, renameDraft = "", composing = false)) }
-            is AiChatAction.PickModel ->
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(modelKey = action.key)) }
-            AiChatAction.ToggleAttachment -> {
-                val next = if (chat.attachment != null) null else aiChatAttachmentFromField()
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next, attachMenu = false)) }
-            }
-            AiChatAction.Paste -> {
-                if (!isClipboardAccessible()) return
-                val clip = KeyboardClipboard.held ?: clipboardStore.latestText().orEmpty()
-                if (clip.isEmpty()) return
-                // Through the ladder, so it lands at the caret like typed text.
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true, attachMenu = false)) }
-                captureTyped(clip)
-            }
-            is AiChatAction.Insert -> commitToField(
-                if (action.raw) action.text else AiMarkdown.strip(action.text).ifBlank { action.text },
-            )
-            is AiChatAction.Copy -> KeyboardClipboard.copy(this, action.text)
-            is AiChatAction.Starter -> {
-                // Read outside the update: it flushes the composing word, and
-                // an update's block can run more than once.
-                val quoted = chat.attachment ?: if (action.attach) aiChatAttachmentFromField() else null
-                _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(draft = action.text, attachment = quoted, composing = true))
-                }
-            }
-            is AiChatAction.OpenInApp ->
-                openRoute(
-                    if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
-                )
-            is AiChatAction.Report -> aiChatReport(action.index)
-            AiChatAction.ToggleAttachMenu ->
-                _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
-                }
-            is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
-            AiChatAction.ToggleReasoning -> {
-                val on = !state.settings.ai.chatReasoning
-                serviceScope.launch { settingsRepository.setAiChatReasoning(on) }
-            }
-            is AiChatAction.RemoveFile ->
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(files = it.aiChat.files - action.file)) }
-            is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
-            is AiChatAction.RemovePicture -> {
-                chatPictureFrom.remove(action.name)
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(images = it.aiChat.images - action.name)) }
-            }
-            is AiChatAction.AskAbout, is AiChatAction.ToolApproval -> Unit
+            else -> return false
         }
+        return true
     }
 
     /**
