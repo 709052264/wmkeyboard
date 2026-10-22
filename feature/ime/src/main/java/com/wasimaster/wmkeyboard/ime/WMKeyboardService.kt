@@ -46435,6 +46435,16 @@ open class WMKeyboardService : InputMethodService() {
             FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
         }.getOrNull() ?: return false
 
+        // The grant commitContent carries lives only as long as the editor's
+        // InputContentInfo, and an app that reads the file later, off the
+        // object it was handed, finds it revoked: Messenger did, so every
+        // GIF and sticker failed with "Permission Denial … not exported" and
+        // Messenger put the keyboard away. A grant to the package itself
+        // outlasts that object. The file is one the user just sent there.
+        editorInfo.packageName?.let { target ->
+            runCatching { grantUriPermission(target, contentUri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+        }
+
         return runCatching {
             InputConnectionCompat.commitContent(
                 ic,
