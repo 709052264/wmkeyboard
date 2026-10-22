@@ -196,37 +196,6 @@ Builds:
       - wmkb.enableGms=false
       - wmkb.enableFdroid=true
 
-  - versionName: 0.6.1
-    versionCode: 34
-    commit: 5ca846a2b358903df75cc1d8e8f756e2d60245d7
-    timeout: 18000
-    subdir: app
-    sudo:
-      - apt-get update
-      - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup
-    gradle:
-      - lite
-    prebuild:
-      - sed -i -e '/org.gradle.toolchains.foojay-resolver-convention/d' ../settings.gradle.kts
-      - sed -i -e '/libs.play.app.update/d' -e '/libs.play.feature.delivery/d' -e
-        '/libs.play.services.auth/d' build.gradle.kts
-      - sdkmanager 'ndk;28.2.13676358'
-    scandelete:
-      - core/intelligence/src/full/jniLibs
-      - feature/llm/src/main/jniLibs
-      - core/voice/src/full/jniLibs
-      - native/whistle-jni/prebuilt
-      - core/voice/src/main/jniLibs
-      - core/intelligence/src/main/jniLibs
-      - core/language/src/main/jniLibs
-    build: ../native/build-lite-libs.sh
-    ndk: 29.0.14206865
-    gradleprops:
-      - wmkb.enablePlayStore=false
-      - wmkb.enableGms=false
-      - wmkb.enableFdroid=true
-
   - versionName: 0.6.2
     versionCode: 361
     commit: f56c73d3ce9b83ea616ea7b512c612da6adaa0e5
@@ -252,16 +221,6 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
-      - core/prediction/src/main/jniLibs
-      - core/intelligence/src/bergamot/jniLibs
-      - core/intelligence/src/ct2/jniLibs
-      - core/intelligence/src/llama/jniLibs
-      - core/intelligence/src/zinnia/jniLibs
-      - core/intelligence/src/docscan/jniLibs
-      - core/intelligence/src/zxing/jniLibs
-      - core/intelligence/src/imagegen/jniLibs
-      - core/intelligence/src/imagegennpu/jniLibs
-      - native/voikko-jni/jniLibs
     build: WMKB_ABIS=armeabi-v7a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -295,16 +254,6 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
-      - core/prediction/src/main/jniLibs
-      - core/intelligence/src/bergamot/jniLibs
-      - core/intelligence/src/ct2/jniLibs
-      - core/intelligence/src/llama/jniLibs
-      - core/intelligence/src/zinnia/jniLibs
-      - core/intelligence/src/docscan/jniLibs
-      - core/intelligence/src/zxing/jniLibs
-      - core/intelligence/src/imagegen/jniLibs
-      - core/intelligence/src/imagegennpu/jniLibs
-      - native/voikko-jni/jniLibs
     build: WMKB_ABIS=arm64-v8a ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -338,16 +287,6 @@ Builds:
       - core/voice/src/main/jniLibs
       - core/intelligence/src/main/jniLibs
       - core/language/src/main/jniLibs
-      - core/prediction/src/main/jniLibs
-      - core/intelligence/src/bergamot/jniLibs
-      - core/intelligence/src/ct2/jniLibs
-      - core/intelligence/src/llama/jniLibs
-      - core/intelligence/src/zinnia/jniLibs
-      - core/intelligence/src/docscan/jniLibs
-      - core/intelligence/src/zxing/jniLibs
-      - core/intelligence/src/imagegen/jniLibs
-      - core/intelligence/src/imagegennpu/jniLibs
-      - native/voikko-jni/jniLibs
     build: WMKB_ABIS=x86_64 ../native/build-lite-libs.sh
     ndk: 29.0.14206865
     gradleprops:
@@ -358,7 +297,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 371
-    commit: v0.6.3
+    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
     timeout: 18000
     subdir: app
     sudo:
@@ -375,8 +314,8 @@ Builds:
       - sed -i -e '/implementation(libs.mlkit.dynamic.feature.support) {/,/^        }$/d'
         build.gradle.kts
       - sed -i -e '/libs.mlkit./d' -e '/com.google.android.gms:/d' ../feature/ime/build.gradle.kts
-        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
-        ../feature/googlehome/build.gradle.kts
+        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts
+        ../feature/handwriting/build.gradle.kts ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
       - sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
     scandelete:
@@ -414,7 +353,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 372
-    commit: v0.6.3
+    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
     timeout: 18000
     subdir: app
     sudo:
@@ -431,8 +370,8 @@ Builds:
       - sed -i -e '/implementation(libs.mlkit.dynamic.feature.support) {/,/^        }$/d'
         build.gradle.kts
       - sed -i -e '/libs.mlkit./d' -e '/com.google.android.gms:/d' ../feature/ime/build.gradle.kts
-        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
-        ../feature/googlehome/build.gradle.kts
+        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts
+        ../feature/handwriting/build.gradle.kts ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
       - sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
     scandelete:
@@ -470,7 +409,7 @@ Builds:
 
   - versionName: 0.6.3
     versionCode: 373
-    commit: v0.6.3
+    commit: 50ba027cbdff33892313a33ba440a9db853af7cd
     timeout: 18000
     subdir: app
     sudo:
@@ -487,8 +426,8 @@ Builds:
       - sed -i -e '/implementation(libs.mlkit.dynamic.feature.support) {/,/^        }$/d'
         build.gradle.kts
       - sed -i -e '/libs.mlkit./d' -e '/com.google.android.gms:/d' ../feature/ime/build.gradle.kts
-        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
-        ../feature/googlehome/build.gradle.kts
+        ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts
+        ../feature/handwriting/build.gradle.kts ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
       - sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
     scandelete:
