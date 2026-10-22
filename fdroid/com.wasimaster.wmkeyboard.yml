@@ -378,6 +378,7 @@ Builds:
         ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
         ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
+      - sdkmanager 'platforms;android-36'
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt
@@ -433,6 +434,7 @@ Builds:
         ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
         ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
+      - sdkmanager 'platforms;android-36'
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt
@@ -488,6 +490,7 @@ Builds:
         ../core/intelligence/build.gradle.kts ../feature/translate/build.gradle.kts ../feature/handwriting/build.gradle.kts
         ../feature/googlehome/build.gradle.kts
       - sdkmanager 'ndk;28.2.13676358'
+      - sdkmanager 'platforms;android-36'
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt

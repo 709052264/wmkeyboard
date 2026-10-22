@@ -255,6 +255,16 @@ beside the r29 the native scripts use. Gradle's own steps (stripping the
 libraries it packages) then run with the NDK they expect. The release
 workflow builds from this file, so its reference APK gets the same.
 
+**`sdkmanager 'platforms;android-36'`** in `prebuild` (from 0.6.3): Mozc's
+Bazel build (`native/mozc-jni/build.sh`) goes through rules_android, which
+refuses to start without an SDK platform installed. The buildserver image
+has none until Gradle fetches its own, which is after the `build:` step, so
+the recipe installs one first. Any platform will do; Bazel only checks that
+one is there.
+
+**`xz-utils`** in `sudo` (from 0.6.3): librime's script unpacks Boost's
+`.tar.xz`, and the image has no `xz`.
+
 **Three entries per version, and `VercodeOperation`** (from 0.6.2): one
 APK per ABI ([#801](https://github.com/wasi-master/wmkeyboard/issues/801)).
 Up to 0.6.1 the one APK carried the native libraries of all three ABIs to
