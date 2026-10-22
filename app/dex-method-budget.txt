@@ -55,8 +55,8 @@ com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceEnginePick  800  3200  # 
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody  8700  3584  # ~157 parameters, and a lambda capturing them
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3520  # same parameter list
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$143$2  500  3328  # the call to KeyboardBody: 157 argument slots
-com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4300  4736  # generated: one register per field
-com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1100  4224  # generated: one register per field
+com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4400  4736  # generated: one register per field
+com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1100  4288  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  8200  4608  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1400  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9500  2112  # 445 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
