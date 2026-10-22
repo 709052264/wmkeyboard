@@ -47,6 +47,7 @@
 		"servers": "0.5.7",
 		"settings_assistant": "0.6.2",
 		"signal_stickers": "0.5.11",
+		"sticker_generator": "0.6.3",
 		"sticker_pack/{packId}/add": "0.5.11",
 		"supporters": "0.6.2",
 		"telegram_stickers": "0.6.0",
