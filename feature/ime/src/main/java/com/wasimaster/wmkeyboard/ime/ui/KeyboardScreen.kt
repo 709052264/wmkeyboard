@@ -560,6 +560,7 @@ import com.wasimaster.wmkeyboard.ime.TypingTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
 import com.wasimaster.wmkeyboard.ime.voiceChipOnly
+import com.wasimaster.wmkeyboard.ime.voiceStripShown
 import com.wasimaster.wmkeyboard.ime.supportedVoiceModes
 import com.wasimaster.wmkeyboard.ime.SizingAction
 import com.wasimaster.wmkeyboard.ime.SoundHapticAction
@@ -4018,7 +4019,7 @@ private fun TopBar(
         // Interactive voice typing gets a microphone button instead and the
         // strip carries on: there the keys are used all through the session,
         // so the candidates have to stay reachable. See [VoiceMicChip].
-        if (state.voice.strip) {
+        if (state.voiceStripShown()) {
             if (state.voiceChipOnly()) {
                 VoiceMicChip(state = state, onToggle = onVoiceToggle)
             } else {
@@ -13401,8 +13402,8 @@ private fun KeyboardBody(
                             // The strip given up for the tools' own row (#302).
                             // Compact dictation still takes it: that bar is the
                             // session's only status and its only way out.
-                            state.settings.toolbarBehavior.stripHidden && !state.voice.strip -> {}
-                            stripGivenToCapture && !state.voice.strip -> {}
+                            state.settings.toolbarBehavior.stripHidden && !state.voiceStripShown() -> {}
+                            stripGivenToCapture && !state.voiceStripShown() -> {}
                             else -> {
                                 // Avro's candidate list, when the phonetic layout's
                                 // language asks for it in a row of its own, sits

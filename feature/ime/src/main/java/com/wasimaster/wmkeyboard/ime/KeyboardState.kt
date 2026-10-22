@@ -1244,6 +1244,17 @@ fun VoiceBarSettings.armed(): Boolean = enabled && mode == VoiceBarSettings.MODE
  * password field. Those fall back to the compact bar, which has a line of text
  * and an action.
  */
+/**
+ * The compact dictation bar holds the strip row. It steps aside while the mic
+ * is idle and a word is being typed (#887): after a phrase lands, the keys are
+ * how its mistakes get fixed, and the candidates for that word (or a Chinese
+ * reading's characters) have nowhere else to show. The bar comes back as the
+ * word is committed. Listening, transcribing or with something to report, it
+ * keeps the row, since it is the session's status and its way out.
+ */
+fun KeyboardUiState.voiceStripShown(): Boolean =
+    voice.strip && !(voice.status == VoiceStatus.IDLE && composingPreview.isNotEmpty())
+
 fun KeyboardUiState.voiceChipOnly(): Boolean =
     settings.voiceBar.interactiveTyping() &&
         !secureField &&
