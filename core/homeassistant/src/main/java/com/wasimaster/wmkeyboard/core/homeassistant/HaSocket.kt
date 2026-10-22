@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -169,7 +170,9 @@ class HaSocket(
 
     private suspend fun run() {
         backoffIndex = 0
-        while (scope.isActive && runner?.isActive == true) {
+        // Its own job, not `runner`: on a multi-threaded scope the loop can start before
+        // launch returns and `runner` is set, and would end before its first try.
+        while (scope.isActive && currentCoroutineContext().isActive) {
             val outcome = attempt()
             live = false
             connection = null
