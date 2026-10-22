@@ -212,8 +212,8 @@ if [ -n "$extras" ]; then
   # Name only what is in the block. Mappings and symbols were first attached in
   # 0.5.8, so an older release's block is checksums alone.
   if [ -f "$dist/${prefix}-full-intl-mapping.txt.gz" ]; then
-    summary='Checksums, R8 mappings and native symbols'
-    blurb='For verifying a download, and for reading a crash report from these APKs.'
+    summary='R8 mappings and native symbols'
+    blurb='For reading a crash report from these APKs.'
   else
     summary='Checksums'
     blurb='For verifying what you downloaded.'

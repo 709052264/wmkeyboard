@@ -180,8 +180,11 @@ jobs:
           # interpreted until Android's overnight maintenance gets to it (11.5%
           # janky frames against 2.5% on a CPH2481). One per variant and API
           # range, named by output-metadata.json: the ABI splits of a variant
-          # carry the same dex, so they share one.
-          for meta in app/build/outputs/apk/*/release/output-metadata.json; do
+          # carry the same dex, so they share one. The standard (en) build's
+          # only: nothing installs the all-languages build, which is built here
+          # to cut the language packs from, and its profile next to a renamed
+          # copy of the standard APK would not match it.
+          for meta in app/build/outputs/apk/en/release/output-metadata.json; do
             dir=$(dirname "$meta")
             language=$(basename "$(dirname "$dir")")   # intl
             jq -r '.baselineProfiles[]? | "\(.minApi) \(.baselineProfiles[0])"' "$meta" \
@@ -232,10 +235,10 @@ jobs:
           # as the publish job uploads them there.
           standard=$(find app/build/outputs/apk/en -name '*-universal-release.apk' | head -1)
           .github/scripts/collect-natives.sh "$standard" natives
-          # nullglob: with no symbols zip, a literal `*.zip` would reach
-          # sha256sum and fail the step under the runner's `bash -e`.
-          shopt -s nullglob
-          cd dist && sha256sum *.apk *.dm *.gz *.zip > SHA256SUMS.txt && cat SHA256SUMS.txt
+          # No SHA256SUMS.txt: GitHub lists a SHA-256 digest for every release
+          # asset, which is what the in-app updater checks, and the file sat at
+          # the top of the asset list where nobody installing wants it.
+          ls -l dist
 
       - name: Wipe keystore
         if: always()
@@ -792,16 +795,6 @@ jobs:
             fi
           done
 
-      # SHA256SUMS.txt was written by the apks job, before these files existed.
-      - name: Check-sum the late arrivals
-        run: |
-          shopt -s nullglob
-          cd dist
-          for f in *-play-mapping.txt.gz *-fdroid.apk *-nointernet-*; do
-            grep -q " $f$" SHA256SUMS.txt || sha256sum "$f" >> SHA256SUMS.txt
-          done
-          cat SHA256SUMS.txt
-
       # The body is built from the artifacts that were actually produced, so
       # the download grid carries real file sizes and never links a file the
       # build did not make.
@@ -842,7 +835,7 @@ jobs:
           TITLE: WM Keyboard ${{ needs.verify.outputs.version }}
         run: |
           shopt -s nullglob
-          files=(dist/*.apk dist/*.dm dist/*-mapping.txt.gz dist/*-native-symbols.zip dist/SHA256SUMS.txt)
+          files=(dist/*.apk dist/*.dm dist/*-mapping.txt.gz dist/*-native-symbols.zip)
           if [ ${#files[@]} -eq 0 ]; then
             echo "::error::Nothing in dist/ to attach"
             exit 1
