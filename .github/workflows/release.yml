@@ -256,6 +256,14 @@ jobs:
           path: natives/
           retention-days: 30
 
+      # The resource IDs the language packs were cut against, for the
+      # `pack-ids` check: the offline English build must match them.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resource-ids-standard
+          path: build/resource-ids.txt
+          retention-days: 30
+
   # The reference APK for F-Droid's reproducible build. F-Droid builds each tag
   # from source itself, compares its unsigned APK with this one, and if they
   # match apart from the signature it copies this signature onto its build and
@@ -416,23 +424,28 @@ jobs:
           retention-days: 30
 
   # The offline build: no INTERNET permission (#292), for people who want a
-  # keyboard that cannot reach the network at all. All languages, with
-  # every feature library and translation built in, since it could never
-  # fetch them; models still come in through Import. One of GitHub's two
-  # builds from 0.6.3, beside the standard one. Installs over the standard
-  # build and back. arm64-v8a and universal only.
+  # keyboard that cannot reach the network at all. From 0.6.4 it is as slim
+  # as the standard build: English, with its feature libraries pinned rather
+  # than bundled. It cannot fetch either, so both come in as imports of the
+  # same files the standard build downloads: this release's lang-*.apk packs
+  # (Android 11 and up) and the data repository's `natives` assets. Beside it
+  # an all-languages build (universal only) for Android 7 to 10, which cannot
+  # load a language pack, and for anyone who wants every language built in.
+  # Both install over the standard build and back.
   #
   # Its own runner, like `fdroid`: wmkb.noInternet is a project-wide flag, so
-  # it cannot share a Gradle invocation with the four regular builds, and a
-  # second invocation in that job would overwrite their release APKs.
+  # it cannot share a Gradle invocation with the regular builds, and a second
+  # invocation in that job would overwrite their release APKs.
   # Every other input matches the `apks` job, which keeps the dex the same as
-  # the regular build's and so lets the retrace workflow use that mapping.
+  # the regular builds' and so lets the retrace workflow use their mappings,
+  # and keeps the English build's resource IDs the ones the language packs
+  # were cut against (`pack-ids` checks).
   offline:
     name: No-internet APKs
     needs: verify
     if: needs.verify.outputs.buildable == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -484,7 +497,13 @@ jobs:
           WMKB_ONEDRIVE_CLIENT_ID: ${{ secrets.WMKB_ONEDRIVE_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_ID: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_ID }}
           WMKB_SMARTTHINGS_CLIENT_SECRET: ${{ secrets.WMKB_SMARTTHINGS_CLIENT_SECRET }}
+        # One variant per Gradle call, as in `apks`.
         run: |
+          ./gradlew assembleEnRelease \
+            -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
+          mkdir -p build
+          cp app/build/intermediates/stable_resource_ids_file/enRelease/processEnReleaseResources/stableIds.txt \
+            build/resource-ids.txt
           ./gradlew assembleIntlRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 
@@ -506,10 +525,14 @@ jobs:
           aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
           mkdir -p dist
           # The published names keep the `full` edition token (see the apks job).
-          for variant in full-intl:intl; do
+          # name:gradle flavour:ABIs. The all-languages one is universal only:
+          # it is for Android 7 to 10, which runs on 32-bit phones as often.
+          for variant in full-en:en:arm64-v8a,universal full-intl:intl:universal; do
             name=${variant%%:*}
-            gradle=${variant##*:}
-            for abi in arm64-v8a universal; do
+            rest=${variant#*:}
+            gradle=${rest%%:*}
+            abis=${rest#*:}
+            for abi in ${abis//,/ }; do
               apk=$(find app/build/outputs/apk -name "app-${gradle}-${abi}-release.apk" | head -1)
               if [ -z "$apk" ]; then
                 echo "::error::No app-${gradle}-${abi}-release.apk under app/build/outputs/apk"
@@ -537,6 +560,39 @@ jobs:
           name: offline-apks
           path: dist/
           retention-days: 30
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resource-ids-offline
+          path: build/resource-ids.txt
+          retention-days: 30
+
+  # The language packs are cut from the `apks` job's all-languages build,
+  # compiled with the standard English build's resource IDs. The offline
+  # English build is a separate compile on another runner, so it takes the
+  # same packs only if aapt2 gave it the same IDs, which it should: only its
+  # manifest differs. Checked here rather than assumed, in dry runs too,
+  # because a mismatch would load every pack's strings under the wrong names.
+  pack-ids:
+    name: Language packs fit the offline build
+    needs: [apks, offline]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: resource-ids-standard
+          path: standard
+      - uses: actions/download-artifact@v4
+        with:
+          name: resource-ids-offline
+          path: offline
+      - run: |
+          if ! cmp -s standard/resource-ids.txt offline/resource-ids.txt; then
+            echo "::error::The offline English build's resource IDs differ from the standard build's, so this release's language packs would not fit it"
+            diff standard/resource-ids.txt offline/resource-ids.txt | head -40
+            exit 1
+          fi
+          echo "Resource IDs match ($(wc -l < standard/resource-ids.txt) resources)"
 
   bundle:
     name: Play bundle (artifact only)
@@ -698,8 +754,9 @@ jobs:
     # both jobs carry the same `buildable` gate, so nothing that used to
     # publish is held back by waiting for it. `fdroid` because F-Droid fetches
     # its reference APK from this release, and a release without it fails their
-    # build of this version. `offline` for the no-internet APKs.
-    needs: [verify, apks, bundle, fdroid, offline]
+    # build of this version. `offline` for the no-internet APKs, and
+    # `pack-ids` so they never ship beside language packs that do not fit.
+    needs: [verify, apks, bundle, fdroid, offline, pack-ids]
     if: github.ref_type == 'tag' && !inputs.dry_run
     runs-on: ubuntu-latest
     steps:
@@ -785,7 +842,7 @@ jobs:
         run: |
           shopt -s nullglob
           cd dist
-          for own in *-full-intl-nointernet-mapping.txt.gz; do
+          for own in *-nointernet-mapping.txt.gz; do
             regular=${own/-nointernet/}
             if [ -f "$regular" ] && cmp -s <(gunzip -c "$own") <(gunzip -c "$regular"); then
               echo "$own matches $regular; not attaching it"

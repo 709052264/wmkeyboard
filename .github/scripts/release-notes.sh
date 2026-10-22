@@ -112,8 +112,8 @@ The all-languages build (\`full-intl\`) and the lite builds are gone: the
 standard build is all of them now. It installs over any of them and keeps every
 setting, and the in-app updater moves you onto it. Your interface language comes
 back as a download the first time the app runs on Android 11 or later; on
-Android 7 to 10 the standard build's interface is English, so take the offline
-build below to keep yours. F-Droid installs stay on F-Droid.
+Android 7 to 10 the standard build's interface is English, so to keep yours
+take the offline all-languages build below. F-Droid installs stay on F-Droid.
 
 </details>
 
@@ -130,9 +130,44 @@ build below to keep yours. F-Droid installs stay on F-Droid.
 
 EOF
 
-# The no-internet build, from the `offline` job. Releases before it existed
-# carry neither file, and get no section rather than one saying "not built".
-if [ -f "$dist/${prefix}-full-intl-nointernet-arm64-v8a.apk" ] \
+# The no-internet builds, from the `offline` job. Releases before it existed
+# carry none of these files, and get no section rather than one saying "not
+# built". Up to 0.6.3 the offline build was all languages with every library
+# built in (`full-intl-nointernet`, arm64-v8a and universal); from 0.6.4 it is
+# English and slim, with an all-languages universal one beside it.
+if [ -f "$dist/${prefix}-full-en-nointernet-arm64-v8a.apk" ]; then
+cat <<EOF
+<details>
+<summary><b>Offline</b> (a keyboard that cannot reach the network at all)</summary>
+
+The standard build with \`android.permission.INTERNET\` taken out of the
+manifest, so Android refuses every connection the app tries to make. It is as
+small as the standard build because it leaves out the same things: the
+interface is English, and the libraries behind features like offline voice
+typing, grammar checking, the scanner, handwriting, on-device translation and
+on-device AI are not built in. It cannot download them, so you fetch the ones
+you want on another device and import them: interface languages are the
+\`lang-\` files below (Android 11 or later), and **Settings › Privacy › Feature
+libraries** names each library file and where it is published. Every import is
+checked against a checksum built into the app. Typing, prediction, gesture
+typing and the clipboard need nothing. The app cannot check for its own updates,
+so come back here for new versions
+([how importing works](https://wmkeyboard.pages.dev/privacy/offline/)).
+
+**All languages** is the same build with all 48 interface languages built in.
+Take it on Android 7 to 10, which cannot load a language pack, or to skip
+importing one. Both are signed with the same key as the standard build, so any
+of them installs over another without losing a setting.
+
+| | arm64-v8a | universal |
+|:---|:---|:---|
+| **Offline** | $(cell "${prefix}-full-en-nointernet-arm64-v8a.apk") | $(cell "${prefix}-full-en-nointernet-universal.apk") |
+| **Offline, all languages** | | $(cell "${prefix}-full-intl-nointernet-universal.apk") |
+
+</details>
+
+EOF
+elif [ -f "$dist/${prefix}-full-intl-nointernet-arm64-v8a.apk" ] \
   || [ -f "$dist/${prefix}-full-intl-nointernet-universal.apk" ]; then
 cat <<EOF
 <details>
@@ -141,16 +176,11 @@ cat <<EOF
 The standard build with \`android.permission.INTERNET\` taken out of the
 manifest, so Android refuses every connection the app tries to make, and with
 everything it would otherwise download built in: all 48 interface languages and
-every feature library. Typing, prediction, gesture typing, the clipboard, grammar
-checking, the scanners and a local AI model imported from a file all work.
-Anything that downloads (dictionary packs, voice and handwriting models,
-translation languages, GIFs, cloud backups) fails as it would with the phone
+every feature library. Anything that downloads fails as it would with the phone
 offline, and the app cannot check for its own updates, so come back here for new
 versions. Language packs, voice models, OCR data and offline GIF packs fetched
 on another device can be imported instead
 ([how](https://wmkeyboard.pages.dev/privacy/offline/)).
-Signed with the same key as the standard build, so either installs over the
-other without losing a setting.
 
 | | arm64-v8a | universal |
 |:---|:---|:---|
@@ -172,8 +202,10 @@ cat <<EOF
 <details>
 <summary><b>Interface language packs</b> ($packs, for importing by hand)</summary>
 
-The standard build downloads these itself when you pick a language. Each is
-signed with the release key and only works with this version.
+The standard build downloads these itself when you pick a language; the
+offline build imports them (Settings › About › Storage › Import downloaded
+files), on Android 11 or later. Each is signed with the release key and only
+works with this version.
 
 $pack_list
 
@@ -202,8 +234,9 @@ fdroid_row arm64-v8a 2 'to most phones'
 fdroid_row armeabi-v7a 1 'to 32-bit phones'
 fdroid_row x86_64 3 'to x86 Chromebooks and tablets'
 row "${prefix}-full-en-mapping.txt.gz" 'R8 mapping, **standard build**. Retraces a stack trace'
-row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **offline build** (full · all languages, which it is apart from its manifest)'
-row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from full · all languages, which otherwise serves both'
+row "${prefix}-full-intl-mapping.txt.gz" 'R8 mapping, **all-languages build**: the one the language packs are cut from, and the offline all-languages build, which it is apart from its manifest'
+row "${prefix}-full-en-nointernet-mapping.txt.gz" 'R8 mapping, **offline build**. Only attached when it differs from the standard build'"'"'s, which otherwise serves both'
+row "${prefix}-full-intl-nointernet-mapping.txt.gz" 'R8 mapping, **offline all-languages build**. Only attached when it differs from the all-languages one, which otherwise serves both'
 row "${prefix}-play-mapping.txt.gz" 'R8 mapping, **Play build**. The Play channel flags change what R8 renames, so this is the only one that reads a crash from a Play install'
 row "${prefix}-full-intl-native-symbols.zip" 'Native debug symbols, **full · all languages**'
 row "${prefix}-full-en-native-symbols.zip" 'Native debug symbols, **standard build**'

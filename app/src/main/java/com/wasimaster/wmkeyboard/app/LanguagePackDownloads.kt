@@ -16,7 +16,8 @@ import java.io.File
 /**
  * Fetching and checking interface language packs ([LanguagePackResources])
  * for the standard GitHub build: one resource-only APK per language, attached
- * to the GitHub release of exactly this version.
+ * to the GitHub release of exactly this version. The offline build's English
+ * one takes the same packs, but only as imports.
  *
  * A pack is accepted only when it is signed with this app's own certificate
  * and was cut from this version's build, so a file from elsewhere, or from
@@ -32,12 +33,19 @@ internal object LanguagePackDownloads {
     fun isEnglish(tag: String): Boolean = LanguagePackResources.qualifierOf(tag).substringBefore('-') == "en"
 
     /** The release asset holding [tag]'s pack. */
-    fun url(tag: String): String {
+    fun url(tag: String): String =
+        "https://github.com/${GithubReleases.REPO}/releases/download/v${com.wasimaster.wmkeyboard.config.BuildConfig.VERSION_NAME}/${fileName(tag)}"
+
+    /** [tag]'s pack as this version's release names it, which is also what an import is recognised by. */
+    fun fileName(tag: String): String {
         val version = com.wasimaster.wmkeyboard.config.BuildConfig.VERSION_NAME
         val code = com.wasimaster.wmkeyboard.config.BuildConfig.VERSION_CODE
-        val name = "wmkeyboard-$version-vc$code-lang-${LanguagePackResources.qualifierOf(tag)}.apk"
-        return "https://github.com/${GithubReleases.REPO}/releases/download/v$version/$name"
+        return "wmkeyboard-$version-vc$code-lang-${LanguagePackResources.qualifierOf(tag)}.apk"
     }
+
+    /** This version's release page, where every pack is listed: for fetching them on another device. */
+    fun releasePage(): String =
+        "https://github.com/${GithubReleases.REPO}/releases/tag/v${com.wasimaster.wmkeyboard.config.BuildConfig.VERSION_NAME}"
 
     /** The published file name of a pack, which an import is recognised by. */
     private val PACK_NAME = Regex("""^wmkeyboard-.+-vc\d+-lang-([a-z]{2,3}(?:-r[A-Z]{2})?)\.apk$""")
