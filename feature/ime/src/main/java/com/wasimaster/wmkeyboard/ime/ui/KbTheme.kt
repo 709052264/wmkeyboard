@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.ime.ui
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -53,6 +54,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import com.wasimaster.wmkeyboard.core.script.ScriptId
+import com.wasimaster.wmkeyboard.core.layout.language
+import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.fonts.LayoutFonts
 import com.wasimaster.wmkeyboard.core.emoji.EmojiFontShaping
 import com.wasimaster.wmkeyboard.core.settings.withRotation
@@ -608,6 +611,36 @@ val LocalEmojiFontFamily = staticCompositionLocalOf<FontFamily?> { null }
  * face to chain it in front of (see [KeyboardFonts.latinFirstFamily]).
  */
 private val LATIN_FONT_SCRIPTS = setOf(ScriptId.LATIN, ScriptId.CYRILLIC, ScriptId.GREEK, ScriptId.IPA)
+
+/**
+ * The Latin font and the script face [KeyboardFonts.latinFirstFamily] chains for
+ * a board in [scriptId], or null where the board draws in one face: a script
+ * that rides the Latin faces, no script face, or the two being one font.
+ */
+private fun latinFirstIds(
+    context: Context,
+    settings: KeyboardSettings,
+    scriptId: ScriptId,
+    layoutFontId: String?,
+    themeFontId: String?,
+    themeScriptFontId: String?,
+    unicodeMyanmar: Boolean,
+): Pair<String, String>? {
+    if (scriptId in LATIN_FONT_SCRIPTS) return null
+    val latinId = settings.keyFontId.takeIf {
+        it != KeyboardFonts.DEFAULT_ID && KeyboardFonts.family(context, it) != null
+    } ?: themeFontId?.takeIf { KeyboardFonts.family(context, it) != null }
+        ?: KeyboardFonts.DEFAULT_ID
+    val scriptFontId = KeyboardFonts.scriptFontId(
+        context,
+        scriptId,
+        settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
+        layoutFontId,
+        themeScriptFontId,
+        unicodeMyanmar,
+    ) ?: return null
+    return (latinId to scriptFontId).takeIf { latinId != scriptFontId }
+}
 
 internal val LocalScriptLabelFont = staticCompositionLocalOf<(ScriptId) -> FontFamily?> { { null } }
 
@@ -1485,20 +1518,40 @@ fun KeyboardThemeProvider(
         settings.customScriptFontNames,
         unicodeMyanmar,
     ) {
-        if (scriptId in LATIN_FONT_SCRIPTS) return@remember null
-        val latinId = settings.keyFontId.takeIf {
-            it != KeyboardFonts.DEFAULT_ID && KeyboardFonts.family(context, it) != null
-        } ?: themeFontId?.takeIf { KeyboardFonts.family(context, it) != null }
-            ?: KeyboardFonts.DEFAULT_ID
-        val scriptFontId = KeyboardFonts.scriptFontId(
-            context,
-            scriptId,
-            settings.scriptFontIds[scriptId.name] ?: KeyboardFonts.DEFAULT_ID,
-            layoutFontId,
-            themeScriptFontId,
-            unicodeMyanmar,
-        ) ?: return@remember null
-        (latinId to scriptFontId).takeIf { latinId != scriptFontId }
+        latinFirstIds(context, settings, scriptId, layoutFontId, themeFontId, themeScriptFontId, unicodeMyanmar)
+    }
+    // The same pair for every other enabled layout, built ahead off the main
+    // thread. Bengali's face is a Google one, a provider round trip: built on
+    // the switch itself, the first Avro board of a process drew its Latin keys
+    // in the Bengali face's Latin for a third of a second, then jumped.
+    LaunchedEffect(
+        settings.enabledLayoutIds,
+        settings.customLayouts,
+        themeFontId,
+        settings.keyFontId,
+        settings.scriptFontIds,
+        settings.customFontName,
+        settings.customScriptFontNames,
+        darkSlot,
+        unicodeMyanmar,
+    ) {
+        val themeSpec = settings.activeThemeSpec(darkSlot)
+        withContext(Dispatchers.IO) {
+            for (id in settings.enabledLayoutIds) {
+                val layout = resolveLayout(settings.customLayouts, id)
+                val script = layout.language().script
+                val (latinId, scriptFontId) = latinFirstIds(
+                    context,
+                    settings,
+                    script,
+                    layout.appearance?.fontId,
+                    themeFontId,
+                    themeSpec?.scriptFontIds?.get(script.name),
+                    unicodeMyanmar,
+                ) ?: continue
+                KeyboardFonts.latinFirstFamily(context, latinId, scriptFontId)
+            }
+        }
     }
     // Settled in the very composition that switched the board whenever it can
     // be: one frame in the script face alone, then the chain, made every Latin
