@@ -3550,7 +3550,7 @@
     <string name="layout_editor_composer_inherit_desc">Метод определяется языком выше</string>
     <string name="layout_editor_composer_jyutping">Ютпхин (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">Ввод кантонских звуков латинскими буквами</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro Dark</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro, но буквы соединяются только при нажатии / после них</string>
     <string name="layout_editor_composer_khipro_desc">Вводите бенгальские символы строчными буквами, используя f и / в качестве модификаторов</string>

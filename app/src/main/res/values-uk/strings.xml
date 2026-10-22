@@ -3545,7 +3545,7 @@
     <string name="layout_editor_composer_inherit_desc">Мова вище визначає метод</string>
     <string name="layout_editor_composer_jyutping">Ютпхін (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">Вводьте кантонські звуки латинськими літерами</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro Dark</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro, але літери з\'єднуються лише тоді, коли ви натискаєте / після них</string>
     <string name="layout_editor_composer_khipro_desc">Вводьте бенгальські символи малими літерами з використанням клавіш f та / як модифікаторів</string>

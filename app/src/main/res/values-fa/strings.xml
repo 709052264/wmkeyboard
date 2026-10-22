@@ -3553,7 +3553,7 @@
     <string name="layout_editor_composer_inherit_desc">زبان بالا روش را تعیین می‌کند</string>
     <string name="layout_editor_composer_jyutping">جیوت‌پینگ (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">آواهای کانتونی را با حروف لاتین تایپ کنید</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro تیره</string>
     <string name="layout_editor_composer_khipro_dark_desc">خیپرو، اما حروف فقط زمانی به هم می‌چسبند که بعد از آن‌ها / را فشار دهید</string>
     <string name="layout_editor_composer_khipro_desc">تایپ بنگالی با حروف کوچک، با استفاده از f و / به عنوان اصلاح‌کننده</string>

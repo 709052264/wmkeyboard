@@ -3546,7 +3546,7 @@
     <string name="layout_editor_composer_inherit_desc">اوپر والی زبان طریقہ کار کا فیصلہ کرتی ہے</string>
     <string name="layout_editor_composer_jyutping">جیوتپنگ (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">کینٹونیز آوازیں رومن حروف میں ٹائپ کریں</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro Dark</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro، لیکن حروف صرف تب جڑتے ہیں جب آپ ان کے بعد / دبائیں</string>
     <string name="layout_editor_composer_khipro_desc">بنگلہ کو چھوٹے حروف میں ٹائپ کریں، f اور / کو بطور موڈیفائر استعمال کرتے ہوئے</string>

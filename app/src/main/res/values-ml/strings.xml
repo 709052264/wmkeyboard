@@ -3556,7 +3556,7 @@
     <string name="layout_editor_composer_inherit_desc">മുകളിലുള്ള ഭാഷ രീതി തീരുമാനിക്കുന്നു</string>
     <string name="layout_editor_composer_jyutping">ജ്യുത്പിംഗ് (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">കാന്റണീസ് ശബ്ദങ്ങൾ റോമൻ അക്ഷരങ്ങളിൽ ടൈപ്പ് ചെയ്യുക</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">ഖിപ്രോ ഡാർക്ക്</string>
     <string name="layout_editor_composer_khipro_dark_desc">ഖിപ്രോ, എന്നാൽ അക്ഷരങ്ങൾ അവയ്ക്ക് ശേഷം / അമർത്തുമ്പോൾ മാത്രമേ യോജിക്കുകയുള്ളൂ</string>
     <string name="layout_editor_composer_khipro_desc">f, / എന്നിവ മോഡിഫയറുകളായി ഉപയോഗിച്ച് ചെറിയക്ഷരങ്ങളിൽ ബംഗ്ലാ ടൈപ്പ് ചെയ്യുക</string>

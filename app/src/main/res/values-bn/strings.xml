@@ -3565,7 +3565,7 @@
     <string name="layout_editor_composer_inherit_desc">উপরের ভাষাটি পদ্ধতি নির্ধারণ করে</string>
     <string name="layout_editor_composer_jyutping">জ্যুতপিং (粵拼)</string>
     <string name="layout_editor_composer_jyutping_desc">রোমান অক্ষরে ক্যান্টোনিজ শব্দ টাইপ করুন</string>
-    <string name="layout_editor_composer_khipro">ক্ষিপ্র (Khipro)</string>
+    <string name="layout_editor_composer_khipro">ক্ষিপ্র (Khipro Classic)</string>
     <string name="layout_editor_composer_khipro_dark">খিপরো ডার্ক</string>
     <string name="layout_editor_composer_khipro_dark_desc">খিপরো, কিন্তু অক্ষরগুলি কেবল তখনই যুক্ত হয় যখন আপনি সেগুলোর পরে / চাপেন</string>
     <string name="layout_editor_composer_khipro_desc">ছোট হাতের অক্ষরে বাংলা টাইপ করুন, মডিফায়ার হিসেবে f এবং / ব্যবহার করে</string>

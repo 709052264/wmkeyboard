@@ -3541,7 +3541,7 @@
     <string name="layout_editor_composer_inherit_desc">위의 언어가 방식을 결정합니다</string>
     <string name="layout_editor_composer_jyutping">월병(Jyutping)</string>
     <string name="layout_editor_composer_jyutping_desc">광둥어 발음을 로마자로 입력</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro 다크</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro와 같지만, /를 누른 후에만 문자가 결합됩니다</string>
     <string name="layout_editor_composer_khipro_desc">f와 /를 수정자로 사용하여 벵골어를 소문자로 입력하세요.</string>

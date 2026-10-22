@@ -159,6 +159,8 @@ object BuiltInLayouts {
 
     /**
      * Khipro (ক্ষিপ্র), Bengali composed from lowercase keys (issue #400).
+     * Named Khipro Classic, as the Khipro team has called it since Khipro
+     * Dark came out (#892).
      *
      * The grid follows the Khipro team's own guideline for touchscreens, which
      * HeliBoard and Borno also follow: Khipro never needs shift, so the shift
@@ -172,7 +174,7 @@ object BuiltInLayouts {
      */
     val KHIPRO = LayoutSpec(
         id = KHIPRO_ID,
-        name = "Khipro",
+        name = "Khipro Classic",
         langId = "bn",
         composer = ComposerType.KHIPRO,
         layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(khiproRows)),

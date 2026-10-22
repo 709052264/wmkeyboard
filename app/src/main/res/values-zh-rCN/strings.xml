@@ -3537,7 +3537,7 @@
     <string name="layout_editor_composer_inherit_desc">上方的语言决定了输入法</string>
     <string name="layout_editor_composer_jyutping">粤拼 (Jyutping)</string>
     <string name="layout_editor_composer_jyutping_desc">用罗马字母输入粤语发音</string>
-    <string name="layout_editor_composer_khipro">Khipro (ক্ষিপ্র)</string>
+    <string name="layout_editor_composer_khipro">Khipro Classic (ক্ষিপ্র)</string>
     <string name="layout_editor_composer_khipro_dark">Khipro 深色</string>
     <string name="layout_editor_composer_khipro_dark_desc">Khipro 布局，但仅在字母后按下 / 时才会连接</string>
     <string name="layout_editor_composer_khipro_desc">使用小写字母输入孟加拉语，并以 f 和 / 作为修饰符</string>
