@@ -168,6 +168,17 @@ class CaptureFieldTest {
     }
 
     @Test
+    fun `a glide after a mark is spaced off it (#880)`() {
+        assertEquals(CaretText("hello, world", 12), CaretText("hello,").glided("world"))
+        assertEquals(CaretText("(see) there", 11), CaretText("(see)").glided("there"))
+    }
+
+    @Test
+    fun `a glide after an opener stays against it`() {
+        assertEquals(CaretText("(world", 6), CaretText("(").glided("world"))
+    }
+
+    @Test
     fun `a glide before punctuation leaves it attached`() {
         assertEquals(CaretText("hello world?", 11), CaretText("hello?", caret = 5).glided("world"))
     }

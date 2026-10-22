@@ -225,7 +225,10 @@ data class CaretText(
         val i = at
         val head = text.substring(0, i)
         val tail = text.substring(i)
-        val lead = if (head.isNotEmpty() && isWordChar(head.last())) " " else ""
+        // Spaced off a word, and off the mark that ends one (#880): a glide
+        // after `hello,` is the next word, not `hello,world`. An opening
+        // bracket or quote keeps the word against it.
+        val lead = if (head.isNotEmpty() && (isWordChar(head.last()) || head.last() in SPACED_BEFORE_GLIDE)) " " else ""
         val body = head + lead + word
         return when {
             tail.isEmpty() -> CaretText(body, body.length)
@@ -267,6 +270,9 @@ data class CaretText(
          */
         fun isWordChar(c: Char): Boolean =
             c.isLetterOrDigit() || c == '\'' || c == '’' || c == '-'
+
+        /** The marks a glided word is spaced off when it lands right after one: clause ends and closers. */
+        private const val SPACED_BEFORE_GLIDE = ".,!?;:।)]}”»…"
 
         /**
          * The word [index] is on or just after, as a range of [text], or null
@@ -322,17 +328,24 @@ enum class CaptureTarget(
      * against a word it was never typed into.
      */
     val movableCaret: Boolean = true,
+    /**
+     * Whether the field is written in sentences, so a punctuation mark typed
+     * into it is followed by a space the way it is in a message (#880). Not
+     * the searches, where a trailing space holds the results back a word
+     * (#300), and not the one-word boxes.
+     */
+    val prose: Boolean = false,
 ) {
     TYPING_TEST(takesWords = false, movableCaret = false),
-    AI_CUSTOM(takesWords = true),
+    AI_CUSTOM(takesWords = true, prose = true),
     /** The AI panel's chat composer (#280): free text, newlines and all. */
-    AI_CHAT(takesWords = true),
+    AI_CHAT(takesWords = true, prose = true),
 
     /**
      * The reply panel's own message box (#234): what the other person said,
      * typed or pasted in. Free text — a message runs to more than one line.
      */
-    AI_REPLY(takesWords = true),
+    AI_REPLY(takesWords = true, prose = true),
 
     /** The KDE Connect panel's "add by address" box: an IP address or a host name. */
     KDE_HOST(takesWords = false),
@@ -346,7 +359,7 @@ enum class CaptureTarget(
     KDE_REMOTE(takesWords = true, movableCaret = false),
 
     /** The same panel in compose mode: a line edited here and sent whole on Enter. */
-    KDE_COMPOSE(takesWords = true),
+    KDE_COMPOSE(takesWords = true, prose = true),
     PLUGIN(takesWords = true),
     FIND_QUERY(takesWords = true),
     FIND_REPLACEMENT(takesWords = true),
@@ -359,7 +372,7 @@ enum class CaptureTarget(
     DICTIONARY_SEARCH(takesWords = true),
     CLIPBOARD_SEARCH(takesWords = true),
     /** The clipboard panel's clip editor: free text, newlines and all. */
-    CLIP_EDIT(takesWords = true),
+    CLIP_EDIT(takesWords = true, prose = true),
 
     /** The clipboard's Combine (#612): what goes between the clips. Punctuation, not words. */
     CLIP_JOINER(takesWords = false),
@@ -379,7 +392,7 @@ enum class CaptureTarget(
     NOTE_TITLE(takesWords = true),
 
     /** A note's body: free text, newlines and all, like [CLIP_EDIT]. */
-    NOTE_BODY(takesWords = true),
+    NOTE_BODY(takesWords = true, prose = true),
 
     /** A new tag being typed in the note editor's tag row; Enter adds it. */
     NOTE_TAG(takesWords = true),
@@ -394,7 +407,7 @@ enum class CaptureTarget(
     HA_SEARCH(takesWords = true),
 
     /** A sentence for Home Assistant's Assist: Enter sends it. */
-    HA_ASSIST(takesWords = true),
+    HA_ASSIST(takesWords = true, prose = true),
 
     /** A lock or alarm code, or a text entity's value, in the Home Assistant panel. */
     HA_TEXT(takesWords = true),
@@ -403,7 +416,7 @@ enum class CaptureTarget(
      * The gallery panel's text (#708): the caption that goes with what is
      * sent, or a text box being written on a photo in the editor.
      */
-    GALLERY_TEXT(takesWords = true),
+    GALLERY_TEXT(takesWords = true, prose = true),
 
     /** A calendar event's title in the Calendar composer: one line, Enter moves on to the place. */
     CALENDAR_TITLE(takesWords = true),
@@ -412,7 +425,7 @@ enum class CaptureTarget(
     CALENDAR_LOCATION(takesWords = true),
 
     /** An event's notes: free text, newlines and all, like [CLIP_EDIT]. */
-    CALENDAR_NOTES(takesWords = true),
+    CALENDAR_NOTES(takesWords = true, prose = true),
 
     /** A guest being added: a name to look up in the contacts, or an address. Enter adds it. */
     CALENDAR_GUEST(takesWords = false),

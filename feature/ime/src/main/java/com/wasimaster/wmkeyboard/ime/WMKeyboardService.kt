@@ -10409,6 +10409,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (kdeTypedUnderModifiers(target, text)) return true
         val before = state.captureCaretText() ?: return false
+        // The space a mark left behind (#880), while the caret still sits
+        // right after it. One-shot: spent by this key whatever it is.
+        val markSpace = captureMarkSpace?.takeIf {
+            it.key == state.captureKey() && it.text == before.text && it.at == before.at && !before.hasSelection
+        }
+        captureMarkSpace = null
+        // A space pressed after it is already there, as in the app's field.
+        if (markSpace != null && text == " ") return true
         // A key a transliterator spells with (Hangul jamo, a Telex letter)
         // joins the word it is composing here as it would in the app's field
         // (#454), rather than landing as the bare key.
@@ -10428,8 +10436,47 @@ open class WMKeyboardService : InputMethodService() {
                 fixedLayoutContextualVowel(text, before.text.getOrNull(before.at - 1))
             else -> text
         }
-        if (insert.isNotEmpty()) captureWrite(target, before, before.typed(insert))
+        if (insert.isEmpty()) return true
+        // A mark straight after the space hugs the mark before it: `?!`, `.)`,
+        // the closing quote of `"hi."`.
+        val base = if (markSpace != null && insert.length == 1 && isAutoSpacedMark(insert[0])) {
+            before.deletedBackward(1)
+        } else {
+            before
+        }
+        var after = base.typed(insert)
+        // A sentence typed into a tool's field spaces after its marks the way
+        // the app's field does (#880), stepping over a space already there.
+        val spaced = target.prose && insert.length == 1 && captureSpacesAfterMark(state, after, insert[0])
+        if (spaced) after = if (after.text.startsWith(" ", after.at)) after.caretAt(after.at + 1) else after.typed(" ")
+        captureWrite(target, before, after)
+        if (spaced) {
+            val written = _uiState.value.captureCaretText()
+            val key = _uiState.value.captureKey()
+            if (written != null && key != null) captureMarkSpace = CaptureMarkSpace(key, written.text, written.at)
+        }
         return true
+    }
+
+    /** The space [captureTyped] put after a mark: in which field, and the text and caret it left. */
+    private data class CaptureMarkSpace(val key: String, val text: String, val at: Int)
+
+    private var captureMarkSpace: CaptureMarkSpace? = null
+
+    /**
+     * Whether [mark], just typed to give [after], is followed by a space in a
+     * prose field: [shouldAutoSpaceAfterPunctuation]'s rule, read off the
+     * field's own text rather than an editor's. No number or address dot, and
+     * a closing bracket only where it ends what it closes.
+     */
+    private fun captureSpacesAfterMark(state: KeyboardUiState, after: CaretText, mark: Char): Boolean {
+        if (!state.settings.autoText.spaceAfterPunctuation || state.composer.isConversion || unspacedKey) return false
+        val head = after.text.substring(0, (after.at - 1).coerceAtLeast(0))
+        return when (mark) {
+            in AUTO_SPACE_PUNCTUATION -> !markContinuesNumber(head) && !markContinuesAddress(head, mark)
+            SPACED_CLOSER -> closerTakesSpace(after.text.substring(after.at))
+            else -> false
+        }
     }
 
     /**
