@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Le serveur n\'a pas envoyé le fichier. Le code d\'erreur est HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Cette liste de mots est vide ou illisible.</string>
+    <string name="core_pred_wordlist_memory_error">Cet appareil n\'a pas assez de mémoire pour une liste de mots de cette taille. Choisissez une taille plus petite.</string>
     <string name="core_pred_wordlist_no_space_error">L\'espace de stockage de votre appareil est insuffisant. Supprimez quelques fichiers, puis réessayez.</string>
     <string name="core_pred_wordlist_save_error">L\'application ne peut pas enregistrer la liste de mots. Réessayez.</string>
     <string name="core_pred_wordlist_size_all_label">Tout</string>

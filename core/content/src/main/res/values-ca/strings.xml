@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramàtica</string>
     <string name="core_content_selection_macro_lines_bullet">Vinyetes</string>
+    <string name="core_content_selection_macro_lines_checkbox">Caselles de selecció</string>
     <string name="core_content_selection_macro_lines_dedupe">Únic</string>
+    <string name="core_content_selection_macro_lines_down">Mou cap avall</string>
     <string name="core_content_selection_macro_lines_number">Número</string>
     <string name="core_content_selection_macro_lines_sort">Ordenar</string>
+    <string name="core_content_selection_macro_lines_up">Mou amunt</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Obre</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Parla</string>
+    <string name="core_content_selection_macro_repeat">Repeteix</string>
     <string name="core_content_selection_macro_replace">Reemplaçar</string>
     <string name="core_content_selection_macro_save_note">Desa com a nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Tradueix</string>
     <string name="core_content_selection_macro_url_decode">Descodificar</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">El fitxer també té %1$d paraula sense drecera. Per afegir-la a les teves paraules, obre el fitxer des del Diccionari personal.</item>
         <item quantity="other">El fitxer també té %1$d paraules sense drecera. Per afegir-les a les teves paraules, obre el fitxer des del Diccionari personal.</item>

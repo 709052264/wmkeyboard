@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Uzlīmju ģeneratora dzinis netika lejupielādēts. Pārbaudiet savienojumu un mēģiniet vēlreiz.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool nepieņēma lietotājvārdu un API atslēgu (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool serveris ir saņēmis tik daudz pārbaudes pieprasījumu no šī tālruņa, cik atļauts minūtē. Rediģējiet tekstu pēc brīža, lai pārbaudītu vēlreiz (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool nevarēja pārbaudīt šo tekstu. Iespējams, serverī nav šīs valodas (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Teksts ir pārāk garš šim LanguageTool serverim (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Lejupielādētais fails nav tas, kas tika gaidīts, tāpēc tas tika izdzēsts. Lejupielādējiet to vēlreiz.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Šis modelis ir ierobežots. Vispirms pievienojiet savu Hugging Face pilnvaru.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face atgrieza HTTP statusu %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Pieņemiet modeļa licenci tā Hugging Face lapā. Pēc tam mēģiniet vēlreiz.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Lejupielādes laikā savienojums pārtrūka. Nospiediet \"Atsākt\", lai turpinātu.</string>
     <string name="core_intel_llm_engine_error_gpu">Modelis neizdevās GPU. GPU atmiņa ir daudz mazāka nekā sistēmas atmiņa. Nākamajā mēģinājumā tiks izmantots CPU. Lai vienmēr izmantotu CPU, iestatījumos iestatiet Compute uz CPU. Varat arī izvēlēties mazāku modeli.</string>
     <string name="core_intel_llm_engine_error_load">Modeli neizdevās ielādēt. Fails, iespējams, ir bojāts. Izdzēsiet modeli iestatījumos un lejupielādējiet to vēlreiz.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Šim modelim nepieciešams aptuveni %1$s atmiņas, un brīvs ir %2$s. Aizveriet citas lietotnes vai izvēlieties mazāku modeli.</string>
     <string name="core_intel_llm_engine_error_memory">Modelim beidzās atmiņa vai radās kļūda. Izvēlieties mazāku modeli.</string>
+    <string name="core_intel_llm_engine_error_npu">Modelis neizdevās NPU. Nākamais mēģinājums izmantos GPU vai CPU. Garš teksts var būt par smagu modeļa NPU versijai.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Jūsu tālrunī ir tikai šī modeļa NPU versija, un tikai NPU var to palaist. Iestatiet skaitļošanu uz NPU vai lejupielādējiet modeļa standarta versiju iestatījumos.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Šī modeļa NPU kompilācija jūsu tālrunī netika palaista. Lai izmantotu modeli GPU vai CPU, lejupielādējiet tā standarta kompilāciju iestatījumos.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Tastatūras NPU daļa nav gatava. Ja notiek lejupielāde, mēģiniet vēlreiz pēc brīža. Lai tagad izmantotu GPU vai CPU, iestatījumos lejupielādējiet modeļa standarta versiju.</string>
+    <string name="core_intel_llm_engine_error_template">Šī modeļa tērzēšanas veidni nevarēja nolasīt. Izmēģiniet citu modeļa GGUF failu.</string>
+    <string name="core_intel_llm_engine_error_too_long">Teksts ir pārāk garš šim modelim. Izmantojiet īsāku tekstu vai palieliniet konteksta lielumu iestatījumos.</string>
+    <string name="core_intel_llm_engine_error_vision">Šis modelis neprot lasīt attēlus. Gemma 4 prot.</string>
+    <string name="core_intel_llm_llama_missing">Šī versija nevar palaist GGUF modeļus: trūkst llama.cpp daļas.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Neliels Gemma modelis no iepriekšējās paaudzes. Tam ir laba kvalitāte un 4K žetonu konteksts.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Mazākais Gemma no Google. Tas ir ātrs visās ierīcēs.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Jaunākā Gemma paaudze. Tā nodrošina visaugstāko kvalitāti jūsu ierīcē.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Lielākais modelis. Tas raksta vislabāk, bet tam ir nepieciešama jaudģa ierģce.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Neliels Gemma modelis no iepriekšējās paaudzes. Šim failam nav nepieciešama Hugging Face marķieris (token).</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Meta mazais Llama. Tas raksta skaidrā angļu valodā un labi izpilda norādījumus.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Labi nolasa attēlus un ekrānuzņēmumus, arī tajos esošo tekstu. Nepieciešama augstas veiktspējas ierīce. Tā licence atļauj tikai pētniecības izmantošanu.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nesen izlaists vidēja izmēra modelis, kas pirms atbildēšanas padomā. Tam nepieciešama vidējas klases ierīce.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mazs un ātrs. Tas ir piemērots ātrai pārrakstīšanai pamata ierīcē.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Ļoti mazs modelis, kas prot lasīt attēlus. Tas apraksta attēlu, bet bieži nepareizi nolasa tekstu ekrānuzņēmumā.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Vispārēja lietojuma modelis, kas joprojām ietilpst pamata ierīcē.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Nepārprotami gudrāks par modeļiem, kas mazāki par 1B. Tam nepieciešama vidējas klases ierīce.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nesen izlaists neliels modelis. Kvalitāte ir augsta, ņemot vērā tā izmēru.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Nepārbaudīts</string>
     <string name="core_intel_ocr_download_error_http">GitHub serveris nenosūtīja failu. Kļūdas kods ir HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Lejupielādes laikā savienojums tika pārtraukts. Mēģiniet vēlreiz.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Lejupielādētais fails nav tas, kas tika gaidīts. Mēģiniet vēlreiz.</string>
     <string name="core_intel_ocr_download_error_no_space">Ierīcē nav pietiekami daudz vietas. Vispirms jāatbrīvo aptuveni %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">Google Play nepiegādāja teksta lasītāju. Pārbaudiet savienojumu un to, vai Play veikals darbojas, pēc tam mēģiniet vēlreiz.</string>
     <string name="core_intel_ocr_pack_error_broken">Lejupielādētie valodas dati ir bojāti, tāpēc skeneris tos nevarēja izmantot. Lejupielādējiet tos vēlreiz.</string>
+    <string name="core_intel_semantic_module_error">Meklētājprogrammas daļa netika lejupielādēta. Pārbaudiet savienojumu un mēģiniet vēlreiz.</string>
+    <string name="core_intel_semantic_no_source">Modeļu faili tiek publicēti tikai GitHub. Iestatiet datu repozitoriju atpakaļ uz GitHub sadaļā Serveri.</string>
+    <string name="core_intel_xlit_module_error">Dala, kas darbina modeli, netika lejupielādēta. Pārbaudiet savienojumu un mēģiniet vēlreiz.</string>
 </resources>

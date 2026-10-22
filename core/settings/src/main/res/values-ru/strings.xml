@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Справа внизу</string>
     <string name="core_settings_board_corner_top_left_label">Верхний левый угол</string>
     <string name="core_settings_board_corner_top_right_label">Справа сверху</string>
+    <string name="core_settings_clip_shortcut_edit_label">Изменить</string>
+    <string name="core_settings_clip_shortcut_edited_label">Метка редактирования</string>
+    <string name="core_settings_clip_shortcut_none_label">Ничего</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR-код</string>
+    <string name="core_settings_clip_shortcut_select_label">Выбрать</string>
     <string name="core_settings_clip_swipe_pin_left_label">Слева — закрепить, справа — удалить</string>
     <string name="core_settings_clip_swipe_pin_off_label">Удаление в обе стороны</string>
     <string name="core_settings_clip_swipe_pin_right_label">Свайп вправо закрепляет, влево удаляет</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Восторженный</string>
     <string name="core_settings_deepl_style_friendly_label">Дружелюбный</string>
     <string name="core_settings_deepl_style_simple_label">Простой</string>
+    <string name="core_settings_function_keys_always_label">Всегда</string>
+    <string name="core_settings_function_keys_pick_mode_label">В режиме выбора</string>
     <string name="core_settings_glide_commit_color_always_label">Всегда</string>
     <string name="core_settings_glide_commit_color_confident_label">Когда уверен</string>
     <string name="core_settings_glide_commit_color_guess_label">Любое первое слово</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Панель, подсказка и клавиши</string>
     <string name="core_settings_glide_commit_scope_pill_label">Удалить и скрыть</string>
     <string name="core_settings_glide_commit_scope_strip_label">Удалить</string>
+    <string name="core_settings_glide_engine_built_in_label">Встроенный</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (английский, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Библиотека жестов Google (импортировано)</string>
     <string name="core_settings_glide_lookahead_confident_label">Когда уверен</string>
     <string name="core_settings_glide_lookahead_eager_label">Нетерпеливый</string>
     <string name="core_settings_glide_lookahead_off_label">Выкл.</string>

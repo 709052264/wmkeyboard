@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Le moteur de génération d\'autocollants n\'a pas été téléchargé. Vérifiez votre connexion, puis réessayez.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool n\'a pas accepté le nom d\'utilisateur et la clé API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Le serveur LanguageTool a reçu autant de vérifications de la part de ce téléphone qu\'il peut en traiter en une minute. Modifiez le texte dans un instant pour vérifier à nouveau (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool n\'a pas pu vérifier ce texte. Le serveur ne dispose peut-être pas de cette langue (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Le texte est trop long pour ce serveur LanguageTool (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Le fichier téléchargé n\'est pas celui attendu, il a donc été supprimé. Téléchargez-le à nouveau.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Ce modèle est restreint. Ajoutez d\'abord votre jeton Hugging Face.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face a renvoyé le statut HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Acceptez la licence du modèle sur sa page Hugging Face. Puis réessayez.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">La connexion a été interrompue pendant le téléchargement. Appuyez sur Reprendre pour continuer.</string>
     <string name="core_intel_llm_engine_error_gpu">Le modèle a échoué sur le GPU. La mémoire du GPU est beaucoup plus petite que la mémoire système. La prochaine tentative utilisera le CPU. Pour toujours utiliser le CPU, réglez le Calcul sur CPU dans les paramètres. Vous pouvez également sélectionner un modèle plus petit.</string>
     <string name="core_intel_llm_engine_error_load">Le modèle ne s\'est pas chargé. Le fichier est probablement endommagé. Supprimez le modèle dans les paramètres et téléchargez-le à nouveau.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Ce modèle nécessite environ %1$s de mémoire, et %2$s est disponible. Fermez d\'autres applications ou sélectionnez un modèle plus petit.</string>
     <string name="core_intel_llm_engine_error_memory">Le modèle a manqué de mémoire ou a échoué. Sélectionnez un modèle plus petit.</string>
+    <string name="core_intel_llm_engine_error_npu">Le modèle a échoué sur la NPU. La tentative suivante utilisera le GPU ou le CPU. Un texte long peut être trop important pour la version NPU d\'un modèle.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Seule la version NPU de ce modèle est sur votre téléphone, et seul le NPU peut l\'exécuter. Réglez le calcul sur NPU, ou téléchargez la version standard du modèle dans les paramètres.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">La version NPU de ce modèle n\'a pas pu démarrer sur votre téléphone. Pour utiliser le modèle sur le GPU ou le CPU, téléchargez sa version standard dans les paramètres.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">La partie NPU du clavier n\'est pas prête. Si elle est en cours de téléchargement, veuillez réessayer dans un instant. Pour utiliser le GPU ou le CPU maintenant, téléchargez la version standard du modèle dans les paramètres.</string>
+    <string name="core_intel_llm_engine_error_template">Le modèle de discussion de ce modèle n\'a pas pu être lu. Essayez un autre fichier GGUF du modèle.</string>
+    <string name="core_intel_llm_engine_error_too_long">Le texte est trop long pour ce modèle. Utilisez un texte plus court ou augmentez la taille du contexte dans les paramètres.</string>
+    <string name="core_intel_llm_engine_error_vision">Ce modèle ne peut pas lire les images. Gemma 4 le peut.</string>
+    <string name="core_intel_llm_llama_missing">Cette version ne peut pas exécuter les modèles GGUF : la partie llama.cpp est manquante.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Un petit modèle Gemma de la génération précédente. Il offre une bonne qualité et un contexte de 4K jetons.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Le plus petit modèle Gemma de Google. Il est rapide sur tous les appareils.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">La nouvelle génération de Gemma. Elle offre une qualité optimale sur votre appareil.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Le plus grand modèle. Il écrit le mieux, mais nécessite un appareil puissant.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Un petit modèle Gemma de la génération précédente. Aucun jeton Hugging Face n\'est requis pour ce fichier.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Le petit Llama de Meta. Il écrit un anglais clair et suit bien les instructions.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Lit bien les images et les captures d\'écran, ainsi que le texte qu\'elles contiennent. Nécessite un appareil haut de gamme. Sa licence autorise uniquement un usage de recherche.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Un modèle récent de taille moyenne qui réfléchit avant de répondre. Nécessite un appareil de milieu de gamme.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Petit et rapide. Idéal pour des réécritures rapides sur un appareil basique.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Un très petit modèle capable de lire des images. Il décrit une image, mais lit souvent mal le texte dans une capture d\'écran.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Un modèle polyvalent qui tient sur un appareil basique.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clairement plus intelligent que les modèles inférieurs à 1B. Il nécessite un appareil de milieu de gamme.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un petit modèle récent. La qualité est élevée pour sa taille.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Non testé</string>
     <string name="core_intel_ocr_download_error_http">Le serveur GitHub n\'a pas envoyé le fichier. Le code d\'erreur est HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">La connexion a été interrompue pendant le téléchargement. Réessayez.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Le fichier téléchargé n\'est pas celui attendu. Réessayez.</string>
     <string name="core_intel_ocr_download_error_no_space">L\'espace de stockage sur votre appareil est insuffisant. Vous devez d\'abord libérer environ %1$s Mo.</string>
+    <string name="core_intel_ocr_module_error">Google Play n\'a pas pu fournir le lecteur de texte. Vérifiez votre connexion et le bon fonctionnement du Play Store, puis réessayez.</string>
     <string name="core_intel_ocr_pack_error_broken">Les données linguistiques téléchargées sont endommagées, le scanner n\'a donc pas pu les utiliser. Téléchargez-les à nouveau.</string>
+    <string name="core_intel_semantic_module_error">Le moteur de recherche n\'a pas pu être téléchargé. Vérifiez votre connexion, puis réessayez.</string>
+    <string name="core_intel_semantic_no_source">Les fichiers du modèle ne sont publiés que sur GitHub. Remettez le dépôt de données sur GitHub dans Serveurs.</string>
+    <string name="core_intel_xlit_module_error">La partie qui exécute le modèle n\'a pas été téléchargée. Vérifiez la connexion, puis réessayez.</string>
 </resources>

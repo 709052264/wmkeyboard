@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Η μηχανή δημιουργίας αυτοκόλλητων δεν κατέβηκε. Ελέγξτε τη σύνδεση και προσπαθήστε ξανά.</string>
+    <string name="core_intel_languagetool_error_account">Το LanguageTool δεν αποδέχτηκε το όνομα χρήστη και το κλειδί API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Ο διακομιστής LanguageTool έχει δεχθεί τον μέγιστο αριθμό ελέγχων από αυτό το τηλέφωνο ανά λεπτό. Επεξεργαστείτε το κείμενο σε λίγο για να το ελέγξετε ξανά (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">Το LanguageTool δεν μπόρεσε να ελέγξει αυτό το κείμενο. Ο διακομιστής ενδέχεται να μην υποστηρίζει αυτή τη γλώσσα (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Το κείμενο είναι πολύ μεγάλο για αυτόν τον διακομιστή LanguageTool (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Το αρχείο που λήφθηκε δεν είναι το αναμενόμενο, επομένως διαγράφηκε. Πραγματοποιήστε ξανά τη λήψη.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Αυτό το μοντέλο είναι περιορισμένο. Προσθέστε πρώτα το διακριτικό (token) του Hugging Face.</string>
     <string name="core_intel_llm_download_error_http">Το Hugging Face επέστρεψε κατάσταση HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Αποδεχτείτε την άδεια χρήσης του μοντέλου στη σελίδα του στο Hugging Face. Στη συνέχεια, δοκιμάστε ξανά.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Η σύνδεση διακόπηκε κατά τη λήψη. Πατήστε Συνέχεια για να συνεχίσετε.</string>
     <string name="core_intel_llm_engine_error_gpu">Το μοντέλο απέτυχε στην GPU. Η μνήμη της GPU είναι πολύ μικρότερη από τη μνήμη συστήματος. Η επόμενη προσπάθεια θα χρησιμοποιήσει την CPU. Για να χρησιμοποιείτε πάντα την CPU, ορίστε το Compute σε CPU στις ρυθμίσεις. Μπορείτε επίσης να επιλέξετε ένα μικρότερο μοντέλο.</string>
     <string name="core_intel_llm_engine_error_load">Το μοντέλο δεν φορτώθηκε. Το αρχείο είναι πιθανώς κατεστραμμένο. Διαγράψτε το μοντέλο στις ρυθμίσεις και κατεβάστε το ξανά.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Αυτό το μοντέλο χρειάζεται περίπου %1$s μνήμης και %2$s είναι διαθέσιμα. Κλείστε άλλες εφαρμογές ή επιλέξτε ένα μικρότερο μοντέλο.</string>
     <string name="core_intel_llm_engine_error_memory">Το μοντέλο εξαντλήθηκε από μνήμη ή απέτυχε. Επιλέξτε ένα μικρότερο μοντέλο.</string>
+    <string name="core_intel_llm_engine_error_npu">Το μοντέλο απέτυχε στη μονάδα NPU. Η επόμενη προσπάθεια θα χρησιμοποιήσει την GPU ή την CPU. Ένα μεγάλο κείμενο μπορεί να είναι υπερβολικό για την έκδοση NPU ενός μοντέλου.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Μόνο η έκδοση NPU αυτού του μοντέλου βρίσκεται στο τηλέφωνό σας και μόνο η NPU μπορεί να το εκτελέσει. Ορίστε τον Υπολογισμό σε NPU ή πραγματοποιήστε λήψη της τυπικής έκδοσης του μοντέλου στις ρυθμίσεις.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Η έκδοση NPU αυτού του μοντέλου δεν ξεκίνησε στο τηλέφωνό σας. Για να χρησιμοποιήσετε το μοντέλο στην GPU ή την CPU, κάντε λήψη της τυπικής έκδοσης στις ρυθμίσεις.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Το τμήμα NPU του πληκτρολογίου δεν είναι έτοιμο. Εάν πραγματοποιείται λήψη, δοκιμάστε ξανά σε λίγο. Για να χρησιμοποιήσετε την GPU ή την CPU τώρα, κατεβάστε την τυπική έκδοση του μοντέλου στις ρυθμίσεις.</string>
+    <string name="core_intel_llm_engine_error_template">Δεν ήταν δυνατή η ανάγνωση του προτύπου συνομιλίας αυτού του μοντέλου. Δοκιμάστε ένα άλλο αρχείο GGUF του μοντέλου.</string>
+    <string name="core_intel_llm_engine_error_too_long">Το κείμενο είναι πολύ μεγάλο για αυτό το μοντέλο. Χρησιμοποιήστε ένα μικρότερο κείμενο ή αυξήστε το μέγεθος του πλαισίου (Context size) στις ρυθμίσεις.</string>
+    <string name="core_intel_llm_engine_error_vision">Αυτό το μοντέλο δεν μπορεί να διαβάσει εικόνες. Το Gemma 4 μπορεί.</string>
+    <string name="core_intel_llm_llama_missing">Αυτή η έκδοση δεν μπορεί να εκτελέσει μοντέλα GGUF: λείπει το τμήμα llama.cpp.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Ένα μικρό Gemma από την προηγούμενη γενιά. Έχει καλή ποιότητα και πλαίσιο 4K tokens.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Το μικρότερο Gemma από την Google. Είναι γρήγορο σε όλες τις συσκευές.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Η νεότερη γενιά Gemma. Προσφέρει κορυφαία ποιότητα στη συσκευή σας.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Το μεγαλύτερο μοντέλο. Γράφει καλύτερα, αλλά χρειάζεται μια ισχυρή συσκευή.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Ένα μικρό Gemma από την προηγούμενη γενιά. Δεν απαιτείται διακριτικό Hugging Face για αυτό το αρχείο.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Το μικρό μοντέλο Llama της Meta. Γράφει καθαρά Αγγλικά και ακολουθεί καλά τις οδηγίες.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Αναγνωρίζει καλά εικόνες και στιγμιότυπα οθόνης, καθώς και το κείμενο σε αυτά. Απαιτεί συσκευή υψηλών επιδόσεων. Η άδεια χρήσης του επιτρέπει μόνο ερευνητική χρήση.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Ένα πρόσφατο μοντέλο μεσαίου μεγέθους που σκέφτεται πριν απαντήσει. Απαιτεί συσκευή μεσαίας κατηγορίας.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Μικρό και γρήγορο. Είναι κατάλληλο για γρήγορες επανεγγραφές σε μια βασική συσκευή.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Ένα πολύ μικρό μοντέλο που μπορεί να διαβάζει εικόνες. Περιγράφει μια εικόνα, αλλά συχνά διαβάζει λάθος το κείμενο σε ένα στιγμιότυπο οθόνης.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Ένα μοντέλο γενικής χρήσης που χωράει ακόμα και σε μια βασική συσκευή.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Σαφώς πιο έξυπνο από τα μοντέλα κάτω του 1B. Απαιτεί μια συσκευή μεσαίας κατηγορίας.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Ένα πρόσφατο μικρό μοντέλο. Η ποιότητα είναι υψηλή για το μέγεθός του.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Ανεξέλεγκτο</string>
     <string name="core_intel_ocr_download_error_http">Ο διακομιστής GitHub δεν έστειλε το αρχείο. Ο κωδικός σφάλματος είναι HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Η σύνδεση διακόπηκε κατά τη λήψη. Προσπαθήστε ξανά.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Το αρχείο που λήφθηκε δεν είναι το αναμενόμενο. Προσπαθήστε ξανά.</string>
     <string name="core_intel_ocr_download_error_no_space">Δεν υπάρχει αρκετός αποθηκευτικός χώρος στη συσκευή σας. Πρέπει πρώτα να ελευθερώσετε περίπου %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">Το Google Play δεν παρέδωσε το πρόγραμμα ανάγνωσης κειμένου. Ελέγξτε τη σύνδεση και αν το Play Store λειτουργεί, και στη συνέχεια δοκιμάστε ξανά.</string>
     <string name="core_intel_ocr_pack_error_broken">Τα δεδομένα της ληφθείσας γλώσσας είναι κατεστραμμένα, επομένως ο σαρωτής δεν μπόρεσε να τα χρησιμοποιήσει. Πραγματοποιήστε ξανά λήψη.</string>
+    <string name="core_intel_semantic_module_error">Το τμήμα της μηχανής αναζήτησης δεν λήφθηκε. Ελέγξτε τη σύνδεση και προσπαθήστε ξανά.</string>
+    <string name="core_intel_semantic_no_source">Τα αρχεία του μοντέλου δημοσιεύονται μόνο στο GitHub. Ορίστε το αποθετήριο δεδομένων πίσω στο GitHub στους Διακομιστές.</string>
+    <string name="core_intel_xlit_module_error">Το τμήμα που εκτελεί το μοντέλο δεν μεταφορτώθηκε. Ελέγξτε τη σύνδεση και δοκιμάστε ξανά.</string>
 </resources>

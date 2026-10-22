@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Скриптът се провали.</string>
     <string name="core_plugins_error_script_missing">Скриптът за тази добавка липсва.</string>
     <string name="core_plugins_error_turned_off">Тази добавка е изключена.</string>
+    <string name="core_plugins_permission_reminders_label">Показване на напомняния в зададени от вас часове</string>
     <string name="core_plugins_permission_storage_label">Запазване на данни на вашето устройство</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ съдържа скрипт, който не е валиден UTF-8 текст.</string>
     <string name="core_plugins_reject_bad_id">Този плъгин има невалиден идентификатор. Идентификаторът трябва да бъде с дължина от 3 до 64 знака. Може да съдържа малки букви, цифри, точки, тирета и долни черти.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">„%1$s“ не посочва коя версия е.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ има скрипт, по-голям от %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Тази версия на WM Keyboard не разпознава разрешението „%1$s“. Приложението не може да ви каже какво е позволено на „%2$s“.</string>
+    <string name="core_plugins_reminders_channel_body">Напомняния, които плъгин е поискал от приложението да покаже в моменти, които сте задали в плъгина. Заглавието на всяко от тях е името на плъгина.</string>
+    <string name="core_plugins_reminders_channel_title">Напомняния за приставки</string>
     <string name="core_plugins_stopped_cancelled">Приложението спря тази добавка.</string>
     <string name="core_plugins_stopped_deadline">Тази добавка отне твърде много време. Приложението я спря.</string>
     <string name="core_plugins_stopped_instructions">Тази добавка извърши твърде много работа наведнъж. Приложението я спря.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Тази приставка отново спря да отговаря. Приложението я изключи.</string>
     <string name="core_plugins_stopped_recursion">Тази добавка се извика твърде много пъти. Приложението я спря.</string>
     <string name="core_plugins_stopped_unexpected">Тази добавка спря неочаквано.</string>
+    <string name="core_plugins_ui_date_clear">Изчистване</string>
+    <string name="core_plugins_ui_date_earlier">Преди %1$d мин.</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 ч.</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ч</string>
+    <string name="core_plugins_ui_date_later">след %1$d мин.</string>
+    <string name="core_plugins_ui_date_next_day">Следващ ден</string>
+    <string name="core_plugins_ui_date_none">Без дата</string>
+    <string name="core_plugins_ui_date_previous_day">Предишен ден</string>
+    <string name="core_plugins_ui_date_set">Задаване на дата</string>
+    <string name="core_plugins_ui_date_today">Днес</string>
     <string name="core_plugins_ui_insert_action">Вмъкване</string>
     <string name="core_plugins_ui_repair_no_type">Уиджетът не е посочил какъв вид е.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Списък с джаджи съдържаше нещо, което не е джаджа.</string>

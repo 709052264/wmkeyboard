@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formato</string>
     <string name="core_content_selection_macro_grammar">Gramática</string>
     <string name="core_content_selection_macro_lines_bullet">Viñetas</string>
+    <string name="core_content_selection_macro_lines_checkbox">Casillas de verificación</string>
     <string name="core_content_selection_macro_lines_dedupe">Único</string>
+    <string name="core_content_selection_macro_lines_down">Mover hacia abajo</string>
     <string name="core_content_selection_macro_lines_number">Número</string>
     <string name="core_content_selection_macro_lines_sort">Ordenar</string>
+    <string name="core_content_selection_macro_lines_up">Mover hacia arriba</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Abrir</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Hablar</string>
+    <string name="core_content_selection_macro_repeat">Repetir</string>
     <string name="core_content_selection_macro_replace">Reemplazar</string>
     <string name="core_content_selection_macro_save_note">Guardar como nota</string>
     <string name="core_content_selection_macro_search">Buscar</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Traducir</string>
     <string name="core_content_selection_macro_url_decode">Decodificar</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">El archivo también tiene %1$d palabra sin atajo. Para añadirla a tus palabras, abre el archivo desde el Diccionario personal.</item>
         <item quantity="other">El archivo también tiene %1$d palabras sin atajo. Para añadirlas a tus palabras, abre el archivo desde el Diccionario personal.</item>

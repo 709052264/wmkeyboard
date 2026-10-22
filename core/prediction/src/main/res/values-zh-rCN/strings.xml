@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">服务器未发送文件。错误代码为 HTTP %1$s。</string>
     <string name="core_pred_wordlist_malformed_error">该词库为空或无法读取。</string>
+    <string name="core_pred_wordlist_memory_error">此设备的内存不足以容纳该大小的词库。请选择较小的尺寸。</string>
     <string name="core_pred_wordlist_no_space_error">设备存储空间不足。请删除一些文件后再试。</string>
     <string name="core_pred_wordlist_save_error">应用无法保存词库。请重试。</string>
     <string name="core_pred_wordlist_size_all_label">全部</string>

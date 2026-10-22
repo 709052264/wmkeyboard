@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">ਸਰਵਰ ਨੇ ਫਾਈਲ ਨਹੀਂ ਭੇਜੀ। ਗਲਤੀ ਕੋਡ HTTP %1$s ਹੈ।</string>
     <string name="core_pred_wordlist_malformed_error">ਉਹ ਸ਼ਬਦ ਸੂਚੀ ਖਾਲੀ ਜਾਂ ਪੜ੍ਹਨਯੋਗ ਨਹੀਂ ਹੈ।</string>
+    <string name="core_pred_wordlist_memory_error">ਇਸ ਡਿਵਾਈਸ ਵਿੱਚ ਇਸ ਆਕਾਰ ਦੀ ਸ਼ਬਦ ਸੂਚੀ ਲਈ ਲੋੜੀਂਦੀ ਮੈਮੋਰੀ ਨਹੀਂ ਹੈ। ਛੋਟੇ ਆਕਾਰ ਦੀ ਚੋਣ ਕਰੋ।</string>
     <string name="core_pred_wordlist_no_space_error">ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਲੋੜੀਂਦੀ ਸਟੋਰੇਜ ਨਹੀਂ ਹੈ। ਕੁਝ ਫਾਈਲਾਂ ਮਿਟਾਓ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_pred_wordlist_save_error">ਐਪ ਸ਼ਬਦ ਸੂਚੀ ਨੂੰ ਸੁਰੱਖਿਅਤ ਨਹੀਂ ਕਰ ਸਕਦੀ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_pred_wordlist_size_all_label">ਸਭ ਕੁਝ</string>

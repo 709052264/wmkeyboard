@@ -56,4 +56,22 @@
         <item quantity="one">Forritið las þetta sem Rime kóðatöflu með %1$d færslu. Sláðu inn kóða og veldu síðan stafinn úr tillögustrimlinum.</item>
         <item quantity="other">Forritið las þetta sem Rime kóðatöflu með %1$d færslum. Sláðu inn kóða og veldu síðan stafinn úr tillögustrimlinum.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Eigin kerfisorðabók Mozc, með tengikostnaði, hluta- og tillögusíu. Mozc-vélin umbreytir með þessu; innbyggða vélin notar það ekki.</string>
+    <string name="core_input_mozc_pack_title">Mozc-orðabók</string>
+    <string name="core_input_rime_pack_base_subtitle">Greinarmerki, tákn, orðatíðnitöflur og einfölduð og hefðbundin umbreyting sem hvert RIME-skema notar. Hlaðið niður með fyrsta skemanu.</string>
+    <string name="core_input_rime_pack_base_title">RIME grunnþættir</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Zhuyin-kerfi RIME á staðlaða Dachen-lyklaborðinu, með orðasafni Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Fimmta kynslóð Cangjie-kerfis RIME, stafir og orðasambönd.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Stór, nútímalegur orðaforði fyrir einfaldaða kínversku fyrir Pinyin, með tvöföldu Pinyin og 9-takka útgáfum. Það tekur mínútu eða lengur að þýða það yfir í keyrsluhæft form.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Rime-cantonese kerfið fyrir kantónsku, með orða- og setningalistum sínum.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Eigið Pinyin-skema RIME, með höggskemanu sem það flettir upp stöfum með.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Japanskt rithandarlíkan</string>
+    <string name="core_input_zinnia_pack_subtitle">Líkan Tegaki-verkefnisins fyrir zinnia, ótengda handskriftarþekkjarann sem les kínversku og japönsku þar sem ML Kit gerir það ekki.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Handskriftarlíkan fyrir einfaldaða kínversku</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Handskriftarlíkan fyrir hefðbundna kínversku</string>
 </resources>

@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Scriptul a eșuat.</string>
     <string name="core_plugins_error_script_missing">Scriptul pentru acel plugin lipsește.</string>
     <string name="core_plugins_error_turned_off">Acel plugin este oprit.</string>
+    <string name="core_plugins_permission_reminders_label">Afișează mementouri la orele setate de tine</string>
     <string name="core_plugins_permission_storage_label">Salvează datele pe dispozitivul tău</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” are un script care nu este text UTF-8 valid.</string>
     <string name="core_plugins_reject_bad_id">Acest plugin are un ID nevalid. Un ID trebuie să aibă între 3 și 64 de caractere. Un ID poate conține litere mici, cifre, puncte, cratime și caractere de subliniere.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">„%1$s” nu specifică ce versiune este.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” are un script mai mare de %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Această versiune de WM Keyboard nu cunoaște permisiunea „%1$s”. Aplicația nu îți poate spune ce are voie să facă „%2$s”.</string>
+    <string name="core_plugins_reminders_channel_body">Memento-uri pe care un plugin a cerut aplicației să le afișeze, la momentele setate de dumneavoastră în plugin. Titlul fiecăruia este numele pluginului.</string>
+    <string name="core_plugins_reminders_channel_title">Memento-uri plugin</string>
     <string name="core_plugins_stopped_cancelled">Aplicația a oprit acest plugin.</string>
     <string name="core_plugins_stopped_deadline">Acest plugin a durat prea mult. Aplicația l-a oprit.</string>
     <string name="core_plugins_stopped_instructions">Acest plugin a efectuat prea multe operațiuni simultan. Aplicația l-a oprit.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Acest plugin a încetat din nou să răspundă. Aplicația l-a dezactivat.</string>
     <string name="core_plugins_stopped_recursion">Acest plugin s-a apelat singur de prea multe ori. Aplicația l-a oprit.</string>
     <string name="core_plugins_stopped_unexpected">Acest plugin s-a oprit neașteptat.</string>
+    <string name="core_plugins_ui_date_clear">Șterge</string>
+    <string name="core_plugins_ui_date_earlier">Cu %1$d min mai devreme</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 o</string>
+    <string name="core_plugins_ui_date_later">Cu %1$d min mai târziu</string>
+    <string name="core_plugins_ui_date_next_day">Ziua următoare</string>
+    <string name="core_plugins_ui_date_none">Fără dată</string>
+    <string name="core_plugins_ui_date_previous_day">Ziua precedentă</string>
+    <string name="core_plugins_ui_date_set">Setează data</string>
+    <string name="core_plugins_ui_date_today">Astăzi</string>
     <string name="core_plugins_ui_insert_action">Inserează</string>
     <string name="core_plugins_ui_repair_no_type">Un widget nu a specificat ce tip este.</string>
     <string name="core_plugins_ui_repair_not_a_widget">O listă de widgeturi conținea ceva ce nu este un widget.</string>

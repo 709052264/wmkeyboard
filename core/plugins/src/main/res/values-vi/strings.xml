@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Tập lệnh đã thất bại.</string>
     <string name="core_plugins_error_script_missing">Tập lệnh cho plugin đó bị thiếu.</string>
     <string name="core_plugins_error_turned_off">Plugin đó đã bị tắt.</string>
+    <string name="core_plugins_permission_reminders_label">Hiển thị lời nhắc vào thời điểm bạn đã đặt</string>
     <string name="core_plugins_permission_storage_label">Lưu dữ liệu trên thiết bị của bạn</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” có một tập lệnh không phải là văn bản UTF-8 hợp lệ.</string>
     <string name="core_plugins_reject_bad_id">Plugin này có id không hợp lệ. Id phải dài từ 3 đến 64 ký tự. Id có thể chứa các chữ cái thường, số, dấu chấm, dấu gạch ngang và dấu gạch dưới.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” không cho biết phiên bản nào.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” có tập lệnh lớn hơn %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Phiên bản WM Keyboard này không nhận diện được quyền “%1$s”. Ứng dụng không thể cho bạn biết “%2$s” được phép làm gì.</string>
+    <string name="core_plugins_reminders_channel_body">Các lời nhắc mà một plugin yêu cầu ứng dụng hiển thị, vào những thời điểm bạn đặt trong plugin. Tiêu đề của mỗi lời nhắc là tên của plugin đó.</string>
+    <string name="core_plugins_reminders_channel_title">Nhắc nhở plugin</string>
     <string name="core_plugins_stopped_cancelled">Ứng dụng đã dừng plugin này.</string>
     <string name="core_plugins_stopped_deadline">Plugin này mất quá nhiều thời gian. Ứng dụng đã dừng nó lại.</string>
     <string name="core_plugins_stopped_instructions">Plugin này đã thực hiện quá nhiều tác vụ cùng một lúc. Ứng dụng đã dừng nó lại.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Plugin này lại ngừng phản hồi. Ứng dụng đã tắt nó.</string>
     <string name="core_plugins_stopped_recursion">Plugin này đã tự gọi chính nó quá nhiều lần. Ứng dụng đã dừng nó lại.</string>
     <string name="core_plugins_stopped_unexpected">Plugin này đã dừng đột ngột.</string>
+    <string name="core_plugins_ui_date_clear">Xóa</string>
+    <string name="core_plugins_ui_date_earlier">%1$d phút trước</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 giờ</string>
+    <string name="core_plugins_ui_date_hour_later">+1 giờ</string>
+    <string name="core_plugins_ui_date_later">%1$d phút sau</string>
+    <string name="core_plugins_ui_date_next_day">Ngày tiếp theo</string>
+    <string name="core_plugins_ui_date_none">Không có ngày</string>
+    <string name="core_plugins_ui_date_previous_day">Ngày hôm trước</string>
+    <string name="core_plugins_ui_date_set">Đặt ngày</string>
+    <string name="core_plugins_ui_date_today">Hôm nay</string>
     <string name="core_plugins_ui_insert_action">Chèn</string>
     <string name="core_plugins_ui_repair_no_type">Một tiện ích không xác định được loại của nó.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Danh sách tiện ích con chứa một mục không phải là tiện ích con.</string>

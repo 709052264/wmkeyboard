@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">スクリプトの実行に失敗しました。</string>
     <string name="core_plugins_error_script_missing">そのプラグインのスクリプトが見つかりません。</string>
     <string name="core_plugins_error_turned_off">そのプラグインはオフになっています。</string>
+    <string name="core_plugins_permission_reminders_label">設定した時間にリマインダーを表示する</string>
     <string name="core_plugins_permission_storage_label">デバイスにデータを保存</string>
     <string name="core_plugins_reject_bad_encoding">「%1$s」には有効なUTF-8テキストではないスクリプトが含まれています。</string>
     <string name="core_plugins_reject_bad_id">このプラグインのIDは無効です。IDは3〜64文字である必要があります。IDには小文字、数字、ドット、ハイフン、アンダースコアを使用できます。</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">「%1$s」にはバージョン情報がありません。</string>
     <string name="core_plugins_reject_script_too_large">「%1$s」のスクリプトが%2$d KBを超えています。</string>
     <string name="core_plugins_reject_unknown_permission">このバージョンの WM Keyboard は権限「%1$s」を認識できません。「%2$s」が何を実行できるかを確認できません。</string>
+    <string name="core_plugins_reminders_channel_body">プラグインで設定した時間に、プラグインがアプリに表示を要求したリマインダーです。それぞれのタイトルはプラグイン名になります。</string>
+    <string name="core_plugins_reminders_channel_title">プラグインのリマインダー</string>
     <string name="core_plugins_stopped_cancelled">アプリがこのプラグインを停止しました。</string>
     <string name="core_plugins_stopped_deadline">このプラグインの処理に時間がかかりすぎたため、アプリによって停止されました。</string>
     <string name="core_plugins_stopped_instructions">このプラグインは一度に過剰な処理を行ったため、アプリによって停止されました。</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">このプラグインが再び応答しなくなりました。アプリによって無効化されました。</string>
     <string name="core_plugins_stopped_recursion">このプラグインが自身を過剰に呼び出したため、アプリが停止させました。</string>
     <string name="core_plugins_stopped_unexpected">このプラグインは予期せず停止しました。</string>
+    <string name="core_plugins_ui_date_clear">クリア</string>
+    <string name="core_plugins_ui_date_earlier">%1$d分前</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1時間</string>
+    <string name="core_plugins_ui_date_hour_later">+1時間</string>
+    <string name="core_plugins_ui_date_later">%1$d 分後</string>
+    <string name="core_plugins_ui_date_next_day">翌日</string>
+    <string name="core_plugins_ui_date_none">日付なし</string>
+    <string name="core_plugins_ui_date_previous_day">前日</string>
+    <string name="core_plugins_ui_date_set">日付を設定</string>
+    <string name="core_plugins_ui_date_today">今日</string>
     <string name="core_plugins_ui_insert_action">挿入</string>
     <string name="core_plugins_ui_repair_no_type">ウィジェットの種類が指定されていません。</string>
     <string name="core_plugins_ui_repair_not_a_widget">ウィジェットリストにウィジェットではないものが含まれていました。</string>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">De server heeft het bestand niet verzonden. De foutcode is HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Die woordenlijst is leeg of onleesbaar.</string>
+    <string name="core_pred_wordlist_memory_error">Dit apparaat heeft niet genoeg geheugen voor een woordenlijst van deze grootte. Kies een kleiner formaat.</string>
     <string name="core_pred_wordlist_no_space_error">Er is onvoldoende opslagruimte op je apparaat. Verwijder wat bestanden en probeer het opnieuw.</string>
     <string name="core_pred_wordlist_save_error">De app kan de woordenlijst niet opslaan. Probeer het opnieuw.</string>
     <string name="core_pred_wordlist_size_all_label">Alles</string>

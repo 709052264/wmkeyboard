@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Сървърът не изпрати файла. Кодът на грешката е HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Този списък с думи е празен или нечетлив.</string>
+    <string name="core_pred_wordlist_memory_error">Това устройство няма достатъчно памет за списък с думи с такъв размер. Изберете по-малък размер.</string>
     <string name="core_pred_wordlist_no_space_error">Няма достатъчно място за съхранение на вашето устройство. Изтрийте някои файлове и опитайте отново.</string>
     <string name="core_pred_wordlist_save_error">Приложението не може да запише списъка с думи. Опитайте отново.</string>
     <string name="core_pred_wordlist_size_all_label">Всичко</string>

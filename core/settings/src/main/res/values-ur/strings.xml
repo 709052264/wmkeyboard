@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">نیچے دائیں طرف</string>
     <string name="core_settings_board_corner_top_left_label">اوپر بائیں</string>
     <string name="core_settings_board_corner_top_right_label">اوپر دائیں</string>
+    <string name="core_settings_clip_shortcut_edit_label">ترمیم کریں</string>
+    <string name="core_settings_clip_shortcut_edited_label">ترمیم شدہ نشان</string>
+    <string name="core_settings_clip_shortcut_none_label">کچھ نہیں</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR کوڈ</string>
+    <string name="core_settings_clip_shortcut_select_label">منتخب کریں</string>
     <string name="core_settings_clip_swipe_pin_left_label">بائیں پن، دائیں حذف</string>
     <string name="core_settings_clip_swipe_pin_off_label">دونوں طریقے حذف کریں</string>
     <string name="core_settings_clip_swipe_pin_right_label">دائیں پن، بائیں حذف</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">پرجوش</string>
     <string name="core_settings_deepl_style_friendly_label">دوستانہ</string>
     <string name="core_settings_deepl_style_simple_label">سادہ</string>
+    <string name="core_settings_function_keys_always_label">ہمیشہ</string>
+    <string name="core_settings_function_keys_pick_mode_label">پک موڈ میں</string>
     <string name="core_settings_glide_commit_color_always_label">ہمیشہ</string>
     <string name="core_settings_glide_commit_color_confident_label">جب یقین ہو</string>
     <string name="core_settings_glide_commit_color_guess_label">کوئی بھی ابتدائی لفظ</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">سٹرپ، پل اور کیز</string>
     <string name="core_settings_glide_commit_scope_pill_label">اسٹرپ اور پل</string>
     <string name="core_settings_glide_commit_scope_strip_label">اسٹرپ</string>
+    <string name="core_settings_glide_engine_built_in_label">بلٹ ان</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO سوائپ (انگریزی، QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">گوگل کی جیسچر لائبریری (درآمد شدہ)</string>
     <string name="core_settings_glide_lookahead_confident_label">جب یقین ہو</string>
     <string name="core_settings_glide_lookahead_eager_label">پرجوش</string>
     <string name="core_settings_glide_lookahead_off_label">بند</string>

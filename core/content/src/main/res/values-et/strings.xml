@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Vorming</string>
     <string name="core_content_selection_macro_grammar">Grammatika</string>
     <string name="core_content_selection_macro_lines_bullet">Täpploend</string>
+    <string name="core_content_selection_macro_lines_checkbox">Märkeruudud</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikaalne</string>
+    <string name="core_content_selection_macro_lines_down">Liigu alla</string>
     <string name="core_content_selection_macro_lines_number">Number</string>
     <string name="core_content_selection_macro_lines_sort">Sorteeri</string>
+    <string name="core_content_selection_macro_lines_up">Liiguta üles</string>
     <string name="core_content_selection_macro_map">Kaart</string>
     <string name="core_content_selection_macro_open">Ava</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Räägi</string>
+    <string name="core_content_selection_macro_repeat">Korda</string>
     <string name="core_content_selection_macro_replace">Asenda</string>
     <string name="core_content_selection_macro_save_note">Salvesta märkmena</string>
     <string name="core_content_selection_macro_search">Otsi</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Tõlgi</string>
     <string name="core_content_selection_macro_url_decode">Dekodeeri</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Failis on ka %1$d sõna ilma otseteeta. Selle lisamiseks oma sõnadesse ava fail isiklikust sõnastikust.</item>
         <item quantity="other">Failis on ka %1$d sõna ilma otseteeta. Nende lisamiseks oma sõnadesse ava fail isiklikust sõnastikust.</item>

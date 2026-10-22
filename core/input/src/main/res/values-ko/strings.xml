@@ -56,4 +56,22 @@
         <item quantity="one">앱이 이를 %1$d개의 항목이 있는 Rime 코드 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
         <item quantity="other">앱이 이를 %1$d개의 항목이 있는 Rime 코드 테이블로 읽었습니다. 코드를 입력한 다음 제안 스트립에서 문자를 선택하세요.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">연결 비용, 세그먼터 및 제안 필터가 포함된 Mozc 자체 시스템 사전입니다. Mozc 엔진은 이를 사용하여 변환하며, 내장 엔진은 이를 사용하지 않습니다.</string>
+    <string name="core_input_mozc_pack_title">Mozc 사전</string>
+    <string name="core_input_rime_pack_base_subtitle">모든 RIME 스키마에서 사용하는 문장 부호, 기호, 단어 빈도 표, 간체 및 번체 변환입니다. 첫 번째 스키마와 함께 다운로드됩니다.</string>
+    <string name="core_input_rime_pack_base_title">RIME 필수 요소</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">표준 Dachen 키 맵의 RIME 주음 부호 방식, Terra Pinyin 사전 포함.</string>
+    <string name="core_input_rime_pack_bopomofo_title">주음부호 (Bopomofo)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME의 5세대 창힐 입력 방식, 문자 및 구문.</string>
+    <string name="core_input_rime_pack_cangjie5_title">창힐 5세대(倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">병음, 이중 병음 및 9키 변형을 지원하는 대규모 현대식 간체 중국어 어휘집입니다. 컴파일하는 데 1분 이상 걸릴 수 있습니다.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">광둥어를 위한 rime-cantonese 스키마로, 단어 및 구문 목록이 포함되어 있습니다.</string>
+    <string name="core_input_rime_pack_jyutping_title">월병(Jyutping/粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME 자체의 병음 스키마이며, 획순 스키마를 통해 문자를 조회합니다.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">루나 병음(朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">일본어 필기 인식 모델</string>
+    <string name="core_input_zinnia_pack_subtitle">ML Kit이 지원하지 않는 중국어와 일본어를 읽을 수 있는 오프라인 필기 인식기인 zinnia용 Tegaki 프로젝트 모델입니다.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">간체 중국어 필기 인식 모델</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">번체 중국어 필기 인식 모델</string>
 </resources>

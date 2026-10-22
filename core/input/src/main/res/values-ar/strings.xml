@@ -56,4 +56,22 @@
         <item quantity="one">قرأ التطبيق هذا كجدول رموز Rime مع %1$d إدخال. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
         <item quantity="other">قرأ التطبيق هذا كجدول رموز Rime مع %1$d إدخالات. اكتب رمزًا، ثم اختر الحرف من شريط الاقتراحات.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">قاموس النظام الخاص بـ Mozc، مع تكاليف الاتصال ومجزئ الجمل وفلتر الاقتراحات الخاص به. يقوم محرك Mozc بالتحويل باستخدام هذا؛ أما المحرك المدمج فلا يستخدمه.</string>
+    <string name="core_input_mozc_pack_title">قاموس Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">علامات الترقيم، والرموز، وجدول تكرار الكلمات، والتحويل بين الصينية المبسطة والتقليدية التي يستخدمها كل مخطط RIME. يتم تنزيلها مع المخطط الأول.</string>
+    <string name="core_input_rime_pack_base_title">أساسيات RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">مخطط Zhuyin الخاص بـ RIME على خريطة مفاتيح Dachen القياسية، مع قاموس Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">بوبوموفو (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">مخطط Cangjie من الجيل الخامس لـ RIME، للأحرف والعبارات.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">مفردات صينية مبسطة حديثة وكبيرة لنظام بينيين، مع متغيرات بينيين مزدوجة و9 مفاتيح. يستغرق تجميعها دقيقة أو أكثر.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">مخطط rime-cantonese للغة الكانتونية، مع قوائم الكلمات والعبارات الخاصة به.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">مخطط Pinyin الخاص بـ RIME، والذي يبحث من خلاله عن الحروف باستخدام مخطط الضربات.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">نموذج الكتابة اليدوية باليابانية</string>
+    <string name="core_input_zinnia_pack_subtitle">نموذج مشروع Tegaki لـ zinnia، أداة التعرف على الكتابة اليدوية دون اتصال التي تقرأ الصينية واليابانية حيث لا تستطيع أداة ML Kit القيام بذلك.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">نموذج الكتابة اليدوية بالصينية المبسطة</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">نموذج الكتابة اليدوية بالصينية التقليدية</string>
 </resources>

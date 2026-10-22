@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Μορφή</string>
     <string name="core_content_selection_macro_grammar">Γραμματική</string>
     <string name="core_content_selection_macro_lines_bullet">Κουκκίδες</string>
+    <string name="core_content_selection_macro_lines_checkbox">Πλαίσια ελέγχου</string>
     <string name="core_content_selection_macro_lines_dedupe">Μοναδικά</string>
+    <string name="core_content_selection_macro_lines_down">Μετακίνηση προς τα κάτω</string>
     <string name="core_content_selection_macro_lines_number">Αριθμός</string>
     <string name="core_content_selection_macro_lines_sort">Ταξινόμηση</string>
+    <string name="core_content_selection_macro_lines_up">Μετακίνηση προς τα πάνω</string>
     <string name="core_content_selection_macro_map">Χάρτης</string>
     <string name="core_content_selection_macro_open">Άνοιγμα</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Εκφώνηση</string>
+    <string name="core_content_selection_macro_repeat">Επανάληψη</string>
     <string name="core_content_selection_macro_replace">Αντικατάσταση</string>
     <string name="core_content_selection_macro_save_note">Αποθήκευση ως σημείωση</string>
     <string name="core_content_selection_macro_search">Αναζήτηση</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Μετάφραση</string>
     <string name="core_content_selection_macro_url_decode">Αποκωδικοποίηση</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Το αρχείο έχει επίσης %1$d λέξη χωρίς συντόμευση. Για να την προσθέσετε στις λέξεις σας, ανοίξτε το αρχείο από το Προσωπικό λεξικό.</item>
         <item quantity="other">Το αρχείο έχει επίσης %1$d λέξεις χωρίς συντόμευση. Για να τις προσθέσετε στις λέξεις σας, ανοίξτε το αρχείο από το Προσωπικό λεξικό.</item>

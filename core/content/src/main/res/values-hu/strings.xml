@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formátum</string>
     <string name="core_content_selection_macro_grammar">Nyelvtan</string>
     <string name="core_content_selection_macro_lines_bullet">Felsorolásjelek</string>
+    <string name="core_content_selection_macro_lines_checkbox">Jelölőnégyzetek</string>
     <string name="core_content_selection_macro_lines_dedupe">Egyedi</string>
+    <string name="core_content_selection_macro_lines_down">Mozgatás lefelé</string>
     <string name="core_content_selection_macro_lines_number">Szám</string>
     <string name="core_content_selection_macro_lines_sort">Rendezés</string>
+    <string name="core_content_selection_macro_lines_up">Mozgatás felfelé</string>
     <string name="core_content_selection_macro_map">Térkép</string>
     <string name="core_content_selection_macro_open">Megnyitás</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Felolvasás</string>
+    <string name="core_content_selection_macro_repeat">Ismétlés</string>
     <string name="core_content_selection_macro_replace">Csere</string>
     <string name="core_content_selection_macro_save_note">Mentés jegyzetként</string>
     <string name="core_content_selection_macro_search">Keresés</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Fordítás</string>
     <string name="core_content_selection_macro_url_decode">Dekódolás</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">A fájl tartalmaz még %1$d olyan szót, amelyhez nincs parancsikon. Ha hozzá szeretné adni a szavaihoz, nyissa meg a fájlt a Személyes szótárból.</item>
         <item quantity="other">A fájl tartalmaz még %1$d olyan szót, amelyhez nincs parancsikon. Ha hozzá szeretné adni őket a szavaihoz, nyissa meg a fájlt a Személyes szótárból.</item>

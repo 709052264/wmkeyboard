@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skripts neizdevās.</string>
     <string name="core_plugins_error_script_missing">Šī spraudņa skripts trūkst.</string>
     <string name="core_plugins_error_turned_off">Šis spraudnis ir izslēgts.</string>
+    <string name="core_plugins_permission_reminders_label">Rādīt atgādinājumus jūsu iestatītajos laikos</string>
     <string name="core_plugins_permission_storage_label">Saglabāt datus jūsu ierīcē</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” satur skriptu, kas nav derīgs UTF-8 teksts.</string>
     <string name="core_plugins_reject_bad_id">Šim spraudnim ir nederīgs ID. ID garumam jābūt no 3 līdz 64 rakstzīmēm. ID var saturēt mazos burtus, ciparus, punktus, domuzīmes un pasvītrojumus.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” nenorāda, kura versija tā ir.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” skripts ir lielāks par %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Šī WM Keyboard versija neatpazīst atļauju “%1$s”. Lietotne nevar pateikt, ko “%2$s” ir atļauts darīt.</string>
+    <string name="core_plugins_reminders_channel_body">Atgādinājumi, kurus spraudnis lūdza lietotnei parādīt jūsu iestatītajā laikā. Katra atgādinājuma nosaukums ir spraudņa nosaukums.</string>
+    <string name="core_plugins_reminders_channel_title">Spraudņu atgādinājumi</string>
     <string name="core_plugins_stopped_cancelled">Lietotne apturēja šo spraudni.</string>
     <string name="core_plugins_stopped_deadline">Šis spraudnis darbojās pārāk ilgi. Lietotne to apturēja.</string>
     <string name="core_plugins_stopped_instructions">Šis spraudnis vienlaikus veica pārāk daudz darba. Lietotne to apturēja.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Šis spraudnis atkal pārstāja reaģēt. Lietotne to izslēdza.</string>
     <string name="core_plugins_stopped_recursion">Šis spraudnis izsauca pats sevi pārāk daudz reižu. Lietotne to apturēja.</string>
     <string name="core_plugins_stopped_unexpected">Šis spraudnis negaidīti apstājās.</string>
+    <string name="core_plugins_ui_date_clear">Notīrīt</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min agrāk</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 st</string>
+    <string name="core_plugins_ui_date_hour_later">+1 st.</string>
+    <string name="core_plugins_ui_date_later">Pēc %1$d min</string>
+    <string name="core_plugins_ui_date_next_day">Nākamā diena</string>
+    <string name="core_plugins_ui_date_none">Nav datuma</string>
+    <string name="core_plugins_ui_date_previous_day">Iepriekšējā diena</string>
+    <string name="core_plugins_ui_date_set">Iestatīt datumu</string>
+    <string name="core_plugins_ui_date_today">Šodien</string>
     <string name="core_plugins_ui_insert_action">Ievietot</string>
     <string name="core_plugins_ui_repair_no_type">Logrīks nenorādīja, kāda veida tas ir.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Logrīku sarakstā bija kaut kas tāds, kas nav logrīks.</string>

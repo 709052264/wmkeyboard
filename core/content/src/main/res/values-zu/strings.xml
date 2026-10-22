@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Ifomethi</string>
     <string name="core_content_selection_macro_grammar">Uhlelo lolimi</string>
     <string name="core_content_selection_macro_lines_bullet">Izinhlamvu</string>
+    <string name="core_content_selection_macro_lines_checkbox">Amabhokisi okumaka</string>
     <string name="core_content_selection_macro_lines_dedupe">Okuyingqayizivele</string>
+    <string name="core_content_selection_macro_lines_down">Hambisa phansi</string>
     <string name="core_content_selection_macro_lines_number">Inombolo</string>
     <string name="core_content_selection_macro_lines_sort">Hlunga</string>
+    <string name="core_content_selection_macro_lines_up">Nyusa phezulu</string>
     <string name="core_content_selection_macro_map">Imephu</string>
     <string name="core_content_selection_macro_open">Vula</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Khuluma</string>
+    <string name="core_content_selection_macro_repeat">Phinda</string>
     <string name="core_content_selection_macro_replace">Faka esikhundleni</string>
     <string name="core_content_selection_macro_save_note">Gcina njengenothi</string>
     <string name="core_content_selection_macro_search">Sesha</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Humusha</string>
     <string name="core_content_selection_macro_url_decode">Susa ukubethela</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Ifayela liphinde libe negama elilodwa elingu-%1$d elingenayo inqamuleli. Ukuze ulengeze emagameni akho, vula ifayela kusuka kusichazamazwi somuntu siqu.</item>
         <item quantity="other">Ifayela liphinde libe namagama angu-%1$d angenayo inqamuleli. Ukuze uwangeze emagameni akho, vula ifayela kusuka kusichazamazwi somuntu siqu.</item>

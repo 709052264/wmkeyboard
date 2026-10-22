@@ -56,4 +56,22 @@
         <item quantity="one">Додаток розпізнав це як кодову таблицю Rime з %1$d записом. Введіть код, а потім виберіть символ зі смужки пропозицій.</item>
         <item quantity="other">Додаток розпізнав це як кодову таблицю Rime з %1$d записами. Введіть код, а потім виберіть символ зі смужки пропозицій.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Власний системний словник Mozc з його витратами на з’єднання, сегментатором і фільтром пропозицій. Модуль Mozc виконує перетворення за допомогою цього словника; вбудований модуль його не використовує.</string>
+    <string name="core_input_mozc_pack_title">Словник Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Пунктуація, символи, таблиця частоти слів, а також перетворення спрощеної та традиційної китайської мови, які використовує кожна схема RIME. Завантажується разом із першою схемою.</string>
+    <string name="core_input_rime_pack_base_title">Основи RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Схема Zhuyin від RIME на стандартній розкладці клавіш Dachen зі словником Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Чжуїнь (Bopomofo)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">П\'яте покоління схеми Cangjie для RIME, символи та фрази.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Великий сучасний словник спрощеної китайської мови для Pinyin, з варіантами Double Pinyin та 9-клавішною розкладкою. Компіляція займає хвилину або більше.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Схема rime-cantonese для кантонської мови зі списками слів і фраз.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Власна схема Pinyin для RIME, з якою вона шукає ієрогліфи за схемою рисок.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Модель рукописного введення японською мовою</string>
+    <string name="core_input_zinnia_pack_subtitle">Модель проєкту Tegaki для zinnia, офлайн-системи розпізнавання рукописного тексту, яка читає китайську та японську мови там, де ML Kit цього не робить.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Модель рукописного введення спрощеною китайською мовою</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Модель рукописного введення традиційною китайською мовою</string>
 </resources>

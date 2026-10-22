@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatică</string>
     <string name="core_content_selection_macro_lines_bullet">Marcatori</string>
+    <string name="core_content_selection_macro_lines_checkbox">Căsuțe de selectare</string>
     <string name="core_content_selection_macro_lines_dedupe">Unic</string>
+    <string name="core_content_selection_macro_lines_down">Mută în jos</string>
     <string name="core_content_selection_macro_lines_number">Număr</string>
     <string name="core_content_selection_macro_lines_sort">Sortare</string>
+    <string name="core_content_selection_macro_lines_up">Mută în sus</string>
     <string name="core_content_selection_macro_map">Hartă</string>
     <string name="core_content_selection_macro_open">Deschide</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Vorbește</string>
+    <string name="core_content_selection_macro_repeat">Repetă</string>
     <string name="core_content_selection_macro_replace">Înlocuire</string>
     <string name="core_content_selection_macro_save_note">Salvează ca notă</string>
     <string name="core_content_selection_macro_search">Căutare</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Traducere</string>
     <string name="core_content_selection_macro_url_decode">Decodifică</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Fișierul are, de asemenea, %1$d cuvânt fără scurtătură. Pentru a-l adăuga la cuvintele tale, deschide fișierul din Dicționar personal.</item>
         <item quantity="other">Fișierul are, de asemenea, %1$d cuvinte fără scurtătură. Pentru a le adăuga la cuvintele tale, deschide fișierul din Dicționar personal.</item>

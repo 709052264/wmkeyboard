@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">ਸਟਿੱਕਰ ਜੇਨਰੇਟਰ ਦਾ ਇੰਜਣ ਡਾਊਨਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool ਨੇ ਉਪਭੋਗਤਾ ਨਾਮ ਅਤੇ API ਕੁੰਜੀ ਨੂੰ ਸਵੀਕਾਰ ਨਹੀਂ ਕੀਤਾ (HTTP %1$d)।</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool ਸਰਵਰ ਨੇ ਇਸ ਫ਼ੋਨ ਤੋਂ ਇੱਕ ਮਿੰਟ ਵਿੱਚ ਲੋੜੀਂਦੀ ਗਿਣਤੀ ਤੋਂ ਵੱਧ ਜਾਂਚਾਂ ਕਰ ਲਈਆਂ ਹਨ। ਦੁਬਾਰਾ ਜਾਂਚ ਕਰਨ ਲਈ ਕੁਝ ਸਮੇਂ ਵਿੱਚ ਟੈਕਸਟ ਨੂੰ ਸੰਪਾਦਿਤ ਕਰੋ (HTTP %1$d)।</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool ਇਸ ਟੈਕਸਟ ਦੀ ਜਾਂਚ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਹੋ ਸਕਦਾ ਹੈ ਕਿ ਸਰਵਰ ਕੋਲ ਇਹ ਭਾਸ਼ਾ ਨਾ ਹੋਵੇ (HTTP %1$d)।</string>
+    <string name="core_intel_languagetool_error_too_long">ਇਸ LanguageTool ਸਰਵਰ ਲਈ ਟੈਕਸਟ ਬਹੁਤ ਲੰਬਾ ਹੈ (HTTP %1$d)।</string>
+    <string name="core_intel_llm_download_error_checksum">ਡਾਊਨਲੋਡ ਕੀਤੀ ਫਾਈਲ ਉਮੀਦ ਅਨੁਸਾਰ ਨਹੀਂ ਹੈ, ਇਸ ਲਈ ਇਸਨੂੰ ਮਿਟਾ ਦਿੱਤਾ ਗਿਆ ਸੀ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
     <string name="core_intel_llm_download_error_gated_no_token">ਇਹ ਮਾਡਲ ਗੇਟਡ ਹੈ। ਪਹਿਲਾਂ ਆਪਣਾ Hugging Face ਟੋਕਨ ਜੋੜੋ।</string>
     <string name="core_intel_llm_download_error_http">Hugging Face ਨੇ HTTP ਸਥਿਤੀ %1$s ਵਾਪਸ ਕੀਤੀ।</string>
     <string name="core_intel_llm_download_error_licence">ਇਸਦੇ Hugging Face ਪੰਨੇ \'ਤੇ ਮਾਡਲ ਦੇ ਲਾਇਸੈਂਸ ਨੂੰ ਸਵੀਕਾਰ ਕਰੋ। ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">ਡਾਊਨਲੋਡ ਦੌਰਾਨ ਕਨੈਕਸ਼ਨ ਰੁਕ ਗਿਆ ਸੀ। ਜਾਰੀ ਰੱਖਣ ਲਈ \'Resume\' ਦਬਾਓ।</string>
     <string name="core_intel_llm_engine_error_gpu">ਮਾਡਲ GPU \'ਤੇ ਅਸਫਲ ਰਿਹਾ। GPU ਮੈਮੋਰੀ ਸਿਸਟਮ ਮੈਮੋਰੀ ਨਾਲੋਂ ਬਹੁਤ ਛੋਟੀ ਹੈ। ਅਗਲੀ ਕੋਸ਼ਿਸ਼ CPU ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ। ਹਮੇਸ਼ਾ CPU ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ, ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕੰਪਿਊਟ ਨੂੰ CPU \'ਤੇ ਸੈੱਟ ਕਰੋ। ਤੁਸੀਂ ਇੱਕ ਛੋਟਾ ਮਾਡਲ ਵੀ ਚੁਣ ਸਕਦੇ ਹੋ।</string>
     <string name="core_intel_llm_engine_error_load">ਮਾਡਲ ਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਫਾਈਲ ਸ਼ਾਇਦ ਖਰਾਬ ਹੈ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਮਾਡਲ ਨੂੰ ਮਿਟਾਓ ਅਤੇ ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
+    <string name="core_intel_llm_engine_error_low_memory">ਇਸ ਮਾਡਲ ਨੂੰ ਲਗਭਗ %1$s ਮੈਮੋਰੀ ਦੀ ਲੋੜ ਹੈ, ਅਤੇ %2$s ਖਾਲੀ ਹੈ। ਹੋਰ ਐਪਾਂ ਨੂੰ ਬੰਦ ਕਰੋ, ਜਾਂ ਕੋਈ ਛੋਟਾ ਮਾਡਲ ਚੁਣੋ।</string>
     <string name="core_intel_llm_engine_error_memory">ਮਾਡਲ ਦੀ ਮੈਮੋਰੀ ਖਤਮ ਹੋ ਗਈ ਹੈ, ਜਾਂ ਇਹ ਅਸਫਲ ਹੋ ਗਿਆ ਹੈ। ਇੱਕ ਛੋਟਾ ਮਾਡਲ ਚੁਣੋ।</string>
+    <string name="core_intel_llm_engine_error_npu">ਮਾਡਲ NPU \'ਤੇ ਅਸਫਲ ਰਿਹਾ। ਅਗਲੀ ਕੋਸ਼ਿਸ਼ GPU ਜਾਂ CPU ਦੀ ਵਰਤੋਂ ਕਰਦੀ ਹੈ। ਇੱਕ ਲੰਬਾ ਟੈਕਸਟ ਮਾਡਲ ਦੇ NPU ਬਿਲਡ ਲਈ ਬਹੁਤ ਜ਼ਿਆਦਾ ਹੋ ਸਕਦਾ ਹੈ।</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">ਇਸ ਮਾਡਲ ਦਾ ਸਿਰਫ਼ NPU ਬਿਲਡ ਤੁਹਾਡੇ ਫ਼ੋਨ \'ਤੇ ਹੈ, ਅਤੇ ਸਿਰਫ਼ NPU ਹੀ ਇਸਨੂੰ ਚਲਾ ਸਕਦਾ ਹੈ। ਕੰਪਿਊਟ ਨੂੰ NPU \'ਤੇ ਸੈੱਟ ਕਰੋ, ਜਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਮਾਡਲ ਦਾ ਸਟੈਂਡਰਡ ਬਿਲਡ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">ਇਸ ਮਾਡਲ ਦਾ NPU ਬਿਲਡ ਤੁਹਾਡੇ ਫ਼ੋਨ \'ਤੇ ਸ਼ੁਰੂ ਨਹੀਂ ਹੋਇਆ। GPU ਜਾਂ CPU \'ਤੇ ਮਾਡਲ ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ, ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਇਸਦਾ ਸਟੈਂਡਰਡ ਬਿਲਡ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">ਕੀਬੋਰਡ ਦਾ NPU ਹਿੱਸਾ ਤਿਆਰ ਨਹੀਂ ਹੈ। ਜੇਕਰ ਇਹ ਡਾਊਨਲੋਡ ਹੋ ਰਿਹਾ ਹੈ, ਤਾਂ ਕੁਝ ਸਮੇਂ ਬਾਅਦ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ। ਹੁਣ GPU ਜਾਂ CPU ਦੀ ਵਰਤੋਂ ਕਰਨ ਲਈ, ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਮਾਡਲ ਦਾ ਸਟੈਂਡਰਡ ਬਿਲਡ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
+    <string name="core_intel_llm_engine_error_template">ਇਸ ਮਾਡਲ ਦਾ ਚੈਟ ਟੈਂਪਲੇਟ ਪੜ੍ਹਿਆ ਨਹੀਂ ਜਾ ਸਕਿਆ। ਮਾਡਲ ਦੀ ਕੋਈ ਹੋਰ GGUF ਫ਼ਾਈਲ ਅਜ਼ਮਾਓ।</string>
+    <string name="core_intel_llm_engine_error_too_long">ਇਹ ਟੈਕਸਟ ਇਸ ਮਾਡਲ ਲਈ ਬਹੁਤ ਲੰਮਾ ਹੈ। ਕੋਈ ਛੋਟਾ ਟੈਕਸਟ ਵਰਤੋ, ਜਾਂ ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕੰਟੈਕਸਟ (Context) ਦਾ ਆਕਾਰ ਵਧਾਓ।</string>
+    <string name="core_intel_llm_engine_error_vision">ਇਹ ਮਾਡਲ ਤਸਵੀਰਾਂ ਨਹੀਂ ਪੜ੍ਹ ਸਕਦਾ। Gemma 4 ਪੜ੍ਹ ਸਕਦਾ ਹੈ।</string>
+    <string name="core_intel_llm_llama_missing">ਇਹ ਬਿਲਡ GGUF ਮਾਡਲਾਂ ਨੂੰ ਨਹੀਂ ਚਲਾ ਸਕਦਾ: llama.cpp ਭਾਗ ਮੌਜੂਦ ਨਹੀਂ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">ਪਿਛਲੀ ਪੀੜ੍ਹੀ ਦਾ ਇੱਕ ਛੋਟਾ ਜੇਮਾ (Gemma) ਮਾਡਲ। ਇਸਦੀ ਕੁਆਲਿਟੀ ਚੰਗੀ ਹੈ ਅਤੇ 4K ਟੋਕਨਾਂ ਦਾ ਸੰਦਰਭ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">ਗੂਗਲ ਵੱਲੋਂ ਸਭ ਤੋਂ ਛੋਟਾ ਜੇਮਾ (Gemma)। ਇਹ ਸਾਰੀਆਂ ਡਿਵਾਈਸਾਂ \'ਤੇ ਤੇਜ਼ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">ਸਭ ਤੋਂ ਨਵੀਂ Gemma ਪੀੜ੍ਹੀ। ਇਹ ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਉੱਚ ਗੁਣਵੱਤਾ ਦਿੰਦੀ ਹੈ।</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">ਸਭ ਤੋਂ ਵੱਡਾ ਮਾਡਲ। ਇਹ ਸਭ ਤੋਂ ਵਧੀਆ ਲਿਖਦਾ ਹੈ, ਪਰ ਇਸਨੂੰ ਇੱਕ ਸ਼ਕਤੀਸ਼ਾਲੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">ਪਿਛਲੀ ਪੀੜ੍ਹੀ ਤੋਂ ਇੱਕ ਛੋਟਾ ਗੇਮਾ (Gemma)। ਇਸ ਫਾਈਲ ਲਈ ਕਿਸੇ ਹਗਿੰਗ ਫੇਸ (Hugging Face) ਟੋਕਨ ਦੀ ਲੋੜ ਨਹੀਂ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Meta ਦਾ ਛੋਟਾ Llama। ਇਹ ਸਪੱਸ਼ਟ ਅੰਗਰੇਜ਼ੀ ਲਿਖਦਾ ਹੈ ਅਤੇ ਨਿਰਦੇਸ਼ਾਂ ਦੀ ਚੰਗੀ ਤਰ੍ਹਾਂ ਪਾਲਣਾ ਕਰਦਾ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">ਤਸਵੀਰਾਂ ਅਤੇ ਸਕ੍ਰੀਨਸ਼ੌਟਸ ਨੂੰ ਚੰਗੀ ਤਰ੍ਹਾਂ ਪੜ੍ਹਦਾ ਹੈ, ਉਹਨਾਂ ਵਿੱਚ ਲਿਖੇ ਟੈਕਸਟ ਨੂੰ ਵੀ। ਇਸ ਲਈ ਇੱਕ ਉੱਚ-ਅੰਤ ਵਾਲੇ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ। ਇਸਦਾ ਲਾਇਸੰਸ ਸਿਰਫ ਖੋਜ ਲਈ ਵਰਤੋਂ ਦੀ ਇਜਾਜ਼ਤ ਦਿੰਦਾ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ਇੱਕ ਹਾਲੀਆ ਦਰਮਿਆਨੇ ਆਕਾਰ ਦਾ ਮਾਡਲ ਜੋ ਜਵਾਬ ਦੇਣ ਤੋਂ ਪਹਿਲਾਂ ਸੋਚਦਾ ਹੈ। ਇਸ ਲਈ ਇੱਕ ਦਰਮਿਆਨੇ ਪੱਧਰ ਦੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੁੰਦੀ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ਛੋਟਾ ਅਤੇ ਤੇਜ਼। ਇਹ ਇੱਕ ਬੁਨਿਆਦੀ ਡਿਵਾਈਸ \'ਤੇ ਤੇਜ਼ੀ ਨਾਲ ਦੁਬਾਰਾ ਲਿਖਣ ਲਈ ਵਧੀਆ ਹੈ।</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ਇੱਕ ਬਹੁਤ ਛੋਟਾ ਮਾਡਲ ਜੋ ਤਸਵੀਰਾਂ ਪੜ੍ਹ ਸਕਦਾ ਹੈ। ਇਹ ਇੱਕ ਤਸਵੀਰ ਦਾ ਵਰਣਨ ਕਰਦਾ ਹੈ, ਪਰ ਅਕਸਰ ਸਕ੍ਰੀਨਸ਼ੌਟ ਵਿੱਚ ਲਿਖੇ ਟੈਕਸਟ ਨੂੰ ਗਲਤ ਪੜ੍ਹ ਲੈਂਦਾ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">ਇੱਕ ਆਮ-ਉਦੇਸ਼ ਵਾਲਾ ਮਾਡਲ ਜੋ ਅਜੇ ਵੀ ਇੱਕ ਬੁਨਿਆਦੀ ਡਿਵਾਈਸ \'ਤੇ ਫਿੱਟ ਬੈਠਦਾ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B ਤੋਂ ਹੇਠਾਂ ਦੇ ਮਾਡਲਾਂ ਨਾਲੋਂ ਸਪੱਸ਼ਟ ਤੌਰ \'ਤੇ ਚੁਸਤ। ਇਸ ਨੂੰ ਮੱਧ-ਰੇਂਜ ਵਾਲੀ ਡਿਵਾਈਸ ਦੀ ਲੋੜ ਹੈ।</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ਇੱਕ ਹਾਲੀਆ ਛੋਟਾ ਮਾਡਲ। ਇਸਦੇ ਆਕਾਰ ਲਈ ਗੁਣਵੱਤਾ ਉੱਚੀ ਹੈ।</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">ਅਣਪ੍ਰੀਖਿਤ</string>
     <string name="core_intel_ocr_download_error_http">GitHub ਸਰਵਰ ਨੇ ਫਾਈਲ ਨਹੀਂ ਭੇਜੀ। ਗਲਤੀ ਕੋਡ HTTP %1$s ਹੈ।</string>
     <string name="core_intel_ocr_download_error_interrupted">ਡਾਊਨਲੋਡ ਦੌਰਾਨ ਕਨੈਕਸ਼ਨ ਰੁਕ ਗਿਆ ਸੀ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="core_intel_ocr_download_error_mismatch">ਡਾਊਨਲੋਡ ਕੀਤੀ ਫ਼ਾਈਲ ਉਮੀਦ ਅਨੁਸਾਰ ਨਹੀਂ ਹੈ। ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_intel_ocr_download_error_no_space">ਤੁਹਾਡੀ ਡਿਵਾਈਸ \'ਤੇ ਲੋੜੀਂਦੀ ਸਟੋਰੇਜ ਨਹੀਂ ਹੈ। ਤੁਹਾਨੂੰ ਪਹਿਲਾਂ ਲਗਭਗ %1$s MB ਖਾਲੀ ਕਰਨੀ ਪਵੇਗੀ।</string>
+    <string name="core_intel_ocr_module_error">Google Play ਨੇ ਟੈਕਸਟ ਰੀਡਰ ਨੂੰ ਡਿਲੀਵਰ ਨਹੀਂ ਕੀਤਾ। ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ ਅਤੇ ਇਹ ਯਕੀਨੀ ਬਣਾਓ ਕਿ Play Store ਕੰਮ ਕਰ ਰਿਹਾ ਹੈ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
     <string name="core_intel_ocr_pack_error_broken">ਡਾਊਨਲੋਡ ਕੀਤਾ ਭਾਸ਼ਾ ਡੇਟਾ ਖਰਾਬ ਹੈ, ਇਸ ਲਈ ਸਕੈਨਰ ਇਸਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕਰ ਸਕਿਆ। ਇਸਨੂੰ ਦੁਬਾਰਾ ਡਾਊਨਲੋਡ ਕਰੋ।</string>
+    <string name="core_intel_semantic_module_error">ਖੋਜ ਇੰਜਣ ਵਾਲਾ ਹਿੱਸਾ ਡਾਊਨਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
+    <string name="core_intel_semantic_no_source">ਮਾਡਲ ਫਾਈਲਾਂ ਸਿਰਫ਼ GitHub \'ਤੇ ਪ੍ਰਕਾਸ਼ਿਤ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ। ਡੇਟਾ ਰਿਪੋਜ਼ਟਰੀ ਨੂੰ ਸਰਵਰਾਂ ਵਿੱਚ ਵਾਪਸ GitHub \'ਤੇ ਸੈੱਟ ਕਰੋ।</string>
+    <string name="core_intel_xlit_module_error">ਮਾਡਲ ਨੂੰ ਚਲਾਉਣ ਵਾਲਾ ਹਿੱਸਾ ਡਾਊਨਲੋਡ ਨਹੀਂ ਹੋਇਆ। ਕਨੈਕਸ਼ਨ ਦੀ ਜਾਂਚ ਕਰੋ, ਫਿਰ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।</string>
 </resources>

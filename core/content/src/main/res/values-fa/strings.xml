@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">قالب</string>
     <string name="core_content_selection_macro_grammar">دستور زبان</string>
     <string name="core_content_selection_macro_lines_bullet">گلوله‌ها</string>
+    <string name="core_content_selection_macro_lines_checkbox">چک‌باکس‌ها</string>
     <string name="core_content_selection_macro_lines_dedupe">منحصربه‌فرد</string>
+    <string name="core_content_selection_macro_lines_down">انتقال به پایین</string>
     <string name="core_content_selection_macro_lines_number">شماره</string>
     <string name="core_content_selection_macro_lines_sort">مرتب‌سازی</string>
+    <string name="core_content_selection_macro_lines_up">انتقال به بالا</string>
     <string name="core_content_selection_macro_map">نقشه</string>
     <string name="core_content_selection_macro_open">باز کردن</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">خواندن</string>
+    <string name="core_content_selection_macro_repeat">تکرار</string>
     <string name="core_content_selection_macro_replace">جایگزینی</string>
     <string name="core_content_selection_macro_save_note">ذخیره به عنوان یادداشت</string>
     <string name="core_content_selection_macro_search">جستجو</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">ترجمه</string>
     <string name="core_content_selection_macro_url_decode">رمزگشایی</string>
     <string name="core_content_selection_macro_whatsapp">واتس‌اپ</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">این فایل همچنین دارای %1$d کلمه بدون میانبر است. برای افزودن آن به کلمات خود، فایل را از «فرهنگ لغت شخصی» باز کنید.</item>
         <item quantity="other">این فایل همچنین دارای %1$d کلمه بدون میانبر است. برای افزودن آن‌ها به کلمات خود، فایل را از «فرهنگ لغت شخصی» باز کنید.</item>

@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Onyesha zana</string>
     <string name="core_icons_slot_tab_label">Ufunguo wa Tab</string>
     <string name="core_icons_slot_toolbox_label">Sanduku la zana</string>
+    <string name="core_icons_slot_toolbox_search_label">Utafutaji wa kisanduku cha zana</string>
 </resources>

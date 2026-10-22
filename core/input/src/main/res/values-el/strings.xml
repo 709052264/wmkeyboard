@@ -56,4 +56,22 @@
         <item quantity="one">Η εφαρμογή το διάβασε ως πίνακα κωδικών Rime με %1$d καταχώριση. Πληκτρολογήστε έναν κωδικό και, στη συνέχεια, επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
         <item quantity="other">Η εφαρμογή το διάβασε ως πίνακα κωδικών Rime με %1$d καταχωρίσεις. Πληκτρολογήστε έναν κωδικό και, στη συνέχεια, επιλέξτε τον χαρακτήρα από τη γραμμή προτάσεων.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Το σύστημα λεξικού του Mozc, με το κόστος σύνδεσης, το τμηματοποιητή και το φίλτρο προτάσεων. Η μηχανή Mozc πραγματοποιεί μετατροπές με αυτό· η ενσωματωμένη μηχανή δεν το χρησιμοποιεί.</string>
+    <string name="core_input_mozc_pack_title">Λεξικό Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Στίξη, σύμβολα, ο πίνακας συχνότητας λέξεων και η μετατροπή Απλοποιημένων και Παραδοσιακών κινεζικών που χρησιμοποιεί κάθε σχήμα RIME. Λήψη με το πρώτο σχήμα.</string>
+    <string name="core_input_rime_pack_base_title">Βασικά στοιχεία RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Το σχήμα Zhuyin του RIME στον τυπικό χάρτη πληκτρολογίου Dachen, με το λεξικό του Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Το σχήμα Cangjie πέμπτης γενιάς του RIME, χαρακτήρες και φράσεις.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Ένα μεγάλο σύγχρονο λεξιλόγιο Απλοποιημένων Κινεζικών για Pinyin, με παραλλαγές Double Pinyin και 9-key. Η μεταγλώττισή του διαρκεί ένα λεπτό ή περισσότερο.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Το σχήμα rime-cantonese για τα Καντονέζικα, με τις λίστες λέξεων και φράσεών του.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Το σχήμα Pinyin του RIME, μαζί με το σχήμα γραφής που χρησιμοποιεί για την εύρεση χαρακτήρων.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Μοντέλο ιαπωνικής χειρόγραφης γραφής</string>
+    <string name="core_input_zinnia_pack_subtitle">Το μοντέλο του έργου Tegaki για το zinnia, τον offline αναγνωριστή χειρογράφου που διαβάζει Κινεζικά και Ιαπωνικά όπου το ML Kit δεν το κάνει.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Μοντέλο χειρόγραφης γραφής Απλοποιημένων Κινεζικών</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Μοντέλο χειρόγραφης εισαγωγής παραδοσιακών κινεζικών</string>
 </resources>

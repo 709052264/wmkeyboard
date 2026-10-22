@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Afișează instrumentele</string>
     <string name="core_icons_slot_tab_label">Tasta Tab</string>
     <string name="core_icons_slot_toolbox_label">Cutie cu instrumente</string>
+    <string name="core_icons_slot_toolbox_search_label">Căutare în setul de instrumente</string>
 </resources>

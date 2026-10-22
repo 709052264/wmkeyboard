@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Формат</string>
     <string name="core_content_selection_macro_grammar">Грамматика</string>
     <string name="core_content_selection_macro_lines_bullet">Маркеры</string>
+    <string name="core_content_selection_macro_lines_checkbox">Флажки</string>
     <string name="core_content_selection_macro_lines_dedupe">Уникальные</string>
+    <string name="core_content_selection_macro_lines_down">Переместить вниз</string>
     <string name="core_content_selection_macro_lines_number">Номер</string>
     <string name="core_content_selection_macro_lines_sort">Сортировать</string>
+    <string name="core_content_selection_macro_lines_up">Вверх</string>
     <string name="core_content_selection_macro_map">Карта</string>
     <string name="core_content_selection_macro_open">Открыть</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Произнести</string>
+    <string name="core_content_selection_macro_repeat">Повторить</string>
     <string name="core_content_selection_macro_replace">Заменить</string>
     <string name="core_content_selection_macro_save_note">Сохранить как заметку</string>
     <string name="core_content_selection_macro_search">Поиск</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Перевести</string>
     <string name="core_content_selection_macro_url_decode">Декодировать</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">В файле также есть %1$d слово без сокращения. Чтобы добавить его в свои слова, откройте файл из Личного словаря.</item>
         <item quantity="other">В файле также есть %1$d слов без сокращений. Чтобы добавить их в свои слова, откройте файл из Личного словаря.</item>

@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Tarrojen luontimoottoria ei voitu ladata. Tarkista yhteys ja yritä uudelleen.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool ei hyväksynyt käyttäjätunnusta ja API-avainta (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool-palvelin on saanut tästä puhelimesta niin monta tarkistusta kuin se ottaa minuutissa vastaan. Muokkaa tekstiä hetken kuluttua tarkistaaksesi uudelleen (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool ei voinut tarkistaa tätä tekstiä. Palvelimella ei ehkä ole tätä kieltä (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Teksti on liian pitkä tälle LanguageTool-palvelimelle (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Ladattu tiedosto ei ole oikea, joten se poistettiin. Lataa se uudelleen.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Tämä malli on suojattu. Lisää ensin Hugging Face -tunnuksesi.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face palautti HTTP-tilan %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Hyväksy mallin käyttöoikeussopimus sen Hugging Face -sivulla. Yritä sitten uudelleen.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Yhteys katkesi latauksen aikana. Jatka painamalla Jatka.</string>
     <string name="core_intel_llm_engine_error_gpu">Malli epäonnistui GPU:lla. GPU-muisti on paljon pienempi kuin järjestelmän muisti. Seuraava yritys käyttää CPU:ta. Jos haluat käyttää aina CPU:ta, aseta Compute-asetukseksi CPU asetuksista. Voit myös valita pienemmän mallin.</string>
     <string name="core_intel_llm_engine_error_load">Mallia ei voitu ladata. Tiedosto on todennäköisesti vioittunut. Poista malli asetuksista ja lataa se uudelleen.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Tämä malli tarvitsee noin %1$s muistia, ja vapaana on %2$s. Sulje muita sovelluksia tai valitse pienempi malli.</string>
     <string name="core_intel_llm_engine_error_memory">Mallin muisti loppui tai se epäonnistui. Valitse pienempi malli.</string>
+    <string name="core_intel_llm_engine_error_npu">Malli epäonnistui NPU:ssa. Seuraava yritys käyttää GPU:ta tai CPU:ta. Pitkä teksti voi olla liikaa mallin NPU-versiolle.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Vain tämän mallin NPU-koontiversio on puhelimessasi, ja vain NPU voi ajaa sitä. Aseta laskennaksi NPU tai lataa mallin vakioversio asetuksista.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Tämän mallin NPU-versio ei käynnistynyt puhelimessasi. Jos haluat käyttää mallia GPU:lla tai CPU:lla, lataa sen vakioversio asetuksista.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Näppäimistön NPU-osa ei ole valmis. Jos se latautuu, yritä hetken kuluttua uudelleen. Jos haluat käyttää GPU:ta tai CPU:ta nyt, lataa mallin vakioversio asetuksista.</string>
+    <string name="core_intel_llm_engine_error_template">Tämän mallin chat-mallinetta ei voitu lukea. Kokeile toista mallin GGUF-tiedostoa.</string>
+    <string name="core_intel_llm_engine_error_too_long">Teksti on liian pitkä tälle mallille. Käytä lyhyempää tekstiä tai suurenna kontekstin kokoa asetuksista.</string>
+    <string name="core_intel_llm_engine_error_vision">Tämä malli ei osaa lukea kuvia. Gemma 4 osaa.</string>
+    <string name="core_intel_llm_llama_missing">Tämä koontiversio ei voi ajaa GGUF-malleja: llama.cpp-osa puuttuu.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Pieni Gemma edellisestä sukupolvesta. Sillä on hyvä laatu ja 4K-tokenin konteksti.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Googlen pienin Gemma-malli. Se on nopea kaikilla laitteilla.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Uusin Gemma-sukupolvi. Se tarjoaa huippulaatua laitteellasi.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Suurin malli. Se kirjoittaa parhaiten, mutta vaatii tehokkaan laitteen.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Pieni Gemma edellisestä sukupolvesta. Tälle tiedostolle ei tarvita Hugging Face -tunnusta.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Metan pieni Llama. Se kirjoittaa selkeää englantia ja noudattaa ohjeita hyvin.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Lukee kuvia ja kuvakaappauksia hyvin, myös niissä olevaa tekstiä. Vaatii tehokkaan laitteen. Sen lisenssi sallii vain tutkimuskäytön.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Tuore keskikokoinen malli, joka ajattelee ennen vastaamista. Vaatii keskitason laitteen.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Pieni ja nopea. Hyvä nopeisiin uudelleenkirjoituksiin peruslaitteella.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Erittäin pieni malli, joka osaa lukea kuvia. Se kuvailee kuvan, mutta lukee usein väärin kuvakaappauksessa olevan tekstin.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Yleiskäyttöinen malli, joka mahtuu vielä peruslaitteelle.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Selvästi älykkäämpi kuin alle 1B-mallit. Vaatii keskitason laitteen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Tuore pieni malli. Laatu on korkea sen kokoon nähden.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Testaamaton</string>
     <string name="core_intel_ocr_download_error_http">GitHub-palvelin ei lähettänyt tiedostoa. Virhekoodi on HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Yhteys katkesi latauksen aikana. Yritä uudelleen.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Ladattu tiedosto ei ole odotettu tiedosto. Yritä uudelleen.</string>
     <string name="core_intel_ocr_download_error_no_space">Laitteessasi ei ole tarpeeksi tallennustilaa. Sinun on vapautettava ensin noin %1$s Mt.</string>
+    <string name="core_intel_ocr_module_error">Google Play ei toimittanut tekstinlukijaa. Tarkista yhteys ja se, että Play-kauppa toimii, ja yritä sitten uudelleen.</string>
     <string name="core_intel_ocr_pack_error_broken">Ladattu kielidata on vahingoittunut, joten skanneri ei voinut käyttää sitä. Lataa se uudelleen.</string>
+    <string name="core_intel_semantic_module_error">Hakukoneen osa ei latautunut. Tarkista yhteys ja yritä uudelleen.</string>
+    <string name="core_intel_semantic_no_source">Mallitiedostot on julkaistu vain GitHubissa. Palauta tietovarasto GitHubiin Palvelimet-kohdassa.</string>
+    <string name="core_intel_xlit_module_error">Mallia ajava osa ei latautunut. Tarkista yhteys ja yritä uudelleen.</string>
 </resources>

@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skripta nije uspjela.</string>
     <string name="core_plugins_error_script_missing">Skripta za taj dodatak nedostaje.</string>
     <string name="core_plugins_error_turned_off">Taj dodatak je isključen.</string>
+    <string name="core_plugins_permission_reminders_label">Prikaži podsjetnike u vrijeme koje ste postavili</string>
     <string name="core_plugins_permission_storage_label">Spremi podatke na svoj uređaj</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” ima skriptu koja nije važeći UTF-8 tekst.</string>
     <string name="core_plugins_reject_bad_id">Ovaj dodatak ima nevaljan ID. ID mora biti dugačak od 3 do 64 znaka. ID može sadržavati mala slova, brojeve, točke, crtice i podvlake.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” ne navodi koja je to verzija.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” ima skriptu veću od %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Ova verzija WM tipkovnice ne prepoznaje dopuštenje „%1$s”. Aplikacija vam ne može reći što je „%2$s” dopušteno raditi.</string>
+    <string name="core_plugins_reminders_channel_body">Podsjetnici koje je dodatak zatražio da aplikacija prikaže, u vrijeme koje ste postavili u dodatku. Naslov svakog od njih je naziv dodatka.</string>
+    <string name="core_plugins_reminders_channel_title">Podsjetnici dodataka</string>
     <string name="core_plugins_stopped_cancelled">Aplikacija je zaustavila ovaj dodatak.</string>
     <string name="core_plugins_stopped_deadline">Ovaj dodatak je predugo trajao. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_instructions">Ovaj dodatak je obavio previše posla odjednom. Aplikacija ga je zaustavila.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Ovaj dodatak je prestao odgovarati. Aplikacija ga je isključila.</string>
     <string name="core_plugins_stopped_recursion">Ovaj dodatak je sam sebe pozvao previše puta. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_unexpected">Ovaj se dodatak neočekivano zaustavio.</string>
+    <string name="core_plugins_ui_date_clear">Očisti</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min ranije</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d min kasnije</string>
+    <string name="core_plugins_ui_date_next_day">Sljedeći dan</string>
+    <string name="core_plugins_ui_date_none">Bez datuma</string>
+    <string name="core_plugins_ui_date_previous_day">Prethodni dan</string>
+    <string name="core_plugins_ui_date_set">Postavi datum</string>
+    <string name="core_plugins_ui_date_today">Danas</string>
     <string name="core_plugins_ui_insert_action">Umetni</string>
     <string name="core_plugins_ui_repair_no_type">Widget nije naveo o kojoj se vrsti radi.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Popis widgeta sadržavao je nešto što nije widget.</string>

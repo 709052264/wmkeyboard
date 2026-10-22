@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">तळ उजवीकडे</string>
     <string name="core_settings_board_corner_top_left_label">वरची डावी बाजू</string>
     <string name="core_settings_board_corner_top_right_label">वरच्या उजव्या कोपऱ्यात</string>
+    <string name="core_settings_clip_shortcut_edit_label">संपादित करा</string>
+    <string name="core_settings_clip_shortcut_edited_label">संपादित खूण</string>
+    <string name="core_settings_clip_shortcut_none_label">काहीही नाही</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR कोड</string>
+    <string name="core_settings_clip_shortcut_select_label">निवडा</string>
     <string name="core_settings_clip_swipe_pin_left_label">डावीकडे पिन, उजवीकडे हटवा</string>
     <string name="core_settings_clip_swipe_pin_off_label">दोन्ही मार्गांनी हटवा</string>
     <string name="core_settings_clip_swipe_pin_right_label">उजवीकडे पिन, डावीकडे डिलीट</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">उत्साही</string>
     <string name="core_settings_deepl_style_friendly_label">मैत्रीपूर्ण</string>
     <string name="core_settings_deepl_style_simple_label">साधे</string>
+    <string name="core_settings_function_keys_always_label">नेहमी</string>
+    <string name="core_settings_function_keys_pick_mode_label">पिक मोडमध्ये</string>
     <string name="core_settings_glide_commit_color_always_label">नेहमी</string>
     <string name="core_settings_glide_commit_color_confident_label">खात्री असताना</string>
     <string name="core_settings_glide_commit_color_guess_label">कोणताही सुरुवातीचा शब्द</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">स्ट्रिप, पिल आणि कीज</string>
     <string name="core_settings_glide_commit_scope_pill_label">स्ट्रिप आणि पिल</string>
     <string name="core_settings_glide_commit_scope_strip_label">स्ट्रिप</string>
+    <string name="core_settings_glide_engine_built_in_label">इन-बिल्ट</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO स्वाइप (इंग्रजी, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google ची जेश्चर लायब्ररी (आयात केलेली)</string>
     <string name="core_settings_glide_lookahead_confident_label">खात्री असताना</string>
     <string name="core_settings_glide_lookahead_eager_label">उत्सुक</string>
     <string name="core_settings_glide_lookahead_off_label">बंद</string>

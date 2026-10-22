@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">ステッカー生成エンジンのダウンロードに失敗しました。接続を確認してから再試行してください。</string>
+    <string name="core_intel_languagetool_error_account">LanguageToolがユーザー名とAPIキーを受け付けませんでした (HTTP %1$d)。</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageToolサーバーがこの端末から1分間に受け付け可能なチェック回数を超えました。少し時間を置いてから再度チェックしてください (HTTP %1$d)。</string>
+    <string name="core_intel_languagetool_error_request">LanguageToolはこのテキストをチェックできませんでした。サーバーがこの言語に対応していない可能性があります (HTTP %1$d)。</string>
+    <string name="core_intel_languagetool_error_too_long">テキストが長すぎるため、このLanguageToolサーバーでは処理できません（HTTP %1$d）。</string>
+    <string name="core_intel_llm_download_error_checksum">ダウンロードしたファイルが期待されるものと異なるため、削除されました。再度ダウンロードしてください。</string>
     <string name="core_intel_llm_download_error_gated_no_token">このモデルは制限されています。先にHugging Faceトークンを追加してください。</string>
     <string name="core_intel_llm_download_error_http">Hugging FaceがHTTPステータス%1$sを返しました。</string>
     <string name="core_intel_llm_download_error_licence">Hugging Faceページでモデルのライセンスに同意してから、もう一度試してください。</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">ダウンロード中に接続が中断されました。「再開」を押して続けてください。</string>
     <string name="core_intel_llm_engine_error_gpu">GPUでモデルの実行に失敗しました。GPUメモリはシステムメモリよりもはるかに小さいためです。次回はCPUを使用します。常にCPUを使用するには、設定でComputeをCPUに設定してください。より小さなモデルを選択することもできます。</string>
     <string name="core_intel_llm_engine_error_load">モデルを読み込めませんでした。ファイルが破損している可能性があります。設定からモデルを削除し、再度ダウンロードしてください。</string>
+    <string name="core_intel_llm_engine_error_low_memory">このモデルには約%1$sのメモリが必要ですが、空き容量は%2$sです。他のアプリを閉じるか、より小さなモデルを選択してください。</string>
     <string name="core_intel_llm_engine_error_memory">モデルのメモリ不足、またはエラーが発生しました。より小さいモデルを選択してください。</string>
+    <string name="core_intel_llm_engine_error_npu">NPUでモデルの実行に失敗しました。次はGPUまたはCPUを使用します。長いテキストは、モデルのNPUビルドにとって負荷が大きすぎる可能性があります。</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">このモデルのNPUビルドのみがスマホに存在し、NPUでのみ実行可能です。計算設定をNPUにするか、設定でモデルの標準ビルドをダウンロードしてください。</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">このモデルのNPUビルドが端末で起動しませんでした。GPUまたはCPUでモデルを使用するには、設定から標準ビルドをダウンロードしてください。</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">キーボードのNPUパーツが準備できていません。ダウンロード中の場合は、しばらくしてからもう一度お試しください。今すぐGPUまたはCPUを使用するには、設定でモデルの標準ビルドをダウンロードしてください。</string>
+    <string name="core_intel_llm_engine_error_template">このモデルのチャットテンプレートを読み込めませんでした。別の GGUF ファイルを試してください。</string>
+    <string name="core_intel_llm_engine_error_too_long">テキストがこのモデルに対して長すぎます。短いテキストを使用するか、設定でコンテキストサイズを大きくしてください。</string>
+    <string name="core_intel_llm_engine_error_vision">このモデルは画像を読み取ることができません。Gemma 4は読み取り可能です。</string>
+    <string name="core_intel_llm_llama_missing">このビルドではGGUFモデルを実行できません：llama.cppコンポーネントが不足しています。</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">前世代の小型Gemmaモデルです。品質が良く、4Kトークンのコンテキストに対応しています。</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Googleの最小のGemmaモデルです。すべてのデバイスで高速に動作します。</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">最新のGemma世代。デバイス上で最高品質のパフォーマンスを提供します。</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">最大規模のモデルです。最高の文章を作成しますが、強力なデバイスが必要です。</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">前世代の小型Gemmaモデル。このファイルにHugging Faceトークンは不要です。</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Metaの小型Llamaモデル。明快な英語を書き、指示に忠実に従います。</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">画像やスクリーンショット、およびその中のテキストを正確に読み取ります。ハイエンドデバイスが必要です。ライセンスは研究目的での使用のみを許可しています。</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">回答する前に思考する、最近の中規模モデルです。ミドルレンジのデバイスが必要です。</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">小型で高速。基本的なデバイスでの簡単な書き換えに適しています。</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">画像を読み取ることができる非常に小さなモデルです。画像の説明は可能ですが、スクリーンショット内のテキストの読み取りには誤りが生じることがよくあります。</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">基本的なデバイスでも動作する汎用モデルです。</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B未満のモデルよりも明らかに賢いです。ミドルレンジのデバイスが必要です。</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">最近の小型モデルです。サイズに対して品質が高いのが特徴です。</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">未テスト</string>
     <string name="core_intel_ocr_download_error_http">GitHubサーバーからファイルが送信されませんでした。エラーコードはHTTP %1$sです。</string>
     <string name="core_intel_ocr_download_error_interrupted">ダウンロード中に接続が中断されました。もう一度やり直してください。</string>
+    <string name="core_intel_ocr_download_error_mismatch">ダウンロードしたファイルが期待されたものと一致しません。再試行してください。</string>
     <string name="core_intel_ocr_download_error_no_space">デバイスのストレージ容量が不足しています。まず約%1$s MBの空き容量を確保してください。</string>
+    <string name="core_intel_ocr_module_error">Google Playからテキストリーダーを取得できませんでした。接続状況とPlayストアが正常に動作しているか確認してから、もう一度お試しください。</string>
     <string name="core_intel_ocr_pack_error_broken">ダウンロードした言語データが破損しているため、スキャナーで使用できませんでした。再ダウンロードしてください。</string>
+    <string name="core_intel_semantic_module_error">検索エンジンパーツをダウンロードできませんでした。接続を確認してから再試行してください。</string>
+    <string name="core_intel_semantic_no_source">モデルファイルはGitHubでのみ公開されています。「サーバー」設定でデータリポジトリをGitHubに戻してください。</string>
+    <string name="core_intel_xlit_module_error">モデルを実行するパーツがダウンロードされませんでした。接続を確認してから、もう一度お試しください。</string>
 </resources>

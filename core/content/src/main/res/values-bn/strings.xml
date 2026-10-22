@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">ফরম্যাট</string>
     <string name="core_content_selection_macro_grammar">ব্যাকরণ</string>
     <string name="core_content_selection_macro_lines_bullet">বুলেট</string>
+    <string name="core_content_selection_macro_lines_checkbox">চেক বক্স</string>
     <string name="core_content_selection_macro_lines_dedupe">অনন্য</string>
+    <string name="core_content_selection_macro_lines_down">নিচে সরান</string>
     <string name="core_content_selection_macro_lines_number">সংখ্যা</string>
     <string name="core_content_selection_macro_lines_sort">সাজান</string>
+    <string name="core_content_selection_macro_lines_up">উপরে সরান</string>
     <string name="core_content_selection_macro_map">মানচিত্র</string>
     <string name="core_content_selection_macro_open">খুলুন</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">বলুন</string>
+    <string name="core_content_selection_macro_repeat">পুনরাবৃত্তি</string>
     <string name="core_content_selection_macro_replace">প্রতিস্থাপন করুন</string>
     <string name="core_content_selection_macro_save_note">নোট হিসেবে সংরক্ষণ করুন</string>
     <string name="core_content_selection_macro_search">অনুসন্ধান</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">অনুবাদ করুন</string>
     <string name="core_content_selection_macro_url_decode">ডিকোড</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ফাইলটিতে শর্টকাট ছাড়া %1$dটি শব্দ রয়েছে। এটিকে আপনার শব্দভাণ্ডারে যোগ করতে, ব্যক্তিগত অভিধান থেকে ফাইলটি খুলুন।</item>
         <item quantity="other">ফাইলটিতে শর্টকাট ছাড়া %1$dটি শব্দ রয়েছে। সেগুলোকে আপনার শব্দভাণ্ডারে যোগ করতে, ব্যক্তিগত অভিধান থেকে ফাইলটি খুলুন।</item>

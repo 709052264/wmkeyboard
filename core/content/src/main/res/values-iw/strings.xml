@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">פורמט</string>
     <string name="core_content_selection_macro_grammar">דקדוק</string>
     <string name="core_content_selection_macro_lines_bullet">תבליטים</string>
+    <string name="core_content_selection_macro_lines_checkbox">תיבות סימון</string>
     <string name="core_content_selection_macro_lines_dedupe">ייחודי</string>
+    <string name="core_content_selection_macro_lines_down">זוז למטה</string>
     <string name="core_content_selection_macro_lines_number">מספר</string>
     <string name="core_content_selection_macro_lines_sort">מיין</string>
+    <string name="core_content_selection_macro_lines_up">הזז למעלה</string>
     <string name="core_content_selection_macro_map">מפה</string>
     <string name="core_content_selection_macro_open">פתח</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">דבר</string>
+    <string name="core_content_selection_macro_repeat">חזור</string>
     <string name="core_content_selection_macro_replace">החלף</string>
     <string name="core_content_selection_macro_save_note">שמור כהערה</string>
     <string name="core_content_selection_macro_search">חיפוש</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">תרגם</string>
     <string name="core_content_selection_macro_url_decode">פענוח</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">בקובץ יש גם מילה אחת ללא קיצור דרך. כדי להוסיף אותה למילים שלך, פתח את הקובץ מתוך המילון האישי.</item>
         <item quantity="other">בקובץ יש גם %1$d מילים ללא קיצור דרך. כדי להוסיף אותן למילים שלך, פתח את הקובץ מתוך המילון האישי.</item>

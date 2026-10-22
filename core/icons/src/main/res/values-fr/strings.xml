@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Afficher les outils</string>
     <string name="core_icons_slot_tab_label">Touche Tab</string>
     <string name="core_icons_slot_toolbox_label">Boîte à outils</string>
+    <string name="core_icons_slot_toolbox_search_label">Recherche dans la boîte à outils</string>
 </resources>

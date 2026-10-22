@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formatas</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
     <string name="core_content_selection_macro_lines_bullet">Sąrašo ženkleliai</string>
+    <string name="core_content_selection_macro_lines_checkbox">Žymimieji langeliai</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikalus</string>
+    <string name="core_content_selection_macro_lines_down">Perkelti žemyn</string>
     <string name="core_content_selection_macro_lines_number">Skaičius</string>
     <string name="core_content_selection_macro_lines_sort">Rūšiuoti</string>
+    <string name="core_content_selection_macro_lines_up">Perkelti aukštyn</string>
     <string name="core_content_selection_macro_map">Žemėlapis</string>
     <string name="core_content_selection_macro_open">Atidaryti</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Skaityti garsiai</string>
+    <string name="core_content_selection_macro_repeat">Kartoti</string>
     <string name="core_content_selection_macro_replace">Pakeisti</string>
     <string name="core_content_selection_macro_save_note">Išsaugoti kaip užrašą</string>
     <string name="core_content_selection_macro_search">Paieška</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Versti</string>
     <string name="core_content_selection_macro_url_decode">Dekoduoti</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Faile taip pat yra %1$d žodis be nuorodos. Norėdami jį įtraukti į savo žodžius, atidarykite failą iš asmeninio žodyno.</item>
         <item quantity="other">Faile taip pat yra %1$d žodžių be nuorodos. Norėdami juos įtraukti į savo žodžius, atidarykite failą iš asmeninio žodyno.</item>

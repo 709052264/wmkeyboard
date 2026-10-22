@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">L\'script ha fallat.</string>
     <string name="core_plugins_error_script_missing">Falta l\'script per a aquest connector.</string>
     <string name="core_plugins_error_turned_off">Aquest connector està desactivat.</string>
+    <string name="core_plugins_permission_reminders_label">Mostra recordatoris a les hores que hagis establert</string>
     <string name="core_plugins_permission_storage_label">Desa dades al vostre dispositiu</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” té un script que no és un text UTF-8 vàlid.</string>
     <string name="core_plugins_reject_bad_id">Aquest connector té un identificador que no és vàlid. Un identificador té entre 3 i 64 caràcters. Un identificador pot contenir lletres minúscules, números, punts, guions i guions baixos.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">«%1$s» no indica quina versió és.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” té un script més gran de %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Aquesta versió del teclat WM no reconeix el permís «%1$s». L\'aplicació no pot dir-vos què té permès fer «%2$s».</string>
+    <string name="core_plugins_reminders_channel_body">Recordatoris que un connector ha demanat a l\'aplicació que mostri, en els moments que hagis establert al connector. El títol de cadascun és el nom del connector.</string>
+    <string name="core_plugins_reminders_channel_title">Recordatoris del connector</string>
     <string name="core_plugins_stopped_cancelled">L\'aplicació ha aturat aquest connector.</string>
     <string name="core_plugins_stopped_deadline">Aquest connector ha trigat massa. L\'aplicació l\'ha aturat.</string>
     <string name="core_plugins_stopped_instructions">Aquest connector ha fet massa feina alhora. L\'aplicació l\'ha aturat.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Aquest connector ha deixat de respondre de nou. L\'aplicació l\'ha desactivat.</string>
     <string name="core_plugins_stopped_recursion">Aquest connector s\'ha cridat a si mateix massa vegades. L\'aplicació l\'ha aturat.</string>
     <string name="core_plugins_stopped_unexpected">Aquest connector s\'ha aturat inesperadament.</string>
+    <string name="core_plugins_ui_date_clear">Neteja</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min abans</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d min després</string>
+    <string name="core_plugins_ui_date_next_day">Dia següent</string>
+    <string name="core_plugins_ui_date_none">Sense data</string>
+    <string name="core_plugins_ui_date_previous_day">Dia anterior</string>
+    <string name="core_plugins_ui_date_set">Estableix la data</string>
+    <string name="core_plugins_ui_date_today">Avui</string>
     <string name="core_plugins_ui_insert_action">Insereix</string>
     <string name="core_plugins_ui_repair_no_type">Un giny no ha especificat quin tipus és.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Una llista de ginys contenia alguna cosa que no és un giny.</string>

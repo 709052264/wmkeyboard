@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Palvelin ei lähettänyt tiedostoa. Virhekoodi on HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Kyseinen sanaluettelo on tyhjä tai lukukelvoton.</string>
+    <string name="core_pred_wordlist_memory_error">Laitteessa ei ole tarpeeksi muistia tämän kokoiselle sanalistalle. Valitse pienempi koko.</string>
     <string name="core_pred_wordlist_no_space_error">Laitteesi tallennustila on loppumassa. Poista joitakin tiedostoja ja yritä uudelleen.</string>
     <string name="core_pred_wordlist_save_error">Sovellus ei voi tallentaa sanaluetteloa. Yritä uudelleen.</string>
     <string name="core_pred_wordlist_size_all_label">Kaikki</string>

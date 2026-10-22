@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skrypt nie powiódł się.</string>
     <string name="core_plugins_error_script_missing">Brakuje skryptu dla tej wtyczki.</string>
     <string name="core_plugins_error_turned_off">Ta wtyczka jest wyłączona.</string>
+    <string name="core_plugins_permission_reminders_label">Pokazuj przypomnienia w ustawionych czasach</string>
     <string name="core_plugins_permission_storage_label">Zapisz dane na swoim urządzeniu</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s” zawiera skrypt, który nie jest poprawnym tekstem UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta wtyczka ma nieprawidłowy identyfikator. Identyfikator musi mieć od 3 do 64 znaków. Może zawierać małe litery, cyfry, kropki, myślniki i podkreślniki.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">„%1$s” nie określa swojej wersji.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s” posiada skrypt większy niż %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Ta wersja klawiatury WM nie rozpoznaje uprawnienia „%1$s”. Aplikacja nie może określić, co „%2$s” ma prawo robić.</string>
+    <string name="core_plugins_reminders_channel_body">Przypomnienia, których wyświetlenie wtyczka zleciła aplikacji w ustawionym przez nią czasie. Tytułem każdego z nich jest nazwa wtyczki.</string>
+    <string name="core_plugins_reminders_channel_title">Przypomnienia wtyczek</string>
     <string name="core_plugins_stopped_cancelled">Aplikacja zatrzymała tę wtyczkę.</string>
     <string name="core_plugins_stopped_deadline">Ta wtyczka działała zbyt długo. Aplikacja ją zatrzymała.</string>
     <string name="core_plugins_stopped_instructions">Ta wtyczka wykonała zbyt wiele pracy jednocześnie. Aplikacja ją zatrzymała.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Ta wtyczka przestała odpowiadać. Aplikacja ją wyłączyła.</string>
     <string name="core_plugins_stopped_recursion">Ta wtyczka wywołała samą siebie zbyt wiele razy. Aplikacja ją zatrzymała.</string>
     <string name="core_plugins_stopped_unexpected">Ta wtyczka zatrzymała się nieoczekiwanie.</string>
+    <string name="core_plugins_ui_date_clear">Wyczyść</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min wcześniej</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 godz.</string>
+    <string name="core_plugins_ui_date_hour_later">+1 godz.</string>
+    <string name="core_plugins_ui_date_later">%1$d min później</string>
+    <string name="core_plugins_ui_date_next_day">Następny dzień</string>
+    <string name="core_plugins_ui_date_none">Brak daty</string>
+    <string name="core_plugins_ui_date_previous_day">Poprzedni dzień</string>
+    <string name="core_plugins_ui_date_set">Ustaw datę</string>
+    <string name="core_plugins_ui_date_today">Dzisiaj</string>
     <string name="core_plugins_ui_insert_action">Wstaw</string>
     <string name="core_plugins_ui_repair_no_type">Widżet nie określił swojego typu.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Lista widżetów zawierała element, który nie jest widżetem.</string>

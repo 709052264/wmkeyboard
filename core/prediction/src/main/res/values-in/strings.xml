@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Server tidak mengirim file. Kode kesalahan adalah HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Daftar kata tersebut kosong atau tidak dapat dibaca.</string>
+    <string name="core_pred_wordlist_memory_error">Perangkat ini tidak memiliki cukup memori untuk daftar kata sebesar ini. Pilih ukuran yang lebih kecil.</string>
     <string name="core_pred_wordlist_no_space_error">Penyimpanan di perangkat Anda tidak cukup. Hapus beberapa file, lalu coba lagi.</string>
     <string name="core_pred_wordlist_save_error">Aplikasi tidak dapat menyimpan daftar kata. Coba lagi.</string>
     <string name="core_pred_wordlist_size_all_label">Semuanya</string>

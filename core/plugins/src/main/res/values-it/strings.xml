@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Lo script non è riuscito.</string>
     <string name="core_plugins_error_script_missing">Lo script per quel plugin è mancante.</string>
     <string name="core_plugins_error_turned_off">Quel plugin è disattivato.</string>
+    <string name="core_plugins_permission_reminders_label">Mostra promemoria negli orari impostati</string>
     <string name="core_plugins_permission_storage_label">Salva i dati sul tuo dispositivo</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” contiene uno script che non è un testo UTF-8 valido.</string>
     <string name="core_plugins_reject_bad_id">Questo plugin ha un ID non valido. Un ID deve avere una lunghezza compresa tra 3 e 64 caratteri. Un ID può contenere lettere minuscole, numeri, punti, trattini e trattini bassi.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” non specifica la versione.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ha uno script più grande di %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Questa versione di WM Keyboard non riconosce l\'autorizzazione \"%1$s\". L\'app non può dirti cosa è autorizzato a fare \"%2$s\".</string>
+    <string name="core_plugins_reminders_channel_body">Promemoria che un plugin ha chiesto all\'app di mostrare, negli orari impostati nel plugin. Il titolo di ciascuno è il nome del plugin.</string>
+    <string name="core_plugins_reminders_channel_title">Promemoria plugin</string>
     <string name="core_plugins_stopped_cancelled">L\'app ha interrotto questo plugin.</string>
     <string name="core_plugins_stopped_deadline">Questo plugin ha impiegato troppo tempo. L\'app lo ha interrotto.</string>
     <string name="core_plugins_stopped_instructions">Questo plugin ha eseguito troppe operazioni contemporaneamente. L\'app lo ha interrotto.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Questo plugin ha smesso di rispondere di nuovo. L\'app lo ha disattivato.</string>
     <string name="core_plugins_stopped_recursion">Questo plugin ha richiamato se stesso troppe volte. L\'app lo ha interrotto.</string>
     <string name="core_plugins_stopped_unexpected">Questo plugin si è arrestato in modo imprevisto.</string>
+    <string name="core_plugins_ui_date_clear">Cancella</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min prima</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ora</string>
+    <string name="core_plugins_ui_date_later">%1$d min dopo</string>
+    <string name="core_plugins_ui_date_next_day">Giorno successivo</string>
+    <string name="core_plugins_ui_date_none">Nessuna data</string>
+    <string name="core_plugins_ui_date_previous_day">Giorno precedente</string>
+    <string name="core_plugins_ui_date_set">Imposta data</string>
+    <string name="core_plugins_ui_date_today">Oggi</string>
     <string name="core_plugins_ui_insert_action">Inserisci</string>
     <string name="core_plugins_ui_repair_no_type">Un widget non ha specificato il suo tipo.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Un elenco di widget conteneva qualcosa che non è un widget.</string>

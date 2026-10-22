@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">ਟੂਲ ਦਿਖਾਓ</string>
     <string name="core_icons_slot_tab_label">ਟੈਬ ਕੁੰਜੀ</string>
     <string name="core_icons_slot_toolbox_label">ਟੂਲਬਾਕਸ</string>
+    <string name="core_icons_slot_toolbox_search_label">ਟੂਲਬਾਕਸ ਖੋਜ</string>
 </resources>

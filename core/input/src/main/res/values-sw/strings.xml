@@ -56,4 +56,22 @@
         <item quantity="one">Programu imesoma hii kama jedwali la msimbo wa Rime lenye ingizo %1$d. Chapa msimbo, kisha chagua mhusika kutoka kwenye mwambaa wa mapendekezo.</item>
         <item quantity="other">Programu imesoma hii kama jedwali la msimbo wa Rime lenye maingizo %1$d. Chapa msimbo, kisha chagua mhusika kutoka kwenye mwambaa wa mapendekezo.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Kamusi ya mfumo ya Mozc yenyewe, ikiwa na gharama zake za muunganisho, kigawanyaji na kichujio cha mapendekezo. Injini ya Mozc hubadilisha na hii; injini iliyojengewa ndani haitumii.</string>
+    <string name="core_input_mozc_pack_title">Kamusi ya Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Alama za uakifishaji, alama, jedwali la marudio ya maneno na ubadilishaji wa Kilugha Rahisi na cha Jadi ambao kila mpango wa RIME hutumia. Imepakuliwa na mpango wa kwanza.</string>
+    <string name="core_input_rime_pack_base_title">Misingi ya RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Mpango wa RIME wa Zhuyin kwenye ramani ya vitufe ya kawaida ya Dachen, na kamusi ya Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Mfumo wa tano wa Cangjie wa RIME, herufi na misemo.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Msamiati mkubwa wa kisasa wa Kichina Kilichorahisishwa kwa Pinyin, pamoja na lahaja za Pinyin Mbili na funguo 9. Kuikamilisha inachukua dakika moja au zaidi.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Mpango wa rime-cantonese kwa ajili ya Kikantoni, pamoja na orodha zake za maneno na misemo.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Mpango wa Pinyin wa RIME wenyewe, pamoja na mpango wa viboko unaotumika kutafuta vibambo.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Mfumo wa uandishi wa mkono wa Kijapani</string>
+    <string name="core_input_zinnia_pack_subtitle">Mfano wa mradi wa Tegaki kwa ajili ya zinnia, kitambulishi cha maandishi kwa mkono cha nje ya mtandao ambacho kinasoma Kichina na Kijapani ambapo ML Kit haifanyi hivyo.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Modeli ya mwandiko wa Kichina Kilichorahisishwa</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Mfumo wa mwandiko wa Kichina wa Jadi</string>
 </resources>

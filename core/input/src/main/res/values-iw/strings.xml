@@ -56,4 +56,22 @@
         <item quantity="one">האפליקציה זיהתה זאת כטבלת קוד Rime עם ערך %1$d. הקלד קוד, ולאחר מכן בחר את התו מרצועת ההצעות.</item>
         <item quantity="other">האפליקציה זיהתה זאת כטבלת קוד Rime עם %1$d ערכים. הקלד קוד, ולאחר מכן בחר את התו מרצועת ההצעות.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">מילון המערכת של Mozc, עם עלויות החיבור, המקטע ומסנן ההצעות שלו. מנוע Mozc מבצע המרה בעזרתו; המנוע המובנה אינו משתמש בו.</string>
+    <string name="core_input_mozc_pack_title">מילון Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">סימני פיסוק, סמלים, טבלת תדירות המילים והמרת סינית פשוטה ומסורתית שבהם משתמש כל סכימת RIME. מורד עם הסכימה הראשונה.</string>
+    <string name="core_input_rime_pack_base_title">יסודות RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">סכימת Zhuyin של RIME על מפת המקשים הסטנדרטית של Dachen, עם המילון של Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">סכמת צאנג-ג\'יה מהדור החמישי של RIME, תווים וביטויים.</string>
+    <string name="core_input_rime_pack_cangjie5_title">קנג\'יה 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">אוצר מילים סיני מפושט מודרני וגדול עבור פין-יין, עם גרסאות פין-יין כפול ו-9 מקשים. הידורו לוקח דקה או יותר.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">סכימת rime-cantonese עבור קנטונזית, עם רשימות המילים והביטויים שלה.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">סכימת הפין-יין של RIME, עם סכימת המשיכות שדרכה הוא מחפש תווים.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">מודל כתב יד ליפנית</string>
+    <string name="core_input_zinnia_pack_subtitle">המודל של פרויקט Tegaki עבור zinnia, מזהה כתב היד הלא מקוון שקורא סינית ויפנית במקומות שבהם ML Kit לא מצליח.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">מודל כתב יד סינית מפושטת</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">מודל כתב יד סיני מסורתי</string>
 </resources>

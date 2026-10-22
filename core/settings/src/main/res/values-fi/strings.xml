@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Alhaalla oikealla</string>
     <string name="core_settings_board_corner_top_left_label">Ylävasen</string>
     <string name="core_settings_board_corner_top_right_label">Oikea yläkulma</string>
+    <string name="core_settings_clip_shortcut_edit_label">Muokkaa</string>
+    <string name="core_settings_clip_shortcut_edited_label">Muokattu-merkintä</string>
+    <string name="core_settings_clip_shortcut_none_label">Ei mitään</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR-koodi</string>
+    <string name="core_settings_clip_shortcut_select_label">Valitse</string>
     <string name="core_settings_clip_swipe_pin_left_label">Vasen kiinnittää, oikea poistaa</string>
     <string name="core_settings_clip_swipe_pin_off_label">Poisto molempiin suuntiin</string>
     <string name="core_settings_clip_swipe_pin_right_label">Oikealle kiinnitys, vasemmalle poisto</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Innostunut</string>
     <string name="core_settings_deepl_style_friendly_label">Ystävällinen</string>
     <string name="core_settings_deepl_style_simple_label">Yksinkertainen</string>
+    <string name="core_settings_function_keys_always_label">Aina</string>
+    <string name="core_settings_function_keys_pick_mode_label">Valintatilassa</string>
     <string name="core_settings_glide_commit_color_always_label">Aina</string>
     <string name="core_settings_glide_commit_color_confident_label">Kun varma</string>
     <string name="core_settings_glide_commit_color_guess_label">Mikä tahansa varhainen sana</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Pyyhkäisy, pillereitä ja näppäimiä</string>
     <string name="core_settings_glide_commit_scope_pill_label">Nauha ja pilleri</string>
     <string name="core_settings_glide_commit_scope_strip_label">Nauha</string>
+    <string name="core_settings_glide_engine_built_in_label">Sisäänrakennettu</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO-pyyhkäisy (englanti, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Googlen elekirjasto (tuotu)</string>
     <string name="core_settings_glide_lookahead_confident_label">Kun varma</string>
     <string name="core_settings_glide_lookahead_eager_label">Innokas</string>
     <string name="core_settings_glide_lookahead_off_label">Pois päältä</string>

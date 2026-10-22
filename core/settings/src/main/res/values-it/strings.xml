@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">In basso a destra</string>
     <string name="core_settings_board_corner_top_left_label">In alto a sinistra</string>
     <string name="core_settings_board_corner_top_right_label">In alto a destra</string>
+    <string name="core_settings_clip_shortcut_edit_label">Modifica</string>
+    <string name="core_settings_clip_shortcut_edited_label">Contrassegno di modifica</string>
+    <string name="core_settings_clip_shortcut_none_label">Niente</string>
+    <string name="core_settings_clip_shortcut_qr_label">Codice QR</string>
+    <string name="core_settings_clip_shortcut_select_label">Seleziona</string>
     <string name="core_settings_clip_swipe_pin_left_label">Sinistra per fissare, destra per eliminare</string>
     <string name="core_settings_clip_swipe_pin_off_label">Elimina in entrambe le direzioni</string>
     <string name="core_settings_clip_swipe_pin_right_label">Fissa a destra, elimina a sinistra</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Entusiasta</string>
     <string name="core_settings_deepl_style_friendly_label">Amichevole</string>
     <string name="core_settings_deepl_style_simple_label">Semplice</string>
+    <string name="core_settings_function_keys_always_label">Sempre</string>
+    <string name="core_settings_function_keys_pick_mode_label">In modalità selezione</string>
     <string name="core_settings_glide_commit_color_always_label">Sempre</string>
     <string name="core_settings_glide_commit_color_confident_label">Quando sicuro</string>
     <string name="core_settings_glide_commit_color_guess_label">Qualsiasi parola iniziale</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Barra, pillola e tasti</string>
     <string name="core_settings_glide_commit_scope_pill_label">Striscia e pillola</string>
     <string name="core_settings_glide_commit_scope_strip_label">Barra dei suggerimenti</string>
+    <string name="core_settings_glide_engine_built_in_label">Integrato</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (inglese, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Libreria di gesti di Google (importata)</string>
     <string name="core_settings_glide_lookahead_confident_label">Quando sicuro</string>
     <string name="core_settings_glide_lookahead_eager_label">Immediato</string>
     <string name="core_settings_glide_lookahead_off_label">Disattivato</string>

@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Nederst til højre</string>
     <string name="core_settings_board_corner_top_left_label">Øverst til venstre</string>
     <string name="core_settings_board_corner_top_right_label">Øverst til højre</string>
+    <string name="core_settings_clip_shortcut_edit_label">Rediger</string>
+    <string name="core_settings_clip_shortcut_edited_label">Redigeret-markering</string>
+    <string name="core_settings_clip_shortcut_none_label">Ingenting</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR-kode</string>
+    <string name="core_settings_clip_shortcut_select_label">Vælg</string>
     <string name="core_settings_clip_swipe_pin_left_label">Venstre fastgør, højre sletter</string>
     <string name="core_settings_clip_swipe_pin_off_label">Slet begge veje</string>
     <string name="core_settings_clip_swipe_pin_right_label">Højre fastgør, venstre sletter</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Entusiastisk</string>
     <string name="core_settings_deepl_style_friendly_label">Uformelt</string>
     <string name="core_settings_deepl_style_simple_label">Enkel</string>
+    <string name="core_settings_function_keys_always_label">Altid</string>
+    <string name="core_settings_function_keys_pick_mode_label">I valg-tilstand</string>
     <string name="core_settings_glide_commit_color_always_label">Altid</string>
     <string name="core_settings_glide_commit_color_confident_label">Når sikker</string>
     <string name="core_settings_glide_commit_color_guess_label">Ethvert tidligt ord</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Stribe, pille og taster</string>
     <string name="core_settings_glide_commit_scope_pill_label">Stribe og pille</string>
     <string name="core_settings_glide_commit_scope_strip_label">Stribe</string>
+    <string name="core_settings_glide_engine_built_in_label">Indbygget</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (engelsk, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Googles gestusbibliotek (importeret)</string>
     <string name="core_settings_glide_lookahead_confident_label">Når sikker</string>
     <string name="core_settings_glide_lookahead_eager_label">Ivrig</string>
     <string name="core_settings_glide_lookahead_off_label">Fra</string>

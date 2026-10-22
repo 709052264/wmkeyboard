@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">A matricagenerátor motorja nem töltődött le. Ellenőrizze a kapcsolatot, majd próbálja újra.</string>
+    <string name="core_intel_languagetool_error_account">A LanguageTool nem fogadta el a felhasználónevet és az API-kulcsot (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">A LanguageTool szerver elérte az egy percre eső ellenőrzések számát erről a telefonról. Szerkeszd újra a szöveget egy pillanat múlva az ismételt ellenőrzéshez (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">A LanguageTool nem tudta ellenőrizni ezt a szöveget. Lehet, hogy a szerver nem rendelkezik ezzel a nyelvvel (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">A szöveg túl hosszú ehhez a LanguageTool kiszolgálóhoz (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">A letöltött fájl nem a várt fájl, ezért törölve lett. Töltse le újra.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Ez a modell korlátozott. Először adja meg a Hugging Face tokenjét.</string>
     <string name="core_intel_llm_download_error_http">A Hugging Face %1$s HTTP-állapotkódot adott vissza.</string>
     <string name="core_intel_llm_download_error_licence">Fogadd el a modell licencét a Hugging Face oldalán, majd próbáld újra.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">A kapcsolat megszakadt a letöltés közben. A folytatáshoz nyomd meg a Folytatás gombot.</string>
     <string name="core_intel_llm_engine_error_gpu">A modell futtatása sikertelen a GPU-n. A GPU memóriája sokkal kisebb, mint a rendszermemória. A következő próbálkozás a CPU-t használja. Ha mindig a CPU-t szeretnéd használni, állítsd a Számítást (Compute) CPU-ra a beállításokban. Választhatsz egy kisebb modellt is.</string>
     <string name="core_intel_llm_engine_error_load">A modell nem töltődött be. A fájl valószínűleg sérült. Törölje a modellt a beállításokban, és töltse le újra.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Ennek a modellnek körülbelül %1$s memóriára van szüksége, és %2$s szabad. Zárj be más alkalmazásokat, vagy válassz egy kisebb modellt.</string>
     <string name="core_intel_llm_engine_error_memory">A modell memóriája elfogyott, vagy hiba történt. Válassz egy kisebb modellt.</string>
+    <string name="core_intel_llm_engine_error_npu">A modell futtatása sikertelen az NPU-n. A következő kísérlet a GPU-t vagy a CPU-t használja. Hosszú szöveg túl nagy lehet a modell NPU-verziójának.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Csak a modell NPU-verziója van a telefonján, és csak az NPU tudja futtatni. Állítsa a számítást NPU-ra, vagy töltse le a modell szabványos verzióját a beállításokban.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">A modell NPU-verziója nem indult el a telefonján. A modell GPU-n vagy CPU-n való használatához töltse le a szabványos verziót a beállításokban.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">A billentyűzet NPU része nem áll készen. Ha éppen töltődik, próbálja újra egy pillanat múlva. A GPU vagy CPU használatához töltse le a modell standard buildjét a beállításokban.</string>
+    <string name="core_intel_llm_engine_error_template">A modell csevegősablonja nem olvasható. Próbálj meg egy másik GGUF fájlt a modellhez.</string>
+    <string name="core_intel_llm_engine_error_too_long">A szöveg túl hosszú ehhez a modellhez. Használjon rövidebb szöveget, vagy növelje a környezet méretét a beállításokban.</string>
+    <string name="core_intel_llm_engine_error_vision">Ez a modell nem tud képeket olvasni. A Gemma 4 igen.</string>
+    <string name="core_intel_llm_llama_missing">Ez a build nem tud GGUF modelleket futtatni: a llama.cpp rész hiányzik.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Egy kis Gemma az előző generációból. Jó minőségű, és 4K tokenes kontextussal rendelkezik.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">A legkisebb Gemma a Google-től. Minden eszközön gyors.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">A legújabb Gemma generáció. Kiváló minőséget biztosít az eszközödön.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">A legnagyobb modell. Ez ír a legjobban, de nagy teljesítményű eszköz szükséges hozzá.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Egy kis Gemma az előző generációból. Ehhez a fájlhoz nincs szükség Hugging Face tokenre.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">A Meta kisméretű Llama modellje. Világos angol nyelven ír és jól követi az utasításokat.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Jól olvassa a képeket és képernyőképeket, valamint a rajtuk lévő szöveget is. Csúcskategóriás eszközt igényel. Licencje csak kutatási célú felhasználást tesz lehetővé.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Egy nemrég megjelent közepes méretű modell, amely válaszadás előtt gondolkodik. Középkategóriás eszköz szükséges hozzá.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Kicsi és gyors. Alapvető eszközökön történő gyors átírásra alkalmas.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Egy nagyon kicsi modell, amely képes képeket olvasni. Leírja a képet, de gyakran félreolvassa a képernyőképen lévő szöveget.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Egy általános célú modell, amely még elfér egy alapvető eszközön.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Egyértelműen okosabb, mint az 1B alatti modellek. Középkategóriás eszköz szükséges hozzá.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Egy új, kisméretű modell. Méretéhez képest kiváló minőségű.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Nem tesztelt</string>
     <string name="core_intel_ocr_download_error_http">A GitHub szerver nem küldte el a fájlt. A hibakód: HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">A kapcsolat megszakadt a letöltés közben. Próbálja újra.</string>
+    <string name="core_intel_ocr_download_error_mismatch">A letöltött fájl nem a várt fájl. Próbáld újra.</string>
     <string name="core_intel_ocr_download_error_no_space">Nincs elég tárhely az eszközön. Először körülbelül %1$s MB-ot kell felszabadítania.</string>
+    <string name="core_intel_ocr_module_error">A Google Play nem kézbesítette a szövegolvasót. Ellenőrizze a kapcsolatot és a Play Áruház működését, majd próbálja újra.</string>
     <string name="core_intel_ocr_pack_error_broken">A letöltött nyelvi adat sérült, így a lapolvasó nem tudta használni. Töltsd le újra.</string>
+    <string name="core_intel_semantic_module_error">A keresőmotor összetevője nem töltődött le. Ellenőrizze a kapcsolatot, majd próbálja újra.</string>
+    <string name="core_intel_semantic_no_source">A modellfájlok csak a GitHubon érhetők el. Állítsa vissza az adattár forrását GitHubra a Szerverek menüpontban.</string>
+    <string name="core_intel_xlit_module_error">A modellt futtató rész nem töltődött le. Ellenőrizze a kapcsolatot, majd próbálja újra.</string>
 </resources>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Il server non ha inviato il file. Il codice di errore è HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Quell\'elenco di parole è vuoto o illeggibile.</string>
+    <string name="core_pred_wordlist_memory_error">Questo dispositivo non ha abbastanza memoria per un elenco di parole di queste dimensioni. Scegline una dimensione inferiore.</string>
     <string name="core_pred_wordlist_no_space_error">Spazio di archiviazione insufficiente sul dispositivo. Elimina alcuni file e riprova.</string>
     <string name="core_pred_wordlist_save_error">L\'app non può salvare l\'elenco di parole. Riprova.</string>
     <string name="core_pred_wordlist_size_all_label">Tutto</string>

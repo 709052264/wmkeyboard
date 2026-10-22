@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Muotoile</string>
     <string name="core_content_selection_macro_grammar">Kielioppi</string>
     <string name="core_content_selection_macro_lines_bullet">Luettelomerkit</string>
+    <string name="core_content_selection_macro_lines_checkbox">Valintaruudut</string>
     <string name="core_content_selection_macro_lines_dedupe">Uniikit</string>
+    <string name="core_content_selection_macro_lines_down">Siirrä alas</string>
     <string name="core_content_selection_macro_lines_number">Numero</string>
     <string name="core_content_selection_macro_lines_sort">Lajittele</string>
+    <string name="core_content_selection_macro_lines_up">Siirrä ylös</string>
     <string name="core_content_selection_macro_map">Kartoita</string>
     <string name="core_content_selection_macro_open">Avaa</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Puhu</string>
+    <string name="core_content_selection_macro_repeat">Toista</string>
     <string name="core_content_selection_macro_replace">Korvaa</string>
     <string name="core_content_selection_macro_save_note">Tallenna muistiinpanona</string>
     <string name="core_content_selection_macro_search">Hae</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Käännä</string>
     <string name="core_content_selection_macro_url_decode">Pura koodaus</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Tiedostossa on myös %1$d sana ilman pikavalintaa. Lisää se sanoihisi avaamalla tiedosto Henkilökohtaisesta sanakirjasta.</item>
         <item quantity="other">Tiedostossa on myös %1$d sanaa ilman pikavalintaa. Lisää ne sanoihisi avaamalla tiedosto Henkilökohtaisesta sanakirjasta.</item>

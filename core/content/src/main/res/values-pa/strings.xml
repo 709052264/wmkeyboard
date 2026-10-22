@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">ਫਾਰਮੈਟ</string>
     <string name="core_content_selection_macro_grammar">ਵਿਆਕਰਣ</string>
     <string name="core_content_selection_macro_lines_bullet">ਬੁਲੇਟ</string>
+    <string name="core_content_selection_macro_lines_checkbox">ਚੈੱਕ ਬਾਕਸ</string>
     <string name="core_content_selection_macro_lines_dedupe">ਵਿਲੱਖਣ</string>
+    <string name="core_content_selection_macro_lines_down">ਹੇਠਾਂ ਜਾਓ</string>
     <string name="core_content_selection_macro_lines_number">ਨੰਬਰ</string>
     <string name="core_content_selection_macro_lines_sort">ਕ੍ਰਮਬੱਧ ਕਰੋ</string>
+    <string name="core_content_selection_macro_lines_up">ਉੱਪਰ ਜਾਓ</string>
     <string name="core_content_selection_macro_map">ਮੈਪ</string>
     <string name="core_content_selection_macro_open">ਖੋਲ੍ਹੋ</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ਬੋਲੋ</string>
+    <string name="core_content_selection_macro_repeat">ਦੁਹਰਾਓ</string>
     <string name="core_content_selection_macro_replace">ਬਦਲੋ</string>
     <string name="core_content_selection_macro_save_note">ਨੋਟ ਵਜੋਂ ਸੇਵ ਕਰੋ</string>
     <string name="core_content_selection_macro_search">ਖੋਜੋ</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">ਅਨੁਵਾਦ ਕਰੋ</string>
     <string name="core_content_selection_macro_url_decode">ਡੀਕੋਡ ਕਰੋ</string>
     <string name="core_content_selection_macro_whatsapp">ਵਟਸਐਪ</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਬਦ ਵੀ ਹੈ ਜਿਸਦਾ ਕੋਈ ਸ਼ਾਰਟਕੱਟ ਨਹੀਂ ਹੈ। ਇਸਨੂੰ ਆਪਣੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਜੋੜਨ ਲਈ, ਨਿੱਜੀ ਡਿਕਸ਼ਨਰੀ ਤੋਂ ਫਾਈਲ ਖੋਲ੍ਹੋ।</item>
         <item quantity="other">ਫਾਈਲ ਵਿੱਚ %1$d ਸ਼ਬਦ ਵੀ ਹਨ ਜਿਨ੍ਹਾਂ ਦਾ ਕੋਈ ਸ਼ਾਰਟਕੱਟ ਨਹੀਂ ਹੈ। ਉਹਨਾਂ ਨੂੰ ਆਪਣੇ ਸ਼ਬਦਾਂ ਵਿੱਚ ਜੋੜਨ ਲਈ, ਨਿੱਜੀ ਡਿਕਸ਼ਨਰੀ ਤੋਂ ਫਾਈਲ ਖੋਲ੍ਹੋ।</item>

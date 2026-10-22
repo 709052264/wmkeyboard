@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">নিচের ডানদিকে</string>
     <string name="core_settings_board_corner_top_left_label">উপরের বাম দিকে</string>
     <string name="core_settings_board_corner_top_right_label">উপরে ডানে</string>
+    <string name="core_settings_clip_shortcut_edit_label">সম্পাদনা করুন</string>
+    <string name="core_settings_clip_shortcut_edited_label">সম্পাদিত চিহ্ন</string>
+    <string name="core_settings_clip_shortcut_none_label">কিছুই না</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR কোড</string>
+    <string name="core_settings_clip_shortcut_select_label">নির্বাচন করুন</string>
     <string name="core_settings_clip_swipe_pin_left_label">বামে পিন, ডানে ডিলিট</string>
     <string name="core_settings_clip_swipe_pin_off_label">উভয় দিকেই ডিলিট</string>
     <string name="core_settings_clip_swipe_pin_right_label">ডানে পিন, বামে ডিলিট</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">উৎসাহী</string>
     <string name="core_settings_deepl_style_friendly_label">বন্ধুত্বপূর্ণ</string>
     <string name="core_settings_deepl_style_simple_label">সহজ</string>
+    <string name="core_settings_function_keys_always_label">সর্বদা</string>
+    <string name="core_settings_function_keys_pick_mode_label">পিক মোডে</string>
     <string name="core_settings_glide_commit_color_always_label">সর্বদা</string>
     <string name="core_settings_glide_commit_color_confident_label">নিশ্চিত হলে</string>
     <string name="core_settings_glide_commit_color_guess_label">যেকোনো প্রাথমিক শব্দ</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">স্ট্রিপ, পিল এবং কি</string>
     <string name="core_settings_glide_commit_scope_pill_label">স্ট্রিপ এবং পিল</string>
     <string name="core_settings_glide_commit_scope_strip_label">স্ট্রিপ</string>
+    <string name="core_settings_glide_engine_built_in_label">বিল্ট-ইন</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO সোয়াইপ (ইংরেজি, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google-এর জেসচার লাইব্রেরি (আমদানি করা)</string>
     <string name="core_settings_glide_lookahead_confident_label">নিশ্চিত হলে</string>
     <string name="core_settings_glide_lookahead_eager_label">আগ্রহী</string>
     <string name="core_settings_glide_lookahead_off_label">বন্ধ</string>

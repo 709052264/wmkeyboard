@@ -56,4 +56,22 @@
         <item quantity="one">ऐप ने इसे %1$d प्रविष्टि के साथ एक राइम कोड टेबल के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से अक्षर चुनें।</item>
         <item quantity="other">ऐप ने इसे %1$d प्रविष्टियों के साथ एक राइम कोड टेबल के रूप में पढ़ा। एक कोड टाइप करें, फिर सुझाव पट्टी से अक्षर चुनें。</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc का अपना सिस्टम शब्दकोश, इसकी कनेक्शन लागत, सेगमेंट और सुझाव फ़िल्टर के साथ। Mozc इंजन इसके साथ रूपांतरित करता है; इन-बिल्ट इंजन इसका उपयोग नहीं करता है।</string>
+    <string name="core_input_mozc_pack_title">मोज़ैक (Mozc) शब्दकोश</string>
+    <string name="core_input_rime_pack_base_subtitle">विराम चिह्न, प्रतीक, शब्द-आवृत्ति तालिका और सरलीकृत और पारंपरिक रूपांतरण जिसका उपयोग हर RIME स्कीमा करता है। पहले स्कीमा के साथ डाउनलोड किया गया।</string>
+    <string name="core_input_rime_pack_base_title">RIME अनिवार्यताएं</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">टेरा पिनयिन के शब्दकोश के साथ, मानक डैचेन की मैप पर RIME का ज़ुयिन स्कीमा।</string>
+    <string name="core_input_rime_pack_bopomofo_title">बोपोमोफो (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME का पांचवीं पीढ़ी का Cangjie स्कीमा, अक्षर और वाक्यांश।</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">पिनयिन के लिए एक बड़ा आधुनिक सरलीकृत चीनी शब्दकोश, जिसमें डबल पिनयिन और 9-की वेरिएंट शामिल हैं। इसे कंपाइल करने में एक मिनट या उससे अधिक समय लगता है।</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">कैंटोनीज़ के लिए rime-cantonese स्कीमा, इसके शब्द और वाक्यांश सूचियों के साथ।</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME का अपना पिनयिन स्कीमा, स्ट्रोक स्कीमा के साथ जिससे यह अक्षरों को खोजता है।</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">लूना पिनयिन (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">जापानी हस्तलेखन मॉडल</string>
+    <string name="core_input_zinnia_pack_subtitle">zinnia के लिए Tegaki प्रोजेक्ट का मॉडल, ऑफ़लाइन हस्तलेखन पहचानकर्ता जो चीनी और जापानी पढ़ता है, जहां ML Kit नहीं पढ़ पाता।</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">सरलीकृत चीनी हस्तलेखन मॉडल</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">पारंपरिक चीनी हस्तलेखन मॉडल</string>
 </resources>

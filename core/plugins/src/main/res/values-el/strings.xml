@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Το σενάριο απέτυχε.</string>
     <string name="core_plugins_error_script_missing">Το σενάριο για αυτό το πρόσθετο λείπει.</string>
     <string name="core_plugins_error_turned_off">Αυτό το πρόσθετο είναι απενεργοποιημένο.</string>
+    <string name="core_plugins_permission_reminders_label">Εμφάνιση υπενθυμίσεων σε ώρες που ορίζετε σε αυτό</string>
     <string name="core_plugins_permission_storage_label">Αποθήκευση δεδομένων στη συσκευή σας</string>
     <string name="core_plugins_reject_bad_encoding">Το «%1$s» περιέχει ένα σενάριο που δεν είναι έγκυρο κείμενο UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Αυτό το πρόσθετο έχει μη έγκυρο αναγνωριστικό. Ένα αναγνωριστικό πρέπει να έχει μήκος από 3 έως 64 χαρακτήρες. Μπορεί να περιέχει πεζά γράμματα, αριθμούς, τελείες, παύλες και κάτω παύλες.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">Το «%1$s» δεν αναφέρει ποια έκδοση είναι.</string>
     <string name="core_plugins_reject_script_too_large">Το “%1$s” έχει ένα σενάριο μεγαλύτερο από %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Αυτή η έκδοση του WM Keyboard δεν αναγνωρίζει την άδεια “%1$s”. Η εφαρμογή δεν μπορεί να σας πει τι επιτρέπεται να κάνει το “%2$s”.</string>
+    <string name="core_plugins_reminders_channel_body">Υπενθυμίσεις που μια πρόσθετη λειτουργία ζήτησε από την εφαρμογή να εμφανίσει, τις ώρες που ορίσατε στην πρόσθετη λειτουργία. Ο τίτλος της καθεμιάς είναι το όνομα της πρόσθετης λειτουργίας.</string>
+    <string name="core_plugins_reminders_channel_title">Υπενθυμίσεις πρόσθετων</string>
     <string name="core_plugins_stopped_cancelled">Η εφαρμογή σταμάτησε αυτό το πρόσθετο.</string>
     <string name="core_plugins_stopped_deadline">Αυτό το πρόσθετο χρειάστηκε πολύ χρόνο. Η εφαρμογή το σταμάτησε.</string>
     <string name="core_plugins_stopped_instructions">Αυτό το πρόσθετο έκανε πάρα πολλή εργασία ταυτόχρονα. Η εφαρμογή το σταμάτησε.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Αυτό το πρόσθετο σταμάτησε να αποκρίνεται ξανά. Η εφαρμογή το απενεργοποίησε.</string>
     <string name="core_plugins_stopped_recursion">Αυτό το πρόσθετο κάλεσε τον εαυτό του πάρα πολλές φορές. Η εφαρμογή το σταμάτησε.</string>
     <string name="core_plugins_stopped_unexpected">Αυτό το πρόσθετο σταμάτησε απροσδόκητα.</string>
+    <string name="core_plugins_ui_date_clear">Εκκαθάριση</string>
+    <string name="core_plugins_ui_date_earlier">%1$d λεπτό νωρίτερα</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 ώ</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ώρα</string>
+    <string name="core_plugins_ui_date_later">%1$d λεπτά αργότερα</string>
+    <string name="core_plugins_ui_date_next_day">Επόμενη ημέρα</string>
+    <string name="core_plugins_ui_date_none">Χωρίς ημερομηνία</string>
+    <string name="core_plugins_ui_date_previous_day">Προηγούμενη ημέρα</string>
+    <string name="core_plugins_ui_date_set">Ορισμός ημερομηνίας</string>
+    <string name="core_plugins_ui_date_today">Σήμερα</string>
     <string name="core_plugins_ui_insert_action">Εισαγωγή</string>
     <string name="core_plugins_ui_repair_no_type">Ένα widget δεν προσδιόρισε το είδος του.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Μια λίστα γραφικών στοιχείων περιείχε κάτι που δεν είναι γραφικό στοιχείο.</string>

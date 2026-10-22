@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Máy chủ không gửi tệp. Mã lỗi là HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Danh sách từ đó trống hoặc không thể đọc được.</string>
+    <string name="core_pred_wordlist_memory_error">Thiết bị này không có đủ bộ nhớ cho danh sách từ có kích thước này. Hãy chọn kích thước nhỏ hơn.</string>
     <string name="core_pred_wordlist_no_space_error">Thiết bị của bạn không đủ dung lượng lưu trữ. Hãy xóa bớt một số tệp rồi thử lại.</string>
     <string name="core_pred_wordlist_save_error">Ứng dụng không thể lưu danh sách từ. Hãy thử lại.</string>
     <string name="core_pred_wordlist_size_all_label">Tất cả</string>

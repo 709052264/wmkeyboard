@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">تنسيق</string>
     <string name="core_content_selection_macro_grammar">القواعد</string>
     <string name="core_content_selection_macro_lines_bullet">تعداد نقطي</string>
+    <string name="core_content_selection_macro_lines_checkbox">مربعات الاختيار</string>
     <string name="core_content_selection_macro_lines_dedupe">فريد</string>
+    <string name="core_content_selection_macro_lines_down">تحريك لأسفل</string>
     <string name="core_content_selection_macro_lines_number">الرقم</string>
     <string name="core_content_selection_macro_lines_sort">فرز</string>
+    <string name="core_content_selection_macro_lines_up">تحريك للأعلى</string>
     <string name="core_content_selection_macro_map">خريطة</string>
     <string name="core_content_selection_macro_open">فتح</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">تحدث</string>
+    <string name="core_content_selection_macro_repeat">تكرار</string>
     <string name="core_content_selection_macro_replace">استبدال</string>
     <string name="core_content_selection_macro_save_note">حفظ كملاحظة</string>
     <string name="core_content_selection_macro_search">بحث</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">ترجمة</string>
     <string name="core_content_selection_macro_url_decode">فك التشفير</string>
     <string name="core_content_selection_macro_whatsapp">واتساب</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">يحتوي الملف أيضاً على %1$d كلمة بدون اختصار. لإضافتها إلى كلماتك، افتح الملف من القاموس الشخصي.</item>
         <item quantity="other">يحتوي الملف أيضاً على %1$d كلمات بدون اختصار. لإضافتها إلى كلماتك، افتح الملف من القاموس الشخصي.</item>

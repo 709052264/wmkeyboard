@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">ٹولز دکھائیں</string>
     <string name="core_icons_slot_tab_label">ٹیب کلید</string>
     <string name="core_icons_slot_toolbox_label">ٹول باکس</string>
+    <string name="core_icons_slot_toolbox_search_label">ٹول باکس تلاش</string>
 </resources>

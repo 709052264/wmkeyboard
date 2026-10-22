@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatyka</string>
     <string name="core_content_selection_macro_lines_bullet">Wypunktowanie</string>
+    <string name="core_content_selection_macro_lines_checkbox">Pola wyboru</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikalne</string>
+    <string name="core_content_selection_macro_lines_down">Przesuń w dół</string>
     <string name="core_content_selection_macro_lines_number">Liczba</string>
     <string name="core_content_selection_macro_lines_sort">Sortuj</string>
+    <string name="core_content_selection_macro_lines_up">Przenieś w górę</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Otwórz</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Czytaj na głos</string>
+    <string name="core_content_selection_macro_repeat">Powtórz</string>
     <string name="core_content_selection_macro_replace">Zastąp</string>
     <string name="core_content_selection_macro_save_note">Zapisz jako notatkę</string>
     <string name="core_content_selection_macro_search">Szukaj</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Przetłumacz</string>
     <string name="core_content_selection_macro_url_decode">Dekoduj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Plik zawiera też %1$d słowo bez skrótu. Aby dodać je do swoich słów, otwórz plik w Słowniku osobistym.</item>
         <item quantity="other">Plik zawiera też %1$d słów bez skrótu. Aby dodać je do swoich słów, otwórz plik w Słowniku osobistym.</item>

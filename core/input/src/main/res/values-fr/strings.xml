@@ -56,4 +56,22 @@
         <item quantity="one">L\'application a lu ceci comme une table de codes Rime avec %1$d entrée. Tapez un code, puis choisissez le caractère dans la barre de suggestions.</item>
         <item quantity="other">L\'application a lu ceci comme une table de codes Rime avec %1$d entrées. Tapez un code, puis choisissez le caractère dans la barre de suggestions.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Le propre dictionnaire système de Mozc, avec ses coûts de connexion, son segmenteur et son filtre de suggestion. Le moteur Mozc effectue la conversion avec cet élément, contrairement au moteur intégré.</string>
+    <string name="core_input_mozc_pack_title">Dictionnaire Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Ponctuation, symboles, table de fréquence des mots et conversion simplifié/traditionnel que chaque schéma RIME utilise. Téléchargé avec le premier schéma.</string>
+    <string name="core_input_rime_pack_base_title">Essentiels RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Schéma Zhuyin de RIME sur la disposition de clavier standard Dachen, avec le dictionnaire de Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Schéma Cangjie de cinquième génération de RIME, caractères et phrases.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Un vaste vocabulaire chinois simplifié moderne pour le Pinyin, avec des variantes Double Pinyin et 9 touches. Sa compilation prend une minute ou plus.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Le schéma rime-cantonese pour le cantonais, avec ses listes de mots et de phrases.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Le propre schéma Pinyin de RIME, avec le schéma de traits qu\'il utilise pour rechercher les caractères.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Modèle d\'écriture manuscrite japonaise</string>
+    <string name="core_input_zinnia_pack_subtitle">Le modèle du projet Tegaki pour zinnia, le reconnaisseur d\'écriture manuscrite hors ligne qui lit le chinois et le japonais là où celui de ML Kit ne le fait pas.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Modèle d\'écriture manuscrite chinois simplifié</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Modèle d\'écriture manuscrite chinoise traditionnelle</string>
 </resources>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Server ei saatnud faili. Veakood on HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">See sõnaloend on tühi või loetamatu.</string>
+    <string name="core_pred_wordlist_memory_error">Sellel seadmel pole piisavalt mälu nii suure sõnaloendi jaoks. Valige väiksem suurus.</string>
     <string name="core_pred_wordlist_no_space_error">Seadmes pole piisavalt salvestusruumi. Kustutage mõned failid ja proovige uuesti.</string>
     <string name="core_pred_wordlist_save_error">Rakendus ei saa sõnaloendit salvestada. Proovi uuesti.</string>
     <string name="core_pred_wordlist_size_all_label">Kõik</string>

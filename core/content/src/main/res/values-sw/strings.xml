@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Umbizo</string>
     <string name="core_content_selection_macro_grammar">Sarufi</string>
     <string name="core_content_selection_macro_lines_bullet">Alama za risasi</string>
+    <string name="core_content_selection_macro_lines_checkbox">Visanduku vya kuteua</string>
     <string name="core_content_selection_macro_lines_dedupe">Ya kipekee</string>
+    <string name="core_content_selection_macro_lines_down">Sogeza chini</string>
     <string name="core_content_selection_macro_lines_number">Nambari</string>
     <string name="core_content_selection_macro_lines_sort">Panga</string>
+    <string name="core_content_selection_macro_lines_up">Sogeza juu</string>
     <string name="core_content_selection_macro_map">Ramani</string>
     <string name="core_content_selection_macro_open">Fungua</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Sema</string>
+    <string name="core_content_selection_macro_repeat">Rudia</string>
     <string name="core_content_selection_macro_replace">Badilisha</string>
     <string name="core_content_selection_macro_save_note">Hifadhi kama dokezo</string>
     <string name="core_content_selection_macro_search">Tafuta</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Tafsiri</string>
     <string name="core_content_selection_macro_url_decode">Decode</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Faili pia ina neno %1$d lisilo na njia ya mkato. Ili kuliongeza kwenye maneno yako, fungua faili kutoka kwa kamusi ya kibinafsi.</item>
         <item quantity="other">Faili pia ina maneno %1$d yasiyo na njia ya mkato. Ili kuyaongeza kwenye maneno yako, fungua faili kutoka kwa kamusi ya kibinafsi.</item>

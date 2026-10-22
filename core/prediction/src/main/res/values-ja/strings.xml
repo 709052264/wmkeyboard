@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">サーバーからファイルが送信されませんでした。エラーコードは HTTP %1$s です。</string>
     <string name="core_pred_wordlist_malformed_error">その単語リストは空か、読み込めません。</string>
+    <string name="core_pred_wordlist_memory_error">このデバイスには、このサイズの単語リストを保持するための十分なメモリがありません。小さいサイズを選択してください。</string>
     <string name="core_pred_wordlist_no_space_error">デバイスのストレージ容量が不足しています。不要なファイルを削除してから再試行してください。</string>
     <string name="core_pred_wordlist_save_error">単語リストを保存できません。もう一度やり直してください。</string>
     <string name="core_pred_wordlist_size_all_label">すべて</string>

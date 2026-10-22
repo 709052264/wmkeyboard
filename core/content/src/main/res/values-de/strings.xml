@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
     <string name="core_content_selection_macro_lines_bullet">Aufzählungszeichen</string>
+    <string name="core_content_selection_macro_lines_checkbox">Kontrollkästchen</string>
     <string name="core_content_selection_macro_lines_dedupe">Eindeutig</string>
+    <string name="core_content_selection_macro_lines_down">Nach unten bewegen</string>
     <string name="core_content_selection_macro_lines_number">Nummer</string>
     <string name="core_content_selection_macro_lines_sort">Sortieren</string>
+    <string name="core_content_selection_macro_lines_up">Nach oben verschieben</string>
     <string name="core_content_selection_macro_map">Karte</string>
     <string name="core_content_selection_macro_open">Öffnen</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Vorlesen</string>
+    <string name="core_content_selection_macro_repeat">Wiederholen</string>
     <string name="core_content_selection_macro_replace">Ersetzen</string>
     <string name="core_content_selection_macro_save_note">Als Notiz speichern</string>
     <string name="core_content_selection_macro_search">Suche</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Übersetzen</string>
     <string name="core_content_selection_macro_url_decode">Dekodieren</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Die Datei enthält außerdem %1$d Wort ohne Verknüpfung. Um es Ihren Wörtern hinzuzufügen, öffnen Sie die Datei aus dem persönlichen Wörterbuch.</item>
         <item quantity="other">Die Datei enthält außerdem %1$d Wörter ohne Verknüpfung. Um sie Ihren Wörtern hinzuzufügen, öffnen Sie die Datei aus dem persönlichen Wörterbuch.</item>

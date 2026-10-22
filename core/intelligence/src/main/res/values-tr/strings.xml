@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Çıkartma oluşturucunun motoru indirilemedi. Bağlantıyı kontrol edin ve tekrar deneyin.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool, kullanıcı adını ve API anahtarını kabul etmedi (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool sunucusu, bu telefondan bir dakika içinde alabileceği kadar çok denetim aldı. Tekrar denetlemek için metni birazdan düzenleyin (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool bu metni denetleyemedi. Sunucuda bu dil olmayabilir (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Metin, bu LanguageTool sunucusu için çok uzun (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">İndirilen dosya beklenen dosya değil, bu yüzden silindi. Tekrar indirin.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Bu model kısıtlıdır. Önce Hugging Face jetonunuzu ekleyin.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face %1$s HTTP durumunu döndürdü.</string>
     <string name="core_intel_llm_download_error_licence">Modelin Hugging Face sayfasındaki lisansını kabul edin. Ardından tekrar deneyin.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">İndirme sırasında bağlantı kesildi. Devam etmek için Sürdür\'e basın.</string>
     <string name="core_intel_llm_engine_error_gpu">Model GPU üzerinde başarısız oldu. GPU belleği sistem belleğinden çok daha küçüktür. Bir sonraki deneme CPU\'yu kullanacaktır. Her zaman CPU\'yu kullanmak için ayarlardan Hesaplama\'yı CPU olarak ayarlayın. Ayrıca daha küçük bir model de seçebilirsiniz.</string>
     <string name="core_intel_llm_engine_error_load">Model yüklenemedi. Dosya muhtemelen hasarlı. Ayarlardan modeli silin ve tekrar indirin.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Bu model yaklaşık %1$s bellek gerektiriyor ve %2$s boş alan var. Diğer uygulamaları kapatın veya daha küçük bir model seçin.</string>
     <string name="core_intel_llm_engine_error_memory">Modelin belleği tükendi veya bir hata oluştu. Daha küçük bir model seçin.</string>
+    <string name="core_intel_llm_engine_error_npu">Model NPU üzerinde başarısız oldu. Bir sonraki deneme GPU veya CPU kullanacak. Uzun bir metin, modelin NPU yapısı için çok fazla olabilir.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Telefonunuzda bu modelin yalnızca NPU sürümü var ve sadece NPU bunu çalıştırabilir. Hesaplamayı NPU olarak ayarlayın veya ayarlardan modelin standart sürümünü indirin.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Bu modelin NPU yapısı telefonunuzda başlamadı. Modeli GPU veya CPU üzerinde kullanmak için ayarlardan standart yapısını indirin.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Klavyenin NPU kısmı hazır değil. İndiriliyorsa, birazdan tekrar deneyin. GPU veya CPU\'yu şimdi kullanmak için ayarlardan modelin standart derlemesini indirin.</string>
+    <string name="core_intel_llm_engine_error_template">Bu modelin sohbet şablonu okunamadı. Modelin başka bir GGUF dosyasını deneyin.</string>
+    <string name="core_intel_llm_engine_error_too_long">Metin bu model için çok uzun. Daha kısa bir metin kullanın veya ayarlardan Bağlam boyutunu artırın.</string>
+    <string name="core_intel_llm_engine_error_vision">Bu model resimleri okuyamıyor. Gemma 4 okuyabilir.</string>
+    <string name="core_intel_llm_llama_missing">Bu sürüm GGUF modellerini çalıştıramaz: llama.cpp parçası eksik.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Önceki nesilden küçük bir Gemma. İyi bir kaliteye ve 4K token\'lık bir bağlama sahiptir.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Google\'dan en küçük Gemma. Tüm cihazlarda hızlı çalışır.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">En yeni Gemma nesli. Cihazınızda en yüksek kaliteyi sunar.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">En büyük model. En iyi yazan modeldir ancak güçlü bir cihaz gerektirir.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Önceki nesilden küçük bir Gemma. Bu dosya için Hugging Face belirteci gerekmez.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Meta\'nın küçük Llama modeli. Net bir İngilizce ile yazar ve talimatları iyi takip eder.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Resimleri, ekran görüntülerini ve bunlardaki metinleri iyi okur. Üst düzey bir cihaz gerektirir. Lisansı yalnızca araştırma amaçlı kullanıma izin verir.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Cevap vermeden önce düşünen, yeni nesil orta ölçekli bir model. Orta seviye bir cihaz gerektirir.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Küçük ve hızlı. Temel bir cihazda hızlı yeniden yazmalar için iyidir.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Resimleri okuyabilen çok küçük bir model. Bir resmi tanımlar ancak ekran görüntüsündeki metni genellikle yanlış okur.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Temel bir cihaza sığabilen genel amaçlı bir model.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B altındaki modellerden belirgin şekilde daha akıllı. Orta seviye bir cihaz gerektirir.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Yakın zamanda çıkmış küçük bir model. Boyutuna göre kalitesi yüksektir.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Test edilmemiş</string>
     <string name="core_intel_ocr_download_error_http">GitHub sunucusu dosyayı göndermedi. Hata kodu: HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">İndirme sırasında bağlantı kesildi. Tekrar deneyin.</string>
+    <string name="core_intel_ocr_download_error_mismatch">İndirilen dosya beklenen dosya değil. Tekrar deneyin.</string>
     <string name="core_intel_ocr_download_error_no_space">Cihazınızda yeterli depolama alanı yok. Önce yaklaşık %1$s MB yer açmanız gerekiyor.</string>
+    <string name="core_intel_ocr_module_error">Google Play metin okuyucuyu teslim etmedi. Bağlantınızı ve Play Store\'un çalışıp çalışmadığını kontrol edip tekrar deneyin.</string>
     <string name="core_intel_ocr_pack_error_broken">İndirilen dil verileri hasarlı, bu yüzden tarayıcı bunları kullanamadı. Lütfen tekrar indirin.</string>
+    <string name="core_intel_semantic_module_error">Arama motoru parçası indirilemedi. Bağlantıyı kontrol edin ve tekrar deneyin.</string>
+    <string name="core_intel_semantic_no_source">Model dosyaları yalnızca GitHub\'da yayınlanmaktadır. Sunucular kısmından veri havuzunu tekrar GitHub\'a ayarlayın.</string>
+    <string name="core_intel_xlit_module_error">Modeli çalıştıran parça inmedi. Bağlantıyı kontrol edin ve tekrar deneyin.</string>
 </resources>

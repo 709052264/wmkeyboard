@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formát</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
     <string name="core_content_selection_macro_lines_bullet">Odrážky</string>
+    <string name="core_content_selection_macro_lines_checkbox">Začiarkavacie políčka</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikátne</string>
+    <string name="core_content_selection_macro_lines_down">Posunúť nadol</string>
     <string name="core_content_selection_macro_lines_number">Číslo</string>
     <string name="core_content_selection_macro_lines_sort">Zoradiť</string>
+    <string name="core_content_selection_macro_lines_up">Posunúť nahor</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Otvoriť</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Hovoriť</string>
+    <string name="core_content_selection_macro_repeat">Opakovať</string>
     <string name="core_content_selection_macro_replace">Nahradiť</string>
     <string name="core_content_selection_macro_save_note">Uložiť ako poznámku</string>
     <string name="core_content_selection_macro_search">Hľadať</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Preložiť</string>
     <string name="core_content_selection_macro_url_decode">Dekódovať</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Súbor obsahuje aj %1$d slovo bez skratky. Ak ho chcete pridať k svojim slovám, otvorte súbor v Osobnom slovníku.</item>
         <item quantity="other">Súbor obsahuje aj %1$d slov bez skratky. Ak ich chcete pridať k svojim slovám, otvorte súbor v Osobnom slovníku.</item>

@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Injini ya jenereta ya vibandiko haikupakua. Angalia muunganisho, kisha ujaribu tena.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool haikukubali jina la mtumiaji na ufunguo wa API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Seva ya LanguageTool imefikisha idadi ya juu ya ukaguzi kutoka kwa simu hii ndani ya dakika moja. Hariri maandishi baada ya muda mfupi ili kukagua tena (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool haikuweza kukagua maandishi haya. Seva inaweza isiwe na lugha hii (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Maandishi ni marefu sana kwa seva hii ya LanguageTool (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Faili iliyopakuliwa si ile inayotarajiwa, kwa hiyo imefutwa. Ipakue tena.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Muundo huu umefungwa. Ongeza tokeni yako ya Hugging Face kwanza.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face imerejesha hali ya HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Kubali leseni ya modeli kwenye ukurasa wake wa Hugging Face. Kisha jaribu tena.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Muunganisho umekatika wakati wa upakuaji. Bonyeza Endelea ili kuendelea.</string>
     <string name="core_intel_llm_engine_error_gpu">Muundo umeshindwa kwenye GPU. Kumbukumbu ya GPU ni ndogo sana kuliko kumbukumbu ya mfumo. Jaribio linalofuata litatumia CPU. Ili kutumia CPU kila wakati, weka Compute kuwa CPU kwenye mipangilio. Unaweza pia kuchagua muundo mdogo zaidi.</string>
     <string name="core_intel_llm_engine_error_load">Muundo haukupakia. Faili labda imeharibika. Futa muundo katika mipangilio na uipakue tena.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Modeli hii inahitaji takriban %1$s ya kumbukumbu, na %2$s iko wazi. Funga programu nyingine, au chagua modeli ndogo zaidi.</string>
     <string name="core_intel_llm_engine_error_memory">Mfano uliishiwa na kumbukumbu, au umeshindwa. Chagua mfano mdogo zaidi.</string>
+    <string name="core_intel_llm_engine_error_npu">Muundo umeshindwa kwenye NPU. Jaribio linalofuata litatumia GPU au CPU. Maandishi marefu yanaweza kuwa mengi sana kwa ajili ya muundo wa NPU.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Muundo wa NPU pekee wa mfumo huu uko kwenye simu yako, na NPU pekee ndiyo inayoweza kuuendesha. Weka Kompyuta iwe NPU, au pakua muundo wa kawaida wa mfumo huu katika mipangilio.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Muundo wa NPU wa modeli hii haukuanza kwenye simu yako. Ili kutumia modeli hii kwenye GPU au CPU, pakua toleo lake la kawaida katika mipangilio.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Sehemu ya NPU ya kibodi haijawa tayari. Ikiwa inapakua, jaribu tena baada ya muda mfupi. Ili kutumia GPU au CPU sasa, pakua toleo la kawaida la modeli katika mipangilio.</string>
+    <string name="core_intel_llm_engine_error_template">Kiolezo cha gumzo cha mfano huu hakikuweza kusomwa. Jaribu faili nyingine ya GGUF ya mfano huu.</string>
+    <string name="core_intel_llm_engine_error_too_long">Maandishi ni marefu mno kwa mfumo huu. Tumia maandishi mafupi, au ongeza saizi ya Muktadha kwenye mipangilio.</string>
+    <string name="core_intel_llm_engine_error_vision">Muundo huu hauwezi kusoma picha. Gemma 4 inaweza.</string>
+    <string name="core_intel_llm_llama_missing">Toleo hili haliwezi kuendesha mifano ya GGUF: sehemu ya llama.cpp haipo.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Gemma ndogo kutoka kizazi kilichopita. Ina ubora mzuri na muktadha wa tokeni 4K.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Gemma ndogo zaidi kutoka Google. Ni ya haraka kwenye vifaa vyote.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Kizazi kipya zaidi cha Gemma. Inatoa ubora wa juu kwenye kifaa chako.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Mfano mkubwa zaidi. Huandika vizuri zaidi, lakini unahitaji kifaa chenye nguvu.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Gemma ndogo kutoka kizazi kilichopita. Hakuna tokeni ya Hugging Face inayohitajika kwa faili hii.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Llama ndogo ya Meta. Inaandika Kiingereza sanifu na inafuata maagizo vizuri.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Inasoma picha na picha za skrini vizuri, pamoja na maandishi yaliyomo. Inahitaji kifaa cha hali ya juu. Leseni yake inaruhusu matumizi ya utafiti pekee.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Modeli ya hivi karibuni ya ukubwa wa kati inayofikiri kabla ya kujibu. Inahitaji kifaa cha kiwango cha kati.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Ndogo na ya haraka. Inafaa kwa kufanya marekebisho ya haraka kwenye kifaa cha msingi.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Mfano mdogo sana unaoweza kusoma picha. Unaelezea picha, lakini mara nyingi husoma vibaya maandishi yaliyo kwenye picha ya skrini.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Muundo wa madhumuni ya jumla ambao bado unafaa kwenye kifaa cha msingi.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Ina akili zaidi kuliko miundo iliyo chini ya 1B. Inahitaji kifaa cha kiwango cha kati.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Muundo mdogo wa hivi karibuni. Ubora ni wa juu kwa ukubwa wake.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Haijajaribiwa</string>
     <string name="core_intel_ocr_download_error_http">Seva ya GitHub haikutuma faili. Msimbo wa hitilafu ni HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Muunganisho umesimama wakati wa kupakua. Jaribu tena.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Faili iliyopakuliwa si ile inayotarajiwa. Jaribu tena.</string>
     <string name="core_intel_ocr_download_error_no_space">Hakuna nafasi ya kutosha ya kuhifadhi kwenye kifaa chako. Lazima ufungue takriban MB %1$s kwanza.</string>
+    <string name="core_intel_ocr_module_error">Google Play haikutoa kisoma maandishi. Angalia muunganisho na uhakikishe kuwa Play Store inafanya kazi, kisha ujaribu tena.</string>
     <string name="core_intel_ocr_pack_error_broken">Data ya lugha iliyopakuliwa imeharibika, kwa hivyo kichanganuzi hakikuweza kuitumia. Ipakue tena.</string>
+    <string name="core_intel_semantic_module_error">Sehemu ya injini ya utafutaji haikupakuka. Angalia muunganisho wako, kisha jaribu tena.</string>
+    <string name="core_intel_semantic_no_source">Faili za muundo huchapishwa kwenye GitHub pekee. Weka hifadhidata ya data kwenye GitHub katika Seva.</string>
+    <string name="core_intel_xlit_module_error">Sehemu inayoendesha mfano haikupakuliwa. Angalia muunganisho, kisha ujaribu tena.</string>
 </resources>

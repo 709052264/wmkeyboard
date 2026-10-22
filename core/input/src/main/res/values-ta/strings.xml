@@ -56,4 +56,22 @@
         <item quantity="one">இந்த ஆப்ஸ் இதை %1$d உள்ளீட்டைக் கொண்ட Rime குறியீடு அட்டவணையாகப் படித்தது. ஒரு குறியீட்டைத் தட்டச்சு செய்து, பரிந்துரைக்கப்பட்ட பட்டியலில் இருந்து எழுத்தைத் தேர்ந்தெடுக்கவும்.</item>
         <item quantity="other">இந்த ஆப்ஸ் இதை %1$d உள்ளீடுகளைக் கொண்ட Rime குறியீடு அட்டவணையாகப் படித்தது. ஒரு குறியீட்டைத் தட்டச்சு செய்து, பரிந்துரைக்கப்பட்ட பட்டியலில் இருந்து எழுத்தைத் தேர்ந்தெடுக்கவும்.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc-ன் சொந்த கணினி அகராதி, அதன் இணைப்புச் செலவுகள், பிரிப்பான் மற்றும் பரிந்துரை வடிப்பானுடன். Mozc இன்ஜின் இதைக் கொண்டு மாற்றுகிறது; உள்ளமைக்கப்பட்ட இன்ஜின் இதைப் பயன்படுத்துவதில்லை.</string>
+    <string name="core_input_mozc_pack_title">Mozc அகராதி</string>
+    <string name="core_input_rime_pack_base_subtitle">ஒவ்வொரு RIME ஸ்கீமாவும் பயன்படுத்தும் நிறுத்தற்குறிகள், குறியீடுகள், சொல்-அதிர்வெண் அட்டவணை மற்றும் எளிமைப்படுத்தப்பட்ட மற்றும் பாரம்பரிய மாற்றங்கள். முதல் ஸ்கீமாவுடன் பதிவிறக்கம் செய்யப்பட்டது.</string>
+    <string name="core_input_rime_pack_base_title">RIME அத்தியாவசியங்கள்</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Terra Pinyin அகராதியுடன் கூடிய, நிலையான Dachen விசை வரைபடத்தில் RIME-இன் Zhuyin ஸ்கீமா.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME-ன் ஐந்தாம் தலைமுறை கேங்ஜே ஸ்கீமா, எழுத்துகள் மற்றும் சொற்றொடர்கள்.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">பின்யினுக்கான (Pinyin) பெரிய நவீன எளிமைப்படுத்தப்பட்ட சீன மொழி அகராதி, டபுள் பின்யின் மற்றும் 9-கீ வகைகளுடன். இதைத் தொகுக்க ஒரு நிமிடம் அல்லது அதற்கு மேல் ஆகலாம்.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">காண்டனீஸ் மொழிக்கான rime-cantonese ஸ்கீமா, அதன் சொல் மற்றும் சொற்றொடர் பட்டியல்களுடன்.</string>
+    <string name="core_input_rime_pack_jyutping_title">ஜியுட்பிங் (Jyutping - 粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME-ன் சொந்த பின்யின் (Pinyin) ஸ்கீமா, இது ஸ்ட்ரோக் ஸ்கீமாவுடன் இணைந்து எழுத்துகளைத் தேடுகிறது.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">ஜப்பானிய கையெழுத்து மாதிரி</string>
+    <string name="core_input_zinnia_pack_subtitle">Zinnia-விற்கான Tegaki திட்டத்தின் மாதிரி, இது ML Kit செய்யாத சீன மற்றும் ஜப்பானிய மொழிகளை வாசிக்கும் ஆஃப்லைன் கையெழுத்து அங்கீகரிப்பான்.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">எளிமைப்படுத்தப்பட்ட சீன கையெழுத்து மாதிரி</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">பாரம்பரிய சீன கையெழுத்து மாடல்</string>
 </resources>

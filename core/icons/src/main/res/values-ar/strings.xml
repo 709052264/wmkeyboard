@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">إظهار الأدوات</string>
     <string name="core_icons_slot_tab_label">مفتاح Tab</string>
     <string name="core_icons_slot_toolbox_label">صندوق الأدوات</string>
+    <string name="core_icons_slot_toolbox_search_label">البحث في صندوق الأدوات</string>
 </resources>

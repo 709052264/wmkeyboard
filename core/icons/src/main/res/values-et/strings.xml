@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Näita tööriistu</string>
     <string name="core_icons_slot_tab_label">Tab-klahv</string>
     <string name="core_icons_slot_toolbox_label">Tööriistakast</string>
+    <string name="core_icons_slot_toolbox_search_label">Tööriistakasti otsing</string>
 </resources>

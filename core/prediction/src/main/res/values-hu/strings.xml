@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">A szerver nem küldte el a fájlt. A hibakód: HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Ez a szólista üres vagy olvashatatlan.</string>
+    <string name="core_pred_wordlist_memory_error">Az eszközön nincs elég memória ekkora szójegyzékhez. Válasszon kisebb méretet.</string>
     <string name="core_pred_wordlist_no_space_error">Nincs elég tárhely az eszközön. Törölj néhány fájlt, majd próbáld újra.</string>
     <string name="core_pred_wordlist_save_error">Az alkalmazás nem tudja elmenteni a szólistát. Próbáld újra.</string>
     <string name="core_pred_wordlist_size_all_label">Minden</string>

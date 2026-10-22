@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">سرور نے فائل نہیں بھیجی۔ ایرر کوڈ HTTP %1$s ہے۔</string>
     <string name="core_pred_wordlist_malformed_error">وہ الفاظ کی فہرست خالی یا ناقابل مطالعہ ہے۔</string>
+    <string name="core_pred_wordlist_memory_error">اس ڈیوائس میں اس سائز کی ورڈ لسٹ کے لیے کافی میموری نہیں ہے۔ چھوٹا سائز منتخب کریں۔</string>
     <string name="core_pred_wordlist_no_space_error">آپ کے آلے پر کافی اسٹوریج نہیں ہے۔ کچھ فائلیں حذف کریں، پھر دوبارہ کوشش کریں۔</string>
     <string name="core_pred_wordlist_save_error">ایپ الفاظ کی فہرست محفوظ نہیں کر سکتی۔ دوبارہ کوشش کریں۔</string>
     <string name="core_pred_wordlist_size_all_label">سب کچھ</string>

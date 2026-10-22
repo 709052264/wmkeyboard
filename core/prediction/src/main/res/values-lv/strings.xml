@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Serveris nenosūtīja failu. Kļūdas kods ir HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Šis vārdu saraksts ir tukšs vai nav nolasāms.</string>
+    <string name="core_pred_wordlist_memory_error">Šajā ierīcē nav pietiekami daudz atmiņas šāda izmēra vārdu sarakstam. Izvēlieties mazāku izmēru.</string>
     <string name="core_pred_wordlist_no_space_error">Ierīcē nav pietiekami daudz vietas. Izdzēsiet dažus failus un mēģiniet vēlreiz.</string>
     <string name="core_pred_wordlist_save_error">Lietotne nevar saglabāt vārdu sarakstu. Mēģiniet vēlreiz.</string>
     <string name="core_pred_wordlist_size_all_label">Viss</string>

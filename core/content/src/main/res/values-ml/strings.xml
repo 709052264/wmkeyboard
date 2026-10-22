@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">ഫോർമാറ്റ്</string>
     <string name="core_content_selection_macro_grammar">വ്യാകരണം</string>
     <string name="core_content_selection_macro_lines_bullet">ബുള്ളറ്റുകൾ</string>
+    <string name="core_content_selection_macro_lines_checkbox">ചെക്ക് ബോക്സുകൾ</string>
     <string name="core_content_selection_macro_lines_dedupe">യൂണിക്ക്</string>
+    <string name="core_content_selection_macro_lines_down">താഴേക്ക് നീക്കുക</string>
     <string name="core_content_selection_macro_lines_number">നമ്പർ</string>
     <string name="core_content_selection_macro_lines_sort">തരംതിരിക്കുക</string>
+    <string name="core_content_selection_macro_lines_up">മുകളിലേക്ക് നീക്കുക</string>
     <string name="core_content_selection_macro_map">മാപ്പ്</string>
     <string name="core_content_selection_macro_open">തുറക്കുക</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">സംസാരിക്കുക</string>
+    <string name="core_content_selection_macro_repeat">ആവർത്തിക്കുക</string>
     <string name="core_content_selection_macro_replace">മാറ്റിസ്ഥാപിക്കുക</string>
     <string name="core_content_selection_macro_save_note">കുറിപ്പായി സംരക്ഷിക്കുക</string>
     <string name="core_content_selection_macro_search">തിരയുക</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">വിവർത്തനം ചെയ്യുക</string>
     <string name="core_content_selection_macro_url_decode">ഡീകോഡ് ചെയ്യുക</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ഫയലിൽ കുറുക്കുവഴികളില്ലാത്ത %1$d വാക്കും ഉണ്ട്. അത് നിങ്ങളുടെ വാക്കുകളിലേക്ക് ചേർക്കാൻ, പേഴ്സണൽ ഡിക്ഷണറിയിൽ നിന്ന് ഫയൽ തുറക്കുക.</item>
         <item quantity="other">ഫയലിൽ കുറുക്കുവഴികളില്ലാത്ത %1$d വാക്കുകളും ഉണ്ട്. അവ നിങ്ങളുടെ വാക്കുകളിലേക്ക് ചേർക്കാൻ, പേഴ്സണൽ ഡിക്ഷണറിയിൽ നിന്ന് ഫയൽ തുറക്കുക.</item>

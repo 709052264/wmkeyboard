@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">پایین سمت راست</string>
     <string name="core_settings_board_corner_top_left_label">بالا سمت چپ</string>
     <string name="core_settings_board_corner_top_right_label">بالا سمت راست</string>
+    <string name="core_settings_clip_shortcut_edit_label">ویرایش</string>
+    <string name="core_settings_clip_shortcut_edited_label">علامت ویرایش‌شده</string>
+    <string name="core_settings_clip_shortcut_none_label">هیچ</string>
+    <string name="core_settings_clip_shortcut_qr_label">کد QR</string>
+    <string name="core_settings_clip_shortcut_select_label">انتخاب</string>
     <string name="core_settings_clip_swipe_pin_left_label">کشیدن به چپ برای پین، به راست برای حذف</string>
     <string name="core_settings_clip_swipe_pin_off_label">حذف از هر دو جهت</string>
     <string name="core_settings_clip_swipe_pin_right_label">سنجاق کردن به راست، حذف کردن به چپ</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">مشتاقانه</string>
     <string name="core_settings_deepl_style_friendly_label">دوستانه</string>
     <string name="core_settings_deepl_style_simple_label">ساده</string>
+    <string name="core_settings_function_keys_always_label">همیشه</string>
+    <string name="core_settings_function_keys_pick_mode_label">در حالت انتخاب</string>
     <string name="core_settings_glide_commit_color_always_label">همیشه</string>
     <string name="core_settings_glide_commit_color_confident_label">هنگام اطمینان</string>
     <string name="core_settings_glide_commit_color_guess_label">هر کلمه اولیه</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">نوار، کپسول و کلیدها</string>
     <string name="core_settings_glide_commit_scope_pill_label">نوار و قرص</string>
     <string name="core_settings_glide_commit_scope_strip_label">نوار</string>
+    <string name="core_settings_glide_engine_built_in_label">داخلی</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (انگلیسی، QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">کتابخانه حرکتی گوگل (وارد شده)</string>
     <string name="core_settings_glide_lookahead_confident_label">هنگام اطمینان</string>
     <string name="core_settings_glide_lookahead_eager_label">مشتاق</string>
     <string name="core_settings_glide_lookahead_off_label">خاموش</string>

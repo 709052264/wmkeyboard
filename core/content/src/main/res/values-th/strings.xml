@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">รูปแบบ</string>
     <string name="core_content_selection_macro_grammar">ไวยากรณ์</string>
     <string name="core_content_selection_macro_lines_bullet">สัญลักษณ์แสดงหัวข้อย่อย</string>
+    <string name="core_content_selection_macro_lines_checkbox">ช่องทำเครื่องหมาย</string>
     <string name="core_content_selection_macro_lines_dedupe">ไม่ซ้ำกัน</string>
+    <string name="core_content_selection_macro_lines_down">เลื่อนลง</string>
     <string name="core_content_selection_macro_lines_number">ตัวเลข</string>
     <string name="core_content_selection_macro_lines_sort">เรียงลำดับ</string>
+    <string name="core_content_selection_macro_lines_up">เลื่อนขึ้น</string>
     <string name="core_content_selection_macro_map">แผนที่</string>
     <string name="core_content_selection_macro_open">เปิด</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">พูด</string>
+    <string name="core_content_selection_macro_repeat">ทำซ้ำ</string>
     <string name="core_content_selection_macro_replace">แทนที่</string>
     <string name="core_content_selection_macro_save_note">บันทึกเป็นโน้ต</string>
     <string name="core_content_selection_macro_search">ค้นหา</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">แปล</string>
     <string name="core_content_selection_macro_url_decode">ถอดรหัส</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ไฟล์ยังมี %1$d คำที่ไม่มีทางลัด หากต้องการเพิ่มลงในคำของคุณ ให้เปิดไฟล์จากพจนานุกรมส่วนตัว</item>
         <item quantity="other">ไฟล์ยังมี %1$d คำที่ไม่มีทางลัด หากต้องการเพิ่มลงในคำของคุณ ให้เปิดไฟล์จากพจนานุกรมส่วนตัว</item>

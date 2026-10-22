@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">เซิร์ฟเวอร์ไม่ได้ส่งไฟล์ รหัสข้อผิดพลาดคือ HTTP %1$s</string>
     <string name="core_pred_wordlist_malformed_error">รายการคำนั้นว่างเปล่าหรืออ่านไม่ได้</string>
+    <string name="core_pred_wordlist_memory_error">อุปกรณ์นี้มีหน่วยความจำไม่เพียงพอสำหรับรายการคำศัพท์ขนาดนี้ โปรดเลือกขนาดที่เล็กลง</string>
     <string name="core_pred_wordlist_no_space_error">พื้นที่จัดเก็บข้อมูลบนอุปกรณ์ของคุณไม่เพียงพอ โปรดลบไฟล์บางส่วนแล้วลองใหม่อีกครั้ง</string>
     <string name="core_pred_wordlist_save_error">แอปไม่สามารถบันทึกรายการคำศัพท์ได้ โปรดลองใหม่อีกครั้ง</string>
     <string name="core_pred_wordlist_size_all_label">ทั้งหมด</string>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">El servidor no ha enviat el fitxer. El codi d\'error és HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Aquesta llista de paraules està buida o és il·legible.</string>
+    <string name="core_pred_wordlist_memory_error">Aquest dispositiu no té prou memòria per a una llista de paraules d\'aquesta mida. Tria una mida més petita.</string>
     <string name="core_pred_wordlist_no_space_error">No hi ha prou espai d\'emmagatzematge al dispositiu. Esborreu alguns fitxers i torneu-ho a provar.</string>
     <string name="core_pred_wordlist_save_error">L\'aplicació no pot desar la llista de paraules. Torneu-ho a provar.</string>
     <string name="core_pred_wordlist_size_all_label">Tot</string>

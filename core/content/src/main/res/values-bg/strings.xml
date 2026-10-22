@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Формат</string>
     <string name="core_content_selection_macro_grammar">Граматика</string>
     <string name="core_content_selection_macro_lines_bullet">Булети</string>
+    <string name="core_content_selection_macro_lines_checkbox">Квадратчета за отметка</string>
     <string name="core_content_selection_macro_lines_dedupe">Уникални</string>
+    <string name="core_content_selection_macro_lines_down">Преместване надолу</string>
     <string name="core_content_selection_macro_lines_number">Брой</string>
     <string name="core_content_selection_macro_lines_sort">Сортиране</string>
+    <string name="core_content_selection_macro_lines_up">Преместване нагоре</string>
     <string name="core_content_selection_macro_map">Карта</string>
     <string name="core_content_selection_macro_open">Отваряне</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Изговаряне</string>
+    <string name="core_content_selection_macro_repeat">Повторение</string>
     <string name="core_content_selection_macro_replace">Замяна</string>
     <string name="core_content_selection_macro_save_note">Запазване като бележка</string>
     <string name="core_content_selection_macro_search">Търсене</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Превод</string>
     <string name="core_content_selection_macro_url_decode">Декодиране</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Файлът също съдържа %1$d дума без пряк път. За да я добавите към думите си, отворете файла от Личен речник.</item>
         <item quantity="other">Файлът също съдържа %1$d думи без преки пътища. За да ги добавите към думите си, отворете файла от Личен речник.</item>

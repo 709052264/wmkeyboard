@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">اسکریپت با شکست مواجه شد.</string>
     <string name="core_plugins_error_script_missing">اسکریپت مربوط به آن افزونه موجود نیست.</string>
     <string name="core_plugins_error_turned_off">این افزونه خاموش است.</string>
+    <string name="core_plugins_permission_reminders_label">نمایش یادآورها در زمان‌هایی که تنظیم کرده‌اید</string>
     <string name="core_plugins_permission_storage_label">ذخیره داده‌ها روی دستگاه شما</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» دارای اسکریپتی است که متن UTF-8 معتبر نیست.</string>
     <string name="core_plugins_reject_bad_id">این افزونه دارای شناسه‌ای است که معتبر نیست. شناسه باید بین ۳ تا ۶۴ کاراکتر باشد. شناسه می‌تواند شامل حروف کوچک، اعداد، نقطه، خط تیره و زیرخط باشد.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">«%1$s» مشخص نمی‌کند که چه نسخه‌ای است.</string>
     <string name="core_plugins_reject_script_too_large">اسکریپت «%1$s» بزرگتر از %2$d کیلوبایت است.</string>
     <string name="core_plugins_reject_unknown_permission">این نسخه از صفحه‌کلید WM مجوز «%1$s» را نمی‌شناسد. برنامه نمی‌تواند به شما بگوید که «%2$s» اجازه انجام چه کاری را دارد.</string>
+    <string name="core_plugins_reminders_channel_body">یادآورهایی که یک افزونه از برنامه خواسته است در زمان‌هایی که در افزونه تنظیم کرده‌اید، نمایش دهد. عنوان هر کدام نام افزونه است.</string>
+    <string name="core_plugins_reminders_channel_title">یادآورهای افزونه</string>
     <string name="core_plugins_stopped_cancelled">برنامه این افزونه را متوقف کرد.</string>
     <string name="core_plugins_stopped_deadline">این افزونه بیش از حد طول کشید. برنامه آن را متوقف کرد.</string>
     <string name="core_plugins_stopped_instructions">این افزونه در یک زمان کار زیادی انجام داد. برنامه آن را متوقف کرد.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">این افزونه دوباره پاسخ نداد. برنامه آن را غیرفعال کرد.</string>
     <string name="core_plugins_stopped_recursion">این افزونه بیش از حد خود را فراخوانی کرد. برنامه آن را متوقف کرد.</string>
     <string name="core_plugins_stopped_unexpected">این افزونه به طور غیرمنتظره متوقف شد.</string>
+    <string name="core_plugins_ui_date_clear">پاک کردن</string>
+    <string name="core_plugins_ui_date_earlier">%1$d دقیقه قبل‌تر</string>
+    <string name="core_plugins_ui_date_hour_earlier">۱- ساعت</string>
+    <string name="core_plugins_ui_date_hour_later">+۱ ساعت</string>
+    <string name="core_plugins_ui_date_later">%1$d دقیقه بعد</string>
+    <string name="core_plugins_ui_date_next_day">روز بعد</string>
+    <string name="core_plugins_ui_date_none">بدون تاریخ</string>
+    <string name="core_plugins_ui_date_previous_day">روز قبل</string>
+    <string name="core_plugins_ui_date_set">تنظیم تاریخ</string>
+    <string name="core_plugins_ui_date_today">امروز</string>
     <string name="core_plugins_ui_insert_action">درج</string>
     <string name="core_plugins_ui_repair_no_type">یک ویجت نوع خود را مشخص نکرده است.</string>
     <string name="core_plugins_ui_repair_not_a_widget">یک فهرست ویجت حاوی چیزی بود که ویجت نیست.</string>

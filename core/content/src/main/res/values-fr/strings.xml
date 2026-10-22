@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammaire</string>
     <string name="core_content_selection_macro_lines_bullet">Puces</string>
+    <string name="core_content_selection_macro_lines_checkbox">Cases à cocher</string>
     <string name="core_content_selection_macro_lines_dedupe">Unique</string>
+    <string name="core_content_selection_macro_lines_down">Déplacer vers le bas</string>
     <string name="core_content_selection_macro_lines_number">Nombre</string>
     <string name="core_content_selection_macro_lines_sort">Trier</string>
+    <string name="core_content_selection_macro_lines_up">Déplacer vers le haut</string>
     <string name="core_content_selection_macro_map">Carte</string>
     <string name="core_content_selection_macro_open">Ouvrir</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Lire</string>
+    <string name="core_content_selection_macro_repeat">Répéter</string>
     <string name="core_content_selection_macro_replace">Remplacer</string>
     <string name="core_content_selection_macro_save_note">Enregistrer comme note</string>
     <string name="core_content_selection_macro_search">Rechercher</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Traduire</string>
     <string name="core_content_selection_macro_url_decode">Décoder</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Le fichier contient également %1$d mot sans raccourci. Pour l\'ajouter à vos mots, ouvrez le fichier depuis le dictionnaire personnel.</item>
         <item quantity="other">Le fichier contient également %1$d mots sans raccourci. Pour les ajouter à vos mots, ouvrez le fichier depuis le dictionnaire personnel.</item>

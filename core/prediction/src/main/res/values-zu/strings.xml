@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Iseva ayithumelanga ifayela. Ikhodi yephutha ithi HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Lolo hlu lwamagama alunalutho noma alufundeki.</string>
+    <string name="core_pred_wordlist_memory_error">Le divayisi ayinayo inkumbulo eyanele yohlu lwamagama olungaka. Khetha usayizi omncane.</string>
     <string name="core_pred_wordlist_no_space_error">Akunasikhala esanele sokugcina kudivayisi yakho. Susa amanye amafayela, bese uzama futhi.</string>
     <string name="core_pred_wordlist_save_error">Uhlelo lokusebenza alukwazi ukulondoloza uhlu lwamagama. Zama futhi.</string>
     <string name="core_pred_wordlist_size_all_label">Konke</string>

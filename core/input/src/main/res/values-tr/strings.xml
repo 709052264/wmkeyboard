@@ -56,4 +56,22 @@
         <item quantity="one">Uygulama bunu %1$d girişli bir Rime kod tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
         <item quantity="other">Uygulama bunu %1$d girişli bir Rime kod tablosu olarak okudu. Bir kod yazın, ardından öneri şeridinden karakteri seçin.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc\'un kendi sistem sözlüğü; bağlantı maliyetleri, bölümleyici ve öneri filtresi ile birlikte. Mozc motoru bununla dönüştürür; yerleşik motor bunu kullanmaz.</string>
+    <string name="core_input_mozc_pack_title">Mozc sözlüğü</string>
+    <string name="core_input_rime_pack_base_subtitle">Her RIME şemasının kullandığı noktalama işaretleri, semboller, kelime frekans tablosu ve Basitleştirilmiş ve Geleneksel dönüştürme. İlk şema ile indirilir.</string>
+    <string name="core_input_rime_pack_base_title">RIME temelleri</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">RIME\'ın standart Dachen tuş haritasındaki Zhuyin şeması, Terra Pinyin\'in sözlüğü ile.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME\'ın beşinci nesil Cangjie şeması, karakterler ve ifadeler.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Pinyin için Çift Pinyin ve 9 tuşlu varyantları içeren, büyük ve modern bir Basitleştirilmiş Çince sözlüğü. Derlenmesi bir dakika veya daha fazla sürer.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Kantonca için kelime ve ifade listeleriyle birlikte rime-cantonese şeması.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME\'ın kendi Pinyin şeması, karakterleri aradığı vuruş şeması ile birlikte.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Japonca el yazısı modeli</string>
+    <string name="core_input_zinnia_pack_subtitle">ML Kit\'in okuyamadığı Çince ve Japoncayı okuyan çevrimdışı el yazısı tanıyıcı zinnia için Tegaki projesinin modeli.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Basitleştirilmiş Çince el yazısı modeli</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Geleneksel Çince el yazısı modeli</string>
 </resources>

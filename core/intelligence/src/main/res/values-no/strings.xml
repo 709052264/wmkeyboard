@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Klistremerkegeneratorens motor ble ikke lastet ned. Sjekk tilkoblingen og prøv igjen.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool godtok ikke brukernavnet og API-nøkkelen (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool-serveren har mottatt så mange kontroller fra denne telefonen som den tillater per minutt. Rediger teksten om et øyeblikk for å kontrollere på nytt (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool kunne ikke kontrollere denne teksten. Serveren har kanskje ikke dette språket (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Teksten er for lang for denne LanguageTool-tjeneren (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Den nedlastede filen er ikke den forventede, så den ble slettet. Last den ned på nytt.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Denne modellen er begrenset. Legg til din Hugging Face-token først.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face returnerte HTTP-status %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Godta lisensen for modellen på Hugging Face-siden. Prøv deretter på nytt.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Tilkoblingen ble avbrutt under nedlastingen. Trykk på Gjenoppta for å fortsette.</string>
     <string name="core_intel_llm_engine_error_gpu">Modellen feilet på GPU-en. GPU-minnet er mye mindre enn systemminnet. Neste forsøk bruker CPU-en. For å alltid bruke CPU-en, sett Beregning til CPU i innstillinger. Du kan også velge en mindre modell.</string>
     <string name="core_intel_llm_engine_error_load">Modellen ble ikke lastet inn. Filen er sannsynligvis skadet. Slett modellen i innstillinger og last den ned på nytt.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Denne modellen krever omtrent %1$s minne, og %2$s er ledig. Lukk andre apper eller velg en mindre modell.</string>
     <string name="core_intel_llm_engine_error_memory">Modellen gikk tom for minne, eller den feilet. Velg en mindre modell.</string>
+    <string name="core_intel_llm_engine_error_npu">Modellen feilet på NPU-en. Neste forsøk bruker GPU-en eller CPU-en. En lang tekst kan bli for mye for NPU-versjonen av en modell.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Bare NPU-bygget av denne modellen er på telefonen din, og bare NPU-en kan kjøre den. Sett Compute til NPU, eller last ned standardbygget av modellen i innstillingene.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">NPU-versjonen av denne modellen startet ikke på telefonen din. For å bruke modellen på GPU eller CPU, last ned standardversjonen i innstillingene.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">NPU-delen av tastaturet er ikke klar. Hvis den laster ned, prøv igjen om et øyeblikk. For å bruke GPU eller CPU nå, last ned standardversjonen av modellen i innstillingene.</string>
+    <string name="core_intel_llm_engine_error_template">Modellens chattemal kunne ikke leses. Prøv en annen GGUF-fil av modellen.</string>
+    <string name="core_intel_llm_engine_error_too_long">Teksten er for lang for denne modellen. Bruk en kortere tekst, eller øk kontekststørrelsen i innstillingene.</string>
+    <string name="core_intel_llm_engine_error_vision">Denne modellen kan ikke lese bilder. Gemma 4 kan.</string>
+    <string name="core_intel_llm_llama_missing">Denne versjonen kan ikke kjøre GGUF-modeller: llama.cpp-delen mangler.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">En liten Gemma fra forrige generasjon. Den har god kvalitet og en kontekst på 4K-tokens.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Den minste Gemma fra Google. Den er rask på alle enheter.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Den nyeste Gemma-generasjonen. Den gir topp kvalitet på enheten din.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Den største modellen. Den skriver best, men trenger en kraftig enhet.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">En liten Gemma fra forrige generasjon. Ingen Hugging Face-token er nødvendig for denne filen.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Metas lille Llama. Den skriver klar engelsk og følger instruksjoner godt.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Leser bilder og skjermbilder godt, også teksten i dem. Den krever en avansert enhet. Lisensen tillater kun forskningsbruk.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">En nyere modell i mellomklassen som tenker før den svarer. Krever en enhet i mellomsjiktet.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Liten og rask. Den er god for raske omskrivinger på en enkel enhet.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">En veldig liten modell som kan lese bilder. Den beskriver et bilde, men leser ofte feil tekst i et skjermbilde.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">En generell modell som fortsatt får plass på en enkel enhet.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Helt klart smartere enn modellene under 1B. Den krever en enhet i mellomklassen.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">En nyere liten modell. Kvaliteten er høy for størrelsen.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Utestet</string>
     <string name="core_intel_ocr_download_error_http">GitHub-serveren sendte ikke filen. Feilkoden er HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Tilkoblingen stoppet under nedlastingen. Prøv igjen.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Den nedlastede filen er ikke den forventede. Prøv igjen.</string>
     <string name="core_intel_ocr_download_error_no_space">Det er ikke nok lagringsplass på enheten. Du må frigjøre omtrent %1$s MB først.</string>
+    <string name="core_intel_ocr_module_error">Google Play leverte ikke tekstleseren. Sjekk tilkoblingen og at Play-butikken fungerer, og prøv deretter igjen.</string>
     <string name="core_intel_ocr_pack_error_broken">De nedlastede språkdataene er skadet, så skanneren kunne ikke bruke dem. Last dem ned på nytt.</string>
+    <string name="core_intel_semantic_module_error">Søkemotordelen ble ikke lastet ned. Sjekk tilkoblingen og prøv igjen.</string>
+    <string name="core_intel_semantic_no_source">Modellfilene er kun publisert på GitHub. Sett datalageret tilbake til GitHub i Servere.</string>
+    <string name="core_intel_xlit_module_error">Delen som kjører modellen ble ikke lastet ned. Sjekk tilkoblingen og prøv på nytt.</string>
 </resources>

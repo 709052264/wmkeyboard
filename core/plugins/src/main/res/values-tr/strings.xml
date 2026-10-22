@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Komut dosyası başarısız oldu.</string>
     <string name="core_plugins_error_script_missing">Bu eklenti için komut dosyası eksik.</string>
     <string name="core_plugins_error_turned_off">Bu eklenti kapalı.</string>
+    <string name="core_plugins_permission_reminders_label">Hatırlatıcıları belirlediğiniz zamanlarda göster</string>
     <string name="core_plugins_permission_storage_label">Verileri cihazınıza kaydedin</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s”, geçerli bir UTF-8 metni olmayan bir betiğe sahip.</string>
     <string name="core_plugins_reject_bad_id">Bu eklentinin kimliği geçerli değil. Kimlik 3 ila 64 karakter uzunluğundadır. Kimlik küçük harfler, sayılar, noktalar, tireler ve alt çizgiler içerebilir.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” hangi sürüm olduğunu belirtmiyor.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s”, %2$d KB\'den daha büyük bir betiğe sahip.</string>
     <string name="core_plugins_reject_unknown_permission">WM Keyboard\'un bu sürümü “%1$s” iznini tanımıyor. Uygulama, “%2$s” öğesinin ne yapmasına izin verildiğini size söyleyemez.</string>
+    <string name="core_plugins_reminders_channel_body">Bir eklentinin uygulamadan, eklentide ayarladığınız zamanlarda göstermesini istediği hatırlatıcılar. Her birinin başlığı eklentinin adıdır.</string>
+    <string name="core_plugins_reminders_channel_title">Eklenti hatırlatıcıları</string>
     <string name="core_plugins_stopped_cancelled">Uygulama bu eklentiyi durdurdu.</string>
     <string name="core_plugins_stopped_deadline">Bu eklenti çok uzun sürdü. Uygulama onu durdurdu.</string>
     <string name="core_plugins_stopped_instructions">Bu eklenti bir kerede çok fazla işlem yaptı. Uygulama onu durdurdu.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Bu eklenti tekrar yanıt vermeyi durdurdu. Uygulama onu devre dışı bıraktı.</string>
     <string name="core_plugins_stopped_recursion">Bu eklenti kendini çok fazla kez çağırdı. Uygulama onu durdurdu.</string>
     <string name="core_plugins_stopped_unexpected">Bu eklenti beklenmedik bir şekilde durdu.</string>
+    <string name="core_plugins_ui_date_clear">Temizle</string>
+    <string name="core_plugins_ui_date_earlier">%1$d dk önce</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 sa</string>
+    <string name="core_plugins_ui_date_hour_later">+1 sa</string>
+    <string name="core_plugins_ui_date_later">%1$d dakika sonra</string>
+    <string name="core_plugins_ui_date_next_day">Ertesi gün</string>
+    <string name="core_plugins_ui_date_none">Tarih yok</string>
+    <string name="core_plugins_ui_date_previous_day">Önceki gün</string>
+    <string name="core_plugins_ui_date_set">Tarihi ayarla</string>
+    <string name="core_plugins_ui_date_today">Bugün</string>
     <string name="core_plugins_ui_insert_action">Ekle</string>
     <string name="core_plugins_ui_repair_no_type">Bir araç, ne tür olduğunu belirtmedi.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Bir araç listesi, araç olmayan bir şey içeriyordu.</string>

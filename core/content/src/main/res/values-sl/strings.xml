@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Oblika</string>
     <string name="core_content_selection_macro_grammar">Slovnica</string>
     <string name="core_content_selection_macro_lines_bullet">Oznake</string>
+    <string name="core_content_selection_macro_lines_checkbox">Potrditvena polja</string>
     <string name="core_content_selection_macro_lines_dedupe">Edinstveno</string>
+    <string name="core_content_selection_macro_lines_down">Premik navzdol</string>
     <string name="core_content_selection_macro_lines_number">Številka</string>
     <string name="core_content_selection_macro_lines_sort">Razvrsti</string>
+    <string name="core_content_selection_macro_lines_up">Premakni navzgor</string>
     <string name="core_content_selection_macro_map">Zemljevid</string>
     <string name="core_content_selection_macro_open">Odpri</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Preberi</string>
+    <string name="core_content_selection_macro_repeat">Ponovi</string>
     <string name="core_content_selection_macro_replace">Zamenjaj</string>
     <string name="core_content_selection_macro_save_note">Shrani kot beležko</string>
     <string name="core_content_selection_macro_search">Išči</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Prevedi</string>
     <string name="core_content_selection_macro_url_decode">Dekodiraj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Datoteka vsebuje tudi %1$d besedo brez bližnjice. Če jo želite dodati med svoje besede, odprite datoteko iz osebnega slovarja.</item>
         <item quantity="other">Datoteka vsebuje tudi %1$d besed brez bližnjice. Če jih želite dodati med svoje besede, odprite datoteko iz osebnega slovarja.</item>

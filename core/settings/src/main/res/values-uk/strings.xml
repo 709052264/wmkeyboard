@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Нижній правий</string>
     <string name="core_settings_board_corner_top_left_label">Зверху зліва</string>
     <string name="core_settings_board_corner_top_right_label">Верхній правий кут</string>
+    <string name="core_settings_clip_shortcut_edit_label">Редагувати</string>
+    <string name="core_settings_clip_shortcut_edited_label">Позначка редагування</string>
+    <string name="core_settings_clip_shortcut_none_label">Нічого</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR-код</string>
+    <string name="core_settings_clip_shortcut_select_label">Вибрати</string>
     <string name="core_settings_clip_swipe_pin_left_label">Ліворуч — закріпити, праворуч — видалити</string>
     <string name="core_settings_clip_swipe_pin_off_label">Видалення в обох напрямках</string>
     <string name="core_settings_clip_swipe_pin_right_label">Свайп вправо закріплює, вліво — видаляє</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Ентузіазм</string>
     <string name="core_settings_deepl_style_friendly_label">Дружній</string>
     <string name="core_settings_deepl_style_simple_label">Простий</string>
+    <string name="core_settings_function_keys_always_label">Завжди</string>
+    <string name="core_settings_function_keys_pick_mode_label">У режимі вибору</string>
     <string name="core_settings_glide_commit_color_always_label">Завжди</string>
     <string name="core_settings_glide_commit_color_confident_label">Коли впевнено</string>
     <string name="core_settings_glide_commit_color_guess_label">Будь-яке перше слово</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Смужка, підказки та клавіші</string>
     <string name="core_settings_glide_commit_scope_pill_label">Strip and pill</string>
     <string name="core_settings_glide_commit_scope_strip_label">Видалити</string>
+    <string name="core_settings_glide_engine_built_in_label">Вбудований</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (англійська, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Бібліотека жестів Google (імпортована)</string>
     <string name="core_settings_glide_lookahead_confident_label">Коли впевнено</string>
     <string name="core_settings_glide_lookahead_eager_label">Завзятий</string>
     <string name="core_settings_glide_lookahead_off_label">Вимкнено</string>

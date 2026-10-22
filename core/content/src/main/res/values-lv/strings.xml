@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formatēt</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
     <string name="core_content_selection_macro_lines_bullet">Aizzīmes</string>
+    <string name="core_content_selection_macro_lines_checkbox">Izvēles rūtiņas</string>
     <string name="core_content_selection_macro_lines_dedupe">Unikāls</string>
+    <string name="core_content_selection_macro_lines_down">Pārvietot uz leju</string>
     <string name="core_content_selection_macro_lines_number">Skaits</string>
     <string name="core_content_selection_macro_lines_sort">Kārtot</string>
+    <string name="core_content_selection_macro_lines_up">Pārvietot augšup</string>
     <string name="core_content_selection_macro_map">Karte</string>
     <string name="core_content_selection_macro_open">Atvērt</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Izrunāt</string>
+    <string name="core_content_selection_macro_repeat">Atkārtot</string>
     <string name="core_content_selection_macro_replace">Aizstāt</string>
     <string name="core_content_selection_macro_save_note">Saglabāt kā piezīmi</string>
     <string name="core_content_selection_macro_search">Meklēt</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Tulkot</string>
     <string name="core_content_selection_macro_url_decode">Atkodēt</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Failā ir arī %1$d vārds bez saīsnes. Lai pievienotu to saviem vārdiem, atveriet failu no Personīgās vārdnīcas.</item>
         <item quantity="other">Failā ir arī %1$d vārdi bez saīsnes. Lai pievienotu tos saviem vārdiem, atveriet failu no Personīgās vārdnīcas.</item>

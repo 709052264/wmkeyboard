@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">ล่างขวา</string>
     <string name="core_settings_board_corner_top_left_label">บนซ้าย</string>
     <string name="core_settings_board_corner_top_right_label">มุมขวาบน</string>
+    <string name="core_settings_clip_shortcut_edit_label">แก้ไข</string>
+    <string name="core_settings_clip_shortcut_edited_label">เครื่องหมายแก้ไข</string>
+    <string name="core_settings_clip_shortcut_none_label">ไม่มี</string>
+    <string name="core_settings_clip_shortcut_qr_label">รหัส QR</string>
+    <string name="core_settings_clip_shortcut_select_label">เลือก</string>
     <string name="core_settings_clip_swipe_pin_left_label">ปัดซ้ายเพื่อปักหมุด ปัดขวาเพื่อลบ</string>
     <string name="core_settings_clip_swipe_pin_off_label">ลบได้ทั้งสองทิศทาง</string>
     <string name="core_settings_clip_swipe_pin_right_label">ปัดขวาเพื่อปักหมุด ปัดซ้ายเพื่อลบ</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">กระตือรือร้น</string>
     <string name="core_settings_deepl_style_friendly_label">เป็นกันเอง</string>
     <string name="core_settings_deepl_style_simple_label">แบบง่าย</string>
+    <string name="core_settings_function_keys_always_label">เสมอ</string>
+    <string name="core_settings_function_keys_pick_mode_label">ในโหมดเลือก</string>
     <string name="core_settings_glide_commit_color_always_label">เสมอ</string>
     <string name="core_settings_glide_commit_color_confident_label">เมื่อมั่นใจ</string>
     <string name="core_settings_glide_commit_color_guess_label">คำใดๆ ที่อยู่ข้างหน้า</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">แถบ ปุ่ม และคีย์</string>
     <string name="core_settings_glide_commit_scope_pill_label">ตัดออกและแสดงเป็นป้าย</string>
     <string name="core_settings_glide_commit_scope_strip_label">ตัดออก</string>
+    <string name="core_settings_glide_engine_built_in_label">ในตัว</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (ภาษาอังกฤษ, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">ไลบรารีท่าทางสัมผัสของ Google (นำเข้าแล้ว)</string>
     <string name="core_settings_glide_lookahead_confident_label">เมื่อมั่นใจ</string>
     <string name="core_settings_glide_lookahead_eager_label">กระตือรือร้น</string>
     <string name="core_settings_glide_lookahead_off_label">ปิด</string>

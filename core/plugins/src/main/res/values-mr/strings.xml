@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">स्क्रिप्ट अयशस्वी झाली.</string>
     <string name="core_plugins_error_script_missing">त्या प्लगइनसाठी स्क्रिप्ट गहाळ आहे.</string>
     <string name="core_plugins_error_turned_off">तो प्लगइन बंद आहे.</string>
+    <string name="core_plugins_permission_reminders_label">तुम्ही सेट केलेल्या वेळी रिमाइंडर दाखवा</string>
     <string name="core_plugins_permission_storage_label">तुमच्या डिव्हाइसवर डेटा सेव्ह करा</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” मध्ये अशी स्क्रिप्ट आहे जी वैध UTF-8 मजकूर नाही.</string>
     <string name="core_plugins_reject_bad_id">या प्लगइनचा आयडी वैध नाही. आयडी ३ ते ६४ अक्षरांचा असतो. आयडीमध्ये लहान अक्षरे, अंक, ठिपके, डॅश आणि अंडरस्कोअर असू शकतात.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” कोणती आवृत्ती आहे हे सांगत नाही.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” मध्ये %2$d KB पेक्षा मोठी स्क्रिप्ट आहे.</string>
     <string name="core_plugins_reject_unknown_permission">WM कीबोर्डच्या या आवृत्तीला “%1$s” परवानगी माहित नाही. “%2$s” ला काय करण्याची परवानगी आहे हे ॲप तुम्हाला सांगू शकत नाही.</string>
+    <string name="core_plugins_reminders_channel_body">तुम्ही प्लगइनमध्ये सेट केलेल्या वेळी, प्लगइनने ॲपला दाखवण्यास सांगितलेले रिमाइंडर. प्रत्येकाचे शीर्षक हे प्लगइनचे नाव असते.</string>
+    <string name="core_plugins_reminders_channel_title">प्लगइन रिमाइंडर्स</string>
     <string name="core_plugins_stopped_cancelled">ॲपने हे प्लगइन थांबवले.</string>
     <string name="core_plugins_stopped_deadline">या प्लगइनला खूप वेळ लागला. ॲपने ते थांबवले आहे.</string>
     <string name="core_plugins_stopped_instructions">या प्लगइनने एकाच वेळी खूप जास्त काम केले. ॲपने ते थांबवले आहे.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">हे प्लगइन पुन्हा प्रतिसाद देत नाही. ॲपने ते बंद केले आहे.</string>
     <string name="core_plugins_stopped_recursion">या प्लगइनने स्वतःला खूप वेळा कॉल केले. ॲपने ते थांबवले आहे.</string>
     <string name="core_plugins_stopped_unexpected">हे प्लगइन अनपेक्षितपणे थांबले.</string>
+    <string name="core_plugins_ui_date_clear">साफ करा</string>
+    <string name="core_plugins_ui_date_earlier">%1$d मिनिटे आधी</string>
+    <string name="core_plugins_ui_date_hour_earlier">−१ तास</string>
+    <string name="core_plugins_ui_date_hour_later">+१ तास</string>
+    <string name="core_plugins_ui_date_later">%1$d मिनिटांनंतर</string>
+    <string name="core_plugins_ui_date_next_day">पुढचा दिवस</string>
+    <string name="core_plugins_ui_date_none">कोणतीही तारीख नाही</string>
+    <string name="core_plugins_ui_date_previous_day">मागील दिवस</string>
+    <string name="core_plugins_ui_date_set">तारीख सेट करा</string>
+    <string name="core_plugins_ui_date_today">आज</string>
     <string name="core_plugins_ui_insert_action">घाला</string>
     <string name="core_plugins_ui_repair_no_type">विजेटने तो कोणत्या प्रकारचा आहे हे सांगितले नाही.</string>
     <string name="core_plugins_ui_repair_not_a_widget">विजेट सूचीमध्ये अशी गोष्ट होती जी विजेट नाही.</string>

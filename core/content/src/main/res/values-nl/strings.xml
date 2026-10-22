@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Opmaak</string>
     <string name="core_content_selection_macro_grammar">Grammatica</string>
     <string name="core_content_selection_macro_lines_bullet">Opsommingstekens</string>
+    <string name="core_content_selection_macro_lines_checkbox">Selectievakjes</string>
     <string name="core_content_selection_macro_lines_dedupe">Uniek</string>
+    <string name="core_content_selection_macro_lines_down">Omlaag verplaatsen</string>
     <string name="core_content_selection_macro_lines_number">Nummer</string>
     <string name="core_content_selection_macro_lines_sort">Sorteren</string>
+    <string name="core_content_selection_macro_lines_up">Omhoog verplaatsen</string>
     <string name="core_content_selection_macro_map">Kaart</string>
     <string name="core_content_selection_macro_open">Openen</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Uitspreken</string>
+    <string name="core_content_selection_macro_repeat">Herhalen</string>
     <string name="core_content_selection_macro_replace">Vervangen</string>
     <string name="core_content_selection_macro_save_note">Opslaan als notitie</string>
     <string name="core_content_selection_macro_search">Zoeken</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Vertalen</string>
     <string name="core_content_selection_macro_url_decode">Decoderen</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Het bestand bevat ook %1$d woord zonder snelkoppeling. Om dit aan je woorden toe te voegen, open het bestand vanuit Persoonlijk woordenboek.</item>
         <item quantity="other">Het bestand bevat ook %1$d woorden zonder snelkoppeling. Om deze aan je woorden toe te voegen, open het bestand vanuit Persoonlijk woordenboek.</item>

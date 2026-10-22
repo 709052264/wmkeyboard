@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Bonisa amathuluzi</string>
     <string name="core_icons_slot_tab_label">Inkinobho yethebhu</string>
     <string name="core_icons_slot_toolbox_label">Ibhokisi lamathuluzi</string>
+    <string name="core_icons_slot_toolbox_search_label">Sesha ebhokisini lamathuluzi</string>
 </resources>

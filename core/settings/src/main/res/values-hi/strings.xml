@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">नीचे दाएं</string>
     <string name="core_settings_board_corner_top_left_label">ऊपर बायां</string>
     <string name="core_settings_board_corner_top_right_label">ऊपर दायां</string>
+    <string name="core_settings_clip_shortcut_edit_label">संपादित करें</string>
+    <string name="core_settings_clip_shortcut_edited_label">संपादित चिह्न</string>
+    <string name="core_settings_clip_shortcut_none_label">कुछ नहीं</string>
+    <string name="core_settings_clip_shortcut_qr_label">क्यूआर कोड</string>
+    <string name="core_settings_clip_shortcut_select_label">चुनें</string>
     <string name="core_settings_clip_swipe_pin_left_label">बाएँ पिन करें, दाएँ हटाएँ</string>
     <string name="core_settings_clip_swipe_pin_off_label">दोनों तरफ से हटाएं</string>
     <string name="core_settings_clip_swipe_pin_right_label">दाएं पिन, बाएं हटाएं</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">उत्साही</string>
     <string name="core_settings_deepl_style_friendly_label">मैत्रीपूर्ण</string>
     <string name="core_settings_deepl_style_simple_label">सरल</string>
+    <string name="core_settings_function_keys_always_label">हमेशा</string>
+    <string name="core_settings_function_keys_pick_mode_label">पिक मोड में</string>
     <string name="core_settings_glide_commit_color_always_label">हमेशा</string>
     <string name="core_settings_glide_commit_color_confident_label">जब सुनिश्चित हों</string>
     <string name="core_settings_glide_commit_color_guess_label">कोई भी शुरुआती शब्द</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">स्ट्रिप, पिल और कुंजियाँ</string>
     <string name="core_settings_glide_commit_scope_pill_label">स्ट्रिप और पिल</string>
     <string name="core_settings_glide_commit_scope_strip_label">स्ट्रिप</string>
+    <string name="core_settings_glide_engine_built_in_label">इन-बिल्ट</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO स्वाइप (अंग्रेज़ी, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google की जेस्चर लाइब्रेरी (आयातित)</string>
     <string name="core_settings_glide_lookahead_confident_label">जब निश्चित हों</string>
     <string name="core_settings_glide_lookahead_eager_label">उत्सुक (Eager)</string>
     <string name="core_settings_glide_lookahead_off_label">बंद</string>

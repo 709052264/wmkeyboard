@@ -56,4 +56,22 @@
         <item quantity="one">Aplicația a citit acest lucru ca un tabel de coduri Rime cu %1$d intrare. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
         <item quantity="other">Aplicația a citit acest lucru ca un tabel de coduri Rime cu %1$d intrări. Tastați un cod, apoi alegeți caracterul din bara de sugestii.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Dicționarul de sistem propriu Mozc, cu costurile sale de conexiune, segmentator și filtru de sugestii. Motorul Mozc convertește cu acesta; motorul integrat nu îl folosește.</string>
+    <string name="core_input_mozc_pack_title">Dicționar Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Punctuația, simbolurile, tabelul de frecvență a cuvintelor și conversia simplificată și tradițională pe care o folosește fiecare schemă RIME. Descărcat cu prima schemă.</string>
+    <string name="core_input_rime_pack_base_title">Elemente esențiale RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Schema Zhuyin a RIME pe dispunerea standard a tastelor Dachen, cu dicționarul Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Schema Cangjie de a cincea generație RIME, caractere și fraze.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Un vocabular chinez simplificat modern și vast pentru Pinyin, cu variante Double Pinyin și cu 9 taste. Compilarea acestuia durează un minut sau mai mult.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Schema rime-cantonese pentru cantoneză, cu listele sale de cuvinte și fraze.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">Propria schemă Pinyin a RIME, împreună cu schema de trăsături după care caută caracterele.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Model de scriere de mână japoneză</string>
+    <string name="core_input_zinnia_pack_subtitle">Modelul proiectului Tegaki pentru zinnia, recunoscătorul de scriere de mână offline care citește chineza și japoneza acolo unde ML Kit nu o face.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Model de scriere de mână pentru chineza simplificată</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Model de scriere de mână pentru chineza tradițională</string>
 </resources>

@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Показати інструменти</string>
     <string name="core_icons_slot_tab_label">Клавіша Tab</string>
     <string name="core_icons_slot_toolbox_label">Панель інструментів</string>
+    <string name="core_icons_slot_toolbox_search_label">Пошук у наборі інструментів</string>
 </resources>

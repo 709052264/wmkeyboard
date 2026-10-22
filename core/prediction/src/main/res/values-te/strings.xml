@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">సర్వర్ ఫైల్‌ను పంపలేదు. ఎర్రర్ కోడ్ HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">ఆ పదాల జాబితా ఖాళీగా ఉంది లేదా చదవడానికి వీలుపడదు.</string>
+    <string name="core_pred_wordlist_memory_error">ఈ పరిమాణంలో ఉన్న పద జాబితా కోసం ఈ పరికరంలో తగినంత మెమరీ లేదు. తక్కువ పరిమాణాన్ని ఎంచుకోండి.</string>
     <string name="core_pred_wordlist_no_space_error">మీ పరికరంలో తగినంత నిల్వ లేదు. కొన్ని ఫైళ్లను తొలగించి, ఆపై మళ్ళీ ప్రయత్నించండి.</string>
     <string name="core_pred_wordlist_save_error">యాప్ పదాల జాబితాను సేవ్ చేయలేదు. మళ్ళీ ప్రయత్నించండి.</string>
     <string name="core_pred_wordlist_size_all_label">అన్నీ</string>

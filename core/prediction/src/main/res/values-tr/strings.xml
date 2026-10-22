@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Sunucu dosyayı göndermedi. Hata kodu HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Bu kelime listesi boş veya okunamıyor.</string>
+    <string name="core_pred_wordlist_memory_error">Bu cihazda bu boyutta bir kelime listesi için yeterli bellek yok. Daha küçük bir boyut seçin.</string>
     <string name="core_pred_wordlist_no_space_error">Cihazınızda yeterli depolama alanı yok. Bazı dosyaları silin ve tekrar deneyin.</string>
     <string name="core_pred_wordlist_save_error">Uygulama kelime listesini kaydedemiyor. Tekrar deneyin.</string>
     <string name="core_pred_wordlist_size_all_label">Hepsi</string>

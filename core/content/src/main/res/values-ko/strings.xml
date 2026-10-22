@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">형식</string>
     <string name="core_content_selection_macro_grammar">문법</string>
     <string name="core_content_selection_macro_lines_bullet">글머리 기호</string>
+    <string name="core_content_selection_macro_lines_checkbox">체크박스</string>
     <string name="core_content_selection_macro_lines_dedupe">고유 항목</string>
+    <string name="core_content_selection_macro_lines_down">아래로 이동</string>
     <string name="core_content_selection_macro_lines_number">숫자</string>
     <string name="core_content_selection_macro_lines_sort">정렬</string>
+    <string name="core_content_selection_macro_lines_up">위로 이동</string>
     <string name="core_content_selection_macro_map">매핑</string>
     <string name="core_content_selection_macro_open">열기</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">읽기</string>
+    <string name="core_content_selection_macro_repeat">반복</string>
     <string name="core_content_selection_macro_replace">바꾸기</string>
     <string name="core_content_selection_macro_save_note">메모로 저장</string>
     <string name="core_content_selection_macro_search">검색</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">번역</string>
     <string name="core_content_selection_macro_url_decode">디코딩</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">파일에 바로가기가 없는 단어가 %1$d개 있습니다. 단어에 추가하려면 개인 사전에서 파일을 여세요.</item>
         <item quantity="other">파일에 바로가기가 없는 단어가 %1$d개 있습니다. 단어에 추가하려면 개인 사전에서 파일을 여세요.</item>

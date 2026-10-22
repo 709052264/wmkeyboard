@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Apakšējais labais stūris</string>
     <string name="core_settings_board_corner_top_left_label">Augšējais kreisais stūris</string>
     <string name="core_settings_board_corner_top_right_label">Augšējais labais</string>
+    <string name="core_settings_clip_shortcut_edit_label">Rediģēt</string>
+    <string name="core_settings_clip_shortcut_edited_label">Rediģēšanas atzīme</string>
+    <string name="core_settings_clip_shortcut_none_label">Nekas</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR kods</string>
+    <string name="core_settings_clip_shortcut_select_label">Atlasīt</string>
     <string name="core_settings_clip_swipe_pin_left_label">Pa kreisi piesprauž, pa labi dzēš</string>
     <string name="core_settings_clip_swipe_pin_off_label">Dzēšana abos virzienos</string>
     <string name="core_settings_clip_swipe_pin_right_label">Pa labi piesprauž, pa kreisi dzēš</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Entuziastisks</string>
     <string name="core_settings_deepl_style_friendly_label">Draudzīgs</string>
     <string name="core_settings_deepl_style_simple_label">Vienkāršs</string>
+    <string name="core_settings_function_keys_always_label">Vienmēr</string>
+    <string name="core_settings_function_keys_pick_mode_label">Izvēles režīmā</string>
     <string name="core_settings_glide_commit_color_always_label">Vienmēr</string>
     <string name="core_settings_glide_commit_color_confident_label">Kad esat pārliecināts</string>
     <string name="core_settings_glide_commit_color_guess_label">Jebkurš agrīns vārds</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Josla, tablete un taustiņi</string>
     <string name="core_settings_glide_commit_scope_pill_label">Josla un kapsula</string>
     <string name="core_settings_glide_commit_scope_strip_label">Svītra</string>
+    <string name="core_settings_glide_engine_built_in_label">Iebūvēts</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (angļu, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google žestu bibliotēka (importēta)</string>
     <string name="core_settings_glide_lookahead_confident_label">Kad esat pārliecināts</string>
     <string name="core_settings_glide_lookahead_eager_label">Dedzīgs</string>
     <string name="core_settings_glide_lookahead_off_label">Izslēgts</string>

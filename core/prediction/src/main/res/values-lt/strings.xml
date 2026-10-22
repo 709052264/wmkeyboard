@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Serveris neatsiuntė failo. Klaidos kodas yra HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Tas žodžių sąrašas yra tuščias arba neįskaitomas.</string>
+    <string name="core_pred_wordlist_memory_error">Šiame įrenginyje nepakanka atminties tokio dydžio žodžių sąrašui. Pasirinkite mažesnį dydį.</string>
     <string name="core_pred_wordlist_no_space_error">Jūsų įrenginyje nepakanka vietos. Ištrinkite kelis failus ir bandykite dar kartą.</string>
     <string name="core_pred_wordlist_save_error">Programai nepavyko išsaugoti žodžių sąrašo. Bandykite dar kartą.</string>
     <string name="core_pred_wordlist_size_all_label">Viskas</string>

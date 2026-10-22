@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Ο διακομιστής δεν έστειλε το αρχείο. Ο κωδικός σφάλματος είναι HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Αυτή η λίστα λέξεων είναι κενή ή μη αναγνώσιμη.</string>
+    <string name="core_pred_wordlist_memory_error">Αυτή η συσκευή δεν διαθέτει αρκετή μνήμη για μια λίστα λέξεων αυτού του μεγέθους. Επιλέξτε μικρότερο μέγεθος.</string>
     <string name="core_pred_wordlist_no_space_error">Δεν υπάρχει αρκετός αποθηκευτικός χώρος στη συσκευή σας. Διαγράψτε μερικά αρχεία και προσπαθήστε ξανά.</string>
     <string name="core_pred_wordlist_save_error">Η εφαρμογή δεν μπορεί να αποθηκεύσει τη λίστα λέξεων. Προσπαθήστε ξανά.</string>
     <string name="core_pred_wordlist_size_all_label">Τα πάντα</string>

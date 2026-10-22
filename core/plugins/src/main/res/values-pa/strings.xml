@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">ਸਕ੍ਰਿਪਟ ਅਸਫਲ ਰਹੀ।</string>
     <string name="core_plugins_error_script_missing">ਉਸ ਪਲੱਗਇਨ ਲਈ ਸਕ੍ਰਿਪਟ ਗੁੰਮ ਹੈ।</string>
     <string name="core_plugins_error_turned_off">ਉਹ ਪਲੱਗਇਨ ਬੰਦ ਹੈ।</string>
+    <string name="core_plugins_permission_reminders_label">ਤੁਹਾਡੇ ਦੁਆਰਾ ਸੈੱਟ ਕੀਤੇ ਸਮੇਂ \'ਤੇ ਰੀਮਾਈਂਡਰ ਦਿਖਾਓ</string>
     <string name="core_plugins_permission_storage_label">ਆਪਣੀ ਡਿਵਾਈਸ \'ਤੇ ਡੇਟਾ ਸੁਰੱਖਿਅਤ ਕਰੋ</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ਵਿੱਚ ਇੱਕ ਸਕ੍ਰਿਪਟ ਹੈ ਜੋ ਵੈਧ UTF-8 ਟੈਕਸਟ ਨਹੀਂ ਹੈ।</string>
     <string name="core_plugins_reject_bad_id">ਇਸ ਪਲੱਗਇਨ ਦੀ ਆਈਡੀ ਵੈਧ ਨਹੀਂ ਹੈ। ਇੱਕ ਆਈਡੀ 3 ਤੋਂ 64 ਅੱਖਰ ਲੰਬੀ ਹੁੰਦੀ ਹੈ। ਇੱਕ ਆਈਡੀ ਵਿੱਚ ਛੋਟੇ ਅੱਖਰ, ਨੰਬਰ, ਬਿੰਦੀਆਂ, ਡੈਸ਼ ਅਤੇ ਅੰਡਰਸਕੋਰ ਹੋ ਸਕਦੇ ਹਨ।</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” ਇਹ ਨਹੀਂ ਦੱਸਦਾ ਕਿ ਇਹ ਕਿਹੜਾ ਵਰਜ਼ਨ ਹੈ।</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” ਵਿੱਚ ਇੱਕ ਸਕ੍ਰਿਪਟ ਹੈ ਜੋ %2$d KB ਤੋਂ ਵੱਡੀ ਹੈ।</string>
     <string name="core_plugins_reject_unknown_permission">WM ਕੀਬੋਰਡ ਦਾ ਇਹ ਸੰਸਕਰਣ “%1$s” ਅਨੁਮਤੀ ਨੂੰ ਨਹੀਂ ਜਾਣਦਾ ਹੈ। ਐਪ ਤੁਹਾਨੂੰ ਇਹ ਨਹੀਂ ਦੱਸ ਸਕਦੀ ਕਿ “%2$s” ਨੂੰ ਕੀ ਕਰਨ ਦੀ ਇਜਾਜ਼ਤ ਹੈ।</string>
+    <string name="core_plugins_reminders_channel_body">ਉਹ ਰੀਮਾਈਂਡਰ ਜੋ ਕਿਸੇ ਪਲੱਗਇਨ ਨੇ ਐਪ ਨੂੰ ਦਿਖਾਉਣ ਲਈ ਕਿਹਾ ਹੈ, ਉਹਨਾਂ ਸਮਿਆਂ \'ਤੇ ਜੋ ਤੁਸੀਂ ਪਲੱਗਇਨ ਵਿੱਚ ਸੈੱਟ ਕੀਤੇ ਹਨ। ਹਰੇਕ ਦਾ ਸਿਰਲੇਖ ਪਲੱਗਇਨ ਦਾ ਨਾਮ ਹੈ।</string>
+    <string name="core_plugins_reminders_channel_title">ਪਲੱਗਇਨ ਰੀਮਾਈਂਡਰ</string>
     <string name="core_plugins_stopped_cancelled">ਐਪ ਨੇ ਇਸ ਪਲੱਗਇਨ ਨੂੰ ਰੋਕ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_deadline">ਇਸ ਪਲੱਗਇਨ ਨੇ ਬਹੁਤ ਜ਼ਿਆਦਾ ਸਮਾਂ ਲਿਆ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_instructions">ਇਸ ਪਲੱਗਇਨ ਨੇ ਇੱਕ ਸਮੇਂ ਵਿੱਚ ਬਹੁਤ ਜ਼ਿਆਦਾ ਕੰਮ ਕੀਤਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ।</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">ਇਹ ਪਲੱਗਇਨ ਦੁਬਾਰਾ ਜਵਾਬ ਦੇਣ ਵਿੱਚ ਅਸਫਲ ਰਿਹਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਬੰਦ ਕਰ ਦਿੱਤਾ ਹੈ।</string>
     <string name="core_plugins_stopped_recursion">ਇਸ ਪਲੱਗਇਨ ਨੇ ਆਪਣੇ ਆਪ ਨੂੰ ਬਹੁਤ ਵਾਰ ਕਾਲ ਕੀਤਾ। ਐਪ ਨੇ ਇਸਨੂੰ ਰੋਕ ਦਿੱਤਾ।</string>
     <string name="core_plugins_stopped_unexpected">ਇਹ ਪਲੱਗਇਨ ਅਚਾਨਕ ਬੰਦ ਹੋ ਗਿਆ।</string>
+    <string name="core_plugins_ui_date_clear">ਸਾਫ਼ ਕਰੋ</string>
+    <string name="core_plugins_ui_date_earlier">%1$d ਮਿੰਟ ਪਹਿਲਾਂ</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 ਘੰਟਾ</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ਘੰਟਾ</string>
+    <string name="core_plugins_ui_date_later">%1$d ਮਿੰਟ ਬਾਅਦ</string>
+    <string name="core_plugins_ui_date_next_day">ਅਗਲਾ ਦਿਨ</string>
+    <string name="core_plugins_ui_date_none">ਕੋਈ ਮਿਤੀ ਨਹੀਂ</string>
+    <string name="core_plugins_ui_date_previous_day">ਪਿਛਲਾ ਦਿਨ</string>
+    <string name="core_plugins_ui_date_set">ਮਿਤੀ ਸੈੱਟ ਕਰੋ</string>
+    <string name="core_plugins_ui_date_today">ਅੱਜ</string>
     <string name="core_plugins_ui_insert_action">ਦਾਖਲ ਕਰੋ</string>
     <string name="core_plugins_ui_repair_no_type">ਇੱਕ ਵਿਜੇਟ ਨੇ ਇਹ ਨਹੀਂ ਦੱਸਿਆ ਕਿ ਇਹ ਕਿਸ ਕਿਸਮ ਦਾ ਹੈ।</string>
     <string name="core_plugins_ui_repair_not_a_widget">ਇੱਕ ਵਿਜੇਟ ਸੂਚੀ ਵਿੱਚ ਕੁਝ ਅਜਿਹਾ ਸੀ ਜੋ ਵਿਜੇਟ ਨਹੀਂ ਹੈ।</string>

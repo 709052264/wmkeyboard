@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">ಪರಿಕರಗಳನ್ನು ತೋರಿಸು</string>
     <string name="core_icons_slot_tab_label">ಟ್ಯಾಬ್ ಕೀ</string>
     <string name="core_icons_slot_toolbox_label">ಟೂಲ್‌ಬಾಕ್ಸ್</string>
+    <string name="core_icons_slot_toolbox_search_label">ಟೂಲ್‌ಬಾಕ್ಸ್ ಹುಡುಕಾಟ</string>
 </resources>

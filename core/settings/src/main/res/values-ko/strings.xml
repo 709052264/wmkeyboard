@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">오른쪽 하단</string>
     <string name="core_settings_board_corner_top_left_label">왼쪽 상단</string>
     <string name="core_settings_board_corner_top_right_label">오른쪽 상단</string>
+    <string name="core_settings_clip_shortcut_edit_label">편집</string>
+    <string name="core_settings_clip_shortcut_edited_label">편집 표시</string>
+    <string name="core_settings_clip_shortcut_none_label">없음</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR 코드</string>
+    <string name="core_settings_clip_shortcut_select_label">선택</string>
     <string name="core_settings_clip_swipe_pin_left_label">왼쪽으로 고정, 오른쪽으로 삭제</string>
     <string name="core_settings_clip_swipe_pin_off_label">양방향 삭제</string>
     <string name="core_settings_clip_swipe_pin_right_label">오른쪽 고정, 왼쪽 삭제</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">열정적인</string>
     <string name="core_settings_deepl_style_friendly_label">친근한</string>
     <string name="core_settings_deepl_style_simple_label">간단한</string>
+    <string name="core_settings_function_keys_always_label">항상</string>
+    <string name="core_settings_function_keys_pick_mode_label">선택 모드에서</string>
     <string name="core_settings_glide_commit_color_always_label">항상</string>
     <string name="core_settings_glide_commit_color_confident_label">확실할 때</string>
     <string name="core_settings_glide_commit_color_guess_label">초기 단어</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">스트립, 필 및 키</string>
     <string name="core_settings_glide_commit_scope_pill_label">스트립 및 필</string>
     <string name="core_settings_glide_commit_scope_strip_label">제거</string>
+    <string name="core_settings_glide_engine_built_in_label">내장</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO 스와이프 (영어, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google 제스처 라이브러리(가져옴)</string>
     <string name="core_settings_glide_lookahead_confident_label">확실할 때</string>
     <string name="core_settings_glide_lookahead_eager_label">적극적</string>
     <string name="core_settings_glide_lookahead_off_label">끄기</string>

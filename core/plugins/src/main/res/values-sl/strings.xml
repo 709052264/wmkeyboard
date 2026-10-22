@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skript ni uspel.</string>
     <string name="core_plugins_error_script_missing">Skript za ta vtičnik manjka.</string>
     <string name="core_plugins_error_turned_off">Ta vtičnik je izklopljen.</string>
+    <string name="core_plugins_permission_reminders_label">Prikaži opomnike ob časih, ki jih nastavite v njem</string>
     <string name="core_plugins_permission_storage_label">Shrani podatke v svojo napravo</string>
     <string name="core_plugins_reject_bad_encoding">»%1$s« vsebuje skript, ki ni veljavno besedilo UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Ta vtičnik ima neveljaven ID. ID mora biti dolg od 3 do 64 znakov. ID lahko vsebuje male črke, številke, pike, pomišljaje in podčrtaje.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">»%1$s« ne navaja, katera različica je to.</string>
     <string name="core_plugins_reject_script_too_large">»%1$s« ima skript, večji od %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Ta različica tipkovnice WM Keyboard ne pozna dovoljenja »%1$s«. Aplikacija vam ne more povedati, kaj sme »%2$s« početi.</string>
+    <string name="core_plugins_reminders_channel_body">Opomniki, ki jih je vtičnik zahteval za prikaz ob času, ki ste ga nastavili v vtičniku. Naslov vsakega opomnika je ime vtičnika.</string>
+    <string name="core_plugins_reminders_channel_title">Opomniki vtičnikov</string>
     <string name="core_plugins_stopped_cancelled">Aplikacija je ustavila ta vtičnik.</string>
     <string name="core_plugins_stopped_deadline">Ta vtičnik je deloval predolgo. Aplikacija ga je zaustavila.</string>
     <string name="core_plugins_stopped_instructions">Ta vtičnik je opravil preveč dela naenkrat. Aplikacija ga je ustavila.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Ta vtičnik se je znova prenehal odzivati. Aplikacija ga je izklopila.</string>
     <string name="core_plugins_stopped_recursion">Ta vtičnik se je prevečkrat samodejno zagnal. Aplikacija ga je ustavila.</string>
     <string name="core_plugins_stopped_unexpected">Ta vtičnik se je nepričakovano zaustavil.</string>
+    <string name="core_plugins_ui_date_clear">Počisti</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min prej</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d min kasneje</string>
+    <string name="core_plugins_ui_date_next_day">Naslednji dan</string>
+    <string name="core_plugins_ui_date_none">Brez datuma</string>
+    <string name="core_plugins_ui_date_previous_day">Prejšnji dan</string>
+    <string name="core_plugins_ui_date_set">Nastavi datum</string>
+    <string name="core_plugins_ui_date_today">Danes</string>
     <string name="core_plugins_ui_insert_action">Vstavi</string>
     <string name="core_plugins_ui_repair_no_type">Gradnik ni navedel, kakšne vrste je.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Seznam gradnikov je vseboval nekaj, kar ni gradnik.</string>

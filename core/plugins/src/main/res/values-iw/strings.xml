@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">הסקריפט נכשל.</string>
     <string name="core_plugins_error_script_missing">הסקריפט עבור תוסף זה חסר.</string>
     <string name="core_plugins_error_turned_off">התוסף הזה כבוי.</string>
+    <string name="core_plugins_permission_reminders_label">הצג תזכורות בזמנים שתגדיר בו</string>
     <string name="core_plugins_permission_storage_label">שמירת נתונים במכשיר שלך</string>
     <string name="core_plugins_reject_bad_encoding">ל-\"%1$s\" יש סקריפט שאינו טקסט UTF-8 חוקי.</string>
     <string name="core_plugins_reject_bad_id">לתוסף זה יש מזהה שאינו תקין. מזהה חייב להיות באורך של 3 עד 64 תווים. מזהה יכול להכיל אותיות קטנות, מספרים, נקודות, מקפים וקווים תחתונים.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” לא מציין איזו גרסה זו.</string>
     <string name="core_plugins_reject_script_too_large">ל-\"%1$s\" יש סקריפט גדול מ-%2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">גרסה זו של WM Keyboard אינה מכירה את ההרשאה \"%1$s\". האפליקציה אינה יכולה לומר לך מה \"%2$s\" מורשה לעשות.</string>
+    <string name="core_plugins_reminders_channel_body">תזכורות שתוסף ביקש מהאפליקציה להציג, בזמנים שהגדרת בתוסף. הכותרת של כל אחת היא שם התוסף.</string>
+    <string name="core_plugins_reminders_channel_title">תזכורות תוספים</string>
     <string name="core_plugins_stopped_cancelled">האפליקציה עצרה את התוסף הזה.</string>
     <string name="core_plugins_stopped_deadline">התוסף הזה לקח יותר מדי זמן. האפליקציה עצרה אותו.</string>
     <string name="core_plugins_stopped_instructions">תוסף זה ביצע יותר מדי עבודה בבת אחת. האפליקציה עצרה אותו.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">תוסף זה הפסיק להגיב שוב. האפליקציה כיבתה אותו.</string>
     <string name="core_plugins_stopped_recursion">תוסף זה קרא לעצמו פעמים רבות מדי. האפליקציה עצרה אותו.</string>
     <string name="core_plugins_stopped_unexpected">תוסף זה נעצר באופן בלתי צפוי.</string>
+    <string name="core_plugins_ui_date_clear">נקה</string>
+    <string name="core_plugins_ui_date_earlier">%1$d דקות קודם לכן</string>
+    <string name="core_plugins_ui_date_hour_earlier">1- שעות</string>
+    <string name="core_plugins_ui_date_hour_later">+שעה אחת</string>
+    <string name="core_plugins_ui_date_later">%1$d דקות מאוחר יותר</string>
+    <string name="core_plugins_ui_date_next_day">יום למחרת</string>
+    <string name="core_plugins_ui_date_none">ללא תאריך</string>
+    <string name="core_plugins_ui_date_previous_day">יום קודם</string>
+    <string name="core_plugins_ui_date_set">קבע תאריך</string>
+    <string name="core_plugins_ui_date_today">היום</string>
     <string name="core_plugins_ui_insert_action">הכנס</string>
     <string name="core_plugins_ui_repair_no_type">ווידג\'ט לא ציין איזה סוג הוא.</string>
     <string name="core_plugins_ui_repair_not_a_widget">רשימת ווידג\'טים הכילה משהו שאינו ווידג\'ט.</string>

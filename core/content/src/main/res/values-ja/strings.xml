@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">フォーマット</string>
     <string name="core_content_selection_macro_grammar">文法</string>
     <string name="core_content_selection_macro_lines_bullet">箇条書き</string>
+    <string name="core_content_selection_macro_lines_checkbox">チェックボックス</string>
     <string name="core_content_selection_macro_lines_dedupe">重複排除</string>
+    <string name="core_content_selection_macro_lines_down">下に移動</string>
     <string name="core_content_selection_macro_lines_number">数字</string>
     <string name="core_content_selection_macro_lines_sort">並べ替え</string>
+    <string name="core_content_selection_macro_lines_up">上に移動</string>
     <string name="core_content_selection_macro_map">マップ</string>
     <string name="core_content_selection_macro_open">開く</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">読み上げ</string>
+    <string name="core_content_selection_macro_repeat">繰り返し</string>
     <string name="core_content_selection_macro_replace">置換</string>
     <string name="core_content_selection_macro_save_note">メモとして保存</string>
     <string name="core_content_selection_macro_search">検索</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">翻訳</string>
     <string name="core_content_selection_macro_url_decode">デコード</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ファイルにはショートカットのない単語が %1$d つ含まれています。単語に追加するには、「個人辞書」からファイルを開いてください。</item>
         <item quantity="other">ファイルにはショートカットのない単語が %1$d つ含まれています。単語に追加するには、「個人辞書」からファイルを開いてください。</item>

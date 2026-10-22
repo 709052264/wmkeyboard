@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">स्वरूप</string>
     <string name="core_content_selection_macro_grammar">व्याकरण</string>
     <string name="core_content_selection_macro_lines_bullet">बुलेट्स</string>
+    <string name="core_content_selection_macro_lines_checkbox">चेक बॉक्सेस</string>
     <string name="core_content_selection_macro_lines_dedupe">युनिक</string>
+    <string name="core_content_selection_macro_lines_down">खाली हलवा</string>
     <string name="core_content_selection_macro_lines_number">क्रमांक</string>
     <string name="core_content_selection_macro_lines_sort">क्रमवारी लावा</string>
+    <string name="core_content_selection_macro_lines_up">वर हलवा</string>
     <string name="core_content_selection_macro_map">मॅप</string>
     <string name="core_content_selection_macro_open">उघडा</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">बोला</string>
+    <string name="core_content_selection_macro_repeat">पुनरावृत्ती करा</string>
     <string name="core_content_selection_macro_replace">बदला</string>
     <string name="core_content_selection_macro_save_note">नोट म्हणून सेव्ह करा</string>
     <string name="core_content_selection_macro_search">शोधा</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">भाषांतर करा</string>
     <string name="core_content_selection_macro_url_decode">डिकोड करा</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ युनिकोड (Unicode)</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">फाईलमध्ये शॉर्टकट नसलेला %1$d शब्द देखील आहे. तो तुमच्या शब्दांमध्ये जोडण्यासाठी, वैयक्तिक शब्दकोशातून फाईल उघडा.</item>
         <item quantity="other">फाईलमध्ये शॉर्टकट नसलेले %1$d शब्द देखील आहेत. ते तुमच्या शब्दांमध्ये जोडण्यासाठी, वैयक्तिक शब्दकोशातून फाईल उघडा.</item>

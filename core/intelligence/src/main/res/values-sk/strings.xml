@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Generátor nálepiek sa nepodarilo stiahnuť. Skontrolujte pripojenie a skúste to znova.</string>
+    <string name="core_intel_languagetool_error_account">Služba LanguageTool neprijala používateľské meno a kľúč API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Server LanguageTool dosiahol limit kontrol z tohto telefónu za minútu. Upravte text o chvíľu a skúste to znova (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool nemohol skontrolovať tento text. Server možno nemá tento jazyk (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Text je pre tento server LanguageTool príliš dlhý (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Stiahnutý súbor nie je ten očakávaný, preto bol odstránený. Skúste ho stiahnuť znova.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Tento model je chránený. Najprv pridajte svoj token Hugging Face.</string>
     <string name="core_intel_llm_download_error_http">Služba Hugging Face vrátila stav HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Prijmite licenciu modelu na jeho stránke Hugging Face. Potom to skúste znova.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Pripojenie sa počas sťahovania prerušilo. Stlačením tlačidla Obnoviť pokračujte.</string>
     <string name="core_intel_llm_engine_error_gpu">Model zlyhal na GPU. Pamäť GPU je oveľa menšia ako systémová pamäť. Ďalší pokus použije CPU. Ak chcete vždy používať CPU, v nastaveniach nastavte Výpočet na CPU. Môžete tiež vybrať menší model.</string>
     <string name="core_intel_llm_engine_error_load">Model sa nenačítal. Súbor je pravdepodobne poškodený. Odstráňte model v nastaveniach a stiahnite ho znova.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Tento model vyžaduje približne %1$s pamäte a k dispozícii je %2$s. Zatvorte iné aplikácie alebo vyberte menší model.</string>
     <string name="core_intel_llm_engine_error_memory">Modelu došla pamäť alebo zlyhal. Vyberte menší model.</string>
+    <string name="core_intel_llm_engine_error_npu">Model na NPU zlyhal. Ďalší pokus použije GPU alebo CPU. Dlhý text môže byť pre NPU zostavenie modelu príliš veľa.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Vo vašom telefóne je len zostava NPU tohto modelu a spustiť ju môže iba NPU. Nastavte výpočty (Compute) na NPU alebo si v nastaveniach stiahnite štandardnú zostavu modelu.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Verzia tohto modelu pre NPU sa vo vašom telefóne nespustila. Ak chcete model používať v grafickom alebo hlavnom procesore (GPU alebo CPU), stiahnite si v nastaveniach jeho štandardnú verziu.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">NPU časť klávesnice nie je pripravená. Ak sa sťahuje, skúste to o chvíľu znova. Ak chcete teraz použiť GPU alebo CPU, stiahnite si štandardnú verziu modelu v nastaveniach.</string>
+    <string name="core_intel_llm_engine_error_template">Šablónu chatu tohto modelu sa nepodarilo prečítať. Skúste iný súbor GGUF daného modelu.</string>
+    <string name="core_intel_llm_engine_error_too_long">Text je pre tento model príliš dlhý. Použite kratší text alebo zvýšte veľkosť kontextu v nastaveniach.</string>
+    <string name="core_intel_llm_engine_error_vision">Tento model nedokáže čítať obrázky. Gemma 4 to dokáže.</string>
+    <string name="core_intel_llm_llama_missing">Táto verzia nedokáže spustiť modely GGUF: chýba súčasť llama.cpp.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Malý model Gemma z predchádzajúcej generácie. Má dobrú kvalitu a kontext 4K tokenov.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Najmenší model Gemma od Googlu. Je rýchly na všetkých zariadeniach.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Najnovšia generácia Gemma. Poskytuje špičkovú kvalitu priamo vo vašom zariadení.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Najväčší model. Píše najlepšie, ale vyžaduje výkonné zariadenie.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Malý model Gemma z predchádzajúcej generácie. Pre tento súbor nie je potrebný token Hugging Face.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Malý Llama od Meta. Píše jasnou angličtinou a dobre nasleduje pokyny.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Dobre číta obrázky a snímky obrazovky, aj text v nich. Vyžaduje si výkonné zariadenie. Jeho licencia povoľuje iba výskumné použitie.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Novší stredne veľký model, ktorý pred odpoveďou premýšľa. Vyžaduje zariadenie strednej triedy.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Malý a rýchly. Je vhodný na rýchle prepisy na základnom zariadení.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Veľmi malý model, ktorý dokáže čítať obrázky. Opisuje obrázok, ale často nesprávne prečíta text na snímke obrazovky.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Všeobecný model, ktorý sa stále zmestí na základné zariadenie.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasne inteligentnejší ako modely pod 1B. Vyžaduje zariadenie strednej triedy.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedávny malý model. Kvalita je na svoju veľkosť vysoká.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Netestované</string>
     <string name="core_intel_ocr_download_error_http">Server GitHub neodoslal súbor. Kód chyby je HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Počas sťahovania bolo spojenie prerušené. Skúste to znova.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Stiahnutý súbor nie je očakávaný. Skúste to znova.</string>
     <string name="core_intel_ocr_download_error_no_space">V zariadení nie je dostatok úložného priestoru. Najprv musíte uvoľniť približne %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">Služba Google Play nedoručila čítačku textu. Skontrolujte pripojenie a funkčnosť obchodu Play a skúste to znova.</string>
     <string name="core_intel_ocr_pack_error_broken">Stiahnuté jazykové údaje sú poškodené, takže ich skener nemohol použiť. Stiahnite ich znova.</string>
+    <string name="core_intel_semantic_module_error">Časť vyhľadávacieho nástroja sa nestiahla. Skontrolujte pripojenie a skúste to znova.</string>
+    <string name="core_intel_semantic_no_source">Súbory modelu sú zverejnené iba na GitHub. Nastavte dátové úložisko späť na GitHub v časti Servery.</string>
+    <string name="core_intel_xlit_module_error">Časť, ktorá spúšťa model, sa nestiahla. Skontrolujte pripojenie a skúste to znova.</string>
 </resources>

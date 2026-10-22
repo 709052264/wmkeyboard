@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Gramatika</string>
     <string name="core_content_selection_macro_lines_bullet">Natuknice</string>
+    <string name="core_content_selection_macro_lines_checkbox">Potvrdni okviri</string>
     <string name="core_content_selection_macro_lines_dedupe">Jedinstveno</string>
+    <string name="core_content_selection_macro_lines_down">Pomakni dolje</string>
     <string name="core_content_selection_macro_lines_number">Broj</string>
     <string name="core_content_selection_macro_lines_sort">Sortiraj</string>
+    <string name="core_content_selection_macro_lines_up">Pomakni gore</string>
     <string name="core_content_selection_macro_map">Karta</string>
     <string name="core_content_selection_macro_open">Otvori</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Govori</string>
+    <string name="core_content_selection_macro_repeat">Ponovi</string>
     <string name="core_content_selection_macro_replace">Zamijeni</string>
     <string name="core_content_selection_macro_save_note">Spremi kao bilješku</string>
     <string name="core_content_selection_macro_search">Pretraži</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Prevedi</string>
     <string name="core_content_selection_macro_url_decode">Dekodiraj</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Datoteka također sadrži %1$d riječ bez prečaca. Da biste je dodali u svoje riječi, otvorite datoteku iz Osobni rječnik.</item>
         <item quantity="other">Datoteka također sadrži %1$d riječi bez prečaca. Da biste ih dodali u svoje riječi, otvorite datoteku iz Osobni rječnik.</item>

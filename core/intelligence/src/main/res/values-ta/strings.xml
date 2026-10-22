@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">ஸ்டிக்கர் ஜெனரேட்டரின் எஞ்சின் பதிவிறக்கம் செய்யப்படவில்லை. இணைப்பைச் சரிபார்த்து, மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool பயனர் பெயர் மற்றும் API கீயை ஏற்கவில்லை (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">இந்தத் தொலைபேசியிலிருந்து லாங்குவேஜ்டூல் (LanguageTool) சேவையகத்திற்கு ஒரு நிமிடத்தில் அனுமதிக்கப்பட்ட அளவை விட அதிக சரிபார்ப்புகள் மேற்கொள்ளப்பட்டுள்ளன. மீண்டும் சரிபார்க்க சிறிது நேரம் கழித்து உரையைத் திருத்தவும் (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool-ஆல் இந்த உரையைச் சரிபார்க்க முடியவில்லை. சேவையகத்தில் இந்த மொழி இல்லாமல் இருக்கலாம் (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">இந்த LanguageTool சேவையகத்திற்கு உரை மிக நீளமாக உள்ளது (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">பதிவிறக்கம் செய்யப்பட்ட கோப்பு எதிர்பார்க்கப்பட்ட ஒன்று அல்ல, எனவே அது நீக்கப்பட்டது. மீண்டும் பதிவிறக்கவும்.</string>
     <string name="core_intel_llm_download_error_gated_no_token">இந்த மாடல் பாதுகாக்கப்பட்டுள்ளது. முதலில் உங்கள் Hugging Face டோக்கனைச் சேர்க்கவும்.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face %1$s HTTP நிலையைத் திருப்பியளித்தது.</string>
     <string name="core_intel_llm_download_error_licence">அதன் Hugging Face பக்கத்தில் உள்ள மாதிரியின் உரிமத்தை ஏற்கவும். பிறகு மீண்டும் முயற்சிக்கவும்.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">பதிவிறக்கத்தின் போது இணைப்பு துண்டிக்கப்பட்டது. தொடர \'மீண்டும் தொடங்கு\' என்பதை அழுத்தவும்.</string>
     <string name="core_intel_llm_engine_error_gpu">GPU இல் மாதிரி தோல்வியடைந்தது. GPU நினைவகம் கணினி நினைவகத்தை விட மிகச் சிறியது. அடுத்த முயற்சியில் CPU பயன்படுத்தப்படும். எப்போதும் CPU ஐப் பயன்படுத்த, அமைப்புகளில் கம்ப்யூட்டை CPU ஆக அமைக்கவும். நீங்கள் சிறிய மாதிரியையும் தேர்ந்தெடுக்கலாம்.</string>
     <string name="core_intel_llm_engine_error_load">மாதிரி ஏற்றப்படவில்லை. கோப்பு சேதமடைந்திருக்கலாம். அமைப்புகளில் மாதிரியை நீக்கிவிட்டு மீண்டும் பதிவிறக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_low_memory">இந்த மாடலுக்கு சுமார் %1$s நினைவகம் தேவை, ஆனால் %2$s மட்டுமே காலியாக உள்ளது. பிற செயலிகளை மூடவும் அல்லது சிறிய மாடலைத் தேர்ந்தெடுக்கவும்.</string>
     <string name="core_intel_llm_engine_error_memory">மாதிரியின் நினைவகம் தீர்ந்துவிட்டது அல்லது அது தோல்வியடைந்தது. சிறிய மாதிரியைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_npu">மாதிரி NPU-வில் தோல்வியடைந்தது. அடுத்த முயற்சியில் GPU அல்லது CPU பயன்படுத்தப்படும். நீண்ட உரை ஒரு மாதிரியின் NPU உருவாக்கத்திற்கு அதிகமாக இருக்கலாம்.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">இந்த மாதிரியின் NPU உருவாக்கம் மட்டுமே உங்கள் தொலைபேசியில் உள்ளது, மேலும் NPU-ஆல் மட்டுமே இதை இயக்க முடியும். கணக்கீட்டை (Compute) NPU-க்கு அமைக்கவும் அல்லது அமைப்புகளில் மாதிரியின் நிலையான உருவாக்கத்தைப் பதிவிறக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">இந்த மாதிரியின் NPU உருவாக்கமானது உங்கள் தொலைபேசியில் தொடங்கவில்லை. GPU அல்லது CPU-வில் மாதிரியைப் பயன்படுத்த, அமைப்புகளில் அதன் நிலையான உருவாக்கத்தைப் பதிவிறக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">விசைப்பலகையின் NPU பகுதி தயாராக இல்லை. அது பதிவிறக்கம் செய்யப்படுகிறதென்றால், சிறிது நேரம் கழித்து மீண்டும் முயற்சிக்கவும். GPU அல்லது CPU-வைப் பயன்படுத்த, அமைப்புகளில் மாதிரியின் தரமான உருவாக்கத்தைப் பதிவிறக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_template">இந்த மாடலின் அரட்டை டெம்ப்ளேட்டைப் படிக்க முடியவில்லை. மாடலின் மற்றொரு GGUF கோப்பை முயற்சிக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_too_long">இந்த மாதிரிக்கு உரை மிக நீளமாக உள்ளது. குறுகிய உரையைப் பயன்படுத்தவும் அல்லது அமைப்புகளில் சூழல் அளவை (Context size) அதிகரிக்கவும்.</string>
+    <string name="core_intel_llm_engine_error_vision">இந்த மாடலால் படங்களை வாசிக்க முடியாது. ஜெம்மா 4 (Gemma 4) வாசிக்கும்.</string>
+    <string name="core_intel_llm_llama_missing">இந்த உருவாக்கத்தால் GGUF மாதிரிகளை இயக்க முடியாது: llama.cpp பகுதி விடுபட்டுள்ளது.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">முந்தைய தலைமுறையைச் சேர்ந்த ஒரு சிறிய ஜெம்மா. இது நல்ல தரம் மற்றும் 4K டோக்கன்களின் சூழலைக் கொண்டுள்ளது.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">கூகுளின் மிகச்சிறிய ஜெம்மா (Gemma). இது அனைத்து சாதனங்களிலும் வேகமாகச் செயல்படும்.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">புதிய ஜெம்மா தலைமுறை. இது உங்கள் சாதனத்தில் உயர்தரத்தை வழங்குகிறது.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">மிகப்பெரிய மாதிரி. இது சிறப்பாக எழுதும், ஆனால் இதற்கு சக்திவாய்ந்த சாதனம் தேவை.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">முந்தைய தலைமுறையைச் சேர்ந்த ஒரு சிறிய ஜெம்மா. இந்த கோப்பிற்கு ஹக்கிங் ஃபேஸ் டோக்கன் தேவையில்லை.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Meta-ன் சிறிய வகை Llama மாடல். இது தெளிவான ஆங்கிலத்தில் எழுதவும் கட்டளைகளை நன்கு பின்பற்றவும் கூடியது.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">படங்கள் மற்றும் ஸ்கிரீன்ஷாட்களை, அவற்றில் உள்ள உரையையும் நன்றாக வாசிக்கும். இதற்கு உயர்தர சாதனம் தேவை. இதன் உரிமம் ஆராய்ச்சி பயன்பாட்டிற்கு மட்டுமே அனுமதிக்கிறது.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">பதில் அளிக்கும் முன் சிந்திக்கும் ஒரு நவீன நடுத்தர அளவு மாதிரி. இதற்கு நடுத்தர வகைச் சாதனம் தேவை.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">சிறியது மற்றும் வேகமானது. அடிப்படை சாதனத்தில் விரைவான மாற்றங்களுக்கு இது சிறந்தது.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">படங்களைப் படிக்கக்கூடிய மிகச்சிறிய மாதிரி. இது ஒரு படத்தை விவரிக்கிறது, ஆனால் பெரும்பாலும் ஸ்கிரீன்ஷாட்டில் உள்ள உரையை தவறாகப் படிக்கிறது.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">அடிப்படை சாதனத்திலும் இயங்கக்கூடிய பொதுவான பயன்பாட்டு மாதிரி.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-க்கும் குறைவான மாடல்களை விட தெளிவாக புத்திசாலித்தனமானது. இதற்கு நடுத்தர ரக சாதனம் தேவை.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">சமீபத்திய சிறிய மாடல். அதன் அளவிற்கு தரம் அதிகமாக உள்ளது.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">சோதிக்கப்படாதது</string>
     <string name="core_intel_ocr_download_error_http">GitHub சேவையகம் கோப்பை அனுப்பவில்லை. பிழை குறியீடு HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">பதிவிறக்கத்தின்போது இணைப்பு துண்டிக்கப்பட்டது. மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="core_intel_ocr_download_error_mismatch">பதிவிறக்கம் செய்யப்பட்ட கோப்பு எதிர்பார்க்கப்பட்டதல்ல. மீண்டும் முயற்சிக்கவும்.</string>
     <string name="core_intel_ocr_download_error_no_space">உங்கள் சாதனத்தில் போதிய சேமிப்பிடம் இல்லை. நீங்கள் சுமார் %1$s MB-ஐ முதலில் காலி செய்ய வேண்டும்.</string>
+    <string name="core_intel_ocr_module_error">கூகுள் பிளே டெக்ஸ்ட் ரீடரை வழங்கவில்லை. உங்கள் இணைய இணைப்பைச் சரிபார்த்து, பிளே ஸ்டோர் வேலை செய்கிறதா என்று உறுதிசெய்துவிட்டு மீண்டும் முயற்சிக்கவும்.</string>
     <string name="core_intel_ocr_pack_error_broken">பதிவிறக்கம் செய்யப்பட்ட மொழித் தரவு சேதமடைந்துள்ளது, எனவே ஸ்கேனரால் அதைப் பயன்படுத்த முடியவில்லை. மீண்டும் பதிவிறக்கவும்.</string>
+    <string name="core_intel_semantic_module_error">தேடல் பொறி பகுதி பதிவிறக்கம் ஆகவில்லை. இணைப்பைச் சரிபார்த்து, மீண்டும் முயற்சிக்கவும்.</string>
+    <string name="core_intel_semantic_no_source">மாதிரி கோப்புகள் GitHub-இல் மட்டுமே வெளியிடப்படுகின்றன. சர்வர்களில் தரவு களஞ்சியத்தை மீண்டும் GitHub-க்கு அமைக்கவும்.</string>
+    <string name="core_intel_xlit_module_error">மாதிரியை இயக்கும் பகுதி பதிவிறக்கம் செய்யப்படவில்லை. இணைப்பைச் சரிபார்த்துவிட்டு, மீண்டும் முயற்சிக்கவும்.</string>
 </resources>

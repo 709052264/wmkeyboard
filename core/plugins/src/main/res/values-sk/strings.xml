@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skript zlyhal.</string>
     <string name="core_plugins_error_script_missing">Skript pre tento doplnok chýba.</string>
     <string name="core_plugins_error_turned_off">Tento doplnok je vypnutý.</string>
+    <string name="core_plugins_permission_reminders_label">Zobraziť pripomienky v čase, ktorý ste nastavili</string>
     <string name="core_plugins_permission_storage_label">Uložiť dáta vo vašom zariadení</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ obsahuje skript, ktorý nie je platným textom UTF-8.</string>
     <string name="core_plugins_reject_bad_id">Tento doplnok má neplatné ID. ID musí mať dĺžku 3 až 64 znakov. ID môže obsahovať malé písmená, číslice, bodky, pomlčky a podčiarkovníky.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">„%1$s“ neuvádza, o akú verziu ide.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ má skript väčší ako %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Táto verzia klávesnice WM Keyboard nepozná povolenie „%1$s“. Aplikácia vám nevie povedať, čo má „%2$s“ povolené robiť.</string>
+    <string name="core_plugins_reminders_channel_body">Pripomienky, ktoré doplnok požiadal aplikáciu zobraziť v čase, ktorý ste nastavili v doplnku. Názov každej pripomienky je názov doplnku.</string>
+    <string name="core_plugins_reminders_channel_title">Pripomienky doplnkov</string>
     <string name="core_plugins_stopped_cancelled">Aplikácia zastavila tento doplnok.</string>
     <string name="core_plugins_stopped_deadline">Tento doplnok trval príliš dlho. Aplikácia ho zastavila.</string>
     <string name="core_plugins_stopped_instructions">Tento doplnok vykonal naraz príliš veľa práce. Aplikácia ho zastavila.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Tento doplnok prestal znova reagovať. Aplikácia ho vypla.</string>
     <string name="core_plugins_stopped_recursion">Tento doplnok sa zavolal príliš veľakrát. Aplikácia ho zastavila.</string>
     <string name="core_plugins_stopped_unexpected">Tento doplnok neočakávane prestal fungovať.</string>
+    <string name="core_plugins_ui_date_clear">Vymazať</string>
+    <string name="core_plugins_ui_date_earlier">o %1$d min skôr</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">o %1$d min neskôr</string>
+    <string name="core_plugins_ui_date_next_day">Ďalší deň</string>
+    <string name="core_plugins_ui_date_none">Žiadny dátum</string>
+    <string name="core_plugins_ui_date_previous_day">Predchádzajúci deň</string>
+    <string name="core_plugins_ui_date_set">Nastaviť dátum</string>
+    <string name="core_plugins_ui_date_today">Dnes</string>
     <string name="core_plugins_ui_insert_action">Vložiť</string>
     <string name="core_plugins_ui_repair_no_type">Widget neuviedol, akého je typu.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Zoznam miniaplikácií obsahoval niečo, čo nie je miniaplikácia.</string>

@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">เอนจินสำหรับสร้างสติกเกอร์ไม่สามารถดาวน์โหลดได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool ไม่ยอมรับชื่อผู้ใช้และคีย์ API (HTTP %1$d)</string>
+    <string name="core_intel_languagetool_error_rate_limit">เซิร์ฟเวอร์ LanguageTool ได้รับการตรวจสอบจากโทรศัพท์เครื่องนี้ครบตามจำนวนที่อนุญาตในหนึ่งนาทีแล้ว โปรดแก้ไขข้อความอีกสักครู่เพื่อตรวจสอบใหม่ (HTTP %1$d)</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool ไม่สามารถตรวจสอบข้อความนี้ได้ เซิร์ฟเวอร์อาจไม่มีภาษานี้ (HTTP %1$d)</string>
+    <string name="core_intel_languagetool_error_too_long">ข้อความยาวเกินไปสำหรับเซิร์ฟเวอร์ LanguageTool นี้ (HTTP %1$d)</string>
+    <string name="core_intel_llm_download_error_checksum">ไฟล์ที่ดาวน์โหลดมาไม่ตรงกับที่คาดไว้ จึงถูกลบออก โปรดดาวน์โหลดใหม่อีกครั้ง</string>
     <string name="core_intel_llm_download_error_gated_no_token">โมเดลนี้ถูกจำกัดการเข้าถึง โปรดเพิ่มโทเค็น Hugging Face ของคุณก่อน</string>
     <string name="core_intel_llm_download_error_http">Hugging Face ส่งคืนสถานะ HTTP %1$s</string>
     <string name="core_intel_llm_download_error_licence">โปรดยอมรับใบอนุญาตของโมเดลในหน้า Hugging Face แล้วลองใหม่อีกครั้ง</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">การเชื่อมต่อหยุดชะงักระหว่างการดาวน์โหลด กดดำเนินการต่อเพื่อทำต่อ</string>
     <string name="core_intel_llm_engine_error_gpu">โมเดลทำงานบน GPU ล้มเหลว หน่วยความจำ GPU มีขนาดเล็กกว่าหน่วยความจำระบบมาก การลองครั้งถัดไปจะใช้ CPU หากต้องการใช้ CPU เสมอ ให้ตั้งค่า Compute เป็น CPU ในการตั้งค่า คุณยังสามารถเลือกโมเดลที่มีขนาดเล็กลงได้</string>
     <string name="core_intel_llm_engine_error_load">ไม่สามารถโหลดโมเดลได้ ไฟล์อาจเสียหาย โปรดลบโมเดลในการตั้งค่าแล้วดาวน์โหลดใหม่อีกครั้ง</string>
+    <string name="core_intel_llm_engine_error_low_memory">โมเดลนี้ต้องการหน่วยความจำประมาณ %1$s และมีพื้นที่ว่าง %2$s โปรดปิดแอปอื่นหรือเลือกโมเดลที่เล็กลง</string>
     <string name="core_intel_llm_engine_error_memory">โมเดลหน่วยความจำไม่เพียงพอหรือเกิดข้อผิดพลาด โปรดเลือกโมเดลที่เล็กลง</string>
+    <string name="core_intel_llm_engine_error_npu">โมเดลทำงานบน NPU ล้มเหลว การลองครั้งถัดไปจะใช้ GPU หรือ CPU แทน ข้อความยาวอาจเกินขีดความสามารถของโมเดลรุ่นที่สร้างมาสำหรับ NPU</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">มีเพียงรุ่น NPU ของโมเดลนี้ในโทรศัพท์ของคุณ และมีเพียง NPU เท่านั้นที่สามารถเรียกใช้งานได้ โปรดตั้งค่าการคำนวณเป็น NPU หรือดาวน์โหลดรุ่นมาตรฐานของโมเดลในการตั้งค่า</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">บิลด์ NPU ของโมเดลนี้ไม่เริ่มทำงานบนโทรศัพท์ของคุณ หากต้องการใช้โมเดลบน GPU หรือ CPU ให้ดาวน์โหลดบิลด์มาตรฐานในการตั้งค่า</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">ส่วน NPU ของคีย์บอร์ดยังไม่พร้อมใช้งาน หากกำลังดาวน์โหลด โปรดลองใหม่อีกครั้งในภายหลัง หากต้องการใช้ GPU หรือ CPU ในตอนนี้ ให้ดาวน์โหลดโมเดลรุ่นมาตรฐานในการตั้งค่า</string>
+    <string name="core_intel_llm_engine_error_template">ไม่สามารถอ่านเทมเพลตแชทของโมเดลนี้ได้ โปรดลองใช้ไฟล์ GGUF อื่นของโมเดลนี้</string>
+    <string name="core_intel_llm_engine_error_too_long">ข้อความยาวเกินไปสำหรับโมเดลนี้ โปรดใช้ข้อความที่สั้นลง หรือเพิ่มขนาดบริบทในการตั้งค่า</string>
+    <string name="core_intel_llm_engine_error_vision">โมเดลนี้ไม่สามารถอ่านรูปภาพได้ แต่ Gemma 4 ทำได้</string>
+    <string name="core_intel_llm_llama_missing">รุ่นนี้ไม่สามารถรันโมเดล GGUF ได้: ขาดส่วนประกอบของ llama.cpp</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Gemma ขนาดเล็กจากรุ่นก่อนหน้า มีคุณภาพดีและรองรับบริบทได้ 4K โทเค็น</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Gemma รุ่นที่เล็กที่สุดจาก Google ทำงานได้รวดเร็วบนทุกอุปกรณ์</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Gemma รุ่นใหม่ล่าสุด ให้คุณภาพระดับสูงสุดบนอุปกรณ์ของคุณ</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">โมเดลที่ใหญ่ที่สุด เขียนได้ดีที่สุด แต่ต้องใช้อุปกรณ์ที่มีประสิทธิภาพสูง</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Gemma ขนาดเล็กจากรุ่นก่อนหน้า ไม่จำเป็นต้องใช้โทเค็น Hugging Face สำหรับไฟล์นี้</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Llama ขนาดเล็กจาก Meta ที่สามารถเขียนภาษาอังกฤษได้ชัดเจนและทำตามคำแนะนำได้เป็นอย่างดี</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">อ่านรูปภาพและภาพหน้าจอได้ดี รวมถึงข้อความในนั้นด้วย จำเป็นต้องใช้อุปกรณ์ระดับไฮเอนด์ ใบอนุญาตอนุญาตให้ใช้เพื่อการวิจัยเท่านั้น</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">โมเดลขนาดกลางรุ่นใหม่ที่คิดก่อนตอบ จำเป็นต้องใช้อุปกรณ์ระดับกลาง</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ขนาดเล็กและรวดเร็ว เหมาะสำหรับการเขียนใหม่แบบรวดเร็วบนอุปกรณ์พื้นฐาน</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">โมเดลขนาดเล็กมากที่สามารถอ่านรูปภาพได้ สามารถบรรยายรูปภาพได้ แต่อาจอ่านข้อความในภาพแคปหน้าจอผิดพลาดบ่อยครั้ง</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">โมเดลอเนกประสงค์ที่ยังคงใช้งานได้บนอุปกรณ์พื้นฐาน</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">ฉลาดกว่าโมเดลที่ต่ำกว่า 1B อย่างเห็นได้ชัด จำเป็นต้องใช้อุปกรณ์ระดับกลาง</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">โมเดลขนาดเล็กตัวใหม่ล่าสุด ให้คุณภาพสูงเมื่อเทียบกับขนาด</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">ยังไม่ได้ทดสอบ</string>
     <string name="core_intel_ocr_download_error_http">เซิร์ฟเวอร์ GitHub ไม่ได้ส่งไฟล์ รหัสข้อผิดพลาดคือ HTTP %1$s</string>
     <string name="core_intel_ocr_download_error_interrupted">การเชื่อมต่อถูกขัดจังหวะระหว่างการดาวน์โหลด โปรดลองใหม่อีกครั้ง</string>
+    <string name="core_intel_ocr_download_error_mismatch">ไฟล์ที่ดาวน์โหลดไม่ตรงกับที่คาดไว้ โปรดลองอีกครั้ง</string>
     <string name="core_intel_ocr_download_error_no_space">พื้นที่เก็บข้อมูลบนอุปกรณ์ของคุณไม่เพียงพอ คุณต้องเพิ่มพื้นที่ว่างประมาณ %1$s MB ก่อน</string>
+    <string name="core_intel_ocr_module_error">Google Play ไม่สามารถส่งตัวอ่านข้อความได้ โปรดตรวจสอบการเชื่อมต่อและการทำงานของ Play Store แล้วลองใหม่อีกครั้ง</string>
     <string name="core_intel_ocr_pack_error_broken">ข้อมูลภาษาที่ดาวน์โหลดมาเสียหาย ทำให้เครื่องสแกนใช้งานไม่ได้ โปรดดาวน์โหลดใหม่อีกครั้ง</string>
+    <string name="core_intel_semantic_module_error">ส่วนเครื่องมือค้นหาดาวน์โหลดไม่สำเร็จ โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง</string>
+    <string name="core_intel_semantic_no_source">ไฟล์โมเดลเผยแพร่บน GitHub เท่านั้น โปรดตั้งค่าที่เก็บข้อมูลกลับไปที่ GitHub ในส่วนเซิร์ฟเวอร์</string>
+    <string name="core_intel_xlit_module_error">ส่วนที่ใช้รันโมเดลไม่ได้ดาวน์โหลด โปรดตรวจสอบการเชื่อมต่อแล้วลองใหม่อีกครั้ง</string>
 </resources>

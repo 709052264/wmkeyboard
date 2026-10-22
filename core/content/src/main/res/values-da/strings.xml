@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
     <string name="core_content_selection_macro_lines_bullet">Punkttegn</string>
+    <string name="core_content_selection_macro_lines_checkbox">Afkrydsningsfelter</string>
     <string name="core_content_selection_macro_lines_dedupe">Unik</string>
+    <string name="core_content_selection_macro_lines_down">Flyt ned</string>
     <string name="core_content_selection_macro_lines_number">Nummer</string>
     <string name="core_content_selection_macro_lines_sort">Sortér</string>
+    <string name="core_content_selection_macro_lines_up">Flyt op</string>
     <string name="core_content_selection_macro_map">Kort</string>
     <string name="core_content_selection_macro_open">Åbn</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tal</string>
+    <string name="core_content_selection_macro_repeat">Gentag</string>
     <string name="core_content_selection_macro_replace">Erstat</string>
     <string name="core_content_selection_macro_save_note">Gem som note</string>
     <string name="core_content_selection_macro_search">Søg</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Oversæt</string>
     <string name="core_content_selection_macro_url_decode">Afkod</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Filen indeholder også %1$d ord uden genvej. For at tilføje det til dine ord, skal du åbne filen fra Personlig ordbog.</item>
         <item quantity="other">Filen indeholder også %1$d ord uden genvej. For at tilføje dem til dine ord, skal du åbne filen fra Personlig ordbog.</item>

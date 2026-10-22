@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatik</string>
     <string name="core_content_selection_macro_lines_bullet">Punktlistor</string>
+    <string name="core_content_selection_macro_lines_checkbox">Kryssrutor</string>
     <string name="core_content_selection_macro_lines_dedupe">Unika</string>
+    <string name="core_content_selection_macro_lines_down">Flytta nedåt</string>
     <string name="core_content_selection_macro_lines_number">Nummer</string>
     <string name="core_content_selection_macro_lines_sort">Sortera</string>
+    <string name="core_content_selection_macro_lines_up">Flytta upp</string>
     <string name="core_content_selection_macro_map">Karta</string>
     <string name="core_content_selection_macro_open">Öppna</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Läs upp</string>
+    <string name="core_content_selection_macro_repeat">Upprepa</string>
     <string name="core_content_selection_macro_replace">Ersätt</string>
     <string name="core_content_selection_macro_save_note">Spara som anteckning</string>
     <string name="core_content_selection_macro_search">Sök</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Översätt</string>
     <string name="core_content_selection_macro_url_decode">Avkoda</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Filen har också %1$d ord utan genväg. För att lägga till det i dina ord, öppna filen från Personlig ordbok.</item>
         <item quantity="other">Filen har också %1$d ord utan genväg. För att lägga till dem i dina ord, öppna filen från Personlig ordbok.</item>

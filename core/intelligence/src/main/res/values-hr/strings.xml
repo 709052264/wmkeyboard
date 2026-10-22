@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Motor generatora naljepnica nije preuzet. Provjerite vezu, a zatim pokušajte ponovno.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool nije prihvatio korisničko ime i API ključ (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Poslužitelj LanguageTool primio je previše provjera s ovog telefona u jednoj minuti. Uredite tekst za trenutak kako biste ponovno provjerili (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool nije mogao provjeriti ovaj tekst. Poslužitelj možda ne podržava ovaj jezik (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Tekst je predugačak za ovaj LanguageTool poslužitelj (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Preuzeta datoteka nije ona očekivana, pa je izbrisana. Preuzmite je ponovno.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Ovaj model je zaštićen. Prvo dodajte svoj Hugging Face token.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face vratio je HTTP status %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Prihvatite licencu modela na njegovoj Hugging Face stranici. Zatim pokušajte ponovno.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Veza je prekinuta tijekom preuzimanja. Pritisnite Nastavi za nastavak.</string>
     <string name="core_intel_llm_engine_error_gpu">Model nije uspio raditi na GPU-u. GPU memorija je puno manja od sistemske memorije. Sljedeći pokušaj koristi CPU. Da biste uvijek koristili CPU, postavite Compute na CPU u postavkama. Također možete odabrati manji model.</string>
     <string name="core_intel_llm_engine_error_load">Model se nije učitao. Datoteka je vjerojatno oštećena. Izbrišite model u postavkama i ponovno ga preuzmite.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Ovaj model treba oko %1$s memorije, a %2$s je slobodno. Zatvorite druge aplikacije ili odaberite manji model.</string>
     <string name="core_intel_llm_engine_error_memory">Modelu je ponestalo memorije ili nije uspio. Odaberite manji model.</string>
+    <string name="core_intel_llm_engine_error_npu">Model nije uspio na NPU-u. Sljedeći pokušaj koristit će GPU ili CPU. Dugačak tekst može biti prevelik za NPU izvedbu modela.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Na vašem telefonu nalazi se samo NPU verzija ovog modela, a pokrenuti ga može samo NPU. Postavite Compute na NPU ili preuzmite standardnu verziju modela u postavkama.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">NPU verzija ovog modela nije se pokrenula na vašem telefonu. Da biste koristili model na GPU-u ili CPU-u, preuzmite njegovu standardnu verziju u postavkama.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">NPU dio tipkovnice nije spreman. Ako se preuzima, pokušajte ponovno za trenutak. Da biste sada koristili GPU ili CPU, preuzmite standardnu verziju modela u postavkama.</string>
+    <string name="core_intel_llm_engine_error_template">Predložak za razgovor ovog modela nije mogao biti pročitan. Isprobajte drugu GGUF datoteku modela.</string>
+    <string name="core_intel_llm_engine_error_too_long">Tekst je predugačak za ovaj model. Koristite kraći tekst ili povećajte veličinu konteksta u postavkama.</string>
+    <string name="core_intel_llm_engine_error_vision">Ovaj model ne može čitati slike. Gemma 4 može.</string>
+    <string name="core_intel_llm_llama_missing">Ova verzija ne može pokrenuti GGUF modele: nedostaje dio llama.cpp.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Mala Gemma iz prethodne generacije. Ima dobru kvalitetu i kontekst od 4K tokena.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Najmanji Gemma iz Googlea. Brz je na svim uređajima.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Najnovija generacija Gemma. Pruža vrhunsku kvalitetu na vašem uređaju.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Najveći model. Najbolje piše, ali treba snažan uređaj.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Mala Gemma iz prethodne generacije. Za ovu datoteku nije potreban Hugging Face token.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Metin mali Llama. Piše jasan engleski i dobro slijedi upute.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Dobro čita slike i snimke zaslona, kao i tekst u njima. Zahtijeva uređaj visokih performansi. Licenca omogućuje isključivo istraživačku upotrebu.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Nedavni model srednje veličine koji razmišlja prije nego što odgovori. Potreban mu je uređaj srednjeg ranga.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mali i brz. Dobar je za brza prepisivanja na osnovnom uređaju.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Vrlo mali model koji može čitati slike. Opisuje sliku, ali često pogrešno čita tekst na snimci zaslona.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Model opće namjene koji još uvijek stane na osnovni uređaj.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Jasno pametniji od modela ispod 1B. Potreban je uređaj srednjeg ranga.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Nedavni mali model. Kvaliteta je visoka za njegovu veličinu.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Netestirano</string>
     <string name="core_intel_ocr_download_error_http">GitHub poslužitelj nije poslao datoteku. Kod pogreške je HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Veza je prekinuta tijekom preuzimanja. Pokušajte ponovno.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Preuzeta datoteka nije ona očekivana. Pokušajte ponovno.</string>
     <string name="core_intel_ocr_download_error_no_space">Nema dovoljno prostora na vašem uređaju. Prvo morate osloboditi oko %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">Google Play nije isporučio čitač teksta. Provjerite vezu i radi li Trgovina Play, a zatim pokušajte ponovo.</string>
     <string name="core_intel_ocr_pack_error_broken">Preuzeti jezični podaci su oštećeni, stoga ih skener nije mogao koristiti. Preuzmite ih ponovno.</string>
+    <string name="core_intel_semantic_module_error">Dio tražilice nije preuzet. Provjerite vezu, a zatim pokušajte ponovno.</string>
+    <string name="core_intel_semantic_no_source">Datoteke modela objavljene su samo na GitHubu. Vratite repozitorij podataka na GitHub u postavkama poslužitelja.</string>
+    <string name="core_intel_xlit_module_error">Dio koji pokreće model nije preuzet. Provjerite vezu, a zatim pokušajte ponovno.</string>
 </resources>

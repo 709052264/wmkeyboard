@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">اسٹیکر جنریٹر کا انجن ڈاؤن لوڈ نہیں ہوا۔ کنکشن چیک کریں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool نے صارف نام اور API کلید (HTTP %1$d) کو قبول نہیں کیا۔</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool سرور نے اس فون سے اتنی چیکس کر لی ہیں جتنی وہ ایک منٹ میں قبول کر سکتا ہے۔ دوبارہ چیک کرنے کے لیے کچھ دیر میں متن میں ترمیم کریں (HTTP %1$d)۔</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool اس متن کو چیک نہیں کر سکا۔ سرور کے پاس شاید یہ زبان نہ ہو (HTTP %1$d)۔</string>
+    <string name="core_intel_languagetool_error_too_long">متن اس LanguageTool سرور کے لیے بہت طویل ہے (HTTP %1$d)۔</string>
+    <string name="core_intel_llm_download_error_checksum">ڈاؤن لوڈ کردہ فائل مطلوبہ فائل نہیں ہے، لہذا اسے حذف کر دیا گیا ہے۔ اسے دوبارہ ڈاؤن لوڈ کریں۔</string>
     <string name="core_intel_llm_download_error_gated_no_token">یہ ماڈل گیٹڈ ہے۔ پہلے اپنا Hugging Face ٹوکن شامل کریں۔</string>
     <string name="core_intel_llm_download_error_http">Hugging Face نے HTTP اسٹیٹس %1$s واپس کیا۔</string>
     <string name="core_intel_llm_download_error_licence">Hugging Face صفحہ پر ماڈل کا لائسنس قبول کریں۔ پھر دوبارہ کوشش کریں۔</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">ڈاؤن لوڈ کے دوران کنکشن منقطع ہو گیا۔ جاری رکھنے کے لیے \'Resume\' دبائیں۔</string>
     <string name="core_intel_llm_engine_error_gpu">ماڈل GPU پر ناکام ہو گیا۔ GPU میموری سسٹم میموری سے بہت چھوٹی ہے۔ اگلی کوشش CPU استعمال کرتی ہے۔ ہمیشہ CPU استعمال کرنے کے لیے، ترتیبات میں Compute کو CPU پر سیٹ کریں۔ آپ چھوٹا ماڈل بھی منتخب کر سکتے ہیں۔</string>
     <string name="core_intel_llm_engine_error_load">ماڈل لوڈ نہیں ہوا۔ فائل غالباً خراب ہے۔ ترتیبات میں ماڈل کو حذف کریں اور اسے دوبارہ ڈاؤن لوڈ کریں۔</string>
+    <string name="core_intel_llm_engine_error_low_memory">اس ماڈل کو تقریباً %1$s میموری کی ضرورت ہے، اور %2$s خالی ہے۔ دوسری ایپس بند کریں، یا چھوٹا ماڈل منتخب کریں۔</string>
     <string name="core_intel_llm_engine_error_memory">ماڈل کی میموری ختم ہو گئی، یا یہ ناکام ہو گیا۔ ایک چھوٹا ماڈل منتخب کریں۔</string>
+    <string name="core_intel_llm_engine_error_npu">ماڈل NPU پر ناکام ہو گیا۔ اگلی کوشش میں GPU یا CPU استعمال ہوگا۔ لمبا متن ماڈل کی NPU بلڈ کے لیے بہت زیادہ ہو سکتا ہے۔</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">اس ماڈل کا صرف NPU بلڈ آپ کے فون پر ہے، اور صرف NPU ہی اسے چلا سکتا ہے۔ کمپیوٹ کو NPU پر سیٹ کریں، یا ترتیبات میں ماڈل کا معیاری بلڈ ڈاؤن لوڈ کریں۔</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">اس ماڈل کا NPU بلڈ آپ کے فون پر شروع نہیں ہوا۔ ماڈل کو GPU یا CPU پر استعمال کرنے کے لیے، ترتیبات میں اس کا معیاری بلڈ ڈاؤن لوڈ کریں۔</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">کی بورڈ کا NPU حصہ تیار نہیں ہے۔ اگر یہ ڈاؤن لوڈ ہو رہا ہے، تو تھوڑی دیر میں دوبارہ کوشش کریں۔ ابھی GPU یا CPU استعمال کرنے کے لیے، ترتیبات میں ماڈل کا معیاری ورژن ڈاؤن لوڈ کریں۔</string>
+    <string name="core_intel_llm_engine_error_template">اس ماڈل کا چیٹ ٹیمپلیٹ پڑھا نہیں جا سکا۔ ماڈل کی کوئی دوسری GGUF فائل آزمائیں۔</string>
+    <string name="core_intel_llm_engine_error_too_long">متن اس ماڈل کے لیے بہت طویل ہے۔ چھوٹا متن استعمال کریں، یا ترتیبات میں سیاق و سباق کا سائز بڑھائیں۔</string>
+    <string name="core_intel_llm_engine_error_vision">یہ ماڈل تصاویر نہیں پڑھ سکتا۔ جیما 4 پڑھ سکتا ہے۔</string>
+    <string name="core_intel_llm_llama_missing">یہ بلڈ GGUF ماڈلز نہیں چلا سکتا: llama.cpp کا حصہ غائب ہے۔</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">پچھلی نسل کا ایک چھوٹا جیما (Gemma)۔ اس کا معیار اچھا ہے اور اس میں 4K ٹوکنز کا سیاق و سباق ہے۔</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">گوگل کا سب سے چھوٹا جیما۔ یہ تمام ڈیوائسز پر تیز ہے۔</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">نئی جیما جنریشن۔ یہ آپ کے آلے پر بہترین معیار فراہم کرتی ہے۔</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">سب سے بڑا ماڈل۔ یہ بہترین لکھتا ہے، لیکن اسے ایک طاقتور ڈیوائس کی ضرورت ہے۔</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">پچھلی نسل کا ایک چھوٹا جیما۔ اس فائل کے لیے کسی ہگنگ فیس ٹوکن کی ضرورت نہیں ہے۔</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">میٹا کا چھوٹا Llama۔ یہ واضح انگریزی لکھتا ہے اور ہدایات پر اچھی طرح عمل کرتا ہے۔</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">تصویروں اور اسکرین شاٹس کو اچھی طرح پڑھتا ہے، ان میں موجود متن کو بھی۔ اسے ہائی اینڈ ڈیوائس کی ضرورت ہے۔ اس کا لائسنس صرف تحقیقی استعمال کی اجازت دیتا ہے۔</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ایک جدید درمیانے درجے کا ماڈل جو جواب دینے سے پہلے سوچتا ہے۔ اسے درمیانے درجے کے ڈیوائس کی ضرورت ہے۔</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">چھوٹا اور تیز۔ یہ بنیادی ڈیوائس پر فوری دوبارہ لکھنے کے لیے اچھا ہے۔</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ایک بہت چھوٹا ماڈل جو تصاویر پڑھ سکتا ہے۔ یہ تصویر کی وضاحت کرتا ہے، لیکن اکثر اسکرین شاٹ میں موجود متن کو غلط پڑھتا ہے۔</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">ایک عمومی مقصد کا ماڈل جو بنیادی ڈیوائس پر بھی فٹ ہو جاتا ہے۔</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B سے کم ماڈلز سے واضح طور پر زیادہ ہوشیار۔ اسے درمیانی رینج کے ڈیوائس کی ضرورت ہے۔</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">ایک حالیہ چھوٹا ماڈل۔ اس کے سائز کے لحاظ سے معیار اعلیٰ ہے۔</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">غیر آزمودہ</string>
     <string name="core_intel_ocr_download_error_http">GitHub سرور نے فائل نہیں بھیجی۔ ایرر کوڈ HTTP %1$s ہے۔</string>
     <string name="core_intel_ocr_download_error_interrupted">ڈاؤن لوڈ کے دوران کنکشن رک گیا۔ دوبارہ کوشش کریں۔</string>
+    <string name="core_intel_ocr_download_error_mismatch">ڈاؤن لوڈ کردہ فائل متوقع فائل نہیں ہے۔ دوبارہ کوشش کریں۔</string>
     <string name="core_intel_ocr_download_error_no_space">آپ کی ڈیوائس پر کافی اسٹوریج نہیں ہے۔ آپ کو پہلے تقریباً %1$s MB خالی کرنا ہوگا۔</string>
+    <string name="core_intel_ocr_module_error">Google Play نے ٹیکسٹ ریڈر فراہم نہیں کیا۔ کنکشن چیک کریں اور یقینی بنائیں کہ پلے اسٹور کام کر رہا ہے، پھر دوبارہ کوشش کریں۔</string>
     <string name="core_intel_ocr_pack_error_broken">ڈاؤن لوڈ کردہ زبان کا ڈیٹا خراب ہے، اس لیے اسکینر اسے استعمال نہیں کر سکا۔ اسے دوبارہ ڈاؤن لوڈ کریں۔</string>
+    <string name="core_intel_semantic_module_error">سرچ انجن کا حصہ ڈاؤن لوڈ نہیں ہو سکا۔ کنکشن چیک کریں، پھر دوبارہ کوشش کریں۔</string>
+    <string name="core_intel_semantic_no_source">ماڈل فائلیں صرف GitHub پر شائع کی جاتی ہیں۔ ڈیٹا ریپوزٹری کو سرورز میں واپس GitHub پر سیٹ کریں۔</string>
+    <string name="core_intel_xlit_module_error">ماڈل کو چلانے والا حصہ ڈاؤن لوڈ نہیں ہوا۔ کنکشن چیک کریں اور پھر دوبارہ کوشش کریں۔</string>
 </resources>

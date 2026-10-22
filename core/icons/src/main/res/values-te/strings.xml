@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">సాధనాలను చూపించు</string>
     <string name="core_icons_slot_tab_label">ట్యాబ్ కీ</string>
     <string name="core_icons_slot_toolbox_label">టూల్‌బాక్స్</string>
+    <string name="core_icons_slot_toolbox_search_label">టూల్‌బాక్స్ శోధన</string>
 </resources>

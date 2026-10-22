@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skriptet feilet.</string>
     <string name="core_plugins_error_script_missing">Skriptet for det programtillegget mangler.</string>
     <string name="core_plugins_error_turned_off">Det programtillegget er slått av.</string>
+    <string name="core_plugins_permission_reminders_label">Vis påminnelser på tidspunkter du angir i den</string>
     <string name="core_plugins_permission_storage_label">Lagre data på enheten din</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” har et skript som ikke er gyldig UTF-8-tekst.</string>
     <string name="core_plugins_reject_bad_id">Dette tillegget har en ugyldig ID. En ID må være mellom 3 og 64 tegn lang. En ID kan inneholde små bokstaver, tall, punktum, bindestreker og understreker.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">«%1$s» oppgir ikke hvilken versjon det er.</string>
     <string name="core_plugins_reject_script_too_large">«%1$s» har et skript som er større enn %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Denne versjonen av WM Keyboard kjenner ikke til tillatelsen «%1$s». Appen kan ikke fortelle deg hva «%2$s» har lov til å gjøre.</string>
+    <string name="core_plugins_reminders_channel_body">Påminnelser som en utvidelse ba appen om å vise, på tidspunkter du angir i utvidelsen. Tittelen på hver av dem er navnet på utvidelsen.</string>
+    <string name="core_plugins_reminders_channel_title">Påminnelser for programtillegg</string>
     <string name="core_plugins_stopped_cancelled">Appen stoppet denne modulen.</string>
     <string name="core_plugins_stopped_deadline">Dette programtillegget tok for lang tid. Appen stoppet det.</string>
     <string name="core_plugins_stopped_instructions">Dette tillegget gjorde for mye arbeid på én gang. Appen stoppet det.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Dette tillegget sluttet å svare igjen. Appen slo det av.</string>
     <string name="core_plugins_stopped_recursion">Dette tillegget kalte seg selv for mange ganger. Appen stoppet det.</string>
     <string name="core_plugins_stopped_unexpected">Dette programtillegget stoppet uventet.</string>
+    <string name="core_plugins_ui_date_clear">Tøm</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min tidligere</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 t</string>
+    <string name="core_plugins_ui_date_hour_later">+1 t</string>
+    <string name="core_plugins_ui_date_later">%1$d min senere</string>
+    <string name="core_plugins_ui_date_next_day">Neste dag</string>
+    <string name="core_plugins_ui_date_none">Ingen dato</string>
+    <string name="core_plugins_ui_date_previous_day">Forrige dag</string>
+    <string name="core_plugins_ui_date_set">Angi dato</string>
+    <string name="core_plugins_ui_date_today">I dag</string>
     <string name="core_plugins_ui_insert_action">Sett inn</string>
     <string name="core_plugins_ui_repair_no_type">En widget oppga ikke hvilken type den er.</string>
     <string name="core_plugins_ui_repair_not_a_widget">En widget-liste inneholdt noe som ikke er en widget.</string>

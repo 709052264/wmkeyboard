@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">प्रारूप</string>
     <string name="core_content_selection_macro_grammar">व्याकरण</string>
     <string name="core_content_selection_macro_lines_bullet">बुलेट</string>
+    <string name="core_content_selection_macro_lines_checkbox">चेक बॉक्स</string>
     <string name="core_content_selection_macro_lines_dedupe">अद्वितीय</string>
+    <string name="core_content_selection_macro_lines_down">नीचे जाएं</string>
     <string name="core_content_selection_macro_lines_number">संख्या</string>
     <string name="core_content_selection_macro_lines_sort">क्रमबद्ध करें</string>
+    <string name="core_content_selection_macro_lines_up">ऊपर ले जाएं</string>
     <string name="core_content_selection_macro_map">मैप</string>
     <string name="core_content_selection_macro_open">खोलें</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">बोलें</string>
+    <string name="core_content_selection_macro_repeat">दोहराएं</string>
     <string name="core_content_selection_macro_replace">बदलें</string>
     <string name="core_content_selection_macro_save_note">नोट के रूप में सहेजें</string>
     <string name="core_content_selection_macro_search">खोजें</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">अनुवाद करें</string>
     <string name="core_content_selection_macro_url_decode">डिकोड करें</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ यूनिकोड</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">फ़ाइल में बिना शॉर्टकट वाला %1$d शब्द भी है। इसे अपने शब्दों में जोड़ने के लिए, पर्सनल डिक्शनरी से फ़ाइल खोलें।</item>
         <item quantity="other">फ़ाइल में बिना शॉर्टकट वाले %1$d शब्द भी हैं। इन्हें अपने शब्दों में जोड़ने के लिए, पर्सनल डिक्शनरी से फ़ाइल खोलें।</item>

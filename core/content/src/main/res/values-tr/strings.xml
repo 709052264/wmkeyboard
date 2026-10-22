@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Biçim</string>
     <string name="core_content_selection_macro_grammar">Dilbilgisi</string>
     <string name="core_content_selection_macro_lines_bullet">Madde işaretleri</string>
+    <string name="core_content_selection_macro_lines_checkbox">Onay kutuları</string>
     <string name="core_content_selection_macro_lines_dedupe">Benzersiz</string>
+    <string name="core_content_selection_macro_lines_down">Aşağı taşı</string>
     <string name="core_content_selection_macro_lines_number">Sayı</string>
     <string name="core_content_selection_macro_lines_sort">Sırala</string>
+    <string name="core_content_selection_macro_lines_up">Yukarı taşı</string>
     <string name="core_content_selection_macro_map">Harita</string>
     <string name="core_content_selection_macro_open">Aç</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Seslendir</string>
+    <string name="core_content_selection_macro_repeat">Tekrarla</string>
     <string name="core_content_selection_macro_replace">Değiştir</string>
     <string name="core_content_selection_macro_save_note">Not olarak kaydet</string>
     <string name="core_content_selection_macro_search">Ara</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Çevir</string>
     <string name="core_content_selection_macro_url_decode">Kod Çöz</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Dosyada ayrıca kısayolu olmayan %1$d kelime var. Bunu kelimelerinize eklemek için dosyayı Kişisel sözlük\'ten açın.</item>
         <item quantity="other">Dosyada ayrıca kısayolu olmayan %1$d kelime var. Bunları kelimelerinize eklemek için dosyayı Kişisel sözlük\'ten açın.</item>

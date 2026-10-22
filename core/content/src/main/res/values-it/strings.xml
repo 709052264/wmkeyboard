@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formato</string>
     <string name="core_content_selection_macro_grammar">Grammatica</string>
     <string name="core_content_selection_macro_lines_bullet">Elenchi puntati</string>
+    <string name="core_content_selection_macro_lines_checkbox">Caselle di controllo</string>
     <string name="core_content_selection_macro_lines_dedupe">Univoco</string>
+    <string name="core_content_selection_macro_lines_down">Sposta in basso</string>
     <string name="core_content_selection_macro_lines_number">Numero</string>
     <string name="core_content_selection_macro_lines_sort">Ordina</string>
+    <string name="core_content_selection_macro_lines_up">Sposta su</string>
     <string name="core_content_selection_macro_map">Mappa</string>
     <string name="core_content_selection_macro_open">Apri</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Leggi</string>
+    <string name="core_content_selection_macro_repeat">Ripeti</string>
     <string name="core_content_selection_macro_replace">Sostituisci</string>
     <string name="core_content_selection_macro_save_note">Salva come nota</string>
     <string name="core_content_selection_macro_search">Cerca</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Traduci</string>
     <string name="core_content_selection_macro_url_decode">Decodifica</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Il file ha anche %1$d parola senza scorciatoia. Per aggiungerla alle tue parole, apri il file dal Dizionario personale.</item>
         <item quantity="other">Il file ha anche %1$d parole senza scorciatoia. Per aggiungerle alle tue parole, apri il file dal Dizionario personale.</item>

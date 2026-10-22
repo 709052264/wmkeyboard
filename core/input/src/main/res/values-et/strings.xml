@@ -56,4 +56,22 @@
         <item quantity="one">Rakendus luges seda kui Rime kooditabelit, milles on %1$d kirje. Sisestage kood ja valige seejärel märk soovituste ribalt.</item>
         <item quantity="other">Rakendus luges seda kui Rime kooditabelit, milles on %1$d kirjet. Sisestage kood ja valige seejärel märk soovituste ribalt.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozci enda süsteemne sõnastik koos ühenduskulude, segmenteerija ja soovituste filtriga. Mozci mootor teisendab sellega; sisseehitatud mootor seda ei kasuta.</string>
+    <string name="core_input_mozc_pack_title">Mozc sõnastik</string>
+    <string name="core_input_rime_pack_base_subtitle">Kirjavahemärgid, sümbolid, sõnasagedustabel ning lihtsustatud ja traditsioonilise hiina keele teisendused, mida iga RIME skeem kasutab. Laaditakse alla esimese skeemiga.</string>
+    <string name="core_input_rime_pack_base_title">RIME põhielemendid</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">RIME Zhuyini skeem standardsel Dacheni klaviatuuripaigutusel koos Terra Pinyini sõnastikuga.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME viienda põlvkonna Cangjie skeem, tähemärgid ja fraasid.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Mahukas tänapäevane lihtsustatud hiina keele sõnavara Pinyini jaoks, sealhulgas Double Pinyin ja 9-klahvilised variandid. Selle kompileerimine võtab aega minuti või kauem.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Kantoni keele rime-cantonese skeem koos sõna- ja fraasiloenditega.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME-i enda pinyini skeem, koos torkeskeemiga, millega see otsib üles märke.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Jaapani käekirja mudel</string>
+    <string name="core_input_zinnia_pack_subtitle">Tegaki projekti mudel zinnia jaoks – võrguühenduseta käekirjatuvastaja, mis loeb hiina ja jaapani keelt seal, kus ML Kit seda ei tee.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Lihtsustatud hiina keele käekirjamudel</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Traditsioonilise hiina keele käekirjamudel</string>
 </resources>

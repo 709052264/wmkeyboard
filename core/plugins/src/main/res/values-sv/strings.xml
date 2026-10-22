@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skriptet misslyckades.</string>
     <string name="core_plugins_error_script_missing">Skriptet för det insticksprogrammet saknas.</string>
     <string name="core_plugins_error_turned_off">Det tillägget är avstängt.</string>
+    <string name="core_plugins_permission_reminders_label">Visa påminnelser vid tider som du ställer in i den</string>
     <string name="core_plugins_permission_storage_label">Spara data på din enhet</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” har ett skript som inte är giltig UTF-8-text.</string>
     <string name="core_plugins_reject_bad_id">Detta plugin har ett id som inte är giltigt. Ett id är 3 till 64 tecken långt. Ett id kan innehålla gemener, siffror, punkter, bindestreck och understreck.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">”%1$s” anger inte vilken version det är.</string>
     <string name="core_plugins_reject_script_too_large">”%1$s” har ett skript som är större än %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Den här versionen av WM Keyboard känner inte till behörigheten ”%1$s”. Appen kan inte berätta för dig vad ”%2$s” får göra.</string>
+    <string name="core_plugins_reminders_channel_body">Påminnelser som ett plugin bad appen att visa, vid tider som du ställer in i pluginet. Titeln på varje påminnelse är namnet på pluginet.</string>
+    <string name="core_plugins_reminders_channel_title">Insticksprogrampåminnelser</string>
     <string name="core_plugins_stopped_cancelled">Appen stoppade detta insticksprogram.</string>
     <string name="core_plugins_stopped_deadline">Detta plugin tog för lång tid. Appen stoppade det.</string>
     <string name="core_plugins_stopped_instructions">Detta plugin utförde för mycket arbete samtidigt. Appen stoppade det.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Detta tillägg slutade svara igen. Appen stängde av det.</string>
     <string name="core_plugins_stopped_recursion">Detta tillägg anropade sig självt för många gånger. Appen stoppade det.</string>
     <string name="core_plugins_stopped_unexpected">Detta plugin stoppades oväntat.</string>
+    <string name="core_plugins_ui_date_clear">Rensa</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min tidigare</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d min senare</string>
+    <string name="core_plugins_ui_date_next_day">Nästa dag</string>
+    <string name="core_plugins_ui_date_none">Inget datum</string>
+    <string name="core_plugins_ui_date_previous_day">Föregående dag</string>
+    <string name="core_plugins_ui_date_set">Ange datum</string>
+    <string name="core_plugins_ui_date_today">Idag</string>
     <string name="core_plugins_ui_insert_action">Infoga</string>
     <string name="core_plugins_ui_repair_no_type">En widget angav inte vilken typ den är.</string>
     <string name="core_plugins_ui_repair_not_a_widget">En widgetlista innehöll något som inte är en widget.</string>

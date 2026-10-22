@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Mostra eines</string>
     <string name="core_icons_slot_tab_label">Tecla de tabulació</string>
     <string name="core_icons_slot_toolbox_label">Caixa d\'eines</string>
+    <string name="core_icons_slot_toolbox_search_label">Cerca a la caixa d\'eines</string>
 </resources>

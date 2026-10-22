@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Strežnik ni poslal datoteke. Koda napake je HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Ta seznam besed je prazen ali neberljiv.</string>
+    <string name="core_pred_wordlist_memory_error">Ta naprava nima dovolj pomnilnika za seznam besed te velikosti. Izberite manjšo velikost.</string>
     <string name="core_pred_wordlist_no_space_error">V vaši napravi ni dovolj prostora. Izbrišite nekaj datotek in poskusite znova.</string>
     <string name="core_pred_wordlist_save_error">Aplikacija ne more shraniti seznama besed. Poskusite znova.</string>
     <string name="core_pred_wordlist_size_all_label">Vse</string>

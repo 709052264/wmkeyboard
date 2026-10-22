@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Format</string>
     <string name="core_content_selection_macro_grammar">Grammatikk</string>
     <string name="core_content_selection_macro_lines_bullet">Punktmerking</string>
+    <string name="core_content_selection_macro_lines_checkbox">Avmerkingsbokser</string>
     <string name="core_content_selection_macro_lines_dedupe">Unik</string>
+    <string name="core_content_selection_macro_lines_down">Flytt ned</string>
     <string name="core_content_selection_macro_lines_number">Nummer</string>
     <string name="core_content_selection_macro_lines_sort">Sorter</string>
+    <string name="core_content_selection_macro_lines_up">Flytt opp</string>
     <string name="core_content_selection_macro_map">Kart</string>
     <string name="core_content_selection_macro_open">Åpne</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Snakk</string>
+    <string name="core_content_selection_macro_repeat">Gjenta</string>
     <string name="core_content_selection_macro_replace">Erstatt</string>
     <string name="core_content_selection_macro_save_note">Lagre som notat</string>
     <string name="core_content_selection_macro_search">Søk</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Oversett</string>
     <string name="core_content_selection_macro_url_decode">Dekod</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Filen har også %1$d ord uten snarvei. For å legge det til i ordlisten din, åpne filen fra Personlig ordbok.</item>
         <item quantity="other">Filen har også %1$d ord uten snarvei. For å legge dem til i ordlisten din, åpne filen fra Personlig ordbok.</item>

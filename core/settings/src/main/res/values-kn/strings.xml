@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">ಕೆಳಬಲ</string>
     <string name="core_settings_board_corner_top_left_label">ಮೇಲಿನ ಎಡಭಾಗ</string>
     <string name="core_settings_board_corner_top_right_label">ಮೇಲಿನ ಬಲ</string>
+    <string name="core_settings_clip_shortcut_edit_label">ಸಂಪಾದಿಸಿ</string>
+    <string name="core_settings_clip_shortcut_edited_label">ಸಂಪಾದಿತ ಗುರುತು</string>
+    <string name="core_settings_clip_shortcut_none_label">ಏನೂ ಇಲ್ಲ</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR ಕೋಡ್</string>
+    <string name="core_settings_clip_shortcut_select_label">ಆಯ್ಕೆಮಾಡಿ</string>
     <string name="core_settings_clip_swipe_pin_left_label">ಎಡಕ್ಕೆ ಪಿನ್ ಮಾಡಿ, ಬಲಕ್ಕೆ ಅಳಿಸಿ</string>
     <string name="core_settings_clip_swipe_pin_off_label">ಎರಡೂ ಕಡೆ ಅಳಿಸಿ</string>
     <string name="core_settings_clip_swipe_pin_right_label">ಬಲಕ್ಕೆ ಪಿನ್ ಮಾಡುತ್ತದೆ, ಎಡಕ್ಕೆ ಅಳಿಸುತ್ತದೆ</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">ಉತ್ಸಾಹಭರಿತ</string>
     <string name="core_settings_deepl_style_friendly_label">ಸ್ನೇಹಪರ</string>
     <string name="core_settings_deepl_style_simple_label">ಸರಳ</string>
+    <string name="core_settings_function_keys_always_label">ಯಾವಾಗಲೂ</string>
+    <string name="core_settings_function_keys_pick_mode_label">ಪಿಕ್ ಮೋಡ್‌ನಲ್ಲಿ</string>
     <string name="core_settings_glide_commit_color_always_label">ಯಾವಾಗಲೂ</string>
     <string name="core_settings_glide_commit_color_confident_label">ಖಚಿತವಿದ್ದಾಗ</string>
     <string name="core_settings_glide_commit_color_guess_label">ಯಾವುದೇ ಆರಂಭಿಕ ಪದ</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">ಸ್ಟ್ರಿಪ್, ಪಿಲ್ ಮತ್ತು ಕೀಲಿಗಳು</string>
     <string name="core_settings_glide_commit_scope_pill_label">ಸ್ಟ್ರಿಪ್ ಮತ್ತು ಪಿಲ್</string>
     <string name="core_settings_glide_commit_scope_strip_label">ಸ್ಟ್ರಿಪ್</string>
+    <string name="core_settings_glide_engine_built_in_label">ಅಂತರ್ನಿರ್ಮಿತ</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO ಸ್ವೈಪ್ (ಇಂಗ್ಲಿಷ್, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google ನ ಗೆಸ್ಚರ್ ಲೈಬ್ರರಿ (ಆಮದು ಮಾಡಲಾಗಿದೆ)</string>
     <string name="core_settings_glide_lookahead_confident_label">ಖಚಿತವಿದ್ದಾಗ</string>
     <string name="core_settings_glide_lookahead_eager_label">ಆತುರದ (Eager)</string>
     <string name="core_settings_glide_lookahead_off_label">ಆಫ್</string>

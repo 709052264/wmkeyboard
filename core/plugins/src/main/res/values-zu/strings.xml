@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Umbhalo we-script wehlulekile.</string>
     <string name="core_plugins_error_script_missing">Umbhalo (script) waleyo plugin awukho.</string>
     <string name="core_plugins_error_turned_off">Leyo phulagini icishiwe.</string>
+    <string name="core_plugins_permission_reminders_label">Bonisa izikhumbuzo ngezikhathi ozibekile kuso</string>
     <string name="core_plugins_permission_storage_label">Londoloza idatha kudivayisi yakho</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” ineskripthi esingeyona umbhalo we-UTF-8 ovumelekile.</string>
     <string name="core_plugins_reject_bad_id">Le plugin in-id engeyona evumelekile. I-id inobude obungama-3 kuye kwangama-64. I-id ingaqukatha izinhlamvu ezincane, izinombolo, amachashazi, imigqa, kanye nokudwetshelwa.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” ayisho ukuthi iyiphi inguqulo eyiyo.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” inombhalo omkhulu kune-%2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Le nguqulo ye-WM Keyboard ayikwazi imvume ethi \"%1$s\". Uhlelo lokusebenza alukwazi ukukutshela ukuthi yini evunyelwe ukwenziwa ethi \"%2$s\".</string>
+    <string name="core_plugins_reminders_channel_body">Izikhumbuzo ezicelwe yiplagini ukuba uhlelo lokusebenza luzibonise, ngezikhathi ozibeke kuplagini. Isihloko salesi nesinye yigama leplagini.</string>
+    <string name="core_plugins_reminders_channel_title">Izikhumbuzo ze-plugin</string>
     <string name="core_plugins_stopped_cancelled">Uhlelo lokusebenza lumise le-plugin.</string>
     <string name="core_plugins_stopped_deadline">Le plugin ithathe isikhathi eside kakhulu. Uhlelo lokusebenza luyimisiwe.</string>
     <string name="core_plugins_stopped_instructions">Le plugin yenze umsebenzi omningi kakhulu ngesikhathi esisodwa. Uhlelo lokusebenza luyimisiwe.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Le plugin iyekile ukuphendula futhi. Uhlelo lokusebenza luyicimile.</string>
     <string name="core_plugins_stopped_recursion">Le plugin izibize kaningi kakhulu. Uhlelo lokusebenza luyimise.</string>
     <string name="core_plugins_stopped_unexpected">Le plugin imile ngokungalindelekile.</string>
+    <string name="core_plugins_ui_date_clear">Sula</string>
+    <string name="core_plugins_ui_date_earlier">%1$d imizuzu ngaphambili</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d imiz kamuva</string>
+    <string name="core_plugins_ui_date_next_day">Usuku olulandelayo</string>
+    <string name="core_plugins_ui_date_none">Ayikho idethi</string>
+    <string name="core_plugins_ui_date_previous_day">Usuku olwedlule</string>
+    <string name="core_plugins_ui_date_set">Setha usuku</string>
+    <string name="core_plugins_ui_date_today">Namuhla</string>
     <string name="core_plugins_ui_insert_action">Faka</string>
     <string name="core_plugins_ui_repair_no_type">Iwijethi ayishongo ukuthi hlobo luni.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Uhlu lwama-widget luqukethe okuthile okungewona i-widget.</string>

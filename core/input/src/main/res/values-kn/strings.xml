@@ -56,4 +56,22 @@
         <item quantity="one">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದಿನೊಂದಿಗೆ Rime ಕೋಡ್ ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಅನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಸ್ಟ್ರಿಪ್‌ನಿಂದ ಅಕ್ಷರವನ್ನು ಆರಿಸಿ.</item>
         <item quantity="other">ಅಪ್ಲಿಕೇಶನ್ ಇದನ್ನು %1$d ನಮೂದುಗಳೊಂದಿಗೆ Rime ಕೋಡ್ ಟೇಬಲ್ ಎಂದು ಓದಿದೆ. ಕೋಡ್ ಅನ್ನು ಟೈಪ್ ಮಾಡಿ, ನಂತರ ಸಲಹೆ ಸ್ಟ್ರಿಪ್‌ನಿಂದ ಅಕ್ಷರವನ್ನು ಆರಿಸಿ.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc ನ ಸ್ವಂತ ಸಿಸ್ಟಮ್ ನಿಘಂಟು, ಅದರ ಸಂಪರ್ಕ ವೆಚ್ಚಗಳು, ಸೆಗ್ಮೆಂಟರ್ ಮತ್ತು ಸಲಹೆ ಫಿಲ್ಟರ್‌ನೊಂದಿಗೆ. Mozc ಎಂಜಿನ್ ಇದರೊಂದಿಗೆ ಪರಿವರ್ತಿಸುತ್ತದೆ; ಅಂತರ್ನಿರ್ಮಿತ ಎಂಜಿನ್ ಇದನ್ನು ಬಳಸುವುದಿಲ್ಲ.</string>
+    <string name="core_input_mozc_pack_title">Mozc ನಿಘಂಟು</string>
+    <string name="core_input_rime_pack_base_subtitle">ವಿರಾಮಚಿಹ್ನೆಗಳು, ಚಿಹ್ನೆಗಳು, ಪದ-ಆವರ್ತನ ಕೋಷ್ಟಕ ಮತ್ತು ಪ್ರತಿಯೊಂದು RIME ಸ್ಕೀಮಾ ಬಳಸುವ ಸರಳೀಕೃತ ಮತ್ತು ಸಾಂಪ್ರದಾಯಿಕ ಪರಿವರ್ತನೆ. ಮೊದಲ ಸ್ಕೀಮಾದೊಂದಿಗೆ ಡೌನ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ.</string>
+    <string name="core_input_rime_pack_base_title">RIME ಅವಶ್ಯಕತೆಗಳು</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">ಟೆರಾ ಪಿನ್ಯಿನ್‌ನ ನಿಘಂಟಿನೊಂದಿಗೆ, ಪ್ರಮಾಣಿತ ಡಾಚೆನ್ ಕೀ ಮ್ಯಾಪ್‌ನಲ್ಲಿ RIME ನ ಝುಯಿನ್ ಸ್ಕೀಮಾ.</string>
+    <string name="core_input_rime_pack_bopomofo_title">ಬೋಪೊಮೊಫೊ (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME ನ ಐದನೇ ತಲೆಮಾರಿನ ಕಾಂಗ್‌ಜಿ (Cangjie) ಸ್ಕೀಮಾ, ಅಕ್ಷರಗಳು ಮತ್ತು ಪದಗುಚ್ಛಗಳು.</string>
+    <string name="core_input_rime_pack_cangjie5_title">ಕ್ಯಾಂಗ್‌ಜೀ 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">ಪಿನ್ಯಿನ್‌ಗಾಗಿ ದೊಡ್ಡ ಆಧುನಿಕ ಸರಳೀಕೃತ ಚೈನೀಸ್ ಶಬ್ದಕೋಶ, ಡಬಲ್ ಪಿನ್ಯಿನ್ ಮತ್ತು 9-ಕೀ ರೂಪಾಂತರಗಳೊಂದಿಗೆ. ಇದನ್ನು ಕಂಪೈಲ್ ಮಾಡಲು ಒಂದು ನಿಮಿಷ ಅಥವಾ ಅದಕ್ಕಿಂತ ಹೆಚ್ಚು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">ಕ್ಯಾಂಟೋನೀಸ್ ಭಾಷೆಗಾಗಿ rime-cantonese ಸ್ಕೀಮಾ, ಅದರ ಪದ ಮತ್ತು ಪದಗುಚ್ಛಗಳ ಪಟ್ಟಿಯೊಂದಿಗೆ.</string>
+    <string name="core_input_rime_pack_jyutping_title">ಜ್ಯುಟ್‌ಪಿಂಗ್ (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME ನ ಸ್ವಂತ ಪಿನ್ಯಿನ್ ಸ್ಕೀಮಾ, ಸ್ಟ್ರೋಕ್ ಸ್ಕೀಮಾದೊಂದಿಗೆ ಇದು ಅಕ್ಷರಗಳನ್ನು ಹುಡುಕುತ್ತದೆ.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">ಜಪಾನೀಸ್ ಕೈಬರಹದ ಮಾಡೆಲ್</string>
+    <string name="core_input_zinnia_pack_subtitle">Zinnia ಗಾಗಿ Tegaki ಯೋಜನೆಯ ಮಾದರಿ, ಇದು ML ಕಿಟ್ ಓದದ ಚೈನೀಸ್ ಮತ್ತು ಜಪಾನೀಸ್ ಭಾಷೆಗಳನ್ನು ಓದುವ ಆಫ್‌ಲೈನ್ ಕೈಬರಹ ಗುರುತಿಸುವ ಸಾಧನವಾಗಿದೆ.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">ಸರಳೀಕೃತ ಚೈನೀಸ್ ಕೈಬರಹದ ಮಾದರಿ</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">ಸಾಂಪ್ರದಾಯಿಕ ಚೈನೀಸ್ ಕೈಬರಹದ ಮಾದರಿ</string>
 </resources>

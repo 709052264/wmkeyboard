@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">સર્વરે ફાઇલ મોકલી નથી. ભૂલ કોડ HTTP %1$s છે.</string>
     <string name="core_pred_wordlist_malformed_error">તે શબ્દ સૂચિ ખાલી છે અથવા વાંચી શકાય તેવી નથી.</string>
+    <string name="core_pred_wordlist_memory_error">આ ઉપકરણમાં આ કદની શબ્દ સૂચિ માટે પૂરતી મેમરી નથી. નાનું કદ પસંદ કરો.</string>
     <string name="core_pred_wordlist_no_space_error">તમારા ઉપકરણ પર પૂરતી સ્ટોરેજ નથી. કેટલીક ફાઇલો ડિલીટ કરો, પછી ફરી પ્રયાસ કરો.</string>
     <string name="core_pred_wordlist_save_error">એપ શબ્દ સૂચિ સાચવી શકતી નથી. ફરી પ્રયાસ કરો.</string>
     <string name="core_pred_wordlist_size_all_label">બધું જ</string>

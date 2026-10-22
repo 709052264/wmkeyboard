@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Serverul nu a trimis fișierul. Codul de eroare este HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Acea listă de cuvinte este goală sau ilizibilă.</string>
+    <string name="core_pred_wordlist_memory_error">Acest dispozitiv nu are suficientă memorie pentru o listă de cuvinte de această dimensiune. Alege o dimensiune mai mică.</string>
     <string name="core_pred_wordlist_no_space_error">Nu există suficient spațiu de stocare pe dispozitiv. Ștergeți câteva fișiere, apoi încercați din nou.</string>
     <string name="core_pred_wordlist_save_error">Aplicația nu poate salva lista de cuvinte. Încearcă din nou.</string>
     <string name="core_pred_wordlist_size_all_label">Totul</string>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Poslužitelj nije poslao datoteku. Kôd pogreške je HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Taj popis riječi je prazan ili nečitljiv.</string>
+    <string name="core_pred_wordlist_memory_error">Ovaj uređaj nema dovoljno memorije za popis riječi ove veličine. Odaberite manju veličinu.</string>
     <string name="core_pred_wordlist_no_space_error">Na vašem uređaju nema dovoljno prostora za pohranu. Izbrišite neke datoteke, a zatim pokušajte ponovno.</string>
     <string name="core_pred_wordlist_save_error">Aplikacija ne može spremiti popis riječi. Pokušajte ponovno.</string>
     <string name="core_pred_wordlist_size_all_label">Sve</string>

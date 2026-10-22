@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Скрипт не выполнен.</string>
     <string name="core_plugins_error_script_missing">Скрипт для этого плагина отсутствует.</string>
     <string name="core_plugins_error_turned_off">Этот плагин выключен.</string>
+    <string name="core_plugins_permission_reminders_label">Показывать напоминания в установленное вами время</string>
     <string name="core_plugins_permission_storage_label">Сохранять данные на вашем устройстве</string>
     <string name="core_plugins_reject_bad_encoding">«%1$s» содержит скрипт, который не является допустимым текстом UTF-8.</string>
     <string name="core_plugins_reject_bad_id">У этого плагина неверный идентификатор. Идентификатор должен содержать от 3 до 64 символов. Он может состоять из строчных букв, цифр, точек, дефисов и символов подчеркивания.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">«%1$s» не указывает, какая это версия.</string>
     <string name="core_plugins_reject_script_too_large">Скрипт «%1$s» превышает %2$d КБ.</string>
     <string name="core_plugins_reject_unknown_permission">Эта версия WM Keyboard не знает разрешения «%1$s». Приложение не может сказать вам, что разрешено делать «%2$s».</string>
+    <string name="core_plugins_reminders_channel_body">Напоминания, которые плагин запрашивает у приложения, в установленное вами время. Заголовок каждого напоминания — это название плагина.</string>
+    <string name="core_plugins_reminders_channel_title">Напоминания плагинов</string>
     <string name="core_plugins_stopped_cancelled">Приложение остановило этот плагин.</string>
     <string name="core_plugins_stopped_deadline">Этот плагин выполнялся слишком долго. Приложение остановило его.</string>
     <string name="core_plugins_stopped_instructions">Этот плагин выполнял слишком много работы одновременно. Приложение остановило его.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Этот плагин снова перестал отвечать. Приложение отключило его.</string>
     <string name="core_plugins_stopped_recursion">Этот плагин вызывал сам себя слишком много раз. Приложение остановило его.</string>
     <string name="core_plugins_stopped_unexpected">Этот плагин неожиданно остановился.</string>
+    <string name="core_plugins_ui_date_clear">Очистить</string>
+    <string name="core_plugins_ui_date_earlier">%1$d мин назад</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 ч</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ч</string>
+    <string name="core_plugins_ui_date_later">Через %1$d мин.</string>
+    <string name="core_plugins_ui_date_next_day">Следующий день</string>
+    <string name="core_plugins_ui_date_none">Без даты</string>
+    <string name="core_plugins_ui_date_previous_day">Предыдущий день</string>
+    <string name="core_plugins_ui_date_set">Установить дату</string>
+    <string name="core_plugins_ui_date_today">Сегодня</string>
     <string name="core_plugins_ui_insert_action">Вставить</string>
     <string name="core_plugins_ui_repair_no_type">Виджет не указал свой тип.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Список виджетов содержал элемент, который не является виджетом.</string>

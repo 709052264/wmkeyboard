@@ -56,4 +56,22 @@
         <item quantity="one">యాప్ దీన్ని %1$d ఎంట్రీతో Rime కోడ్ టేబుల్‌గా చదివింది. కోడ్‌ను టైప్ చేసి, ఆపై సూచనల స్ట్రిప్ నుండి అక్షరాన్ని ఎంచుకోండి.</item>
         <item quantity="other">యాప్ దీన్ని %1$d ఎంట్రీలతో Rime కోడ్ టేబుల్‌గా చదివింది. కోడ్‌ను టైప్ చేసి, ఆపై సూచనల స్ట్రిప్ నుండి అక్షరాన్ని ఎంచుకోండి.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc యొక్క స్వంత సిస్టమ్ డిక్షనరీ, దాని కనెక్షన్ ఖర్చులు, సెగ్మెంటర్ మరియు సలహా ఫిల్టర్‌తో. Mozc ఇంజిన్ దీనితో మారుస్తుంది; ఇన్‌బిల్ట్ ఇంజిన్ దీనిని ఉపయోగించదు.</string>
+    <string name="core_input_mozc_pack_title">Mozc డిక్షనరీ</string>
+    <string name="core_input_rime_pack_base_subtitle">ప్రతి RIME స్కీమా ఉపయోగించే విరామ చిహ్నాలు, చిహ్నాలు, పద-ఫ్రీక్వెన్సీ పట్టిక మరియు సరళీకృత మరియు సాంప్రదాయ మార్పిడి. మొదటి స్కీమాతో డౌన్‌లోడ్ చేయబడింది.</string>
+    <string name="core_input_rime_pack_base_title">RIME ఎసెన్షియల్స్</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">టెర్రా పిన్యిన్ డిక్షనరీతో, ప్రామాణిక డాచెన్ కీ మ్యాప్‌పై RIME యొక్క జుయిన్ స్కీమా.</string>
+    <string name="core_input_rime_pack_bopomofo_title">బోపోమోఫో (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME యొక్క ఐదవ తరం కాంజీ (Cangjie) స్కీమా, అక్షరాలు మరియు పదబంధాలు.</string>
+    <string name="core_input_rime_pack_cangjie5_title">కాంగ్‌జీ 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">పిన్యిన్ కోసం పెద్ద ఆధునిక సరళీకృత చైనీస్ పదజాలం, డబుల్ పిన్యిన్ మరియు 9-కీ వేరియంట్‌లతో. దీన్ని కంపైల్ చేయడానికి ఒక నిమిషం లేదా అంతకంటే ఎక్కువ సమయం పడుతుంది.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">కాంటోనీస్ కోసం rime-cantonese స్కీమా, దాని పదం మరియు పదబంధాల జాబితాలతో.</string>
+    <string name="core_input_rime_pack_jyutping_title">జ్యుట్‌పింగ్ (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME యొక్క స్వంత పిన్యిన్ స్కీమా, ఇది స్ట్రోక్ స్కీమాతో అక్షరాలను వెతుకుతుంది.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">లూనా పిన్యిన్ (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">జపనీస్ చేతివ్రాత మోడల్</string>
+    <string name="core_input_zinnia_pack_subtitle">జినియా (zinnia) కోసం తెగాకి ప్రాజెక్ట్ మోడల్, ఇది ML కిట్ చదవలేని చైనీస్ మరియు జపనీస్ భాషలను చదవగల ఆఫ్‌లైన్ హ్యాండ్‌రైటింగ్ రికగ్నైజర్.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">సరళీకృత చైనీస్ హ్యాండ్‌రైటింగ్ మోడల్</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">సాంప్రదాయ చైనీస్ చేతిరాత మోడల్</string>
 </resources>

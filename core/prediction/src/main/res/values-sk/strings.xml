@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Server neodoslal súbor. Kód chyby je HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Tento zoznam slov je prázdny alebo nečitateľný.</string>
+    <string name="core_pred_wordlist_memory_error">Toto zariadenie nemá dostatok pamäte pre zoznam slov tejto veľkosti. Zvoľte menšiu veľkosť.</string>
     <string name="core_pred_wordlist_no_space_error">V zariadení nie je dostatok úložného priestoru. Odstráňte niektoré súbory a skúste to znova.</string>
     <string name="core_pred_wordlist_save_error">Aplikácia nemôže uložiť zoznam slov. Skúste to znova.</string>
     <string name="core_pred_wordlist_size_all_label">Všetko</string>

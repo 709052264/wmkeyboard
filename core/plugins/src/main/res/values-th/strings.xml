@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">สคริปต์ล้มเหลว</string>
     <string name="core_plugins_error_script_missing">สคริปต์สำหรับปลั๊กอินนั้นหายไป</string>
     <string name="core_plugins_error_turned_off">ปลั๊กอินนั้นถูกปิดใช้งานอยู่</string>
+    <string name="core_plugins_permission_reminders_label">แสดงการแจ้งเตือนตามเวลาที่คุณตั้งไว้</string>
     <string name="core_plugins_permission_storage_label">บันทึกข้อมูลบนอุปกรณ์ของคุณ</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” มีสคริปต์ที่ไม่ใช่ข้อความ UTF-8 ที่ถูกต้อง</string>
     <string name="core_plugins_reject_bad_id">ปลั๊กอินนี้มีรหัสที่ไม่ถูกต้อง รหัสต้องมีความยาว 3 ถึง 64 ตัวอักษร และประกอบด้วยตัวอักษรพิมพ์เล็ก ตัวเลข จุด ขีดกลาง และขีดล่างเท่านั้น</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” ไม่ได้ระบุว่าเป็นเวอร์ชันใด</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” มีสคริปต์ขนาดใหญ่กว่า %2$d KB</string>
     <string name="core_plugins_reject_unknown_permission">WM Keyboard เวอร์ชันนี้ไม่รู้จักสิทธิ์ “%1$s” แอปไม่สามารถบอกคุณได้ว่า “%2$s” ได้รับอนุญาตให้ทำอะไร</string>
+    <string name="core_plugins_reminders_channel_body">การแจ้งเตือนที่ปลั๊กอินขอให้แอปแสดงตามเวลาที่คุณตั้งไว้ในปลั๊กอิน โดยชื่อของแต่ละรายการคือชื่อของปลั๊กอินนั้น</string>
+    <string name="core_plugins_reminders_channel_title">การแจ้งเตือนของปลั๊กอิน</string>
     <string name="core_plugins_stopped_cancelled">แอปได้หยุดปลั๊กอินนี้แล้ว</string>
     <string name="core_plugins_stopped_deadline">ปลั๊กอินนี้ใช้เวลานานเกินไป แอปจึงหยุดการทำงาน</string>
     <string name="core_plugins_stopped_instructions">ปลั๊กอินนี้ทำงานหนักเกินไปในคราวเดียว แอปจึงหยุดการทำงานของมัน</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">ปลั๊กอินนี้หยุดตอบสนองอีกครั้ง แอปจึงปิดการทำงานของมัน</string>
     <string name="core_plugins_stopped_recursion">ปลั๊กอินนี้เรียกตัวเองบ่อยเกินไป แอปจึงหยุดการทำงานไว้</string>
     <string name="core_plugins_stopped_unexpected">ปลั๊กอินนี้หยุดทำงานโดยไม่คาดคิด</string>
+    <string name="core_plugins_ui_date_clear">ล้าง</string>
+    <string name="core_plugins_ui_date_earlier">%1$d นาทีที่แล้ว</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 ชม.</string>
+    <string name="core_plugins_ui_date_hour_later">+1 ชม.</string>
+    <string name="core_plugins_ui_date_later">อีก %1$d นาที</string>
+    <string name="core_plugins_ui_date_next_day">วันถัดไป</string>
+    <string name="core_plugins_ui_date_none">ไม่มีวันที่</string>
+    <string name="core_plugins_ui_date_previous_day">วันก่อนหน้า</string>
+    <string name="core_plugins_ui_date_set">ตั้งค่าวันที่</string>
+    <string name="core_plugins_ui_date_today">วันนี้</string>
     <string name="core_plugins_ui_insert_action">แทรก</string>
     <string name="core_plugins_ui_repair_no_type">วิดเจ็ตไม่ได้ระบุประเภทของตัวเอง</string>
     <string name="core_plugins_ui_repair_not_a_widget">รายการวิดเจ็ตมีบางอย่างที่ไม่ใช่วิดเจ็ตอยู่</string>

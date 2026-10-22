@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Netþjónninn sendi ekki skrána. Villukóðinn er HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Sá orðalisti er tómur eða ólæsilegur.</string>
+    <string name="core_pred_wordlist_memory_error">Þetta tæki hefur ekki nægt minni fyrir orðalista af þessari stærð. Veldu minni stærð.</string>
     <string name="core_pred_wordlist_no_space_error">Það er ekki nægilegt geymslupláss á tækinu þínu. Eyðtu einhverjum skrám og reyndu aftur.</string>
     <string name="core_pred_wordlist_save_error">Forritið getur ekki vistað orðalistann. Reyndu aftur.</string>
     <string name="core_pred_wordlist_size_all_label">Allt</string>

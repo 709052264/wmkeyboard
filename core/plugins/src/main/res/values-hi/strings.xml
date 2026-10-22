@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">स्क्रिप्ट विफल रही।</string>
     <string name="core_plugins_error_script_missing">उस प्लगइन के लिए स्क्रिप्ट गायब है।</string>
     <string name="core_plugins_error_turned_off">वह प्लगइन बंद है।</string>
+    <string name="core_plugins_permission_reminders_label">आपके द्वारा सेट किए गए समय पर रिमाइंडर दिखाएं</string>
     <string name="core_plugins_permission_storage_label">अपने डिवाइस पर डेटा सहेजें</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” में एक ऐसी स्क्रिप्ट है जो मान्य UTF-8 टेक्स्ट नहीं है।</string>
     <string name="core_plugins_reject_bad_id">इस प्लगइन की आईडी मान्य नहीं है। आईडी 3 से 64 वर्ण लंबी होनी चाहिए। आईडी में छोटे अक्षर, अंक, बिंदु, डैश और अंडरस्कोर हो सकते हैं।</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” यह नहीं बताता कि यह कौन सा संस्करण है।</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” की स्क्रिप्ट %2$d KB से बड़ी है।</string>
     <string name="core_plugins_reject_unknown_permission">WM कीबोर्ड का यह संस्करण \"%1$s\" अनुमति को नहीं पहचानता है। ऐप आपको यह नहीं बता सकता कि \"%2$s\" को क्या करने की अनुमति है।</string>
+    <string name="core_plugins_reminders_channel_body">रिमाइंडर जो एक प्लगइन ने ऐप को दिखाने के लिए कहा है, उन समय पर जो आपने प्लगइन में सेट किए हैं। प्रत्येक का शीर्षक प्लगइन का नाम है।</string>
+    <string name="core_plugins_reminders_channel_title">प्लगइन रिमाइंडर</string>
     <string name="core_plugins_stopped_cancelled">ऐप ने इस प्लगइन को रोक दिया है।</string>
     <string name="core_plugins_stopped_deadline">इस प्लगइन ने बहुत अधिक समय लिया। ऐप ने इसे रोक दिया।</string>
     <string name="core_plugins_stopped_instructions">इस प्लगइन ने एक बार में बहुत अधिक काम किया। ऐप ने इसे रोक दिया।</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">यह प्लगइन फिर से प्रतिक्रिया देना बंद कर गया है। ऐप ने इसे बंद कर दिया है।</string>
     <string name="core_plugins_stopped_recursion">इस प्लगइन ने खुद को बहुत बार कॉल किया। ऐप ने इसे रोक दिया।</string>
     <string name="core_plugins_stopped_unexpected">यह प्लगइन अप्रत्याशित रूप से बंद हो गया।</string>
+    <string name="core_plugins_ui_date_clear">साफ़ करें</string>
+    <string name="core_plugins_ui_date_earlier">%1$d मिनट पहले</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 घंटा</string>
+    <string name="core_plugins_ui_date_hour_later">+1 घंटा</string>
+    <string name="core_plugins_ui_date_later">%1$d मिनट बाद</string>
+    <string name="core_plugins_ui_date_next_day">अगले दिन</string>
+    <string name="core_plugins_ui_date_none">कोई तारीख नहीं</string>
+    <string name="core_plugins_ui_date_previous_day">पिछला दिन</string>
+    <string name="core_plugins_ui_date_set">तारीख सेट करें</string>
+    <string name="core_plugins_ui_date_today">आज</string>
     <string name="core_plugins_ui_insert_action">डालें</string>
     <string name="core_plugins_ui_repair_no_type">एक विजेट ने यह नहीं बताया कि वह किस प्रकार का है।</string>
     <string name="core_plugins_ui_repair_not_a_widget">एक विजेट सूची में कुछ ऐसा था जो विजेट नहीं है।</string>

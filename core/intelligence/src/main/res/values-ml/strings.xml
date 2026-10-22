@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">സ്റ്റിക്കർ ജനറേറ്ററിന്റെ എഞ്ചിൻ ഡൗൺലോഡ് ആയില്ല. കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool ഉപയോക്തൃനാമവും API കീയും അംഗീകരിച്ചില്ല (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">LanguageTool സെർവറിൽ ഈ ഫോണിൽ നിന്ന് ഒരു മിനിറ്റിൽ അനുവദനീയമായ പരമാവധി പരിശോധനകൾ നടത്തിക്കഴിഞ്ഞു. വീണ്ടും പരിശോധിക്കാൻ കുറച്ചു സമയത്തിന് ശേഷം ടെക്‌സ്‌റ്റ് എഡിറ്റ് ചെയ്യുക (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool-ന് ഈ വാചകം പരിശോധിക്കാൻ കഴിഞ്ഞില്ല. സെർവറിൽ ഈ ഭാഷ ലഭ്യമായിരിക്കില്ല (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">ഈ ലാംഗ്വേജ് ടൂൾ സെർവറിന് വാചകം വളരെ വലുതാണ് (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">ഡൗൺലോഡ് ചെയ്ത ഫയൽ പ്രതീക്ഷിച്ചതല്ല, അതിനാൽ അത് നീക്കം ചെയ്തു. വീണ്ടും ഡൗൺലോഡ് ചെയ്യുക.</string>
     <string name="core_intel_llm_download_error_gated_no_token">ഈ മോഡൽ ഗേറ്റഡ് ആണ്. ആദ്യം നിങ്ങളുടെ ഹഗ്ഗിംഗ് ഫേസ് ടോക്കൺ ചേർക്കുക.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face HTTP സ്റ്റാറ്റസ് %1$s തിരികെ നൽകി.</string>
     <string name="core_intel_llm_download_error_licence">മോഡലിന്റെ ഹഗ്ഗിംഗ് ഫേസ് (Hugging Face) പേജിൽ അതിന്റെ ലൈസൻസ് അംഗീകരിക്കുക. ശേഷം വീണ്ടും ശ്രമിക്കുക.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">ഡൗൺലോഡ് ചെയ്യുന്നതിനിടെ കണക്ഷൻ തടസ്സപ്പെട്ടു. തുടരാൻ \'Resume\' അമർത്തുക.</string>
     <string name="core_intel_llm_engine_error_gpu">GPU-ൽ മോഡൽ പരാജയപ്പെട്ടു. സിസ്റ്റം മെമ്മറിയേക്കാൾ വളരെ കുറവാണ് GPU മെമ്മറി. അടുത്ത ശ്രമത്തിൽ CPU ഉപയോഗിക്കും. എപ്പോഴും CPU ഉപയോഗിക്കാൻ, ക്രമീകരണങ്ങളിൽ കമ്പ്യൂട്ട് (Compute) CPU-ലേക്ക് മാറ്റുക. നിങ്ങൾക്ക് ചെറിയൊരു മോഡലും തിരഞ്ഞെടുക്കാം.</string>
     <string name="core_intel_llm_engine_error_load">മോഡൽ ലോഡ് ആയില്ല. ഫയൽ കേടായതാകാൻ സാധ്യതയുണ്ട്. ക്രമീകരണങ്ങളിൽ പോയി മോഡൽ ഇല്ലാതാക്കി വീണ്ടും ഡൗൺലോഡ് ചെയ്യുക.</string>
+    <string name="core_intel_llm_engine_error_low_memory">ഈ മോഡലിന് ഏകദേശം %1$s മെമ്മറി ആവശ്യമാണ്, എന്നാൽ %2$s മാത്രമേ ലഭ്യമായുള്ളൂ. മറ്റ് ആപ്പുകൾ അടയ്ക്കുക, അല്ലെങ്കിൽ ചെറിയൊരു മോഡൽ തിരഞ്ഞെടുക്കുക.</string>
     <string name="core_intel_llm_engine_error_memory">മോഡലിന്റെ മെമ്മറി തീർന്നുപോയി, അല്ലെങ്കിൽ അത് പരാജയപ്പെട്ടു. ചെറിയൊരു മോഡൽ തിരഞ്ഞെടുക്കുക.</string>
+    <string name="core_intel_llm_engine_error_npu">NPU-ൽ മോഡൽ പ്രവർത്തിച്ചില്ല. അടുത്ത തവണ GPU അല്ലെങ്കിൽ CPU ഉപയോഗിക്കും. ദൈർഘ്യമേറിയ ടെക്‌സ്റ്റുകൾ ഒരു മോഡലിന്റെ NPU ബിൽഡിന് താങ്ങാൻ കഴിഞ്ഞെന്ന് വരില്ല.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">ഈ മോഡലിന്റെ എൻപിയു(NPU) ബിൽഡ് മാത്രമാണ് നിങ്ങളുടെ ഫോണിലുള്ളത്, എൻപിയു വഴി മാത്രമേ ഇത് പ്രവർത്തിപ്പിക്കാനാവൂ. കമ്പ്യൂട്ട് എൻപിയുവിലേക്ക് മാറ്റുക, അല്ലെങ്കിൽ ക്രമീകരണങ്ങളിൽ നിന്ന് ഈ മോഡലിന്റെ സ്റ്റാൻഡേർഡ് ബിൽഡ് ഡൗൺലോഡ് ചെയ്യുക.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">ഈ മോഡലിന്റെ NPU ബിൽഡ് നിങ്ങളുടെ ഫോണിൽ ആരംഭിച്ചില്ല. GPU അല്ലെങ്കിൽ CPU-യിൽ ഈ മോഡൽ ഉപയോഗിക്കുന്നതിനായി, ക്രമീകരണങ്ങളിൽ നിന്ന് ഇതിന്റെ സ്റ്റാൻഡേർഡ് ബിൽഡ് ഡൗൺലോഡ് ചെയ്യുക.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">കീബോർഡിന്റെ NPU ഭാഗം തയ്യാറല്ല. ഇത് ഡൗൺലോഡ് ചെയ്യുകയാണെങ്കിൽ, അല്പസമയത്തിന് ശേഷം വീണ്ടും ശ്രമിക്കുക. ഇപ്പോൾ GPU അല്ലെങ്കിൽ CPU ഉപയോഗിക്കുന്നതിന്, ക്രമീകരണങ്ങളിൽ മോഡലിന്റെ സാധാരണ പതിപ്പ് ഡൗൺലോഡ് ചെയ്യുക.</string>
+    <string name="core_intel_llm_engine_error_template">ഈ മോഡലിന്റെ ചാറ്റ് ടെംപ്ലേറ്റ് വായിക്കാൻ കഴിഞ്ഞില്ല. ഈ മോഡലിന്റെ മറ്റൊരു GGUF ഫയൽ പരീക്ഷിച്ചു നോക്കൂ.</string>
+    <string name="core_intel_llm_engine_error_too_long">ഈ മോഡലിന് ടെക്സ്റ്റ് വളരെ വലുതാണ്. ചെറിയ ടെക്സ്റ്റ് ഉപയോഗിക്കുക, അല്ലെങ്കിൽ ക്രമീകരണങ്ങളിൽ (Settings) കോണ്ടക്സ്റ്റ് സൈസ് (Context size) വർദ്ധിപ്പിക്കുക.</string>
+    <string name="core_intel_llm_engine_error_vision">ഈ മോഡലിന് ചിത്രങ്ങൾ വായിക്കാൻ കഴിയില്ല. ജെമ്മ 4-ന് (Gemma 4) അതിന് കഴിയും.</string>
+    <string name="core_intel_llm_llama_missing">ഈ ബിൽഡിന് GGUF മോഡലുകൾ പ്രവർത്തിപ്പിക്കാൻ കഴിയില്ല: llama.cpp ഭാഗം ലഭ്യമല്ല.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">മുൻ തലമുറയിൽ നിന്നുള്ള ഒരു ചെറിയ ജെമ്മ (Gemma). ഇതിന് മികച്ച നിലവാരവും 4K ടോക്കണുകളുടെ സന്ദർഭവും ഉണ്ട്.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">ഗൂഗിളിൽ നിന്നുള്ള ഏറ്റവും ചെറിയ ജെമ്മ. എല്ലാ ഉപകരണങ്ങളിലും ഇത് വേഗത്തിൽ പ്രവർത്തിക്കുന്നു.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">ഏറ്റവും പുതിയ ജെമ്മ തലമുറ. ഇത് നിങ്ങളുടെ ഉപകരണത്തിൽ മികച്ച നിലവാരം നൽകുന്നു.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">ഏറ്റവും വലിയ മോഡൽ. ഇത് മികച്ച രീതിയിൽ എഴുതുന്നു, എന്നാൽ ഇതിന് ശക്തമായ ഒരു ഉപകരണം ആവശ്യമാണ്.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">മുൻ തലമുറയിൽ നിന്നുള്ള ഒരു ചെറിയ ജെമ്മ മോഡൽ. ഈ ഫയലിന് ഹഗ്ഗിംഗ് ഫേസ് ടോക്കൺ ആവശ്യമില്ല.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">മെറ്റയുടെ ചെറിയ Llama. ഇത് വ്യക്തമായ ഇംഗ്ലീഷ് എഴുതുകയും നിർദ്ദേശങ്ങൾ നന്നായി പാലിക്കുകയും ചെയ്യുന്നു.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">ചിത്രങ്ങളും സ്ക്രീൻഷോട്ടുകളും അവയിലെ വാചകങ്ങളും നന്നായി വായിക്കുന്നു. ഇതിന് ഉയർന്ന നിലവാരമുള്ള ഉപകരണം ആവശ്യമാണ്. ഇതിന്റെ ലൈസൻസ് ഗവേഷണ ആവശ്യങ്ങൾക്ക് മാത്രമേ അനുവദിക്കൂ.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">ഉത്തരം നൽകുന്നതിന് മുൻപ് ചിന്തിക്കുന്ന സമീപകാലത്തെ ഇടത്തരം വലിപ്പമുള്ള മോഡൽ. ഇതിന് ഒരു ഇടത്തരം ശേഷിയുള്ള ഉപകരണം ആവശ്യമാണ്.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">ചെറുതും വേഗതയേറിയതും. അടിസ്ഥാനപരമായ ഉപകരണങ്ങളിൽ വേഗത്തിൽ മാറ്റിയെഴുതാൻ ഇത് അനുയോജ്യമാണ്.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">ചിത്രങ്ങൾ വായിക്കാൻ കഴിയുന്ന വളരെ ചെറിയൊരു മോഡൽ. ഇത് ഒരു ചിത്രത്തെ വിവരിക്കുന്നു, എന്നാൽ പലപ്പോഴും സ്ക്രീൻഷോട്ടിലെ വാചകം തെറ്റായി വായിക്കാറുണ്ട്.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">അടിസ്ഥാന ഉപകരണങ്ങളിലും പ്രവർത്തിക്കുന്ന ഒരു പൊതു ആവശ്യത്തിനുള്ള മോഡൽ.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">1B-ൽ താഴെയുള്ള മോഡലുകളേക്കാൾ വ്യക്തമായി മികച്ചതാണ്. ഇതിന് മിഡ്-റേഞ്ച് ഉപകരണം ആവശ്യമാണ്.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">സമീപകാലത്തെ ഒരു ചെറിയ മോഡൽ. അതിന്റെ വലുപ്പത്തിന് അനുസരിച്ച് ഉയർന്ന നിലവാരമുള്ളതാണ്.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">പരിശോധിക്കാത്തത്</string>
     <string name="core_intel_ocr_download_error_http">ഗിറ്റ്ഹബ് സെർവർ ഫയൽ അയച്ചില്ല. പിശക് കോഡ് HTTP %1$s ആണ്.</string>
     <string name="core_intel_ocr_download_error_interrupted">ഡൗൺലോഡ് ചെയ്യുന്നതിനിടെ കണക്ഷൻ തടസ്സപ്പെട്ടു. വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="core_intel_ocr_download_error_mismatch">ഡൗൺലോഡ് ചെയ്ത ഫയൽ പ്രതീക്ഷിച്ചതല്ല. വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_intel_ocr_download_error_no_space">നിങ്ങളുടെ ഉപകരണത്തിൽ മതിയായ സ്റ്റോറേജ് ഇല്ല. ഏകദേശം %1$s MB ആദ്യം ലഭ്യമാക്കണം.</string>
+    <string name="core_intel_ocr_module_error">ഗൂഗിൾ പ്ലേ ടെക്സ്റ്റ് റീഡർ ലഭ്യമാക്കിയില്ല. കണക്ഷൻ പരിശോധിക്കുകയും പ്ലേ സ്റ്റോർ പ്രവർത്തിക്കുന്നുണ്ടെന്ന് ഉറപ്പുവരുത്തുകയും ചെയ്ത ശേഷം വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_intel_ocr_pack_error_broken">ഡൗൺലോഡ് ചെയ്ത ഭാഷാ ഡാറ്റ കേടായതിനാൽ സ്കാനറിന് അത് ഉപയോഗിക്കാൻ കഴിഞ്ഞില്ല. അത് വീണ്ടും ഡൗൺലോഡ് ചെയ്യുക.</string>
+    <string name="core_intel_semantic_module_error">സെർച്ച് എഞ്ചിൻ ഭാഗം ഡൗൺലോഡ് ആയില്ല. ഇന്റർനെറ്റ് കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.</string>
+    <string name="core_intel_semantic_no_source">മോഡൽ ഫയലുകൾ ഗിറ്റ്ഹബിൽ (GitHub) മാത്രമേ പ്രസിദ്ധീകരിച്ചിട്ടുള്ളൂ. സെർവറുകളിൽ ഡാറ്റാ റിപ്പോസിറ്ററി തിരികെ ഗിറ്റ്ഹബിലേക്ക് സജ്ജമാക്കുക.</string>
+    <string name="core_intel_xlit_module_error">മോഡൽ പ്രവർത്തിപ്പിക്കുന്ന ഭാഗം ഡൗൺലോഡ് ആയില്ല. കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.</string>
 </resources>

@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Prikaži alate</string>
     <string name="core_icons_slot_tab_label">Tipka Tab</string>
     <string name="core_icons_slot_toolbox_label">Alatna traka</string>
+    <string name="core_icons_slot_toolbox_search_label">Pretraživanje alata</string>
 </resources>

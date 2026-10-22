@@ -56,4 +56,22 @@
         <item quantity="one">L\'aplicació ha llegit això com una taula de codis Rime amb %1$d entrada. Escriviu un codi i, a continuació, trieu el caràcter de la barra de suggeriments.</item>
         <item quantity="other">L\'aplicació ha llegit això com una taula de codis Rime amb %1$d entrades. Escriviu un codi i, a continuació, trieu el caràcter de la barra de suggeriments.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">El diccionari del sistema propi de Mozc, amb els seus costos de connexió, segmentador i filtre de suggeriments. El motor Mozc converteix amb això; el motor integrat no l\'utilitza.</string>
+    <string name="core_input_mozc_pack_title">Diccionari Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Puntuació, símbols, la taula de freqüència de paraules i la conversió al xinès simplificat i tradicional que fa servir cada esquema RIME. Es descarrega amb el primer esquema.</string>
+    <string name="core_input_rime_pack_base_title">Essencials del RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Esquema Zhuyin de RIME al mapa de tecles estàndard Dachen, amb el diccionari de Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Esquema Cangjie de cinquena generació de RIME, caràcters i frases.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Un vocabulari modern ampli en xinès simplificat per a Pinyin, amb variants de Pinyin doble i teclat de 9 tecles. Compilar-lo requereix un minut o més.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">L\'esquema rime-cantonese per al cantonès, amb les seves llistes de paraules i frases.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">L\'esquema Pinyin propi de RIME, amb l\'esquema de traços amb què busca caràcters.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Model d\'escriptura a mà en japonès</string>
+    <string name="core_input_zinnia_pack_subtitle">El model del projecte Tegaki per a Zinnia, el reconeixedor d\'escriptura manual fora de línia que llegeix xinès i japonès on el de ML Kit no ho fa.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Model d\'escriptura a mà en xinès simplificat</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Model d\'escriptura a mà en xinès tradicional</string>
 </resources>

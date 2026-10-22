@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Scenarijus nepavyko.</string>
     <string name="core_plugins_error_script_missing">Trūksta šio papildinio scenarijaus.</string>
     <string name="core_plugins_error_turned_off">Tas papildinys išjungtas.</string>
+    <string name="core_plugins_permission_reminders_label">Rodyti priminimus jūsų nustatytu laiku</string>
     <string name="core_plugins_permission_storage_label">Išsaugoti duomenis jūsų įrenginyje</string>
     <string name="core_plugins_reject_bad_encoding">„%1$s“ turi scenarijų, kuris nėra tinkamas UTF-8 tekstas.</string>
     <string name="core_plugins_reject_bad_id">Šio įskiepio ID netinkamas. ID turi būti nuo 3 iki 64 simbolių ilgio. ID gali sudaryti mažosios raidės, skaičiai, taškai, brūkšneliai ir apatiniai brūkšniai.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">„%1$s“ nenurodo, kokia tai versija.</string>
     <string name="core_plugins_reject_script_too_large">„%1$s“ scenarijus yra didesnis nei %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Ši WM Keyboard versija neatpažįsta leidimo „%1$s“. Programa negali pasakyti, ką „%2$s“ leidžiama daryti.</string>
+    <string name="core_plugins_reminders_channel_body">Priminimai, kuriuos papildinys paprašė programėlės rodyti jūsų nustatytu laiku. Kiekvieno priminimo pavadinimas yra papildinio pavadinimas.</string>
+    <string name="core_plugins_reminders_channel_title">Papildinių priminimai</string>
     <string name="core_plugins_stopped_cancelled">Programa sustabdė šį papildinį.</string>
     <string name="core_plugins_stopped_deadline">Šis papildinys veikė per ilgai. Programa jį sustabdė.</string>
     <string name="core_plugins_stopped_instructions">Šis papildinys vienu metu atliko per daug darbo. Programa jį sustabdė.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Šis papildinys vėl nustojo reaguoti. Programa jį išjungė.</string>
     <string name="core_plugins_stopped_recursion">Šis papildinys per daug kartų iškvietė pats save. Programa jį sustabdė.</string>
     <string name="core_plugins_stopped_unexpected">Šis papildinys netikėtai sustojo.</string>
+    <string name="core_plugins_ui_date_clear">Išvalyti</string>
+    <string name="core_plugins_ui_date_earlier">Prieš %1$d min.</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 val.</string>
+    <string name="core_plugins_ui_date_hour_later">+1 val.</string>
+    <string name="core_plugins_ui_date_later">Po %1$d min.</string>
+    <string name="core_plugins_ui_date_next_day">Kita diena</string>
+    <string name="core_plugins_ui_date_none">Nėra datos</string>
+    <string name="core_plugins_ui_date_previous_day">Ankstesnė diena</string>
+    <string name="core_plugins_ui_date_set">Nustatyti datą</string>
+    <string name="core_plugins_ui_date_today">Šiandien</string>
     <string name="core_plugins_ui_insert_action">Įterpti</string>
     <string name="core_plugins_ui_repair_no_type">Valdiklis nenurodė savo tipo.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Valdiklių sąraše buvo kažkas, kas nėra valdiklis.</string>

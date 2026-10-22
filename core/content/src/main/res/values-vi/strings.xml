@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Định dạng</string>
     <string name="core_content_selection_macro_grammar">Ngữ pháp</string>
     <string name="core_content_selection_macro_lines_bullet">Dấu đầu dòng</string>
+    <string name="core_content_selection_macro_lines_checkbox">Hộp kiểm</string>
     <string name="core_content_selection_macro_lines_dedupe">Duy nhất</string>
+    <string name="core_content_selection_macro_lines_down">Di chuyển xuống</string>
     <string name="core_content_selection_macro_lines_number">Số</string>
     <string name="core_content_selection_macro_lines_sort">Sắp xếp</string>
+    <string name="core_content_selection_macro_lines_up">Di chuyển lên</string>
     <string name="core_content_selection_macro_map">Bản đồ</string>
     <string name="core_content_selection_macro_open">Mở</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Nói</string>
+    <string name="core_content_selection_macro_repeat">Lặp lại</string>
     <string name="core_content_selection_macro_replace">Thay thế</string>
     <string name="core_content_selection_macro_save_note">Lưu dưới dạng ghi chú</string>
     <string name="core_content_selection_macro_search">Tìm kiếm</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Dịch</string>
     <string name="core_content_selection_macro_url_decode">Giải mã</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Tệp cũng có %1$d từ không có phím tắt. Để thêm từ đó vào từ vựng của bạn, hãy mở tệp từ Từ điển cá nhân.</item>
         <item quantity="other">Tệp cũng có %1$d từ không có phím tắt. Để thêm các từ đó vào từ vựng của bạn, hãy mở tệp từ Từ điển cá nhân.</item>

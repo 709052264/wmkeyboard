@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">ಫಾರ್ಮ್ಯಾಟ್</string>
     <string name="core_content_selection_macro_grammar">ವ್ಯಾಕರಣ</string>
     <string name="core_content_selection_macro_lines_bullet">ಬುಲೆಟ್‌ಗಳು</string>
+    <string name="core_content_selection_macro_lines_checkbox">ಚೆಕ್ ಬಾಕ್ಸ್‌ಗಳು</string>
     <string name="core_content_selection_macro_lines_dedupe">ಅನನ್ಯ</string>
+    <string name="core_content_selection_macro_lines_down">ಕೆಳಕ್ಕೆ ಸರಿಸಿ</string>
     <string name="core_content_selection_macro_lines_number">ಸಂಖ್ಯೆ</string>
     <string name="core_content_selection_macro_lines_sort">ವಿಂಗಡಿಸಿ</string>
+    <string name="core_content_selection_macro_lines_up">ಮೇಲಕ್ಕೆ ಸರಿಸಿ</string>
     <string name="core_content_selection_macro_map">ನಕ್ಷೆ</string>
     <string name="core_content_selection_macro_open">ತೆರೆಯಿರಿ</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">ಮಾತನಾಡಿ</string>
+    <string name="core_content_selection_macro_repeat">ಪುನರಾವರ್ತಿಸಿ</string>
     <string name="core_content_selection_macro_replace">ಬದಲಾಯಿಸಿ</string>
     <string name="core_content_selection_macro_save_note">ಟಿಪ್ಪಣಿಯಾಗಿ ಉಳಿಸಿ</string>
     <string name="core_content_selection_macro_search">ಹುಡುಕಿ</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">ಅನುವಾದಿಸಿ</string>
     <string name="core_content_selection_macro_url_decode">ಡಿಕೋಡ್ ಮಾಡಿ</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">ಜಾವ್ಗಿ ⇄ ಯುನಿಕೋಡ್</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ಫೈಲ್‌ನಲ್ಲಿ ಶಾರ್ಟ್‌ಕಟ್ ಇಲ್ಲದ %1$d ಪದವೂ ಇದೆ. ಅದನ್ನು ನಿಮ್ಮ ಪದಗಳಿಗೆ ಸೇರಿಸಲು, ವೈಯಕ್ತಿಕ ನಿಘಂಟಿನಿಂದ ಫೈಲ್ ಅನ್ನು ತೆರೆಯಿರಿ.</item>
         <item quantity="other">ಫೈಲ್‌ನಲ್ಲಿ ಶಾರ್ಟ್‌ಕಟ್ ಇಲ್ಲದ %1$d ಪದಗಳಿವೆ. ಅವುಗಳನ್ನು ನಿಮ್ಮ ಪದಗಳಿಗೆ ಸೇರಿಸಲು, ವೈಯಕ್ತಿಕ ನಿಘಂಟಿನಿಂದ ಫೈಲ್ ಅನ್ನು ತೆರೆಯಿರಿ.</item>

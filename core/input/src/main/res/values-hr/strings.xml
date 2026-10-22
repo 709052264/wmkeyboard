@@ -56,4 +56,22 @@
         <item quantity="one">Aplikacija je ovo učitala kao Rime tablicu kodova s %1$d unosom. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
         <item quantity="other">Aplikacija je ovo učitala kao Rime tablicu kodova s %1$d unosa. Upišite kod, a zatim odaberite znak iz trake prijedloga.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozcov vlastiti sistemski rječnik, s troškovima povezivanja, segmentatorom i filtrom prijedloga. Mozc motor pretvara s ovim; ugrađeni motor ga ne koristi.</string>
+    <string name="core_input_mozc_pack_title">Mozc rječnik</string>
+    <string name="core_input_rime_pack_base_subtitle">Interpunkcija, simboli, tablica učestalosti riječi te pretvorba između pojednostavljenog i tradicionalnog pisma koje koristi svaka RIME shema. Preuzima se s prvom shemom.</string>
+    <string name="core_input_rime_pack_base_title">RIME osnove</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">RIME-ova Zhuyin shema na standardnom Dachen rasporedu tipki, s rječnikom Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME-ina peta generacija Cangjie sheme, znakovi i fraze.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Veliki moderni rječnik pojednostavljenog kineskog za Pinyin, s varijantama Double Pinyin i 9-tipki. Kompilacija traje minutu ili više.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">Rime-cantonese shema za kantonski, s popisima riječi i fraza.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME-ova vlastita Pinyin shema, sa shemom poteza kojom traži znakove.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Model za rukopis na japanskom</string>
+    <string name="core_input_zinnia_pack_subtitle">Model projekta Tegaki za Zinnia, izvanmrežni prepoznavatelj rukopisa koji čita kineski i japanski tamo gdje ML Kit ne može.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Model za rukopis na pojednostavljenom kineskom</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Model za tradicionalni kineski rukopis</string>
 </resources>

@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Die Engine des Sticker-Generators konnte nicht heruntergeladen werden. Überprüfen Sie die Verbindung und versuchen Sie es dann erneut.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool hat den Benutzernamen und API-Schlüssel nicht akzeptiert (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">Der LanguageTool-Server hat die maximale Anzahl an Prüfungen von diesem Telefon pro Minute erreicht. Bearbeiten Sie den Text in einem Moment erneut, um ihn wieder zu prüfen (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool konnte diesen Text nicht überprüfen. Möglicherweise unterstützt der Server diese Sprache nicht (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Der Text ist für diesen LanguageTool-Server zu lang (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Die heruntergeladene Datei entspricht nicht der erwarteten Datei und wurde daher gelöscht. Bitte erneut herunterladen.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Dieses Modell ist zugangsbeschränkt. Fügen Sie zuerst Ihren Hugging Face-Token hinzu.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face gab den HTTP-Status %1$s zurück.</string>
     <string name="core_intel_llm_download_error_licence">Akzeptieren Sie die Lizenz des Modells auf dessen Hugging Face-Seite. Versuchen Sie es dann erneut.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Die Verbindung wurde während des Downloads unterbrochen. Drücken Sie Fortsetzen, um fortzufahren.</string>
     <string name="core_intel_llm_engine_error_gpu">Das Modell ist auf der GPU fehlgeschlagen. Der GPU-Speicher ist viel kleiner als der Systemspeicher. Der nächste Versuch verwendet die CPU. Um immer die CPU zu verwenden, stelle in den Einstellungen „Berechnung“ auf „CPU“. Du kannst auch ein kleineres Modell auswählen.</string>
     <string name="core_intel_llm_engine_error_load">Das Modell wurde nicht geladen. Die Datei ist wahrscheinlich beschädigt. Lösche das Modell in den Einstellungen und lade es erneut herunter.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Dieses Modell benötigt etwa %1$s Arbeitsspeicher, aber es sind nur %2$s verfügbar. Schließen Sie andere Apps oder wählen Sie ein kleineres Modell.</string>
     <string name="core_intel_llm_engine_error_memory">Dem Modell ging der Speicher aus oder es ist fehlgeschlagen. Wählen Sie ein kleineres Modell.</string>
+    <string name="core_intel_llm_engine_error_npu">Das Modell ist auf der NPU fehlgeschlagen. Der nächste Versuch verwendet die GPU oder die CPU. Ein langer Text kann für den NPU-Build eines Modells zu viel sein.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Nur der NPU-Build dieses Modells befindet sich auf deinem Telefon, und nur die NPU kann es ausführen. Stelle die Berechnung auf NPU um oder lade den Standard-Build des Modells in den Einstellungen herunter.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Der NPU-Build dieses Modells wurde auf Ihrem Telefon nicht gestartet. Um das Modell auf der GPU oder CPU zu verwenden, laden Sie in den Einstellungen den Standard-Build herunter.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Der NPU-Teil der Tastatur ist nicht bereit. Wenn er gerade heruntergeladen wird, versuchen Sie es in einem Moment erneut. Um jetzt die GPU oder CPU zu verwenden, laden Sie den Standard-Build des Modells in den Einstellungen herunter.</string>
+    <string name="core_intel_llm_engine_error_template">Die Chat-Vorlage dieses Modells konnte nicht gelesen werden. Versuchen Sie eine andere GGUF-Datei des Modells.</string>
+    <string name="core_intel_llm_engine_error_too_long">Der Text ist zu lang für dieses Modell. Verwenden Sie einen kürzeren Text oder erhöhen Sie die Kontextgröße in den Einstellungen.</string>
+    <string name="core_intel_llm_engine_error_vision">Dieses Modell kann keine Bilder lesen. Gemma 4 kann das.</string>
+    <string name="core_intel_llm_llama_missing">Dieser Build kann keine GGUF-Modelle ausführen: Der llama.cpp-Teil fehlt.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Ein kleines Gemma-Modell der vorherigen Generation. Es bietet gute Qualität und einen Kontext von 4K-Token.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Das kleinste Gemma von Google. Es ist auf allen Geräten schnell.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Die neueste Gemma-Generation. Sie bietet höchste Qualität auf Ihrem Gerät.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Das größte Modell. Es schreibt am besten, erfordert aber ein leistungsstarkes Gerät.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Ein kleines Gemma der vorherigen Generation. Für diese Datei ist kein Hugging Face-Token erforderlich.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Metas kleines Llama. Es schreibt klares Englisch und befolgt Anweisungen gut.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Liest Bilder und Screenshots gut, auch den Text darin. Es benötigt ein High-End-Gerät. Die Lizenz erlaubt nur die Nutzung zu Forschungszwecken.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Ein aktuelles mittelgroßes Modell, das nachdenkt, bevor es antwortet. Es benötigt ein Mittelklasse-Gerät.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Klein und schnell. Gut geeignet für schnelle Korrekturen auf einem Basis-Gerät.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Ein sehr kleines Modell, das Bilder lesen kann. Es beschreibt ein Bild, liest aber oft den Text in einem Screenshot falsch.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Ein Allzweckmodell, das auch auf einem einfachen Gerät Platz findet.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Deutlich intelligenter als Modelle unter 1B. Erfordert ein Mittelklasse-Gerät.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Ein aktuelles kleines Modell. Die Qualität ist für seine Größe hoch.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Ungetestet</string>
     <string name="core_intel_ocr_download_error_http">Der GitHub-Server hat die Datei nicht gesendet. Der Fehlercode ist HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Die Verbindung wurde während des Downloads unterbrochen. Versuchen Sie es erneut.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Die heruntergeladene Datei ist nicht die erwartete. Versuchen Sie es erneut.</string>
     <string name="core_intel_ocr_download_error_no_space">Auf Ihrem Gerät ist nicht genügend Speicherplatz vorhanden. Sie müssen zuerst etwa %1$s MB freigeben.</string>
+    <string name="core_intel_ocr_module_error">Google Play hat das Textlesemodul nicht geliefert. Überprüfen Sie die Verbindung und ob der Play Store funktioniert, und versuchen Sie es dann erneut.</string>
     <string name="core_intel_ocr_pack_error_broken">Die heruntergeladenen Sprachdaten sind beschädigt, daher konnte der Scanner sie nicht verwenden. Lade sie erneut herunter.</string>
+    <string name="core_intel_semantic_module_error">Die Suchmaschinen-Komponente wurde nicht heruntergeladen. Überprüfen Sie die Verbindung und versuchen Sie es erneut.</string>
+    <string name="core_intel_semantic_no_source">Die Modelldateien werden nur auf GitHub veröffentlicht. Setze das Daten-Repository in den Server-Einstellungen zurück auf GitHub.</string>
+    <string name="core_intel_xlit_module_error">Der Teil, der das Modell ausführt, wurde nicht heruntergeladen. Überprüfe die Verbindung und versuche es erneut.</string>
 </resources>

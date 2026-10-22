@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">ఫార్మాట్</string>
     <string name="core_content_selection_macro_grammar">వ్యాకరణం</string>
     <string name="core_content_selection_macro_lines_bullet">బుల్లెట్లు</string>
+    <string name="core_content_selection_macro_lines_checkbox">చెక్ బాక్స్‌లు</string>
     <string name="core_content_selection_macro_lines_dedupe">ప్రత్యేకమైనవి</string>
+    <string name="core_content_selection_macro_lines_down">కిందకు తరలించు</string>
     <string name="core_content_selection_macro_lines_number">సంఖ్య</string>
     <string name="core_content_selection_macro_lines_sort">క్రమబద్ధీకరించు</string>
+    <string name="core_content_selection_macro_lines_up">పైకి జరుపు</string>
     <string name="core_content_selection_macro_map">మ్యాప్</string>
     <string name="core_content_selection_macro_open">ఓపెన్</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">మాట్లాడండి</string>
+    <string name="core_content_selection_macro_repeat">పునరావృతం చేయి</string>
     <string name="core_content_selection_macro_replace">భర్తీ చేయి</string>
     <string name="core_content_selection_macro_save_note">నోట్‌గా సేవ్ చేయి</string>
     <string name="core_content_selection_macro_search">శోధన</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">అనువదించు</string>
     <string name="core_content_selection_macro_url_decode">డీకోడ్</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">ఫైల్‌లో షార్ట్‌కట్ లేని %1$d పదం కూడా ఉంది. దీన్ని మీ పదాలకు జోడించడానికి, వ్యక్తిగత నిఘంటువు (Personal dictionary) నుండి ఫైల్‌ను తెరవండి.</item>
         <item quantity="other">ఫైల్‌లో షార్ట్‌కట్ లేని %1$d పదాలు కూడా ఉన్నాయి. వీటిని మీ పదాలకు జోడించడానికి, వ్యక్తిగత నిఘంటువు (Personal dictionary) నుండి ఫైల్‌ను తెరవండి.</item>

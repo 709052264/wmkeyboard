@@ -56,4 +56,22 @@
         <item quantity="one">ആപ്പ് ഇതിനെ %1$d എൻട്രിയുള്ള ഒരു Rime കോഡ് ടേബിളായി വായിച്ചു. ഒരു കോഡ് ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
         <item quantity="other">ആപ്പ് ഇതിനെ %1$d എൻട്രികളുള്ള ഒരു Rime കോഡ് ടേബിളായി വായിച്ചു. ഒരു കോഡ് ടൈപ്പ് ചെയ്യുക, തുടർന്ന് നിർദ്ദേശ സ്ട്രിപ്പിൽ നിന്ന് അക്ഷരം തിരഞ്ഞെടുക്കുക.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">മോസ്കിന്റെ സ്വന്തം സിസ്റ്റം നിഘണ്ടു, അതിന്റെ കണക്ഷൻ ചെലവുകൾ, സെഗ്‌മെന്റർ, നിർദ്ദേശ ഫിൽട്ടർ എന്നിവയോടൊപ്പം. മോസ്ക് എൻജിൻ ഇത് ഉപയോഗിച്ചാണ് പരിവർത്തനം ചെയ്യുന്നത്; ഇൻ-ബിൽറ്റ് എൻജിൻ ഇത് ഉപയോഗിക്കുന്നില്ല.</string>
+    <string name="core_input_mozc_pack_title">മോസ്ക് നിഘണ്ടു</string>
+    <string name="core_input_rime_pack_base_subtitle">ഓരോ RIME സ്‌കീമും ഉപയോഗിക്കുന്ന വിരാമചിഹ്നങ്ങൾ, ചിഹ്നങ്ങൾ, വാക്ക്-ആവൃത്തി പട്ടിക, ലളിതവും പരമ്പരാഗതവുമായ പരിവർത്തനം എന്നിവ ഇതിൽ ഉൾപ്പെടുന്നു. ആദ്യത്തെ സ്‌കീമിനൊപ്പം ഡൗൺലോഡ് ചെയ്യപ്പെടുന്നു.</string>
+    <string name="core_input_rime_pack_base_title">RIME അവശ്യവസ്തുക്കൾ</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Terra Pinyin നിഘണ്ടു ഉപയോഗിച്ചുകൊണ്ടുള്ള, സ്റ്റാൻഡേർഡ് Dachen കീ മാപ്പിലുള്ള RIME-ന്റെ Zhuyin സ്കീമ.</string>
+    <string name="core_input_rime_pack_bopomofo_title">ബോപോമോഫോ (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME-ന്റെ അഞ്ചാം തലമുറ കാങ്‌ജി സ്കീമ, അക്ഷരങ്ങളും വാക്യങ്ങളും.</string>
+    <string name="core_input_rime_pack_cangjie5_title">ചാങ്‌ജി 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">പിൻയിനിനായുള്ള (Pinyin) വലിയൊരു ആധുനിക ലളിത ചൈനീസ് പദാവലി, ഡബിൾ പിൻയിൻ, 9-കീ വകഭേദങ്ങൾ എന്നിവ ഉൾപ്പെടുന്നു. ഇത് കംപൈൽ ചെയ്യാൻ ഒരു മിനിറ്റോ അതിൽ കൂടുതലോ സമയമെടുക്കും.</string>
+    <string name="core_input_rime_pack_ice_title">റൈം ഐസ് (Rime Ice - 雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">കാൻ്റണീസിനായുള്ള rime-cantonese സ്കീമും, അതിന്റെ വാക്ക്-വാക്യ ലിസ്റ്റുകളും.</string>
+    <string name="core_input_rime_pack_jyutping_title">ജ്യുത്പിംഗ് (Jyutping - 粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME-ന്റെ സ്വന്തം പിൻയിൻ സ്കീമ, സ്ട്രോക്ക് സ്കീമ ഉപയോഗിച്ച് ഇത് അക്ഷരങ്ങൾ തിരയുന്നു.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">ലൂണ പിൻയിൻ (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">ജാപ്പനീസ് കൈയ്യെഴുത്ത് മോഡൽ</string>
+    <string name="core_input_zinnia_pack_subtitle">എംഎൽ കിറ്റ് (ML Kit) പിന്തുണയ്ക്കാത്ത ചൈനീസ്, ജാപ്പനീസ് ഭാഷകൾ തിരിച്ചറിയുന്ന ഓഫ്‌ലൈൻ കൈയക്ഷര തിരിച്ചറിയൽ സംവിധാനമായ സിനിയ (zinnia)-യ്ക്കായുള്ള ടെഗാക്കി പ്രോജക്റ്റിന്റെ മാതൃകയാണിത്.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">ലളിതമാക്കിയ ചൈനീസ് കൈയക്ഷര മോഡൽ</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">പരമ്പരാഗത ചൈനീസ് കൈയക്ഷര മോഡൽ</string>
 </resources>

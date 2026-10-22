@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Serwer nie wysłał pliku. Kod błędu to HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Ta lista słów jest pusta lub nieczytelna.</string>
+    <string name="core_pred_wordlist_memory_error">To urządzenie nie ma wystarczającej ilości pamięci dla listy słów o tym rozmiarze. Wybierz mniejszy rozmiar.</string>
     <string name="core_pred_wordlist_no_space_error">Na urządzeniu nie ma wystarczającej ilości miejsca. Usuń kilka plików i spróbuj ponownie.</string>
     <string name="core_pred_wordlist_save_error">Aplikacja nie może zapisać listy słów. Spróbuj ponownie.</string>
     <string name="core_pred_wordlist_size_all_label">Wszystko</string>

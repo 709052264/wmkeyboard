@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Visa verktyg</string>
     <string name="core_icons_slot_tab_label">Tabb-tangent</string>
     <string name="core_icons_slot_toolbox_label">Verktygslåda</string>
+    <string name="core_icons_slot_toolbox_search_label">Verktygslådesökning</string>
 </resources>

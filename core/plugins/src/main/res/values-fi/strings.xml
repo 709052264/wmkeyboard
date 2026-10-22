@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Skripti epäonnistui.</string>
     <string name="core_plugins_error_script_missing">Kyseisen liitännäisen komentosarja puuttuu.</string>
     <string name="core_plugins_error_turned_off">Kyseinen liitännäinen on pois päältä.</string>
+    <string name="core_plugins_permission_reminders_label">Näytä muistutukset asettaminasi aikoina</string>
     <string name="core_plugins_permission_storage_label">Tallenna tietoja laitteellesi</string>
     <string name="core_plugins_reject_bad_encoding">”%1$s” sisältää skriptin, joka ei ole kelvollista UTF-8-tekstiä.</string>
     <string name="core_plugins_reject_bad_id">Tämän liitännäisen tunnus ei ole kelvollinen. Tunnuksen on oltava 3–64 merkkiä pitkä. Tunnus voi sisältää pieniä kirjaimia, numeroita, pisteitä, viivoja ja alaviivoja.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">”%1$s” ei kerro, mikä versio se on.</string>
     <string name="core_plugins_reject_script_too_large">”%1$s” sisältää skriptin, joka on suurempi kuin %2$d kt.</string>
     <string name="core_plugins_reject_unknown_permission">Tämä WM Keyboardin versio ei tunne lupaa ”%1$s”. Sovellus ei voi kertoa, mitä ”%2$s” saa tehdä.</string>
+    <string name="core_plugins_reminders_channel_body">Muistutukset, joita liitännäinen on pyytänyt sovellusta näyttämään, liitännäisessä asettaminasi aikoina. Jokaisen otsikko on liitännäisen nimi.</string>
+    <string name="core_plugins_reminders_channel_title">Lisäosien muistutukset</string>
     <string name="core_plugins_stopped_cancelled">Sovellus pysäytti tämän liitännäisen.</string>
     <string name="core_plugins_stopped_deadline">Tämä liitännäinen kesti liian kauan. Sovellus pysäytti sen.</string>
     <string name="core_plugins_stopped_instructions">Tämä laajennus teki liikaa työtä kerralla. Sovellus pysäytti sen.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Tämä laajennus lakkasi vastaamasta uudelleen. Sovellus kytki sen pois päältä.</string>
     <string name="core_plugins_stopped_recursion">Tämä laajennus kutsui itseään liian monta kertaa. Sovellus pysäytti sen.</string>
     <string name="core_plugins_stopped_unexpected">Tämä liitännäinen pysähtyi odottamatta.</string>
+    <string name="core_plugins_ui_date_clear">Tyhjennä</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min aiemmin</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 t</string>
+    <string name="core_plugins_ui_date_later">%1$d minuutin kuluttua</string>
+    <string name="core_plugins_ui_date_next_day">Seuraava päivä</string>
+    <string name="core_plugins_ui_date_none">Ei päivämäärää</string>
+    <string name="core_plugins_ui_date_previous_day">Edellinen päivä</string>
+    <string name="core_plugins_ui_date_set">Aseta päivämäärä</string>
+    <string name="core_plugins_ui_date_today">Tänään</string>
     <string name="core_plugins_ui_insert_action">Lisää</string>
     <string name="core_plugins_ui_repair_no_type">Widget ei kertonut, mikä se on.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Widget-luettelo sisälsi jotain, mikä ei ole widget.</string>

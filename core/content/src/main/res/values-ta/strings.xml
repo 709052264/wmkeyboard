@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">வடிவமை</string>
     <string name="core_content_selection_macro_grammar">இலக்கணம்</string>
     <string name="core_content_selection_macro_lines_bullet">புல்லட்டுகள்</string>
+    <string name="core_content_selection_macro_lines_checkbox">செக் பாக்ஸ்கள்</string>
     <string name="core_content_selection_macro_lines_dedupe">தனித்துவமானது</string>
+    <string name="core_content_selection_macro_lines_down">கீழே நகர்த்தவும்</string>
     <string name="core_content_selection_macro_lines_number">எண்</string>
     <string name="core_content_selection_macro_lines_sort">வரிசைப்படுத்து</string>
+    <string name="core_content_selection_macro_lines_up">மேலே நகர்த்தவும்</string>
     <string name="core_content_selection_macro_map">வரைபடம்</string>
     <string name="core_content_selection_macro_open">திற</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">பேசவும்</string>
+    <string name="core_content_selection_macro_repeat">மீண்டும் செய்</string>
     <string name="core_content_selection_macro_replace">மாற்றவும்</string>
     <string name="core_content_selection_macro_save_note">குறிப்பாகச் சேமிக்கவும்</string>
     <string name="core_content_selection_macro_search">தேடு</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">மொழிபெயர்க்கவும்</string>
     <string name="core_content_selection_macro_url_decode">டிகோட் செய்யவும்</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ யூனிகோட்</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">கோப்பில் குறுக்குவழி இல்லாத %1$d சொல்லும் உள்ளது. அதை உங்கள் சொற்களில் சேர்க்க, தனிப்பட்ட அகராதியிலிருந்து கோப்பைத் திறக்கவும்.</item>
         <item quantity="other">கோப்பில் குறுக்குவழி இல்லாத %1$d சொற்களும் உள்ளன. அவற்றை உங்கள் சொற்களில் சேர்க்க, தனிப்பட்ட அகராதியிலிருந்து கோப்பைத் திறக்கவும்.</item>

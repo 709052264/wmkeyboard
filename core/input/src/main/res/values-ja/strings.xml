@@ -56,4 +56,22 @@
         <item quantity="one">アプリはこのRimeコードテーブルを%1$d件のエントリとして読み取りました。コードを入力し、候補ストリップから文字を選択してください。</item>
         <item quantity="other">アプリはこのRimeコードテーブルを%1$d件のエントリとして読み取りました。コードを入力し、候補ストリップから文字を選択してください。</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">接続コスト、セグメンター、サジェストフィルターを含むMozc独自のシステム辞書です。Mozcエンジンはこれを使用して変換を行いますが、組み込みエンジンは使用しません。</string>
+    <string name="core_input_mozc_pack_title">Mozc辞書</string>
+    <string name="core_input_rime_pack_base_subtitle">すべてのRIMEスキーマで使用される句読点、記号、単語頻度テーブル、および簡体字・繁体字変換です。最初のスキーマと一緒にダウンロードされます。</string>
+    <string name="core_input_rime_pack_base_title">RIMEエッセンシャル</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">標準の大千キーマップ上のRIMEの注音スキーマ。Terra Pinyinの辞書を使用。</string>
+    <string name="core_input_rime_pack_bopomofo_title">注音 (Bopomofo)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIMEの第5世代倉頡入力方式、文字およびフレーズ。</string>
+    <string name="core_input_rime_pack_cangjie5_title">倉頡五代 (Cangjie 5)</string>
+    <string name="core_input_rime_pack_ice_subtitle">ピンイン用の大規模で現代的な簡体字中国語語彙集。ダブルピンインおよび9キーバリアントに対応。コンパイルには1分以上かかる場合があります。</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">広東語用のrime-cantoneseスキーマ（単語およびフレーズリストを含む）。</string>
+    <string name="core_input_rime_pack_jyutping_title">粤拼（Jyutping）</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME独自のピンインスキーマ。ストローク（画数）スキーマを使用して文字を検索します。</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">朙月拼音 (Luna Pinyin)</string>
+    <string name="core_input_zinnia_ja_pack_title">日本語手書き入力モデル</string>
+    <string name="core_input_zinnia_pack_subtitle">TegakiプロジェクトのZinnia用モデル。ML Kitが対応していない中国語や日本語を読み取るオフライン手書き認識エンジンです。</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">簡体字中国語手書き認識モデル</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">繁体字中国語手書き認識モデル</string>
 </resources>

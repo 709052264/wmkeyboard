@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">Κάτω δεξιά</string>
     <string name="core_settings_board_corner_top_left_label">Πάνω αριστερά</string>
     <string name="core_settings_board_corner_top_right_label">Πάνω δεξιά</string>
+    <string name="core_settings_clip_shortcut_edit_label">Επεξεργασία</string>
+    <string name="core_settings_clip_shortcut_edited_label">Σήμανση επεξεργασίας</string>
+    <string name="core_settings_clip_shortcut_none_label">Τίποτα</string>
+    <string name="core_settings_clip_shortcut_qr_label">Κωδικός QR</string>
+    <string name="core_settings_clip_shortcut_select_label">Επιλογή</string>
     <string name="core_settings_clip_swipe_pin_left_label">Αριστερά για καρφίτσωμα, δεξιά για διαγραφή</string>
     <string name="core_settings_clip_swipe_pin_off_label">Και οι δύο κατευθύνσεις διαγράφουν</string>
     <string name="core_settings_clip_swipe_pin_right_label">Δεξιά καρφίτσωμα, αριστερά διαγραφή</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">Ενθουσιώδες</string>
     <string name="core_settings_deepl_style_friendly_label">Φιλικό</string>
     <string name="core_settings_deepl_style_simple_label">Απλό</string>
+    <string name="core_settings_function_keys_always_label">Πάντα</string>
+    <string name="core_settings_function_keys_pick_mode_label">Σε λειτουργία επιλογής</string>
     <string name="core_settings_glide_commit_color_always_label">Πάντα</string>
     <string name="core_settings_glide_commit_color_confident_label">Όταν είστε σίγουροι</string>
     <string name="core_settings_glide_commit_color_guess_label">Οποιαδήποτε πρώιμη λέξη</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">Λωρίδα, πλαίσιο και πλήκτρα</string>
     <string name="core_settings_glide_commit_scope_pill_label">Λωρίδα και χάπι</string>
     <string name="core_settings_glide_commit_scope_strip_label">Λωρίδα</string>
+    <string name="core_settings_glide_engine_built_in_label">Ενσωματωμένο</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (Αγγλικά, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Βιβλιοθήκη χειρονομιών Google (εισαγμένη)</string>
     <string name="core_settings_glide_lookahead_confident_label">Όταν είστε σίγουροι</string>
     <string name="core_settings_glide_lookahead_eager_label">Πρόθυμο</string>
     <string name="core_settings_glide_lookahead_off_label">Απενεργοποιημένο</string>

@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Serveren sendte ikke filen. Fejlkoden er HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Den ordliste er tom eller ulæselig.</string>
+    <string name="core_pred_wordlist_memory_error">Denne enhed har ikke nok hukommelse til en ordliste af denne størrelse. Vælg en mindre størrelse.</string>
     <string name="core_pred_wordlist_no_space_error">Der er ikke nok lagerplads på din enhed. Slet nogle filer, og prøv derefter igen.</string>
     <string name="core_pred_wordlist_save_error">Appen kan ikke gemme ordlisten. Prøv igen.</string>
     <string name="core_pred_wordlist_size_all_label">Alt</string>

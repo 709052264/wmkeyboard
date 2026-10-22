@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">格式</string>
     <string name="core_content_selection_macro_grammar">语法</string>
     <string name="core_content_selection_macro_lines_bullet">项目符号</string>
+    <string name="core_content_selection_macro_lines_checkbox">复选框</string>
     <string name="core_content_selection_macro_lines_dedupe">唯一</string>
+    <string name="core_content_selection_macro_lines_down">向下移动</string>
     <string name="core_content_selection_macro_lines_number">编号</string>
     <string name="core_content_selection_macro_lines_sort">排序</string>
+    <string name="core_content_selection_macro_lines_up">上移</string>
     <string name="core_content_selection_macro_map">地图</string>
     <string name="core_content_selection_macro_open">打开</string>
     <string name="core_content_selection_macro_qr">二维码</string>
     <string name="core_content_selection_macro_read_aloud">朗读</string>
+    <string name="core_content_selection_macro_repeat">重复</string>
     <string name="core_content_selection_macro_replace">替换</string>
     <string name="core_content_selection_macro_save_note">保存为笔记</string>
     <string name="core_content_selection_macro_search">搜索</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">翻译</string>
     <string name="core_content_selection_macro_url_decode">解码</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">该文件中还有 %1$d 个没有快捷方式的单词。要将其添加到您的词库中，请从个人词典中打开该文件。</item>
         <item quantity="other">该文件中还有 %1$d 个没有快捷方式的单词。要将其添加到您的词库中，请从个人词典中打开该文件。</item>

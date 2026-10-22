@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">El motor del generador d\'adhesius no s\'ha descarregat. Comproveu la connexió i torneu-ho a provar.</string>
+    <string name="core_intel_languagetool_error_account">LanguageTool no ha acceptat el nom d\'usuari i la clau API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">El servidor de LanguageTool ha arribat al límit de comprovacions permeses per a aquest telèfon en un minut. Edita el text d\'aquí a una estona per tornar-ho a provar (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool no ha pogut comprovar aquest text. És possible que el servidor no tingui aquest idioma (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">El text és massa llarg per a aquest servidor de LanguageTool (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">El fitxer descarregat no és l\'esperat, per la qual cosa s\'ha suprimit. Torneu a descarregar-lo.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Aquest model està restringit. Afegeix primer el teu testimoni de Hugging Face.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face ha retornat l\'estat HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Accepteu la llicència del model a la seva pàgina de Hugging Face. Després torneu-ho a provar.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">La connexió s\'ha interromput durant la descàrrega. Premeu Reprèn per continuar.</string>
     <string name="core_intel_llm_engine_error_gpu">El model ha fallat a la GPU. La memòria de la GPU és molt més petita que la memòria del sistema. El següent intent utilitzarà la CPU. Per utilitzar sempre la CPU, estableix el Càlcul a CPU a la configuració. També pots seleccionar un model més petit.</string>
     <string name="core_intel_llm_engine_error_load">El model no s\'ha carregat. Probablement el fitxer està malmès. Suprimiu el model a la configuració i torneu-lo a descarregar.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Aquest model necessita uns %1$s de memòria i en queden %2$s lliures. Tanca altres aplicacions o selecciona un model més petit.</string>
     <string name="core_intel_llm_engine_error_memory">El model s\'ha quedat sense memòria o ha fallat. Selecciona un model més petit.</string>
+    <string name="core_intel_llm_engine_error_npu">El model ha fallat a l\'NPU. El següent intent utilitzarà la GPU o la CPU. Un text llarg pot ser massa per a la compilació NPU d\'un model.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Només la versió NPU d\'aquest model és al teu telèfon, i només la NPU pot executar-lo. Estableix el càlcul a NPU, o descarrega la versió estàndard del model a la configuració.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">La versió NPU d\'aquest model no s\'ha iniciat al telèfon. Per utilitzar el model a la GPU o a la CPU, baixa\'n la versió estàndard des de la configuració.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">La part NPU del teclat no està a punt. Si s\'està descarregant, torneu-ho a provar en un moment. Per utilitzar la GPU o la CPU ara, descarregueu la versió estàndard del model a la configuració.</string>
+    <string name="core_intel_llm_engine_error_template">No s\'ha pogut llegir la plantilla de xat d\'aquest model. Prova un altre fitxer GGUF del model.</string>
+    <string name="core_intel_llm_engine_error_too_long">El text és massa llarg per a aquest model. Utilitzeu un text més curt o augmenteu la mida del context a la configuració.</string>
+    <string name="core_intel_llm_engine_error_vision">Aquest model no pot llegir imatges. Gemma 4 sí que pot.</string>
+    <string name="core_intel_llm_llama_missing">Aquesta compilació no pot executar models GGUF: falta la part llama.cpp.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Una Gemma petita de la generació anterior. Té bona qualitat i un context de 4K tokens.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">La Gemma més petita de Google. És ràpida en tots els dispositius.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">La generació Gemma més nova. Ofereix una qualitat superior al vostre dispositiu.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">El model més gran. Escriu millor, però necessita un dispositiu potent.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Una Gemma petita de la generació anterior. No cal cap testimoni d\'Hugging Face per a aquest fitxer.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">El Llama petit de Meta. Escriu un anglès clar i segueix bé les instruccions.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Llegeix bé imatges i captures de pantalla, i també el text que contenen. Necessita un dispositiu d\'alta gamma. La seva llicència només permet l\'ús per a recerca.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Un model recent de grandària mitjana que pensa abans de respondre. Necessita un dispositiu de gamma mitjana.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Petit i ràpid. És bo per a reescriptures ràpides en un dispositiu bàsic.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Un model molt petit que pot llegir imatges. Descriu una imatge, però sovint llegeix malament el text d\'una captura de pantalla.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Un model d\'ús general que encara cap en un dispositiu bàsic.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Clarament més intel·ligent que els models inferiors a 1B. Necessita un dispositiu de gamma mitjana.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Un model petit recent. La qualitat és alta per a la seva mida.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">No provat</string>
     <string name="core_intel_ocr_download_error_http">El servidor de GitHub no ha enviat el fitxer. El codi d\'error és HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">La connexió s\'ha interromput durant la descàrrega. Torneu-ho a provar.</string>
+    <string name="core_intel_ocr_download_error_mismatch">El fitxer descarregat no és l\'esperat. Torna-ho a provar.</string>
     <string name="core_intel_ocr_download_error_no_space">No hi ha prou espai d\'emmagatzematge al dispositiu. Primer has d\'alliberar uns %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">Google Play no ha proporcionat el lector de text. Comprova la connexió i que la Play Store funcioni, i torna-ho a intentar.</string>
     <string name="core_intel_ocr_pack_error_broken">Les dades d\'idioma baixades estan malmeses, per la qual cosa l\'escàner no les ha pogut utilitzar. Torneu-les a baixar.</string>
+    <string name="core_intel_semantic_module_error">La part del motor de cerca no s\'ha descarregat. Comproveu la connexió i torneu-ho a provar.</string>
+    <string name="core_intel_semantic_no_source">Els fitxers del model només es publiquen a GitHub. Torneu a configurar el repositori de dades a GitHub a Servidors.</string>
+    <string name="core_intel_xlit_module_error">La part que executa el model no s\'ha pogut descarregar. Comproveu la connexió i torneu-ho a provar.</string>
 </resources>

@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Le script a échoué.</string>
     <string name="core_plugins_error_script_missing">Le script pour ce plugin est manquant.</string>
     <string name="core_plugins_error_turned_off">Ce plugin est désactivé.</string>
+    <string name="core_plugins_permission_reminders_label">Afficher les rappels aux heures que vous avez définies</string>
     <string name="core_plugins_permission_storage_label">Enregistrer des données sur votre appareil</string>
     <string name="core_plugins_reject_bad_encoding">« %1$s » contient un script qui n\'est pas un texte UTF-8 valide.</string>
     <string name="core_plugins_reject_bad_id">Cet identifiant de plugin n\'est pas valide. Un identifiant doit comporter entre 3 et 64 caractères. Il peut contenir des lettres minuscules, des chiffres, des points, des tirets et des traits de soulignement.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">« %1$s » n\'indique pas sa version.</string>
     <string name="core_plugins_reject_script_too_large">« %1$s » contient un script supérieur à %2$d Ko.</string>
     <string name="core_plugins_reject_unknown_permission">Cette version de WM Keyboard ne connaît pas l\'autorisation « %1$s ». L\'application ne peut pas vous dire ce que « %2$s » est autorisé à faire.</string>
+    <string name="core_plugins_reminders_channel_body">Rappels qu\'un plugin a demandé à l\'application d\'afficher, aux moments que vous avez définis dans le plugin. Le titre de chacun est le nom du plugin.</string>
+    <string name="core_plugins_reminders_channel_title">Rappels de plugins</string>
     <string name="core_plugins_stopped_cancelled">L\'application a arrêté ce plugin.</string>
     <string name="core_plugins_stopped_deadline">Ce plugin a pris trop de temps. L\'application l\'a arrêté.</string>
     <string name="core_plugins_stopped_instructions">Ce plugin a effectué trop de tâches simultanément. L\'application l\'a arrêté.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Ce plugin a cessé de répondre à nouveau. L\'application l\'a désactivé.</string>
     <string name="core_plugins_stopped_recursion">Ce plugin s\'est appelé lui-même trop de fois. L\'application l\'a arrêté.</string>
     <string name="core_plugins_stopped_unexpected">Ce plugin s\'est arrêté de manière inattendue.</string>
+    <string name="core_plugins_ui_date_clear">Effacer</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min plus tôt</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 h</string>
+    <string name="core_plugins_ui_date_hour_later">+1 h</string>
+    <string name="core_plugins_ui_date_later">%1$d min plus tard</string>
+    <string name="core_plugins_ui_date_next_day">Jour suivant</string>
+    <string name="core_plugins_ui_date_none">Aucune date</string>
+    <string name="core_plugins_ui_date_previous_day">Jour précédent</string>
+    <string name="core_plugins_ui_date_set">Définir la date</string>
+    <string name="core_plugins_ui_date_today">Aujourd\'hui</string>
     <string name="core_plugins_ui_insert_action">Insérer</string>
     <string name="core_plugins_ui_repair_no_type">Un widget n\'a pas indiqué son type.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Une liste de widgets contenait un élément qui n\'est pas un widget.</string>

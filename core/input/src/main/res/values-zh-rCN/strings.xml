@@ -56,4 +56,22 @@
         <item quantity="one">应用已将其识别为包含 %1$d 条词条的 Rime 码表。输入代码，然后从建议栏中选择字符。</item>
         <item quantity="other">应用已将其识别为包含 %1$d 条词条的 Rime 码表。输入代码，然后从建议栏中选择字符。</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Mozc 自带的系统词典，包含连接代价、分词器和建议过滤器。Mozc 引擎使用此词典进行转换；内置引擎不使用它。</string>
+    <string name="core_input_mozc_pack_title">Mozc 词典</string>
+    <string name="core_input_rime_pack_base_subtitle">每个 RIME 方案都会使用的标点符号、符号、词频表以及简繁转换。随第一个方案一起下载。</string>
+    <string name="core_input_rime_pack_base_title">RIME 基础包</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">基于标准大千键位的 RIME 注音方案，使用地球拼音词库。</string>
+    <string name="core_input_rime_pack_bopomofo_title">注音 (Bopomofo)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">RIME 第五代仓颉输入方案，支持字和词组。</string>
+    <string name="core_input_rime_pack_cangjie5_title">仓颉五代 (Cangjie 5)</string>
+    <string name="core_input_rime_pack_ice_subtitle">一个大型现代简体中文词库，支持拼音、双拼和九宫格变体。编译需要一分钟或更长时间。</string>
+    <string name="core_input_rime_pack_ice_title">雾凇拼音 (Rime Ice)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">用于粤语的 rime-cantonese 方案，包含其词汇和短语列表。</string>
+    <string name="core_input_rime_pack_jyutping_title">粤拼 (Jyutping)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">RIME 自带的拼音方案，包含用于反查的笔画方案。</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">朙月拼音</string>
+    <string name="core_input_zinnia_ja_pack_title">日文手写模型</string>
+    <string name="core_input_zinnia_pack_subtitle">Tegaki 项目的 zinnia 模型，这是一款离线手写识别器，可读取 ML Kit 无法识别的中文和日文。</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">简体中文手写模型</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">繁体中文手写模型</string>
 </resources>

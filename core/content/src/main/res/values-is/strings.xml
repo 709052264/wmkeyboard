@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Snið</string>
     <string name="core_content_selection_macro_grammar">Málfræði</string>
     <string name="core_content_selection_macro_lines_bullet">Punktar</string>
+    <string name="core_content_selection_macro_lines_checkbox">Gátreitir</string>
     <string name="core_content_selection_macro_lines_dedupe">Einstakt</string>
+    <string name="core_content_selection_macro_lines_down">Færa niður</string>
     <string name="core_content_selection_macro_lines_number">Númer</string>
     <string name="core_content_selection_macro_lines_sort">Raða</string>
+    <string name="core_content_selection_macro_lines_up">Færa upp</string>
     <string name="core_content_selection_macro_map">Kortleggja</string>
     <string name="core_content_selection_macro_open">Opna</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Tala</string>
+    <string name="core_content_selection_macro_repeat">Endurtaka</string>
     <string name="core_content_selection_macro_replace">Skipta út</string>
     <string name="core_content_selection_macro_save_note">Vista sem minnismiða</string>
     <string name="core_content_selection_macro_search">Leita</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Þýða</string>
     <string name="core_content_selection_macro_url_decode">Afkóða</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">Skráin inniheldur einnig %1$d orð án flýtileiðar. Til að bæta því við orðin þín, opnaðu skrána úr persónulegu orðabókinni.</item>
         <item quantity="other">Skráin inniheldur einnig %1$d orð án flýtileiðar. Til að bæta þeim við orðin þín, opnaðu skrána úr persónulegu orðabókinni.</item>

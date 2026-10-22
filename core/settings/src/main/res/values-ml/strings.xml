@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">താഴെ വലത് ഭാഗം</string>
     <string name="core_settings_board_corner_top_left_label">മുകളിൽ ഇടത്</string>
     <string name="core_settings_board_corner_top_right_label">മുകളിൽ വലത് വശം</string>
+    <string name="core_settings_clip_shortcut_edit_label">എഡിറ്റ് ചെയ്യുക</string>
+    <string name="core_settings_clip_shortcut_edited_label">എഡിറ്റ് ചെയ്ത അടയാളം</string>
+    <string name="core_settings_clip_shortcut_none_label">ഒന്നുമില്ല</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR കോഡ്</string>
+    <string name="core_settings_clip_shortcut_select_label">തിരഞ്ഞെടുക്കുക</string>
     <string name="core_settings_clip_swipe_pin_left_label">ഇടത്തേക്ക് പിൻ ചെയ്യുക, വലത്തേക്ക് നീക്കം ചെയ്യുക</string>
     <string name="core_settings_clip_swipe_pin_off_label">രണ്ട് വഴികളിലൂടെയും ഡിലീറ്റ് ചെയ്യാം</string>
     <string name="core_settings_clip_swipe_pin_right_label">വലത്തേക്ക് പിൻ ചെയ്യുന്നു, ഇടത്തേക്ക് ഡിലീറ്റ് ചെയ്യുന്നു</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">ആവേശഭരിതം</string>
     <string name="core_settings_deepl_style_friendly_label">സൗഹൃദപരമായ (Friendly)</string>
     <string name="core_settings_deepl_style_simple_label">ലളിതം</string>
+    <string name="core_settings_function_keys_always_label">എപ്പോഴും</string>
+    <string name="core_settings_function_keys_pick_mode_label">പിക്ക് മോഡിൽ</string>
     <string name="core_settings_glide_commit_color_always_label">എപ്പോഴും</string>
     <string name="core_settings_glide_commit_color_confident_label">ഉറപ്പുള്ളപ്പോൾ</string>
     <string name="core_settings_glide_commit_color_guess_label">ഏതെങ്കിലും നേരത്തെയുള്ള വാക്ക്</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">സ്ട്രിപ്പ്, പിൽ, കീകൾ</string>
     <string name="core_settings_glide_commit_scope_pill_label">സ്ട്രിപ്പും പില്ലും</string>
     <string name="core_settings_glide_commit_scope_strip_label">സ്ട്രിപ്പ്</string>
+    <string name="core_settings_glide_engine_built_in_label">ഇൻ-ബിൽറ്റ്</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO സ്വൈപ്പ് (ഇംഗ്ലീഷ്, QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">ഗൂഗിളിന്റെ ജെസ്റ്റർ ലൈബ്രറി (ഇറക്കുമതി ചെയ്തത്)</string>
     <string name="core_settings_glide_lookahead_confident_label">ഉറപ്പുള്ളപ്പോൾ</string>
     <string name="core_settings_glide_lookahead_eager_label">ഈഗർ</string>
     <string name="core_settings_glide_lookahead_off_label">ഓഫ്</string>

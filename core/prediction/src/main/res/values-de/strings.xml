@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">Der Server hat die Datei nicht gesendet. Der Fehlercode ist HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">Diese Wortliste ist leer oder nicht lesbar.</string>
+    <string name="core_pred_wordlist_memory_error">Dieses Gerät hat nicht genügend Speicher für eine Wortliste dieser Größe. Wählen Sie eine kleinere Größe.</string>
     <string name="core_pred_wordlist_no_space_error">Auf Ihrem Gerät ist nicht genügend Speicherplatz verfügbar. Löschen Sie einige Dateien und versuchen Sie es erneut.</string>
     <string name="core_pred_wordlist_save_error">Die App kann die Wortliste nicht speichern. Versuchen Sie es erneut.</string>
     <string name="core_pred_wordlist_size_all_label">Alles</string>

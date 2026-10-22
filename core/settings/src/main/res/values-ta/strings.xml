@@ -11,6 +11,11 @@
     <string name="core_settings_board_corner_bottom_right_label">கீழ் வலது</string>
     <string name="core_settings_board_corner_top_left_label">மேல் இடது</string>
     <string name="core_settings_board_corner_top_right_label">மேல் வலது</string>
+    <string name="core_settings_clip_shortcut_edit_label">திருத்து</string>
+    <string name="core_settings_clip_shortcut_edited_label">திருத்தப்பட்ட குறி</string>
+    <string name="core_settings_clip_shortcut_none_label">எதுவுமில்லை</string>
+    <string name="core_settings_clip_shortcut_qr_label">QR குறியீடு</string>
+    <string name="core_settings_clip_shortcut_select_label">தேர்ந்தெடு</string>
     <string name="core_settings_clip_swipe_pin_left_label">இடதுபுறம் பின், வலதுபுறம் நீக்கு</string>
     <string name="core_settings_clip_swipe_pin_off_label">இரு வழிகளிலும் நீக்கு</string>
     <string name="core_settings_clip_swipe_pin_right_label">வலது பின் (Pin), இடது நீக்கு</string>
@@ -36,6 +41,8 @@
     <string name="core_settings_deepl_style_enthusiastic_label">ஆர்வமுள்ள</string>
     <string name="core_settings_deepl_style_friendly_label">நட்புமுறை</string>
     <string name="core_settings_deepl_style_simple_label">எளிமையானது</string>
+    <string name="core_settings_function_keys_always_label">எப்போதும்</string>
+    <string name="core_settings_function_keys_pick_mode_label">தேர்வு பயன்முறையில்</string>
     <string name="core_settings_glide_commit_color_always_label">எப்போதும்</string>
     <string name="core_settings_glide_commit_color_confident_label">உறுதியாக இருக்கும்போது</string>
     <string name="core_settings_glide_commit_color_guess_label">ஏதேனும் ஒரு ஆரம்ப வார்த்தை</string>
@@ -43,6 +50,9 @@
     <string name="core_settings_glide_commit_scope_keys_label">பட்டை, மாத்திரை மற்றும் விசைகள்</string>
     <string name="core_settings_glide_commit_scope_pill_label">ஸ்ட்ரிப் மற்றும் பில்</string>
     <string name="core_settings_glide_commit_scope_strip_label">ஸ்ட்ரிப்</string>
+    <string name="core_settings_glide_engine_built_in_label">உள்ளமைக்கப்பட்டவை</string>
+    <string name="core_settings_glide_engine_futo_label">FUTO Swipe (ஆங்கிலம், QWERTY)</string>
+    <string name="core_settings_glide_engine_google_label">Google-இன் சைகை லைப்ரரி (இறக்குமதி செய்யப்பட்டது)</string>
     <string name="core_settings_glide_lookahead_confident_label">உறுதியாக இருக்கும்போது</string>
     <string name="core_settings_glide_lookahead_eager_label">ஆர்வமுள்ள</string>
     <string name="core_settings_glide_lookahead_off_label">ஆஃப்</string>

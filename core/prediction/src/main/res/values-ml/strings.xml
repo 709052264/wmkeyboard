@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">സെർവർ ഫയൽ അയച്ചില്ല. പിശക് കോഡ് HTTP %1$s ആണ്.</string>
     <string name="core_pred_wordlist_malformed_error">ആ വേഡ് ലിസ്റ്റ് ശൂന്യമാണ് അല്ലെങ്കിൽ വായിക്കാൻ കഴിയില്ല.</string>
+    <string name="core_pred_wordlist_memory_error">ഈ വലിപ്പത്തിലുള്ള വേഡ് ലിസ്റ്റ് സൂക്ഷിക്കാൻ ഈ ഉപകരണത്തിൽ മതിയായ മെമ്മറിയില്ല. ചെറിയ വലിപ്പം തിരഞ്ഞെടുക്കുക.</string>
     <string name="core_pred_wordlist_no_space_error">നിങ്ങളുടെ ഉപകരണത്തിൽ മതിയായ സ്റ്റോറേജ് ഇല്ല. ചില ഫയലുകൾ ഇല്ലാതാക്കിയ ശേഷം വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_pred_wordlist_save_error">ആപ്പിന് വേഡ് ലിസ്റ്റ് സേവ് ചെയ്യാൻ കഴിയില്ല. വീണ്ടും ശ്രമിക്കുക.</string>
     <string name="core_pred_wordlist_size_all_label">എല്ലാം</string>

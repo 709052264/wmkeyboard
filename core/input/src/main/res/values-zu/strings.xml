@@ -56,4 +56,22 @@
         <item quantity="one">Uhlelo lokusebenza lufunde lokhu njengetafula lekhodi ye-Rime elinokufakiwe okungu-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emugqeni wesiphakamiso.</item>
         <item quantity="other">Uhlelo lokusebenza lufunde lokhu njengetafula lekhodi ye-Rime elinokufakiwe okungu-%1$d. Thayipha ikhodi, bese ukhetha uhlamvu emugqeni wesiphakamiso.</item>
     </plurals>
+    <string name="core_input_mozc_pack_subtitle">Isichazamazwi sohlelo uMozc uqobo, esinezindleko zaso zokuxhuma, isihlukanisi namahluzo eziphakamiso. Injini ka-Mozc iguqulela ngayo; injini eyakhelwe ngaphakathi ayisebenzisi.</string>
+    <string name="core_input_mozc_pack_title">Isichazamazwi se-Mozc</string>
+    <string name="core_input_rime_pack_base_subtitle">Izimpawu zokuloba, izimpawu, ithebula lemvamisa yamagama kanye nokuguqulwa okwenziwe lula nokwendabuko okusetshenziswa yizo zonke izikimu ze-RIME. Kulandwe nesikimu sokuqala.</string>
+    <string name="core_input_rime_pack_base_title">Izinto ezibalulekile ze-RIME</string>
+    <string name="core_input_rime_pack_bopomofo_subtitle">Uhlelo lwe-Zhuyin lwe-RIME kumephu yokhiye ejwayelekile ye-Dachen, nesichazamazwi se-Terra Pinyin.</string>
+    <string name="core_input_rime_pack_bopomofo_title">Bopomofo (注音)</string>
+    <string name="core_input_rime_pack_cangjie5_subtitle">Isikimu se-Cangjie sesizukulwane sesihlanu se-RIME, izinhlamvu nemishwana.</string>
+    <string name="core_input_rime_pack_cangjie5_title">Cangjie 5 (倉頡五代)</string>
+    <string name="core_input_rime_pack_ice_subtitle">Isilulumagama sesiShayina esenziwe saba lula (Simplified Chinese) samanje esikhulu se-Pinyin, esinokuhlukahluka kwe-Double Pinyin kanye nokhiye ongu-9. Ukusihlanganisa kuthatha umzuzu owodwa noma ngaphezulu.</string>
+    <string name="core_input_rime_pack_ice_title">Rime Ice (雾凇拼音)</string>
+    <string name="core_input_rime_pack_jyutping_subtitle">I-schema ye-rime-cantonese yesi-Cantonese, enezinhlu zayo zamagama nemisho.</string>
+    <string name="core_input_rime_pack_jyutping_title">Jyutping (粵拼)</string>
+    <string name="core_input_rime_pack_luna_pinyin_subtitle">I-schema se-Pinyin se-RIME, ne-schema sokushaywa esibheka ngaso izinhlamvu.</string>
+    <string name="core_input_rime_pack_luna_pinyin_title">I-Luna Pinyin (朙月拼音)</string>
+    <string name="core_input_zinnia_ja_pack_title">Imodeli yokubhala ngesandla yesi-Japanese</string>
+    <string name="core_input_zinnia_pack_subtitle">Imodeli yephrojekthi ye-Tegaki ye-zinnia, isitholi sokubhala ngesandla esingaxhunyiwe ku-inthanethi esifunda isiShayina nesiJapane lapho i-ML Kit ingakwazi khona.</string>
+    <string name="core_input_zinnia_zh_hans_pack_title">Imodeli yokubhala ngesandla yesiShayina esenziwe lula</string>
+    <string name="core_input_zinnia_zh_hant_pack_title">Imodeli yokubhala ngesandla yesiShayina sendabuko</string>
 </resources>

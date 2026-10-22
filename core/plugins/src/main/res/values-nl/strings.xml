@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">Het script is mislukt.</string>
     <string name="core_plugins_error_script_missing">Het script voor die plugin ontbreekt.</string>
     <string name="core_plugins_error_turned_off">Die plug-in is uitgeschakeld.</string>
+    <string name="core_plugins_permission_reminders_label">Toon herinneringen op tijden die je erin hebt ingesteld</string>
     <string name="core_plugins_permission_storage_label">Gegevens opslaan op uw apparaat</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” bevat een script dat geen geldige UTF-8-tekst is.</string>
     <string name="core_plugins_reject_bad_id">Deze plugin heeft een id die niet geldig is. Een id is 3 tot 64 tekens lang. Een id kan kleine letters, cijfers, punten, koppeltekens en underscores bevatten.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” geeft niet aan welke versie het is.</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” heeft een script dat groter is dan %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">Deze versie van WM Keyboard kent de toestemming “%1$s” niet. De app kan je niet vertellen wat “%2$s” mag doen.</string>
+    <string name="core_plugins_reminders_channel_body">Herinneringen die een plug-in aan de app heeft gevraagd om te tonen, op tijden die je in de plug-in hebt ingesteld. De titel van elk is de naam van de plug-in.</string>
+    <string name="core_plugins_reminders_channel_title">Plugin-herinneringen</string>
     <string name="core_plugins_stopped_cancelled">De app heeft deze plug-in gestopt.</string>
     <string name="core_plugins_stopped_deadline">Deze plug-in duurde te lang. De app heeft hem gestopt.</string>
     <string name="core_plugins_stopped_instructions">Deze plug-in deed te veel werk tegelijk. De app heeft deze gestopt.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Deze plug-in reageerde opnieuw niet. De app heeft deze uitgeschakeld.</string>
     <string name="core_plugins_stopped_recursion">Deze plug-in riep zichzelf te vaak aan. De app heeft deze gestopt.</string>
     <string name="core_plugins_stopped_unexpected">Deze plug-in is onverwacht gestopt.</string>
+    <string name="core_plugins_ui_date_clear">Wissen</string>
+    <string name="core_plugins_ui_date_earlier">%1$d min eerder</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 u</string>
+    <string name="core_plugins_ui_date_hour_later">+1 u</string>
+    <string name="core_plugins_ui_date_later">%1$d min later</string>
+    <string name="core_plugins_ui_date_next_day">Volgende dag</string>
+    <string name="core_plugins_ui_date_none">Geen datum</string>
+    <string name="core_plugins_ui_date_previous_day">Vorige dag</string>
+    <string name="core_plugins_ui_date_set">Datum instellen</string>
+    <string name="core_plugins_ui_date_today">Vandaag</string>
     <string name="core_plugins_ui_insert_action">Invoegen</string>
     <string name="core_plugins_ui_repair_no_type">Een widget gaf niet aan wat voor soort het is.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Een widgetlijst bevatte iets dat geen widget is.</string>

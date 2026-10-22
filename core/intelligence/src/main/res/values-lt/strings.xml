@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">Lipdukų generatoriaus variklis neatsisiuntė. Patikrinkite ryšį ir bandykite dar kartą.</string>
+    <string name="core_intel_languagetool_error_account">„LanguageTool“ nepriėmė vartotojo vardo ir API rakto (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">„LanguageTool“ serveris gavo tiek užklausų iš šio telefono, kiek leidžiama per minutę. Redaguokite tekstą po kurio laiko, kad patikrintumėte dar kartą (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">„LanguageTool“ negalėjo patikrinti šio teksto. Gali būti, kad serveryje nėra šios kalbos (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">Tekstas per ilgas šiam „LanguageTool“ serveriui (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">Atsisiųstas failas neatitinka tikėtino, todėl jis buvo ištrintas. Atsisiųskite dar kartą.</string>
     <string name="core_intel_llm_download_error_gated_no_token">Šis modelis yra ribojamas. Pirmiausia pridėkite savo „Hugging Face“ prieigos raktą.</string>
     <string name="core_intel_llm_download_error_http">„Hugging Face“ grąžino HTTP būseną %1$s.</string>
     <string name="core_intel_llm_download_error_licence">Sutikite su modelio licencija jo „Hugging Face“ puslapyje. Tada bandykite dar kartą.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">Atsisiuntimo metu ryšys nutrūko. Paspauskite „Tęsti“, kad tęstumėte.</string>
     <string name="core_intel_llm_engine_error_gpu">Modelis nepavyko naudojant GPU. GPU atmintis yra daug mažesnė nei sistemos atmintis. Kitas bandymas naudos CPU. Norėdami visada naudoti CPU, nustatymuose nustatykite „Compute“ į „CPU“. Taip pat galite pasirinkti mažesnį modelį.</string>
     <string name="core_intel_llm_engine_error_load">Nepavyko įkelti modelio. Failas tikriausiai sugadintas. Ištrinkite modelį nustatymuose ir atsisiųskite jį dar kartą.</string>
+    <string name="core_intel_llm_engine_error_low_memory">Šiam modeliui reikia apie %1$s atminties, o laisvos yra %2$s. Uždarykite kitas programas arba pasirinkite mažesnį modelį.</string>
     <string name="core_intel_llm_engine_error_memory">Modeliui pritrūko atminties arba įvyko klaida. Pasirinkite mažesnį modelį.</string>
+    <string name="core_intel_llm_engine_error_npu">Modelis nepavyko naudojant NPU. Kitą kartą bus naudojamas GPU arba CPU. Ilgas tekstas gali būti per sudėtingas NPU modelio versijai.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">Jūsų telefone yra tik NPU šio modelio versija, ir jį gali paleisti tik NPU. Nustatykite skaičiavimą į NPU arba nustatymuose atsisiųskite standartinę modelio versiją.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">Šio modelio NPU versija nepasileido jūsų telefone. Norėdami naudoti modelį per GPU arba CPU, atsisiųskite standartinę jo versiją nustatymuose.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">Klaviatūros NPU dalis neparuošta. Jei vyksta atsisiuntimas, bandykite dar kartą vėliau. Norėdami naudoti GPU arba CPU dabar, nustatymuose atsisiųskite standartinę modelio versiją.</string>
+    <string name="core_intel_llm_engine_error_template">Nepavyko perskaityti šio modelio pokalbio šablono. Išbandykite kitą modelio GGUF failą.</string>
+    <string name="core_intel_llm_engine_error_too_long">Tekstas per ilgas šiam modeliui. Naudokite trumpesnį tekstą arba padidinkite konteksto dydį nustatymuose.</string>
+    <string name="core_intel_llm_engine_error_vision">Šis modelis negali skaityti paveikslėlių. „Gemma 4“ gali.</string>
+    <string name="core_intel_llm_llama_missing">Ši versija negali paleisti GGUF modelių: trūksta „llama.cpp“ dalies.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Nedidelis „Gemma“ modelis iš ankstesnės kartos. Pasižymi gera kokybe ir 4K žetonų kontekstu.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">Mažiausias „Gemma“ modelis iš „Google“. Jis veikia greitai visuose įrenginiuose.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">Naujausia „Gemma“ karta. Užtikrina aukščiausią kokybę jūsų įrenginyje.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">Didžiausias modelis. Jis rašo geriausiai, bet jam reikia galingo įrenginio.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">Nedidelė „Gemma“ iš ankstesnės kartos. Šiam failui nereikia „Hugging Face“ prieigos rakto.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">Mažas „Meta“ „Llama“ modelis. Jis rašo aiškia anglų kalba ir gerai laikosi nurodymų.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">Gerai nuskaito nuotraukas ir ekrano kopijas, taip pat jose esantį tekstą. Reikalingas galingas įrenginys. Licencija leidžia naudoti tik moksliniams tyrimams.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">Naujas vidutinio dydžio modelis, kuris apgalvoja atsakymą prieš jį pateikdamas. Jam reikalingas vidutinės klasės įrenginys.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">Mažas ir greitas. Puikiai tinka greitam perrašymui pagrindiniame įrenginyje.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">Labai mažas modelis, galintis skaityti paveikslėlius. Jis aprašo paveikslėlį, bet dažnai neteisingai nuskaito tekstą ekrano kopijoje.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">Bendrosios paskirties modelis, kuris vis dar telpa pagrindiniame įrenginyje.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">Akivaizdžiai protingesnis už mažesnius nei 1B modelius. Reikalingas vidutinės klasės įrenginys.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">Naujas nedidelis modelis. Kokybė yra aukšta, atsižvelgiant į jo dydį.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">Neišbandyta</string>
     <string name="core_intel_ocr_download_error_http">„GitHub“ serveris neatsiuntė failo. Klaidos kodas yra HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">Atsisiuntimo metu ryšys nutrūko. Bandykite dar kartą.</string>
+    <string name="core_intel_ocr_download_error_mismatch">Atsisiųstas failas nėra tas, kurio tikėtasi. Bandykite dar kartą.</string>
     <string name="core_intel_ocr_download_error_no_space">Jūsų įrenginyje nepakanka vietos. Pirmiausia turite atlaisvinti apie %1$s MB.</string>
+    <string name="core_intel_ocr_module_error">„Google Play“ nepateikė teksto skaitytuvo. Patikrinkite ryšį ir „Play Store“ veikimą, tada bandykite dar kartą.</string>
     <string name="core_intel_ocr_pack_error_broken">Atsisiųsti kalbos duomenys yra sugadinti, todėl skaitytuvas negalėjo jų naudoti. Atsisiųskite juos dar kartą.</string>
+    <string name="core_intel_semantic_module_error">Paieškos sistemos dalis nebuvo atsisiųsta. Patikrinkite ryšį ir bandykite dar kartą.</string>
+    <string name="core_intel_semantic_no_source">Modelio failai publikuojami tik GitHub svetainėje. Grąžinkite duomenų saugyklą į GitHub nustatymų skyriuje Serveriai.</string>
+    <string name="core_intel_xlit_module_error">Nepavyko atsisiųsti modelį vykdančios dalies. Patikrinkite ryšį ir bandykite dar kartą.</string>
 </resources>

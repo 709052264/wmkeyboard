@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">اسکرپٹ ناکام ہو گیا۔</string>
     <string name="core_plugins_error_script_missing">اس پلگ ان کے لیے اسکرپٹ غائب ہے۔</string>
     <string name="core_plugins_error_turned_off">وہ پلگ ان بند ہے۔</string>
+    <string name="core_plugins_permission_reminders_label">آپ کے مقرر کردہ اوقات پر یاد دہانیاں دکھائیں</string>
     <string name="core_plugins_permission_storage_label">اپنے آلے پر ڈیٹا محفوظ کریں</string>
     <string name="core_plugins_reject_bad_encoding">“%1$s” میں ایک اسکرپٹ ہے جو درست UTF-8 متن نہیں ہے۔</string>
     <string name="core_plugins_reject_bad_id">اس پلگ ان کی ایک آئی ڈی ہے جو درست نہیں ہے۔ ایک آئی ڈی 3 سے 64 حروف لمبی ہوتی ہے۔ ایک آئی ڈی میں چھوٹے حروف، نمبر، نقطے، ڈیش اور انڈر سکور ہو سکتے ہیں۔</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">“%1$s” یہ نہیں بتاتا کہ اس کا ورژن کیا ہے۔</string>
     <string name="core_plugins_reject_script_too_large">“%1$s” کی اسکرپٹ %2$d KB سے بڑی ہے۔</string>
     <string name="core_plugins_reject_unknown_permission">WM کی بورڈ کا یہ ورژن اجازت \"%1$s\" کو نہیں جانتا۔ ایپ آپ کو یہ نہیں بتا سکتی کہ \"%2$s\" کو کیا کرنے کی اجازت ہے۔</string>
+    <string name="core_plugins_reminders_channel_body">وہ یاد دہانیاں جو ایک پلگ ان نے ایپ کو دکھانے کے لیے کہا، ان اوقات پر جو آپ نے پلگ ان میں سیٹ کیے ہیں۔ ہر ایک کا عنوان پلگ ان کا نام ہے۔</string>
+    <string name="core_plugins_reminders_channel_title">پلگ ان کی یاد دہانیاں</string>
     <string name="core_plugins_stopped_cancelled">ایپ نے اس پلگ ان کو روک دیا۔</string>
     <string name="core_plugins_stopped_deadline">اس پلگ ان نے بہت زیادہ وقت لیا۔ ایپ نے اسے روک دیا۔</string>
     <string name="core_plugins_stopped_instructions">اس پلگ ان نے ایک وقت میں بہت زیادہ کام کیا۔ ایپ نے اسے روک دیا۔</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">یہ پلگ ان دوبارہ جواب دینا بند کر گیا ہے۔ ایپ نے اسے بند کر دیا ہے۔</string>
     <string name="core_plugins_stopped_recursion">اس پلگ ان نے خود کو بہت زیادہ بار کال کیا۔ ایپ نے اسے روک دیا۔</string>
     <string name="core_plugins_stopped_unexpected">یہ پلگ ان غیر متوقع طور پر رک گیا۔</string>
+    <string name="core_plugins_ui_date_clear">صاف کریں</string>
+    <string name="core_plugins_ui_date_earlier">%1$d منٹ پہلے</string>
+    <string name="core_plugins_ui_date_hour_earlier">1 گھنٹہ پہلے</string>
+    <string name="core_plugins_ui_date_hour_later">+1 گھنٹہ</string>
+    <string name="core_plugins_ui_date_later">%1$d منٹ بعد</string>
+    <string name="core_plugins_ui_date_next_day">اگلا دن</string>
+    <string name="core_plugins_ui_date_none">کوئی تاریخ نہیں</string>
+    <string name="core_plugins_ui_date_previous_day">پچھلا دن</string>
+    <string name="core_plugins_ui_date_set">تاریخ سیٹ کریں</string>
+    <string name="core_plugins_ui_date_today">آج</string>
     <string name="core_plugins_ui_insert_action">درج کریں</string>
     <string name="core_plugins_ui_repair_no_type">ایک ویجیٹ نے یہ نہیں بتایا کہ وہ کس قسم کا ہے۔</string>
     <string name="core_plugins_ui_repair_not_a_widget">ایک ویجیٹ لسٹ میں ایسی چیز شامل تھی جو ویجیٹ نہیں ہے۔</string>

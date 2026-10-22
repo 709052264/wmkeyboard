@@ -2,6 +2,12 @@
 <!-- Machine translated by Google Play. Do not edit by hand:
      regenerate with tools/i18n/pull-play-translations.py. -->
 <resources>
+    <string name="core_intel_imagegen_module_error">המנוע של מחולל המדבקות לא ירד. בדוק את החיבור ונסה שוב.</string>
+    <string name="core_intel_languagetool_error_account">‏LanguageTool לא קיבל את שם המשתמש ומפתח ה-API (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_rate_limit">שרת LanguageTool ביצע את מספר הבדיקות המרבי המותר עבור טלפון זה בדקה אחת. נסה לערוך את הטקסט בעוד רגע כדי לבדוק שוב (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_request">LanguageTool לא הצליח לבדוק טקסט זה. ייתכן שהשרת אינו תומך בשפה זו (HTTP %1$d).</string>
+    <string name="core_intel_languagetool_error_too_long">הטקסט ארוך מדי עבור שרת LanguageTool זה (HTTP %1$d).</string>
+    <string name="core_intel_llm_download_error_checksum">הקובץ שהורד אינו הקובץ המצופה, ולכן הוא נמחק. אנא הורד אותו שוב.</string>
     <string name="core_intel_llm_download_error_gated_no_token">מודל זה חסום. הוסף תחילה את אסימון ה-Hugging Face שלך.</string>
     <string name="core_intel_llm_download_error_http">Hugging Face החזיר סטטוס HTTP %1$s.</string>
     <string name="core_intel_llm_download_error_licence">אשר את רישיון המודל בדף ה-Hugging Face שלו. לאחר מכן נסה שוב.</string>
@@ -10,11 +16,26 @@
     <string name="core_intel_llm_download_error_truncated">החיבור נפסק במהלך ההורדה. לחץ על \'המשך\' כדי להמשיך.</string>
     <string name="core_intel_llm_engine_error_gpu">המודל נכשל ב-GPU. זיכרון ה-GPU קטן בהרבה מזיכרון המערכת. הניסיון הבא ישתמש ב-CPU. כדי להשתמש תמיד ב-CPU, הגדר את Compute ל-CPU בהגדרות. ניתן גם לבחור מודל קטן יותר.</string>
     <string name="core_intel_llm_engine_error_load">המודל לא נטען. הקובץ כנראה פגום. מחק את המודל בהגדרות והורד אותו שוב.</string>
+    <string name="core_intel_llm_engine_error_low_memory">המודל הזה דורש כ-%1$s זיכרון, ויש %2$s פנוי. סגור אפליקציות אחרות, או בחר מודל קטן יותר.</string>
     <string name="core_intel_llm_engine_error_memory">למודל נגמר הזיכרון, או שהוא נכשל. בחר מודל קטן יותר.</string>
+    <string name="core_intel_llm_engine_error_npu">המודל נכשל ב-NPU. הניסיון הבא ישתמש ב-GPU או ב-CPU. טקסט ארוך עלול להיות כבד מדי עבור גרסת ה-NPU של המודל.</string>
+    <string name="core_intel_llm_engine_error_npu_build_only">רק גרסת ה-NPU של מודל זה נמצאת בטלפון שלך, ורק ה-NPU יכול להריץ אותה. הגדר את Compute ל-NPU, או הורד את הגרסה הסטנדרטית של המודל בהגדרות.</string>
+    <string name="core_intel_llm_engine_error_npu_no_standard">גרסת ה-NPU של מודל זה לא הופעלה בטלפון שלך. כדי להשתמש במודל ב-GPU או ב-CPU, הורד את הגרסה הסטנדרטית שלו בהגדרות.</string>
+    <string name="core_intel_llm_engine_error_npu_runtime_missing">רכיב ה-NPU של המקלדת אינו מוכן. אם הוא בתהליך הורדה, נסה שוב בעוד רגע. כדי להשתמש ב-GPU או ב-CPU כעת, הורד את הגרסה הסטנדרטית של המודל בהגדרות.</string>
+    <string name="core_intel_llm_engine_error_template">לא ניתן היה לקרוא את תבנית הצ\'אט של מודל זה. נסה קובץ GGUF אחר של המודל.</string>
+    <string name="core_intel_llm_engine_error_too_long">הטקסט ארוך מדי עבור מודל זה. השתמש בטקסט קצר יותר, או הגדל את גודל ההקשר בהגדרות.</string>
+    <string name="core_intel_llm_engine_error_vision">מודל זה אינו יכול לקרוא תמונות. Gemma 4 יכול.</string>
+    <string name="core_intel_llm_llama_missing">גרסה זו אינה יכולה להריץ מודלי GGUF: רכיב ה-llama.cpp חסר.</string>
     <string name="core_intel_llm_model_gemma3_1b_subtitle">Gemma קטנה מהדור הקודם. יש לה איכות טובה והקשר של 4K אסימונים.</string>
     <string name="core_intel_llm_model_gemma3_270m_subtitle">ה-Gemma הקטן ביותר מבית גוגל. הוא מהיר בכל המכשירים.</string>
     <string name="core_intel_llm_model_gemma4_e2b_subtitle">דור ה-Gemma החדש ביותר. הוא מספק איכות מעולה במכשיר שלך.</string>
     <string name="core_intel_llm_model_gemma4_e4b_subtitle">המודל הגדול ביותר. הוא כותב הכי טוב, אבל הוא דורש מכשיר חזק.</string>
+    <string name="core_intel_llm_model_gguf_gemma3_1b_subtitle">מודל Gemma קטן מהדור הקודם. אין צורך באסימון (token) של Hugging Face עבור קובץ זה.</string>
+    <string name="core_intel_llm_model_gguf_llama32_1b_subtitle">המודל הקטן של Meta, Llama. הוא כותב אנגלית ברורה ומבצע הוראות היטב.</string>
+    <string name="core_intel_llm_model_gguf_qwen25_vl_3b_subtitle">קורא תמונות וצילומי מסך היטב, גם את הטקסט שבהם. דורש מכשיר חזק. הרישיון שלו מאפשר שימוש מחקרי בלבד.</string>
+    <string name="core_intel_llm_model_gguf_qwen3_17b_subtitle">מודל בינוני עדכני שחושב לפני שהוא עונה. דורש מכשיר בדרגת ביניים.</string>
+    <string name="core_intel_llm_model_gguf_smollm2_360m_subtitle">קטן ומהיר. טוב לשכתובים מהירים במכשיר בסיסי.</string>
+    <string name="core_intel_llm_model_gguf_smolvlm_500m_subtitle">מודל קטן מאוד שיכול לקרוא תמונות. הוא מתאר תמונה, אך לעיתים קרובות קורא לא נכון את הטקסט בצילום מסך.</string>
     <string name="core_intel_llm_model_qwen25_05b_subtitle">מודל לשימוש כללי שעדיין מתאים למכשיר בסיסי.</string>
     <string name="core_intel_llm_model_qwen25_15b_subtitle">חכם משמעותית מהמודלים מתחת ל-1B. הוא דורש מכשיר בטווח ביניים.</string>
     <string name="core_intel_llm_model_qwen3_06b_subtitle">מודל קטן וחדש. האיכות גבוהה ביחס לגודלו.</string>
@@ -26,6 +47,11 @@
     <string name="core_intel_llm_tier_untested_label">לא נבדק</string>
     <string name="core_intel_ocr_download_error_http">שרת GitHub לא שלח את הקובץ. קוד השגיאה הוא HTTP %1$s.</string>
     <string name="core_intel_ocr_download_error_interrupted">החיבור הופסק במהלך ההורדה. נסה שוב.</string>
+    <string name="core_intel_ocr_download_error_mismatch">הקובץ שהורד אינו הקובץ הצפוי. נסה שוב.</string>
     <string name="core_intel_ocr_download_error_no_space">אין מספיק שטח אחסון במכשיר שלך. עליך לפנות כ-%1$s MB תחילה.</string>
+    <string name="core_intel_ocr_module_error">Google Play לא סיפק את קורא הטקסט. בדוק את החיבור ואת תקינות חנות Play, ואז נסה שוב.</string>
     <string name="core_intel_ocr_pack_error_broken">נתוני השפה שהורדו פגומים, ולכן הסורק לא הצליח להשתמש בהם. יש להוריד אותם שוב.</string>
+    <string name="core_intel_semantic_module_error">רכיב מנוע החיפוש לא ירד. בדוק את החיבור ונסה שוב.</string>
+    <string name="core_intel_semantic_no_source">קבצי המודל מפורסמים רק ב-GitHub. הגדר את מאגר הנתונים בחזרה ל-GitHub תחת שרתים.</string>
+    <string name="core_intel_xlit_module_error">הרכיב שמפעיל את המודל לא ירד. יש לבדוק את החיבור ולאחר מכן לנסות שנית.</string>
 </resources>

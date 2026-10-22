@@ -7,6 +7,7 @@
     <string name="core_plugins_error_script_failed">A szkript futtatása sikertelen.</string>
     <string name="core_plugins_error_script_missing">A bővítmény parancsfájlja hiányzik.</string>
     <string name="core_plugins_error_turned_off">Ez a bővítmény ki van kapcsolva.</string>
+    <string name="core_plugins_permission_reminders_label">Emlékeztetők megjelenítése az Ön által beállított időpontokban</string>
     <string name="core_plugins_permission_storage_label">Adatok mentése az eszközre</string>
     <string name="core_plugins_reject_bad_encoding">A(z) „%1$s” olyan szkriptet tartalmaz, amely nem érvényes UTF-8 szöveg.</string>
     <string name="core_plugins_reject_bad_id">Ennek a bővítménynek az azonosítója érvénytelen. Az azonosító 3–64 karakter hosszú lehet. Tartalmazhat kisbetűket, számokat, pontokat, kötőjeleket és aláhúzásokat.</string>
@@ -18,6 +19,8 @@
     <string name="core_plugins_reject_no_version">A(z) „%1$s” nem adja meg, hogy melyik verzió.</string>
     <string name="core_plugins_reject_script_too_large">A(z) „%1$s” szkriptje nagyobb, mint %2$d KB.</string>
     <string name="core_plugins_reject_unknown_permission">A WM Keyboard ezen verziója nem ismeri a „%1$s” engedélyt. Az alkalmazás nem tudja megmondani, hogy a „%2$s” mit tehet.</string>
+    <string name="core_plugins_reminders_channel_body">Emlékeztetők, amelyeket egy bővítmény kért az alkalmazástól, a bővítményben beállított időpontokban. Mindegyik címe a bővítmény neve.</string>
+    <string name="core_plugins_reminders_channel_title">Bővítmény-emlékeztetők</string>
     <string name="core_plugins_stopped_cancelled">Az alkalmazás leállította ezt a bővítményt.</string>
     <string name="core_plugins_stopped_deadline">Ez a bővítmény túl sokáig futott. Az alkalmazás leállította.</string>
     <string name="core_plugins_stopped_instructions">Ez a bővítmény túl sok munkát végzett egyszerre. Az alkalmazás leállította.</string>
@@ -25,6 +28,16 @@
     <string name="core_plugins_stopped_not_responding_disabled">Ez a bővítmény ismét nem válaszolt. Az alkalmazás kikapcsolta.</string>
     <string name="core_plugins_stopped_recursion">Ez a bővítmény túl sokszor hívta meg önmagát. Az alkalmazás leállította.</string>
     <string name="core_plugins_stopped_unexpected">Ez a bővítmény váratlanul leállt.</string>
+    <string name="core_plugins_ui_date_clear">Törlés</string>
+    <string name="core_plugins_ui_date_earlier">%1$d perccel korábban</string>
+    <string name="core_plugins_ui_date_hour_earlier">−1 óra</string>
+    <string name="core_plugins_ui_date_hour_later">+1 óra</string>
+    <string name="core_plugins_ui_date_later">%1$d perc múlva</string>
+    <string name="core_plugins_ui_date_next_day">Következő nap</string>
+    <string name="core_plugins_ui_date_none">Nincs dátum</string>
+    <string name="core_plugins_ui_date_previous_day">Előző nap</string>
+    <string name="core_plugins_ui_date_set">Dátum beállítása</string>
+    <string name="core_plugins_ui_date_today">Ma</string>
     <string name="core_plugins_ui_insert_action">Beszúrás</string>
     <string name="core_plugins_ui_repair_no_type">Egy widget nem határozta meg a típusát.</string>
     <string name="core_plugins_ui_repair_not_a_widget">Egy widgetlista olyasmit tartalmazott, ami nem widget.</string>

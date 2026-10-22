@@ -56,4 +56,5 @@
     <string name="core_icons_slot_suggestions_expand_label">Sýna verkfæri</string>
     <string name="core_icons_slot_tab_label">Tab-lykill</string>
     <string name="core_icons_slot_toolbox_label">Verkfærakassi</string>
+    <string name="core_icons_slot_toolbox_search_label">Leit í verkfærakistu</string>
 </resources>

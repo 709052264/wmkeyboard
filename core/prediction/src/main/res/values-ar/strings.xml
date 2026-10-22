@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">لم يرسل الخادم الملف. رمز الخطأ هو HTTP %1$s.</string>
     <string name="core_pred_wordlist_malformed_error">قائمة الكلمات هذه فارغة أو غير قابلة للقراءة.</string>
+    <string name="core_pred_wordlist_memory_error">لا يحتوي هذا الجهاز على ذاكرة كافية لقائمة كلمات بهذا الحجم. اختر حجماً أصغر.</string>
     <string name="core_pred_wordlist_no_space_error">لا توجد مساحة تخزين كافية على جهازك. احذف بعض الملفات ثم حاول مرة أخرى.</string>
     <string name="core_pred_wordlist_save_error">لا يمكن للتطبيق حفظ قائمة الكلمات. حاول مجددًا.</string>
     <string name="core_pred_wordlist_size_all_label">الكل</string>

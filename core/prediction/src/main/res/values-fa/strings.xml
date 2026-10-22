@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">سرور فایل را ارسال نکرد. کد خطا HTTP %1$s است.</string>
     <string name="core_pred_wordlist_malformed_error">آن لیست کلمات خالی یا غیرقابل خواندن است.</string>
+    <string name="core_pred_wordlist_memory_error">این دستگاه حافظه کافی برای لیست کلماتی با این اندازه ندارد. اندازه کوچک‌تری انتخاب کنید.</string>
     <string name="core_pred_wordlist_no_space_error">فضای ذخیره‌سازی کافی روی دستگاه شما وجود ندارد. تعدادی از فایل‌ها را حذف کنید و دوباره تلاش کنید.</string>
     <string name="core_pred_wordlist_save_error">برنامه نمی‌تواند فهرست کلمات را ذخیره کند. دوباره تلاش کنید.</string>
     <string name="core_pred_wordlist_size_all_label">همه</string>

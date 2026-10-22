@@ -131,13 +131,17 @@
     <string name="core_content_selection_macro_format">Formatar</string>
     <string name="core_content_selection_macro_grammar">Gramática</string>
     <string name="core_content_selection_macro_lines_bullet">Marcadores</string>
+    <string name="core_content_selection_macro_lines_checkbox">Caixas de seleção</string>
     <string name="core_content_selection_macro_lines_dedupe">Único</string>
+    <string name="core_content_selection_macro_lines_down">Mover para baixo</string>
     <string name="core_content_selection_macro_lines_number">Número</string>
     <string name="core_content_selection_macro_lines_sort">Classificar</string>
+    <string name="core_content_selection_macro_lines_up">Mover para cima</string>
     <string name="core_content_selection_macro_map">Mapa</string>
     <string name="core_content_selection_macro_open">Abrir</string>
     <string name="core_content_selection_macro_qr">QR</string>
     <string name="core_content_selection_macro_read_aloud">Falar</string>
+    <string name="core_content_selection_macro_repeat">Repetir</string>
     <string name="core_content_selection_macro_replace">Substituir</string>
     <string name="core_content_selection_macro_save_note">Salvar como nota</string>
     <string name="core_content_selection_macro_search">Pesquisar</string>
@@ -152,6 +156,7 @@
     <string name="core_content_selection_macro_translate">Traduzir</string>
     <string name="core_content_selection_macro_url_decode">Decodificar</string>
     <string name="core_content_selection_macro_whatsapp">WhatsApp</string>
+    <string name="core_content_selection_macro_zawgyi">Zawgyi ⇄ Unicode</string>
     <plurals name="core_content_snippet_gboard_words_skipped">
         <item quantity="one">O arquivo também tem %1$d palavra sem atalho. Para adicioná-la às suas palavras, abra o arquivo no Dicionário pessoal.</item>
         <item quantity="other">O arquivo também tem %1$d palavras sem atalho. Para adicioná-las às suas palavras, abra o arquivo no Dicionário pessoal.</item>

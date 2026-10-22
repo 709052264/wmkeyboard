@@ -4,6 +4,7 @@
 <resources>
     <string name="core_pred_wordlist_http_error">सर्व्हरने फाईल पाठवली नाही. एरर कोड HTTP %1$s आहे.</string>
     <string name="core_pred_wordlist_malformed_error">ती शब्द सूची रिकामी किंवा वाचण्यायोग्य नाही.</string>
+    <string name="core_pred_wordlist_memory_error">या डिव्हाइसमध्ये या आकाराच्या शब्द सूचीसाठी पुरेशी मेमरी नाही. लहान आकार निवडा.</string>
     <string name="core_pred_wordlist_no_space_error">तुमच्या डिव्हाइसवर पुरेशी स्टोरेज जागा नाही. काही फाइल्स हटवा आणि पुन्हा प्रयत्न करा.</string>
     <string name="core_pred_wordlist_save_error">ॲप शब्दसूची जतन करू शकत नाही. पुन्हा प्रयत्न करा.</string>
     <string name="core_pred_wordlist_size_all_label">सर्व काही</string>
