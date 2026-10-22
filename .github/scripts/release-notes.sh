@@ -99,10 +99,11 @@ version from GitHub and keeps all your settings. Also on
 and [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/) (F-Droid is
 often a few days behind).
 
-**In your language:** the app opens in English. Go to **Settings › About › App
-language** and pick yours; it downloads in a few seconds (Android 11 or later).
-On Android 7 to 10, get the **Offline** download below instead: it has every
-language built in.
+**In your language:** on Android 11 or later the app switches to your phone's
+language by itself a few seconds after it first opens (a small download, so it
+needs the internet once). To pick a different one: **Settings › About › App
+language**. On Android 7 to 10 the app is in English: get the **Offline**
+download below instead, which has every language built in.
 
 **Keyboard languages are not affected:** every layout and dictionary is in every
 download.
