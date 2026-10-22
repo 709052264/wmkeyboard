@@ -5,7 +5,9 @@ import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.AppLanguage
 import com.wasimaster.wmkeyboard.app.LanguagePackDownloads
+import com.wasimaster.wmkeyboard.app.matchAvailable
 import com.wasimaster.wmkeyboard.core.modules.LanguagePackResources
 import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import kotlinx.coroutines.launch
@@ -24,13 +26,18 @@ fun appLanguageSplitCompat(activity: Activity) = Unit
  * import. [onReady] runs on failure too, after saying so:
  * the app then shows English, and the choice stays, so it can be picked again.
  */
-fun fetchAppLanguage(activity: Activity, tag: String?, onReady: () -> Unit) {
-    if (!LanguagePackDownloads.active || tag == null || LanguagePackDownloads.isEnglish(tag)) {
+fun fetchAppLanguage(activity: Activity, chosen: String?, onReady: () -> Unit) {
+    // System default (null) means the phone's language, which needs its pack
+    // as much as a language picked by name.
+    val tag = chosen ?: matchAvailable(AppLanguage.systemLocale().toLanguageTag(), AppLanguage.available)
+    if (!LanguagePackDownloads.active || tag == null || LanguagePackDownloads.isEnglish(tag) ||
+        LanguagePackResources.has(activity, tag)
+    ) {
         onReady()
         return
     }
     // The offline build takes packs only as imports: name the file to get.
-    if (!InternetPermission.granted && !LanguagePackResources.has(activity, tag)) {
+    if (!InternetPermission.granted) {
         val message = activity.getString(R.string.app_language_pack_import, LanguagePackDownloads.fileName(tag))
         Toast.makeText(activity, message, Toast.LENGTH_LONG).show()
         onReady()

@@ -99,10 +99,11 @@ version from GitHub and keeps all your settings. Also on
 and [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/) (F-Droid is
 often a few days behind).
 
-**In your language:** the app opens in English. Go to **Settings › About › App
-language** and pick yours; it downloads in a few seconds (Android 11 or later).
-On Android 7 to 10, get **Offline, all languages** below instead: it has every
-language built in.
+**In your language:** on Android 11 or later the app switches to your phone's
+language by itself a few seconds after it first opens (a small download, so it
+needs the internet once). To pick a different one: **Settings › About › App
+language**. On Android 7 to 10 the app is in English: get **Offline, all
+languages** below instead, which has every language built in.
 
 **Keyboard languages are not affected:** every layout and dictionary is in every
 download.
@@ -192,15 +193,51 @@ packs=$(cd "$dist" && ls ${prefix}-lang-*.apk 2>/dev/null | wc -l | tr -d ' ')
 if [ "$packs" -gt 0 ]; then
 # size_of takes a name in $dist, so no `cd` here: with a relative $dist it
 # would look in $dist/$dist and call every pack "not built".
-pack_list=$(for f in "$dist"/${prefix}-lang-*.apk; do f=$(basename "$f"); echo "- [\`$f\`](${base}/$f) · $(size_of "$f")"; done)
+# Named for people, not by code: nobody looks for `iw` to find Hebrew. Each
+# row is the language in English and in itself, sorted by the English name.
+lang_name() { # <resource qualifier>
+  case "$1" in
+    ar) echo 'Arabic · العربية' ;; bg) echo 'Bulgarian · Български' ;;
+    bn) echo 'Bangla · বাংলা' ;; ca) echo 'Catalan · Català' ;;
+    cs) echo 'Czech · Čeština' ;; da) echo 'Danish · Dansk' ;;
+    de) echo 'German · Deutsch' ;; el) echo 'Greek · Ελληνικά' ;;
+    es) echo 'Spanish · Español' ;; et) echo 'Estonian · Eesti' ;;
+    fa) echo 'Persian · فارسی' ;; fi) echo 'Finnish · Suomi' ;;
+    fr) echo 'French · Français' ;; gu) echo 'Gujarati · ગુજરાતી' ;;
+    hi) echo 'Hindi · हिन्दी' ;; hr) echo 'Croatian · Hrvatski' ;;
+    hu) echo 'Hungarian · Magyar' ;; in) echo 'Indonesian · Bahasa Indonesia' ;;
+    is) echo 'Icelandic · Íslenska' ;; it) echo 'Italian · Italiano' ;;
+    iw) echo 'Hebrew · עברית' ;; ja) echo 'Japanese · 日本語' ;;
+    kn) echo 'Kannada · ಕನ್ನಡ' ;; ko) echo 'Korean · 한국어' ;;
+    lt) echo 'Lithuanian · Lietuvių' ;; lv) echo 'Latvian · Latviešu' ;;
+    ml) echo 'Malayalam · മലയാളം' ;; mr) echo 'Marathi · मराठी' ;;
+    nl) echo 'Dutch · Nederlands' ;; no) echo 'Norwegian · Norsk' ;;
+    pa) echo 'Punjabi · ਪੰਜਾਬੀ' ;; pl) echo 'Polish · Polski' ;;
+    pt) echo 'Portuguese · Português' ;; ro) echo 'Romanian · Română' ;;
+    ru) echo 'Russian · Русский' ;; sk) echo 'Slovak · Slovenčina' ;;
+    sl) echo 'Slovenian · Slovenščina' ;; sv) echo 'Swedish · Svenska' ;;
+    sw) echo 'Swahili · Kiswahili' ;; ta) echo 'Tamil · தமிழ்' ;;
+    te) echo 'Telugu · తెలుగు' ;; th) echo 'Thai · ไทย' ;;
+    tr) echo 'Turkish · Türkçe' ;; uk) echo 'Ukrainian · Українська' ;;
+    ur) echo 'Urdu · اردو' ;; vi) echo 'Vietnamese · Tiếng Việt' ;;
+    zh-rCN) echo 'Chinese, Simplified · 简体中文' ;; zu) echo 'Zulu · isiZulu' ;;
+    *) echo "$1" ;;
+  esac
+}
+pack_list=$(for f in "$dist"/${prefix}-lang-*.apk; do
+  f=$(basename "$f"); q=${f#"${prefix}-lang-"}; q=${q%.apk}
+  printf '%s\t| %s | [%s](%s/%s) |\n' "$(lang_name "$q")" "$(lang_name "$q")" "$(size_of "$f")" "$base" "$f"
+done | LC_ALL=C sort -f | cut -f2-)
+pack_list=$(printf '| Language | Download |\n|:---|:---|\n%s' "$pack_list")
 cat <<EOF
 <details>
-<summary><b>Interface language packs</b> ($packs, for importing by hand)</summary>
+<summary><b>App languages, for a phone that can't download them</b> ($packs)</summary>
 
-The standard build downloads these itself when you pick a language; the
-offline build imports them (Settings › About › Storage › Import downloaded
-files), on Android 11 or later. Each is signed with the release key and only
-works with this version.
+You don't need these if your phone is online: the app fetches its language
+itself. For a phone that can't, like one running the offline build, download
+yours on another device, copy it to the phone, and open **Settings › About ›
+Storage › Import downloaded files** (Android 11 or later). Each works only with
+this exact version.
 
 $pack_list
 

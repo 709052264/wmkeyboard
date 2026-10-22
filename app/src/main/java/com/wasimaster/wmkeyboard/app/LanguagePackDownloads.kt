@@ -8,8 +8,12 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.app.updates.GithubReleases
 import com.wasimaster.wmkeyboard.core.modules.LanguagePackResources
 import com.wasimaster.wmkeyboard.core.download.FileDownloader
+import com.wasimaster.wmkeyboard.core.netlog.InternetPermission
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -67,6 +71,39 @@ internal object LanguagePackDownloads {
             val ok = runCatching { download(url(tag), part) }.isSuccess && install(context, part, target)
             FileDownloader.discard(part)
             ok
+        }
+    }
+
+    /**
+     * The language the app should be showing whose pack is not on the phone:
+     * the one picked in the app or in the phone's per-app setting, else the
+     * phone's own language, which is what "System default" means. Null when
+     * that is English, a language this build cannot show, or already here.
+     */
+    fun wanted(context: Context): String? {
+        if (!active) return null
+        val tag = AppLanguage.selected(context)
+            ?: matchAvailable(AppLanguage.systemLocale().toLanguageTag(), AppLanguage.available)
+            ?: return null
+        return tag.takeUnless { isEnglish(it) || LanguagePackResources.has(context, it) }
+    }
+
+    /**
+     * Fetches [wanted]'s pack in the background at process start, so a phone
+     * in German shows the app in German without anyone finding App language
+     * first. Until 0.6.3's re-cut a pack came only from picking a language
+     * there, and an app following the phone stayed English. [onInstalled] runs
+     * on the main thread once the pack is loaded, to restart open screens in
+     * it. Fails quietly: the next start tries again.
+     */
+    fun fetchWanted(context: Context, onInstalled: () -> Unit) {
+        val app = context.applicationContext
+        if (!InternetPermission.granted) return
+        val user = app.getSystemService(android.os.UserManager::class.java)
+        if (user != null && !user.isUserUnlocked) return
+        val tag = wanted(app) ?: return
+        CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+            if (ensure(app, tag)) withContext(Dispatchers.Main) { onInstalled() }
         }
     }
 
