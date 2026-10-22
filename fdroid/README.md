@@ -255,12 +255,13 @@ beside the r29 the native scripts use. Gradle's own steps (stripping the
 libraries it packages) then run with the NDK they expect. The release
 workflow builds from this file, so its reference APK gets the same.
 
-**`sdkmanager 'platforms;android-36'`** in `prebuild` (from 0.6.3): Mozc's
-Bazel build (`native/mozc-jni/build.sh`) goes through rules_android, which
-refuses to start without an SDK platform installed. The buildserver image
-has none until Gradle fetches its own, which is after the `build:` step, so
-the recipe installs one first. Any platform will do; Bazel only checks that
-one is there.
+**`sdkmanager 'platforms;android-36' 'build-tools;36.0.0'`** in `prebuild`
+(from 0.6.3): Mozc's Bazel build (`native/mozc-jni/build.sh`) goes through
+rules_android, which refuses to start without an SDK platform and build tools
+35.0.0 or newer. The buildserver image has no platform and only build tools
+31.0.0 until Gradle fetches its own, which is after the `build:` step, so the
+recipe installs both first. Any platform will do; 36.0.0 is the build tools
+Gradle installs anyway.
 
 **`xz-utils`** in `sudo` (from 0.6.3): librime's script unpacks Boost's
 `.tar.xz`, and the image has no `xz`.
