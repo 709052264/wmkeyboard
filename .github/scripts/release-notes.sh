@@ -91,40 +91,33 @@ if [ "$have_apk" = true ]; then
 cat <<EOF
 ## Download
 
-Two builds. **Standard** is the one almost everyone wants. **Offline** is for
-a keyboard that can never reach the network.
+### **⭐ [Download WM Keyboard ${version}](${base}/${prefix}-full-en-arm64-v8a.apk)** · $(size_of "${prefix}-full-en-arm64-v8a.apk")
 
-**Standard** fetches what you use. The interface is English, and on Android 11
-or later the app downloads any other of its 48 languages when you pick it
-(about 1.3 MB each). Features that bring their own code, like offline voice
-typing, grammar checking, the scanner, handwriting, on-device translation and
-on-device AI, download it the first time you use them. Every download is
-checked against a checksum built into the app. What you can *type* is the same
-either way: every layout and every dictionary is there.
+This is the one for almost every phone from 2017 on. It installs over any earlier
+version from GitHub and keeps all your settings. Also on
+[Google Play](https://play.google.com/store/apps/details?id=com.wasimaster.wmkeyboard)
+and [F-Droid](https://f-droid.org/packages/com.wasimaster.wmkeyboard/) (F-Droid is
+often a few days behind).
 
-Almost every phone sold since 2017 takes an **arm64-v8a** build, so start here:
-**⭐ [Standard, arm64-v8a](${base}/${prefix}-full-en-arm64-v8a.apk)** ($(size_of "${prefix}-full-en-arm64-v8a.apk"))
+**In your language:** the app opens in English. Go to **Settings › About › App
+language** and pick yours; it downloads in a few seconds (Android 11 or later).
+On Android 7 to 10, get the **Offline** download below instead: it has every
+language built in.
 
-<details>
-<summary><b>Had an older build?</b> (all languages, or lite)</summary>
-
-The all-languages build (\`full-intl\`) and the lite builds are gone: the
-standard build is all of them now. It installs over any of them and keeps every
-setting, and the in-app updater moves you onto it. Your interface language comes
-back as a download the first time the app runs on Android 11 or later; on
-Android 7 to 10 the standard build's interface is English, so to keep yours
-take the offline all-languages build below. F-Droid installs stay on F-Droid.
-
-</details>
+**Keyboard languages are not affected:** every layout and dictionary is in every
+download.
 
 <details>
-<summary><b>Other architectures</b> (older 32-bit phones, emulators, ChromeOS, or if the above refuses to install)</summary>
+<summary><b>It won't install, or not an ordinary phone?</b></summary>
 
-| Architecture | Standard |
+| Your device | Download |
 |:---|:---|
-| armeabi-v7a<br><sub>Older 32-bit phones and watches</sub> | $(cell "${prefix}-full-en-armeabi-v7a.apk") |
-| x86_64<br><sub>Emulators, ChromeOS, x86 tablets</sub> | $(cell "${prefix}-full-en-x86_64.apk") |
-| universal<br><sub>All three in one file. Only if the others refuse to install</sub> | $(cell "${prefix}-full-en-universal.apk") |
+| Older 32-bit phone or watch | armeabi-v7a, $(cell "${prefix}-full-en-armeabi-v7a.apk") |
+| Chromebook, emulator, x86 tablet | x86_64, $(cell "${prefix}-full-en-x86_64.apk") |
+| Not sure, just make it work | universal, $(cell "${prefix}-full-en-universal.apk") |
+
+The files named \`full-intl-…\` and \`lite-…\` are this same app under the names
+older versions look for, so their built-in updater can find it. You don't need them.
 
 </details>
 
