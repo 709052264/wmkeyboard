@@ -18484,6 +18484,12 @@ private fun KeyRows(
                     // is a `var` holding a mutable buffer on purpose.
                     @Suppress("DoubleMutabilityForCollection")
                     var seg = ArrayList<GesturePoint>()
+                    // Where the finger lifted. The lift branch below leaves
+                    // without adding it to [seg], so the hint and capital
+                    // flicks are judged with it on the end (#896): a fast
+                    // stroke lifts a few pixels past its last move, and that
+                    // can be inside the next letter's core.
+                    var liftAt: GesturePoint? = null
                     // Which samples the spacebar takes out of the word, and
                     // which of them end it (#428).
                     val crossings = SpacebarCrossings()
@@ -18669,6 +18675,7 @@ private fun KeyRows(
                             return@awaitEachGesture
                         }
                         if (!change.pressed) {
+                            liftAt = GesturePoint(change.position.x, change.position.y, change.uptimeMillis)
                             // Lifted off a flick key while still undecided: the
                             // judge says whether that was a word after all, and
                             // only then is the lift taken from the key (#720).
@@ -18841,9 +18848,10 @@ private fun KeyRows(
                         // decode. A preview it managed to send is retired the way
                         // a cancelled stroke's is, and the hint is typed as a
                         // popup's pick would be.
+                        val flickPoints = liftAt?.let { seg + it } ?: seg
                         if (hintTarget != null && segments.isEmpty() && !picker.isOpen &&
                             hintFlick(
-                                points = seg,
+                                points = flickPoints,
                                 keyHeightPx = hintTarget.second.height,
                                 minTravelPx = maxOf(
                                     hintTarget.second.height * HINT_FLICK_MIN_TRAVEL_HEIGHTS,
@@ -18866,7 +18874,7 @@ private fun KeyRows(
                         if (capitalTarget != null && flickAnchor == null && segments.isEmpty() &&
                             !picker.isOpen &&
                             keyFlick(
-                                points = seg,
+                                points = flickPoints,
                                 keyHeightPx = capitalTarget.second.height,
                                 minTravelPx = maxOf(
                                     capitalTarget.second.height * HINT_FLICK_MIN_TRAVEL_HEIGHTS,
