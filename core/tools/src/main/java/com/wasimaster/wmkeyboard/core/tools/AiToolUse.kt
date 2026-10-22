@@ -92,6 +92,8 @@ data class AiToolResult(
             error = error,
             awaitingApproval = false,
             details = "",
+            arguments = call.arguments.trim().take(AiToolActivity.KEPT_CHARS),
+            output = content.trim().take(AiToolActivity.KEPT_CHARS),
         )
 }
 
@@ -172,6 +174,14 @@ data class AiToolActivity(
      * still decodes.
      */
     val memory: AiMemoryNote? = null,
+    /**
+     * The arguments the model wrote, as it wrote them, and what the call
+     * handed back to it, each cut to [KEPT_CHARS] (#882): what the chat's
+     * chain of steps shows when a call is tapped open. Empty while it runs,
+     * and in a message stored before they were kept.
+     */
+    val arguments: String = "",
+    val output: String = "",
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -179,6 +189,9 @@ data class AiToolActivity(
     val isMcp: Boolean get() = server.isNotEmpty()
 
     companion object {
+        /** How much of [arguments] and [output] is kept with a message. */
+        const val KEPT_CHARS = 4000
+
         /** A call the model just asked for, before it has run. */
         fun started(call: AiToolCall): AiToolActivity = AiToolActivity(
             tool = call.name,
@@ -333,6 +346,12 @@ object AiTools {
     const val FORGET = "forget"
 
     /**
+     * Renames the chat the model is in (#882). Offered only by a chat, and
+     * always asks the user first, showing the name.
+     */
+    const val RENAME_CHAT = "rename_chat"
+
+    /**
      * The tools whose description ends with today's date, since a model has
      * no clock of its own and "tomorrow at five" means nothing without one.
      * The day only: the description is part of the prompt an on-device chat
@@ -389,6 +408,15 @@ object AiTools {
             ),
             param("id", "The number of a saved memory this fact replaces, when that fact has changed.", type = "integer", required = false),
             param("category", "One word for the kind of fact, such as work, family, food or preference.", required = false),
+        ),
+    )
+
+    /** Rename this chat; see [RENAME_CHAT]. */
+    val renameChat = AiToolSpec(
+        name = RENAME_CHAT,
+        description = "Rename this chat, when the user asks you to. The user sees the name and accepts or declines it.",
+        parameters = schema(
+            param("title", "The new name: two to six words, in the language the user writes in."),
         ),
     )
 
@@ -619,7 +647,9 @@ object AiTools {
         policies[tool.name] ?: tool.defaultPolicy
 
     /** Every name the keyboard's own tools answer to, which no MCP tool may take. */
-    val reservedNames: Set<String> by lazy { setOf(WEB_SEARCH, WEB_FETCH, REMEMBER, FORGET) + builtIns.map { it.name } }
+    val reservedNames: Set<String> by lazy {
+        setOf(WEB_SEARCH, WEB_FETCH, REMEMBER, FORGET, RENAME_CHAT) + builtIns.map { it.name }
+    }
 
     /** The enabled tools, in the order a model sees them. */
     fun enabled(search: Boolean, fetch: Boolean): List<AiToolSpec> = buildList {
@@ -656,6 +686,7 @@ object AiTools {
         HOME_ASSISTANT_STATES -> call.argument("query")
         REMEMBER -> call.argument("fact")?.let { if (it.length > TARGET_CHARS) it.take(TARGET_CHARS - 1) + "…" else it }
         FORGET -> call.argument("match") ?: call.argument("id")
+        RENAME_CHAT -> call.argument("title")
         else -> null
     }.orEmpty()
 

@@ -277,7 +277,7 @@ fun ChatToolUses(
  * of it is that the user sees what the model decided to remember.
  */
 @Composable
-private fun MemorySaveLine(note: AiMemoryNote, colors: ChatMarkdownColors, fontSize: TextUnit, onUndo: (() -> Unit)?) {
+internal fun MemorySaveLine(note: AiMemoryNote, colors: ChatMarkdownColors, fontSize: TextUnit, onUndo: (() -> Unit)?) {
     Row(
         modifier = Modifier
             .padding(top = 3.dp)
@@ -489,7 +489,7 @@ private fun ToolUseLines(
 /** One page: its title, and where it is. Tap opens it, a long press copies the address. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SourceLine(
+internal fun SourceLine(
     source: AiToolSource,
     fullAddress: Boolean,
     colors: ChatMarkdownColors,
@@ -728,6 +728,11 @@ private val builtInLabels: Map<String, ToolLabels> = mapOf(
         R.string.ime_ai_tool_reverse_image_search_running,
         R.string.ime_ai_tool_reverse_image_search_done,
     ),
+    AiTools.RENAME_CHAT to ToolLabels(
+        R.string.ime_ai_tool_name_rename_chat,
+        R.string.ime_ai_tool_rename_chat_running,
+        R.string.ime_ai_tool_rename_chat_done,
+    ),
 )
 
 /** The search tools, whose record wears the search mark. */
@@ -769,7 +774,7 @@ private fun builtInLine(use: AiToolActivity, labels: ToolLabels): String {
  * to send.
  */
 @Composable
-private fun ApprovalCard(
+internal fun ApprovalCard(
     use: AiToolActivity,
     colors: ChatMarkdownColors,
     fontSize: TextUnit,
@@ -777,6 +782,9 @@ private fun ApprovalCard(
     modifier: Modifier = Modifier,
 ) {
     val small = fontSize * SMALL
+    // A chat's new name (#882) is a yes or a no about one name, so the card
+    // asks just that, with no "always".
+    val rename = use.tool == AiTools.RENAME_CHAT && !use.isMcp
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -786,6 +794,26 @@ private fun ApprovalCard(
             .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        if (rename) {
+            Text(
+                stringResource(R.string.ime_ai_chat_rename_ask, use.details),
+                color = colors.text,
+                fontSize = fontSize,
+                lineHeight = fontSize * LINE_HEIGHT,
+                fontWeight = FontWeight.Medium,
+            )
+            if (onApproval != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    ApprovalButton(stringResource(R.string.ime_ai_chat_rename_decline), colors, small, strong = false) {
+                        onApproval(AiToolApproval.DENY)
+                    }
+                    ApprovalButton(stringResource(R.string.ime_ai_chat_rename_accept), colors, small, strong = true) {
+                        onApproval(AiToolApproval.ONCE)
+                    }
+                }
+            }
+            return@Column
+        }
         Text(
             if (use.isMcp) {
                 stringResource(R.string.ime_ai_chat_tool_mcp_ask, use.tool, use.server)
@@ -865,7 +893,7 @@ internal fun openToolLink(context: Context, url: String) {
  * A record, or a call inside one, sliding up into place as it fades in.
  * ModulateAlpha so the fade never cuts off a line drawn past the block's edge.
  */
-private fun Modifier.arrival(progress: Animatable<Float, AnimationVector1D>): Modifier = graphicsLayer {
+internal fun Modifier.arrival(progress: Animatable<Float, AnimationVector1D>): Modifier = graphicsLayer {
     val p = progress.value
     if (p >= 1f) return@graphicsLayer
     alpha = p

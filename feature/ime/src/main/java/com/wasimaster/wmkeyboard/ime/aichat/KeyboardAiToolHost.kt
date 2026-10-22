@@ -74,7 +74,21 @@ class KeyboardAiToolHost(
     private val ocrReaders: List<ResolvedProvider> = emptyList(),
     /** Search by meaning's settings, for search_clipboard, search_notes and search_snippets; null where the surface does not lend it. */
     private val semantic: SemanticSearchSettings? = null,
+    /**
+     * Names the chat this run answers in, once the user accepted the name
+     * (#882), giving back the name it got or null when the chat is gone.
+     * Null where there is no chat: the AI panel's actions.
+     */
+    private val renamer: ((String) -> String?)? = null,
 ) : AiToolHost {
+
+    override val canRenameChat: Boolean get() = renamer != null
+
+    override fun renameChat(title: String): Result<String> {
+        val rename = renamer ?: return super.renameChat(title)
+        return rename(title)?.let { Result.success(it) }
+            ?: Result.failure(IllegalStateException("the chat is gone"))
+    }
 
     override val canTranslateOnDevice: Boolean get() = OfflineTranslation.available
 

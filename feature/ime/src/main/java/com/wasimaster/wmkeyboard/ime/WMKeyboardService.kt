@@ -7617,6 +7617,8 @@ open class WMKeyboardService : InputMethodService() {
         resumeReplyShotsAfterGrant()
         // And the AI chat's, for the screenshot it was asking for.
         resumeChatShotAfterGrant()
+        // And whatever the chat's "+" menu brought back from a picker (#882).
+        if (com.wasimaster.wmkeyboard.app.AiChatPickActivity.hasPending()) takeAiChatPicks()
         // Pages from a just-finished document scan: the scanner activity
         // ran while the keyboard was down, so they can only insert now,
         // as the target field regains the input connection.
@@ -8508,6 +8510,11 @@ open class WMKeyboardService : InputMethodService() {
         jankMonitor.stop()
         // A drop made while the keyboard was up lasted until now.
         floatingButtonDismissed = false
+        // A chat name the model proposed on the keyboard's chat and nobody
+        // answered is declined as the keyboard goes (#882). Only from the
+        // panel: the app's own chat types with this keyboard too, and hiding
+        // it there is not an answer to anything.
+        if (_uiState.value.aiChatShown) AiChatController.declineRenameAsk()
         syncSummonButton()
         KeyboardControls.setUpOverOwnApp(false)
     }
@@ -10651,7 +10658,10 @@ open class WMKeyboardService : InputMethodService() {
             // A chat message is free text, so Enter is a line break unless the
             // user asked for it to send (#280); the Send button always sends.
             CaptureTarget.AI_CHAT ->
-                if (state.settings.ai.chatEnterSends) {
+                if (state.aiChat.renaming >= 0) {
+                    // Enter keeps a chat's new name (#882): a name has one line.
+                    onAiChatAction(AiChatAction.CommitRename)
+                } else if (state.settings.ai.chatEnterSends) {
                     onAiChatAction(AiChatAction.Send)
                 } else {
                     captureTyped("\n")
@@ -35139,7 +35149,14 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The composer's text, written by the capture ladder. */
     private fun aiChatDraft(text: String) {
-        _uiState.update { it.copy(aiChat = it.aiChat.copy(draft = text.take(AiChatStore.MAX_TEXT))) }
+        _uiState.update {
+            // A chat's new name is typed through the same field (#882).
+            if (it.aiChat.renaming >= 0) {
+                it.copy(aiChat = it.aiChat.copy(renameDraft = text.take(AiChatStore.MAX_RENAME)))
+            } else {
+                it.copy(aiChat = it.aiChat.copy(draft = text.take(AiChatStore.MAX_TEXT)))
+            }
+        }
     }
 
     /** The model the next message goes to: the one picked, else the last used. */
@@ -35241,7 +35258,8 @@ open class WMKeyboardService : InputMethodService() {
             AiChatAction.FocusComposer ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true)) }
             AiChatAction.BlurComposer ->
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false)) }
+                // Putting the keys away while naming a chat drops the name.
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = false, renaming = -1L, renameDraft = "")) }
             AiChatAction.Send -> aiChatSend()
             AiChatAction.Stop -> AiChatController.stop(this)
             AiChatAction.Retry -> aiChatChoice()?.let {
@@ -35263,6 +35281,7 @@ open class WMKeyboardService : InputMethodService() {
                             // Its pictures come back with its words; the
                             // clear-out's grace keeps their files.
                             images = taken.images,
+                            files = taken.files,
                             composing = true,
                         ),
                     )
@@ -35270,7 +35289,15 @@ open class WMKeyboardService : InputMethodService() {
             }
             AiChatAction.NewChat ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(conversationId = -1L, showSessions = false, composing = true))
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            conversationId = -1L,
+                            showSessions = false,
+                            composing = true,
+                            picked = emptySet(),
+                            renaming = -1L,
+                        ),
+                    )
                 }
             is AiChatAction.Open ->
                 _uiState.update {
@@ -35279,6 +35306,8 @@ open class WMKeyboardService : InputMethodService() {
                             conversationId = action.conversationId,
                             showSessions = false,
                             composing = false,
+                            picked = emptySet(),
+                            renaming = -1L,
                             // A conversation comes back on the model it was
                             // last had with, when that model is still here.
                             modelKey = aiChatModelKeyOf(action.conversationId) ?: it.aiChat.modelKey,
@@ -35293,20 +35322,70 @@ open class WMKeyboardService : InputMethodService() {
             }
             AiChatAction.ToggleSessions ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(showSessions = !it.aiChat.showSessions, composing = false))
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            showSessions = !it.aiChat.showSessions,
+                            composing = false,
+                            picked = emptySet(),
+                            renaming = -1L,
+                            renameDraft = "",
+                        ),
+                    )
                 }
+            is AiChatAction.TogglePick ->
+                _uiState.update {
+                    val picked = it.aiChat.picked
+                    val id = action.conversationId
+                    it.copy(aiChat = it.aiChat.copy(picked = if (id in picked) picked - id else picked + id))
+                }
+            AiChatAction.PickAll -> {
+                val all = AiChatController.store(this).items().mapTo(HashSet()) { it.id }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(picked = all)) }
+            }
+            AiChatAction.ClearPicks -> _uiState.update { it.copy(aiChat = it.aiChat.copy(picked = emptySet())) }
+            AiChatAction.DeletePicked -> {
+                val doomed = chat.picked
+                AiChatController.deleteConversations(this, doomed)
+                _uiState.update {
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            picked = emptySet(),
+                            conversationId = if (it.aiChat.conversationId in doomed) -1L else it.aiChat.conversationId,
+                        ),
+                    )
+                }
+            }
+            is AiChatAction.StartRename -> {
+                val title = AiChatController.store(this).get(action.conversationId)?.title.orEmpty()
+                _uiState.update {
+                    it.copy(
+                        aiChat = it.aiChat.copy(
+                            renaming = action.conversationId,
+                            renameDraft = title,
+                            picked = emptySet(),
+                            composing = true,
+                        ),
+                    )
+                }
+            }
+            AiChatAction.CommitRename -> {
+                if (chat.renaming >= 0) AiChatController.renameConversation(this, chat.renaming, chat.renameDraft)
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(renaming = -1L, renameDraft = "", composing = false)) }
+            }
+            AiChatAction.CancelRename ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(renaming = -1L, renameDraft = "", composing = false)) }
             is AiChatAction.PickModel ->
                 _uiState.update { it.copy(aiChat = it.aiChat.copy(modelKey = action.key)) }
             AiChatAction.ToggleAttachment -> {
                 val next = if (chat.attachment != null) null else aiChatAttachmentFromField()
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachment = next, attachMenu = false)) }
             }
             AiChatAction.Paste -> {
                 if (!isClipboardAccessible()) return
                 val clip = KeyboardClipboard.held ?: clipboardStore.latestText().orEmpty()
                 if (clip.isEmpty()) return
                 // Through the ladder, so it lands at the caret like typed text.
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(composing = true, attachMenu = false)) }
                 captureTyped(clip)
             }
             is AiChatAction.Insert -> commitToField(
@@ -35326,10 +35405,17 @@ open class WMKeyboardService : InputMethodService() {
                     if (action.list || chat.conversationId < 0) "ai_chat" else "ai_chat/${chat.conversationId}",
                 )
             is AiChatAction.Report -> aiChatReport(action.index)
-            AiChatAction.TogglePictureSources ->
+            AiChatAction.ToggleAttachMenu ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(pictureSources = !it.aiChat.pictureSources, pictureNotice = null))
+                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
                 }
+            is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
+            AiChatAction.ToggleReasoning -> {
+                val on = !state.settings.ai.chatReasoning
+                serviceScope.launch { settingsRepository.setAiChatReasoning(on) }
+            }
+            is AiChatAction.RemoveFile ->
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(files = it.aiChat.files - action.file)) }
             is AiChatAction.AddPicture -> aiChatAddPicture(action.fromClipboard)
             is AiChatAction.RemovePicture -> {
                 chatPictureFrom.remove(action.name)
@@ -35399,7 +35485,7 @@ open class WMKeyboardService : InputMethodService() {
             }
             // Already waiting above the composer: nothing to add.
             if (_uiState.value.aiChat.images.any { chatPictureFrom[it] == source }) {
-                _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = false, pictureNotice = null)) }
+                _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = false, pictureNotice = null)) }
                 return@launch
             }
             // Scaled and copied in off the main thread: a screenshot takes a
@@ -35419,13 +35505,58 @@ open class WMKeyboardService : InputMethodService() {
             _uiState.update {
                 val images = it.aiChat.images
                 if (images.size >= AiChatStore.MAX_IMAGES) return@update it
-                it.copy(aiChat = it.aiChat.copy(images = images + name, pictureSources = false, pictureNotice = null))
+                it.copy(aiChat = it.aiChat.copy(images = images + name, attachMenu = false, pictureNotice = null))
             }
         }
     }
 
     private fun aiChatPictureNotice(@StringRes res: Int) {
-        _uiState.update { it.copy(aiChat = it.aiChat.copy(pictureSources = true, pictureNotice = res)) }
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = true, pictureNotice = res)) }
+    }
+
+    /**
+     * The "+" menu's Image, File and Photo (#882), through
+     * [com.wasimaster.wmkeyboard.app.AiChatPickActivity]: each is a system
+     * screen an input method cannot open for a result itself. What comes back
+     * is taken in by [takeAiChatPicks] once the field returns.
+     */
+    private fun aiChatPickFromSystem(mode: Int) {
+        val state = _uiState.value
+        // The same rule the picture buttons keep: nothing from incognito,
+        // whose chats are not kept, and nothing over a password field.
+        if (state.incognitoOn || state.secureField) return
+        val files = mode == com.wasimaster.wmkeyboard.app.AiChatPickActivity.MODE_FILES
+        val room = if (files) {
+            AiChatStore.MAX_FILES - state.aiChat.files.size
+        } else {
+            AiChatStore.MAX_IMAGES - state.aiChat.images.size
+        }
+        if (room <= 0) {
+            aiChatPictureNotice(R.string.ime_ai_chat_attach_full)
+            return
+        }
+        _uiState.update { it.copy(aiChat = it.aiChat.copy(attachMenu = false, pictureNotice = null)) }
+        val keep = AiChatController.store(this).persist
+        runCatching {
+            startActivity(com.wasimaster.wmkeyboard.app.AiChatPickActivity.intent(this, mode, room, keep))
+        }.onFailure { aiChatPictureNotice(R.string.ime_ai_chat_attach_no_picker) }
+    }
+
+    /** What the "+" menu's last trip to a picker brought back, added to the draft. */
+    private fun takeAiChatPicks() {
+        val picks = com.wasimaster.wmkeyboard.app.AiChatPickActivity.consume() ?: return
+        _uiState.update {
+            val chat = it.aiChat
+            val images = (chat.images + picks.images).take(AiChatStore.MAX_IMAGES)
+            val files = (chat.files + picks.files).take(AiChatStore.MAX_FILES)
+            val dropped = chat.images.size + picks.images.size > images.size || chat.files.size + picks.files.size > files.size
+            val notice = when {
+                picks.notice != 0 -> picks.notice
+                dropped -> R.string.ime_ai_chat_attach_full
+                else -> null
+            }
+            it.copy(aiChat = chat.copy(images = images, files = files, pictureNotice = notice, attachMenu = notice != null))
+        }
     }
 
     /** The other half of [aiChatAddPicture]'s permission request, from [onStartInputView]. */
@@ -35481,8 +35612,8 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         val chat = state.aiChat
         val text = chat.draft.trim()
-        // Pictures alone are a message, as on the chat screen.
-        if ((text.isEmpty() && chat.images.isEmpty()) || AiChatController.isGenerating) return
+        // Pictures or files alone are a message, as on the chat screen.
+        if ((text.isEmpty() && chat.images.isEmpty() && chat.files.isEmpty()) || AiChatController.isGenerating) return
         val choice = aiChatChoice() ?: return
         val store = AiChatController.store(this)
         // Written on the first send and not before, like the chat screen: a
@@ -35492,6 +35623,7 @@ open class WMKeyboardService : InputMethodService() {
         AiChatController.send(
             this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images,
             incognito = state.incognitoOn,
+            files = chat.files,
         )
         chatPictureFrom.clear()
         _uiState.update {
@@ -35502,7 +35634,8 @@ open class WMKeyboardService : InputMethodService() {
                     attachment = null,
                     modelKey = choice.key,
                     images = emptyList(),
-                    pictureSources = false,
+                    files = emptyList(),
+                    attachMenu = false,
                     pictureNotice = null,
                 ),
             )

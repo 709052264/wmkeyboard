@@ -26,9 +26,11 @@ Tap the message box and the keys come up underneath, with the last few messages 
 
 Glide typing, suggestions and the caret all work in the message box the way they do in any of the keyboard's own fields. Nothing you type there reaches the app behind the keyboard.
 
+Your own messages sit in bubbles on the right. Answers have no bubble: each one runs the full width of the panel, as long as it is, so a table or a block of code gets all the room there is.
+
 ### Getting an answer into your text
 
-The newest answer always shows its buttons. Tap any older bubble to bring out its own.
+The newest answer always shows its buttons, a row of plain icons under it. Tap any older message to bring out its own. Long-press an icon to see its name.
 
 - **Insert** puts the answer in the field at the cursor, with markdown markers stripped, since a text field won't render them.
 - **Copy** copies the answer as written. Long-pressing a bubble copies it too, in one move.
@@ -40,21 +42,27 @@ Answers are drawn with their formatting: headings, lists, bold, inline code and 
 
 Maths written in LaTeX is drawn as maths. A formula on its own line, between `$$` signs, inside `\[` and `\]`, in a ` ```math ` block or as a bare `\begin{aligned}`, is set the way a textbook sets it: fractions stacked, roots under their bar, limits over and under a sum, matrices in brackets that grow with them. A wide one scrolls sideways: its cut-off edge fades out and a thin bar under it shows how much more there is, as on a wide table or code block. A formula inside a sentence, between single `$` signs or `\(` and `\)`, sits on the line: `$x^2$` is a small raised 2, and a fraction or a matrix is drawn in place at the size of the text around it. A dollar amount is left alone, so "it costs $5 or $10" stays a sentence. When an answer is inserted into a field, which can't draw any of this, the maths is written out in Unicode instead: `x²`, `√(x+1)`, `(a+b)/c`.
 
-### Sending your text along
+### The message box
 
-The paperclip beside the message box quotes what you're working on. With text selected in the field, it takes the selection; otherwise it takes the whole field. A line above the message box says which, and how long it is. The model gets your message followed by that text, clearly marked off, and the bubble notes that text went with it. Tap the paperclip again to drop it.
+The message box is one rounded box. What you write is at the top; along its bottom edge sit its controls: the **Reasoning** switch at the start (see [The Reasoning switch](#the-reasoning-switch)), and **+** and the send arrow at the end. While an answer streams, the send arrow becomes **Stop**.
 
-It's greyed out over an empty field, and it never reads a password field.
+### The + menu
 
-The clipboard button next to it pastes your latest clip at the caret.
+The **+** button in the message box opens a row of icons over it. Long-press an icon to see its name.
 
-### Adding a picture
+- **Pictures from the gallery** opens the system photo picker. Pick several at once.
+- **A file** opens the system file picker, for a text file, a recording, a video or a PDF. See [Sending files](#sending-files).
+- **Take a photo** opens your camera app, and the photo you take is added. The first time, it asks for the camera permission.
+- **Copied picture** takes the newest picture in your [clipboard history](/tools/clipboard/).
+- **Newest screenshot** takes the last screenshot on the phone, whenever you took it. The first time, it asks for access to your photos, and the screenshot is added once you come back from allowing it.
+- **Send the text of the field** quotes what you're working on. With text selected in the field, it takes the selection; otherwise it takes the whole field. A line above the message box says which, and how long it is. The model gets your message followed by that text, clearly marked off, and the bubble notes that text went with it. Tap it again to drop the text. It's greyed out over an empty field, and it never reads a password field.
+- **Paste** pastes your latest clip at the caret.
 
-The picture button beside the paperclip brings up two chips over the message box. **Copied picture** takes the newest picture in your [clipboard history](/tools/clipboard/). **Newest screenshot** takes the last screenshot on the phone, whenever you took it; the first time, it asks for access to your photos, and the screenshot is added once you come back from allowing it. These are the [AI reply tool's](/tools/ai-reply/) sources rather than the photo picker the app's chat uses, because a keyboard that opens a picker loses the field you were typing in.
+The photo picker, the file picker and the camera are system screens, so the keyboard steps aside while one is open and picks up where it was when you come back. Copied picture and Newest screenshot don't leave the keyboard at all.
 
-Up to four pictures can go with one message. They wait above the message box with a cross on each to take it off, and a message can be pictures alone. Sent, they show at the top of your bubble, on the keyboard and in the app alike. What the model does with them is the same as in the app: see [Sending pictures](#sending-pictures).
+Up to four pictures and four files can go with one message. They wait above the message box with a cross on each to take it off, and a message can be pictures or files alone. Sent, they show at the top of your bubble, on the keyboard and in the app alike. What the model does with them is the same as in the app: see [Sending pictures](#sending-pictures) and [Sending files](#sending-files).
 
-The picture button isn't there while [incognito](/privacy/incognito/) is on, or over a password field. Play Store builds offer **Copied picture** only, since they don't ask for the photos permission a screenshot needs.
+While [incognito](/privacy/incognito/) is on, or over a password field, the menu offers only the field's text and Paste. Play Store builds leave out **Newest screenshot**, since they don't ask for the photos permission a screenshot needs.
 
 An empty chat offers a few openers: **Reply to this** and **Explain this** quote the field for you, **Help me write** starts the sentence. They only fill the message box. Nothing is sent until you send it.
 
@@ -66,7 +74,11 @@ The chips show only while the AI tool is on, and not on the lock screen.
 
 ### Switching chats
 
-The chip in the header with the chat's title opens your list of chats: tap one to open it, **New chat** to start fresh, **Delete** twice to remove one. Swiping a chat to the left shows a red delete button behind it, which removes it in one tap. The plus button starts a new chat from anywhere. The arrow button opens the current chat in the settings app, which is the place to go when you'd like a full screen or selectable text.
+The chip in the header with the chat's title opens your list of chats: tap one to open it, **New chat** to start fresh, **Delete** twice to remove one. Swiping a chat to the left shows a red delete button behind it, which removes it in one tap.
+
+The pencil on a chat renames it. The name turns into a field with the keys under it; type the new name and press Enter or the tick, or the cross or Back to keep the old one.
+
+To clear out several chats at once, long-press one. That starts picking: each tap ticks a chat on or off, and the row above the list shows how many are picked, a **Select all** button, and **Delete**, which deletes them all on its second tap. The cross, or Back, stops picking. The plus button starts a new chat from anywhere. The arrow button opens the current chat in the settings app, which is the place to go when you'd like a full screen or selectable text.
 
 ### The Enter key
 
@@ -90,15 +102,25 @@ The **AI** screen on the settings home list has a round chat button in its botto
   <Shot id="tools/ai-chat-list" alt="The conversation list, newest first, with the New chat button at the top." />
 </PhoneFrame>
 
-The list is your saved conversations, most recently updated first. Each row is the chat's title and how long ago you touched it, with a delete button on the right that asks first and names the chat it's about to remove. Swiping a row to the left shows the same delete button behind it. **New chat** is both a button at the top of the list and a plus in the top bar.
+The list is your saved conversations, most recently updated first. Each row is the chat's title and how long ago you touched it, with a pencil that renames it and a delete button that asks first and names the chat it's about to remove. Swiping a row to the left shows the same delete button behind it.
+
+Long-press a chat to start picking several. Taps then tick chats on and off, and a bar at the bottom shows how many are picked, with **Select all** and **Delete**. Delete asks once for the lot. Back, or the cross on the bar, stops picking. **New chat** is both a button at the top of the list and a plus in the top bar.
 
 Nothing saved yet? You skip the empty list entirely and land in a new chat, because an empty list with one button on it isn't worth a screen. A chat is only written down on your first send, so opening one and backing straight out leaves no row behind.
 
-Titles aren't something you type. The first line of your first message becomes the title, cut to 48 characters on a word boundary.
+### Naming chats
+
+Until it has a better name, a chat is called after the first line of your first message, cut to 48 characters on a word boundary.
+
+With <SettingsPath path="Tools / AI writing tools / Auto-rename chats" /> on, the default, the model that answered names the chat once its first answer is in: a few words on what it's about, in the language you wrote your question in, even when the answer came back in another one. It's one more short request to the same model, with your first message and the answer, and it isn't made when [Data Saver](/privacy/data-saver/) would stop or question a send. If it fails, the first-line name stays.
+
+You can also ask the model to rename a chat ("call this chat Trip to Sylhet", "give this a better name"). It proposes a name with its **Rename chat** tool, and a card under the answer asks **Rename this chat to "…"?** with **Accept** and **Decline**. Nothing changes until you accept. On the keyboard, closing the keyboard while the card is up counts as Decline. The tool is offered only while Auto-rename chats is on.
+
+Rename a chat with its pencil, on the keyboard or here, to give it a name of your own, up to 80 characters. A name you typed, or one you accepted, is never replaced by an automatic one.
 
 ### Sending pictures
 
-The picture button left of the message box opens the system photo picker, which needs no permission. Pick up to four for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
+The **+** button in the message box opens a sheet with **Pictures from the gallery**, **A file**, **Take a photo** and **Paste**. The gallery is the system photo picker, which needs no permission; **Take a photo** asks for the camera the first time. Pick up to four pictures for one message; they wait above the message box, each with a cross to take it off again, and a message can be pictures alone. In a sent message they show above its text.
 
 What the model does with them depends on what it can take:
 
@@ -108,7 +130,17 @@ What the model does with them depends on what it can take:
 
 Either way, with **Search by picture** turned on the model can look a picture up on the web through the [camera tool's](/tools/camera/) search site, and hands you the link to the results.
 
-The keyboard's chat adds pictures its own way, from the clipboard or your newest screenshot: see [Adding a picture](#adding-a-picture).
+The keyboard's chat has the same menu, plus the clipboard's picture and your newest screenshot: see [The + menu](#the--menu).
+
+### Sending files
+
+**A file**, in the **+** menu on the keyboard or in the app, opens the system file picker. Up to four files go with one message, each shown as a chip with its name.
+
+- **A text file** (plain text, Markdown, CSV, JSON, source code and the like) is read when you pick it, and its text goes with your message, marked off with the file's name, to any model. Up to 20,000 characters of it are kept; the rest is cut.
+- **A recording, a video or a PDF** is copied into the chat, up to 14 MB. Gemini is sent the file itself with your newest message. Every other model is told a file of that name and type is there, but can't open it.
+- **A picture** picked this way joins the message's pictures, as if you'd picked it from the gallery.
+
+Anything else, such as a ZIP or an app, is refused with a line saying why.
 
 ## The Settings assistant
 
@@ -149,19 +181,42 @@ Your pick is remembered for next time, and each conversation also remembers the 
 
 ## Sending, stopping, retrying
 
-Type in the box and hit send. While the answer streams, the send button becomes **Stop**.
+Type in the box and hit send. The app's message box is laid out like the keyboard's: what you write at the top, with the **Reasoning** switch, **+** and send along its bottom edge. While the answer streams, the send button becomes **Stop**.
+
+### The Reasoning switch
+
+**Reasoning**, at the bottom left of the message box, turns a model's reasoning on or off for your next messages. It's one setting for both chats, on by default, and it only shows for a model it does something for:
+
+| Model | On | Off |
+|---|---|---|
+| Claude | Claude thinks as much as it decides the question needs, and its thinking shows in the [Reasoning step](#reasoning-and-tool-calls) | No thinking |
+| Gemini | Gemini's thoughts come back and show in the Reasoning step | Thinking off on Gemini 2.5 Flash and Flash-Lite. Gemini 2.5 Pro and Gemini 3 can't stop thinking, so they're set to the least they allow |
+| Ollama | The model's own default, which for a thinking model is to think | No thinking |
+| OpenAI reasoning models (GPT-5, o-series) | The model's own default | Low reasoning effort, the least every one of them accepts |
+| On-device reasoning models (Qwen 3 and the like) | The model reasons, as before | `/no_think` is added to your message, which those models read as "answer straight away" |
+
+Other providers have no field for it that they all agree on, so the switch isn't there for them, and neither is it for models with no reasoning to switch: Claude 3 models before 3.7, and Gemini 1.5 and 2.0.
+
+If a reasoning model spends its whole answer reasoning and writes no reply, usually because it reached the maximum response length, the turn shows as failed with a **Retry**, and what it reasoned is still in its Reasoning step.
 
 - **Stop** keeps what arrived. The partial answer stays in the transcript, labelled "Stopped", rather than vanishing as if you'd never asked. A LiteRT-LM model's generation is a native call that can't truly be interrupted. It finishes quietly in the background instead, and the model's own memory of the conversation is kept in step with what you can see. A [GGUF model](/tools/ai/#gguf-models-on-llamacpp) stops at once, and remembers exactly the partial answer.
 - **A failed turn** shows the error in its own bubble with a **Retry** button. Only the newest failed message gets one, because retrying something from the middle of a transcript would answer out of order. Retry re-sends the message the failure was answering, so nothing is duplicated.
 - **Leaving doesn't cancel anything.** Navigate away mid-answer and the generation carries on. Come back and it's either still streaming or already in the transcript.
 
-Every message has a **Copy** button under it, and the text itself is selectable, which the keyboard's version can't offer. The newest answer adds **Write again**, and your own newest message adds **Edit**, both exactly as on the keyboard. Answers render the same formatting on both, and a code block has a **Copy** of its own. There's no Insert here, because there's no field behind this screen to insert into.
+Answers run the full width of the screen with no bubble around them, and your own messages sit in bubbles on the right, as on the keyboard. Every message has a **Copy** icon under it, and the text itself is selectable, which the keyboard's version can't offer. The newest answer adds **Write again**, and your own newest message adds **Edit**, both exactly as on the keyboard. Answers render the same formatting on both, and a code block has a **Copy** of its own. There's no Insert here, because there's no field behind this screen to insert into.
 
-A Play Store build adds a **Report** button along the bottom edge of every finished answer. It follows the same route the panel offers under [Reporting a result](/tools/ai/#reporting-a-result): a draft opens in your own mail app holding the provider, the model, the message the answer replied to, and the answer itself, with a blank line at the top for what went wrong. Nothing is uploaded when you tap it, so a report only exists once you send the mail. Your own messages carry no Report button, and neither does a failed turn, because neither one is a generated answer. With no mail app installed, a message says so instead. GitHub and F-Droid builds show no Report button here at all, since Play's AI-generated-content policy is the only reason for it. The keyboard panel's own Report button has no such restriction.
+A Play Store build adds a **Report** icon, a flag, under every finished answer. It follows the same route the panel offers under [Reporting a result](/tools/ai/#reporting-a-result): a draft opens in your own mail app holding the provider, the model, the message the answer replied to, and the answer itself, with a blank line at the top for what went wrong. Nothing is uploaded when you tap it, so a report only exists once you send the mail. Your own messages carry no Report button, and neither does a failed turn, because neither one is a generated answer. With no mail app installed, a message says so instead. GitHub and F-Droid builds show no Report button here at all, since Play's AI-generated-content policy is the only reason for it. The keyboard panel's own Report button has no such restriction.
 
-When the model searches the web or reads a page on the way to an answer (see [Letting the model look things up](/tools/ai/#letting-the-model-look-things-up)), the bubble says so while it happens, as **Searching the web for "…"** or **Reading example.com…**, and keeps a line over the finished answer afterwards. Tap it to see each search with the results the model was given, each page it read by its full address, and any lookup that failed and why. A tap on a result opens it in your browser and a long press copies the address, on the keyboard and in the app alike. The record is saved with the answer, so it's still there when you come back to the chat, and it stays even on a turn that failed or that you stopped. A lookup cut off by **Stop** is marked "Stopped".
+### Reasoning and tool calls
 
-Reasoning models follow the same **Show model reasoning** setting the keyboard panel uses. With it on, the reasoning shows dimmed as it arrives, and the answer under it is drawn with its formatting as it streams, tables and maths included. With it off, you get a "Reasoning…" line until real answer text starts arriving.
+What happened before an answer sits over it as a short chain of steps, joined by a line that runs down into the answer. Each step is folded to one line until you tap it. This works the same on the keyboard and in the app.
+
+- **Reasoning** is what a reasoning model thought before it answered. While it's thinking the step reads **Reasoning…** with a spinner. Tap it to read the reasoning, drawn with its formatting, maths included, and dimmed so it never reads as the answer. A model that reasons again after each tool call has all of it gathered here.
+- **A tool call** gets a step of its own, one for each time the model used a tool (see [Letting the model look things up](/tools/ai/#letting-the-model-look-things-up)). Its line says what it did, such as **Searched the web for "…"** or **Reading example.com…**, over the tool's own name, such as `web_search call`. Tap it to see the arguments the model wrote and what came back: for a search or a page, the results by title and address, where a tap opens one in your browser and a long press copies the address; for any other tool, the text the model was handed. A tap on the arguments or the output copies them. A call that failed says why.
+
+The steps are saved with the answer, so they're still there when you come back to the chat, and they stay even on a turn that failed or that you stopped. A lookup cut off by **Stop** is marked "Stopped". A call that has to ask first shows its question under its step, open, whether or not the step is.
+
+The **Show model reasoning** setting is for the panel's actions; the chat always keeps reasoning, folded.
 
 An on-device model gets a live session per conversation, seeded with the saved transcript, so it keeps the context of what you've already said. A GGUF model is given the whole conversation in its own chat template on every turn, and only the new message costs time, because the turns before it are still in its memory. When a conversation outgrows the context, its oldest exchanges are left out first. Switching conversation, model, [compute backend or context size](/tools/ai/#local-models) closes that session and opens a fresh one, seeded the same way.
 
@@ -196,7 +251,7 @@ Three caps keep the file from growing without limit:
 
 Text you attached from a field is saved with its message, under the same 20,000-character cap, because the conversation wouldn't make sense to the model without it on the next turn.
 
-Pictures are kept as files next to the conversations, scaled down to 1,280 pixels on the long side first, and are deleted when nothing refers to them any more: when the conversation is deleted, for example. With **Keep your conversations** off they go in the app's cache instead.
+Pictures are kept as files next to the conversations, scaled down to 1,280 pixels on the long side first, and are deleted when nothing refers to them any more: when the conversation is deleted, for example. With **Keep your conversations** off they go in the app's cache instead. Recordings, videos and PDFs you sent are kept the same way, unscaled; a text file's text is saved inside its message.
 
 Deleting a conversation from the list removes it for good. There's no undo, which is why the dialog names the chat first.
 
@@ -215,7 +270,7 @@ Exactly what the AI tool sends, and only when you hit send:
 - **Nothing here is written to the AI history.** That log records panel runs. A conversation is only in the chat file.
 - **The launcher shortcut is one of four.** Long-pressing the app icon offers Tools, Languages, AI chat and Themes, and nothing else. The `wmkeyboard://settings/` scheme behind those four reaches three more screens (Typing, Appearance and Search) that no shortcut points at. See [Deep links & launcher shortcuts](/reference/deep-links/).
 - **Deleting a chat mid-answer is handled.** If a generation finishes for a conversation you've already deleted, the answer is dropped rather than resurrecting the row.
-- **Reasoning is stripped from what's saved.** Only the answer lands in the transcript, the same way the keyboard panel only commits the answer.
-- **Lookups are saved as a list, not as pages.** A saved answer keeps each query, the titles and addresses of the results, and why a lookup failed. The text of the pages themselves isn't kept, and a follow-up question doesn't see it again: the model only has its own earlier answer to go on.
+- **Reasoning is saved apart from the answer.** It's kept with the message for its folded step, under the same 20,000-character cap, but never sent back to the model on later turns, and **Insert** and **Copy** take the answer alone.
+- **Tool calls are saved short.** A saved answer keeps each call's arguments and the first 4,000 characters of what came back, the titles and addresses of search results, and why a call failed. A follow-up question doesn't see any of it again: the model only has its own earlier answer to go on.
 
 Related: [AI tools](/tools/ai/) covers the providers, the on-device model catalog, the panel's actions, and the history.

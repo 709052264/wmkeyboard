@@ -475,7 +475,7 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 - **In use**: which row answers, shown once the list has two. The model picker on the panel changes it too.
 - **Max response length**: a token ceiling, roughly ¾ of a word each, picked from steps rather than a slider: 1k through 128k, plus **Provider maximum**. Default 8,192. A model the app takes for a reasoning model gets 4× this ceiling on its own, capped at 131,072, because reasoning tokens come out of the same budget before the answer starts. That guess is a substring match on the model ID, for strings like "thinking", "qwen3", "grok-4" or "deepseek-v4". The On-device provider swaps this row for **Context size**.
 - **Translate action's target language**: free text, defaults to **English**.
-- **Show model reasoning**: off by default. Turning it on streams a reasoning model's raw `<think>` passages instead of the step-by-step progress readout.
+- **Show model reasoning**: off by default. Turning it on streams a reasoning model's raw `<think>` passages instead of the step-by-step progress readout. It's for the panel's actions only: the [AI chat](/tools/ai-chat/#reasoning-and-tool-calls) always keeps reasoning in a folded step over the answer.
 - **Model picker on the panel**: on by default. Adds a horizontally-scrolling row to the panel itself for switching between every configured provider and downloaded local model in one tap. It's hidden automatically whenever there are fewer than two to choose from.
 - **Show a changes view**: on by default, see [Seeing what changed](#seeing-what-changed). **Open a result on the changes** below it is off.
 - **Let the model search the web**: on by default, and only shown once a search service is set up. **Let the model read a web page** below it is off, and **Lookups per answer** defaults to 3. See [Letting the model look things up](#letting-the-model-look-things-up).
@@ -483,6 +483,7 @@ Like every tool, AI has an **Enabled** toggle (on by default) and, if [colorful 
 - **MCP servers**: the servers whose tools the model can use, see [MCP servers](#mcp-servers). None are set up to start with.
 - **Chat with the model**: opens the conversation screen, see [AI chat](/tools/ai-chat/).
 - **Enter sends the message**: off by default. In the chat on the keyboard, Enter starts a new line and the send button sends. Turn this on to send with Enter instead.
+- **Auto-rename chats**: on by default. The model that answered names each chat from your first message and its reply, in your language, and can rename it later when you ask and accept. See [Naming chats](/tools/ai-chat/#naming-chats).
 - **Actions on the panel**: the whole action list, see [Your own actions](#your-own-actions).
 - **History**: off by default, see [History](#history).
 

@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.netlog.NetSource
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
+import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.localllm.ChatReplay
@@ -38,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiToolApprovalGate
 import com.wasimaster.wmkeyboard.core.tools.AiToolApprover
 import com.wasimaster.wmkeyboard.core.tools.AiToolLoop
 import com.wasimaster.wmkeyboard.core.tools.AiToolProtocol
+import com.wasimaster.wmkeyboard.core.tools.AiTools
 import com.wasimaster.wmkeyboard.core.tools.AiToolResult
 import com.wasimaster.wmkeyboard.core.tools.AiToolRunner
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
@@ -252,12 +254,14 @@ object AiChatController {
         images: List<String> = emptyList(),
         /** Sent from an incognito field: the AI memory is neither read nor changed. */
         incognito: Boolean = false,
+        /** Files sent with it (#882), as [AiChatFiles.import] read or copied them. */
+        files: List<AiChatFile> = emptyList(),
     ) {
         if (isGenerating) return
         val appContext = context.applicationContext
         val store = store(appContext)
         val user = text.trim()
-        if (user.isEmpty() && images.isEmpty()) return
+        if (user.isEmpty() && images.isEmpty() && files.isEmpty()) return
 
         val now = System.currentTimeMillis()
         val message = AiChatMessage(
@@ -266,6 +270,7 @@ object AiChatController {
             timestamp = now,
             attachment = attachment.trim(),
             images = images.take(AiChatStore.MAX_IMAGES),
+            files = files.take(AiChatStore.MAX_FILES),
         )
         val updated = store.appendMessage(conversationId, message) ?: return
         store.setLastModelKey(choice.key)
@@ -285,9 +290,10 @@ object AiChatController {
     private fun promptAt(conversation: AiChatConversation, index: Int): String =
         conversation.messages[index].promptText(conversation.firstImageOf(index))
 
-    /** Clears out the pictures nothing refers to any more. */
+    /** Clears out the pictures and files nothing refers to any more. */
     private fun pruneImages(context: Context, store: AiChatStore) {
         runCatching { AiChatImages.prune(context, store.imageNames()) }
+        runCatching { AiChatFiles.prune(context, store.fileNames()) }
     }
 
     /**
@@ -377,6 +383,29 @@ object AiChatController {
         touchStore()
     }
 
+    /** Deletes several conversations at once (#882): the list's selection. */
+    fun deleteConversations(context: Context, ids: Collection<Long>) {
+        if (ids.isEmpty()) return
+        val store = store(context.applicationContext)
+        for (id in ids) {
+            closeSessionFor(id)
+            synchronized(memoryTails) { memoryTails.remove(id) }
+            store.delete(id)
+        }
+        store.save()
+        pruneImages(context.applicationContext, store)
+        touchStore()
+    }
+
+    /** The user's own name for a conversation (#882); false when it is gone or [title] is blank. */
+    fun renameConversation(context: Context, conversationId: Long, title: String): Boolean {
+        val store = store(context.applicationContext)
+        if (!store.rename(conversationId, title, byUser = true)) return false
+        store.save()
+        touchStore()
+        return true
+    }
+
     private fun launchGeneration(
         appContext: Context,
         settings: KeyboardSettings,
@@ -426,7 +455,81 @@ object AiChatController {
                 }
             }
             finishRun(appContext, conversationId, choice, user, seq, result)
+            if (result.isSuccess && seq == runSeq) autoTitle(appContext, settings, conversationId, choice)
         }
+    }
+
+    /**
+     * Names a chat from its first question and answer (#882), with the model
+     * that answered, in the language the user asked in: what "Auto-rename
+     * chats" does. Once only, after the first answer, and never over a name
+     * the user gave. A failure leaves the first line of the question, which
+     * the store titled the chat with already. Never held for Data Saver's
+     * question: a title is not worth asking about, so a send it would hold is
+     * simply not made.
+     */
+    private fun autoTitle(context: Context, settings: KeyboardSettings, conversationId: Long, choice: ModelChoice) {
+        if (!settings.ai.chatAutoRename) return
+        val conversation = store(context).get(conversationId) ?: return
+        if (conversation.titleByUser) return
+        val kept = conversation.messages.filter { !it.failed }
+        if (kept.size != 2 || kept[0].role != AiChatMessage.ROLE_USER || kept[1].role != AiChatMessage.ROLE_ASSISTANT) return
+        if (kept[1].content.isBlank()) return
+        if (cloudAiDecision(context, settings, choice) != MeteredDecision.ALLOWED) return
+        val exchange = "User:\n" + kept[0].content.take(TITLE_INPUT_CHARS) +
+            "\n\nAssistant:\n" + kept[1].content.take(TITLE_INPUT_CHARS)
+        scope.launch {
+            val raw = runCatching {
+                if (choice.provider == AiProvider.ON_DEVICE) {
+                    // One model on the phone: a message sent meanwhile goes
+                    // first, and the title is not worth making it wait.
+                    if (isGenerating) return@runCatching ""
+                    val modelFile = LocalLlmStore.selectedModelFile(context.filesDir, choice.localModelId)
+                        ?: return@runCatching ""
+                    LocalLlmEngine.generate(
+                        context, modelFile, settings.ai.localBackend, settings.ai.localContextTokens,
+                        AiPrompts.chatTitlePrompt(), exchange,
+                    )
+                } else {
+                    val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+                    val config = AiClient.config(chosen).copy(netSource = NetSource.AI_CHAT, reasoning = false)
+                    AiClient.completeStreaming(
+                        config, AiPrompts.chatTitlePrompt(), exchange, TITLE_MAX_TOKENS,
+                        onPhase = {}, onPartial = {},
+                    ).text
+                }
+            }.getOrNull() ?: return@launch
+            val title = cleanTitle(raw)
+            if (title.isEmpty()) return@launch
+            val store = store(context)
+            // The user may have named it while the title was being written.
+            if (store.get(conversationId)?.titleByUser != false) return@launch
+            if (store.rename(conversationId, title, byUser = false)) {
+                store.save()
+                touchStore()
+            }
+        }
+    }
+
+    /** A model's title as a chat's name: no reasoning, no quotes, one line, no full stop. */
+    internal fun cleanTitle(raw: String): String {
+        val line = AiThinking.parts(raw).output.lineSequence().map { it.trim() }.firstOrNull { it.isNotEmpty() } ?: return ""
+        return line
+            .removePrefix("Title:").removePrefix("title:").trim()
+            .trim('"', '\'', '“', '”', '«', '»', '*', '#', '`', ' ')
+            .trimEnd('.', '。', '।')
+            .trim()
+            .take(AiChatStore.MAX_RENAME)
+    }
+
+    /**
+     * Declines a `rename_chat` question still showing (#882): the keyboard's
+     * chat calls this as the keyboard closes, since a name nobody saw
+     * accepted is not one to keep. Other questions are left waiting.
+     */
+    fun declineRenameAsk() {
+        val asking = _run.value?.tools?.lastOrNull { it.awaitingApproval } ?: return
+        if (asking.tool == AiTools.RENAME_CHAT && !asking.isMcp) toolGate.answer(AiToolApproval.DENY)
     }
 
     /**
@@ -443,11 +546,13 @@ object AiChatController {
         runSeq++
         if (current.choice.provider == AiProvider.ON_DEVICE) LocalLlmEngine.stop()
         val store = store(context.applicationContext)
+        val parts = AiThinking.parts(current.partial, current.implicitThink)
         store.appendMessage(
             current.conversationId,
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = AiThinking.split(current.partial, current.implicitThink).output.trim(),
+                content = parts.output.trim(),
+                reasoning = parts.reasoning,
                 timestamp = System.currentTimeMillis(),
                 provider = current.choice.provider.name,
                 model = modelName(current.choice),
@@ -514,6 +619,7 @@ object AiChatController {
             emptyList()
         }
         var lastPartialAt = 0L
+        val noThink = !settings.ai.chatReasoning && isReasoningModel(choice.localModelId)
         return AiToolLoop.run(
             // The round below ignores this: the session was built with its own
             // prompt above and keeps it. Passing the bare one here is what
@@ -538,8 +644,11 @@ object AiChatController {
         ) { _, roundTurns, _, roundPartial ->
             // The session remembers every earlier round itself, so only the
             // newest message is sent: the user's on round one, the tool
-            // results on the rounds after it.
-            val text = roundTurns.last().text
+            // results on the rounds after it. With the Reasoning switch off a
+            // Qwen-style model is asked not to think, by the soft switch its
+            // chat template reads off the end of the user's turn (#882).
+            val last = roundTurns.last()
+            val text = if (noThink && last.role == AiClient.ChatRole.USER) last.text + " /no_think" else last.text
             val pictures = picturesPending
             picturesPending = emptyList()
             val answer = if (pictures.isEmpty()) {
@@ -634,6 +743,9 @@ object AiChatController {
         val config = AiClient.config(chosen).copy(
             netSource = NetSource.AI_CHAT,
             sessionId = UUID.nameUUIDFromBytes("wmkb-chat-$conversationId".toByteArray()).toString(),
+            // The message box's Reasoning switch (#882); a provider with no
+            // field for it is sent nothing.
+            reasoning = settings.ai.chatReasoning,
         )
         val conversation = store(context).get(conversationId)
         val kept = conversation?.messages.orEmpty().withIndex().filter { !it.value.failed }
@@ -651,7 +763,12 @@ object AiChatController {
                     AiClient.ChatRole.ASSISTANT
                 },
                 promptAt(requireNotNull(conversation), index),
-                images = if (sendsPictures && index == newestUser) pictures(context, message.images) else emptyList(),
+                images = if (index == newestUser) {
+                    (if (sendsPictures) pictures(context, message.images) else emptyList()) +
+                        media(context, choice.provider, message.files)
+                } else {
+                    emptyList()
+                },
             )
         }
         var lastPartialAt = 0L
@@ -764,6 +881,20 @@ object AiChatController {
         AiChatImages.file(context, name)?.let { ReplyShots.encode(it) }?.let { AiClient.AiImage(it.mimeType, it.base64) }
     }
 
+    /**
+     * The recordings, videos and PDFs of the newest message, for the one
+     * service whose request takes any file inline (#882): Gemini. Every other
+     * model reads the mark [AiChatFile.promptText] leaves in the message.
+     */
+    private fun media(context: Context, provider: AiProvider, files: List<AiChatFile>): List<AiClient.AiImage> {
+        if (provider != AiProvider.GEMINI) return emptyList()
+        return files.filter { !it.isText }.mapNotNull { file ->
+            val bytes = AiChatFiles.file(context, file.stored)?.let { runCatching { it.readBytes() }.getOrNull() }
+                ?: return@mapNotNull null
+            AiClient.AiImage(file.mime, android.util.Base64.encodeToString(bytes, android.util.Base64.NO_WRAP))
+        }
+    }
+
     private fun postPhase(seq: Int, phase: AiPhase) {
         if (seq != runSeq) return
         _run.value = _run.value?.takeIf { it.seq == seq }?.copy(phase = phase)
@@ -824,6 +955,18 @@ object AiChatController {
         scanner = settings.scanner,
         ocrReaders = if (settings.scanner.ocrEngine == OcrEngine.ONLINE) OnlineOcr.rows(settings) else emptyList(),
         semantic = settings.semanticSearch,
+        // The user accepted it on the card, so it counts as their name. Only
+        // with Auto-rename chats on, which the tool belongs to (#882).
+        renamer = { title: String ->
+            val store = store(context)
+            if (store.rename(conversationId, title, byUser = true)) {
+                store.save()
+                touchStore()
+                store.get(conversationId)?.title
+            } else {
+                null
+            }
+        }.takeIf { settings.ai.chatAutoRename },
     )
 
     /**
@@ -864,8 +1007,6 @@ object AiChatController {
             return
         }
         val store = store(context)
-        val implicitThink =
-            choice.provider == AiProvider.ON_DEVICE && isReasoningModel(choice.localModelId)
         // Kept with the answer — or with the failure, since a run that died
         // after searching still searched.
         val toolUses = AiToolActivity.settle(
@@ -873,11 +1014,19 @@ object AiChatController {
             context.getString(R.string.ime_ai_chat_error_generic),
         )
         val message = if (raw != null) {
-            val stripped = AiThinking.split(raw, implicitThink).output.trim()
-                .ifBlank { raw.trim() }
+            // Every round's reasoning, kept apart for the folded step (#882).
+            // A finished answer with no marks at all did not reason this
+            // time, whatever the model's name says, so implicit is off here.
+            val parts = AiThinking.parts(raw)
+            val answer = parts.output.trim().ifBlank { if (parts.reasoning.isEmpty()) raw.trim() else "" }
             AiChatMessage(
                 role = AiChatMessage.ROLE_ASSISTANT,
-                content = stripped,
+                content = answer,
+                reasoning = parts.reasoning,
+                // Reasoning and no answer: cut off at the ceiling while it
+                // thought. A failed turn, so it offers Retry rather than
+                // standing there blank under its Reasoning step.
+                error = if (answer.isEmpty()) context.getString(R.string.ime_ai_chat_error_only_reasoning) else "",
                 timestamp = System.currentTimeMillis(),
                 provider = choice.provider.name,
                 model = modelName(choice),
@@ -913,6 +1062,21 @@ object AiChatController {
     private fun modelName(choice: ModelChoice): String =
         if (choice.provider == AiProvider.ON_DEVICE) choice.localModelId else ""
 
+    /**
+     * Whether the message box's Reasoning switch does anything for [choice]
+     * (#882): a cloud model whose request has a field for it, or an
+     * on-device model that reasons, which is asked not to by `/no_think`.
+     * Where it does nothing the switch is not shown.
+     */
+    fun reasoningSwitch(settings: KeyboardSettings, choice: ModelChoice?): Boolean = when {
+        choice == null -> false
+        choice.provider == AiProvider.ON_DEVICE -> isReasoningModel(choice.localModelId)
+        else -> {
+            val chosen = settings.aiThrough(choice.rowKey) ?: settings.ai.copy(provider = choice.provider)
+            AiClient.controlsReasoning(chosen)
+        }
+    }
+
     /** Same sniff as the keyboard: catalog flag, else the model's name. */
     private fun isReasoningModel(modelId: String?): Boolean {
         if (modelId.isNullOrEmpty()) return false
@@ -922,4 +1086,10 @@ object AiChatController {
     }
 
     private const val AI_PARTIAL_INTERVAL_MS = 120L
+
+    /** How much of the first question and answer a title is written from. */
+    private const val TITLE_INPUT_CHARS = 1500
+
+    /** A title is a few words; this is room for those and a reasoning model's preamble. */
+    private const val TITLE_MAX_TOKENS = 256
 }

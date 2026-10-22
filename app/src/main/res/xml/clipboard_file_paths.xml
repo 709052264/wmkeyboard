@@ -14,6 +14,8 @@
     <!-- The Send files tool: field text saved as a file to upload, and copies made for sending. -->
     <cache-path name="send" path="send/" />
     <cache-path name="notes_share" path="notes/" />
+    <!-- The AI chat's Photo button (#882): where the camera app writes the shot. -->
+    <cache-path name="ai_chat_camera" path="ai_chat_camera/" />
     <!-- The diagnostics report, shared out of the debug log screen. -->
     <cache-path name="diagnostics" path="diagnostics/" />
 </paths>

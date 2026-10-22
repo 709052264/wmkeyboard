@@ -225,8 +225,7 @@
     <string name="ime_ai_tool_read_image_text_done">Read the text in picture %1$s</string>
     <string name="ime_ai_tool_reverse_image_search_running">Searching the web by picture %1$s…</string>
     <string name="ime_ai_tool_reverse_image_search_done">Searched the web by picture %1$s</string>
-    <!-- The chat composer's picture button (#698). -->
-    <string name="ime_ai_chat_picture_desc">Add a picture</string>
+    <!-- The chat composer's picture sources (#698), now in its "+" menu. -->
     <string name="ime_ai_chat_picture_clipboard">Copied picture</string>
     <string name="ime_ai_chat_picture_screenshot">Newest screenshot</string>
     <string name="ime_ai_chat_picture_no_clip">No picture in the clipboard history</string>
@@ -235,4 +234,43 @@
     <string name="ime_ai_chat_picture_unreadable">That picture could not be read</string>
     <string name="ime_ai_chat_picture_item_desc">Picture</string>
     <string name="ime_ai_chat_picture_remove_desc">Remove picture</string>
+    <!-- The chat composer's "+" menu (#882): its button, and the buttons in it, named by a long press. -->
+    <string name="ime_ai_chat_attach_menu_desc">Add pictures, files and text</string>
+    <string name="ime_ai_chat_attach_image">Pictures from the gallery</string>
+    <string name="ime_ai_chat_attach_file">A file</string>
+    <string name="ime_ai_chat_attach_photo">Take a photo</string>
+    <string name="ime_ai_chat_attach_full">No room for more on this message</string>
+    <string name="ime_ai_chat_attach_no_picker">This phone has nothing to pick that with</string>
+    <string name="ime_ai_chat_photo_no_permission">Allow the camera to take a photo</string>
+    <string name="ime_ai_chat_file_too_big">That file is too big to send (14 MB at most)</string>
+    <string name="ime_ai_chat_file_unreadable">That file could not be read as text, sound, video or PDF</string>
+    <string name="ime_ai_chat_file_remove_desc">Remove file</string>
+    <!-- The chat's steps before an answer (#882): the folded reasoning, and a tool call opened up. -->
+    <string name="ime_ai_chat_reasoning">Reasoning</string>
+    <!-- %1$s is the tool's own name as the model calls it, such as web_search. -->
+    <string name="ime_ai_chat_tool_call">%1$s call</string>
+    <string name="ime_ai_chat_tool_arguments">Arguments</string>
+    <string name="ime_ai_chat_tool_output">Output</string>
+    <!-- The chat composer's Reasoning switch (#882), as TalkBack reads its state. -->
+    <string name="ime_ai_chat_reasoning_on_desc">The model reasons before it answers</string>
+    <string name="ime_ai_chat_reasoning_off_desc">The model answers without reasoning</string>
+    <!-- The chat list (#882): picking several chats with a long press, and renaming one. -->
+    <plurals name="ime_ai_chat_selected_count">
+        <item quantity="one">%1$d selected</item>
+        <item quantity="other">%1$d selected</item>
+    </plurals>
+    <string name="ime_ai_chat_delete_selected">Delete the selected chats</string>
+    <string name="ime_ai_chat_rename">Rename</string>
+    <string name="ime_ai_chat_rename_title">Rename chat</string>
+    <!-- %1$s is the chat's title. -->
+    <string name="ime_ai_chat_rename_desc">Rename %1$s</string>
+    <string name="ime_ai_chat_rename_hint">The chat's new name</string>
+    <!-- The chat's rename_chat tool (#882): its record, and the card asking the user to accept the name. %1$s is the name. -->
+    <string name="ime_ai_tool_name_rename_chat">Rename chat</string>
+    <string name="ime_ai_tool_rename_chat_running">Renaming the chat to “%1$s”…</string>
+    <string name="ime_ai_tool_rename_chat_done">Renamed the chat to “%1$s”</string>
+    <string name="ime_ai_chat_rename_ask">Rename this chat to “%1$s”?</string>
+    <string name="ime_ai_chat_rename_accept">Accept</string>
+    <string name="ime_ai_chat_rename_decline">Decline</string>
+    <string name="ime_ai_chat_error_only_reasoning">The model spent its whole answer reasoning and wrote no reply. Try again, or turn Reasoning off.</string>
 </resources>

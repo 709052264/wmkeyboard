@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -28,11 +29,34 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Input
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.OpenInNew
-import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Send
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ArrowUpward
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AttachFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Psychology
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AudioFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Description
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatQuote
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoCamera
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoLibrary
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PictureAsPdf
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Screenshot
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VideoFile
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Check
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBox
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CheckBoxOutlineBlank
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DriveFileRenameOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SelectAll
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.OutlinedFlag
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ExpandMore
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Image
@@ -68,7 +92,9 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.wasimaster.wmkeyboard.app.ChannelFeatures
 import com.wasimaster.wmkeyboard.config.BuildConfig
+import com.wasimaster.wmkeyboard.app.AiChatPickActivity
 import com.wasimaster.wmkeyboard.core.aichat.AiChatConversation
+import com.wasimaster.wmkeyboard.core.aichat.AiChatFile
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.core.settings.AiProvider
@@ -248,19 +274,25 @@ internal fun AiChatPanel(
                 if (!chat.composing && choices.size > 1) {
                     ModelRow(choices, choice, enabled = run == null, onChat)
                 }
+                val reasoning = remember(choice, state.settings.ai, state.settings.providers) {
+                    AiChatController.reasoningSwitch(state.settings, choice)
+                }
                 Transcript(
                     state = state,
                     messages = conversation?.messages.orEmpty(),
                     live = live,
                     busy = run != null,
+                    reasoning = reasoning,
                     onChat = onChat,
                     modifier = Modifier.weight(1f),
                 )
                 Composer(
                     state = state,
                     generating = run != null,
+                    reasoning = reasoning,
                     // Pictures alone are a message, as on the chat screen.
-                    canSend = choice != null && (chat.draft.isNotBlank() || chat.images.isNotEmpty()) && run == null,
+                    canSend = choice != null && run == null &&
+                        (chat.draft.isNotBlank() || chat.images.isNotEmpty() || chat.files.isNotEmpty()),
                     onChat = onChat,
                 )
             }
@@ -340,6 +372,8 @@ private fun Transcript(
     messages: List<AiChatMessage>,
     live: AiChatController.ChatRun?,
     busy: Boolean,
+    /** The composer shows its Reasoning switch; see [ComposerSlots]. */
+    reasoning: Boolean,
     onChat: (AiChatAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -376,7 +410,7 @@ private fun Transcript(
         copied = index
     }
     ChatFocusTargets(
-        chips = composerTargets(state, busy, onChat),
+        chips = composerTargets(state, busy, reasoning, onChat),
         results = when {
             lastAnswer == null || last == null -> emptyList()
             last.failed -> listOf { onChat(AiChatAction.Retry) }
@@ -409,7 +443,7 @@ private fun Transcript(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 if (live != null) {
-                    item(key = "live") { StreamingBubble(live, state.settings.ai.showThinking, onChat) }
+                    item(key = "live") { StreamingBubble(live, onChat) }
                 }
                 itemsIndexed(
                     messages.asReversed(),
@@ -468,7 +502,7 @@ private fun MessageBubble(
 ) {
     val kb = LocalKbTheme.current
     val fromUser = message.role == AiChatMessage.ROLE_USER
-    val ink = if (fromUser) kb.chipActiveText else kb.chipText
+    val ink = if (fromUser) kb.chipActiveText else answerInk(kb)
     val colors = ChatMarkdownColors(
         text = ink,
         dim = ink.copy(alpha = ink.alpha * 0.6f),
@@ -480,23 +514,33 @@ private fun MessageBubble(
     ) {
         Row {
             if (fromUser) Spacer(Modifier.width(BUBBLE_INSET))
+            // The user's turn is a bubble at the right; an answer is the page
+            // itself (#882), full width and on the panel, as long as it runs.
             Column(
-                modifier = Modifier
-                    .weight(1f, fill = false)
-                    .clip(bubbleShape(fromUser))
-                    .frostGlass(kb, bubbleShape(fromUser), FrostSurface.CHIPS)
-                    .background(if (fromUser) kb.chipActive else kb.chip)
-                    .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                modifier = if (fromUser) {
+                    Modifier
+                        .weight(1f, fill = false)
+                        .clip(bubbleShape(fromUser))
+                        .frostGlass(kb, bubbleShape(fromUser), FrostSurface.CHIPS)
+                        .background(kb.chipActive)
+                        .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
+                        .padding(horizontal = 10.dp, vertical = 7.dp)
+                } else {
+                    Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(6.dp))
+                        .combinedClickable(onClick = onTap, onLongClick = { onCopy(message.content) })
+                        .padding(horizontal = 2.dp, vertical = 3.dp)
+                },
             ) {
                 // The pictures a message carried, over its words (#698).
                 if (message.images.isNotEmpty()) {
                     ChatPictures(message.images, MESSAGE_PICTURE_SIZE, Modifier.padding(bottom = 5.dp))
                 }
-                // What the answer was built on, over the answer.
-                if (message.toolUses.isNotEmpty()) {
-                    ToolUses(message.toolUses, colors, onChat, Modifier.padding(bottom = 4.dp), onUndoMemory)
-                }
+                if (message.files.isNotEmpty()) ChatFiles(message.files, ink, Modifier.padding(bottom = 5.dp))
+                // How the answer came to be, over it: the reasoning, then each
+                // tool call, as steps down to the answer (#882).
+                Chain(message.reasoning, live = false, message.toolUses, colors, onChat, onUndoMemory)
                 when {
                     message.failed -> Text(message.error, color = kb.accent, fontSize = 13.sp, lineHeight = 18.sp)
                     // The user's own words are drawn as written: an asterisk
@@ -524,7 +568,6 @@ private fun MessageBubble(
                 }
                 if (message.stopped) Caption(stringResource(R.string.ime_ai_chat_stopped), colors.dim)
             }
-            if (!fromUser) Spacer(Modifier.width(BUBBLE_INSET))
         }
         if (actionsOut) {
             MessageActions(message, copied, canRegenerate, canEdit, focusedAction, onCopy, onReport, onChat)
@@ -532,8 +575,11 @@ private fun MessageBubble(
     }
 }
 
-/** What can be done with one message, under its bubble. The indices mirror [Transcript]'s RESULTS list. */
-@OptIn(ExperimentalLayoutApi::class)
+/**
+ * What can be done with one message, under it: plain icons with no chip
+ * behind them (#882), each named by a long press. The indices mirror
+ * [Transcript]'s RESULTS list.
+ */
 @Composable
 private fun MessageActions(
     message: AiChatMessage,
@@ -546,47 +592,71 @@ private fun MessageActions(
     onChat: (AiChatAction) -> Unit,
 ) {
     val fromUser = message.role == AiChatMessage.ROLE_USER
-    FlowRow(
-        modifier = Modifier.padding(top = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+    Row(
+        modifier = Modifier.padding(top = 1.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (message.failed) {
             if (canRegenerate) {
-                ToolPanelChip(
+                MessageAction(
+                    Icons.Outlined.Refresh,
                     stringResource(R.string.ime_ai_chat_retry),
-                    selected = true,
-                    modifier = Modifier.focusRing(focusedAction == 0),
+                    Modifier.focusRing(focusedAction == 0, CircleShape),
                 ) { onChat(AiChatAction.Retry) }
             }
-            return@FlowRow
+            return@Row
         }
         // Insert leads on an answer, which is what the user is here to take
         // away. Their own message has no use for it.
         if (!fromUser) {
-            ToolPanelChip(
+            MessageAction(
+                Icons.AutoMirrored.Outlined.Input,
                 stringResource(R.string.ime_ai_insert),
-                selected = true,
-                modifier = Modifier.focusRing(focusedAction == 0),
+                Modifier.focusRing(focusedAction == 0, CircleShape),
             ) { onChat(AiChatAction.Insert(message.content)) }
         }
-        ToolPanelChip(
+        MessageAction(
+            if (copied) Icons.Outlined.Check else Icons.Outlined.ContentCopy,
             stringResource(if (copied) R.string.ime_ai_chat_copied else CommonR.string.common_copy),
-            modifier = Modifier.focusRing(!fromUser && focusedAction == 1),
+            Modifier.focusRing(!fromUser && focusedAction == 1, CircleShape),
         ) { onCopy(message.content) }
         if (!fromUser && canRegenerate) {
-            ToolPanelChip(
+            MessageAction(
+                Icons.Outlined.Refresh,
                 stringResource(R.string.ime_ai_chat_regenerate),
-                modifier = Modifier.focusRing(focusedAction == 2),
+                Modifier.focusRing(focusedAction == 2, CircleShape),
             ) { onChat(AiChatAction.Regenerate) }
         }
         if (canEdit) {
-            ToolPanelChip(stringResource(CommonR.string.common_edit)) { onChat(AiChatAction.EditLast) }
+            MessageAction(Icons.Outlined.Edit, stringResource(CommonR.string.common_edit)) { onChat(AiChatAction.EditLast) }
         }
         // Play asks for a way to report generated content on every surface that
         // shows it; the other channels have no such rule, as on the chat screen.
         if (!fromUser && BuildConfig.ENABLE_PLAY_STORE && message.content.isNotBlank()) {
-            ToolPanelChip(stringResource(R.string.ime_ai_chat_report_action)) { onReport() }
+            MessageAction(Icons.Outlined.OutlinedFlag, stringResource(R.string.ime_ai_chat_report_action)) { onReport() }
+        }
+    }
+}
+
+/** One of [MessageActions]' icons: no fill, no border, the answer's own ink. */
+@Composable
+private fun MessageAction(icon: ImageVector, description: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    IconHint(description, modifier) {
+        Box(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                icon,
+                contentDescription = description,
+                tint = answerInk(kb).copy(alpha = 0.75f),
+                modifier = Modifier.size(17.dp),
+            )
         }
     }
 }
@@ -612,24 +682,26 @@ private fun Caption(text: String, color: Color) {
     Text(text, color = color, fontSize = 10.sp, lineHeight = 13.sp, modifier = Modifier.padding(top = 3.dp))
 }
 
-/** [ChatToolUses] in the bubble's colours, its links opened and copied the keyboard's way. */
+/** [ChatChain] in the answer's colours, its links opened and copied the keyboard's way. */
 @Composable
-private fun ToolUses(
+private fun Chain(
+    reasoning: String,
+    live: Boolean,
     uses: List<AiToolActivity>,
     colors: ChatMarkdownColors,
     onChat: (AiChatAction) -> Unit,
-    modifier: Modifier = Modifier,
     /** Undo for a memory save; only a stored answer has one to take back. */
     onUndoMemory: ((Int) -> Unit)? = null,
 ) {
     val context = LocalContext.current
-    ChatToolUses(
+    ChatChain(
+        reasoning = reasoning,
+        reasoningLive = live,
         uses = uses,
         colors = colors,
         errorColor = LocalKbTheme.current.accent,
         onOpen = { openToolLink(context, it) },
         onCopy = { onChat(AiChatAction.Copy(it)) },
-        modifier = modifier,
         // Only a running call ever asks, so a stored answer's record never
         // shows the buttons.
         onApproval = { onChat(AiChatAction.ToolApproval(it)) },
@@ -640,54 +712,36 @@ private fun ToolUses(
 
 /** The answer forming: its text as it arrives, or what the model is doing until there is some. */
 @Composable
-private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean, onChat: (AiChatAction) -> Unit) {
+private fun StreamingBubble(run: AiChatController.ChatRun, onChat: (AiChatAction) -> Unit) {
     val kb = LocalKbTheme.current
-    val split = remember(run.partial, run.implicitThink) { AiThinking.split(run.partial, run.implicitThink) }
+    val ink = answerInk(kb)
     val colors = ChatMarkdownColors(
-        text = kb.chipText,
-        dim = kb.chipText.copy(alpha = kb.chipText.alpha * 0.6f),
-        codeBackground = kb.chipText.copy(alpha = 0.10f),
+        text = ink,
+        dim = ink.copy(alpha = ink.alpha * 0.6f),
+        codeBackground = ink.copy(alpha = 0.10f),
     )
     Row(Modifier.fillMaxWidth()) {
+        // Drawn as the finished answer will be: full width, no bubble (#882).
         Column(
             modifier = Modifier
-                .weight(1f, fill = false)
-                .clip(bubbleShape(fromUser = false))
-                .frostGlass(kb, bubbleShape(fromUser = false), FrostSurface.CHIPS)
-                .background(kb.chip)
-                .padding(horizontal = 10.dp, vertical = 7.dp),
+                .weight(1f)
+                .padding(horizontal = 2.dp, vertical = 3.dp),
         ) {
-            // The calls so far, the running one saying what it is doing.
+            // The reasoning so far and the calls so far, the running one
+            // saying what it is doing, as the steps the stored answer keeps.
+            val parts = remember(run.partial, run.implicitThink) { AiThinking.parts(run.partial, run.implicitThink) }
             val toolRunning = run.tools.any { it.running }
-            if (run.tools.isNotEmpty()) ToolUses(run.tools, colors, onChat, Modifier.padding(bottom = 4.dp))
-            val reasoning = remember(run.partial, run.implicitThink, showThinking) {
-                if (showThinking) AiThinking.reasoning(run.partial, run.implicitThink) else ""
-            }
+            Chain(parts.reasoning, live = parts.thinking, run.tools, colors, onChat)
             when {
-                // The reasoning dimmed, then the answer as markdown, so its
-                // tables and maths take shape while it streams.
-                reasoning.isNotEmpty() || split.output.isNotBlank() -> {
-                    if (reasoning.isNotEmpty()) {
-                        Text(
-                            reasoning,
-                            // Dimmed by alpha, as the actions' result is: some
-                            // themes draw their secondary text in the same white.
-                            color = kb.chipText.copy(alpha = 0.45f),
-                            fontSize = 13.sp,
-                            lineHeight = 18.sp,
-                            modifier = if (split.output.isNotBlank()) Modifier.padding(bottom = 5.dp) else Modifier,
-                        )
-                    }
-                    if (split.output.isNotBlank()) ChatMarkdown(split.output, colors)
-                }
-                // The line over this one already says which tool is running
-                // and on what; "Using a tool" under it would only repeat it.
-                toolRunning && !split.thinking -> Unit
+                // The answer as markdown, so its tables and maths take shape
+                // while it streams.
+                parts.output.isNotBlank() -> ChatMarkdown(parts.output, colors)
+                // The steps above already say what is happening: the model is
+                // reasoning, or a tool is running.
+                parts.thinking || toolRunning -> Unit
                 else -> {
                     Text(
-                        stringResource(
-                            if (split.thinking) R.string.ime_ai_chat_thinking else run.phase.labelRes,
-                        ),
+                        stringResource(run.phase.labelRes),
                         color = kb.secondaryText,
                         fontSize = 12.sp,
                         lineHeight = 16.sp,
@@ -697,7 +751,6 @@ private fun StreamingBubble(run: AiChatController.ChatRun, showThinking: Boolean
                 }
             }
         }
-        Spacer(Modifier.width(BUBBLE_INSET))
     }
 }
 
@@ -775,46 +828,71 @@ private fun EmptyChat(state: KeyboardUiState, onChat: (AiChatAction) -> Unit) {
 }
 
 /**
- * Pictures can be added here (#698): never in incognito, whose chats are not
- * kept, and never over a password field, the same rule the paperclip keeps.
+ * Pictures and files can be added here (#698, #882): never in incognito,
+ * whose chats are not kept, and never over a password field, the same rule
+ * the field's own text keeps.
  */
 private fun picturesOffered(state: KeyboardUiState): Boolean = !state.incognitoOn && !state.secureField
 
+/** One button of the composer's "+" menu (#882), in the order the menu draws them. */
+private enum class AttachItem { IMAGE, FILE, PHOTO, CLIPBOARD, SCREENSHOT, FIELD, PASTE }
+
 /**
- * The composer's ring slots, in the order [Composer] draws them. The picture
- * button is left out where pictures are not offered, and its two sources
- * follow the send button while their row is up; -1 is a slot not on screen.
+ * The "+" menu's buttons for this field. The picture and file sources are left
+ * out where pictures are not offered; a Play build declares no photos
+ * permission, so it has no screenshots to offer.
  */
-private class ComposerSlots(state: KeyboardUiState) {
-    val pictures = picturesOffered(state)
-    private val shift = if (pictures) 1 else 0
-    val attach = 0
-    val picture = if (pictures) 1 else -1
-    val paste = 1 + shift
-    val field = 2 + shift
-    val send = 3 + shift
-    val sourcesOpen = pictures && state.aiChat.pictureSources
-    val clipboard = if (sourcesOpen) 4 + shift else -1
-    /** A Play build declares no photos permission, so it has no screenshots to offer. */
-    val screenshot = if (sourcesOpen && ChannelFeatures.SCREENSHOT_CLIPS) 5 + shift else -1
+private fun attachItems(state: KeyboardUiState): List<AttachItem> = buildList {
+    if (picturesOffered(state)) {
+        add(AttachItem.IMAGE)
+        add(AttachItem.FILE)
+        add(AttachItem.PHOTO)
+        add(AttachItem.CLIPBOARD)
+        if (ChannelFeatures.SCREENSHOT_CLIPS) add(AttachItem.SCREENSHOT)
+    }
+    add(AttachItem.FIELD)
+    add(AttachItem.PASTE)
+}
+
+private fun attachAction(item: AttachItem): AiChatAction = when (item) {
+    AttachItem.IMAGE -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_IMAGES)
+    AttachItem.FILE -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_FILES)
+    AttachItem.PHOTO -> AiChatAction.PickFromSystem(AiChatPickActivity.MODE_PHOTO)
+    AttachItem.CLIPBOARD -> AiChatAction.AddPicture(fromClipboard = true)
+    AttachItem.SCREENSHOT -> AiChatAction.AddPicture(fromClipboard = false)
+    AttachItem.FIELD -> AiChatAction.ToggleAttachment
+    AttachItem.PASTE -> AiChatAction.Paste
+}
+
+/**
+ * The composer's ring slots, in the order [Composer] draws them: the field,
+ * then its controls along the bottom (the Reasoning switch where [reasoning]
+ * says the model has one, "+", Send), then the menu's buttons while it is up;
+ * -1 is a slot not on screen.
+ */
+private class ComposerSlots(state: KeyboardUiState, reasoning: Boolean) {
+    val field = 0
+    val reasoning = if (reasoning) 1 else -1
+    private val shift = if (reasoning) 1 else 0
+    val plus = 1 + shift
+    val send = 2 + shift
+    val menu: List<AttachItem> = if (state.aiChat.attachMenu) attachItems(state) else emptyList()
+    fun of(item: AttachItem): Int = menu.indexOf(item).let { if (it < 0) -1 else 3 + shift + it }
 }
 
 /** What Enter does on each of the composer's ring slots. Mirrors [ComposerSlots]. */
 private fun composerTargets(
     state: KeyboardUiState,
     generating: Boolean,
+    reasoning: Boolean,
     onChat: (AiChatAction) -> Unit,
 ): List<() -> Unit> = buildList<() -> Unit> {
-    val slots = ComposerSlots(state)
-    add { onChat(AiChatAction.ToggleAttachment) }
-    if (slots.pictures) add { onChat(AiChatAction.TogglePictureSources) }
-    add { onChat(AiChatAction.Paste) }
+    val slots = ComposerSlots(state, reasoning)
     add { onChat(if (state.aiChat.composing) AiChatAction.BlurComposer else AiChatAction.FocusComposer) }
+    if (slots.reasoning >= 0) add { onChat(AiChatAction.ToggleReasoning) }
+    add { onChat(AiChatAction.ToggleAttachMenu) }
     add { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
-    if (slots.sourcesOpen) {
-        add { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
-        if (slots.screenshot >= 0) add { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
-    }
+    slots.menu.forEach { item -> add { onChat(attachAction(item)) } }
 }
 
 /**
@@ -877,33 +955,56 @@ private fun ChatPictures(
 }
 
 /**
- * Where a picture can come from, over the composer: the keyboard cannot open
- * the photo picker the chat screen uses, since an input method that starts an
- * activity loses its field. So these are the reply tool's two sources, and the
- * line beside them says why the last one asked for did not arrive.
+ * The composer's "+" menu (#882), over it: a row of icons, each named by a
+ * long press. Not a sheet: a popup over an input method's window is the
+ * untrusted-touch trap, so it opens in place, the way the old picture row
+ * did. Image, File and Photo go through the system's own pickers, which take
+ * the field away for as long as they are up; the clipboard's picture and the
+ * newest screenshot are the reply tool's sources, which do not. The line
+ * under it says why the last one asked for did not arrive.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PictureSources(state: KeyboardUiState, slots: ComposerSlots, onChat: (AiChatAction) -> Unit) {
+private fun AttachMenu(state: KeyboardUiState, slots: ComposerSlots, onChat: (AiChatAction) -> Unit) {
     val kb = LocalKbTheme.current
+    val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 5.dp),
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        ToolPanelChip(
-            stringResource(R.string.ime_ai_chat_picture_clipboard),
-            modifier = Modifier.focusRing(focused == slots.clipboard),
-        ) { onChat(AiChatAction.AddPicture(fromClipboard = true)) }
-        if (slots.screenshot >= 0) {
-            ToolPanelChip(
-                stringResource(R.string.ime_ai_chat_picture_screenshot),
-                modifier = Modifier.focusRing(focused == slots.screenshot),
-            ) { onChat(AiChatAction.AddPicture(fromClipboard = false)) }
+    Column(Modifier.fillMaxWidth().padding(bottom = 5.dp)) {
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+        ) {
+            slots.menu.forEach { item ->
+                val (icon, label) = when (item) {
+                    AttachItem.IMAGE -> Icons.Outlined.PhotoLibrary to R.string.ime_ai_chat_attach_image
+                    AttachItem.FILE -> Icons.Outlined.AttachFile to R.string.ime_ai_chat_attach_file
+                    AttachItem.PHOTO -> Icons.Outlined.PhotoCamera to R.string.ime_ai_chat_attach_photo
+                    AttachItem.CLIPBOARD -> Icons.Outlined.Image to R.string.ime_ai_chat_picture_clipboard
+                    AttachItem.SCREENSHOT -> Icons.Outlined.Screenshot to R.string.ime_ai_chat_picture_screenshot
+                    AttachItem.FIELD -> Icons.Outlined.FormatQuote to
+                        if (chat.attachment != null) R.string.ime_ai_chat_attach_remove_desc else R.string.ime_ai_chat_attach_desc
+                    AttachItem.PASTE -> Icons.Outlined.ContentPaste to CommonR.string.common_paste
+                }
+                val enabled = when (item) {
+                    AttachItem.IMAGE, AttachItem.PHOTO, AttachItem.CLIPBOARD, AttachItem.SCREENSHOT ->
+                        chat.images.size < AiChatStore.MAX_IMAGES
+                    AttachItem.FILE -> chat.files.size < AiChatStore.MAX_FILES
+                    // Nothing to quote from an empty field, and never from a password.
+                    AttachItem.FIELD -> chat.attachment != null || (state.aiHasText && !state.secureField)
+                    AttachItem.PASTE -> true
+                }
+                ChatIconButton(
+                    icon,
+                    stringResource(label),
+                    active = item == AttachItem.FIELD && chat.attachment != null,
+                    enabled = enabled,
+                    size = 38.dp,
+                    modifier = Modifier.focusRing(focused == slots.of(item), CircleShape),
+                ) { onChat(attachAction(item)) }
+            }
         }
-        state.aiChat.pictureNotice?.let { notice ->
+        chat.pictureNotice?.let { notice ->
             Text(
                 stringResource(notice),
                 color = kb.secondaryText,
@@ -911,30 +1012,99 @@ private fun PictureSources(state: KeyboardUiState, slots: ComposerSlots, onChat:
                 lineHeight = 13.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }
+}
+
+/**
+ * The files of a message (#882): one chip each, with its name, waiting over
+ * the composer with a cross to take it back off, or in a sent bubble.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ChatFiles(
+    files: List<AiChatFile>,
+    ink: Color,
+    modifier: Modifier = Modifier,
+    onRemove: ((AiChatFile) -> Unit)? = null,
+) {
+    val kb = LocalKbTheme.current
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(5.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp),
+    ) {
+        files.forEach { file ->
+            val shape = RoundedCornerShape(8.dp)
+            Row(
+                modifier = Modifier
+                    .clip(shape)
+                    .background(ink.copy(alpha = 0.10f))
+                    .padding(start = 7.dp, end = if (onRemove != null) 2.dp else 8.dp, top = 3.dp, bottom = 3.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(fileIcon(file), contentDescription = null, tint = ink, modifier = Modifier.size(14.dp))
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    file.name,
+                    color = ink,
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.MiddleEllipsis,
+                    modifier = Modifier.widthIn(max = 160.dp),
+                )
+                onRemove?.let { remove ->
+                    Box(
+                        modifier = Modifier
+                            .padding(start = 2.dp)
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .clickable { remove(file) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            Icons.Outlined.Close,
+                            contentDescription = stringResource(R.string.ime_ai_chat_file_remove_desc),
+                            tint = kb.chipText,
+                            modifier = Modifier.size(13.dp),
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** The mark a file's chip wears, by what it is. */
+fun fileIcon(file: AiChatFile): ImageVector = when {
+    file.mime.startsWith("audio/") -> Icons.Outlined.AudioFile
+    file.mime.startsWith("video/") -> Icons.Outlined.VideoFile
+    file.mime == "application/pdf" -> Icons.Outlined.PictureAsPdf
+    else -> Icons.Outlined.Description
 }
 
 @Composable
 private fun Composer(
     state: KeyboardUiState,
     generating: Boolean,
+    reasoning: Boolean,
     canSend: Boolean,
     onChat: (AiChatAction) -> Unit,
 ) {
     val kb = LocalKbTheme.current
     val chat = state.aiChat
     val focused = state.focusedIndex(FocusRegion.CHIPS)
-    val slots = ComposerSlots(state)
+    val slots = ComposerSlots(state, reasoning)
     val shape = kb.cardShape()
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 5.dp),
     ) {
-        if (slots.sourcesOpen) PictureSources(state, slots, onChat)
+        if (chat.attachMenu) AttachMenu(state, slots, onChat)
         // Shown wherever they were picked: a picture already chosen is not taken
         // back because the field behind turned into a password.
         if (chat.images.isNotEmpty()) {
@@ -945,119 +1115,154 @@ private fun Composer(
                 onRemove = { onChat(AiChatAction.RemovePicture(it)) },
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.Bottom,
+        if (chat.files.isNotEmpty()) {
+            ChatFiles(
+                chat.files,
+                kb.chipText,
+                Modifier.padding(bottom = 5.dp),
+                onRemove = { onChat(AiChatAction.RemoveFile(it)) },
+            )
+        }
+        // One box (#882): what is being written, and under it the controls
+        // that belong to it, the Reasoning switch at the start and "+" and
+        // Send at the end. A tap on the box anywhere but a control is a tap
+        // on the field.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(shape)
+                .focusRing(focused == slots.field, shape)
+                .frostGlass(kb, shape, FrostSurface.CHIPS)
+                .background(kb.chip)
+                .chipBorder(kb, shape)
+                .clickable(enabled = !chat.composing, indication = null, interactionSource = null) {
+                    onChat(AiChatAction.FocusComposer)
+                }
+                .padding(start = 10.dp, end = 5.dp, top = 7.dp, bottom = 5.dp),
         ) {
-            ChatIconButton(
-                Icons.Outlined.AttachFile,
-                stringResource(
-                    if (chat.attachment != null) {
-                        R.string.ime_ai_chat_attach_remove_desc
-                    } else {
-                        R.string.ime_ai_chat_attach_desc
+            chat.attachment?.let { attachment ->
+                Text(
+                    when {
+                        // A tool's text is named by the tool it came from (#352).
+                        attachment.label.isNotEmpty() -> stringResource(
+                            if (attachment.fromSelection) {
+                                R.string.ime_ai_chat_attached_tool_selection
+                            } else {
+                                R.string.ime_ai_chat_attached_tool
+                            },
+                            attachment.label,
+                        )
+                        else -> pluralStringResource(
+                            if (attachment.fromSelection) {
+                                R.plurals.ime_ai_chat_attached_selection
+                            } else {
+                                R.plurals.ime_ai_chat_attached_field
+                            },
+                            attachment.text.length,
+                            attachment.text.length,
+                        )
                     },
-                ),
-                active = chat.attachment != null,
-                // Nothing to quote from an empty field, and never from a password.
-                enabled = chat.attachment != null || (state.aiHasText && !state.secureField),
-                modifier = Modifier.focusRing(focused == slots.attach, CircleShape),
-            ) { onChat(AiChatAction.ToggleAttachment) }
-            Spacer(Modifier.width(4.dp))
-            if (slots.pictures) {
-                ChatIconButton(
-                    Icons.Outlined.Image,
-                    stringResource(R.string.ime_ai_chat_picture_desc),
-                    active = chat.pictureSources,
-                    enabled = chat.pictureSources || chat.images.size < AiChatStore.MAX_IMAGES,
-                    modifier = Modifier.focusRing(focused == slots.picture, CircleShape),
-                ) { onChat(AiChatAction.TogglePictureSources) }
-                Spacer(Modifier.width(4.dp))
+                    color = kb.accent,
+                    fontSize = 10.sp,
+                    lineHeight = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(bottom = 3.dp, end = 5.dp),
+                )
             }
-            ChatIconButton(
-                Icons.Outlined.ContentPaste,
-                stringResource(CommonR.string.common_paste),
-                modifier = Modifier.focusRing(focused == slots.paste, CircleShape),
-            ) { onChat(AiChatAction.Paste) }
-            Spacer(Modifier.width(6.dp))
-            Column(
+            val hint = stringResource(R.string.ime_ai_chat_composer_hint)
+            if (chat.composing) {
+                // The caret, and a tap that moves it, come from the capture
+                // ladder's own editor; this field is one of its buffers.
+                ClipEditText(
+                    text = chat.draft,
+                    placeholder = hint,
+                    textColor = kb.chipText,
+                    placeholderColor = kb.secondaryText,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 5.dp)
+                        .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
+                )
+            } else {
+                Text(
+                    chat.draft.ifEmpty { hint },
+                    color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
+                    fontSize = 14.sp,
+                    lineHeight = 19.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(end = 5.dp),
+                )
+            }
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clip(shape)
-                    .focusRing(focused == slots.field, shape)
-                    .background(kb.chip)
-                    .chipBorder(kb, shape)
-                    .clickable(enabled = !chat.composing) { onChat(AiChatAction.FocusComposer) }
-                    .padding(horizontal = 10.dp, vertical = 7.dp),
+                    .fillMaxWidth()
+                    .padding(top = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                chat.attachment?.let { attachment ->
-                    Text(
-                        when {
-                            // A tool's text is named by the tool it came from (#352).
-                            attachment.label.isNotEmpty() -> stringResource(
-                                if (attachment.fromSelection) {
-                                    R.string.ime_ai_chat_attached_tool_selection
-                                } else {
-                                    R.string.ime_ai_chat_attached_tool
-                                },
-                                attachment.label,
-                            )
-                            else -> pluralStringResource(
-                                if (attachment.fromSelection) {
-                                    R.plurals.ime_ai_chat_attached_selection
-                                } else {
-                                    R.plurals.ime_ai_chat_attached_field
-                                },
-                                attachment.text.length,
-                                attachment.text.length,
-                            )
-                        },
-                        color = kb.accent,
-                        fontSize = 10.sp,
-                        lineHeight = 13.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(bottom = 3.dp),
-                    )
+                if (reasoning) {
+                    ReasoningSwitch(
+                        on = state.settings.ai.chatReasoning,
+                        modifier = Modifier.focusRing(focused == slots.reasoning, CircleShape),
+                    ) { onChat(AiChatAction.ToggleReasoning) }
                 }
-                val hint = stringResource(R.string.ime_ai_chat_composer_hint)
-                if (chat.composing) {
-                    // The caret, and a tap that moves it, come from the capture
-                    // ladder's own editor; this field is one of its buffers.
-                    ClipEditText(
-                        text = chat.draft,
-                        placeholder = hint,
-                        textColor = kb.chipText,
-                        placeholderColor = kb.secondaryText,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 20.dp, max = COMPOSER_MAX_HEIGHT),
-                    )
-                } else {
-                    Text(
-                        chat.draft.ifEmpty { hint },
-                        color = if (chat.draft.isEmpty()) kb.secondaryText else kb.chipText,
-                        fontSize = 14.sp,
-                        lineHeight = 19.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+                Spacer(Modifier.weight(1f))
+                ChatIconButton(
+                    Icons.Outlined.Add,
+                    stringResource(R.string.ime_ai_chat_attach_menu_desc),
+                    active = chat.attachMenu,
+                    modifier = Modifier.focusRing(focused == slots.plus, CircleShape),
+                ) { onChat(AiChatAction.ToggleAttachMenu) }
+                Spacer(Modifier.width(6.dp))
+                ChatIconButton(
+                    if (generating) Icons.Outlined.Stop else Icons.Outlined.ArrowUpward,
+                    stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
+                    active = true,
+                    enabled = generating || canSend,
+                    modifier = Modifier.focusRing(focused == slots.send, CircleShape),
+                ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
             }
-            Spacer(Modifier.width(6.dp))
-            ChatIconButton(
-                if (generating) Icons.Outlined.Stop else Icons.AutoMirrored.Outlined.Send,
-                stringResource(if (generating) R.string.ime_ai_chat_stop else R.string.ime_ai_chat_send),
-                active = true,
-                enabled = generating || canSend,
-                size = 36.dp,
-                modifier = Modifier.focusRing(focused == slots.send, CircleShape),
-            ) { onChat(if (generating) AiChatAction.Stop else AiChatAction.Send) }
         }
     }
 }
 
-/** The conversation list, in place of the transcript. */
+/**
+ * The Reasoning switch at the start of the composer's controls (#882): a
+ * small pill, lit while the model is asked to reason. It is the chat's own
+ * setting, the same one the app's chat shows, and only here for a model it
+ * does something for.
+ */
+@Composable
+private fun ReasoningSwitch(on: Boolean, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = RoundedCornerShape(50)
+    val ink = if (on) kb.chipActiveText else kb.chipText.copy(alpha = kb.chipText.alpha * 0.75f)
+    val label = stringResource(R.string.ime_ai_chat_reasoning)
+    val state = stringResource(if (on) R.string.ime_ai_chat_reasoning_on_desc else R.string.ime_ai_chat_reasoning_off_desc)
+    Row(
+        modifier = modifier
+            .clip(shape)
+            .background(if (on) kb.chipActive else Color.Transparent)
+            .border(1.dp, ink.copy(alpha = if (on) 0f else 0.35f), shape)
+            .toggleable(value = on, role = androidx.compose.ui.semantics.Role.Switch, onValueChange = { onClick() })
+            .semantics { stateDescription = state }
+            .padding(horizontal = 9.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(Icons.Outlined.Psychology, contentDescription = null, tint = ink, modifier = Modifier.size(14.dp))
+        Spacer(Modifier.width(4.dp))
+        Text(label, color = ink, fontSize = 12.sp, lineHeight = 15.sp, fontWeight = FontWeight.Medium, maxLines = 1)
+    }
+}
+
+/**
+ * The conversation list, in place of the transcript. A long press on a chat
+ * starts picking (#882): taps then tick chats on and off, and the row over
+ * the list has Select all and Delete. The pencil on a chat types a new name
+ * for it in place, with the keys under the panel.
+ */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun Sessions(
     state: KeyboardUiState,
@@ -1065,8 +1270,12 @@ private fun Sessions(
     onChat: (AiChatAction) -> Unit,
 ) {
     val kb = LocalKbTheme.current
+    val chat = state.aiChat
+    val picked = chat.picked.filterTo(HashSet()) { id -> conversations.any { it.id == id } }
+    val picking = picked.isNotEmpty()
     // Delete is two taps on the same chip, not a dialog: a dialog over an IME
-    // window is a popup, and the list has nowhere to put one.
+    // window is a popup, and the list has nowhere to put one. [ALL_PICKED]
+    // stands for the selection's Delete.
     var doomed by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(doomed) {
         if (doomed != null) {
@@ -1074,12 +1283,29 @@ private fun Sessions(
             doomed = null
         }
     }
+    val top: List<() -> Unit> = if (picking) {
+        listOf(
+            { onChat(AiChatAction.ClearPicks) },
+            { onChat(AiChatAction.PickAll) },
+            {
+                if (doomed == ALL_PICKED) {
+                    doomed = null
+                    onChat(AiChatAction.DeletePicked)
+                } else {
+                    doomed = ALL_PICKED
+                }
+            },
+        )
+    } else {
+        listOf({ onChat(AiChatAction.NewChat) }, { onChat(AiChatAction.OpenInApp(list = true)) })
+    }
     ChatFocusTargets(
         chips = emptyList(),
-        results = listOf<() -> Unit>(
-            { onChat(AiChatAction.NewChat) },
-            { onChat(AiChatAction.OpenInApp(list = true)) },
-        ) + conversations.map { { onChat(AiChatAction.Open(it.id)) } },
+        results = top + conversations.map { conversation ->
+            {
+                if (picking) onChat(AiChatAction.TogglePick(conversation.id)) else onChat(AiChatAction.Open(conversation.id))
+            }
+        },
     )
     val focused = state.focusedIndex(FocusRegion.RESULTS)
     LazyColumn(
@@ -1088,16 +1314,49 @@ private fun Sessions(
         contentPadding = PaddingValues(vertical = 2.dp),
     ) {
         item(key = "top") {
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                ToolPanelChip(
-                    stringResource(R.string.ime_ai_chat_new),
-                    selected = true,
-                    modifier = Modifier.focusRing(focused == 0),
-                ) { onChat(AiChatAction.NewChat) }
-                ToolPanelChip(
-                    stringResource(R.string.ime_ai_chat_open_in_app),
-                    modifier = Modifier.focusRing(focused == 1),
-                ) { onChat(AiChatAction.OpenInApp(list = true)) }
+            if (picking) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ChatIconButton(
+                        Icons.Outlined.Close,
+                        stringResource(CommonR.string.common_cancel),
+                        modifier = Modifier.focusRing(focused == 0, CircleShape),
+                    ) { onChat(AiChatAction.ClearPicks) }
+                    Text(
+                        pluralStringResource(R.plurals.ime_ai_chat_selected_count, picked.size, picked.size),
+                        color = kb.chipText,
+                        fontSize = 13.sp,
+                        lineHeight = 17.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ChatIconButton(
+                        Icons.Outlined.SelectAll,
+                        stringResource(CommonR.string.common_select_all),
+                        enabled = picked.size < conversations.size,
+                        modifier = Modifier.focusRing(focused == 1, CircleShape),
+                    ) { onChat(AiChatAction.PickAll) }
+                    val confirming = doomed == ALL_PICKED
+                    ToolPanelChip(
+                        stringResource(if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete),
+                        selected = confirming,
+                        modifier = Modifier.focusRing(focused == 2),
+                    ) { top[2]() }
+                }
+            } else {
+                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    ToolPanelChip(
+                        stringResource(R.string.ime_ai_chat_new),
+                        selected = true,
+                        modifier = Modifier.focusRing(focused == 0),
+                    ) { onChat(AiChatAction.NewChat) }
+                    ToolPanelChip(
+                        stringResource(R.string.ime_ai_chat_open_in_app),
+                        modifier = Modifier.focusRing(focused == 1),
+                    ) { onChat(AiChatAction.OpenInApp(list = true)) }
+                }
             }
         }
         if (conversations.isEmpty()) {
@@ -1112,10 +1371,17 @@ private fun Sessions(
             }
         }
         itemsIndexed(conversations, key = { _, conversation -> conversation.id }) { index, conversation ->
-            val current = conversation.id == state.aiChat.conversationId
+            val current = conversation.id == chat.conversationId
+            val checked = conversation.id in picked
             val shape = kb.cardShape()
+            if (chat.renaming == conversation.id) {
+                RenameRow(chat.renameDraft, onChat, Modifier.animateItem())
+                return@itemsIndexed
+            }
             // The swipe deletes at once: reaching the red button is already the
-            // second deliberate step the chip's two taps stand in for.
+            // second deliberate step the chip's two taps stand in for. Not
+            // while picking, where a finger meant for the next tick could set
+            // it off.
             KbSwipeActionsRow(
                 actions = listOf(
                     kbDeleteSwipeAction(stringResource(CommonR.string.common_delete)) {
@@ -1125,22 +1391,41 @@ private fun Sessions(
                 ),
                 reduceMotion = state.settings.reduceMotion,
                 modifier = Modifier.animateItem(),
+                enabled = !picking,
             ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape)
-                    .focusRing(focused == index + 2, shape)
-                    .background(kb.chip)
+                    .focusRing(focused == index + top.size, shape)
+                    .background(if (checked) kb.chipActive else kb.chip)
                     .chipBorder(kb, shape)
-                    .clickable { onChat(AiChatAction.Open(conversation.id)) }
+                    .combinedClickable(
+                        onClick = {
+                            if (picking) {
+                                onChat(AiChatAction.TogglePick(conversation.id))
+                            } else {
+                                onChat(AiChatAction.Open(conversation.id))
+                            }
+                        },
+                        onLongClick = { onChat(AiChatAction.TogglePick(conversation.id)) },
+                    )
                     .padding(start = 10.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                val ink = if (checked) kb.chipActiveText else kb.chipText
+                if (picking) {
+                    Icon(
+                        if (checked) Icons.Outlined.CheckBox else Icons.Outlined.CheckBoxOutlineBlank,
+                        contentDescription = null,
+                        tint = ink,
+                        modifier = Modifier.padding(end = 8.dp).size(18.dp),
+                    )
+                }
                 Column(Modifier.weight(1f)) {
                     Text(
                         conversation.title.ifBlank { stringResource(R.string.ime_ai_chat_untitled) },
-                        color = if (current) kb.accent else kb.chipText,
+                        color = if (current && !checked) kb.accent else ink,
                         fontSize = 13.sp,
                         lineHeight = 17.sp,
                         fontWeight = if (current) FontWeight.Medium else FontWeight.Normal,
@@ -1149,29 +1434,77 @@ private fun Sessions(
                     )
                     Text(
                         DateUtils.getRelativeTimeSpanString(conversation.updatedAt).toString(),
-                        color = kb.secondaryText,
+                        color = if (checked) ink.copy(alpha = ink.alpha * 0.7f) else kb.secondaryText,
                         fontSize = 10.sp,
                         lineHeight = 13.sp,
                         maxLines = 1,
                     )
                 }
-                val confirming = doomed == conversation.id
-                ToolPanelChip(
-                    stringResource(
-                        if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete,
-                    ),
-                    selected = confirming,
-                ) {
-                    if (confirming) {
-                        doomed = null
-                        onChat(AiChatAction.Delete(conversation.id))
-                    } else {
-                        doomed = conversation.id
+                if (!picking) {
+                    val title = conversation.title.ifBlank { stringResource(R.string.ime_ai_chat_untitled) }
+                    MessageAction(
+                        Icons.Outlined.DriveFileRenameOutline,
+                        stringResource(R.string.ime_ai_chat_rename_desc, title),
+                    ) { onChat(AiChatAction.StartRename(conversation.id)) }
+                    Spacer(Modifier.width(4.dp))
+                    val confirming = doomed == conversation.id
+                    ToolPanelChip(
+                        stringResource(
+                            if (confirming) R.string.ime_ai_chat_delete_confirm else CommonR.string.common_delete,
+                        ),
+                        selected = confirming,
+                    ) {
+                        if (confirming) {
+                            doomed = null
+                            onChat(AiChatAction.Delete(conversation.id))
+                        } else {
+                            doomed = conversation.id
+                        }
                     }
                 }
             }
             }
         }
+    }
+}
+
+/**
+ * A chat's name being typed (#882), in its row's place: the keyboard's own
+ * field, with the keys under the panel, and a tick to keep it and a cross to
+ * drop it. Enter keeps it too, and Back drops it.
+ */
+@Composable
+private fun RenameRow(draft: String, onChat: (AiChatAction) -> Unit, modifier: Modifier = Modifier) {
+    val kb = LocalKbTheme.current
+    val shape = kb.cardShape()
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(shape)
+            .background(kb.chip)
+            .border(1.5.dp, kb.accent, shape)
+            .padding(start = 10.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ClipEditText(
+            text = draft,
+            placeholder = stringResource(R.string.ime_ai_chat_rename_hint),
+            textColor = kb.chipText,
+            placeholderColor = kb.secondaryText,
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 20.dp, max = 40.dp),
+        )
+        ChatIconButton(Icons.Outlined.Close, stringResource(CommonR.string.common_cancel)) {
+            onChat(AiChatAction.CancelRename)
+        }
+        Spacer(Modifier.width(4.dp))
+        ChatIconButton(
+            Icons.Outlined.Check,
+            stringResource(R.string.ime_ai_chat_rename),
+            active = true,
+            enabled = draft.isNotBlank(),
+        ) { onChat(AiChatAction.CommitRename) }
     }
 }
 
@@ -1235,6 +1568,12 @@ private fun ChatIconButton(
     }
 }
 
+/**
+ * An answer's ink. It stands on the panel itself rather than on a chip, so it
+ * takes the colour the panel's own headlines are drawn in.
+ */
+private fun answerInk(kb: KbTheme): Color = kb.modifierKeyText
+
 private fun bubbleShape(fromUser: Boolean) = RoundedCornerShape(
     topStart = 14.dp,
     topEnd = 14.dp,
@@ -1242,10 +1581,13 @@ private fun bubbleShape(fromUser: Boolean) = RoundedCornerShape(
     bottomEnd = if (fromUser) 4.dp else 14.dp,
 )
 
-/** Kept clear on a bubble's far side, so whose turn it is reads from the margin. */
+/** Kept clear left of the user's bubble, so whose turn it is reads from the margin. */
 private val BUBBLE_INSET = 36.dp
 private val COMPOSER_MAX_HEIGHT = 78.dp
 private val DRAFT_PICTURE_SIZE = 48.dp
 private val MESSAGE_PICTURE_SIZE = 56.dp
 private const val COPIED_FLASH_MS = 1200L
 private const val DELETE_CONFIRM_MS = 3000L
+
+/** What the two-tap Delete is waiting on when it is the selection's, not one chat's. */
+private const val ALL_PICKED = Long.MIN_VALUE

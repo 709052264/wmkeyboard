@@ -48,6 +48,19 @@ data class AiChatMessage(
      * every save. Defaulted, so a file from before pictures still decodes.
      */
     val images: List<String> = emptyList(),
+    /**
+     * Files the user sent with this message (#882): a text file's words, or
+     * a recording, video or PDF kept beside the pictures. Defaulted, so a
+     * file from before files still decodes.
+     */
+    val files: List<AiChatFile> = emptyList(),
+    /**
+     * What a reasoning model thought before it answered (#882), every round
+     * of it, for the chat's folded Reasoning step. Never sent back to the
+     * model: [promptText] leaves it out, as every provider asks. Defaulted,
+     * so a file from before reasoning was kept still decodes.
+     */
+    val reasoning: String = "",
 ) {
     val failed: Boolean get() = error.isNotEmpty()
 
@@ -62,11 +75,47 @@ data class AiChatMessage(
         append(content)
         if (attachment.isNotBlank()) append("\n\n<text>\n").append(attachment).append("\n</text>")
         images.indices.forEach { append(if (isEmpty()) "" else "\n").append("<image n=\"").append(firstImage + it).append("\"/>") }
+        files.forEach { file -> append(if (isEmpty()) "" else "\n\n").append(file.promptText()) }
     }
 
     companion object {
         const val ROLE_USER = "USER"
         const val ROLE_ASSISTANT = "ASSISTANT"
+    }
+}
+
+/**
+ * One file sent with a message (#882), as the File button in the chat's "+"
+ * menu picked it.
+ *
+ * A text file is read once, when it is picked, and its words kept in [text]:
+ * every model can read words, and a file read again on every turn could have
+ * changed or gone. Anything else (a recording, a video, a PDF) is copied into
+ * the chat's file folder under [stored], for a model that can take it whole,
+ * and every other model is told the file is there.
+ */
+@Serializable
+data class AiChatFile(
+    /** The name the file had where it was picked. */
+    val name: String,
+    val mime: String = "",
+    /** Bytes, as the picker reported them. */
+    val size: Long = 0,
+    /** The copy's name in the chat's file folder; empty for a text file. */
+    val stored: String = "",
+    /** A text file's words; empty for anything else. */
+    val text: String = "",
+) {
+    val isText: Boolean get() = stored.isEmpty()
+
+    /** What the model reads for this file: its words inside tags, or a mark saying what it is. */
+    fun promptText(): String {
+        val label = name.replace("\"", "'")
+        return if (isText) {
+            "<file name=\"$label\">\n$text\n</file>"
+        } else {
+            "<file name=\"$label\" type=\"$mime\"/>"
+        }
     }
 }
 
@@ -82,6 +131,12 @@ data class AiChatConversation(
     /** Last on-device model id used, when [provider] is ON_DEVICE. */
     val localModelId: String = "",
     val messages: List<AiChatMessage> = emptyList(),
+    /**
+     * The user named this chat themselves (#882), so nothing renames it
+     * behind their back: not the automatic title, not a model's own
+     * `rename_chat`, which asks first anyway. Defaulted for older files.
+     */
+    val titleByUser: Boolean = false,
 ) {
     /** Every picture sent in this conversation, in order: picture 1 first. */
     val images: List<String> get() = messages.filter { !it.failed }.flatMap { it.images }
@@ -177,6 +232,7 @@ class AiChatStore(private val storageFile: File?) {
         val stored = message.copy(
             content = message.content.cut(),
             attachment = message.attachment.cut(),
+            reasoning = message.reasoning.cut(),
         )
         val title = old.title.ifEmpty {
             if (stored.role == AiChatMessage.ROLE_USER) titleFrom(stored.content) else ""
@@ -267,9 +323,30 @@ class AiChatStore(private val storageFile: File?) {
         conversation.messages.flatMap { it.images }
     }
 
+    /** Every stored file any conversation in memory still refers to (#882). */
+    @Synchronized
+    fun fileNames(): Set<String> = conversations.flatMapTo(HashSet()) { conversation ->
+        conversation.messages.flatMap { message -> message.files.map { it.stored }.filter { it.isNotEmpty() } }
+    }
+
     @Synchronized
     fun delete(id: Long) {
         conversations.removeAll { it.id == id }
+    }
+
+    /**
+     * Gives the conversation [title] (#882), cut to [MAX_RENAME] characters,
+     * leaving its time alone so a rename does not move it up the list.
+     * [byUser] marks a name the user typed, which an automatic title then
+     * leaves alone. False when the conversation is gone or [title] is blank.
+     */
+    @Synchronized
+    fun rename(id: Long, title: String, byUser: Boolean): Boolean {
+        val at = conversations.indexOfFirst { it.id == id }
+        val clean = title.lineSequence().firstOrNull { it.isNotBlank() }?.trim()?.take(MAX_RENAME).orEmpty()
+        if (at < 0 || clean.isEmpty()) return false
+        conversations[at] = conversations[at].copy(title = clean, titleByUser = byUser || conversations[at].titleByUser)
+        return true
     }
 
     @Synchronized
@@ -357,8 +434,14 @@ class AiChatStore(private val storageFile: File?) {
         const val MAX_TEXT = 20_000
         const val MAX_TITLE = 48
 
+        /** A title the user or a model gave, which is not cut on a word but only held to a length. */
+        const val MAX_RENAME = 80
+
         /** Pictures one message may carry. */
         const val MAX_IMAGES = 4
+
+        /** Files one message may carry (#882). */
+        const val MAX_FILES = 4
 
         /** [lastModelKey] prefix for an on-device model. */
         const val ON_DEVICE_KEY_PREFIX = "ON_DEVICE:"

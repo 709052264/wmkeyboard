@@ -254,7 +254,6 @@
     <string name="toolai_ai_builtin_reverse_image_search_subtitle">Uploads a picture you sent to the camera tool\'s search site and gives you the link to the results</string>
 
     <!-- Pictures in the AI chat (#698). -->
-    <string name="ai_chat_attach_picture_desc">Add a picture</string>
     <string name="ai_chat_picture_desc">Picture</string>
     <string name="ai_chat_picture_remove_desc">Remove the picture</string>
 
@@ -389,6 +388,12 @@
     <string name="toolai_ai_chat_delete_title">Delete this chat?</string>
     <!-- %1$s is the name of the conversation. -->
     <string name="toolai_ai_chat_delete_body">This deletes "%1$s". You cannot undo this.</string>
+    <!-- The chat list's bulk delete (#882), after picking chats with a long press. -->
+    <plurals name="toolai_ai_chat_delete_many_title">
+        <item quantity="one">Delete %1$d chat?</item>
+        <item quantity="other">Delete %1$d chats?</item>
+    </plurals>
+    <string name="toolai_ai_chat_delete_many_body">The chats you picked are deleted for good. You cannot undo this.</string>
 
     <string name="toolai_ai_history_group_title">History</string>
     <string name="toolai_ai_history_title">Keep a history of the results</string>
@@ -500,6 +505,8 @@
 
     <string name="toolai_chats_group_title">Chats</string>
     <string name="toolai_chat_enter_sends_title">Enter sends the message</string>
+    <string name="toolai_chat_auto_rename_title">Auto-rename chats</string>
+    <string name="toolai_chat_auto_rename_subtitle">The model that answers names each chat from your first message and its reply, in your language, and can rename it later when you ask and agree. Off, a chat is named after the first line of your first message.</string>
     <string name="toolai_chat_enter_sends_subtitle">In the chat on the keyboard, the Enter key sends. When this is off, Enter starts a new line and the Send button sends.</string>
     <string name="toolai_keep_chats_title">Keep your conversations</string>
     <string name="toolai_keep_chats_subtitle">Save chats on this device so you can come back to them</string>

@@ -1577,6 +1577,7 @@ internal object SettingsRowIcons {
         put(R.string.toolai_continue_context_title) { Icons.AutoMirrored.Outlined.TextSnippet }
         put(R.string.toolai_keep_chats_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_chat_enter_sends_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
+        put(R.string.toolai_chat_auto_rename_title) { Icons.Outlined.DriveFileRenameOutline }
         put(R.string.toolai_delete_chats_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_memory_screen_title) { Icons.Outlined.Psychology }
         put(R.string.toolai_memory_enabled_title) { Icons.Outlined.Psychology }

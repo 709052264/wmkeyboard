@@ -1108,6 +1108,17 @@
             android:taskAffinity=""
             android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+        <!-- The keyboard chat's "+" menu (#882): the photo picker, the document
+             picker and the camera, the same shape. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.AiChatPickActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
         <!-- The Send files tool's document picker (#729), the same shape. -->
         <activity
             android:name="com.wasimaster.wmkeyboard.app.SendPickActivity"

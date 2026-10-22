@@ -114,7 +114,11 @@ class AiToolRunner(
     fun tools(): List<AiToolSpec> = AiTools.enabled(
         search = settings.ai.toolWebSearch && ToolApiKeys.searchBackend(settings) != null,
         fetch = settings.ai.toolWebFetch,
-    ) + builtIns.values.map { specOf(it) } + memoryTools() + mcp.values.map { it.spec }
+    ) + builtIns.values.map { specOf(it) } + memoryTools() + renameTools() + mcp.values.map { it.spec }
+
+    /** `rename_chat`, in a chat that lends one to rename (#882). */
+    private fun renameTools(): List<AiToolSpec> =
+        if (host?.canRenameChat == true) listOf(AiTools.renameChat) else emptyList()
 
     /** `remember` and `forget`, when this run may change the memory. */
     private fun memoryTools(): List<AiToolSpec> =
@@ -213,6 +217,7 @@ class AiToolRunner(
                 // teach the user to press Allow without reading.
                 call.name == AiTools.REMEMBER && memory != null -> remember(call, memory)
                 call.name == AiTools.FORGET && memory != null -> forget(call, memory)
+                call.name == AiTools.RENAME_CHAT && host?.canRenameChat == true -> renameChat(call, host)
                 else -> refused(
                     call,
                     context.getString(R.string.ftools_ai_tool_unknown, call.name),
@@ -299,6 +304,34 @@ class AiToolRunner(
             )
         }
         return AiToolResult(call, content, display = display)
+    }
+
+    /**
+     * A new name for the chat (#882). Always asked about, whatever any
+     * policy says, and with only Accept and Decline: the name is the user's
+     * to agree to each time, so there is no "always". Closing the keyboard
+     * while it asks is a Decline.
+     */
+    private fun renameChat(call: AiToolCall, host: AiToolHost): AiToolResult {
+        val title = call.argument("title")?.lineSequence()?.firstOrNull { it.isNotBlank() }?.trim()
+            ?: return missing(call, "title")
+        val ask = activityFor(call).copy(awaitingApproval = true, details = title)
+        return when (approver?.approve(ask) ?: AiToolApproval.DENY) {
+            AiToolApproval.ONCE, AiToolApproval.ALWAYS -> host.renameChat(title).fold(
+                onSuccess = { name -> AiToolResult(call, "Renamed the chat to \"$name\".") },
+                onFailure = { refused(call, context.getString(R.string.ftools_ai_tool_failed, it.message.orEmpty()), it.message.orEmpty()) },
+            )
+            AiToolApproval.DENY -> refused(
+                call,
+                context.getString(R.string.ftools_mcp_declined),
+                context.getString(R.string.ftools_mcp_reason_declined),
+            )
+            AiToolApproval.CANCELLED -> refused(
+                call,
+                context.getString(R.string.ftools_mcp_stopped),
+                context.getString(R.string.ftools_mcp_reason_stopped),
+            )
+        }
     }
 
     /** One of the keyboard's own tools, already allowed to run. */

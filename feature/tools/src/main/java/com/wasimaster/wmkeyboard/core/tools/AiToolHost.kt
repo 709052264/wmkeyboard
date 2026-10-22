@@ -86,6 +86,16 @@ interface AiToolHost {
     fun snippetsByMeaning(query: String): Result<List<AiMeaningHit>> =
         Result.failure(UnsupportedOperationException("no search by meaning here"))
 
+    /** Whether [renameChat] has a chat to rename: only a chat's host does (#882). */
+    val canRenameChat: Boolean get() = false
+
+    /**
+     * Gives the chat this run answers in the name [title], once the user has
+     * accepted it, and gives back the name it got.
+     */
+    fun renameChat(title: String): Result<String> =
+        Result.failure(UnsupportedOperationException("no chat to rename here"))
+
     /** How many pictures the user has sent in this conversation (#698). */
     val imageCount: Int get() = 0
 

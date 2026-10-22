@@ -1801,10 +1801,23 @@ data class AiChatUi(
      * [com.wasimaster.wmkeyboard.ime.aichat.AiChatImages.import] gave them.
      */
     val images: List<String> = emptyList(),
-    /** The row offering where a picture can come from is up over the composer. */
-    val pictureSources: Boolean = false,
-    /** Why the last picture asked for did not arrive, as a string resource; null when it did. */
+    /**
+     * The "+" menu is up over the composer (#882): Image, File, Photo, the
+     * clipboard's picture and the newest screenshot, the field's text, Paste.
+     */
+    val attachMenu: Boolean = false,
+    /** Why the last picture or file asked for did not arrive, as a string resource; null when it did. */
     val pictureNotice: Int? = null,
+    /** Files to send with the next message (#882), already read or copied in. */
+    val files: List<com.wasimaster.wmkeyboard.core.aichat.AiChatFile> = emptyList(),
+    /** Chats picked in the list with a long press (#882), for deleting together. */
+    val picked: Set<Long> = emptySet(),
+    /**
+     * The chat whose name is being typed in the list (#882), or -1. While
+     * one is, the composer's keys write [renameDraft] instead of the draft.
+     */
+    val renaming: Long = -1L,
+    val renameDraft: String = "",
 )
 
 /**
@@ -1855,8 +1868,25 @@ sealed interface AiChatAction {
     data class OpenInApp(val list: Boolean = false) : AiChatAction
     /** The answer at [index] of the conversation, reported (Play builds). */
     data class Report(val index: Int) : AiChatAction
-    /** Shows or hides where a picture for the next message can come from (#698). */
-    data object TogglePictureSources : AiChatAction
+    /** Picks a chat in the list, or takes it back out of the selection (#882). */
+    data class TogglePick(val conversationId: Long) : AiChatAction
+    data object PickAll : AiChatAction
+    data object ClearPicks : AiChatAction
+    /** Deletes every picked chat; the list asks twice first. */
+    data object DeletePicked : AiChatAction
+    /** Starts typing a new name for a chat in the list (#882). */
+    data class StartRename(val conversationId: Long) : AiChatAction
+    /** Keeps the name typed; Back, or [CancelRename], drops it. */
+    data object CommitRename : AiChatAction
+    data object CancelRename : AiChatAction
+    /** Flips the chat's Reasoning switch (#882), the setting both chats share. */
+    data object ToggleReasoning : AiChatAction
+    /** Shows or hides the composer's "+" menu (#882). */
+    data object ToggleAttachMenu : AiChatAction
+    /** The "+" menu's Image (the photo picker), File (the document picker) or Photo (the camera), by [mode]. */
+    data class PickFromSystem(val mode: Int) : AiChatAction
+    /** Takes a file back off the next message. */
+    data class RemoveFile(val file: com.wasimaster.wmkeyboard.core.aichat.AiChatFile) : AiChatAction
     /** The clipboard's newest picture, or else the newest screenshot, for the next message. */
     data class AddPicture(val fromClipboard: Boolean) : AiChatAction
     /** Takes a picture back off the next message. */
@@ -4199,7 +4229,7 @@ data class KeyboardUiState(
      * contract: no one of them alone can keep the keys from the app behind.
      */
     val aiChatComposing: Boolean
-        get() = aiChatShown && aiChat.composing && !aiChat.showSessions
+        get() = aiChatShown && aiChat.composing && (!aiChat.showSessions || aiChat.renaming >= 0)
 
     /**
      * Whether keystrokes belong to the reply panel's own message box (#234).
@@ -4470,7 +4500,7 @@ data class KeyboardUiState(
         null -> ""
         CaptureTarget.TYPING_TEST -> typingTest.current
         CaptureTarget.AI_CUSTOM -> (ai as? AiUi.CustomInput)?.instruction.orEmpty()
-        CaptureTarget.AI_CHAT -> aiChat.draft
+        CaptureTarget.AI_CHAT -> if (aiChat.renaming >= 0) aiChat.renameDraft else aiChat.draft
         CaptureTarget.AI_REPLY -> aiReply.typed
         CaptureTarget.KDE_HOST -> kde.hostDraft
         CaptureTarget.KDE_REMOTE, CaptureTarget.KDE_COMPOSE -> kde.line
