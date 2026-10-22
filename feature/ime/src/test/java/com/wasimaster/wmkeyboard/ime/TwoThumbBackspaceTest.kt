@@ -4,8 +4,10 @@ import com.wasimaster.wmkeyboard.ime.TwoThumbKit.allUpPause
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.delete
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.drain
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.keyboard
+import com.wasimaster.wmkeyboard.ime.TwoThumbKit.plantDictionary
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.settings
 import com.wasimaster.wmkeyboard.ime.TwoThumbKit.swipe
+import com.wasimaster.wmkeyboard.ime.TwoThumbKit.tap
 import com.wasimaster.wmkeyboard.ime.ui.GlideVerdict
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -92,5 +94,59 @@ class TwoThumbBackspaceTest {
         swipe(service)
         drain(service)
         assertEquals("qyqy", editor.text.toString())
+    }
+
+    /**
+     * #895: a tapped letter that takes the pause's space back reopens the
+     * word as its swipes, so Backspace past the letter takes back a swipe.
+     */
+    @Test
+    fun `a tapped letter after the pause keeps the word's swipes for backspace`() {
+        val (service, editor) = keyboard(settings(allUp = true, retractMs = RETRACT_MS))
+        plantDictionary(service, "qyqy" to 300, "qyqya" to 200)
+        swipe(service)
+        drain(service)
+        swipe(service)
+        drain(service)
+        allUpPause(service)
+        assertEquals("fixture: the pause typed both swipes as one word", "qyqy ", editor.text.toString())
+        tap(service, "a")
+        drain(service)
+        assertEquals("fixture: the letter took the space back", "qyqya", editor.text.toString())
+        service.onKey(delete)
+        drain(service)
+        assertEquals("qyqy", editor.text.toString())
+        service.onKey(delete)
+        drain(service)
+        assertEquals("the second swipe goes, not a letter", "qy", editor.text.toString())
+    }
+
+    /**
+     * #895: Backspace on a swipe that carried a reopened word on is an undo,
+     * so the word stays open without its space.
+     */
+    @Test
+    fun `backspace on a continuing swipe leaves the reopened word open`() {
+        val (service, editor) = keyboard(settings(allUp = true, retractMs = RETRACT_MS))
+        plantDictionary(service, "qyqy" to 300, "qyqyqy" to 200)
+        swipe(service)
+        drain(service)
+        swipe(service)
+        drain(service)
+        allUpPause(service)
+        assertEquals("fixture: the pause typed both swipes as one word", "qyqy ", editor.text.toString())
+        swipe(service)
+        drain(service)
+        assertEquals("fixture: the swipe took the space back", "qyqyqy", editor.text.toString())
+        service.onKey(delete)
+        drain(service)
+        assertEquals("qyqy", editor.text.toString())
+        service.onKey(delete)
+        drain(service)
+        assertEquals("qy", editor.text.toString())
+    }
+
+    private companion object {
+        const val RETRACT_MS = 2000
     }
 }

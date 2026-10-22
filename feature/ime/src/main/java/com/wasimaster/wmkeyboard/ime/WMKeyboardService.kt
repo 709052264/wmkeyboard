@@ -26038,7 +26038,14 @@ open class WMKeyboardService : InputMethodService() {
                 if (reopenedWord != null && !duetWord.active && !isKnownWord(composing.toString())) {
                     splitReopenedWord(ic)
                 }
-                if (duetWord.active) commitDuet(ic) else endTappedWordAtPause(ic)
+                if (duetWord.active) {
+                    commitDuet(ic)
+                } else {
+                    // A word of taps alone has no gestures to reopen as; an
+                    // older two-thumb word spelled the same must not stand in.
+                    committedDuet = null
+                    endTappedWordAtPause(ic)
+                }
                 armAllUpSpace(ic, gesture)
             } finally {
                 if (countdown != null) clearAllUpCountdown(countdown.id)
@@ -26097,8 +26104,11 @@ open class WMKeyboardService : InputMethodService() {
         val typed = space.word + " "
         if (ic.getTextBeforeCursor(typed.length, 0)?.toString() != typed) return false
         // A two-thumb word comes back as the gestures it was, so a Backspace
-        // after the next one takes back a swipe, not a letter (#858).
-        val duet = committedDuet?.takeIf { it.word == space.word && lastGestureWord == it.word }
+        // after the next one takes back a swipe, not a letter (#858). Not
+        // asked of lastGestureWord: a tapped letter has cleared that by now
+        // (#895), and the text check above already says the word behind the
+        // caret is this one.
+        val duet = committedDuet?.takeIf { it.word == space.word }
         committedDuet = null
         if (duet != null) {
             reopenCommittedDuet(ic, duet, typed.length, dropLast = false)
@@ -26406,6 +26416,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun redecodeDuet(commit: Boolean, backspaced: GlideToken.Swipe? = null) {
         val tokens = duetWord.snapshot()
+        // Backspace has taken the word back to the gestures it was reopened
+        // with, or fewer (#895): that is an undo, not a continuation that
+        // failed, so the word stays open without its space rather than being
+        // split back off with it.
+        if (reopenedWord?.let { tokens.size <= it.headGestures } == true) reopenedWord = null
         val keys = duetWord.keys
         val keyWidthPx = duetWord.keyWidthPx
         val lone = duetWord.loneSwipe()
