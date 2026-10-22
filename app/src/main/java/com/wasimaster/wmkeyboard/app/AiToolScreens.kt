@@ -410,6 +410,16 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.chatAutoRename,
             ) { scope.launch { repository.setAiChatAutoRename(it) } }
         }
+        // "Ask AI" in other apps' selection menus (#897). AskAiSelectionMenu
+        // switches the entry from the setting, here or from a backup alike.
+        item {
+            ToggleSetting(
+                R.string.toolai_ai_selection_menu_title,
+                stringResource(R.string.toolai_ai_selection_menu_subtitle),
+                settings.watch { it.ai.selectionMenu },
+                default = SettingsDefaults.ai.selectionMenu,
+            ) { scope.launch { repository.setAiSelectionMenu(it) } }
+        }
     }
     SettingsGroup(stringResource(R.string.toolai_ai_actions_group_title)) {
         item {

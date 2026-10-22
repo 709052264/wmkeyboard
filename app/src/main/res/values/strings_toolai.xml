@@ -506,6 +506,8 @@
     <string name="toolai_chats_group_title">Chats</string>
     <string name="toolai_chat_enter_sends_title">Enter sends the message</string>
     <string name="toolai_chat_auto_rename_title">Auto-rename chats</string>
+    <string name="toolai_ai_selection_menu_title">Ask AI in the selection menu</string>
+    <string name="toolai_ai_selection_menu_subtitle">Ask AI shows in other apps\' menu for selected text. Turning the AI tool off takes it out too.</string>
     <string name="toolai_chat_auto_rename_subtitle">The model that answers names each chat from your first message and its reply, in your language, and can rename it later when you ask and agree. Off, a chat is named after the first line of your first message.</string>
     <string name="toolai_chat_enter_sends_subtitle">In the chat on the keyboard, the Enter key sends. When this is off, Enter starts a new line and the Send button sends.</string>
     <string name="toolai_keep_chats_title">Keep your conversations</string>

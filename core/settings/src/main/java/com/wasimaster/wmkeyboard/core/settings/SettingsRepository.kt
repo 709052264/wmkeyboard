@@ -4760,6 +4760,12 @@ data class AiSettings(
      */
     val diffOpensFirst: Boolean = false,
     /**
+     * "Ask AI" in other apps' text selection menus (#897). An activity alias
+     * the app switches with this and with the AI tool itself, so turning
+     * either off takes the entry out of every menu.
+     */
+    val selectionMenu: Boolean = true,
+    /**
      * Keep a record of what the AI tool was asked and what it answered.
      *
      * Off, and it stays off unless the user turns it on: the records are their
@@ -11148,6 +11154,7 @@ class SettingsRepository(private val context: Context) {
         private val AI_MCP_HEADERS = stringPreferencesKey("ai_mcp_headers")
         private val AI_PROVIDER_HEADERS = stringPreferencesKey("ai_provider_headers")
         private val AI_DIFF_OPENS_FIRST = booleanPreferencesKey("ai_diff_opens_first")
+        private val AI_SELECTION_MENU = booleanPreferencesKey("ai_selection_menu")
         private val AI_CUSTOM_ACTIONS = stringPreferencesKey("ai_custom_actions")
         private val AI_ACTION_ORDER = stringPreferencesKey("ai_action_order")
         private val AI_ACTIONS_OFF = stringPreferencesKey("ai_actions_off")
@@ -13436,6 +13443,7 @@ class SettingsRepository(private val context: Context) {
             panelModelPicker = p[AI_PANEL_MODEL_PICKER] ?: defaults.ai.panelModelPicker,
             diffView = p[AI_DIFF_VIEW] ?: defaults.ai.diffView,
             diffOpensFirst = p[AI_DIFF_OPENS_FIRST] ?: defaults.ai.diffOpensFirst,
+            selectionMenu = p[AI_SELECTION_MENU] ?: defaults.ai.selectionMenu,
             historyEnabled = p[AI_HISTORY_ENABLED] ?: defaults.ai.historyEnabled,
             historyMax = p[AI_HISTORY_MAX] ?: defaults.ai.historyMax,
             keepChats = p[AI_KEEP_CHATS] ?: defaults.ai.keepChats,
@@ -21090,6 +21098,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiDiffOpensFirst(value: Boolean) =
         editPrefs { it[AI_DIFF_OPENS_FIRST] = value }
+
+    suspend fun setAiSelectionMenu(value: Boolean) =
+        editPrefs { it[AI_SELECTION_MENU] = value }
 
     suspend fun setAiHistoryEnabled(value: Boolean) =
         editPrefs { it[AI_HISTORY_ENABLED] = value }

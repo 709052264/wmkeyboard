@@ -141,7 +141,11 @@ open class WMApplication : Application() {
         // pushes shortly after a synced setting changes. Here because the
         // keyboard and the settings app share this process, and either may be
         // the one running. Does nothing while sync is off.
-        SyncWatcher.start(this, SettingsRepository(this))
+        val repository = SettingsRepository(this)
+        SyncWatcher.start(this, repository)
+        // "Ask AI" in other apps' selection menus follows its switch and the
+        // AI tool's, wherever either is changed from (#897).
+        AskAiSelectionMenu.start(this, repository)
         // The clock tool's alarms and timers. Android drops every registered
         // wake-up at a reboot, and the app has no boot receiver on purpose:
         // the keyboard starts at boot anyway, and this puts them back then.

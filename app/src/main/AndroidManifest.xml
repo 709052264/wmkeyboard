@@ -1033,13 +1033,22 @@
             android:exported="true"
             android:label="@string/ask_ai_label"
             android:taskAffinity="com.wasimaster.wmkeyboard.askai"
-            android:theme="@style/Theme.WMKeyboard.Sheet">
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+        <!--
+             "Ask AI" in the text selection menu, which the AI tool's settings
+             can switch off (#897), and which goes with the AI tool itself.
+        -->
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.AskAiSelectionMenu"
+            android:exported="true"
+            android:label="@string/ask_ai_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.AskAiActivity">
             <intent-filter android:label="@string/ask_ai_label">
                 <action android:name="android.intent.action.PROCESS_TEXT" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="text/plain" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <!--
              The Look up card (#765): a word from another app, defined over it.
