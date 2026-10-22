@@ -19311,6 +19311,11 @@ open class WMKeyboardService : InputMethodService() {
      * always replaces it, with the new chip or with nothing, because the chip
      * says "the last correction" and pointing it at an older one would be a
      * lie the user cannot see through.
+     *
+     * Except a fix that only changed capitals ("i" to "I", a name from the
+     * word list): it misspells nothing, never earns a chip of its own, and
+     * comes every few words, so letting it count wiped the chip long before
+     * the sentence ended.
      */
     private fun armUndoChip(
         typed: String,
@@ -19318,7 +19323,7 @@ open class WMKeyboardService : InputMethodService() {
         obviousness: Double,
         state: KeyboardUiState,
     ) {
-        if (corrected == null) return
+        if (corrected == null || corrected.equals(typed, ignoreCase = true)) return
         val strip = state.settings.suggestionStrip
         undoChipCaret = -1
         undoableCorrection = UndoableCorrection(typed, corrected).takeIf {
