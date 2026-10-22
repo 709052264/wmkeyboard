@@ -27290,6 +27290,15 @@ open class WMKeyboardService : InputMethodService() {
         // No space asked for this word to join the one before it (#851), or
         // was armed for whatever comes next, which this word is (#863).
         if (glueNextWord || _uiState.value.noSpaceArmed) {
+            // Armed rather than tapped: a hold only arms, so the keyboard's own
+            // space after the word before is still there. This word is the
+            // armed key and joins on, glide `foot`, hold, glide `ball` giving
+            // "football", so that space comes back out. A space the user typed
+            // stays, as it does in front of an armed mark (`best .tld`).
+            if (!glueNextWord && pendingWordSpace && ic.getTextBeforeCursor(1, 0)?.toString() == " ") {
+                ic.deleteSurroundingText(1, 0)
+                pendingWordSpace = false
+            }
             glueNextWord = false
             setNoSpaceArmed(false)
             return
