@@ -1389,6 +1389,18 @@ dependencies {
 // :core:language's, where the facades live; see the comment on it there.
 tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }
 
+// The ID file -Pwmkb.emitResourceIds names is a side effect of aapt's link,
+// not a declared output, so a link restored from the build cache leaves it
+// unwritten and the all-languages build after it fails on "failed reading
+// stable ID file" (a 0.6.3 release dry run). The link that writes it
+// always runs.
+if (providers.gradleProperty("wmkb.emitResourceIds").isPresent) {
+    tasks.matching { it.name.matches(Regex("process\\w+Resources")) }.configureEach {
+        outputs.doNotCacheIf("writes the language packs' resource ID file") { true }
+        outputs.upToDateWhen { false }
+    }
+}
+
 // `-Pwmkb.skipBenchmarks` drops the wall-clock benchmarks from the run. They
 // assert against millisecond budgets measured on a quiet machine, so on a
 // shared CI runner they measure the runner's neighbours rather than this
