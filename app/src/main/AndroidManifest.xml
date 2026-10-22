@@ -381,8 +381,11 @@
                  and the screen it names opens with nothing to press. The page
                  still exists for everyone else, and still works.
 
+                 Claimed on both of the site's hosts, wmkeyboard.pages.dev and
+                 wmkeyboard.app, which serve the same pages.
+
                  autoVerify means Android fetches
-                 https://wmkeyboard.pages.dev/.well-known/assetlinks.json at
+                 /.well-known/assetlinks.json from each host at
                  install time and checks that it names this package and the
                  key this very build was signed with. Every key that ships has
                  to be in that file: release, debug and F-Droid's today, plus
@@ -397,7 +400,7 @@
                  so /open/?link=… and /open/#wmkeyboard://… both arrive.
                  WebOpenLink turns what arrives back into a wmkeyboard://
                  address and hands it to the same two parsers as any other
-                 link. The host is DOCS_URL in AboutScreens.kt; change both.
+                 link. The hosts are WebOpenLink.HOSTS; change both.
             -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
@@ -405,6 +408,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="wmkeyboard.pages.dev" android:path="/open" />
                 <data android:scheme="https" android:host="wmkeyboard.pages.dev" android:path="/open/" />
+                <data android:scheme="https" android:host="wmkeyboard.app" android:path="/open" />
+                <data android:scheme="https" android:host="wmkeyboard.app" android:path="/open/" />
             </intent-filter>
 
             <!--

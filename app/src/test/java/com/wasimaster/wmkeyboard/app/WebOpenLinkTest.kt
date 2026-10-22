@@ -140,9 +140,22 @@ class WebOpenLinkTest {
     }
 
     @Test
+    fun `the custom domain is the same site`() {
+        assertEquals(
+            "wmkeyboard://settings/themes",
+            WebOpenLink.appLink("https://wmkeyboard.app/open/#wmkeyboard://settings/themes"),
+        )
+        assertEquals(
+            "wmkeyboard://settings/themes",
+            WebOpenLink.appLink("https://wmkeyboard.app/open/?route=themes"),
+        )
+    }
+
+    @Test
     fun `another host is not ours`() {
         assertNull(WebOpenLink.appLink("https://evil.example/open/#wmkeyboard://settings/themes"))
         assertNull(WebOpenLink.appLink("https://wmkeyboard.pages.dev.evil.example/open/#wmkeyboard://settings/themes"))
+        assertNull(WebOpenLink.appLink("https://wmkeyboard.app.evil.example/open/#wmkeyboard://settings/themes"))
     }
 
     @Test

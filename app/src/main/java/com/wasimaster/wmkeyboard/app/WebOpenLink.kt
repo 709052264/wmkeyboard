@@ -43,8 +43,14 @@ object WebOpenLink {
     /** The one path claimed on the docs host. Mirrored in AndroidManifest.xml. */
     const val PATH = "/open"
 
-    /** Host of [DOCS_URL]; the manifest filter names it literally. */
-    private val HOST: String = runCatching { URI(DOCS_URL).host }.getOrNull().orEmpty()
+    /**
+     * The site's hosts: [DOCS_URL]'s, and the custom domain that serves the
+     * same pages. The manifest filter names each literally.
+     */
+    private val HOSTS: Set<String> = setOfNotNull(
+        runCatching { URI(DOCS_URL).host }.getOrNull(),
+        "wmkeyboard.app",
+    )
 
     /** Convenience for the intent's data. */
     fun appLink(uri: Uri?): String? = appLink(uri?.toString())
@@ -55,10 +61,10 @@ object WebOpenLink {
      */
     fun appLink(url: String?): String? {
         val text = url?.trim().orEmpty()
-        if (text.isEmpty() || HOST.isEmpty()) return null
+        if (text.isEmpty()) return null
         val uri = runCatching { URI(text) }.getOrNull() ?: return null
         if (!uri.scheme.equals("https", ignoreCase = true)) return null
-        if (!uri.host.equals(HOST, ignoreCase = true)) return null
+        if (HOSTS.none { uri.host.equals(it, ignoreCase = true) }) return null
         // "/open" and "/open/" and nothing else. The manifest claims exactly
         // these two, so a deeper path is not ours to answer.
         val path = uri.rawPath.orEmpty().trimEnd('/')
