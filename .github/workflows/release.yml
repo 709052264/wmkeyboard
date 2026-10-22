@@ -139,10 +139,13 @@ jobs:
         # language packs from: compiled with the English build's resource IDs,
         # so each pack's strings have the IDs the English APK asks for.
         run: |
+          # The English build's resource IDs: the stableIds.txt AGP writes for
+          # every resource link (app/build.gradle.kts, androidResources).
           ids="$PWD/build/resource-ids.txt"
           mkdir -p build
-          ./gradlew assembleEnRelease "-Pwmkb.emitResourceIds=$ids" \
+          ./gradlew assembleEnRelease \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
+          cp app/build/intermediates/stable_resource_ids_file/enRelease/processEnReleaseResources/stableIds.txt "$ids"
           ./gradlew assembleIntlRelease "-Pwmkb.stableResourceIds=$ids" \
             -Pkotlin.daemon.jvmargs=-Xmx4g --stacktrace
 

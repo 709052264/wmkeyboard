@@ -135,8 +135,8 @@ release.
 
 The standard build fetches its feature libraries and its interface languages
 on demand. The `apks` job also builds `full-intl` with the English build's
-resource IDs (`-Pwmkb.emitResourceIds` on the first build,
-`-Pwmkb.stableResourceIds` on the second) and cuts it into one signed
+resource IDs (the `stableIds.txt` AGP writes for the first build, passed
+to the second as `-Pwmkb.stableResourceIds`) and cuts it into one signed
 resource-only APK per language with `.github/scripts/language-packs.sh`. It
 collects the project's own libraries that the standard APK pins
 (`.github/scripts/collect-natives.sh`, which searches every jniLibs directory

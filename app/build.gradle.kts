@@ -513,11 +513,13 @@ android {
         // hand-written so the list cannot drift from the locales that shipped.
         generateLocaleConfig = true
         // Language packs (.github/scripts/language-packs.sh): the release
-        // writes the standard (English) build's resource IDs with
-        // -Pwmkb.emitResourceIds=<file> and compiles the all-languages build
-        // with -Pwmkb.stableResourceIds=<the same file>, so the strings cut
-        // out of the second one carry the IDs the first looks them up by.
-        providers.gradleProperty("wmkb.emitResourceIds").orNull?.let { additionalParameters += listOf("--emit-ids", it) }
+        // compiles the all-languages build with
+        // -Pwmkb.stableResourceIds=<the English build's IDs>, so the strings
+        // cut out of it carry the IDs the English APK looks them up by. The
+        // IDs are the stableIds.txt AGP already writes for every link
+        // (intermediates/stable_resource_ids_file): AGP passes aapt its own
+        // --emit-ids, and aapt keeps only one, so a second one here never
+        // wrote anything.
         providers.gradleProperty("wmkb.stableResourceIds").orNull?.let { additionalParameters += listOf("--stable-ids", it) }
     }
 
@@ -1388,18 +1390,6 @@ dependencies {
 // library has to exist for this machine before the suite starts. The task is
 // :core:language's, where the facades live; see the comment on it there.
 tasks.withType<Test>().configureEach { dependsOn(":core:language:buildHostEngine") }
-
-// The ID file -Pwmkb.emitResourceIds names is a side effect of aapt's link,
-// not a declared output, so a link restored from the build cache leaves it
-// unwritten and the all-languages build after it fails on "failed reading
-// stable ID file" (a 0.6.3 release dry run). The link that writes it
-// always runs.
-if (providers.gradleProperty("wmkb.emitResourceIds").isPresent) {
-    tasks.matching { it.name.matches(Regex("process\\w+Resources")) }.configureEach {
-        outputs.doNotCacheIf("writes the language packs' resource ID file") { true }
-        outputs.upToDateWhen { false }
-    }
-}
 
 // `-Pwmkb.skipBenchmarks` drops the wall-clock benchmarks from the run. They
 // assert against millisecond budgets measured on a quiet machine, so on a
