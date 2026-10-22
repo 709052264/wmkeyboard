@@ -598,7 +598,10 @@ val LocalEmojiFontFamily = staticCompositionLocalOf<FontFamily?> { null }
  * Same order as the key font, minus the active layout's own face (that one
  * belongs to a single grid): the user's per-script pick, the theme's face for
  * the script, the script's Noto face; then, for the scripts that ride the
- * Latin faces, the user's key font and the theme's. Null leaves the system face.
+ * Latin faces, the user's key font and the theme's; then the system face, named
+ * outright. Not null: a Text given no family takes the typography's, which is
+ * the active layout's face again, and on a script board that face changes a
+ * frame after the switch (script face alone, then chained Latin-first).
  */
 /**
  * The scripts that draw in the user's English font already, so have no script
@@ -1544,7 +1547,7 @@ fun KeyboardThemeProvider(
                         null,
                         themeScriptFonts[script.name],
                         unicodeMyanmar,
-                    ) ?: latin
+                    ) ?: latin ?: FontFamily.Default
                 ).also { resolved[script] = it }
             }
         }
