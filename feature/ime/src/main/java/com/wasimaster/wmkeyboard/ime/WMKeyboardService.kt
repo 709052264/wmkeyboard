@@ -2779,6 +2779,16 @@ open class WMKeyboardService : InputMethodService() {
     private var lastGestureWord: String? = null
 
     /**
+     * Whether the capitals [lastGestureWord] was committed in were put there
+     * by the shift: Shift, caps lock, auto-capitalize, or the per-letter
+     * marks of a stroke over Shift. A pick that replaces the word wears them
+     * only then (#212); a capital the reading itself had, a name's or an
+     * acronym's, is that word's spelling and says nothing about the next
+     * word's (#893).
+     */
+    private var gestureWordShifted = false
+
+    /**
      * Whether the strip is showing [lastGestureWord]'s own alternates, so a
      * tap on it *replaces* that word rather than following it.
      *
@@ -23334,6 +23344,35 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * The capitals a pick replacing [word] should take from it (#893), for
+     * [caseLike]: the word itself, unless its capitals are only its own
+     * spelling, a name's or an acronym's, which the keyboard knows it by.
+     * Those say nothing about the word replacing it, so they pass on nothing,
+     * or a leading capital where the word [opensSentence], which any word
+     * standing there would wear. For the picks that cannot ask the shift a
+     * word was written under: one at the caret, and the recent-words row's.
+     */
+    private fun spelledCaseModel(word: String, opensSentence: Boolean): String? {
+        val lower = word.lowercase()
+        if (lower == word) return word
+        val spelling = suggestionEngine?.displayOf(lower) ?: return word
+        if (spelling != word) return word
+        return if (opensSentence) String(Character.toChars(word.codePointAt(0))) else null
+    }
+
+    /**
+     * Whether the word whose first [headLength] characters stand before the
+     * caret opens a sentence: the start of the field, or a sentence end or a
+     * line break before it (#893).
+     */
+    private fun wordOpensSentence(ic: InputConnection, headLength: Int): Boolean {
+        val before = ic.getTextBeforeCursor(headLength + SENTENCE_OPENING_LOOKBACK, 0)?.toString() ?: return false
+        if (before.length < headLength) return false
+        return WordContext.completedWordBefore(before.dropLast(headLength), SENTENCE_ENDERS) ==
+            WordContext.SENTENCE_START
+    }
+
     fun onSuggestionTapped(suggestion: String) {
         replacedGlideShape = null
         stopVoiceForManualInput()
@@ -23471,7 +23510,11 @@ open class WMKeyboardService : InputMethodService() {
                 ic.getSelectedText(0)?.toString() == caret.word
             ) {
                 val replacement = displayCaseForShift(
-                    caseLike(suggestion, caret.word, _uiState.value.language.letterCaseIsSpelling),
+                    caseLike(
+                        suggestion,
+                        spelledCaseModel(caret.word, wordOpensSentence(ic, 0)),
+                        _uiState.value.language.letterCaseIsSpelling,
+                    ),
                     _uiState.value.shiftState,
                 )
                 val spacing = splicedPickSpacing(ic.getTextAfterCursor(1, 0)?.firstOrNull())
@@ -23514,7 +23557,11 @@ open class WMKeyboardService : InputMethodService() {
             // account for (#212).
             val replacement =
                 displayCaseForShift(
-                    caseLike(suggestion, caret.word, _uiState.value.language.letterCaseIsSpelling),
+                    caseLike(
+                        suggestion,
+                        spelledCaseModel(caret.word, wordOpensSentence(ic, head.length)),
+                        _uiState.value.language.letterCaseIsSpelling,
+                    ),
                     _uiState.value.shiftState,
                 )
             val spacing = splicedPickSpacing(afterWord.getOrNull(tail.length))
@@ -23680,7 +23727,7 @@ open class WMKeyboardService : InputMethodService() {
         notePhoneticPick(suggestion)
         val committed = _uiState.value.let { state ->
             val cased = displayCaseForShift(
-                caseLike(suggestion, replacedWord, state.language.letterCaseIsSpelling),
+                caseLike(suggestion, replacedWord?.takeIf { gestureWordShifted }, state.language.letterCaseIsSpelling),
                 state.shiftState,
             )
             // An English word picked on a layout with no case of its own opens
@@ -26346,6 +26393,7 @@ open class WMKeyboardService : InputMethodService() {
         if (undoable) {
             // Armed before the space, as the glide commit arms it (#113).
             lastGestureWord = word
+            gestureWordShifted = shift != ShiftState.OFF
             lastGestureStroke = null
             // Not [lastHandAdjustment]: what the swipes taught the hand is on
             // its way from the commit above, for an undo to take back (#741).
@@ -26820,6 +26868,7 @@ open class WMKeyboardService : InputMethodService() {
                 else -> candidates
             }
             val word = glideCased(picked, shiftAtGesture, verdict.caseAt(0), points, keys, keyWidthPx)
+            gestureWordShifted = shiftAtGesture != ShiftState.OFF || verdict.caseAt(0) != GlideCase.None
             commitGestureLeadingSpace(ic, state)
             // A stroke that read a text-expansion trigger types what the
             // trigger stands for, as a space after the typed trigger would.
@@ -27324,11 +27373,9 @@ open class WMKeyboardService : InputMethodService() {
                 // Only the first word honours the board's shift; a later
                 // word's own crossings still reach it (#163).
                 val case = verdict.caseAt(index)
-                val word = glideCased(
-                    leader,
-                    if (index == 0) shiftAtGesture else shiftForGlide(ShiftState.OFF, case),
-                    case, segment, keys, keyWidthPx,
-                )
+                val wordShift = if (index == 0) shiftAtGesture else shiftForGlide(ShiftState.OFF, case)
+                val word = glideCased(leader, wordShift, case, segment, keys, keyWidthPx)
+                gestureWordShifted = wordShift != ShiftState.OFF || case != GlideCase.None
                 commitGestureLeadingSpace(ic, state)
                 val expanded = glidedExpansion(ic, state, word)
                 if (expanded != null) {
@@ -31528,6 +31575,8 @@ open class WMKeyboardService : InputMethodService() {
         connection.commitText(if (needsSpace) " $word" else word, 1)
         learn(word)
         lastGestureWord = word
+        // Only auto-capitalize's capital is the shift's; the recogniser's own is the word's.
+        gestureWordShifted = word != candidates.first()
         // The recogniser's other readings go on the strip below, so a tap
         // there is a correction of this word, as after a glide.
         stripReplacesGestureWord = true
@@ -44710,6 +44759,7 @@ open class WMKeyboardService : InputMethodService() {
         recentEntries.removeAll { entry ->
             entry.start >= read.origin && entry.start < read.end && at[entry.start] != entry.word
         }
+        recentSentenceStarts = read.sentenceStarts
         publishRecentBar(at)
     }
 
@@ -44736,7 +44786,17 @@ open class WMKeyboardService : InputMethodService() {
      * and its words. [anchored] when the read reached the start of the field,
      * so its places hold whatever caret the editor last reported.
      */
-    private class RecentRead(val origin: Int, val end: Int, val words: List<Pair<Int, String>>, val anchored: Boolean)
+    private class RecentRead(
+        val origin: Int,
+        val end: Int,
+        val words: List<Pair<Int, String>>,
+        val anchored: Boolean,
+        /** The starts in [words] that open a sentence, for the offers' capitals (#893). */
+        val sentenceStarts: Set<Int> = emptySet(),
+    )
+
+    /** [RecentRead.sentenceStarts] of the last read the bar was drawn from. */
+    private var recentSentenceStarts: Set<Int> = emptySet()
 
     /**
      * The words written before the caret, oldest first, as (start, word)
@@ -44754,6 +44814,7 @@ open class WMKeyboardService : InputMethodService() {
         val anchored = before.length < RECENT_BAR_LOOKBEHIND
         val origin = if (anchored) 0 else (expectedSelStart.takeIf { it >= 0 } ?: return null) - before.length
         val found = ArrayList<Pair<Int, String>>()
+        val opening = HashSet<Int>()
         var i = 0
         while (i < written.length) {
             if (!isComposingWordChar(written[i])) {
@@ -44765,9 +44826,14 @@ open class WMKeyboardService : InputMethodService() {
             val word = written.substring(start, i)
             // A word cut off at the start of what was read may be longer.
             if (start == 0 && before.length >= RECENT_BAR_LOOKBEHIND) continue
-            if (word.any { it.isLetter() }) found += (origin + start) to word
+            if (word.any { it.isLetter() }) {
+                found += (origin + start) to word
+                if (WordContext.completedWordBefore(written.substring(0, start), SENTENCE_ENDERS) == WordContext.SENTENCE_START) {
+                    opening += origin + start
+                }
+            }
         }
-        return RecentRead(origin, origin + written.length, found, anchored)
+        return RecentRead(origin, origin + written.length, found, anchored, opening)
     }
 
     /**
@@ -44789,7 +44855,13 @@ open class WMKeyboardService : InputMethodService() {
             emptyList()
         }
         return (listOfNotNull(entry.previous) + kept + fresh)
-            .map { caseLike(it, entry.word, _uiState.value.language.letterCaseIsSpelling) }
+            .map {
+                caseLike(
+                    it,
+                    spelledCaseModel(entry.word, entry.start in recentSentenceStarts),
+                    _uiState.value.language.letterCaseIsSpelling,
+                )
+            }
             .filterNot { it == entry.word || engine?.suppresses(it) == true }
             .distinct()
             .take(RECENT_BAR_OFFERS)
@@ -45175,8 +45247,15 @@ open class WMKeyboardService : InputMethodService() {
         // is what the strip's own pick reads too: the word being typed, the
         // word the caret is in, or the word a swipe just wrote. A prediction
         // replaces nothing and is left to the shift, like any pick.
-        val gestureWord = lastGestureWord?.takeIf { composing.isEmpty() && stripReplacesGestureWord }
-        val model = composing.toString().ifEmpty { caretWord?.word ?: gestureWord.orEmpty() }
+        // A swipe's word lends only the shift's capitals, a word the caret is
+        // in only the ones that are not its own spelling (#893).
+        val gestureWord = lastGestureWord?.takeIf { composing.isEmpty() && stripReplacesGestureWord && gestureWordShifted }
+        val caret = caretWord
+        val model = composing.toString().ifEmpty {
+            caret?.let { c ->
+                spelledCaseModel(c.word, currentInputConnection?.let { wordOpensSentence(it, c.head.length) } == true)
+            } ?: gestureWord.orEmpty()
+        }
         _uiState.update { it.copy(wordCard = null, synonyms = SynonymsSheet(trimmed, caseModel = model)) }
         lookUpSynonyms(trimmed)
     }
@@ -50097,6 +50176,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How far back the bar reads for its words. */
         private const val RECENT_BAR_LOOKBEHIND = 128
+
+        /** How far before a word [wordOpensSentence] reads for a sentence end. */
+        private const val SENTENCE_OPENING_LOOKBACK = 16
 
         /** How far back a Retype (#791) reads for the word behind the caret. */
         private const val RETYPE_LOOKBEHIND = 64
