@@ -17,7 +17,7 @@ com.wasimaster.wmkeyboard.core.script.LanguageRegistry.<clinit>  18400  768  # c
 com.wasimaster.wmkeyboard.core.script.FancyStyles.<clinit>  11500  576  # class init: Fancy Text alphabets, once per process
 com.wasimaster.wmkeyboard.core.settings.SettingsRepository.<clinit>  10400  320  # class init: the DataStore keys, once per process
 com.wasimaster.wmkeyboard.core.translate.BergamotCatalog.<clinit>  10600  384  # class init: the Bergamot model catalogue, once per process, and only when translation is opened
-com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  10100  384  # class init: the downloadable dictionaries table, once per process
+com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog.<clinit>  10200  384  # class init: the downloadable dictionaries table, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpecKt.<clinit>  5100  4096  # class init: built-in themes, once per process
 com.wasimaster.wmkeyboard.core.theme.ThemeSpec$$serializer.deserialize  17200  2496  # generated serializer: runs when a theme is loaded, not per key
 
@@ -33,13 +33,13 @@ com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen  14800  4160  #
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$157  500  3904  # the stable composition locals around KeyboardScreenFrame: recomposes with KeyboardScreen, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.restorePersistentSurface  1600  4480  # once per show
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.openDictionary  1200  4416  # opening the dictionary tool
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1400  4416  # emoji panel search, debounced
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteTools  7300  4480  # typing into a keyboard-owned tool field (#161), not into apps
-com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  6800  4480  # the same, for the search, note, clock, gallery and toolbox fields
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$refreshEmojiResults$1.invokeSuspend  1400  4480  # emoji panel search, debounced
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteTools  7400  4480  # typing into a keyboard-owned tool field (#161), not into apps
+com.wasimaster.wmkeyboard.ime.WMKeyboardService.captureWriteLists  6800  4544  # the same, for the search, note, clock, gallery and toolbox fields
 com.wasimaster.wmkeyboard.core.settings.KeyboardModesKt.applyMode  1500  3328  # once per settings or mode change: one register per KeyboardSettings field, like its copy
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy$default  3100  3136  # generated: the copy every settings change goes through, not per key
 com.wasimaster.wmkeyboard.core.settings.ProviderSettingsKt.withProviderChoices  1900  4864  # once per settings read: copies KeyboardSettings and its provider sections
-com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$29$2.emit  9300  3008  # the settings collector (stored settings, power, form, network): per settings or field change, not per key
+com.wasimaster.wmkeyboard.ime.WMKeyboardService$onCreate$29$2.emit  9400  3008  # the settings collector (stored settings, power, form, network): per settings or field change, not per key
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.startInputView  3100  3136  # once per field shown
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.cycleVoiceMic  900  3136  # a tap on the mic key's mode cycle: writes a KeyboardSettings copy
 com.wasimaster.wmkeyboard.ime.WMKeyboardService.onVoiceModePick  900  3200  # a pick in the voice mode menu: the same
@@ -57,6 +57,6 @@ com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardBody$lambda$24  400  3
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyboardScreen$lambda$143$2  500  3328  # the call to KeyboardBody: 157 argument slots
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.<init>  4400  4736  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.KeyboardUiState.copy  1100  4288  # generated: one register per field
-com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  8200  4608  # generated: one register per field
+com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.<init>  8300  4608  # generated: one register per field
 com.wasimaster.wmkeyboard.core.settings.KeyboardSettings.copy  1400  4672  # generated: one register per field
 com.wasimaster.wmkeyboard.ime.ui.KeyboardScreenKt.KeyRows  9500  2112  # 445 insns past 9,000 (ART's hard limit is 10,000, so it still compiles); grew back after bed2b803a split it; fix: lift more of its setup into composables of their own, as that commit did
