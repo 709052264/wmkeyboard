@@ -5,7 +5,10 @@ import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.app.AppLanguage
 import com.wasimaster.wmkeyboard.app.LanguagePackDownloads
+import com.wasimaster.wmkeyboard.app.matchAvailable
+import com.wasimaster.wmkeyboard.core.modules.LanguagePackResources
 import kotlinx.coroutines.launch
 
 /**
@@ -21,8 +24,13 @@ fun appLanguageSplitCompat(activity: Activity) = Unit
  * ([LanguagePackDownloads]). [onReady] runs on failure too, after saying so:
  * the app then shows English, and the choice stays, so it can be picked again.
  */
-fun fetchAppLanguage(activity: Activity, tag: String?, onReady: () -> Unit) {
-    if (!LanguagePackDownloads.active || tag == null || LanguagePackDownloads.isEnglish(tag)) {
+fun fetchAppLanguage(activity: Activity, chosen: String?, onReady: () -> Unit) {
+    // System default (null) means the phone's language, which needs its pack
+    // as much as a language picked by name.
+    val tag = chosen ?: matchAvailable(AppLanguage.systemLocale().toLanguageTag(), AppLanguage.available)
+    if (!LanguagePackDownloads.active || tag == null || LanguagePackDownloads.isEnglish(tag) ||
+        LanguagePackResources.has(activity, tag)
+    ) {
         onReady()
         return
     }
