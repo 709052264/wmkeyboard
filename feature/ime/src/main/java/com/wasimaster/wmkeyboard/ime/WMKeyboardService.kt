@@ -22678,7 +22678,11 @@ open class WMKeyboardService : InputMethodService() {
             // Pages of suggestions (#385) want the deeper list the strip never
             // shows. Asked for in the same walk, so a swipe down has it at once;
             // the strip and the keys still take the head they always took.
-            val pagesOn = (state.settings.suggestionStrip.swipeForMore || state.settings.suggestionStrip.swipeUpForMore) &&
+            // The scrolling strip's arrow opens the same grid (#890).
+            val pagesOn = (
+                state.settings.suggestionStrip.swipeForMore || state.settings.suggestionStrip.swipeUpForMore ||
+                    state.settings.suggestionStrip.scrollable
+                ) &&
                 state.composer.completionLanguage == null
             val askDeep = if (pagesOn) maxOf(askFor, SUGGEST_PAGES_POOL) else askFor
             // Desktop Avro's candidate list, for the row above the strip when
@@ -23302,11 +23306,19 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** The candidate strip's chevron: opens the overflow grid, or closes it. */
+    /**
+     * The candidate strip's chevron: opens the overflow grid, or closes it. A
+     * scrolling word strip has the same arrow (#890), which opens the grid of
+     * words a swipe down opens.
+     */
     fun onCandidatesExpand() {
         val state = _uiState.value
         if (state.panel == PanelMode.CANDIDATES) {
             _uiState.update { it.copy(panel = PanelMode.NONE, expandedCandidates = emptyList()) }
+            return
+        }
+        if (!state.composer.isConversion) {
+            onSuggestionPagesToggle(true)
             return
         }
         if (!state.composer.isConversion || composing.isEmpty()) return

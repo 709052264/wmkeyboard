@@ -5256,6 +5256,23 @@ private fun RowScope.StripWords(
             primarySlot = (1 - leadSlots).coerceAtLeast(0),
             tinted = state.settings.suggestionStrip.tintedSlots,
         )
+        // A strip that scrolls gets the arrow the conversion strip has (#890):
+        // past the words it scrolls through, the rest of the ranked list opens
+        // in the same grid a swipe down does. Outside the scroll, as there, so
+        // it cannot scroll away itself.
+        if (state.settings.suggestionStrip.scrollable && !glideStripOnly &&
+            shownSuggestions.size > wordSlots
+        ) {
+            IconHint(stringResource(R.string.ime_candidates_more_desc)) {
+                IconButton(onClick = onCandidatesExpand, enabled = suggestionsShowing) {
+                    Icon(
+                        Icons.Outlined.ArrowDropDown,
+                        contentDescription = stringResource(R.string.ime_candidates_more_desc),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
         // The word card (#99) is a window over the whole keyboard, so
         // where it is composed does not matter; it lives beside the
         // strip that opens it. It steps aside while its own spelling
