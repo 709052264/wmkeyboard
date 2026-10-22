@@ -336,7 +336,8 @@ does not read build logic, so it flags strings this build never resolves:
 
 The same release replaced `scandelete`: the `src/full` paths went with the
 flavour, and fdroidserver fails on a listed path that does not exist, so the
-list is now `feature/llm/src/main/jniLibs`, `native/whistle-jni/prebuilt` and
+list is now `feature/llm/src/main/jniLibs`, `native/whistle-jni/prebuilt`,
+`feature/llamagpu/src/main/jniLibs` (Play-only stubs, see its `stub/stub.c`) and
 everything `python3 native/gates.py scandelete` prints.
 
 Deleting the lines rather than listing the files in `scanignore` is deliberate:

@@ -381,6 +381,7 @@ Builds:
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt
+      - feature/llamagpu/src/main/jniLibs
       - core/language/src/main/jniLibs
       - core/voice/src/main/jniLibs
       - core/voice/src/whistle/jniLibs
@@ -435,6 +436,7 @@ Builds:
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt
+      - feature/llamagpu/src/main/jniLibs
       - core/language/src/main/jniLibs
       - core/voice/src/main/jniLibs
       - core/voice/src/whistle/jniLibs
@@ -489,6 +491,7 @@ Builds:
     scandelete:
       - feature/llm/src/main/jniLibs
       - native/whistle-jni/prebuilt
+      - feature/llamagpu/src/main/jniLibs
       - core/language/src/main/jniLibs
       - core/voice/src/main/jniLibs
       - core/voice/src/whistle/jniLibs
