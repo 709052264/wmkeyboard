@@ -191,6 +191,9 @@ def main() -> int:
                 continue
             if args.locale and locale not in args.locale:
                 continue
+            value, escaped = _escape_percent(default, value)
+            if escaped:
+                warnings.append(f"{locale}/{key}: wrote a bare % as %%, as the default does")
             bad = list(_forbidden(value))
             if bad:
                 # A plurals missing one of its quantities throws at runtime,
@@ -283,6 +286,43 @@ def _scan_written(paths):
             leaks.append(f"{path.relative_to(REPO)}:{lineno}:{col} "
                          f"U+{ord(m.group()):04X}")
     return leaks
+
+
+# What makes Android run a string through String.format, and the codes this
+# project writes (StringFormatSafetyTest in :app holds the same two).
+FORMAT_ARGUMENT = re.compile(r"%(\d+\$)?[-#+0,(]*\d*[sd]")
+VALID_CODE = re.compile(r"%(?:\d+\$)?[-#+0,(]*\d*(?:\.\d+)?[sdfxXc]|%%")
+
+
+def _escape_percent(default, value):
+    """Return (value, changed): a literal "%" in a formatted string as "%%".
+
+    The English writes "56%% of the time" because the string also takes an
+    argument, and String.format reads every "%" as a code. Gemini copies the
+    number and drops the escape ("56% of"), which throws when the string is
+    drawn: 0.6.3's pull did it in seven languages of one string. Only where the
+    English is formatted; a plain string keeps its single "%".
+    """
+    if default is None:
+        return value, False
+    if isinstance(value, dict):
+        out, changed = {}, False
+        for quantity, text in value.items():
+            base = default.get(quantity, default.get("other", "")) if isinstance(default, dict) else default
+            out[quantity], c = _escape_percent(base, text)
+            changed |= c
+        return out, changed
+    base = " ".join(default.values()) if isinstance(default, dict) else default
+    if not FORMAT_ARGUMENT.search(base):
+        return value, False
+    parts, last = [], 0
+    for code in VALID_CODE.finditer(value):
+        parts.append(value[last:code.start()].replace("%", "%%"))
+        parts.append(code.group())
+        last = code.end()
+    parts.append(value[last:].replace("%", "%%"))
+    fixed = "".join(parts)
+    return fixed, fixed != value
 
 
 def _compare(default, value):
