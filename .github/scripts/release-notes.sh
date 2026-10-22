@@ -103,10 +103,19 @@ checked against a checksum built into the app. What you can *type* is the same
 either way: every layout and every dictionary is there.
 
 Almost every phone sold since 2017 takes an **arm64-v8a** build, so start here:
+**⭐ [Standard, arm64-v8a](${base}/${prefix}-full-en-arm64-v8a.apk)** ($(size_of "${prefix}-full-en-arm64-v8a.apk"))
 
-| | arm64-v8a |
-|:---|:---|
-| **⭐ Standard** | **$(cell "${prefix}-full-en-arm64-v8a.apk")** |
+<details>
+<summary><b>Had an older build?</b> (all languages, or lite)</summary>
+
+The all-languages build (\`full-intl\`) and the lite builds are gone: the
+standard build is all of them now. It installs over any of them and keeps every
+setting, and the in-app updater moves you onto it. Your interface language comes
+back as a download the first time the app runs on Android 11 or later; on
+Android 7 to 10 the standard build's interface is English, so take the offline
+build below to keep yours. F-Droid installs stay on F-Droid.
+
+</details>
 
 <details>
 <summary><b>Other architectures</b> (older 32-bit phones, emulators, ChromeOS, or if the above refuses to install)</summary>
@@ -156,7 +165,9 @@ fi
 # a phone that cannot fetch them itself. Listed, not described one by one.
 packs=$(cd "$dist" && ls ${prefix}-lang-*.apk 2>/dev/null | wc -l | tr -d ' ')
 if [ "$packs" -gt 0 ]; then
-pack_list=$(cd "$dist" && for f in ${prefix}-lang-*.apk; do echo "- [\`$f\`](${base}/$f) · $(size_of "$f")"; done)
+# size_of takes a name in $dist, so no `cd` here: with a relative $dist it
+# would look in $dist/$dist and call every pack "not built".
+pack_list=$(for f in "$dist"/${prefix}-lang-*.apk; do f=$(basename "$f"); echo "- [\`$f\`](${base}/$f) · $(size_of "$f")"; done)
 cat <<EOF
 <details>
 <summary><b>Interface language packs</b> ($packs, for importing by hand)</summary>
@@ -258,7 +269,10 @@ fi
 # The grouped commit list that used to live here is gone: the prose above is
 # the changelog, and the compare view is a better place to read every commit
 # than a wall of subjects in the release body.
-prev=$(git describe --tags --abbrev=0 "${tag}^" 2>/dev/null || true)
+# The release before this one by version, not by ancestry: a re-cut tag sits
+# on its own commit off main (0.6.2 did), and `git describe` skipped it and
+# counted 0.6.3 from 0.6.1. `prev..tag` is still the right range then.
+prev=$(git tag --list 'v*' --sort=-v:refname | awk -v t="$tag" 'f { print; exit } $0 == t { f = 1 }')
 if [ -n "$prev" ]; then
   count=$(git log --no-merges --oneline "${prev}..${tag}" | wc -l | tr -d ' ')
   echo "${count} commits since [${prev#v}](https://github.com/${repo}/releases/tag/${prev}). [See every one](https://github.com/${repo}/compare/${prev}...${tag})."
