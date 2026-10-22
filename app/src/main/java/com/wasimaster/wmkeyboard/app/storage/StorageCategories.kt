@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.STICKER_GENERATOR_ROUTE
 import com.wasimaster.wmkeyboard.app.deleteNeuralPhonetic
+import com.wasimaster.wmkeyboard.app.modules.PlayModules
+import com.wasimaster.wmkeyboard.config.BuildConfig
 import com.wasimaster.wmkeyboard.core.addons.AddonStore
 import com.wasimaster.wmkeyboard.core.aihistory.AiHistoryStore
 import com.wasimaster.wmkeyboard.core.debug.DebugLog
@@ -238,6 +240,7 @@ private fun sweepLeftovers(dir: File) {
 internal object StorageCategories {
 
     const val APP_PACKAGE = "app_package"
+    const val PLAY_MODULES = "play_modules"
     const val OTHER_CACHE = "other_cache"
     const val OTHER_DATA = "other_data"
     const val UPDATES = "updates"
@@ -273,6 +276,8 @@ internal object StorageCategories {
     /** In display order: the app, then downloads, looks, personal data, caches, the rest. */
     val all: List<StorageCategory> = buildList {
         add(appPackage())
+        // Only Play installs modules; anywhere else the row could only be empty.
+        if (BuildConfig.ENABLE_PLAY_STORE) add(playModules())
         addAll(downloads())
         addAll(looks())
         addAll(personal())
@@ -292,9 +297,11 @@ internal object StorageCategories {
         synthetic = true,
         itemsOf = { env ->
             val info = env.context.applicationInfo
+            // Play's on-demand modules have a row of their own, by name.
+            val modules = installedModuleSplits(env.roots).toSet()
             buildList {
                 add(File(info.sourceDir) to 0)
-                info.splitSourceDirs?.forEach { add(File(it) to 0) }
+                env.roots.appSplits.filterNot { it in modules }.forEach { add(it to 0) }
                 // The only piece whose own name says nothing: the directory is
                 // called after the ABI it holds, `arm64` and the like.
                 info.nativeLibraryDir?.let { add(File(it) to R.string.storage_file_native_libs_label) }
@@ -312,7 +319,8 @@ internal object StorageCategories {
                 // The system's figure also counts what Android compiled from
                 // the APK, kept beside it where the app cannot list it: the
                 // difference, so the rows add up to the row's own size.
-                val compiled = (systemAppBytes(env.context) ?: 0L) - files.sumOf { it.bytes }
+                val moduleBytes = modules.sumOf { diskUsage(it, env.roots.blockSize) }
+                val compiled = (systemAppBytes(env.context) ?: 0L) - moduleBytes - files.sumOf { it.bytes }
                 if (compiled <= 0L) {
                     files
                 } else {
@@ -325,6 +333,42 @@ internal object StorageCategories {
                     )
                 }
             }
+        },
+    )
+
+    /**
+     * Play's on-demand modules (the Play build only): the features the app
+     * fetched from the Play Store when they were first used, one row each, by
+     * the name Play gave it while it downloaded. Removing one asks Play to
+     * uninstall it, which Play does later, usually with the app in the
+     * background; until then it stays listed, marked as on its way out.
+     */
+    private fun playModules() = StorageCategory(
+        id = PLAY_MODULES,
+        title = R.string.storage_play_modules_title,
+        subtitle = R.string.storage_play_modules_subtitle,
+        icon = Icons.Outlined.Extension,
+        accent = Color(0xFF4DB6AC),
+        group = StorageGroup.APP,
+        danger = Danger.REDOWNLOAD,
+        pathsOf = { roots -> installedPlayModules().flatMap { moduleFiles(roots, it) } },
+        countOf = { _ -> installedPlayModules().size },
+        itemsOf = { env ->
+            installedPlayModules().map { module ->
+                val leaving = module in PlayModules.removing
+                StorageItem(
+                    id = module,
+                    label = playModuleTitle(env.context, module),
+                    detail = if (leaving) env.context.getString(R.string.storage_play_module_removing) else module,
+                    bytes = moduleFiles(env.roots, module).sumOf { diskUsage(it, env.roots.blockSize) },
+                    deletable = !leaving,
+                )
+            }
+        },
+        deleteOne = { _, item -> PlayModules.uninstall(listOf(item.id)) },
+        clearOf = { _ ->
+            val staying = installedPlayModules().filterNot { it in PlayModules.removing }
+            if (staying.isNotEmpty()) PlayModules.uninstall(staying)
         },
     )
 

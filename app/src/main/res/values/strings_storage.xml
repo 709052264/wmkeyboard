@@ -71,6 +71,10 @@
     <string name="storage_ocr_packs_subtitle">Tesseract data that the text scanner reads each language with</string>
     <string name="storage_addon_index_title">Add-on sources</string>
     <string name="storage_feature_libraries_title">Feature libraries</string>
+    <string name="storage_play_modules_title">Play Store modules</string>
+    <string name="storage_play_modules_subtitle">Features the app fetched from the Play Store the first time you used them, such as voice typing, translation and on-device AI</string>
+    <!-- Under a module the user removed: Play uninstalls it later, not at once. -->
+    <string name="storage_play_module_removing">Play removes it later, usually within a day</string>
     <string name="storage_language_packs_title">Interface languages</string>
     <string name="storage_language_packs_subtitle">The app\'s menus and settings in languages other than English, downloaded when you picked them</string>
     <string name="storage_feature_libraries_subtitle">Native code that features such as voice typing, grammar checking, the scanner and on-device AI downloaded the first time you used them</string>

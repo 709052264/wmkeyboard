@@ -57,6 +57,15 @@ fun installOnDemandDelivery(app: Application) {
     // this process started is not on the class loader's library path;
     // SplitInstallHelper looks there as well.
     FeatureModules.loadLibrary = { name -> SplitInstallHelper.loadLibrary(app, name) }
+    // The Storage screen's row of modules: every installed one, the Translate
+    // and LLM modules with their own delivery included.
+    PlayModules.installed = { manager.installedModules }
+    // Marked at once, so the rescan that follows the delete already shows
+    // the module as on its way out; a refusal takes the mark back.
+    PlayModules.uninstall = { names ->
+        PlayModules.removing += names
+        manager.deferredUninstall(names).addOnFailureListener { PlayModules.removing -= names.toSet() }
+    }
 }
 
 private class PlayModuleGate(

@@ -63,6 +63,8 @@ internal data class StorageRoots(
     val blockSize: Long,
     /** False before first unlock, when the credential-encrypted roots cannot be read. */
     val unlocked: Boolean,
+    /** The installed package's split APKs, Play's on-demand modules among them. */
+    val appSplits: List<File> = emptyList(),
 )
 
 internal fun storageRoots(context: Context): StorageRoots {
@@ -82,6 +84,7 @@ internal fun storageRoots(context: Context): StorageRoots {
         blockSize = runCatching { StatFs(dataDir.path).blockSizeLong }
             .getOrNull()?.takeIf { it > 0 } ?: DEFAULT_BLOCK,
         unlocked = DirectBoot.isUserUnlocked(context),
+        appSplits = context.applicationInfo.splitSourceDirs.orEmpty().map(::File),
     )
 }
 
@@ -109,7 +112,16 @@ internal data class StorageReport(
     val scanning: Boolean = true,
     /** How far through the categories a running scan is, 0..1. */
     val progress: Float = 0f,
+    /**
+     * The part of [appBytes] that is Play's on-demand modules, shown in their
+     * own row rather than in App package's. Code, not data, so it is never
+     * part of what the data rows have to add up to.
+     */
+    val moduleSplitBytes: Long = 0L,
 ) {
+    /** App package's own row: the app, without the modules listed beside it. */
+    val packageBytes: Long get() = (appBytes - moduleSplitBytes).coerceAtLeast(0L)
+
     /** What the system's App info page calls "Total". */
     val totalBytes: Long get() = appBytes + dataBytes
 
@@ -191,8 +203,10 @@ internal fun scanStorage(
     val sizes = linkedMapOf(
         StorageCategories.APP_PACKAGE to CategorySize(0L, 0),
     )
-    var report = totals(context, roots)
-    sizes[StorageCategories.APP_PACKAGE] = CategorySize(report.appBytes, 0)
+    var report = totals(context, roots).copy(
+        moduleSplitBytes = installedModuleSplits(roots).sumOf { diskUsage(it, roots.blockSize) },
+    )
+    sizes[StorageCategories.APP_PACKAGE] = CategorySize(report.packageBytes, 0)
     report = report.copy(sizes = LinkedHashMap(sizes))
     emit(report)
     val walked = categories.filterNot { it.synthetic }
@@ -220,8 +234,10 @@ internal fun scanStorage(
 internal fun StorageReport.withResiduals(categories: List<StorageCategory>): StorageReport {
     val measured = categories.filterNot { it.synthetic }
     val cacheSum = measured.filter { it.group == StorageGroup.CACHE }.sumOf { bytesOf(it.id) }
-    val dataSum = measured.filterNot { it.group == StorageGroup.CACHE }.sumOf { bytesOf(it.id) }
-    val withApp = sizes + (StorageCategories.APP_PACKAGE to CategorySize(appBytes, 0))
+    // The modules' row counts their installed splits, which are the app's
+    // code and not its data.
+    val dataSum = measured.filterNot { it.group == StorageGroup.CACHE }.sumOf { bytesOf(it.id) } - moduleSplitBytes
+    val withApp = sizes + (StorageCategories.APP_PACKAGE to CategorySize(packageBytes, 0))
     return copy(
         sizes = withApp +
             (StorageCategories.OTHER_CACHE to CategorySize((cacheBytes - cacheSum).coerceAtLeast(0L), 0)) +
