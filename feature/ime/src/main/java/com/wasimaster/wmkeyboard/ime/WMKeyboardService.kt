@@ -3068,6 +3068,18 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * A word picked off the strip with No space armed (#863) is the key it was
+     * armed for: it goes in with no space after it, so `specific` picked can
+     * be carried on into `specifically`. Spends the arm and says whether it
+     * was there.
+     */
+    private fun spendNoSpaceOnPick(): Boolean {
+        if (!_uiState.value.noSpaceArmed) return false
+        setNoSpaceArmed(false)
+        return true
+    }
+
+    /**
      * The No space action (#851), Nintype's spaceless key. The first of these
      * that applies:
      *  - the keyboard has just put a space after a word (a glide or a pick):
@@ -11907,8 +11919,10 @@ open class WMKeyboardService : InputMethodService() {
         // at the start of a line, or after another mark — and the ordinary
         // hugging applies after all.
         // A key No space was armed for (#863) has no space put in front of it.
+        // Nor is the space already in front of it taken back: armed, `best .`
+        // keeps the space after `best` (#863).
         val spacedRun = if (unspacedKey) null else spacedMarkRun(ic, text, state)
-        val ateAutoSpace = spacedRun == null &&
+        val ateAutoSpace = spacedRun == null && !unspacedKey &&
             takeBackAutoSpace(ic, text, state, followsWordSpace)
 
         // ":" on a word boundary opens inline emoji search: the colon and the
@@ -23711,7 +23725,8 @@ open class WMKeyboardService : InputMethodService() {
         // already, so it earns no space of its own on top (#552).
         val pickState = _uiState.value
         val autoSpace = pickState.settings.suggestionStrip.autoSpaceAfterSuggestionFor(pickState.language.id) &&
-            suggestion.lastOrNull()?.isWhitespace() != true
+            suggestion.lastOrNull()?.isWhitespace() != true &&
+            !spendNoSpaceOnPick()
         val after = ic.getTextAfterCursor(1, 0)
         val spaced = autoSpace && spaceToStepOver(after)
         // In front of a mark that closes up onto the word ("question⌶?"), the
@@ -23870,7 +23885,7 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun splicedPickSpacing(next: Char?): PickSpacing {
         val state = _uiState.value
-        if (!state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id)) {
+        if (!state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id) || spendNoSpaceOnPick()) {
             return PickSpacing("", 1, false)
         }
         val after = next?.toString()
@@ -23922,7 +23937,8 @@ open class WMKeyboardService : InputMethodService() {
         stopVoiceForManualInput()
         vibrate()
         val state = _uiState.value
-        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id)
+        val autoSpace = state.settings.suggestionStrip.autoSpaceAfterSuggestionFor(state.language.id) &&
+            !spendNoSpaceOnPick()
         val after = ic.getTextAfterCursor(1, 0)
         val spaced = autoSpace && spaceToStepOver(after)
         val deferSpace = autoSpace && !spaced && markHugsCaretWord(after)
@@ -43175,17 +43191,14 @@ open class WMKeyboardService : InputMethodService() {
             }
             return
         }
-        // What a hold of No space runs (#863): the tap's own work, and the
-        // next key typed gets no space either. Again calls it off.
+        // What a hold of No space runs (#863): the next key typed, or word
+        // picked, gets no space. A modifier, like a held Shift, so it leaves
+        // what is already there alone: the word being typed stays open for
+        // the strip, and a space already typed stays. Again calls it off.
         if (action == TextEditAction.NO_SPACE_NEXT) {
             if (haptic) vibrate()
             lastNoSpaceTapAt = null
-            if (_uiState.value.noSpaceArmed) {
-                setNoSpaceArmed(false)
-            } else {
-                noSpace()
-                setNoSpaceArmed(true)
-            }
+            setNoSpaceArmed(!_uiState.value.noSpaceArmed)
             return
         }
         // Before the composing text is committed below: a word still being
