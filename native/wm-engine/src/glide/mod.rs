@@ -33,7 +33,8 @@ pub struct Point {
     pub t: i64,
 }
 
-/// `GlideBeam.Tuning`. Defaults are the shipped ones.
+/// `GlideBeam.Tuning`. Defaults are the shipped ones, fitted on real swipes
+/// (`examples/glide_beam_eval`, `native/bench/futo-swipe/fit_glide.py`).
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tuning {
     pub sigma: f32,
@@ -68,27 +69,27 @@ impl Default for Tuning {
     fn default() -> Self {
         Tuning {
             sigma: 0.42,
-            max_point_cost: 12.0,
-            gap_weight: 2.0,
-            gap_window: 14.0,
-            shape_weight: 2.5,
-            repeat_cost: 0.05,
+            max_point_cost: 18.0,
+            gap_weight: 1.33,
+            gap_window: 32.0,
+            shape_weight: 0.5,
+            repeat_cost: 0.8,
             unlooped_repeat: 0.1,
-            dwell_full: 3.0,
-            unclaimed_dwell: 2.0,
+            dwell_full: 2.0,
+            unclaimed_dwell: 0.9,
             loop_extent: 0.8,
             loop_min_arc: 1.0,
             loop_radius: 0.6,
             wiggle_extent: 0.0,
             wiggle_weight: 0.0,
             loop_exclusion: 1.5,
-            unclaimed_loop: 0.5,
+            unclaimed_loop: 1.1,
             learned_shape_gain: 0.15,
             shape_seeding: false,
-            shape_channel: 45.0,
+            shape_channel: 6.0,
             start_radius: 1.6,
-            end_radius: 1.6,
-            near_radius: 1.5,
+            end_radius: 2.0,
+            near_radius: 1.9,
             vocabulary_rank: 0,
             look_ahead_cost: 1.4,
             look_ahead_budget: 48,
@@ -98,6 +99,9 @@ impl Default for Tuning {
 }
 
 const MIN_DWELL_FULL: f32 = 0.1;
+/// `GlideBeam.Tuning.SLACK_BASE`: the anchor radius past which the score
+/// forgives the distance as well as the gate admitting it.
+const SLACK_BASE: f32 = 1.6;
 
 impl Tuning {
     fn inv_two_sigma_sq(&self) -> f32 {
@@ -116,10 +120,10 @@ impl Tuning {
         self.loop_radius * self.loop_radius
     }
     fn start_slack(&self) -> f32 {
-        (self.start_radius - Tuning::default().start_radius).max(0.0)
+        (self.start_radius - SLACK_BASE).max(0.0)
     }
     fn end_slack(&self) -> f32 {
-        (self.end_radius - Tuning::default().end_radius).max(0.0)
+        (self.end_radius - SLACK_BASE).max(0.0)
     }
     fn dwell_scale(&self) -> f32 {
         if self.dwell_full > MIN_DWELL_FULL {
