@@ -752,6 +752,13 @@ private fun loadSpec(context: Context, modelId: String): Pair<ModelSpec, ClipTok
         return@runCatching ImageGenModels.npuSpec() to ClipTokenizer.fromFile(merges)
     }
     val dir = if (catalog != null) ImageGenModels.dir(noBackup, catalog) else File(ImageGenModels.importedRoot(noBackup), modelId)
+    // An imported Qualcomm build: its context binaries run on the catalog's
+    // own schedule, with the tokenizer beside them and no wmimage.json of
+    // their own.
+    if (File(dir, ImageGenModels.NPU_UNET).isFile) {
+        val merges = dir.listFiles().orEmpty().firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
+        return@runCatching ImageGenModels.npuSpec(modelId) to ClipTokenizer.fromFile(merges)
+    }
     val files = dir.listFiles().orEmpty()
     val json = files.firstOrNull { it.name.endsWith("wmimage.json") }?.readText() ?: return@runCatching null
     val merges = files.firstOrNull { it.name.endsWith("merges.txt") } ?: return@runCatching null
