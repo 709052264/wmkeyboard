@@ -7452,6 +7452,11 @@ data class EmojiSettings(
      * moves: 270 emoji is the largest category there is, so the honest
      * representation costs a couple of kilobytes and cannot drift the way a
      * replayed move list does.
+     *
+     * A list may name emoji the catalog files under another category, and
+     * those then draw on this tab instead: that is how an arrangement copied
+     * from another keyboard (`EmojiOrderPreset`) regroups them. See
+     * `EmojiOrder.layout`.
      */
     val categoryEmojiOrder: Map<String, List<String>> = emptyMap(),
     /**
@@ -17883,6 +17888,29 @@ class SettingsRepository(private val context: Context) {
             if (next.isEmpty()) prefs.remove(EMOJI_ADDED)
             else prefs[EMOJI_ADDED] = encodeAddedEmoji(next)
         }
+
+    /**
+     * Writes the tab order, the hidden tabs and every tab's emoji order in one
+     * edit: an arrangement copied from another keyboard is all three, and
+     * written one at a time the panel would draw the new tabs over the old
+     * emoji in between. An empty value drops its key, as the setters above do.
+     */
+    suspend fun setEmojiOrder(
+        categoryOrder: List<String>,
+        hidden: Set<String>,
+        emojiOrder: Map<String, List<String>>,
+    ) = editPrefs { prefs ->
+        val order = categoryOrder.map(String::trim).filter(String::isNotEmpty).distinct()
+        if (order.isEmpty()) prefs.remove(EMOJI_CATEGORY_ORDER)
+        else prefs[EMOJI_CATEGORY_ORDER] = order.joinToString(",")
+        if (hidden.isEmpty()) prefs.remove(EMOJI_HIDDEN_CATEGORIES)
+        else prefs[EMOJI_HIDDEN_CATEGORIES] = hidden
+        val emoji = emojiOrder
+            .mapValues { (_, list) -> list.filter { it.isNotEmpty() }.distinct() }
+            .filterValues { it.isNotEmpty() }
+        if (emoji.isEmpty()) prefs.remove(EMOJI_CATEGORY_EMOJI_ORDER)
+        else prefs[EMOJI_CATEGORY_EMOJI_ORDER] = encodeEmojiOrder(emoji)
+    }
 
     /** Puts every category's emoji, and the tabs themselves, back in catalog order. */
     suspend fun resetEmojiOrder() = editPrefs {

@@ -286,6 +286,21 @@
     <string name="langemoji_emoji_order_reset_desc">Put this category back in catalogue order</string>
     <string name="langemoji_emoji_order_custom_label">Custom order</string>
     <string name="langemoji_emoji_order_catalog_label">Catalogue order</string>
+    <!-- "Arrange like": copies another keyboard's emoji tabs. Gboard, SwiftKey and HeliBoard are names of other keyboard apps. Keep them as they are. -->
+    <string name="langemoji_emoji_order_preset_title">Arrange like</string>
+    <string name="langemoji_emoji_order_preset_subtitle">Put the tabs and the emoji in the order of Gboard, SwiftKey or HeliBoard</string>
+    <string name="langemoji_emoji_order_preset_info">Pick the keyboard you used before, and the emoji panel gets its tabs, in its order, with each emoji where that keyboard puts it. Some keyboards keep plants with the animals and the weather with travel and places. Those emoji then move to that tab, and a tab with nothing left in it is hidden. An emoji that keyboard does not have yet goes next to the emoji it follows. After you pick one, you can still drag tabs and emoji. Unicode puts everything back the way it shipped.</string>
+    <string name="langemoji_emoji_order_preset_unicode" translatable="false">Unicode</string>
+    <string name="langemoji_emoji_order_preset_gboard" translatable="false">Gboard</string>
+    <string name="langemoji_emoji_order_preset_swiftkey" translatable="false">SwiftKey</string>
+    <string name="langemoji_emoji_order_preset_samsung" translatable="false">Samsung Keyboard</string>
+    <string name="langemoji_emoji_order_preset_heliboard" translatable="false">HeliBoard</string>
+    <!-- Shown as the picked option after the user changed the order by hand. -->
+    <string name="langemoji_emoji_order_preset_custom">Your own</string>
+    <string name="langemoji_emoji_order_preset_confirm_title">Replace your order?</string>
+    <!-- %1$s is a keyboard name such as "Gboard", or "Unicode". -->
+    <string name="langemoji_emoji_order_preset_confirm_body">%1$s replaces the tab order, the hidden tabs and the emoji order that you set. Your recents, favourites and skin tones do not change.</string>
+    <string name="langemoji_emoji_order_preset_confirm_action">Replace</string>
     <!-- Emoji added by hand, for faces newer than the bundled catalogue. -->
     <string name="langemoji_emoji_added_title">Added emoji</string>
     <string name="langemoji_emoji_added_subtitle">Add emoji that are newer than the keyboard, one at a time or from Unicode\'s emoji-test.txt</string>

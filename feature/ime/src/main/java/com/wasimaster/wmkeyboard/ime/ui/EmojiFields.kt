@@ -156,8 +156,9 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
         .let { if (state.hiddenEmoji.isEmpty()) it else it.filterNot { e -> e in state.hiddenEmoji } }
     val categoryOrder = state.settings.emoji.categoryOrder
     val hiddenCategories = state.settings.emoji.hiddenCategories
-    val categories = remember(state.emojiCatalog, categoryOrder, hiddenCategories) {
-        EmojiOrder.categories(state.emojiCatalog, categoryOrder, hiddenCategories)
+    val emojiOrder = state.settings.emoji.categoryEmojiOrder
+    val categories = remember(state.emojiCatalog, categoryOrder, hiddenCategories, emojiOrder) {
+        EmojiOrder.categories(state.emojiCatalog, categoryOrder, hiddenCategories, emojiOrder)
     }
     // Off still records history (the emoji row and suggestions read it); it only hides the tab.
     val hasHistory = historyMode != EmojiTabMode.OFF && history.isNotEmpty()
@@ -185,7 +186,6 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
     // Built only with the setting on, and only when what it lists changes:
     // every emoji tap emits fresh state, and this must not run per tap.
     val continuous = state.settings.emoji.continuousScroll
-    val emojiOrder = state.settings.emoji.categoryEmojiOrder
     val sections = if (continuous) {
         remember(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji, kaomoji.library, kaomoji.views, kaomojiSettings) {
             EmojiSections.build(tabs, history, state.emojiCatalog, emojiOrder, state.hiddenEmoji) { tab ->
@@ -569,7 +569,7 @@ internal fun EmojiGridField(
                 }
             }
         } else {
-            val emojiOrder = state.settings.emoji.categoryEmojiOrder[tab].orEmpty()
+            val emojiOrder = state.settings.emoji.categoryEmojiOrder
             val emojis = remember(state.emojiCatalog, tab, state.hiddenEmoji, emojiOrder) {
                 EmojiOrder.emoji(state.emojiCatalog, tab, emojiOrder, state.hiddenEmoji)
             }

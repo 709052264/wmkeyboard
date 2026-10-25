@@ -2786,6 +2786,13 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             "emojicategories",
             R.string.search_kw_emojicategories,
         ),
+        entry(
+            R.string.langemoji_emoji_order_preset_title,
+            R.string.langemoji_emoji_order_preset_subtitle,
+            R.string.langemoji_emoji_categories_title,
+            "emojicategories",
+            screenParent = R.string.home_emoji_title,
+        ),
         under(
             R.string.langemoji_emoji_added_title,
             R.string.langemoji_emoji_added_subtitle,
