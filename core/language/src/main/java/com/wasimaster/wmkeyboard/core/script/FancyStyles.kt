@@ -52,7 +52,8 @@ enum class FancyAssembly {
     REVERSED,
 
     /**
-     * A zero-width space between every pair of visible characters. Reads
+     * A zero-width space between every pair of visible characters (an emoji
+     * or a letter with its marks counts as one, and is never split). Reads
      * identically and matches nothing that looks for whole words — a link
      * scanner, a spoiler tag, a filter — since no two letters are adjacent
      * any more. Whitespace is left alone: the separator is only needed
@@ -609,11 +610,10 @@ object FancyStyles {
         val out = StringBuilder(text.length * 3)
         when (style.assembly) {
             FancyAssembly.REVERSED -> for (i in units.indices.reversed()) out.append(units[i])
-            FancyAssembly.ZERO_WIDTH_SEPARATED -> for (unit in units) {
-                if (out.isNotEmpty() && !unit[0].isWhitespace() && !out.last().isWhitespace()) {
-                    out.append(ZERO_WIDTH_SPACE)
-                }
-                out.append(unit)
+            // One unit per char of [text], so text[i] is what units[i] came from.
+            FancyAssembly.ZERO_WIDTH_SEPARATED -> for (i in units.indices) {
+                if (i > 0 && startsCharacter(text[i]) && endsCharacter(text[i - 1])) out.append(ZERO_WIDTH_SPACE)
+                out.append(units[i])
             }
             FancyAssembly.IN_ORDER -> for (unit in units) out.append(unit)
         }
@@ -621,6 +621,78 @@ object FancyStyles {
     }
 
     private const val ZERO_WIDTH_SPACE = '\u200B'
+
+    /**
+     * Whether [c] starts a character of its own, which a separator may go in
+     * front of. Not whitespace, which breaks the text already; not a mark,
+     * a joiner or a selector, which belong to the character before them; not
+     * half of a surrogate pair, so an emoji is never torn in two; and not a
+     * separator already there, so styling styled text changes nothing.
+     */
+    private fun startsCharacter(c: Char): Boolean =
+        !c.isWhitespace() && !c.isSurrogate() && Character.getType(c).toByte() !in ATTACHED_TYPES
+
+    /** Whether a separator may follow [c]; see [startsCharacter]. */
+    private fun endsCharacter(c: Char): Boolean =
+        !c.isWhitespace() && !c.isSurrogate() && c != ZERO_WIDTH_SPACE && c != '\u200D'
+
+    /** Marks and format characters (ZWJ, the separator itself): part of what they follow. */
+    private val ATTACHED_TYPES = setOf(
+        Character.NON_SPACING_MARK,
+        Character.ENCLOSING_MARK,
+        Character.COMBINING_SPACING_MARK,
+        Character.FORMAT,
+    )
+
+    /**
+     * Every styled form of every style, back to the plain letter or digit it
+     * stands for. Lowercase first, so a style whose capitals are its small
+     * letters (small caps) reads back lowercase. Upside-down is left out: its
+     * table borrows plain letters (n for u), which would rewrite every plain
+     * word read through here.
+     */
+    private val plainOf: Map<String, Char> by lazy {
+        buildMap {
+            for (style in all) {
+                if (style.assembly == FancyAssembly.REVERSED) continue
+                for (map in listOf(style.lower, style.upper, style.digits)) {
+                    for ((plain, form) in map) {
+                        val ascii = form.length == 1 && form[0] < '\u0080'
+                        if (form != plain.toString() && !ascii) putIfAbsent(form, plain)
+                    }
+                }
+            }
+        }
+    }
+
+    private val longestForm: Int by lazy { plainOf.keys.maxOf { it.length } }
+
+    /**
+     * [text] with every styled letter and digit put back to plain, and the
+     * separators [FancyAssembly.ZERO_WIDTH_SEPARATED] adds taken out: the
+     * words a styled field holds, for anything that reads them as words.
+     * Reversed text stays in the order it is written.
+     */
+    fun unstyle(text: CharSequence): String {
+        val out = StringBuilder(text.length)
+        var i = 0
+        while (i < text.length) {
+            if (text[i] == ZERO_WIDTH_SPACE) {
+                i++
+                continue
+            }
+            var matched = false
+            for (length in minOf(longestForm, text.length - i) downTo 1) {
+                val plain = plainOf[text.substring(i, i + length)] ?: continue
+                out.append(plain)
+                i += length
+                matched = true
+                break
+            }
+            if (!matched) out.append(text[i++])
+        }
+        return out.toString()
+    }
 
     /** The 26 letters in a-z order, zipped into the two maps. */
     private fun style(

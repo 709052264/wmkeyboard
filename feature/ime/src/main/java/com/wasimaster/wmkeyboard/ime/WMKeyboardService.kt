@@ -771,6 +771,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
 import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
+import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
@@ -2420,6 +2421,9 @@ open class WMKeyboardService : InputMethodService() {
     /** The converting connection handed out last, kept for as long as its field and encoding last. */
     private var legacyConnection: LegacyOutputConnection? = null
 
+    /** The styling connection handed out last, kept for as long as its field and style last. */
+    private var fancyConnection: FancyOutputConnection? = null
+
     /**
      * This field is written in Zawgyi because the user said so on the strip's
      * offer ([ZawgyiOffer.Field]), whatever the Burmese layouts' own setting.
@@ -2432,11 +2436,20 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The field's connection, seen through the converter while a layout writes
-     * a legacy encoding. Every edit the keyboard makes goes through here, so
+     * a legacy encoding, or through the styling while Fancy Text composes
+     * ([FancyOutputConnection]). Every edit the keyboard makes goes through here, so
      * this one place is the whole of the conversion's reach into the service.
      */
-    override fun getCurrentInputConnection(): InputConnection? {
-        val base = traced(super.getCurrentInputConnection() ?: return null)
+    override fun getCurrentInputConnection(): InputConnection? =
+        fieldConnection(super.getCurrentInputConnection() ?: return null)
+
+    /** [raw] as every edit sees it; a test's own field goes through here too. */
+    internal fun fieldConnection(raw: InputConnection): InputConnection {
+        val base = traced(raw)
+        fancyOutputStyle(_uiState.value)?.let { style ->
+            fancyConnection?.let { if (it.base === base && it.style == style) return it }
+            return FancyOutputConnection(base, style).also { fancyConnection = it }
+        }
         val encoding = outputEncoding ?: return base
         legacyConnection?.let { if (it.base === base && it.encoding == encoding) return it }
         return LegacyOutputConnection(base, encoding).also { legacyConnection = it }
@@ -7846,7 +7859,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val state = _uiState.value
         if (state.composer.isTransliterating || state.layouts.ambiguousKeys ||
-            !state.resumesWords || duetWord.active || inlineEmojiQuery() != null ||
+            !state.resumesWords || duetWord.active || inlineEmojiQuery() != null || fancyOutputStyle(state) != null ||
             !composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
         ) {
             return
@@ -11797,13 +11810,15 @@ open class WMKeyboardService : InputMethodService() {
         // Past every keyboard-buffer and search intercept: this keystroke's
         // text is going to the field, so it is typing worth counting.
         recordStat { onTyped(text, System.currentTimeMillis(), SystemClock.uptimeMillis()) }
-        // Fancy Text: swap plain letters for the styled glyphs at the last
-        // moment — after every keyboard-buffer and search intercept above
-        // (those want plain, searchable letters) and before the field sees
-        // anything. Hardware keys and typing over a selection funnel through
-        // here too, so they style for free.
+        // Fancy Text: the letters stay plain from here on, composed and
+        // corrected like any other word, and [FancyOutputConnection] styles
+        // whatever is committed (#950). Upside-down is the exception: it swaps
+        // each key for its glyph at the last moment, after every keyboard-buffer
+        // and search intercept above (those want plain, searchable letters) and
+        // before the field sees anything, and never composes.
         val fancyStyle = fancyStyleFor(state)
-        text = applyFancyStyle(text, fancyStyle)
+        val fancyByKey = fancyStyle != null && !fancyComposes(state)
+        if (fancyByKey) text = applyFancyStyle(text, fancyStyle)
         // contextualForm is the identity for every composer except the
         // cluster-shaping (fixed Indic) ones, so only they are worth the
         // synchronous getTextBeforeCursor round-trip on the keypress path.
@@ -11941,10 +11956,9 @@ open class WMKeyboardService : InputMethodService() {
         // ([KeyboardUiState.composesForSuggestions] — which is also what lets a
         // URL bar compose once the strip is on it, #98).
         //
-        // Fancy Text never composes: the styled glyphs have no dictionary, and
-        // half of them are astral pairs that would fail isWordChar anyway —
-        // forcing every style down the direct-commit branch keeps the BMP
-        // styles (small caps, fullwidth) consistent with the astral ones.
+        // Fancy Text composes plain letters and styles them on the way out
+        // (#950), except upside-down, styled key by key above: its glyphs
+        // have no dictionary, and half are pairs that would fail isWordChar.
         //
         // A cluster-shaping layout (Probhat, Jatiya, fixed Devanagari…) types
         // its script straight into the field, so it does not compose *words* —
@@ -11952,7 +11966,7 @@ open class WMKeyboardService : InputMethodService() {
         // re-armed ([restartSuggestionsAtCursor]), or the resume buys a single
         // keypress and drops the region again. So: never starts a buffer, always
         // continues the one it was handed, and the next word boundary ends it.
-        val composingMode = fancyStyle == null &&
+        val composingMode = !fancyByKey &&
             (!state.composer.isClusterShaping || composing.isNotEmpty()) &&
             (state.composer.isTransliterating || state.composesForSuggestions)
 
@@ -12622,10 +12636,34 @@ open class WMKeyboardService : InputMethodService() {
     private fun applyFancyStyle(text: String, style: FancyStyle?): String =
         if (style != null) FancyStyles.transform(text, style) else text
 
+    /**
+     * Whether Fancy Text composes plain words, with suggestions and
+     * autocorrection, and styles them on their way into the field (#950).
+     * Every style but upside-down: its letters only read right once the
+     * whole line is reversed, so it keeps typing glyph by glyph.
+     */
+    private fun fancyComposes(state: KeyboardUiState): Boolean =
+        fancyStyleFor(state)?.let { it.assembly != FancyAssembly.REVERSED } == true
+
+    /**
+     * The style the field's text is written in while Fancy Text composes, or
+     * null when what goes into the field is what was typed: off the fancy
+     * layout, on Normal, and on upside-down, which styles each key itself.
+     * Non-null routes every commit through [FancyOutputConnection].
+     */
+    private fun fancyOutputStyle(state: KeyboardUiState): FancyStyle? =
+        fancyStyleFor(state)?.takeIf { it.id != FancyStyles.NORMAL_ID && it.assembly != FancyAssembly.REVERSED }
+
+    /** [text] as the field holds it once committed: styled under [fancyOutputStyle]. */
+    private fun fieldForm(text: String, state: KeyboardUiState = _uiState.value): String =
+        applyFancyStyle(text, fancyOutputStyle(state))
+
     /** A style chip on the fancy strip: instant in-session, persisted behind. */
     fun onFancyStyleSelect(id: String) {
         vibrate()
         _uiState.update { it.copy(activeFancyStyleId = id) }
+        // The word being typed takes the new style at once, not at its next letter.
+        if (composing.isNotEmpty()) currentInputConnection?.let(::updateComposingText)
         serviceScope.launch { settingsRepository.setFancyStyle(id) }
     }
 
@@ -12683,6 +12721,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** [turnFancyOn]'s opposite. [quiet] is the automatic pass, which says nothing. */
     private fun turnFancyOff(state: KeyboardUiState, quiet: Boolean = false) {
+        // The word being typed is written in the style it was typed in, before
+        // the session style is let go of below.
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
         val remaining = state.settings.enabledLayoutIds.filter { it != AssetLayouts.FANCY_ID }
         val target = layoutAfterFancy(fancyToolReturnLayoutId, remaining)
         fancyToolReturnLayoutId = null
@@ -13300,17 +13341,21 @@ open class WMKeyboardService : InputMethodService() {
                 // A word corrected by a mark (#562) under the auto-space rule
                 // has two characters behind it, the mark and its space. Those
                 // two exactly, and nothing else, count as a two-character tail.
-                val wide = ic.getTextBeforeCursor(revert.committed.length + 2, 0)?.toString()
-                val markAndSpace = wide != null && wide.length == revert.committed.length + 2 &&
+                //
+                // Probed as the field holds it: styled, under Fancy Text, and
+                // the original goes back through the same styling (#950).
+                val committed = fieldForm(revert.committed, state)
+                val wide = ic.getTextBeforeCursor(committed.length + 2, 0)?.toString()
+                val markAndSpace = wide != null && wide.length == committed.length + 2 &&
                     wide.endsWith(' ') && wide[wide.length - 2] in AUTO_SPACE_PUNCTUATION &&
-                    wide.dropLast(2) == revert.committed
-                val probe = if (markAndSpace) wide else wide?.takeLast(revert.committed.length + 1)
+                    wide.dropLast(2) == committed
+                val probe = if (markAndSpace) wide else wide?.takeLast(committed.length + 1)
                 val tail = when {
                     markAndSpace -> probe.orEmpty().takeLast(2)
-                    probe != null && probe.length > revert.committed.length -> probe.takeLast(1)
+                    probe != null && probe.length > committed.length -> probe.takeLast(1)
                     else -> ""
                 }
-                if (probe != null && probe.dropLast(tail.length) == revert.committed) {
+                if (probe != null && probe.dropLast(tail.length) == committed) {
                     ic.beginBatchEdit()
                     ic.deleteSurroundingText(probe.length, 0)
                     ic.commitText(revert.original + tail, 1)
@@ -13324,9 +13369,9 @@ open class WMKeyboardService : InputMethodService() {
                 // because when something does follow and happens to spell the
                 // commit's own tail ("hi.." after "hi ."), the read above is
                 // the right one.
-                if (probe != null && probe.endsWith(revert.committed)) {
+                if (probe != null && probe.endsWith(committed)) {
                     ic.beginBatchEdit()
-                    ic.deleteSurroundingText(revert.committed.length, 0)
+                    ic.deleteSurroundingText(committed.length, 0)
                     ic.commitText(revert.original, 1)
                     ic.endBatchEdit()
                     revertCommitted(ic, revert, state, tail = "")
@@ -14259,7 +14304,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Sets the context words from the text before the caret. */
     private fun setContextFrom(text: CharSequence?) {
-        val (prev1, prev2, prev3) = WordContext.lastThreeWords(text, SENTENCE_ENDERS)
+        // Under Fancy Text the words behind the caret are styled; the context is their plain spelling.
+        val plain = if (text != null && fancyOutputStyle(_uiState.value) != null) FancyStyles.unstyle(text) else text
+        val (prev1, prev2, prev3) = WordContext.lastThreeWords(plain, SENTENCE_ENDERS)
         previousWord = prev1
         previousWord2 = prev2
         previousWord3 = prev3
@@ -14427,6 +14474,9 @@ open class WMKeyboardService : InputMethodService() {
             // read, corrected and converted as though it were the Unicode the
             // keyboard typed.
             outputEncoding == null &&
+            // Fancy Text's words are styled in the field, and the buffer holds
+            // plain letters: a word read back from there is not one it can take.
+            fancyOutputStyle(state) == null &&
             // Last, so the one term that asks the engine anything is only
             // reached once the screen and the field have already said yes.
             composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
@@ -16055,7 +16105,8 @@ open class WMKeyboardService : InputMethodService() {
         onlyIfChanged: Boolean = false,
     ) {
         val engine = suggestionEngine ?: return
-        val lang = spec.language()
+        // Fancy Text is styled English: its words are English's (#950).
+        val lang = spec.language().takeUnless { it.id == FancyStyles.LANG_ID } ?: LanguageRegistry.byId("en")
         // The settings collector passes [onlyIfChanged]: it runs this on every
         // emission, and an unrelated toggle in the settings app (same process,
         // same main thread) re-opened the n-gram packs from disk and handed the
@@ -16632,6 +16683,10 @@ open class WMKeyboardService : InputMethodService() {
      * as this buffer's output derives it from here for that reason.
      */
     private fun composedPreview(state: KeyboardUiState, buffer: String): String {
+        // Fancy Text composes plain letters and the field shows them styled,
+        // so everything that measures or reads back the region finds the
+        // styled word it holds (#950).
+        fancyOutputStyle(state)?.let { return FancyStyles.transform(buffer, it) }
         if (state.layouts.ambiguousKeys && buffer.isNotEmpty()) {
             ambiguousReading?.takeIf { it.first == buffer }?.let { return it.second }
             val reading = ambiguousDecode(buffer) ?: buffer
@@ -16796,7 +16851,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitTypedCharacter(ic: InputConnection, text: String) {
         mirrorTypedIntoRevision(ic, text)
-        val digit = text.singleOrNull()?.takeIf { it in '0'..'9' }
+        // A styled digit is no key: it goes in as text, to be styled.
+        val digit = text.singleOrNull()?.takeIf { it in '0'..'9' && fancyOutputStyle(_uiState.value) == null }
         if (digit != null) {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_0 + (digit - '0'))
         } else {
@@ -17394,7 +17450,7 @@ open class WMKeyboardService : InputMethodService() {
         plainCommitEnd = if (wordStart >= 0 && output.isNotEmpty() &&
             Character.isLetterOrDigit(output.codePointBefore(output.length))
         ) {
-            wordStart + output.length
+            wordStart + fieldForm(output, state).length
         } else {
             -1
         }
@@ -18258,6 +18314,7 @@ open class WMKeyboardService : InputMethodService() {
      * strip offers to write Zawgyi here too.
      */
     private fun readableContext(before: CharSequence?): CharSequence? {
+        if (before != null && fancyOutputStyle(_uiState.value) != null) return FancyStyles.unstyle(before)
         if (before == null || !Zawgyi.hasMyanmar(before)) return before
         val text = before.toString()
         // A field written in Zawgyi can still hold Unicode from before the
@@ -19543,12 +19600,15 @@ open class WMKeyboardService : InputMethodService() {
         ic.beginBatchEdit()
         try {
             val window = ic.getTextBeforeCursor(UNDO_CHIP_LOOKBEHIND, 0)?.toString() ?: return
-            val at = soleWordIndex(window, undo.corrected) ?: return
-            val end = at + undo.corrected.length
+            // Found as the field holds it: styled, under Fancy Text (#950).
+            val corrected = fieldForm(undo.corrected, state)
+            val at = soleWordIndex(window, corrected) ?: return
+            val end = at + corrected.length
             // The field's own casing wins: auto-capitalise may have made a
             // sentence-initial correction a capital that the typed word never
             // was, and putting the word back must not put the capital back too.
-            val restored = matchLeadingCase(window.substring(at, end), undo.typed)
+            val standing = window.substring(at, end).let { if (corrected != undo.corrected) FancyStyles.unstyle(it) else it }
+            val restored = matchLeadingCase(standing, undo.typed)
             ic.deleteSurroundingText(window.length - at, 0)
             ic.commitText(restored + window.substring(end), 1)
         } finally {
@@ -19806,6 +19866,9 @@ open class WMKeyboardService : InputMethodService() {
          */
         unspelled: Boolean = false,
     ) {
+        // A styled word is never one to learn (#950): Fancy Text learns the
+        // plain words it composes, and nothing that reached it already styled.
+        if (fancyStyleFor(_uiState.value) != null && FancyStyles.unstyle(word) != word) return
         // Thai, Lao, Khmer and Burmese put no space between words, so a run
         // typed in one go is a phrase: split it where [WordSegments] finds
         // the words, unless the whole run is itself a word the keyboard
@@ -20318,6 +20381,8 @@ open class WMKeyboardService : InputMethodService() {
         val before = ic.getTextBeforeCursor(CORRECTION_JUDGEMENT_WINDOW, 0)?.toString().orEmpty()
         val after = ic.getTextAfterCursor(CORRECTION_JUDGEMENT_WINDOW, 0)?.toString().orEmpty()
         val window = before + after
+        // Judged against the words as spelled, not as styled (#950).
+        if (fancyOutputStyle(_uiState.value) != null) return FancyStyles.unstyle(window).takeIf { it.isNotBlank() }
         return window.takeIf { it.isNotBlank() }
     }
 
@@ -27519,11 +27584,14 @@ open class WMKeyboardService : InputMethodService() {
      * caret, space included — see the top-level [glideCommitLength] for what
      * the measurement means and why both callers need it.
      */
-    private fun glideCommitLength(ic: InputConnection, word: String): Int =
-        glideCommitLength(
-            ic.getTextBeforeCursor(word.length + 1, 0)?.toString().orEmpty(),
-            word,
+    private fun glideCommitLength(ic: InputConnection, word: String): Int {
+        // Measured as the field holds the word: styled, under Fancy Text (#950).
+        val field = fieldForm(word)
+        return glideCommitLength(
+            ic.getTextBeforeCursor(field.length + 1, 0)?.toString().orEmpty(),
+            field,
         )
+    }
 
     /**
      * Multi-word glide: one continuous stroke that crossed the spacebar was
@@ -42463,7 +42531,15 @@ open class WMKeyboardService : InputMethodService() {
             else -> null
         } ?: return
         vibrate()
-        rewriteSelection(out)
+        // The pick is the text it should be; Fancy Text's field styling would
+        // restyle it in the keyboard's own style (#950).
+        val fancy = currentInputConnection as? FancyOutputConnection
+        fancy?.passThrough = true
+        try {
+            rewriteSelection(out)
+        } finally {
+            fancy?.passThrough = false
+        }
     }
 
     /** Put back the last rewrite, when the field still holds it. */
