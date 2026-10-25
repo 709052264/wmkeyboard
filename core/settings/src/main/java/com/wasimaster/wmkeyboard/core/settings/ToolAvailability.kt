@@ -64,6 +64,9 @@ enum class ToolBlocker {
 
     /** The emoji mixes panel: no source is added and switched on under Emoji › Emoji mixes. */
     NEEDS_MIX_SOURCE,
+
+    /** The Music ID tool: no recogniser on its list is on and set up with its key. */
+    NEEDS_MUSIC_PROVIDER,
 }
 
 /** Why [tool] cannot run right now, or null when it can; see [ToolBlocker]. */
@@ -80,6 +83,7 @@ fun toolBlocker(tool: ToolbarTool, settings: KeyboardSettings): ToolBlocker? = w
         if (secondaryLayouts(settings.customLayouts).isNotEmpty()) null else ToolBlocker.NEEDS_SECONDARY_LAYOUT
     ToolbarTool.VOICE -> if (settings.voiceBar.enabled) null else ToolBlocker.VOICE_OFF
     ToolbarTool.EMOJI_MIX -> if (settings.emoji.mix.active) null else ToolBlocker.NEEDS_MIX_SOURCE
+    ToolbarTool.MUSIC_ID -> if (settings.resolveProviders(ProviderTool.MUSIC).isNotEmpty()) null else ToolBlocker.NEEDS_MUSIC_PROVIDER
     else -> null
 }
 

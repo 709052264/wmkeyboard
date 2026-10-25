@@ -246,6 +246,8 @@ object ProviderResolution {
             HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
             type.credential.modelRequired && model.isBlank() -> ProviderProblem.NEEDS_MODEL
             type.credential.key == Need.REQUIRED && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
+            // A kind signed with two secrets (ACRCloud) needs both; the row says "key" for either.
+            type.credential.secret && credential?.extra?.get(CredentialSpec.SECRET).isNullOrBlank() -> ProviderProblem.NEEDS_KEY
             else -> null
         }
         return ResolvedProvider(entry, type, credential, apiKey, url, model, problem)
@@ -487,6 +489,17 @@ object LegacyProviders {
                     entry(ProviderTypes.AI_HORDE, on = false),
                 ),
                 ChainMode.PICK,
+            )
+            // Nothing came before the list, and nothing runs on the phone:
+            // the services are listed so they can be found, but off until a
+            // key is typed, since each is sent the clip.
+            ProviderTool.MUSIC -> ProviderChain(
+                listOf(
+                    entry(ProviderTypes.AUDD, on = false),
+                    entry(ProviderTypes.ACRCLOUD, on = false),
+                    entry(ProviderTypes.AUDIOTAG, on = false),
+                    entry(ProviderTypes.RAPID_SHAZAM, on = false),
+                ),
             )
         }
     }

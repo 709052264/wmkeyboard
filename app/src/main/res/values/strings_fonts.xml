@@ -109,6 +109,7 @@
     <string name="fonts_tool_send_files_desc">Send a file to anyone as an encrypted link that expires, or straight to a phone nearby, and receive both kinds</string>
     <string name="fonts_tool_gallery_desc">Your photos and videos inside the keyboard: albums, picks, a viewer and an editor, and a send that gives the app only a copy</string>
     <string name="fonts_tool_location_desc">Put your position or a saved place into the text as a map link, an address or coordinates</string>
+    <string name="fonts_tool_music_id_desc">Listen for ten seconds and name the song through a recognition service of your choice, then type it or send its cover as a picture</string>
     <string name="fonts_tool_calendar_desc">Month view with your events and two calendars of your choice</string>
     <string name="fonts_tool_incognito_desc">One press pauses learning and clipboard capture</string>
     <string name="fonts_tool_power_saving_desc">Turn off features that use battery power, on demand or when the battery is low</string>

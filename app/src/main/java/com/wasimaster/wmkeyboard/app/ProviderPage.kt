@@ -97,6 +97,7 @@ internal fun providerHostTool(tool: ProviderTool): ToolbarTool? = when (tool) {
     ProviderTool.PHOTO_TRANSLATE -> ToolbarTool.CAMERA
     ProviderTool.AI -> ToolbarTool.AI
     ProviderTool.GRAMMAR -> ToolbarTool.GRAMMAR
+    ProviderTool.MUSIC -> ToolbarTool.MUSIC_ID
     ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE, ProviderTool.IMAGE_GEN -> null
 }
 

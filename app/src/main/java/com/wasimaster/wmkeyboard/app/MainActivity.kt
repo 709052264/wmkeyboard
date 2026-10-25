@@ -1711,6 +1711,11 @@ private fun SettingsNavGraph(
                 com.wasimaster.wmkeyboard.app.homeassistant.HaEntitiesScreen(repository, settings)
             }
         }
+        composable(MUSIC_HISTORY_ROUTE) {
+            SettingsScreen(stringResource(R.string.music_history_title), { navController.popBackStack() }, route = MUSIC_HISTORY_ROUTE) {
+                MusicHistoryScreen(settings)
+            }
+        }
         composable("clock") {
             // A timer's or the stopwatch's notification opens its own section.
             val tab = (LocalContext.current as? android.app.Activity)?.intent

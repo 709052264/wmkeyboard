@@ -1495,6 +1495,15 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.LOCATION, R.string.location_tiles_label, R.string.location_tiles_group),
     toolEntry(ToolbarTool.LOCATION, R.string.location_places_group, R.string.location_places_info),
     toolEntry(ToolbarTool.LOCATION, R.string.location_permission_title, R.string.location_permission_subtitle),
+    // The Music ID tool.
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_providers_title, R.string.music_providers_info),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_text_format_title, R.string.music_text_format_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_card_style_title, R.string.music_card_style_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_open_link_title, R.string.music_open_link_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_clip_seconds_title, R.string.music_clip_seconds_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_now_playing_first_title, R.string.music_now_playing_first_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_keep_history_title, R.string.music_keep_history_subtitle),
+    toolEntry(ToolbarTool.MUSIC_ID, R.string.music_history_open_title, R.string.music_history_open_subtitle),
     // The smart home tool.
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.ha_enabled_title, R.string.ha_enabled_subtitle),
     toolEntry(ToolbarTool.HOME_ASSISTANT, R.string.smarthome_homes_title, R.string.smarthome_homes_info),

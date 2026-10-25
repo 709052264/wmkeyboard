@@ -812,6 +812,12 @@ enum class PanelMode {
      * capture targets.
      */
     SEND_FILES,
+
+    /**
+     * The Music ID tool: listens, names the song, types it or sends it as a
+     * picture. Its state is the controller's, see `ime.music.MusicUi`.
+     */
+    MUSIC_ID,
 }
 
 /**
@@ -1019,6 +1025,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // nobody, and the shutter is a pointer affordance.
     PanelMode.CAMERA, PanelMode.QR_SCAN -> listOf(FocusRegion.ACTIONS)
     PanelMode.OCR -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS)
+    // The tab chips, then the result card's insert chips.
+    PanelMode.MUSIC_ID -> listOf(FocusRegion.CHIPS, FocusRegion.ACTIONS)
     // Panels with nothing to drive. The sensor trio has zero controls at all;
     // TEXT_EDIT/NUMPAD duplicate keys a physical keyboard already sends to
     // the field directly (ringing a d-pad that itself moves the caret would

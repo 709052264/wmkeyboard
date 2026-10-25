@@ -122,6 +122,12 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.AI_TOOLS -> R.string.netlog_source_ai_tools to R.string.netlog_sent_ai_tools
     NetSource.AI_MCP -> R.string.netlog_source_ai_mcp to R.string.netlog_sent_ai_mcp
     NetSource.TRANSCRIPTION -> R.string.netlog_source_transcription to R.string.netlog_sent_transcription
+    NetSource.MUSIC_AUDD -> R.string.netlog_source_music_audd to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_ACRCLOUD -> R.string.netlog_source_music_acrcloud to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_AUDIOTAG -> R.string.netlog_source_music_audiotag to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_RAPIDAPI -> R.string.netlog_source_music_rapidapi to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_SERVER -> R.string.netlog_source_music_server to R.string.netlog_sent_music_clip
+    NetSource.MUSIC_METADATA -> R.string.netlog_source_music_metadata to R.string.netlog_sent_music_metadata
     NetSource.WIKIPEDIA -> R.string.netlog_source_wikipedia to R.string.netlog_sent_wikipedia
     NetSource.DICTIONARY -> R.string.netlog_source_dictionary to R.string.netlog_sent_dictionary
     NetSource.VOCABULARY -> R.string.netlog_source_vocabulary to R.string.netlog_sent_vocabulary

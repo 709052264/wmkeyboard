@@ -1571,6 +1571,13 @@ object SmartSuggest {
         RegexOption.IGNORE_CASE,
     )
 
+    /** "what song is this", "what's this song", "name that tune": the Music ID tool, keeping the words. */
+    private val MUSIC_TAIL = Regex(
+        "(?:^|[^\\p{L}])(?:what(?:'?s| is) (?:this|that) (?:song|track|tune|music)|what song is (?:this|that|playing)|" +
+            "which song is (?:this|that|playing)|name (?:this|that) (?:song|tune)|shazam (?:this|it))\\s?[:?!.]?$",
+        RegexOption.IGNORE_CASE,
+    )
+
     /** A celebratory phrase → the search the GIF panel opens on. */
     private val gifPhrases: List<Pair<String, String>> = listOf(
         "happy birthday" to "happy birthday",
@@ -1621,6 +1628,11 @@ object SmartSuggest {
             // Straight quotes and curly ones both: phones type ’ in "I’m".
             LOCATION_TAIL.find(tail.replace('’', '\''))?.let {
                 return intentHit(ToolbarTool.LOCATION, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
+            }
+        }
+        if (toolOn(ToolbarTool.MUSIC_ID, ctx)) {
+            MUSIC_TAIL.find(tail.replace('’', '\''))?.let {
+                return intentHit(ToolbarTool.MUSIC_ID, it.value.trimStart { c -> !c.isLetter() }.trimEnd(' ', '?', '!', '.', ':'))
             }
         }
         if (ctx.haReady && toolOn(ToolbarTool.HOME_ASSISTANT, ctx)) {
@@ -1890,6 +1902,8 @@ object SmartSuggest {
         ToolbarTool.LOCATION to listOf("location", "gps"),
         // Not "time" or "watch": those are ordinary prose far too often to offer a chip for.
         ToolbarTool.CLOCK to listOf("clock", "alarm", "timer", "stopwatch", "countdown", "planner", "date"),
+        // Not "song" or "music" alone: both are everyday prose. "shazam" is what people type to mean this.
+        ToolbarTool.MUSIC_ID to listOf("shazam", "whatsong", "songid", "musicid"),
         // Not "home" or "lights" alone: both are everyday prose.
         ToolbarTool.HOME_ASSISTANT to listOf("hass", "homeassistant", "smarthome", "googlehome", "smartthings", "hue", "openhab", "tuya", "smartlife", "switchbot"),
         // Not "photo" or "picture" alone: said in passing far more often than meant as "send one".

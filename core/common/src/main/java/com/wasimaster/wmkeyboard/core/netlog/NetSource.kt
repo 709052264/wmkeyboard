@@ -63,6 +63,18 @@ enum class NetSource(
      */
     AI_MCP("ai_mcp", ToolbarTool.AI),
     TRANSCRIPTION("transcription", ToolbarTool.VOICE),
+
+    /** A Music ID clip sent to one of the recognition services on its list, each its own row. */
+    MUSIC_AUDD("music_audd", ToolbarTool.MUSIC_ID),
+    MUSIC_ACRCLOUD("music_acrcloud", ToolbarTool.MUSIC_ID),
+    MUSIC_AUDIOTAG("music_audiotag", ToolbarTool.MUSIC_ID),
+    MUSIC_RAPIDAPI("music_rapidapi", ToolbarTool.MUSIC_ID),
+
+    /** A Music ID clip sent to the user's own recognition server. */
+    MUSIC_SERVER("music_server", ToolbarTool.MUSIC_ID),
+
+    /** Cover art and a store link for a song named without them: the iTunes Search API, then Deezer. */
+    MUSIC_METADATA("music_metadata", ToolbarTool.MUSIC_ID),
     WIKIPEDIA("wikipedia", ToolbarTool.WIKIPEDIA),
     DICTIONARY("dictionary", ToolbarTool.DICTIONARY),
     VOCABULARY("vocabulary", ToolbarTool.VOCABULARY),

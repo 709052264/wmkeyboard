@@ -70,6 +70,13 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * or, in [ChainMode.FALLBACK], with the first that is on and answers.
      */
     IMAGE_GEN("image_gen", listOf(ChainMode.PICK, ChainMode.FALLBACK), R.string.core_tools_provider_tool_image_gen),
+
+    /**
+     * The Music ID tool's recognisers: the online services, each asked in
+     * turn until one names the song. Nothing runs on the phone, so the list
+     * starts with every kind off until a key is typed.
+     */
+    MUSIC("music", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_music),
     ;
 
     /**
@@ -95,7 +102,7 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
 
-        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI, IMAGE_GEN) }
+        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI, IMAGE_GEN, MUSIC) }
     }
 }
 
@@ -172,9 +179,16 @@ data class CredentialSpec(
      * [ProviderCredential.extra] under [ACCOUNT].
      */
     val account: Boolean = false,
+    /**
+     * A second secret that goes with the key: ACRCloud signs each request
+     * with an access key and an access secret. Stored in
+     * [ProviderCredential.extra] under [SECRET], and shown masked like the
+     * key, which is why it is not [username].
+     */
+    val secret: Boolean = false,
 ) {
     val none: Boolean
-        get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username && !account
+        get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username && !account && !secret
 
     /** The engine [stored] names, else the default; null for a kind with no engines. */
     fun engine(stored: String): FrontEndEngine? =
@@ -189,6 +203,9 @@ data class CredentialSpec(
 
         /** The [ProviderCredential.extra] key an [account] is kept under. */
         const val ACCOUNT = "account"
+
+        /** The [ProviderCredential.extra] key a [secret] is kept under. */
+        const val SECRET = "secret"
     }
 }
 
@@ -795,6 +812,48 @@ object ProviderTypes {
         CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
     )
 
+    // ---- Music ID: the recognisers a clip from the microphone is asked of.
+
+    private val MUSIC = setOf(ProviderTool.MUSIC)
+
+    /** AudD's recognition API: a token from its dashboard, a few hundred requests free, then paid. */
+    val AUDD = ProviderType(
+        "audd", MUSIC, R.string.core_tools_provider_audd, R.string.core_tools_provider_audd_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /** ACRCloud: the project's host as the address, its access key as the key, its access secret beside it. */
+    val ACRCLOUD = ProviderType(
+        "acrcloud", MUSIC, R.string.core_tools_provider_acrcloud, R.string.core_tools_provider_acrcloud_desc,
+        CredentialSpec(key = Need.REQUIRED, url = Need.REQUIRED, secret = true),
+    )
+
+    /** AudioTag.info: a personal key, a handful of recognitions a day free. */
+    val AUDIOTAG = ProviderType(
+        "audiotag", MUSIC, R.string.core_tools_provider_audiotag, R.string.core_tools_provider_audiotag_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /**
+     * Shazam through an unofficial RapidAPI listing: a RapidAPI key. Listed
+     * off, and said plainly to be unofficial: Apple offers no API an open
+     * source keyboard could ship, and the listing can change under it.
+     */
+    val RAPID_SHAZAM = ProviderType(
+        "rapid_shazam", MUSIC, R.string.core_tools_provider_rapid_shazam, R.string.core_tools_provider_rapid_shazam_desc,
+        CredentialSpec(key = Need.REQUIRED),
+    )
+
+    /**
+     * A server of the user's own that speaks AudD's request and answer: a
+     * multipart `file` and the same JSON back. What a self-hosted
+     * fingerprinter (Panako, Olaf, audfprint) sits behind.
+     */
+    val MUSIC_SERVER = ProviderType(
+        "music_server", MUSIC, R.string.core_tools_provider_music_server, R.string.core_tools_provider_music_server_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
     /** Voice type id → the engine id dictation stores and runs. */
     val VOICE_ENGINES: Map<String, String> by lazy {
         mapOf(
@@ -832,6 +891,7 @@ object ProviderTypes {
         HARPER, LANGUAGETOOL,
         ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
+        AUDD, ACRCLOUD, AUDIOTAG, RAPID_SHAZAM, MUSIC_SERVER,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

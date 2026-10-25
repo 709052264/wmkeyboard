@@ -161,6 +161,12 @@
     <!-- A request to an MCP server you added to the AI tool. -->
     <string name="netlog_source_ai_mcp">MCP servers</string>
     <string name="netlog_source_transcription">Transcription server</string>
+    <string name="netlog_source_music_audd">Music ID: AudD</string>
+    <string name="netlog_source_music_acrcloud">Music ID: ACRCloud</string>
+    <string name="netlog_source_music_audiotag">Music ID: AudioTag</string>
+    <string name="netlog_source_music_rapidapi">Music ID: Shazam via RapidAPI</string>
+    <string name="netlog_source_music_server">Music ID: your server</string>
+    <string name="netlog_source_music_metadata">Music ID: cover art</string>
     <string name="netlog_source_wikipedia">Wikipedia</string>
     <string name="netlog_source_dictionary">Dictionary</string>
     <string name="netlog_source_vocabulary">Vocabulary</string>
@@ -226,6 +232,8 @@
     <string name="netlog_sent_ai_mcp">The name of a tool and the values the model wrote for it, sent to the server you added. Also the request for the list of tools when you connect.</string>
     <string name="netlog_sent_ai_tools">A search the model wrote, or the address of a page it asked to read. Web searches go to the same service as the search tool; questions about the keyboard go to its documentation site.</string>
     <string name="netlog_sent_transcription">The recording of one phrase, the model name, and the language unless you turned that off.</string>
+    <string name="netlog_sent_music_clip">The clip the microphone recorded when you pressed Listen, about ten seconds, and your key for the service. Nothing else about you.</string>
+    <string name="netlog_sent_music_metadata">The title and artist of a song already recognised, to fetch its cover and a store link. Never the clip.</string>
     <string name="netlog_sent_wikipedia">Your search words or the title of the article.</string>
     <string name="netlog_sent_dictionary">One word: your selection, or the word at the cursor.</string>
     <string name="netlog_sent_vocabulary">The word on the card, or the name of a word pack.</string>

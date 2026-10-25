@@ -14,6 +14,7 @@
     <string name="tooldetail_enabled_needs_instance_subtitle">Needs a SearXNG instance. Add its address under Search settings.</string>
     <string name="tooldetail_enabled_voice_off_subtitle">Voice typing is off. Turn it on under All voice typing settings below.</string>
     <string name="tooldetail_enabled_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
+    <string name="tooldetail_enabled_needs_music_provider_subtitle">Set up a song recogniser with your key under Song recognisers below to turn this tool on</string>
     <string name="tooldetail_enabled_needs_layout_subtitle">Make a secondary layout under Key layouts below to turn this tool on</string>
     <!-- A switch under the one above. Off takes the tool out of the toolbox grid
          (the panel that lists every tool) while it stays on everywhere else. -->

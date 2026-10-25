@@ -455,6 +455,7 @@
     <string name="ime_tool_todo">To-do list</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
+    <string name="ime_tool_music_id">Music ID</string>
     <string name="ime_tool_home_assistant">Smart home</string>
     <string name="ime_tool_send_files">Send files</string>
     <string name="ime_tool_gallery">Gallery</string>

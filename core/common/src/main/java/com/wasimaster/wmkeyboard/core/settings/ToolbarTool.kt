@@ -170,6 +170,11 @@ enum class ToolbarTool {
     // Emoji › Emoji mixes: the panel beside emoji, GIFs and stickers on the
     // switch. Nothing ships for it, so it is blocked until a source is added.
     EMOJI_MIX,
+    // What song is playing: ten seconds from the microphone, asked of the
+    // recognition services on its list in turn, and the answer typed as text
+    // or sent as a picture. Keeps its history under filesDir, so not before
+    // the first unlock. Blocked until a recogniser is set up with a key.
+    MUSIC_ID,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -396,7 +401,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
-    ToolbarTool.EMOJI_MIX,
+    ToolbarTool.EMOJI_MIX, ToolbarTool.MUSIC_ID,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

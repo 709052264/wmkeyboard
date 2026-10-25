@@ -191,4 +191,31 @@
     <string name="core_tools_provider_comfyui_desc">Your own ComfyUI server. Draws with a plain text-to-image workflow and the checkpoint you name, or the first one it has.</string>
     <string name="core_tools_provider_openai_compatible_image">OpenAI-compatible images</string>
     <string name="core_tools_provider_openai_compatible_image_desc">Any other service with OpenAI\'s image API: LocalAI, DeepInfra, Nebius, or a gateway of your own. Give the address up to the version, such as https://api.deepinfra.com/v1/openai.</string>
+
+    <!-- Music ID as a provider list -->
+    <string name="core_tools_provider_tool_music">Song recognisers</string>
+    <string name="core_tools_provider_audd" translatable="false">AudD</string>
+    <string name="core_tools_provider_audd_desc">Recognises most released music from a few seconds of sound. Needs a token from dashboard.audd.io; a few hundred recognitions are free, then it is paid. Each clip is sent to AudD.</string>
+    <string name="core_tools_provider_acrcloud" translatable="false">ACRCloud</string>
+    <string name="core_tools_provider_acrcloud_desc">A music recognition service with a two-week trial, then paid plans. Needs the host, access key and access secret of a project from console.acrcloud.com. Each clip is sent to ACRCloud.</string>
+    <string name="core_tools_provider_audiotag" translatable="false">AudioTag</string>
+    <string name="core_tools_provider_audiotag_desc">A small recognition service, free for personal use with a key from audiotag.info, and slower than the others: it answers after a few seconds. Each clip is sent to AudioTag.</string>
+    <string name="core_tools_provider_rapid_shazam">Shazam (unofficial, via RapidAPI)</string>
+    <string name="core_tools_provider_rapid_shazam_desc">Shazam\'s catalogue through an unofficial listing on RapidAPI, with a RapidAPI key. Not an Apple service: the listing may change or stop without notice. Each clip is sent to RapidAPI.</string>
+    <string name="core_tools_provider_music_server">Your own recognition server</string>
+    <string name="core_tools_provider_music_server_desc">A server you run that answers like AudD: the clip is posted as a file and the song comes back as JSON. Put a fingerprinter such as Panako or Olaf behind it.</string>
+
+    <!-- What the Music ID tool types -->
+    <string name="core_tools_music_format_title_artist">Title – Artist</string>
+    <string name="core_tools_music_format_artist_title">Artist – Title</string>
+    <string name="core_tools_music_format_with_album">Title – Artist (Album, year)</string>
+    <string name="core_tools_music_format_link">Link</string>
+    <string name="core_tools_music_format_title_artist_link">Title – Artist, then the link</string>
+    <string name="core_tools_music_format_now_playing">🎵 Now playing: Title – Artist</string>
+
+    <!-- The pictures the Music ID tool makes -->
+    <string name="core_tools_music_card_cover">Cover</string>
+    <string name="core_tools_music_card_card">Card</string>
+    <string name="core_tools_music_card_banner">Banner</string>
+    <string name="core_tools_music_card_story">Story</string>
 </resources>

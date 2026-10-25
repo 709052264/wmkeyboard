@@ -6,7 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * The part of the settings a service belongs to, for grouping the fields on
  * the Servers screen. The labels live in `:app`.
  */
-enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, AI, UPDATES }
+enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, AI, MUSIC, UPDATES }
 
 /**
  * Every network API the keyboard calls, and the base address it calls by
@@ -89,6 +89,14 @@ enum class ServiceEndpoint(
     GEMINI("gemini", "https://generativelanguage.googleapis.com", ServiceGroup.AI),
     XAI("xai", "https://api.x.ai", ServiceGroup.AI),
     DEEPSEEK("deepseek", "https://api.deepseek.com", ServiceGroup.AI),
+    /** The Music ID tool's recognition services; ACRCloud is not here, since each project has a host of its own. */
+    AUDD("audd", "https://api.audd.io", ServiceGroup.MUSIC),
+    AUDIOTAG("audiotag", "https://audiotag.info", ServiceGroup.MUSIC),
+    RAPIDAPI_SHAZAM("rapidapi_shazam", "https://shazam.p.rapidapi.com", ServiceGroup.MUSIC),
+
+    /** Cover art and store links for a song named without them. */
+    ITUNES_SEARCH("itunes_search", "https://itunes.apple.com", ServiceGroup.MUSIC),
+    DEEZER_API("deezer_api", "https://api.deezer.com", ServiceGroup.MUSIC),
     KEYMAN_API("keyman_api", "https://api.keyman.com", ServiceGroup.DOWNLOADS),
     KEYMAN_DOWNLOADS("keyman_downloads", "https://downloads.keyman.com", ServiceGroup.DOWNLOADS),
     ANIMATED_EMOJI("animated_emoji", "https://fonts.gstatic.com/s/e/notoemoji/latest", ServiceGroup.DOWNLOADS),

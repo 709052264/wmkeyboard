@@ -207,6 +207,8 @@ object IconDefaults {
         ToolbarTool.SEND_FILES -> Icons.AutoMirrored.Outlined.Send
         ToolbarTool.GALLERY -> Icons.Outlined.PhotoLibrary
         ToolbarTool.MEDIA_CONTROL -> Icons.Outlined.MusicNote
+        // A waveform, not a note: the note is Media controls, and this one listens.
+        ToolbarTool.MUSIC_ID -> Icons.Outlined.GraphicEq
         ToolbarTool.KDE_CONNECT -> Icons.Outlined.Phonelink
         ToolbarTool.PLUGINS -> Icons.Outlined.Extension
         ToolbarTool.APP_LAUNCHER -> Icons.Outlined.Apps

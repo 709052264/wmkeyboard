@@ -115,6 +115,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.CLOCK -> Color(0xFF5C6BC0)
     // Home Assistant's own sky blue, so the tile reads as the house it controls.
     ToolbarTool.HOME_ASSISTANT -> Color(0xFF18BCF2)
+    // Shazam's blue, the colour everyone knows "what song is this" by, a shade apart from the media purple.
+    ToolbarTool.MUSIC_ID -> Color(0xFF1E88E5)
     // A sunset's coral: the colour a photo library opens on, apart from the camera's.
     // A clear sky blue: a link that travels, apart from the clipboard's and KDE Connect's blues.
     ToolbarTool.SEND_FILES -> Color(0xFF26A69A)

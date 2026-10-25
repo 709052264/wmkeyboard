@@ -239,6 +239,7 @@ private val ServiceGroup.titleRes: Int
         ServiceGroup.MAPS -> R.string.servers_section_maps
         ServiceGroup.CURRENCY -> R.string.servers_section_currency
         ServiceGroup.AI -> R.string.servers_section_ai
+        ServiceGroup.MUSIC -> R.string.servers_section_music
         ServiceGroup.UPDATES -> R.string.servers_section_updates
     }
 
@@ -265,6 +266,11 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.OPEN_METEO -> R.string.servers_open_meteo
         ServiceEndpoint.OPEN_METEO_GEOCODING -> R.string.servers_open_meteo_geocoding
         ServiceEndpoint.NOMINATIM -> R.string.servers_nominatim
+        ServiceEndpoint.AUDD -> R.string.servers_audd
+        ServiceEndpoint.AUDIOTAG -> R.string.servers_audiotag
+        ServiceEndpoint.RAPIDAPI_SHAZAM -> R.string.servers_rapidapi_shazam
+        ServiceEndpoint.ITUNES_SEARCH -> R.string.servers_itunes_search
+        ServiceEndpoint.DEEZER_API -> R.string.servers_deezer_api
         ServiceEndpoint.CURRENCY_API -> R.string.servers_currency_api
         ServiceEndpoint.CURRENCY_API_MIRROR -> R.string.servers_currency_api_mirror
         ServiceEndpoint.FRANKFURTER -> R.string.servers_frankfurter

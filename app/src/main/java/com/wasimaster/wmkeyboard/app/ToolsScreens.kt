@@ -116,6 +116,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> ImeR.string.ime_tool_weather
     ToolbarTool.LOCATION -> ImeR.string.ime_tool_location
     ToolbarTool.CLOCK -> ImeR.string.ime_tool_clock
+    ToolbarTool.MUSIC_ID -> ImeR.string.ime_tool_music_id
     ToolbarTool.HOME_ASSISTANT -> ImeR.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> ImeR.string.ime_tool_send_files
     ToolbarTool.GALLERY -> ImeR.string.ime_tool_gallery
@@ -214,6 +215,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.WEATHER -> R.string.fonts_tool_weather_desc
     ToolbarTool.LOCATION -> R.string.fonts_tool_location_desc
     ToolbarTool.CLOCK -> R.string.fonts_tool_clock_desc
+    ToolbarTool.MUSIC_ID -> R.string.fonts_tool_music_id_desc
     ToolbarTool.HOME_ASSISTANT -> R.string.fonts_tool_home_assistant_desc
     ToolbarTool.SEND_FILES -> R.string.fonts_tool_send_files_desc
     ToolbarTool.GALLERY -> R.string.fonts_tool_gallery_desc
@@ -536,6 +538,7 @@ internal fun ToolRow(
         ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
         ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
         ToolBlocker.NEEDS_MIX_SOURCE -> stringResource(R.string.tools_needs_mix_source_subtitle)
+        ToolBlocker.NEEDS_MUSIC_PROVIDER -> stringResource(R.string.tools_needs_music_provider_subtitle)
     }
     val row: @Composable () -> Unit = {
         WmRow(
@@ -589,7 +592,7 @@ private val PanelTools = listOf(
     ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
     ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
-    ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
+    ToolbarTool.MUSIC_ID, ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
 )
 
 /**
@@ -597,7 +600,7 @@ private val PanelTools = listOf(
  * apps and other devices. The rest of [PanelTools] is Writing.
  */
 private val ConnectPanels = setOf(
-    ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,
+    ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL, ToolbarTool.MUSIC_ID,
     ToolbarTool.KDE_CONNECT, ToolbarTool.SEND_FILES,
 )
 

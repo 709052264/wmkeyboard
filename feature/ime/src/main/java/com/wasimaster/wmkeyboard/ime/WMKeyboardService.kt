@@ -7849,6 +7849,8 @@ open class WMKeyboardService : InputMethodService() {
         locationTool.onKeyboardShown()
         // And a clock grant (exact alarms, full screen) given on a system screen.
         if (clockToolDelegate.isInitialized()) clockTool.onKeyboardShown()
+        // And the microphone or music grant the Music ID panel asked for.
+        if (musicToolDelegate.isInitialized()) musicTool.onKeyboardShown()
         // And a calendar grant, which may have a Save or a Delete waiting on it.
         if (calendarToolDelegate.isInitialized()) calendarTool.onKeyboardShown()
         // And a Home Assistant sign-in that came back from the browser.
@@ -8902,6 +8904,8 @@ open class WMKeyboardService : InputMethodService() {
         // privacy indicator must never outlive the keyboard) and keep the
         // partial that was already on screen.
         cancelVoice()
+        // The same for a Music ID clip in progress.
+        if (musicToolDelegate.isInitialized()) musicTool.release()
         // The language the field asked for dies with the field; leaving it
         // set would apply an ASCII lock or a locale hint to whatever the
         // user types in next.
@@ -8968,6 +8972,7 @@ open class WMKeyboardService : InputMethodService() {
         // in charge now.
         if (floatingButtonDelegate.isInitialized()) floatingButton.hide()
         summonJob?.cancel()
+        if (musicToolDelegate.isInitialized()) musicTool.release()
         // Hunspell's dictionaries are native memory the process keeps otherwise.
         hunspellChecker?.second?.close()
         hunspellChecker = null
@@ -28924,6 +28929,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
+            ToolbarTool.MUSIC_ID -> onPanelChange(PanelMode.MUSIC_ID)
             ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
             ToolbarTool.GALLERY -> openGalleryTool()
             ToolbarTool.SEND_FILES -> openSendTool()
@@ -29040,6 +29046,8 @@ open class WMKeyboardService : InputMethodService() {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
         }
+        // Leaving the Music ID panel: the microphone goes with it.
+        if (_uiState.value.panel == PanelMode.MUSIC_ID) musicTool.onPanelClose()
         // Leaving the To-do panel: the same (#920). Every change is saved as it is made.
         if (_uiState.value.panel == PanelMode.TODO) {
             todoTool.onPanelClose()
@@ -29228,6 +29236,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.MUSIC_ID -> musicTool.onPanelOpen()
             PanelMode.TODO -> todoTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
@@ -41409,6 +41418,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            music = musicTool.callbacks,
             todo = todoTool.callbacks,
             calendar = calendarTool.callbacks,
             kaomoji = kaomojiTool.callbacks,
@@ -41515,6 +41525,32 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    /**
+     * The Music ID tool. Built on first use, like [clockTool]; the delegate
+     * is kept so the keyboard-shown hook and the teardown can skip a
+     * controller nobody opened.
+     */
+    private val musicToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.music.MusicController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings },
+            insertText = ::onToolTextInsert,
+            insertImage = { file, mime -> commitImageFile(file, mime) },
+            haptic = { vibrate() },
+            panelOpen = { _uiState.value.panel == PanelMode.MUSIC_ID },
+            openToolSettings = { openToolSettings(ToolbarTool.MUSIC_ID) },
+            nowPlaying = { mediaController.peek() },
+            voiceBusy = ::voiceActive,
+            secureField = { currentInputEditorInfo.isSecureField() },
+            incognito = { _uiState.value.incognitoOn },
+            dataSaver = { dataSaverStatus },
+            grantMetered = { dataSaverStatus = dataSaverStatus.granting(MeteredFeature.CLOUD_MUSIC) },
+            requestMic = ::onVoicePermissionRequest,
+        )
+    }
+    private val musicTool by musicToolDelegate
 
     /**
      * The To-do tool (#920). Built on first use, like [clockTool]; the

@@ -208,6 +208,14 @@ internal fun DataSaverSettingsScreen(
         }
         item {
             policyRow(
+                R.string.datasaver_music_title,
+                R.string.datasaver_music_subtitle,
+                settings.watch { it.dataSaver.cloudMusic },
+                SettingsDefaults.dataSaver.cloudMusic,
+            ) { scope.launch { repository.setDataSaverCloudMusic(it) } }
+        }
+        item {
+            policyRow(
                 R.string.datasaver_send_title,
                 R.string.datasaver_send_subtitle,
                 settings.watch { it.dataSaver.fileSend },

@@ -8591,6 +8591,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.TODO -> R.string.ime_tool_todo
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
+    ToolbarTool.MUSIC_ID -> R.string.ime_tool_music_id
     ToolbarTool.HOME_ASSISTANT -> R.string.ime_tool_home_assistant
     ToolbarTool.SEND_FILES -> R.string.ime_tool_send_files
     ToolbarTool.GALLERY -> R.string.ime_tool_gallery
@@ -8693,6 +8694,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
+    ToolbarTool.MUSIC_ID -> state.panel == PanelMode.MUSIC_ID
     ToolbarTool.HOME_ASSISTANT -> state.panel == PanelMode.HOME_ASSISTANT
     ToolbarTool.SEND_FILES -> state.panel == PanelMode.SEND_FILES
     ToolbarTool.GALLERY -> state.panel == PanelMode.GALLERY
@@ -12675,7 +12677,7 @@ private val FullBleedPanels = setOf(
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
     PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
-    PanelMode.GALLERY, PanelMode.HOME_ASSISTANT,
+    PanelMode.GALLERY, PanelMode.HOME_ASSISTANT, PanelMode.MUSIC_ID,
     PanelMode.GALLERY, PanelMode.SEND_FILES,
 )
 
@@ -13818,6 +13820,11 @@ private fun KeyboardBody(
                     state = state,
                     callbacks = toolHold.clock,
                     onClose = { onPanelChange(PanelMode.CLOCK) },
+                )
+                PanelMode.MUSIC_ID -> com.wasimaster.wmkeyboard.ime.ui.music.MusicPanel(
+                    state = state,
+                    callbacks = toolHold.music,
+                    onClose = { onPanelChange(PanelMode.MUSIC_ID) },
                 )
                 PanelMode.TODO -> com.wasimaster.wmkeyboard.ime.ui.todo.TodoPanel(
                     state = state,
@@ -30055,6 +30062,8 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The Music ID panel's callbacks and state; its state is the controller's, like [clock]. */
+    val music: com.wasimaster.wmkeyboard.ime.music.MusicCallbacks = com.wasimaster.wmkeyboard.ime.music.MusicCallbacks(),
     /** The To-do panel's state and actions (#920); here for the same reason as [dictionaryBar]. */
     val todo: com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks = com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks(),
     /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */

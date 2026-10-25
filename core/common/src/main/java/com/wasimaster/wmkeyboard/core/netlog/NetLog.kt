@@ -288,6 +288,7 @@ object NetLog {
             ServiceGroup.MAPS -> NetSource.LOCATION
             ServiceGroup.CURRENCY -> NetSource.CURRENCY
             ServiceGroup.AI -> NetSource.AI
+            ServiceGroup.MUSIC -> NetSource.MUSIC_METADATA
             ServiceGroup.DOWNLOADS -> NetSource.ADDONS
             ServiceGroup.UPDATES -> NetSource.UPDATES
         }

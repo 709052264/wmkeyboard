@@ -2236,6 +2236,14 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Snippet variables — `{ha:entity_id}` searched across homes, `{ha:home_key|entity_id}`, `{ha:entity_id:attribute}`
     - Cache — Last states per home on disk so the panel draws at once, dimmed until live; excluded from backups; every home's key in `provider_credentials`, a SECRET_KEY, never in the direct-boot mirror
     - Network log — `HOME_ASSISTANT`, `SMARTTHINGS`, `HUE`, `OPENHAB`, `TUYA`, `SWITCHBOT` sources; the local ones and the polled clouds stay out of the data saver
+  - Music ID `RARE` — Names the song playing from a ten-second clip, Shazam-style, through a recognition service with the user's key, and types it or sends it as a picture; nothing runs on the phone and no catalogue ships
+    - Now-playing shortcut — With notification access, the player's title, artist, album and cover are read before the microphone is touched; Listen anyway records regardless
+    - Provider list `ProviderTool.MUSIC` — AudD, ACRCloud (host + access key + access secret via the new `CredentialSpec.secret`), AudioTag, Shazam via an unofficial RapidAPI listing (labelled unofficial), and the user's own AudD-shaped server; every kind starts off, the tool is blocked until one is set up; fallback walk with the shared cooldown
+    - Uploads — Ogg Opus through the `opus` gate, 16 kHz WAV where the library or the server cannot; every service its own `NetSource` row; skipped in password fields and incognito; `MeteredFeature.CLOUD_MUSIC` asks on mobile data
+    - Result card — Cover, title, artist, album · year, who answered; Insert in six text shapes (Title – Artist default, artist first, with album, link, title + link, 🎵 Now playing), Picture in four styles (Cover, Card, Banner, Story) drawn on the framework canvas and committed like every other picture, Open in (Spotify, Apple Music, Deezer, YouTube, song.link, MusicBrainz, Shazam), Copy
+    - Cover art for bare matches — iTunes Search API, then Deezer, by title and artist only, keyless, both overridable under Servers
+    - History — Last 200 recognitions in `filesDir/music/history.json`, repeats within ten minutes folded, History tab and a settings screen, off switch
+    - Keyword chips `shazam` / `whatsong` / `songid` / `musicid`, and a phrase intent for "what song is this" that keeps the words
   - Location (#350) `RARE` — The phone's position or a saved place into any field, in the format the user picks
     - One reading per tap — LocationManager only (no Play services): AOSP fused, GPS and network asked at once, each better answer shown as it lands, stops at 25 m or 20 s, nothing left registered
     - Tile-free position dial — Accuracy ring, the shared precision cell and the shared point drawn to scale, north up; no map server learns where the user is
@@ -2308,6 +2316,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | Compass qibla marker | needs a location saved in the Weather tool's settings |
 | Location tool: Locate me and Use my location | location permission (precise or approximate), one reading per tap; location services on; absent in -Pwmkb.noLocation builds |
 | Location tool: address | network (Nominatim by default); turned off by Look up the address |
+| Music ID | network and the user's own key for AudD, ACRCloud, AudioTag or RapidAPI, or the address of their own server; RECORD_AUDIO on the first Listen; nothing on the phone |
 | Clock: alarms to the minute | Alarms and reminders special access (Android 12+); without it alarms still ring, possibly some minutes late |
 | Clock: ring screen over the lock screen | full-screen intent access (Android 14+); without it the ring is a notification |
 | Clock: alarms after a reboot | re-armed when the keyboard next starts; no RECEIVE_BOOT_COMPLETED |

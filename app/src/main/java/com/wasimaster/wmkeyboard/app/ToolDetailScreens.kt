@@ -469,6 +469,8 @@ internal fun ToolDetailSettings(
                     stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
                 ToolBlocker.NEEDS_MIX_SOURCE ->
                     stringResource(R.string.tooldetail_enabled_needs_mix_source_subtitle)
+                ToolBlocker.NEEDS_MUSIC_PROVIDER ->
+                    stringResource(R.string.tooldetail_enabled_needs_music_provider_subtitle)
             }
             ToggleSetting(
                 CommonR.string.common_enable,
@@ -3229,6 +3231,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.TODO -> TodoToolSettings(repository, settings, onNavigate)
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
+        ToolbarTool.MUSIC_ID -> MusicToolSettings(repository, settings, onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)
         ToolbarTool.GALLERY -> GalleryToolSettings(repository, settings)
         ToolbarTool.SEND_FILES -> com.wasimaster.wmkeyboard.app.send.SendToolSettings(repository, settings, onNavigate)

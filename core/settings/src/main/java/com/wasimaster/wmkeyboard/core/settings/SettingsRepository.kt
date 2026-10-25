@@ -187,6 +187,10 @@ import com.wasimaster.wmkeyboard.core.location.LocationPrecision
 import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
+import com.wasimaster.wmkeyboard.core.music.MusicCardStyle
+import com.wasimaster.wmkeyboard.core.music.MusicClip
+import com.wasimaster.wmkeyboard.core.music.MusicLink
+import com.wasimaster.wmkeyboard.core.music.MusicTextFormat
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
 import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.core.aimemory.AiMemoryStore
@@ -3648,6 +3652,8 @@ data class KeyboardSettings(
     val weather: WeatherSettings = WeatherSettings(),
     /** The Location tool (#350): format, map, precision, saved places (see [LocationSettings]). */
     val location: LocationSettings = LocationSettings(),
+    /** The Music ID tool: what it types, the picture it makes, how long it listens (see [MusicSettings]). */
+    val music: MusicSettings = MusicSettings(),
     /** The network activity log's two switches (see [NetworkLogSettings]). */
     val networkLog: NetworkLogSettings = NetworkLogSettings(),
     /**
@@ -10500,6 +10506,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_FILE_SEND = stringPreferencesKey("data_saver_file_send")
         private val DS_CLOUD_VOICE = stringPreferencesKey("data_saver_cloud_voice")
         private val DS_CLOUD_GRAMMAR = stringPreferencesKey("data_saver_cloud_grammar")
+        private val DS_CLOUD_MUSIC = stringPreferencesKey("data_saver_cloud_music")
         private val OFFLINE_FALLBACK = booleanPreferencesKey("offline_fallback")
         private val BACKSPACE_SWIPE_DELETE = booleanPreferencesKey("backspace_swipe_delete")
         private val HARDWARE_KEYBOARD_INPUT = booleanPreferencesKey("hardware_keyboard_input")
@@ -10922,6 +10929,12 @@ class SettingsRepository(private val context: Context) {
         private val LOCATION_TEMPLATE = stringPreferencesKey("location_template")
         private val LOCATION_PLACES = stringPreferencesKey("location_places")
         private val LOCATION_TILE_URL = stringPreferencesKey("location_tile_url")
+        private val MUSIC_TEXT_FORMAT = stringPreferencesKey("music_text_format")
+        private val MUSIC_CARD_STYLE = stringPreferencesKey("music_card_style")
+        private val MUSIC_NOW_PLAYING_FIRST = booleanPreferencesKey("music_now_playing_first")
+        private val MUSIC_CLIP_SECONDS = intPreferencesKey("music_clip_seconds")
+        private val MUSIC_KEEP_HISTORY = booleanPreferencesKey("music_keep_history")
+        private val MUSIC_OPEN_LINK = stringPreferencesKey("music_open_link")
         // Superseded by CALENDAR_ALT_ONE/TWO, still read once to carry the old
         // Bengali/Hijri switches over to the new pair of picks.
         private val CALENDAR_SHOW_BENGALI = booleanPreferencesKey("calendar_show_bengali")
@@ -11851,6 +11864,7 @@ class SettingsRepository(private val context: Context) {
             verifyChecksums = p[VERIFY_CHECKSUMS] ?: defaults.verifyChecksums,
             weather = readWeather(p, defaults),
             location = readLocation(p, defaults),
+            music = readMusic(p, defaults),
             calendarTool = readCalendarTool(p, defaults),
             handwritingStylusOnly = p[HANDWRITING_STYLUS_ONLY] ?: defaults.handwritingStylusOnly,
             handwritingCommitDelayMs = p[HANDWRITING_COMMIT_DELAY]
@@ -13223,6 +13237,16 @@ class SettingsRepository(private val context: Context) {
             tileUrl = p[LOCATION_TILE_URL] ?: defaults.location.tileUrl,
         )
 
+    private fun readMusic(p: Preferences, defaults: KeyboardSettings) =
+        MusicSettings(
+            textFormat = MusicTextFormat.of(p[MUSIC_TEXT_FORMAT]) ?: defaults.music.textFormat,
+            cardStyle = MusicCardStyle.of(p[MUSIC_CARD_STYLE]) ?: defaults.music.cardStyle,
+            nowPlayingFirst = p[MUSIC_NOW_PLAYING_FIRST] ?: defaults.music.nowPlayingFirst,
+            clipSeconds = (p[MUSIC_CLIP_SECONDS] ?: defaults.music.clipSeconds).coerceIn(MusicClip.MIN_SECONDS, MusicClip.MAX_SECONDS),
+            keepHistory = p[MUSIC_KEEP_HISTORY] ?: defaults.music.keepHistory,
+            openLink = MusicLink.of(p[MUSIC_OPEN_LINK]) ?: defaults.music.openLink,
+        )
+
     private fun readWeather(p: Preferences, defaults: KeyboardSettings) =
         WeatherSettings(
             fahrenheit = p[WEATHER_FAHRENHEIT] ?: defaults.weather.fahrenheit,
@@ -14485,6 +14509,22 @@ class SettingsRepository(private val context: Context) {
     suspend fun setLocationTemplate(value: String) = editPrefs { it[LOCATION_TEMPLATE] = value }
 
     suspend fun setLocationTileUrl(value: String) = editPrefs { it[LOCATION_TILE_URL] = value.trim() }
+
+    // ---- The Music ID tool (see [MusicSettings]) ----
+
+    suspend fun setMusicTextFormat(value: MusicTextFormat) = editPrefs { it[MUSIC_TEXT_FORMAT] = value.id }
+
+    suspend fun setMusicCardStyle(value: MusicCardStyle) = editPrefs { it[MUSIC_CARD_STYLE] = value.id }
+
+    suspend fun setMusicNowPlayingFirst(value: Boolean) = editPrefs { it[MUSIC_NOW_PLAYING_FIRST] = value }
+
+    suspend fun setMusicClipSeconds(value: Int) =
+        editPrefs { it[MUSIC_CLIP_SECONDS] = value.coerceIn(MusicClip.MIN_SECONDS, MusicClip.MAX_SECONDS) }
+
+    suspend fun setMusicKeepHistory(value: Boolean) = editPrefs { it[MUSIC_KEEP_HISTORY] = value }
+
+    suspend fun setMusicOpenLink(value: MusicLink?) =
+        editPrefs { if (value == null) it.remove(MUSIC_OPEN_LINK) else it[MUSIC_OPEN_LINK] = value.id }
 
     /**
      * Rewrites the saved places through [change], read and written in one
@@ -16880,6 +16920,7 @@ class SettingsRepository(private val context: Context) {
             fileSend = p.policy(DS_FILE_SEND, d.fileSend),
             cloudVoice = p.policy(DS_CLOUD_VOICE, d.cloudVoice),
             cloudGrammar = p.policy(DS_CLOUD_GRAMMAR, d.cloudGrammar),
+            cloudMusic = p.policy(DS_CLOUD_MUSIC, d.cloudMusic),
             offlineFallback = p[OFFLINE_FALLBACK] ?: d.offlineFallback,
         )
     }
@@ -19648,6 +19689,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setDataSaverCloudGrammar(value: MeteredPolicy) =
         editPrefs { it[DS_CLOUD_GRAMMAR] = value.name }
+
+    suspend fun setDataSaverCloudMusic(value: MeteredPolicy) =
+        editPrefs { it[DS_CLOUD_MUSIC] = value.name }
 
     suspend fun setDataSaverFileSend(value: MeteredPolicy) =
         editPrefs { it[DS_FILE_SEND] = value.name }

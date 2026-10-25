@@ -1067,7 +1067,9 @@ internal fun ProviderEditorSheet(
             // A Premium account signs with both; one without the other is refused.
             (!spec.username || draft.apiKey.isBlank() == draft.extra[CredentialSpec.USERNAME].isNullOrBlank()) &&
             // Cloudflare runs a model under the account's address.
-            (!spec.account || !draft.extra[CredentialSpec.ACCOUNT].isNullOrBlank())
+            (!spec.account || !draft.extra[CredentialSpec.ACCOUNT].isNullOrBlank()) &&
+            // ACRCloud signs with a key and a secret; one without the other is refused.
+            (!spec.secret || !draft.extra[CredentialSpec.SECRET].isNullOrBlank())
     }
     fun edit(next: ProviderCredential) {
         draft = next
@@ -1185,6 +1187,20 @@ internal fun ProviderEditorSheet(
                     ),
                     password = true,
                 ) { edit(draft.copy(apiKey = it)) }
+            }
+            if (spec.secret) {
+                StoredTextField(
+                    label = stringResource(R.string.providers_field_secret),
+                    value = draft.extra[CredentialSpec.SECRET].orEmpty(),
+                    supporting = stringResource(R.string.providers_field_secret_hint),
+                    password = true,
+                ) { secret ->
+                    edit(
+                        draft.copy(
+                            extra = if (secret.isBlank()) draft.extra - CredentialSpec.SECRET else draft.extra + (CredentialSpec.SECRET to secret),
+                        ),
+                    )
+                }
             }
             if (spec.model) {
                 StoredTextField(
@@ -1348,6 +1364,10 @@ private fun ProviderCredential.trimmed() =
         url = url.trim(),
         model = model.trim(),
         extra = extra.mapValues { (key, value) ->
-            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME || key == CredentialSpec.ACCOUNT) value.trim() else value
+            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME || key == CredentialSpec.ACCOUNT || key == CredentialSpec.SECRET) {
+                value.trim()
+            } else {
+                value
+            }
         },
     )

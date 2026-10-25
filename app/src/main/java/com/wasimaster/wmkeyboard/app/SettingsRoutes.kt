@@ -134,6 +134,7 @@ internal object SettingsRoutes {
         "vocab/browse",
         "vocab/word/{packId}/{word}",
         "clock",
+        "music/history",
         "homeassistant/entities",
         "notes",
         "notes/edit/{noteId}",
