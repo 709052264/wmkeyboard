@@ -300,6 +300,16 @@ internal object OfflineImport {
                 onFile(ink.joinToString(", ") { it.name })
                 outcomes += installInk(context, ink)
             }
+            // The handwriting library arriving lets the models whose packs
+            // came in before it install now (#946).
+            runCatching { InkPackImports.installWaiting(context) }.getOrNull()?.forEach { (tag, ok) ->
+                val label = HandwritingModels.displayName(tag)
+                outcomes += if (ok) {
+                    Outcome(label, true, R.string.offline_import_handwriting_done, listOf(label))
+                } else {
+                    Outcome(label, false, R.string.offline_import_failed)
+                }
+            }
             // A RIME pack or schema zip changes what RIME compiles; the
             // runtime notices and the RIME screen deploys again.
             RimeRuntime.recheck(context)
@@ -576,6 +586,8 @@ internal object OfflineImport {
                 )
                 is InkPackImports.Result.Waiting ->
                     Outcome(result.fileName, true, R.string.offline_import_handwriting_waiting)
+                is InkPackImports.Result.NeedsLibrary ->
+                    Outcome(result.fileName, true, R.string.offline_import_handwriting_needs_library)
                 is InkPackImports.Result.Mismatch -> Outcome(result.fileName, false, R.string.offline_import_mismatch)
                 is InkPackImports.Result.Failed -> Outcome(result.fileName, false, R.string.offline_import_failed)
             }

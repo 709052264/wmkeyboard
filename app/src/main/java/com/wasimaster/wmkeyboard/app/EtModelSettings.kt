@@ -84,7 +84,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     // The runtime itself is an on-demand part off the APK: ONNX Runtime for
     // Sherpa and Omnilingual, ExecuTorch (shared with the FUTO Swipe glide
     // engine) for the others.
-    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch)
+    if (engine.onnx) OnnxModuleBanner(settings) else SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
 
     SettingsGroup(
         stringResource(

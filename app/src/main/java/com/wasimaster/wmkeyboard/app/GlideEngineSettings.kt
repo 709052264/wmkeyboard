@@ -131,7 +131,7 @@ private fun GlideEngineRow(settings: LiveSettings, repository: SettingsRepositor
             else -> Unit
         }
         // Where the build fetches the runtime rather than carrying it.
-        SpeechModuleBanner(settings, FeatureModules.executorch)
+        SpeechModuleBanner(settings, FeatureModules.executorch, "executorch")
     }
     if (asking) {
         FutoSwipeLicenceDialog { accepted ->
