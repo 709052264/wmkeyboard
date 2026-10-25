@@ -11155,6 +11155,7 @@ class SettingsRepository(private val context: Context) {
         private val KDE_AUTO_CONNECT = booleanPreferencesKey("kde_auto_connect")
         private val KDE_CLIPBOARD_RECEIVE = booleanPreferencesKey("kde_clipboard_receive")
         private val KDE_CLIPBOARD_SEND = booleanPreferencesKey("kde_clipboard_send")
+        private val KDE_CLIPBOARD_PAUSES = stringPreferencesKey("kde_clipboard_pauses")
         private val KDE_CLEAR_SECRETS_MINUTES = intPreferencesKey("kde_clear_secrets_minutes")
         private val KDE_REMOTE_TYPING = booleanPreferencesKey("kde_remote_typing")
         private val KDE_REMOTE_TYPING_PIPELINE = booleanPreferencesKey("kde_remote_typing_pipeline")
@@ -13742,6 +13743,16 @@ class SettingsRepository(private val context: Context) {
         )
     }
 
+    /** One `id=endMs` per line; split at the last `=`, so an odd device id survives. */
+    private fun decodeKdePauses(raw: String): Map<String, Long> = raw.lineSequence().mapNotNull { line ->
+        val at = line.lastIndexOf('=')
+        if (at <= 0) return@mapNotNull null
+        line.substring(at + 1).toLongOrNull()?.let { line.substring(0, at) to it }
+    }.toMap()
+
+    private fun encodeKdePauses(pauses: Map<String, Long>): String =
+        pauses.entries.filter { '\n' !in it.key }.joinToString("\n") { "${it.key}=${it.value}" }
+
     private fun readKdeConnect(p: Preferences, defaults: KeyboardSettings) =
         KdeConnectSettings(
             enabled = p[KDE_ENABLED] ?: defaults.kdeConnect.enabled,
@@ -13752,6 +13763,7 @@ class SettingsRepository(private val context: Context) {
             autoConnect = p[KDE_AUTO_CONNECT] ?: defaults.kdeConnect.autoConnect,
             clipboardReceive = p[KDE_CLIPBOARD_RECEIVE] ?: defaults.kdeConnect.clipboardReceive,
             clipboardSend = p[KDE_CLIPBOARD_SEND] ?: defaults.kdeConnect.clipboardSend,
+            clipboardPauses = p[KDE_CLIPBOARD_PAUSES]?.let(::decodeKdePauses) ?: defaults.kdeConnect.clipboardPauses,
             clearSecretsMinutes = p[KDE_CLEAR_SECRETS_MINUTES] ?: defaults.kdeConnect.clearSecretsMinutes,
             remoteTyping = p[KDE_REMOTE_TYPING] ?: defaults.kdeConnect.remoteTyping,
             remoteTypingPipeline = p[KDE_REMOTE_TYPING_PIPELINE]
@@ -14077,6 +14089,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setKdeAutoConnect(value: Boolean) = editPrefs { it[KDE_AUTO_CONNECT] = value }
     suspend fun setKdeClipboardReceive(value: Boolean) = editPrefs { it[KDE_CLIPBOARD_RECEIVE] = value }
     suspend fun setKdeClipboardSend(value: Boolean) = editPrefs { it[KDE_CLIPBOARD_SEND] = value }
+
+    /** Rewrites the clipboard pauses (#918) through [change], read and written in one edit, so the keyboard and the app cannot drop each other's. */
+    suspend fun updateKdeClipboardPauses(change: (Map<String, Long>) -> Map<String, Long>) = editPrefs { prefs ->
+        val next = change(prefs[KDE_CLIPBOARD_PAUSES]?.let(::decodeKdePauses).orEmpty())
+        if (next.isEmpty()) prefs.remove(KDE_CLIPBOARD_PAUSES) else prefs[KDE_CLIPBOARD_PAUSES] = encodeKdePauses(next)
+    }
     suspend fun setKdeClearSecretsMinutes(value: Int) = editPrefs {
         it[KDE_CLEAR_SECRETS_MINUTES] = value.coerceIn(0, KdeConnectSettings.MAX_CLEAR_SECRETS_MINUTES)
     }

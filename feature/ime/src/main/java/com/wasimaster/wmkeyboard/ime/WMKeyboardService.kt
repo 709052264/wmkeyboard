@@ -29153,6 +29153,8 @@ open class WMKeyboardService : InputMethodService() {
                 val sent = if (text.isEmpty()) 0 else KdeConnectHub.engine?.clipboard?.push(text, kdeDeviceId()) ?: 0
                 kdeNotice(getString(if (sent > 0) R.string.ime_kde_notice_clipboard_sent else R.string.ime_kde_notice_clipboard_empty))
             }
+            is KdeAction.PauseClipboard -> KdeConnectHub.pauseClipboard(this, action.deviceId, action.minutes)
+            is KdeAction.ResumeClipboard -> KdeConnectHub.resumeClipboard(this, action.deviceId)
             KdeAction.SendFieldText -> {
                 val ic = currentInputConnection
                 val text = ic?.getSelectedText(0)?.toString()?.takeIf { it.isNotEmpty() }

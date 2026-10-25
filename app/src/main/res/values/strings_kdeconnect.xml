@@ -106,6 +106,15 @@
     <string name="kdeconnect_device_files">Files and text</string>
     <string name="kdeconnect_device_sync">Sync</string>
     <string name="kdeconnect_device_battery">Battery report</string>
+    <string name="kdeconnect_pause_all_title">All computers</string>
+    <string name="kdeconnect_pause_off">Clipboard shared</string>
+    <string name="kdeconnect_pause_until">Clipboard paused until %1$s</string>
+    <string name="kdeconnect_pause_forever">Clipboard paused until you resume it</string>
+    <string name="kdeconnect_pause_action">Pause clipboard</string>
+    <string name="kdeconnect_pause_resume">Resume</string>
+    <string name="kdeconnect_pause_15m">For 15 minutes</string>
+    <string name="kdeconnect_pause_1h">For 1 hour</string>
+    <string name="kdeconnect_pause_until_resumed">Until I resume it</string>
     <string name="kdeconnect_pairing_outgoing">Waiting for %1$s. Accept on the computer if it shows this code</string>
     <string name="kdeconnect_pairing_incoming">%1$s wants to pair. Accept only if it shows this code</string>
     <string name="kdeconnect_pairing_accept">Accept</string>

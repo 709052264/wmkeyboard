@@ -252,6 +252,9 @@ object NotificationIds {
     /** A file arriving through a Send link or from a device nearby. */
     const val SEND_RECEIVE = 8
 
+    /** Clipboard sharing with a computer on hold, with Resume (#918). */
+    const val CONNECT_PAUSE = 9
+
     /**
      * One per running timer, from its id. Timer ids only grow, so two running
      * timers sharing a row would need 400 timers in between.

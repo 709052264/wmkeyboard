@@ -2146,6 +2146,10 @@ sealed interface KdeAction {
     data object SubmitHost : KdeAction
     data object SendClipboard : KdeAction
 
+    /** Hold clipboard sharing with [deviceId], or every computer when null, for [minutes]; 0 until resumed (#918). */
+    data class PauseClipboard(val deviceId: String?, val minutes: Int) : KdeAction
+    data class ResumeClipboard(val deviceId: String?) : KdeAction
+
     /** The selection if there is one, otherwise the whole field. */
     data object SendFieldText : KdeAction
     data object PickFiles : KdeAction
