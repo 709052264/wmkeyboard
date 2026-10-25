@@ -10663,6 +10663,11 @@ open class WMKeyboardService : InputMethodService() {
         } else {
             state.captureKey()?.let { CaptureComposition(it, start, keys) }
         }
+        // The strip's watcher fired on the write, before the run above existed,
+        // and the caret settling after it is no change it would see: without
+        // this a conversion IME's first reading in a tool's field had no
+        // candidates at all (#942).
+        refreshCaptureSuggestions()
         publishKanaVariantReady()
     }
 
