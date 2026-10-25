@@ -7,6 +7,7 @@ import android.content.Context
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupSettings
 import com.wasimaster.wmkeyboard.core.settings.SyncMode
 import com.wasimaster.wmkeyboard.core.settings.needsNetwork
+import com.wasimaster.wmkeyboard.core.settings.paused
 import com.wasimaster.wmkeyboard.core.settings.targets
 
 /**
@@ -50,7 +51,11 @@ object SyncScheduler {
 
     private fun component(context: Context) = ComponentName(context.packageName, SERVICE_CLASS)
 
-    /** Brings the periodic job in line with [settings]. Leaves a correct job alone, as backup does. */
+    /**
+     * Brings the periodic job in line with [settings]. Leaves a correct job
+     * alone, as backup does, and for the same reason a pause does not cancel
+     * it: [SyncRunner] skips a paused pass instead.
+     */
     fun sync(context: Context, settings: AutoBackupSettings) {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
         val sync = settings.sync
@@ -81,6 +86,9 @@ object SyncScheduler {
     fun requestSoon(context: Context, settings: AutoBackupSettings, delayMs: Long = DEBOUNCE_MS) {
         val sync = settings.sync
         if (!sync.enabled || sync.mode != SyncMode.SOON) return
+        // Not worth a job that would only skip itself. The hourly pull is
+        // still there, and catches up once a timed pause runs out.
+        if (sync.paused()) return
         if (sync.targets(settings.locations).isEmpty()) return
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return
         val job = JobInfo.Builder(SOON_JOB_ID, component(context))

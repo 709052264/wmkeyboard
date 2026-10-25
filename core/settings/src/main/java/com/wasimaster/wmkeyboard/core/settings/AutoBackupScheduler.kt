@@ -88,6 +88,11 @@ object AutoBackupScheduler {
      * `onCreate` would mean a keyboard used more often than once a day never
      * reaches the end of a single period, and the backup never runs at all.
      * So an already-correct job is left exactly where it is.
+     *
+     * A pause is deliberately not part of this. Cancelling the job for a pause
+     * and scheduling it again at the end would restart the period both times;
+     * the job keeps its place and the run skips itself instead (see
+     * [BackupPause]).
      */
     fun sync(context: Context, settings: AutoBackupSettings) {
         val scheduler = context.getSystemService(JobScheduler::class.java) ?: return

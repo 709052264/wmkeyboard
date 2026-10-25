@@ -100,6 +100,20 @@ object SettingsBackup {
     const val SYNC_LAST_RUN_AT = "sync_last_run_at"
     const val SYNC_LAST_ERROR = "sync_last_error"
 
+    /**
+     * Until when scheduled syncs wait; see [BackupPause]. Transient like the
+     * rest of sync: a pause is about this phone, today.
+     */
+    const val SYNC_PAUSED_UNTIL = "sync_paused_until"
+
+    /**
+     * Which sync group this phone is in at a location several people share;
+     * see `SyncNaming`. Transient: it says whose phone this is, and a bundle
+     * restored onto someone else's must not put that phone into the first
+     * owner's group, where it would merge the two people's keyboards.
+     */
+    const val SYNC_GROUP = "sync_group"
+
     /** S3 secret access key. */
     const val AUTO_BACKUP_S3_SECRET = "auto_backup_s3_secret"
 
@@ -119,6 +133,13 @@ object SettingsBackup {
     const val AUTO_BACKUP_KDF_SALT = "auto_backup_kdf_salt"
     const val AUTO_BACKUP_LAST_RUN_AT = "auto_backup_last_run_at"
     const val AUTO_BACKUP_LAST_ERROR = "auto_backup_last_error"
+
+    /**
+     * Until when scheduled backups wait; see [BackupPause]. Per install: a
+     * restored bundle that paused the new phone's backups would be the quiet
+     * failure [TRANSIENT_KEYS] exists to prevent.
+     */
+    const val AUTO_BACKUP_PAUSED_UNTIL = "auto_backup_paused_until"
 
     /**
      * Credentials, kept out of an export unless explicitly asked for. A
@@ -205,6 +226,7 @@ object SettingsBackup {
         AUTO_BACKUP_LAST_RUN_AT,
         AUTO_BACKUP_LAST_ERROR,
         AUTO_BACKUP_LOCATION_STATUS,
+        AUTO_BACKUP_PAUSED_UNTIL,
         SYNC_ENABLED,
         SYNC_MODE,
         SYNC_INTERVAL_HOURS,
@@ -218,6 +240,8 @@ object SettingsBackup {
         SYNC_KEEP_LOCAL,
         SYNC_LAST_RUN_AT,
         SYNC_LAST_ERROR,
+        SYNC_PAUSED_UNTIL,
+        SYNC_GROUP,
     )
 
     private val json = Json { prettyPrint = true }

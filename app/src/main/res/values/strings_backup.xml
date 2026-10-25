@@ -758,4 +758,43 @@
     <string name="backup_imap_mailbox_hint">The app makes this folder. Keep only backups in it, because the app deletes old backups from it.</string>
     <string name="backup_imap_cleartext">Without TLS, your password and your backup cross the network as plain text that anyone in between can read.</string>
     <string name="backup_imap_info">Each backup is one email in this folder. Some services, such as Gmail, keep a deleted email in another folder, so old backups can still use space in your account.</string>
+    <!-- Pausing the scheduled backup and sync. -->
+    <string name="backup_pause_title">Pause backups</string>
+    <string name="backup_pause_subtitle">Skip the scheduled backups for a while. Locations, schedule and passphrase stay as they are</string>
+    <string name="backup_paused_title">Backups are paused</string>
+    <string name="sync_pause_title">Pause sync</string>
+    <string name="sync_pause_subtitle">Skip the scheduled syncs for a while. Sync now still works</string>
+    <string name="sync_paused_title">Sync is paused</string>
+    <!-- %1$s is a date and time, such as "Oct 26, 14:00". -->
+    <string name="backup_paused_until">Until %1$s. Tap to resume</string>
+    <string name="backup_paused_forever">Until you resume. Tap to resume</string>
+    <string name="backup_pause_resume">Resume</string>
+    <string name="backup_pause_dialog_title">Pause for how long?</string>
+    <string name="backup_pause_hour">1 hour</string>
+    <string name="backup_pause_day">1 day</string>
+    <string name="backup_pause_week">1 week</string>
+    <string name="backup_pause_until_resumed">Until I resume</string>
+    <string name="backup_hub_backup_paused">Automatic backup is paused</string>
+    <string name="backup_hub_sync_paused">Sync is paused</string>
+    <string name="backup_hub_paused">Paused</string>
+    <!-- Sync groups: several people sharing one location. -->
+    <string name="backup_sync_group_title">Sync group</string>
+    <string name="backup_sync_group_none">None. Syncs with the devices here that have no group</string>
+    <!-- %1$s is the group name. -->
+    <string name="backup_sync_group_value">%1$s. Syncs only with devices in this group</string>
+    <string name="backup_sync_group_info">Use a group when several people share one location, such as a family folder. Give all your devices the same group name, and pick a different name from the other people. Devices sync only with the devices in their own group, and devices with no group sync with each other. The group also shows next to each backup when you restore.</string>
+    <string name="backup_sync_group_label">Group name</string>
+    <string name="backup_sync_group_supporting">Letters, digits and hyphens, up to 12. Leave it empty for no group</string>
+    <!-- %1$s is the group name as it will be saved. -->
+    <string name="backup_sync_group_saved_as">Saved as %1$s</string>
+    <string name="backup_sync_group_found">Groups at your sync locations</string>
+    <string name="backup_sync_group_loading">Looking for groups…</string>
+    <string name="backup_sync_group_found_none">No other device syncs at these locations yet.</string>
+    <string name="backup_sync_group_no_group">No group</string>
+    <!-- %1$s is a location's name. -->
+    <string name="backup_sync_group_join_note">Other devices sync at %1$s, in groups that this device is not in. Pick the group to join, or keep this device\'s group.</string>
+    <string name="backup_sync_group_change_note">In a new group, this device syncs as if for the first time: the settings of the group win, and anything that only this device has goes to the group.</string>
+    <string name="backup_remote_restore_all_groups">All</string>
+    <!-- %1$s is a device name, %2$s the sync group it was in. -->
+    <string name="backup_remote_restore_device_group">%1$s · %2$s</string>
 </resources>

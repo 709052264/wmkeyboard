@@ -45,6 +45,9 @@ object AutoBackupNaming {
     /** Longest device part a name carries. A name is not the place for a paragraph. */
     private const val DEVICE_MAX = 32
 
+    /** Between the group and the device inside the device part; see [name]. */
+    private const val GROUP_MARK = "--"
+
     /**
      * The name for a backup taken at [stampMs].
      *
@@ -53,6 +56,15 @@ object AutoBackupNaming {
      * hold several phones' backups, and rotation must only ever count its own.
      * Both are optional so a name without them, which is what every backup
      * before them was called, still parses.
+     *
+     * [group] is the sync group (see
+     * [com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming]), so the restore
+     * list can say whose backup is whose at a location several people share.
+     * It goes inside the device part, as `<group>--<device>`, and not as a
+     * part of its own: a build from before groups parses that as an odd device
+     * name and still finds the owner, where a name it could not parse at all
+     * would count as an unowned legacy backup, which its rotation deletes. A
+     * device slug never holds two hyphens in a row, so the split is exact.
      *
      * [zone] is a parameter only so tests are not at the mercy of the machine
      * running them; every caller in the app takes the default.
@@ -63,6 +75,7 @@ object AutoBackupNaming {
         zone: TimeZone = TimeZone.getDefault(),
         installId: String = "",
         device: String = "",
+        group: String = "",
     ): String {
         val stamp = SimpleDateFormat(STAMP_FORMAT, Locale.US)
             .apply { timeZone = zone }
@@ -72,7 +85,12 @@ object AutoBackupNaming {
         val owner = buildString {
             if (installId.isNotEmpty()) {
                 append('_').append(installId)
-                val slug = deviceSlug(device)
+                val tag = com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.groupSlug(group)
+                val slug = if (tag.isEmpty()) {
+                    deviceSlug(device)
+                } else {
+                    tag + GROUP_MARK + deviceSlug(device).take(DEVICE_MAX - tag.length - GROUP_MARK.length).trimEnd('-')
+                }
                 if (slug.isNotEmpty()) append('_').append(slug)
             }
         }
@@ -97,6 +115,8 @@ object AutoBackupNaming {
         /** The device slug, hyphens and all, or null when the name has none. */
         val device: String?,
         val encrypted: Boolean,
+        /** The sync group it was taken in, or empty for none. */
+        val group: String = "",
     )
 
     private val SHAPE = Regex(
@@ -112,7 +132,10 @@ object AutoBackupNaming {
      */
     fun parse(displayName: String, zone: TimeZone = TimeZone.getDefault()): Parsed? {
         val match = SHAPE.matchEntire(displayName) ?: return null
-        val (stamp, id, device, extension) = match.destructured
+        val (stamp, id, owner, extension) = match.destructured
+        val marked = owner.indexOf(GROUP_MARK)
+        val group = if (marked > 0) owner.substring(0, marked).lowercase(Locale.ROOT) else ""
+        val device = if (marked > 0) owner.substring(marked + GROUP_MARK.length) else owner
         val stampMs = runCatching {
             SimpleDateFormat(STAMP_FORMAT, Locale.US).apply {
                 timeZone = zone
@@ -124,6 +147,7 @@ object AutoBackupNaming {
             installId = id.ifEmpty { null },
             device = device.ifEmpty { null },
             encrypted = extension == ConfigBackup.ENCRYPTED_FILE_EXTENSION,
+            group = group,
         )
     }
 
@@ -155,7 +179,8 @@ object AutoBackupNaming {
     /** Whether [displayName] is one of our half-written files, backup or sync, ours to sweep. */
     fun isPart(displayName: String): Boolean =
         (displayName.startsWith(PREFIX) ||
-            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.PREFIX)) &&
+            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.PREFIX) ||
+            displayName.startsWith(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.GROUP_PREFIX)) &&
             (displayName.endsWith(PART_SUFFIX) || displayName.endsWith(UPLOAD_SUFFIX))
 
     /**

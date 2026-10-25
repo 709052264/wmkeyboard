@@ -4305,6 +4305,13 @@ data class AutoBackupSettings(
      * riding in every scheduled upload.
      */
     val backupIncludeSecrets: Boolean = false,
+
+    /**
+     * Until when scheduled backups wait, as a wall-clock time; 0 for not
+     * paused, [BackupPause.FOREVER] for until resumed. Per install. See
+     * [BackupPause].
+     */
+    val pausedUntilMs: Long = 0L,
 ) {
     companion object {
 
@@ -4411,6 +4418,15 @@ data class SyncSettings(
     val lastRunAtMs: Long = 0L,
     /** A `SinkError` name, a sync-specific reason, or empty. */
     val lastError: String = "",
+    /** Until when scheduled passes wait, as [AutoBackupSettings.pausedUntilMs]. */
+    val pausedUntilMs: Long = 0L,
+    /**
+     * The sync group, already in `SyncNaming.groupSlug` form; empty for none,
+     * which is every device from before groups. A device reads and merges
+     * only files of its own group, so several people can sync through one
+     * shared folder without merging into each other. Per install.
+     */
+    val group: String = "",
 ) {
     companion object {
         /**
@@ -10647,6 +10663,9 @@ class SettingsRepository(private val context: Context) {
         private val SYNC_KEEP_LOCAL = stringSetPreferencesKey(SettingsBackup.SYNC_KEEP_LOCAL)
         private val SYNC_LAST_RUN_AT = longPreferencesKey(SettingsBackup.SYNC_LAST_RUN_AT)
         private val SYNC_LAST_ERROR = stringPreferencesKey(SettingsBackup.SYNC_LAST_ERROR)
+        private val SYNC_PAUSED_UNTIL = longPreferencesKey(SettingsBackup.SYNC_PAUSED_UNTIL)
+        private val SYNC_GROUP = stringPreferencesKey(SettingsBackup.SYNC_GROUP)
+        private val AUTO_BACKUP_PAUSED_UNTIL = longPreferencesKey(SettingsBackup.AUTO_BACKUP_PAUSED_UNTIL)
         private val LONG_PRESS_DELAY = intPreferencesKey("long_press_delay")
         // The pre-split single interval. Still read, as the fallback for both
         // keys below, so a cadence tuned before the split survives the upgrade.
@@ -12528,6 +12547,7 @@ class SettingsRepository(private val context: Context) {
             exportSections = p[EXPORT_SECTIONS] ?: p[AUTO_BACKUP_SECTIONS]
                 ?: defaults.autoBackup.exportSections,
             backupIncludeSecrets = p[AUTO_BACKUP_INCLUDE_KEYS] ?: defaults.autoBackup.backupIncludeSecrets,
+            pausedUntilMs = p[AUTO_BACKUP_PAUSED_UNTIL] ?: defaults.autoBackup.pausedUntilMs,
             sync = SyncSettings(
                 enabled = p[SYNC_ENABLED] ?: defaults.autoBackup.sync.enabled,
                 mode = p[SYNC_MODE]?.let { id -> SyncMode.entries.firstOrNull { it.id == id } }
@@ -12542,6 +12562,11 @@ class SettingsRepository(private val context: Context) {
                 keepLocal = p[SYNC_KEEP_LOCAL] ?: defaults.autoBackup.sync.keepLocal,
                 lastRunAtMs = p[SYNC_LAST_RUN_AT] ?: defaults.autoBackup.sync.lastRunAtMs,
                 lastError = p[SYNC_LAST_ERROR] ?: defaults.autoBackup.sync.lastError,
+                pausedUntilMs = p[SYNC_PAUSED_UNTIL] ?: defaults.autoBackup.sync.pausedUntilMs,
+                // Read through the slug as well: a hand-edited or future value
+                // must not put a name on disk that no device would match.
+                group = p[SYNC_GROUP]?.let(com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming::groupSlug)
+                    ?: defaults.autoBackup.sync.group,
             ),
         ).let { auto ->
             // The list, once written, is the truth. Before that, the old
@@ -20362,6 +20387,44 @@ class SettingsRepository(private val context: Context) {
         editPrefs { prefs -> prefs[EXPORT_SECTIONS] = value.mapTo(HashSet()) { it.id } }
 
     suspend fun setBackupIncludeSecrets(value: Boolean) = editPrefs { it[AUTO_BACKUP_INCLUDE_KEYS] = value }
+
+    /** Pauses scheduled backups until [untilMs] (see [BackupPause]), or resumes them with 0. */
+    suspend fun setAutoBackupPausedUntil(untilMs: Long) = editPrefs { prefs ->
+        if (untilMs <= 0L) {
+            prefs.remove(AUTO_BACKUP_PAUSED_UNTIL)
+        } else {
+            prefs[AUTO_BACKUP_PAUSED_UNTIL] = untilMs
+        }
+    }
+
+    /** Pauses scheduled sync passes until [untilMs], or resumes them with 0. */
+    suspend fun setSyncPausedUntil(untilMs: Long) = editPrefs { prefs ->
+        if (untilMs <= 0L) {
+            prefs.remove(SYNC_PAUSED_UNTIL)
+        } else {
+            prefs[SYNC_PAUSED_UNTIL] = untilMs
+        }
+    }
+
+    /**
+     * Puts this phone in the sync group [raw] names, made into a group name
+     * first; empty is no group. True when that changed the group. Called
+     * through `SyncRunner.joinGroup`, which also makes the phone join its new
+     * group the way a new device does.
+     */
+    suspend fun setSyncGroup(raw: String): Boolean {
+        val group = com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming.groupSlug(raw)
+        var changed = false
+        editPrefs { prefs ->
+            changed = prefs[SYNC_GROUP].orEmpty() != group
+            if (group.isEmpty()) {
+                prefs.remove(SYNC_GROUP)
+            } else {
+                prefs[SYNC_GROUP] = group
+            }
+        }
+        return changed
+    }
 
     suspend fun setSyncEnabled(value: Boolean) = editPrefs { it[SYNC_ENABLED] = value }
 

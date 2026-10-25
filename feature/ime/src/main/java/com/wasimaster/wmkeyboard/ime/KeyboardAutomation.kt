@@ -10,6 +10,8 @@ import com.wasimaster.wmkeyboard.core.layout.LayoutSpec
 import com.wasimaster.wmkeyboard.core.layout.language
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.settings.AutoBackupScheduler
+import com.wasimaster.wmkeyboard.core.settings.BackupPause
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncScheduler
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.KeyboardMode
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
@@ -147,6 +149,21 @@ object KeyboardAutomation {
     /** Back up to the automatic backup's destination now. */
     const val ACTION_BACKUP_NOW = PREFIX + "BACKUP_NOW"
 
+    /**
+     * Pause the scheduled backups for [EXTRA_HOURS] hours, or until
+     * [ACTION_RESUME_BACKUP] when it is missing. Locations and schedule stay.
+     */
+    const val ACTION_PAUSE_BACKUP = PREFIX + "PAUSE_BACKUP"
+
+    /** End a pause [ACTION_PAUSE_BACKUP] or the settings screen set. */
+    const val ACTION_RESUME_BACKUP = PREFIX + "RESUME_BACKUP"
+
+    /** [ACTION_PAUSE_BACKUP] for the scheduled sync passes. */
+    const val ACTION_PAUSE_SYNC = PREFIX + "PAUSE_SYNC"
+
+    /** [ACTION_RESUME_BACKUP] for sync, which also pulls straight away. */
+    const val ACTION_RESUME_SYNC = PREFIX + "RESUME_SYNC"
+
     /** Type [EXTRA_TEXT], or the snippet [EXTRA_SNIPPET] names, into the focused field. */
     const val ACTION_TYPE_TEXT = PREFIX + "TYPE_TEXT"
 
@@ -168,6 +185,7 @@ object KeyboardAutomation {
     const val EXTRA_WORD = "word"
     const val EXTRA_TEXT = "text"
     const val EXTRA_SNIPPET = "snippet"
+    const val EXTRA_HOURS = "hours"
 
     /** [EXTRA_MODE] value that clears a hand-picked mode. */
     const val MODE_AUTO = "auto"
@@ -199,6 +217,10 @@ object KeyboardAutomation {
         ACTION_ADD_WORD to AutomationPermission.WORDS,
         ACTION_BLOCK_WORD to AutomationPermission.WORDS,
         ACTION_BACKUP_NOW to AutomationPermission.BACKUP,
+        ACTION_PAUSE_BACKUP to AutomationPermission.BACKUP_PAUSE,
+        ACTION_RESUME_BACKUP to AutomationPermission.BACKUP_PAUSE,
+        ACTION_PAUSE_SYNC to AutomationPermission.BACKUP_PAUSE,
+        ACTION_RESUME_SYNC to AutomationPermission.BACKUP_PAUSE,
         ACTION_TYPE_TEXT to AutomationPermission.TYPE_TEXT,
     )
 
@@ -397,6 +419,22 @@ object KeyboardAutomation {
         else -> null
     }
 
+    /**
+     * [EXTRA_HOURS] for a pause: 0 when it is missing or 0, which is until
+     * resumed, the hours when they are a whole number from 1 to
+     * [BackupPause.MAX_HOURS], and null for anything else, which is refused
+     * rather than read as forever.
+     */
+    fun pauseHours(value: Any?): Int? {
+        val hours = when (value) {
+            null -> return 0
+            is Number -> value.toDouble().takeIf { it == Math.floor(it) }?.toInt()
+            is String -> value.trim().let { if (it.isEmpty()) 0 else it.toIntOrNull() }
+            else -> null
+        } ?: return null
+        return hours.takeIf { it in 0..BackupPause.MAX_HOURS }
+    }
+
     /** A word a dictionary can hold: one token, not a sentence. */
     fun cleanWord(value: String?): String? =
         value?.trim()?.takeIf { it.isNotEmpty() && it.length <= MAX_WORD_LENGTH && it.none(Char::isWhitespace) }
@@ -566,6 +604,30 @@ class KeyboardAutomationReceiver : BroadcastReceiver() {
                     return fail("no location is ticked for automatic backup")
                 }
                 ok("backup started")
+            }
+            KeyboardAutomation.ACTION_PAUSE_BACKUP, KeyboardAutomation.ACTION_PAUSE_SYNC -> {
+                val hours = KeyboardAutomation.pauseHours(extra(intent, KeyboardAutomation.EXTRA_HOURS))
+                    ?: return fail(
+                        "\"${KeyboardAutomation.EXTRA_HOURS}\" must be a whole number of hours from 1 to " +
+                            "${BackupPause.MAX_HOURS}, or left out to pause until resumed",
+                    )
+                val until = BackupPause.until(System.currentTimeMillis(), hours.takeIf { it > 0 })
+                if (action == KeyboardAutomation.ACTION_PAUSE_BACKUP) {
+                    repository.setAutoBackupPausedUntil(until)
+                } else {
+                    repository.setSyncPausedUntil(until)
+                }
+                ok(if (hours > 0) "paused for $hours h" else "paused until resumed")
+            }
+            KeyboardAutomation.ACTION_RESUME_BACKUP -> {
+                repository.setAutoBackupPausedUntil(0L)
+                ok("resumed")
+            }
+            KeyboardAutomation.ACTION_RESUME_SYNC -> {
+                repository.setSyncPausedUntil(0L)
+                // What the other devices changed during the pause, now.
+                SyncScheduler.requestSoon(context, repository.settings.first().autoBackup, delayMs = 0L)
+                ok("resumed")
             }
             KeyboardAutomation.ACTION_TYPE_TEXT -> {
                 val running = host ?: return fail(NOT_RUNNING)

@@ -139,7 +139,7 @@ object AutoBackupRunner {
             val failed: Map<String, SinkError> = emptyMap(),
         ) : Outcome
 
-        /** Nothing to do: turned off, no folder, or the interval has not elapsed. */
+        /** Nothing to do: turned off, paused, no folder, or the interval has not elapsed. */
         data object Skipped : Outcome
 
         /**
@@ -155,8 +155,9 @@ object AutoBackupRunner {
     /**
      * Runs a backup if one is due.
      *
-     * [force] is the "Back up now" button: it skips the interval check and the
-     * enabled switch, but not the lock check or the destination check, because
+     * [force] is the "Back up now" button: it skips the interval check, the
+     * pause and the enabled switch, but not the lock check or the destination
+     * check, because
      * those are about whether a backup can be any good rather than whether one
      * was asked for.
      */
@@ -184,6 +185,10 @@ object AutoBackupRunner {
     ): Outcome {
         val appContext = context.applicationContext
         val settings = repository.settings.first().autoBackup
+        // First, and before anything is listed or built: while paused, the
+        // periodic job still fires (see BackupPause), and each of those
+        // firings should cost one settings read.
+        if (!force && settings.paused(nowMs)) return Outcome.Skipped
         val targets = settings.backupTargets
 
         if (!force && !settings.enabled) return Outcome.Skipped
@@ -344,6 +349,7 @@ object AutoBackupRunner {
                 encrypted = encrypt,
                 installId = installId,
                 device = BackupInstall.deviceLabel(appContext),
+                group = settings.sync.group,
             )
             val mime =
                 if (encrypt) ConfigBackup.ENCRYPTED_MIME_TYPE else ConfigBackup.MIME_TYPE

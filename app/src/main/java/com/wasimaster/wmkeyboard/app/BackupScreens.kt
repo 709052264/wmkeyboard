@@ -19,7 +19,10 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,7 +42,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -48,6 +53,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -109,6 +115,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.CloudQueue
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileDownload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FileUpload
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Group
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Pause
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LocalContentColor
@@ -128,6 +137,9 @@ import com.wasimaster.wmkeyboard.core.settings.keepLocalGroups
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncScheduler
 import com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys
 import com.wasimaster.wmkeyboard.core.settings.targets
+import com.wasimaster.wmkeyboard.core.settings.BackupPause
+import com.wasimaster.wmkeyboard.core.settings.paused
+import com.wasimaster.wmkeyboard.core.settings.sync.SyncNaming
 
 // ---- backup ----
 
@@ -480,6 +492,10 @@ private fun BackupStatusCard(
     val hop = remember { Animatable(1f) }
     val active = auto.backupTargets
     val backupOn = auto.enabled && active.isNotEmpty()
+    // Read once per composition: the card is not where a pause running out
+    // has to show to the second.
+    val backupPaused = backupOn && auto.paused()
+    val syncPaused = auto.sync.enabled && auto.sync.paused()
     val error = autoBackupErrorText(context, auto.lastError, active.firstOrNull()?.type ?: BackupDestination.FOLDER)
     val syncError = auto.sync.lastError.takeIf { it.isNotEmpty() }?.let { syncErrorText(context, it, auto) }
     val problem = error != null || (auto.sync.enabled && syncError != null)
@@ -518,6 +534,7 @@ private fun BackupStatusCard(
                 AnimatedContent(
                     targetState = when {
                         problem -> Icons.Outlined.CloudOff
+                        backupPaused -> Icons.Outlined.Pause
                         backupOn -> Icons.Outlined.CloudDone
                         else -> Icons.Outlined.CloudQueue
                     },
@@ -538,7 +555,13 @@ private fun BackupStatusCard(
                 Spacer(Modifier.width(16.dp))
                 Column(Modifier.weight(1f)) {
                     Text(
-                        stringResource(if (backupOn) R.string.backup_hub_backup_on else R.string.backup_hub_backup_off),
+                        stringResource(
+                            when {
+                                backupPaused -> R.string.backup_hub_backup_paused
+                                backupOn -> R.string.backup_hub_backup_on
+                                else -> R.string.backup_hub_backup_off
+                            },
+                        ),
                         style = MaterialTheme.typography.titleLarge,
                     )
                     Text(
@@ -573,7 +596,9 @@ private fun BackupStatusCard(
             ) { line -> Text(line, style = MaterialTheme.typography.bodyMedium) }
             if (auto.sync.enabled) {
                 Text(
-                    syncError ?: if (auto.sync.lastRunAtMs > 0L) {
+                    syncError ?: if (syncPaused) {
+                        stringResource(R.string.backup_hub_sync_paused)
+                    } else if (auto.sync.lastRunAtMs > 0L) {
                         stringResource(
                             R.string.backup_hub_last_sync,
                             DateUtils.getRelativeTimeSpanString(auto.sync.lastRunAtMs).toString(),
@@ -747,6 +772,184 @@ private fun LocationCheckRow(location: BackupLocation, checked: Boolean, onChang
 }
 
 /**
+ * Pause or resume, for the automatic backup and for sync: one row that says
+ * which it is. Paused, the whole row resumes; otherwise it asks how long.
+ * [pausedUntilMs] is the stored value (see [BackupPause]).
+ */
+@Composable
+private fun PauseRow(
+    pausedUntilMs: Long,
+    @StringRes title: Int,
+    @StringRes subtitle: Int,
+    @StringRes pausedTitle: Int,
+    onPause: (untilMs: Long) -> Unit,
+    onResume: () -> Unit,
+) {
+    val context = LocalContext.current
+    // Recomposes when a timed pause runs out, so the row does not go on
+    // saying "paused" with the screen open.
+    val now by produceState(System.currentTimeMillis(), pausedUntilMs) {
+        while (BackupPause.isPaused(pausedUntilMs, value) && pausedUntilMs != BackupPause.FOREVER) {
+            delay((pausedUntilMs - value).coerceIn(1_000L, 60_000L))
+            value = System.currentTimeMillis()
+        }
+    }
+    val paused = BackupPause.isPaused(pausedUntilMs, now)
+    var asking by remember { mutableStateOf(false) }
+    if (paused) {
+        WmRow(
+            title = stringResource(pausedTitle),
+            subtitle = if (pausedUntilMs == BackupPause.FOREVER) {
+                stringResource(R.string.backup_paused_forever)
+            } else {
+                stringResource(
+                    R.string.backup_paused_until,
+                    DateUtils.formatDateTime(
+                        context,
+                        pausedUntilMs,
+                        DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_TIME or DateUtils.FORMAT_ABBREV_MONTH,
+                    ),
+                )
+            },
+            icon = Icons.Outlined.PlayArrow,
+            trailing = { TextButton(onClick = onResume) { Text(stringResource(R.string.backup_pause_resume)) } },
+            onClick = onResume,
+        )
+    } else {
+        WmRow(
+            title = stringResource(title),
+            subtitle = stringResource(subtitle),
+            icon = Icons.Outlined.Pause,
+            onClick = { asking = true },
+        )
+    }
+    if (asking) {
+        AlertDialog(
+            onDismissRequest = { asking = false },
+            title = { Text(stringResource(R.string.backup_pause_dialog_title)) },
+            text = {
+                Column {
+                    for (hours in BackupPause.CHOICES) {
+                        ListItem(
+                            headlineContent = {
+                                Text(
+                                    stringResource(
+                                        when (hours) {
+                                            null -> R.string.backup_pause_until_resumed
+                                            1 -> R.string.backup_pause_hour
+                                            24 -> R.string.backup_pause_day
+                                            else -> R.string.backup_pause_week
+                                        },
+                                    ),
+                                )
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                            modifier = Modifier.fillMaxWidth().clickable {
+                                asking = false
+                                onPause(BackupPause.until(System.currentTimeMillis(), hours))
+                            },
+                        )
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { asking = false }) { Text(stringResource(CommonR.string.common_cancel)) }
+            },
+        )
+    }
+}
+
+/**
+ * Picks the sync group: a name to type, and the groups other devices already
+ * use at [locations], read from their sync files, to tap instead. [joining]
+ * is the location just ticked when the dialog opened because it holds other
+ * groups; it only changes the sentence on top.
+ *
+ * [onSave] gets the name as typed; the repository makes it a group name.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun SyncGroupDialog(
+    current: String,
+    locations: List<BackupLocation>,
+    joining: BackupLocation?,
+    onSave: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    var text by remember { mutableStateOf(current) }
+    // Null while the locations are still being listed.
+    var found by remember { mutableStateOf<List<String>?>(null) }
+    LaunchedEffect(locations) {
+        found = locations.flatMap { SyncRunner.groupsAt(context, it).getOrNull().orEmpty() }.distinct().sorted()
+    }
+    val slug = SyncNaming.groupSlug(text)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.backup_sync_group_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.backup_sync_group_info), style = MaterialTheme.typography.bodySmall)
+                Text(
+                    if (joining != null) {
+                        stringResource(R.string.backup_sync_group_join_note, joining.title(context))
+                    } else {
+                        stringResource(R.string.backup_sync_group_change_note)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.backup_sync_group_label)) },
+                    supportingText = {
+                        Text(
+                            if (slug.isNotEmpty() && slug != text) {
+                                stringResource(R.string.backup_sync_group_saved_as, slug)
+                            } else {
+                                stringResource(R.string.backup_sync_group_supporting)
+                            },
+                        )
+                    },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(stringResource(R.string.backup_sync_group_found), style = MaterialTheme.typography.titleSmall)
+                val groups = found
+                when {
+                    groups == null -> Text(
+                        stringResource(R.string.backup_sync_group_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    groups.isEmpty() -> Text(
+                        stringResource(R.string.backup_sync_group_found_none),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    else -> FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        for (group in groups) {
+                            FilterChip(
+                                selected = slug == group,
+                                onClick = { text = group },
+                                label = {
+                                    Text(group.ifEmpty { stringResource(R.string.backup_sync_group_no_group) })
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(text) }) { Text(stringResource(CommonR.string.common_save)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(CommonR.string.common_cancel)) }
+        },
+    )
+}
+
+/**
  * The "include API keys" switch, which asks before it goes on without a
  * passphrase. It does not refuse: the keys and the storage are the user's.
  * It says plainly what the file will then hold.
@@ -898,9 +1101,12 @@ internal fun BackupSettings(
             val schedule = settings.watch { s ->
                 s.autoBackup.takeIf { it.enabled && it.backupTargets.isNotEmpty() }?.let { it.intervalHours to it.keep }
             }
+            val backupPaused = settings.watch { it.autoBackup.paused() }
             NavRow(
                 R.string.backup_auto_group_title,
-                subtitle = if (schedule != null) {
+                subtitle = if (schedule != null && backupPaused) {
+                    stringResource(R.string.backup_hub_paused)
+                } else if (schedule != null) {
                     val (intervalHours, keep) = schedule
                     stringResource(
                         R.string.backup_hub_auto_summary,
@@ -916,11 +1122,14 @@ internal fun BackupSettings(
         item {
             val syncOn = settings.watch { it.autoBackup.sync.enabled }
             val syncMode = settings.watch { it.autoBackup.sync.mode }
+            val syncPaused = settings.watch { it.autoBackup.sync.paused() }
             NavRow(
                 R.string.backup_sync_title,
                 subtitle = stringResource(
                     if (!syncOn) {
                         R.string.backup_sync_nav_subtitle
+                    } else if (syncPaused) {
+                        R.string.backup_hub_paused
                     } else {
                         when (syncMode) {
                             SyncMode.SOON -> R.string.backup_sync_mode_soon
@@ -1180,6 +1389,18 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
             }
         }
         item(visible = autoOn && configured) {
+            PauseRow(
+                pausedUntilMs = settings.watch { it.autoBackup.pausedUntilMs },
+                title = R.string.backup_pause_title,
+                subtitle = R.string.backup_pause_subtitle,
+                pausedTitle = R.string.backup_paused_title,
+                onPause = { until -> scope.launch { repository.setAutoBackupPausedUntil(until) } },
+                // A backup the pause held back is due at once, and the job,
+                // left in place, takes it at its next firing.
+                onResume = { scope.launch { repository.setAutoBackupPausedUntil(0L) } },
+            )
+        }
+        item(visible = autoOn && configured) {
             // The ladder by index, so every stop is a value somebody would pick.
             SliderSetting(
                 R.string.backup_auto_interval_title,
@@ -1339,6 +1560,9 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         }
     }
     val setKeys = rememberKeysSwitch(encrypted) { on -> scope.launch { repository.setSyncIncludeSecrets(on) } }
+    var pickingGroup by remember { mutableStateOf(false) }
+    // The location just ticked, when it holds groups this device is not in.
+    var joining by remember { mutableStateOf<BackupLocation?>(null) }
 
     fun runNow() {
         syncPhase = RunPhase.RUNNING
@@ -1383,6 +1607,22 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                     if (on) runNow()
                 }
             }
+        }
+        item(visible = syncOn) {
+            PauseRow(
+                pausedUntilMs = settings.watch { it.autoBackup.sync.pausedUntilMs },
+                title = R.string.sync_pause_title,
+                subtitle = R.string.sync_pause_subtitle,
+                pausedTitle = R.string.sync_paused_title,
+                onPause = { until -> scope.launch { repository.setSyncPausedUntil(until) } },
+                onResume = {
+                    scope.launch {
+                        repository.setSyncPausedUntil(0L)
+                        // What the other devices changed meanwhile, now.
+                        SyncScheduler.requestSoon(context, repository.settings.first().autoBackup, delayMs = 0L)
+                    }
+                },
+            )
         }
         item(visible = syncOn) {
             ChoiceSetting(
@@ -1441,9 +1681,38 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         for (location in locations) {
             item {
                 LocationCheckRow(location, settings.watch { location.id in it.autoBackup.sync.locationIds }) { on ->
-                    scope.launch { repository.setSyncLocation(location.id, on) }
+                    scope.launch {
+                        repository.setSyncLocation(location.id, on)
+                        // Joining a shared folder: when the devices already
+                        // there sync in groups this one is not in, ask which
+                        // to join before the first pass picks for the user.
+                        if (on && location.type != BackupDestination.NEARBY) {
+                            val groups = SyncRunner.groupsAt(context, location).getOrNull().orEmpty()
+                            val mine = repository.settings.first().autoBackup.sync.group
+                            if (groups.isNotEmpty() && mine !in groups) {
+                                joining = location
+                                pickingGroup = true
+                            }
+                        }
+                    }
                 }
             }
+        }
+        item {
+            val group = settings.watch { it.autoBackup.sync.group }
+            WmRow(
+                title = stringResource(R.string.backup_sync_group_title),
+                subtitle = if (group.isEmpty()) {
+                    stringResource(R.string.backup_sync_group_none)
+                } else {
+                    stringResource(R.string.backup_sync_group_value, group)
+                },
+                icon = Icons.Outlined.Group,
+                onClick = {
+                    joining = null
+                    pickingGroup = true
+                },
+            )
         }
         // A computer paired over KDE Connect turns into a location above,
         // ticked; this is the one switch for whether that happens.
@@ -1554,6 +1823,29 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         tone = if (syncError != null) BannerTone.WARNING else BannerTone.INFO,
     )
     Spacer(Modifier.height(16.dp))
+
+    if (pickingGroup) {
+        val auto = settings.value.autoBackup
+        SyncGroupDialog(
+            current = auto.sync.group,
+            locations = (auto.sync.targets(auto.locations) + listOfNotNull(joining))
+                .filter { it.type != BackupDestination.NEARBY }
+                .distinctBy { it.id },
+            joining = joining,
+            onSave = { entered ->
+                pickingGroup = false
+                joining = null
+                scope.launch {
+                    val changed = SyncRunner.joinGroup(context, repository, entered)
+                    if (changed && repository.settings.first().autoBackup.sync.enabled) runNow()
+                }
+            },
+            onDismiss = {
+                pickingGroup = false
+                joining = null
+            },
+        )
+    }
 
     val messageText = message
     if (messageText != null) {
