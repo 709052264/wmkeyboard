@@ -80,6 +80,8 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 |---|---|---|---|
 | Grid size | Slider | 36–64 | 44 |
 | Emoji size | Slider | 20–36 | 28 |
+| Columns | Slider | Auto, 5–14 | Auto |
+| Row height | Slider | Auto, 36–72 | Auto |
 | Recent emoji kept | Slider | 8–96 | 32 |
 | Clear emoji history | Button (confirms first) | n/a | n/a |
 | Return to the keyboard after you insert | Toggle | On / Off | Off |
@@ -104,6 +106,8 @@ This group is a page of its own, opened from the Emoji panel row in the Access g
 **Grid size** is the least each cell of the emoji grid may be. A smaller size fits more columns. When **Emoji size** needs more room than that, the cells grow to fit it.
 
 **Emoji size** is how large each emoji is drawn, on every tab and in search results. The long-press popup keeps its own size regardless.
+
+**Columns** fixes how many emoji go across a row. On **Auto** the grid fits as many as **Grid size** allows, so a wider screen shows more; a number keeps every emoji in the same column on any screen. **Row height** fixes how tall each row is, in dp; on **Auto** a row is as tall as the emoji size needs. With both fixed, a swipe of a given length always scrolls to the same emoji. [Arrange like](#emoji-categories) sets them, with the emoji size, to match the keyboard you copy, and a fixed grid centres each emoji in its cell.
 
 **Recent emoji kept** caps the history tab. 32 is about one row on a small phone and four on a tablet. Lowering it trims the list straight away.
 
@@ -222,7 +226,7 @@ The emoji panel ships its categories in the order Unicode defines them, which is
 | The row itself | Opens that category's emoji, to arrange them |
 | Reset every order | Puts the tabs, the hidden ones and every category's emoji back the way they shipped |
 
-**Arrange like.** Sets every order on this screen at once to match another keyboard, for when your thumb learned emoji there. Where that keyboard groups emoji differently from the catalogue, the emoji move to the tab it keeps them on (on HeliBoard, plants join Animals and the weather joins Travel), and a tab left empty is hidden: Nature on all three, and People on SwiftKey, which keeps faces and people together. Everything stays draggable afterwards. After a hand change the row shows **Your own**, and picking a preset then asks before it replaces your arrangement. **Unicode** does what **Reset every order** does. See [Arranging the panel like your old keyboard](/emoji/customization/#arranging-the-panel-like-your-old-keyboard) for what each preset moves.
+**Arrange like.** Sets every order on this screen at once to match another keyboard, for when your thumb learned emoji there. Where that keyboard groups emoji differently from the catalogue, the emoji move to the tab it keeps them on (on HeliBoard, plants join Animals and the weather joins Travel), and a tab left empty is hidden: Nature on all three, and People on SwiftKey, which keeps faces and people together. It also sets the grid to that keyboard's columns, row height, emoji size and scrolling. Everything stays draggable and resizable afterwards. After a hand change the row shows **Your own**, and picking a preset then asks before it replaces your arrangement. **Unicode** does what **Reset every order** does. See [Arranging the panel like your old keyboard](/emoji/customization/#arranging-the-panel-like-your-old-keyboard) for what each preset moves.
 
 **Reordering a tab.** Drag a row by its handle. The order you leave it in is the order the tabs appear in the panel, left to right.
 

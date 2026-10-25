@@ -29273,7 +29273,15 @@ internal fun EmojiCell(
 ) {
     var showVariants by remember { mutableStateOf(false) }
     val onHaptic = LocalHapticFeedback.current
-    Box {
+    val rowHeight = state.settings.emoji.gridRowHeight
+    // A fixed grid (usually another keyboard's, see EmojiOrderPreset) gives a
+    // cell wider or taller than the glyph needs; the glyph sits in its middle,
+    // as it does on that keyboard.
+    val fixedGrid = rowHeight > 0 || state.settings.emoji.gridColumns > 0
+    Box(
+        modifier = if (rowHeight > 0) Modifier.height(rowHeight.dp) else Modifier,
+        contentAlignment = if (fixedGrid) Alignment.Center else Alignment.TopStart,
+    ) {
         Text(
             text = LocalEmojiShaper.current.shape(display),
             modifier = Modifier

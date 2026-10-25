@@ -7351,6 +7351,22 @@ data class EmojiSettings(
      */
     val gridCellSize: Int = 44,
     /**
+     * A fixed number of columns for the emoji panel's grids, or 0 (the
+     * default) to fit as many as [gridCellSize] allows. Fixed columns are what
+     * another keyboard's arrangement needs (`EmojiOrderPreset`): the same
+     * emoji then sits in the same column it had there, whatever the screen
+     * width. See [EmojiGridColumnsRange].
+     */
+    val gridColumns: Int = 0,
+    /**
+     * The height of one row of the emoji panel's grids in dp, or 0 (the
+     * default) for the height the emoji size gives it. Paired with
+     * [gridColumns] it makes a scroll of a given length reach the same emoji
+     * it reached on the keyboard an arrangement was copied from. See
+     * [EmojiGridRowHeightRange].
+     */
+    val gridRowHeight: Int = 0,
+    /**
      * How many recently used emoji the history tab keeps. 32 is one panel row
      * on a small phone and four on a tablet, so the same number reads as a
      * short list to one user and a wall to another. See [EmojiRecentsRange].
@@ -7591,6 +7607,12 @@ val EmojiBarCountRange = 3..16
 
 /** Bounds for [EmojiSettings.gridCellSize]; the settings slider shares them. */
 val EmojiGridCellSizeRange = 36..64
+
+/** Bounds for a fixed [EmojiSettings.gridColumns]; 0, outside them, means "fit". */
+val EmojiGridColumnsRange = 5..14
+
+/** Bounds for a fixed [EmojiSettings.gridRowHeight]; 0, outside them, means "fit". */
+val EmojiGridRowHeightRange = 36..72
 
 /** Bounds for [EmojiSettings.recentsLimit]; the settings slider shares them. */
 val EmojiRecentsRange = 8..96
@@ -9788,6 +9810,33 @@ private fun decodeRepoMap(raw: String): Map<String, RepoLocation> =
         .mapNotNull { (id, fields) -> repoLocationFromFields(fields)?.let { id to it } }
         .toMap()
 
+/**
+ * The emoji panel's grid as one value, for writing it with an arrangement in
+ * [SettingsRepository.setEmojiOrder]. Each field is the [EmojiSettings]
+ * setting of the same meaning.
+ */
+data class EmojiGridLayout(
+    val columns: Int,
+    val rowHeight: Int,
+    val cellSize: Int,
+    val emojiSize: Int,
+    val continuous: Boolean,
+) {
+    companion object {
+        fun of(emoji: EmojiSettings) = EmojiGridLayout(
+            emoji.gridColumns, emoji.gridRowHeight, emoji.gridCellSize, emoji.gridEmojiSize, emoji.continuousScroll,
+        )
+    }
+}
+
+/** A stored column count: 0 for "fit", or a count clamped into [EmojiGridColumnsRange]. */
+internal fun emojiGridColumns(value: Int): Int =
+    if (value <= 0) 0 else value.coerceIn(EmojiGridColumnsRange)
+
+/** A stored row height: 0 for "fit", or a height clamped into [EmojiGridRowHeightRange]. */
+internal fun emojiGridRowHeight(value: Int): Int =
+    if (value <= 0) 0 else value.coerceIn(EmojiGridRowHeightRange)
+
 private val emojiOrderSerializer =
     MapSerializer(String.serializer(), ListSerializer(String.serializer()))
 
@@ -10793,6 +10842,8 @@ class SettingsRepository(private val context: Context) {
         private val EMOJI_BAR_COUNT = intPreferencesKey("emoji_bar_count")
         private val EMOJI_GRID_CELL_SIZE = intPreferencesKey("emoji_grid_cell_size")
         private val EMOJI_GRID_EMOJI_SIZE = intPreferencesKey("emoji_grid_emoji_size")
+        private val EMOJI_GRID_COLUMNS = intPreferencesKey("emoji_grid_columns")
+        private val EMOJI_GRID_ROW_HEIGHT = intPreferencesKey("emoji_grid_row_height")
         private val EMOJI_KAOMOJI_TABS = booleanPreferencesKey("emoji_kaomoji_tabs")
         private val KAOMOJI_SPLIT_EMOTICONS = booleanPreferencesKey("kaomoji_split_emoticons")
         private val KAOMOJI_TAG_TABS = booleanPreferencesKey("kaomoji_tag_tabs")
@@ -13054,6 +13105,10 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.emoji.gridCellSize,
             gridEmojiSize = p[EMOJI_GRID_EMOJI_SIZE]?.coerceIn(EmojiGridEmojiSizeRange)
                 ?: defaults.emoji.gridEmojiSize,
+            gridColumns = p[EMOJI_GRID_COLUMNS]?.let(::emojiGridColumns)
+                ?: defaults.emoji.gridColumns,
+            gridRowHeight = p[EMOJI_GRID_ROW_HEIGHT]?.let(::emojiGridRowHeight)
+                ?: defaults.emoji.gridRowHeight,
             recentsLimit = p[EMOJI_RECENTS_LIMIT]?.coerceIn(EmojiRecentsRange)
                 ?: defaults.emoji.recentsLimit,
             mediaGridColumns = p[MEDIA_GRID_COLUMNS]?.coerceIn(2, 5)
@@ -17933,11 +17988,13 @@ class SettingsRepository(private val context: Context) {
      * edit: an arrangement copied from another keyboard is all three, and
      * written one at a time the panel would draw the new tabs over the old
      * emoji in between. An empty value drops its key, as the setters above do.
+     * A [grid] sets the panel's grid in the same edit; null leaves it alone.
      */
     suspend fun setEmojiOrder(
         categoryOrder: List<String>,
         hidden: Set<String>,
         emojiOrder: Map<String, List<String>>,
+        grid: EmojiGridLayout? = null,
     ) = editPrefs { prefs ->
         val order = categoryOrder.map(String::trim).filter(String::isNotEmpty).distinct()
         if (order.isEmpty()) prefs.remove(EMOJI_CATEGORY_ORDER)
@@ -17949,6 +18006,13 @@ class SettingsRepository(private val context: Context) {
             .filterValues { it.isNotEmpty() }
         if (emoji.isEmpty()) prefs.remove(EMOJI_CATEGORY_EMOJI_ORDER)
         else prefs[EMOJI_CATEGORY_EMOJI_ORDER] = encodeEmojiOrder(emoji)
+        if (grid != null) {
+            prefs[EMOJI_GRID_COLUMNS] = emojiGridColumns(grid.columns)
+            prefs[EMOJI_GRID_ROW_HEIGHT] = emojiGridRowHeight(grid.rowHeight)
+            prefs[EMOJI_GRID_CELL_SIZE] = grid.cellSize.coerceIn(EmojiGridCellSizeRange)
+            prefs[EMOJI_GRID_EMOJI_SIZE] = grid.emojiSize.coerceIn(EmojiGridEmojiSizeRange)
+            prefs[EMOJI_CONTINUOUS_SCROLL] = grid.continuous
+        }
     }
 
     /** Puts every category's emoji, and the tabs themselves, back in catalog order. */
@@ -20780,6 +20844,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setEmojiGridEmojiSize(value: Int) =
         editPrefs { it[EMOJI_GRID_EMOJI_SIZE] = value.coerceIn(EmojiGridEmojiSizeRange) }
+
+    /** See [EmojiSettings.gridColumns]; 0 goes back to fitting by cell size. */
+    suspend fun setEmojiGridColumns(value: Int) =
+        editPrefs { it[EMOJI_GRID_COLUMNS] = emojiGridColumns(value) }
+
+    /** See [EmojiSettings.gridRowHeight]; 0 goes back to the emoji size's height. */
+    suspend fun setEmojiGridRowHeight(value: Int) =
+        editPrefs { it[EMOJI_GRID_ROW_HEIGHT] = emojiGridRowHeight(value) }
 
     suspend fun setEmojiInsertMode(value: EmojiInsertMode) =
         editPrefs { it[EMOJI_INSERT_MODE] = value.name }

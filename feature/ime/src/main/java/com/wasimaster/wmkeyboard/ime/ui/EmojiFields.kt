@@ -119,6 +119,8 @@ internal class EmojiPanelSession(
     val historyMode: EmojiTabMode,
     /** The user-sized grid cell; never smaller than the glyph plus its padding. */
     val gridCell: Dp,
+    /** The grids' columns: a fixed count when one is set, else as many as [gridCell] fits. */
+    val columns: GridCells,
     private val reorderOpenState: MutableState<Boolean>,
 ) {
     /** The favourites reorder sheet, reached from any favourited emoji's popup. */
@@ -196,12 +198,16 @@ internal fun rememberEmojiPanelSession(state: KeyboardUiState, kaomoji: KaomojiU
         null
     }
     val gridCell = with(state.settings.emoji) { maxOf(gridCellSize, gridEmojiSize + 12) }.dp
+    val gridColumns = state.settings.emoji.gridColumns
+    val columns = remember(gridColumns, gridCell) {
+        if (gridColumns > 0) GridCells.Fixed(gridColumns) else GridCells.Adaptive(minSize = gridCell)
+    }
     // The reorder flag lives on the session object, which a new history list
     // replaces; it is held outside so the sheet survives a favourite landing.
     val reorderOpen = remember { mutableStateOf(false) }
-    return remember(tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell) {
+    return remember(tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell, columns) {
         EmojiPanelSession(
-            tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell, reorderOpen,
+            tabs, pagerState, listState, sections, variantChildren, history, historyMode, gridCell, columns, reorderOpen,
         )
     }
 }
@@ -424,7 +430,7 @@ internal fun EmojiGridField(
         ScrollFocusIntoView(focusedResult) { resultsGrid.animateScrollToItem(it) }
         LazyVerticalGrid(
             state = resultsGrid,
-            columns = GridCells.Adaptive(minSize = gridCell),
+            columns = session.columns,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(8.dp),
         ) {
@@ -540,7 +546,7 @@ internal fun EmojiGridField(
                 ScrollFocusIntoView(focusedHistory) { historyGrid.animateScrollToItem(it) }
                 LazyVerticalGrid(
                     state = historyGrid,
-                    columns = GridCells.Adaptive(minSize = gridCell),
+                    columns = session.columns,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(8.dp),
                 ) {
@@ -588,7 +594,7 @@ internal fun EmojiGridField(
             ScrollFocusIntoView(focusedEmoji) { categoryGrid.animateScrollToItem(it) }
             LazyVerticalGrid(
                 state = categoryGrid,
-                columns = GridCells.Adaptive(minSize = gridCell),
+                columns = session.columns,
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(8.dp),
             ) {

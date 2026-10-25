@@ -116,6 +116,14 @@
     <string name="langemoji_emoji_size_title">Emoji size</string>
     <string name="langemoji_emoji_size_subtitle">How large the emoji panel draws each emoji</string>
     <string name="langemoji_emoji_size_info">The size of the emoji in the grid of the emoji panel, on every tab and in the search results. The cells always keep enough room around each emoji, so a very large size can also mean fewer columns. The press and hold popup keeps its own size.</string>
+    <!-- The low end of the Columns and Row height sliders: the grid fits itself instead of using a fixed value. -->
+    <string name="langemoji_emoji_grid_auto">Auto</string>
+    <string name="langemoji_emoji_grid_columns_title">Columns</string>
+    <string name="langemoji_emoji_grid_columns_subtitle">How many emoji go across one row</string>
+    <string name="langemoji_emoji_grid_columns_info">Auto fits as many columns as the grid size allows, so a wider screen shows more. A fixed number keeps each emoji in the same column on every screen. Arrange like sets this to match the keyboard you pick.</string>
+    <string name="langemoji_emoji_grid_row_height_title">Row height</string>
+    <string name="langemoji_emoji_grid_row_height_subtitle">How tall each row of emoji is</string>
+    <string name="langemoji_emoji_grid_row_height_info">Auto makes each row as tall as the emoji size needs. A fixed height, with fixed columns, makes the same swipe scroll to the same emoji as on the keyboard that Arrange like copied.</string>
     <string name="langemoji_emoji_close_after_insert_title">Return to the keyboard after you insert</string>
     <string name="langemoji_emoji_close_after_insert_subtitle">Close the panel when you insert one emoji or paste one clip</string>
     <string name="langemoji_emoji_close_after_insert_info">By default, the emoji panel and the clipboard panel stay open, so that you can select several items. Turn this on to go back to the keys directly after one emoji or one clipboard paste.</string>
@@ -289,7 +297,7 @@
     <!-- "Arrange like": copies another keyboard's emoji tabs. Gboard, SwiftKey and HeliBoard are names of other keyboard apps. Keep them as they are. -->
     <string name="langemoji_emoji_order_preset_title">Arrange like</string>
     <string name="langemoji_emoji_order_preset_subtitle">Put the tabs and the emoji in the order of Gboard, SwiftKey or HeliBoard</string>
-    <string name="langemoji_emoji_order_preset_info">Pick the keyboard you used before, and the emoji panel gets its tabs, in its order, with each emoji where that keyboard puts it. Some keyboards keep plants with the animals and the weather with travel and places. Those emoji then move to that tab, and a tab with nothing left in it is hidden. An emoji that keyboard does not have yet goes next to the emoji it follows. After you pick one, you can still drag tabs and emoji. Unicode puts everything back the way it shipped.</string>
+    <string name="langemoji_emoji_order_preset_info">Pick the keyboard you used before, and the emoji panel gets its tabs, in its order, with each emoji where that keyboard puts it. The grid also changes to that keyboard\'s columns, row height and emoji size, so the same swipe scrolls to the same emoji. Some keyboards keep plants with the animals and the weather with travel and places. Those emoji then move to that tab, and a tab with nothing left in it is hidden. An emoji that keyboard does not have yet goes next to the emoji it follows. After you pick one, you can still drag tabs and emoji. Unicode puts everything back the way it shipped.</string>
     <string name="langemoji_emoji_order_preset_unicode" translatable="false">Unicode</string>
     <string name="langemoji_emoji_order_preset_gboard" translatable="false">Gboard</string>
     <string name="langemoji_emoji_order_preset_swiftkey" translatable="false">SwiftKey</string>
@@ -299,7 +307,7 @@
     <string name="langemoji_emoji_order_preset_custom">Your own</string>
     <string name="langemoji_emoji_order_preset_confirm_title">Replace your order?</string>
     <!-- %1$s is a keyboard name such as "Gboard", or "Unicode". -->
-    <string name="langemoji_emoji_order_preset_confirm_body">%1$s replaces the tab order, the hidden tabs and the emoji order that you set. Your recents, favourites and skin tones do not change.</string>
+    <string name="langemoji_emoji_order_preset_confirm_body">%1$s replaces the tab order, the hidden tabs, the emoji order and the grid size that you set. Your recents, favourites and skin tones do not change.</string>
     <string name="langemoji_emoji_order_preset_confirm_action">Replace</string>
     <!-- Emoji added by hand, for faces newer than the bundled catalogue. -->
     <string name="langemoji_emoji_added_title">Added emoji</string>

@@ -61,6 +61,8 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiEntry
 import com.wasimaster.wmkeyboard.core.emoji.EmojiOrder
 import com.wasimaster.wmkeyboard.core.emoji.EmojiOrderPreset
 import com.wasimaster.wmkeyboard.app.storage.ConfirmDeleteDialog
+import com.wasimaster.wmkeyboard.core.settings.EmojiGridLayout
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -147,10 +149,26 @@ private const val PRESET_UNICODE = "unicode"
 /** "Arrange like" after a hand edit: no preset matches what is stored. */
 private const val PRESET_CUSTOM = "custom"
 
+/** The grid WM Keyboard ships with, which "Unicode" puts back. */
+private val DefaultEmojiGrid: EmojiGridLayout get() = EmojiGridLayout.of(SettingsDefaults.emoji)
+
+/** The grid [preset] sets: its own values, our defaults where it names none. */
+private fun EmojiOrderPreset.gridLayout(): EmojiGridLayout {
+    val base = DefaultEmojiGrid
+    val own = grid ?: return base
+    return EmojiGridLayout(
+        columns = own.columns ?: base.columns,
+        rowHeight = own.rowHeight ?: base.rowHeight,
+        cellSize = own.cellSize ?: base.cellSize,
+        emojiSize = own.emojiSize ?: base.emojiSize,
+        continuous = own.continuous ?: base.continuous,
+    )
+}
+
 /**
- * Which preset the stored orders are, read back off the orders themselves
- * rather than kept as a setting of its own, so a drag after picking one
- * honestly shows "Your own" and a drag back shows the preset again.
+ * Which preset the stored orders and grid are, read back off them rather
+ * than kept as a setting of its own, so a drag or a resize after picking one
+ * honestly shows "Your own" and putting it back shows the preset again.
  */
 private fun matchingPreset(
     presets: Map<String, EmojiOrderPreset>,
@@ -158,12 +176,16 @@ private fun matchingPreset(
     order: List<String>,
     hidden: Set<String>,
     emojiOrder: Map<String, List<String>>,
+    grid: EmojiGridLayout,
 ): String {
-    if (order.isEmpty() && hidden.isEmpty() && emojiOrder.isEmpty()) return PRESET_UNICODE
+    if (order.isEmpty() && hidden.isEmpty() && emojiOrder.isEmpty() && grid == DefaultEmojiGrid) {
+        return PRESET_UNICODE
+    }
     return presets.entries.firstOrNull { (_, preset) ->
         preset.categoryOrder(categories) == order &&
             preset.hidden(categories) == hidden &&
-            preset.emoji == emojiOrder
+            preset.emoji == emojiOrder &&
+            preset.gridLayout() == grid
     }?.key ?: PRESET_CUSTOM
 }
 
@@ -197,21 +219,23 @@ internal fun EmojiCategorySettings(
             val categoryOrder = settings.watch { it.emoji.categoryOrder }
             val categoryEmojiOrder = settings.watch { it.emoji.categoryEmojiOrder }
             val hiddenCategories = settings.watch { it.emoji.hiddenCategories }
+            val grid = settings.watch { EmojiGridLayout.of(it.emoji) }
             val catalogCategories = remember(catalog) { EmojiOrder.catalogCategories(catalog) }
             val selected = matchingPreset(
-                presets, catalogCategories, categoryOrder, hiddenCategories, categoryEmojiOrder,
+                presets, catalogCategories, categoryOrder, hiddenCategories, categoryEmojiOrder, grid,
             )
             var confirm by remember { mutableStateOf<String?>(null) }
             val apply: (String) -> Unit = { id ->
                 scope.launch {
                     val preset = presets[id]
                     if (preset == null) {
-                        repository.resetEmojiOrder()
+                        repository.setEmojiOrder(emptyList(), emptySet(), emptyMap(), DefaultEmojiGrid)
                     } else {
                         repository.setEmojiOrder(
                             preset.categoryOrder(catalogCategories),
                             preset.hidden(catalogCategories),
                             preset.emoji,
+                            preset.gridLayout(),
                         )
                     }
                 }

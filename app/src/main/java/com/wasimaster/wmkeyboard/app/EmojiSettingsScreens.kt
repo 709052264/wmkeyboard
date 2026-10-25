@@ -1,6 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.annotation.StringRes
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -37,7 +38,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridCellSizeRange
+import com.wasimaster.wmkeyboard.core.settings.EmojiGridColumnsRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridEmojiSizeRange
+import com.wasimaster.wmkeyboard.core.settings.EmojiGridRowHeightRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiRecentsRange
 import com.wasimaster.wmkeyboard.core.settings.MediaPanelExtraHeightRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarMode
@@ -516,6 +519,26 @@ internal fun EmojiPanelSettings(
             ) { scope.launch { repository.setEmojiGridEmojiSize(it.roundToInt()) } }
         }
         item {
+            EmojiGridAutoSlider(
+                title = R.string.langemoji_emoji_grid_columns_title,
+                subtitle = stringResource(R.string.langemoji_emoji_grid_columns_subtitle),
+                info = stringResource(R.string.langemoji_emoji_grid_columns_info),
+                value = settings.watch { it.emoji.gridColumns },
+                range = EmojiGridColumnsRange,
+                default = SettingsDefaults.emoji.gridColumns,
+            ) { scope.launch { repository.setEmojiGridColumns(it) } }
+        }
+        item {
+            EmojiGridAutoSlider(
+                title = R.string.langemoji_emoji_grid_row_height_title,
+                subtitle = stringResource(R.string.langemoji_emoji_grid_row_height_subtitle),
+                info = stringResource(R.string.langemoji_emoji_grid_row_height_info),
+                value = settings.watch { it.emoji.gridRowHeight },
+                range = EmojiGridRowHeightRange,
+                default = SettingsDefaults.emoji.gridRowHeight,
+            ) { scope.launch { repository.setEmojiGridRowHeight(it) } }
+        }
+        item {
             ToggleSetting(
                 R.string.langemoji_emoji_continuous_title,
                 stringResource(R.string.langemoji_emoji_continuous_subtitle),
@@ -839,4 +862,33 @@ private fun emojiTabModeDescRes(mode: EmojiTabMode): Int = when (mode) {
     EmojiTabMode.RECENTS -> R.string.langemoji_emoji_recent_desc
     EmojiTabMode.MOST_USED -> R.string.langemoji_emoji_most_used_desc
     EmojiTabMode.OFF -> R.string.langemoji_emoji_tab_off_desc
+}
+
+/**
+ * A slider over [range] with one more stop below it, "Auto", stored as 0: the
+ * shape of `EmojiSettings.gridColumns` and `EmojiSettings.gridRowHeight`, where
+ * a fixed value is the exception and fitting is the default.
+ */
+@Composable
+private fun EmojiGridAutoSlider(
+    @StringRes title: Int,
+    subtitle: String,
+    info: String,
+    value: Int,
+    range: IntRange,
+    default: Int,
+    onChange: (Int) -> Unit,
+) {
+    val auto = stringResource(R.string.langemoji_emoji_grid_auto)
+    val numberFormat = stringResource(R.string.values_number)
+    val autoStop = range.first - 1
+    SliderSetting(
+        title = title,
+        subtitle = subtitle,
+        value = (if (value <= 0) autoStop else value).toFloat(),
+        range = autoStop.toFloat()..range.last.toFloat(),
+        display = { v -> if (v.roundToInt() <= autoStop) auto else numberFormat.format(v.roundToInt()) },
+        info = info,
+        default = (if (default <= 0) autoStop else default).toFloat(),
+    ) { v -> onChange(if (v.roundToInt() <= autoStop) 0 else v.roundToInt()) }
 }

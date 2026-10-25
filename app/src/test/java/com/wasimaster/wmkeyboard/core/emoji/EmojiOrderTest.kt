@@ -176,6 +176,7 @@ class EmojiOrderTest {
             assertTrue("$id is not listed in EmojiOrderPreset.ids", id in EmojiOrderPreset.ids)
             val preset = EmojiOrderPreset.parse(file.readText())
             assertTrue("$id names a tab the catalog lacks", preset.tabs.all { it in all })
+            assertTrue("$id has no @grid line", preset.grid != null)
             val layout = EmojiOrder.layout(catalog, preset.emoji)
             val tabs = EmojiOrder.categories(
                 catalog, preset.categoryOrder(all), preset.hidden(all), preset.emoji,
@@ -188,6 +189,17 @@ class EmojiOrderTest {
                 assertEquals("$id/$tab", order.filter { it in bases }, layout.getValue(tab).filter { it in order })
             }
         }
+    }
+
+    @Test
+    fun `a preset's grid line is read and is not a tab`() {
+        val preset = EmojiOrderPreset.parse("# a comment\n@grid columns=8 row=51 emoji=34 continuous=true bogus\nsmileys")
+        assertEquals(
+            EmojiOrderPreset.Grid(columns = 8, rowHeight = 51, emojiSize = 34, continuous = true),
+            preset.grid,
+        )
+        assertEquals(listOf("smileys"), preset.tabs)
+        assertEquals(null, EmojiOrderPreset.parse("smileys").grid)
     }
 
     @Test

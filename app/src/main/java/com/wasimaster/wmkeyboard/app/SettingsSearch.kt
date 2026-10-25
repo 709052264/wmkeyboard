@@ -1260,6 +1260,8 @@ private fun SearchStrings.emojiPanelRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.langemoji_emoji_grid_size_title, R.string.langemoji_emoji_grid_size_subtitle),
         row(R.string.langemoji_emoji_size_title, R.string.langemoji_emoji_size_subtitle),
+        row(R.string.langemoji_emoji_grid_columns_title, R.string.langemoji_emoji_grid_columns_subtitle),
+        row(R.string.langemoji_emoji_grid_row_height_title, R.string.langemoji_emoji_grid_row_height_subtitle),
         row(R.string.langemoji_emoji_tab_mode_title, R.string.langemoji_emoji_tab_mode_subtitle),
         row(R.string.langemoji_emoji_clear_recents_title, R.string.langemoji_emoji_clear_recents_subtitle),
         row(R.string.langemoji_emoji_kaomoji_title, R.string.langemoji_emoji_kaomoji_subtitle),

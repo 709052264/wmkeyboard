@@ -171,9 +171,19 @@ Each keyboard groups emoji a little differently from WM Keyboard's catalogue, wh
 | SwiftKey | 8 | Faces and people share one Smileys tab. Plants join Animals, and the sky and weather join Travel. Nature and People are hidden. |
 | HeliBoard | 9 | Unicode's own groups: plants join Animals, and the sky and weather join Travel. Nature is hidden. |
 
+The grid changes with the order, so the same swipe scrolls to the same emoji you'd reach on that keyboard:
+
+| Preset | Columns | Row height | Emoji size | Scrolling |
+|---|---|---|---|---|
+| Gboard | 8 | 51 dp | 34 | One long list |
+| SwiftKey | As many as fit at 44 dp | 44 dp | 30 | A page per tab |
+| HeliBoard | 8 | 45 dp | 35 | A page per tab |
+
+These are each keyboard's values on a phone held upright at its default keyboard height, read from its own resources and code. Gboard's column count is a server setting that defaults to 8, and its rows grow when it shows fewer columns. All of them can be changed afterwards under [Emoji panel](/reference/settings/emoji/) (**Columns**, **Row height**, **Emoji size**, **One long list**).
+
 The orders were read from Gboard 18.4, SwiftKey 9.13 and HeliBoard 4.1.
 
-A preset is a starting point, not a mode. It fills in the same tab order, hidden tabs and per-tab emoji order that you can [drag by hand](/reference/settings/emoji/#emoji-categories), so you can keep rearranging afterwards. Once you've moved something the setting shows **Your own**, and picking a preset again asks before it replaces your changes. An emoji the other keyboard doesn't have, such as one from a newer Unicode release, goes next to the emoji it follows in the catalogue, on whatever tab that one sits on.
+A preset is a starting point, not a mode. It fills in the same tab order, hidden tabs and per-tab emoji order that you can [drag by hand](/reference/settings/emoji/#emoji-categories), so you can keep rearranging afterwards. Once you've moved something or resized the grid the setting shows **Your own**, and picking a preset again asks before it replaces your changes. An emoji the other keyboard doesn't have, such as one from a newer Unicode release, goes next to the emoji it follows in the catalogue, on whatever tab that one sits on.
 
 ## Details & edge cases
 
