@@ -1865,6 +1865,8 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.STICKER, R.string.langemoji_panel_height_title, R.string.langemoji_panel_height_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_hide_header_title, R.string.tooldetail_media_hide_header_subtitle),
     toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_hide_header_title, R.string.tooldetail_media_hide_header_subtitle),
+    toolEntry(ToolbarTool.GIF, R.string.tooldetail_media_remember_search_title, R.string.tooldetail_media_remember_search_subtitle),
+    toolEntry(ToolbarTool.STICKER, R.string.tooldetail_media_remember_search_title, R.string.tooldetail_media_remember_search_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_recent_title, R.string.tooldetail_gif_recent_subtitle),
     toolEntry(ToolbarTool.GIF, R.string.tooldetail_gif_favourites_offline_title, R.string.tooldetail_gif_favourites_offline_subtitle),
     // KLIPY, GIPHY, Commons, GifCities and the packs are rows of the provider list now.

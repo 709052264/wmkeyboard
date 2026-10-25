@@ -3224,10 +3224,14 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    /** The stashed search to restore when [panel] opens. */
-    private fun savedMediaSearch(panel: PanelMode): MediaSearchMemory = when (panel) {
-        PanelMode.GIF -> savedGifSearch
-        PanelMode.STICKER -> savedStickerSearch
+    /**
+     * The stashed search to restore when [panel] opens; nothing, so trending,
+     * when the user asked for the panels to open fresh (#906).
+     */
+    private fun savedMediaSearch(panel: PanelMode): MediaSearchMemory = when {
+        !_uiState.value.settings.gif.rememberSearch -> MediaSearchMemory()
+        panel == PanelMode.GIF -> savedGifSearch
+        panel == PanelMode.STICKER -> savedStickerSearch
         else -> MediaSearchMemory()
     }
 

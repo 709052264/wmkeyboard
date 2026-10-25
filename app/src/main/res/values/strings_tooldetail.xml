@@ -554,6 +554,10 @@
     <string name="tooldetail_media_spacing_title">Gap between cells</string>
     <string name="tooldetail_media_spacing_subtitle">The space around each GIF and sticker in the grid. This applies to both tools</string>
     <string name="tooldetail_media_spacing_value" tools:ignore="PluralsCandidate">%1$d dp</string>
+    <!-- Toggle: whether the GIF and sticker panels reopen on the last search. -->
+    <string name="tooldetail_media_remember_search_title">Remember the last search</string>
+    <string name="tooldetail_media_remember_search_subtitle">Open the panel on the search you left it on, instead of trending</string>
+    <string name="tooldetail_media_remember_search_info">On, closing the panel or moving to another text box keeps the search and the category chip you picked, and the panel opens on them next time. Off, the panel always opens on trending with no search typed. This applies to both tools.</string>
     <string name="tooldetail_media_hide_header_title">Hide the search when you scroll</string>
     <string name="tooldetail_media_hide_header_subtitle">Scroll down to fold the search box and the chips away, and scroll up to bring them back</string>
     <string name="tooldetail_gif_collections_group">Favourites and recent</string>

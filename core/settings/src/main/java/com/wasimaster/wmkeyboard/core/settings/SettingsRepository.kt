@@ -3038,6 +3038,11 @@ data class GifSettings(
      */
     val hideHeaderOnScroll: Boolean = false,
     /**
+     * Reopening the GIF or sticker panel lands back on the last search and
+     * category it showed (#906). Off, each opening starts on trending.
+     */
+    val rememberSearch: Boolean = true,
+    /**
      * A Recent chip on the GIF panel, listing the GIFs sent last (#597). Off
      * by default: it keeps a record of what was sent, which nobody asked for
      * until they turn it on.
@@ -10953,6 +10958,7 @@ class SettingsRepository(private val context: Context) {
         private val STICKER_PER_ROW = intPreferencesKey("sticker_per_row")
         private val MEDIA_GRID_SPACING = intPreferencesKey("media_grid_spacing")
         private val MEDIA_HIDE_HEADER_ON_SCROLL = booleanPreferencesKey("media_hide_header_on_scroll")
+        private val MEDIA_REMEMBER_SEARCH = booleanPreferencesKey("media_remember_search")
         private val GIF_RECENT = booleanPreferencesKey("gif_recent")
         private val GIF_FAVOURITES_OFFLINE = booleanPreferencesKey("gif_favourites_offline")
         private val GIF_CITIES = booleanPreferencesKey("gif_cities")
@@ -13078,6 +13084,7 @@ class SettingsRepository(private val context: Context) {
             stickerPerRow = p[STICKER_PER_ROW]?.coerceIn(MediaPerRowRange) ?: defaults.gif.stickerPerRow,
             gridSpacing = p[MEDIA_GRID_SPACING]?.coerceIn(MediaGridSpacingRange) ?: defaults.gif.gridSpacing,
             hideHeaderOnScroll = p[MEDIA_HIDE_HEADER_ON_SCROLL] ?: defaults.gif.hideHeaderOnScroll,
+            rememberSearch = p[MEDIA_REMEMBER_SEARCH] ?: defaults.gif.rememberSearch,
             recentGifs = p[GIF_RECENT] ?: defaults.gif.recentGifs,
             favouritesOffline = p[GIF_FAVOURITES_OFFLINE] ?: defaults.gif.favouritesOffline,
             gifCities = p[GIF_CITIES] ?: defaults.gif.gifCities,
@@ -20435,6 +20442,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setMediaHideHeaderOnScroll(value: Boolean) =
         editPrefs { it[MEDIA_HIDE_HEADER_ON_SCROLL] = value }
+
+    suspend fun setMediaRememberSearch(value: Boolean) =
+        editPrefs { it[MEDIA_REMEMBER_SEARCH] = value }
 
     suspend fun setRecentGifs(value: Boolean) =
         editPrefs { it[GIF_RECENT] = value }

@@ -2236,6 +2236,15 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setMediaHideHeaderOnScroll(it) } }
                 }
                 item {
+                    ToggleSetting(
+                        R.string.tooldetail_media_remember_search_title,
+                        stringResource(R.string.tooldetail_media_remember_search_subtitle),
+                        settings.watch { it.gif.rememberSearch },
+                        info = stringResource(R.string.tooldetail_media_remember_search_info),
+                        default = SettingsDefaults.gif.rememberSearch,
+                    ) { scope.launch { repository.setMediaRememberSearch(it) } }
+                }
+                item {
                     // A panel layout like the emoji panel's (#538): the keys
                     // under the results, and where the switch sits.
                     val panel = if (tool == ToolbarTool.STICKER) PanelKind.STICKER else PanelKind.GIF
