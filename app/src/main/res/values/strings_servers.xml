@@ -108,4 +108,7 @@
     <string name="servers_repo_current">Files come from %1$s</string>
     <string name="servers_repo_incomplete">Some fields are empty, so the keyboard uses the default repository</string>
     <string name="servers_repo_reset">Use the default repository</string>
+    <string name="servers_section_speed_test">Speed test</string>
+    <string name="servers_cloudflare_speed">Cloudflare speed test</string>
+    <string name="servers_librespeed_list">LibreSpeed server list</string>
 </resources>

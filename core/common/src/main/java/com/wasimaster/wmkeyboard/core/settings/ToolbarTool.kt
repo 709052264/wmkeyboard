@@ -170,6 +170,11 @@ enum class ToolbarTool {
     // Emoji › Emoji mixes: the panel beside emoji, GIFs and stickers on the
     // switch. Nothing ships for it, so it is blocked until a source is added.
     EMOJI_MIX,
+    // An internet speed test (download, upload, ping, jitter) whose result
+    // goes into the field as a picture: a card drawn in one of several
+    // styles, sizes and layouts. Against Cloudflare's test servers or a
+    // LibreSpeed server, from the tool's own provider list.
+    SPEED_TEST,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -392,7 +397,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
-    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
+    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.SPEED_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,

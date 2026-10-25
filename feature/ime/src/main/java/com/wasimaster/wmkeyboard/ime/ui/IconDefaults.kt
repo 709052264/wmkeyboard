@@ -100,6 +100,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SentimentSatisfied
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Settings
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SmartButton
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Speed
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.NetworkCheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Spellcheck
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SportsSoccer
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapHoriz
@@ -195,6 +196,8 @@ object IconDefaults {
         ToolbarTool.TEXT_REPEAT -> Icons.Outlined.Repeat
         ToolbarTool.READ_BACK -> Icons.AutoMirrored.Outlined.VolumeUp
         ToolbarTool.TYPING_TEST -> Icons.Outlined.Speed
+        // The typing test has the plain speedometer; this is the one with the signal.
+        ToolbarTool.SPEED_TEST -> Icons.Outlined.NetworkCheck
         // The settings app's own Statistics glyph, so the tool and the row it
         // opens look like the same thing.
         ToolbarTool.STATISTICS -> Icons.Outlined.QueryStats

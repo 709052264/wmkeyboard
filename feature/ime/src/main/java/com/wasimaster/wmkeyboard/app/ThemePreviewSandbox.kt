@@ -308,6 +308,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.PASSWORD_GEN -> PanelMode.PASSWORD_GEN
     ToolbarTool.TEXT_REPEAT -> PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> PanelMode.TYPING_TEST
+    ToolbarTool.SPEED_TEST -> PanelMode.SPEED_TEST
     ToolbarTool.MEDIA_CONTROL -> PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> PanelMode.KDE_CONNECT
     ToolbarTool.PLUGINS -> PanelMode.PLUGINS

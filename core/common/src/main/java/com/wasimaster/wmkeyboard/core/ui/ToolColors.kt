@@ -75,6 +75,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.TEXT_REPEAT -> Color(0xFF7E57C2)
     ToolbarTool.READ_BACK -> Color(0xFF26A69A)
     ToolbarTool.TYPING_TEST -> Color(0xFFFF7043)
+    // A clear sky blue, for a line to the internet; the typing test beside it is orange.
+    ToolbarTool.SPEED_TEST -> Color(0xFF42A5F5)
     // Trophy gold: the screen it opens is levels and achievements.
     ToolbarTool.STATISTICS -> Color(0xFFFFA000)
     ToolbarTool.FIND_REPLACE -> Color(0xFF5C6BC0)

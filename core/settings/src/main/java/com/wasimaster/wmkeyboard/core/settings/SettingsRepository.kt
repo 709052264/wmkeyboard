@@ -148,6 +148,10 @@ import com.wasimaster.wmkeyboard.core.tools.SymbolSet
 import com.wasimaster.wmkeyboard.core.tools.SymbolSetCodec
 import com.wasimaster.wmkeyboard.core.tools.sanitizeSymbolPopups
 import com.wasimaster.wmkeyboard.core.tools.TypingTestMode
+import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardLayout
+import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardSize
+import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardStyle
+import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedUnit
 import com.wasimaster.wmkeyboard.core.util.runCancellable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -3910,6 +3914,8 @@ data class KeyboardSettings(
     val textRepeat: TextRepeatSettings = TextRepeatSettings(),
     /** Typing-speed test: its options and its records; see [TypingTestSettings]. */
     val typingTest: TypingTestSettings = TypingTestSettings(),
+    /** Internet speed test: its options, its card and its last result; see [SpeedTestSettings]. */
+    val speedTest: SpeedTestSettings = SpeedTestSettings(),
     /**
      * Count typing statistics — characters, words, backspaces and active
      * time, per day — for the About › Statistics screen. Aggregate numbers
@@ -5289,6 +5295,32 @@ data class TypingTestSettings(
     val completed: Int = 0,
     /** Unlocked achievement badges, encoded by [TypingAchievements]. */
     val achievements: String = "",
+)
+
+/**
+ * The internet speed test: how a run goes, how its card is drawn, and the
+ * last result. Grouped for the same ceiling reason as [TypingTestSettings].
+ * The panel's style, size and layout chips write here too, so the card comes
+ * back the way it was last sent. DataStore keys are flat (`spd_*`).
+ */
+data class SpeedTestSettings(
+    /** Seconds per transfer phase: 5, 10 or 15. */
+    val duration: Int = 10,
+    /** Requests in flight at once during a transfer, 1 to 8. */
+    val connections: Int = 4,
+    /** Measure upload too; off, a run is pings and download only. */
+    val upload: Boolean = true,
+    val unit: SpeedUnit = SpeedUnit.MBPS,
+    val cardStyle: SpeedCardStyle = SpeedCardStyle.THEME,
+    val cardSize: SpeedCardSize = SpeedCardSize.SQUARE,
+    val cardLayout: SpeedCardLayout = SpeedCardLayout.FULL,
+    /** Whether Send offers the card as a sticker where the app takes one. */
+    val sendMode: MediaSendMode = MediaSendMode.IMAGE,
+    val saveToGallery: Boolean = false,
+    /** Put the connection's public address on the card. Off: it is a personal detail. */
+    val showIp: Boolean = false,
+    /** The last finished run, as `SpeedTestResult.encode` writes it; blank for none. */
+    val lastResult: String = "",
 )
 
 /**
@@ -10500,6 +10532,7 @@ class SettingsRepository(private val context: Context) {
         private val DS_FILE_SEND = stringPreferencesKey("data_saver_file_send")
         private val DS_CLOUD_VOICE = stringPreferencesKey("data_saver_cloud_voice")
         private val DS_CLOUD_GRAMMAR = stringPreferencesKey("data_saver_cloud_grammar")
+        private val DS_SPEED_TEST = stringPreferencesKey("data_saver_speed_test")
         private val OFFLINE_FALLBACK = booleanPreferencesKey("offline_fallback")
         private val BACKSPACE_SWIPE_DELETE = booleanPreferencesKey("backspace_swipe_delete")
         private val HARDWARE_KEYBOARD_INPUT = booleanPreferencesKey("hardware_keyboard_input")
@@ -11389,6 +11422,17 @@ class SettingsRepository(private val context: Context) {
         private val TT_HISTORY = stringPreferencesKey("tt_history")
         private val TT_COMPLETED = intPreferencesKey("tt_completed")
         private val TT_ACHIEVEMENTS = stringPreferencesKey("tt_achievements")
+        private val SPD_DURATION = intPreferencesKey("spd_duration")
+        private val SPD_CONNECTIONS = intPreferencesKey("spd_connections")
+        private val SPD_UPLOAD = booleanPreferencesKey("spd_upload")
+        private val SPD_UNIT = stringPreferencesKey("spd_unit")
+        private val SPD_CARD_STYLE = stringPreferencesKey("spd_card_style")
+        private val SPD_CARD_SIZE = stringPreferencesKey("spd_card_size")
+        private val SPD_CARD_LAYOUT = stringPreferencesKey("spd_card_layout")
+        private val SPD_SEND_MODE = stringPreferencesKey("spd_send_mode")
+        private val SPD_SAVE_TO_GALLERY = booleanPreferencesKey("spd_save_to_gallery")
+        private val SPD_SHOW_IP = booleanPreferencesKey("spd_show_ip")
+        private val SPD_LAST_RESULT = stringPreferencesKey("spd_last_result")
         private val TYPING_STATS_ENABLED = booleanPreferencesKey("typing_stats_enabled")
         private val STATS_VERSION = intPreferencesKey("stats_version")
         private val QR_SIZE_PX = intPreferencesKey("qr_size_px")
@@ -11960,6 +12004,7 @@ class SettingsRepository(private val context: Context) {
             passwordGenerator = readPasswordGenerator(p, defaults),
             textRepeat = readTextRepeat(p, defaults),
             typingTest = readTypingTest(p, defaults),
+            speedTest = readSpeedTest(p, defaults),
             typingStatsEnabled = p[TYPING_STATS_ENABLED] ?: defaults.typingStatsEnabled,
             statsVersion = p[STATS_VERSION] ?: defaults.statsVersion,
             ai = readAi(p, defaults),
@@ -13726,6 +13771,23 @@ class SettingsRepository(private val context: Context) {
             completed = p[TT_COMPLETED] ?: defaults.typingTest.completed,
             achievements = p[TT_ACHIEVEMENTS] ?: defaults.typingTest.achievements,
         )
+
+    private fun readSpeedTest(p: Preferences, defaults: KeyboardSettings): SpeedTestSettings {
+        val d = defaults.speedTest
+        return SpeedTestSettings(
+            duration = p[SPD_DURATION] ?: d.duration,
+            connections = p[SPD_CONNECTIONS] ?: d.connections,
+            upload = p[SPD_UPLOAD] ?: d.upload,
+            unit = p[SPD_UNIT]?.let { v -> runCatching { SpeedUnit.valueOf(v) }.getOrNull() } ?: d.unit,
+            cardStyle = p[SPD_CARD_STYLE]?.let { v -> runCatching { SpeedCardStyle.valueOf(v) }.getOrNull() } ?: d.cardStyle,
+            cardSize = p[SPD_CARD_SIZE]?.let { v -> runCatching { SpeedCardSize.valueOf(v) }.getOrNull() } ?: d.cardSize,
+            cardLayout = p[SPD_CARD_LAYOUT]?.let { v -> runCatching { SpeedCardLayout.valueOf(v) }.getOrNull() } ?: d.cardLayout,
+            sendMode = p[SPD_SEND_MODE]?.let { v -> runCatching { MediaSendMode.valueOf(v) }.getOrNull() } ?: d.sendMode,
+            saveToGallery = p[SPD_SAVE_TO_GALLERY] ?: d.saveToGallery,
+            showIp = p[SPD_SHOW_IP] ?: d.showIp,
+            lastResult = p[SPD_LAST_RESULT] ?: d.lastResult,
+        )
+    }
 
     private fun readAi(p: Preferences, defaults: KeyboardSettings) =
         AiSettings(
@@ -16880,6 +16942,7 @@ class SettingsRepository(private val context: Context) {
             fileSend = p.policy(DS_FILE_SEND, d.fileSend),
             cloudVoice = p.policy(DS_CLOUD_VOICE, d.cloudVoice),
             cloudGrammar = p.policy(DS_CLOUD_GRAMMAR, d.cloudGrammar),
+            speedTest = p.policy(DS_SPEED_TEST, d.speedTest),
             offlineFallback = p[OFFLINE_FALLBACK] ?: d.offlineFallback,
         )
     }
@@ -19649,6 +19712,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setDataSaverCloudGrammar(value: MeteredPolicy) =
         editPrefs { it[DS_CLOUD_GRAMMAR] = value.name }
 
+    suspend fun setDataSaverSpeedTest(value: MeteredPolicy) =
+        editPrefs { it[DS_SPEED_TEST] = value.name }
+
     suspend fun setDataSaverFileSend(value: MeteredPolicy) =
         editPrefs { it[DS_FILE_SEND] = value.name }
 
@@ -21614,6 +21680,40 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setTypingTestSuggestions(value: Boolean) =
         editPrefs { it[TT_SUGGESTIONS] = value }
+
+    suspend fun setSpeedTestDuration(value: Int) =
+        editPrefs { it[SPD_DURATION] = value.coerceIn(5, 30) }
+
+    suspend fun setSpeedTestConnections(value: Int) =
+        editPrefs { it[SPD_CONNECTIONS] = value.coerceIn(1, 8) }
+
+    suspend fun setSpeedTestUpload(value: Boolean) =
+        editPrefs { it[SPD_UPLOAD] = value }
+
+    suspend fun setSpeedTestUnit(value: SpeedUnit) =
+        editPrefs { it[SPD_UNIT] = value.name }
+
+    suspend fun setSpeedTestCardStyle(value: SpeedCardStyle) =
+        editPrefs { it[SPD_CARD_STYLE] = value.name }
+
+    suspend fun setSpeedTestCardSize(value: SpeedCardSize) =
+        editPrefs { it[SPD_CARD_SIZE] = value.name }
+
+    suspend fun setSpeedTestCardLayout(value: SpeedCardLayout) =
+        editPrefs { it[SPD_CARD_LAYOUT] = value.name }
+
+    suspend fun setSpeedTestSendMode(value: MediaSendMode) =
+        editPrefs { it[SPD_SEND_MODE] = value.name }
+
+    suspend fun setSpeedTestSaveToGallery(value: Boolean) =
+        editPrefs { it[SPD_SAVE_TO_GALLERY] = value }
+
+    suspend fun setSpeedTestShowIp(value: Boolean) =
+        editPrefs { it[SPD_SHOW_IP] = value }
+
+    /** Keeps the run just finished as the one the panel opens on and the card compares with. */
+    suspend fun setSpeedTestLastResult(encoded: String) =
+        editPrefs { it[SPD_LAST_RESULT] = encoded }
 
     /**
      * Files a finished run: appends it to the history, bumps the counter,

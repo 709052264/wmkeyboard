@@ -1881,6 +1881,8 @@ object SmartSuggest {
         ToolbarTool.DOC_SCAN to listOf("docscan"),
         ToolbarTool.HANDWRITING to listOf("handwrite"),
         ToolbarTool.TYPING_TEST to listOf("wpm"),
+        // Not "speed": everyday prose. The joined word and the jargon are what someone means.
+        ToolbarTool.SPEED_TEST to listOf("speedtest", "bandwidth"),
         ToolbarTool.DICTIONARY to listOf("define", "dict"),
         ToolbarTool.VOCABULARY to listOf("vocab", "vocabulary"),
         ToolbarTool.GRAMMAR to listOf("grammar"),

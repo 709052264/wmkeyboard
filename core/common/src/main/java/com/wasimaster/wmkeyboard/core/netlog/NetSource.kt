@@ -77,6 +77,13 @@ enum class NetSource(
      */
     LOCATION("location", ToolbarTool.LOCATION),
     CURRENCY("currency", ToolbarTool.CURRENCY),
+
+    /**
+     * The speed test's traffic: the random bytes it pulls and pushes, its
+     * latency probes, and the one request that names the connection's
+     * network. Only ever while a run the user started is going.
+     */
+    SPEED_TEST("speed_test", ToolbarTool.SPEED_TEST),
     /** Searching photos is asked for; refilling the rotation pool passes `background` itself. */
     PHOTOS("photos"),
     LINK_PREVIEW("link_preview", ToolbarTool.CLIPBOARD, background = true),

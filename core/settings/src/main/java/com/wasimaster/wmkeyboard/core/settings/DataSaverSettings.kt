@@ -189,6 +189,13 @@ data class DataSaverSettings(
     val cloudGrammar: MeteredPolicy = MeteredPolicy.ALLOW,
 
     /**
+     * A run of the speed test, which moves more data than anything else the
+     * keyboard does (a hundred megabytes or more on a fast line). Asks by
+     * default: the panel says how much a run is likely to cost before it goes.
+     */
+    val speedTest: MeteredPolicy = MeteredPolicy.ASK,
+
+    /**
      * With no connection, or with the server not answering, dictation, the AI
      * actions and the Translate tool use the on-device model instead of the
      * server they are set to (#452), where one is downloaded. Not a data-saving
@@ -217,7 +224,7 @@ data class DataSaverSettings(
             linkPreviews, dictionaryLookup, photoBackgrounds, weatherChip,
             currencyRates, addonRefresh, mediaSearch, webSearch, animatedEmoji,
             downloads, cloudAi, cloudVoice, fileSend, cloudGrammar,
-            vocabAudio,
+            vocabAudio, speedTest,
         ).any { it != MeteredPolicy.ALLOW }
 }
 
@@ -254,6 +261,9 @@ enum class MeteredFeature {
 
     /** The field's text sent to a LanguageTool server for a grammar check. */
     CLOUD_GRAMMAR,
+
+    /** A run of the speed test: tens to hundreds of megabytes, on purpose. */
+    SPEED_TEST,
 }
 
 /** What may happen to one [MeteredFeature] right now. */
@@ -295,6 +305,7 @@ data class DataSaverStatus(
         MeteredFeature.CLOUD_VOICE -> settings.cloudVoice
         MeteredFeature.FILE_SEND -> settings.fileSend
         MeteredFeature.CLOUD_GRAMMAR -> settings.cloudGrammar
+        MeteredFeature.SPEED_TEST -> settings.speedTest
     }
 
     fun decide(feature: MeteredFeature): MeteredDecision = when {

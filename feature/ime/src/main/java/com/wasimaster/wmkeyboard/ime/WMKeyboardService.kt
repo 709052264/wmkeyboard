@@ -6167,6 +6167,7 @@ open class WMKeyboardService : InputMethodService() {
                 onPwSetting = ::onPwSetting,
                 onTextRepeat = ::onTextRepeat,
                 onTypingTestAction = ::onTypingTestAction,
+                onSpeedTestAction = ::onSpeedTestAction,
                 onQrSend = ::onQrSend,
                 onAiAction = ::onAiAction,
                 onAiReplace = ::onAiReplace,
@@ -8861,6 +8862,8 @@ open class WMKeyboardService : InputMethodService() {
         keyboardVisible = false
         // A continuation asked for in the closing field has nowhere to go.
         clearAiSuggest()
+        // A speed test under way when the keyboard goes has nobody watching it.
+        if (speedTestDelegate.isInitialized()) speedTest.cancel()
         // Keys held for a two-thumb read were meant for the field now closing.
         keysBehindDuet.clear()
         // No finger outlives the window it was on (#743).
@@ -28992,6 +28995,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.PASSWORD_GEN -> onPanelChange(PanelMode.PASSWORD_GEN)
             ToolbarTool.TEXT_REPEAT -> onPanelChange(PanelMode.TEXT_REPEAT)
             ToolbarTool.TYPING_TEST -> onPanelChange(PanelMode.TYPING_TEST)
+            ToolbarTool.SPEED_TEST -> onPanelChange(PanelMode.SPEED_TEST)
             // Not a panel: the levels, achievements and heatmap live on the
             // settings app's Statistics screen, and this is a shortcut to it (#390).
             ToolbarTool.STATISTICS -> openRoute(STATISTICS_ROUTE)
@@ -29425,9 +29429,12 @@ open class WMKeyboardService : InputMethodService() {
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
                 startTypingTest()
             }
+            PanelMode.SPEED_TEST -> speedTest.onOpen()
             else -> {}
         }
         if (_uiState.value.panel != PanelMode.TYPING_TEST) stopTypingTest()
+        // Leaving the panel stops a run: nobody is watching, and it costs data.
+        if (_uiState.value.panel != PanelMode.SPEED_TEST && speedTestDelegate.isInitialized()) speedTest.onClose()
         if (_uiState.value.panel == PanelMode.HANDWRITING) {
             // Flush any half-typed word so handwriting appends after it.
             currentInputConnection?.let { commitComposing(it, autocorrect = false) }
@@ -41908,6 +41915,57 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val emojiMixTool by emojiMixToolDelegate
+
+    /**
+     * The speed test tool, made the first time its panel opens. Its host is
+     * the handful of keyboard doings a run and its card need: the data-saver
+     * question, sending a picture into the field, the gallery, the share screen.
+     */
+    private val speedTestDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestController(
+            context = this,
+            scope = serviceScope,
+            repository = settingsRepository,
+            host = object : com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestController.Host {
+                override val state: KeyboardUiState get() = _uiState.value
+                override fun publish(change: (KeyboardUiState) -> KeyboardUiState) = _uiState.update(change)
+                override fun haptic() = vibrate()
+                override fun metered() = dataSaverStatus.decide(MeteredFeature.SPEED_TEST)
+                override fun grantMetered() = this@WMKeyboardService.grantMetered(MeteredFeature.SPEED_TEST)
+                override fun send(file: File, mode: MediaSendMode) {
+                    commitImageFile(file, MediaMime.PNG, mode)
+                    refreshSuggestions()
+                }
+                override fun share(file: File) = shareSpeedCard(file)
+                override fun saveToGallery(file: File, confirm: Boolean) =
+                    saveToGalleryIfEnabled(file, MediaMime.PNG, enabled = true, namePrefix = "SPEED", confirm = confirm)
+                override fun insertText(text: String) = onToolTextInsert(text)
+                override fun toast(message: Int) = this@WMKeyboardService.toast(message)
+                override fun closePanel() {
+                    if (_uiState.value.panel == PanelMode.SPEED_TEST) onPanelChange(PanelMode.SPEED_TEST)
+                }
+            },
+        )
+    }
+    private val speedTest by speedTestDelegate
+
+    fun onSpeedTestAction(action: com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction) = speedTest.onAction(action)
+
+    /** The speed test's card to another app's share screen, as a PNG. */
+    private fun shareSpeedCard(file: File) {
+        val uri = runCatching {
+            FileProvider.getUriForFile(this, clipboardFileProviderAuthority, file)
+        }.getOrNull() ?: return
+        val intent = Intent(Intent.ACTION_SEND)
+            .setType(MediaMime.PNG)
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+            // The grant travels on the clip data; the extra alone carries none.
+            .apply { clipData = ClipData.newRawUri(null, uri) }
+        val chooser = Intent.createChooser(intent, null)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        runCatching { startActivity(chooser) }
+    }
 
     private fun emojiMixCallbacks() = com.wasimaster.wmkeyboard.ime.ui.EmojiMixCallbacks(
         onPickEmoji = { emojiMixTool.onPickEmoji(it) },

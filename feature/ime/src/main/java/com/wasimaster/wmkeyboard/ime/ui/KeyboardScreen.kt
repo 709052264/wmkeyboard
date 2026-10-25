@@ -558,6 +558,7 @@ import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
 import com.wasimaster.wmkeyboard.ime.TextRepeatAction
 import com.wasimaster.wmkeyboard.ime.TypingTestAction
+import com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
 import com.wasimaster.wmkeyboard.ime.voiceChipOnly
@@ -1478,6 +1479,7 @@ fun KeyboardScreen(
     onPwSetting: (PwSettingAction) -> Unit = {},
     onTextRepeat: (TextRepeatAction) -> Unit = {},
     onTypingTestAction: (TypingTestAction) -> Unit = {},
+    onSpeedTestAction: (SpeedTestAction) -> Unit = {},
     onQrSend: () -> Unit = {},
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit = {},
     onAiReplace: () -> Unit = {},
@@ -1699,6 +1701,7 @@ fun KeyboardScreen(
                 onPwSetting = onPwSetting,
                 onTextRepeat = onTextRepeat,
                 onTypingTestAction = onTypingTestAction,
+                onSpeedTestAction = onSpeedTestAction,
                 onQrSend = onQrSend,
                 onAiAction = onAiAction,
                 onAiReplace = onAiReplace,
@@ -8583,6 +8586,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.ime_tool_password_gen
     ToolbarTool.TEXT_REPEAT -> R.string.ime_tool_text_repeat
     ToolbarTool.TYPING_TEST -> R.string.ime_tool_typing_test
+    ToolbarTool.SPEED_TEST -> R.string.ime_tool_speed_test
     ToolbarTool.MEDIA_CONTROL -> R.string.ime_tool_media_control
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
@@ -8707,6 +8711,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.PASSWORD_GEN -> state.panel == PanelMode.PASSWORD_GEN
     ToolbarTool.TEXT_REPEAT -> state.panel == PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> state.panel == PanelMode.TYPING_TEST
+    ToolbarTool.SPEED_TEST -> state.panel == PanelMode.SPEED_TEST
     ToolbarTool.MEDIA_CONTROL -> state.panel == PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> state.panel == PanelMode.KDE_CONNECT
     ToolbarTool.PLUGINS -> state.panel == PanelMode.PLUGINS
@@ -13236,6 +13241,7 @@ private fun KeyboardBody(
     onPwSetting: (PwSettingAction) -> Unit,
     onTextRepeat: (TextRepeatAction) -> Unit,
     onTypingTestAction: (TypingTestAction) -> Unit,
+    onSpeedTestAction: (SpeedTestAction) -> Unit,
     onQrSend: () -> Unit,
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit,
     onAiReplace: () -> Unit,
@@ -13800,6 +13806,7 @@ private fun KeyboardBody(
                         .height(keyRowsHeight(state)),
                 ) { LevelPanel(state) }
                 PanelMode.MOON_PHASE -> MoonPhasePanel(state)
+                PanelMode.SPEED_TEST -> SpeedTestPanel(state, onSpeedTestAction)
                 PanelMode.CUSTOM_LAYOUTS -> CustomLayoutPanel(state, onKey)
                 PanelMode.WEATHER -> WeatherPanel(
                     state = state,

@@ -238,6 +238,7 @@ private val ServiceGroup.titleRes: Int
         ServiceGroup.WEATHER -> R.string.servers_section_weather
         ServiceGroup.MAPS -> R.string.servers_section_maps
         ServiceGroup.CURRENCY -> R.string.servers_section_currency
+        ServiceGroup.SPEED_TEST -> R.string.servers_section_speed_test
         ServiceGroup.AI -> R.string.servers_section_ai
         ServiceGroup.UPDATES -> R.string.servers_section_updates
     }
@@ -271,6 +272,8 @@ internal val ServiceEndpoint.labelRes: Int
         ServiceEndpoint.ER_API -> R.string.servers_er_api
         ServiceEndpoint.COINBASE -> R.string.servers_coinbase
         ServiceEndpoint.COINGECKO -> R.string.servers_coingecko
+        ServiceEndpoint.CLOUDFLARE_SPEED -> R.string.servers_cloudflare_speed
+        ServiceEndpoint.LIBRESPEED_LIST -> R.string.servers_librespeed_list
         ServiceEndpoint.ANTHROPIC -> R.string.servers_anthropic
         ServiceEndpoint.OPENAI -> R.string.servers_openai
         ServiceEndpoint.GEMINI -> R.string.servers_gemini

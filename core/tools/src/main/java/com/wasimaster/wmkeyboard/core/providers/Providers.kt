@@ -70,6 +70,13 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * or, in [ChainMode.FALLBACK], with the first that is on and answers.
      */
     IMAGE_GEN("image_gen", listOf(ChainMode.PICK, ChainMode.FALLBACK), R.string.core_tools_provider_tool_image_gen),
+
+    /**
+     * The speed test's servers: Cloudflare's, and LibreSpeed backends, the
+     * user's own or picked from the public list. One run goes to one server,
+     * the one chosen on the panel, so the list is always in [ChainMode.PICK].
+     */
+    SPEED_TEST("speed_test", listOf(ChainMode.PICK), R.string.core_tools_provider_tool_speed_test),
     ;
 
     /**
@@ -795,6 +802,25 @@ object ProviderTypes {
         CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
     )
 
+    // ---- The speed test.
+
+    private val SPEED = setOf(ProviderTool.SPEED_TEST)
+
+    /** speed.cloudflare.com: no key, no account, and it names the network and the data centre that answered. */
+    val CLOUDFLARE_SPEED = ProviderType(
+        "cloudflare_speed", SPEED, R.string.core_tools_provider_cloudflare_speed, R.string.core_tools_provider_cloudflare_speed_desc,
+    )
+
+    /**
+     * A LibreSpeed backend (free software, GPL): one the user runs, or one of
+     * the volunteers' from the public list, which the row's own screen picks
+     * from and writes onto the credential (`LibreSpeedServers` keys in `extra`).
+     */
+    val LIBRESPEED = ProviderType(
+        "librespeed", SPEED, R.string.core_tools_provider_librespeed, R.string.core_tools_provider_librespeed_desc,
+        CredentialSpec(url = Need.REQUIRED), multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
     /** Voice type id → the engine id dictation stores and runs. */
     val VOICE_ENGINES: Map<String, String> by lazy {
         mapOf(
@@ -832,6 +858,7 @@ object ProviderTypes {
         HARPER, LANGUAGETOOL,
         ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
         REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
+        CLOUDFLARE_SPEED, LIBRESPEED,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

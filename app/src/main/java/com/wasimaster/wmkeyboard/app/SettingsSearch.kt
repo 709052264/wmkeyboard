@@ -2052,6 +2052,18 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_glide_title, R.string.toolai_typing_glide_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_suggestions_title, R.string.toolai_typing_suggestions_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_clear_records_title, R.string.toolai_typing_clear_records_subtitle),
+    // The internet speed test.
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_duration_title, R.string.tooldetail_speed_duration_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_connections_title, R.string.tooldetail_speed_connections_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_upload_title, R.string.tooldetail_speed_upload_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_unit_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_style_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_size_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_layout_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_send_mode_title, R.string.tooldetail_speed_send_mode_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_save_gallery_title, R.string.tooldetail_speed_save_gallery_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_show_ip_title, R.string.tooldetail_speed_show_ip_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_servers_group),
     // The services, their keys, addresses and models are rows of the AI provider list now.
     toolEntry(
         ToolbarTool.AI,

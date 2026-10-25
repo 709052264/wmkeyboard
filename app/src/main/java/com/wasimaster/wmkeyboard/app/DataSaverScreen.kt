@@ -208,6 +208,14 @@ internal fun DataSaverSettingsScreen(
         }
         item {
             policyRow(
+                R.string.datasaver_speed_test_title,
+                R.string.datasaver_speed_test_subtitle,
+                settings.watch { it.dataSaver.speedTest },
+                SettingsDefaults.dataSaver.speedTest,
+            ) { scope.launch { repository.setDataSaverSpeedTest(it) } }
+        }
+        item {
+            policyRow(
                 R.string.datasaver_send_title,
                 R.string.datasaver_send_subtitle,
                 settings.watch { it.dataSaver.fileSend },
