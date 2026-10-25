@@ -159,7 +159,7 @@ By default the rules change only what the history keeps, and what the keyboard p
 
 ### Pasting rich media
 
-Tapping an image, file, or video card negotiates a MIME type with the focused field. The keyboard offers the clip's own type, and sends it via `commitContent` when the field advertises that it takes one. If the field wants PNG but the clip is a static WebP, it converts on the fly. Animated WebP is left alone, so an animation is never silently flattened into a still. If nothing matches, the item goes back onto the system clipboard and a toast tells you to paste it there. That happens when the field takes no rich content at all, or when the permission to read the file has lapsed.
+Tapping an image, file, or video card negotiates a MIME type with the focused field. The keyboard offers the clip's own type, and sends it via `commitContent` when the field advertises that it takes one. If the field wants PNG but the clip is a static WebP, it converts on the fly. Animated WebP is left alone, so an animation is never silently flattened into a still. If nothing matches, a picture goes where the gallery's [When the app does not take pictures](/tools/gallery/#when-the-app-does-not-take-pictures) sends it: by default Android's share screen opens for the app you were typing in, **Copy them to the clipboard** puts it back on the system clipboard to paste, and **Ask each time** opens Android's share sheet, which offers both. A file or video goes back onto the system clipboard and a toast tells you to paste it there. That happens when the field takes no rich content at all, or when the permission to read the file has lapsed.
 
 ### Expiry and the entry cap
 
