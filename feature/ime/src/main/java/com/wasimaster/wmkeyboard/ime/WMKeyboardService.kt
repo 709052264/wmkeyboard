@@ -14884,6 +14884,9 @@ open class WMKeyboardService : InputMethodService() {
      * return value.
      */
     fun onDeleteSwipeSelect(units: Int, byWord: Boolean, forward: Boolean): Int {
+        // A keyboard-owned field with a caret has a selection of its own
+        // (#352), so it previews the swipe as the app's field does (#880).
+        captureDeleteSwipeSelect(units, byWord, forward)?.let { return it }
         // Nothing to preview against a buffer the keyboard draws itself: it
         // has no selection, so the gesture falls back to deleting as it goes.
         // ⌦ asks its own question, since it stands down in a few places
@@ -14918,8 +14921,65 @@ open class WMKeyboardService : InputMethodService() {
         return covered
     }
 
+    /**
+     * The text of the keyboard-owned field a delete swipe started in, or null
+     * while the swipe is in the app's field. See [captureDeleteSwipeSelect].
+     */
+    private var captureSwipeStart: CaretText? = null
+
+    /**
+     * [onDeleteSwipeSelect] for a keyboard-owned field with a caret (#880):
+     * the swipe selects what a release would delete, in the field's own
+     * selection, and dragging back gives it back. Null when the swipe is not
+     * in such a field, or is in a word a composer is still converting, where
+     * it deletes as it goes through the buffer like a press.
+     */
+    private fun captureDeleteSwipeSelect(units: Int, byWord: Boolean, forward: Boolean): Int? {
+        val state = _uiState.value
+        val target = state.captureTarget() ?: return null
+        if (target == CaptureTarget.TYPING_TEST || target == CaptureTarget.WORD_SPELL || !target.movableCaret) return null
+        if (captureSwipeStart != null && deleteSwipeForward != forward) {
+            captureSwipeStart?.let(::captureCaretTo)
+            captureSwipeStart = null
+            resetDeleteSwipe()
+        }
+        val start = captureSwipeStart ?: run {
+            val before = state.captureCaretText() ?: return null
+            if (composesInCapture(state.composer) && captureCompositionIfLive(state, before) != null) return null
+            captureSwipeStart = before
+            deleteSwipeBase = before.selectionStart
+            deleteSwipeEnd = before.selectionEnd
+            deleteSwipeText = if (forward) before.text.substring(deleteSwipeEnd) else before.text.substring(0, deleteSwipeBase)
+            deleteSwipeForward = forward
+            deleteSwipeSteps.clear()
+            deleteSwipeUnits = 0
+            deleteSwipeActive = true
+            before
+        }
+        val covered = minOf(units.coerceAtLeast(0), growDeleteSwipeSteps(units, byWord))
+        if (covered == deleteSwipeUnits) return covered
+        val length = if (covered <= 0) 0 else deleteSwipeSteps[covered - 1]
+        val from = if (forward) deleteSwipeBase else (deleteSwipeBase - length).coerceAtLeast(0)
+        val to = if (forward) deleteSwipeEnd + length else deleteSwipeEnd
+        captureCaretTo(start.selected(from, to))
+        deleteSwipeUnits = covered
+        return covered
+    }
+
     /** The finger lifted over a preview: delete what it selected. */
     fun onDeleteSwipeCommit() {
+        captureSwipeStart?.let { start ->
+            captureSwipeStart = null
+            val target = _uiState.value.captureTarget()
+            val now = _uiState.value.captureCaretText()
+            if (target != null && now != null && deleteSwipeUnits > 0 && now.hasSelection) {
+                captureWrite(target, now, now.withoutSelection())
+            } else {
+                captureCaretTo(start)
+            }
+            resetDeleteSwipe()
+            return
+        }
         val ic = currentInputConnection
         if (!deleteSwipeActive || ic == null || deleteSwipeUnits <= 0) {
             resetDeleteSwipe()
@@ -14959,6 +15019,12 @@ open class WMKeyboardService : InputMethodService() {
 
     /** The swipe ended with nothing selected: put the field back, delete nothing. */
     fun onDeleteSwipeCancel() {
+        captureSwipeStart?.let { start ->
+            captureSwipeStart = null
+            captureCaretTo(start)
+            resetDeleteSwipe()
+            return
+        }
         val ic = currentInputConnection
         if (deleteSwipeActive && ic != null && deleteSwipeUnits > 0) {
             ic.setSelection(deleteSwipeBase, deleteSwipeEnd)
