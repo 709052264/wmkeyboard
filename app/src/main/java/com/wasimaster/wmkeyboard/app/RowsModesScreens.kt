@@ -218,7 +218,7 @@ private fun barRowStatus(row: BarRow, settings: KeyboardSettings): Int? = when (
  * its preview. The on-demand tools row counts as drawn: it is a tap away and
  * the slot is its.
  */
-private fun barRowShown(row: BarRow, settings: KeyboardSettings): Boolean = when (row) {
+internal fun barRowShown(row: BarRow, settings: KeyboardSettings): Boolean = when (row) {
     BarRow.TOPBAR -> settings.toolbarBehavior.enabled && !settings.toolbarBehavior.stripHidden
     BarRow.EMOJI -> settings.emojiBarMode == EmojiBarMode.ALWAYS
     BarRow.SYMBOL -> settings.symbolRowEnabled
@@ -463,6 +463,9 @@ internal fun RowsSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    // The live keyboard under the bar (SETTINGS_REDESIGN.md §6): the rows
+    // below move it, so a change is seen rather than read.
+    RegisterPinned { PinnedKeyboardPreview(settings, PreviewFocus.ROWS) }
     val symbolRowOverridden = settings.watch { it.modesOverridingRow(BarRow.SYMBOL).isNotEmpty() }
     // Every entry moves, the keys included (issue #83): a row dragged above
     // the Keyboard entry sits over the keys, one dragged below it sits under.

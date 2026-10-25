@@ -1879,6 +1879,11 @@ internal fun TypingGesturesSettings(
     val spaceLanguage = settings.watch {
         it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
     }
+    // The page's gestures, drawn (SETTINGS_REDESIGN.md §6): a stroke looping
+    // over the user's keyboard with the trail the sliders below set, switched
+    // between a glided word, the spacebar swipe and the backspace swipe. First
+    // on the page, since it is about all three groups under it.
+    SettingsGroup { item { GestureDemo(settings) } }
     SettingsGroup(stringResource(R.string.typing_group_glide_title)) {
         item {
             ToggleSetting(

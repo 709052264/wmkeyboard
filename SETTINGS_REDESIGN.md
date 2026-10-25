@@ -263,7 +263,19 @@ one page per bundle, docs and `ExtensionsTest`.
 
 **Phase 3:** the four page splits.
 
-**Phase 4:** pinned previews and the animated gesture demo.
+**Phase 4 (done 2026-10-26, uncompiled):** `KeyboardMiniature`, one Canvas
+drawn from the settings and the active `KbTheme` with a `focus` per screen,
+pinned with `RegisterPinned` on Layout & size › Size and position, Appearance,
+Key press › Key popup, Rows & bars and Emoji, in a fixed 124 dp frame (a taller
+board shrinks to fit; landscape folds it behind a chip); `GestureDemo` on
+Gestures, a Catmull-Rom stroke with the real trail settings over the same
+miniature, three gestures on a segmented switch, frame loop only while on
+screen, one still frame under Reduce motion; glyphs on the segmented form of
+choice rows that name one on their `ChoiceDetail` (toolbar and popup placement,
+toolbox layout, theme mode, numeral scope, one-handed side, the emoji row's
+three); a swatch strip on the Keyboard themes row and "Aa" in the font on the
+Keyboard font row, through a new `NavRow(trailing = …)` slot. Not done: Layout
+& size's hub page has no pin (its sliders are on Size and position).
 
 **Phase 5:** chrome: path strip depth, bar height, row furniture at Simple,
 hub subtitles, slider-on-title-line.
