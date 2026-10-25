@@ -43,10 +43,12 @@ import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.HelpOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
+import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import java.net.URLEncoder
 
@@ -317,11 +319,14 @@ internal val SettingLinkTargetSize = RowExtraSize
 /**
  * The small link button a row shows beside its reset and its "?" while
  * **Setting links** is on Button. Draws nothing in any other mode, or on a row
- * that has no link. [name] is the row's own name, for the content description.
+ * that has no link, or inside a [RowExtras] at the Simple depth, where a row
+ * is its name and its control and the long press copies the link instead
+ * (see [holdCopiesLink]). [name] is the row's own name, for the content
+ * description.
  */
 @Composable
 internal fun SettingLinkButton(name: String) {
-    if (LocalSettingLinks.current?.mode != SettingLinkMode.BUTTON) return
+    if (LocalSettingLinks.current?.mode != SettingLinkMode.BUTTON || LocalRowExtrasBare.current) return
     val target = currentRowLink() ?: return
     val context = LocalContext.current
     val path = rememberSettingPath()
@@ -338,9 +343,37 @@ internal fun SettingLinkButton(name: String) {
     }
 }
 
-/** Whether the link button is drawn on rows, for the rows that budget their own width. */
+/** Whether the link button is drawn on headings, for the headings that budget their own width. */
 @Composable
 internal fun settingLinkButtonShown(): Boolean = LocalSettingLinks.current?.mode == SettingLinkMode.BUTTON
+
+/**
+ * Whether the link button is drawn on rows, for the rows that budget their own
+ * width: on Button, and not at the Simple depth, where [RowExtras] leaves it
+ * out along with the "?".
+ */
+@Composable
+internal fun rowLinkButtonShown(): Boolean =
+    settingLinkButtonShown() && LocalSettingsDepth.current.depth != SettingsDepth.SIMPLE
+
+/**
+ * Whether a long press copies a row's link: **Setting links** on Hold, or on
+ * Button at the Simple depth, where the button has left the row and the hold
+ * is what is left to reach the link by.
+ */
+@Composable
+private fun holdCopiesLink(): Boolean {
+    val mode = LocalSettingLinks.current?.mode ?: return false
+    return mode == SettingLinkMode.HOLD ||
+        (mode == SettingLinkMode.BUTTON && LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE)
+}
+
+/**
+ * A row's explanation, the one its "?" opens, carried by its hold at the Simple
+ * depth where the "?" is not drawn (see [RowExtras]).
+ */
+@Immutable
+internal class RowInfo(val title: String, val detail: String)
 
 /**
  * A row's long press, open as a small menu: the row it was for, and where
@@ -355,12 +388,19 @@ internal class RowHold {
     /** Why the row is greyed out, while the menu is open on a disabled row. */
     var reason by mutableStateOf<DisabledReason?>(null)
 
+    /** The row's explanation, while the menu is open on a row whose "?" is not drawn. */
+    var info by mutableStateOf<RowInfo?>(null)
+
+    /** The explanation "What is this?" was chosen for, while its dialog is showing. */
+    var explain by mutableStateOf<RowInfo?>(null)
+
     /** Whether the menu is showing. */
-    val open: Boolean get() = held != null || reason != null
+    val open: Boolean get() = held != null || reason != null || info != null
 
     fun close() {
         held = null
         reason = null
+        info = null
     }
 
     /** The menu's offset from the row's bottom left: where the finger was. */
@@ -369,13 +409,14 @@ internal class RowHold {
 
 /**
  * The [RowHold] for the row around the caller, or null when a long press has
- * nothing to offer: no favourites (#898), **Setting links** not on Hold, and
- * no [disabledReason] for a greyed-out row to give.
+ * nothing to offer: no favourites (#898), no link to copy ([holdCopiesLink]),
+ * no [disabledReason] for a greyed-out row to give, and no [info] whose "?"
+ * has left the row.
  */
 @Composable
-internal fun rememberRowHold(disabledReason: DisabledReason? = null): RowHold? {
-    val copies = LocalSettingLinks.current?.mode == SettingLinkMode.HOLD
-    if (!copies && LocalSettingsFavourites.current == null && disabledReason == null) return null
+internal fun rememberRowHold(disabledReason: DisabledReason? = null, info: RowInfo? = null): RowHold? {
+    val copies = holdCopiesLink()
+    if (!copies && LocalSettingsFavourites.current == null && disabledReason == null && info == null) return null
     return remember { RowHold() }
 }
 
@@ -402,20 +443,28 @@ internal fun rememberRowHold(disabledReason: DisabledReason? = null): RowHold? {
  * first, even on a row nothing can link to, and the greyed-out controls
  * inside take no part: a disabled switch or button does not consume the
  * press, so the hold sees it through them.
+ *
+ * [info] is the row's explanation while its "?" is not drawn (the Simple
+ * depth, see [RowExtras]); like a reason, it makes the hold open the menu,
+ * with "What is this?" first.
  */
 @Composable
-internal fun Modifier.settingLinkHold(hold: RowHold?, disabledReason: DisabledReason? = null): Modifier {
+internal fun Modifier.settingLinkHold(
+    hold: RowHold?,
+    disabledReason: DisabledReason? = null,
+    info: RowInfo? = null,
+): Modifier {
     if (hold == null) return this
     val links = LocalSettingLinks.current
     val row = LocalRowLinkKey.current
-    if ((links == null || row == null) && disabledReason == null) return this
+    if ((links == null || row == null) && disabledReason == null && info == null) return this
     val route = currentLinkRoute()
     val menu = LocalSettingsFavourites.current != null
     val context = LocalContext.current
     val view = LocalView.current
     val config = LocalViewConfiguration.current
     val path = rememberSettingPath()
-    return pointerInput(hold, links, row, route, menu, path, disabledReason) {
+    return pointerInput(hold, links, row, route, menu, path, disabledReason, info) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             // The scope's own timeout: the gesture scope restricts suspension,
@@ -432,11 +481,12 @@ internal fun Modifier.settingLinkHold(hold: RowHold?, disabledReason: DisabledRe
             if (!held) return@awaitEachGesture
             // A language, a layout, anything the user made: nothing to name.
             val target = if (links != null && row != null) links.target(route, row.title, row.key) else null
-            if (target == null && disabledReason == null) return@awaitEachGesture
+            if (target == null && disabledReason == null && info == null) return@awaitEachGesture
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            if (menu || disabledReason != null) {
+            if (menu || disabledReason != null || info != null) {
                 hold.at = DpOffset(down.position.x.toDp(), (down.position.y - size.height).toDp())
                 hold.reason = disabledReason
+                hold.info = info
                 hold.held = target
             } else if (target != null) {
                 copySettingLink(context, target, path())
@@ -453,15 +503,23 @@ internal fun Modifier.settingLinkHold(hold: RowHold?, disabledReason: DisabledRe
 
 /**
  * [hold]'s menu, drawn by the row that owns it once a long press has opened
- * it. Composes nothing the rest of the time.
+ * it, and the explanation dialog after "What is this?" was chosen from it.
+ * Composes nothing the rest of the time.
  */
 @Composable
 internal fun RowHoldMenu(hold: RowHold?) {
-    if (hold == null || !hold.open) return
+    if (hold == null) return
+    val explain = hold.explain
+    if (explain != null) {
+        // The same dialog the "?" opens where it is drawn.
+        InfoDialog(explain.title, explain.detail) { hold.explain = null }
+    }
+    if (!hold.open) return
     val target = hold.held
     val reason = hold.reason
+    val info = hold.info
     val favourites = LocalSettingsFavourites.current
-    val copies = LocalSettingLinks.current?.mode == SettingLinkMode.HOLD
+    val copies = holdCopiesLink()
     val context = LocalContext.current
     val path = rememberSettingPath()
     val openLink = LocalOpenSettingLink.current
@@ -469,6 +527,18 @@ internal fun RowHoldMenu(hold: RowHold?) {
     val here = currentLinkRoute()
     val close = { hold.close() }
     DropdownMenu(expanded = true, onDismissRequest = close, offset = hold.at) {
+        if (info != null) {
+            // First, above a reason: what the row is comes before why it is off.
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.home_hold_what_is_this)) },
+                leadingIcon = { Icon(Icons.AutoMirrored.Outlined.HelpOutline, null) },
+                onClick = {
+                    close()
+                    hold.explain = info
+                },
+            )
+            if (reason != null || (target != null && (favourites != null || copies))) HorizontalDivider()
+        }
         if (reason != null) {
             DisabledReasonMenuItems(reason, divider = target != null && (favourites != null || copies)) { link ->
                 close()

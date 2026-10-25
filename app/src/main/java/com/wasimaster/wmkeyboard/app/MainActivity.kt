@@ -3888,9 +3888,15 @@ internal fun ExpandChevron(expanded: Boolean) {
 internal fun transparentListColors(): ListItemColors =
     ListItemDefaults.colors(containerColor = Color.Transparent)
 
-/** "?" affordance that opens a dialog with the full explanation of a setting. */
+/**
+ * "?" affordance that opens a dialog with the full explanation of a setting.
+ * Draws nothing inside a [RowExtras] at the Simple depth, where the row's
+ * long press offers the same explanation as "What is this?" (see
+ * [RowHoldMenu]); a heading's "?" is outside any RowExtras and stays.
+ */
 @Composable
 internal fun InfoButton(title: String, detail: String) {
+    if (LocalRowExtrasBare.current) return
     var open by remember { mutableStateOf(false) }
     IconButton(onClick = { open = true }, modifier = Modifier.size(RowExtraSize)) {
         Icon(
@@ -3900,18 +3906,22 @@ internal fun InfoButton(title: String, detail: String) {
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         )
     }
-    if (open) {
-        AlertDialog(
-            onDismissRequest = { open = false },
-            title = { Text(title) },
-            text = { Text(detail) },
-            confirmButton = {
-                TextButton(onClick = { open = false }) {
-                    Text(stringResource(CommonR.string.common_ok))
-                }
-            },
-        )
-    }
+    if (open) InfoDialog(title, detail) { open = false }
+}
+
+/** The explanation [InfoButton] opens: the setting's name over its [detail], and OK. */
+@Composable
+internal fun InfoDialog(title: String, detail: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(detail) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(CommonR.string.common_ok))
+            }
+        },
+    )
 }
 
 /**
@@ -4107,7 +4117,7 @@ internal fun NavRow(
     val beside = value != null && fitsBesideTitle(
         value,
         MaterialTheme.typography.labelLarge,
-        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (settingLinkButtonShown()) SettingLinkTargetSize else 0.dp),
+        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (rowLinkButtonShown()) SettingLinkTargetSize else 0.dp),
         hasIcon = rowHasTile(icon),
     )
     val below = value.takeIf { it != null && !beside }
@@ -4164,6 +4174,19 @@ private fun RowValueText(
 private val BUTTON_FURNITURE = 48.dp
 
 /**
+ * The slider a short-named row draws on its title line: long enough to drag
+ * by thumb, short enough to leave the name its room (SETTINGS_REDESIGN.md,
+ * section 5).
+ */
+private val SliderOnTitleLineWidth = 140.dp
+
+/** The gap either side of that slider. */
+private val SliderPillGap = 8.dp
+
+/** The readout pill's own horizontal padding, both sides. */
+private val SliderPillPadding = 16.dp
+
+/**
  * The narrowest a row's title may be left. Below this it stops reading as
  * words and becomes a letter or two a line, which is the failure this whole
  * measurement exists to prevent.
@@ -4204,11 +4227,13 @@ private fun settingsRowWidth(): Dp =
  * knows its own trailing text measures it here and puts it under the title
  * instead of beside it when it will not fit.
  *
- * What fits is what is left of [rowWidth] once the title keeps
- * [ROW_TITLE_FLOOR], capped at [RowTrailingTextMaxWidth]. Measuring against
- * that cap alone — which is what this did — passes a value that fits the cap
- * and still leaves the title nothing, because the cap knows nothing about the
- * "?", the reset, the glyph and the arrow sharing the row's end with it.
+ * What fits is what is left of [rowWidth] once the title keeps [floor]
+ * ([ROW_TITLE_FLOOR]), capped at [cap] ([RowTrailingTextMaxWidth]). Measuring
+ * against that cap alone — which is what this did — passes a value that fits
+ * the cap and still leaves the title nothing, because the cap knows nothing
+ * about the "?", the reset, the glyph and the arrow sharing the row's end
+ * with it. A row measuring its *title* against the rest of the line (the
+ * slider row) passes a floor of zero and no cap: the title is the text.
  */
 @Composable
 private fun fitsBesideTitle(
@@ -4217,16 +4242,27 @@ private fun fitsBesideTitle(
     furniture: Dp,
     hasIcon: Boolean,
     rowWidth: Dp = settingsRowWidth(),
+    floor: Dp = ROW_TITLE_FLOOR,
+    cap: Dp = RowTrailingTextMaxWidth,
 ): Boolean {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val lane = if (hasIcon) ROW_ICON_LANE else 0.dp
-    val max = (rowWidth - ROW_PADDING - lane - furniture - ROW_TITLE_FLOOR)
-        .coerceAtMost(RowTrailingTextMaxWidth)
+    val max = (rowWidth - ROW_PADDING - lane - furniture - floor).coerceAtMost(cap)
     return remember(text, style, max, density) {
         max > 0.dp &&
             measurer.measure(text, style, maxLines = 1).size.width <=
             with(density) { max.toPx() }
+    }
+}
+
+/** The widest of [texts] drawn in [style] on one line, for a row budgeting a slot whose text changes. */
+@Composable
+private fun widestText(texts: List<String>, style: TextStyle): Dp {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(texts, style, density) {
+        with(density) { texts.maxOf { measurer.measure(it, style, maxLines = 1).size.width }.toDp() }
     }
 }
 
@@ -4307,7 +4343,7 @@ internal fun ToggleSetting(
         haptics.toggle(on)
         onChange(on)
     }
-    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }) {
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }, info = info) {
         WmRow(
             title = title,
             subtitle = subtitle,
@@ -4363,7 +4399,7 @@ internal fun ToggleNavRow(
     onOpen: () -> Unit,
 ) {
     val name = stringResource(title)
-    HighlightableRow(name, title) {
+    HighlightableRow(name, title, info = info) {
         WmRow(
             title = name,
             subtitle = subtitle,
@@ -4493,7 +4529,7 @@ internal fun ControlSetting(
     @StringRes highlightKey: Int = 0,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4609,7 +4645,32 @@ internal fun SliderSetting(
     val haptics = rememberSettingsHaptics()
     val readout = display(slider.value)
     LaunchedEffect(readout) { if (slider.dragging) haptics.tick() }
-    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }) {
+    // A short name shares its line with the slider (SETTINGS_REDESIGN.md,
+    // section 5): the row is then one line and its control, about 72 dp
+    // rather than 110. What else the line has to hold is measured first — the
+    // slider, the widest the pill gets, and the "?", link and reset the row
+    // could grow — so a long name keeps the two-storey row rather than being
+    // squeezed to a word a line beside a slider. The pill is measured at the
+    // range's ends and middle rather than at the live readout, so the answer
+    // holds still under a drag.
+    val extras = listOf(
+        info != null && rowInfoButtonShown(),
+        rowLinkButtonShown(),
+        onReset != null || default != null,
+    ).count { it }
+    val pillWidth = widestText(
+        listOf(display(range.start), display((range.start + range.endInclusive) / 2f), display(range.endInclusive)),
+        MaterialTheme.typography.labelLarge,
+    ) + SliderPillPadding
+    val onTitleLine = fitsBesideTitle(
+        title,
+        MaterialTheme.typography.bodyLarge,
+        furniture = SliderOnTitleLineWidth + SliderPillGap * 2 + pillWidth + RowExtraSize * extras,
+        hasIcon = rowHasTile(icon),
+        floor = 0.dp,
+        cap = Dp.Infinity,
+    )
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4644,6 +4705,17 @@ internal fun SliderSetting(
                         }
                     }
                 }
+                if (onTitleLine) {
+                    WmSlider(
+                        value = slider.value,
+                        onValueChange = slider::onDrag,
+                        modifier = Modifier.width(SliderOnTitleLineWidth),
+                        onValueChangeFinished = slider::onRelease,
+                        valueRange = range,
+                        enabled = enabled,
+                    )
+                    Spacer(Modifier.width(SliderPillGap))
+                }
                 // A slider cannot be landed on one exact millisecond by thumb,
                 // so the number is a button that takes it typed (#415). The
                 // pill is what says so; a bare number reads as a label.
@@ -4666,13 +4738,15 @@ internal fun SliderSetting(
                 )
             },
         ) {
-            WmSlider(
-                value = slider.value,
-                onValueChange = slider::onDrag,
-                onValueChangeFinished = slider::onRelease,
-                valueRange = range,
-                enabled = enabled,
-            )
+            if (!onTitleLine) {
+                WmSlider(
+                    value = slider.value,
+                    onValueChange = slider::onDrag,
+                    onValueChangeFinished = slider::onRelease,
+                    valueRange = range,
+                    enabled = enabled,
+                )
+            }
         }
     }
     if (typing) {
@@ -4754,7 +4828,7 @@ internal fun StepperSetting(
         haptics.tick()
         onChange(next)
     }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4990,7 +5064,7 @@ internal fun <T> ChoiceSetting(
             segmentStyle(options, available, measurer, tiers, density) != null
         }
         if (fits) {
-            HighlightableRow(title, highlightKey) {
+            HighlightableRow(title, highlightKey, info = info) {
                 IconedRow(
                     icon = icon,
                     subtitle = subtitle,
@@ -5034,13 +5108,13 @@ internal fun <T> ChoiceSetting(
             MaterialTheme.typography.labelLarge,
             furniture = TRAILING_ICON_WIDTH +
                 rowExtrasWidth(
-                    listOf(info != null, default != null, settingLinkButtonShown()).count { it },
+                    listOf(info != null && rowInfoButtonShown(), default != null, rowLinkButtonShown()).count { it },
                 ) +
                 (if (glyph != null) ChoiceValueGlyphSize + ChoiceValueGlyphGap else 0.dp),
             hasIcon = rowHasTile(icon),
             rowWidth = maxWidth,
         )
-        HighlightableRow(title, highlightKey) {
+        HighlightableRow(title, highlightKey, info = info) {
             WmRow(
                 title = title,
                 subtitle = subtitle.takeIf { beside },
@@ -5435,7 +5509,7 @@ internal fun <T> MultiChoiceSetting(
     onChange: (Set<T>) -> Unit,
 ) {
     val name = stringResource(title)
-    HighlightableRow(name, title) {
+    HighlightableRow(name, title, info = info) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,

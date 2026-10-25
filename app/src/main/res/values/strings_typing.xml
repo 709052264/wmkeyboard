@@ -17,12 +17,12 @@
     <string name="typing_group_enter_title">Enter key</string>
     <string name="typing_group_volume_title">Volume keys</string>
     <string name="typing_group_hardware_title">Physical keyboard</string>
-    <string name="typing_group_corrections_subtitle">Autocorrect, capitals, punctuation and spacing</string>
-    <string name="typing_group_suggestions_subtitle">The suggestion strip, learning, names and app names</string>
-    <string name="typing_group_smart_chips_subtitle">Sums, currencies, units, dates and lookups</string>
-    <string name="typing_group_otp_subtitle">Codes from messages and notifications</string>
-    <string name="typing_group_gestures_subtitle">Glide typing, spacebar swipes and handwriting</string>
-    <string name="typing_group_hardware_subtitle">Shortcuts, hotkeys and the shortcut key</string>
+    <string name="typing_group_corrections_subtitle">Spelling, capitals, spacing</string>
+    <string name="typing_group_suggestions_subtitle">Suggestion strip, learning</string>
+    <string name="typing_group_smart_chips_subtitle">Sums, units, dates, lookups</string>
+    <string name="typing_group_otp_subtitle">Codes from messages</string>
+    <string name="typing_group_gestures_subtitle">Glide, swipes, handwriting</string>
+    <string name="typing_group_hardware_subtitle">Shortcuts and hotkeys</string>
 
     <!-- ==== Typing settings: slider value labels ==== -->
     <!-- %1$s is the already formatted number, for example 2.5 -->
@@ -243,7 +243,7 @@
     <string name="typing_smart_replies_info">Android System Intelligence can read the conversation on the screen and offer short answers, such as \"On my way!\". The answers show as chips beside the word suggestions, up to three at a time. The system draws them, not the keyboard. They come over the same channel as the password manager chips, but they count and switch apart from them. You can have saved logins in the suggestion strip without the system reading your messages, or the opposite. Incognito mode turns this off by itself. This setting needs Android 11 or newer, and only some apps offer replies.</string>
 
     <string name="typing_group_autopilot_title">Autopilot</string>
-    <string name="typing_group_autopilot_subtitle">Widen the touch area of the letters you type next</string>
+    <string name="typing_group_autopilot_subtitle">Wider keys for likely letters</string>
 
     <string name="typing_skip_typed_word_title">Only offer new words</string>
     <string name="typing_skip_typed_word_subtitle">Leave out the word you have already typed</string>
@@ -256,7 +256,7 @@
     <string name="typing_skip_typed_word_info">The suggestion strip normally keeps one slot for the word exactly as you typed it, which is how you keep a spelling the dictionary does not know. Turn this on and that slot is given to another suggestion instead, so all three offer something new. The cost is that a word the keyboard does not recognise has one fewer way to survive a correction, and the strip no longer shows you which candidate is the literal thing you wrote.</string>
 
     <string name="typing_group_octopus_title">Words on the keys</string>
-    <string name="typing_group_octopus_subtitle">Float the next word over the key that would reach it</string>
+    <string name="typing_group_octopus_subtitle">Next word over its key</string>
 
     <string name="typing_octopus_enabled_title">Words on the keys</string>
     <string name="typing_octopus_enabled_subtitle">Float a predicted word over the key you would press next</string>

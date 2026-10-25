@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.providers.ProviderCatalog
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnv
 import com.wasimaster.wmkeyboard.core.providers.ProviderEnvironment
 import com.wasimaster.wmkeyboard.core.providers.ProviderTypes
+import com.wasimaster.wmkeyboard.core.settings.SettingsDepth
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.providerChain
 import com.wasimaster.wmkeyboard.core.settings.resolveProviders
@@ -356,6 +357,13 @@ internal fun HighlightableRow(
      * what decides, so callers pass this only while it is off.
      */
     disabledReason: DisabledReason? = null,
+    /**
+     * The row's explanation, the one its "?" opens. At the Simple depth the
+     * "?" is not drawn ([RowExtras]), and the long press offers it as "What is
+     * this?" instead; at any other depth the button is on the row and this
+     * is not read.
+     */
+    info: String? = null,
     content: @Composable () -> Unit,
 ) {
     val target = SettingsHighlight.target
@@ -371,11 +379,13 @@ internal fun HighlightableRow(
     // heading takes its own, in [SettingsGroup]: the whole group would
     // otherwise answer a hold on any row inside it.
     CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
-        val hold = if (coarse) null else rememberRowHold(disabledReason)
+        val bare = LocalSettingsDepth.current.depth == SettingsDepth.SIMPLE
+        val whatIsThis = if (info != null && bare) remember(title, info) { RowInfo(title.orEmpty(), info) } else null
+        val hold = if (coarse) null else rememberRowHold(disabledReason, whatIsThis)
         HighlightFrame(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
-            modifier = Modifier.settingLinkHold(hold, disabledReason),
+            modifier = Modifier.settingLinkHold(hold, disabledReason, whatIsThis),
         ) {
             content()
             RowHoldMenu(hold)
