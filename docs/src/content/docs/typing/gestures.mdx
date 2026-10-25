@@ -309,6 +309,30 @@ A few things keep chords out of your way:
 
 Chords suit [two-thumb typing](/typing/glide-typing/#typing-with-both-thumbs) in particular. There, flick characters on a letter stop a swipe starting on it, and a hold on a letter fires when a thumb rests there while the other types. A key held still is never part of a swipe, so one thumb on <KeyCap>?123</KeyCap> and a tap from the other is a shortcut that never collides with typing.
 
+## Swipes on keys
+
+<SettingsPath path="Typing / Gestures / Swipes on keys" />
+
+[Flick keys](#flick-keys) are built into a layout, one layout at a time, in the layout editor. Swipes on keys are the same short swipes set up once here and laid over whichever layout is on screen. Put `1` up and to the right of <KeyCap>Q</KeyCap> and it is there on QWERTY, AZERTY, Colemak and every other layout with a <KeyCap>Q</KeyCap>, the way Unexpected Keyboard keeps its numbers on the top row's corners.
+
+**Add a key** asks for the key, as the one character it types, then shows its eight directions around it. Tap a direction to pick what a short swipe that way does: a piece of text, or any action a [multi-finger swipe](#swiping-with-several-fingers) can run, such as copy, undo, a tool or an arrow. **No action** clears it. Each key with swipes gets a row of its own that lists them, and tapping the row brings the directions back.
+
+**Add a preset** merges a ready-made set into yours:
+
+| Preset | Puts |
+|---|---|
+| Numbers | 1 to 0 up and to the right on the top row |
+| Symbols | `! @ # $ % ^ & * ( )` up and to the left on the top row |
+| Editing shortcuts | Select all, copy, paste, cut, undo and redo down and to the left on <KeyCap>A</KeyCap> <KeyCap>C</KeyCap> <KeyCap>V</KeyCap> <KeyCap>X</KeyCap> <KeyCap>Z</KeyCap> <KeyCap>Y</KeyCap> |
+
+A preset replaces only the directions it fills, so your other swipes on those keys stay. **Remove all key swipes** takes every one off, and turning **Swipes on keys** off keeps them stored but off the keys.
+
+Once a key has swipes it behaves like any other flick key. Its swipes are drawn small on its face (unless **Show flick arms on keys** is off), the flick popup and **Flick distance** apply, and glide typing shares the stroke by the same rules: a swipe that turns, reaches the middle of another letter where no swipe points, or passes **Flick reach** glides a word. Three things to know:
+
+- The layout comes first. If a layout already has a swipe in a direction, that swipe stays and yours for the same direction is ignored there, so the English 3×3 board and the Japanese flick pad are not rewritten by a preset meant for QWERTY.
+- Only the letters page gets them. The symbols pages keep their keys as they are.
+- A key with swipes gives up [Swipe down to type the hint](#swiping-down-on-a-key-for-its-hint) and the slide to select, since the flick owns that key's stroke. A key whose layout makes its hold repeat or run an action is left without swipes, so it keeps that hold.
+
 ## Volume keys as a cursor control
 
 <SettingsPath path="Typing / Volume keys" />
@@ -377,6 +401,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Three and four fingers, any direction | Nothing |
 | Chords with ?123 | On |
 | ?123 + L | Next language |
+| Swipes on keys | On, with no keys set |
 
 Open the **Typing** tile in settings, or search "Gestures", "Delete keys" or "Volume keys". The last two rows live under Typing / Key press rather than Delete keys, and Word delete interval only appears while Holding delete clears words is on. Cursor speed and Cursor magnifier only appear while a swipe slot is set to Cursor. Swipe deletes, Show what you will delete and the two step distances only appear while Swipe to delete is on, and the two distances are one setting each: Words mode shows Word delete distance, Characters mode shows Character delete distance. The Gestures group's language-switching settings (Arrows on the spacebar, The spacebar shows, Spacebar text, Typing speed on the spacebar) are covered on [Switching languages](/languages/switching/#swiping-the-spacebar) instead of here. For the field-by-field breakdown see [Typing settings](/reference/settings/typing/).
 

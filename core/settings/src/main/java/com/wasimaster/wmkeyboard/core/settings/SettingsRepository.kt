@@ -70,6 +70,10 @@ import com.wasimaster.wmkeyboard.core.layout.DefaultFingerSwipes
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipe
 import com.wasimaster.wmkeyboard.core.layout.FingerSwipeCodec
 import com.wasimaster.wmkeyboard.core.layout.SymbolChordCodec
+import com.wasimaster.wmkeyboard.core.layout.FlickDirection
+import com.wasimaster.wmkeyboard.core.layout.KeySwipeArms
+import com.wasimaster.wmkeyboard.core.layout.KeySwipeCodec
+import com.wasimaster.wmkeyboard.core.layout.withKeySwipe
 import com.wasimaster.wmkeyboard.core.layout.KeyAlternate
 import com.wasimaster.wmkeyboard.core.layout.actionOf
 import com.wasimaster.wmkeyboard.core.layout.LayoutCodec
@@ -7823,6 +7827,17 @@ data class GestureSettings(
      */
     val chords: Map<String, KeyAlternate> = emptyMap(),
     /**
+     * Whether [keySwipes] are put on the keys. On by default, which changes
+     * nothing until a key has arms; off keeps them stored and out of the way.
+     */
+    val keySwipesOn: Boolean = true,
+    /**
+     * Flick arms on keys, set from Settings over any layout and keyed by the
+     * character the key types; see `withSwipeArms`. The layout's own arms win
+     * a direction both name.
+     */
+    val keySwipes: Map<String, KeySwipeArms> = emptyMap(),
+    /**
      * A swipe right after typed letters finishes them as one word, so "to"
      * typed and "gether" swiped give "together" (issue #595). Two-thumb
      * typing always does this; this switch is for ordinary glide, where the
@@ -10335,6 +10350,8 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_FINGER_SWIPES = stringPreferencesKey("gesture_finger_swipes")
         private val GESTURE_SYMBOL_CHORDS = booleanPreferencesKey("gesture_symbol_chords")
         private val GESTURE_CHORDS = stringPreferencesKey("gesture_chords")
+        private val GESTURE_KEY_SWIPES_ON = booleanPreferencesKey("gesture_key_swipes_on")
+        private val GESTURE_KEY_SWIPES = stringPreferencesKey("gesture_key_swipes")
         private val GESTURE_SWIPE_CONTINUES_TYPED = booleanPreferencesKey("gesture_swipe_continues_typed")
         private val GESTURE_AMBIGUITY_PICKER = booleanPreferencesKey("gesture_ambiguity_picker")
         private val GESTURE_PICKER_DWELL_MS = intPreferencesKey("gesture_picker_dwell_ms")
@@ -12292,6 +12309,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.gesture.fingerSwipes,
             symbolChords = p[GESTURE_SYMBOL_CHORDS] ?: defaults.gesture.symbolChords,
             chords = p[GESTURE_CHORDS]?.let(SymbolChordCodec::decode) ?: defaults.gesture.chords,
+            keySwipesOn = p[GESTURE_KEY_SWIPES_ON] ?: defaults.gesture.keySwipesOn,
+            keySwipes = p[GESTURE_KEY_SWIPES]?.let(KeySwipeCodec::decode) ?: defaults.gesture.keySwipes,
             swipeContinuesTyped = p[GESTURE_SWIPE_CONTINUES_TYPED] ?: defaults.gesture.swipeContinuesTyped,
             ambiguityPicker = p[GESTURE_AMBIGUITY_PICKER] ?: defaults.gesture.ambiguityPicker,
             // Coerced on the way in as well as on the way out: a value
@@ -19203,6 +19222,21 @@ class SettingsRepository(private val context: Context) {
     /** Every chord back to its default (issue #754). */
     suspend fun resetSymbolChords() =
         editPrefs { it.remove(GESTURE_CHORDS) }
+
+    suspend fun setKeySwipesOn(value: Boolean) =
+        editPrefs { it[GESTURE_KEY_SWIPES_ON] = value }
+
+    /** Puts [binding] on [token]'s [direction] arm; null or `KeyAction.None` clears it. */
+    suspend fun setKeySwipe(token: String, direction: FlickDirection, binding: KeyAlternate?) =
+        editKeySwipes { it.withKeySwipe(token, direction, binding) }
+
+    /** Rewrites every key's arms at once: a preset merged in, or all of them cleared. */
+    suspend fun editKeySwipes(edit: (Map<String, KeySwipeArms>) -> Map<String, KeySwipeArms>) =
+        editPrefs { prefs ->
+            val next = edit(KeySwipeCodec.decode(prefs[GESTURE_KEY_SWIPES])).filterValues { it.isNotEmpty() }
+            if (next.isEmpty()) prefs.remove(GESTURE_KEY_SWIPES)
+            else prefs[GESTURE_KEY_SWIPES] = KeySwipeCodec.encode(next)
+        }
 
     suspend fun setGestureSwipeContinuesTyped(value: Boolean) =
         editPrefs { it[GESTURE_SWIPE_CONTINUES_TYPED] = value }

@@ -1144,4 +1144,23 @@
     <string name="typing_symbol_chord_key_hint">The one character the key types</string>
     <string name="typing_symbol_chords_reset_title">Reset chords</string>
     <string name="typing_symbol_chords_reset_subtitle">Put the chords back to the default</string>
+    <string name="typing_group_key_swipes_title">Swipes on keys</string>
+    <string name="typing_key_swipes_title">Swipes on keys</string>
+    <string name="typing_key_swipes_subtitle">Your own short swipes off letter keys, on every layout</string>
+    <string name="typing_key_swipes_info">Put a character or an action on any of the eight directions around a key, and a short swipe that way off the key types it or runs it. The swipes belong to the key, not to a layout, so the 1 you put up and to the right of Q is there on QWERTY, AZERTY and every other layout with a Q. Where a layout already has a swipe in that direction, the layout\'s own swipe stays. Each key draws its swipes small on its face, and glide typing still works: a swipe that turns, or carries on into another letter, glides a word. A key with swipes gives up the swipe down for its hint and the slide to select. Only the letters page gets them.</string>
+    <string name="typing_key_swipe_row_title">%1$s key</string>
+    <string name="typing_key_swipe_add_title">Add a key</string>
+    <string name="typing_key_swipe_add_subtitle">Pick a key, then what each swipe off it does</string>
+    <string name="typing_key_swipe_key_title">Key to swipe from</string>
+    <string name="typing_key_swipe_pad_hint">Tap a direction to choose what a short swipe that way does.</string>
+    <string name="typing_key_swipe_preset_title">Add a preset</string>
+    <string name="typing_key_swipe_preset_subtitle">Numbers, symbols or editing shortcuts in one go</string>
+    <string name="typing_key_swipe_preset_numbers">Numbers</string>
+    <string name="typing_key_swipe_preset_numbers_desc">1 to 0 up and to the right on the top row</string>
+    <string name="typing_key_swipe_preset_symbols">Symbols</string>
+    <string name="typing_key_swipe_preset_symbols_desc" formatted="false">! @ # $ % ^ &amp; * ( ) up and to the left on the top row</string>
+    <string name="typing_key_swipe_preset_editing">Editing shortcuts</string>
+    <string name="typing_key_swipe_preset_editing_desc">Select all, copy, paste, cut, undo and redo down and to the left on A, C, V, X, Z and Y</string>
+    <string name="typing_key_swipes_reset_title">Remove all key swipes</string>
+    <string name="typing_key_swipes_reset_subtitle">Take every swipe you added off the keys</string>
 </resources>

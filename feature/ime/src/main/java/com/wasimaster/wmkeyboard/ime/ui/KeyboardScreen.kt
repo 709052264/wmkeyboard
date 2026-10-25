@@ -582,6 +582,8 @@ import com.wasimaster.wmkeyboard.core.layout.flickArmRepeats
 import com.wasimaster.wmkeyboard.core.layout.hasHoldAction
 import com.wasimaster.wmkeyboard.core.layout.holdActionKey
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
+import com.wasimaster.wmkeyboard.core.layout.SymbolChord
+import com.wasimaster.wmkeyboard.core.layout.withSwipeArms
 import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
@@ -22044,6 +22046,14 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // (issue #570). Read once here rather than per key: it is one setting for
     // the whole board.
     val clipboardActionAt = state.settings.longPressLetterActions.actionPosition.takeIf { it >= 0 }
+    // The swipes the user put on keys from Settings, over whatever layout this
+    // is: the letters page only, like the hold shortcuts, since the symbols
+    // pages are where a key is wanted for its own character.
+    val keySwipes = if (lettersLayer && state.settings.gesture.keySwipesOn) {
+        state.settings.gesture.keySwipes
+    } else {
+        emptyMap()
+    }
     // A field that declares Send/Go/Search takes the enter key over, and the
     // line break it displaces has nowhere else to go — so it moves to the key's
     // long press, the way Gboard offers it. Only where the key is actually
@@ -22323,6 +22333,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     actionAlternates = listOf(KeyAlternate(action = KeyAction.Numpad)) +
                         mapped.actionAlternates,
                 )
+            }
+            // After the passes above, so a key keyed by what it types is keyed by
+            // what it types now. The layout's own arms keep their directions.
+            if (keySwipes.isNotEmpty()) {
+                SymbolChord.tokenOf(mapped)?.let { mapped = mapped.withSwipeArms(keySwipes[it]) }
             }
             // Last, so it covers whatever the passes above made of the key: a
             // 🌐 the emoji preference already turned into the emoji key is still
