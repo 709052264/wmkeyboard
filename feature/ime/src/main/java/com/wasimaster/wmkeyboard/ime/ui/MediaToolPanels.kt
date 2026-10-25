@@ -122,6 +122,9 @@ import com.wasimaster.wmkeyboard.core.tools.MediaProviders
 import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
 import com.wasimaster.wmkeyboard.core.tools.SearchProviders
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import com.wasimaster.wmkeyboard.ime.ProviderPicks
+import androidx.compose.runtime.collectAsState
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.WebResult
@@ -1995,7 +1998,7 @@ internal fun WebSearchPanel(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
+                SearchTabChips(state, actions, Modifier.weight(1f))
                 // Pick mode (#727): which search provider answers, over the results.
                 ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
                 SearchInBrowserButton(state)
@@ -2090,38 +2093,61 @@ private fun SearchResultMenu(
 /** The host of an address, for a result with no title of its own. */
 private fun hostOf(url: String): String = url.substringAfter("://").substringBefore('/')
 
-/** All and Images, over the search panel's results (#879). */
+/**
+ * All and Images, over the search panel's results (#879), and between them
+ * the SearXNG categories the user chose (#934), while an instance is the
+ * one asked. They scroll sideways when there are more than fit.
+ */
 @Composable
-private fun SearchTabChips(tab: SearchTab, onSelect: (SearchTab) -> Unit, modifier: Modifier = Modifier) {
-    val kb = LocalKbTheme.current
-    val shape = kb.chipShape()
+private fun SearchTabChips(state: KeyboardUiState, actions: SearchActions, modifier: Modifier = Modifier) {
+    val picks by ProviderPicks.picks.collectAsState()
+    val settings = state.settings
+    val chosen = settings.webSearch.searxCategories
+    val pick = picks[ProviderTool.SEARCH].orEmpty()
+    val categories = remember(settings, pick) {
+        if (chosen.isNotEmpty() && SearchProviders.searxFirst(settings, pick)) chosen else emptyList()
+    }
+    // A chip turned off in settings, or a provider that has none, is All again.
+    val category = state.searchCategory?.takeIf { it in categories }
+    val tab = state.searchTab
     Row(
-        modifier = modifier.padding(horizontal = 8.dp),
+        modifier = modifier
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        for (entry in SearchTab.entries) {
-            val active = entry == tab
-            Text(
-                stringResource(
-                    when (entry) {
-                        SearchTab.ALL -> R.string.ime_search_tab_all
-                        SearchTab.IMAGES -> R.string.ime_search_tab_images
-                    },
-                ),
-                color = if (active) kb.chipActiveText else kb.chipText,
-                fontSize = 12.sp,
-                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                maxLines = 1,
-                modifier = Modifier
-                    .clip(shape)
-                    .frostGlass(kb, shape, FrostSurface.CHIPS)
-                    .background(if (active) kb.chipActive else kb.chip)
-                    .chipBorder(kb, shape)
-                    .clickable { onSelect(entry) }
-                    .padding(horizontal = 14.dp, vertical = 4.dp),
-            )
+        SearchChip(stringResource(R.string.ime_search_tab_all), tab == SearchTab.ALL && category == null) {
+            actions.onCategory(null)
+        }
+        for (name in categories) {
+            SearchChip(SearxClient.categoryLabel(name), tab == SearchTab.ALL && category == name) {
+                actions.onCategory(name)
+            }
+        }
+        SearchChip(stringResource(R.string.ime_search_tab_images), tab == SearchTab.IMAGES) {
+            actions.onTab(SearchTab.IMAGES)
         }
     }
+}
+
+@Composable
+private fun SearchChip(label: String, active: Boolean, onClick: () -> Unit) {
+    val kb = LocalKbTheme.current
+    val shape = kb.chipShape()
+    Text(
+        label,
+        color = if (active) kb.chipActiveText else kb.chipText,
+        fontSize = 12.sp,
+        fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(shape)
+            .frostGlass(kb, shape, FrostSurface.CHIPS)
+            .background(if (active) kb.chipActive else kb.chip)
+            .chipBorder(kb, shape)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 4.dp),
+    )
 }
 
 /** The All tab: the engine's answer, then the web results. */
@@ -2137,6 +2163,7 @@ private fun WebResults(
 ) {
     val openLink = LocalSearchActions.current.onOpen
     val kb = LocalKbTheme.current
+    val thumbLoader = rememberMediaImageLoader()
     Column(modifier = Modifier.fillMaxSize()) {
         when (val ui = state.webSearch) {
             WebSearchUi.NeedKey -> PanelNotice(
@@ -2210,6 +2237,20 @@ private fun WebResults(
                                     .padding(horizontal = 12.dp, vertical = 6.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                // A video's still, on a SearXNG Videos search (#934).
+                                result.thumbnail?.let { thumb ->
+                                    AsyncImage(
+                                        model = thumb,
+                                        contentDescription = null,
+                                        imageLoader = thumbLoader,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .padding(end = 8.dp)
+                                            .size(width = 80.dp, height = 45.dp)
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(kb.chip),
+                                    )
+                                }
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         result.title,

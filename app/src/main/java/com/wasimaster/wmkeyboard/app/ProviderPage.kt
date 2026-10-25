@@ -3,6 +3,10 @@ package com.wasimaster.wmkeyboard.app
 import com.wasimaster.wmkeyboard.core.settings.TavilyDepth
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
+import com.wasimaster.wmkeyboard.core.tools.SearxClient
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -340,6 +344,7 @@ internal fun ProviderOwnSettings(
         // ---- Media, search and words: groups the tools' pages drew under their lists.
         ProviderTypes.OFFLINE_GIFS.id -> OfflineGifPacksGroup()
         ProviderTypes.TAVILY.id -> TavilySettings(repository, settings)
+        ProviderTypes.SEARXNG.id -> SearxSettings(repository, settings, row)
         ProviderTypes.VOCAB_PACKS.id -> SettingsGroup {
             // The packs source is only as good as the packs installed (#665).
             item {
@@ -394,6 +399,48 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.webSearch.tavilyDepth,
                 detail = { depth -> ChoiceDetail(stringResource(tavilyDepthDesc(depth))) },
             ) { scope.launch { repository.setSearchTavilyDepth(it) } }
+        }
+    }
+}
+
+/**
+ * Which of a SearXNG instance's categories the search panel offers (#934).
+ * The list is the instance's own, from its `/config`; until it answers, or
+ * when it cannot, the usual ones stand in. A category chosen earlier stays
+ * listed even when the instance no longer names it, so it can be turned off.
+ */
+@Composable
+private fun SearxSettings(repository: SettingsRepository, settings: LiveSettings, row: ResolvedProvider?) {
+    val scope = rememberCoroutineScope()
+    val instance = row?.url.orEmpty()
+    val listed by produceState<List<String>?>(null, instance) {
+        value = if (instance.isBlank()) {
+            null
+        } else {
+            withContext(Dispatchers.IO) { runCatching { SearxClient.categories(instance) }.getOrNull() }
+                ?.takeIf { it.isNotEmpty() }
+        }
+    }
+    SettingsGroup(stringResource(R.string.tooldetail_searx_group)) {
+        item {
+            val chosen = settings.watch { it.webSearch.searxCategories }
+            val names = ((listed ?: SearxClient.USUAL_CATEGORIES) + chosen)
+                .distinct()
+                .filter { it != SearxClient.GENERAL && it != SearxClient.IMAGES }
+            MultiChoiceSetting(
+                R.string.tooldetail_searx_categories_title,
+                subtitle = stringResource(
+                    if (listed == null) R.string.tooldetail_searx_categories_fallback
+                    else R.string.tooldetail_searx_categories_subtitle,
+                ),
+                info = stringResource(R.string.tooldetail_searx_categories_info),
+                options = names.map { it to SearxClient.categoryLabel(it) },
+                selected = chosen.toSet(),
+                default = emptySet(),
+            ) { picked ->
+                // Kept in the list's order, which is the order the chips show in.
+                scope.launch { repository.setSearchSearxCategories(names.filter { it in picked }) }
+            }
         }
     }
 }

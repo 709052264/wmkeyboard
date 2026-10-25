@@ -1514,6 +1514,8 @@ sealed interface WebSearchUi {
         val loadingMore: Boolean = false,
         /** The last further page brought nothing new: More results goes. */
         val noMore: Boolean = false,
+        /** The SearXNG category these came from (#934); null, the general search. */
+        val category: String? = null,
     ) : WebSearchUi
 }
 
@@ -3996,6 +3998,11 @@ data class KeyboardUiState(
      * The two searches keep their own results, so switching back costs nothing.
      */
     val searchTab: SearchTab = SearchTab.ALL,
+    /**
+     * The SearXNG category chip picked on the All tab (#934), or null for
+     * the general search. Its results take the All tab's place.
+     */
+    val searchCategory: String? = null,
     /**
      * The camera was opened from the search panel's camera button
      * (#349): its confirm step offers Search in place of Send, and its back

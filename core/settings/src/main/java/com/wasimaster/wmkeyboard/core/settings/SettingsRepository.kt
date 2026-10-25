@@ -3115,6 +3115,11 @@ data class WebSearchSettings(
     val resultTap: SearchResultTap = SearchResultTap.MENU,
     /** How deep Tavily searches (#470, #879): Basic unless the user picks another. */
     val tavilyDepth: TavilyDepth = TavilyDepth.BASIC,
+    /**
+     * The SearXNG categories offered as chips beside All and Images in the
+     * search panel (#934), in the order they are shown. None by default.
+     */
+    val searxCategories: List<String> = emptyList(),
     /** Wikipedia subdomain the encyclopedia tool reads (en, bn, de …). */
     val wikiLanguage: String = "en",
     /** Insert Wikipedia links as `[Title](url)` instead of the bare URL. */
@@ -11080,6 +11085,8 @@ class SettingsRepository(private val context: Context) {
         /** The old on/off for Advanced, read only while [SEARCH_TAVILY_DEPTH] is unset. */
         private val SEARCH_TAVILY_ADVANCED = booleanPreferencesKey("search_tavily_advanced")
         private val SEARCH_TAVILY_DEPTH = stringPreferencesKey("search_tavily_depth")
+        // Tab-separated SearXNG category names (#934); "social media" has a space.
+        private val SEARCH_SEARX_CATEGORIES = stringPreferencesKey("search_searx_categories")
         private val WIKI_LANGUAGE = stringPreferencesKey("wiki_language")
         private val WIKI_LINKS_MARKDOWN = booleanPreferencesKey("wiki_links_markdown")
         // Tab-separated (symbols are single graphemes; some are commas).
@@ -13458,6 +13465,8 @@ class SettingsRepository(private val context: Context) {
             tavilyDepth = TavilyDepth.entries.firstOrNull { it.name == p[SEARCH_TAVILY_DEPTH] }
                 ?: TavilyDepth.ADVANCED.takeIf { p[SEARCH_TAVILY_ADVANCED] == true }
                 ?: defaults.webSearch.tavilyDepth,
+            searxCategories = p[SEARCH_SEARX_CATEGORIES]?.split('\t')?.filter(String::isNotBlank)
+                ?: defaults.webSearch.searxCategories,
             wikiLanguage = p[WIKI_LANGUAGE] ?: defaults.webSearch.wikiLanguage,
             wikiLinksMarkdown = p[WIKI_LINKS_MARKDOWN]
                 ?: defaults.webSearch.wikiLinksMarkdown,
@@ -20834,6 +20843,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSearchTavilyDepth(value: TavilyDepth) =
         editPrefs { it[SEARCH_TAVILY_DEPTH] = value.name }
+
+    suspend fun setSearchSearxCategories(value: List<String>) =
+        editPrefs { it[SEARCH_SEARX_CATEGORIES] = value.map(String::trim).filter(String::isNotEmpty).distinct().joinToString("\t") }
 
     suspend fun setWikiLanguage(value: String) =
         editPrefs { it[WIKI_LANGUAGE] = value.trim().lowercase() }
