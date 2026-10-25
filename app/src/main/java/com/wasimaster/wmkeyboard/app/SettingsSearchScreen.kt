@@ -355,15 +355,19 @@ internal fun HighlightableRow(
     }
     // The same two names are what a row's link is made of (#646), so the row
     // publishes them for its link button, and a plain row takes the long
-    // press here. A group's heading takes its own, in [SettingsGroup]: the
-    // whole group would otherwise answer a hold on any row inside it.
+    // press here: its link and its place in favourites (#898). A group's
+    // heading takes its own, in [SettingsGroup]: the whole group would
+    // otherwise answer a hold on any row inside it.
     CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
+        val hold = if (coarse) null else rememberRowHold()
         HighlightFrame(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
-            modifier = if (coarse) Modifier else Modifier.settingLinkHold(),
-            content = content,
-        )
+            modifier = Modifier.settingLinkHold(hold),
+        ) {
+            content()
+            RowHoldMenu(hold)
+        }
     }
 }
 

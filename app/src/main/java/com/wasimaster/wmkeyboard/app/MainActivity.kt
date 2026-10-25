@@ -383,6 +383,7 @@ class MainActivity : FragmentActivity() {
                 CompositionLocalProvider(
                     LocalAppUpdater provides updater,
                     LocalAppLock provides appLock,
+                    LocalOpenSettingLink provides remember { { link: String -> openSettingLink(link) } },
                 ) {
                     // From Android 15 the window is edge to edge, the
                     // keyboard's inset reaches the screens, and the pan the
@@ -558,6 +559,18 @@ class MainActivity : FragmentActivity() {
         val tool = intent.getStringExtra(EXTRA_OPEN_TOOL)
             ?.let { name -> ToolbarTool.entries.find { it.name == name } }
         return tool?.let { PendingNav(tool = it) }
+    }
+
+    /**
+     * Opens a settings link from inside the app: a favourite (#898). Goes
+     * the way an incoming link does, so a favourite whose row a later version
+     * moved still opens. One that names nothing this build has opens nothing:
+     * it is the user's own list, and the "needs a newer version" prompt is
+     * for links somebody else sent.
+     */
+    private fun openSettingLink(link: String) {
+        val nav = SettingsDeepLink.parse(link)?.let(::pendingFor) ?: return
+        if (nav.route != null) pendingNav.value = nav.copy(missing = null)
     }
 
     /**
@@ -824,6 +837,12 @@ private fun SettingsNavHost(
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
+            // Favourite screens and rows (#898), listed on a long press of the
+            // keyboard test button, so only while that button is on.
+            LocalSettingsFavourites provides rememberSettingsFavourites(
+                settings.watch { it.appUi.settingsFavourites },
+                repository,
+            ).takeIf { previewWanted },
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
@@ -3460,11 +3479,12 @@ private fun FoldHeader(
     onToggle: () -> Unit,
 ) {
     val numberFormat = stringResource(R.string.values_number)
+    val hold = rememberRowHold()
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .settingLinkHold()
+            .settingLinkHold(hold)
             .clickable(onClick = onToggle)
             .then(GroupHeadingPadding),
     ) {
@@ -3498,6 +3518,7 @@ private fun FoldHeader(
             SettingLinkButton(title)
             ExpandChevron(open)
         }
+        RowHoldMenu(hold)
     }
 }
 
@@ -3747,7 +3768,8 @@ internal fun SectionHeader(
     linkable: Boolean = false,
 ) {
     val link = linkable && settingLinkButtonShown() && currentRowLink() != null
-    val outer = if (linkable) Modifier.settingLinkHold().then(modifier) else modifier
+    val hold = if (linkable) rememberRowHold() else null
+    val outer = Modifier.settingLinkHold(hold).then(modifier)
     if (trailing != null) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = outer.fillMaxWidth()) {
             Text(
@@ -3771,16 +3793,19 @@ internal fun SectionHeader(
                 // content ends 16dp further in, and so does this.
                 modifier = Modifier.padding(start = 8.dp, end = 16.dp),
             )
+            RowHoldMenu(hold)
         }
         return
     }
     if (info == null && action == null && !link) {
-        Text(
-            text,
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = outer,
-        )
+        Box(outer) {
+            Text(
+                text,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            RowHoldMenu(hold)
+        }
         return
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = outer) {
@@ -3795,6 +3820,7 @@ internal fun SectionHeader(
             if (link) SettingLinkButton(text)
             action?.invoke()
         }
+        RowHoldMenu(hold)
     }
 }
 

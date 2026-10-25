@@ -6518,6 +6518,14 @@ data class AppUiSettings(
      * twenty-row group too long to scan.
      */
     val splitToolPanels: Boolean = false,
+    /**
+     * The settings screens and rows the user pinned as favourites (#898), in
+     * the order they put them. One entry per item, as the settings app
+     * encodes it: the item's `wmkeyboard://` link and the names it was drawn
+     * with. Syncs like any other choice: the same favourites are wanted on
+     * every device.
+     */
+    val settingsFavourites: List<String> = emptyList(),
 )
 
 /** See [AppUiSettings.settingLinks]. */
@@ -10346,6 +10354,7 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("settings_ai_chat_button_everywhere")
         private val SETTINGS_ASSISTANT = booleanPreferencesKey("settings_assistant")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
+        private val SETTINGS_FAVOURITES = stringPreferencesKey("settings_favourites")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -12171,6 +12180,9 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { SettingLinkMode.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingLinks,
             splitToolPanels = p[SETTINGS_SPLIT_TOOL_PANELS] ?: defaults.appUi.splitToolPanels,
+            settingsFavourites = p[SETTINGS_FAVOURITES]
+                ?.split('\n')?.filter { it.isNotEmpty() }
+                ?: defaults.appUi.settingsFavourites,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -19375,6 +19387,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.settingLinks]. */
     suspend fun setSettingLinks(value: SettingLinkMode) =
         editPrefs { it[SETTINGS_SETTING_LINKS] = value.name }
+
+    /** See [AppUiSettings.settingsFavourites]. Entries must not hold a line break. */
+    suspend fun setSettingsFavourites(value: List<String>) =
+        editPrefs { it[SETTINGS_FAVOURITES] = value.joinToString("\n") }
 
     /** See [AppUiSettings.splitToolPanels]. */
     suspend fun setSplitToolPanels(value: Boolean) =

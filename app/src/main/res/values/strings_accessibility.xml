@@ -90,7 +90,7 @@ Off by default, because these tools are for getting text out fast. Reduce motion
     <string name="accessibility_row_icons_info">Turn this off for plain rows that show only words, as in earlier versions of the app. Some people find a list of words easier to read than a column of coloured icons.\n\nThis changes only these settings screens. The icons of the keyboard and of its tools stay as they are.</string>
     <string name="accessibility_keyboard_preview_title">Keyboard test button</string>
     <string name="accessibility_keyboard_preview_subtitle">A small button on every settings screen that opens the keyboard with a field to type in</string>
-    <string name="accessibility_keyboard_preview_info">The button sits in the bottom corner of every settings screen. Tap it and a text field opens above the real keyboard, so you can try a change on the screen where you made it, without going back to another app. Tap the button again, or hide the keyboard, to close the field. It stays open while you move between settings screens.\n\nScreens that already show a keyboard of their own, such as the theme editor, don\'t show the button. Turn this off if you don\'t want the button on your screens.</string>
+    <string name="accessibility_keyboard_preview_info">The button sits in the bottom corner of every settings screen. Tap it and a text field opens above the real keyboard, so you can try a change on the screen where you made it, without going back to another app. Tap the button again, or hide the keyboard, to close the field. It stays open while you move between settings screens.\n\nTouch and hold the button to open your favourite settings. Add a screen with the star at its top, or touch and hold a setting and choose Add to favourites.\n\nScreens that already show a keyboard of their own, such as the theme editor, don\'t show the button. Turn this off if you don\'t want the button on your screens.</string>
 
     <!-- The button itself, on every settings screen (#412). Read by screen
          readers; the field's placeholder shows while it is empty. -->
@@ -99,6 +99,19 @@ Off by default, because these tools are for getting text out fast. Reduce motion
     <string name="keyboard_preview_hint">Type here to try your changes</string>
     <string name="keyboard_preview_clear">Clear</string>
     <string name="keyboard_preview_switch">Switch to this keyboard</string>
+
+    <!-- Favourite settings (#898): screens and rows the user pins, listed on
+         a long press of the keyboard test button. -->
+    <string name="favourites_title">Favourites</string>
+    <string name="favourites_empty">Nothing here yet. Tap the star at the top of a screen, or touch and hold a setting, to add it here.</string>
+    <string name="favourites_edit">Edit</string>
+    <string name="favourites_done">Done</string>
+    <string name="favourites_open_desc">Open favourites</string>
+    <string name="favourites_add">Add to favourites</string>
+    <string name="favourites_remove">Remove from favourites</string>
+    <string name="favourites_copy_link">Copy link</string>
+    <string name="favourites_screen_add_desc">Add this screen to favourites</string>
+    <string name="favourites_screen_remove_desc">Remove this screen from favourites</string>
 
     <!-- Accessibility settings screen, "Screen reader" group. TalkBack is the
          name of the Android screen reader and is not translated. -->
