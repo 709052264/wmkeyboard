@@ -462,6 +462,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     // per-category grid under it takes the default: its destination is
     // "emojiorder/{category}", and the screen names itself by the literal.
     "emojicategories" to Color(0xFFFFB300),
+    "emojiadded" to Color(0xFFFFB300),
     // The kaomoji library and its two lists, children of the emoji panel.
     "kaomoji" to Color(0xFFFFB300),
     "kaomoji/faces" to Color(0xFFFFB300),

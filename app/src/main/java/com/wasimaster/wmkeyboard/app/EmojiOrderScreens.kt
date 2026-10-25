@@ -83,12 +83,13 @@ internal fun emojiOrderRoute(category: String): String = "$EMOJI_ORDER_ROUTE/$ca
  * The bundled catalog, read off the asset once per screen.
  *
  * The keyword packs the keyboard merges in are deliberately not read: `merge`
- * maps over the catalog and never adds an entry, so the bundled file is the
- * whole set of emoji and the whole set of categories, and loading the packs
- * would cost a folder walk to arrive at the same list.
+ * maps over the catalog and never adds an entry, so the bundled file plus the
+ * hand-added emoji (see [rememberEmojiCatalog]) is the whole set of emoji and
+ * categories, and loading the packs would cost a folder walk to arrive at the
+ * same list.
  */
 @Composable
-private fun rememberEmojiCatalog(): List<EmojiEntry> {
+internal fun rememberBundledEmojiCatalog(): List<EmojiEntry> {
     val context = LocalContext.current
     return produceState(initialValue = emptyList<EmojiEntry>(), context) {
         value = withContext(Dispatchers.IO) {
@@ -97,6 +98,23 @@ private fun rememberEmojiCatalog(): List<EmojiEntry> {
             }.getOrDefault(emptyList())
         }
     }.value
+}
+
+/**
+ * The catalog the keyboard draws: the bundled one with the hand-added emoji
+ * appended the same way the IME appends them, so an added face has its slot
+ * here and can be dragged like any other.
+ */
+@Composable
+private fun rememberEmojiCatalog(settings: LiveSettings): List<EmojiEntry> {
+    val bundled = rememberBundledEmojiCatalog()
+    val added = settings.watch { it.emoji.added }
+    return remember(bundled, added) {
+        EmojiCatalog.withAdded(
+            bundled,
+            added.map { EmojiCatalog.addedEntry(it.emoji, it.category, it.name, it.keywords) },
+        )
+    }
 }
 
 /** A category id as a heading: the catalog names them lowercase. */
@@ -110,7 +128,7 @@ internal fun EmojiCategorySettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val catalog = rememberEmojiCatalog()
+    val catalog = rememberEmojiCatalog(settings)
     // Counted off the catalog, not off the stored order, so the subtitle says
     // how many emoji the category has rather than how many were arranged.
     val counts = remember(catalog) {
@@ -267,7 +285,7 @@ internal fun EmojiOrderScreen(
     onBack: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val catalog = rememberEmojiCatalog()
+    val catalog = rememberEmojiCatalog(settings)
     val stored = settings.watch { it.emoji.categoryEmojiOrder[category].orEmpty() }
     val emoji = remember(catalog, category, stored) {
         EmojiOrder.emoji(catalog, category, stored)

@@ -67,6 +67,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Accessibility
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AspectRatio
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EmojiEmotions
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gavel
@@ -616,6 +617,7 @@ internal object SettingsRouteIcons {
         "kaomoji/faces" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/tags" to { Icons.Outlined.Label },
         "emojicategories" to { Icons.Outlined.Sort },
+        "emojiadded" to { Icons.Outlined.Add },
         "emojikeywords" to { Icons.Outlined.EmojiEmotions },
         "clipboard" to { Icons.Outlined.ContentPaste },
         "voice" to { Icons.Outlined.Mic },

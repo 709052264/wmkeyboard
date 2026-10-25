@@ -93,6 +93,7 @@ internal object SettingsRoutes {
         "customdictionaries",
         "emojicategories",
         "emojiorder/{category}",
+        "emojiadded",
         "emojikeywords",
         "blacklist",
         "learnedcorrections",

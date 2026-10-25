@@ -142,6 +142,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipLinks
 import com.wasimaster.wmkeyboard.core.clipboard.ClipSensitivity
 import com.wasimaster.wmkeyboard.core.clipboard.ClipboardStore
 import com.wasimaster.wmkeyboard.core.clipboard.clipEditable
+import com.wasimaster.wmkeyboard.core.settings.AddedEmoji
 import com.wasimaster.wmkeyboard.core.settings.AutoThemeTrigger
 import com.wasimaster.wmkeyboard.core.settings.AppColorSettings
 import com.wasimaster.wmkeyboard.core.theme.PaletteStyle
@@ -2593,6 +2594,12 @@ open class WMKeyboardService : InputMethodService() {
      * catalogue when it was last built (issue #51); a change rebuilds it.
      */
     private var loadedEmojiKeywordsOff: Set<String> = emptySet()
+
+    /**
+     * The hand-added emoji folded into the catalogue when it was last built
+     * (Settings › Emoji › Add emoji); a change rebuilds it.
+     */
+    private var loadedAddedEmoji: List<AddedEmoji> = emptyList()
 
     /**
      * The languages the offensive-word filter was last built for. The list is
@@ -5116,6 +5123,11 @@ open class WMKeyboardService : InputMethodService() {
                 ) {
                     reloadEmojiCatalog()
                 }
+                // An emoji added, edited or deleted by hand, or a restore or
+                // sync that rewrote the list: also folded in at build time.
+                if (suggestionEngine != null && settings.emoji.added != loadedAddedEmoji) {
+                    reloadEmojiCatalog()
+                }
                 // And again for the emoji history, which a restored backup
                 // rewrites under the running keyboard.
                 if (emojiUsageVersion != -1 && settings.emoji.usageVersion != emojiUsageVersion) {
@@ -5448,7 +5460,7 @@ open class WMKeyboardService : InputMethodService() {
                 // them: they live in credential-encrypted storage.
                 val packs = if (userUnlocked) emojiPacks() else emptyList()
                 emojiPackNames = EmojiKeywordPack.namesByLanguage(packs)
-                Triple(english, bengali, EmojiKeywordPack.merge(bundled, packs))
+                Triple(english, bengali, EmojiKeywordPack.merge(withAddedEmoji(bundled), packs))
             }
             val (english, bengali, catalog) = loaded
             val spellingMapOn = bengaliEnabled &&
@@ -5724,6 +5736,20 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
+    /**
+     * [bundled] with the user's hand-added emoji appended (see
+     * [EmojiCatalog.withAdded]), remembering which list went in so the
+     * settings collector can tell when it changed.
+     */
+    private fun withAddedEmoji(bundled: List<EmojiEntry>): List<EmojiEntry> {
+        val added = _uiState.value.settings.emoji.added
+        loadedAddedEmoji = added
+        return EmojiCatalog.withAdded(
+            bundled,
+            added.map { EmojiCatalog.addedEntry(it.emoji, it.category, it.name, it.keywords) },
+        )
+    }
+
     private suspend fun reloadEmojiCatalog() {
         if (!userUnlocked) return
         // IO, not Default: this reads an asset and walks the packs folder, and
@@ -5734,7 +5760,7 @@ open class WMKeyboardService : InputMethodService() {
                 val bundled = assets.open("emoji/catalog.tsv").use { EmojiCatalog.load(it) }
                 val packs = emojiPacks()
                 emojiPackNames = EmojiKeywordPack.namesByLanguage(packs)
-                EmojiKeywordPack.merge(bundled, packs)
+                EmojiKeywordPack.merge(withAddedEmoji(bundled), packs)
             }.getOrNull()
         } ?: return
         emojiEntries = catalog
@@ -45353,9 +45379,13 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         serviceScope.launch {
+            // A hand-added emoji is never hidden, drawable or not: the user
+            // asked for that face by name, usually because the phone's font is
+            // the thing that is behind, and the app it is sent to may draw it.
+            val added = settings.emoji.added.mapTo(HashSet()) { it.emoji }
             val hidden = withContext(Dispatchers.Default) {
                 EmojiFontShaping.warm(fontFile)
-                EmojiRenderCheck.unrenderable(catalog.map { it.emoji }, fontFile)
+                EmojiRenderCheck.unrenderable(catalog.map { it.emoji }, fontFile) - added
             }
             _uiState.update { it.copy(hiddenEmoji = hidden) }
         }

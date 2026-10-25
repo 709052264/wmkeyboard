@@ -7439,6 +7439,18 @@ data class EmojiSettings(
      */
     val categoryEmojiOrder: Map<String, List<String>> = emptyMap(),
     /**
+     * Emoji the user added by hand (Settings › Emoji › Add emoji), for a face
+     * a newer Unicode release has and the bundled catalog does not yet. The
+     * keyboard appends them to the catalog, each at the end of its category,
+     * so they draw, search, suggest and land in Recent like any other.
+     *
+     * A preference rather than a file of its own: the list is small (see
+     * [MAX_ADDED_EMOJI]), a preference rides the config backup and sync with
+     * no section of its own, and the running keyboard sees an edit the moment
+     * it is saved. JSON, for the reason given on [categoryEmojiOrder].
+     */
+    val added: List<AddedEmoji> = emptyList(),
+    /**
      * Where the emoji, GIF and sticker panels draw the switch between the
      * three (issue #366). On in the bottom row by default, the place most
      * keyboards put it. It reaches the shipped emoji panel and the GIF and
@@ -10755,6 +10767,7 @@ class SettingsRepository(private val context: Context) {
         // stay glued. JSON is the encoding already trusted with layout specs.
         private val EMOJI_CATEGORY_EMOJI_ORDER =
             stringPreferencesKey("emoji_category_emoji_order")
+        private val EMOJI_ADDED = stringPreferencesKey("emoji_added")
         private val EMOJI_MEDIA_SWITCHER = stringPreferencesKey("emoji_media_switcher")
         private val EMOJI_REMEMBER_MEDIA_TAB = booleanPreferencesKey("emoji_remember_media_tab")
         private val EMOJI_CONTINUOUS_SCROLL = booleanPreferencesKey("emoji_continuous_scroll")
@@ -12989,6 +13002,7 @@ class SettingsRepository(private val context: Context) {
             hiddenCategories = p[EMOJI_HIDDEN_CATEGORIES] ?: defaults.emoji.hiddenCategories,
             categoryEmojiOrder = decodeEmojiOrder(p[EMOJI_CATEGORY_EMOJI_ORDER])
                 .ifEmpty { defaults.emoji.categoryEmojiOrder },
+            added = decodeAddedEmoji(p[EMOJI_ADDED]).ifEmpty { defaults.emoji.added },
             mediaSwitcher = p[EMOJI_MEDIA_SWITCHER]
                 ?.let { runCatching { MediaSwitcher.valueOf(it) }.getOrNull() }
                 ?: defaults.emoji.mediaSwitcher,
@@ -17819,6 +17833,19 @@ class SettingsRepository(private val context: Context) {
             val next = if (clean.isEmpty()) current - category else current + (category to clean)
             if (next.isEmpty()) prefs.remove(EMOJI_CATEGORY_EMOJI_ORDER)
             else prefs[EMOJI_CATEGORY_EMOJI_ORDER] = encodeEmojiOrder(next)
+        }
+
+    /**
+     * Rewrites the hand-added emoji list; see [EmojiSettings.added]. The
+     * transform runs against the stored list inside the edit, so an add from
+     * the settings app and an import running beside it cannot drop each
+     * other's entries. The result is cleaned and capped like a read.
+     */
+    suspend fun editAddedEmoji(transform: (List<AddedEmoji>) -> List<AddedEmoji>) =
+        editPrefs { prefs ->
+            val next = cleanAddedEmoji(transform(decodeAddedEmoji(prefs[EMOJI_ADDED])))
+            if (next.isEmpty()) prefs.remove(EMOJI_ADDED)
+            else prefs[EMOJI_ADDED] = encodeAddedEmoji(next)
         }
 
     /** Puts every category's emoji, and the tabs themselves, back in catalog order. */

@@ -673,6 +673,14 @@ internal fun EmojiPanelSettings(
         }
         item {
             NavRow(
+                R.string.langemoji_emoji_added_title,
+                stringResource(R.string.langemoji_emoji_added_subtitle),
+                value = settings.watch { it.emoji.added.size }.takeIf { it > 0 }?.toString(),
+                route = "emojiadded",
+            ) { onNavigate("emojiadded") }
+        }
+        item {
+            NavRow(
                 R.string.langemoji_emoji_keywords_title,
                 stringResource(R.string.langemoji_emoji_keywords_subtitle),
                 route = "emojikeywords",

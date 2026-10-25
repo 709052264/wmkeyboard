@@ -1315,6 +1315,17 @@ private fun SettingsNavGraph(
                 EmojiCategorySettings(repository, settings) { route -> navController.navigate(route) }
             }
         }
+        composable("emojiadded") {
+            SettingsScreen(
+                stringResource(R.string.langemoji_emoji_added_title),
+                { navController.popBackStack() },
+                route = "emojiadded",
+                subtitle = stringResource(R.string.langemoji_emoji_added_subtitle),
+                subtitleMaxLines = 2,
+            ) {
+                AddedEmojiSettings(repository, settings)
+            }
+        }
         composable(
             route = "$EMOJI_ORDER_ROUTE/{category}",
             arguments = listOf(navArgument("category") { type = NavType.StringType }),
