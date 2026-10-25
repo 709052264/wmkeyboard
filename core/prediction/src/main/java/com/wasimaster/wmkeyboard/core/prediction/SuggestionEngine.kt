@@ -4036,11 +4036,22 @@ class SuggestionEngine(
             spelling?.takeIf { it == listed || !inDictionaries(lower, includePlatform = false) }
         val spelling = when {
             userLexicon.isCasePinned(lower) -> asked(own)
-            own != null -> own.takeIf { it == listed }
+            // A word learned in small letters is the word as typed, not a
+            // choice of case: it is how a lone "i" got learned the one time
+            // its capital was held back, and from then on it outvoted the
+            // list's "I" for good.
+            own != null && own != lower -> own.takeIf { it == listed }
             else -> listed ?: asked(systemWordCases[lower])
         }?.takeIf { it != lower } ?: return null
         if (suppressed(lower)) return null
-        if (correctionStats.penalty(lower, spelling) != CorrectionStats.Penalty.NONE) return null
+        // An undo blocks it for the run of typing that earned it, and two
+        // retire it. One remembered undo only handicaps: a capital the list
+        // asks for has no rival to lose to, so treating that as a block left it
+        // no way to fire again and be kept, which is how the pair is forgiven.
+        when (correctionStats.penalty(lower, spelling)) {
+            CorrectionStats.Penalty.BLOCKED, CorrectionStats.Penalty.PROBATION -> return null
+            CorrectionStats.Penalty.PENALIZED, CorrectionStats.Penalty.NONE -> Unit
+        }
         return CorrectionDecision(apply = spelling, certainty = 1.0)
     }
 
