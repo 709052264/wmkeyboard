@@ -24970,7 +24970,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val words = kept.map { restoreApostrophe(it.word) ?: it.word }
         val (offered, offeredScores) = offerApostrophes(words, kept.map { it.score })
-        val declared = declareApostrophe(offered, points, keys, keyWidthPx)
+        val declared = leadContraction(declareApostrophe(offered, points, keys, keyWidthPx))
         // Scores follow the words through every rewrite. An offered
         // contraction carries the score of the reading it was offered behind,
         // and `declareApostrophe` can put a spelling in front that the decoder
@@ -25200,6 +25200,24 @@ open class WMKeyboardService : InputMethodService() {
             if (dx * dx + dy * dy <= reach * reach) return true
         }
         return false
+    }
+
+    /**
+     * [words] led by the contraction their leader may stand for, where the word
+     * before says which: `hell` drawn to start a sentence is "He'll" (#949).
+     * The bare word stays right behind it, so the strip still offers it.
+     */
+    private fun leadContraction(words: List<String>): List<String> {
+        val state = _uiState.value
+        if (!state.settings.autoText.apostrophe || !state.allowsTypingIntelligence) return words
+        if (!state.language.isEnglish) return words
+        val top = words.firstOrNull() ?: return words
+        val fixed = Apostrophes.leadsAfter(top, previousWord) ?: return words
+        return buildList(words.size + 1) {
+            add(fixed)
+            add(top)
+            addAll(words.drop(1).filterNot { it.equals(fixed, ignoreCase = true) })
+        }
     }
 
     /**
