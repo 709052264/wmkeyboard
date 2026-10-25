@@ -1733,6 +1733,11 @@ private fun SettingsNavGraph(
                 NotesTrashScreen(settings)
             }
         }
+        composable(TODO_ROUTE) {
+            SettingsScreen(stringResource(R.string.todo_title), { navController.popBackStack() }, route = TODO_ROUTE) {
+                TodoListScreen(repository, settings)
+            }
+        }
         composable("sticker_packs") {
             SettingsScreen(
                 stringResource(R.string.home_screen_sticker_packs_title),

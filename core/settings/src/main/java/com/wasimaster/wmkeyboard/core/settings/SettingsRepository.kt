@@ -187,6 +187,7 @@ import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.core.aimemory.AiMemoryStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
@@ -3710,6 +3711,8 @@ data class KeyboardSettings(
     val vocabulary: VocabularySettings = VocabularySettings(),
     /** The Notes tool (#560): sort, trash retention, what Save as note does (see [NotesSettings]). */
     val notes: NotesSettings = NotesSettings(),
+    /** The To-do tool (#920): finished tasks, the task-app sync (see [TodoSettings]). */
+    val todo: TodoSettings = TodoSettings(),
     /** The gallery tool (#708): grid, quality, privacy, sending (see [GallerySettings]). */
     /** The Send files tool (#729), see [SendSettings]. */
     val send: SendSettings = SendSettings(),
@@ -4323,6 +4326,8 @@ data class AutoBackupSettings(
             // ring for one alarm is a bug.
             ConfigBackup.Section.CLOCK.id,
             ConfigBackup.Section.KAOMOJI.id,
+            // Typed by hand like notes, and nothing else brings a task back.
+            ConfigBackup.Section.TODO.id,
         )
     }
 }
@@ -4415,6 +4420,8 @@ data class SyncSettings(
             // A notebook on two phones is the obvious wish. Notes merge one
             // by one through their ids; the tag list merges as one value.
             ConfigBackup.Section.NOTES.id,
+            // The same for the to-do list (#920): tasks merge one by one.
+            ConfigBackup.Section.TODO.id,
         )
     }
 }
@@ -11690,6 +11697,7 @@ class SettingsRepository(private val context: Context) {
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
             notes = readNotes(p, defaults),
+            todo = TodoPrefs.read(p, defaults.todo),
             send = SendPrefs.read(p, defaults.send),
             lookup = LookupPrefs.read(p, defaults.lookup),
             semanticSearch = SemanticSearchPrefs.read(p, defaults.semanticSearch),
@@ -14795,6 +14803,15 @@ class SettingsRepository(private val context: Context) {
     suspend fun bumpNotesVersion() =
         editPrefs { it[NOTES_VERSION] = (it[NOTES_VERSION] ?: 0) + 1 }
 
+    /** One change to the To-do tool's settings (#920); see [updateGallery]. */
+    suspend fun updateTodo(change: (TodoSettings) -> TodoSettings) = editPrefs { p ->
+        val old = TodoPrefs.read(p, storedDefaults.todo)
+        TodoPrefs.write(p, old, change(old))
+    }
+
+    /** tasks.json was rewritten under the keyboard; the [bumpNotesVersion] contract. */
+    suspend fun bumpTodoVersion() = editPrefs { TodoPrefs.bumpVersion(it) }
+
     suspend fun setNumpadCalculatorLayout(value: Boolean) =
         editPrefs {
             it[NUMPAD_CALCULATOR_LAYOUT] = value
@@ -17360,6 +17377,11 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.AI_MEMORY in sections) {
             readStore(AiMemoryStore.FILE_PATH)?.let { out[ConfigBackup.Section.AI_MEMORY] = it }
         }
+        if (ConfigBackup.Section.TODO in sections) {
+            // The list as stored. The task-app sync's own record stays out: it
+            // names rows of this phone's task app (see TodoProviderSync).
+            readStore(TodoStore.FILE_PATH)?.let { out[ConfigBackup.Section.TODO] = it }
+        }
         return out
     }
 
@@ -17398,6 +17420,8 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
                     ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
                     ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
+                    // Tasks and their steps alike.
+                    ConfigBackup.Section.TODO -> element.jsonObject["tasks"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -17544,6 +17568,13 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.TODO] as? JsonObject)?.let { obj ->
+            if (writeStore(TodoStore.FILE_PATH, obj)) {
+                restored.add(ConfigBackup.Section.TODO)
+                // The keyboard holds the list in memory; see the notes above.
+                bumpTodoVersion()
             }
         }
         (parsed.sections[ConfigBackup.Section.KAOMOJI] as? JsonObject)?.let { obj ->

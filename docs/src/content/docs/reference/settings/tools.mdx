@@ -1,6 +1,6 @@
 ---
 title: "Tools"
-description: "The master tool list: how to enable, disable, recolour, and open each of the 85 tools' own settings, plus what each tool's in-panel manager does."
+description: "The master tool list: how to enable, disable, recolour, and open each of the 86 tools' own settings, plus what each tool's in-panel manager does."
 sidebar:
   order: 15
 ---
@@ -42,7 +42,7 @@ Tools are grouped by what they do, in this order. Each group starts folded shut,
 
 | Group | Tools |
 |---|---|
-| Panels | Emoji, Clipboard, Snippets, Notes, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Camera, Gallery, Dictionary, Vocabulary, Learn from text, Find & replace, Grammar check, App launcher, Media controls, KDE Connect, Smart home, Send files |
+| Panels | Emoji, Clipboard, Snippets, Notes, To-do list, Text editing, Trackpad, Numpad, Handwriting, Voice typing, Camera, Gallery, Dictionary, Vocabulary, Learn from text, Find & replace, Grammar check, App launcher, Media controls, KDE Connect, Smart home, Send files |
 | Scanners | Text scan (OCR), QR & barcode scanner, Document scanner |
 | Online tools | Translate, GIFs, Stickers, Web search, Image search, Wikipedia, Currency converter, AI writing tools, AI reply |
 | Create and convert | Special symbols, Calculator, Unit converter, QR code generator, Password generator, Text repeat, Read back, Typing speed test |
@@ -114,7 +114,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 | Guide page | Tools covered |
 |---|---|
-| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 85) |
+| [The toolbar](/tools/overview/) | Pinning, toolbox groups, direct boot, hardware leader key (mechanics for all 86) |
 | [Custom layouts & the layout editor](/languages/custom-layouts/) | Secondary layout |
 | [Clipboard manager](/tools/clipboard/) | Clipboard |
 | [Snippets & text expansion](/tools/snippets/) | Snippets |
@@ -132,6 +132,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 | [Search & Wikipedia](/tools/search/) | Web search, Image search, Wikipedia, Dictionary |
 | [Vocabulary](/tools/vocabulary/) | Vocabulary |
 | [Notes](/tools/notes/) | Notes |
+| [To-do list](/tools/todo/) | To-do list |
 | [AI tools](/tools/ai/) | AI writing tools |
 | [AI reply](/tools/ai-reply/) | AI reply |
 | [Read back and offline voices](/tools/read-back/) | Read back |
@@ -164,7 +165,7 @@ Every tool is documented somewhere outside this reference page, so use this tabl
 
 ## Details & edge cases
 
-- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 85 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 85 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
+- **Setup decides what starts enabled, not the shipped default.** The shipped default is all 86 tools on, but you only ever see it after a settings reset. The [setup wizard](/start/setup/) overwrites it the moment you answer its "how much keyboard do you want" question: 8 tools for "keep it simple", 22 for the middle answer, 43 for "show me everything", or all 86 if you tap **Everything** on its Tools page. Answering "extra strict" on privacy adds Incognito. A set that loses tools this build or device can't run (grammar, handwriting, the scanners) gets Wikipedia and Power saving in their place, so the exact count moves a little. The wizard only writes over an untouched default, so a reinstall with your settings intact keeps your selection.
 - **Disabling a tool is one switch, not three.** The tool disappears from the toolbar, the toolbox, and its hardware leader-key letter at the same moment. The one piece you can drop on its own is the toolbox: **Show in toolbox** on the tool's own screen takes it out of the grid and leaves it working everywhere else.
 - **Folders and the toolbox search live on the keyboard.** Neither has a switch here. You make a folder by dropping one tool on the middle of another in the toolbox, and the magnifier at the top of the toolbox searches it by name. See [Folders](/tools/overview/#folders) and [Searching the toolbox](/tools/overview/#searching-the-toolbox). Folders are part of a settings backup.
 - **A tool hidden from the toolbox can still be pinned.** If it is already on the toolbar it stays there. Drag it off the bar and it unpins without landing in the grid, since the grid no longer takes it; turn **Show in toolbox** back on to see it there again.

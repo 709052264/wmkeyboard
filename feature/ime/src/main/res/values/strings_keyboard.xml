@@ -452,6 +452,7 @@
     <string name="ime_tool_learn_from_text">Learn from text</string>
     <string name="ime_tool_find_replace">Find &amp; replace</string>
     <string name="ime_tool_notes">Notes</string>
+    <string name="ime_tool_todo">To-do list</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
     <string name="ime_tool_home_assistant">Smart home</string>

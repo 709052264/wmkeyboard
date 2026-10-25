@@ -102,6 +102,7 @@
     <string name="search_kw_ime_tool_translate">translator interpreter deepl</string>
     <string name="search_kw_ime_tool_vocabulary">spaced repetition anki srs</string>
     <string name="search_kw_ime_tool_notes">notebook memo jot scratchpad diary</string>
+    <string name="search_kw_ime_tool_todo">todo tasks checklist chores davx5 caldav opentasks</string>
     <string name="search_kw_ime_tool_weather">forecast temperature rain</string>
     <string name="search_kw_ime_tool_home_assistant">hass googlehome tuya smartlife switch thermostat scene assist iot</string>
     <string name="search_kw_ime_tool_clock">alarm timer zone pomodoro countdown</string>

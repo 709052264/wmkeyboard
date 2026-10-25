@@ -773,6 +773,13 @@ enum class PanelMode {
     CLOCK,
 
     /**
+     * The To-do tool (#920): tasks and their steps. Its state is the
+     * controller's, see `ime.todo.TodoUi`; its text box takes the keys
+     * through [CaptureTarget.TODO_TEXT].
+     */
+    TODO,
+
+    /**
      * The Home Assistant tool: the house's entities as tiles, live from the
      * server, and a typed Assist bar. Its state is the controller's, see
      * `ime.homeassistant.HaUi`; its search, Assist and code boxes take the keys
@@ -973,6 +980,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The task rows; the header's chips are touch, and typing reaches the box.
+    PanelMode.TODO -> listOf(FocusRegion.RESULTS)
     // The room tabs, the tiles, then the open tile's controls.
     PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.
@@ -3827,6 +3836,11 @@ data class KeyboardUiState(
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
     /**
+     * The To-do panel's text box while it has the keys: a new task, a new
+     * step, or a task's words being edited (#920).
+     */
+    val todoText: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? = null,
+    /**
      * The Home Assistant panel's text box while it has the keys: a search, an
      * Assist sentence, a lock code, a text entity's value. The rest of the
      * panel's state is the controller's.
@@ -4340,6 +4354,10 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the To-do panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val todoTypingActive: Boolean
+        get() = panel == PanelMode.TODO && todoText != null
+
     /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val haTypingActive: Boolean
         get() = panel == PanelMode.HOME_ASSISTANT && haText != null
@@ -4455,6 +4473,7 @@ data class KeyboardUiState(
             } else {
                 CaptureTarget.CLOCK_LABEL
             }
+        todoTypingActive -> CaptureTarget.TODO_TEXT
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
@@ -4554,6 +4573,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.TODO_TEXT -> todoText?.text.orEmpty()
         CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator

@@ -161,6 +161,11 @@ enum class ToolbarTool {
     // with a row of the latest notes under it to switch to one and add to it
     // (#864). Action-only, like [CLIPBOARD_SEARCH].
     QUICK_NOTE,
+    // A to-do list with steps under each task (#920), kept in the app's files
+    // and shared with the settings app's list. Can sync with a CalDAV task
+    // list through DAVx5's task app when the user sets that up. Reads
+    // filesDir, so not available before the first unlock.
+    TODO,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -355,7 +360,7 @@ val RecommendedTools: Set<ToolbarTool> = MinimalTools + setOf(
  * their converters and their calendar already on.
  */
 val PowerTools: Set<ToolbarTool> = RecommendedTools + setOf(
-    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.GALLERY, ToolbarTool.POWER_SAVING,
+    ToolbarTool.WIKIPEDIA, ToolbarTool.VOCABULARY, ToolbarTool.NOTES, ToolbarTool.TODO, ToolbarTool.GALLERY, ToolbarTool.POWER_SAVING,
     ToolbarTool.MODES,
     ToolbarTool.NUMPAD,
     ToolbarTool.SYMBOLS, ToolbarTool.CALCULATOR, ToolbarTool.UNIT_CONVERT, ToolbarTool.CURRENCY,

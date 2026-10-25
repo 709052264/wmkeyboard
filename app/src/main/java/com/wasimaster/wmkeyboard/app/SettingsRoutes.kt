@@ -138,6 +138,7 @@ internal object SettingsRoutes {
         "notes/edit/{noteId}",
         "notes/tags",
         "notes/trash",
+        "todo",
         "plugins",
         "plugin/{pluginId}",
         "plugin_ide",

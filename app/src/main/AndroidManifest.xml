@@ -214,6 +214,16 @@
          PermissionDisclosures.ANKIDROID. -->
     <uses-permission android:name="com.ichi2.anki.permission.READ_WRITE_DATABASE" />
 
+    <!-- The task apps' own permissions (#920): the To-do list tool's optional
+         sync with one task list in OpenTasks or Tasks.org, which DAVx5 keeps
+         in step with a CalDAV server. Runtime permissions those apps define;
+         asked for only when the user turns the sync on, behind
+         PermissionDisclosures.TASKS_*. -->
+    <uses-permission android:name="org.dmfs.permission.READ_TASKS" />
+    <uses-permission android:name="org.dmfs.permission.WRITE_TASKS" />
+    <uses-permission android:name="org.tasks.permission.READ_TASKS" />
+    <uses-permission android:name="org.tasks.permission.WRITE_TASKS" />
+
     <!-- The keyboard-mode editor lists installed apps (launcher activities)
          so a mode can be bound to specific apps; Android 11+ hides the app
          list without this. -->
@@ -222,6 +232,11 @@
              Add to Anki (#765). -->
         <package android:name="com.ichi2.anki" />
         <provider android:authorities="com.ichi2.anki.flashcards" />
+        <!-- The task apps whose providers the To-do list syncs with (#920). -->
+        <package android:name="org.dmfs.tasks" />
+        <provider android:authorities="org.dmfs.tasks" />
+        <package android:name="org.tasks" />
+        <provider android:authorities="org.tasks.opentasks" />
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
