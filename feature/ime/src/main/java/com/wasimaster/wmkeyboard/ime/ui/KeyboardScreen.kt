@@ -5298,8 +5298,9 @@ private fun RowScope.StripWords(
         // respelling is typed on.
         // Composed with a null value too, so the popup can play its
         // way out after the service has closed it.
+        // A card the selection bar opened is the bar's to host.
         WordCardPopup(
-            card = state.wordCard?.takeIf { state.wordSpell == null },
+            card = state.wordCard?.takeIf { state.wordSpell == null && !it.fromSelection },
             onAction = suggestionHold.onCard,
         )
         // The synonyms a held word asked for (#321), a window over the

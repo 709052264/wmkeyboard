@@ -47,7 +47,7 @@ Each action works on the text as the last one left it, so you can translate a pa
 - **Copy** copies the result and closes the sheet. On text you cannot edit, such as a web page, there is no Replace, and Copy is the way to take the result with you.
 - The share button beside Undo hands the result to another app.
 
-Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Zones, Colour, Save as note), and chat formatting, which depends on the app you are typing in.
+Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Zones, Colour, Save as note, Edit word), and chat formatting, which depends on the app you are typing in.
 
 Nothing in the sheet is stored. Translate sends the text wherever the Translate tool sends it, which is nowhere when it translates on the phone. The AI actions do the same with the AI tool's provider, and [Data Saver](/privacy/data-saver/) holds them back on mobile data as it does in the keyboard: when it is set to ask, the sheet says so, and tapping the action again sends it.
 
@@ -127,6 +127,7 @@ Two things sit outside the order. **Undo** is always first while there is someth
 | JSON | A JSON object or array | Off |
 | Base64, Decode | Base64 text; a percent-encoded link | Off |
 | Speak | Anything | Off |
+| Edit word | One word | On |
 | Zones | A time | Off |
 | Calendar | A date or time | Off |
 | Map | Coordinates or an address | Off |
@@ -225,6 +226,8 @@ Mono on several lines uses the app's fenced block where it has one. These four a
 
 ## Look up
 
+**Edit word** appears when the selection is one word and opens that word's [word card](/smart/personal-dictionary/#from-the-suggestion-strip), the same card that holding a word on the suggestion strip reaches through **Edit**. It shows where the keyboard found the word and how often you typed it, and carries Never suggest or Suggest again, Delete, the rank controls, the spelling and **Keep these capitals**. **Add** is about the selected word: it appears while that word is not in your personal dictionary, and adds it spelled as selected. Punctuation around the word does not count, so `"Hello,"` and `(don't)` are single words; `two words`, `2026` and `e.g.` are not. The card works on your dictionary, not on the text, so the selection stays as it was. It closes when the selection moves to other text or goes away. If you have already picked your own set of actions, switch it on under Actions.
+
 **Search** opens the [web search](/tools/search/) tool with the selection as the query. **Speak** reads the selection aloud with the phone's speech engine, or with a downloaded [offline voice](/tools/read-back/#offline-voices) for that language (in Bengali for Bengali text), and turns into Stop while it does. **Zones** appears on a time and shows it in each of the zones you picked under Time zones, UTC and your own to start with; tap one to write it in place of the selection.
 
 ## Open in
@@ -252,7 +255,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Show on every selection | Toggle | Off |
 | Show with nothing selected | Toggle | Off |
 | Read what is selected | Toggle | On |
-| Actions | Screen | 33 of 51 on |
+| Actions | Screen | 37 of 56 on |
 | Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and your own |
@@ -274,7 +277,7 @@ None of these send anything anywhere themselves: each hands the text to an app y
 - **The bar never appears over a password field.** Putting a password in front of a Share chooser is the mistake this feature should not make.
 - **An action is only offered when it can work.** WhatsApp is hidden when WhatsApp is not installed. Search, Translate, QR, Grammar and AI are hidden when their tools are switched off, which includes the tools that [power saving](/typing/power-saving/) and the lock screen have already taken away, and AI is hidden until a provider is set up. Hiding a tool from the toolbox is not switching it off: turn off **Show in toolbox** on the tool's own page to keep, say, the AI chip here while the AI tool stays out of the toolbox grid.
 - **Nothing is stored and nothing is sent by the keyboard.** Every action either edits the field you are already in, or hands the text to an app you picked. Grammar and the Bengali conversions run on the device. The one exception is DeepL Write, which you set up yourself: it sends the selection to DeepL.
-- **Before your first unlock**, only the actions that touch the current field survive: the edits, the rewrites and Find. Paste needs a clipboard that is still locked, Speak needs a speech engine, and everything under Open in would have to start another app.
+- **Before your first unlock**, only the actions that touch the current field survive: the edits, the rewrites and Find. Paste needs a clipboard that is still locked, Speak needs a speech engine, Edit word needs the personal dictionary, which is locked too, and everything under Open in would have to start another app.
 - **A very long selection gets only the actions that need no reading.** Past about 4,000 characters the keyboard stops reading the selection, so the case options, the rewrites and the entity actions all stand down. With **Show on every selection** off, which is how it ships, the bar goes away entirely and the toolbar's own [Copy tool](/tools/text-editing/) is the answer; with it on, Select all, Copy, Cut, Paste and Delete stay on the bar, because the app does their work and the length costs them nothing.
 - **The bar follows the selection, not the caret.** Extending a selection with [selection mode](/tools/text-editing/#selection-mode) or a [trackpad](/tools/trackpad/) drag re-reads it as you go, so the actions change under your finger as the selection grows into a whole phone number.
 - **This version resets the list of actions once.** The list grew from thirteen actions to forty-five, and the shipped choices replace whatever you had picked before, so the new actions are there. Anything you switch off after that stays off.

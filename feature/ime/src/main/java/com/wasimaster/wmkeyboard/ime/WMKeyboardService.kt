@@ -41104,6 +41104,7 @@ open class WMKeyboardService : InputMethodService() {
                 onMacro = ::onSelectionMacro,
                 onPick = ::onSelectionPick,
                 onAiAction = ::onSelectionAiAction,
+                onWordCard = ::onWordCardAction,
             ),
             findReplace = com.wasimaster.wmkeyboard.ime.ui.FindReplaceCallbacks(
                 onFocusField = ::onFindReplaceFocus,
@@ -42842,6 +42843,7 @@ open class WMKeyboardService : InputMethodService() {
             // panel keeps its session: it moves the selection itself.
             if (_uiState.value.panel != PanelMode.FIND_REPLACE) macroUndo.clear()
             stopReadAloud()
+            closeSelectionWordCard()
         }
         // Publishes [offer], or takes the bar down when it is null, and asks
         // the app to scroll the caret clear of a bar that has just arrived on
@@ -42852,6 +42854,8 @@ open class WMKeyboardService : InputMethodService() {
         // and so does an open panel, which keeps the row away (#414).
         fun publish(offer: SelectionMacroOffer?) {
             if (offer == null) return clear()
+            // The card Edit word opened is about the text that was selected.
+            if (offer.text != _uiState.value.selectionMacros?.text) closeSelectionWordCard()
             if (offer == _uiState.value.selectionMacros) return
             val arriving = _uiState.value.selectionMacros == null
             _uiState.update { it.copy(selectionMacros = offer) }
@@ -43263,6 +43267,7 @@ open class WMKeyboardService : InputMethodService() {
             bengaliLoaded = suggestionEngine != null && bengaliListLoaded(),
             hindiLoaded = suggestionEngine?.extraPhonetic?.containsKey(PhoneticSchemes.HINDI.languageId) == true,
             chatSyntax = ChatSyntax.forPackage(currentPackage),
+            oneWord = selectedWord(text) != null,
             content = content,
         )
         val macros = SelectionMacros.offer(kind, allowed, gates, prefs.order)
@@ -43399,6 +43404,7 @@ open class WMKeyboardService : InputMethodService() {
             SelectionMacro.GRAMMAR_FIX -> fixGrammarInSelection(offer)
             SelectionMacro.DEEPL_WRITE -> rephraseSelection(offer)
             SelectionMacro.AI -> onPanelChange(PanelMode.AI)
+            SelectionMacro.EDIT_WORD -> selectedWord(text)?.let { publishWordCard(it, fromSelection = true) }
             SelectionMacro.READ_ALOUD -> toggleReadAloud(offer)
             SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
             SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
@@ -46225,11 +46231,25 @@ open class WMKeyboardService : InputMethodService() {
      * words by construction and the one the user wants in is the one they are
      * working on (#100). Null otherwise.
      */
-    private fun addableTypedWord(): String? = typedWord().takeIf {
+    private fun addableTypedWord(): String? = addableWord(typedWord())
+
+    /** [word], when the menu or the card may offer to add it; else null. */
+    private fun addableWord(word: String): String? = word.takeIf {
         // The menu proposes it, so it has to be a word (#185); a spelling the
         // user types into the card themselves is not held to this.
         it.length >= 2 && WordContext.isLearnableWord(it) && !userLexicon.contains(WordKey.of(it))
     }
+
+    /**
+     * The selection as one word, for the selection bar's Edit word: [text]
+     * without the punctuation around it, when what is left is a word by the
+     * keyboard's own rule (letters and digits, single joiners inside), so
+     * `"Hello,"` and `(don't)` are words and `two words` or `e.g.` are not.
+     * Null otherwise.
+     */
+    private fun selectedWord(text: String): String? =
+        text.trim { !WordContext.isWordChar(it) && !it.isDigit() }
+            .takeIf { it.length <= UserLexicon.MAX_WORD_LENGTH && WordContext.isLearnableWord(it) }
 
     /**
      * Whether [word] is somewhere the keyboard can take it out of itself —
@@ -46325,7 +46345,7 @@ open class WMKeyboardService : InputMethodService() {
      * menu, which is as deliberate as it gets. A word on the never-suggest
      * list is taken off it, since adding it says the opposite.
      */
-    private fun addTypedWord(typed: String) {
+    private fun addTypedWord(typed: String, composing: Boolean = true) {
         val word = typed.trim()
         if (word.isEmpty()) return
         vibrate()
@@ -46336,8 +46356,9 @@ open class WMKeyboardService : InputMethodService() {
         // back later to vote on capitals the menu has just pinned (#100).
         learningBuffer.drop(word)
         // The word is still composing: the space that commits it is part of
-        // this same answer, not a use to be counted on top of it (#115).
-        handAddedWord = WordKey.of(word)
+        // this same answer, not a use to be counted on top of it (#115). A
+        // selected word has no space coming.
+        if (composing) handAddedWord = WordKey.of(word)
         userLexicon.addWord(word, caseEvidence = true)
         val state = _uiState.value
         if (state.settings.suggestionSources.blacklistedAnywhere(word)) {
@@ -46434,7 +46455,7 @@ open class WMKeyboardService : InputMethodService() {
         val trimmed = word.trim()
         if (trimmed.isEmpty()) return
         vibrate()
-        publishWordCard(trimmed)
+        publishWordCard(trimmed, fromSelection = false)
     }
 
     /**
@@ -46443,17 +46464,22 @@ open class WMKeyboardService : InputMethodService() {
      * lookup on a list walks the whole list (see `RankFloorCache`). A card
      * that was closed, or moved to another word, before the walk finished
      * is left alone.
+     *
+     * [fromSelection] is a card the selection bar's Edit word opened; a
+     * refresh keeps whatever the open card was. Its Add is about the selected
+     * word itself, there being no word under the caret while text is selected.
      */
-    private fun publishWordCard(word: String) {
+    private fun publishWordCard(word: String, fromSelection: Boolean = _uiState.value.wordCard?.fromSelection == true) {
         val state = _uiState.value
         val card = WordCard(
             word = word,
-            typed = addableTypedWord(),
+            typed = if (fromSelection) addableWord(word) else addableTypedWord(),
             learnedCount = userLexicon.frequencyOf(word),
             rankOffset = wordRanks.offsetOf(word),
             rankControl = state.settings.suggestionStrip.rankControl,
             blacklisted = state.settings.suggestionSources.blacklisted(word, state.language.id),
             casePinned = userLexicon.isCasePinned(word),
+            fromSelection = fromSelection,
         )
         _uiState.update { it.copy(wordCard = card) }
         val engine = suggestionEngine ?: return
@@ -46650,7 +46676,7 @@ open class WMKeyboardService : InputMethodService() {
             WordCardAction.CancelSpelling -> cancelWordSpell()
             is WordCardAction.SelectSpelling -> wordSpellEdit { it.selected(action.start, action.end) }
             WordCardAction.Add -> {
-                card.typed?.let(::addTypedWord)
+                card.typed?.let { addTypedWord(it, composing = !card.fromSelection) }
                 publishWordCard(card.word)
             }
             WordCardAction.ForgetShapes -> {
@@ -46676,6 +46702,16 @@ open class WMKeyboardService : InputMethodService() {
             }
             WordCardAction.Dismiss -> _uiState.update { it.copy(wordCard = null) }
         }
+    }
+
+    /**
+     * Closes the card the selection bar's Edit word opened, which is about the
+     * word that was selected: once the selection is gone or on other text,
+     * the bar that hosts the card is gone or about something else. A spelling
+     * being typed for it stays; applying it opens the strip's card instead.
+     */
+    private fun closeSelectionWordCard() {
+        if (_uiState.value.wordCard?.fromSelection == true) _uiState.update { it.copy(wordCard = null) }
     }
 
     /**

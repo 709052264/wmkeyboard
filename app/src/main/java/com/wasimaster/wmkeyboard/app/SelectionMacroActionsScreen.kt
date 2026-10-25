@@ -280,6 +280,7 @@ internal fun macroDescription(macro: SelectionMacro): Int = when (macro) {
     SelectionMacro.CHAT_STRIKE -> R.string.selection_macros_desc_chat_strike
     SelectionMacro.CHAT_MONO -> R.string.selection_macros_desc_chat_mono
     SelectionMacro.READ_ALOUD -> R.string.selection_macros_desc_read_aloud
+    SelectionMacro.EDIT_WORD -> R.string.selection_macros_desc_edit_word
     SelectionMacro.TIME_ZONES -> R.string.selection_macros_desc_time_zones
     SelectionMacro.CALL -> R.string.selection_macros_desc_call
     SelectionMacro.SMS -> R.string.selection_macros_desc_sms

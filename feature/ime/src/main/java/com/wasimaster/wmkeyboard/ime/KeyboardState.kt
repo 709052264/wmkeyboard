@@ -2716,6 +2716,12 @@ data class WordCard(
      * because it is a switch the user flips and must not arrive late (#138).
      */
     val casePinned: Boolean = false,
+    /**
+     * Opened by the selection bar's Edit word rather than by a hold on the
+     * strip. The bar hosts that card, since the strip may not be drawn while
+     * text is selected, and the card closes with the selection.
+     */
+    val fromSelection: Boolean = false,
 )
 
 /**

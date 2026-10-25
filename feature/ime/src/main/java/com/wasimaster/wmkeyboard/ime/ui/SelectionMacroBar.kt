@@ -43,6 +43,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCut
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentPaste
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DataObject
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.DeleteOutline
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.EditNote
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Event
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FilterList
@@ -118,6 +119,7 @@ import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiActions
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.ime.WordCardAction
 import java.util.TimeZone
 
 /**
@@ -137,6 +139,8 @@ data class SelectionMacroCallbacks(
     val onPick: (SelectionMacro, String, String) -> Unit = { _, _, _ -> },
     /** One of the AI buttons drawn after the AI chip: the action's id. */
     val onAiAction: (String) -> Unit = {},
+    /** Something on the word card Edit word opened was pressed, as on the strip's own card. */
+    val onWordCard: (WordCardAction) -> Unit = {},
 )
 
 /** Which sub-row has replaced the bar, if any. */
@@ -177,6 +181,14 @@ internal fun SelectionMacroBar(
     modifier: Modifier = Modifier,
 ) {
     val offer = state.selectionMacros ?: return
+    // The card Edit word opens. The strip hosts the card it opens itself, but
+    // with text selected the strip may not be on screen at all (the strip
+    // placement draws this bar in its place), so the bar hosts its own. The
+    // service closes it once the selection moves off the word.
+    WordCardPopup(
+        card = state.wordCard?.takeIf { it.fromSelection && state.wordSpell == null },
+        onAction = callbacks.onWordCard,
+    )
     // A door chip (Format on prose, Fancy, Colour, Zones) opens a ladder in
     // place of the row, so which face the bar shows is composition state.
     //
@@ -639,6 +651,7 @@ fun selectionMacroIcon(macro: SelectionMacro): ImageVector? = when (macro) {
     SelectionMacro.GRAMMAR_FIX -> Icons.Outlined.Spellcheck
     SelectionMacro.DEEPL_WRITE -> Icons.Outlined.EditNote
     SelectionMacro.AI -> Icons.Outlined.AutoFixHigh
+    SelectionMacro.EDIT_WORD -> Icons.Outlined.Edit
     SelectionMacro.TO_BANGLA, SelectionMacro.TO_BANGLISH,
     SelectionMacro.TO_HINDI, SelectionMacro.TO_HINGLISH,
     -> Icons.Outlined.Language
