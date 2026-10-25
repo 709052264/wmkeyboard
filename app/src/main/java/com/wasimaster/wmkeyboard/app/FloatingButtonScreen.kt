@@ -175,12 +175,12 @@ internal fun FloatingButtonSettingsScreen(
                 picking = FloatingPick.TAP
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_double_tap_title, value = floatingActionLabel(button.doubleTap)) {
                 picking = FloatingPick.DOUBLE_TAP
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.floating_button_hold_title, value = floatingActionLabel(button.hold)) {
                 picking = FloatingPick.HOLD
             }
@@ -193,6 +193,7 @@ internal fun FloatingButtonSettingsScreen(
     SettingsGroup(
         stringResource(R.string.floating_button_typing_group),
         info = stringResource(R.string.floating_button_typing_info),
+        level = SettingLevel.ADVANCED,
     ) {
         item(visible = button.whileTyping) {
             NavRow(
@@ -242,7 +243,7 @@ internal fun FloatingButtonSettingsScreen(
                 },
             ) { if (!full) picking = FloatingPick.MENU_ADD }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_menu_labels_title,
                 stringResource(R.string.floating_button_menu_labels_subtitle),
@@ -250,7 +251,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.menuLabels,
             ) { scope.launch { repository.setFloatingButtonMenuLabels(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.floating_button_menu_gap_title,
                 subtitle = stringResource(R.string.floating_button_menu_gap_subtitle),
@@ -260,7 +261,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.menuGapDp.toFloat(),
             ) { scope.launch { repository.setFloatingButtonMenuGap(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.floating_button_menu_animation_title,
                 options = FloatingMenuAnimation.entries.map { it to stringResource(animationLabel(it)) },
@@ -277,7 +278,7 @@ internal fun FloatingButtonSettingsScreen(
     }
 
     SettingsGroup(stringResource(R.string.floating_button_look_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.floating_button_style_title,
                 options = FloatingButtonStyle.entries.map { it to stringResource(styleLabel(it)) },
@@ -285,7 +286,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.style,
             ) { scope.launch { repository.setFloatingButtonStyle(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.floating_button_shape_title,
                 subtitle = stringResource(R.string.floating_button_shape_subtitle),
@@ -314,7 +315,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.opacity,
             ) { scope.launch { repository.setFloatingButtonOpacity(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val never = stringResource(R.string.floating_button_idle_never)
             val seconds = stringResource(R.string.floating_button_idle_seconds)
             SliderSetting(
@@ -327,7 +328,7 @@ internal fun FloatingButtonSettingsScreen(
                 typed = false,
             ) { scope.launch { repository.setFloatingButtonIdleFade(it.roundToInt()) } }
         }
-        item(visible = button.idleFadeSeconds > 0) {
+        item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.floating_button_idle_opacity_title,
                 subtitle = stringResource(R.string.floating_button_idle_opacity_subtitle),
@@ -337,7 +338,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.idleOpacity,
             ) { scope.launch { repository.setFloatingButtonIdleOpacity(it) } }
         }
-        item(visible = button.idleFadeSeconds > 0) {
+        item(visible = button.idleFadeSeconds > 0, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_tuck_title,
                 stringResource(R.string.floating_button_tuck_subtitle),
@@ -348,7 +349,7 @@ internal fun FloatingButtonSettingsScreen(
     }
 
     SettingsGroup(stringResource(R.string.floating_button_behaviour_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_while_typing_title,
                 stringResource(R.string.floating_button_while_typing_subtitle),
@@ -356,7 +357,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.whileTyping,
             ) { scope.launch { repository.setFloatingButtonWhileTyping(it) } }
         }
-        item(visible = button.whileTyping) {
+        item(visible = button.whileTyping, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.floating_button_over_keyboard_title,
                 stringResource(R.string.floating_button_over_keyboard_subtitle),
@@ -364,7 +365,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.overKeyboard,
             ) { scope.launch { repository.setFloatingButtonOverKeyboard(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_landscape_title,
                 stringResource(R.string.floating_button_landscape_subtitle),
@@ -372,7 +373,7 @@ internal fun FloatingButtonSettingsScreen(
                 default = defaults.hideInLandscape,
             ) { scope.launch { repository.setFloatingButtonHideInLandscape(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.floating_button_haptics_title,
                 stringResource(R.string.floating_button_haptics_subtitle),

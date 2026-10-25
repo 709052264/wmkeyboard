@@ -182,7 +182,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.typingSuggest,
             ) { scope.launch { repository.setEmojiMixTypingSuggest(it) } }
         }
-        item(visible = typing) {
+        item(visible = typing, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.emojimix_style_title,
                 options = listOf(
@@ -194,7 +194,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.suggestStyle,
             ) { scope.launch { repository.setEmojiMixSuggestStyle(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.emojimix_replace_title,
                 stringResource(R.string.emojimix_replace_subtitle),
@@ -212,7 +212,7 @@ internal fun EmojiMixSettings(
     }
 
     SettingsGroup(stringResource(R.string.emojimix_behaviour_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.emojimix_order_title,
                 options = listOf(
@@ -223,7 +223,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.order,
             ) { scope.launch { repository.setEmojiMixOrder(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.emojimix_send_title,
                 subtitle = stringResource(R.string.emojimix_send_subtitle),
@@ -235,7 +235,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.sendMode,
             ) { scope.launch { repository.setEmojiMixSendMode(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val dpFormat = stringResource(R.string.typing_value_dp)
             SliderSetting(
                 R.string.emojimix_cell_size_title,
@@ -245,7 +245,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.cellSize.toFloat(),
             ) { scope.launch { repository.setEmojiMixCellSize(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.emojimix_auto_refresh_title,
                 stringResource(R.string.emojimix_auto_refresh_subtitle),
@@ -253,7 +253,7 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.autoRefresh,
             ) { scope.launch { repository.setEmojiMixAutoRefresh(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             var size by remember { mutableStateOf<Long?>(null) }
             LaunchedEffect(Unit) { size = withContext(Dispatchers.IO) { store.imagesSize() } }
             NavRow(

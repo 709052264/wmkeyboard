@@ -1015,7 +1015,7 @@ private fun RefreshSettingsGroup(
     refreshUnmeteredOnly: Boolean,
 ) {
     SettingsGroup(stringResource(R.string.addon_refresh_section_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.addon_auto_refresh_title,
                 stringResource(R.string.addon_auto_refresh_subtitle),
@@ -1024,7 +1024,7 @@ private fun RefreshSettingsGroup(
                 default = true,
             ) { store.setAutoRefresh(it) }
         }
-        item(visible = autoRefresh) {
+        item(visible = autoRefresh, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.addon_refresh_unmetered_title,
                 stringResource(R.string.addon_refresh_unmetered_subtitle),

@@ -1119,7 +1119,7 @@ internal fun BackupSettings(
                 route = "backup/auto",
             ) { onNavigate("backup/auto") }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val syncOn = settings.watch { it.autoBackup.sync.enabled }
             val syncMode = settings.watch { it.autoBackup.sync.mode }
             val syncPaused = settings.watch { it.autoBackup.sync.paused() }
@@ -1156,7 +1156,7 @@ internal fun BackupSettings(
                 onClick = exportGuarded,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.backup_files_contents_title,
                 subtitle = stringResource(
@@ -1175,7 +1175,7 @@ internal fun BackupSettings(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.backup_foreign_import_title),
                 subtitle = stringResource(R.string.backup_foreign_import_subtitle),
@@ -1388,7 +1388,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item(visible = autoOn && configured) {
+        item(visible = autoOn && configured, level = SettingLevel.STANDARD) {
             PauseRow(
                 pausedUntilMs = settings.watch { it.autoBackup.pausedUntilMs },
                 title = R.string.backup_pause_title,
@@ -1417,7 +1417,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item(visible = autoOn && configured) {
+        item(visible = autoOn && configured, level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.backup_auto_keep_title,
                 subtitle = stringResource(R.string.backup_auto_keep_subtitle),
@@ -1433,7 +1433,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.autoBackup.keep.toFloat(),
             ) { kept -> scope.launch { repository.setAutoBackupKeep(kept.roundToInt()) } }
         }
-        item(visible = autoOn && configured) {
+        item(visible = autoOn && configured, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.backup_auto_charging_title,
                 stringResource(R.string.backup_auto_charging_subtitle),
@@ -1449,7 +1449,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
         }
         // A folder is storage on this device: a network condition there would
         // only ever delay a backup that costs nothing.
-        item(visible = autoOn && configured && overNetwork) {
+        item(visible = autoOn && configured && overNetwork, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.backup_auto_unmetered_title,
                 stringResource(R.string.backup_auto_unmetered_subtitle),
@@ -1513,7 +1513,7 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
         StateBanner(stringResource(R.string.backup_auto_personal_warning), tone = BannerTone.WARNING)
     }
 
-    SettingsGroup(stringResource(R.string.backup_auto_contents_title)) {
+    SettingsGroup(stringResource(R.string.backup_auto_contents_title), level = SettingLevel.STANDARD) {
         sectionRows(
             settings = settings,
             sections = { it.autoBackup.sectionSet },
@@ -1608,7 +1608,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item(visible = syncOn) {
+        item(visible = syncOn, level = SettingLevel.STANDARD) {
             PauseRow(
                 pausedUntilMs = settings.watch { it.autoBackup.sync.pausedUntilMs },
                 title = R.string.sync_pause_title,
@@ -1624,7 +1624,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 },
             )
         }
-        item(visible = syncOn) {
+        item(visible = syncOn, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.backup_sync_mode_title,
                 options = listOf(
@@ -1647,7 +1647,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 },
             ) { mode -> scope.launch { repository.setSyncMode(mode) } }
         }
-        item(visible = syncOn && syncMode == SyncMode.SCHEDULE) {
+        item(visible = syncOn && syncMode == SyncMode.SCHEDULE, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.backup_sync_interval_title,
                 value = intervalSliderIndex(settings.watch { it.autoBackup.sync.intervalHours }).toFloat(),
@@ -1658,7 +1658,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 default = intervalSliderIndex(SettingsDefaults.autoBackup.sync.intervalHours).toFloat(),
             ) { index -> scope.launch { repository.setSyncIntervalHours(intervalAt(index)) } }
         }
-        item(visible = syncOn) {
+        item(visible = syncOn, level = SettingLevel.ADVANCED) {
             val keysProtected = settings.watch { it.autoBackup.encrypt && it.autoBackup.passphrase.isNotEmpty() }
             ToggleSetting(
                 R.string.backup_sync_secrets_title,
@@ -1698,7 +1698,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val group = settings.watch { it.autoBackup.sync.group }
             WmRow(
                 title = stringResource(R.string.backup_sync_group_title),
@@ -1716,7 +1716,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
         }
         // A computer paired over KDE Connect turns into a location above,
         // ticked; this is the one switch for whether that happens.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.backup_sync_paired_title,
                 stringResource(R.string.backup_sync_paired_subtitle),
@@ -1726,7 +1726,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
             ) { on -> scope.launch { repository.setSyncWithPairedDevices(on) } }
         }
         // #928: mobile data is the user's to spend.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.backup_sync_wifi_only_title,
                 stringResource(R.string.backup_sync_wifi_only_subtitle),
@@ -1739,6 +1739,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
     SettingsGroup(
         stringResource(R.string.backup_sync_contents_title),
         info = stringResource(R.string.backup_sync_local_note),
+        level = SettingLevel.STANDARD,
     ) {
         sectionRows(
             settings = settings,
@@ -1757,6 +1758,7 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
     SettingsGroup(
         stringResource(R.string.backup_sync_keep_local_title),
         info = stringResource(R.string.backup_sync_keep_local_info),
+        level = SettingLevel.ADVANCED,
     ) {
         for (group in SyncKeys.LocalGroup.entries) {
             item {

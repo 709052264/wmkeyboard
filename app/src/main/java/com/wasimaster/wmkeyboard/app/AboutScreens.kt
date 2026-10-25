@@ -1406,13 +1406,13 @@ internal fun AboutSettings(
                 stringResource(R.string.about_whats_new_subtitle, BuildConfig.VERSION_NAME),
             ) { showNotes = true }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The licence identifier and the copyright line travel verbatim.
             NavRow(R.string.about_licence_title, "MIT, © 2026 Wasi Master") {
                 onOpenLicenseText("mit-wmkeyboard.txt")
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.about_source_title,
                 SOURCE_URL.removePrefix("https://"),
@@ -1420,7 +1420,7 @@ internal fun AboutSettings(
                 uriHandler.openUri(SOURCE_URL)
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_name_title,
                 stringResource(R.string.about_launcher_name_subtitle),
@@ -1433,7 +1433,7 @@ internal fun AboutSettings(
                 },
             )
         }
-        item(visible = !television) {
+        item(visible = !television, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.about_launcher_shown_title,
                 stringResource(R.string.about_launcher_shown_subtitle),
@@ -1458,9 +1458,9 @@ internal fun AboutSettings(
                     englishName = nativeLanguageName("en"),
                 )
             }
-            item(visible = canDropLanguageSwitch) { KeepEnglishOnlyRow() }
+            item(visible = canDropLanguageSwitch, level = SettingLevel.ADVANCED) { KeepEnglishOnlyRow() }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.about_storage_title,
                 stringResource(R.string.about_storage_subtitle),
@@ -1468,7 +1468,7 @@ internal fun AboutSettings(
                 onClick = onOpenStorage,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.statistics_title,
                 stringResource(R.string.statistics_subtitle),
@@ -1476,7 +1476,7 @@ internal fun AboutSettings(
                 onClick = onOpenStatistics,
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.about_diagnostics_title,
                 stringResource(R.string.about_diagnostics_subtitle),
@@ -1484,7 +1484,7 @@ internal fun AboutSettings(
                 onClick = onOpenDebugLog,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The quiz answers still decide how many tools are pinned, how the
             // theme gallery is laid out and which pages the wizard even has,
             // and until this row existed there was nowhere in settings that
@@ -1497,7 +1497,7 @@ internal fun AboutSettings(
                 onClick = onReplayOnboarding,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The wizard's only way back in once it has been finished. A
             // replay never rewrites settings, so the row can promise that.
             NavRow(
@@ -1532,7 +1532,7 @@ internal fun AboutSettings(
                 uriHandler.openUri(PRIVACY_POLICY_URL)
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // A web link to one setting, from the setting itself (#646). The
             // rows read the mode through LocalSettingLinks, so this row and
             // its own heading change the moment it is picked.
@@ -1568,7 +1568,7 @@ internal fun AboutSettings(
                 shareLink(context, FDROID_URL)
             }
         }
-        item(visible = !BuildConfig.ENABLE_PLAY_STORE) {
+        item(visible = !BuildConfig.ENABLE_PLAY_STORE, level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.about_share_github_link,
                 SOURCE_URL.removePrefix("https://"),
@@ -1578,7 +1578,7 @@ internal fun AboutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.about_third_party_title)) {
+    SettingsGroup(stringResource(R.string.about_third_party_title), level = SettingLevel.STANDARD) {
         item {
             NavRow(
                 R.string.about_licences_title,
@@ -1588,7 +1588,7 @@ internal fun AboutSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.about_word_lists_title)) {
+    SettingsGroup(stringResource(R.string.about_word_lists_title), level = SettingLevel.ADVANCED) {
         item {
             NavRow(
                 R.string.about_dictionaries_title,

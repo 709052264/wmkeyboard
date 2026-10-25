@@ -947,7 +947,7 @@ private fun LayoutsGroup(
         for (layoutId in named) {
             item(key = "name:$layoutId") { LayoutNameRow(layoutId, settings, repository, scope) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.languages_borrow_layout_title),
                 subtitle = stringResource(R.string.languages_borrow_layout_subtitle, lang.englishName),
@@ -1104,7 +1104,7 @@ internal fun LanguageDetailScreen(
     // Hidden, it stays on and keeps lending them, and the switcher has one
     // stop fewer.
     SettingsGroup(stringResource(R.string.languages_picker_hidden_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.languages_picker_hidden_title,
                 stringResource(R.string.languages_picker_hidden_subtitle),
@@ -1147,7 +1147,7 @@ internal fun LanguageDetailScreen(
     // Bangla words take their case markers and suffixes straight after the
     // pick, so the space only gets in the way there.
     SettingsGroup(stringResource(R.string.languages_spacing_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             val globalOn = settings.watch { it.suggestionStrip.autoSpaceAfterSuggestion }
             ToggleSetting(
                 R.string.languages_space_after_suggestion_title,
@@ -1171,7 +1171,7 @@ internal fun LanguageDetailScreen(
     // Settings and readable as a plain list.
     if (langId == "fancy") {
         SettingsGroup(stringResource(R.string.languages_fancy_style_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.languages_fancy_style_row_title,
                     subtitle = stringResource(R.string.languages_fancy_style_row_subtitle),
@@ -1190,7 +1190,7 @@ internal fun LanguageDetailScreen(
     // means the same thing by both.
     if (langId == "vi") {
         SettingsGroup(stringResource(R.string.languages_vietnamese_tones_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_vietnamese_strict_tones_title,
                     stringResource(R.string.languages_vietnamese_strict_tones_subtitle),
@@ -1199,7 +1199,7 @@ internal fun LanguageDetailScreen(
                     default = SettingsDefaults.vietnamese.strictTones,
                 ) { scope.launch { repository.setVietnameseStrictTones(it) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.languages_vietnamese_restore_marks_title,
                     stringResource(R.string.languages_vietnamese_restore_marks_subtitle),
@@ -1217,7 +1217,7 @@ internal fun LanguageDetailScreen(
     // in the other, and a single global switch made that impossible.
     if (ScriptRegistry[lang.script].composer == ComposerType.INDIC_CLUSTER) {
         SettingsGroup(stringResource(R.string.languages_clusters_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 val sample = conjunctSample(lang.script)
                     ?: stringResource(R.string.languages_conjunct_sample_fallback)
                 ToggleSetting(
@@ -1234,7 +1234,7 @@ internal fun LanguageDetailScreen(
             // Probhat and Jatiya give a vowel key the য়-glide after another
             // vowel; this makes a second press the independent vowel (#900).
             if (langId == "bn") {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.languages_bengali_vowel_twice_title,
                         stringResource(R.string.languages_bengali_vowel_twice_subtitle),
@@ -1253,7 +1253,7 @@ internal fun LanguageDetailScreen(
     // neural suggestions on the native language's page.
     if (RomanizedSpeech.spokenAs(langId)?.let(IndicXlitModels.LATIN::supports) == true) {
         SettingsGroup(stringResource(R.string.languages_romanized_dictation_group)) {
-            item { RomanizedDictationModelRow(settings) }
+            item(level = SettingLevel.STANDARD) { RomanizedDictationModelRow(settings) }
         }
     }
 
@@ -1264,7 +1264,7 @@ internal fun LanguageDetailScreen(
     // suggestion source.
     if (langId in SpellingMap.LANGUAGES) {
         SettingsGroup(stringResource(R.string.languages_spelling_map_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_spelling_map_row_title,
                     stringResource(R.string.languages_spelling_map_row_subtitle),
@@ -1278,7 +1278,7 @@ internal fun LanguageDetailScreen(
             }
             // Sound-alike words from the dictionary: "asi" commits আছি. Off
             // commits exactly what the rules spell and leaves them in the strip.
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.languages_phonetic_siblings_row_title,
                     stringResource(R.string.languages_phonetic_siblings_row_subtitle),
@@ -1293,7 +1293,7 @@ internal fun LanguageDetailScreen(
             // The words before: "kam" is کم or کام by what came before it.
             // Reads the user's own word pairs and the language's corpus pack;
             // off ranks a word the same anywhere in a sentence.
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.languages_phonetic_context_row_title,
                     stringResource(R.string.languages_phonetic_context_row_subtitle),
@@ -1338,7 +1338,7 @@ internal fun LanguageDetailScreen(
     val transliterating = phonetic || rulesMethod || khipro
     if (transliterating) {
         SettingsGroup(stringResource(R.string.languages_translit_hints_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.languages_translit_hints_row_title,
                     subtitle = stringResource(
@@ -1377,7 +1377,7 @@ internal fun LanguageDetailScreen(
         // Khipro's strip has a chip of its own: the keys as pressed (#772).
         if (khipro) {
             SettingsGroup(stringResource(R.string.languages_phonetic_strip_title)) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.languages_raw_keys_chip_title,
                         stringResource(R.string.languages_raw_keys_chip_subtitle),
@@ -1441,6 +1441,7 @@ internal fun LanguageDetailScreen(
         SettingsGroup(
             stringResource(R.string.languages_secondary_title),
             info = stringResource(R.string.languages_secondary_info, lang.englishName),
+            level = SettingLevel.STANDARD,
         ) {
             for (other in others) {
                 item {
@@ -1462,7 +1463,7 @@ internal fun LanguageDetailScreen(
         // has no English to weigh, and these would be switches that do nothing.
         if (PhoneticSchemes.forLanguage(langId) != null && "en" in secondaries) {
             SettingsGroup(stringResource(R.string.languages_phonetic_english_group)) {
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.languages_phonetic_english_title,
                         stringResource(R.string.languages_phonetic_english_subtitle),
@@ -1471,7 +1472,7 @@ internal fun LanguageDetailScreen(
                         default = SettingsDefaults.suggestionStrip.phoneticEnglishFor(langId),
                     ) { scope.launch { repository.setPhoneticEnglish(langId, it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.languages_phonetic_english_switch_title,
                         stringResource(R.string.languages_phonetic_english_switch_subtitle),
@@ -1489,7 +1490,7 @@ internal fun LanguageDetailScreen(
     // on the strip of every Bengali layout, and the button turns it on.
     if (langId == "bn") {
         val ansiAllowed = settings.watch { it.suggestionStrip.bengaliAnsiAllowed }
-        SettingsGroup(stringResource(R.string.languages_ansi_group)) {
+        SettingsGroup(stringResource(R.string.languages_ansi_group), level = SettingLevel.ADVANCED) {
             item {
                 ToggleSetting(
                     R.string.languages_ansi_allowed_title,
@@ -1523,7 +1524,7 @@ internal fun LanguageDetailScreen(
     if (langId == "my") {
         val zawgyiAllowed = settings.watch { it.suggestionStrip.burmeseZawgyiAllowed }
         SettingsGroup(stringResource(R.string.languages_zawgyi_group)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_zawgyi_allowed_title,
                     stringResource(R.string.languages_zawgyi_allowed_subtitle),
@@ -1533,7 +1534,7 @@ internal fun LanguageDetailScreen(
                 ) { scope.launch { repository.setBurmeseZawgyiAllowed(it) } }
             }
             if (zawgyiAllowed) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.languages_zawgyi_key_font_title,
                         stringResource(R.string.languages_zawgyi_key_font_subtitle),
@@ -1872,7 +1873,7 @@ private fun CjkDictPackManager(
         // Cangjie and stroke packs above do, so somebody arriving with one can
         // fill them without a download. Only offered for the language whose
         // packs those are.
-        item(visible = CjkDictCatalog.forLang(langId).any { it.id in FLEX_FILLABLE_PACKS }) {
+        item(visible = CjkDictCatalog.forLang(langId).any { it.id in FLEX_FILLABLE_PACKS }, level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.languages_cjk_flex_import_title),
                 icon = SettingsRowIcons[R.string.languages_cjk_flex_import_title],
@@ -1891,7 +1892,7 @@ private fun CjkDictPackManager(
         // candidates never pass through the conversion, and the value is shared
         // with Chinese, so the row stays off its screen (#607).
         val hanLang = langId == "zh" || langId == "yue"
-        item(visible = hanLang) {
+        item(visible = hanLang, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.languages_cjk_traditional_title,
                 stringResource(R.string.languages_cjk_traditional_subtitle),
@@ -1905,7 +1906,7 @@ private fun CjkDictPackManager(
         // (為, 説). Taiwan wording also swaps vocabulary (出租車 → 計程車), so
         // it is a separate choice and never the plain Taiwan one (#641). Only
         // worth showing once the toggle above is on.
-        item(visible = hanLang && traditional) {
+        item(visible = hanLang && traditional, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 R.string.languages_cjk_region_title,
                 info = stringResource(R.string.languages_cjk_region_info),
@@ -1930,7 +1931,7 @@ private fun CjkDictPackManager(
 
         // Japanese-only: on the flick pad every ゛, ゜ and small kana is an extra
         // key, so かつこう is how がっこう gets typed. Romaji never sees this.
-        item(visible = langId == "ja") {
+        item(visible = langId == "ja", level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.languages_cjk_loose_marks_title,
                 stringResource(R.string.languages_cjk_loose_marks_subtitle),
@@ -1943,7 +1944,7 @@ private fun CjkDictPackManager(
         // Issue #341: Japanese and Chinese are spaced with the ideographic
         // space, twice the width of an ASCII one. Per language, since the two
         // conventions differ, and off until asked for.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_full_width_space_title,
                 stringResource(R.string.languages_cjk_full_width_space_subtitle),
@@ -1957,7 +1958,7 @@ private fun CjkDictPackManager(
         // bar and type the highlighted one with Enter. Per language, and off
         // until asked for, since space committing the top pick is the habit
         // everyone typing here already has.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_cjk_space_steps_title,
                 stringResource(R.string.languages_cjk_space_steps_subtitle),
@@ -1978,7 +1979,7 @@ private fun CjkDictPackManager(
             // `wm` finds 我们. Every shipping Chinese IME does this by default
             // (#405). Under a Double Pinyin scheme a syllable is always two
             // keys, so the switch has nothing to abbreviate there.
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_cjk_jianpin_title,
                     stringResource(R.string.languages_cjk_jianpin_subtitle),
@@ -2000,7 +2001,7 @@ private fun CjkDictPackManager(
             }
             // rq / sj / xq for the date, time and weekday, v + a number for
             // Chinese numerals, the way Sogou and fcitx take them.
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_cjk_shortcuts_title,
                     stringResource(R.string.languages_cjk_shortcuts_subtitle),
@@ -2009,7 +2010,7 @@ private fun CjkDictPackManager(
                     default = SettingsDefaults.cjk.pinyinShortcuts,
                 ) { on -> scope.launch { repository.setPinyinShortcuts(on) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.languages_cjk_fuzzy_title,
                     stringResource(R.string.languages_cjk_fuzzy_subtitle),
@@ -2024,7 +2025,7 @@ private fun CjkDictPackManager(
             // either. Only drawn while fuzzy is on — off, they decide nothing.
             if (fuzzyOn) {
                 for (pair in PinyinFuzzy.PAIRS) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         val on = settings.watch { pair.id in it.cjk.pinyinFuzzyPairs }
                         val label = pair.members.joinToString(" ↔ ")
                         WmRow(
@@ -2049,7 +2050,7 @@ private fun CjkDictPackManager(
                         )
                     }
                 }
-                item(visible = fuzzyPairsChanged) {
+                item(visible = fuzzyPairsChanged, level = SettingLevel.ADVANCED) {
                     ActionRow(
                         title = R.string.languages_cjk_fuzzy_pairs_reset_title,
                         subtitle = null,
@@ -2057,7 +2058,7 @@ private fun CjkDictPackManager(
                     ) { scope.launch { repository.resetPinyinFuzzyPairs() } }
                 }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 val current = settings.watch { it.cjk.pinyinDoublePinyin }
                 val customText = settings.watch { it.cjk.pinyinDoublePinyinCustom }
                 ChoiceSetting(
@@ -2085,7 +2086,7 @@ private fun CjkDictPackManager(
             // Always offered, not only once Custom is picked: importing a scheme
             // file is as likely a first step as choosing the entry above, and
             // saving in the editor picks it.
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 val customName = settings.watch { all ->
                     all.cjk.pinyinDoublePinyinCustom.takeIf { it.isNotBlank() }
                         ?.let { DoublePinyinProfile.parse(it).name }
@@ -2159,7 +2160,7 @@ private fun PhoneticStripGroup(
     val neuralOn = settings.watch { it.suggestionStrip.neuralPhoneticFor(langId) }
     val neuralLeads = settings.watch { langId in it.suggestionStrip.neuralLeadsLangs }
     SettingsGroup(stringResource(R.string.languages_phonetic_strip_title)) {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.languages_phonetic_strip_fixed_title,
                 stringResource(R.string.languages_phonetic_strip_fixed_subtitle, languageName),
@@ -2169,7 +2170,7 @@ private fun PhoneticStripGroup(
             ) { scope.launch { repository.setPhoneticFixedStrip(langId, it) } }
         }
         if (fixed) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.languages_phonetic_strip_source_title,
                     subtitle = stringResource(R.string.languages_phonetic_strip_source_subtitle),
@@ -2206,7 +2207,7 @@ private fun PhoneticStripGroup(
         // Avro's own feature, so on Avro's language: the list is built the
         // way desktop Avro builds it, Bengali suffixes and all.
         if (langId == PhoneticSchemes.BENGALI.languageId) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.languages_phonetic_candidates_title,
                     subtitle = stringResource(R.string.languages_phonetic_candidates_subtitle),
@@ -2232,20 +2233,20 @@ private fun PhoneticStripGroup(
                     },
                 ) { scope.launch { repository.setPhoneticCandidateList(langId, it) } }
             }
-            item(visible = candidateListOn) { AvroDictionaryRow() }
+            item(visible = candidateListOn, level = SettingLevel.STANDARD) { AvroDictionaryRow() }
         }
         // IndicXlit's readings after the one the space bar writes: a small
         // neural network, one download shared by every language it writes.
         if (IndicXlitModels.supports(langId)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NeuralPhoneticToggle(langId, languageName, settings, neuralOn) { on ->
                     scope.launch { repository.setNeuralPhonetic(langId, on) }
                 }
             }
-            item(visible = neuralOn) { NeuralPhoneticModelRow(settings, repository) }
+            item(visible = neuralOn, level = SettingLevel.STANDARD) { NeuralPhoneticModelRow(settings, repository) }
             // Only where it measured worth the swap it makes (IndicXlitModels.LEADS).
             if (IndicXlitModels.canLead(langId)) {
-                item(visible = neuralOn) {
+                item(visible = neuralOn, level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.languages_neural_leads_title,
                         stringResource(R.string.languages_neural_leads_subtitle),
@@ -2259,7 +2260,7 @@ private fun PhoneticStripGroup(
         // The same model family the other way round, for dictating this
         // language in Latin letters (#948). Its own download, no switch.
         if (IndicXlitModels.LATIN.supports(langId)) {
-            item { RomanizedDictationModelRow(settings) }
+            item(level = SettingLevel.STANDARD) { RomanizedDictationModelRow(settings) }
         }
     }
 }
@@ -2313,7 +2314,7 @@ private fun KhiproSpecsGroup() {
         else -> stringResource(R.string.languages_khipro_specs_bundled, date)
     }
     SettingsGroup(stringResource(R.string.languages_khipro_specs_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(R.string.languages_khipro_specs_title, subtitle = subtitle) {
                 if (date == null || state.checking) return@NavRow
                 scope.launch {
@@ -2330,7 +2331,7 @@ private fun KhiproSpecsGroup() {
                 }
             }
         }
-        item(visible = state.downloaded) {
+        item(visible = state.downloaded, level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.languages_khipro_specs_bundled_title,
                 subtitle = stringResource(R.string.languages_khipro_specs_bundled_subtitle),

@@ -55,7 +55,7 @@ internal fun SelectionMacroSettingsScreen(
         // Where the bar draws, and everything below, only mean something once
         // the bar exists: the service clears the offer outright while the
         // feature is off, so these would be settings for nothing.
-        item(visible = macrosOn) {
+        item(visible = macrosOn, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.selection_macros_placement_title,
                 subtitle = stringResource(R.string.selection_macros_placement_subtitle),
@@ -80,7 +80,7 @@ internal fun SelectionMacroSettingsScreen(
         // Reads as a second question about where the bar appears rather than
         // as one about the actions: it decides whether there is a bar at all
         // on the longest selections, not which chips go on it.
-        item(visible = macrosOn) {
+        item(visible = macrosOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.selection_macros_every_title,
                 stringResource(R.string.selection_macros_every_subtitle),
@@ -91,7 +91,7 @@ internal fun SelectionMacroSettingsScreen(
         }
         // The always-shown row (#763). Hidden on the strip placement, which it
         // does not apply to: there it would take the suggestions for good.
-        item(visible = macrosOn && ownRow) {
+        item(visible = macrosOn && ownRow, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.selection_macros_caret_title,
                 stringResource(R.string.selection_macros_caret_subtitle),
@@ -106,7 +106,7 @@ internal fun SelectionMacroSettingsScreen(
     // nothing when its builder adds no rows, heading included.
     SettingsGroup(stringResource(R.string.selection_macros_actions_group)) {
         if (!macrosOn) return@SettingsGroup
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.selection_macros_detect_title,
                 stringResource(R.string.selection_macros_detect_subtitle),
@@ -128,7 +128,7 @@ internal fun SelectionMacroSettingsScreen(
                 route = SelectionMacroActionsRoute,
             ) { onNavigate(SelectionMacroActionsRoute) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.selection_macros_icons_title,
                 subtitle = stringResource(R.string.selection_macros_icons_subtitle),
@@ -136,7 +136,7 @@ internal fun SelectionMacroSettingsScreen(
                 route = SelectionMacroIconsRoute,
             ) { onNavigate(SelectionMacroIconsRoute) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.selection_macros_ai_title,
                 subtitle = stringResource(R.string.selection_macros_ai_subtitle),
@@ -144,7 +144,7 @@ internal fun SelectionMacroSettingsScreen(
                 route = SelectionMacroAiRoute,
             ) { onNavigate(SelectionMacroAiRoute) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.selection_macros_zones_title,
                 subtitle = stringResource(R.string.selection_macros_zones_subtitle),
@@ -176,7 +176,7 @@ internal fun SelectionMacroSettingsScreen(
                 default = SettingsDefaults.selectionMacros.systemMenu,
             ) { scope.launch { repository.setSelectionMenuEntry(it) } }
         }
-        item(visible = translateOn) {
+        item(visible = translateOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.text_actions_settings_translate_title,
                 stringResource(R.string.text_actions_settings_translate_subtitle),
@@ -184,7 +184,7 @@ internal fun SelectionMacroSettingsScreen(
                 default = SettingsDefaults.selectionMacros.systemMenuTranslate,
             ) { scope.launch { repository.setSelectionMenuTranslate(it) } }
         }
-        item(visible = aiOn) {
+        item(visible = aiOn, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_selection_menu_title,
                 stringResource(R.string.toolai_ai_selection_menu_subtitle),
@@ -192,7 +192,7 @@ internal fun SelectionMacroSettingsScreen(
                 default = SettingsDefaults.ai.selectionMenu,
             ) { scope.launch { repository.setAiSelectionMenu(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.lookup_settings_selection_title,
                 stringResource(R.string.lookup_settings_selection_subtitle),
