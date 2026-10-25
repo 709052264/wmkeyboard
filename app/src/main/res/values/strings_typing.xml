@@ -539,6 +539,11 @@
     <string name="typing_glide_search_all_chip_subtitle">Show a search button for reading the stroke against every word list when you tap back into a swiped word</string>
     <string name="typing_glide_search_all_chip_info">When a glide produces the wrong word, the stroke you drew is the only record of what you meant — the letters left in the text are the keyboard\'s guess, not your finger\'s path. So the keyboard keeps the last dozen strokes of the field, and tapping back into one of those words can search its stroke against every word list you have, past whatever limit glide typing normally works under. That search is always available: hold a word on the suggestion strip and pick \"Search all words\". This setting adds a small search button to the suggestion strip that offers it without the hold. It is an icon rather than a sentence so the words beside it — the ones the search is offering to improve on — keep the room; hold the button to send it away. Whichever way you reach it, taking a word off the search fixes the text and teaches the keyboard that stroke, so the same swipe reads correctly next time.</string>
 
+    <!-- Slider: how many of the newest swiped words keep their stroke for the full search. -->
+    <string name="typing_glide_kept_strokes_title">Swiped words a full search can reach</string>
+    <string name="typing_glide_kept_strokes_subtitle">How many of the newest swiped words keep their stroke. More uses more memory</string>
+    <string name="typing_glide_kept_strokes_info">A full search reads the stroke you drew again, so it only works for a word whose stroke the keyboard still keeps. The keyboard keeps the strokes of the newest swiped words in the field, 24 by default. Each stroke is every point your finger passed through, a few kilobytes, so keeping 500 can take a few megabytes while you write a long text. Raise it to search words further back; lower it, or set it to 0, to save memory. Strokes are forgotten when you leave the field.</string>
+
     <!-- One-of-four choice: how hard the word shown mid-glide resists change. -->
     <string name="typing_glide_steadiness_title">Steadiness of the word while you glide</string>
     <string name="typing_glide_steadiness_subtitle">Stop the word changing under your finger on every small movement</string>

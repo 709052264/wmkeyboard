@@ -92,6 +92,7 @@ import com.wasimaster.wmkeyboard.core.settings.GlideLoopMinArcRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopExtentRange
 import com.wasimaster.wmkeyboard.core.settings.GlideLoopRadiusRange
 import com.wasimaster.wmkeyboard.core.settings.GlideWiggleExtentRange
+import com.wasimaster.wmkeyboard.core.settings.GlideKeptStrokesRange
 import com.wasimaster.wmkeyboard.core.settings.GlideShapesPerWordRange
 import com.wasimaster.wmkeyboard.core.settings.GlideWiggleWeightRange
 import com.wasimaster.wmkeyboard.core.settings.GlidePickerDwellMsRange
@@ -3526,6 +3527,19 @@ private fun SettingsGroupScope.glideVocabularyRows(
             info = stringResource(R.string.typing_glide_search_all_chip_info),
             default = SettingsDefaults.gesture.searchAllChip,
         ) { scope.launch { repository.setGestureSearchAllChip(it) } }
+    }
+    // How far back that search reaches (#905): each kept path costs memory.
+    item {
+        val numberFormat = stringResource(R.string.values_number)
+        SliderSetting(
+            R.string.typing_glide_kept_strokes_title,
+            subtitle = stringResource(R.string.typing_glide_kept_strokes_subtitle),
+            value = settings.watch { it.gesture.keptStrokes }.toFloat(),
+            range = GlideKeptStrokesRange.first.toFloat()..GlideKeptStrokesRange.last.toFloat(),
+            display = { numberFormat.format(it.roundToInt()) },
+            info = stringResource(R.string.typing_glide_kept_strokes_info),
+            default = SettingsDefaults.gesture.keptStrokes.toFloat(),
+        ) { scope.launch { repository.setGestureKeptStrokes(it.roundToInt()) } }
     }
     // How hard the word shown mid-stroke resists being replaced.
     item {

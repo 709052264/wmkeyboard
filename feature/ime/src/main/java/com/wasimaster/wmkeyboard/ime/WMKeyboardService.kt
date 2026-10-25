@@ -4863,6 +4863,7 @@ open class WMKeyboardService : InputMethodService() {
                 correctionStats.memory = settings.correction.undoMemory
                 glideOutcomes.applied = settings.gesture.learnSwipeStyle
                 glideShapes.setShapesPerWord(settings.gesture.shapesPerWord)
+                glideReadings.strokeCapacity = settings.gesture.keptStrokes
                 suggestionEngine?.reranker = resolveReranker(settings)
                 // The engine sees one flat set: the global list plus the list of
                 // the language being typed (#136). Re-pointed on every language

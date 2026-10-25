@@ -7515,6 +7515,12 @@ val GlideWiggleWeightRange = 0.1f..1f
  */
 val GlideShapesPerWordRange = 1..GlideShapeStore.MAX_SHAPES_PER_WORD
 
+/**
+ * Bounds for [GestureSettings.keptStrokes]. No more than the words whose
+ * readings are kept at all, since a path outliving its word's entry is lost.
+ */
+val GlideKeptStrokesRange = 0..com.wasimaster.wmkeyboard.core.prediction.GlideReadings.DEFAULT_CAPACITY
+
 /** Glide-typing behaviour and swipe-trail appearance. See [KeyboardSettings.gesture]. */
 data class GestureSettings(
     /**
@@ -7991,6 +7997,12 @@ data class GestureSettings(
      * every time a swiped word is read back — so it is off until asked for.
      */
     val searchAllChip: Boolean = false,
+    /**
+     * How many of the newest swiped words in a field keep the path that wrote
+     * them, for the full search (#135, #905). Each path is a few kilobytes, so
+     * this is a memory trade the user makes. Range [GlideKeptStrokesRange].
+     */
+    val keptStrokes: Int = com.wasimaster.wmkeyboard.core.prediction.GlideReadings.STROKE_CAPACITY,
     /**
      * Backspace right after a glide takes the whole swiped word back, and
      * the space it typed, in one press (#455). On by default: a wrong swipe
@@ -10111,6 +10123,7 @@ class SettingsRepository(private val context: Context) {
         private val GESTURE_SHAPES_PER_WORD = intPreferencesKey("gesture_shapes_per_word")
         private val GESTURE_SHAPE_SEEDING = booleanPreferencesKey("gesture_shape_seeding")
         private val GESTURE_SEARCH_ALL_CHIP = booleanPreferencesKey("gesture_search_all_chip")
+        private val GESTURE_KEPT_STROKES = intPreferencesKey("gesture_kept_strokes")
         private val GESTURE_BACKSPACE_UNDOES_GLIDE =
             booleanPreferencesKey("gesture_backspace_undoes_glide")
         private val GESTURE_SWIPE_STYLE_VERSION = intPreferencesKey("gesture_swipe_style_version")
@@ -12042,6 +12055,7 @@ class SettingsRepository(private val context: Context) {
                 .coerceIn(GlideShapesPerWordRange),
             shapeSeeding = p[GESTURE_SHAPE_SEEDING] ?: defaults.gesture.shapeSeeding,
             searchAllChip = p[GESTURE_SEARCH_ALL_CHIP] ?: defaults.gesture.searchAllChip,
+            keptStrokes = (p[GESTURE_KEPT_STROKES] ?: defaults.gesture.keptStrokes).coerceIn(GlideKeptStrokesRange),
             backspaceUndoesGlide = p[GESTURE_BACKSPACE_UNDOES_GLIDE]
                 ?: defaults.gesture.backspaceUndoesGlide,
             swipeStyleVersion = p[GESTURE_SWIPE_STYLE_VERSION] ?: defaults.gesture.swipeStyleVersion,
@@ -18636,6 +18650,10 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setGestureSearchAllChip(value: Boolean) =
         editPrefs { it[GESTURE_SEARCH_ALL_CHIP] = value }
+
+    /** @see GestureSettings.keptStrokes */
+    suspend fun setGestureKeptStrokes(value: Int) =
+        editPrefs { it[GESTURE_KEPT_STROKES] = value.coerceIn(GlideKeptStrokesRange) }
 
     suspend fun setGestureBackspaceUndoesGlide(value: Boolean) =
         editPrefs { it[GESTURE_BACKSPACE_UNDOES_GLIDE] = value }
