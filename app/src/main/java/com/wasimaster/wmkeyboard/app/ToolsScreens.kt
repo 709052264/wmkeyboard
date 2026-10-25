@@ -155,6 +155,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.STATISTICS -> ImeR.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> ImeR.string.ime_tool_find_replace
     ToolbarTool.NOTES -> ImeR.string.ime_tool_notes
+    ToolbarTool.TODO -> ImeR.string.ime_tool_todo
     ToolbarTool.PLUGINS -> ImeR.string.ime_tool_plugins
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_title
     ToolbarTool.AI -> R.string.fonts_tool_ai_title
@@ -251,6 +252,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.STATISTICS -> R.string.fonts_tool_statistics_desc
     ToolbarTool.FIND_REPLACE -> R.string.fonts_tool_find_replace_desc
     ToolbarTool.NOTES -> R.string.fonts_tool_notes_desc
+    ToolbarTool.TODO -> R.string.fonts_tool_todo_desc
     ToolbarTool.PLUGINS -> R.string.fonts_tool_plugins_desc
     ToolbarTool.APP_LAUNCHER -> R.string.fonts_tool_app_launcher_desc
     ToolbarTool.AI -> R.string.fonts_tool_ai_desc
@@ -568,7 +570,7 @@ internal fun ToolRow(
 }
 /** The Panels group, in the order the Tools screen lists it. */
 private val PanelTools = listOf(
-    ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES,
+    ToolbarTool.EMOJI, ToolbarTool.CLIPBOARD, ToolbarTool.SNIPPETS, ToolbarTool.NOTES, ToolbarTool.TODO,
     ToolbarTool.TEXT_EDIT, ToolbarTool.TRACKPAD, ToolbarTool.NUMPAD, ToolbarTool.HANDWRITING,
     ToolbarTool.VOICE, ToolbarTool.CAMERA, ToolbarTool.GALLERY, ToolbarTool.DICTIONARY, ToolbarTool.VOCABULARY,
     ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.GRAMMAR, ToolbarTool.APP_LAUNCHER, ToolbarTool.MEDIA_CONTROL,

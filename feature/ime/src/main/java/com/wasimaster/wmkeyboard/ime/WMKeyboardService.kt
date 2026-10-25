@@ -4402,6 +4402,7 @@ open class WMKeyboardService : InputMethodService() {
             var swipeStyleVersion = -1
             var statsVersion = -1
             var notesVersion = -1
+            var todoVersion = -1
             var kaomojiVersion = -1
             var customDictVersion = -1
             var emojiPackVersion = -1
@@ -4741,6 +4742,11 @@ open class WMKeyboardService : InputMethodService() {
                     publishNotes()
                 }
                 notesVersion = settings.notes.version
+                // The to-do list, for the same reason (#920).
+                if (todoVersion != -1 && settings.todo.version != todoVersion && todoToolDelegate.isInitialized()) {
+                    todoTool.reload()
+                }
+                todoVersion = settings.todo.version
                 // The kaomoji library: the settings app's library screen, an
                 // import or a restore rewrote it.
                 if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
@@ -10830,6 +10836,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // Search adds its best match; a label is kept. Either way the keys go back.
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
+            // A new task is added and the box waits for the next; an edit is kept.
+            CaptureTarget.TODO_TEXT -> state.todoText?.let(todoTool::onTextEnter)
             // Search opens the first tile, Assist sends the sentence, a code or value is kept.
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
             // A caption, or words on a photo, can run over lines; Done finishes
@@ -11283,6 +11291,13 @@ open class WMKeyboardService : InputMethodService() {
                 noteEditDraft { it.copy(titleDraft = text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
             CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
             CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
+            CaptureTarget.TODO_TEXT -> _uiState.update { state ->
+                state.copy(
+                    todoText = state.todoText?.copy(
+                        text = text.replace("\n", " ").take(com.wasimaster.wmkeyboard.core.todo.TodoStore.MAX_TEXT_LENGTH),
+                    ),
+                )
+            }
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
                 val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
                 val entry = _uiState.value.clockText?.copy(text = text.replace("\n", " ").take(limit))
@@ -27837,6 +27852,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
+            ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
@@ -27954,6 +27970,11 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
+        }
+        // Leaving the To-do panel: the same (#920). Every change is saved as it is made.
+        if (_uiState.value.panel == PanelMode.TODO) {
+            todoTool.onPanelClose()
+            _uiState.update { it.copy(todoText = null) }
         }
         // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
         if (_uiState.value.panel == PanelMode.HOME_ASSISTANT) {
@@ -28136,6 +28157,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.TODO -> todoTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
             PanelMode.CALENDAR -> {
@@ -40157,6 +40179,7 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            todo = todoTool.callbacks,
             calendar = calendarTool.callbacks,
             kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
@@ -40255,6 +40278,33 @@ open class WMKeyboardService : InputMethodService() {
         )
     }
     private val clockTool by clockToolDelegate
+
+    /**
+     * The To-do tool (#920). Built on first use, like [clockTool]; the
+     * delegate is kept so a restore's reload can skip a controller nobody opened.
+     */
+    private val todoToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.todo.TodoController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings.todo },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.TODO) },
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        todoText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(CaptureTarget.TODO_TEXT.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(todoText = null) } },
+            currentText = { _uiState.value.todoText },
+        )
+    }
+    private val todoTool by todoToolDelegate
 
     /**
      * The Calendar tool: month view, event sheet and composer. Built on first

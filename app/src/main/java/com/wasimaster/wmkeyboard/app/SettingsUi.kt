@@ -411,6 +411,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "notes" to Color(0xFFFBC02D),
     "notes/tags" to Color(0xFFFBC02D),
     "notes/trash" to Color(0xFFFBC02D),
+    // The To-do tool's own green, see ToolColors.
+    "todo" to Color(0xFF43A047),
     // The editor is opened from a pack, so it keeps the pack screens' pink.
     "sticker_editor" to Color(0xFFF06292),
     "plugins" to Color(0xFF06B6D4),

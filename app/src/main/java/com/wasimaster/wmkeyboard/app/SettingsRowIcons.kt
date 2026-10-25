@@ -1267,6 +1267,14 @@ internal object SettingsRowIcons {
         put(R.string.gallery_fallback_title) { Icons.Outlined.Share }
         put(R.string.gallery_close_after_send_title) { Icons.Outlined.KeyboardHide }
         put(R.string.gallery_save_edited_title) { Icons.Outlined.Save }
+        // To-do list (#920).
+        put(R.string.tooldetail_todo_open_title) { Icons.Outlined.Checklist }
+        put(R.string.tooldetail_todo_hide_done_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_todo_sync_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_sync_now_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_import_title) { Icons.Outlined.Download }
+        put(R.string.tooldetail_todo_clear_title) { Icons.Outlined.Delete }
+        put(R.string.todo_clear_done_title) { Icons.Outlined.Delete }
         // Send files (#729).
         put(R.string.send_instance_title) { Icons.Outlined.Dns }
         put(R.string.send_expire_title) { Icons.Outlined.Timer }

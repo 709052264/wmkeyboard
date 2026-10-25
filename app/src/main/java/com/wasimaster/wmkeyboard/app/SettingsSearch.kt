@@ -1635,6 +1635,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_trash_days_title),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_save_selection_title, R.string.tooldetail_notes_save_selection_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_clear_title, R.string.tooldetail_notes_clear_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_open_title),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_hide_done_title, R.string.tooldetail_todo_hide_done_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_sync_title, R.string.tooldetail_todo_sync_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_import_title, R.string.tooldetail_todo_import_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_clear_title, R.string.tooldetail_todo_clear_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_learning_title, R.string.tooldetail_incognito_learning_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_clipboard_title, R.string.tooldetail_incognito_clipboard_subtitle),
     toolEntry(
@@ -2917,6 +2922,17 @@ private fun SearchStrings.notesRows(): List<SettingsSearchEntry> {
     )
 }
 
+private fun SearchStrings.todoRows(): List<SettingsSearchEntry> {
+    fun todo(@StringRes title: Int, @StringRes subtitle: Int) = entry(
+        title, subtitle, R.string.todo_title, TODO_ROUTE,
+        screenParent = toolTitle(ToolbarTool.TODO), screenRoot = R.string.home_tools_title,
+    )
+    return listOf(
+        todo(R.string.todo_add_hint, 0),
+        todo(R.string.todo_clear_done_title, R.string.todo_clear_done_subtitle),
+    )
+}
+
 private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.about_storage_title, "storage", screenParent = R.string.home_about_title)
@@ -2991,7 +3007,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
         emojiPanelRows() + kaomojiRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + storageRows() + otherRows()
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }
         .distinctBy { it.key }

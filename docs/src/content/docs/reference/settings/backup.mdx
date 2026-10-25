@@ -96,7 +96,7 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 | **Sync through** | A tick box per location | the first location, when you turn sync on | always |
 | **Sync through**: Sync with paired devices | Toggle | On | always |
 | **Sync through**: Sync only on Wi-Fi | Toggle | Off | always |
-| **What syncs** | The section switches, with their own settings, all but AI memory, which never syncs | Settings, Themes, Snippets, Notes | always |
+| **What syncs** | The section switches, with their own settings, all but AI memory, which never syncs | Settings, Themes, Snippets, Notes, To-do list | always |
 | **Keep on this device**: Toolbar and toolbox | Toggle | Off | always (needs Settings ticked in What syncs) |
 | **Keep on this device**: Languages and layouts | Toggle | Off | always (needs Settings ticked in What syncs) |
 | **Keep on this device**: Theme | Toggle | Off | always (needs Settings ticked in What syncs) |
@@ -120,7 +120,7 @@ Some settings never sync, because they only fit one device: the keyboard size an
 
 <SettingsPath path="Data / Backup & restore / What goes in an export" />
 
-**What goes in an export** is eighteen toggles, top to bottom. Seventeen are independent; **Include API keys** only exists while **Settings** or **Notes** is on, since it also decides whether locked notes travel:
+**What goes in an export** is nineteen toggles, top to bottom. Eighteen are independent; **Include API keys** only exists while **Settings** or **Notes** is on, since it also decides whether locked notes travel:
 
 | Setting | Subtitle | Default |
 |---|---|---|
@@ -142,6 +142,7 @@ Some settings never sync, because they only fit one device: the keyboard size an
 | Clock | Alarms, timer presets, countdowns and the [Clock](/tools/clock/) settings, including the world clocks. Running timers, the stopwatch and the history stay on the phone. | On |
 | Kaomoji | Your kaomoji library: the faces you added, their tags, the order and your favourites | On |
 | AI memory | What the AI remembers about you, from Settings › AI › Memory. See [AI memory](/tools/ai-memory/) | Off |
+| To-do list | Your tasks and their steps, done or not | On |
 
 :::note[Three lists, not one]
 The export, the automatic backup and sync each have their own list, because they're three different decisions: a file to hand to someone, a copy for yourself, and what your devices share. The export list starts from whatever you had ticked before the lists were split.
@@ -195,6 +196,7 @@ Confirming a current-format import applies each section independently and merges
 | Notes | **Replaces**, except that locked notes already on the phone are kept when the file was made without them. A keyboard already running reloads rather than saving its own list back |
 | Clock | **Replaces** the alarms, presets, countdowns and clock settings, and sets the restored alarms at once. Timers running and the stopwatch on this phone are kept |
 | AI memory | **Replaces** the saved facts, and the chats pick them up at once |
+| To-do list | **Replaces** the tasks and steps. A keyboard already running reloads rather than saving its own list back |
 
 Settings import is rollback-safe. After writing, the keyboard re-reads its own settings to confirm they still parse, and it undoes the write if they don't. The other sections in the same file still apply even when settings roll back. After a confirmed import you see either "The app restored `<sections>`.", a lowercase comma-separated list of what changed, or "The file has nothing to restore." A rolled-back settings portion appends "The app could not apply the settings. Your settings did not change." A confirmed legacy import instead reports how many settings it restored, or says "The app could not apply that backup. Your settings did not change."
 

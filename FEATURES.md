@@ -2057,6 +2057,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Locked notes — Body masked everywhere on the keyboard and never inserted, copied, shared or body-searched; the app asks the fingerprint lock's bare prompt before opening one (skipped when the Notes screen is itself locked); left out of backups unless secrets are included, and a restore keeps the locked notes the file left out
     - Save as note — SelectionMacro.SAVE_NOTE on the selection bar: a new note per selection, or appended to the last note edited (setting); refused in a password field and before the first unlock
     - Settings — NotesSettings nested in KeyboardSettings: sort, preview lines, Markdown on/off, panel opens on list or last note, append mode, trash retention 7/30/90/never; `notesVersion` reload signal after a restore or sync
+  - To-do list `uncommon` — Tasks with one level of steps in the keyboard and the settings app (#920); one JSON file (`todo/tasks.json`) shared by both processes, replacing the Todo List plugin
+    - Keyboard panel — Tick a box, tap the words to open the steps and Add a step, hold to edit (Delete, Type it, Add a step); Enter adds and keeps the box open; Hide done, Clear done with Undo
+    - App screens — Tools › To-do list: add field, ticks, steps, edit dialog with an all-day due date, swipe to delete with Undo, Clear finished tasks
+    - Task-app sync — Optional two-way sync with one OpenTasks or Tasks.org list over the OpenTasks provider contract, which DAVx5 syncs with CalDAV; matched by iCal UID, deletes carried as pending UIDs, device-local sync record; jtx Board not supported (sync-adapter-only provider)
+    - Plugin import — Copies the Todo List plugin's `items` (text, tick, due) without touching the plugin
   - Typing speed test `RARE` — Scored typing test on the real keys
     - Three modes — Timed (15/30/60/120s), word count (10/25/50/100), quote
     - 200 most common English words — Plus 14 public-domain quotations for quote mode
@@ -3109,6 +3114,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 - **Config backup file** `uncommon` — One `.wmconfig.json` bundle of 14 independently toggleable sections.
   - 14 backup sections `RARE` — settings, themes, dictionary, clipboard, snippets, stickers, icons, wordlists, emoji, addons, statistics, vocab, swipe, notes.
     - Notes section — Every note, tag and trashed note; locked notes only with Include API keys, and a restore keeps the locked notes a secrets-free file left out.
+    - To-do list section — Every task and step; the task-app sync record stays on the phone.
     - Emoji history section — Recents, use counts, favourites and the per-emoji skin tone.
     - Statistics section — Daily typing counts and lifetime totals; counts only, never text.
     - Addons section is the repo list — Repository addresses only; installed addons ride in Themes/Icons.

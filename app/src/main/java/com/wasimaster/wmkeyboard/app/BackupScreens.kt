@@ -151,6 +151,7 @@ internal fun sectionLabelRes(section: ConfigBackup.Section): Int = when (section
     ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label
     ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label
     ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label
+    ConfigBackup.Section.TODO -> R.string.backup_section_todo_label
 }
 internal fun sectionLabel(context: Context, section: ConfigBackup.Section): String =
     context.getString(sectionLabelRes(section))
@@ -179,6 +180,7 @@ internal fun sectionLabelLowercase(context: Context, section: ConfigBackup.Secti
             ConfigBackup.Section.CLOCK -> R.string.backup_section_clock_label_lowercase
             ConfigBackup.Section.KAOMOJI -> R.string.backup_section_kaomoji_label_lowercase
             ConfigBackup.Section.AI_MEMORY -> R.string.backup_section_ai_memory_label_lowercase
+            ConfigBackup.Section.TODO -> R.string.backup_section_todo_label_lowercase
         },
     )
 @PluralsRes
@@ -200,6 +202,7 @@ private fun sectionCountPlural(section: ConfigBackup.Section): Int = when (secti
     ConfigBackup.Section.CLOCK -> R.plurals.backup_section_clock_count
     ConfigBackup.Section.KAOMOJI -> R.plurals.backup_section_kaomoji_count
     ConfigBackup.Section.AI_MEMORY -> R.plurals.backup_section_ai_memory_count
+    ConfigBackup.Section.TODO -> R.plurals.backup_section_todo_count
 }
 /** "3 themes", "1 snippet": the count line shown per section on import. */
 internal fun sectionSummary(context: Context, section: ConfigBackup.Section, count: Int): String =
@@ -674,10 +677,11 @@ private val SECTION_ROWS = listOf(
         R.string.backup_include_ai_memory_subtitle,
         R.string.backup_include_ai_memory_info,
     ),
+    SectionRow(ConfigBackup.Section.TODO, R.string.backup_include_todo_subtitle),
 )
 
 /**
- * The same sixteen switches for the three lists that pick sections: the
+ * The same seventeen switches for the three lists that pick sections: the
  * export, the automatic backup and sync. [sections] picks the list's sections
  * out of the settings, which each row reads for itself. [secrets] adds the
  * API-key switch under Settings where the list has one, shown while
