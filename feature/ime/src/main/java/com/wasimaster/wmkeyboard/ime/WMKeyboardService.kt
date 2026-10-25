@@ -16499,12 +16499,27 @@ open class WMKeyboardService : InputMethodService() {
         if (settings.subtypeAppNameFirst) R.string.subtype_app_label else 0
 
     /**
+     * The IME's manifest label, the name the picker shows for it, or 0 when it
+     * cannot be read. Used as [languageOnlySubtype]'s name so that subtype
+     * reads exactly as the keyboard does without one.
+     */
+    private val imeLabelRes: Int by lazy {
+        runCatching {
+            @Suppress("DEPRECATION")
+            packageManager.getServiceInfo(ComponentName(this, javaClass), 0).labelRes
+        }.getOrDefault(0)
+    }
+
+    /**
      * Mirrors the enabled layouts to the OS as additional input-method subtypes,
      * so the system language switcher lists them and can switch between them.
-     * Off (the [KeyboardSettings.osLanguageSwitcher] toggle) registers an empty
-     * set, clearing any previously exposed subtypes. method.xml declares no
-     * static subtype either, so off leaves the keyboard with none at all and the
-     * switcher lists it under its own name rather than under a language.
+     *
+     * Off (the [KeyboardSettings.osLanguageSwitcher] toggle) registers a single
+     * [languageOnlySubtype] for the active layout's language, named after the
+     * keyboard, so the picker still lists it under its own name while the
+     * system spell checker learns what language is being typed. The settings
+     * flow emits on every language switch, which is what keeps it current;
+     * it is rewritten only when the language changes, not the layout.
      * Diffed against the last write via [registeredSubtypeSig].
      */
     // The String-id overload is deprecated on new SDKs but is the only one that
@@ -16513,19 +16528,29 @@ open class WMKeyboardService : InputMethodService() {
     private fun registerSubtypes(settings: KeyboardSettings) {
         val ids = settings.enabledLayoutIds.ifEmpty { listOf(BuiltInLayouts.DEFAULT_ID) }
         val nameResId = subtypeNameResId(settings)
-        val sig = if (!settings.osLanguageSwitcher) "off"
+        val languageOnly = if (settings.osLanguageSwitcher || imeLabelRes == 0) {
+            null
+        } else {
+            languageOnlySubtype(resolveLayout(settings.customLayouts, settings.activeLayoutId), imeLabelRes)
+        }
+        val sig = if (!settings.osLanguageSwitcher) "off#${languageOnly?.languageTag.orEmpty()}"
         else "${ids.joinToString(",")}#$nameResId"
         if (sig == registeredSubtypeSig) return
         val subtypes = if (settings.osLanguageSwitcher) {
             ids.map { subtypeFor(resolveLayout(settings.customLayouts, it), nameResId) }.toTypedArray()
         } else {
-            emptyArray()
+            listOfNotNull(languageOnly).toTypedArray()
         }
         val imm = getSystemService(InputMethodManager::class.java) ?: return
         runCatching { imm.setAdditionalInputMethodSubtypes(imeId, subtypes) }
             .onSuccess {
                 registeredSubtypeSig = sig
-                enableSubtypes(imm, if (settings.osLanguageSwitcher) ids else emptyList())
+                enableSubtypes(imm, subtypes.map { it.hashCode() }.toIntArray())
+                // Make it the current one rather than wait for the framework to
+                // notice the old one is gone. The echo is ignored while off.
+                if (languageOnly != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    runCatching { switchInputMethod(imeId, languageOnly) }
+                }
             }
     }
 
@@ -16538,11 +16563,12 @@ open class WMKeyboardService : InputMethodService() {
      * many we registered.
      *
      * API 34+ lets an IME write its own entry in
-     * `Settings.Secure.ENABLED_INPUT_METHODS`; an empty array resets to that
-     * locale-derived default, which is what the switcher-off path wants — and
-     * with no registered subtypes left to derive from, that default is empty. The
-     * framework keys the entry on [InputMethodSubtype.hashCode], which is the
-     * explicit [stableSubtypeId] we hand the builder in [subtypeFor].
+     * `Settings.Secure.ENABLED_INPUT_METHODS`. The framework keys the entry on
+     * [InputMethodSubtype.hashCode], which is the explicit [stableSubtypeId] we
+     * hand the builder in [subtypeFor] and [languageOnlySubtype]. Below 34 the
+     * switcher-off subtype is enabled anyway: it is the only one registered, and
+     * the framework falls back to an IME's first keyboard subtype when none
+     * matches the system locale.
      *
      * On 24–33 there is no such API: the languages have to be ticked by hand in
      * the system subtype enabler, which the settings screen links to.
@@ -16550,9 +16576,8 @@ open class WMKeyboardService : InputMethodService() {
      * Written before the first unlock this is volatile (the framework says so),
      * hence the re-register in [onUserUnlocked].
      */
-    private fun enableSubtypes(imm: InputMethodManager, layoutIds: List<String>) {
+    private fun enableSubtypes(imm: InputMethodManager, hashes: IntArray) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return
-        val hashes = layoutIds.map { stableSubtypeId(it) }.toIntArray()
         runCatching { imm.setExplicitlyEnabledInputMethodSubtypes(imeId, hashes) }
     }
 
@@ -16573,7 +16598,8 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The OS switcher (or system language shortcut) picked one of our subtypes:
-     * follow it. Ignored when the switcher is off (we register nothing then).
+     * follow it. Ignored when the switcher is off (the one subtype registered
+     * then carries no layout).
      * Guarded against the echo from [mirrorSubtypeToOs] — when we are already on
      * that layout there is nothing to do, which also stops the in-app→OS→in-app
      * loop.
