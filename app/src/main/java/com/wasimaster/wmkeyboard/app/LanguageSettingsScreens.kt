@@ -97,6 +97,7 @@ import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.LanguageSuggestions
 import com.wasimaster.wmkeyboard.core.script.NumeralSystem
+import com.wasimaster.wmkeyboard.core.script.RomanizedSpeech
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.ScriptRegistry
 import com.wasimaster.wmkeyboard.core.script.SuggestedLanguage
@@ -627,7 +628,7 @@ private fun orphanedNeuralModel(context: Context, settings: KeyboardSettings, la
         .any { it != langId && it in neural }
     if (othersUsing) return null
     // The pack's own directory, which holds nothing else.
-    return IndicXlitModels.dir(context.noBackupFilesDir).parentFile?.takeIf { it.exists() }
+    return IndicXlitModels.NATIVE.dir(context.noBackupFilesDir).parentFile?.takeIf { it.exists() }
 }
 
 /**
@@ -1243,6 +1244,16 @@ internal fun LanguageDetailScreen(
                     ) { scope.launch { repository.setBengaliVowelTwice(it) } }
                 }
             }
+        }
+    }
+
+    // A romanized language (Hinglish, Banglish) is dictated as the language
+    // and written back in Latin letters (#948): the model that spells the
+    // words its maps do not know is downloaded here, as well as beside
+    // neural suggestions on the native language's page.
+    if (RomanizedSpeech.spokenAs(langId)?.let(IndicXlitModels.LATIN::supports) == true) {
+        SettingsGroup(stringResource(R.string.languages_romanized_dictation_group)) {
+            item { RomanizedDictationModelRow(settings) }
         }
     }
 
@@ -2244,6 +2255,11 @@ private fun PhoneticStripGroup(
                     ) { scope.launch { repository.setNeuralLeads(langId, it) } }
                 }
             }
+        }
+        // The same model family the other way round, for dictating this
+        // language in Latin letters (#948). Its own download, no switch.
+        if (IndicXlitModels.LATIN.supports(langId)) {
+            item { RomanizedDictationModelRow(settings) }
         }
     }
 }

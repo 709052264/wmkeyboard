@@ -175,6 +175,11 @@ enum class ToolbarTool {
     // or sent as a picture. Keeps its history under filesDir, so not before
     // the first unlock. Blocked until a recogniser is set up with a key.
     MUSIC_ID,
+    // An internet speed test (download, upload, ping, jitter) whose result
+    // goes into the field as a picture: a card drawn in one of several
+    // styles, sizes and layouts. Against Cloudflare's test servers or a
+    // LibreSpeed server, from the tool's own provider list.
+    SPEED_TEST,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -397,7 +402,7 @@ val ToolTopUps: Set<ToolbarTool> = setOf(ToolbarTool.WIKIPEDIA, ToolbarTool.POWE
  */
 private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH, ToolbarTool.AI_REPLY,
-    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
+    ToolbarTool.LEARN_FROM_TEXT, ToolbarTool.FIND_REPLACE, ToolbarTool.TYPING_TEST, ToolbarTool.SPEED_TEST, ToolbarTool.STATISTICS, ToolbarTool.PLUGINS,
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,

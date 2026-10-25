@@ -136,6 +136,7 @@ internal object StorageNames {
         "gallery_sent.txt" to R.string.storage_file_gallery_sent_label,
         "bergamot" to R.string.storage_file_bergamot_label,
         "xlit" to R.string.storage_file_xlit_label,
+        "xlit-latin" to R.string.storage_file_xlit_latin_label,
         "backup_install_id" to R.string.storage_file_backup_id_label,
         "otp_capture.xml" to R.string.storage_file_otp_capture_label,
         "androidx.work.workdb" to R.string.storage_file_work_db_label,

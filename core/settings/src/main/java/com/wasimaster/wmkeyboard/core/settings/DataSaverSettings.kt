@@ -194,6 +194,11 @@ data class DataSaverSettings(
      * on Listen. Asked, like [cloudVoice]: the tap is the moment to ask at.
      */
     val cloudMusic: MeteredPolicy = MeteredPolicy.ASK,
+     * A run of the speed test, which moves more data than anything else the
+     * keyboard does (a hundred megabytes or more on a fast line). Asks by
+     * default: the panel says how much a run is likely to cost before it goes.
+     */
+    val speedTest: MeteredPolicy = MeteredPolicy.ASK,
 
     /**
      * With no connection, or with the server not answering, dictation, the AI
@@ -224,7 +229,7 @@ data class DataSaverSettings(
             linkPreviews, dictionaryLookup, photoBackgrounds, weatherChip,
             currencyRates, addonRefresh, mediaSearch, webSearch, animatedEmoji,
             downloads, cloudAi, cloudVoice, fileSend, cloudGrammar, cloudMusic,
-            vocabAudio,
+            vocabAudio, speedTest,
         ).any { it != MeteredPolicy.ALLOW }
 }
 
@@ -264,6 +269,8 @@ enum class MeteredFeature {
 
     /** A clip from the microphone sent to a song recognition service. */
     CLOUD_MUSIC,
+    /** A run of the speed test: tens to hundreds of megabytes, on purpose. */
+    SPEED_TEST,
 }
 
 /** What may happen to one [MeteredFeature] right now. */
@@ -306,6 +313,7 @@ data class DataSaverStatus(
         MeteredFeature.FILE_SEND -> settings.fileSend
         MeteredFeature.CLOUD_GRAMMAR -> settings.cloudGrammar
         MeteredFeature.CLOUD_MUSIC -> settings.cloudMusic
+        MeteredFeature.SPEED_TEST -> settings.speedTest
     }
 
     fun decide(feature: MeteredFeature): MeteredDecision = when {

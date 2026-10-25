@@ -558,6 +558,7 @@ import com.wasimaster.wmkeyboard.core.tools.SymbolCatalog
 import com.wasimaster.wmkeyboard.ime.PwSettingAction
 import com.wasimaster.wmkeyboard.ime.TextRepeatAction
 import com.wasimaster.wmkeyboard.ime.TypingTestAction
+import com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestAction
 import com.wasimaster.wmkeyboard.ime.VoiceBarAction
 import com.wasimaster.wmkeyboard.ime.fieldVoiceSpeaks
 import com.wasimaster.wmkeyboard.ime.voiceChipOnly
@@ -581,6 +582,8 @@ import com.wasimaster.wmkeyboard.core.layout.flickArmRepeats
 import com.wasimaster.wmkeyboard.core.layout.hasHoldAction
 import com.wasimaster.wmkeyboard.core.layout.holdActionKey
 import com.wasimaster.wmkeyboard.core.layout.hasFlicks
+import com.wasimaster.wmkeyboard.core.layout.SymbolChord
+import com.wasimaster.wmkeyboard.core.layout.withSwipeArms
 import com.wasimaster.wmkeyboard.core.layout.isSwipeOnly
 import com.wasimaster.wmkeyboard.core.layout.takesFlickActions
 import com.wasimaster.wmkeyboard.core.layout.arrangedBy
@@ -1478,6 +1481,7 @@ fun KeyboardScreen(
     onPwSetting: (PwSettingAction) -> Unit = {},
     onTextRepeat: (TextRepeatAction) -> Unit = {},
     onTypingTestAction: (TypingTestAction) -> Unit = {},
+    onSpeedTestAction: (SpeedTestAction) -> Unit = {},
     onQrSend: () -> Unit = {},
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit = {},
     onAiReplace: () -> Unit = {},
@@ -1699,6 +1703,7 @@ fun KeyboardScreen(
                 onPwSetting = onPwSetting,
                 onTextRepeat = onTextRepeat,
                 onTypingTestAction = onTypingTestAction,
+                onSpeedTestAction = onSpeedTestAction,
                 onQrSend = onQrSend,
                 onAiAction = onAiAction,
                 onAiReplace = onAiReplace,
@@ -8583,6 +8588,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.ime_tool_password_gen
     ToolbarTool.TEXT_REPEAT -> R.string.ime_tool_text_repeat
     ToolbarTool.TYPING_TEST -> R.string.ime_tool_typing_test
+    ToolbarTool.SPEED_TEST -> R.string.ime_tool_speed_test
     ToolbarTool.MEDIA_CONTROL -> R.string.ime_tool_media_control
     ToolbarTool.KDE_CONNECT -> R.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
@@ -8709,6 +8715,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.PASSWORD_GEN -> state.panel == PanelMode.PASSWORD_GEN
     ToolbarTool.TEXT_REPEAT -> state.panel == PanelMode.TEXT_REPEAT
     ToolbarTool.TYPING_TEST -> state.panel == PanelMode.TYPING_TEST
+    ToolbarTool.SPEED_TEST -> state.panel == PanelMode.SPEED_TEST
     ToolbarTool.MEDIA_CONTROL -> state.panel == PanelMode.MEDIA_CONTROL
     ToolbarTool.KDE_CONNECT -> state.panel == PanelMode.KDE_CONNECT
     ToolbarTool.PLUGINS -> state.panel == PanelMode.PLUGINS
@@ -13238,6 +13245,7 @@ private fun KeyboardBody(
     onPwSetting: (PwSettingAction) -> Unit,
     onTextRepeat: (TextRepeatAction) -> Unit,
     onTypingTestAction: (TypingTestAction) -> Unit,
+    onSpeedTestAction: (SpeedTestAction) -> Unit,
     onQrSend: () -> Unit,
     onAiAction: (com.wasimaster.wmkeyboard.core.tools.AiActionSpec) -> Unit,
     onAiReplace: () -> Unit,
@@ -13802,6 +13810,7 @@ private fun KeyboardBody(
                         .height(keyRowsHeight(state)),
                 ) { LevelPanel(state) }
                 PanelMode.MOON_PHASE -> MoonPhasePanel(state)
+                PanelMode.SPEED_TEST -> SpeedTestPanel(state, onSpeedTestAction)
                 PanelMode.CUSTOM_LAYOUTS -> CustomLayoutPanel(state, onKey)
                 PanelMode.WEATHER -> WeatherPanel(
                     state = state,
@@ -22044,6 +22053,14 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
     // (issue #570). Read once here rather than per key: it is one setting for
     // the whole board.
     val clipboardActionAt = state.settings.longPressLetterActions.actionPosition.takeIf { it >= 0 }
+    // The swipes the user put on keys from Settings, over whatever layout this
+    // is: the letters page only, like the hold shortcuts, since the symbols
+    // pages are where a key is wanted for its own character.
+    val keySwipes = if (lettersLayer && state.settings.gesture.keySwipesOn) {
+        state.settings.gesture.keySwipes
+    } else {
+        emptyMap()
+    }
     // A field that declares Send/Go/Search takes the enter key over, and the
     // line break it displaces has nowhere else to go — so it moves to the key's
     // long press, the way Gboard offers it. Only where the key is actually
@@ -22323,6 +22340,11 @@ internal fun currentLayout(state: KeyboardUiState): KeyboardLayout {
                     actionAlternates = listOf(KeyAlternate(action = KeyAction.Numpad)) +
                         mapped.actionAlternates,
                 )
+            }
+            // After the passes above, so a key keyed by what it types is keyed by
+            // what it types now. The layout's own arms keep their directions.
+            if (keySwipes.isNotEmpty()) {
+                SymbolChord.tokenOf(mapped)?.let { mapped = mapped.withSwipeArms(keySwipes[it]) }
             }
             // Last, so it covers whatever the passes above made of the key: a
             // 🌐 the emoji preference already turned into the emoji key is still

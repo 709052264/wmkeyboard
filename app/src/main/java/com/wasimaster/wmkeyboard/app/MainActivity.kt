@@ -3067,7 +3067,15 @@ internal fun SetupCard(
                 pending = !enabled,
                 onClick = {
                     onEnableRequested?.invoke()
-                    context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+                    // Some TV builds ship no screen for this action, and an
+                    // unguarded call crashes the app on the first button of
+                    // setup. The top of Settings is the nearest place left.
+                    if (runCatching {
+                            context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+                        }.isFailure
+                    ) {
+                        runCatching { context.startActivity(Intent(Settings.ACTION_SETTINGS)) }
+                    }
                 },
             )
             Spacer(Modifier.height(8.dp))

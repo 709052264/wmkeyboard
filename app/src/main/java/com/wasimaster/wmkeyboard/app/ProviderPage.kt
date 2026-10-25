@@ -98,6 +98,7 @@ internal fun providerHostTool(tool: ProviderTool): ToolbarTool? = when (tool) {
     ProviderTool.AI -> ToolbarTool.AI
     ProviderTool.GRAMMAR -> ToolbarTool.GRAMMAR
     ProviderTool.MUSIC -> ToolbarTool.MUSIC_ID
+    ProviderTool.SPEED_TEST -> ToolbarTool.SPEED_TEST
     ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE, ProviderTool.IMAGE_GEN -> null
 }
 
@@ -139,6 +140,8 @@ internal val ProviderEndpoints: Map<String, List<ServiceEndpoint>> = mapOf(
     ProviderTypes.ER_API.id to listOf(ServiceEndpoint.ER_API),
     ProviderTypes.COINBASE.id to listOf(ServiceEndpoint.COINBASE),
     ProviderTypes.COINGECKO.id to listOf(ServiceEndpoint.COINGECKO),
+    ProviderTypes.CLOUDFLARE_SPEED.id to listOf(ServiceEndpoint.CLOUDFLARE_SPEED),
+    ProviderTypes.LIBRESPEED.id to listOf(ServiceEndpoint.LIBRESPEED_LIST),
     ProviderTypes.ANTHROPIC.id to listOf(ServiceEndpoint.ANTHROPIC),
     ProviderTypes.OPENAI.id to listOf(ServiceEndpoint.OPENAI),
     ProviderTypes.GEMINI.id to listOf(ServiceEndpoint.GEMINI),
@@ -360,6 +363,8 @@ internal fun ProviderOwnSettings(
         ProviderTypes.OFFLINE_WIKTIONARY.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.WIKTIONARY))
         ProviderTypes.OFFLINE_WORDNET.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.OEWN))
         ProviderTypes.IMPORTED_DICTIONARIES.id -> ImportedDictionariesGroup()
+        // ---- The speed test: a LibreSpeed row picks its server from the public list.
+        ProviderTypes.LIBRESPEED.id -> LibreSpeedServerSettings(repository, settings, row)
         // ---- AI: the model on the phone, and the headers a service is sent with (#648).
         ProviderTypes.ON_DEVICE_AI.id -> LocalLlmModelManager(repository, settings)
         else -> if (tool == ProviderTool.AI) {

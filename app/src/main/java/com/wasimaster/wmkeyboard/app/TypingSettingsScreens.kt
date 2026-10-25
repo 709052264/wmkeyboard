@@ -2797,6 +2797,8 @@ internal fun TypingGesturesSettings(
     FingerSwipeSettings(repository, settings)
     // Issue #754: hold ?123 still and tap a key to run an action.
     SymbolChordSettings(repository, settings)
+    // Short swipes off keys, set here and laid over every layout.
+    KeySwipeSettings(repository, settings)
 }
 
 @Composable

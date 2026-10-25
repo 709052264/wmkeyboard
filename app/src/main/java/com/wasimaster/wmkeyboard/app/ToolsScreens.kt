@@ -153,6 +153,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_title
     ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_title
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_title
+    ToolbarTool.SPEED_TEST -> R.string.fonts_tool_speed_test_title
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_title
     ToolbarTool.KDE_CONNECT -> ImeR.string.ime_tool_kde_connect
     ToolbarTool.STATISTICS -> ImeR.string.ime_tool_statistics
@@ -252,6 +253,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.PASSWORD_GEN -> R.string.fonts_tool_password_gen_desc
     ToolbarTool.TEXT_REPEAT -> R.string.fonts_tool_text_repeat_desc
     ToolbarTool.TYPING_TEST -> R.string.fonts_tool_typing_test_desc
+    ToolbarTool.SPEED_TEST -> R.string.fonts_tool_speed_test_desc
     ToolbarTool.MEDIA_CONTROL -> R.string.fonts_tool_media_control_desc
     ToolbarTool.KDE_CONNECT -> R.string.fonts_tool_kde_connect_desc
     ToolbarTool.STATISTICS -> R.string.fonts_tool_statistics_desc
@@ -648,7 +650,7 @@ private fun buildToolGroups(splitPanels: Boolean): List<Pair<Int, List<ToolbarTo
         R.string.tools_group_online_title to listOf(
             ToolbarTool.TRANSLATE, ToolbarTool.GIF, ToolbarTool.STICKER,
             ToolbarTool.WEB_SEARCH, ToolbarTool.IMAGE_SEARCH,
-            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.AI, ToolbarTool.AI_REPLY,
+            ToolbarTool.WIKIPEDIA, ToolbarTool.CURRENCY, ToolbarTool.SPEED_TEST, ToolbarTool.AI, ToolbarTool.AI_REPLY,
         ),
     )
     add(

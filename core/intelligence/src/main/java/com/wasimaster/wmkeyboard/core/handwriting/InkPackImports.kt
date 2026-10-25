@@ -209,11 +209,13 @@ object InkPackImports {
     /**
      * The links to fetch [tag]'s packs from, as ML Kit itself would. Blocking.
      * A zinnia model is one file, which the offline import installs as the CJK
-     * pack it is.
+     * pack it is; a PaddleOCR one is two, its graph and its character list.
      */
     fun packUrls(context: Context, tag: String): List<String> =
         if (ZinniaModels.isTag(tag)) {
             listOfNotNull(ZinniaModels.packUrl(tag))
+        } else if (InkOcrModels.isTag(tag)) {
+            InkOcrModels.packUrls(tag)
         } else {
             runCatching { HandwritingModelSizes.packs(context, tag) }.getOrDefault(emptyList()).map { it.url }
         }

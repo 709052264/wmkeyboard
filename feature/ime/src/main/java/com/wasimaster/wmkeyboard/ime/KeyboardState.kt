@@ -762,6 +762,13 @@ enum class PanelMode {
     EMOJI_MIX,
 
     /**
+     * The internet speed test: a run against the chosen server, then the
+     * result as a card to send. Its state is the controller's, see
+     * `ime.speedtest.SpeedTestUi`.
+     */
+    SPEED_TEST,
+
+    /**
      * The Location tool (#350): the phone's position or a saved place, to
      * insert as a map link, an address, coordinates or a Plus code. Its state
      * is the controller's, see `ime.location.LocationUi`.
@@ -1035,6 +1042,9 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     // TRACKPAD is a pointing surface and nothing else.
     PanelMode.NONE, PanelMode.TEXT_EDIT, PanelMode.TRACKPAD, PanelMode.COMPASS, PanelMode.LEVEL,
     PanelMode.MOON_PHASE, PanelMode.NUMPAD, PanelMode.HANDWRITING, PanelMode.CUSTOM_LAYOUTS,
+    // The speed test's chips are touch targets with no [PanelFocusTarget]
+    // yet; a ring here would be an empty one. Add the regions with the targets.
+    PanelMode.SPEED_TEST,
     // AI reply publishes no ring yet (#234): its three bands are all touch
     // targets and none of them has a [PanelFocusTarget], so a ring here would
     // be an empty one. Add the regions with the targets, not before.
@@ -4092,6 +4102,8 @@ data class KeyboardUiState(
     /** The AI reply tool's own state (#234); the run itself is on [ai]. */
     val aiReply: AiReplyUi = AiReplyUi(),
     val typingTest: TypingTestUi = TypingTestUi(),
+    /** The internet speed test panel; see [com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi]. */
+    val speedTest: com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi = com.wasimaster.wmkeyboard.ime.speedtest.SpeedTestUi(),
     /** Launchable apps for the app-launcher panel; empty until first opened. */
     val launcherApps: List<LauncherApp> = emptyList(),
     /** First enumeration in flight — the panel shows its loading state. */

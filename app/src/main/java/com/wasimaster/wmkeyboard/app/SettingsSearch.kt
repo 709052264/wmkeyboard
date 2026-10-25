@@ -724,6 +724,10 @@ private fun SearchStrings.typingGesturesRows(): List<SettingsSearchEntry> {
         row(R.string.typing_symbol_chords_title, R.string.typing_symbol_chords_subtitle),
         row(R.string.typing_symbol_chord_add_title, R.string.typing_symbol_chord_add_subtitle),
         row(R.string.typing_symbol_chords_reset_title, R.string.typing_symbol_chords_reset_subtitle),
+        row(R.string.typing_key_swipes_title, R.string.typing_key_swipes_subtitle),
+        row(R.string.typing_key_swipe_add_title, R.string.typing_key_swipe_add_subtitle),
+        row(R.string.typing_key_swipe_preset_title, R.string.typing_key_swipe_preset_subtitle),
+        row(R.string.typing_key_swipes_reset_title, R.string.typing_key_swipes_reset_subtitle),
     )
 }
 
@@ -1167,6 +1171,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
         // The subtitle is a format string (the download size); the title carries the search.
         row(R.string.languages_neural_phonetic_title),
         row(R.string.languages_neural_leads_title, R.string.languages_neural_leads_subtitle),
+        row(R.string.languages_romanized_dictation_model_title),
         row(R.string.languages_phonetic_guide_title),
         row(R.string.languages_ansi_allowed_title, R.string.languages_ansi_allowed_subtitle),
         row(R.string.languages_ansi_version_title, R.string.languages_ansi_version_subtitle),
@@ -2060,6 +2065,18 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_glide_title, R.string.toolai_typing_glide_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_suggestions_title, R.string.toolai_typing_suggestions_subtitle),
     toolEntry(ToolbarTool.TYPING_TEST, R.string.toolai_typing_clear_records_title, R.string.toolai_typing_clear_records_subtitle),
+    // The internet speed test.
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_duration_title, R.string.tooldetail_speed_duration_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_connections_title, R.string.tooldetail_speed_connections_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_upload_title, R.string.tooldetail_speed_upload_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_unit_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_style_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_size_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_card_layout_title),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_send_mode_title, R.string.tooldetail_speed_send_mode_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_save_gallery_title, R.string.tooldetail_speed_save_gallery_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_show_ip_title, R.string.tooldetail_speed_show_ip_subtitle),
+    toolEntry(ToolbarTool.SPEED_TEST, R.string.tooldetail_speed_servers_group),
     // The services, their keys, addresses and models are rows of the AI provider list now.
     toolEntry(
         ToolbarTool.AI,

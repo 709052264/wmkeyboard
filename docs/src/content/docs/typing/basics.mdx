@@ -104,6 +104,8 @@ The key's icon and behavior follow whatever the focused field asks for: Search, 
 
 A message box that asks for a line break gets one, even when the app also watches for the Enter key press itself. Discord's is the example: it declares Done and then asks the keyboard not to use it, so the key draws the newline symbol, and now it types the break straight into the box rather than pressing a key the app would have read as Send.
 
+Some apps change the action as you type, and the key follows. The Pixel Launcher's app search is one: the key shows Search while your words are a web search and an arrow once they match an app, and pressing it runs that search or opens the app instead of putting a line break in the box.
+
 **Shift and Enter type a new line** (on by default) lets you press <KeyCap>Shift</KeyCap> then <KeyCap>Enter</KeyCap>, or hold Shift on a physical keyboard, to force a line break in a field that would otherwise send or search. The key itself changes to the newline symbol while Shift is armed, so it never promises a Send it isn't about to do. Only a Shift you pressed yourself counts. The one-shot Shift that auto-capitalize arms at the start of a message is ignored, so the first line of a chat still sends normally, and Caps Lock is ignored too. Holding Shift down while you tap Enter counts as well.
 
 In a field with no Send or Search of its own, such as a document in Google Docs or Word, the keyboard sends a real Shift+Enter instead of a plain one. Those editors read Shift+Enter as a line break inside the paragraph and plain Enter as a new paragraph, so you get both. This works with the setting off too, since there's no action for it to override; an ordinary text box types the same new line either way.

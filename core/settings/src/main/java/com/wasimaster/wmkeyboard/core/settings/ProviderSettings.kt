@@ -501,6 +501,9 @@ object LegacyProviders {
                     entry(ProviderTypes.RAPID_SHAZAM, on = false),
                 ),
             )
+            // New with the tool: Cloudflare alone, which needs nothing set up.
+            // A LibreSpeed server is only ever added by the user.
+            ProviderTool.SPEED_TEST -> ProviderChain(listOf(entry(ProviderTypes.CLOUDFLARE_SPEED)), ChainMode.PICK)
         }
     }
 

@@ -6,7 +6,7 @@ import com.wasimaster.wmkeyboard.config.BuildConfig
  * The part of the settings a service belongs to, for grouping the fields on
  * the Servers screen. The labels live in `:app`.
  */
-enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, AI, MUSIC, UPDATES }
+enum class ServiceGroup { DOWNLOADS, TRANSLATE, SEARCH, MEDIA, PHOTOS, WIKIPEDIA, DICTIONARY, VOCABULARY, WEATHER, MAPS, CURRENCY, SPEED_TEST, AI, MUSIC, UPDATES }
 
 /**
  * Every network API the keyboard calls, and the base address it calls by
@@ -84,6 +84,16 @@ enum class ServiceEndpoint(
     ER_API("er_api", "https://open.er-api.com", ServiceGroup.CURRENCY),
     COINBASE("coinbase", "https://api.coinbase.com", ServiceGroup.CURRENCY),
     COINGECKO("coingecko", "https://api.coingecko.com", ServiceGroup.CURRENCY),
+
+    /**
+     * The speed test's default server: Cloudflare's `__down` and `__up`
+     * endpoints, which hand out and swallow random bytes, and `/meta`, which
+     * names the connection's network and the data centre that answered.
+     */
+    CLOUDFLARE_SPEED("cloudflare_speed", "https://speed.cloudflare.com", ServiceGroup.SPEED_TEST),
+
+    /** Where the list of volunteer LibreSpeed servers is fetched from, for the picker. */
+    LIBRESPEED_LIST("librespeed_list", "https://librespeed.org", ServiceGroup.SPEED_TEST),
     ANTHROPIC("anthropic", "https://api.anthropic.com", ServiceGroup.AI),
     OPENAI("openai", "https://api.openai.com", ServiceGroup.AI),
     GEMINI("gemini", "https://generativelanguage.googleapis.com", ServiceGroup.AI),

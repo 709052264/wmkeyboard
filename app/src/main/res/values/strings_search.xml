@@ -154,6 +154,7 @@
     <string name="search_kw_languages_raw_keys_chip">khipro raw input typed roman latin modifier suggestion</string>
     <string name="search_kw_languages_phonetic_candidates">candidates dropdown suffix bar row suggestions bangla</string>
     <string name="search_kw_languages_neural_phonetic">ai model network indicxlit ai4bharat transliteration machine learning onnx banglish hinglish</string>
+    <string name="search_kw_languages_romanized_dictation">voice dictation speech hinglish banglish tanglish latin letters romanized indicxlit ai4bharat model</string>
     <string name="search_kw_languages_phonetic_guide">key map keymap avro hinglish help cheat sheet chandrabindu hasant</string>
     <string name="search_kw_languages_ansi">bayanno sutonnymj unicode converter legacy bangla</string>
     <string name="search_kw_languages_zawgyi_allowed">zg unicode myanmar font converter legacy padauk noto</string>

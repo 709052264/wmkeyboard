@@ -1085,6 +1085,10 @@ internal object SettingsRowIcons {
         put(R.string.typing_symbol_chords_title) { Icons.Outlined.TouchApp }
         put(R.string.typing_symbol_chord_add_title) { Icons.Outlined.Add }
         put(R.string.typing_symbol_chords_reset_title) { Icons.Outlined.RestartAlt }
+        put(R.string.typing_key_swipes_title) { Icons.Outlined.Swipe }
+        put(R.string.typing_key_swipe_add_title) { Icons.Outlined.Add }
+        put(R.string.typing_key_swipe_preset_title) { Icons.Outlined.Dashboard }
+        put(R.string.typing_key_swipes_reset_title) { Icons.Outlined.RestartAlt }
         put(R.string.typing_two_thumb_word_end_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.typing_two_thumb_pause_title) { Icons.Outlined.Timer }
         put(R.string.typing_two_thumb_tap_pause_title) { Icons.Outlined.Timer }
@@ -1662,6 +1666,7 @@ internal object SettingsRowIcons {
         put(R.string.languages_phonetic_candidates_title) { Icons.Outlined.ViewAgenda }
         put(R.string.languages_neural_phonetic_title) { Icons.Outlined.AutoAwesome }
         put(R.string.languages_neural_phonetic_model_title) { Icons.Outlined.CloudDownload }
+        put(R.string.languages_romanized_dictation_model_title) { Icons.Outlined.CloudDownload }
         put(R.string.languages_neural_leads_title) { Icons.Outlined.SpaceBar }
         put(R.string.languages_phonetic_guide_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.langemoji_emoji_panel_title) { Icons.Outlined.GridView }

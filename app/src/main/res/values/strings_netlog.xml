@@ -194,6 +194,7 @@
     <string name="netlog_source_download_xlit">Neural suggestions download</string>
     <string name="netlog_source_download_voice_out">Offline voice downloads</string>
     <string name="netlog_source_download_ocr">Text scanner language downloads</string>
+    <string name="netlog_source_download_handwriting">Handwriting model downloads</string>
     <string name="netlog_source_download_glide">Glide model downloads</string>
     <string name="netlog_source_download_native">Feature library downloads</string>
     <string name="netlog_source_download_language">Interface language downloads</string>

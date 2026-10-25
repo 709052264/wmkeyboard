@@ -89,6 +89,13 @@ enum class NetSource(
      */
     LOCATION("location", ToolbarTool.LOCATION),
     CURRENCY("currency", ToolbarTool.CURRENCY),
+
+    /**
+     * The speed test's traffic: the random bytes it pulls and pushes, its
+     * latency probes, and the one request that names the connection's
+     * network. Only ever while a run the user started is going.
+     */
+    SPEED_TEST("speed_test", ToolbarTool.SPEED_TEST),
     /** Searching photos is asked for; refilling the rotation pool passes `background` itself. */
     PHOTOS("photos"),
     LINK_PREVIEW("link_preview", ToolbarTool.CLIPBOARD, background = true),
@@ -122,6 +129,9 @@ enum class NetSource(
 
     /** Tesseract language data for the scan text tool. */
     DOWNLOAD_OCR("download_ocr", ToolbarTool.OCR),
+
+    /** A PaddleOCR handwriting model (data repository), where ML Kit has none for the language. */
+    DOWNLOAD_HANDWRITING("download_handwriting", ToolbarTool.HANDWRITING),
 
     /** EmbeddingGemma 2, the model behind search by meaning. */
     DOWNLOAD_SEMANTIC("download_semantic"),

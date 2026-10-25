@@ -445,7 +445,7 @@
     <string name="tooldetail_handwriting_full_screen_automatic_label">Stylus</string>
     <string name="tooldetail_handwriting_full_screen_automatic_desc">A stylus writes and a finger keeps using the app. Start each run of writing over a text field. Needs Android\'s own setting for writing in text fields with a stylus</string>
     <string name="tooldetail_handwriting_models_header">Recognition models</string>
-    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device, with Google ML Kit or, for Chinese and Japanese, zinnia. Each language needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 52 MB. After that, handwriting works offline.</string>
+    <string name="tooldetail_handwriting_models_info">One model for each language that you type in. Recognition runs fully on your device, with Google ML Kit, zinnia for Chinese and Japanese, or PaddleOCR where ML Kit has no model (one row per script). Each needs a one-time download, and its size is shown on its own row — they range from about 8 MB to about 52 MB. After that, handwriting works offline.</string>
     <string name="tooldetail_handwriting_languages_title">Languages and layouts</string>
     <string name="tooldetail_handwriting_languages_subtitle">Add a language to get its handwriting model here</string>
 
