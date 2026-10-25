@@ -763,13 +763,17 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
+        put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
+        put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
+        put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
         put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
         put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }
         put(R.string.floating_button_idle_opacity_title) { Icons.Outlined.Contrast }
         put(R.string.floating_button_tuck_title) { Icons.Outlined.VisibilityOff }
         put(R.string.floating_button_while_typing_title) { Icons.Outlined.Keyboard }
+        put(R.string.floating_button_over_keyboard_title) { Icons.Outlined.Layers }
         put(R.string.floating_button_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.floating_button_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.floating_button_reset_position_title) { Icons.Outlined.Restore }

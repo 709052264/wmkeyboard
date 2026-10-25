@@ -9820,6 +9820,11 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
+        private val FLOATING_BUTTON_CATEGORIES = stringPreferencesKey("floating_button_categories")
+        private val FLOATING_BUTTON_MENU_GAP = intPreferencesKey("floating_button_menu_gap")
+        private val FLOATING_BUTTON_MENU_ANIMATION = stringPreferencesKey("floating_button_menu_animation")
+        private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
+        private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -15979,30 +15984,47 @@ class SettingsRepository(private val context: Context) {
     private fun summonButtonFrom(p: Preferences, d: SummonButtonSettings): SummonButtonSettings {
         val keyboardOn = p[SUMMON_BUTTON] ?: d.enabled
         val aiOnly = p[AI_BUTTON] == true && !keyboardOn && p[FLOATING_BUTTON_TAP] == null
+        val menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu
+        val categories = p[FLOATING_BUTTON_CATEGORIES]?.let(::decodeFloatingCategories) ?: d.categories
+        val categoryIds = categories.mapTo(HashSet()) { it.id }
+        // A slot whose category is gone opens nothing; it reads as no slot at all.
+        fun known(action: FloatingAction?) =
+            action?.takeIf { it !is FloatingAction.Category || it.id in categoryIds }
         return SummonButtonSettings(
             enabled = keyboardOn || aiOnly,
             xFraction = (if (aiOnly) p[AI_BUTTON_X] else p[SUMMON_BUTTON_X]) ?: d.xFraction,
             yFraction = (if (aiOnly) p[AI_BUTTON_Y] else p[SUMMON_BUTTON_Y]) ?: d.yFraction,
-            tap = p[FLOATING_BUTTON_TAP]?.let(FloatingAction::parse)
+            tap = known(p[FLOATING_BUTTON_TAP]?.let(FloatingAction::parse))
                 ?: if (aiOnly) FloatingAction.AskAi else d.tap,
-            doubleTap = p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse) ?: d.doubleTap,
-            hold = p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse) ?: d.hold,
+            doubleTap = known(p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse)) ?: d.doubleTap,
+            hold = known(p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse)) ?: d.hold,
             // Unset, or a token this build no longer knows: the same as with the keyboard down.
-            tapTyping = p[FLOATING_BUTTON_TAP_TYPING]?.let(FloatingAction::parse) ?: d.tapTyping,
-            doubleTapTyping = p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse) ?: d.doubleTapTyping,
-            menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu,
+            tapTyping = known(p[FLOATING_BUTTON_TAP_TYPING]?.let(FloatingAction::parse)) ?: d.tapTyping,
+            doubleTapTyping = known(p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse))
+                ?: d.doubleTapTyping,
+            menu = menu.filter { known(it) != null },
+            categories = categories,
             menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
+            menuGapDp = (p[FLOATING_BUTTON_MENU_GAP] ?: d.menuGapDp)
+                .coerceIn(FloatingMenuGapRange.first, FloatingMenuGapRange.last),
+            menuAnimation = p[FLOATING_BUTTON_MENU_ANIMATION]
+                ?.let { runCatching { FloatingMenuAnimation.valueOf(it) }.getOrNull() }
+                ?: d.menuAnimation,
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
                 .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
             style = p[FLOATING_BUTTON_STYLE]
                 ?.let { runCatching { FloatingButtonStyle.valueOf(it) }.getOrNull() }
                 ?: d.style,
+            shape = p[FLOATING_BUTTON_SHAPE]
+                ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
+                ?: d.shape,
             opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
             idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
                 .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
             idleOpacity = (p[FLOATING_BUTTON_IDLE_OPACITY] ?: d.idleOpacity).coerceIn(0.15f, 1f),
             tuck = p[FLOATING_BUTTON_TUCK] ?: d.tuck,
             whileTyping = p[FLOATING_BUTTON_WHILE_TYPING] ?: d.whileTyping,
+            overKeyboard = p[FLOATING_BUTTON_OVER_KEYBOARD] ?: d.overKeyboard,
             hideInLandscape = p[FLOATING_BUTTON_HIDE_LANDSCAPE] ?: d.hideInLandscape,
             haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
         )
@@ -16076,12 +16098,74 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
-    /** The quick menu's slots; an empty list is kept as an empty menu, not the default one. */
+    /**
+     * The quick menu's slots; an empty list is kept as an empty menu, not the
+     * default one. A category whose slot this takes out goes with it (#923).
+     */
     suspend fun setFloatingButtonMenu(value: List<FloatingAction>) =
-        editFloatingButton { it[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(value) }
+        editFloatingButton {
+            it[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(value)
+            pruneFloatingCategories(it, FloatingAction.parseMenu(it[FLOATING_BUTTON_MENU].orEmpty()))
+        }
 
     suspend fun resetFloatingButtonMenu() =
-        editFloatingButton { it.remove(FLOATING_BUTTON_MENU) }
+        editFloatingButton {
+            it.remove(FLOATING_BUTTON_MENU)
+            pruneFloatingCategories(it, DefaultFloatingMenu)
+        }
+
+    /**
+     * A new, empty category named [name], added as the quick menu's last slot
+     * (#923), in one write so the slot never names a category that is not
+     * there. Its id, or null when the menu is full.
+     */
+    suspend fun addFloatingButtonCategory(name: String): String? {
+        var added: String? = null
+        editFloatingButton { prefs ->
+            val menu = prefs[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: DefaultFloatingMenu
+            if (menu.size >= MAX_FLOATING_MENU_ITEMS) return@editFloatingButton
+            val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+            val id = categories.nextCategoryId()
+            val category = FloatingCategory(id, name.trim().take(FLOATING_CATEGORY_NAME_MAX))
+            writeFloatingCategories(prefs, categories + category)
+            prefs[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(menu + FloatingAction.Category(id))
+            added = id
+        }
+        return added
+    }
+
+    /** A category's new name and slots (#923); one no slot opens any more is not kept. */
+    suspend fun setFloatingButtonCategory(value: FloatingCategory) =
+        editFloatingButton { prefs ->
+            val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+            if (categories.categoryById(value.id) == null) return@editFloatingButton
+            writeFloatingCategories(prefs, categories.map { if (it.id == value.id) value else it })
+        }
+
+    private fun pruneFloatingCategories(prefs: MutablePreferences, menu: List<FloatingAction>) {
+        val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+        if (categories.isEmpty()) return
+        writeFloatingCategories(prefs, categories.withoutOrphans(menu))
+    }
+
+    private fun writeFloatingCategories(prefs: MutablePreferences, categories: List<FloatingCategory>) {
+        val encoded = encodeFloatingCategories(categories.normalizedCategories())
+        if (encoded == null) prefs.remove(FLOATING_BUTTON_CATEGORIES) else prefs[FLOATING_BUTTON_CATEGORIES] = encoded
+    }
+
+    suspend fun setFloatingButtonMenuGap(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_MENU_GAP] = value.coerceIn(FloatingMenuGapRange.first, FloatingMenuGapRange.last)
+        }
+
+    suspend fun setFloatingButtonMenuAnimation(value: FloatingMenuAnimation) =
+        editFloatingButton { it[FLOATING_BUTTON_MENU_ANIMATION] = value.name }
+
+    suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
+        editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }
+
+    suspend fun setFloatingButtonOverKeyboard(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_OVER_KEYBOARD] = value }
 
     suspend fun setFloatingButtonMenuLabels(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_MENU_LABELS] = value }

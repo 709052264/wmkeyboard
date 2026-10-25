@@ -33,6 +33,7 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
 import android.os.Process
 import android.os.SystemClock
@@ -6607,6 +6608,10 @@ open class WMKeyboardService : InputMethodService() {
                     floatingMenuOpen.value = open
                 }
 
+                // Over the keys (#926), the button's windows are panels of this one.
+                override fun keyboardWindowToken(): IBinder? =
+                    window?.window?.decorView?.windowToken ?: window?.window?.attributes?.token
+
                 override fun floatingButtonDismissed() {
                     floatingButtonDismissed = true
                     syncSummonButton()
@@ -6668,8 +6673,22 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.AskAi -> askAiAboutScreen()
             FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
+            is FloatingAction.App -> openAppFromFloatingButton(action.packageName)
             // The button answers these itself.
-            FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None -> Unit
+            FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
+        }
+    }
+
+    /**
+     * A floating button slot that opens an app (#922): its launcher entry,
+     * started the way the app launcher tool starts one. An app that has gone
+     * since it was picked says so rather than doing nothing.
+     */
+    private fun openAppFromFloatingButton(packageName: String) {
+        val intent = launcherIntentFor(packageName)
+        val foreground = currentInputEditorInfo?.packageName.takeIf { windowOnScreen }
+        if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
+            Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -21034,6 +21053,7 @@ open class WMKeyboardService : InputMethodService() {
         override fun onReceive(context: Context, intent: Intent) {
             launcherAppsCache = null
             launcherIconCache.evictAll()
+            com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.clear()
             _uiState.update { it.copy(launcherApps = emptyList(), launcherDetail = null) }
         }
     }
