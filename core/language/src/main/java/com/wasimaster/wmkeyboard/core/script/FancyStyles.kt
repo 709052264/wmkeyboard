@@ -400,16 +400,19 @@ object FancyStyles {
                 "🆂", "🆃", "🆄", "🆅", "🆆", "🆇", "🆈", "🆉",
             ),
         ),
+        // q is ǫ, as every small-caps generator writes it: the real small
+        // capital Q (U+A7AF, Unicode 11) is missing from most phone fonts and
+        // showed as nothing.
         style(
             "small_caps", "Small Caps", "ꜱᴍᴀʟʟ ᴄᴀᴘꜱ",
             listOf(
                 "ᴀ", "ʙ", "ᴄ", "ᴅ", "ᴇ", "ꜰ", "ɢ", "ʜ", "ɪ",
-                "ᴊ", "ᴋ", "ʟ", "ᴍ", "ɴ", "ᴏ", "ᴘ", "ꞯ", "ʀ",
+                "ᴊ", "ᴋ", "ʟ", "ᴍ", "ɴ", "ᴏ", "ᴘ", "ǫ", "ʀ",
                 "ꜱ", "ᴛ", "ᴜ", "ᴠ", "ᴡ", "x", "ʏ", "ᴢ",
             ),
             listOf(
                 "ᴀ", "ʙ", "ᴄ", "ᴅ", "ᴇ", "ꜰ", "ɢ", "ʜ", "ɪ",
-                "ᴊ", "ᴋ", "ʟ", "ᴍ", "ɴ", "ᴏ", "ᴘ", "ꞯ", "ʀ",
+                "ᴊ", "ᴋ", "ʟ", "ᴍ", "ɴ", "ᴏ", "ᴘ", "ǫ", "ʀ",
                 "ꜱ", "ᴛ", "ᴜ", "ᴠ", "ᴡ", "x", "ʏ", "ᴢ",
             ),
         ),
