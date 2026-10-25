@@ -8921,9 +8921,11 @@ data class SuggestionStripSettings(
     /**
      * The arrow at the end of a [scrollable] strip that opens every ranked
      * word in the grid a swipe down opens (#890). Off leaves the swipe as the
-     * only way in, for a strip that wants its whole width for words.
+     * only way in, for a strip that wants its whole width for words. Off out
+     * of the box: the arrow took a slot's worth of room on every strip that
+     * scrolled, for a grid the swipe already reaches.
      */
-    val moreArrow: Boolean = true,
+    val moreArrow: Boolean = false,
     /**
      * An emoji candidate takes one of the [slotCount] slots instead of riding
      * after them (#413). On, the strip never shows more chips than the count
