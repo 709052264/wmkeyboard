@@ -12,6 +12,8 @@ data class WebResult(
      * `google`, `duckduckgo`. Empty from a backend that is the engine itself.
      */
     val engines: List<String> = emptyList(),
+    /** A small picture beside the result (#934): a video's still on a SearXNG Videos search. */
+    val thumbnail: String? = null,
 )
 
 /**

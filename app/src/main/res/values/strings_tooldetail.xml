@@ -652,6 +652,12 @@
     <string name="tooldetail_tavily_advanced_title">Search depth</string>
     <string name="tooldetail_tavily_advanced_subtitle">Faster answers, or better results for more credits</string>
     <string name="tooldetail_tavily_advanced_info">Tavily has four search depths. Basic is the default. Ultra fast and Fast answer sooner and cost 1 credit, but they do not take SafeSearch, so results are not filtered at those depths. Advanced looks deeper into each page for the parts that match your query, and costs 2 credits. The free plan gives 1,000 credits each month.</string>
+    <!-- SearXNG is a brand name: keep it as it is. -->
+    <string name="tooldetail_searx_group">SearXNG</string>
+    <string name="tooldetail_searx_categories_title">Search categories</string>
+    <string name="tooldetail_searx_categories_subtitle">Show these beside All and Images in the search panel</string>
+    <string name="tooldetail_searx_categories_fallback">Your instance did not list its categories, so these are the usual ones</string>
+    <string name="tooldetail_searx_categories_info">SearXNG sorts its search engines into categories, such as news, videos, science and music. The ones you pick here show as chips in the search panel, beside All and Images, and a tap on one searches in that category only. The list comes from your instance, so it shows only the categories that the instance has. Images is always a tab of its own. The chips show only while a SearXNG instance does the search.</string>
     <string name="tooldetail_tavily_depth_ultra_fast">Ultra fast</string>
     <string name="tooldetail_tavily_depth_ultra_fast_desc">The quickest answer, with one short summary of each page. 1 credit. No SafeSearch.</string>
     <string name="tooldetail_tavily_depth_fast">Fast</string>

@@ -1477,6 +1477,7 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_search_answer_title) { Icons.Outlined.AutoAwesome }
         put(R.string.tooldetail_search_open_browser_title) { Icons.Outlined.OpenInBrowser }
         put(R.string.tooldetail_tavily_advanced_title) { Icons.Outlined.TravelExplore }
+        put(R.string.tooldetail_searx_categories_title) { Icons.Outlined.Category }
         put(R.string.tooldetail_ocr_select_all_title) { Icons.Outlined.SelectAll }
         put(R.string.tooldetail_ocr_engine_title) { SymbolIcons.ConvertToText }
         put(R.string.tooldetail_qr_scan_auto_title) { Icons.Outlined.Bolt }

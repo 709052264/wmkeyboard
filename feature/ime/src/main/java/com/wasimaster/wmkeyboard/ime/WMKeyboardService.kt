@@ -3243,6 +3243,7 @@ open class WMKeyboardService : InputMethodService() {
     private val searchActions by lazy {
         com.wasimaster.wmkeyboard.ime.ui.SearchActions(
             onTab = ::onSearchTab,
+            onCategory = ::onSearchCategory,
             onMore = ::onSearchMore,
             onCopy = ::onSearchCopy,
             onOpen = ::openSearchLink,
@@ -37790,11 +37791,40 @@ open class WMKeyboardService : InputMethodService() {
         val query = state.mediaQuery.trim()
         if (query.isEmpty() || state.mediaSearchActive) return
         val (shown, loading) = when (tab) {
-            SearchTab.ALL -> (state.webSearch as? WebSearchUi.Ready)?.query to (state.webSearch == WebSearchUi.Loading)
+            SearchTab.ALL -> (state.webSearch as? WebSearchUi.Ready)?.takeIf { it.category == searchCategory(state) }
+                ?.query to (state.webSearch == WebSearchUi.Loading)
             SearchTab.IMAGES -> (state.imageSearch as? ImageSearchUi.Ready)?.query to (state.imageSearch == ImageSearchUi.Loading)
         }
         if (shown != query && !loading) runSearch(tab, query)
     }
+
+    /**
+     * A SearXNG category chip tapped (#934), or All for [category] null: the
+     * All tab, searching in that category. The query already searched is
+     * searched again there, as a tab change does.
+     */
+    fun onSearchCategory(category: String?) {
+        val state = _uiState.value
+        if (state.searchTab == SearchTab.ALL && state.searchCategory == category) return
+        vibrate()
+        _uiState.update { it.copy(searchTab = SearchTab.ALL, searchCategory = category, panelFocus = null) }
+        val query = state.mediaQuery.trim()
+        if (query.isEmpty() || state.mediaSearchActive) return
+        val now = _uiState.value
+        val shown = (now.webSearch as? WebSearchUi.Ready)?.takeIf { it.category == searchCategory(now) }?.query
+        if (shown != query) runWebSearch(query)
+    }
+
+    /**
+     * The category the All tab searches in (#934): the chip picked, while it
+     * is still one of the chosen and a SearXNG instance is the one asked.
+     * Null is the general search.
+     */
+    private fun searchCategory(state: KeyboardUiState): String? =
+        state.searchCategory?.takeIf {
+            it in state.settings.webSearch.searxCategories &&
+                SearchProviders.searxFirst(state.settings, ProviderPicks.of(ProviderTool.SEARCH))
+        }
 
     /**
      * More results at the end of the open tab (#879): the same search again,
@@ -37832,6 +37862,7 @@ open class WMKeyboardService : InputMethodService() {
                         answer = false,
                         pick = ProviderPicks.of(ProviderTool.SEARCH),
                         more = more,
+                        category = shown.category,
                     )
                 }
             }
@@ -38382,6 +38413,9 @@ open class WMKeyboardService : InputMethodService() {
             return
         }
         webSearchJob?.cancel()
+        val category = searchCategory(_uiState.value)
+        // The engine's answer belongs to the general search; a category's results stand alone.
+        val wantAnswer = settings.webSearch.showAnswer && category == null
         _uiState.update { it.copy(webSearch = WebSearchUi.Loading) }
         webSearchJob = serviceScope.launch {
             val result = withContext(Dispatchers.IO) {
@@ -38393,8 +38427,9 @@ open class WMKeyboardService : InputMethodService() {
                         query,
                         settings.webSearch.resultCount,
                         settings.webSearch.safe,
-                        answer = settings.webSearch.showAnswer,
+                        answer = wantAnswer,
                         pick = ProviderPicks.of(ProviderTool.SEARCH),
+                        category = category,
                     )
                 }
             }
@@ -38402,11 +38437,12 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     webSearch = result.fold(
                         onSuccess = { page ->
-                            val answer = page.answer.takeIf { settings.webSearch.showAnswer }
+                            val answer = page.answer.takeIf { wantAnswer }
                             WebSearchUi.Ready(
                                 page.results,
                                 query,
                                 answer = answer,
+                                category = category,
                                 // Under the answer (#879): Tavily's own, else the
                                 // Images tab's for this query when it has them.
                                 images = if (answer == null) emptyList() else page.images.ifEmpty {
@@ -43343,7 +43379,7 @@ open class WMKeyboardService : InputMethodService() {
     /** Opens a search-style panel already carrying [query], and runs it. */
     private fun openMacroSearch(panel: PanelMode, query: String) {
         if (panel == PanelMode.WEB_SEARCH && _uiState.value.panel != panel) {
-            _uiState.update { it.copy(searchTab = SearchTab.ALL) }
+            _uiState.update { it.copy(searchTab = SearchTab.ALL, searchCategory = null) }
         }
         onPanelChange(panel)
         if (_uiState.value.panel != panel) return

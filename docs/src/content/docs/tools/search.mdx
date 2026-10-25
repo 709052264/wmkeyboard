@@ -70,6 +70,16 @@ Every setting for both tabs is on **Tools / Web search**. **Tools / Image search
 
 The settings page's own caption: "Web and image search share everything here. They search the whole web. The Brave plan includes a free monthly credit of about a thousand searches. Brave asks for attribution, so the panel shows 'via Brave'." That attribution is a small **"via Brave"** label inside the search bar, at its right end (just before the **✕** when there's a search to clear). It reads **"via Tavily"** while Tavily answers, and a SearXNG instance, being your own server, gets no label.
 
+### SearXNG categories
+
+<SettingsPath path="Tools / Web search / SearXNG / Search categories" />
+
+SearXNG sorts its engines into categories: general, images, videos, news, science, IT, music, files and more, depending on the instance. **Search categories**, on the SearXNG row's own screen, lists the ones your instance has and lets you pick any of them. The list comes from the instance's `/config` page, which answers even where the JSON search API is off; when the instance can't be reached, the screen offers the usual SearXNG categories and says so. General and images aren't in it, since they're the **All** and **Images** tabs already. None are picked by default.
+
+Each category you pick becomes a chip in the panel's row of tabs, between **All** and **Images**, in the order the instance lists them; the row scrolls sideways when there are more than fit. Tap one to search that category only. Its results look like the **All** tab's, with a title, the site, the engines and a snippet, and a video result shows its thumbnail at the start of the row. **More results** pages through the category, and a tap on **All** goes back to the general search. The search engine's answer only shows on **All**.
+
+The chips only show while a SearXNG instance is the one that searches: first in the **Providers** list, or picked in the panel's provider chooser. With Brave or Tavily first, the row is **All** and **Images** as before. A category search only asks the SearXNG instances in the list, never Brave or Tavily, whose general results would pass for the category's.
+
 ### Searching with Tavily
 
 [Tavily](https://tavily.com) is a search API built for AI tools, and it works as a third backend for both tabs. Sign up at `app.tavily.com` for a key. The free plan gives 1,000 credits a month, and each search the keyboard makes uses one: it asks for Tavily's `basic` search unless you pick another **Search depth**, and only **Advanced** uses two. The answer Tavily writes for the query is free, and shows above the results while **Show the answer from the search engine** is on, with up to five of the pictures Tavily found under it, also free.
