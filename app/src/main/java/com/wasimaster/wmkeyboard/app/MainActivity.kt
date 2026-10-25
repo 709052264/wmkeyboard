@@ -133,6 +133,7 @@ import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
+import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import androidx.compose.ui.platform.LocalContext
@@ -747,6 +748,12 @@ private fun SettingsNavHost(
             foldScope.launch { repository.setAdvancedFoldOpen(key, open) }
         }
     }
+    // How much of the app is showing (settings depth), resolved once here and
+    // read by every group; changed from Home, a page's footer or Accessibility.
+    val depthResolved = settings.watch { it.settingsDepthResolved() }
+    val depthControl = remember(depthResolved) {
+        DepthControl(depthResolved) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
+    }
     // A section's icon and name fly from its home row to the heading of the
     // screen it opens, so the two read as one object being opened rather than
     // as a list and an unrelated page. Published for the whole graph here;
@@ -826,6 +833,7 @@ private fun SettingsNavHost(
             LocalSharedTransition provides if (twoPane) null else shared,
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
+            LocalSettingsDepth provides depthControl,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
             // motions deep in a row can be still without every row being
@@ -2850,8 +2858,12 @@ private fun HomeScreen(
             }
             // One list drives this screen and the search index's root entries,
             // so a row cannot exist on one and not the other.
+            // How much of the app is showing, first: when a row someone is
+            // looking for is not on this list, this is where the answer is.
+            DepthRow()
+            val depth = LocalSettingsDepth.current.depth
             for (group in RootGroup.entries) {
-                val rows = RootEntries.filter { it.group == group }
+                val rows = RootEntries.filter { it.group == group && depth.shows(it.level) }
                 if (rows.isEmpty()) continue
                 SettingsGroup(stringResource(group.title)) {
                     for (row in rows) {
@@ -2863,6 +2875,27 @@ private fun HomeScreen(
                                 // no one right answer to hard-code here.
                                 if (row.route == "languages") enabledLanguagesSummary(settings)
                                 else stringResource(row.subtitle),
+                                onNavigate,
+                                selected = row.route == selectedRoute,
+                            )
+                        }
+                    }
+                }
+            }
+            // The rows above the depth, in one closed group at the end: still
+            // one press away, and named on the fold so they can be found.
+            val tucked = RootEntries.filter { !depth.shows(it.level) }
+            if (tucked.isNotEmpty()) {
+                SettingsGroup(
+                    stringResource(R.string.home_group_more_title),
+                    foldKey = "more",
+                    foldSummary = { tucked.map { stringResource(it.title) }.joinToString(", ") },
+                ) {
+                    for (row in tucked) {
+                        item {
+                            HomeItem(
+                                row.route, row.icon,
+                                stringResource(row.title), stringResource(row.subtitle),
                                 onNavigate,
                                 selected = row.route == selectedRoute,
                             )
@@ -3280,7 +3313,16 @@ private fun AnimatedVisibilityScope.SettingsScreen(
         // It also means a deep link or an EXTRA_OPEN_ROUTE lands on the gate
         // rather than around it, because the gate is at the destination and
         // not at the navigate() call.
-        if (route == null) content() else LockedRoute(route, onCancel = onBack, content = content)
+        // What this screen folded away at the current depth, counted by its
+        // groups and summed into the footer under the last of them.
+        val tuck = remember { ScreenTuck() }
+        val body: @Composable () -> Unit = {
+            CompositionLocalProvider(LocalScreenTuck provides tuck) {
+                content()
+                TuckedFooter(tuck)
+            }
+        }
+        if (route == null) body() else LockedRoute(route, onCancel = onBack, content = body)
     }
 }
 
@@ -3304,6 +3346,8 @@ internal class SettingsGroupScope {
         val conditional: Boolean,
         /** Who the row is, for a row in a list the user edits; see [item]. */
         val key: Any?,
+        /** How far down the settings depth the row sits; see [SettingLevel]. */
+        val level: SettingLevel = SettingLevel.BASIC,
         val content: @Composable () -> Unit,
     )
 
@@ -3319,9 +3363,13 @@ internal class SettingsGroupScope {
      * it goes, instead of the rows under it jumping. See [GroupRows]. A keyed
      * row is still composed for the moment it takes to close, so its body
      * must not depend on the item still being in the list.
+     *
+     * [level] is how far down the settings depth the row sits. At a depth
+     * above it the row is not drawn in its place but behind the group's
+     * "more settings" row; see [SettingsDepth.kt]. Untagged rows are basic.
      */
-    fun item(key: Any? = null, content: @Composable () -> Unit) {
-        items += Entry(visible = true, conditional = false, key = key, content = content)
+    fun item(key: Any? = null, level: SettingLevel = SettingLevel.BASIC, content: @Composable () -> Unit) {
+        items += Entry(visible = true, conditional = false, key = key, level = level, content = content)
     }
 
     /**
@@ -3339,8 +3387,13 @@ internal class SettingsGroupScope {
      * through a null check the condition is doing, say — wants the `if` after
      * all.
      */
-    fun item(visible: Boolean, key: Any? = null, content: @Composable () -> Unit) {
-        items += Entry(visible = visible, conditional = true, key = key, content = content)
+    fun item(
+        visible: Boolean,
+        key: Any? = null,
+        level: SettingLevel = SettingLevel.BASIC,
+        content: @Composable () -> Unit,
+    ) {
+        items += Entry(visible = visible, conditional = true, key = key, level = level, content = content)
     }
 }
 
@@ -3375,17 +3428,70 @@ internal fun SettingsGroup(
     foldSummary: (@Composable () -> String)? = null,
     /** A control on the heading's right — the pencil that puts a list into reorder mode. */
     action: (@Composable () -> Unit)? = null,
+    /**
+     * How far down the settings depth the whole group sits. Above its depth
+     * a titled group draws closed under its heading, like a fold; one with no
+     * heading tucks every row behind its "more settings" row. Rows keep their
+     * own [SettingsGroupScope.item] level inside a group that is shown.
+     */
+    level: SettingLevel = SettingLevel.BASIC,
     builder: SettingsGroupScope.() -> Unit,
 ) {
     // The builder runs during composition, so rows may be added
     // conditionally on snapshot state (e.g. sliders that appear only
     // while their feature's toggle is on).
     val scope = SettingsGroupScope().apply(builder)
+    val route = LocalScreenRoute.current.orEmpty()
+    val depth = LocalSettingsDepth.current.depth
+    // A whole group above the depth folds closed under its own heading, so it
+    // is still there to open. One with no heading has nothing to fold under
+    // and tucks every row behind the "more settings" row instead.
+    val groupAbove = !depth.shows(level)
+    val foldsWhole = groupAbove && title != null
+    val tucked: (SettingsGroupScope.Entry) -> Boolean =
+        if (foldsWhole) { _ -> false } else { e -> groupAbove || !depth.shows(e.level) }
+    val tuckedCount = scope.items.count { it.visible && tucked(it) }
+    val folds = LocalAdvancedFolds.current
+    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    // The rows above the depth go behind one row at the end of the group's
+    // stack. Remembered per group like a fold, and drawn open while a
+    // highlight is pending so a search result can land on one of them.
+    val moreId = if (tuckedCount == 0) null else "$route/${foldKey ?: title ?: "group"}#more"
+    val moreOpen = moreId != null && (highlighted || (folds?.isOpen(moreId) ?: false))
+    // Counted for the page's footer; see [TuckedFooter].
+    val tuck = LocalScreenTuck.current
+    DisposableEffect(tuck, moreId, tuckedCount) {
+        if (tuck != null && moreId != null) tuck.set(moreId, tuckedCount)
+        onDispose { if (tuck != null && moreId != null) tuck.remove(moreId) }
+    }
+    val entries = if (moreId == null) scope.items else buildList {
+        scope.items.filterNotTo(this) { tucked(it) }
+        add(
+            SettingsGroupScope.Entry(visible = true, conditional = false, key = null) {
+                MoreSettingsRow(tuckedCount, moreOpen) { folds?.toggle(moreId, !moreOpen) }
+            },
+        )
+        // Conditional on the fold, so they grow in under the row rather than
+        // appear. Unkeyed on purpose: a keyed row's own arrive-and-leave
+        // motion is for a list the user edits, not for a fold.
+        for (entry in scope.items) {
+            if (!tucked(entry)) continue
+            add(
+                SettingsGroupScope.Entry(
+                    visible = entry.visible && moreOpen,
+                    conditional = true,
+                    key = null,
+                    level = entry.level,
+                    content = entry.content,
+                ),
+            )
+        }
+    }
     // What the group is showing right now, which is what every count below is
     // about: a hidden conditional row is not a row the reader can see, so it
     // is not a slab in the skeleton and not one of the rows a closed fold
     // says it is holding.
-    val shown = scope.items.count { it.visible }
+    val shown = entries.count { it.visible }
     if (shown == 0) return
     // Below the fold while the screen is still animating in: come back for
     // the rows once the entrance can spare them — see [rememberGroupRevealed].
@@ -3395,9 +3501,9 @@ internal fun SettingsGroup(
         GroupSkeleton(shown, hasTitle = title != null)
         return
     }
-    val folds = LocalAdvancedFolds.current
-    val foldId = foldKey?.let { "${LocalScreenRoute.current.orEmpty()}/$it" }
-    val highlighted = SettingsHighlight.target != 0 || SettingsHighlight.targetItems.isNotEmpty()
+    // A group folded by its level is named by its title: two such groups on
+    // one screen must not share a remembered state.
+    val foldId = (foldKey ?: if (foldsWhole) "level:$title" else null)?.let { "$route/$it" }
     val open = foldId == null || highlighted || (folds?.isOpen(foldId) ?: false)
     // A named group is a scroll target in its own right. Some things the user
     // arrives at from search — or from an addon's Use button — are a whole
@@ -3430,7 +3536,7 @@ internal fun SettingsGroup(
                 // Which rows are drawn, and how keyed ones arrive and leave,
                 // is GroupRows' business (SettingsGroupMotion.kt); the card
                 // each one sits on is this file's.
-                GroupRows(scope.items) { modifier, gapAbove, first, last, content ->
+                GroupRows(entries) { modifier, gapAbove, first, last, content ->
                     Column(modifier = modifier) {
                         if (gapAbove) Spacer(Modifier.height(3.dp))
                         GroupCard(
@@ -3939,6 +4045,10 @@ internal fun NavRow(
             icon = icon,
             flightTo = route,
             swipeActions = swipeActions,
+            // A value beside the title sits on the title's own line. In the
+            // trailing slot it took a column the whole height of the row, and
+            // a long subtitle was squeezed to three words a line beside it.
+            trailingOnTitleLine = beside,
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RowExtras { SettingLinkButton(title) }

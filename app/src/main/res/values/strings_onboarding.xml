@@ -165,11 +165,11 @@
     <string name="onboarding_persona_many_notice">Both spacebar swipes now change the language. You can give one back to the cursor on the next pages.</string>
     <string name="onboarding_persona_q_depth">What kind of keyboard do you want?</string>
     <string name="onboarding_persona_depth_minimal_title">Keep it simple</string>
-    <string name="onboarding_persona_depth_minimal_subtitle">A small set of tools, and fewer setup pages.</string>
+    <string name="onboarding_persona_depth_minimal_subtitle">A small set of tools, fewer setup pages, and the simple settings.</string>
     <string name="onboarding_persona_depth_balanced_title">A good middle</string>
-    <string name="onboarding_persona_depth_balanced_subtitle">The tools most people use.</string>
+    <string name="onboarding_persona_depth_balanced_subtitle">The tools most people use, and the standard settings.</string>
     <string name="onboarding_persona_depth_power_title">Show me everything</string>
-    <string name="onboarding_persona_depth_power_subtitle">All pages, and every tool to pick from.</string>
+    <string name="onboarding_persona_depth_power_subtitle">All pages, every tool to pick from, and every setting.</string>
     <string name="onboarding_persona_q_privacy">How private should it be?</string>
     <string name="onboarding_persona_privacy_standard_title">Standard</string>
     <string name="onboarding_persona_privacy_standard_subtitle">Learns your words. Nothing leaves the device.</string>

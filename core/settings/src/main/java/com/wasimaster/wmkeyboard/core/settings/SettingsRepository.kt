@@ -6678,10 +6678,26 @@ data class AppUiSettings(
      * pinned is kept for when it comes back.
      */
     val favouritesButton: Boolean = true,
+    /**
+     * How much of the settings app is shown. Every row carries a level
+     * (basic, standard, advanced); a row above the depth is folded behind a
+     * "more settings" row at the end of its group rather than removed, so
+     * search still finds it and nothing is lost. [SettingsDepth.AUTO] follows
+     * the onboarding answer until the user picks for themselves.
+     */
+    val settingsDepth: SettingsDepth = SettingsDepth.AUTO,
 )
 
 /** See [AppUiSettings.settingLinks]. */
 enum class SettingLinkMode { OFF, HOLD, BUTTON }
+
+/**
+ * How much of the settings app is shown; see [AppUiSettings.settingsDepth].
+ * [AUTO] follows the onboarding answer: "keep it simple" is [SIMPLE], "show
+ * me everything" is [EVERYTHING], and the middle answer or no answer at all
+ * is [STANDARD]. Resolve it with [KeyboardSettings.settingsDepthResolved].
+ */
+enum class SettingsDepth { AUTO, SIMPLE, STANDARD, EVERYTHING }
 
 /** What the symbol row's height slider offers, matching the number row's. */
 val SymbolRowHeightRange = 28..64
@@ -6797,6 +6813,22 @@ fun KeyboardSettings.themeGalleryGrouped(): Boolean = when (appUi.themeGallerySt
     ThemeGalleryStyle.GROUPED -> true
     ThemeGalleryStyle.FLAT -> false
     ThemeGalleryStyle.AUTO -> onboarding.personaDepth != PersonaDepth.MINIMAL
+}
+
+/**
+ * The settings depth in force: the user's own pick, or the one the onboarding
+ * answer stands for while [AppUiSettings.settingsDepth] is [SettingsDepth.AUTO].
+ * Never [SettingsDepth.AUTO] itself. An install that never saw the quiz, or
+ * answered the middle option, gets [SettingsDepth.STANDARD], which shows every
+ * row that is not tagged advanced.
+ */
+fun KeyboardSettings.settingsDepthResolved(): SettingsDepth = when (appUi.settingsDepth) {
+    SettingsDepth.AUTO -> when (onboarding.personaDepth) {
+        PersonaDepth.MINIMAL -> SettingsDepth.SIMPLE
+        PersonaDepth.POWER -> SettingsDepth.EVERYTHING
+        PersonaDepth.BALANCED, PersonaDepth.UNSET -> SettingsDepth.STANDARD
+    }
+    else -> appUi.settingsDepth
 }
 
 /**
@@ -10608,6 +10640,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_FAVOURITES = stringPreferencesKey("settings_favourites")
         private val SETTINGS_FAVOURITES_BUTTON = booleanPreferencesKey("settings_favourites_button")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
+        private val SETTINGS_DEPTH = stringPreferencesKey("settings_depth")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
         private val SYMBOL_ROW_SCROLL = stringPreferencesKey("symbol_row_scroll")
@@ -12490,6 +12523,9 @@ class SettingsRepository(private val context: Context) {
                 ?.split('\n')?.filter { it.isNotEmpty() }
                 ?: defaults.appUi.settingsFavourites,
             favouritesButton = p[SETTINGS_FAVOURITES_BUTTON] ?: defaults.appUi.favouritesButton,
+            settingsDepth = p[SETTINGS_DEPTH]
+                ?.let { runCatching { SettingsDepth.valueOf(it) }.getOrNull() }
+                ?: defaults.appUi.settingsDepth,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -20017,6 +20053,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.splitToolPanels]. */
     suspend fun setSplitToolPanels(value: Boolean) =
         editPrefs { it[SETTINGS_SPLIT_TOOL_PANELS] = value }
+
+    /** See [AppUiSettings.settingsDepth]. */
+    suspend fun setSettingsDepth(value: SettingsDepth) =
+        editPrefs { it[SETTINGS_DEPTH] = value.name }
 
     suspend fun setWeatherRefreshMinutes(value: Int) =
         editPrefs { it[WEATHER_REFRESH_MINUTES] = value.coerceIn(1, 180) }

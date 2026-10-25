@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings depth: how much of the settings app is shown. -->
+    <string name="settings_depth_title">How many settings to show</string>
+    <string name="settings_depth_subtitle">Fewer rows and pages, or all of them</string>
+    <string name="settings_depth_info">Every setting is still here at every depth. A row above the depth you chose waits behind a “more settings” row at the end of its group, and search finds it as before. Simple keeps about what other keyboards offer.</string>
+    <string name="settings_depth_sheet_subtitle">Nothing is removed: the rest waits behind a “more settings” row at the end of each group.</string>
+    <string name="settings_depth_simple">Simple</string>
+    <string name="settings_depth_simple_desc">The basics, like other keyboards</string>
+    <string name="settings_depth_standard">Standard</string>
+    <string name="settings_depth_standard_desc">The basics and the common extras</string>
+    <string name="settings_depth_everything">Everything</string>
+    <string name="settings_depth_everything_desc">Every setting on every page</string>
+    <string name="settings_depth_change">Change</string>
+    <!-- The row at the end of a group that opens the rows above the current depth. %1$s is Simple, Standard or Everything. -->
+    <string name="settings_depth_more_subtitle">Hidden while showing %1$s settings</string>
+    <plurals name="settings_depth_more_rows">
+        <item quantity="one">%1$d more setting</item>
+        <item quantity="other">%1$d more settings</item>
+    </plurals>
+    <!-- Under the last group of a page. %1$d rows, %2$s the depth name. -->
+    <plurals name="settings_depth_footer">
+        <item quantity="one">%1$d setting on this page is folded away while showing %2$s settings</item>
+        <item quantity="other">%1$d settings on this page are folded away while showing %2$s settings</item>
+    </plurals>
+    <!-- The closed group at the end of Home holding the rows above the current depth. -->
+    <string name="home_group_more_title">More</string>
+</resources>

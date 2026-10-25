@@ -40,6 +40,12 @@ internal class RootEntry(
     @StringRes val subtitle: Int,
     @StringRes val keywords: Int,
     val group: RootGroup,
+    /**
+     * How far down the settings depth the row sits. Above its depth the row
+     * leaves its group for the closed "More" fold at the end of Home; see
+     * [SettingLevel].
+     */
+    val level: SettingLevel = SettingLevel.BASIC,
 )
 
 /**
@@ -50,6 +56,11 @@ internal class RootEntry(
  * Advanced, still one press away. AI has a row of its own (#759) although
  * its two tools are on the Tools list too: the provider, the chat and the
  * history serve more than one tool, and nobody looks for them under Tools.
+ *
+ * At the Simple depth the list is the eleven rows other keyboards have an
+ * answer to, plus Accessibility and About; the rest wait in a closed More
+ * fold at the end, named on it. Privacy stays: a keyboard that reads what
+ * you type owes everyone that door.
  */
 internal val RootEntries: List<RootEntry> = listOf(
     RootEntry(
@@ -81,6 +92,7 @@ internal val RootEntries: List<RootEntry> = listOf(
         "rows", Icons.Outlined.ViewAgenda,
         R.string.home_rows_title, R.string.home_rows_subtitle,
         R.string.search_kw_rows, RootGroup.KEYBOARD,
+        level = SettingLevel.STANDARD,
     ),
     RootEntry(
         "emoji", Icons.Outlined.EmojiEmotions,
@@ -101,11 +113,13 @@ internal val RootEntries: List<RootEntry> = listOf(
         "expander", Icons.AutoMirrored.Outlined.TextSnippet,
         R.string.home_expander_title, R.string.home_expander_subtitle,
         R.string.search_kw_expander, RootGroup.FEATURES,
+        level = SettingLevel.STANDARD,
     ),
     RootEntry(
         "ai", Icons.Outlined.AutoAwesome,
         R.string.home_ai_title, R.string.home_ai_subtitle,
         R.string.search_kw_ai, RootGroup.FEATURES,
+        level = SettingLevel.STANDARD,
     ),
     RootEntry(
         "tools", Icons.Outlined.Widgets,
@@ -126,11 +140,13 @@ internal val RootEntries: List<RootEntry> = listOf(
         "backup", Icons.Outlined.Save,
         R.string.home_backup_title, R.string.home_backup_subtitle,
         R.string.search_kw_backup, RootGroup.DATA,
+        level = SettingLevel.STANDARD,
     ),
     RootEntry(
         "advanced", Icons.Outlined.Tune,
         R.string.home_advanced_title, R.string.home_advanced_subtitle,
         R.string.search_kw_advanced, RootGroup.DATA,
+        level = SettingLevel.STANDARD,
     ),
     RootEntry(
         "about", Icons.Outlined.Info,

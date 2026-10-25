@@ -103,7 +103,7 @@ internal fun EmojiSettings(
         // Which tools stay beside the suggestions, in order (#462). Here, beside
         // the switch that shows them, because this is the row people come to
         // when they want the emoji button to be something else, or more.
-        item(visible = emojiButtonOn) {
+        item(visible = emojiButtonOn, level = SettingLevel.STANDARD) {
             val shortcuts = settings.watch { it.toolbarBehavior.stripShortcuts }
             var picking by remember { mutableStateOf(false) }
             NavRow(
@@ -141,7 +141,7 @@ internal fun EmojiSettings(
             )
         }
         // Which end of the strip they sit at.
-        item(visible = emojiButtonOn) {
+        item(visible = emojiButtonOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_strip_at_end_title,
                 stringResource(R.string.langemoji_strip_at_end_subtitle),
@@ -151,7 +151,7 @@ internal fun EmojiSettings(
         }
         // Their size, apart from the toolbar's tools (which the Toolbar page's
         // sliders size). Off, a tool on both looks the same in either spot.
-        item(visible = emojiButtonOn) {
+        item(visible = emojiButtonOn, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_strip_own_size_title,
                 stringResource(R.string.langemoji_strip_own_size_subtitle),
@@ -159,7 +159,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.toolbarBehavior.stripOwnSize,
             ) { scope.launch { repository.setStripOwnSize(it) } }
         }
-        item(visible = emojiButtonOn && stripOwnSize) {
+        item(visible = emojiButtonOn && stripOwnSize, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.langemoji_strip_tool_width_title,
                 subtitle = stringResource(R.string.langemoji_strip_tool_width_subtitle),
@@ -169,7 +169,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.toolbarBehavior.stripToolWidthDp.toFloat(),
             ) { scope.launch { repository.setStripToolWidthDp(it.roundToInt()) } }
         }
-        item(visible = emojiButtonOn && stripOwnSize) {
+        item(visible = emojiButtonOn && stripOwnSize, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.langemoji_strip_icon_size_title,
                 subtitle = stringResource(R.string.langemoji_strip_icon_size_subtitle),
@@ -179,7 +179,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.toolbarBehavior.stripIconSizeDp.toFloat(),
             ) { scope.launch { repository.setStripIconSizeDp(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_full_bleed_title,
                 stringResource(R.string.langemoji_emoji_full_bleed_subtitle),
@@ -190,7 +190,7 @@ internal fun EmojiSettings(
         }
         // The panel's grid — tabs, search, the emoji grid and the bottom row —
         // is a panel layout (issue #63).
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 title = R.string.panel_layout_row_title,
                 subtitle = stringResource(R.string.panel_layout_row_subtitle),
@@ -199,7 +199,7 @@ internal fun EmojiSettings(
         // Beside the panel's layout rather than in a group of its own further
         // down (#136): both rows are about the panel, and one door next to
         // the other is where the eye looks for it.
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.langemoji_emoji_panel_title,
                 stringResource(R.string.langemoji_emoji_panel_subtitle),
@@ -210,7 +210,7 @@ internal fun EmojiSettings(
         }
         // Mixes are emoji you send as a picture, so they sit with the panel
         // they are picked from.
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.emojimix_row_title,
                 stringResource(R.string.emojimix_row_subtitle),
@@ -235,7 +235,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emojiPrediction,
             ) { scope.launch { repository.setEmojiPrediction(it) } }
         }
-        item(visible = predictionOn) {
+        item(visible = predictionOn, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.langemoji_emoji_insert_mode_title,
                 subtitle = stringResource(R.string.langemoji_emoji_insert_mode_subtitle),
@@ -273,7 +273,7 @@ internal fun EmojiSettings(
         item(visible = emojiRowOverridden) {
             ModeRowOverrides(BarRow.EMOJI, settings, onNavigate)
         }
-        item(visible = barMode != EmojiBarMode.OFF) {
+        item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.langemoji_emoji_bar_content_title,
                 subtitle = stringResource(R.string.langemoji_emoji_bar_content_subtitle),
@@ -290,7 +290,7 @@ internal fun EmojiSettings(
                 detail = { content -> ChoiceDetail(stringResource(emojiBarContentDescRes(content))) },
             ) { scope.launch { repository.setEmojiBarContent(it) } }
         }
-        item(visible = barMode != EmojiBarMode.OFF) {
+        item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 title = R.string.langemoji_emoji_bar_count_title,
                 subtitle = stringResource(R.string.langemoji_emoji_bar_count_subtitle),
@@ -301,7 +301,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emoji.barCount.toFloat(),
             ) { scope.launch { repository.setEmojiBarCount(it.roundToInt()) } }
         }
-        item(visible = barMode != EmojiBarMode.OFF) {
+        item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_bar_scroll_title,
                 stringResource(R.string.langemoji_emoji_bar_scroll_subtitle),
@@ -315,7 +315,7 @@ internal fun EmojiSettings(
     // that opens it beats a sentence saying so.
     if (barMode == EmojiBarMode.ALWAYS) {
         SettingsGroup {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 NavRow(
                     R.string.home_rows_title,
                     stringResource(R.string.home_rows_subtitle),
@@ -344,7 +344,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emoji.defaultSkinTone,
             ) { scope.launch { repository.setEmojiDefaultSkinTone(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_tone_override_title,
                 stringResource(R.string.langemoji_emoji_tone_override_subtitle),
@@ -355,7 +355,7 @@ internal fun EmojiSettings(
         }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_style_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             val context = LocalContext.current
             val emojiFont = settings.watch { it.emojiFont }
             val installedId = settings.watch { it.emojiFontInstalled.installedId }
@@ -450,8 +450,8 @@ internal fun EmojiSettings(
         }
         // Straight after the picker, because "Installed" is the option that
         // needs a font to have arrived from somewhere first.
-        item { AddonStoreRow(AddonType.EmojiFont, onNavigate) }
-        item {
+        item(level = SettingLevel.STANDARD) { AddonStoreRow(AddonType.EmojiFont, onNavigate) }
+        item(level = SettingLevel.STANDARD) {
             // The phone is always the one to blame here: an emoji the chosen
             // font is missing is drawn in the phone's own emoji font instead,
             // so the only emoji that stay blank are the ones neither has.
@@ -467,7 +467,7 @@ internal fun EmojiSettings(
                 default = SettingsDefaults.emoji.hideUnrenderable,
             ) { scope.launch { repository.setHideUnrenderableEmoji(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Issue #385: any character by the words of its Unicode name.
             ToggleSetting(
                 R.string.langemoji_emoji_unicode_search_title,
@@ -494,7 +494,7 @@ internal fun EmojiPanelSettings(
         stringResource(R.string.langemoji_emoji_panel_title),
         info = stringResource(R.string.langemoji_emoji_tip_body),
     ) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 title = R.string.langemoji_emoji_grid_size_title,
                 subtitle = stringResource(R.string.langemoji_emoji_grid_size_subtitle),
@@ -506,7 +506,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.gridCellSize.toFloat(),
             ) { scope.launch { repository.setEmojiGridCellSize(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 title = R.string.langemoji_emoji_size_title,
                 subtitle = stringResource(R.string.langemoji_emoji_size_subtitle),
@@ -518,7 +518,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.gridEmojiSize.toFloat(),
             ) { scope.launch { repository.setEmojiGridEmojiSize(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             EmojiGridAutoSlider(
                 title = R.string.langemoji_emoji_grid_columns_title,
                 subtitle = stringResource(R.string.langemoji_emoji_grid_columns_subtitle),
@@ -528,7 +528,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.gridColumns,
             ) { scope.launch { repository.setEmojiGridColumns(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             EmojiGridAutoSlider(
                 title = R.string.langemoji_emoji_grid_row_height_title,
                 subtitle = stringResource(R.string.langemoji_emoji_grid_row_height_subtitle),
@@ -538,7 +538,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.gridRowHeight,
             ) { scope.launch { repository.setEmojiGridRowHeight(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_continuous_title,
                 stringResource(R.string.langemoji_emoji_continuous_subtitle),
@@ -547,7 +547,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.continuousScroll,
             ) { scope.launch { repository.setEmojiContinuousScroll(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val none = stringResource(R.string.langemoji_panel_height_none)
             val taller = stringResource(R.string.langemoji_panel_height_value)
             SliderSetting(
@@ -563,7 +563,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.panelExtraHeightDp.toFloat(),
             ) { scope.launch { repository.setMediaPanelExtraHeightDp(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 title = R.string.langemoji_emoji_recents_title,
                 subtitle = stringResource(R.string.langemoji_emoji_recents_subtitle),
@@ -574,7 +574,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.recentsLimit.toFloat(),
             ) { scope.launch { repository.setEmojiRecentsLimit(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ActionRow(
                 title = R.string.langemoji_emoji_clear_history_title,
                 subtitle = stringResource(R.string.langemoji_emoji_clear_history_subtitle),
@@ -583,7 +583,7 @@ internal fun EmojiPanelSettings(
                 lock = AppLockTargets["action_clear_emoji_history"],
             ) { scope.launch { repository.clearEmojiHistory() } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_emoji_close_after_insert_title,
                 stringResource(R.string.langemoji_emoji_close_after_insert_subtitle),
@@ -592,7 +592,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.closeAfterInsert,
             ) { scope.launch { repository.setEmojiCloseAfterInsert(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.langemoji_media_switcher_title,
                 subtitle = stringResource(R.string.langemoji_media_switcher_subtitle),
@@ -606,7 +606,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.mediaSwitcher,
             ) { scope.launch { repository.setEmojiMediaSwitcher(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_media_remember_title,
                 stringResource(R.string.langemoji_media_remember_subtitle),
@@ -615,7 +615,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.rememberMediaTab,
             ) { scope.launch { repository.setEmojiRememberMediaTab(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.langemoji_emoji_tab_mode_title,
                 subtitle = stringResource(R.string.langemoji_emoji_tab_mode_subtitle),
@@ -642,7 +642,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emojiClearRecentsButton,
             ) { scope.launch { repository.setEmojiClearRecentsButton(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_emoji_kaomoji_title,
                 stringResource(R.string.langemoji_emoji_kaomoji_subtitle),
@@ -652,14 +652,14 @@ internal fun EmojiPanelSettings(
             ) { scope.launch { repository.setEmojiKaomojiTabs(it) } }
         }
         // The tab's tags, its edit rail, the library and the Emotic import.
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.langemoji_kaomoji_title,
                 stringResource(R.string.langemoji_kaomoji_subtitle),
                 route = "kaomoji",
             ) { onNavigate("kaomoji") }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.langemoji_emoji_long_press_name_title,
                 stringResource(R.string.langemoji_emoji_long_press_name_subtitle),
@@ -668,7 +668,7 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emojiLongPressName,
             ) { scope.launch { repository.setEmojiLongPressName(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_emoji_animated_title,
                 stringResource(R.string.langemoji_emoji_animated_subtitle),
@@ -678,7 +678,7 @@ internal fun EmojiPanelSettings(
             ) { scope.launch { repository.setAnimatedEmoji(it) } }
         }
         serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.ANIMATED_EMOJI))
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.langemoji_emoji_sticker_title,
                 stringResource(R.string.langemoji_emoji_sticker_subtitle),
@@ -687,14 +687,14 @@ internal fun EmojiPanelSettings(
                 default = SettingsDefaults.emoji.sendAsSticker,
             ) { scope.launch { repository.setSendEmojiAsSticker(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.langemoji_emoji_categories_title,
                 stringResource(R.string.langemoji_emoji_categories_subtitle),
                 route = "emojicategories",
             ) { onNavigate("emojicategories") }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.langemoji_emoji_added_title,
                 stringResource(R.string.langemoji_emoji_added_subtitle),
@@ -702,7 +702,7 @@ internal fun EmojiPanelSettings(
                 route = "emojiadded",
             ) { onNavigate("emojiadded") }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.langemoji_emoji_keywords_title,
                 stringResource(R.string.langemoji_emoji_keywords_subtitle),

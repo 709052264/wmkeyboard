@@ -103,14 +103,14 @@ internal fun PrivacySettings(
                 route = "permissions",
             ) { onNavigate("permissions") }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.netlog_title,
                 stringResource(R.string.netlog_subtitle),
                 route = "network_activity",
             ) { onNavigate("network_activity") }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val lock = LocalAppLock.current
             val lockStatus by lock.status.collectAsStateWithLifecycle()
             val lockConfig by lock.config.collectAsStateWithLifecycle()
@@ -155,7 +155,7 @@ internal fun PrivacySettings(
                 default = SettingsDefaults.addWordsToSystemDictionary,
             ) { scope.launch { repository.setAddWordsToSystemDictionary(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.privacy_use_system_dictionary_title,
                 stringResource(R.string.privacy_use_system_dictionary_subtitle),
@@ -164,7 +164,7 @@ internal fun PrivacySettings(
                 default = SettingsDefaults.suggestionStrip.useSystemDictionary,
             ) { scope.launch { repository.setUseSystemDictionary(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.privacy_dict_shortcuts_title,
                 stringResource(R.string.privacy_dict_shortcuts_subtitle),
@@ -182,7 +182,7 @@ internal fun PrivacySettings(
                 default = SettingsDefaults.incognito,
             ) { scope.launch { repository.setIncognito(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.privacy_auto_incognito_title,
                 stringResource(R.string.privacy_auto_incognito_subtitle),
@@ -193,7 +193,7 @@ internal fun PrivacySettings(
         }
     }
     SettingsGroup(stringResource(R.string.privacy_backup_group_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.privacy_backup_title,
                 stringResource(R.string.privacy_backup_subtitle),
@@ -204,7 +204,7 @@ internal fun PrivacySettings(
         }
     }
     OtherAppsGroup(repository, onNavigate)
-    SettingsGroup(stringResource(R.string.privacy_downloads_group_title)) {
+    SettingsGroup(stringResource(R.string.privacy_downloads_group_title), level = SettingLevel.ADVANCED) {
         item { VerifyChecksumsRow(repository, settings) }
         item { FeatureLibrariesRows() }
     }
@@ -343,7 +343,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
         item { VoiceEngineLanguagesRow(repository, settings) }
     }
     SettingsGroup(stringResource(R.string.voice_dictation_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.voice_ui_title,
                 subtitle = stringResource(R.string.voice_ui_subtitle),
@@ -371,7 +371,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ) { scope.launch { repository.setVoiceUiMode(it) } }
         }
         if (voiceUiMode == com.wasimaster.wmkeyboard.core.settings.VoiceBarSettings.MODE_STRIP) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.voice_strip_language_title,
                     stringResource(R.string.voice_strip_language_subtitle),
@@ -381,7 +381,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 ) { scope.launch { repository.setVoiceStripLanguageChip(it) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // With only one block at a time on offer, the row says what brings
             // the other two (#852): a list of one, with nothing on it saying
             // why, read as a setting that would not change.
@@ -426,7 +426,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 },
             ) { scope.launch { repository.setVoiceTypingMode(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // Interactive and plain typing chain sessions whatever this says,
             // so it is drawn off rather than hidden: a missing row would read
             // as chaining being gone, when it is in fact forced on.
@@ -444,7 +444,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceContinuous,
             ) { scope.launch { repository.setVoiceContinuous(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val offLabel = stringResource(R.string.voice_silence_stop_off)
             val secondsFormat = stringResource(R.string.voice_silence_stop_seconds)
             SliderSetting(
@@ -503,7 +503,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
             ).map { stringResource(it) }.joinToString(", ")
         },
     ) {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.voice_hold_picks_title,
                 stringResource(R.string.voice_hold_picks_subtitle),
@@ -512,7 +512,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.holdPicksTypingMode,
             ) { scope.launch { repository.setVoiceHoldPicksTypingMode(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.voice_resume_title,
                 stringResource(R.string.voice_resume_subtitle),
@@ -521,7 +521,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.resumeOnShow,
             ) { scope.launch { repository.setVoiceResumeOnShow(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.voice_pause_media_title,
                 stringResource(R.string.voice_pause_media_subtitle),
@@ -530,7 +530,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.pauseMedia,
             ) { scope.launch { repository.setVoicePauseMedia(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.voice_mic_switch_title,
                 stringResource(R.string.voice_mic_switch_subtitle),
@@ -562,7 +562,7 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.voiceBar.mic,
             ) { scope.launch { repository.setVoiceMic(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.voice_engine_picker_title,
                 stringResource(R.string.voice_engine_picker_subtitle),
@@ -700,7 +700,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.history,
             ) { scope.launch { repository.setClipboardHistory(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // Stops, with no cap at all as the last one (#414). A value from
             // before the stops shows at the nearest one until it is moved.
             val unlimited = stringResource(R.string.clipboard_max_unlimited)
@@ -724,7 +724,7 @@ internal fun ClipboardSettings(
                 default = steps.indexOf(SettingsDefaults.clipboard.maxItems).coerceAtLeast(0).toFloat(),
             ) { scope.launch { repository.setClipboardMaxItems(steps[it.roundToInt().coerceIn(steps.indices)]) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The readout lambda is not composable, so the "never" word
             // is resolved here and captured, like the hours format.
             val never = stringResource(R.string.clipboard_expiry_never)
@@ -737,7 +737,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.expiryHours.toFloat(),
             ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // A slider over a handful of stops rather than every number: the
             // choice is "about how much", and a round figure is one the user
             // can set again.
@@ -758,7 +758,7 @@ internal fun ClipboardSettings(
                 default = steps.indexOf(SettingsDefaults.clipboard.maxTextChars).coerceAtLeast(0).toFloat(),
             ) { scope.launch { repository.setClipboardMaxTextChars(steps[it.roundToInt().coerceIn(steps.indices)]) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // The tabs put pinned clips on a tab of their own, where there is
             // no end of the list left for them to go to.
             val pinnedTabs = settings.watch { it.clipboard.pinnedTabs }
@@ -782,7 +782,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.pinnedLast,
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_pinned_in_place_title,
                 stringResource(R.string.clipboard_pinned_in_place_subtitle),
@@ -791,7 +791,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.pinnedInPlace,
             ) { scope.launch { repository.setClipboardPinnedInPlace(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_pinned_folders_title,
                 stringResource(R.string.clipboard_pinned_folders_subtitle),
@@ -880,7 +880,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.suggestRecent,
             ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
         }
-        item(visible = suggestRecent) {
+        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
             val untilDismissed =
                 stringResource(R.string.clipboard_chip_until_dismissed)
             val chipMinutesFormat = stringResource(R.string.values_minutes)
@@ -909,7 +909,7 @@ internal fun ClipboardSettings(
                 scope.launch { repository.setPasteChipSeconds(secs) }
             }
         }
-        item(visible = suggestRecent) {
+        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
             // Issue #414: the last few copies as a row, FUTO-style.
             SliderSetting(
                 R.string.clipboard_recent_chips_title,
@@ -921,7 +921,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.recentChips.toFloat(),
             ) { scope.launch { repository.setClipboardRecentChips(it.toInt()) } }
         }
-        item(visible = suggestRecent) {
+        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clipboard_suggest_codes_title,
                 subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
@@ -932,7 +932,7 @@ internal fun ClipboardSettings(
                 detail = { chip -> ChoiceDetail(stringResource(copiedCodeChipDescRes(chip))) },
             ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clipboard_entities_title,
                 stringResource(R.string.clipboard_entities_subtitle),
@@ -941,7 +941,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.detectEntities,
             ) { scope.launch { repository.setClipboardDetectEntities(it) } }
         }
-        item(visible = detectEntities) {
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_entity_icons_title,
                 stringResource(R.string.clipboard_entity_icons_subtitle),
@@ -950,7 +950,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.entityIcons,
             ) { scope.launch { repository.setClipboardEntityIcons(it) } }
         }
-        item(visible = detectEntities) {
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_entity_to_clipboard_title,
                 stringResource(R.string.clipboard_entity_to_clipboard_subtitle),
@@ -958,7 +958,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.entityToClipboard,
             ) { scope.launch { repository.setClipboardEntityToClipboard(it) } }
         }
-        item(visible = detectEntities) {
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.clipboard_fragments_on_strip_title,
                 stringResource(R.string.clipboard_fragments_on_strip_subtitle),
@@ -971,7 +971,7 @@ internal fun ClipboardSettings(
         // number is the one fragment with no shape of its own. This row
         // is where the user gives it one.
         // Before the history keeps a copy, the user's own patterns tidy it (#612).
-        item {
+        item(level = SettingLevel.STANDARD) {
             val count = settings.watch { it.clipboard.copyRules.size }
             NavRow(
                 R.string.clipboard_copy_rules_title,
@@ -984,7 +984,7 @@ internal fun ClipboardSettings(
                 onClick = { onNavigate("cliprules") },
             )
         }
-        item(visible = detectEntities) {
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
             val count = settings.watch { it.clipboard.phoneFormats.size }
             NavRow(
                 R.string.clipboard_phone_formats_title,
@@ -1002,7 +1002,7 @@ internal fun ClipboardSettings(
             )
         }
     }
-    SettingsGroup(stringResource(R.string.clipboard_panel_group)) {
+    SettingsGroup(stringResource(R.string.clipboard_panel_group), level = SettingLevel.ADVANCED) {
         // The panel's grid — and the abc / space / backspace row the old toggle
         // here switched on — is a panel layout now (issue #63).
         item {
@@ -1287,7 +1287,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.privateCopies,
             ) { scope.launch { repository.setClipboardPrivateCopies(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clipboard_password_paste_title,
                 stringResource(R.string.clipboard_password_paste_subtitle),
@@ -1296,7 +1296,7 @@ internal fun ClipboardSettings(
                 default = SettingsDefaults.clipboard.clearAfterPasswordPaste,
             ) { scope.launch { repository.setClipboardClearAfterPasswordPaste(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.clipboard_sensitive_title,
                 subtitle = stringResource(R.string.clipboard_sensitive_subtitle),
@@ -1313,7 +1313,7 @@ internal fun ClipboardSettings(
         if (historyOn &&
             sensitiveHandling != SensitiveClipHandling.KEEP
         ) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.clipboard_detect_sensitive_title,
                     stringResource(R.string.clipboard_detect_sensitive_subtitle),
@@ -1323,7 +1323,7 @@ internal fun ClipboardSettings(
                 ) { scope.launch { repository.setClipboardDetectSensitive(it) } }
             }
         }
-        item(visible = sensitiveHandling == SensitiveClipHandling.SHORT_LIVED) {
+        item(visible = sensitiveHandling == SensitiveClipHandling.SHORT_LIVED, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.clipboard_sensitive_expiry_title,
                 subtitle = stringResource(
