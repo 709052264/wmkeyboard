@@ -712,6 +712,8 @@ import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
 import com.wasimaster.wmkeyboard.core.transliteration.SortedWords
 import com.wasimaster.wmkeyboard.core.transliteration.Khipro
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
+import com.wasimaster.wmkeyboard.core.settings.stopsBackgroundWork
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -4363,6 +4365,14 @@ open class WMKeyboardService : InputMethodService() {
         // glide is set up again, from the table or, failing it, on the device.
         serviceScope.launch {
             KhiproGlideDownloads.completions.collect {
+                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+            }
+        }
+
+        // A newer Khipro spec set went in, or was dropped (#909): the glide
+        // spellings were read off the old one.
+        serviceScope.launch {
+            KhiproSpecs.installs.collect {
                 if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
             }
         }
@@ -11738,7 +11748,10 @@ open class WMKeyboardService : InputMethodService() {
         // one. Chosen by the key that starts the word and kept to its end, so
         // one word never reads half one way and half the other.
         val khipro = state.composer
-        if (khipro is KhiproComposer && composing.isEmpty()) khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
+        if (khipro is KhiproComposer && composing.isEmpty()) {
+            khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
+            refreshKhiproSpecsIfDue()
+        }
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the keyboard's own space back, and anything else simply types
         // past it. Both kinds of space count — the one that ended a word (glide
@@ -13792,7 +13805,12 @@ open class WMKeyboardService : InputMethodService() {
         val unlocked = userUnlocked
         val table = KhiproGlideDownloads.file(filesDir).takeIf { unlocked && it.isFile }
         val tableSize = table?.length() ?: -1L
-        if (khiproGlideList === words && khiproGlideLearned == learned && khiproGlideTable == tableSize) return
+        val spec = KhiproSpecs.activeRevision()
+        if (khiproGlideList === words && khiproGlideLearned == learned && khiproGlideTable == tableSize &&
+            khiproGlideSpec == spec
+        ) {
+            return
+        }
         if (khiproGlideJob?.isActive == true) return
         if (unlocked && table == null && !KhiproGlideDownloads.failed) {
             // Back here through the completions once it lands or fails.
@@ -13805,9 +13823,12 @@ open class WMKeyboardService : InputMethodService() {
             // on a downloaded list is minutes; a cached list says nothing.
             var notify: DownloadNotifications.Handle? = null
             val (main, personal) = withContext(Dispatchers.Default) {
-                val main = khiproGlideMain.takeIf { khiproGlideList === words && khiproGlideTable == tableSize }
+                val main = khiproGlideMain.takeIf {
+                    khiproGlideList === words && khiproGlideTable == tableSize && khiproGlideSpec == spec
+                }
                     ?: if (unlocked) {
-                        KhiproGlideSpellings.load(words, dir, premade = table) { done, total ->
+                        val downloaded = KhiproSpecs.state.value.takeIf { it.downloaded }?.revision
+                        KhiproGlideSpellings.load(words, dir, premade = table, downloadedSpec = downloaded) { done, total ->
                             synchronized(this@WMKeyboardService) {
                                 val handle = notify ?: DownloadNotifications.start(
                                     this@WMKeyboardService,
@@ -13832,6 +13853,7 @@ open class WMKeyboardService : InputMethodService() {
             khiproGlideList = words
             khiproGlideLearned = learned
             khiproGlideTable = tableSize
+            khiproGlideSpec = spec
             romanizedGlides = romanizedGlides +
                 (KHIPRO_GLIDE to RomanizedIndex.deterministic(main ?: PackedTrie.EMPTY, personal, KhiproRomanizer.KEYS, Khipro::convert))
             glideSourcesEpoch.update { it + 1 }
@@ -13889,6 +13911,20 @@ open class WMKeyboardService : InputMethodService() {
     private var khiproGlideList: SortedWords? = null
     private var khiproGlideLearned = -1L
     private var khiproGlideTable = -1L
+    private var khiproGlideSpec: String? = null
+
+    /**
+     * Looks for a newer Khipro spec set (#909), at most once a day, as a word
+     * starts on a Khipro layout: the layout is in use, so its fixes are worth
+     * the 200 KB. Data saving holding background downloads back holds this too.
+     */
+    private fun refreshKhiproSpecsIfDue() {
+        if (!userUnlocked || !KhiproSpecs.isDue()) return
+        val saver = dataSaverStatus
+        val allowed = !(saver.active && saver.settings.downloads.stopsBackgroundWork)
+        if (!allowed) return
+        serviceScope.launch(Dispatchers.IO) { KhiproSpecs.refreshIfDue(allowed = true) }
+    }
 
     /** Desktop Avro's data while a Bangla candidate list is on; see [loadAvroDesktop]. */
     private var avroDesktop: AvroDesktop? = null
