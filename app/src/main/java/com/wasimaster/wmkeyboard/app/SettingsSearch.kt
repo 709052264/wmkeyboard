@@ -1149,6 +1149,7 @@ private fun SearchStrings.languageRows(): List<SettingsSearchEntry> {
             keywords = R.string.search_kw_more_layouts,
         ),
         row(R.string.languages_conjunct_backspace_title),
+        row(R.string.languages_bengali_vowel_twice_title, R.string.languages_bengali_vowel_twice_subtitle),
         // The subtitle names the language, so it is a format string with
         // nothing to fill it in here; the title carries the search.
         row(R.string.languages_translit_hints_row_title),

@@ -9361,6 +9361,14 @@ data class SuggestionStripSettings(
      * font. On Bengali's own screen.
      */
     val bengaliAnsiAllowed: Boolean = false,
+    /**
+     * On Probhat and Jatiya, the আ-কার or এ-কার key pressed twice straight
+     * after a vowel writes the independent vowel (#900). The first press
+     * gives the য়-glide a vowel takes there (কায়া, দিয়ে); the second turns
+     * it into আ or এ. Holding the key offers আ and এ either way. Off by
+     * default: a quick double press otherwise types the glide twice.
+     */
+    val bengaliVowelTwice: Boolean = false,
     /** Whether the Bengali layouts write ANSI right now: the strip button's state. */
     val bengaliAnsiOn: Boolean = false,
     /**
@@ -9997,6 +10005,7 @@ class SettingsRepository(private val context: Context) {
         private val PHONETIC_ENGLISH_SWITCH = booleanPreferencesKey("phonetic_english_switch")
         private val PHONETIC_FIXED_STRIP_LANGS = stringSetPreferencesKey("phonetic_fixed_strip_langs")
         private val BENGALI_ANSI_ALLOWED = booleanPreferencesKey("bengali_ansi_allowed")
+        private val BENGALI_VOWEL_TWICE = booleanPreferencesKey("bengali_vowel_twice")
         private val BENGALI_ANSI_ON = booleanPreferencesKey("bengali_ansi_on")
         private val BENGALI_ANSI_VERSION = intPreferencesKey("bengali_ansi_version")
         private val BURMESE_ZAWGYI_ALLOWED = booleanPreferencesKey("burmese_zawgyi_allowed")
@@ -12536,6 +12545,7 @@ class SettingsRepository(private val context: Context) {
             phoneticFixedStripLangs = p[PHONETIC_FIXED_STRIP_LANGS]
                 ?: defaults.suggestionStrip.phoneticFixedStripLangs,
             bengaliAnsiAllowed = p[BENGALI_ANSI_ALLOWED] ?: defaults.suggestionStrip.bengaliAnsiAllowed,
+            bengaliVowelTwice = p[BENGALI_VOWEL_TWICE] ?: defaults.suggestionStrip.bengaliVowelTwice,
             bengaliAnsiOn = p[BENGALI_ANSI_ON] ?: defaults.suggestionStrip.bengaliAnsiOn,
             bengaliAnsiVersion = p[BENGALI_ANSI_VERSION] ?: defaults.suggestionStrip.bengaliAnsiVersion,
             burmeseZawgyiAllowed = p[BURMESE_ZAWGYI_ALLOWED] ?: defaults.suggestionStrip.burmeseZawgyiAllowed,
@@ -17974,6 +17984,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setBengaliAnsiAllowed(value: Boolean) =
         editPrefs { it[BENGALI_ANSI_ALLOWED] = value }
+
+    suspend fun setBengaliVowelTwice(value: Boolean) =
+        editPrefs { it[BENGALI_VOWEL_TWICE] = value }
 
     suspend fun setBengaliAnsiOn(value: Boolean) =
         editPrefs { it[BENGALI_ANSI_ON] = value }

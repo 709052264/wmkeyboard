@@ -11812,8 +11812,24 @@ open class WMKeyboardService : InputMethodService() {
         // it back verbatim — so while one is open the round-trip is skipped and
         // the answer comes from the buffer instead.
         if (state.composer.isClusterShaping) {
+            val key = text
             val previous = composing.lastOrNull() ?: ic.getTextBeforeCursor(1, 0)?.lastOrNull()
-            text = fixedLayoutContextualVowel(text, previous)
+            val glide = lastVowelGlide
+            lastVowelGlide = null
+            val now = SystemClock.uptimeMillis()
+            val twice = glide != null && state.settings.suggestionStrip.bengaliVowelTwice &&
+                composing.isEmpty() && glide.key == key && now - glide.at <= VOWEL_TWICE_MS &&
+                ic.getTextBeforeCursor(glide.text.length, 0)?.toString() == glide.text
+            if (twice && glide != null) {
+                // The second press of #900: the glide the first one typed
+                // becomes the vowel itself, য়া → আ, য়ে → এ.
+                ic.deleteSurroundingText(glide.text.length, 0)
+                invalidateExpectedSelection()
+                text = BengaliGraphemes.vowelKeyText(key.single(), BengaliGraphemes.VowelKeyForm.INDEPENDENT) ?: key
+            } else {
+                text = fixedLayoutContextualVowel(key, previous)
+                if (text != key && text.firstOrNull() == BENGALI_YA) lastVowelGlide = VowelGlide(key, text, now)
+            }
         }
 
         // Typing over a selection replaces it and puts the cursor after the
@@ -12724,6 +12740,17 @@ open class WMKeyboardService : InputMethodService() {
         )
         return mapDigits(text, digits)
     }
+
+    /**
+     * The য়-glide a fixed Bengali vowel key just typed after another vowel:
+     * which key ([key], its kar), what it wrote, and when. A second press of
+     * the same key soon after turns it into the independent vowel, under
+     * [com.wasimaster.wmkeyboard.core.settings.SuggestionStripSettings.bengaliVowelTwice]
+     * (#900). Spent by the next key whatever it is.
+     */
+    private class VowelGlide(val key: String, val text: String, val at: Long)
+
+    private var lastVowelGlide: VowelGlide? = null
 
     /**
      * Fixed Bengali layouts (Probhat, Jatiya): a vowel-sign key yields the
@@ -50044,6 +50071,12 @@ open class WMKeyboardService : InputMethodService() {
     companion object {
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
+
+        /** How soon a second vowel-key press must follow for [VowelGlide] to become the vowel (#900). */
+        private const val VOWEL_TWICE_MS = 450L
+
+        /** য়, the glide's first letter: what tells a glide from a kar or a vowel. */
+        private const val BENGALI_YA = '\u09DF'
 
         /**
          * The shortest pause in typing before a grammar check goes to a

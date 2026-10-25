@@ -927,11 +927,13 @@ private val probhatRows = listOf(
         Key("প", shiftLabel = "ফ"),
     ),
     listOf(
-        Key("া", shiftLabel = "অ"), Key("স", shiftLabel = "ষ"),
+        // আ and এ on the holds too (#900): after a vowel the taps give
+        // the য়-glide, and the hold is how to get the bare vowel there.
+        Key("া", shiftLabel = "অ", longPress = listOf("আ")), Key("স", shiftLabel = "ষ"),
         Key("ড", shiftLabel = "ঢ"), Key("ত", shiftLabel = "থ", longPress = listOf("ৎ")),
         Key("গ", shiftLabel = "ঘ"), Key("হ", shiftLabel = "ঃ", longPress = listOf("ঽ")),
         Key("জ", shiftLabel = "ঝ", longPress = listOf("ঞ")), Key("ক", shiftLabel = "খ"),
-        Key("ল", shiftLabel = "ং"), Key("ে", shiftLabel = "ো", longPress = listOf("ৈ", "ৌ")),
+        Key("ল", shiftLabel = "ং"), Key("ে", shiftLabel = "ো", longPress = listOf("ৈ", "ৌ", "এ")),
     ),
     listOf(
         Key("⇧", action = KeyAction.Shift, width = 1.2f),

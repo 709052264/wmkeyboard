@@ -1225,6 +1225,19 @@ internal fun LanguageDetailScreen(
                     default = langId in SettingsDefaults.conjunctBackspaceLanguages,
                 ) { scope.launch { repository.setConjunctBackspace(langId, it) } }
             }
+            // Probhat and Jatiya give a vowel key the য়-glide after another
+            // vowel; this makes a second press the independent vowel (#900).
+            if (langId == "bn") {
+                item {
+                    ToggleSetting(
+                        R.string.languages_bengali_vowel_twice_title,
+                        stringResource(R.string.languages_bengali_vowel_twice_subtitle),
+                        settings.watch { it.suggestionStrip.bengaliVowelTwice },
+                        info = stringResource(R.string.languages_bengali_vowel_twice_info),
+                        default = SettingsDefaults.suggestionStrip.bengaliVowelTwice,
+                    ) { scope.launch { repository.setBengaliVowelTwice(it) } }
+                }
+            }
         }
     }
 
