@@ -521,6 +521,23 @@ private fun SearchStrings.typingAutopilotRows(): List<SettingsSearchEntry> {
     )
 }
 
+/**
+ * Rows on the clipboard's Copy rules page (#898): "Remove trackers" was only
+ * reachable by knowing it sat behind a row called Copy rules.
+ */
+private fun SearchStrings.clipRulesRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, keywords: Int = 0) = entry(
+        title, subtitle, R.string.clipboard_copy_rules_title, "cliprules", screenParent = R.string.home_clipboard_title,
+        keywords = keywords,
+    )
+    return listOf(
+        row(R.string.clipboard_copy_rules_system_title, R.string.clipboard_copy_rules_system_subtitle),
+        row(R.string.clipboard_plain_letters_title, R.string.clipboard_plain_letters_subtitle),
+        row(R.string.clipboard_clean_links_title, R.string.clipboard_clean_links_subtitle, R.string.search_kw_clean_links),
+        row(R.string.clipboard_extra_trackers_title, keywords = R.string.search_kw_clean_links),
+    )
+}
+
 /** Rows on the typing/octopus page, in screen order. */
 private fun SearchStrings.typingOctopusRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
@@ -2955,6 +2972,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         typingCorrectionsRows() +
         typingSuggestionsRows() +
         typingAutopilotRows() +
+        clipRulesRows() +
         typingOctopusRows() +
         blacklistRows() +
         typingChipsRows() +
