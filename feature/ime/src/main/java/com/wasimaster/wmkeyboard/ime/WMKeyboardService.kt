@@ -1538,7 +1538,10 @@ open class WMKeyboardService : InputMethodService() {
             val word = token.trim { !WordContext.isWordChar(it) }
             if (word.isNotEmpty()) words.add(word)
         }
-        engine.setSentenceContext(words, contextFieldFor())
+        // Off the main thread, on the strip's own single lane, so the model
+        // reads the new word before the next strip asks it anything.
+        val field = contextFieldFor()
+        serviceScope.launch(suggestionDispatcher) { engine.setSentenceContext(words, field) }
     }
 
     /** Where the text is being written, for the context model's prefix. */
