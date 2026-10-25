@@ -3090,9 +3090,10 @@ open class WMKeyboardService : InputMethodService() {
      *    Space would end it, as written and without autocorrect, since the
      *    pieces glued this way are seldom dictionary words, and without the
      *    space.
-     * Any of them leaves the next glided word to join on with no space. A
-     * space the user typed is never taken back, and with none of the above it
-     * does nothing.
+     *  - the caret stands right after a word and a space the user typed:
+     *    that space comes back out too (#939).
+     * Any of them leaves the next glided word to join on with no space. With
+     * none of the above it does nothing.
      */
     private fun noSpace() {
         val ic = currentInputConnection ?: return
@@ -3115,7 +3116,14 @@ open class WMKeyboardService : InputMethodService() {
                 lastRevertible = null
             }
             deferredWordSpace -> deferredWordSpace = false
-            else -> return
+            else -> {
+                if (hasSelection(ic)) return
+                val before = ic.getTextBeforeCursor(2, 0)?.toString().orEmpty()
+                if (before.length != 2 || before[1] != ' ' || !before[0].isLetterOrDigit()) return
+                ic.deleteSurroundingText(1, 0)
+                spaceTaken = true
+                lastRevertible = null
+            }
         }
         glueNextWord = true
         // Only the space branch moved the caret, one place back.
@@ -9294,8 +9302,14 @@ open class WMKeyboardService : InputMethodService() {
         // The Text case is cleared by [processTypedText] itself as well, since
         // letters and marks are the same action and only the text says which
         // one this is.
+        //
+        // No space, as a key, a flick or its hold, is the key those spaces are
+        // kept for: it is what takes the keyboard's space back out (#939).
+        val noSpaceKey = (key.action as? KeyAction.Edit)?.op.let {
+            it == TextEditAction.NO_SPACE || it == TextEditAction.NO_SPACE_NEXT
+        }
         if (key.action != KeyAction.Text && key.action != KeyAction.Space &&
-            !key.action.commitsNoText()
+            !key.action.commitsNoText() && !noSpaceKey
         ) {
             pendingPunctuationSpace = false
             pendingWordSpace = false
