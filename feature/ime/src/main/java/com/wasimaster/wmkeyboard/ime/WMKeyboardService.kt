@@ -24625,10 +24625,17 @@ open class WMKeyboardService : InputMethodService() {
         deferredWordSpace = false
 
         // An emoji picked from inline search replaces the ":query" buffer
-        // outright: no trailing space (emoji rarely start a new word) and
-        // nothing learned, since the emoji is not a word the user typed.
+        // outright: no trailing space (emoji rarely start a new word) and no
+        // word learned from the query. The emoji itself counts as used, the
+        // same as a closing colon (see onText) and a panel tap: it lands in
+        // Recent and the emoji row, and learns its word→emoji bigram. The
+        // space the opening colon took back belongs to the emoji here too.
         if (inlineEmojiQuery() != null) {
-            ic.commitText(suggestion, 1)
+            val restored = if (emojiQueryAteSpace) " " else ""
+            emojiQueryAteSpace = false
+            ic.commitText(restored + suggestion, 1)
+            learnEmoji(suggestion)
+            recordEmojiUse(suggestion)
             revision = null
             composing = StringBuilder()
             _uiState.update {
