@@ -12173,6 +12173,7 @@ open class WMKeyboardService : InputMethodService() {
                 // ...and the undo chip belongs to the sentence just closed.
                 clearUndoChip()
                 maybeAutoCapitalize()
+                showSentenceOpeners()
             }
             // Email fields commit straight through (no composing buffer), so the
             // contact-email strip has to be refreshed off the committed text.
@@ -15432,6 +15433,22 @@ open class WMKeyboardService : InputMethodService() {
             }
             listMarker?.let { ic.commitText(it, 1) }
             maybeAutoCapitalize()
+        }
+        if (action == null) showSentenceOpeners()
+    }
+
+    /**
+     * The strip after a sentence end or a line break, published as openers so
+     * it rests behind the toolbar (#889, #911). The word committed in front of
+     * the mark had already refilled the strip with words to follow *it*, and
+     * nothing refreshed it after the mark: whether the toolbar came up was
+     * left to whichever selection echo happened to rebuild the strip.
+     */
+    private fun showSentenceOpeners() {
+        if (composing.isNotEmpty() || previousWord != WordContext.SENTENCE_START) return
+        val (words, emojis) = nextWordStrip()
+        _uiState.update {
+            it.copy(suggestions = words, emojiSuggestions = emojis, sentenceOpeners = words, autocorrectWord = null)
         }
     }
 

@@ -3624,7 +3624,7 @@ private fun TopBar(
     // Not in an email field, where the strip only ever holds addresses: the
     // remembered ones are offered at the start of the field on purpose (#475).
     val atSentenceStart = state.caretAtFieldStart ||
-        (state.suggestions.isNotEmpty() && state.suggestions === state.sentenceOpeners)
+        (state.suggestions.isNotEmpty() && state.suggestions == state.sentenceOpeners)
     val openersAtRest = !suggestionsFirst && atSentenceStart &&
         state.fieldKind != FieldKind.EMAIL &&
         state.composingPreview.isEmpty() &&
