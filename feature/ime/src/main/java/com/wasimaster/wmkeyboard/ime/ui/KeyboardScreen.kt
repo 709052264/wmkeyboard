@@ -719,6 +719,9 @@ internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAct
  */
 internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboard.ime.send.SendAction) -> Unit> { {} }
 
+/** The AI continuation chip's tap and hold (#944), reached the way [LocalSendAction] is. */
+internal val LocalAiSuggest = staticCompositionLocalOf { AiSuggestCallbacks() }
+
 /**
  * Whether an alternates popup has a finger steering it right now.
  *
@@ -1772,6 +1775,7 @@ fun KeyboardScreen(
         LocalPanelOrigins provides remember { PanelOrigins() },
         LocalSelectionHold provides toolHold.onSelectionHold,
         LocalSendAction provides toolHold.send.onAction,
+        LocalAiSuggest provides toolHold.aiSuggest,
         LocalCanDelete provides canDelete,
         LocalCanDeleteField provides canDeleteField,
         LocalCanForwardDelete provides canForwardDelete,
@@ -4265,6 +4269,19 @@ private fun TopBar(
                     )
                 ) {
                     return@StripSlot
+                }
+                // The AI continuation sits in front of the words, never in
+                // place of them: it cost a request and may be wrong.
+                val aiSuggest = state.aiSuggest
+                if (aiSuggest != null && state.smart == null) {
+                    val actions = LocalAiSuggest.current
+                    AiSuggestionChip(
+                        text = aiSuggest,
+                        reduceMotion = state.settings.reduceMotion,
+                        onAccept = actions.onTap,
+                        onSuppress = actions.onHold,
+                        modifier = Modifier.padding(start = 4.dp),
+                    )
                 }
                 StripWords(
                     state = state,
@@ -29988,6 +30005,8 @@ data class ToolHoldCallbacks(
     /** The gallery tool (#708); its state is the controller's, like [clock]. */
     /** The Send files tool (#729); its state is the controller's, like [gallery]. */
     val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),
+    /** The strip's AI continuation chip (#944); here for the same reason as [dictionaryBar]. */
+    val aiSuggest: AiSuggestCallbacks = AiSuggestCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),
