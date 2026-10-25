@@ -9251,6 +9251,14 @@ data class SuggestionStripSettings(
      */
     val snippetsInSecureFields: Boolean = false,
     /**
+     * The character that stops a snippet set to expand immediately from
+     * firing, typed straight in front of its trigger: `\btw` leaves "btw" and
+     * takes the backslash away. Empty turns the escape off. One character; a
+     * longer value is cut to its first. Beside [snippetMultiExpand] for the
+     * same field-ceiling reason.
+     */
+    val snippetEscape: String = "\\",
+    /**
      * Show the system's smart replies ("On my way!") beside the word
      * candidates. They arrive down the same inline-suggestions API as
      * password-manager chips but from Android System Intelligence rather than
@@ -10338,6 +10346,7 @@ class SettingsRepository(private val context: Context) {
         private val SNIPPET_MULTI_EXPAND = stringPreferencesKey("snippet_multi_expand")
         private val SNIPPET_GRID_COLUMNS = intPreferencesKey("snippet_grid_columns")
         private val SNIPPETS_IN_SECURE_FIELDS = booleanPreferencesKey("snippets_in_secure_fields")
+        private val SNIPPET_ESCAPE = stringPreferencesKey("snippet_escape")
         private val SYSTEM_SMART_REPLIES = booleanPreferencesKey("system_smart_replies")
         private val SMART_HIT_DETECTION = booleanPreferencesKey("smart_hit_detection")
         private val AUTOPILOT_STRENGTH = intPreferencesKey("autopilot_strength")
@@ -12650,6 +12659,8 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.snippetGridColumns,
             snippetsInSecureFields = p[SNIPPETS_IN_SECURE_FIELDS]
                 ?: defaults.suggestionStrip.snippetsInSecureFields,
+            snippetEscape = p[SNIPPET_ESCAPE]?.take(1)
+                ?: defaults.suggestionStrip.snippetEscape,
             systemSmartReplies = p[SYSTEM_SMART_REPLIES]
                 ?: defaults.suggestionStrip.systemSmartReplies,
             registerPriors = p[REGISTER_PRIORS]
@@ -18385,6 +18396,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSnippetsInSecureFields(value: Boolean) =
         editPrefs { it[SNIPPETS_IN_SECURE_FIELDS] = value }
+
+    suspend fun setSnippetEscape(value: String) =
+        editPrefs { it[SNIPPET_ESCAPE] = value.take(1) }
 
     suspend fun setSystemSmartReplies(value: Boolean) =
         editPrefs { it[SYSTEM_SMART_REPLIES] = value }

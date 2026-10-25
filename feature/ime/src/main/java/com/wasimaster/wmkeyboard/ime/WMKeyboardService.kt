@@ -12231,6 +12231,12 @@ open class WMKeyboardService : InputMethodService() {
             // A tapped word ends at the all-thumbs-up pause too (#676).
             allUpArmed = true
             updateComposingText(ic)
+            // A trigger set to expand immediately fires on this letter, with
+            // nothing after it (`btw`, `;;addr`).
+            if (tryImmediateExpansion(ic, text, state)) {
+                consumeShift()
+                return
+            }
             // A reopened word that this letter leads nowhere is two words
             // after all, and splits back where its space was.
             if (reopenedHolds(complete = false)) refreshSuggestions() else splitReopenedWord(ic)
@@ -12337,6 +12343,13 @@ open class WMKeyboardService : InputMethodService() {
             // mark is in the field, before the bracket and the spacing rules
             // put anything after it.
             if (trySuffixExpansion(ic, text, state)) {
+                consumeShift()
+                return
+            }
+            // ...and one set to expand immediately, for the characters that
+            // land here rather than in a buffer: every letter in a field that
+            // composes nothing, a word-initial digit, a bare symbol trigger.
+            if (tryImmediateExpansion(ic, text, state)) {
                 consumeShift()
                 return
             }
@@ -17879,6 +17892,113 @@ open class WMKeyboardService : InputMethodService() {
             caretParked = expanded.cursorOffset < expanded.text.length,
         )
         return true
+    }
+
+    /**
+     * Expands a trigger set to fire on its own last keystroke
+     * ([Snippet.immediate]) the moment [typed] finishes it: `btw`, `:sig` or
+     * `;;addr`, with no space, punctuation or Enter after it. Returns true when
+     * it changed the field.
+     *
+     * Called after the keystroke has landed, from both places a typed
+     * character can land: the composing buffer and the plain commit. The
+     * trigger is matched against the field rather than the buffer, because a
+     * lead-in (`:`, `gr `) was committed before the word that ends it began,
+     * and a field that composes nothing has no buffer at all. The read only
+     * happens once the index has said, from [typed] and the buffer alone, that
+     * this keystroke could finish one.
+     *
+     * Two ways to keep a trigger as typed. The escape character
+     * ([SuggestionStripSettings.snippetEscape], a backslash by default) typed
+     * in front of it stops it firing and is itself taken away, so `\btw` leaves
+     * "btw". And one backspace straight after an expansion puts the trigger
+     * back, through the same [RevertibleCommit] every expansion uses. Either
+     * way the trigger then stands, since an immediate trigger is never looked
+     * up again when the word ends.
+     *
+     * Same refusals as the other trigger paths: none while a composer is
+     * spelling something else (transliteration, conversion, a phonetic or an
+     * ambiguous board), and none in a password field unless the user allowed
+     * snippets there.
+     */
+    private fun tryImmediateExpansion(ic: InputConnection, typed: String, state: KeyboardUiState): Boolean {
+        if (typed.isEmpty() || !snippetStore.hasImmediateTriggers()) return false
+        if (secureFieldRefusesSnippets(state) || state.nullField) return false
+        if (state.composer.isTransliterating || state.composer.isConversion ||
+            state.composer.phoneticLanguage != null || state.layouts.ambiguousKeys
+        ) {
+            return false
+        }
+        if (!snippetStore.couldFinishImmediate(typed.last(), composing)) return false
+        // One character past the longest trigger: what stands in front of it
+        // decides both the word boundary and the escape.
+        val want = minOf(snippetStore.immediateReach(), IMMEDIATE_TRIGGER_LOOKBACK) + 1
+        val read = ic.getTextBeforeCursor(want, 0)?.toString() ?: return false
+        // A buffer the field does not show yet would be deleted from the wrong
+        // place, so the field has to agree with it before anything is matched.
+        if (composing.isNotEmpty() && !read.endsWith(composing)) return false
+        val hit = snippetStore.matchImmediate(read) ?: return false
+        val consumed = read.takeLast(hit.typed.length)
+        val escape = state.settings.suggestionStrip.snippetEscape.firstOrNull()
+        val ahead = read.getOrNull(read.length - consumed.length - 1)
+        // A buffer reaching back past the trigger would reach past the escape
+        // too, and that is a word the escape is inside, not one it stands before.
+        if (escape != null && ahead == escape && composing.length <= consumed.length) {
+            dropImmediateEscape(ic, consumed)
+            return true
+        }
+        val expanded = SnippetStore.expandWithCursor(
+            hit.snippet.text,
+            context = snippetContext(ic),
+            casing = SnippetStore.casingFor(hit.snippet, consumed),
+        )
+        if (!snippetFitsField(expanded.text, state.fieldKind)) return false
+        stopVoiceForManualInput()
+        lastRevertible = null
+        ic.beginBatchEdit()
+        // Same reason as [tryPatternExpansion]: a live composing region and
+        // deleteSurroundingText disagree about which characters they mean.
+        ic.finishComposingText()
+        revision = null
+        composing = StringBuilder()
+        ic.deleteSurroundingText(consumed.length, 0)
+        commitSplitAtCaret(ic, expanded.text, expanded.cursorOffset)
+        ic.endBatchEdit()
+        afterSnippetExpansion(
+            inserted = expanded.text,
+            original = consumed,
+            // No terminator was typed, so there is none to swallow: the next
+            // space is one the user means.
+            caretParked = false,
+        )
+        publishSwapSet(
+            snippet = hit.snippet,
+            typed = consumed,
+            inserted = expanded.text,
+            insertedCaret = expanded.cursorOffset,
+            original = consumed,
+        )
+        return true
+    }
+
+    /**
+     * Takes the escape character in front of [consumed] out of the field and
+     * leaves the trigger exactly as typed. A word still composing stays
+     * composing, so the strip and the next letter carry on as if the escape
+     * had never been there.
+     */
+    private fun dropImmediateEscape(ic: InputConnection, consumed: String) {
+        val buffered = composing.toString()
+        ic.beginBatchEdit()
+        ic.finishComposingText()
+        revision = null
+        ic.deleteSurroundingText(consumed.length + 1, 0)
+        ic.commitText(consumed.dropLast(buffered.length), 1)
+        if (buffered.isNotEmpty()) ic.setComposingText(buffered, 1)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        invalidateRecentWords()
+        if (buffered.isNotEmpty()) refreshSuggestions()
     }
 
     /**
@@ -28087,6 +28207,8 @@ open class WMKeyboardService : InputMethodService() {
     /** The snippet a glided [word] fires, or null. A snippet that asks first never fires on a glide. */
     private fun glidedSnippet(word: String): Snippet? =
         snippetStore.matchTrigger(word)?.takeIf { !snippetStore.offers(it) }
+            // A glide's lift is the keystroke an immediate trigger waits for.
+            ?: snippetStore.matchImmediateWord(word)
 
     /** The shortcut phrase a glided [word] expands to, or null. */
     private fun glidedShortcut(state: KeyboardUiState, word: String): String? = shortcutExpansion(state, word)
@@ -51750,6 +51872,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** How far back [tryUncomposedTrigger] reads for a trigger: more than any word. */
         private const val UNCOMPOSED_TRIGGER_LOOKBACK = 64
+
+        /** Longest immediate trigger [tryImmediateExpansion] reads back for. */
+        private const val IMMEDIATE_TRIGGER_LOOKBACK = 128
 
         /**
          * Marks that get a space typed after them when

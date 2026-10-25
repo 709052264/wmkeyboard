@@ -477,6 +477,20 @@ internal fun SnippetSettings(
                 default = SettingsDefaults.suggestionStrip.snippetsInSecureFields,
             ) { scope.launch { repository.setSnippetsInSecureFields(it) } }
         }
+        item {
+            ChoiceSetting(
+                title = R.string.expander_escape_title,
+                subtitle = stringResource(R.string.expander_escape_subtitle),
+                info = stringResource(R.string.expander_escape_info),
+                options = listOf(
+                    "\\" to stringResource(R.string.expander_escape_backslash_label),
+                    "`" to stringResource(R.string.expander_escape_backtick_label),
+                    "" to stringResource(R.string.expander_escape_off_label),
+                ),
+                selected = settings.watch { it.suggestionStrip.snippetEscape },
+                default = SettingsDefaults.suggestionStrip.snippetEscape,
+            ) { scope.launch { repository.setSnippetEscape(it) } }
+        }
     }
     Spacer(Modifier.height(12.dp))
     RegisterAddFab(stringResource(R.string.expander_add_action)) { onNavigate("expander/edit/0") }
@@ -1584,6 +1598,8 @@ private fun SnippetEditorForm(
         )
     }
     var confirm by remember { mutableStateOf(initial?.confirm == true) }
+    var immediate by remember { mutableStateOf(initial?.immediate == true) }
+    var insideWords by remember { mutableStateOf(initial?.insideWords == true) }
     var propagateCase by remember { mutableStateOf(initial?.propagateCase == true) }
     var uppercaseStyle by remember {
         mutableStateOf(initial?.uppercaseStyle ?: UppercaseStyle.CAPITALIZE)
@@ -1619,6 +1635,10 @@ private fun SnippetEditorForm(
         triggerPattern = if (word) null else pattern.text.trim().ifBlank { null },
         triggerWords = if (word) 0 else words,
         confirm = confirm,
+        // Only a word trigger that rewrites on its own can fire early: a
+        // pattern is matched over whole words, and asking has nothing to fire.
+        immediate = word && !confirm && immediate,
+        insideWords = word && !confirm && immediate && insideWords,
         folderId = folderId,
         // A link to something deleted while this screen was open is not a link.
         children = children.filter { id -> all.any { it.id == id } },
@@ -1800,6 +1820,20 @@ private fun SnippetEditorForm(
                     stringResource(R.string.rows_snippet_confirm_body),
                     checked = confirm,
                 ) { confirm = it }
+            }
+            item(visible = word && !confirm) {
+                ToggleSetting(
+                    R.string.rows_snippet_immediate_label,
+                    stringResource(R.string.rows_snippet_immediate_body),
+                    checked = immediate,
+                ) { immediate = it }
+            }
+            item(visible = word && !confirm && immediate) {
+                ToggleSetting(
+                    R.string.rows_snippet_inside_words_label,
+                    stringResource(R.string.rows_snippet_inside_words_body),
+                    checked = insideWords,
+                ) { insideWords = it }
             }
             // Nothing to choose between until there is more than one thing to
             // insert, so the row appears when the snippet earns it.

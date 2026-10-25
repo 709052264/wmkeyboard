@@ -930,6 +930,7 @@ internal object SettingsRowIcons {
         put(R.string.expander_multi_expand_title) { Icons.Outlined.AltRoute }
         put(R.string.expander_grid_columns_title) { Icons.Outlined.GridView }
         put(R.string.expander_secure_fields_title) { Icons.Outlined.Key }
+        put(R.string.expander_escape_title) { Icons.Outlined.Block }
         put(R.string.rows_snippet_multi_expand_label) { Icons.Outlined.AltRoute }
 
         // ---- Typing ----
@@ -1828,6 +1829,8 @@ internal object SettingsRowIcons {
         put(R.string.modes_field_hints_title) { Icons.Outlined.Search }
         put(R.string.rows_snippet_propagate_case_label) { Icons.Outlined.KeyboardCapslock }
         put(R.string.rows_snippet_confirm_label) { Icons.Outlined.HelpOutline }
+        put(R.string.rows_snippet_immediate_label) { Icons.Outlined.Bolt }
+        put(R.string.rows_snippet_inside_words_label) { Icons.Outlined.TextFields }
         put(R.string.expander_folder_enabled_title) { Icons.Outlined.PowerSettingsNew }
 
         // ---- Tools, plugins, backup, photos, privacy ----
