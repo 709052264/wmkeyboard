@@ -64,6 +64,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HighlightAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.HomeIotDevice
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ImageSearch
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowDown
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardArrowUp
@@ -176,6 +177,7 @@ object IconDefaults {
         ToolbarTool.TRANSLATE -> Icons.Outlined.Translate
         ToolbarTool.GIF -> SymbolIcons.GifBox
         ToolbarTool.STICKER -> SymbolIcons.Sticker
+        ToolbarTool.EMOJI_MIX -> Icons.Outlined.Interests
         ToolbarTool.WEB_SEARCH -> Icons.Outlined.TravelExplore
         ToolbarTool.IMAGE_SEARCH -> Icons.Outlined.ImageSearch
         ToolbarTool.OCR -> SymbolIcons.ConvertToText

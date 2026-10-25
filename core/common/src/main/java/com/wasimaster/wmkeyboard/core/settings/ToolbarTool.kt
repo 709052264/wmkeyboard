@@ -166,6 +166,10 @@ enum class ToolbarTool {
     // list through DAVx5's task app when the user sets that up. Reads
     // filesDir, so not available before the first unlock.
     TODO,
+    // Two emoji drawn as one sticker, from a source the user added under
+    // Emoji › Emoji mixes: the panel beside emoji, GIFs and stickers on the
+    // switch. Nothing ships for it, so it is blocked until a source is added.
+    EMOJI_MIX,
 }
 
 /** The cursor tools, in the order they read on the toolbar. */
@@ -392,6 +396,7 @@ private val RestOfToolOrder: List<ToolbarTool> = listOf(
     ToolbarTool.CUSTOM_LAYOUT, ToolbarTool.LANGUAGE,
     ToolbarTool.FLOATING, ToolbarTool.PERSISTENT, ToolbarTool.RESIZE, ToolbarTool.INCOGNITO,
     ToolbarTool.SELECTION_ACTIONS, ToolbarTool.PHONETIC_ENGLISH, ToolbarTool.SOUND_HAPTICS,
+    ToolbarTool.EMOJI_MIX,
     ToolbarTool.QR_SCAN, ToolbarTool.QR_GEN, ToolbarTool.TEXT_REPEAT, ToolbarTool.READ_BACK, ToolbarTool.DOC_SCAN, ToolbarTool.CAMERA,
     ToolbarTool.FLASHLIGHT, ToolbarTool.COMPASS, ToolbarTool.LEVEL, ToolbarTool.MOON_PHASE,
     // The one-tap cursor moves last: useful, but they would otherwise push

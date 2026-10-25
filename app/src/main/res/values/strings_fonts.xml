@@ -127,6 +127,7 @@
     <!-- KLIPY and GIPHY are the names of the services that supply the GIFs. -->
     <string name="fonts_tool_gif_desc">Search for GIFs (KLIPY, GIPHY) and send them from the keyboard</string>
     <string name="fonts_tool_sticker_desc">Search for stickers. They are transparent and ready for a chat</string>
+    <string name="fonts_tool_emoji_mix_desc">Put two emoji together as one sticker, from a source you add</string>
     <!-- Brave is the name of the search service. -->
     <string name="fonts_tool_web_search_desc">Search the web and images, and insert a link or a picture</string>
     <string name="fonts_tool_image_search_desc">Opens web search on its Images tab</string>

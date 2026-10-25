@@ -95,6 +95,7 @@ internal fun toolTitle(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> ImeR.string.ime_tool_recent_copies
     ToolbarTool.LEAVE_FIELD -> ImeR.string.ime_tool_leave_field
     ToolbarTool.QUICK_NOTE -> ImeR.string.ime_tool_quick_note
+    ToolbarTool.EMOJI_MIX -> ImeR.string.ime_tool_emoji_mix
     ToolbarTool.READ_BACK -> ImeR.string.ime_tool_read_back
     ToolbarTool.SNIPPETS -> ImeR.string.ime_tool_snippets
     ToolbarTool.TEXT_EDIT -> ImeR.string.ime_tool_text_edit
@@ -192,6 +193,7 @@ internal fun toolDescription(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.RECENT_COPIES -> R.string.fonts_tool_recent_copies_desc
     ToolbarTool.LEAVE_FIELD -> R.string.fonts_tool_leave_field_desc
     ToolbarTool.QUICK_NOTE -> R.string.fonts_tool_quick_note_desc
+    ToolbarTool.EMOJI_MIX -> R.string.fonts_tool_emoji_mix_desc
     ToolbarTool.READ_BACK -> R.string.fonts_tool_read_back_desc
     ToolbarTool.SNIPPETS -> R.string.fonts_tool_snippets_desc
     ToolbarTool.TEXT_EDIT -> R.string.fonts_tool_text_edit_desc
@@ -533,6 +535,7 @@ internal fun ToolRow(
             ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
             ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
             ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
+            ToolBlocker.NEEDS_MIX_SOURCE -> stringResource(R.string.tools_needs_mix_source_subtitle)
         },
         leading = {
             SlotIcon(

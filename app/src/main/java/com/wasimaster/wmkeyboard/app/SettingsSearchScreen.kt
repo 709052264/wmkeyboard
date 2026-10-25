@@ -168,6 +168,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Vibration
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewDay
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FormatSize
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.wasimaster.wmkeyboard.core.ui.RailBucket
@@ -610,6 +611,7 @@ internal object SettingsRouteIcons {
         "modes" to { Icons.Outlined.Tune },
         "emoji" to { Icons.Outlined.EmojiEmotions },
         "emoji/panel" to { Icons.Outlined.GridView },
+        "emoji/mixes" to { Icons.Outlined.Interests },
         "kaomoji" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/faces" to { Icons.Outlined.SentimentSatisfied },
         "kaomoji/tags" to { Icons.Outlined.Label },

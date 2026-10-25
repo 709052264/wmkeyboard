@@ -4790,6 +4790,17 @@ open class WMKeyboardService : InputMethodService() {
                     kaomojiTool.reload()
                 }
                 kaomojiVersion = settings.emoji.kaomoji.version
+                // Emoji mixes: a source added, switched or rebuilt in the
+                // settings app. Nothing is loaded until one has been added.
+                if (settings.emoji.mix.sources.isNotEmpty() || emojiMixToolDelegate.isInitialized()) {
+                    val mix = settings.emoji.mix
+                    withContext(Dispatchers.IO) { emojiMixTool.reload(mix) }
+                    if (mix.favourites != emojiMixFavourites) {
+                        emojiMixFavourites = mix.favourites
+                        emojiMixTool.refreshFavourites(mix)
+                    }
+                    maybeRefreshEmojiMixIndexes(mix)
+                }
                 // The strip's faces need the library before the tab is ever opened.
                 if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
                 noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
@@ -22292,7 +22303,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun refreshStickerOffer() {
         val state = _uiState.value
         val ic = currentInputConnection
-        if (ic == null || !stickerOffersAllowed(state) || stickerPackStore.isEmpty()) {
+        val stickersOn = stickerOffersAllowed(state) && !stickerPackStore.isEmpty()
+        if (ic == null || (!stickersOn && !mixOffersAllowed(state))) {
             clearStickerOffer()
             return
         }
@@ -22300,7 +22312,9 @@ open class WMKeyboardService : InputMethodService() {
         stickerOfferJob = serviceScope.launch {
             delay(SMART_SUGGEST_DEBOUNCE_MS)
             val still = _uiState.value
-            if (!stickerOffersAllowed(still)) {
+            val stickersNow = stickerOffersAllowed(still) && !stickerPackStore.isEmpty()
+            val mixesNow = mixOffersAllowed(still)
+            if (!stickersNow && !mixesNow) {
                 if (still.stickerOffer != null) _uiState.update { it.copy(stickerOffer = null) }
                 return@launch
             }
@@ -22309,7 +22323,7 @@ open class WMKeyboardService : InputMethodService() {
                 val text = ic.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString().orEmpty()
                 // In the emoji panel the text before the cursor was typed
                 // before the panel opened; only the emoji picked in it counts.
-                text to stickerTriggerIndex().match(text, emojiOnly = inEmojiPanel)
+                text to if (stickersNow) stickerTriggerIndex().match(text, emojiOnly = inEmojiPanel) else null
             }
             val offer = when {
                 before == stickerMutedAfter -> null
@@ -22333,8 +22347,135 @@ open class WMKeyboardService : InputMethodService() {
                     }
                 }
             }
-            if (match == null) stickerMutedAfter = null
-            if (offer != _uiState.value.stickerOffer) _uiState.update { it.copy(stickerOffer = offer) }
+            // The user's own stickers first; with none for this text, the
+            // mixes of the emoji it ends in.
+            val mixOffer = if (offer == null && mixesNow && before != stickerMutedAfter) {
+                withContext(Dispatchers.Default) { emojiMixTool.offerFor(before, inEmojiPanel) }?.let { mix ->
+                    val previous = _uiState.value.stickerOffer
+                    mix.copy(expanded = previous?.expanded == true && previous.mix && previous.trigger == mix.trigger)
+                }
+            } else {
+                null
+            }
+            if (match == null && mixOffer == null) stickerMutedAfter = null
+            val shown = offer ?: mixOffer
+            if (shown != _uiState.value.stickerOffer) _uiState.update { it.copy(stickerOffer = shown) }
+        }
+    }
+
+    /**
+     * Whether emoji mixes may be offered here: a source on, a field that takes
+     * pictures, and the place the offer would show switched on (the strip for
+     * typed emoji, the row over the emoji panel for picked ones).
+     */
+    private fun mixOffersAllowed(state: KeyboardUiState): Boolean {
+        val mix = state.settings.emoji.mix
+        if (!mix.active || !state.acceptsRichMedia || state.secureField) return false
+        if (!emojiMixToolDelegate.isInitialized() || !emojiMixTool.usable) return false
+        return when (state.panel) {
+            PanelMode.NONE -> mix.typingSuggest
+            PanelMode.EMOJI -> mix.panelStrip
+            else -> false
+        }
+    }
+
+    /**
+     * A mix offered for emoji in the text, or for one picked in the emoji
+     * panel, was tapped. It is fetched first; only once it is in hand are the
+     * emoji taken back out, when the setting says so, so a failed fetch costs
+     * the text nothing. The emoji are matched again against the text as it is
+     * then, as a sticker's trigger is.
+     */
+    private fun onEmojiMixOfferPick(offer: com.wasimaster.wmkeyboard.ime.StickerOffer, item: GifItem) {
+        val state = _uiState.value
+        if (!state.acceptsRichMedia) {
+            vibrate()
+            return
+        }
+        stopVoiceForManualInput()
+        val trigger = offer.trigger
+        emojiMixBeforeSend = if (state.settings.emoji.mix.replaceTypedEmoji) {
+            {
+                val ic = currentInputConnection
+                val before = ic?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString().orEmpty()
+                if (ic != null && trigger.isNotEmpty() && before.endsWith(trigger)) {
+                    ic.beginBatchEdit()
+                    commitComposing(ic, autocorrect = false)
+                    ic.deleteSurroundingText(trigger.length, 0)
+                    ic.endBatchEdit()
+                    revision = null
+                    composing = StringBuilder()
+                    lastGestureWord = null
+                    _uiState.update {
+                        it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+                    }
+                }
+            }
+        } else {
+            null
+        }
+        stickerMutedAfter = currentInputConnection?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
+        clearStickerOffer()
+        emojiMixTool.sendOffered(item)
+    }
+
+    /** The emoji-mix row's button: the Mixes panel, on the emoji the row was for. */
+    private fun onEmojiMixOpenFrom(offer: com.wasimaster.wmkeyboard.ime.StickerOffer) {
+        emojiMixOpenWith = com.wasimaster.wmkeyboard.core.emoji.mix.MixSeq.trailingEmoji(offer.trigger, 1).firstOrNull()
+        clearStickerOffer()
+        onPanelChange(PanelMode.EMOJI_MIX)
+    }
+
+    /**
+     * The monthly rebuild of each downloaded index, when the setting asks for
+     * it: once per keyboard process, only on a connection that is not metered,
+     * and only for an index more than a month old.
+     */
+    private fun maybeRefreshEmojiMixIndexes(mix: com.wasimaster.wmkeyboard.core.settings.EmojiMixSettings) {
+        if (!mix.autoRefresh || emojiMixAutoRefreshed) return
+        val network = networkWatcher.state.value
+        if (!network.online || network.metered) return
+        val now = System.currentTimeMillis()
+        val stale = mix.sources.filter { source ->
+            source.enabled && source.kind == com.wasimaster.wmkeyboard.core.settings.EmojiMixSourceKind.INDEX &&
+                source.address.startsWith("http", ignoreCase = true) && now - source.refreshedAt > EMOJI_MIX_REFRESH_MS
+        }
+        emojiMixAutoRefreshed = true
+        if (stale.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            for (source in stale) {
+                val outcome = emojiMixTool.store.refresh(source)
+                if (outcome is com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixStore.Outcome.Done) {
+                    settingsRepository.updateEmojiMixSource(source.id) {
+                        it.copy(pairCount = outcome.pairs, refreshedAt = System.currentTimeMillis(), error = "")
+                    }
+                }
+            }
+            settingsRepository.bumpEmojiMixIndexVersion()
+        }
+    }
+
+    /** Puts a fetched mix into the user's own stickers, in a pack of mixes, tagged with its two emoji. */
+    private fun addEmojiMixToStickers(file: File, keywords: List<String>) {
+        serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val name = getString(R.string.ime_emoji_mix_pack_name)
+                val target = stickerPackStore.packs().firstOrNull { it.name == name }?.id
+                    ?: stickerPackStore.createPack(name)?.id
+                    ?: return@withContext null
+                when (val processed = StickerImage.process(file.readBytes())) {
+                    is StickerImage.Result.Ok -> stickerPackStore.addSticker(target, processed.sticker, keywords = keywords)
+                    StickerImage.Result.TooLarge, StickerImage.Result.NotAnImage -> StickerAddResult.WriteFailed
+                }
+            }
+            _uiState.update { it.copy(stickerPacks = stickerPackStore.packs()) }
+            val message = when (result) {
+                is StickerAddResult.Added -> getString(R.string.ime_service_sticker_saved_toast)
+                StickerAddResult.PackFull -> getString(R.string.ime_service_sticker_pack_full_toast)
+                StickerAddResult.PackMissing -> getString(R.string.ime_service_sticker_pack_missing_toast)
+                else -> getString(R.string.ime_service_sticker_save_error_toast)
+            }
+            Toast.makeText(this@WMKeyboardService, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -22351,6 +22492,10 @@ open class WMKeyboardService : InputMethodService() {
     fun onStickerOfferPick(pick: com.wasimaster.wmkeyboard.ime.StickerOfferItem) {
         val state = _uiState.value
         val offer = state.stickerOffer ?: return
+        if (offer.mix) {
+            onEmojiMixOfferPick(offer, pick.item)
+            return
+        }
         if (!state.acceptsRichMedia) {
             vibrate()
             return
@@ -28146,6 +28291,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.TRANSLATE -> onPanelChange(PanelMode.TRANSLATE)
             ToolbarTool.GIF -> onPanelChange(PanelMode.GIF)
             ToolbarTool.STICKER -> onPanelChange(PanelMode.STICKER)
+            ToolbarTool.EMOJI_MIX -> onPanelChange(PanelMode.EMOJI_MIX)
             ToolbarTool.WEB_SEARCH -> openSearchTab(SearchTab.ALL)
             ToolbarTool.IMAGE_SEARCH -> openSearchTab(SearchTab.IMAGES)
             ToolbarTool.OCR -> onPanelChange(PanelMode.OCR)
@@ -28569,6 +28715,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.TEXT_REPEAT -> openTextRepeatPanel()
             PanelMode.NOTES -> openNotesPanel()
+            PanelMode.EMOJI_MIX -> {
+                emojiMixTool.onOpen(emojiMixOpenWith)
+                emojiMixOpenWith = null
+            }
             PanelMode.LEARN_FROM_TEXT -> {
                 // The half-typed word is part of the text being read.
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
@@ -40515,7 +40665,9 @@ open class WMKeyboardService : InputMethodService() {
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
                 onDismiss = ::onStickerOfferDismiss,
+                onOpenMixes = ::onEmojiMixOpenFrom,
             ),
+            emojiMix = emojiMixCallbacks(),
             selection = com.wasimaster.wmkeyboard.ime.ui.SelectionMacroCallbacks(
                 onMacro = ::onSelectionMacro,
                 onPick = ::onSelectionPick,
@@ -40672,6 +40824,63 @@ open class WMKeyboardService : InputMethodService() {
      * editor. Built with the first composition (its callbacks ride on
      * [toolHoldCallbacks]); the library file is read on first use.
      */
+    /** The emoji the Mixes panel opens on, when a row of mixes asked for it. */
+    private var emojiMixOpenWith: String? = null
+
+    /** What sending an offered mix does to the text first, once the mix is in hand. */
+    private var emojiMixBeforeSend: (() -> Unit)? = null
+
+    /** The favourites the panel last drew, so a star changed in settings redraws them. */
+    private var emojiMixFavourites: List<String>? = null
+
+    /** The monthly index rebuild has been considered in this process. */
+    private var emojiMixAutoRefreshed = false
+
+    private val emojiMixToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixController.Host {
+                override val state: KeyboardUiState get() = _uiState.value
+                override fun publish(change: (KeyboardUiState) -> KeyboardUiState) = _uiState.update(change)
+                override fun haptic() = vibrate()
+                override fun previewsAllowed() = dataSaverStatus.allows(MeteredFeature.MEDIA_SEARCH)
+                override fun send(file: File, mode: MediaSendMode) {
+                    emojiMixBeforeSend?.invoke()
+                    emojiMixBeforeSend = null
+                    commitImageFile(file, MediaMime.PNG, mode)
+                    refreshSuggestions()
+                }
+                override fun startFetch(id: String) = startMediaDownload(id)
+                override fun endFetch() = endMediaDownload()
+                override fun toast(message: Int) {
+                    Toast.makeText(this@WMKeyboardService, getString(message), Toast.LENGTH_SHORT).show()
+                }
+                override fun setFavourite(pairKey: String, starred: Boolean) {
+                    serviceScope.launch { settingsRepository.setEmojiMixFavourite(pairKey, starred) }
+                }
+                override fun addToStickers(file: File, keywords: List<String>) = addEmojiMixToStickers(file, keywords)
+                override fun saveToGallery(file: File) =
+                    saveToGalleryIfEnabled(file, MediaMime.PNG, enabled = true, namePrefix = "MIX", confirm = true)
+                override fun openPanel() {
+                    if (_uiState.value.panel != PanelMode.EMOJI_MIX) onPanelChange(PanelMode.EMOJI_MIX)
+                }
+            },
+        )
+    }
+    private val emojiMixTool by emojiMixToolDelegate
+
+    private fun emojiMixCallbacks() = com.wasimaster.wmkeyboard.ime.ui.EmojiMixCallbacks(
+        onPickEmoji = { emojiMixTool.onPickEmoji(it) },
+        onSlot = { emojiMixTool.onSlot(it) },
+        onSwap = { emojiMixTool.onSwap() },
+        onShuffle = { emojiMixTool.onShuffle() },
+        onSend = { emojiMixTool.onSendCell(it) },
+        onFavourite = { cell, on -> emojiMixTool.onFavourite(cell, on) },
+        onAddToStickers = { emojiMixTool.onAddToStickers(it) },
+        onSaveToGallery = { emojiMixTool.onSaveToGallery(it) },
+    )
+
     private val kaomojiToolDelegate = lazy {
         com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiController(
             scope = serviceScope,
@@ -50846,6 +51055,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */
         private const val SMART_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** How old a downloaded emoji-mix index gets before the monthly rebuild fetches it again. */
+        private const val EMOJI_MIX_REFRESH_MS = 30L * 24 * 60 * 60 * 1000
 
         /** Same job, same reasoning, in [refreshSnippetOffer]. */
         private const val SNIPPET_OFFER_DEBOUNCE_MS = 24L

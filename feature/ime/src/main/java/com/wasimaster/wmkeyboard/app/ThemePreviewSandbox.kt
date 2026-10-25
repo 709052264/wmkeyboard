@@ -292,6 +292,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF
     ToolbarTool.STICKER -> PanelMode.STICKER
+    ToolbarTool.EMOJI_MIX -> PanelMode.EMOJI_MIX
     ToolbarTool.WEB_SEARCH -> PanelMode.WEB_SEARCH
     ToolbarTool.IMAGE_SEARCH -> PanelMode.IMAGE_SEARCH
     ToolbarTool.OCR -> PanelMode.OCR

@@ -232,4 +232,21 @@ class EmojiMixIndexTest {
     fun mixIdIgnoresOrderAndSpelling() {
         assertEquals(EmojiMixer.mixId("😃", "☺️"), EmojiMixer.mixId("☺", "😃"))
     }
+
+    @Test
+    fun trailingEmojiReadsOnlyWhatEndsTheText() {
+        assertEquals(listOf("😃", "😁"), MixSeq.trailingEmoji("hi 😃😁", 2))
+        assertEquals(listOf("😁"), MixSeq.trailingEmoji("😃 x 😁", 2))
+        assertEquals(listOf("😁"), MixSeq.trailingEmoji("😃😁", 1))
+        assertEquals(emptyList<String>(), MixSeq.trailingEmoji("hello", 2))
+        assertEquals(emptyList<String>(), MixSeq.trailingEmoji("😃 ", 2))
+        // Joined, toned, keycap and flag sequences stay whole.
+        assertEquals(listOf("☕", "😮‍💨"), MixSeq.trailingEmoji("☕😮‍💨", 2))
+        assertEquals(listOf("👍🏽", "❤️"), MixSeq.trailingEmoji("ok👍🏽❤️", 2))
+        assertEquals(listOf("1️⃣"), MixSeq.trailingEmoji("a1️⃣", 2))
+        assertEquals(listOf("🇺🇸", "🐱"), MixSeq.trailingEmoji("🇺🇸🐱", 2))
+        assertEquals(listOf("👩‍❤️‍👨"), MixSeq.trailingEmoji("x👩‍❤️‍👨", 2))
+        // A digit is not an emoji without its keycap.
+        assertEquals(listOf("😃"), MixSeq.trailingEmoji("1😃", 2))
+    }
 }

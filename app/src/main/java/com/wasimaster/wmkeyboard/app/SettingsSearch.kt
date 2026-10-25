@@ -1228,6 +1228,26 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
     )
 }
 
+/** Rows on the emoji/mixes page, in screen order. */
+private fun SearchStrings.emojiMixRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.emojimix_row_title, "emoji/mixes", screenParent = R.string.home_emoji_title,
+    )
+    return listOf(
+        row(R.string.emojimix_add_title, R.string.emojimix_add_subtitle),
+        row(R.string.emojimix_panel_strip_title, R.string.emojimix_panel_strip_subtitle),
+        row(R.string.emojimix_typing_title, R.string.emojimix_typing_subtitle),
+        row(R.string.emojimix_style_title),
+        row(R.string.emojimix_replace_title, R.string.emojimix_replace_subtitle),
+        row(R.string.emojimix_panel_title, R.string.emojimix_panel_subtitle),
+        row(R.string.emojimix_order_title),
+        row(R.string.emojimix_send_title, R.string.emojimix_send_subtitle),
+        row(R.string.emojimix_cell_size_title),
+        row(R.string.emojimix_auto_refresh_title, R.string.emojimix_auto_refresh_subtitle),
+        row(R.string.emojimix_clear_cache_title),
+    )
+}
+
 /** Rows on the emoji/panel page, in screen order. */
 private fun SearchStrings.emojiPanelRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int = 0, weight: EntryWeight = EntryWeight.NORMAL) = entry(
@@ -2637,6 +2657,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.langemoji_emoji_panel_title, R.string.langemoji_emoji_panel_subtitle,
             R.string.home_emoji_title, "emoji/panel",
         ),
+        under(R.string.emojimix_row_title, R.string.emojimix_row_subtitle, R.string.home_emoji_title, "emoji/mixes"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.
         under(
@@ -3014,7 +3035,7 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
-        emojiPanelRows() + kaomojiRows() +
+        emojiPanelRows() + emojiMixRows() + kaomojiRows() +
         voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }

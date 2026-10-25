@@ -467,6 +467,8 @@ internal fun ToolDetailSettings(
                         stringResource(R.string.tooldetail_enabled_needs_layout_subtitle)
                     ToolBlocker.VOICE_OFF ->
                         stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
+                    ToolBlocker.NEEDS_MIX_SOURCE ->
+                        stringResource(R.string.tooldetail_enabled_needs_mix_source_subtitle)
                 },
                 usable && toolOn,
                 switchKey = landingKey("switch"),

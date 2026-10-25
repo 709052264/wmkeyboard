@@ -393,6 +393,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "modes" to Color(0xFFFFA726),
     "emoji" to Color(0xFFFFB300),
     "emoji/panel" to Color(0xFFFFB300),
+    "emoji/mixes" to Color(0xFFFFCA28),
     "voice" to Color(0xFF7E57C2),
     "clipboard" to Color(0xFF42A5F5),
     // The Snippets tool's own teal: the screen and the tool page it is opened

@@ -758,6 +758,9 @@ enum class PanelMode {
      */
     AI_REPLY,
 
+    /** Emoji mixes: two emoji put together, beside emoji, GIFs and stickers. See [EmojiMixUi]. */
+    EMOJI_MIX,
+
     /**
      * The Location tool (#350): the phone's position or a saved place, to
      * insert as a map link, an address, coordinates or a Plus code. Its state
@@ -828,6 +831,7 @@ val PanelMode.layoutKind: PanelKind?
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
         PanelMode.NUMPAD -> PanelKind.NUMPAD
         PanelMode.HANDWRITING -> PanelKind.HANDWRITING
+        PanelMode.EMOJI_MIX -> PanelKind.EMOJI_MIX
         else -> null
     }
 
@@ -920,6 +924,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
         FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.CATEGORIES, FocusRegion.RESULTS,
     )
     PanelMode.SYMBOLS -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS)
+    // The two emoji and their mix, every mix of the first, then the emoji to pick.
+    PanelMode.EMOJI_MIX -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS, FocusRegion.CHIPS)
     // Chips switch between the grids; the fonts grid adds a second chip row
     // for the script whose font it is showing. Listed whether or not that tab
     // is open, the same way the GIF panel lists a row only its default view
@@ -3038,6 +3044,11 @@ data class StickerOffer(
     val stickers: List<StickerOfferItem>,
     val expanded: Boolean = false,
     val inEmojiPanel: Boolean = false,
+    /**
+     * Emoji mixes rather than the user's stickers: the text ended in emoji, or
+     * one was picked in the panel. [trigger] is then the emoji themselves.
+     */
+    val mix: Boolean = false,
 )
 
 /**
@@ -3503,6 +3514,8 @@ data class KeyboardUiState(
     val aiSuggest: String? = null,
     /** Stickers of the user's own that the text before the cursor asks for (#329). */
     val stickerOffer: StickerOffer? = null,
+    /** The emoji mixes panel; see [EmojiMixUi]. */
+    val emojiMix: com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi = com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi(),
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
     /** The Text repeat panel's text, boxes and undo; see [TextRepeatUi]. */

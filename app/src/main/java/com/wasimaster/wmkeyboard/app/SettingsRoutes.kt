@@ -159,6 +159,7 @@ internal object SettingsRoutes {
         "double_pinyin_custom",
         "emoji",
         "emoji/panel",
+        "emoji/mixes",
         "kaomoji",
         "kaomoji/faces",
         "kaomoji/tags",

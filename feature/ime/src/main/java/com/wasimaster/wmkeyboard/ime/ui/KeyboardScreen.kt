@@ -4737,7 +4737,7 @@ private fun RowScope.StripOfferChips(
     if (stickerOfferNow != null && stickerStripShows(state)) {
         StickerStripOffer(
             offer = stickerOfferNow,
-            style = state.settings.gif.stickerSuggestStyle,
+            style = offerStyle(state, stickerOfferNow),
             callbacks = stickerOffer,
             modifier = Modifier.padding(start = 4.dp),
         )
@@ -8565,6 +8565,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.TRANSLATE -> R.string.ime_tool_translate
     ToolbarTool.GIF -> R.string.ime_tool_gif
     ToolbarTool.STICKER -> R.string.ime_tool_sticker
+    ToolbarTool.EMOJI_MIX -> R.string.ime_tool_emoji_mix
     ToolbarTool.WEB_SEARCH -> R.string.ime_tool_web_search
     ToolbarTool.IMAGE_SEARCH -> R.string.ime_tool_image_search
     ToolbarTool.OCR -> R.string.ime_tool_ocr
@@ -8677,6 +8678,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.TRANSLATE -> state.panel == PanelMode.TRANSLATE
     ToolbarTool.GIF -> state.panel == PanelMode.GIF
     ToolbarTool.STICKER -> state.panel == PanelMode.STICKER
+    ToolbarTool.EMOJI_MIX -> state.panel == PanelMode.EMOJI_MIX
     ToolbarTool.WEB_SEARCH -> state.panel == PanelMode.WEB_SEARCH
     ToolbarTool.IMAGE_SEARCH -> state.panel == PanelMode.WEB_SEARCH && state.searchTab == SearchTab.IMAGES
     ToolbarTool.OCR -> state.panel == PanelMode.OCR
@@ -12685,7 +12687,7 @@ private val FullBleedPanels = setOf(
  */
 private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings): Boolean = when (panel) {
     PanelMode.EMOJI -> settings.emojiFullBleed
-    PanelMode.GIF, PanelMode.STICKER -> settings.mediaFullBleed
+    PanelMode.GIF, PanelMode.STICKER, PanelMode.EMOJI_MIX -> settings.mediaFullBleed
     PanelMode.CLIPBOARD -> settings.clipboard.fullBleed
     else -> panel in FullBleedPanels
 }
@@ -14067,6 +14069,23 @@ private fun KeyboardBody(
                             inGrid = inGrid,
                         )
                     }
+                }
+                // Emoji mixes: laid out like the GIF and sticker panels, the
+                // switch and the keys around the mixes.
+                PanelMode.EMOJI_MIX -> MediaPanelHost(
+                    state,
+                    panelCallbacks,
+                    headerSearch = {
+                        Text(
+                            stringResource(R.string.ime_tool_emoji_mix),
+                            color = LocalKbTheme.current.toolbarIcon,
+                            fontSize = 15.sp,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                        )
+                    },
+                ) { _, _, switcher ->
+                    EmojiMixPanel(state, toolHold.emojiMix, switcher)
                 }
                 // Image search is this panel's Images tab (#879); the service
                 // never leaves IMAGE_SEARCH up, but it draws the same if it did.
@@ -29983,6 +30002,8 @@ data class ToolHoldCallbacks(
     val vocab: VocabCallbacks = VocabCallbacks(),
     /** The stickers offered while typing (#329); here for the same reason as [dictionaryBar]. */
     val stickerOffer: StickerOfferCallbacks = StickerOfferCallbacks(),
+    /** The emoji mixes panel; here for the same reason as [dictionaryBar]. */
+    val emojiMix: EmojiMixCallbacks = EmojiMixCallbacks(),
     /** The toolbox's search and folders (#687, #709); here for the same reason as [dictionaryBar]. */
     val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
     /**

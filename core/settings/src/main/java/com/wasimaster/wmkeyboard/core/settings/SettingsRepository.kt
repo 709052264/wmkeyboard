@@ -7434,6 +7434,8 @@ data class EmojiSettings(
     val panelExtraHeightDp: Int = 0,
     /** The kaomoji tab's own settings: its tag strip, edit rail and suggestions. */
     val kaomoji: KaomojiSettings = KaomojiSettings(),
+    /** Emoji mixes: their sources and where the keyboard offers them. */
+    val mix: EmojiMixSettings = EmojiMixSettings(),
 )
 
 /**
@@ -10690,6 +10692,18 @@ class SettingsRepository(private val context: Context) {
         private val KAOMOJI_SUGGEST = booleanPreferencesKey("kaomoji_suggest")
         private val KAOMOJI_IN_SEARCH = booleanPreferencesKey("kaomoji_in_search")
         private val KAOMOJI_VERSION = intPreferencesKey("kaomoji_version")
+        private val EMOJI_MIX_SOURCES = stringPreferencesKey("emoji_mix_sources")
+        private val EMOJI_MIX_PANEL_STRIP = booleanPreferencesKey("emoji_mix_panel_strip")
+        private val EMOJI_MIX_TYPING = booleanPreferencesKey("emoji_mix_typing")
+        private val EMOJI_MIX_STYLE = stringPreferencesKey("emoji_mix_style")
+        private val EMOJI_MIX_REPLACE = booleanPreferencesKey("emoji_mix_replace")
+        private val EMOJI_MIX_ORDER = stringPreferencesKey("emoji_mix_order")
+        private val EMOJI_MIX_SEND_MODE = stringPreferencesKey("emoji_mix_send_mode")
+        private val EMOJI_MIX_CELL_SIZE = intPreferencesKey("emoji_mix_cell_size")
+        private val EMOJI_MIX_AUTO_REFRESH = booleanPreferencesKey("emoji_mix_auto_refresh")
+        // Newline-joined: a pair is two keys and an underscore, never a newline.
+        private val EMOJI_MIX_FAVOURITES = stringPreferencesKey("emoji_mix_favourites")
+        private val EMOJI_MIX_INDEX_VERSION = intPreferencesKey("emoji_mix_index_version")
         /** `KaomojiStore.FILE_PATH`; spelled out, as this module does for the other stores. */
         private const val KAOMOJI_FILE = "kaomoji/kaomoji.json"
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
@@ -12940,6 +12954,25 @@ class SettingsRepository(private val context: Context) {
             panelExtraHeightDp = p[EMOJI_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(MediaPanelExtraHeightRange)
                 ?: defaults.emoji.panelExtraHeightDp,
             kaomoji = readKaomoji(p, defaults.emoji.kaomoji),
+            mix = readEmojiMix(p, defaults.emoji.mix),
+        )
+
+    private fun readEmojiMix(p: Preferences, defaults: EmojiMixSettings) =
+        EmojiMixSettings(
+            sources = p[EMOJI_MIX_SOURCES]?.let(::decodeEmojiMixSources) ?: defaults.sources,
+            panelStrip = p[EMOJI_MIX_PANEL_STRIP] ?: defaults.panelStrip,
+            typingSuggest = p[EMOJI_MIX_TYPING] ?: defaults.typingSuggest,
+            suggestStyle = p[EMOJI_MIX_STYLE]?.let { runCatching { StickerSuggestStyle.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestStyle,
+            replaceTypedEmoji = p[EMOJI_MIX_REPLACE] ?: defaults.replaceTypedEmoji,
+            order = p[EMOJI_MIX_ORDER]?.let { runCatching { EmojiMixOrder.valueOf(it) }.getOrNull() }
+                ?: defaults.order,
+            sendMode = p[EMOJI_MIX_SEND_MODE]?.let { runCatching { MediaSendMode.valueOf(it) }.getOrNull() }
+                ?: defaults.sendMode,
+            cellSize = p[EMOJI_MIX_CELL_SIZE]?.coerceIn(EmojiMixCellSizeRange) ?: defaults.cellSize,
+            autoRefresh = p[EMOJI_MIX_AUTO_REFRESH] ?: defaults.autoRefresh,
+            favourites = p[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: defaults.favourites,
+            indexVersion = p[EMOJI_MIX_INDEX_VERSION] ?: defaults.indexVersion,
         )
 
     private fun readKaomoji(p: Preferences, defaults: KaomojiSettings) =
@@ -15993,7 +16026,7 @@ class SettingsRepository(private val context: Context) {
             PanelKind.TEXT_EDIT -> prefs.remove(TEXT_EDIT_LAYOUT)
             PanelKind.CLIPBOARD -> prefs.remove(CLIPBOARD_BOTTOM_ROW)
             PanelKind.EMOJI, PanelKind.GIF, PanelKind.STICKER, PanelKind.TRACKPAD, PanelKind.NUMPAD,
-            PanelKind.HANDWRITING,
+            PanelKind.HANDWRITING, PanelKind.EMOJI_MIX,
             -> Unit
         }
     }
@@ -20537,6 +20570,66 @@ class SettingsRepository(private val context: Context) {
     /** See [KaomojiSettings.inSearch]. */
     suspend fun setKaomojiInSearch(value: Boolean) =
         editPrefs { it[KAOMOJI_IN_SEARCH] = value }
+
+    /** See [EmojiMixSettings.sources]; the whole list, in order. */
+    suspend fun setEmojiMixSources(value: List<EmojiMixSource>) =
+        editPrefs { it[EMOJI_MIX_SOURCES] = encodeEmojiMixSources(value) }
+
+    /**
+     * Changes the source [id] in place, reading the list as it is now: an
+     * index build that finishes while the user is editing the list must not
+     * write back the list it started from.
+     */
+    suspend fun updateEmojiMixSource(id: String, change: (EmojiMixSource) -> EmojiMixSource) =
+        editPrefs { prefs ->
+            val list = decodeEmojiMixSources(prefs[EMOJI_MIX_SOURCES])
+            if (list.none { it.id == id }) return@editPrefs
+            prefs[EMOJI_MIX_SOURCES] = encodeEmojiMixSources(list.map { if (it.id == id) change(it) else it })
+        }
+
+    /** See [EmojiMixSettings.panelStrip]. */
+    suspend fun setEmojiMixPanelStrip(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_PANEL_STRIP] = value }
+
+    /** See [EmojiMixSettings.typingSuggest]. */
+    suspend fun setEmojiMixTypingSuggest(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_TYPING] = value }
+
+    /** See [EmojiMixSettings.suggestStyle]. */
+    suspend fun setEmojiMixSuggestStyle(value: StickerSuggestStyle) =
+        editPrefs { it[EMOJI_MIX_STYLE] = value.name }
+
+    /** See [EmojiMixSettings.replaceTypedEmoji]. */
+    suspend fun setEmojiMixReplaceTyped(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_REPLACE] = value }
+
+    /** See [EmojiMixSettings.order]. */
+    suspend fun setEmojiMixOrder(value: EmojiMixOrder) =
+        editPrefs { it[EMOJI_MIX_ORDER] = value.name }
+
+    /** See [EmojiMixSettings.sendMode]. */
+    suspend fun setEmojiMixSendMode(value: MediaSendMode) =
+        editPrefs { it[EMOJI_MIX_SEND_MODE] = value.name }
+
+    /** See [EmojiMixSettings.cellSize]. */
+    suspend fun setEmojiMixCellSize(value: Int) =
+        editPrefs { it[EMOJI_MIX_CELL_SIZE] = value.coerceIn(EmojiMixCellSizeRange) }
+
+    /** See [EmojiMixSettings.autoRefresh]. */
+    suspend fun setEmojiMixAutoRefresh(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_AUTO_REFRESH] = value }
+
+    /** Stars [pair] (`leftKey_rightKey`), or takes the star off when [starred] is false. */
+    suspend fun setEmojiMixFavourite(pair: String, starred: Boolean) =
+        editPrefs { prefs ->
+            val now = prefs[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() }.orEmpty()
+            val next = (if (starred) listOf(pair) else emptyList()) + now.filter { it != pair }
+            prefs[EMOJI_MIX_FAVOURITES] = next.take(EmojiMixFavouritesMax).joinToString("\n")
+        }
+
+    /** Tells the running keyboard that an emoji-mix index file changed under it. */
+    suspend fun bumpEmojiMixIndexVersion() =
+        editPrefs { it[EMOJI_MIX_INDEX_VERSION] = (it[EMOJI_MIX_INDEX_VERSION] ?: 0) + 1 }
 
     /**
      * Tells the running keyboard that `kaomoji/kaomoji.json` was rewritten

@@ -24,6 +24,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.EMOJI -> Color(0xFFFFB300)
     ToolbarTool.GIF -> Color(0xFFFF7043)
     ToolbarTool.STICKER -> Color(0xFFFFA726)
+    ToolbarTool.EMOJI_MIX -> Color(0xFFFFCA28)
     ToolbarTool.CAMERA -> Color(0xFFF06292)
     ToolbarTool.THEMES -> Color(0xFFEC407A)
 

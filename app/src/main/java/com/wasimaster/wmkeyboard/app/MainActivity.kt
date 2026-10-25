@@ -2090,6 +2090,15 @@ private fun SettingsNavGraph(
                 )
             }
         }
+        composable("emoji/mixes") {
+            SettingsScreen(
+                stringResource(R.string.emojimix_row_title),
+                { navController.popBackStack() },
+                route = "emoji/mixes",
+            ) {
+                EmojiMixSettings(repository, settings)
+            }
+        }
         composable("kaomoji") {
             SettingsScreen(
                 stringResource(R.string.langemoji_kaomoji_title),

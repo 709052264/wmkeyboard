@@ -688,6 +688,7 @@
     <string name="panel_name_numpad">Numpad</string>
     <string name="panel_name_gif">GIF panel</string>
     <string name="panel_name_sticker">Sticker panel</string>
+    <string name="panel_name_emoji_mix">Emoji mixes panel</string>
     <string name="panel_name_handwriting">Handwriting panel</string>
     <string name="field_name_emoji_tabs">Emoji categories</string>
     <string name="field_name_emoji_search">Emoji search</string>
@@ -700,6 +701,7 @@
     <string name="field_name_trackpad">Trackpad</string>
     <string name="field_name_gif_browser">GIF search and results</string>
     <string name="field_name_sticker_browser">Sticker search and results</string>
+    <string name="field_name_emoji_mix_browser">Emoji mixes</string>
     <string name="field_name_handwriting_canvas">Writing area</string>
     <string name="field_name_unknown">Unknown component</string>
     <string name="layout_editor_action_group_panel">Panel</string>

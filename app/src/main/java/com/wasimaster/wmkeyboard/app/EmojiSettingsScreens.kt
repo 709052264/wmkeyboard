@@ -205,6 +205,17 @@ internal fun EmojiSettings(
                 onNavigate("emoji/panel")
             }
         }
+        // Mixes are emoji you send as a picture, so they sit with the panel
+        // they are picked from.
+        item {
+            NavRow(
+                R.string.emojimix_row_title,
+                stringResource(R.string.emojimix_row_subtitle),
+                route = "emoji/mixes",
+            ) {
+                onNavigate("emoji/mixes")
+            }
+        }
     }
     SettingsGroup(stringResource(R.string.langemoji_emoji_suggestions_title)) {
         item {
