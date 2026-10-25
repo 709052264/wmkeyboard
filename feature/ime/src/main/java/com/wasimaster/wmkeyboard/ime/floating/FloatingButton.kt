@@ -12,6 +12,7 @@ import android.util.DisplayMetrics
 import android.view.Display
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.ViewConfiguration
 import android.view.WindowManager
@@ -80,6 +81,9 @@ internal class FloatingButton(
 
         /** Put away until the keyboard next opens or closes: a drop on the target, or the Hide action. */
         fun floatingButtonDismissed()
+
+        /** The quick menu opened or closed, so Back can close it while the keyboard has the key (#938). */
+        fun floatingMenuChanged(open: Boolean) {}
     }
 
     private var setting = SummonButtonSettings()
@@ -100,7 +104,7 @@ internal class FloatingButton(
 
     private var button: TouchHost? = null
     private var buttonParams: WindowManager.LayoutParams? = null
-    private var menuView: ComposeView? = null
+    private var menuView: android.view.View? = null
     private var targetView: ComposeView? = null
 
     /** The drop target's centre on screen, once its window has been laid out. */
@@ -458,7 +462,7 @@ internal class FloatingButton(
             menu.open = true
             return
         }
-        val content = ComposeView(windowContext).apply {
+        val compose = ComposeView(windowContext).apply {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
             setContent {
                 FloatingMenuContent(
@@ -469,6 +473,20 @@ internal class FloatingButton(
                 )
             }
         }
+        // Back closes the menu rather than reaching the app under it (#938).
+        // With the keyboard up the key is the keyboard's first, and the
+        // service asks [closeMenuFromBack]; with it down, the menu's window
+        // takes focus to see the key, never as an input-method target, so the
+        // field behind keeps its keyboard state.
+        val content = object : FrameLayout(windowContext) {
+            override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+                if (event.keyCode != KeyEvent.KEYCODE_BACK) return super.dispatchKeyEvent(event)
+                if (event.action == KeyEvent.ACTION_UP && !event.isCanceled) closeMenu()
+                return true
+            }
+        }.apply {
+            addView(compose, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        }
         lifecycle.attachTo(content)
         val layout = overlayParams(
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -477,9 +495,14 @@ internal class FloatingButton(
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             title = "WM Keyboard floating menu"
+            if (!keyboardUp) {
+                flags = (flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()) or
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+            }
         }
         if (runCatching { windowManager.addView(content, layout) }.isFailure) return
         menuView = content
+        host.floatingMenuChanged(true)
         // Where the window really starts (a status bar or a cutout can move
         // it), so screen points land where they are meant to; open once known.
         content.post {
@@ -508,9 +531,17 @@ internal class FloatingButton(
         scheduleIdle()
     }
 
+    /** Back while the keyboard has the key (#938): closes the menu, true when one was open. */
+    fun closeMenuFromBack(): Boolean {
+        if (menuView == null) return false
+        closeMenu()
+        return true
+    }
+
     private fun removeMenuWindow() {
         val view = menuView ?: return
         menuView = null
+        host.floatingMenuChanged(false)
         menu.open = false
         runCatching { windowManager.removeViewImmediate(view) }
         scheduleIdle()

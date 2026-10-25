@@ -5090,8 +5090,8 @@ open class WMKeyboardService : InputMethodService() {
         // one the floating button summoned (#756): Back left it to come
         // straight back the same way.
         serviceScope.launch {
-            combine(uiState, summonHolding) { state, summoned ->
-                backClosesLayer(state) || state.settings.persistentKeyboard || summoned
+            combine(uiState, summonHolding, floatingMenuOpen) { state, summoned, menu ->
+                backClosesLayer(state) || state.settings.persistentKeyboard || summoned || menu
             }
                 .distinctUntilChanged()
                 .collect { updatePanelBackCallback(it) }
@@ -6481,6 +6481,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private val summonHolding = MutableStateFlow(false)
 
+    /** The floating button's quick menu is open, and Back closes it first (#938). */
+    private val floatingMenuOpen = MutableStateFlow(false)
+
     /** The app a held summon belongs to; switching to another one ends it. */
     private var summonPackage: String? = null
 
@@ -6594,6 +6597,10 @@ open class WMKeyboardService : InputMethodService() {
 
                 override fun floatingButtonMoved(xFraction: Float, yFraction: Float) {
                     serviceScope.launch { settingsRepository.setSummonButtonPosition(xFraction, yFraction) }
+                }
+
+                override fun floatingMenuChanged(open: Boolean) {
+                    floatingMenuOpen.value = open
                 }
 
                 override fun floatingButtonDismissed() {
@@ -47482,6 +47489,9 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     private fun dismissTopLayer(fromBack: Boolean = false): Boolean {
+        // The floating button's menu floats over everything, the keyboard
+        // included, so it is the first thing Back closes (#938).
+        if (fromBack && floatingMenuOpen.value && floatingButton.closeMenuFromBack()) return true
         // Above everything else, and for the same reason the layer peek's popup
         // closes before the layer it is on: it is the newest thing the user
         // opened and the one they are looking at.
@@ -47599,7 +47609,7 @@ open class WMKeyboardService : InputMethodService() {
      * stream.
      */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && backClosesLayer()) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && (backClosesLayer() || floatingMenuOpen.value)) {
             return true
         }
         // The plain hide Back is about to do is the user's, pinned or not;
@@ -47718,7 +47728,7 @@ open class WMKeyboardService : InputMethodService() {
         ) {
             armToolPicker()
         }
-        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && backClosesLayer()) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && isInputViewShown && (backClosesLayer() || floatingMenuOpen.value)) {
             dismissTopLayer(fromBack = true)
             return true
         }
