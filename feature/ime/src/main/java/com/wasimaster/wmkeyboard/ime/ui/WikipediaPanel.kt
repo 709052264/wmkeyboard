@@ -50,6 +50,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.ime.KeyboardUiState
 import com.wasimaster.wmkeyboard.ime.PanelMode
 import com.wasimaster.wmkeyboard.ime.R
+import com.wasimaster.wmkeyboard.core.tools.WikipediaClient
 import com.wasimaster.wmkeyboard.ime.WikiUi
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiContext
 
@@ -364,7 +365,10 @@ private fun WikiArticle(
             Spacer(Modifier.width(8.dp))
             AskAiChip(askLabel) { AskAiContext.wikipedia(wiki.summary, wiki.fullText) }
             CopyTextChip {
-                (wiki.fullText?.takeIf { it.isNotBlank() } ?: wiki.summary.extract).trim() + "\n\n" + wiki.summary.url
+                // Formulas written out in Unicode: a text field cannot typeset TeX (#937).
+                WikipediaClient.plainMath(
+                    (wiki.fullText?.takeIf { it.isNotBlank() } ?: wiki.summary.extract).trim(),
+                ) + "\n\n" + wiki.summary.url
             }
         }
         when (tab) {
@@ -482,6 +486,23 @@ private fun WikiArticle(
                     val paragraphs = wiki.fullText.split("\n\n").filter { it.isNotBlank() }
                     items(paragraphs.size) { index ->
                         val paragraph = paragraphs[index]
+                        // A paragraph with a formula in it is typeset, the
+                        // way a chat answer's maths is (#937); what it
+                        // inserts has the formula written out in Unicode.
+                        if (WikipediaClient.hasMath(paragraph)) {
+                            ChatMarkdown(
+                                paragraph,
+                                ChatMarkdownColors(text = kb.modifierKeyText, dim = kb.secondaryText, codeBackground = kb.chip),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                fontSize = 13.sp,
+                                onBlockTap = { onInsert(WikipediaClient.plainMath(paragraph)) },
+                                selectable = true,
+                                ask = ask,
+                            )
+                            return@items
+                        }
                         SelectableText(
                             paragraph,
                             color = if (paragraph.startsWith("==")) kb.accent else kb.modifierKeyText,
