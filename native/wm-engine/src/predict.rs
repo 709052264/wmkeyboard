@@ -681,6 +681,13 @@ pub struct Predictor {
     pub lm_cap: f64,
     /// Whether the model's likeliest next words join the empty-buffer strip.
     pub lm_next_words: bool,
+    /// The model's say on the typed word's candidates in score space, before
+    /// ranking: `lm_blend` engine nats per nat of its preference over the
+    /// engine's own first choice, within `lm_blend_cap`. The engine's unit is
+    /// the compressed frequency scale (`ln(1 + f)` of a log-scaled count), so
+    /// one of its nats is worth several of the model's; 0 is off.
+    pub lm_blend: f64,
+    pub lm_blend_cap: f64,
     /// The learned autocorrect gate; none keeps the margin gate.
     pub confidence: Option<Confidence>,
     /// What the gate saw on the last decision with a candidate, and that
@@ -730,6 +737,8 @@ impl Default for Predictor {
             lm_weight: LM_WEIGHT,
             lm_cap: LM_CAP,
             lm_next_words: true,
+            lm_blend: 0.0,
+            lm_blend_cap: 1.0,
             confidence: None,
             last_case: RefCell::new(None),
             taps: RefCell::new(Vec::new()),
@@ -1209,6 +1218,25 @@ impl Predictor {
         }
         if let Some((spelling, score, _)) = self.apostrophe_reading(&lower) {
             put(&mut merged, spelling, score);
+        }
+        // The context model in score space: each candidate the model knows
+        // moves by its preference over the engine's current leader, so a
+        // "by" the keys explain as well as "buy" gives way after "want to"
+        // while a far-fetched candidate the model likes cannot climb over the
+        // keys' evidence. Bounded, and silent when the leader is unknown.
+        if self.lm_blend > 0.0 && self.lm.is_some() && merged.len() > 1 {
+            let leader = merged.iter().max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(Ordering::Equal)).map(|(w, _)| w.clone());
+            if let Some(reference) = leader.and_then(|w| self.lm_logprob(&w)) {
+                let shifts: Vec<(String, f64)> = merged
+                    .keys()
+                    .filter_map(|w| self.lm_logprob(w).map(|lp| (w.clone(), (self.lm_blend * (lp - reference) as f64).clamp(-self.lm_blend_cap, self.lm_blend_cap))))
+                    .collect();
+                for (w, shift) in shifts {
+                    if let Some(score) = merged.get_mut(&w) {
+                        *score += shift;
+                    }
+                }
+            }
         }
         if let Some(prev) = previous.first().map(|p| p.to_lowercase()) {
             let prev2 = previous.get(1).map(|p| p.to_lowercase());
