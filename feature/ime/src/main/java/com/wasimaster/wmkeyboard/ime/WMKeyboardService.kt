@@ -31092,6 +31092,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         if (status == VoiceStatus.LISTENING || status == VoiceStatus.FINISHING) {
             voiceStopRequested = true
+            // A clip that has heard speech holds a phrase as surely as a
+            // partial does, only not yet as words (#921). Dropping it threw
+            // away everything said; it is finished instead, and its words land
+            // after the typing the way a clip already transcribing does.
+            if (voicePhraseState().keyboardKeyFinishesClip()) {
+                finishWhisper(userStopped = true)
+                return
+            }
             cancelVoice()
         }
     }

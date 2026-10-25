@@ -74,6 +74,15 @@ class VoicePhraseToolsTest {
     }
 
     @Test
+    fun `a keyboard key finishes a clip that has heard speech instead of dropping it`() {
+        assertTrue(phrase(clipHeard = true).keyboardKeyFinishesClip())
+        assertFalse("nothing said yet: nothing to keep", phrase().keyboardKeyFinishesClip())
+        assertFalse("asr4all's words are kept as composed", phrase(clipHeard = true, liveWordsComposed = true).keyboardKeyFinishesClip())
+        assertFalse("typing while you speak keeps the mic open", phrase(clipHeard = true, sharesField = true).keyboardKeyFinishesClip())
+        assertFalse(phrase(status = VoiceStatus.TRANSCRIBING, clipInFlight = true).keyboardKeyFinishesClip())
+    }
+
+    @Test
     fun `undo while listening takes back what is being heard, streamed or recorded`() {
         assertTrue(phrase(livePartial = true).undoRelistens())
         assertTrue(phrase(clipHeard = true).undoRelistens())

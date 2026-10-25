@@ -57,6 +57,15 @@ fun VoicePhraseState.keyRoute(): VoiceKeyRoute = when {
 }
 
 /**
+ * A key on the keyboard itself ends a block dictation. Streamed words are kept
+ * as heard when it does; a clip that has heard speech is finished rather than
+ * dropped (#921), its words landing once transcribed. asr4all's live words are
+ * already in the field and are kept the streamed way.
+ */
+fun VoicePhraseState.keyboardKeyFinishesClip(): Boolean =
+    status == VoiceStatus.LISTENING && clipHeard && !liveWordsComposed && !sharesField
+
+/**
  * Undo pressed while listening takes back the phrase being heard and listens
  * again: the streamed words, or the clip recorded so far. With nothing heard
  * yet it removes the last phrase that landed.
