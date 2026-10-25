@@ -34,6 +34,7 @@ object BuiltInLayouts {
     const val KHIPRO_DARK_ID = "builtin_khipro_dark"
     const val PROBHAT_ID = "builtin_probhat"
     const val JATIYA_ID = "builtin_jatiya"
+    const val BSTI_ID = "builtin_bsti"
     const val FRENCH_ID = "builtin_french"
     const val GERMAN_ID = "builtin_qwertz"
     const val SPANISH_ID = "builtin_spanish"
@@ -224,6 +225,28 @@ object BuiltInLayouts {
         name = "জাতীয় (National)",
         langId = "bn",
         layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(jatiyaRows))),
+    )
+
+    /**
+     * BSTI: the revised national standard, BDS 1738:2018, in the touch
+     * arrangement of Ekushey's Bangla BSTI Mobile (CC BY 4.0). Close to
+     * [JATIYA] but its own grid: া and ব trade places on the home row, shift
+     * there gives the reph (র্), অ and ঁ, and the bottom row opens with র-ফলা
+     * (্য on shift). Typing is in logical Unicode order, consonant then kar,
+     * as both Ekushey layouts are.
+     *
+     * The standard has one layer of holds where a phone key has one popup, so
+     * each key's popup carries the base layer's hold first and then the shift
+     * layer's: the independent vowels on their kars, and the conjuncts
+     * (ঙ্ক, ক্ষ, জ্ঞ …) the mobile layout puts on its shift keys. The desktop
+     * hasant dead key (্ then a kar gives the vowel) is not copied: those
+     * vowels are on the holds, and a hasant here stays a hasant.
+     */
+    val BSTI = LayoutSpec(
+        id = BSTI_ID,
+        name = "বিএসটিআই (BSTI)",
+        langId = "bn",
+        layers = mapOf(LayoutLayer.LETTERS.key to LayerSpec(DigitHints.fill(bstiRows))),
     )
 
     /** French shares AZERTY's key grid; the modes differ in language, not keys. */
@@ -456,8 +479,8 @@ object BuiltInLayouts {
      * add the language tail at runtime, and both feed `findLayout`.
      */
     val all: List<LayoutSpec> = listOf(
-        QWERTY, AZERTY, DVORAK, COLEMAK, WORKMAN, HALMAK, AVRO, KHIPRO, KHIPRO_DARK, PROBHAT, JATIYA, FRENCH,
-        GERMAN, SPANISH, KOREAN, RUSSIAN, ARABIC, GREEK, HEBREW, HINDI, HINDI_PHONETIC,
+        QWERTY, AZERTY, DVORAK, COLEMAK, WORKMAN, HALMAK, AVRO, KHIPRO, KHIPRO_DARK, PROBHAT, JATIYA, BSTI,
+        FRENCH, GERMAN, SPANISH, KOREAN, RUSSIAN, ARABIC, GREEK, HEBREW, HINDI, HINDI_PHONETIC,
         URDU_PHONETIC, MARATHI_PHONETIC, GUJARATI_PHONETIC, PUNJABI_PHONETIC, ODIA_PHONETIC,
         ASSAMESE_PHONETIC, TAMIL_PHONETIC, TELUGU_PHONETIC, KANNADA_PHONETIC, MALAYALAM_PHONETIC,
         PERSIAN_PHONETIC, ARABIC_PHONETIC, T9, COMPACT,
@@ -970,6 +993,43 @@ private val jatiyaRows = listOf(
         Key("ে", shiftLabel = "ৈ", longPress = listOf("এ", "ঐ")),
         Key("র", shiftLabel = "ল"), Key("ন", shiftLabel = "ণ"),
         Key("স", shiftLabel = "ষ"), Key("ম", shiftLabel = "শ"),
+        Key("⌫", action = KeyAction.Delete, width = 1.3f),
+    ),
+    bottomRow(periodExtras = BengaliJoiners),
+)
+
+// BSTI: each popup is the base layer's hold, then the shift layer's.
+private val bstiRows = listOf(
+    listOf(
+        Key("ঙ", shiftLabel = "ং", longPress = listOf("ঙ্ক")),
+        Key("য", shiftLabel = "য়", longPress = listOf("ঞ্ঝ")),
+        Key("ড", shiftLabel = "ঢ"), Key("প", shiftLabel = "ফ"), Key("ট", shiftLabel = "ঠ"),
+        Key("চ", shiftLabel = "ছ", longPress = listOf("ঞ্ছ")),
+        Key("জ", shiftLabel = "ঝ", longPress = listOf("জ্ঞ")),
+        Key("হ", shiftLabel = "ঞ", longPress = listOf("ঞ্জ", "ঽ")),
+        Key("গ", shiftLabel = "ঘ", longPress = listOf("ঙ্গ")),
+        Key("ড়", shiftLabel = "ঢ়"),
+    ),
+    listOf(
+        Key("ৃ", shiftLabel = "র্", longPress = listOf("ঋ")),
+        Key("ু", shiftLabel = "ূ", longPress = listOf("উ", "ঊ")),
+        Key("ি", shiftLabel = "ী", longPress = listOf("ই", "ঈ")),
+        Key("া", shiftLabel = "অ", longPress = listOf("আ")),
+        Key("্", shiftLabel = "ঁ", longPress = listOf("॥") + BengaliJoiners),
+        Key("ব", shiftLabel = "ভ"),
+        Key("ক", shiftLabel = "খ", longPress = listOf("ক্ষ")),
+        Key("ত", shiftLabel = "থ", longPress = listOf("ৎ")),
+        Key("দ", shiftLabel = "ধ"),
+    ),
+    listOf(
+        Key("⇧", action = KeyAction.Shift, width = 1.2f),
+        Key("্র", shiftLabel = "্য"),
+        Key("ো", shiftLabel = "ৌ", longPress = listOf("ও", "ঔ")),
+        Key("ে", shiftLabel = "ৈ", longPress = listOf("এ", "ঐ")),
+        Key("র", shiftLabel = "ল", longPress = listOf("ব়্য")),
+        Key("ন", shiftLabel = "ণ", longPress = listOf("ঞ্চ")),
+        Key("স", shiftLabel = "ষ", longPress = listOf("ষ্ণ")),
+        Key("ম", shiftLabel = "শ", longPress = listOf("ঃ", "হ্ম")),
         Key("⌫", action = KeyAction.Delete, width = 1.3f),
     ),
     bottomRow(periodExtras = BengaliJoiners),
