@@ -108,6 +108,9 @@ internal object PredictionNative {
     @Suppress("LongParameterList")
     external fun lexAddWord(handle: Long, key: String, caseEvidence: Boolean, surface: String?, boost: Int, pinCase: Boolean)
     external fun lexLanguageOf(handle: Long, key: String): String?
+    /** `lang` empty files the word under every language (#930). */
+    external fun lexSetLanguage(handle: Long, key: String, lang: String): Boolean
+    external fun lexIsLanguagePinned(handle: Long, key: String): Boolean
     external fun lexDisplayOf(handle: Long, key: String): String?
     external fun lexIsAddedByHand(handle: Long, key: String): Boolean
 
