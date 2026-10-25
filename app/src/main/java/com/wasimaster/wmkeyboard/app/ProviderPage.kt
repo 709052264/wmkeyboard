@@ -242,7 +242,7 @@ internal fun ProviderPage(
         }
         // The kind's own settings: what used to be appended to the tool's page.
         ProviderOwnSettings(repository, settings, tool, type, row, onNavigate)
-        ServerFieldsGroup(repository, settings, endpoints = ProviderEndpoints[type.id].orEmpty())
+        ServerFieldsGroup(repository, settings, endpoints = ProviderEndpoints[type.id].orEmpty(), level = SettingLevel.ADVANCED)
         val usedBy = settings.watch { s ->
             row?.let { ProviderEdits.usedBy(s, it.entry.credentialKey, tool, env) }.orEmpty()
         }
@@ -395,6 +395,7 @@ private fun TavilySettings(repository: SettingsRepository, settings: LiveSetting
     SettingsGroup(
         stringResource(R.string.tooldetail_tavily_group),
         info = stringResource(R.string.tooldetail_tavily_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ChoiceSetting(
@@ -428,7 +429,7 @@ private fun SearxSettings(repository: SettingsRepository, settings: LiveSettings
                 ?.takeIf { it.isNotEmpty() }
         }
     }
-    SettingsGroup(stringResource(R.string.tooldetail_searx_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_searx_group), level = SettingLevel.STANDARD) {
         item {
             val chosen = settings.watch { it.webSearch.searxCategories }
             val names = ((listed ?: SearxClient.USUAL_CATEGORIES) + chosen)
@@ -457,7 +458,7 @@ private fun SearxSettings(repository: SettingsRepository, settings: LiveSettings
 private fun SystemRecognizerSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.voice_system_on_device_title,
                 stringResource(R.string.voice_system_on_device_subtitle),
@@ -473,7 +474,7 @@ private fun SystemRecognizerSettings(repository: SettingsRepository, settings: L
 @Composable
 private fun WhisperOfflineSettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
-    SettingsGroup(stringResource(R.string.voice_offline_group)) {
+    SettingsGroup(stringResource(R.string.voice_offline_group), level = SettingLevel.ADVANCED) {
         item {
             ToggleSetting(
                 R.string.voice_translate_title,

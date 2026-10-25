@@ -52,7 +52,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
         stringResource(R.string.tooldetail_speed_run_group),
         info = stringResource(R.string.tooldetail_speed_run_info),
     ) {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.tooldetail_speed_duration_title,
                 subtitle = stringResource(R.string.tooldetail_speed_duration_subtitle),
@@ -62,7 +62,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.speedTest.duration.toFloat(),
             ) { scope.launch { repository.setSpeedTestDuration(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.tooldetail_speed_connections_title,
                 subtitle = stringResource(R.string.tooldetail_speed_connections_subtitle),
@@ -72,7 +72,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.speedTest.connections.toFloat(),
             ) { scope.launch { repository.setSpeedTestConnections(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.tooldetail_speed_upload_title,
                 stringResource(R.string.tooldetail_speed_upload_subtitle),
@@ -93,6 +93,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
     SettingsGroup(
         stringResource(R.string.tooldetail_speed_card_group),
         info = stringResource(R.string.tooldetail_speed_card_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ChoiceSetting(
@@ -155,6 +156,7 @@ internal fun SpeedTestToolSettings(repository: SettingsRepository, settings: Liv
         ProviderTool.SPEED_TEST,
         titleRes = R.string.tooldetail_speed_servers_group,
         info = stringResource(R.string.tooldetail_speed_servers_info),
+        level = SettingLevel.STANDARD,
     )
 }
 

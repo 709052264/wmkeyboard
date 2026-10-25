@@ -63,18 +63,19 @@ internal fun ServersSettingsScreen(repository: SettingsRepository, settings: Liv
 }
 
 /**
- * The server rows for [endpoints] and [repos], added to the caller's group.
- * Adds nothing outside the F-Droid build.
+ * The server rows for [endpoints] and [repos], added to the caller's group at
+ * [level] on the settings depth. Adds nothing outside the F-Droid build.
  */
 internal fun SettingsGroupScope.serverItems(
     repository: SettingsRepository,
     settings: LiveSettings,
     endpoints: List<ServiceEndpoint> = emptyList(),
     repos: List<ServiceRepo> = emptyList(),
+    level: SettingLevel = SettingLevel.BASIC,
 ) {
     if (!BuildConfig.ENABLE_FDROID) return
-    for (repo in repos) item { RepoLocationRows(repo, repository, settings) }
-    for (endpoint in endpoints) item { EndpointField(endpoint, repository, settings) }
+    for (repo in repos) item(level = level) { RepoLocationRows(repo, repository, settings) }
+    for (endpoint in endpoints) item(level = level) { EndpointField(endpoint, repository, settings) }
 }
 
 /** The same rows as a group of their own, for a page with no natural group to put them in. */
@@ -84,11 +85,14 @@ internal fun ServerFieldsGroup(
     settings: LiveSettings,
     endpoints: List<ServiceEndpoint> = emptyList(),
     repos: List<ServiceRepo> = emptyList(),
+    /** How far down the settings depth the group sits; see [SettingLevel]. */
+    level: SettingLevel = SettingLevel.BASIC,
 ) {
     if (!BuildConfig.ENABLE_FDROID || (endpoints.isEmpty() && repos.isEmpty())) return
     SettingsGroup(
         stringResource(R.string.servers_group_title),
         info = stringResource(R.string.servers_group_info),
+        level = level,
     ) {
         serverItems(repository, settings, endpoints, repos)
     }

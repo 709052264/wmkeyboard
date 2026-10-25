@@ -60,7 +60,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ) { ask() }
             }
         }
-        SettingsGroup(stringResource(R.string.gallery_browse_group)) {
+        SettingsGroup(stringResource(R.string.gallery_browse_group), level = SettingLevel.STANDARD) {
             item {
                 ChoiceSetting(
                     R.string.gallery_tap_title,
@@ -98,7 +98,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.showVideos,
                 ) { v -> update { it.copy(showVideos = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_scrubber_title,
                     stringResource(R.string.gallery_scrubber_subtitle),
@@ -106,7 +106,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.dateScrubber,
                 ) { v -> update { it.copy(dateScrubber = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_start_expanded_title,
                     stringResource(R.string.gallery_start_expanded_subtitle),
@@ -114,7 +114,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.startExpanded,
                 ) { v -> update { it.copy(startExpanded = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_remember_album_title,
                     stringResource(R.string.gallery_remember_album_subtitle),
@@ -122,7 +122,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.rememberAlbum,
                 ) { v -> update { it.copy(rememberAlbum = v) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.gallery_haptics_title,
                     stringResource(R.string.gallery_haptics_subtitle),
@@ -148,7 +148,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.quality,
             ) { v -> update { it.copy(quality = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.gallery_max_selection_title,
                 subtitle = stringResource(R.string.gallery_max_selection_subtitle),
@@ -160,7 +160,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(maxSelection = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ChoiceSetting(
                     R.string.gallery_caption_title,
                     subtitle = stringResource(R.string.gallery_caption_subtitle),
@@ -174,7 +174,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 ) { v -> update { it.copy(caption = v) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.gallery_fallback_title,
                 subtitle = stringResource(R.string.gallery_fallback_subtitle),
@@ -188,7 +188,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(fallback = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_close_after_send_title,
                     stringResource(R.string.gallery_close_after_send_subtitle),
@@ -196,7 +196,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.closeAfterSend,
                 ) { v -> update { it.copy(closeAfterSend = v) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_save_edited_title,
                     stringResource(R.string.gallery_save_edited_subtitle),
@@ -216,7 +216,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.stripLocation,
             ) { v -> update { it.copy(stripLocation = v) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.gallery_strip_all_title,
                 stringResource(R.string.gallery_strip_all_subtitle),
@@ -224,7 +224,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                 default = d.stripAllMetadata,
             ) { v -> update { it.copy(stripAllMetadata = v) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.gallery_random_names_title,
                 stringResource(R.string.gallery_random_names_subtitle),
@@ -233,7 +233,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
             ) { v -> update { it.copy(randomFileNames = v) } }
         }
         if (ChannelFeatures.GALLERY_BROWSER) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.gallery_history_title,
                     stringResource(R.string.gallery_history_subtitle),
@@ -241,7 +241,7 @@ internal fun GalleryToolSettings(repository: SettingsRepository, settings: LiveS
                     default = d.keepHistory,
                 ) { v -> update { it.copy(keepHistory = v) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ActionRow(
                     R.string.gallery_history_clear_title,
                     subtitle = stringResource(R.string.gallery_history_clear_subtitle),

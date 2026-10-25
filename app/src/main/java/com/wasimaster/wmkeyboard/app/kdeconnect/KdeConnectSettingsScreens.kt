@@ -59,6 +59,7 @@ import com.wasimaster.wmkeyboard.app.ChoiceSetting
 import com.wasimaster.wmkeyboard.app.ExpandableCard
 import com.wasimaster.wmkeyboard.app.LiveSettings
 import com.wasimaster.wmkeyboard.app.NavRow
+import com.wasimaster.wmkeyboard.app.SettingLevel
 import com.wasimaster.wmkeyboard.app.SettingsGroup
 import com.wasimaster.wmkeyboard.app.SliderSetting
 import com.wasimaster.wmkeyboard.app.SpecialAccess
@@ -159,7 +160,7 @@ internal fun KdeConnectToolSettings(
                 },
             ) { onNavigate(KdeDevices.ROUTE) }
         }
-        item(visible = kdeOn) {
+        item(visible = kdeOn, level = SettingLevel.STANDARD) {
             TextFieldSetting(
                 label = stringResource(R.string.kdeconnect_name_label),
                 value = settings.watch { it.kdeConnect.deviceName },
@@ -170,7 +171,7 @@ internal fun KdeConnectToolSettings(
     }
     if (!kdeOn) return
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_connection)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_connection), level = SettingLevel.ADVANCED) {
         item {
             val details = mapOf(
                 KdeLinkLifetime.PANEL to stringResource(R.string.kdeconnect_lifetime_panel_detail),
@@ -200,7 +201,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_clipboard)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_clipboard), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_clipboard_receive_title,
@@ -209,7 +210,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.clipboardReceive,
             ) { scope.launch { repository.setKdeClipboardReceive(it) } }
         }
-        item(visible = clipboardReceive) {
+        item(visible = clipboardReceive, level = SettingLevel.ADVANCED) {
             val minutesFormat = stringResource(R.string.values_minutes)
             val off = stringResource(R.string.kdeconnect_clear_secrets_off)
             SliderSetting(
@@ -233,7 +234,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_typing)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_typing), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_remote_typing_title,
@@ -242,7 +243,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.remoteTyping,
             ) { scope.launch { repository.setKdeRemoteTyping(it) } }
         }
-        item(visible = remoteTyping) {
+        item(visible = remoteTyping, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pipeline_title,
                 stringResource(R.string.kdeconnect_pipeline_subtitle),
@@ -253,7 +254,7 @@ internal fun KdeConnectToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.kdeconnect_group_touchpad)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_touchpad), level = SettingLevel.STANDARD) {
         val times: (Float) -> String = { String.format(Locale.getDefault(), "%.1f×", it) }
         item {
             SliderSetting(
@@ -264,7 +265,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.padSensitivity,
             ) { scope.launch { repository.setKdePadSensitivity(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pad_accel_title,
                 stringResource(R.string.kdeconnect_pad_accel_subtitle),
@@ -297,7 +298,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.tapToClick,
             ) { scope.launch { repository.setKdeTapToClick(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_pad_haptics_title,
                 null,
@@ -309,7 +310,7 @@ internal fun KdeConnectToolSettings(
 
     val hasAccess = rememberGrantState(::hasNotificationAccess)
     val openAccess = rememberDisclosedSpecialAccess(SpecialAccess.NOTIFICATIONS)
-    SettingsGroup(stringResource(R.string.kdeconnect_group_sharing)) {
+    SettingsGroup(stringResource(R.string.kdeconnect_group_sharing), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.kdeconnect_receive_files_title,
@@ -326,7 +327,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.shareSheet,
             ) { scope.launch { repository.setKdeShareSheet(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_battery_title,
                 stringResource(R.string.kdeconnect_battery_subtitle),
@@ -334,7 +335,7 @@ internal fun KdeConnectToolSettings(
                 default = defaults.batteryReport,
             ) { scope.launch { repository.setKdeBatteryReport(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.kdeconnect_codes_title,
                 stringResource(R.string.kdeconnect_codes_subtitle),

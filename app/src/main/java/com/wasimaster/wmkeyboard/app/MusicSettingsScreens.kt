@@ -64,7 +64,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 default = defaults.textFormat,
             ) { scope.launch { repository.setMusicTextFormat(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.music_card_style_title,
                 subtitle = stringResource(R.string.music_card_style_subtitle),
@@ -73,7 +73,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
                 default = defaults.cardStyle,
             ) { scope.launch { repository.setMusicCardStyle(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val none = stringResource(R.string.music_open_link_first)
             ChoiceSetting(
                 title = R.string.music_open_link_title,
@@ -85,8 +85,8 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
         }
     }
 
-    SettingsGroup(stringResource(R.string.music_listening_group)) {
-        item {
+    SettingsGroup(stringResource(R.string.music_listening_group), level = SettingLevel.STANDARD) {
+        item(level = SettingLevel.ADVANCED) {
             val seconds = stringResource(R.string.music_clip_seconds_value)
             SliderSetting(
                 R.string.music_clip_seconds_title,
@@ -109,7 +109,7 @@ internal fun MusicToolSettings(repository: SettingsRepository, settings: LiveSet
 
     val history by MusicHistory.get(context).state.collectAsState()
     SettingsGroup(stringResource(R.string.music_history_group)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.music_keep_history_title,
                 stringResource(R.string.music_keep_history_subtitle),

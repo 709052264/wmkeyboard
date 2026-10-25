@@ -265,7 +265,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
     // value was only ever written by adopting a sole download or clearing a
     // deleted one, so the docs listed a setting that no control wrote.
     if (onDisk.size > 1) {
-        SettingsGroup(stringResource(R.string.models_whisper_fallback_title)) {
+        SettingsGroup(stringResource(R.string.models_whisper_fallback_title), level = SettingLevel.ADVANCED) {
             item {
                 val autoLabel = stringResource(R.string.models_whisper_fallback_auto)
                 ChoiceSetting(
@@ -333,7 +333,7 @@ internal fun WhisperModelManager(repository: SettingsRepository, settings: LiveS
         }
     }
     SettingsGroup {
-        item {
+        item(level = SettingLevel.ADVANCED) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_whisper_subtitle),
                 links = offlineLinks,
@@ -422,7 +422,7 @@ private fun WhisperComputeGroup(repository: SettingsRepository, settings: LiveSe
             ?.let { stringResource(R.string.models_whisper_compute_subtitle_named, it) }
             ?: stringResource(R.string.models_whisper_compute_subtitle)
     }
-    SettingsGroup(stringResource(R.string.models_whisper_compute_title)) {
+    SettingsGroup(stringResource(R.string.models_whisper_compute_title), level = SettingLevel.ADVANCED) {
         item {
             ChoiceSetting(
                 title = R.string.models_whisper_compute_title,
@@ -464,6 +464,7 @@ private fun WhisperRoutingCard(
     SettingsGroup(
         stringResource(R.string.models_whisper_per_language_title),
         info = stringResource(R.string.models_whisper_routing_info),
+        level = SettingLevel.STANDARD,
     ) {
         for (language in languages) {
             item {

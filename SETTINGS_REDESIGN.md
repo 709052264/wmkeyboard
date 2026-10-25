@@ -215,10 +215,23 @@ the panel page, the Languages root, Clipboard, Voice and Privacy. Untagged
 rows are basic, so every other screen is unchanged at every depth.
 
 **Phase 1, one card per file:** tag the rest. Rows & bars, Accessibility,
-Backup, the tool pages (`ToolDetailScreens.kt`, 70 pages), the theme editor,
-Floating button, the AI pages, Dictionaries, Snippets, Modes. Each card also
-applies the audit's merges on its screen, and re-reads phase 0's tags on the
-way past: they were set from the row names and the audit, not from use.
+Backup, the theme editor, Floating button, the AI pages, Dictionaries,
+Snippets, Modes. Each card also applies the audit's merges on its screen, and
+re-reads phase 0's tags on the way past: they were set from the row names and
+the audit, not from use.
+
+Done in phase 1 (2026-10-26, uncompiled): the tool pages, 273 tags across
+`ToolDetailScreens.kt` and the per-tool files it calls into, plus the provider
+pages and the Whisper and model lists they open. Of about 410 rows, 79 stay
+basic, 192 are Standard and 139 Advanced; a page now shows its switch and one
+or two everyday rows at Simple. The Toolbar and Keyword folds every page
+carries are Standard, with icon colours and Match capitals Advanced.
+`ProvidersGroup`, `serverItems` and `ServerFieldsGroup` take a `level`, and
+the fold of how a provider list is used is Advanced everywhere. Not done
+there: the AI tool's own page (with the AI pages), the audit's merges
+(power-saving presets, camera haptics), and three controls drawn outside any
+group, which cannot fold: the GIF and sticker content filter, QR error
+correction and the typing test's default test.
 
 **Phase 2:** Extensions.
 

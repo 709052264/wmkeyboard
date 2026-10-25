@@ -506,7 +506,7 @@ internal fun TodoToolSettings(
                 route = TODO_ROUTE,
             ) { onNavigate(TODO_ROUTE) }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.tooldetail_todo_hide_done_title,
                 stringResource(R.string.tooldetail_todo_hide_done_subtitle),
@@ -519,7 +519,7 @@ internal fun TodoToolSettings(
     val installed by produceState(initialValue = emptyList<TaskApp>(), revision) {
         value = withContext(Dispatchers.IO) { TodoProviderSync.installed(context) }
     }
-    SettingsGroup(stringResource(R.string.tooldetail_todo_sync_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_todo_sync_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.tooldetail_todo_sync_title,
@@ -570,7 +570,7 @@ internal fun TodoToolSettings(
         }
     }
 
-    SettingsGroup {
+    SettingsGroup(level = SettingLevel.STANDARD) {
         if (!pluginItems.isNullOrBlank()) {
             item {
                 ActionRow(

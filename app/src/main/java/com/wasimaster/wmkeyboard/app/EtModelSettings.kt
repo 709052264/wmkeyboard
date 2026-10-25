@@ -108,7 +108,7 @@ internal fun EtModelManager(engine: EtEngine, settings: LiveSettings) {
     ) {
         // For a phone that cannot download them, above all the offline build
         // (#954): every file of each model not on the device, imported here.
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val missing = models.filter { states[it.id] !is Status.Downloaded }
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_et_subtitle),

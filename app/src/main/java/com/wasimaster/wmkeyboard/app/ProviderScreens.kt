@@ -151,6 +151,12 @@ internal fun ProvidersGroup(
     /** The group's heading, which is also what a settings search lands on. */
     @StringRes titleRes: Int = R.string.providers_group_title,
     info: String? = null,
+    /**
+     * How far down the settings depth the list sits, for a page where it is
+     * not what the page is for (a fallback source, a second engine). The
+     * fold of how the list is used is advanced wherever the list is.
+     */
+    level: SettingLevel = SettingLevel.BASIC,
     /** After every saved change: for a cache that answered for the old setup. */
     onChanged: () -> Unit = {},
 ) {
@@ -193,6 +199,7 @@ internal fun ProvidersGroup(
         // What a settings search lands on; one list per page.
         highlightKey = titleRes,
         info = info ?: stringResource(R.string.providers_group_info),
+        level = level,
     ) {
         item {
             if (on.isEmpty()) {
@@ -230,7 +237,7 @@ internal fun ProvidersGroup(
     // online services under "Online services" is a heading saying nothing.
     val kinds = off.groupBy { ProviderPlace.of(it.type) }.toSortedMap()
     for ((place, placed) in kinds) {
-        SettingsGroup(stringResource(if (kinds.size > 1) place.titleRes else R.string.providers_section_off)) {
+        SettingsGroup(stringResource(if (kinds.size > 1) place.titleRes else R.string.providers_section_off), level = level) {
             for (row in placed) {
                 item(key = row.key) {
                     OffProviderRow(
@@ -253,6 +260,7 @@ internal fun ProvidersGroup(
         stringResource(R.string.providers_options_title),
         foldKey = "providers_${tool.id}",
         foldSummary = modeSummary,
+        level = SettingLevel.ADVANCED,
     ) {
         if (tool.modes.size > 1) {
             item {

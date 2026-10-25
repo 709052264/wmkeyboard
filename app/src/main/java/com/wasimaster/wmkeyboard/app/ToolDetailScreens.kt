@@ -380,7 +380,7 @@ private fun toolPickerRow(tool: ToolbarTool, current: ToolbarTool?, onPick: (Too
 private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
     val steps = settings.watch { it.textEditing.cursorWordSteps }
-    SettingsGroup(stringResource(R.string.tooldetail_word_steps_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_word_steps_group), level = SettingLevel.STANDARD) {
         item {
             ChoiceSetting(
                 R.string.tooldetail_word_steps_title,
@@ -406,7 +406,7 @@ private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSetting
                 },
             ) { scope.launch { repository.setCursorWordSteps(it) } }
         }
-        item(visible = steps != CursorWordSteps.APP) {
+        item(visible = steps != CursorWordSteps.APP, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.tooldetail_word_steps_capitals_title,
                 stringResource(R.string.tooldetail_word_steps_capitals_subtitle),
@@ -414,7 +414,7 @@ private fun WordStepsGroup(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.textEditing.cursorWordStopsAtCapitals,
             ) { scope.launch { repository.setCursorWordStopsAtCapitals(it) } }
         }
-        item(visible = steps != CursorWordSteps.APP) {
+        item(visible = steps != CursorWordSteps.APP, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.tooldetail_word_steps_digits_title,
                 stringResource(R.string.tooldetail_word_steps_digits_subtitle),
@@ -503,7 +503,7 @@ internal fun ToolDetailSettings(
             val history = remember { com.wasimaster.wmkeyboard.ime.FindHistoryPrefs(historyContext) }
             var remembering by remember { mutableStateOf(history.enabled) }
             var count by remember { mutableStateOf(history.entries().size) }
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_find_history_title,
@@ -550,7 +550,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.mediaControl.pinWhilePlaying,
                     ) { scope.launch { repository.setMediaPinWhilePlaying(it) } }
                 }
-                item(visible = pinWhilePlaying) {
+                item(visible = pinWhilePlaying, level = SettingLevel.STANDARD) {
                     NavRow(
                         title = R.string.tooldetail_mediactl_apps_title,
                         subtitle = stringResource(
@@ -583,7 +583,7 @@ internal fun ToolDetailSettings(
             val recentsOn = settings.watch { it.launcher.recentsEnabled }
             val drilldown = settings.watch { it.launcher.activityDrilldown }
             SettingsGroup(stringResource(R.string.tooldetail_launcher_group)) {
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // Split screen is left out where the keyboard cannot start
                     // it (before Android 12L); a stored choice of it reads as
                     // Normally there, which is also what a tap then does.
@@ -616,7 +616,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.openMode,
                     ) { scope.launch { repository.setLauncherOpenMode(it) } }
                 }
-                item(visible = splitSupported) {
+                item(visible = splitSupported, level = SettingLevel.ADVANCED) {
                     val count = settings.watch { it.launcher.combos.size }
                     NavRow(
                         title = R.string.tooldetail_launcher_combos_title,
@@ -641,7 +641,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.sortOrder,
                     ) { scope.launch { repository.setLauncherSortOrder(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_labels_title,
                         stringResource(R.string.tooldetail_launcher_labels_subtitle),
@@ -649,7 +649,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.showLabels,
                     ) { scope.launch { repository.setLauncherShowLabels(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     val columnsFormat = stringResource(R.string.values_number)
                     ChoiceSetting(
                         R.string.tooldetail_launcher_columns_title,
@@ -663,7 +663,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.gridColumns,
                     ) { scope.launch { repository.setLauncherGridColumns(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     val dpFormat = stringResource(R.string.typing_value_dp)
                     SliderSetting(
                         R.string.tooldetail_launcher_icon_size_title,
@@ -676,7 +676,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.iconSizeDp.toFloat(),
                     ) { scope.launch { repository.setLauncherIconSize(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_launcher_icon_shape_title,
                         subtitle = stringResource(R.string.tooldetail_launcher_icon_shape_subtitle),
@@ -693,7 +693,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.iconShape,
                     ) { scope.launch { repository.setLauncherIconShape(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_recents_title,
                         stringResource(R.string.tooldetail_launcher_recents_subtitle),
@@ -702,7 +702,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.recentsEnabled,
                     ) { scope.launch { repository.setLauncherRecentsEnabled(it) } }
                 }
-                item(visible = recentsOn) {
+                item(visible = recentsOn, level = SettingLevel.ADVANCED) {
                     val appsFormat = stringResource(R.string.values_number)
                     SliderSetting(
                         R.string.tooldetail_launcher_recents_count_title,
@@ -717,7 +717,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.maxRecents.toFloat(),
                     ) { scope.launch { repository.setLauncherMaxRecents(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_drilldown_title,
                         stringResource(R.string.tooldetail_launcher_drilldown_subtitle),
@@ -729,7 +729,7 @@ internal fun ToolDetailSettings(
                 // Private screens are listed inside the drill-down sheet and
                 // nowhere else, so without the drill-down there is no list for
                 // this to add to.
-                if (drilldown) item {
+                if (drilldown) item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_non_exported_title,
                         stringResource(R.string.tooldetail_launcher_non_exported_subtitle),
@@ -760,7 +760,7 @@ internal fun ToolDetailSettings(
                         onClick = { scope.launch { repository.clearLauncherHidden() } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_launcher_work_title,
                         stringResource(R.string.tooldetail_launcher_work_subtitle),
@@ -769,7 +769,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.launcher.showWorkApps,
                     ) { scope.launch { repository.setLauncherShowWorkApps(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // Folders are made, filled and renamed in the panel itself;
                     // this row is the way out of all of them at once, like the
                     // hidden apps row above.
@@ -816,7 +816,7 @@ internal fun ToolDetailSettings(
             // The panel's gear lands here, so the panel's own layout setting
             // sits here too rather than one screen deeper (#471). Same key as
             // the row on the Text expansion screen.
-            item {
+            item(level = SettingLevel.STANDARD) {
                 SliderSetting(
                     R.string.expander_grid_columns_title,
                     subtitle = stringResource(R.string.expander_grid_columns_subtitle),
@@ -886,8 +886,8 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.COMPASS -> {
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
-                item {
+            SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_compass_degrees_title,
                         stringResource(R.string.tooldetail_compass_degrees_subtitle),
@@ -913,7 +913,7 @@ internal fun ToolDetailSettings(
                 ) { onNavigate(toolRoute(ToolbarTool.WEATHER)) }
             }
         }
-        ToolbarTool.LEVEL -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+        ToolbarTool.LEVEL -> SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.ADVANCED) {
             item {
                 ToggleSetting(
                     R.string.tooldetail_level_angles_title,
@@ -924,7 +924,7 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.UNDO, ToolbarTool.REDO ->
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.ADVANCED) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_redo_ctrl_y_title,
@@ -935,7 +935,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setRedoUsesCtrlY(it) } }
                 }
             }
-        ToolbarTool.MOON_PHASE -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+        ToolbarTool.MOON_PHASE -> SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.ADVANCED) {
             item {
                 ToggleSetting(
                     R.string.tooldetail_moon_southern_title,
@@ -962,7 +962,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.weather.fahrenheit,
                     ) { scope.launch { repository.setWeatherFahrenheit(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_weather_auto_fetch_title,
                         stringResource(R.string.tooldetail_weather_auto_fetch_subtitle),
@@ -971,7 +971,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.weather.autoFetch,
                     ) { scope.launch { repository.setWeatherAutoFetch(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val weatherMinutesFormat = stringResource(R.string.values_minutes)
                     SliderSetting(
                         R.string.tooldetail_weather_refresh_title,
@@ -985,7 +985,12 @@ internal fun ToolDetailSettings(
                         scope.launch { repository.setWeatherRefreshMinutes(picked.roundToInt()) }
                     }
                 }
-                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.OPEN_METEO, ServiceEndpoint.OPEN_METEO_GEOCODING))
+                serverItems(
+                    repository,
+                    settings,
+                    endpoints = listOf(ServiceEndpoint.OPEN_METEO, ServiceEndpoint.OPEN_METEO_GEOCODING),
+                    level = SettingLevel.ADVANCED,
+                )
             }
         }
         ToolbarTool.CALENDAR -> {
@@ -1008,7 +1013,7 @@ internal fun ToolDetailSettings(
                         onChange = { scope.launch { repository.setCalendarAltOne(it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     AltCalendarSetting(
                         title = stringResource(R.string.tooldetail_calendar_second_title),
                         subtitle = stringResource(R.string.tooldetail_calendar_second_subtitle),
@@ -1016,12 +1021,12 @@ internal fun ToolDetailSettings(
                         onChange = { scope.launch { repository.setCalendarAltTwo(it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     WeekendSetting(settings.watch { it.calendarTool.weekend }) {
                         scope.launch { repository.setCalendarWeekend(it) }
                     }
                 }
-                item(visible = showsHijri) {
+                item(visible = showsHijri, level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_calendar_hijri_title,
                         subtitle = stringResource(R.string.tooldetail_calendar_hijri_subtitle),
@@ -1052,7 +1057,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.preferFront,
                     ) { scope.launch { repository.setCameraPreferFront(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     val offLabel = stringResource(CommonR.string.common_off)
                     val secondsFormat = stringResource(R.string.values_seconds)
                     ChoiceSetting(
@@ -1077,7 +1082,7 @@ internal fun ToolDetailSettings(
                         },
                     ) { scope.launch { repository.setCameraTimerSeconds(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     val pxFormat = stringResource(R.string.values_pixels)
                     ChoiceSetting(
                         R.string.tooldetail_camera_resolution_title,
@@ -1110,7 +1115,7 @@ internal fun ToolDetailSettings(
                         },
                     ) { scope.launch { repository.setCameraCaptureMaxPx(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_camera_mirror_title,
                         stringResource(R.string.tooldetail_camera_mirror_subtitle),
@@ -1119,7 +1124,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.mirrorFront,
                     ) { scope.launch { repository.setCameraMirrorFront(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_camera_fullframe_title,
                         stringResource(R.string.tooldetail_camera_fullframe_subtitle),
@@ -1141,6 +1146,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.location_camera_group),
                 info = stringResource(R.string.location_camera_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -1163,6 +1169,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_camera_search_group),
                 info = stringResource(R.string.tooldetail_camera_search_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -1211,7 +1218,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.searchEngine,
                     ) { scope.launch { repository.setCameraSearchEngine(it) } }
                 }
-                item(visible = onWeb && customEngine) {
+                item(visible = onWeb && customEngine, level = SettingLevel.ADVANCED) {
                     TextFieldSetting(
                         label = stringResource(R.string.tooldetail_camera_search_custom_url_label),
                         value = settings.watch { it.camera.searchCustomUrl },
@@ -1219,7 +1226,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.searchCustomUrl,
                     ) { repository.setCameraSearchCustomUrl(it) }
                 }
-                item(visible = onWeb && customEngine) {
+                item(visible = onWeb && customEngine, level = SettingLevel.ADVANCED) {
                     TextFieldSetting(
                         label = stringResource(R.string.tooldetail_camera_search_custom_field_label),
                         value = settings.watch { it.camera.searchCustomField },
@@ -1236,10 +1243,12 @@ internal fun ToolDetailSettings(
                 ProviderTool.PHOTO_TRANSLATE,
                 titleRes = R.string.tooldetail_camera_translate_group,
                 info = stringResource(R.string.tooldetail_camera_translate_info),
+                level = SettingLevel.STANDARD,
             )
             SettingsGroup(
                 stringResource(R.string.tooldetail_camera_feedback_group),
                 info = stringResource(R.string.tooldetail_camera_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -1249,7 +1258,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.camera.shutterSound,
                     ) { scope.launch { repository.setCameraShutterSound(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_camera_haptics_title,
                         stringResource(R.string.tooldetail_camera_haptics_subtitle),
@@ -1290,7 +1299,7 @@ internal fun ToolDetailSettings(
             // The same look-up as a card over other apps (#765).
             LookupSettingsGroup(repository, settings, onNavigate)
         }
-        ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+        ToolbarTool.TEXT_EDIT -> SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.ADVANCED) {
             item {
                 SliderSetting(
                     R.string.tooldetail_text_edit_repeat_title,
@@ -1322,8 +1331,9 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(R.string.tooldetail_trackpad_info),
+                level = SettingLevel.STANDARD,
             ) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_trackpad_step_x_title,
                         subtitle = stringResource(R.string.tooldetail_trackpad_step_x_subtitle),
@@ -1333,7 +1343,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.trackpad.stepXDp.toFloat(),
                     ) { scope.launch { repository.setTrackpadStepXDp(it.toInt()) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_trackpad_step_y_title,
                         subtitle = stringResource(R.string.tooldetail_trackpad_step_y_subtitle),
@@ -1387,7 +1397,7 @@ internal fun ToolDetailSettings(
                 }
                 // The surface and the keys beside it are a panel layout (issue
                 // #63), edited where the text-editing pad is.
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
                     NavRow(
                         title = R.string.panel_layout_row_title,
@@ -1407,6 +1417,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(R.string.tooldetail_select_mode_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -1439,7 +1450,7 @@ internal fun ToolDetailSettings(
             val anyRepeat = settings.watch {
                 it.textEditing.cursorToolsRepeatOnHold || tool in it.textEditing.toolboxRepeatTools
             }
-            SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_cursor_repeat_title,
@@ -1449,7 +1460,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.textEditing.cursorToolsRepeatOnHold,
                     ) { scope.launch { repository.setCursorToolsRepeatOnHold(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     // This one is per tool, unlike the switch above: turning it
                     // on costs *this* tool the toolbox hold that opens its
                     // settings page, so it is answered a tool at a time.
@@ -1463,7 +1474,7 @@ internal fun ToolDetailSettings(
                 }
                 // The speed is shared, so it shows while either surface repeats.
                 if (anyRepeat) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         SliderSetting(
                             R.string.tooldetail_text_edit_repeat_title,
                             subtitle = stringResource(
@@ -1481,7 +1492,7 @@ internal fun ToolDetailSettings(
                 WordStepsGroup(repository, settings)
             }
         }
-        ToolbarTool.NUMPAD -> SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
+        ToolbarTool.NUMPAD -> SettingsGroup(stringResource(R.string.tooldetail_options_group), level = SettingLevel.STANDARD) {
             item {
                 ToggleSetting(
                     R.string.tooldetail_numpad_calc_title,
@@ -1490,7 +1501,7 @@ internal fun ToolDetailSettings(
                     default = SettingsDefaults.numpadCalculatorLayout,
                 ) { scope.launch { repository.setNumpadCalculatorLayout(it) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 // The pad is a panel layout now (issue #63): the same editor
                 // and the same row the text-editing pad has.
                 val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
@@ -1508,8 +1519,8 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.INCOGNITO -> {
-            SettingsGroup(stringResource(R.string.tooldetail_incognito_group)) {
-                item {
+            SettingsGroup(stringResource(R.string.tooldetail_incognito_group), level = SettingLevel.STANDARD) {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_incognito_learning_title,
                         stringResource(R.string.tooldetail_incognito_learning_subtitle),
@@ -1517,7 +1528,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.incognitoPausesLearning,
                     ) { scope.launch { repository.setIncognitoPausesLearning(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_incognito_clipboard_title,
                         stringResource(R.string.tooldetail_incognito_clipboard_subtitle),
@@ -1558,7 +1569,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.powerSaving.manual,
                     ) { scope.launch { repository.setPowerSavingManual(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_power_trigger_title,
                         subtitle = stringResource(R.string.tooldetail_power_trigger_subtitle),
@@ -1572,7 +1583,7 @@ internal fun ToolDetailSettings(
                 if (powerTrigger == PowerSavingTrigger.LOW_BATTERY ||
                     powerTrigger == PowerSavingTrigger.EITHER
                 ) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         SliderSetting(
                             R.string.tooldetail_power_battery_title,
                             subtitle = stringResource(R.string.tooldetail_power_battery_subtitle),
@@ -1583,7 +1594,7 @@ internal fun ToolDetailSettings(
                         ) { scope.launch { repository.setPowerSavingBatteryPercent(it.toInt()) } }
                     }
                 }
-                item(visible = powerTrigger != PowerSavingTrigger.OFF) {
+                item(visible = powerTrigger != PowerSavingTrigger.OFF, level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_power_charging_title,
                         stringResource(R.string.tooldetail_power_charging_subtitle),
@@ -1596,6 +1607,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_power_drop_group),
                 info = stringResource(R.string.tooldetail_power_info),
+                level = SettingLevel.ADVANCED,
             ) {
                 item {
                     ToggleSetting(
@@ -1647,7 +1659,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPowerSavingDropGlassBlur(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_power_drop_helpers_group), level = SettingLevel.ADVANCED) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_glide_title,
@@ -1674,7 +1686,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setPowerSavingDropSmartChips(it) } }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_power_drop_background_group), level = SettingLevel.ADVANCED) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_power_drop_network_title,
@@ -1781,8 +1793,9 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(R.string.tooldetail_fancy_info),
+                level = SettingLevel.STANDARD,
             ) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     // "Follow the strip" is the empty pick, so the tool can go
                     // back to starting from whatever style was last used.
                     val follow = stringResource(R.string.tooldetail_fancy_style_follow)
@@ -1800,7 +1813,7 @@ internal fun ToolDetailSettings(
                             ?.takeIf { FancyStyles.byId(it) != null },
                     ) { scope.launch { repository.setFancyToolStyle(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_fancy_keep_title,
                         stringResource(R.string.tooldetail_fancy_keep_subtitle),
@@ -1809,7 +1822,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.layoutBehavior.fancyToolKeepsLanguage,
                     ) { scope.launch { repository.setFancyToolKeepsLanguage(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_fancy_auto_off_title,
                         stringResource(R.string.tooldetail_fancy_auto_off_subtitle),
@@ -1856,7 +1869,7 @@ internal fun ToolDetailSettings(
                         },
                     ) { scope.launch { repository.setCustomLayoutToolLayout(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     NavRow(
                         R.string.tooldetail_custom_layout_keymaps_nav_title,
                         stringResource(R.string.tooldetail_custom_layout_keymaps_nav_subtitle),
@@ -1886,7 +1899,7 @@ internal fun ToolDetailSettings(
             }
         }
         ToolbarTool.HANDWRITING -> {
-            SettingsGroup(stringResource(R.string.tooldetail_handwriting_input_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_handwriting_input_group), level = SettingLevel.STANDARD) {
                 item {
                     ToggleSetting(
                         R.string.tooldetail_handwriting_stylus_title,
@@ -1896,7 +1909,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingStylusOnly,
                     ) { scope.launch { repository.setHandwritingStylusOnly(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_handwriting_auto_space_title,
                         stringResource(R.string.tooldetail_handwriting_auto_space_subtitle),
@@ -1906,7 +1919,7 @@ internal fun ToolDetailSettings(
                 }
                 // Only a choice where ML Kit is in the build: without it
                 // zinnia is all Chinese and Japanese have.
-                item(visible = HandwritingModels.mlKitInBuild) {
+                item(visible = HandwritingModels.mlKitInBuild, level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_handwriting_zinnia_title,
                         stringResource(R.string.tooldetail_handwriting_zinnia_subtitle),
@@ -1915,7 +1928,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.handwritingZinnia,
                     ) { scope.launch { repository.setHandwritingZinnia(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_handwriting_pause_title,
                         subtitle = stringResource(R.string.tooldetail_handwriting_pause_subtitle),
@@ -1928,7 +1941,7 @@ internal fun ToolDetailSettings(
                 }
                 // The canvas and the keys around it are a panel layout (#568),
                 // edited where the trackpad's are.
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val customPanels by repository.customPanelLayouts.collectAsStateWithLifecycle(emptyList())
                     NavRow(
                         title = R.string.panel_layout_row_title,
@@ -1999,21 +2012,21 @@ internal fun ToolDetailSettings(
                     onClick = { onNavigate("themes") },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NavRow(
                     R.string.tooldetail_appearance_icons_nav_title,
                     stringResource(R.string.tooldetail_appearance_icons_nav_subtitle),
                     onClick = { onNavigate("icons") },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NavRow(
                     R.string.tooldetail_appearance_emoji_nav_title,
                     stringResource(R.string.tooldetail_appearance_emoji_nav_subtitle),
                     onClick = { onNavigate("emoji") },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NavRow(
                     R.string.tooldetail_appearance_fonts_nav_title,
                     stringResource(R.string.tooldetail_appearance_fonts_nav_subtitle),
@@ -2040,7 +2053,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
                 item { TranslateLanguageSetting(repository, settings) }
                 if (onDevice) {
-                    item {
+                    item(level = SettingLevel.STANDARD) {
                         val context = LocalContext.current
                         ChoiceSetting(
                             R.string.tooldetail_translate_engine_title,
@@ -2076,7 +2089,11 @@ internal fun ToolDetailSettings(
                 info = stringResource(R.string.tooldetail_translate_providers_info),
             )
             if (onDevice) {
-                SettingsGroup(stringResource(R.string.tooldetail_advanced_group), foldKey = "translate_advanced") {
+                SettingsGroup(
+                    stringResource(R.string.tooldetail_advanced_group),
+                    foldKey = "translate_advanced",
+                    level = SettingLevel.ADVANCED,
+                ) {
                     // Both shape the panel's language menus, and only mean
                     // something where models do; the subtitles say which
                     // engine each one works with.
@@ -2128,7 +2145,7 @@ internal fun ToolDetailSettings(
                 // Your own stickers offered while you type their title, a
                 // keyword or an emoji (#329). Only the sticker page: the GIF
                 // tool has no stickers of your own to offer.
-                SettingsGroup(stringResource(R.string.tooldetail_sticker_suggest_group)) {
+                SettingsGroup(stringResource(R.string.tooldetail_sticker_suggest_group), level = SettingLevel.STANDARD) {
                     item {
                         ToggleSetting(
                             R.string.tooldetail_sticker_suggest_title,
@@ -2168,7 +2185,7 @@ internal fun ToolDetailSettings(
                                 },
                             ) { scope.launch { repository.setStickerSuggestStyle(it) } }
                         }
-                        item {
+                        item(level = SettingLevel.ADVANCED) {
                             ChoiceSetting(
                                 title = R.string.tooldetail_sticker_suggest_trigger_title,
                                 options = listOf(
@@ -2192,7 +2209,7 @@ internal fun ToolDetailSettings(
                                 },
                             ) { scope.launch { repository.setStickerSuggestTrigger(it) } }
                         }
-                        item {
+                        item(level = SettingLevel.ADVANCED) {
                             ToggleSetting(
                                 R.string.tooldetail_sticker_suggest_magnify_title,
                                 stringResource(R.string.tooldetail_sticker_suggest_magnify_subtitle),
@@ -2203,8 +2220,8 @@ internal fun ToolDetailSettings(
                     }
                 }
             }
-            SettingsGroup(stringResource(R.string.tooldetail_media_layout_group)) {
-                item {
+            SettingsGroup(stringResource(R.string.tooldetail_media_layout_group), level = SettingLevel.STANDARD) {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_media_full_bleed_title,
                         stringResource(R.string.tooldetail_media_full_bleed_subtitle),
@@ -2237,7 +2254,7 @@ internal fun ToolDetailSettings(
                         }
                     }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val spacing = stringResource(R.string.tooldetail_media_spacing_value)
                     SliderSetting(
                         R.string.tooldetail_media_spacing_title,
@@ -2266,7 +2283,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.emoji.panelExtraHeightDp.toFloat(),
                     ) { scope.launch { repository.setMediaPanelExtraHeightDp(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_media_hide_header_title,
                         stringResource(R.string.tooldetail_media_hide_header_subtitle),
@@ -2275,7 +2292,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.gif.hideHeaderOnScroll,
                     ) { scope.launch { repository.setMediaHideHeaderOnScroll(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_media_remember_search_title,
                         stringResource(R.string.tooldetail_media_remember_search_subtitle),
@@ -2284,7 +2301,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.gif.rememberSearch,
                     ) { scope.launch { repository.setMediaRememberSearch(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     // A panel layout like the emoji panel's (#538): the keys
                     // under the results, and where the switch sits.
                     val panel = if (tool == ToolbarTool.STICKER) PanelKind.STICKER else PanelKind.GIF
@@ -2308,6 +2325,7 @@ internal fun ToolDetailSettings(
                 SettingsGroup(
                     stringResource(R.string.tooldetail_gif_collections_group),
                     info = stringResource(R.string.tooldetail_gif_collections_info),
+                    level = SettingLevel.STANDARD,
                 ) {
                     item {
                         ToggleSetting(
@@ -2327,7 +2345,7 @@ internal fun ToolDetailSettings(
                             }
                         }
                     }
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         ToggleSetting(
                             R.string.tooldetail_gif_favourites_offline_title,
                             stringResource(R.string.tooldetail_gif_favourites_offline_subtitle),
@@ -2356,7 +2374,9 @@ internal fun ToolDetailSettings(
             // both on both pages only invited the user to change the one that
             // could not affect the panel they came from.
             SettingsGroup(stringResource(R.string.tooldetail_media_sending_group)) {
-                item {
+                // Sticker or image matters to a sticker (WhatsApp takes one and
+                // not the other); a GIF sent as a sticker is the rare case.
+                item(level = if (tool == ToolbarTool.STICKER) SettingLevel.STANDARD else SettingLevel.ADVANCED) {
                     if (tool == ToolbarTool.STICKER) {
                         ChoiceSetting(
                             title = R.string.tooldetail_media_sticker_send_title,
@@ -2424,7 +2444,7 @@ internal fun ToolDetailSettings(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 detail = { filter -> ChoiceDetail(stringResource(gifFilterDescRes(filter))) },
             ) { filter -> scope.launch { repository.setGifContentFilter(filter) } }
-            SettingsGroup(stringResource(R.string.tooldetail_media_limit_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_media_limit_group), level = SettingLevel.ADVANCED) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_media_limit_title,
@@ -2467,7 +2487,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.safe,
                     ) { scope.launch { repository.setSearchSafe(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_search_count_title,
                         subtitle = stringResource(R.string.tooldetail_search_count_subtitle),
@@ -2477,7 +2497,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.resultCount.toFloat(),
                     ) { scope.launch { repository.setSearchResultCount(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_search_answer_title,
                         stringResource(R.string.tooldetail_search_answer_subtitle),
@@ -2486,7 +2506,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.showAnswer,
                     ) { scope.launch { repository.setSearchShowAnswer(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_search_open_browser_title,
                         subtitle = stringResource(R.string.tooldetail_search_open_browser_subtitle),
@@ -2510,7 +2530,7 @@ internal fun ToolDetailSettings(
                         },
                     ) { scope.launch { repository.setSearchResultTap(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     SliderSetting(
                         R.string.tooldetail_image_columns_title,
                         subtitle = stringResource(R.string.tooldetail_image_columns_subtitle),
@@ -2527,6 +2547,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(R.string.tooldetail_ocr_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -2536,7 +2557,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.scanner.ocrAutoSelectWords,
                     ) { scope.launch { repository.setOcrAutoSelectWords(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ChoiceSetting(
                         R.string.tooldetail_ocr_engine_title,
                         info = stringResource(
@@ -2592,10 +2613,11 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(if (zxing) R.string.tooldetail_qr_scan_zxing_info else R.string.tooldetail_qr_scan_info),
+                level = SettingLevel.STANDARD,
             ) {
                 // Only a choice where ML Kit's reader can run at all.
                 if (BarcodeEngine.mlKitUsable) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         ToggleSetting(
                             R.string.tooldetail_qr_scan_zxing_title,
                             stringResource(R.string.tooldetail_qr_scan_zxing_subtitle),
@@ -2612,7 +2634,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.scanner.qrScanAutoInsert,
                     ) { scope.launch { repository.setQrScanAutoInsert(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_qr_scan_haptics_title,
                         stringResource(R.string.tooldetail_qr_scan_haptics_subtitle),
@@ -2641,7 +2663,7 @@ internal fun ToolDetailSettings(
             ) {
                 // Only a choice where Google's scanner can run at all.
                 if (googleDocScanner) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         ToggleSetting(
                             R.string.tooldetail_doc_scan_builtin_title,
                             stringResource(R.string.tooldetail_doc_scan_builtin_subtitle),
@@ -2681,7 +2703,7 @@ internal fun ToolDetailSettings(
                 onChanged = { LanguageToolChecker.reset() },
             )
             SettingsGroup(stringResource(R.string.tooldetail_options_group)) {
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_grammar_dialect_title,
                         subtitle = stringResource(R.string.tooldetail_grammar_dialect_subtitle),
@@ -2690,7 +2712,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.grammarDialect,
                     ) { scope.launch { repository.setGrammarDialect(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_grammar_debounce_title,
                         subtitle = stringResource(R.string.tooldetail_grammar_debounce_subtitle),
@@ -2721,6 +2743,7 @@ internal fun ToolDetailSettings(
                                 .joinToString(", ")
                         }
                     },
+                    level = SettingLevel.STANDARD,
                 ) {
                     item {
                         val shownCount = settings.watch { s -> kinds.count { it !in s.grammarHiddenKinds } }
@@ -2758,6 +2781,7 @@ internal fun ToolDetailSettings(
                 SettingsGroup(
                     stringResource(R.string.tooldetail_grammar_system_group),
                     info = stringResource(R.string.tooldetail_grammar_info),
+                    level = SettingLevel.STANDARD,
                 ) {
                     item {
                         NavRow(
@@ -2766,7 +2790,7 @@ internal fun ToolDetailSettings(
                             onClick = { openSpellCheckerSettings(context) },
                         )
                     }
-                    item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S, level = SettingLevel.ADVANCED) {
                         ToggleSetting(
                             R.string.tooldetail_grammar_no_suggestions_title,
                             stringResource(
@@ -2796,8 +2820,8 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.wikiLanguage,
                     ) { repository.setWikiLanguage(it) }
                 }
-                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.WIKIPEDIA))
-                item {
+                serverItems(repository, settings, endpoints = listOf(ServiceEndpoint.WIKIPEDIA), level = SettingLevel.ADVANCED)
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_wiki_markdown_title,
                         stringResource(R.string.tooldetail_wiki_markdown_subtitle),
@@ -2805,7 +2829,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.webSearch.wikiLinksMarkdown,
                     ) { scope.launch { repository.setWikiLinksMarkdown(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     val linksFormat = stringResource(R.string.values_number)
                     SliderSetting(
                         R.string.tooldetail_wiki_link_limit_title,
@@ -2825,6 +2849,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_symbols_recents_group),
                 info = stringResource(R.string.tooldetail_symbols_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     val remembered = settings.watch { it.symbolRecents.size }
@@ -2855,7 +2880,7 @@ internal fun ToolDetailSettings(
                     onClick = { onNavigate("typing/chips") },
                 )
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.tooldetail_calc_degrees_title,
                     stringResource(R.string.tooldetail_calc_degrees_subtitle),
@@ -2863,7 +2888,7 @@ internal fun ToolDetailSettings(
                     default = SettingsDefaults.calcDegrees,
                 ) { scope.launch { repository.setCalcDegrees(it) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.tooldetail_calc_phone_layout_title,
                     stringResource(R.string.tooldetail_calc_phone_layout_subtitle),
@@ -2871,7 +2896,7 @@ internal fun ToolDetailSettings(
                     default = SettingsDefaults.calcPhoneLayout,
                 ) { scope.launch { repository.setCalcPhoneLayout(it) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderSetting(
                     R.string.tooldetail_calc_precision_title,
                     subtitle = stringResource(R.string.tooldetail_calc_precision_subtitle),
@@ -2896,7 +2921,7 @@ internal fun ToolDetailSettings(
                         onClick = { onNavigate("typing/chips") },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_units_compound_title,
                         stringResource(R.string.tooldetail_units_compound_subtitle),
@@ -2924,7 +2949,7 @@ internal fun ToolDetailSettings(
                         onClick = { onNavigate("typing/chips") },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_currency_auto_fetch_title,
                         stringResource(R.string.tooldetail_currency_auto_fetch_subtitle),
@@ -2933,7 +2958,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.rateSources.autoFetch,
                     ) { scope.launch { repository.setCurrencyAutoFetch(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_currency_decimals_title,
                         subtitle = stringResource(R.string.tooldetail_currency_decimals_subtitle),
@@ -2943,7 +2968,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyDecimals.toFloat(),
                     ) { scope.launch { repository.setCurrencyDecimals(it.toInt()) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ChoiceSetting(
                         R.string.tooldetail_currency_label_title,
                         subtitle = stringResource(R.string.tooldetail_currency_label_subtitle),
@@ -2957,7 +2982,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.currencyLabel,
                     ) { scope.launch { repository.setCurrencyLabel(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_currency_refresh_title,
                         subtitle = stringResource(R.string.tooldetail_currency_refresh_subtitle),
@@ -2976,10 +3001,12 @@ internal fun ToolDetailSettings(
                 ProviderTool.CURRENCY_FIAT,
                 titleRes = R.string.tooldetail_currency_source_title,
                 info = stringResource(R.string.tooldetail_currency_source_subtitle),
+                level = SettingLevel.ADVANCED,
             )
             SettingsGroup(
                 stringResource(R.string.tooldetail_crypto_group_title),
                 info = stringResource(R.string.tooldetail_crypto_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     ToggleSetting(
@@ -2991,7 +3018,7 @@ internal fun ToolDetailSettings(
                     ) { scope.launch { repository.setCryptoEnabled(it) } }
                 }
                 if (cryptoOn) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         val auto = stringResource(R.string.tooldetail_crypto_decimals_auto)
                         SliderSetting(
                             R.string.tooldetail_crypto_decimals_title,
@@ -3004,7 +3031,7 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoDecimals.toFloat(),
                         ) { scope.launch { repository.setCryptoDecimals(it.toInt()) } }
                     }
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         SliderSetting(
                             R.string.tooldetail_crypto_refresh_title,
                             subtitle = stringResource(R.string.tooldetail_crypto_refresh_subtitle),
@@ -3014,7 +3041,7 @@ internal fun ToolDetailSettings(
                             default = SettingsDefaults.rateSources.cryptoCacheMinutes.toFloat(),
                         ) { scope.launch { repository.setCryptoCacheMinutes(it.toInt()) } }
                     }
-                    item { CryptoCoinPicker(repository, settings) }
+                    item(level = SettingLevel.STANDARD) { CryptoCoinPicker(repository, settings) }
                 }
             }
             if (cryptoOn) {
@@ -3024,6 +3051,7 @@ internal fun ToolDetailSettings(
                     ProviderTool.CURRENCY_CRYPTO,
                     titleRes = R.string.tooldetail_crypto_source_title,
                     info = stringResource(R.string.tooldetail_crypto_source_subtitle),
+                    level = SettingLevel.ADVANCED,
                 )
             }
         }
@@ -3033,8 +3061,9 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_options_group),
                 info = stringResource(R.string.tooldetail_qr_gen_ecc_info),
+                level = SettingLevel.STANDARD,
             ) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderSetting(
                         R.string.tooldetail_qr_gen_size_title,
                         subtitle = stringResource(R.string.tooldetail_qr_gen_size_subtitle),
@@ -3044,7 +3073,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.scanner.qrSizePx.toFloat(),
                     ) { scope.launch { repository.setQrSizePx(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ChoiceSetting(
                         title = R.string.tooldetail_qr_gen_send_title,
                         subtitle = stringResource(R.string.tooldetail_qr_gen_send_subtitle),
@@ -3086,7 +3115,7 @@ internal fun ToolDetailSettings(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 detail = { level -> ChoiceDetail(stringResource(qrEccDescRes(level))) },
             ) { level -> scope.launch { repository.setQrEcc(level) } }
-            SettingsGroup {
+            SettingsGroup(level = SettingLevel.ADVANCED) {
                 item {
                     val charsFormat = stringResource(R.string.values_number)
                     SliderSetting(
@@ -3121,7 +3150,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.pwLength.toFloat(),
                     ) { scope.launch { repository.setPwLength(it.roundToInt()) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_password_uppercase_title,
                         stringResource(R.string.tooldetail_password_uppercase_subtitle),
@@ -3129,7 +3158,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.pwUppercase,
                     ) { scope.launch { repository.setPwUppercase(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_password_digits_title,
                         stringResource(R.string.tooldetail_password_digits_subtitle),
@@ -3137,7 +3166,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.pwDigits,
                     ) { scope.launch { repository.setPwDigits(it) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_password_symbols_title,
                         stringResource(R.string.tooldetail_password_symbols_subtitle),
@@ -3145,7 +3174,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.pwSymbols,
                     ) { scope.launch { repository.setPwSymbols(it) } }
                 }
-                item(visible = pwSymbols) {
+                item(visible = pwSymbols, level = SettingLevel.ADVANCED) {
                     TextFieldSetting(
                         label = stringResource(R.string.tooldetail_password_pool_label),
                         value = settings.watch { it.toolLimits.passwordSymbols },
@@ -3153,7 +3182,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.toolLimits.passwordSymbols,
                     ) { repository.setPasswordSymbols(it) }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     ToggleSetting(
                         R.string.tooldetail_password_ambiguous_title,
                         stringResource(R.string.tooldetail_password_ambiguous_subtitle),
@@ -3165,6 +3194,7 @@ internal fun ToolDetailSettings(
             SettingsGroup(
                 stringResource(R.string.tooldetail_passphrase_group),
                 info = stringResource(R.string.tooldetail_password_info),
+                level = SettingLevel.STANDARD,
             ) {
                 item {
                     SliderSetting(
@@ -3183,7 +3213,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.ppSeparator,
                     ) { repository.setPpSeparator(it) }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_passphrase_capitalize_title,
                         stringResource(R.string.tooldetail_passphrase_capitalize_subtitle),
@@ -3191,7 +3221,7 @@ internal fun ToolDetailSettings(
                         default = SettingsDefaults.passwordGenerator.ppCapitalize,
                     ) { scope.launch { repository.setPpCapitalize(it) } }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ToggleSetting(
                         R.string.tooldetail_passphrase_digit_title,
                         stringResource(R.string.tooldetail_passphrase_digit_subtitle),
@@ -3201,7 +3231,7 @@ internal fun ToolDetailSettings(
                 }
             }
             // Digits only, for a phone, an app or a bank card (#899).
-            SettingsGroup(stringResource(R.string.tooldetail_pin_group)) {
+            SettingsGroup(stringResource(R.string.tooldetail_pin_group), level = SettingLevel.STANDARD) {
                 item {
                     SliderSetting(
                         R.string.tooldetail_pin_length_title,
@@ -3260,6 +3290,7 @@ internal fun ToolDetailSettings(
                 stringResource(R.string.tooldetail_hold_title),
             ).joinToString(", ")
         },
+        level = SettingLevel.STANDARD,
     ) {
         // Off the grid, on everywhere else: for a tool someone only reaches by
         // name, from a selection action or pinned on the bar. Meaningless while
@@ -3275,7 +3306,7 @@ internal fun ToolDetailSettings(
         // Recolour just this tool's icon. Only meaningful while the global
         // "Colorful tool icons" switch is on, since it's what paints them.
         if (coloredIcons) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ColorSetting(
                     // With the gradients off there is one colour and it needs
                     // no qualifier; with them on the two rows have to say which
@@ -3289,7 +3320,7 @@ internal fun ToolDetailSettings(
                     onChange = { scope.launch { repository.setToolColor(tool, it) } },
                 )
             }
-            item(visible = gradient) {
+            item(visible = gradient, level = SettingLevel.ADVANCED) {
                 ColorSetting(
                     title = R.string.tooldetail_icon_colour_end_title,
                     color = settings.watch { it.toolColorEndOverrides[tool] },
@@ -3422,7 +3453,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.textRepeat.count.toFloat(),
             ) { scope.launch { repository.setTextRepeatCount(it.roundToInt()) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.tooldetail_repeat_mode_title,
                 subtitle = stringResource(R.string.tooldetail_repeat_mode_subtitle),
@@ -3446,7 +3477,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
                 },
             ) { scope.launch { repository.setTextRepeatMode(it) } }
         }
-        item(visible = hasCopies) {
+        item(visible = hasCopies, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.tooldetail_repeat_separator_title,
                 subtitle = stringResource(R.string.tooldetail_repeat_separator_subtitle),
@@ -3461,7 +3492,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.textRepeat.separator,
             ) { scope.launch { repository.setTextRepeatSeparator(it) } }
         }
-        item(visible = hasCopies && separator == TextRepeat.Separator.CUSTOM) {
+        item(visible = hasCopies && separator == TextRepeat.Separator.CUSTOM, level = SettingLevel.STANDARD) {
             TextFieldSetting(
                 label = stringResource(R.string.tooldetail_repeat_custom_label),
                 value = settings.watch { it.textRepeat.customSeparator },
@@ -3469,7 +3500,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.textRepeat.customSeparator,
             ) { repository.setTextRepeatCustomSeparator(it) }
         }
-        item(visible = hasCopies) {
+        item(visible = hasCopies, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.tooldetail_repeat_numbered_title,
                 stringResource(R.string.tooldetail_repeat_numbered_subtitle),
@@ -3477,7 +3508,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
                 default = SettingsDefaults.textRepeat.numbered,
             ) { scope.launch { repository.setTextRepeatNumbered(it) } }
         }
-        item(visible = hasCopies) {
+        item(visible = hasCopies, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.tooldetail_repeat_alternate_title,
                 stringResource(R.string.tooldetail_repeat_alternate_subtitle),
@@ -3486,7 +3517,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
             ) { scope.launch { repository.setTextRepeatAlternateCase(it) } }
         }
     }
-    SettingsGroup(stringResource(R.string.tooldetail_repeat_limits_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_limits_group), level = SettingLevel.ADVANCED) {
         item {
             SliderSetting(
                 R.string.tooldetail_repeat_max_chars_title,
@@ -3540,7 +3571,7 @@ private fun TextRepeatToolSettings(repository: SettingsRepository, settings: Liv
     }
     var remembering by remember { mutableStateOf(recents.enabled) }
     var count by remember { mutableStateOf(recents.entries().size) }
-    SettingsGroup(stringResource(R.string.tooldetail_repeat_recents_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_repeat_recents_group), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.tooldetail_repeat_recents_title,
@@ -3615,6 +3646,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Liv
     SettingsGroup(
         stringResource(R.string.toolai_typing_length_title),
         info = stringResource(R.string.toolai_typing_quote_info).takeIf { testMode == TypingTestMode.QUOTE },
+        level = SettingLevel.ADVANCED,
     ) {
         when (testMode) {
             TypingTestMode.TIME -> item {
@@ -3641,7 +3673,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Liv
     }
 
     if (testMode != TypingTestMode.QUOTE) {
-        SettingsGroup(stringResource(R.string.toolai_typing_difficulty_title)) {
+        SettingsGroup(stringResource(R.string.toolai_typing_difficulty_title), level = SettingLevel.STANDARD) {
             item {
                 ToggleSetting(
                     R.string.toolai_typing_punctuation_title,
@@ -3666,6 +3698,7 @@ private fun TypingTestToolSettings(repository: SettingsRepository, settings: Liv
     SettingsGroup(
         stringResource(R.string.toolai_typing_assist_title),
         info = stringResource(R.string.toolai_typing_language_info),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ToggleSetting(
@@ -3825,7 +3858,7 @@ private fun ToolKeywordSetting(
     // Decides whether the reset row is in the group, and seeds the field.
     val saved = settings.watch { SmartSuggest.keywordsFor(tool, it.toolKeywords) }
     var text by remember(tool) { mutableStateOf(saved.joinToString(", ")) }
-    SettingsGroup(stringResource(R.string.toolai_keyword_group_title), foldKey = "tool_keyword") {
+    SettingsGroup(stringResource(R.string.toolai_keyword_group_title), foldKey = "tool_keyword", level = SettingLevel.STANDARD) {
         item {
             OutlinedTextField(
                 value = text,
@@ -3852,7 +3885,7 @@ private fun ToolKeywordSetting(
                     .padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val caseSensitive = settings.watch { SmartSuggest.caseSensitiveKeyword(tool, it.toolKeywordCase) }
             ToggleSetting(
                 R.string.toolai_keyword_case_title,
@@ -3901,6 +3934,7 @@ internal fun DeepLWriteSettingsGroup(repository: SettingsRepository, settings: L
     SettingsGroup(
         stringResource(R.string.tooldetail_deepl_group),
         info = stringResource(R.string.tooldetail_deepl_write_group_info),
+        level = SettingLevel.STANDARD,
     ) {
         item(visible = configured) {
             ToggleSetting(
@@ -4395,7 +4429,7 @@ private fun HandwritingModelManager(settings: LiveSettings) {
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             OfflineImportRow(
                 subtitle = stringResource(R.string.offline_import_handwriting_subtitle),
                 links = importLinks,
@@ -4532,7 +4566,7 @@ private fun OcrPackManager(settings: LiveSettings) {
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val links = packs.flatMap { (pack, languages) ->
                 val names = languages.joinToString(", ") { it.displayName }
                 if (pack == PaddleOcrModel.PACK) {
@@ -4703,7 +4737,7 @@ private fun AiReplyToolSettings(
     val charsFormat = stringResource(R.string.values_characters)
 
     SettingsGroup(stringResource(R.string.toolai_reply_drafts_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.toolai_reply_count_title,
                 value = settings.watch { it.ai.reply.count }.toFloat(),
@@ -4725,7 +4759,7 @@ private fun AiReplyToolSettings(
                 default = SettingsDefaults.ai.reply.length,
             ) { scope.launch { repository.setAiReplyLength(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.toolai_reply_emoji_title,
                 subtitle = stringResource(R.string.toolai_reply_emoji_subtitle),
@@ -4740,7 +4774,7 @@ private fun AiReplyToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_reply_voice_title)) {
+    SettingsGroup(stringResource(R.string.toolai_reply_voice_title), level = SettingLevel.STANDARD) {
         item {
             TextFieldSetting(
                 label = stringResource(R.string.toolai_reply_persona_label),
@@ -4755,7 +4789,7 @@ private fun AiReplyToolSettings(
                 hint = stringResource(R.string.toolai_reply_language_hint),
             ) { repository.setAiReplyLanguage(it) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.toolai_reply_context_title,
                 value = settings.watch { it.ai.reply.contextChars }.toFloat(),
@@ -4766,8 +4800,8 @@ private fun AiReplyToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_reply_shots_title)) {
-        item {
+    SettingsGroup(stringResource(R.string.toolai_reply_shots_title), level = SettingLevel.STANDARD) {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.toolai_reply_image_mode_title,
                 subtitle = stringResource(R.string.toolai_reply_image_mode_subtitle),
@@ -4790,7 +4824,7 @@ private fun AiReplyToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_reply_tones_title)) {
+    SettingsGroup(stringResource(R.string.toolai_reply_tones_title), level = SettingLevel.STANDARD) {
         item {
             NavRow(
                 R.string.toolai_reply_tones_nav_title,
@@ -4799,7 +4833,7 @@ private fun AiReplyToolSettings(
         }
     }
 
-    SettingsGroup(stringResource(R.string.toolai_reply_after_title)) {
+    SettingsGroup(stringResource(R.string.toolai_reply_after_title), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.toolai_reply_tidy_title,
@@ -4841,7 +4875,7 @@ private fun CalendarNewEventRows(repository: SettingsRepository, settings: LiveS
     var granted by remember { mutableStateOf(false) }
     val request = rememberDisclosedPermissionRequest(PermissionDisclosures.CALENDAR_WRITE) { granted = true }
     val readable = canRead || granted
-    SettingsGroup(stringResource(R.string.tooldetail_calendar_new_group)) {
+    SettingsGroup(stringResource(R.string.tooldetail_calendar_new_group), level = SettingLevel.STANDARD) {
         item {
             ChoiceSetting(
                 R.string.tooldetail_calendar_save_mode_title,
