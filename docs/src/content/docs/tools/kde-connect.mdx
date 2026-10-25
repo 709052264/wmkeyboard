@@ -127,7 +127,7 @@ Big **previous** and **next** buttons for a presentation, **Start** (F5) and **E
 **Stay connected**: default **Keyboard showing**.
 - *Panel open*: only while the KDE Connect panel is open.
 - *Keyboard showing*: while the keyboard is on screen and for a minute after, so switching apps does not reconnect every time.
-- *Always*: whenever WM Keyboard is the active keyboard, shown or not. The clipboard stays in sync while you are not typing. There is no background service behind this. The link lives inside the keyboard, so it ends when Android closes the keyboard, and power saving, with its *Background network* switch on, puts it back to *Keyboard showing*.
+- *In the background too* (called *Always* before 0.6.4): the link also stays up after the keyboard hides, so the clipboard can keep syncing while you are not typing. There is no background service behind it. The link lives inside the keyboard, and once the keyboard is off screen Android is free to pause or close it, which many phones do within minutes and some at once; the link drops then, and comes back the next time the keyboard shows. Setting WM Keyboard's battery use to *Unrestricted* in Android's app settings keeps it up longer on most phones, but nothing guarantees it. Power saving, with its *Background network* switch on, puts it back to *Keyboard showing*.
 
 **Connect automatically**: default on. Reconnect to paired computers when they are found.
 
