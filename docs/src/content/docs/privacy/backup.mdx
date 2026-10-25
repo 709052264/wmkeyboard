@@ -207,6 +207,10 @@ device, because a backup that runs while you're asleep has nobody to type it.
 So it protects the file where it lands, in a cloud folder for instance, and
 not against a person holding your unlocked device. Write it down. Without it,
 a backup cannot be restored. The same passphrase protects the sync files.
+The file is sealed with AES-256-GCM under a key derived from the passphrase
+by PBKDF2-HMAC-SHA512, 210,000 rounds over a random salt kept on this
+device. Backups made by older versions used PBKDF2-HMAC-SHA256 and still
+restore.
 
 **API keys are your call.** **What goes in a backup** has its own **Include
 API keys** switch. Without a passphrase, the switch strongly suggests turning
