@@ -671,7 +671,12 @@ mod tests {
     /// consonants to `fusion_possible`, where `/` fuses them (`cnd/r/bindu/`
     /// in the same table relies on it), so it is now ক্স, not কসঁ; the table
     /// was last touched 2026-10-14.
-    const STALE_UPSTREAM: &[(&str, &str)] = &[("kso/", "কসঁ")];
+    ///
+    /// `........`: the touch table of 2026-10-20 expects a run of full stops
+    /// to lose one, as a run of commas does, but the touchscreen spec shipped
+    /// with it sets `overflow` only from `,,,`: no rule in it reads a dot
+    /// run, so every dot stays a dot.
+    const STALE_UPSTREAM: &[(&str, &str)] = &[("kso/", "কসঁ"), ("........", ".......")];
 
     fn assert_conforms(name: &str, text: &str, variant: Variant) {
         let cases = cases(text);
