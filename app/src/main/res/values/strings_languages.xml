@@ -259,6 +259,17 @@
     <string name="languages_phonetic_candidates_title">Avro candidate list</string>
     <string name="languages_phonetic_candidates_subtitle">The words desktop Avro shows under the word you type</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_khipro_specs_group">Khipro\'s rules</string>
+    <string name="languages_khipro_specs_title">Layout rules</string>
+    <string name="languages_khipro_specs_bundled">The rules this version came with, from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Newer ones are looked for once a day while you type with Khipro. Tap to check now.</string>
+    <string name="languages_khipro_specs_downloaded">Updated rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Tap to check for newer ones.</string>
+    <string name="languages_khipro_specs_checking">Checking for newer rules…</string>
+    <string name="languages_khipro_specs_failed">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. The last check installed nothing: <xliff:g id="reason" example="HTTP 404">%2$s</xliff:g>. Tap to try again.</string>
+    <string name="languages_khipro_specs_unsupported">The rules this version came with. This build cannot update them.</string>
+    <string name="languages_khipro_specs_up_to_date">Khipro\'s rules are up to date</string>
+    <string name="languages_khipro_specs_installed">Khipro\'s rules updated to <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g></string>
+    <string name="languages_khipro_specs_bundled_title">Use the bundled rules</string>
+    <string name="languages_khipro_specs_bundled_subtitle">Go back to the rules this version came with. The daily check leaves them until a newer set is published.</string>
     <string name="languages_avro_dictionary_title">Desktop Avro\'s dictionary</string>
     <string name="languages_avro_dictionary_download">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g> to download. Tap to download.</string>
     <string name="languages_avro_dictionary_downloaded">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g></string>
