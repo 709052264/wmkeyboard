@@ -13,7 +13,9 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -120,13 +122,17 @@ import androidx.compose.animation.EnterExitState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
@@ -143,7 +149,13 @@ import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
@@ -448,6 +460,15 @@ private fun HighlightFrame(
 ) {
     var flashing by remember { mutableStateOf(false) }
     val requester = remember { BringIntoViewRequester() }
+    val scroll = LocalScreenScroll.current
+    // Where the row sits, tracked only while it is being held in view. Its
+    // own effect, since the flash's ends when the request is consumed.
+    var holds by remember { mutableIntStateOf(0) }
+    var holding by remember { mutableStateOf(false) }
+    var top by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(holds) {
+        if (holds > 0) holdInView(requester, scroll, { holding = it }) { top }
+    }
     val color by animateColorAsState(
         targetValue = if (flashing && !SettingsHighlight.hold) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
         else Color.Transparent,
@@ -466,7 +487,10 @@ private fun HighlightFrame(
         // plus however long this rank owes the narrower ones.
         delay(rank.settleMillis)
         if (rank != HighlightRank.ITEM && SettingsHighlight.scrollTaken()) return@LaunchedEffect
-        if (SettingsHighlight.claimScroll()) requester.bringIntoView()
+        if (SettingsHighlight.claimScroll()) {
+            requester.bringIntoView()
+            holds++
+        }
         flashing = true
         if (SettingsHighlight.hold) return@LaunchedEffect
         delay(1400)
@@ -478,12 +502,50 @@ private fun HighlightFrame(
         modifier = modifier
             .fillMaxWidth()
             .bringIntoViewRequester(requester)
+            .then(if (holding) Modifier.onGloballyPositioned { top = it.positionInRoot().y } else Modifier)
             .then(if (flashing && SettingsHighlight.hold) Modifier.testTag(SettingsHighlight.HIGHLIGHT_TAG) else Modifier)
             .background(color),
     ) {
         content()
     }
 }
+
+/**
+ * Keeps a row the user was sent to on screen while the page settles under it
+ * (#904). The first scroll lands before the page is finished: groups above
+ * still waiting their turn to compose stand in as skeletons of a guessed
+ * height, and rows that appear once a setting has loaded push everything
+ * down, so a row scrolled to at once was carried off screen a moment later.
+ * For [HighlightHoldMs], every move of the row brings it back, until the user
+ * drags the page themselves. [setHolding] switches the position tracking on
+ * for exactly that long; [top] reads where it last saw the row.
+ */
+private suspend fun holdInView(
+    requester: BringIntoViewRequester,
+    scroll: ScrollState?,
+    setHolding: (Boolean) -> Unit,
+    top: () -> Float,
+) {
+    setHolding(true)
+    try {
+        withTimeoutOrNull(HighlightHoldMs) {
+            coroutineScope {
+                val follow = launch {
+                    snapshotFlow(top).drop(1).collect { requester.bringIntoView() }
+                }
+                // The user's own drag is where they want to be.
+                scroll?.interactionSource?.interactions?.first { it is DragInteraction.Start }
+                    ?: awaitCancellation()
+                follow.cancel()
+            }
+        }
+    } finally {
+        setHolding(false)
+    }
+}
+
+/** How long a row the user was sent to is held in view; see [holdInView]. */
+private const val HighlightHoldMs = 3_000L
 
 /**
  * Full-screen search over every setting. Results carry their breadcrumb, and

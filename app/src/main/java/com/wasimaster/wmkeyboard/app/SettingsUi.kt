@@ -870,6 +870,12 @@ private val GroupTailSpace = 16.dp
 internal val LocalScreenReveal = compositionLocalOf<ScreenReveal?> { null }
 
 /**
+ * [WmScreen]'s scroll, published around its column so a row can tell the
+ * user's own drag from the page moving under it; null anywhere else.
+ */
+internal val LocalScreenScroll = compositionLocalOf<ScrollState?> { null }
+
+/**
  * Whether a group of [rowCount] rows should compose yet. True everywhere
  * outside a [WmScreen] body, and inside one from the frame the screen's
  * entrance can spare it. A group asks once — the answer's only moving part is
@@ -2526,7 +2532,7 @@ internal fun WmScreen(
                 reveal.wave++
             }
         }
-        CompositionLocalProvider(LocalScreenReveal provides reveal) {
+        CompositionLocalProvider(LocalScreenReveal provides reveal, LocalScreenScroll provides scrollState) {
             Column(
                 modifier = Modifier
                     .padding(padding)
