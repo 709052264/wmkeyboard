@@ -44508,11 +44508,13 @@ open class WMKeyboardService : InputMethodService() {
      * Without either, a copy that worked looked like a tap that did nothing
      * (#679).
      */
-    private fun privateCopy(ic: InputConnection, cut: Boolean): Boolean {
+    private fun privateCopy(ic: InputConnection, cut: Boolean, whole: CharSequence? = null): Boolean {
         if (!KeyboardClipboard.isPrivate) return false
         // An editor that cannot report its selection gets nothing copied,
-        // rather than a fallback to its own copy that would leak it.
-        val selected = ic.getSelectedText(0)
+        // rather than a fallback to its own copy that would leak it. [whole]
+        // is the field the hold shortcut just selected, read before the
+        // selection landed, for an editor slow to report it back.
+        val selected = ic.getSelectedText(0)?.takeIf { it.isNotEmpty() } ?: whole
         if (!selected.isNullOrEmpty()) {
             KeyboardClipboard.copy(this, selected)
             if (cut) ic.commitText("", 1) else collapseSelectionToEnd(ic)
@@ -44731,14 +44733,14 @@ open class WMKeyboardService : InputMethodService() {
                 _uiState.update { it.copy(textEditSelecting = true) }
             }
             ClipboardKeyAction.COPY -> {
-                if (!hasSelection && selectAllIfEmpty) ic.performContextMenuAction(android.R.id.selectAll)
-                if (!privateCopy(ic, cut = false)) ic.performContextMenuAction(android.R.id.copy)
+                val whole = if (!hasSelection && selectAllIfEmpty) selectWholeField(ic) else null
+                if (!privateCopy(ic, cut = false, whole)) ic.performContextMenuAction(android.R.id.copy)
                 maybeToastCopied()
                 _uiState.update { it.copy(textEditSelecting = false) }
             }
             ClipboardKeyAction.CUT -> {
-                if (!hasSelection && selectAllIfEmpty) ic.performContextMenuAction(android.R.id.selectAll)
-                if (!privateCopy(ic, cut = true)) ic.performContextMenuAction(android.R.id.cut)
+                val whole = if (!hasSelection && selectAllIfEmpty) selectWholeField(ic) else null
+                if (!privateCopy(ic, cut = true, whole)) ic.performContextMenuAction(android.R.id.cut)
                 _uiState.update { it.copy(textEditSelecting = false) }
                 releaseUserShift()
             }
@@ -44751,6 +44753,33 @@ open class WMKeyboardService : InputMethodService() {
             }
             ClipboardKeyAction.UNDO, ClipboardKeyAction.REDO -> Unit
         }
+    }
+
+    /**
+     * Selects the whole field for a hold copy or cut with nothing selected,
+     * and returns its text when the editor would give it.
+     *
+     * Selection by offsets rather than the editor's own Select all: a web
+     * field ignores that context-menu action, so a bare hold on C copied
+     * nothing and the selection had to be made first. A web field, or one
+     * too long to read in one go, gets [selectAllInField] instead, which
+     * sends Ctrl+A to a page.
+     */
+    private fun selectWholeField(ic: InputConnection): CharSequence? {
+        val before = ic.getTextBeforeCursor(WHOLE_FIELD_LIMIT, 0)
+        val after = ic.getTextAfterCursor(WHOLE_FIELD_LIMIT, 0)
+        if (before == null || after == null || isWebEditField() ||
+            before.length >= WHOLE_FIELD_LIMIT || after.length >= WHOLE_FIELD_LIMIT
+        ) {
+            selectAllInField(ic)
+            return null
+        }
+        val end = before.length + after.length
+        if (end == 0) return null
+        ic.setSelection(0, end)
+        expectedSelStart = 0
+        expectedSelEnd = end
+        return android.text.TextUtils.concat(before, after)
     }
 
     /**
@@ -51079,6 +51108,9 @@ open class WMKeyboardService : InputMethodService() {
     companion object {
         /** Minimum spacing between haptic clicks so rapid presses stay distinct. */
         private const val MIN_HAPTIC_GAP_MS = 45L
+
+        /** How much of a field either side of the caret [selectWholeField] reads. */
+        private const val WHOLE_FIELD_LIMIT = 100_000
 
         /** How soon a second vowel-key press must follow for [VowelGlide] to become the vowel (#900). */
         private const val VOWEL_TWICE_MS = 450L
