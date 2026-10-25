@@ -540,6 +540,9 @@ import com.wasimaster.wmkeyboard.core.tools.MediaCategoryCache
 import com.wasimaster.wmkeyboard.core.aichat.AiChatMessage
 import com.wasimaster.wmkeyboard.core.aichat.AiChatStore
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatController
+import com.wasimaster.wmkeyboard.ime.aichat.AiChatExport
+import com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat
+import com.wasimaster.wmkeyboard.core.tools.AiChatMode
 import com.wasimaster.wmkeyboard.ime.aimemory.AiMemoryRecall
 import com.wasimaster.wmkeyboard.ime.aichat.AiChatImages
 import com.wasimaster.wmkeyboard.ime.aichat.AskAiLaunch
@@ -36790,6 +36793,7 @@ open class WMKeyboardService : InputMethodService() {
         // single `when` took this method past the 10,000 dex instructions at
         // which ART stops compiling it.
         if (aiChatSessionAction(action, chat)) return
+        if (aiChatOptionAction(action)) return
         when (action) {
             is AiChatAction.SetMode -> {
                 _uiState.update {
@@ -36829,6 +36833,8 @@ open class WMKeyboardService : InputMethodService() {
                             // clear-out's grace keeps their files.
                             images = taken.images,
                             files = taken.files,
+                            mode = taken.chatMode.id,
+                            format = taken.answerFormat.id,
                             composing = true,
                         ),
                     )
@@ -36867,7 +36873,7 @@ open class WMKeyboardService : InputMethodService() {
             is AiChatAction.Report -> aiChatReport(action.index)
             AiChatAction.ToggleAttachMenu ->
                 _uiState.update {
-                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, pictureNotice = null))
+                    it.copy(aiChat = it.aiChat.copy(attachMenu = !it.aiChat.attachMenu, optionsMenu = false, pictureNotice = null))
                 }
             is AiChatAction.PickFromSystem -> aiChatPickFromSystem(action.mode)
             AiChatAction.ToggleReasoning -> {
@@ -36885,6 +36891,33 @@ open class WMKeyboardService : InputMethodService() {
             // The conversation list's, handled by aiChatSessionAction above.
             else -> Unit
         }
+    }
+
+    /**
+     * [onAiChatAction]'s message-box options: the mode and answer format of
+     * the next message, the row that picks them, and Share under an answer.
+     * Their own method for the dex-size reason [onAiChatAction] gives. False
+     * when [action] is not one of them.
+     */
+    private fun aiChatOptionAction(action: AiChatAction): Boolean {
+        when (action) {
+            AiChatAction.ToggleOptions ->
+                _uiState.update {
+                    it.copy(aiChat = it.aiChat.copy(optionsMenu = !it.aiChat.optionsMenu, attachMenu = false))
+                }
+            is AiChatAction.SetChatMode -> _uiState.update { it.copy(aiChat = it.aiChat.copy(mode = action.id)) }
+            is AiChatAction.SetAnswerFormat -> _uiState.update { it.copy(aiChat = it.aiChat.copy(format = action.id)) }
+            is AiChatAction.Share -> {
+                val conversation = AiChatController.store(this).get(_uiState.value.aiChat.conversationId) ?: return true
+                val answer = conversation.messages.getOrNull(action.index) ?: return true
+                val question = conversation.messages.take(action.index).lastOrNull { it.role == AiChatMessage.ROLE_USER }
+                if (!AiChatExport.share(this, AiChatExport.Kind.MARKDOWN, conversation.title, question?.content.orEmpty(), answer.content)) {
+                    Toast.makeText(this, getString(R.string.ime_ai_chat_share_failed), Toast.LENGTH_SHORT).show()
+                }
+            }
+            else -> return false
+        }
+        return true
     }
 
     /** [onAiChatAction]'s conversation list: new, open, delete, pick, rename. False when [action] is not one of them. */
@@ -37181,6 +37214,8 @@ open class WMKeyboardService : InputMethodService() {
             this, state.settings, id, choice, text, chat.attachment?.text.orEmpty(), chat.images,
             incognito = state.incognitoOn,
             files = chat.files,
+            mode = AiChatMode.of(chat.mode),
+            format = AiAnswerFormat.of(chat.format),
         )
         chatPictureFrom.clear()
         _uiState.update {
@@ -37193,6 +37228,7 @@ open class WMKeyboardService : InputMethodService() {
                     images = emptyList(),
                     files = emptyList(),
                     attachMenu = false,
+                    optionsMenu = false,
                     pictureNotice = null,
                 ),
             )

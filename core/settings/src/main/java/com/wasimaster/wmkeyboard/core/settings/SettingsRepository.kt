@@ -86,6 +86,7 @@ import com.wasimaster.wmkeyboard.core.layout.resolveLayoutSelection
 import com.wasimaster.wmkeyboard.core.layout.resolveLayout
 import com.wasimaster.wmkeyboard.core.layout.script
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
+import com.wasimaster.wmkeyboard.core.tools.AiResearchDepth
 import com.wasimaster.wmkeyboard.core.tools.AltCalendar
 import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
@@ -4856,6 +4857,14 @@ data class AiSettings(
      */
     val chatAutoRename: Boolean = true,
     /**
+     * A chat answer from a cloud or server model ends with up to three
+     * questions the user might ask next, as chips under it that a tap puts in
+     * the message box. The model writes them in the same answer, so they cost
+     * a few dozen tokens and no request. An on-device model is never asked:
+     * its prompt is kept as short as it can be.
+     */
+    val chatFollowUps: Boolean = true,
+    /**
      * How much text before the cursor a "carry this on" action sends, in
      * characters.
      *
@@ -4941,6 +4950,28 @@ data class AiSettings(
     val reply: AiReplySettings = AiReplySettings(),
     /** What the AI remembers about the user between chats. */
     val memory: AiMemorySettings = AiMemorySettings(),
+    /** The chat's Deep research mode. */
+    val research: AiResearchSettings = AiResearchSettings(),
+)
+
+/**
+ * The AI chat's Deep research mode: a question broken into sub-questions,
+ * searched and read page by page, and written up with numbered sources.
+ * Nested for the ceiling reason given on [AiReplySettings].
+ */
+data class AiResearchSettings(
+    /**
+     * How many sub-questions, searches and pages one report takes. Each page
+     * is a request to its site and a few thousand characters sent to the
+     * model, so deeper costs more of both and takes longer.
+     */
+    val depth: AiResearchDepth = AiResearchDepth.STANDARD,
+    /**
+     * Show the plan of sub-questions and wait for Start before searching,
+     * the way a coding agent shows its plan first. Off: the plan is shown as
+     * it runs, and Stop is the way to change course.
+     */
+    val reviewPlan: Boolean = false,
 )
 
 /**
@@ -11340,6 +11371,9 @@ class SettingsRepository(private val context: Context) {
         private val AI_PANEL_CHAT = booleanPreferencesKey("ai_panel_chat")
         private val AI_CHAT_REASONING = booleanPreferencesKey("ai_chat_reasoning")
         private val AI_CHAT_AUTO_RENAME = booleanPreferencesKey("ai_chat_auto_rename")
+        private val AI_CHAT_FOLLOW_UPS = booleanPreferencesKey("ai_chat_follow_ups")
+        private val AI_RESEARCH_DEPTH = stringPreferencesKey("ai_research_depth")
+        private val AI_RESEARCH_REVIEW_PLAN = booleanPreferencesKey("ai_research_review_plan")
         private val AI_DOWNLOAD_UNMETERED = booleanPreferencesKey("ai_download_unmetered_only")
         private val AI_BEFORE_CURSOR_CHARS = intPreferencesKey("ai_before_cursor_chars")
         private val AI_STRIP_SUGGEST = booleanPreferencesKey("ai_strip_suggest")
@@ -13700,6 +13734,7 @@ class SettingsRepository(private val context: Context) {
             panelChat = p[AI_PANEL_CHAT] ?: defaults.ai.panelChat,
             chatReasoning = p[AI_CHAT_REASONING] ?: defaults.ai.chatReasoning,
             chatAutoRename = p[AI_CHAT_AUTO_RENAME] ?: defaults.ai.chatAutoRename,
+            chatFollowUps = p[AI_CHAT_FOLLOW_UPS] ?: defaults.ai.chatFollowUps,
             beforeCursorChars = p[AI_BEFORE_CURSOR_CHARS]
                 ?: defaults.ai.beforeCursorChars,
             stripSuggest = p[AI_STRIP_SUGGEST] ?: defaults.ai.stripSuggest,
@@ -13737,6 +13772,10 @@ class SettingsRepository(private val context: Context) {
             memory = AiMemorySettings(
                 enabled = p[AI_MEMORY_ENABLED] ?: defaults.ai.memory.enabled,
                 cloud = p[AI_MEMORY_CLOUD] ?: defaults.ai.memory.cloud,
+            ),
+            research = AiResearchSettings(
+                depth = p[AI_RESEARCH_DEPTH]?.let(AiResearchDepth::of) ?: defaults.ai.research.depth,
+                reviewPlan = p[AI_RESEARCH_REVIEW_PLAN] ?: defaults.ai.research.reviewPlan,
             ),
         )
 
@@ -18585,6 +18624,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAiChatReasoning(value: Boolean) = editPrefs { it[AI_CHAT_REASONING] = value }
 
     suspend fun setAiChatAutoRename(value: Boolean) = editPrefs { it[AI_CHAT_AUTO_RENAME] = value }
+
+    suspend fun setAiChatFollowUps(value: Boolean) = editPrefs { it[AI_CHAT_FOLLOW_UPS] = value }
+
+    suspend fun setAiResearchDepth(value: AiResearchDepth) = editPrefs { it[AI_RESEARCH_DEPTH] = value.id }
+
+    suspend fun setAiResearchReviewPlan(value: Boolean) = editPrefs { it[AI_RESEARCH_REVIEW_PLAN] = value }
 
     suspend fun setAiBeforeCursorChars(value: Int) =
         editPrefs { it[AI_BEFORE_CURSOR_CHARS] = value.coerceIn(500, 32_000) }

@@ -1867,6 +1867,16 @@ data class AiChatUi(
      */
     val renaming: Long = -1L,
     val renameDraft: String = "",
+    /**
+     * The next message's mode and answer format, by
+     * [com.wasimaster.wmkeyboard.core.tools.AiChatMode.id] and
+     * [com.wasimaster.wmkeyboard.core.tools.AiAnswerFormat.id]. Kept from
+     * one message to the next, like the app's message box.
+     */
+    val mode: String = "chat",
+    val format: String = "auto",
+    /** The row of modes and formats is up over the composer, in place of the "+" menu. */
+    val optionsMenu: Boolean = false,
 )
 
 /**
@@ -1940,6 +1950,18 @@ sealed interface AiChatAction {
     data class AddPicture(val fromClipboard: Boolean) : AiChatAction
     /** Takes a picture back off the next message. */
     data class RemovePicture(val name: String) : AiChatAction
+
+    /** Shows or hides the row of modes and answer formats over the composer. */
+    data object ToggleOptions : AiChatAction
+
+    /** The next message's mode, by `AiChatMode.id`. */
+    data class SetChatMode(val id: String) : AiChatAction
+
+    /** The next message's answer format, by `AiAnswerFormat.id`. */
+    data class SetAnswerFormat(val id: String) : AiChatAction
+
+    /** The answer at [index] of the conversation, shared as a Markdown file. */
+    data class Share(val index: Int) : AiChatAction
 
     /**
      * Ask AI from another tool (#352): the AI panel opens on a new chat with

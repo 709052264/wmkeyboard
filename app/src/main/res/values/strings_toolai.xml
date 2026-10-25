@@ -518,6 +518,15 @@
 
     <string name="toolai_chats_group_title">Chats</string>
     <string name="toolai_chat_enter_sends_title">Enter sends the message</string>
+    <string name="toolai_chat_follow_ups_title">Suggest follow-up questions</string>
+    <string name="toolai_chat_follow_ups_subtitle">A chat answer from a cloud or server model ends with up to three questions you might ask next, as chips a tap puts in the message box. On-device models are never asked.</string>
+    <string name="toolai_research_depth_title">Deep research depth</string>
+    <string name="toolai_research_depth_subtitle">How far a Deep research report goes. Quick plans 3 sub-questions and reads 4 pages; Standard plans 4, looks again once for what is missing, and reads 8; Deep plans 6, looks again twice, and reads 14. Deeper takes longer and sends more text to the model.</string>
+    <string name="toolai_research_depth_quick">Quick</string>
+    <string name="toolai_research_depth_standard">Standard</string>
+    <string name="toolai_research_depth_deep">Deep</string>
+    <string name="toolai_research_review_plan_title">Review the research plan first</string>
+    <string name="toolai_research_review_plan_subtitle">Deep research shows its sub-questions and waits for Start before it searches anything. Off, the plan is shown as it runs, and Stop ends it.</string>
     <string name="toolai_chat_auto_rename_title">Auto-rename chats</string>
     <string name="toolai_ai_selection_menu_title">Ask AI in the selection menu</string>
     <string name="toolai_ai_selection_menu_subtitle">Ask AI shows in other apps\' menu for selected text. Turning the AI tool off takes it out too.</string>

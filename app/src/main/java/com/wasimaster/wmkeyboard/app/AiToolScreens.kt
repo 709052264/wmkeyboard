@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.core.tools.AiResearchDepth
 import com.wasimaster.wmkeyboard.core.tools.AiActionSpec
 import com.wasimaster.wmkeyboard.core.tools.AiActionSurface
 import com.wasimaster.wmkeyboard.core.tools.BuiltInAiReplyTones
@@ -452,6 +453,38 @@ internal fun AiToolSettings(
                 settings.watch { it.ai.chatAutoRename },
                 default = SettingsDefaults.ai.chatAutoRename,
             ) { scope.launch { repository.setAiChatAutoRename(it) } }
+        }
+        // Suggested next questions under an answer, from cloud models only.
+        item {
+            ToggleSetting(
+                R.string.toolai_chat_follow_ups_title,
+                stringResource(R.string.toolai_chat_follow_ups_subtitle),
+                settings.watch { it.ai.chatFollowUps },
+                default = SettingsDefaults.ai.chatFollowUps,
+            ) { scope.launch { repository.setAiChatFollowUps(it) } }
+        }
+        // The chat's Deep research mode: how far a report goes, and whether
+        // its plan waits for Start.
+        item {
+            ChoiceSetting(
+                R.string.toolai_research_depth_title,
+                subtitle = stringResource(R.string.toolai_research_depth_subtitle),
+                options = listOf(
+                    AiResearchDepth.QUICK to stringResource(R.string.toolai_research_depth_quick),
+                    AiResearchDepth.STANDARD to stringResource(R.string.toolai_research_depth_standard),
+                    AiResearchDepth.DEEP to stringResource(R.string.toolai_research_depth_deep),
+                ),
+                selected = settings.watch { it.ai.research.depth },
+                default = SettingsDefaults.ai.research.depth,
+            ) { scope.launch { repository.setAiResearchDepth(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.toolai_research_review_plan_title,
+                stringResource(R.string.toolai_research_review_plan_subtitle),
+                settings.watch { it.ai.research.reviewPlan },
+                default = SettingsDefaults.ai.research.reviewPlan,
+            ) { scope.launch { repository.setAiResearchReviewPlan(it) } }
         }
         // "Ask AI" in other apps' selection menus (#897). AskAiSelectionMenu
         // switches the entry from the setting, here or from a backup alike.

@@ -1610,6 +1610,9 @@ internal object SettingsRowIcons {
         put(R.string.toolai_keep_chats_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_chat_enter_sends_title) { Icons.AutoMirrored.Outlined.KeyboardReturn }
         put(R.string.toolai_chat_auto_rename_title) { Icons.Outlined.DriveFileRenameOutline }
+        put(R.string.toolai_chat_follow_ups_title) { Icons.Outlined.Lightbulb }
+        put(R.string.toolai_research_depth_title) { Icons.Outlined.TravelExplore }
+        put(R.string.toolai_research_review_plan_title) { Icons.Outlined.Checklist }
         put(R.string.toolai_ai_selection_menu_title) { Icons.Outlined.HighlightAlt }
         put(R.string.toolai_delete_chats_title) { Icons.Outlined.DeleteSweep }
         put(R.string.toolai_memory_screen_title) { Icons.Outlined.Psychology }
