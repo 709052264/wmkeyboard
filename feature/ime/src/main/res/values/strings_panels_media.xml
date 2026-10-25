@@ -20,7 +20,8 @@
     <!-- Voice typing panel. -->
     <string name="ime_voice_secure_field_notice">Voice typing does not work in password fields.</string>
     <string name="ime_voice_permission_body">Voice typing needs permission to use the microphone. The app records audio only while you speak.</string>
-    <string name="ime_voice_unavailable_notice">Speech recognition is not available on your device.</string>
+    <string name="ime_voice_unavailable_notice">This phone has no speech recognition service, so the system engine can\'t run. An engine that runs on the keyboard, such as Whisper, works without one.</string>
+    <string name="ime_voice_unavailable_action">Choose a voice engine</string>
     <string name="ime_voice_permission_action">Allow microphone</string>
     <string name="ime_voice_undo_action">Undo</string>
     <!-- Screen reader labels for the big microphone button. -->

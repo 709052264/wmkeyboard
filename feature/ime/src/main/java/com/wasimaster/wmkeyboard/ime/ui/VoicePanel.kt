@@ -260,9 +260,40 @@ internal fun VoicePanel(
                         )
                     }
                 }
-                voice.status == VoiceStatus.UNAVAILABLE -> VoiceNotice(
-                    stringResource(R.string.ime_voice_unavailable_notice),
-                )
+                // No recognition service on the phone (no Google services, a
+                // Huawei): the system engine cannot run, and the way out is an
+                // engine that runs on the keyboard itself, one tap away.
+                voice.status == VoiceStatus.UNAVAILABLE -> Column(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        stringResource(R.string.ime_voice_unavailable_notice),
+                        color = kb.secondaryText,
+                        fontSize = 13.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                    )
+                    Spacer(Modifier.height(10.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(kb.chipShape())
+                            .frostGlass(kb, kb.chipShape(), FrostSurface.CHIPS)
+                            .background(kb.chipActive)
+                            .chipBorder(kb, kb.chipShape())
+                            .focusRing(focusedAction == 0, kb.chipShape())
+                            .pointerInput(Unit) { detectTapGestures { onOpenVoiceSettings() } }
+                            .padding(horizontal = 20.dp, vertical = 10.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.ime_voice_unavailable_action),
+                            color = kb.chipActiveText,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                        )
+                    }
+                }
                 else -> MicContent(
                     state = state,
                     onToggle = onToggle,

@@ -43,7 +43,7 @@ Every word you dictate is learned the same way a typed word is, so frequent dict
 
 - **Password and other secure fields** never get a mic. Tapping the voice tool in one shows a brief "You cannot use voice typing in a password field" toast and opens nothing. If you land in a password field with a view already open, the panel reads "Voice typing does not work in password fields." and the compact bar reads "Not available in password fields".
 - **No microphone permission** shows an explanation and an "Allow microphone" button. Tapping it opens a system permission prompt through a small trampoline screen (IMEs can't show permission dialogs directly), and the keyboard rechecks automatically once you're back. The bars have room for one line, so they say "The app needs microphone permission" with an **Allow** chip.
-- **No speech recognizer on the device** (rare, typically no Google app installed) shows "Speech recognition is not available on your device." in the panel, or "Speech recognition is not available" on either bar.
+- **No speech recognizer on the device** (a phone without Google services, such as a recent Huawei) means the system engine can't run. The panel says so, with a **Choose a voice engine** button that opens Voice typing settings, where an engine that runs on the keyboard itself, such as Whisper, works without any recognizer. Either bar reads "Speech recognition is not available".
 
 ### Opening on voice typing
 
