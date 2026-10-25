@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import com.wasimaster.wmkeyboard.app.assistant.SettingsAssistantGate
+import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MAX
+import com.wasimaster.wmkeyboard.core.settings.AI_STRIP_SUGGEST_CHARS_MIN
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Refresh
@@ -301,6 +303,47 @@ internal fun AiToolSettings(
                 settings.watch { it.ai.diffOpensFirst },
                 default = SettingsDefaults.ai.diffOpensFirst,
             ) { scope.launch { repository.setAiDiffOpensFirst(it) } }
+        }
+    }
+    // The continuation chip in the suggestion strip (#944). The one AI feature
+    // that sends text without a press, so the row says what goes and where.
+    val stripSuggest = settings.watch { it.ai.stripSuggest }
+    val stripWordOnly = settings.watch { it.ai.stripSuggestWordOnly }
+    val stripChars = settings.watch { it.ai.stripSuggestChars }
+    SettingsGroup(
+        stringResource(R.string.toolai_strip_suggest_group_title),
+        info = stringResource(R.string.toolai_strip_suggest_info),
+    ) {
+        item {
+            ToggleSetting(
+                R.string.toolai_strip_suggest_title,
+                when {
+                    aiProvider == AiProvider.ON_DEVICE ->
+                        stringResource(R.string.toolai_strip_suggest_subtitle_on_device)
+                    stripWordOnly -> stringResource(R.string.toolai_strip_suggest_subtitle_word)
+                    else -> stringResource(R.string.toolai_strip_suggest_subtitle_cloud, numberFormat.format(stripChars))
+                },
+                stripSuggest,
+                default = SettingsDefaults.ai.stripSuggest,
+            ) { scope.launch { repository.setAiStripSuggest(it) } }
+        }
+        item(visible = stripSuggest) {
+            ToggleSetting(
+                R.string.toolai_strip_suggest_word_only_title,
+                stringResource(R.string.toolai_strip_suggest_word_only_subtitle),
+                stripWordOnly,
+                default = SettingsDefaults.ai.stripSuggestWordOnly,
+            ) { scope.launch { repository.setAiStripSuggestWordOnly(it) } }
+        }
+        item(visible = stripSuggest && !stripWordOnly) {
+            SliderSetting(
+                R.string.toolai_strip_suggest_chars_title,
+                subtitle = stringResource(R.string.toolai_strip_suggest_chars_subtitle),
+                value = stripChars.toFloat(),
+                range = AI_STRIP_SUGGEST_CHARS_MIN.toFloat()..AI_STRIP_SUGGEST_CHARS_MAX.toFloat(),
+                display = { numberFormat.format((it / 10f).roundToInt() * 10) },
+                default = SettingsDefaults.ai.stripSuggestChars.toFloat(),
+            ) { scope.launch { repository.setAiStripSuggestChars((it / 10f).roundToInt() * 10) } }
         }
     }
     SettingsGroup(

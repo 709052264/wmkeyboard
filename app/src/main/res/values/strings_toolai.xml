@@ -165,6 +165,19 @@
     <string name="toolai_ai_diff_first_title">Open a result on the changes</string>
     <string name="toolai_ai_diff_first_subtitle">The panel starts on the changes instead of the plain result</string>
 
+    <!-- The AI continuation chip in the suggestion strip (#944). -->
+    <string name="toolai_strip_suggest_group_title">Suggestion strip</string>
+    <string name="toolai_strip_suggest_title">AI suggestions</string>
+    <!-- %1$s is a number of characters. -->
+    <string name="toolai_strip_suggest_subtitle_cloud">Suggests how to continue your text, beside the word suggestions. When you pause after a word, the app sends the last %1$s characters before the cursor to the selected provider.</string>
+    <string name="toolai_strip_suggest_subtitle_word">Suggests how to continue your text, beside the word suggestions. When you pause after a word, the app sends only that word to the selected provider.</string>
+    <string name="toolai_strip_suggest_subtitle_on_device">Suggests how to continue your text, beside the word suggestions. The on-device model makes the suggestion, so your text stays on your device.</string>
+    <string name="toolai_strip_suggest_info">The app never asks in a password field, in a field that turns off suggestions, or in incognito. Each pause after a word is one request, and a new key press cancels it. Tap the suggestion to insert it. Hold it to hide AI suggestions until you go to a different field.</string>
+    <string name="toolai_strip_suggest_word_only_title">Send only the last word</string>
+    <string name="toolai_strip_suggest_word_only_subtitle">Sends less of your text. The suggestions are less accurate.</string>
+    <string name="toolai_strip_suggest_chars_title">Text to send</string>
+    <string name="toolai_strip_suggest_chars_subtitle">How many characters before the cursor each request sends</string>
+
     <!--
       Tool calling (#470): letting the model search the web, or read one page,
       before it answers.

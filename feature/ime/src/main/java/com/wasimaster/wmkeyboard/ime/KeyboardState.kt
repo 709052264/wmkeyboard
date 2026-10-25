@@ -3486,6 +3486,12 @@ data class KeyboardUiState(
      * chip over the suggestion strip.
      */
     val smart: SmartSuggest.SmartHit? = null,
+    /**
+     * A continuation of the text before the cursor from the AI provider (#944),
+     * offered as a marked chip beside the word candidates. Null with the
+     * setting off, in a field it may not read, or while nothing came back.
+     */
+    val aiSuggest: String? = null,
     /** Stickers of the user's own that the text before the cursor asks for (#329). */
     val stickerOffer: StickerOffer? = null,
     /** Input a chip loaded into the tool it is about to open; consumed once. */

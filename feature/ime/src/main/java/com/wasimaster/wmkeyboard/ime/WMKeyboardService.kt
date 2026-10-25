@@ -558,6 +558,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.AiContinuation
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiReplyParse
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
@@ -2091,6 +2092,18 @@ open class WMKeyboardService : InputMethodService() {
     private var lastShiftTapTime = 0L
     private var suggestionJob: Job? = null
     private var smartJob: Job? = null
+
+    /** The AI continuation's pause and request (#944); any keystroke cancels it. */
+    private var aiSuggestJob: Job? = null
+
+    /** Bumped by every keystroke, so an answer to older text is dropped. */
+    private var aiSuggestSeq = 0
+
+    /** A request on the phone's own model is running; it cannot be cut short. */
+    private val aiSuggestOnDeviceBusy = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    /** The AI chip was held down: not offered again in this field. */
+    private var aiSuggestSuppressed = false
 
     /**
      * Re-reads the context once a spacebar caret scrub stops moving.
@@ -7203,6 +7216,7 @@ open class WMKeyboardService : InputMethodService() {
         // refreshSuggestions return before they ever cancel.
         suggestionJob?.cancel()
         smartJob?.cancel()
+        clearAiSuggest()
         gestureJob?.cancel()
         commitResolution = null
         // `restarting` is the same field reporting itself again — a programmatic
@@ -7268,6 +7282,7 @@ open class WMKeyboardService : InputMethodService() {
             intentChipsRetired.clear()
             contactChipsRetired.clear()
             repeatChipsRetired.clear()
+            aiSuggestSuppressed = false
         }
         if (!restarting) {
             // Same for the vocabulary nudges — unless the cooldown is a day,
@@ -8585,6 +8600,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // A continuation asked for in the closing field has nowhere to go.
+        clearAiSuggest()
         // Keys held for a two-thumb read were meant for the field now closing.
         keysBehindDuet.clear()
         // No finger outlives the window it was on (#743).
@@ -21370,6 +21387,8 @@ open class WMKeyboardService : InputMethodService() {
         // Every path that re-reads the text for a chip re-reads it for the
         // stickers too; they have their own gate, below.
         refreshStickerOffer()
+        // And for the AI continuation, which waits for the typing to rest.
+        scheduleAiSuggest()
         val state = _uiState.value
         val enabled = state.settings.smartSuggestions &&
             !state.secureField && !state.fieldNoSuggestions &&
@@ -21462,6 +21481,158 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+    }
+
+    /** Drops the AI chip and whatever request was on its way to it. */
+    private fun clearAiSuggest() {
+        aiSuggestSeq++
+        aiSuggestJob?.cancel()
+        aiSuggestJob = null
+        if (_uiState.value.aiSuggest != null) _uiState.update { it.copy(aiSuggest = null) }
+    }
+
+    /** The gate for the AI continuation, read from [state] as it is now. */
+    private fun aiSuggestField(state: KeyboardUiState): AiContinuation.Field =
+        AiContinuation.Field(
+            enabled = state.settings.ai.stripSuggest,
+            providerConfigured = aiSuggestProviderReady(state.settings),
+            secureField = state.secureField,
+            noSuggestions = state.fieldNoSuggestions,
+            incognito = state.incognitoOn,
+            suppressed = aiSuggestSuppressed,
+        )
+
+    /**
+     * Whether the AI tool's provider can answer a continuation without asking
+     * anything: set up, and for a server, not held back by data saving. A
+     * phone model has to be downloaded and in this build.
+     */
+    private fun aiSuggestProviderReady(settings: KeyboardSettings): Boolean {
+        if (!AiClient.isConfigured(settings.ai)) return false
+        if (settings.ai.provider == AiProvider.ON_DEVICE) {
+            return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings) != null
+        }
+        return dataSaverStatus.decide(MeteredFeature.CLOUD_AI) == MeteredDecision.ALLOWED
+    }
+
+    /**
+     * Restarts the AI continuation's wait (#944). Every keystroke and caret
+     * move lands here: the chip shown for the old text goes, the request in
+     * flight for it is abandoned, and a new one is asked for only once a word
+     * has ended and the typing has rested for [AiContinuation.IDLE_MS].
+     */
+    private fun scheduleAiSuggest() {
+        clearAiSuggest()
+        val state = _uiState.value
+        if (!AiContinuation.allowed(aiSuggestField(state)) ||
+            state.panel != PanelMode.NONE || state.composer.isConversion
+        ) {
+            return
+        }
+        val ic = currentInputConnection ?: return
+        val seq = aiSuggestSeq
+        aiSuggestJob = serviceScope.launch {
+            delay(AiContinuation.IDLE_MS)
+            // Re-read after the pause: a panel, a password field or incognito
+            // can have arrived without a keystroke to cancel this.
+            val still = _uiState.value
+            if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(still)) ||
+                still.panel != PanelMode.NONE || still.composer.isConversion
+            ) {
+                return@launch
+            }
+            val settings = still.settings
+            val before = withContext(Dispatchers.Default) {
+                ic.getTextBeforeCursor(settings.ai.stripSuggestChars + AiContinuation.READ_SLACK, 0)?.toString()
+            } ?: return@launch
+            // A selection is not a place to continue from.
+            if (expectedSelStart != expectedSelEnd) return@launch
+            if (!AiContinuation.atWordBoundary(before)) return@launch
+            val context = AiContinuation.context(
+                before, settings.ai.stripSuggestChars, settings.ai.stripSuggestWordOnly,
+            ) ?: return@launch
+            val answer = withContext(Dispatchers.IO) {
+                runCatching { requestAiContinuation(context, settings, seq) }.getOrNull()
+            } ?: return@launch
+            if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(_uiState.value))) return@launch
+            _uiState.update { it.copy(aiSuggest = answer) }
+        }
+    }
+
+    /**
+     * One continuation of [context], or null when none arrived in
+     * [AiContinuation.TIMEOUT_MS], the text moved on, or
+     * [AiContinuation.accept] turned the answer down. Blocking; call off the
+     * main thread.
+     */
+    private fun requestAiContinuation(context: String, settings: KeyboardSettings, seq: Int): String? {
+        val deadline = SystemClock.uptimeMillis() + AiContinuation.TIMEOUT_MS
+        val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
+        val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
+            // The phone's model cannot be stopped part way, so one request at
+            // a time, and never beside a run the AI panel started.
+            if (aiJob?.isActive == true) return null
+            if (!aiSuggestOnDeviceBusy.compareAndSet(false, true)) return null
+            try {
+                val modelFile = effectiveLocalModelFile(settings) ?: return null
+                LocalLlmEngine.generate(
+                    context = applicationContext,
+                    modelFile = modelFile,
+                    backend = settings.ai.localBackend,
+                    contextTokens = settings.ai.localContextTokens,
+                    system = AiContinuation.prompt(),
+                    user = context,
+                )
+            } finally {
+                aiSuggestOnDeviceBusy.set(false)
+            }
+        } else {
+            AiClient.completeStreaming(
+                config = AiClient.config(settings.ai),
+                system = AiContinuation.prompt(),
+                user = context,
+                maxTokens = AiContinuation.MAX_TOKENS,
+                onPhase = {},
+                onPartial = {},
+                isActive = alive,
+            ).text
+        }
+        // A request stopped by [alive] hands back what it had so far, which
+        // is a continuation cut short, or one for text that is gone.
+        if (!alive()) return null
+        return AiContinuation.accept(AiThinking.stripped(answer), context)
+    }
+
+    /** The AI chip was tapped: its continuation goes in after the caret's text. */
+    fun onAiSuggestTapped() {
+        val continuation = _uiState.value.aiSuggest ?: return
+        clearAiSuggest()
+        stopVoiceForManualInput()
+        vibrate()
+        val ic = currentInputConnection ?: return
+        ic.beginBatchEdit()
+        commitComposing(ic, autocorrect = false)
+        val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
+        ic.commitText(AiContinuation.insertion(before, continuation), 1)
+        ic.endBatchEdit()
+        revision = null
+        composing = StringBuilder()
+        lastGestureWord = null
+        _uiState.update {
+            it.copy(
+                composingPreview = "",
+                suggestions = emptyList(), emojiSuggestions = emptyList(),
+                octopus = emptyMap(),
+            )
+        }
+        refreshSuggestions()
+    }
+
+    /** The AI chip was held: gone, and not offered again in this field. */
+    fun onAiSuggestSuppressed() {
+        vibrate()
+        aiSuggestSuppressed = true
+        clearAiSuggest()
     }
 
     private fun smartContext(state: KeyboardUiState): SmartSuggest.Context =
@@ -40162,6 +40333,10 @@ open class WMKeyboardService : InputMethodService() {
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             send = sendTool.callbacks,
+            aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
+                onTap = ::onAiSuggestTapped,
+                onHold = ::onAiSuggestSuppressed,
+            ),
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,

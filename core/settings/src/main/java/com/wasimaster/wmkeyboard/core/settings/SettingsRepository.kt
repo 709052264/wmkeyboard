@@ -4651,6 +4651,10 @@ data class AiReplySettings(
     val catchScreenshots: Boolean = false,
 )
 
+/** The range of [AiSettings.stripSuggestChars]: a clause at least, never a document. */
+const val AI_STRIP_SUGGEST_CHARS_MIN = 40
+const val AI_STRIP_SUGGEST_CHARS_MAX = 500
+
 /**
  * AI-tool settings, grouped rather than flat because [KeyboardSettings] sits against
  * the JVM's 255-slot method-argument limit: Kotlin's generated `copy$default` takes
@@ -4832,6 +4836,18 @@ data class AiSettings(
      * on every run, which is why it is a number and not simply raised.
      */
     val beforeCursorChars: Int = 4_000,
+    /**
+     * A continuation from the AI provider in the suggestion strip (#944): one
+     * short line beside the local words, asked for after a word ends and the
+     * typing pauses. Off, and it stays off unless the user turns it on: unlike
+     * the panel's actions it sends text without a press, so it is the one AI
+     * feature that has to be asked for.
+     */
+    val stripSuggest: Boolean = false,
+    /** How much of the text before the cursor [stripSuggest] sends, in characters. */
+    val stripSuggestChars: Int = 120,
+    /** [stripSuggest] sends only the last word typed, not [stripSuggestChars] of text. */
+    val stripSuggestWordOnly: Boolean = false,
     /**
      * Let the model search the web when it needs to (#470).
      *
@@ -11194,6 +11210,9 @@ class SettingsRepository(private val context: Context) {
         private val AI_CHAT_AUTO_RENAME = booleanPreferencesKey("ai_chat_auto_rename")
         private val AI_DOWNLOAD_UNMETERED = booleanPreferencesKey("ai_download_unmetered_only")
         private val AI_BEFORE_CURSOR_CHARS = intPreferencesKey("ai_before_cursor_chars")
+        private val AI_STRIP_SUGGEST = booleanPreferencesKey("ai_strip_suggest")
+        private val AI_STRIP_SUGGEST_CHARS = intPreferencesKey("ai_strip_suggest_chars")
+        private val AI_STRIP_SUGGEST_WORD_ONLY = booleanPreferencesKey("ai_strip_suggest_word_only")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
@@ -13513,6 +13532,9 @@ class SettingsRepository(private val context: Context) {
             chatAutoRename = p[AI_CHAT_AUTO_RENAME] ?: defaults.ai.chatAutoRename,
             beforeCursorChars = p[AI_BEFORE_CURSOR_CHARS]
                 ?: defaults.ai.beforeCursorChars,
+            stripSuggest = p[AI_STRIP_SUGGEST] ?: defaults.ai.stripSuggest,
+            stripSuggestChars = p[AI_STRIP_SUGGEST_CHARS] ?: defaults.ai.stripSuggestChars,
+            stripSuggestWordOnly = p[AI_STRIP_SUGGEST_WORD_ONLY] ?: defaults.ai.stripSuggestWordOnly,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
@@ -18219,6 +18241,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiBeforeCursorChars(value: Int) =
         editPrefs { it[AI_BEFORE_CURSOR_CHARS] = value.coerceIn(500, 32_000) }
+
+    suspend fun setAiStripSuggest(value: Boolean) = editPrefs { it[AI_STRIP_SUGGEST] = value }
+
+    suspend fun setAiStripSuggestChars(value: Int) =
+        editPrefs { it[AI_STRIP_SUGGEST_CHARS] = value.coerceIn(AI_STRIP_SUGGEST_CHARS_MIN, AI_STRIP_SUGGEST_CHARS_MAX) }
+
+    suspend fun setAiStripSuggestWordOnly(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_WORD_ONLY] = value }
 
     suspend fun setAiReplyCount(value: Int) =
         editPrefs { it[AI_REPLY_COUNT] = value.coerceIn(1, AiPrompts.MAX_REPLIES) }
