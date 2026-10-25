@@ -12335,11 +12335,13 @@ open class WMKeyboardService : InputMethodService() {
      * caret's offset and not every editor will give it. The text is the same
      * either way, the very same character included, a no-break space or a tab.
      * A line break is not a space here, for the reason [spacedAfterCaret] gives.
+     * [trustWeb] lets a web editor's text count, for a caller that knows it is
+     * real.
      */
-    private fun stepOverFollowingSpace(ic: InputConnection): Boolean {
-        if (isWebEditField()) return false
+    private fun stepOverFollowingSpace(ic: InputConnection, trustWeb: Boolean = false): Boolean {
+        if (!trustWeb && isWebEditField()) return false
         val next = ic.getTextAfterCursor(1, 0)
-        if (next == null || !spaceToStepOver(next)) return false
+        if (next == null || !spacedAfterCaret(next)) return false
         val gap = next.subSequence(0, 1).toString()
         mirrorTypedIntoRevision(ic, gap)
         ic.beginBatchEdit()
@@ -26996,6 +26998,9 @@ open class WMKeyboardService : InputMethodService() {
             val chosen = (verdict as? GlideVerdict.Word)?.word
             if (candidates.isEmpty() && chosen == null) return@launch
             val ic = currentInputConnection ?: return@launch
+            // A word swiped over a highlighted one replaces it where it stands,
+            // so what follows it is the field's own text (#955).
+            val overSelection = hasSelection(ic)
 
             // The tapped word this glide is finishing gets the same treatment
             // a space would have given it: without this a tapped "i" followed
@@ -27051,7 +27056,7 @@ open class WMKeyboardService : InputMethodService() {
             // could not win the race it was written for.
             lastGestureWord = word
             stripReplacesGestureWord = true
-            commitGestureSpace(ic, state)
+            commitGestureSpace(ic, state, overSelection)
             armRevertGuard()
             recordStat {
                 onGlideWord(
@@ -27396,13 +27401,19 @@ open class WMKeyboardService : InputMethodService() {
      * Arms [pendingWordSpace], which is what lets punctuation typed straight
      * afterwards take the space back and a space press be swallowed rather than
      * doubled.
+     *
+     * [replacedSelection] is a word swiped over a highlighted one. A web editor
+     * steps over nothing ([spaceToStepOver]) because its text after the caret
+     * may be a suggestion that is not there, but none shows while a word is
+     * highlighted, so the space after a replaced word is the field's own and
+     * is stepped over there too rather than doubled (#955).
      */
-    private fun commitGestureSpace(ic: InputConnection, state: KeyboardUiState) {
+    private fun commitGestureSpace(ic: InputConnection, state: KeyboardUiState, replacedSelection: Boolean = false) {
         if (!state.settings.gesture.autoSpaceAfterGlide) return
         // A word glided back into the middle of a sentence lands in front of
         // the space that was already there; the caret goes past it, ready for
         // the next word, the same as after a typed one (#662).
-        if (stepOverFollowingSpace(ic)) return
+        if (stepOverFollowingSpace(ic, trustWeb = replacedSelection)) return
         ic.commitText(" ", 1)
         pendingWordSpace = true
     }
