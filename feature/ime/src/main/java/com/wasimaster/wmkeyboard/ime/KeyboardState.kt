@@ -1185,6 +1185,12 @@ data class VoiceUi(
      */
     val secondsLeft: Int = 0,
     /**
+     * The [clipBased] recording has picked up speech (#921). A clip has no
+     * words to show until it is transcribed, so this is what tells the
+     * surfaces there is a phrase in hand for Undo to take back.
+     */
+    val clipHeard: Boolean = false,
+    /**
      * The keyboard-owned field this dictation types into (#353), as its
      * [KeyboardUiState.captureKey], or null when it types into the app's field.
      * Set by the microphone on that field's strip and kept until the field

@@ -90,6 +90,7 @@ import com.wasimaster.wmkeyboard.ime.VoiceModelState
 import com.wasimaster.wmkeyboard.ime.VoiceStatus
 import com.wasimaster.wmkeyboard.ime.VoiceUi
 import com.wasimaster.wmkeyboard.ime.clipBased
+import com.wasimaster.wmkeyboard.ime.undoReady
 import com.wasimaster.wmkeyboard.core.layout.Key
 import com.wasimaster.wmkeyboard.core.layout.KeyAction
 import kotlinx.coroutines.Job
@@ -102,18 +103,6 @@ import kotlinx.coroutines.launch
  */
 internal fun VoiceUi.transcribingLabelRes(): Int =
     if (tidying) R.string.ime_voice_status_tidying else R.string.ime_voice_status_transcribing
-
-/**
- * Whether the voice surfaces offer Undo: once a phrase has landed, and also
- * while one is being heard (#758), where it takes that phrase back and listens
- * again. Not in the moment a phrase is being finished, with its words on the
- * way and nothing yet to point at.
- */
-internal fun VoiceUi.undoReady(): Boolean = when (status) {
-    VoiceStatus.FINISHING -> false
-    VoiceStatus.LISTENING -> canUndo || partial.isNotEmpty()
-    else -> canUndo
-}
 
 /**
  * The punctuation column beside the panel's action rail (#758): the marks a
