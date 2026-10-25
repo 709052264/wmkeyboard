@@ -27295,7 +27295,7 @@ private fun Modifier.pointerInputKey(
      * inline preview at any ring length; it windows and scrolls itself.
      */
     pickerForLongRing: Boolean = true,
-    /** The stop after the layouts that a hold's preview adds; see [SwitcherExtraStop]. */
+    /** The stop after the layouts that the hold preview and the swipe add; see [SwitcherExtraStop]. */
     switcherExtraStop: SwitcherExtraStop = SwitcherExtraStop.NONE,
     /** Runs [switcherExtraStop]: a lift on it opens the language settings or the keyboard list. */
     openSwitcherExtraStop: () -> Unit = {},
@@ -27413,8 +27413,8 @@ private fun Modifier.pointerInputKey(
                     var padSettling = false
                     var langIndex = enabledLayoutIds.indexOf(currentLayoutId).coerceAtLeast(0)
                     // The stops the language swipe walks: the layouts, plus the
-                    // switcher's extra stop once a hold has put the preview up
-                    // (see [SwitcherExtraStop]). A plain swipe never gets it.
+                    // switcher's extra stop (see [SwitcherExtraStop]), added once
+                    // a hold puts the preview up or a swipe starts walking.
                     var ring = enabledLayoutIds
                     // With exactly two languages a swipe direction means "the
                     // other language", so a single run of travel toggles at most
@@ -27775,6 +27775,20 @@ private fun Modifier.pointerInputKey(
                                     break
                                 }
                                 if (action == SpaceSwipeAction.LANGUAGE) {
+                                    // A quick swipe reaches the extra stop too,
+                                    // not only a hold. It sits past the last
+                                    // language, and stepping on from there waits
+                                    // out the dwell below, so a flick still moves
+                                    // one language and only a swipe that keeps
+                                    // going lands on it.
+                                    if (switcherExtraStop != SwitcherExtraStop.NONE &&
+                                        SwitcherExtraStopId !in ring
+                                    ) {
+                                        ring = enabledLayoutIds + SwitcherExtraStopId
+                                        // Three stops now, as after a hold.
+                                        twoModes = false
+                                        setPreviewExtraStop(true)
+                                    }
                                     // The movement that crossed the slop already
                                     // counts: a quick flick switches one language.
                                     // At a list end the flick parks on the boundary

@@ -38,8 +38,8 @@
     <string name="langemoji_lang_carry_word_title">Carry the word over</string>
     <string name="langemoji_lang_carry_word_subtitle">Switch to a phonetic layout mid-word and the letters that you typed convert too</string>
     <string name="langemoji_lang_switcher_extra_title">Extra stop in the switcher</string>
-    <string name="langemoji_lang_switcher_extra_subtitle">After your languages, holding the spacebar can reach the language settings or your other keyboards</string>
-    <string name="langemoji_lang_switcher_extra_info">Hold the spacebar and the preview above it lists your languages. With this set, one more stop follows the last of them: a gear that opens this screen, or a keyboard that opens Android\'s list of keyboards. Drag onto it and lift to go there. Only a hold reaches it. A quick swipe on the spacebar still steps through your languages alone, so it never lands in settings by accident. The list and carousel pickers show the gear as a row of their own, next to Other keyboards.</string>
+    <string name="langemoji_lang_switcher_extra_subtitle">After your languages, holding or swiping the spacebar can reach the language settings or your other keyboards</string>
+    <string name="langemoji_lang_switcher_extra_info">Hold the spacebar and the preview above it lists your languages. With this set, one more stop follows the last of them: a gear that opens this screen, or a keyboard that opens Android\'s list of keyboards. Drag onto it and lift to go there. A swipe along the spacebar reaches it too. A quick flick still moves one language at a time, so only a swipe that keeps going past your last language lands on it. With two languages, the swipe then walks three stops in a line instead of toggling. The list and carousel pickers show the gear as a row of their own, next to Other keyboards.</string>
     <string name="langemoji_lang_switcher_extra_none_label">None</string>
     <string name="langemoji_lang_switcher_extra_settings_label">Language settings</string>
     <string name="langemoji_lang_switcher_extra_keyboards_label">Other keyboards</string>
