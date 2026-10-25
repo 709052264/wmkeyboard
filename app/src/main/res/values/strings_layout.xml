@@ -67,6 +67,9 @@
     <!-- Layout screen: the size and position group. -->
     <string name="layout_size_position_title">Size and position</string>
     <string name="layout_size_subtitle">Height, width, padding, and each screen shape</string>
+    <string name="layout_resize_drag_title">Resize by dragging</string>
+    <string name="layout_resize_drag_subtitle">Opens the keyboard with handles on its edges: drag the height, position and side margins in place</string>
+    <string name="layout_resize_drag_action">Resize</string>
     <string name="layout_key_height_title">Key height</string>
     <string name="layout_key_height_subtitle">The height of each key row, which sets the total keyboard height</string>
     <string name="layout_key_height_info">Tall keys are easier to press, but the keyboard covers more of the screen. The emoji, clipboard and snippet panels change size with this value too.</string>

@@ -1236,7 +1236,23 @@ internal fun LayoutSizeSettings(
     val shapeOverridden = settings.watch { s ->
         expandedVariant?.let { s.sizingOverrides[it] }?.let { !it.isEmpty } == true
     }
+    val preview = LocalKeyboardPreview.current
     SettingsGroup(stringResource(R.string.layout_size_position_title)) {
+        // The sliders below, dragged on the keyboard itself (#912): opens the
+        // test field and puts the keyboard that comes up into resize mode.
+        // Needs the test field, so not while its button is switched off.
+        item(visible = preview != null) {
+            ActionRow(
+                title = R.string.layout_resize_drag_title,
+                subtitle = stringResource(R.string.layout_resize_drag_subtitle),
+                action = stringResource(R.string.layout_resize_drag_action),
+            ) {
+                preview?.let {
+                    it.resizeOnShow = true
+                    it.open = true
+                }
+            }
+        }
         item {
             val pinned = themePinSubtitle(settings) { it.keyHeightDp }
             SliderSetting(

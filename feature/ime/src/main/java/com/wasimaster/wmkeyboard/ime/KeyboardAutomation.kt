@@ -75,6 +75,13 @@ object KeyboardAutomation {
 
         /** Type the snippet [name] names (its trigger, else its label); null when it went in, else why not. */
         fun typeSnippet(name: String): String?
+
+        /**
+         * Open resize mode, as the Resize tool does, unless it is open already.
+         * Not an automation action: the settings app's Resize by dragging row
+         * (#912) asks for it once its test field has the keyboard up.
+         */
+        fun startResize()
     }
 
     /** The running service, or null. Same contract as [KeyboardControls.host]. */

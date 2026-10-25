@@ -159,6 +159,7 @@ internal val SettingsSearchKeywords: Map<Int, Int> = buildMap {
     put(R.string.layout_floating_title, R.string.search_kw_layout_floating)
     put(R.string.layout_globe_emoji_title, R.string.search_kw_layout_globe_emoji)
     put(R.string.layout_key_height_title, R.string.search_kw_layout_key_height)
+    put(R.string.layout_resize_drag_title, R.string.search_kw_layout_resize_drag)
     put(R.string.layout_keyboard_scale_title, R.string.search_kw_layout_keyboard_scale)
     put(R.string.layout_hide_system_keyboard_bar_title, R.string.search_kw_layout_hide_system_keyboard_bar)
     put(R.string.layout_number_row_on_keypad_title, R.string.search_kw_layout_number_row_on_keypad)

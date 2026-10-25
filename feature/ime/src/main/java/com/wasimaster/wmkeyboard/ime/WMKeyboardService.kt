@@ -6393,6 +6393,10 @@ open class WMKeyboardService : InputMethodService() {
             onSnippetTapped(snippet)
             return null
         }
+
+        override fun startResize() {
+            if (!_uiState.value.resize) onResizeToggle()
+        }
     }
 
     /**

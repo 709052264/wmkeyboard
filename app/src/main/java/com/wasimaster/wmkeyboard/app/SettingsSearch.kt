@@ -1051,6 +1051,7 @@ private fun SearchStrings.layoutSizeRows(): List<SettingsSearchEntry> {
     return listOf(
         row(R.string.layout_number_row_title, R.string.layout_number_row_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_number_row_height_title, R.string.layout_number_row_height_subtitle),
+        row(R.string.layout_resize_drag_title, R.string.layout_resize_drag_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_key_height_title, R.string.layout_key_height_subtitle, weight = EntryWeight.PRIMARY),
         row(R.string.layout_bottom_row_height_title, R.string.layout_bottom_row_height_subtitle),
         row(R.string.layout_side_padding_left_title, R.string.layout_side_padding_left_subtitle),
