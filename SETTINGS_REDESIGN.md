@@ -214,11 +214,33 @@ Key press and its three, Appearance, Layout & size and its two, Emoji and
 the panel page, the Languages root, Clipboard, Voice and Privacy. Untagged
 rows are basic, so every other screen is unchanged at every depth.
 
-**Phase 1, one card per file:** tag the rest. Rows & bars, Accessibility,
-Backup, the tool pages (`ToolDetailScreens.kt`, 70 pages), the theme editor,
-Floating button, the AI pages, Dictionaries, Snippets, Modes. Each card also
-applies the audit's merges on its screen, and re-reads phase 0's tags on the
-way past: they were set from the row names and the audit, not from use.
+**Phase 1, one card per file:** tag the rest. Each card also applies the
+audit's merges on its screen, and re-reads phase 0's tags on the way past:
+they were set from the row names and the audit, not from use.
+
+- Done 2026-10-26, uncompiled: Rows & bars, the symbol row page, Modes and
+  the mode editor; Accessibility (the Settings app group left as it is);
+  Backup, automatic backup and sync; Data saver; the AI hub, the AI tool page
+  and the action editor; personal words, blocked words, copy rules and
+  learned corrections; Snippets and the snippet editor; Floating button; the
+  layout list, the layout editor's options and the key sheet (not the grid);
+  the theme gallery, app colours and the theme editor, its part sheets and
+  the rows inside its folds; Add-ons; Plugins and plugin details; About;
+  Notifications; Selection actions; Photo rotation; the per-language page
+  with its CJK, pinyin, phonetic-strip and Khipro groups; Kaomoji; Emoji
+  mixes; Permissions. About 650 row declarations: 245 basic, 236 standard,
+  173 advanced, counting a row inside a tagged group at the group's level
+  and a row drawn in a loop once.
+- Left untagged on purpose: the AI chat screens (a chat, not settings
+  rows), the selection action list and its sub-lists, the add-on detail and
+  preview pages (information, not choices), the layout grid, and every keyed
+  list row.
+- Still to do: the tool pages (`ToolDetailScreens.kt`, 70 pages, its own
+  card), and the screens outside both lists, such as semantic search, backup
+  locations and the Espanso hub address group. None of the audit's merges is
+  applied yet; the rows they name are tagged where they stand (Drags edit the
+  active mode, Share GitHub link, the Dictionaries word-list row and Start
+  from the saved prompt sit at advanced until merged or removed).
 
 **Phase 2:** Extensions.
 

@@ -983,7 +983,7 @@ internal fun KeyLayoutsScreen(
                 },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.layout_editor_foreign_title),
                 subtitle = stringResource(R.string.layout_editor_foreign_subtitle),
@@ -991,7 +991,7 @@ internal fun KeyLayoutsScreen(
                 onClick = { foreignLauncher.launch(FOREIGN_LAYOUT_MIME_TYPES) },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             WmRow(
                 title = stringResource(R.string.layout_editor_im_title),
                 subtitle = stringResource(R.string.layout_editor_im_subtitle),
@@ -2931,7 +2931,7 @@ internal fun KeyLayoutEditorScreen(
             )
         }
         SettingsGroup {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.layout_editor_bottom_row_laid_out_title,
                     stringResource(
@@ -2947,7 +2947,7 @@ internal fun KeyLayoutEditorScreen(
                     if (on) edit { laidOutAsDrawn(it) } else edit { notLaidOut(it) }
                 }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 WmRow(
                     title = stringResource(R.string.layout_bottom_row_keys_title),
                     subtitle = stringResource(R.string.layout_editor_bottom_row_settings_subtitle),
@@ -3090,14 +3090,14 @@ internal fun KeyLayoutEditorScreen(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_editor_show_shift_title,
                 stringResource(R.string.layout_editor_show_shift_subtitle),
                 showShift,
             ) { showShift = it }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.layout_editor_actual_size_title,
                 stringResource(R.string.layout_editor_actual_size_subtitle),
@@ -3110,7 +3110,7 @@ internal fun KeyLayoutEditorScreen(
         // keyboard lands anyway. The subtitle carries the warning the issue
         // asked for, and the Problems list repeats it while the flag is on.
         // `edit`, not coalesced: one deliberate flip is one undo step.
-        item(visible = layer != LayoutLayer.LETTERS || secondary) {
+        item(visible = layer != LayoutLayer.LETTERS || secondary, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.layout_editor_persist_title,
                 stringResource(R.string.layout_editor_persist_subtitle),
@@ -3120,7 +3120,7 @@ internal fun KeyLayoutEditorScreen(
         }
         // Issue #588: this layer's flick arms, over the keyboard-wide switch.
         // Only on a layer that has flick keys to draw them on.
-        item(visible = layerHasFlicks) {
+        item(visible = layerHasFlicks, level = SettingLevel.ADVANCED) {
             val global = settings.watch { it.layoutBehavior.flickHints }
             ToggleSetting(
                 R.string.layout_editor_flick_hints_title,
@@ -3133,7 +3133,7 @@ internal fun KeyLayoutEditorScreen(
         // Not on a secondary layout, whose one grid is the layout. A theme of
         // the user's own opens in the theme editor from here (issue #769): the
         // row named a theme and gave no way to change it.
-        item(visible = !secondary) {
+        item(visible = !secondary, level = SettingLevel.ADVANCED) {
             val layerThemeId = edited.watch { it.layer(layer)?.themeId }
             val editable = layerThemeId != null && settings.watch { s ->
                 s.customThemes.flattenedThemes().any { it.id == layerThemeId }
@@ -3160,7 +3160,7 @@ internal fun KeyLayoutEditorScreen(
                 onClick = { layerThemePickerOpen = true },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Layer-scoped: the layout-wide size further down reaches every
             // layer, so a symbol page whose keys are punctuation had no way to
             // stay put while the letters grew. Null here follows the layout's,
@@ -3187,7 +3187,7 @@ internal fun KeyLayoutEditorScreen(
         // carry is also the export and the backup the issue asked for. What it
         // holds is the same JSON the raw editor prints, wrapped in the tag that
         // lets Paste tell a layer from a shopping list.
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.layout_editor_copy_layer_title),
                 subtitle = stringResource(R.string.layout_editor_copy_layer_subtitle, layerName),
@@ -3215,7 +3215,7 @@ internal fun KeyLayoutEditorScreen(
                 },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.layout_editor_paste_layer_title),
                 subtitle = stringResource(R.string.layout_editor_paste_layer_subtitle, layerName),
@@ -3296,7 +3296,7 @@ internal fun KeyLayoutEditorScreen(
                 onClick = { renaming = true },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // Issue #61: a theme of the layout's own, the same override a
             // keyboard mode carries and the same picker, customs included.
             val themeId = edited.watch { it.themeId }
@@ -3337,7 +3337,7 @@ internal fun KeyLayoutEditorScreen(
                 onClick = { languagePickerOpen = true },
             )
         }
-        item(visible = !secondary) {
+        item(visible = !secondary, level = SettingLevel.ADVANCED) {
             // Null is "whatever this script normally uses", which is the right
             // answer for almost every layout; the override exists because a
             // phonetic and a direct grid for the same language differ only here.
@@ -3352,7 +3352,7 @@ internal fun KeyLayoutEditorScreen(
                 detail = { type -> ChoiceDetail(stringResource(composerDescRes(type))) },
             ) { chosen -> edit { it.copy(composer = chosen) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // Layout-wide, like the tablet row and the JSON row below it. The
             // font and the size are what issue #18 asked for: a grid whose keys
             // are labelled with words, or drawn in a script the global font does
@@ -3369,7 +3369,7 @@ internal fun KeyLayoutEditorScreen(
                 onClick = { fontPickerOpen = true },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val fontScale = edited.watch { it.appearance?.fontScale }
             LayoutFontScaleRow(
                 scale = fontScale,
@@ -3384,7 +3384,7 @@ internal fun KeyLayoutEditorScreen(
                 onChange = { value -> editCoalesced { it.withAppearance(fontScale = value) } },
             )
         }
-        if (!secondary) item {
+        if (!secondary) item(level = SettingLevel.ADVANCED) {
             // `edit`, not `editCoalesced`, because one deliberate flip deserves
             // one undo step.
             //
@@ -3408,7 +3408,7 @@ internal fun KeyLayoutEditorScreen(
                 edited.watch { it.tabletExpand },
             ) { on -> edit { it.copy(tabletExpand = on) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.layout_editor_json_title,
                 subtitle = stringResource(R.string.layout_editor_json_subtitle),
@@ -5511,7 +5511,7 @@ internal fun KeyEditSheet(
                 enabled = !key.isAmbiguous(),
             ) { text -> onChange { it.copy(output = text.ifBlank { null }) } }
         }
-        if (!isField && key.action == KeyAction.Text) item {
+        if (!isField && key.action == KeyAction.Text) item(level = SettingLevel.STANDARD) {
             LettersField(
                 key = key,
                 ref = ref,
@@ -5522,7 +5522,7 @@ internal fun KeyEditSheet(
                 onAlternatesChanged = { alternates = it.joinToString(" ") },
             )
         }
-        if (!isField) item {
+        if (!isField) item(level = SettingLevel.STANDARD) {
             SheetField(
                 label = stringResource(R.string.layout_editor_key_shift_label_label),
                 value = key.shiftLabel.orEmpty(),
@@ -5643,7 +5643,7 @@ internal fun KeyEditSheet(
         // alternates on purpose — it is what takes them away, so it has to be
         // readable from where they were.
         if (key.canRepeatOnHold()) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.layout_editor_repeat_hold_title,
                     stringResource(R.string.layout_editor_repeat_hold_subtitle),
@@ -5656,14 +5656,14 @@ internal fun KeyEditSheet(
             // where they went rather than leaving a key that quietly stopped
             // opening its popup.
             if (key.repeatOnHold && (key.longPress.isNotEmpty() || key.actionAlternates.isNotEmpty())) {
-                item { CaptionText(stringResource(R.string.layout_editor_repeat_hold_alternates_notice)) }
+                item(level = SettingLevel.STANDARD) { CaptionText(stringResource(R.string.layout_editor_repeat_hold_alternates_notice)) }
             }
         }
         // One action the hold runs outright, with no popup: the "direct"
         // version of the action alternates below. Above them for the reason the
         // repeat switch is: setting it is what takes them away.
         if (key.canHoldAction()) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ActionAlternatesRows(
                     alternates = listOfNotNull(key.holdAction),
                     secondaryLayouts = secondaryLayouts,
@@ -5675,7 +5675,7 @@ internal fun KeyEditSheet(
                 ) { picked -> onChange { it.copy(holdAction = picked.firstOrNull()) } }
             }
             if (key.holdAction != null && (key.longPress.isNotEmpty() || key.actionAlternates.isNotEmpty())) {
-                item { CaptionText(stringResource(R.string.layout_editor_hold_action_alternates_notice)) }
+                item(level = SettingLevel.STANDARD) { CaptionText(stringResource(R.string.layout_editor_hold_action_alternates_notice)) }
             }
         }
         // Not only text keys: every key whose press and hold is free can carry
@@ -5700,7 +5700,7 @@ internal fun KeyEditSheet(
                     onChange { it.copy(longPress = parseAlternates(text)) }
                 }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ActionAlternatesRows(
                     alternates = key.actionAlternates,
                     secondaryLayouts = secondaryLayouts,
@@ -5713,10 +5713,10 @@ internal fun KeyEditSheet(
             // Issue #570: where the actions sit among the characters. Only
             // where there are both, since that is all it orders.
             if (key.longPress.isNotEmpty() && key.actionAlternates.isNotEmpty()) {
-                item { ActionPositionRow(key) { at -> onChange { it.copy(actionAlternatesAt = at) } } }
+                item(level = SettingLevel.ADVANCED) { ActionPositionRow(key) { at -> onChange { it.copy(actionAlternatesAt = at) } } }
             }
             if (key.opensAlternatesPopup()) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     AlternateColumnsRow(key.alternateColumns) { columns ->
                         onChange { it.copy(alternateColumns = columns) }
                     }
@@ -5740,7 +5740,7 @@ internal fun KeyEditSheet(
         }
         // The corner hint: its own text, its icon, and whether it is drawn.
         if (!isField) {
-            if (key.action == KeyAction.Text || key.hint != null) item {
+            if (key.action == KeyAction.Text || key.hint != null) item(level = SettingLevel.STANDARD) {
                 SheetField(
                     label = stringResource(R.string.layout_editor_key_hint_text_label),
                     value = key.hint.orEmpty(),
@@ -5750,12 +5750,12 @@ internal fun KeyEditSheet(
                     resetKey = ref,
                 ) { text -> onChange { it.copy(hint = text.ifBlank { null }) } }
             }
-            if (key.action == KeyAction.Text || key.iconHint != null) item {
+            if (key.action == KeyAction.Text || key.iconHint != null) item(level = SettingLevel.ADVANCED) {
                 IconPickRow(R.string.layout_editor_icon_hint_field_label, key.iconHint) { pickingIcon = true }
             }
             val hintable = key.hideHint || key.forceHint || key.iconHint != null || key.hint != null ||
                 (key.opensAlternatesPopup() && key.longPress.isNotEmpty())
-            if (hintable) item { HintRow(key, onChange) }
+            if (hintable) item(level = SettingLevel.STANDARD) { HintRow(key, onChange) }
         }
     }
 
@@ -5769,6 +5769,8 @@ internal fun KeyEditSheet(
         SettingsGroup(
             stringResource(R.string.layout_editor_key_section_flicks),
             foldKey = if (hadFlicks) null else "key_flicks",
+            // A key that already flicks shows them at any depth.
+            level = if (hadFlicks) SettingLevel.BASIC else SettingLevel.STANDARD,
         ) {
             item { FlickFields(key, ref, secondaryLayouts, keyboardModes, onChange) }
         }
@@ -5783,13 +5785,13 @@ internal fun KeyEditSheet(
                 resetKey = ref,
             ) { width -> onChange { it.copy(width = width) } }
         }
-        if (rowCount - ref.row - 1 > 0 || key.rowSpan > 1) item {
+        if (rowCount - ref.row - 1 > 0 || key.rowSpan > 1) item(level = SettingLevel.STANDARD) {
             KeyRowSpanRow(
                 span = key.rowSpan,
                 rowsBelow = rowCount - ref.row - 1,
             ) { span -> onChange { it.copy(rowSpan = span) } }
         }
-        if (!isField && drawsScalableLabel(key)) item {
+        if (!isField && drawsScalableLabel(key)) item(level = SettingLevel.STANDARD) {
             KeyLabelScaleRow(key) { scale -> onChange { it.copy(labelScale = scale) } }
         }
         // Every key but a component's cell can wear an icon (issue #187). The
@@ -5798,7 +5800,7 @@ internal fun KeyEditSheet(
         // icons and says what each is called.
         if (!isField) {
             item { IconPickRow(R.string.layout_editor_icon_field_label, key.icon) { pickingIcon = false } }
-            if (key.action == KeyAction.Space && KeyIcons.byName(key.icon) != null) item {
+            if (key.action == KeyAction.Space && KeyIcons.byName(key.icon) != null) item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.layout_editor_icon_beside_label_title,
                     stringResource(R.string.layout_editor_icon_beside_label_subtitle),
@@ -5812,7 +5814,7 @@ internal fun KeyEditSheet(
     // and the kana pad's stand-in switch.
     val kanaRow = !isField && key.action != KeyAction.KanaVariant && (kanaPad || key.kanaVariantWhileComposing)
     if (key.action == KeyAction.Text || kanaRow) {
-        SettingsGroup(stringResource(R.string.layout_editor_key_section_more), foldKey = "key_more") {
+        SettingsGroup(stringResource(R.string.layout_editor_key_section_more), foldKey = "key_more", level = SettingLevel.ADVANCED) {
             if (key.action == KeyAction.Text) item {
                 RoleRow(key.role) { role -> onChange { it.copy(role = role) } }
             }
@@ -6131,9 +6133,9 @@ private fun MultiKeySection(
             }
         }
         keys.firstOrNull(::drawsScalableLabel)?.let { sample ->
-            item { KeyLabelScaleRow(sample) { scale -> onChange { it.copy(labelScale = scale) } } }
+            item(level = SettingLevel.STANDARD) { KeyLabelScaleRow(sample) { scale -> onChange { it.copy(labelScale = scale) } } }
         }
-        item { HintRow(first, onChange, always = true) }
+        item(level = SettingLevel.STANDARD) { HintRow(first, onChange, always = true) }
     }
 }
 

@@ -260,7 +260,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     }
     Spacer(Modifier.height(12.dp))
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.backup_android_import_title),
                 subtitle = stringResource(R.string.backup_android_import_subtitle),
@@ -268,7 +268,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 onClick = { openAndroidPicker(export = false) },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.backup_android_export_title),
                 subtitle = stringResource(R.string.backup_android_export_subtitle),
@@ -276,7 +276,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 onClick = { openAndroidPicker(export = true) },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             WmRow(
                 title = stringResource(R.string.backup_gboard_import_title),
                 subtitle = stringResource(R.string.backup_gboard_import_subtitle),
@@ -477,7 +477,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // Rank adjustments (#99) live under the words: few, and undone one at a
     // time — there is nothing to edit but "no longer".
     if (rankEntries.isNotEmpty()) {
-        SettingsGroup(title = stringResource(R.string.backup_rank_adjustments_title)) {
+        SettingsGroup(title = stringResource(R.string.backup_rank_adjustments_title), level = SettingLevel.ADVANCED) {
             for ((word, steps) in rankEntries) {
                 item(key = word) {
                     WmRow(
@@ -970,7 +970,7 @@ internal fun BlacklistSettings(repository: SettingsRepository, settings: LiveSet
 
     RegisterAddFab(stringResource(R.string.backup_add_word_action)) { showAdd = true }
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.backup_blacklist_scope_title,
                 subtitle = stringResource(R.string.backup_blacklist_scope_subtitle),
@@ -1314,7 +1314,7 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
 
     RegisterAddFab(stringResource(R.string.copy_rules_add_action)) { editing = -1 }
     SettingsGroup {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clipboard_copy_rules_system_title,
                 stringResource(R.string.clipboard_copy_rules_system_subtitle),
@@ -1323,7 +1323,7 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                 default = SettingsDefaults.clipboard.copyRulesToSystem,
             ) { scope.launch { repository.setClipboardCopyRulesToSystem(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.clipboard_plain_letters_title,
                 stringResource(R.string.clipboard_plain_letters_subtitle),
@@ -1343,7 +1343,7 @@ internal fun CopyRuleSettings(repository: SettingsRepository, settings: LiveSett
                 default = SettingsDefaults.clipboard.cleanCopiedLinks,
             ) { scope.launch { repository.setClipboardCleanCopiedLinks(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             WmRow(
                 title = stringResource(R.string.clipboard_extra_trackers_title),
                 subtitle = extraTrackers.joinToString(", ").ifEmpty {
@@ -1682,6 +1682,7 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
         SettingsGroup(
             stringResource(R.string.typing_habits_title),
             info = stringResource(R.string.typing_habits_info),
+            level = SettingLevel.STANDARD,
         ) {
             for (habit in habits.take(HABITS_SHOWN)) {
                 item {

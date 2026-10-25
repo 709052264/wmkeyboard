@@ -1401,6 +1401,7 @@ fun ThemesScreen(
         stringResource(R.string.theme_auto_section_title),
         info = listOfNotNull(stringResource(R.string.theme_auto_section_body), triggerNote)
             .joinToString("\n\n"),
+        level = SettingLevel.STANDARD,
     ) {
         item {
             ToggleSetting(
@@ -1423,7 +1424,7 @@ fun ThemesScreen(
                     value = autoSlotSummary(settings, darkSlot = true),
                 ) { pickerForLight = false }
             }
-            item(visible = shuffles) {
+            item(visible = shuffles, level = SettingLevel.ADVANCED) {
                 ChoiceSetting(
                     title = R.string.theme_shuffle_interval_title,
                     subtitle = stringResource(R.string.theme_shuffle_interval_subtitle),
@@ -1905,7 +1906,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 default = SettingsDefaults.appColors.enabled,
             ) { scope.launch { repository.setAppColorsEnabled(it) } }
         }
-        item(visible = on) {
+        item(visible = on, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.theme_app_colors_scope_title,
                 options = AppColorScope.entries.map { it to stringResource(appColorScopeLabelRes(it)) },
@@ -1914,7 +1915,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 detail = { ChoiceDetail(stringResource(appColorScopeDescRes(it))) },
             ) { value -> scope.launch { repository.setAppColorsScope(value) } }
         }
-        item(visible = on) {
+        item(visible = on, level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.theme_app_colors_source_title,
                 options = AppColorSource.entries.map { it to stringResource(appColorSourceLabelRes(it)) },
@@ -1923,7 +1924,7 @@ private fun AppColorsGroup(repository: SettingsRepository, settings: LiveSetting
                 detail = { ChoiceDetail(stringResource(appColorSourceDescRes(it))) },
             ) { value -> scope.launch { repository.setAppColorsSource(value) } }
         }
-        item(visible = on) {
+        item(visible = on, level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.theme_app_colors_style_title,
                 subtitle = stringResource(R.string.theme_app_colors_style_subtitle),
@@ -2922,7 +2923,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(toolbarBackground = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     val toolShape = look.watchWith { s, t -> keyShapeKindOrNull(t.toolShape) ?: s.toolShape }
                     WmRow(
                         title = stringResource(R.string.theme_tool_shape_title),
@@ -2948,7 +2949,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(toolbarIcon = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     NullableColorRow(
                         R.string.theme_tool_circles_title,
                         look.watch { it.toolCircleBackground }, fallback = look.watch { it.effectiveToolCircle() },
@@ -2956,7 +2957,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(toolCircleBackground = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     NullableColorRow(
                         R.string.theme_tool_circle_active_title,
                         look.watch { it.toolCircleActiveBackground }, fallback = look.watch { it.effectivePressed() },
@@ -2964,7 +2965,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(toolCircleActiveBackground = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     // The glyph on an active tool. Its own row rather than a shade of
                     // the fill: a FlorisBoard sheet states the two separately, and
                     // deriving one from the other threw away a colour the theme set.
@@ -2975,7 +2976,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(toolCircleActiveIcon = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // Colour then width, the way the key border is set: the colour is
                     // what turns the outline on, and the width row appears with it.
                     NullableColorRow(
@@ -2986,7 +2987,7 @@ fun ThemeEditorScreen(
                     )
                 }
                 if (hasToolBorder) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         SliderRow(
                             R.string.theme_tool_border_width_title,
                             value = look.watch { it.toolBorderWidthDp },
@@ -2995,7 +2996,7 @@ fun ThemeEditorScreen(
                         ) { update { t -> t.copy(toolBorderWidthDp = (it * 10).toInt() / 10f) } }
                     }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderRow(
                         R.string.theme_tool_elevation_title,
                         value = look.watch { it.toolElevationDp },
@@ -3035,7 +3036,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(popupText = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // Beside the popup colours rather than down in Corners, where it
                     // sat behind the custom-radii switch: the shape is not a radius,
                     // and a theme that wants round popups on the standard radii had to
@@ -3059,7 +3060,7 @@ fun ThemeEditorScreen(
                 // no bubble is ever published while key popups are switched off. The
                 // theme keeps whatever was authored here — the row is hidden, not
                 // cleared — so an exported theme is unaffected.
-                if (popupsOn) item {
+                if (popupsOn) item(level = SettingLevel.STANDARD) {
                     // Placement: whether the bubble grows out of the key or floats
                     // detached above it; the first option leaves the global setting
                     // in charge.
@@ -3093,7 +3094,7 @@ fun ThemeEditorScreen(
                         },
                     ) { value -> update { t -> t.copy(popupPlacement = value) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     NullableColorRow(
                         R.string.theme_popup_border_title,
                         look.watch { it.popupBorderColor }, fallback = look.watch { it.popupText ?: it.keyText },
@@ -3101,7 +3102,7 @@ fun ThemeEditorScreen(
                     )
                 }
                 if (hasPopupBorder) {
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         SliderRow(
                             R.string.theme_border_width_title,
                             value = look.watch { it.popupBorderWidthDp },
@@ -3110,7 +3111,7 @@ fun ThemeEditorScreen(
                         ) { update { t -> t.copy(popupBorderWidthDp = (it * 10).toInt() / 10f) } }
                     }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderRow(
                         R.string.theme_popup_elevation_title,
                         value = look.watch { it.popupElevationDp ?: DEFAULT_POPUP_ELEVATION_DP },
@@ -3118,7 +3119,7 @@ fun ThemeEditorScreen(
                         display = { "%.1f dp".format(it) },
                     ) { update { t -> t.copy(popupElevationDp = (it * 10).toInt() / 10f) } }
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // The highlight under the alternate your finger is on, and under
                     // the selected row of the language picker.
                     NullableColorRow(
@@ -3130,7 +3131,7 @@ fun ThemeEditorScreen(
                     )
                 }
                 popupHighlight?.let { highlight ->
-                    item {
+                    item(level = SettingLevel.ADVANCED) {
                         NullableColorRow(
                             R.string.theme_popup_selected_text_title,
                             look.watch { it.popupSelectedText },
@@ -3139,7 +3140,7 @@ fun ThemeEditorScreen(
                         )
                     }
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     // The list menus (language picker, clipboard and emoji menus)
                     // derive a safe shape from the popup shape unless named here — a
                     // slanted bubble is charming, a slanted menu clips its rows.
@@ -3200,7 +3201,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(suggestionText = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.STANDARD) {
                     // The suggestions beside the primary one: their own colour, and
                     // their size as a share of the primary's (#504). Auto is the
                     // strip's text colour at full size, which is what they always were.
@@ -3212,7 +3213,7 @@ fun ThemeEditorScreen(
                         onChange = { update { t -> t.copy(secondarySuggestionText = it) } },
                     )
                 }
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     SliderRow(
                         R.string.theme_other_suggestions_size_title,
                         value = look.watch { it.secondarySuggestionScale ?: 1f },
@@ -3452,7 +3453,7 @@ fun ThemeEditorScreen(
                 update { t -> t.copy(boardBackground = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val boardBackground = look.watch { it.boardBackground }
             val accent = look.watch { it.accent }
             GradientEditor(
@@ -3467,7 +3468,7 @@ fun ThemeEditorScreen(
                 onChange = { update { t -> t.copy(boardGradient = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The navigation bar follows the board until the theme says
             // otherwise, so its fallback swatch is the board's own colour and
             // Auto is the resting state (issue #109). The strip's twin of this
@@ -3481,7 +3482,7 @@ fun ThemeEditorScreen(
                 onChange = { update { t -> t.copy(navigationBarBackground = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // The rail beside the board in one-handed mode. Auto leaves it
             // transparent, so the board runs on behind it.
             NullableColorRow(
@@ -3496,7 +3497,7 @@ fun ThemeEditorScreen(
         // Nested: the glyphs only need their own colour once the rail has a
         // fill of its own to sit on.
         if (hasOneHandedFill) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 NullableColorRow(
                     R.string.theme_one_handed_icon_title,
                     look.watch { it.oneHandedPanelIcon },
@@ -3505,7 +3506,7 @@ fun ThemeEditorScreen(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // Before the first picture row, where someone about to pick one
             // looks for how big it should be (#397).
             NavRow(
@@ -3556,7 +3557,7 @@ fun ThemeEditorScreen(
                     subtitle = stringResource(R.string.theme_crop_image_subtitle),
                 ) { cropOpen = true }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 SliderRow(
                     R.string.theme_image_opacity_title,
                     value = look.watch { it.backgroundImageOpacity },
@@ -3564,7 +3565,7 @@ fun ThemeEditorScreen(
                     display = { "${(it * 100).toInt()}%" },
                 ) { update { t -> t.copy(backgroundImageOpacity = it) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 SliderRow(
                     R.string.theme_image_blur_title,
                     value = look.watch { it.backgroundImageBlur },
@@ -3575,7 +3576,7 @@ fun ThemeEditorScreen(
                     // stops the animation, and the switch below zeroes the blur.
                 ) { update { t -> t.copy(backgroundImageBlur = it, backgroundAnimated = false) } }
             }
-            if (!reduceMotion) item {
+            if (!reduceMotion) item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.theme_background_animated_title,
                     stringResource(R.string.theme_background_animated_subtitle),
@@ -3590,7 +3591,7 @@ fun ThemeEditorScreen(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             val landscapeImage = look.watch { it.backgroundImageLandscape }
             WmRow(
                 title = stringResource(R.string.theme_background_image_landscape_title),
@@ -3615,10 +3616,10 @@ fun ThemeEditorScreen(
             )
         }
         landscapePhotoCredit?.let { credit ->
-            item { PhotoCreditRow(credit) { url -> openLink(context, url) } }
+            item(level = SettingLevel.STANDARD) { PhotoCreditRow(credit) { url -> openLink(context, url) } }
         }
         if (hasLandscapeImage) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 NavRow(
                     R.string.theme_crop_landscape_title,
                     subtitle = stringResource(R.string.theme_crop_image_subtitle),
@@ -3628,7 +3629,7 @@ fun ThemeEditorScreen(
         // Only offered once there is something to rotate. Most people set one
         // photo and stop, and a row for a feature they have not started is
         // clutter in the one screen they do use.
-        item(visible = showRotation) {
+        item(visible = showRotation, level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.photo_rotation_title,
                 subtitle = stringResource(R.string.photo_rotation_subtitle),
@@ -3644,7 +3645,7 @@ fun ThemeEditorScreen(
         }
         // Likewise: somebody who never opens the online picker has no key to
         // manage. The picker's own "add a key" action reaches this screen.
-        item(visible = showServices) {
+        item(visible = showServices, level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.photo_services_title,
                 subtitle = stringResource(R.string.photo_services_subtitle),
@@ -3821,7 +3822,7 @@ fun ThemeEditorScreen(
                 update { t -> t.copy(keyBackground = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             GradientEditor(
                 title = R.string.theme_key_gradient_title,
                 subtitle = stringResource(R.string.theme_key_gradient_subtitle),
@@ -3848,14 +3849,14 @@ fun ThemeEditorScreen(
                 update { t -> t.copy(modifierKeyBackground = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_modifier_key_text_title,
                 look.watch { it.modifierKeyText }, fallback = look.watch { it.keyText },
                 onChange = { update { t -> t.copy(modifierKeyText = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_hint_text_title,
                 look.watch { it.hintText }, fallback = look.watch { it.keyText },
@@ -3874,19 +3875,19 @@ fun ThemeEditorScreen(
                 update { t -> t.copy(enterKeyBackground = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ColorRow(R.string.theme_enter_key_icon_title, look.watch { it.enterKeyText }) {
                 update { t -> t.copy(enterKeyText = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_pressed_key_title,
                 look.watch { it.pressedKeyBackground }, fallback = look.watch { it.effectivePressed() },
                 onChange = { update { t -> t.copy(pressedKeyBackground = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_key_border_title,
                 look.watch { it.keyBorderColor }, fallback = look.watch { it.keyText },
@@ -3894,7 +3895,7 @@ fun ThemeEditorScreen(
             )
         }
         if (hasKeyBorder) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 SliderRow(
                     R.string.theme_border_width_title,
                     value = look.watch { it.keyBorderWidthDp },
@@ -3903,7 +3904,7 @@ fun ThemeEditorScreen(
                 ) { update { t -> t.copy(keyBorderWidthDp = (it * 10).toInt() / 10f) } }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // A lift, not a colour: the shadow is drawn by the platform from
             // the key's own outline. Shapes that cannot cast one stay flat
             // however far this is pushed, and so does a see-through key.
@@ -3915,7 +3916,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_key_elevation_body),
             ) { update { t -> t.copy(keyElevationDp = (it * 10).toInt() / 10f) } }
         }
-        item(visible = hasKeyShadow) {
+        item(visible = hasKeyShadow, level = SettingLevel.ADVANCED) {
             // Unset is the platform's own black. Alpha counts: a soft coloured
             // glow is most of what the themes that set one are after.
             NullableColorRow(
@@ -4013,7 +4014,7 @@ fun ThemeEditorScreen(
                 )
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceControl(
                 options = FrostStyle.entries.map { it to stringResource(frostStyleLabelRes(it)) },
                 selected = frost.glassStyle,
@@ -4022,7 +4023,7 @@ fun ThemeEditorScreen(
                 detail = { style -> ChoiceDetail(stringResource(frostStyleDescRes(style))) },
             ) { style -> updateFrost { f -> f.copy(style = style.name) } }
         }
-        item(visible = frost.glassStyle == FrostStyle.LIQUID) {
+        item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_refraction_title,
                 value = frost.refraction,
@@ -4031,7 +4032,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_refraction_body),
             ) { updateFrost { f -> f.copy(refraction = (it * 100).roundToInt() / 100f) } }
         }
-        item(visible = frost.glassStyle == FrostStyle.LIQUID) {
+        item(visible = frost.glassStyle == FrostStyle.LIQUID, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_dispersion_title,
                 value = frost.dispersion,
@@ -4040,14 +4041,14 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_dispersion_body),
             ) { updateFrost { f -> f.copy(dispersion = (it * 100).roundToInt() / 100f) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.theme_glass_window_blur_title,
                 stringResource(R.string.theme_glass_window_blur_subtitle),
                 checked = frost.windowBlur,
             ) { on -> updateFrost { it.copy(windowBlur = on) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderRow(
                 R.string.theme_glass_blur_strength_title,
                 value = frost.windowBlurRadiusDp.toFloat(),
@@ -4056,7 +4057,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_blur_strength_body),
             ) { updateFrost { f -> f.copy(windowBlurRadiusDp = it.roundToInt()) } }
         }
-        item(visible = frost.windowBlur) {
+        item(visible = frost.windowBlur, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_fallback_title,
                 value = frost.fallbackOpacity,
@@ -4065,7 +4066,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_fallback_body),
             ) { updateFrost { f -> f.copy(fallbackOpacity = (it * 100).roundToInt() / 100f) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             val selected = frost.surfaceSet
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
                 Text(
@@ -4090,7 +4091,7 @@ fun ThemeEditorScreen(
                 }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceControl(
                 options = FrostBackdropSource.entries.map { it to stringResource(frostBackdropLabelRes(it)) },
                 selected = frost.backdropSource,
@@ -4099,7 +4100,7 @@ fun ThemeEditorScreen(
                 detail = { source -> ChoiceDetail(stringResource(frostBackdropDescRes(source))) },
             ) { source -> updateFrost { f -> f.copy(backdrop = source.name) } }
         }
-        item(visible = usesWallpaper) {
+        item(visible = usesWallpaper, level = SettingLevel.ADVANCED) {
             ChoiceControl(
                 options = WallpaperBand.entries.map { it to stringResource(wallpaperBandLabelRes(it)) },
                 selected = frost.band,
@@ -4124,7 +4125,7 @@ fun ThemeEditorScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
-        item(visible = followsByRole) {
+        item(visible = followsByRole, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.theme_glass_accent_board_title,
                 stringResource(R.string.theme_glass_accent_board_subtitle),
@@ -4148,7 +4149,7 @@ fun ThemeEditorScreen(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
             )
         }
-        item(visible = hasBackdrop) {
+        item(visible = hasBackdrop, level = SettingLevel.STANDARD) {
             SliderRow(
                 R.string.theme_glass_backdrop_blur_title,
                 value = frost.backdropBlur,
@@ -4157,7 +4158,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_backdrop_blur_body),
             ) { updateFrost { f -> f.copy(backdropBlur = it.roundToInt().toFloat()) } }
         }
-        item(visible = hasBackdrop) {
+        item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_saturation_title,
                 value = frost.saturation,
@@ -4165,7 +4166,7 @@ fun ThemeEditorScreen(
                 display = { "%.2f×".format(it) },
             ) { updateFrost { f -> f.copy(saturation = (it * 20).roundToInt() / 20f) } }
         }
-        item(visible = hasBackdrop) {
+        item(visible = hasBackdrop, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_brightness_title,
                 value = frost.brightness,
@@ -4173,7 +4174,7 @@ fun ThemeEditorScreen(
                 display = { "%+d%%".format((it * 100).roundToInt()) },
             ) { updateFrost { f -> f.copy(brightness = (it * 100).roundToInt() / 100f) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_rim_title,
                 value = frost.rim,
@@ -4182,7 +4183,7 @@ fun ThemeEditorScreen(
                 info = stringResource(R.string.theme_glass_rim_body),
             ) { updateFrost { f -> f.copy(rim = (it * 100).roundToInt() / 100f) } }
         }
-        item(visible = frost.rim > 0f) {
+        item(visible = frost.rim > 0f, level = SettingLevel.ADVANCED) {
             NullableColorRow(
                 R.string.theme_glass_rim_color_title,
                 frost.rimColor,
@@ -4191,7 +4192,7 @@ fun ThemeEditorScreen(
                 onChange = { updateFrost { f -> f.copy(rimColor = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_glass_grain_title,
                 value = frost.grain,
@@ -4205,6 +4206,7 @@ fun ThemeEditorScreen(
         stringResource(R.string.theme_texture_section_title),
         foldKey = "theme/texture",
         info = stringResource(R.string.theme_texture_section_body),
+        level = SettingLevel.ADVANCED,
     ) {
         // The popup slot paints the preview bubble and nothing else, so it
         // drops out of the list while key popups are off.
@@ -4302,6 +4304,7 @@ fun ThemeEditorScreen(
         stringResource(R.string.theme_key_override_section_title),
         foldKey = "theme/key_override",
         info = stringResource(R.string.theme_key_override_section_body),
+        level = SettingLevel.ADVANCED,
     ) {
         for (id in overrideIds) {
             item(key = id) {
@@ -4393,6 +4396,7 @@ fun ThemeEditorScreen(
         stringResource(R.string.theme_decal_section_title),
         foldKey = "theme/decal",
         info = stringResource(R.string.theme_decal_section_body),
+        level = SettingLevel.STANDARD,
     ) {
         decals.forEachIndexed { index, decal ->
             item(key = decal.id) {
@@ -4465,7 +4469,7 @@ fun ThemeEditorScreen(
                 update { t -> t.copy(accent = it) }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_gesture_trail_title,
                 look.watch { it.gestureTrailColor }, fallback = look.watch { it.accent },
@@ -4527,7 +4531,7 @@ fun ThemeEditorScreen(
     }
 
     SettingsGroup(stringResource(R.string.theme_panels_section_title), foldKey = "theme/panels") {
-        item {
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_cards_title,
                 look.watch { it.chipBackground }, fallback = look.watch { it.modifierKeyBackground },
@@ -4535,7 +4539,7 @@ fun ThemeEditorScreen(
                 onChange = { update { t -> t.copy(chipBackground = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             // The quieter line beside the main one, and the hairlines between
             // panel parts. Both used to be the suggestion colour at a fixed
             // alpha, which no theme could overrule.
@@ -4548,7 +4552,7 @@ fun ThemeEditorScreen(
                 onChange = { update { t -> t.copy(secondaryText = it) } },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NullableColorRow(
                 R.string.theme_divider_title,
                 look.watch { it.dividerColor },
@@ -4564,6 +4568,7 @@ fun ThemeEditorScreen(
         stringResource(R.string.theme_chips_section_title),
         foldKey = "theme/chips",
         info = stringResource(R.string.theme_chips_section_body),
+        level = SettingLevel.ADVANCED,
     ) {
         item {
             NullableColorRow(
@@ -4672,7 +4677,7 @@ fun ThemeEditorScreen(
     // Decides which rows the group holds; each row reads its own radius.
     val hasCustomRadii = look.watch { it.keyCornerRadiusDp != null }
     SettingsGroup(stringResource(R.string.theme_corners_section_title), foldKey = "theme/corners") {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.theme_custom_radii_title,
                 stringResource(R.string.theme_custom_radii_subtitle),
@@ -4699,7 +4704,7 @@ fun ThemeEditorScreen(
                 }
             }
         }
-        item(visible = hasCustomRadii) {
+        item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_key_radius_title,
                 value = look.watch { it.keyCornerRadiusDp ?: 8 }.toFloat(),
@@ -4707,7 +4712,7 @@ fun ThemeEditorScreen(
                 display = { "${it.toInt()} dp" },
             ) { update { t -> t.copy(keyCornerRadiusDp = it.toInt()) } }
         }
-        item(visible = hasCustomRadii) {
+        item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_popup_radius_title,
                 value = look.watchWith { s, t -> t.popupCornerRadiusDp ?: s.popup.cornerRadiusDp }.toFloat(),
@@ -4715,7 +4720,7 @@ fun ThemeEditorScreen(
                 display = { "${it.toInt()} dp" },
             ) { update { t -> t.copy(popupCornerRadiusDp = it.toInt()) } }
         }
-        item(visible = hasCustomRadii) {
+        item(visible = hasCustomRadii, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_tool_circle_radius_title,
                 value = look.watch { it.toolCircleRadiusDp ?: 20 }.toFloat(),
@@ -4733,6 +4738,7 @@ fun ThemeEditorScreen(
         stringResource(R.string.theme_layout_section_title),
         foldKey = "theme/layout",
         info = stringResource(R.string.theme_layout_section_body),
+        level = SettingLevel.ADVANCED,
     ) {
         item {
             ToggleSetting(
@@ -4924,7 +4930,7 @@ fun ThemeEditorScreen(
                 detail = { anim -> ChoiceDetail(stringResource(themeAnimationDescRes(anim))) },
             ) { anim -> update { t -> t.copy(animation = anim) } }
         }
-        item(visible = themeAnimates) {
+        item(visible = themeAnimates, level = SettingLevel.ADVANCED) {
             SliderRow(
                 R.string.theme_animation_speed_title,
                 value = look.watch { it.animationSpeed },
@@ -5063,7 +5069,7 @@ fun ThemeEditorScreen(
             }
         }
         if (effectKind != null) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_intensity_title,
                     value = look.watch { it.keyEffectIntensity },
@@ -5071,7 +5077,7 @@ fun ThemeEditorScreen(
                     display = { "%.1f×".format(it) },
                 ) { update { t -> t.copy(keyEffectIntensity = (it * 10).toInt() / 10f) } }
             }
-            item {
+            item(level = SettingLevel.STANDARD) {
                 val mode = look.watch { keyEffectColorMode(it.keyEffectColor) }
                 val keyText = look.watch { it.keyText }
                 val accent = look.watch { it.accent }
@@ -5125,14 +5131,14 @@ fun ThemeEditorScreen(
                     selected = mode,
                 ) { picked -> update { t -> t.copy(keyEffectColor = picked.name) } }
             }
-            item(visible = effectColourCustom) {
+            item(visible = effectColourCustom, level = SettingLevel.ADVANCED) {
                 NullableColorRow(
                     R.string.theme_effect_color_custom_label,
                     look.watch { it.keyEffectCustomColor }, fallback = look.watch { it.accent },
                     onChange = { update { t -> t.copy(keyEffectCustomColor = it) } },
                 )
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_size_title,
                     value = look.watch { it.keyEffectSize },
@@ -5140,7 +5146,7 @@ fun ThemeEditorScreen(
                     display = { "%.1f×".format(it) },
                 ) { update { t -> t.copy(keyEffectSize = (it * 10).toInt() / 10f) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_speed_title,
                     value = look.watch { it.keyEffectSpeed },
@@ -5148,7 +5154,7 @@ fun ThemeEditorScreen(
                     display = { "%.1f×".format(it) },
                 ) { update { t -> t.copy(keyEffectSpeed = (it * 10).toInt() / 10f) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_spread_title,
                     value = look.watch { it.keyEffectSpread },
@@ -5156,7 +5162,7 @@ fun ThemeEditorScreen(
                     display = { "%d%%".format((it * 100).roundToInt()) },
                 ) { update { t -> t.copy(keyEffectSpread = (it * 20).toInt() / 20f) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_gravity_title,
                     value = look.watch { it.keyEffectGravity },
@@ -5165,7 +5171,7 @@ fun ThemeEditorScreen(
                     info = stringResource(R.string.theme_effect_gravity_body),
                 ) { update { t -> t.copy(keyEffectGravity = (it * 10).toInt() / 10f) } }
             }
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 SliderRow(
                     R.string.theme_effect_duration_title,
                     value = look.watch { it.keyEffectDurationMs }.toFloat(),
@@ -5203,7 +5209,7 @@ fun ThemeEditorScreen(
         for (script in KeyboardFonts.scriptFontChoices) {
             val key = script.script.name
             val fontId = scriptFontIds[key] ?: continue
-            item {
+            item(level = SettingLevel.STANDARD) {
                 // The `String` form, because the row is named after a script
                 // rather than after a resource of its own. The glyph and the
                 // highlight key are handed over by name instead.
@@ -5218,7 +5224,7 @@ fun ThemeEditorScreen(
                 ) { scriptFontPicker = key }
             }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             NavRow(
                 R.string.theme_script_font_add_title,
                 subtitle = stringResource(R.string.theme_script_font_add_body),
@@ -5226,7 +5232,7 @@ fun ThemeEditorScreen(
         }
         // A theme's sound is resolved past the key-sound gate, so with key
         // sounds off there is nothing for it to replace.
-        if (soundOn) item {
+        if (soundOn) item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.theme_sound_title,
                 value = themeSoundLabel(look.watch { it.soundStyle }, look.watch { it.soundCustomId }),

@@ -123,7 +123,7 @@ internal fun AccessibilitySettings(
                 onClick = onOpenAppearance,
             )
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.accessibility_keyboard_font_title,
                 stringResource(R.string.accessibility_keyboard_font_subtitle),
@@ -147,7 +147,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.reduceMotion,
             ) { scope.launch { repository.setReduceMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.accessibility_classic_popup_title,
                 stringResource(R.string.accessibility_classic_popup_subtitle),
@@ -156,7 +156,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.popup.alternatesClassic,
             ) { scope.launch { repository.setAlternatesClassic(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.accessibility_panel_motion_title,
                 stringResource(R.string.accessibility_panel_motion_subtitle),
@@ -165,7 +165,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.panelMotion,
             ) { scope.launch { repository.setPanelMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_selection_motion_title,
                 stringResource(R.string.accessibility_selection_motion_subtitle),
@@ -174,7 +174,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.selectionMotion,
             ) { scope.launch { repository.setSelectionMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_language_switch_motion_title,
                 stringResource(R.string.accessibility_language_switch_motion_subtitle),
@@ -183,7 +183,7 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.accessibility.languageSwitchMotion,
             ) { scope.launch { repository.setLanguageSwitchMotion(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.accessibility_tool_result_motion_title,
                 stringResource(R.string.accessibility_tool_result_motion_subtitle),

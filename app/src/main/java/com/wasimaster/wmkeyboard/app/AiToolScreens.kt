@@ -119,7 +119,7 @@ internal fun AiHubSettings(
             )
         }
         // The assistant's own off switch (#830), and its row while it is on.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_hub_settings_assistant_title,
                 stringResource(R.string.toolai_hub_settings_assistant_subtitle),
@@ -132,7 +132,7 @@ internal fun AiHubSettings(
                 scope.launch { repository.setSettingsAssistant(on) }
             }
         }
-        item(visible = assistant) {
+        item(visible = assistant, level = SettingLevel.STANDARD) {
             NavRow(
                 title = R.string.settings_assistant_title,
                 subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
@@ -141,7 +141,7 @@ internal fun AiHubSettings(
             )
         }
     }
-    SettingsGroup(stringResource(R.string.toolai_memory_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_memory_group_title), level = SettingLevel.STANDARD) {
         item {
             NavRow(
                 title = R.string.toolai_memory_screen_title,
@@ -151,7 +151,7 @@ internal fun AiHubSettings(
             )
         }
     }
-    SettingsGroup(stringResource(R.string.toolai_ai_history_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_ai_history_group_title), level = SettingLevel.STANDARD) {
         item {
             NavRow(
                 title = R.string.toolai_ai_history_nav_title,
@@ -160,7 +160,7 @@ internal fun AiHubSettings(
             )
         }
     }
-    SettingsGroup(stringResource(R.string.toolai_hub_button_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_hub_button_group_title), level = SettingLevel.STANDARD) {
         item {
             ToggleSetting(
                 R.string.toolai_hub_chat_button_everywhere_title,
@@ -243,7 +243,7 @@ internal fun AiToolSettings(
     // F-Droid server address are on that provider's own screen.
     SettingsGroup(stringResource(R.string.toolai_ai_output_title)) {
         if (aiProvider != AiProvider.ON_DEVICE) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 TokenPresetSetting(
                     title = R.string.toolai_ai_max_tokens_title,
                     subtitle = stringResource(R.string.toolai_ai_max_tokens_subtitle),
@@ -254,7 +254,7 @@ internal fun AiToolSettings(
                 ) { scope.launch { repository.setAiMaxTokens(it) } }
             }
         } else {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 TokenPresetSetting(
                     title = R.string.toolai_ai_local_context_title,
                     subtitle = stringResource(R.string.toolai_ai_local_context_subtitle),
@@ -265,7 +265,7 @@ internal fun AiToolSettings(
                 ) { scope.launch { repository.setAiLocalContextTokens(it) } }
             }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             TextFieldSetting(
                 label = stringResource(R.string.toolai_ai_translate_to_label),
                 value = settings.watch { it.ai.translateTo },
@@ -273,7 +273,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.translateTo,
             ) { repository.setAiTranslateTo(it) }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_ai_show_thinking_title,
                 stringResource(R.string.toolai_ai_show_thinking_subtitle),
@@ -281,7 +281,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.showThinking,
             ) { scope.launch { repository.setAiShowThinking(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_ai_model_picker_title,
                 stringResource(R.string.toolai_ai_model_picker_subtitle),
@@ -289,7 +289,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.panelModelPicker,
             ) { scope.launch { repository.setAiPanelModelPicker(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_diff_title,
                 stringResource(R.string.toolai_ai_diff_subtitle),
@@ -297,7 +297,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.diffView,
             ) { scope.launch { repository.setAiDiffView(it) } }
         }
-        item(visible = diffView) {
+        item(visible = diffView, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_ai_diff_first_title,
                 stringResource(R.string.toolai_ai_diff_first_subtitle),
@@ -328,7 +328,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.stripSuggest,
             ) { scope.launch { repository.setAiStripSuggest(it) } }
         }
-        item(visible = stripSuggest) {
+        item(visible = stripSuggest, level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_strip_suggest_word_only_title,
                 stringResource(R.string.toolai_strip_suggest_word_only_subtitle),
@@ -336,7 +336,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.stripSuggestWordOnly,
             ) { scope.launch { repository.setAiStripSuggestWordOnly(it) } }
         }
-        item(visible = stripSuggest && !stripWordOnly) {
+        item(visible = stripSuggest && !stripWordOnly, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.toolai_strip_suggest_chars_title,
                 subtitle = stringResource(R.string.toolai_strip_suggest_chars_subtitle),
@@ -359,6 +359,7 @@ internal fun AiToolSettings(
                 R.string.toolai_ai_tools_info_fallback
             },
         ),
+        level = SettingLevel.STANDARD,
     ) {
         item(visible = searchReady) {
             ToggleSetting(
@@ -393,7 +394,7 @@ internal fun AiToolSettings(
                 onClick = { onNavigate(AI_BUILT_IN_TOOLS_ROUTE) },
             )
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             // The count is of the servers that are on, which is what decides
             // whether the model is offered anything from them at all.
             val enabledServers = settings.watch { s -> s.ai.mcpServers.count { it.enabled } }
@@ -405,7 +406,7 @@ internal fun AiToolSettings(
                 onClick = { onNavigate("ai_mcp") },
             )
         }
-        item(visible = toolFetch || (toolSearch && searchReady) || mcpOn || builtInsOn > 0) {
+        item(visible = toolFetch || (toolSearch && searchReady) || mcpOn || builtInsOn > 0, level = SettingLevel.ADVANCED) {
             SliderSetting(
                 R.string.toolai_ai_tool_rounds_title,
                 subtitle = stringResource(R.string.toolai_ai_tool_rounds_subtitle),
@@ -427,7 +428,7 @@ internal fun AiToolSettings(
             )
         }
         // Gone while the assistant is turned off (#830).
-        item(visible = assistantOn) {
+        item(visible = assistantOn, level = SettingLevel.STANDARD) {
             NavRow(
                 title = R.string.settings_assistant_title,
                 subtitle = stringResource(R.string.settings_assistant_nav_subtitle),
@@ -437,7 +438,7 @@ internal fun AiToolSettings(
         }
         // The chat on the keyboard's AI panel (#280). Off by default: a prompt
         // is often more than one line, and the panel has a Send button.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_chat_enter_sends_title,
                 stringResource(R.string.toolai_chat_enter_sends_subtitle),
@@ -446,7 +447,7 @@ internal fun AiToolSettings(
             ) { scope.launch { repository.setAiChatEnterSends(it) } }
         }
         // The model that answered names the chat (#882), on both chats.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_chat_auto_rename_title,
                 stringResource(R.string.toolai_chat_auto_rename_subtitle),
@@ -455,7 +456,7 @@ internal fun AiToolSettings(
             ) { scope.launch { repository.setAiChatAutoRename(it) } }
         }
         // Suggested next questions under an answer, from cloud models only.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_chat_follow_ups_title,
                 stringResource(R.string.toolai_chat_follow_ups_subtitle),
@@ -465,7 +466,7 @@ internal fun AiToolSettings(
         }
         // The chat's Deep research mode: how far a report goes, and whether
         // its plan waits for Start.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 R.string.toolai_research_depth_title,
                 subtitle = stringResource(R.string.toolai_research_depth_subtitle),
@@ -478,7 +479,7 @@ internal fun AiToolSettings(
                 default = SettingsDefaults.ai.research.depth,
             ) { scope.launch { repository.setAiResearchDepth(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_research_review_plan_title,
                 stringResource(R.string.toolai_research_review_plan_subtitle),
@@ -488,7 +489,7 @@ internal fun AiToolSettings(
         }
         // "Ask AI" in other apps' selection menus (#897). AskAiSelectionMenu
         // switches the entry from the setting, here or from a backup alike.
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_selection_menu_title,
                 stringResource(R.string.toolai_ai_selection_menu_subtitle),
@@ -514,7 +515,7 @@ internal fun AiToolSettings(
             )
         }
     }
-    SettingsGroup(stringResource(R.string.toolai_ai_history_group_title)) {
+    SettingsGroup(stringResource(R.string.toolai_ai_history_group_title), level = SettingLevel.STANDARD) {
         item {
             // Always reachable, turned on or not, so "Delete all history" does
             // not disappear along with the switch that filled it.
@@ -840,35 +841,35 @@ internal fun AiActionEditor(
         }
     }
     SettingsGroup(stringResource(R.string.toolai_ai_action_behaviour_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_action_ask_title,
                 stringResource(R.string.toolai_ai_action_ask_subtitle),
                 askEachRun,
             ) { askEachRun = it }
         }
-        item(visible = askEachRun) {
+        item(visible = askEachRun, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_ai_action_prefill_title,
                 stringResource(R.string.toolai_ai_action_prefill_subtitle),
                 prefillPrompt,
             ) { prefillPrompt = it }
         }
-        if (!tone) item {
+        if (!tone) item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_action_empty_field_title,
                 stringResource(R.string.toolai_ai_action_empty_field_subtitle),
                 worksWithoutText,
             ) { worksWithoutText = it }
         }
-        if (!tone) item {
+        if (!tone) item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.toolai_ai_action_before_cursor_title,
                 stringResource(R.string.toolai_ai_action_before_cursor_subtitle),
                 beforeCursor,
             ) { beforeCursor = it }
         }
-        if (!tone) item {
+        if (!tone) item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.toolai_ai_action_append_title,
                 stringResource(R.string.toolai_ai_action_append_subtitle),
@@ -878,7 +879,7 @@ internal fun AiActionEditor(
         // A tone is always framed by the reply prompt: its guard is what keeps
         // a stranger's message from steering the model, so it has no raw mode.
         if (!askEachRun && !tone) {
-            item {
+            item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.toolai_ai_action_raw_title,
                     stringResource(R.string.toolai_ai_action_raw_subtitle),
@@ -888,7 +889,7 @@ internal fun AiActionEditor(
             // A raw prompt is sent as written, frame and all: `AiPrompts`
             // returns the task before it ever reads this, so the switch is
             // inert. It sits under the raw one for that reason.
-            if (!rawPrompt) item {
+            if (!rawPrompt) item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.toolai_ai_action_output_only_title,
                     stringResource(R.string.toolai_ai_action_output_only_subtitle),
@@ -902,7 +903,7 @@ internal fun AiActionEditor(
         // the only way to make it visible is to show the assembled result. An
         // action that asks each run is framed differently, so with a prefill
         // this previews the instruction path rather than the stored-prompt one.
-        SettingsGroup(stringResource(R.string.toolai_ai_action_preview_title)) {
+        SettingsGroup(stringResource(R.string.toolai_ai_action_preview_title), level = SettingLevel.STANDARD) {
             item {
                 val translateTo = settings.watch { it.ai.translateTo }
                 Text(

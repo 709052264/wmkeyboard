@@ -431,7 +431,7 @@ internal fun SnippetSettings(
     }
     Spacer(Modifier.height(12.dp))
     SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
-        item {
+        item(level = SettingLevel.STANDARD) {
             ChoiceSetting(
                 title = R.string.expander_multi_expand_title,
                 subtitle = stringResource(R.string.expander_multi_expand_subtitle),
@@ -457,7 +457,7 @@ internal fun SnippetSettings(
                 },
             ) { scope.launch { repository.setSnippetMultiExpand(it) } }
         }
-        item {
+        item(level = SettingLevel.STANDARD) {
             SliderSetting(
                 R.string.expander_grid_columns_title,
                 subtitle = stringResource(R.string.expander_grid_columns_subtitle),
@@ -468,7 +468,7 @@ internal fun SnippetSettings(
                 default = SettingsDefaults.suggestionStrip.snippetGridColumns.toFloat(),
             ) { scope.launch { repository.setSnippetGridColumns(it.toInt()) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.expander_secure_fields_title,
                 stringResource(R.string.expander_secure_fields_subtitle),
@@ -477,7 +477,7 @@ internal fun SnippetSettings(
                 default = SettingsDefaults.suggestionStrip.snippetsInSecureFields,
             ) { scope.launch { repository.setSnippetsInSecureFields(it) } }
         }
-        item {
+        item(level = SettingLevel.ADVANCED) {
             ChoiceSetting(
                 title = R.string.expander_escape_title,
                 subtitle = stringResource(R.string.expander_escape_subtitle),
@@ -1786,7 +1786,7 @@ private fun SnippetEditorForm(
                     }
                 }
             }
-            item(visible = word) {
+            item(visible = word, level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.rows_snippet_propagate_case_label,
                     stringResource(R.string.rows_snippet_propagate_case_body),
@@ -1795,7 +1795,7 @@ private fun SnippetEditorForm(
             }
             // The style only means anything for a trigger typed with one
             // leading capital. An all-caps trigger always shouts.
-            item(visible = word && propagateCase) {
+            item(visible = word && propagateCase, level = SettingLevel.ADVANCED) {
                 ChoiceControl(
                     options = listOf(
                         UppercaseStyle.CAPITALIZE to
@@ -1814,21 +1814,21 @@ private fun SnippetEditorForm(
         }
 
         SettingsGroup(stringResource(R.string.expander_behaviour_title)) {
-            item {
+            item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.rows_snippet_confirm_label,
                     stringResource(R.string.rows_snippet_confirm_body),
                     checked = confirm,
                 ) { confirm = it }
             }
-            item(visible = word && !confirm) {
+            item(visible = word && !confirm, level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.rows_snippet_immediate_label,
                     stringResource(R.string.rows_snippet_immediate_body),
                     checked = immediate,
                 ) { immediate = it }
             }
-            item(visible = word && !confirm && immediate) {
+            item(visible = word && !confirm && immediate, level = SettingLevel.ADVANCED) {
                 ToggleSetting(
                     R.string.rows_snippet_inside_words_label,
                     stringResource(R.string.rows_snippet_inside_words_body),
@@ -1838,7 +1838,7 @@ private fun SnippetEditorForm(
             // Nothing to choose between until there is more than one thing to
             // insert, so the row appears when the snippet earns it.
             if (kept.size > 1 || children.isNotEmpty()) {
-                item {
+                item(level = SettingLevel.ADVANCED) {
                     ChoiceSetting(
                         title = R.string.rows_snippet_multi_expand_label,
                         options = listOf(
@@ -1863,7 +1863,7 @@ private fun SnippetEditorForm(
             }
         }
 
-        SettingsGroup(stringResource(R.string.rows_snippet_linked_label)) {
+        SettingsGroup(stringResource(R.string.rows_snippet_linked_label), level = SettingLevel.ADVANCED) {
             item {
                 LinkedSnippetsSection(
                     children = children,
@@ -1875,7 +1875,7 @@ private fun SnippetEditorForm(
             }
         }
 
-        SettingsGroup(stringResource(R.string.rows_snippet_tags_label)) {
+        SettingsGroup(stringResource(R.string.rows_snippet_tags_label), level = SettingLevel.STANDARD) {
             item {
                 Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                     ChipInputField(
