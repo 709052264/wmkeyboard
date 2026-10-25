@@ -1032,6 +1032,12 @@ internal class GalleryController(
      * Commits each copy in turn, a breath apart, while the field stays the one
      * they were sent to. True when something reached the app, by commit or by
      * the fallback.
+     *
+     * Some apps answer a committed picture with a send screen of their own
+     * (WhatsApp, Signal): the field goes, and the pictures after the first
+     * used to be dropped without a word (#956). So the first commit is given
+     * time to show whether the app moves on, and once it has, the rest go to
+     * that app together through its share screen rather than one commit each.
      */
     private suspend fun commitAll(
         prepared: List<Pair<GalleryItem, MediaPrep.Prepared>>,
@@ -1043,15 +1049,25 @@ internal class GalleryController(
         val captionFirst = caption.isNotEmpty() && placement == GalleryCaption.BEFORE
         if (captionFirst) host.insertText(caption)
         val notTaken = ArrayList<MediaPrep.Prepared>()
+        var movedOn = emptyList<MediaPrep.Prepared>()
         var committed = 0
         for ((i, pair) in prepared.withIndex()) {
-            if (host.field() != field) break
+            if (host.field() != field) {
+                movedOn = prepared.drop(i).map { it.second }
+                break
+            }
             val p = pair.second
             if (host.commit(p.file, p.mime)) committed++ else notTaken += p
             _state.update { it.copy(sending = SendProgress(i + 1, total)) }
-            if (i < prepared.lastIndex) delay(SEND_GAP_MS)
+            if (i < prepared.lastIndex) {
+                if (i == 0 && committed == 1) awaitFieldChange(field) else delay(SEND_GAP_MS)
+            }
         }
         if (caption.isNotEmpty() && !captionFirst && committed > 0) host.insertText(caption)
+        if (movedOn.isNotEmpty()) {
+            val shared = share(movedOn, "", toApp = field?.packageName)
+            return shared || committed > 0
+        }
         if (notTaken.isEmpty()) return committed > 0
         // What the field would not take: the setting says where it goes.
         val leftCaption = if (committed == 0 && !captionFirst) caption else ""
@@ -1064,6 +1080,21 @@ internal class GalleryController(
                 _state.update { it.copy(askFallback = notTaken.size) }
                 committed > 0
             }
+        }
+    }
+
+    /**
+     * Waits after the first picture of several went in, up to
+     * [FIRST_COMMIT_SETTLE_MS], for the app to leave [field] for a send screen
+     * of its own; returns as soon as it has. A field that stays costs the
+     * whole wait once per send. See [commitAll].
+     */
+    private suspend fun awaitFieldChange(field: FieldKey?) {
+        var waited = 0L
+        while (waited < FIRST_COMMIT_SETTLE_MS) {
+            delay(FIELD_POLL_MS)
+            waited += FIELD_POLL_MS
+            if (host.field() != field) return
         }
     }
 
@@ -1152,6 +1183,10 @@ internal class GalleryController(
         /** The newest photos the index keeps: older ones are dropped from it. */
         private const val INDEX_LIMIT = 3000
         private const val SEND_GAP_MS = 350L
+
+        /** How long the first of several pictures is given to show whether the app opens a send screen for it (#956). */
+        private const val FIRST_COMMIT_SETTLE_MS = 1_200L
+        private const val FIELD_POLL_MS = 100L
         private const val NOTICE_MS = 2600L
         private const val REFRESH_DEBOUNCE_MS = 450L
         private const val STICKER_STAGGER = 5
