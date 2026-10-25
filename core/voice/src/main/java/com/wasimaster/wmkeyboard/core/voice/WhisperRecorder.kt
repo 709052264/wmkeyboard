@@ -74,6 +74,13 @@ class WhisperRecorder(
     /** The microphone the capture is actually coming from, once it has started; null before or if Android won't say. */
     val routedDevice: AudioDeviceInfo? get() = runCatching { record?.routedDevice }.getOrNull()
 
+    /**
+     * The clip has picked up something loud enough to be speech (#921), by
+     * the same measure that arms the silence stop. Set from the reader thread.
+     */
+    @Volatile var heardSpeech: Boolean = false
+        private set
+
     /** How much has been captured so far, in samples. */
     val sampleCount: Int get() = count
 
@@ -163,7 +170,6 @@ class WhisperRecorder(
         // speech, so the quiet before the user starts talking never ends the
         // clip; then a run of quiet chunks of the asked length does.
         val quietLimit = silenceStopMs.toLong() * WhisperMel.SAMPLE_RATE / 1000
-        var heard = false
         var quiet = 0L
         while (running) {
             val n = r.read(chunk, 0, chunk.size)
@@ -196,12 +202,12 @@ class WhisperRecorder(
                 sumSq += (s * s).toDouble()
             }
             count += room
-            if (room > 0 && quietLimit > 0) {
+            if (room > 0) {
                 val rms = sqrt(sumSq / room).toFloat()
                 if (rms >= SPEECH_RMS) {
-                    heard = true
+                    heardSpeech = true
                     quiet = 0
-                } else if (heard) {
+                } else if (heardSpeech && quietLimit > 0) {
                     quiet += room
                     if (quiet >= quietLimit) {
                         running = false

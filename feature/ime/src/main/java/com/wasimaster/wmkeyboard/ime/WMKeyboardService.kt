@@ -3289,6 +3289,20 @@ open class WMKeyboardService : InputMethodService() {
     private var lastVoiceCommit: String? = null
     /** Active offline-Whisper capture, when the Whisper engine is in use. */
     private var whisperRecorder: WhisperRecorder? = null
+    /**
+     * A clip is off the microphone and being transcribed (or its words
+     * tidied), from [finishWhisper] until they have landed. Rail keys pressed
+     * meanwhile wait in [voiceKeysAfterClip] (#921). Main thread.
+     */
+    private var clipInFlight = false
+    /** Rail keys that go in after the words of the clip in flight, in order. */
+    private val voiceKeysAfterClip = ArrayDeque<Key>()
+    /**
+     * The clip in flight was ended by a rail key (#921), so listening starts
+     * again once its words and the key are in, whatever Keep listening says,
+     * as it does when a streamed phrase is split.
+     */
+    private var voiceResumeAfterClip = false
 
     /**
      * The streaming utterance decoding alongside [whisperRecorder], asr4all's
@@ -29212,7 +29226,7 @@ open class WMKeyboardService : InputMethodService() {
             it.copy(
                 voice = it.voice.copy(
                     status = VoiceStatus.LISTENING, languageTag = tag,
-                    partial = "", level = 0f, errorMessage = null, secondsLeft = 0,
+                    partial = "", level = 0f, errorMessage = null, secondsLeft = 0, clipHeard = false,
                     whisper = onDevice != null,
                     remote = server,
                     translate = _uiState.value.settings.whisper.translate && onDevice is OnDeviceVoice.Whisper,
@@ -29796,9 +29810,10 @@ open class WMKeyboardService : InputMethodService() {
                 // The clip ends by itself when the window fills, and words said
                 // after that are lost, so its last seconds count down (#315).
                 val left = recorder.secondsLeft.takeIf { it <= VOICE_COUNTDOWN_SECONDS } ?: 0
+                val heard = recorder.heardSpeech
                 _uiState.update {
-                    if (it.voice.level == quantized && it.voice.secondsLeft == left) it
-                    else it.copy(voice = it.voice.copy(level = quantized, secondsLeft = left))
+                    if (it.voice.level == quantized && it.voice.secondsLeft == left && it.voice.clipHeard == heard) it
+                    else it.copy(voice = it.voice.copy(level = quantized, secondsLeft = left, clipHeard = heard))
                 }
             },
             onMaxReached = {
@@ -30002,6 +30017,7 @@ open class WMKeyboardService : InputMethodService() {
         val serverLanguage = serverCapture
         serverCapture = null
         if (serverLanguage != null) {
+            clipInFlight = true
             finishServerClip(recorder, serverLanguage, userStopped)
             return
         }
@@ -30023,7 +30039,9 @@ open class WMKeyboardService : InputMethodService() {
         val translate = _uiState.value.settings.whisper.translate && whisper?.supportsTranslate == true
         if (model == null) {
             serviceScope.launch(Dispatchers.IO) { runCatching { recorder.stop() } }
-            _uiState.update { it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, level = 0f)) }
+            voiceResumeAfterClip = false
+            typeVoiceKeysAfterClip()
+            _uiState.update { it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, level = 0f, clipHeard = false)) }
             settleVoiceToolEnding()
             return
         }
@@ -30034,8 +30052,9 @@ open class WMKeyboardService : InputMethodService() {
             model is OnDeviceVoice.Et -> liveBias(model.model)
             else -> emptyList()
         }
+        clipInFlight = true
         _uiState.update {
-            it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
+            it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f, clipHeard = false))
         }
         // whisper.cpp can say what it has so far: the line under the
         // microphone shows the words as they decode instead of a spinner.
@@ -30100,6 +30119,8 @@ open class WMKeyboardService : InputMethodService() {
                             asr4allComposed = false
                             currentInputConnection?.finishComposingText()
                         }
+                        // The keys pressed for after the words still go in.
+                        typeVoiceKeysAfterClip()
                         // A WhisperException carries a resource id instead of a
                         // message, so its own message is null on purpose.
                         val text = if (e is WhisperException) {
@@ -30158,7 +30179,7 @@ open class WMKeyboardService : InputMethodService() {
             null
         }
         _uiState.update {
-            it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f))
+            it.copy(voice = it.voice.copy(status = VoiceStatus.TRANSCRIBING, partial = "", level = 0f, clipHeard = false))
         }
         serviceScope.launch(Dispatchers.IO) {
             val pcm = runCatching { recorder.stop() }.getOrDefault(FloatArray(0))
@@ -30219,6 +30240,7 @@ open class WMKeyboardService : InputMethodService() {
                     .map { if (punctuated) withListCapitals(it) else it }
                     .onSuccess { commitWhisperResult(it, tag, userStopped) }
                     .onFailure { e ->
+                        typeVoiceKeysAfterClip()
                         _uiState.update {
                             it.copy(
                                 voice = it.voice.copy(
@@ -30234,7 +30256,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Commits a finished Whisper transcription and continues or ends the session. */
     private fun commitWhisperResult(text: String, tag: String, userStopped: Boolean) {
-        val chain = !userStopped && voiceChains() &&
+        val resume = voiceResumeAfterClip
+        voiceResumeAfterClip = false
+        val chain = (resume || (!userStopped && voiceChains())) &&
             !voiceStopRequested && voiceSessionAlive()
         if (text.isBlank()) {
             // The finished phrase is the last word: asr4all's live words for a
@@ -30244,11 +30268,13 @@ open class WMKeyboardService : InputMethodService() {
                 asr4allComposed = false
                 currentInputConnection?.commitText("", 1)
             }
+            typeVoiceKeysAfterClip()
             // Nothing heard. In continuous mode keep listening — but not
             // forever, so an abandoned open mic winds down the way it does
-            // for the system recognizer; otherwise idle.
-            if (chain && voiceSilentRetries < voiceSilentRetryLimit()) {
-                voiceSilentRetries++
+            // for the system recognizer; otherwise idle. A clip a key ended
+            // was the user's doing, not a silence, and is not counted.
+            if (chain && (resume || voiceSilentRetries < voiceSilentRetryLimit())) {
+                if (!resume) voiceSilentRetries++
                 _uiState.update { it.copy(voice = it.voice.copy(partial = "", level = 0f)) }
                 serviceScope.launch(Dispatchers.Main) { startVoice() }
             } else {
@@ -30259,7 +30285,26 @@ open class WMKeyboardService : InputMethodService() {
         }
         voiceSilentRetries = 0
         val landed = commitVoiceUtterance(text, tag)
-        tidyVoiceThen(landed) { afterWhisperCommit(chain) }
+        tidyVoiceThen(landed) {
+            typeVoiceKeysAfterClip()
+            afterWhisperCommit(chain)
+        }
+    }
+
+    /**
+     * The clip's words are in, or there were none: the rail keys pressed
+     * while it was being transcribed go in after them, in the order they were
+     * pressed (#921), the way a streamed phrase split by a key reads.
+     */
+    private fun typeVoiceKeysAfterClip() {
+        clipInFlight = false
+        if (voiceKeysAfterClip.isEmpty()) return
+        voiceRailKeyInFlight = true
+        try {
+            while (voiceKeysAfterClip.isNotEmpty()) onKey(voiceKeysAfterClip.removeFirst())
+        } finally {
+            voiceRailKeyInFlight = false
+        }
     }
 
     /**
@@ -30677,22 +30722,42 @@ open class WMKeyboardService : InputMethodService() {
         }
     }
 
-    private fun onVoiceSurfaceKey(key: Key) {
+    /** The phrase in hand, as the voice surfaces' own tools see it (#758, #921). */
+    private fun voicePhraseState(): VoicePhraseState {
         val voice = _uiState.value.voice
-        when {
+        return VoicePhraseState(
+            status = voice.status,
+            livePartial = voice.partial.isNotEmpty(),
+            clipHeard = whisperRecorder?.heardSpeech == true,
+            clipInFlight = clipInFlight,
+            liveWordsComposed = asr4allComposed,
+            sharesField = interactiveVoice() || voiceSessionForField,
+        )
+    }
+
+    private fun onVoiceSurfaceKey(key: Key) {
+        when (voicePhraseState().keyRoute()) {
             // asr4all's words wait in the field while the clip's last moment
             // decodes, and the key would land inside them. They stay as heard,
             // the finish is dropped, and the key goes after them.
-            voice.status == VoiceStatus.TRANSCRIBING && asr4allComposed -> cancelVoice()
-            voice.status == VoiceStatus.LISTENING && voice.partial.isNotEmpty() &&
-                !interactiveVoice() && !voiceSessionForField -> {
+            VoiceKeyRoute.SETTLE_LIVE -> cancelVoice()
+            VoiceKeyRoute.SPLIT_LIVE -> {
                 splitVoicePhrase(key)
                 return
             }
-            voice.partial.isNotEmpty() -> {
+            VoiceKeyRoute.SPLIT_CLIP -> {
+                splitVoiceClip(key)
+                return
+            }
+            VoiceKeyRoute.AFTER_CLIP -> {
+                voiceKeysAfterClip.addLast(key)
+                return
+            }
+            VoiceKeyRoute.KEYBOARD -> {
                 onKey(key)
                 return
             }
+            VoiceKeyRoute.TYPE -> Unit
         }
         voiceRailKeyInFlight = true
         try {
@@ -30728,6 +30793,20 @@ open class WMKeyboardService : InputMethodService() {
             voiceSilentRetries = 0
             startVoice()
         }
+    }
+
+    /**
+     * [splitVoicePhrase] for an engine that records a clip (#921): Whisper, a
+     * transcription server, Parakeet and the rest have no words until the
+     * clip is transcribed, so the clip ends where the key was pressed, the key
+     * waits for its words, and listening starts again once both are in. The
+     * microphone is shut while the clip transcribes, so what is said in that
+     * moment is not heard.
+     */
+    private fun splitVoiceClip(key: Key) {
+        voiceKeysAfterClip.addLast(key)
+        voiceResumeAfterClip = true
+        finishWhisper(userStopped = false)
     }
 
     /** A dictation session is mid-flight: recording, finishing, or transcribing. */
@@ -30802,6 +30881,11 @@ open class WMKeyboardService : InputMethodService() {
         voiceGeneration++
         // An abandoned session has no landing for the tool's stop to wait on.
         voiceToolEnding = false
+        // Nor do keys that were waiting to go in after a clip's words: the
+        // words are not coming, and a mark on its own is not what was asked.
+        clipInFlight = false
+        voiceKeysAfterClip.clear()
+        voiceResumeAfterClip = false
         micBlockWatcher.stop()
         whisperRecorder?.let { rec ->
             whisperRecorder = null
@@ -30831,7 +30915,11 @@ open class WMKeyboardService : InputMethodService() {
         // longer composing.
         if (!interactiveVoice() && !voiceSessionForField) currentInputConnection?.finishComposingText()
         _uiState.update {
-            it.copy(voice = it.voice.copy(status = VoiceStatus.IDLE, partial = "", level = 0f, tidying = false))
+            it.copy(
+                voice = it.voice.copy(
+                    status = VoiceStatus.IDLE, partial = "", level = 0f, tidying = false, clipHeard = false,
+                ),
+            )
         }
     }
 
@@ -31420,10 +31508,13 @@ open class WMKeyboardService : InputMethodService() {
     fun onVoiceUndo() {
         vibrate()
         val voice = _uiState.value.voice
-        if (voice.status == VoiceStatus.LISTENING && voice.partial.isNotEmpty()) {
+        if (voicePhraseState().undoRelistens()) {
             // The partial is the composing region in block voice typing;
-            // anywhere else it was only ever on the surface.
-            if (!interactiveVoice() && !voiceSessionForField) currentInputConnection?.setComposingText("", 1)
+            // anywhere else it was only ever on the surface. A clip's
+            // recording is dropped by the restart, untranscribed (#921).
+            if (voice.partial.isNotEmpty() && !interactiveVoice() && !voiceSessionForField) {
+                currentInputConnection?.setComposingText("", 1)
+            }
             voiceSilentRetries = 0
             startVoice()
             return
