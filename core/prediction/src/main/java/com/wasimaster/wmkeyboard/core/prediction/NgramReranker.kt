@@ -27,6 +27,15 @@ class NgramReranker(
     private val seedBigrams: SeedBigrams,
     private val dictionaryFrequency: (String) -> Int,
     private val ngramPack: () -> NgramPack = { NgramPack.EMPTY },
+    /**
+     * The neural context model, read live like the pack: its ln P(candidate)
+     * joins the evidence as a bounded term against the engine's first choice
+     * (`rerank.rs`'s `LM_WEIGHT`/`LM_CAP`). Null leaves the n-gram stores
+     * alone in charge, as before.
+     */
+    private val contextModel: () -> ContextModel? = { null },
+    /** This user's record with the model, which scales its weight, read live; null keeps the shipped weight. */
+    private val adapter: () -> ContextAdapter? = { null },
 ) : CandidateReranker {
 
     override fun rerank(context: RerankContext, candidates: List<String>): List<String>? {
@@ -51,6 +60,15 @@ class NgramReranker(
             null
         }
         val lowered = candidates.map { it.lowercase() }
+        val lm = contextModel()?.scores(lowered)
+        // Where the model's favourite is not the engine's first choice, the
+        // word the user goes on to commit says which was right (ContextAdapter).
+        val record = adapter()
+        if (lm != null && record != null) {
+            var best = -1
+            for (i in lm.indices) if (!lm[i].isNaN() && (best < 0 || lm[i] > lm[best])) best = i
+            record.disagreement = if (best > 0) candidates[best] to candidates[0] else null
+        }
         val order = PredictionNative.rerank(
             userLexicon.nativeHandle,
             ngramPack().nativeHandles(),
@@ -61,6 +79,8 @@ class NgramReranker(
             Array(lowered.size) { WordKey.of(lowered[it]) },
             IntArray(lowered.size) { seedBigrams.count(prev, lowered[it]) },
             BooleanArray(lowered.size) { lowered[it] in recent },
+            lm,
+            if (lm != null && record != null) PredictionNative.LM_WEIGHT * record.weightFactor() else 0.0,
         ) ?: return null
         return order.map { candidates[it] }
     }

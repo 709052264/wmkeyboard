@@ -400,6 +400,11 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_word_pairs_downloaded">Next-word predictions, <xliff:g id="size" example="3 MB">%1$s</xliff:g></string>
     <string name="languages_word_pairs_failed">The download failed. Try again.</string>
     <string name="languages_word_pairs_delete_desc">Delete the word pairs</string>
+    <string name="languages_context_model_title">Context model</string>
+    <string name="languages_context_model_download_size">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g> to download</string>
+    <string name="languages_context_model_downloaded">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
+    <string name="languages_context_model_failed">The download failed. Try again.</string>
+    <string name="languages_context_model_delete_desc">Delete the context model</string>
 
     <!-- ===== Dictionary ===== -->
 

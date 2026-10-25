@@ -166,7 +166,44 @@ internal object PredictionNative {
         candidates: Array<String>,
         seeds: IntArray,
         recent: BooleanArray,
+        lm: FloatArray?,
+        /** The model's rerank weight; 0 or less takes the shipped one. */
+        lmWeight: Double,
     ): IntArray?
+
+    /** The shipped weight of the context model's rerank term, `rerank.rs`'s `LM_WEIGHT`. */
+    const val LM_WEIGHT = 0.25
+
+    // The neural context model (lm.rs), behind [ContextModel]: a mapped
+    // `.wmlm` and a session on it that keeps the context last read.
+    external fun lmOpen(path: String): Long
+    external fun lmClose(handle: Long)
+
+    /** `[name, languages joined by commas, vocabulary size, context length]`. */
+    external fun lmInfo(handle: Long): Array<String>
+    external fun lmKnows(handle: Long, word: String): Boolean
+    external fun lmSessionOpen(model: Long): Long
+    external fun lmSessionClose(handle: Long)
+
+    /** The words before the caret, oldest first; register 0 neutral, 1 casual, 2 formal; field 0 other, 1 chat, 2 email, 3 search. */
+    external fun lmSetContext(session: Long, register: Int, field: Int, lang: Int, words: Array<String>)
+
+    /** ln P(word next) per word, NaN where the model has no opinion. */
+    external fun lmScores(session: Long, words: Array<String>): FloatArray
+
+    /** `[Array<String> words, FloatArray logprobs]`: the likeliest next words, best first. */
+    external fun lmTop(session: Long, k: Int, minLogprob: Float): Array<Any>
+
+    /** `[Array<String> words, FloatArray(1) joint logprob]`: a greedy continuation; the context is put back after. */
+    external fun lmGenerate(session: Long, n: Int, minProb: Float): Array<Any>
+
+    /**
+     * For each of [candidates] standing where the word before [follower]
+     * stands, after [context]: ln P(candidate | context) + ln P(follower |
+     * context, candidate), NaN where the model does not know a word. The
+     * session's context is put back after.
+     */
+    external fun lmRevise(session: Long, register: Int, field: Int, lang: Int, context: Array<String>, candidates: Array<String>, follower: String): FloatArray
 
     // The stores autocorrect learns from: CorrectionMemory (cm*) and
     // CorrectionStats (cs*). Spellings arrive folded.

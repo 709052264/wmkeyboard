@@ -962,6 +962,10 @@ internal object SettingsRowIcons {
         put(R.string.languages_zawgyi_key_font_title) { Icons.Outlined.FontDownload }
         put(R.string.typing_register_priors_title) { Icons.Outlined.QuestionAnswer }
         put(R.string.typing_context_rerank_title) { Icons.Outlined.Psychology }
+        put(R.string.typing_neural_context_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.typing_context_revision_title) { Icons.Outlined.History }
+        put(R.string.typing_phrase_completion_title) { Icons.Outlined.ShortText }
+        put(R.string.typing_learned_gate_title) { Icons.Outlined.Tune }
         put(R.string.typing_learn_threshold_title) { Icons.Outlined.School }
         put(R.string.typing_new_word_sightings_title) { Icons.Outlined.LibraryAdd }
         put(R.string.typing_ask_before_learning_title) { Icons.Outlined.HelpOutline }

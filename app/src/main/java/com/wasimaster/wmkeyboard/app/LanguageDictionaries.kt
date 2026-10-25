@@ -44,6 +44,8 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
 import com.wasimaster.wmkeyboard.core.emoji.EmojiDictCatalog
@@ -94,14 +96,17 @@ internal fun DictionariesGroup(
     val wordlists = remember(langId) { DictionaryCatalog.forLanguage(langId) }
     val emojiEntry = remember(langId) { EmojiDictCatalog.forLanguage(langId) }
     val pairsEntry = remember(langId) { NgramPackCatalog.forLanguage(langId) }
+    val modelEntry = remember(langId) { ContextModelCatalog.forLanguage(langId) }
 
     val wordStates by WordlistDownloadManager.states.collectAsState()
     val emojiStates by EmojiDictDownloadManager.states.collectAsState()
     val pairStates by NgramPackDownloadManager.states.collectAsState()
+    val modelStates by ContextModelDownloadManager.states.collectAsState()
     LaunchedEffect(langId) {
         WordlistDownloadManager.refresh(filesDir)
         EmojiDictDownloadManager.refresh(filesDir)
         NgramPackDownloadManager.refresh(filesDir)
+        ContextModelDownloadManager.refresh(filesDir)
     }
 
     // A language can have several lists in one slot (an AOSP and a counted
@@ -116,6 +121,8 @@ internal fun DictionariesGroup(
         ?: EmojiDictDownloadManager.DownloadStatus.NotDownloaded
     val pairStatus = pairsEntry?.let { pairStates[it.languageId] }
         ?: NgramPackDownloadManager.DownloadStatus.NotDownloaded
+    val modelStatus = modelEntry?.let { modelStates[it.languageId] }
+        ?: ContextModelDownloadManager.DownloadStatus.NotDownloaded
     val emojiImported = remember(langId, emojiStatus) {
         EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()
     }
@@ -211,6 +218,13 @@ internal fun DictionariesGroup(
                     checked = settings.watch { it.suggestionStrip.wordPairsEnabledFor(langId) },
                     onChecked = { scope.launch { repository.setWordPairsEnabled(langId, it) } },
                 )
+            }
+        }
+        // The neural context model: one file, one switch (Typing › Context
+        // model) shared by every language that has one.
+        if (modelEntry != null) {
+            item {
+                ContextModelRow(langId = langId, approxBytes = modelEntry.approxBytes, status = modelStatus)
             }
         }
         // For a phone that cannot download: the same files, as one language
@@ -647,6 +661,71 @@ private fun EmojiKeywordsRow(
                     0f
                 }
             },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun ContextModelRow(
+    langId: String,
+    approxBytes: Long,
+    status: ContextModelDownloadManager.DownloadStatus,
+) {
+    val filesDir = LocalContext.current.filesDir
+    val supporting = when (status) {
+        is ContextModelDownloadManager.DownloadStatus.Downloaded ->
+            stringResource(R.string.languages_context_model_downloaded, formatBytes(status.sizeBytes))
+        is ContextModelDownloadManager.DownloadStatus.Downloading -> stringResource(CommonR.string.common_downloading)
+        ContextModelDownloadManager.DownloadStatus.Failed -> stringResource(R.string.languages_context_model_failed)
+        ContextModelDownloadManager.DownloadStatus.NotDownloaded ->
+            stringResource(R.string.languages_context_model_download_size, formatBytes(approxBytes))
+    }
+    DictionaryItemRow(
+        title = stringResource(R.string.languages_context_model_title),
+        supporting = supporting,
+        checked = null,
+        onChecked = {},
+        error = status == ContextModelDownloadManager.DownloadStatus.Failed,
+        swipeActions = if (status is ContextModelDownloadManager.DownloadStatus.Downloaded) {
+            listOf(
+                deleteSwipeAction(stringResource(R.string.languages_context_model_delete_desc)) {
+                    ContextModelDownloadManager.delete(filesDir, langId)
+                },
+            )
+        } else {
+            emptyList()
+        },
+    ) {
+        when (status) {
+            is ContextModelDownloadManager.DownloadStatus.Downloaded ->
+                IconButton(onClick = { ContextModelDownloadManager.delete(filesDir, langId) }) {
+                    Icon(
+                        Icons.Outlined.Delete,
+                        contentDescription = stringResource(R.string.languages_context_model_delete_desc),
+                    )
+                }
+            is ContextModelDownloadManager.DownloadStatus.Downloading ->
+                IconButton(onClick = { ContextModelDownloadManager.cancel(langId) }) {
+                    Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
+                }
+            ContextModelDownloadManager.DownloadStatus.NotDownloaded,
+            ContextModelDownloadManager.DownloadStatus.Failed,
+            -> TextButton(onClick = { ContextModelDownloadManager.start(filesDir, langId) }) {
+                Text(
+                    stringResource(
+                        if (status == ContextModelDownloadManager.DownloadStatus.Failed) CommonR.string.common_retry
+                        else CommonR.string.common_download,
+                    ),
+                )
+            }
+        }
+    }
+    if (status is ContextModelDownloadManager.DownloadStatus.Downloading) {
+        LinearProgressIndicator(
+            progress = { status.fraction },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 4.dp),

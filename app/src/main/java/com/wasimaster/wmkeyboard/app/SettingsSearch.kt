@@ -416,6 +416,7 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         ),
         row(R.string.typing_undo_memory_title, R.string.typing_undo_memory_subtitle),
         row(R.string.typing_stop_after_declines_title, R.string.typing_stop_after_declines_subtitle),
+        row(R.string.typing_learned_gate_title, R.string.typing_learned_gate_subtitle),
         row(R.string.typing_learn_corrections_title, R.string.typing_learn_corrections_subtitle),
         row(R.string.typing_adapt_taps_title, R.string.typing_adapt_taps_subtitle),
         row(R.string.typing_mistype_tolerance_title, R.string.typing_mistype_tolerance_subtitle),
@@ -426,6 +427,9 @@ private fun SearchStrings.typingCorrectionsRows(): List<SettingsSearchEntry> {
         row(R.string.typing_dictionary_capitals_title, R.string.typing_dictionary_capitals_subtitle),
         row(R.string.typing_block_offensive_title, R.string.typing_block_offensive_subtitle),
         row(R.string.typing_context_rerank_title, R.string.typing_context_rerank_subtitle),
+        row(R.string.typing_neural_context_title, R.string.typing_neural_context_subtitle),
+        row(R.string.typing_context_revision_title, R.string.typing_context_revision_subtitle),
+        row(R.string.typing_phrase_completion_title, R.string.typing_phrase_completion_subtitle),
         row(R.string.typing_autocorrect_splits_title, R.string.typing_autocorrect_splits_subtitle),
         row(
             R.string.typing_language_detection_by_app_title,

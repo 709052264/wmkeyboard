@@ -75,6 +75,22 @@ Tap a candidate to insert it (see [Options](#options) for the space that follows
 
 When the chip is replacing a word that's already sitting in the field, it takes that word's capitals instead. This is the strip after a swipe or after handwriting, where the chips are other readings of the word that just landed, and it's also a word you tapped back into mid-sentence. So if auto-capitalization gave you "Van" at the start of a sentence and you swap it for "can" off the strip, you get "Can", and swapping a shouted "VAN" gets you "CAN". Only capitals that Shift, caps lock or auto-capitalization put there carry over. A name's or an acronym's own capitals are its spelling, not yours, so swapping "Joe" for "javelin" mid-sentence gives "javelin", and "QWERTY" for "qwery" gives "qwery". At the start of a sentence the new word still gets its capital. The same goes for the [recent words](#fixing-a-word-youve-typed-past) row and for a word picked from **Synonyms**.
 
+## The context model
+
+Everything above reads at most three words back. **Context model** (<SettingsPath path="Typing / Automatic corrections" />, on) adds a small neural language model that reads the whole sentence so far. It is a file you download per language, from the language's own screen under <SettingsPath path="Languages & layouts" /> (the **Context model** row, about 5 MB), and it runs on the phone: nothing you type leaves it. English has one, and so does romanized Bangla, whose model reads English and Banglish in the same sentence. A language without a model keeps everything else on this page exactly as it was.
+
+The model answers one question once per word you commit: given the sentence so far, how likely is each word of its vocabulary to come next. That one answer serves the strip three ways.
+
+- **Predictions.** Its likeliest next words join the next-word strip, after your own learned pairs and before the downloaded word pairs, so "I was wondering if you" offers "could" and "would" where the pairs alone could only see "you". Measured on sentences the model had never seen, top-one next-word prediction rose from 15% to 18%, and the letters you could leave untyped by taking the first suggestion from 38% to 40%.
+- **Ranking.** Its opinion of each correction candidate joins the evidence **Context-aware suggestions** reorders on, as one bounded term beside your word pairs. Kept gentle on purpose: on a mistyped word the keys you hit outweigh what the sentence predicts, so the model moves a candidate at most a place or two.
+- **Autocorrect.** Its score for a candidate is one of the things the [learned gate](/smart/autocorrect/#the-learned-gate) weighs before a correction is applied.
+
+The model has a vocabulary of about sixteen thousand words. A word outside it, a name, a term you taught the keyboard, a word from another language, gets no opinion: it is neither lifted nor sunk, and your dictionary ranks it as before. The sentence it reads begins at the last full stop, question mark or exclamation mark, and it also knows where it is being read: a chat, an email, a search box or anywhere else, and whether the app is one you write casually in (the same lists **Adapt to app tone** uses), so a chat leans conversational and an email formal.
+
+**Phrase suggestions** (<SettingsPath path="Typing / Automatic corrections" />, off) lets the model offer the next two or three words as one chip after a space, when it is sure of each of them in turn: "going to be" rather than "going". Tap the chip and all of them go in. Nothing is offered when the model is not sure, which is most of the time.
+
+**Re-check the previous word** (<SettingsPath path="Typing / Automatic corrections" />, on) is the model reading backwards. The word you have just typed often shows what the word before it should have been: "I want to by" is fine until "a car" lands. Once the next word is in, the keyboard asks the model about the previous word's other readings, the words the strip had for it at the time, with both sides of the sentence in sight. When one fits twenty times better than what stands there, a chip offers it, the same chip the confusable rule uses for "their" and "they're". It never rewrites anything on its own, and it only ever offers a word the strip had already found for the taps you made, so it cannot invent a correction from the sentence alone.
+
 ## When the cursor lands in a word
 
 Put the cursor inside a word you have already written, by tapping it or by walking the caret back with the spacebar, and the strip stops predicting the next word and answers about that one instead. You get its completions and corrections, the same as if you were typing it, plus the word itself as the top candidate, which with **Best suggestion in the middle** on is the middle chip.
@@ -174,6 +190,9 @@ The same two lists are editable from settings, if you would rather not chase the
 | Space after a suggestion (per language, under Languages & layouts) | On |
 | Block offensive words | On |
 | Context-aware suggestions | On |
+| Context model | On |
+| Re-check the previous word | On |
+| Phrase suggestions | Off |
 | Adapt to app tone | On |
 | Suggestion blacklist | Empty |
 
@@ -185,12 +204,13 @@ None of these reach a conversion keyboard. Chinese, Cantonese and Japanese put t
 
 **Remember numbers you type** (off) completes the numbers you type often, the way Samsung's keyboard does. A number of three digits or more that stands on its own is kept when you press space or enter after it, or leave the field. The next time you type its first digits, the strip shows the numbers you've typed that start with them, the most used first, and one tap replaces your digits with the whole number. No space follows it, since a number is as often followed by a full stop as by a word. A number is only one of its own after a space, at the start of the text, or after `+`, `(` or `#`, so the `880` of `+880` counts. Digits stuck to letters (`win10`) and the pieces of a number split by a comma, a colon or a dash (`1,234`, `12:30`, `0171-234`) are left alone. Nothing is kept from a password field, in incognito, or while **Learn from typing** is off. Number and phone fields have no strip at all, so this works in ordinary text fields. The list stays on the phone, holds up to 100 numbers, and is deleted with the other learned data under [Storage](/privacy/data/).
 
-Four of the rows above aren't in the Suggestions group at all. They live under <SettingsPath path="Typing / Automatic corrections" />, and they're listed here because what they do is change the strip:
+Seven of the rows above aren't in the Suggestions group at all. They live under <SettingsPath path="Typing / Automatic corrections" />, and they're listed here because what they do is change the strip:
 
 - **Space after a suggestion** (on) is described above, and sits with the other spacing rules rather than with the strip.
 - **Block offensive words** (on, and only visible while autocorrect is on) uses the same filtering mechanism as the [suggestion blacklist](/smart/blacklist/) to keep a bundled list of profanity and slurs out of the strip, not only out of autocorrect.
 - **Context-aware suggestions** (on, also only visible while autocorrect is on) reorders the top eight candidates using the words you typed before them: your own learned word pairs and triples, a downloaded n-gram pack if you have one, common English pairs, and words already used in this conversation. It only reorders when there's real evidence to reorder on, so an unfamiliar context keeps the usual order. It never changes which word autocorrect would apply.
-- **Adapt to app tone** (on, and visible whatever autocorrect is set to) tilts ranking by where you're typing. Chat-speak like "lol" and "gonna" ranks a little higher in messaging apps and a little lower in email apps and email fields. It's ranking only: no word is ever hidden or blocked, and autocorrect doesn't change.
+- **Context model**, **Re-check the previous word** and **Phrase suggestions** (the first two on, the third off, all only visible while autocorrect is on) are the neural model described in [The context model](#the-context-model): the sentence-aware next words, the chip that re-reads the word before, and the few-words chip.
+- **Adapt to app tone** (on, and visible whatever autocorrect is set to) tilts ranking by where you're typing. Chat-speak like "lol" and "gonna" ranks a little higher in messaging apps and a little lower in email apps and email fields. It's ranking only: no word is ever hidden or blocked, and autocorrect doesn't change. The context model reads the same lists to know where it is.
 
 A physical keyboard can also pick a strip candidate by number without touching the screen (see [Hardware keyboard](/typing/hardware-keyboard/) for how that's bound).
 

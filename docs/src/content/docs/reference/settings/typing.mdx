@@ -34,12 +34,16 @@ The Typing screen is a hub. Six of its groups are pages of their own (Automatic 
 | Stop after I refuse a fix | Slider, Never / 1–5 | 2 | Autocorrect on |
 | Learn from my fixes | Toggle | On | Autocorrect on |
 | Learned corrections | Screen | | Autocorrect on |
+| Learned correction gate | Toggle | On | Autocorrect on |
 | Skip words in capital letters | Toggle | On | Autocorrect on |
 | Correct the word before Enter | Toggle | On | Autocorrect on |
 | Correct the word before punctuation | Toggle | Off | Autocorrect on |
 | Capitals from the word list | Toggle | On | Autocorrect on |
 | Block offensive words | Toggle | On | Autocorrect on |
 | Context-aware suggestions | Toggle | On | Autocorrect on |
+| Context model | Toggle | On | Autocorrect on |
+| Re-check the previous word | Toggle | On | Autocorrect on |
+| Phrase suggestions | Toggle | Off | Autocorrect on |
 | Add missing spaces | Toggle | On | Autocorrect on |
 | Detect the language you type | Toggle | On | Autocorrect on |
 | Detection strength | Choice: Gentle / Balanced / Aggressive | Balanced | Autocorrect on and Detect the language you type on |
@@ -74,11 +78,13 @@ The Typing screen is a hub. Six of its groups are pages of their own (Automatic 
 
 **Learn from my fixes** remembers the typos you repair by hand, and the slips behind them, and **Learn where my taps land** learns where your finger lands on each key from the words you keep. **Learned corrections** opens the list of both. See [Learning from your own fixes](/smart/autocorrect/#learning-from-your-own-fixes).
 
+**Learned correction gate** replaces the fixed-ratio rule with one fitted judgement over everything the keyboard knows about a candidate, and holds back from rewriting correctly typed new words. See [The learned gate](/smart/autocorrect/#the-learned-gate). **Context model** reads the whole sentence with a small downloaded language model, **Re-check the previous word** offers a fix for the word before once the next one shows what you meant, and **Phrase suggestions** offers the next few words as one chip. See [The context model](/smart/suggestions/#the-context-model).
+
 **Space before French punctuation** types the space French keeps in front of `!`, `?`, `;`, `:` and `»`, and behind `«`, and stops the two rules above from taking it back. It only does anything in the languages that are written that way (French, Breton, Occitan, Walloon, Picard, Norman and Franco-Provençal), and every other language types exactly as it did before. See [Autocorrect](/smart/autocorrect/#the-space-in-front-of-a-mark).
 
 **Double space** is one choice: Two spaces, Full stop or Tab. The **Double space speed** slider only appears while it is Full stop or Tab. **Space after a suggestion** lives in this group even though it governs the suggestion strip, not autocorrect. That's where the app's own settings screen files it, so that's where it is here.
 
-Three of these rows rank candidates rather than correct them, and they sit here because that's where the app puts them. **Context-aware suggestions** reorders the strip using the words before what you're typing. **Adapt to app tone** nudges chat-speak up in messaging apps and down in email. **Typing rhythm** lets a fast, sloppy burst make autocorrect fire more eagerly than slow deliberate typing does. Rhythm ships at 0%, so it does nothing until you move the slider.
+Several of these rows rank candidates rather than correct them, and they sit here because that's where the app puts them. **Context-aware suggestions** reorders the strip using the words before what you're typing, and **Context model**, **Re-check the previous word** and **Phrase suggestions** are the neural model's three rows. **Adapt to app tone** nudges chat-speak up in messaging apps and down in email. **Typing rhythm** lets a fast, sloppy burst make autocorrect fire more eagerly than slow deliberate typing does. Rhythm ships at 0%, so it does nothing until you move the slider.
 
 Full writeup: [Autocorrect](/smart/autocorrect/) covers the confidence math, what a word is never corrected to, and reverting a correction with backspace. [Mixed-language typing](/smart/mixed-language/) covers Detect the language you type and its three strengths. [Suggestions & prediction](/smart/suggestions/) covers auto-space-after-suggestion, context reranking and app tone, and [Gestures](/typing/gestures/) and [Text editing](/tools/text-editing/) cover selection-wrap and shift-recase.
 

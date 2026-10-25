@@ -397,6 +397,15 @@ internal fun TypingCorrectionsSettings(
                     default = SettingsDefaults.correction.stopAfterDeclines.toFloat(),
                 ) { scope.launch { repository.setAutocorrectStopAfterDeclines(it.toInt()) } }
             }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_learned_gate_title,
+                    stringResource(R.string.typing_learned_gate_subtitle),
+                    settings.watch { it.correction.learnedGate },
+                    info = stringResource(R.string.typing_learned_gate_info),
+                    default = SettingsDefaults.correction.learnedGate,
+                ) { scope.launch { repository.setAutocorrectLearnedGate(it) } }
+            }
             item(level = SettingLevel.STANDARD) {
                 ToggleSetting(
                     R.string.typing_learn_corrections_title,
@@ -467,6 +476,33 @@ internal fun TypingCorrectionsSettings(
                     info = stringResource(R.string.typing_context_rerank_info),
                     default = SettingsDefaults.suggestionStrip.contextRerank,
                 ) { scope.launch { repository.setContextRerank(it) } }
+            }
+            item(level = SettingLevel.STANDARD) {
+                ToggleSetting(
+                    R.string.typing_neural_context_title,
+                    stringResource(R.string.typing_neural_context_subtitle),
+                    settings.watch { it.suggestionStrip.neuralContext },
+                    info = stringResource(R.string.typing_neural_context_info),
+                    default = SettingsDefaults.suggestionStrip.neuralContext,
+                ) { scope.launch { repository.setNeuralContext(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_context_revision_title,
+                    stringResource(R.string.typing_context_revision_subtitle),
+                    settings.watch { it.suggestionStrip.contextRevision },
+                    info = stringResource(R.string.typing_context_revision_info),
+                    default = SettingsDefaults.suggestionStrip.contextRevision,
+                ) { scope.launch { repository.setContextRevision(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_phrase_completion_title,
+                    stringResource(R.string.typing_phrase_completion_subtitle),
+                    settings.watch { it.suggestionStrip.phraseCompletion },
+                    info = stringResource(R.string.typing_phrase_completion_info),
+                    default = SettingsDefaults.suggestionStrip.phraseCompletion,
+                ) { scope.launch { repository.setPhraseCompletion(it) } }
             }
             item(level = SettingLevel.ADVANCED) {
                 ToggleSetting(

@@ -357,6 +357,128 @@ class SuggestionEngine(
     var reranker: CandidateReranker = CandidateReranker.NONE
 
     /**
+     * The neural context model for the language being typed ([ContextModel]),
+     * null until the service opens one: the strip's next words, the context
+     * rerank (through [reranker]), the learned gate's context features, the
+     * phrase chip and the context revision all read it. Fed the sentence so
+     * far by [setSentenceContext] at every commit.
+     */
+    @Volatile
+    var contextModel: ContextModel? = null
+
+    /** The conditioning the model is read under; see [setSentenceContext]. */
+    @Volatile
+    private var contextField: ContextField = ContextField.OTHER
+
+    /**
+     * Whether [decideCorrection] judges a fix by the learned gate
+     * ([Confidence]) rather than the margin rule. From the user's setting.
+     */
+    @Volatile
+    var learnedGate: Boolean = false
+
+    /**
+     * The words of the sentence before the caret, oldest first, as last set
+     * by [setSentenceContext]; what the phrase chip and the context revision
+     * read.
+     */
+    @Volatile
+    private var sentence: List<String> = emptyList()
+
+    /**
+     * The last few words committed through the strip or the space bar, each
+     * with the other readings the engine had for it at the time, newest last:
+     * what the context revision judges ([contextRevision]).
+     */
+    private val commits = ArrayDeque<Commit>()
+
+    private class Commit(val word: String, val alternatives: List<String>)
+
+    /**
+     * Hands the context model the sentence so far, oldest first, under the
+     * field it is being written in ([register] and [field]). Called by the
+     * service at each commit and whenever the caret lands somewhere new;
+     * cheap when the sentence grew by a word.
+     */
+    fun setSentenceContext(words: List<String>, field: ContextField = ContextField.OTHER) {
+        sentence = words
+        contextField = field
+        val model = contextModel ?: return
+        model.setContext(words, register, field, model.slotOf(primaryLanguageId))
+    }
+
+    /**
+     * Remembers that [word] was committed with [alternatives] on offer, for
+     * [contextRevision]. The service calls it where it commits a composing
+     * word; glides and picks arrive the same way.
+     */
+    fun noteCommit(word: String, alternatives: List<String>) {
+        if (word.isEmpty()) return
+        commits.addLast(Commit(word, alternatives.filter { it != word && ' ' !in it }.take(REVISION_ALTERNATIVES)))
+        while (commits.size > REVISION_DEPTH) commits.removeFirst()
+    }
+
+    /** Forgets the remembered commits: a new field, a caret jump. */
+    fun clearCommits() {
+        commits.clear()
+    }
+
+    /**
+     * The word before the one just committed, re-read with that word in
+     * sight (#issue right-context): "I want to by a car" has `by` wrong once
+     * `a car` lands. Judged by the context model over the readings the engine
+     * had for the word when it was committed: the one that fits the words on
+     * both sides best replaces it, when it beats the typed word by
+     * [REVISION_MARGIN] nats. Null when there is no model, no alternatives,
+     * or nothing clearly better. Chip-only by contract, like [RevisionAdvisor]:
+     * the caller offers, the user applies.
+     *
+     * @return the word to replace and its replacement, or null
+     */
+    fun contextRevision(): Pair<String, String>? {
+        val model = contextModel ?: return null
+        if (commits.size < 2 || sentence.size < 2) return null
+        val judged = commits[commits.size - 2]
+        val follower = commits.last().word
+        if (judged.alternatives.isEmpty()) return null
+        // The sentence as set holds the follower last and the judged word
+        // before it; the context is everything before the judged word.
+        if (!sentence.last().equals(follower, ignoreCase = true)) return null
+        if (!sentence[sentence.size - 2].equals(judged.word, ignoreCase = true)) return null
+        val context = sentence.subList(0, sentence.size - 2)
+        val candidates = listOf(judged.word) + judged.alternatives
+        val scores = model.revise(context, candidates, follower, register, contextField, model.slotOf(primaryLanguageId))
+        val own = scores.getOrNull(0)?.takeIf { !it.isNaN() } ?: return null
+        var best: Int = -1
+        var bestScore = own
+        for (i in 1 until candidates.size) {
+            val score = scores.getOrNull(i) ?: continue
+            if (!score.isNaN() && score > bestScore) {
+                bestScore = score
+                best = i
+            }
+        }
+        if (best < 0 || bestScore - own < REVISION_MARGIN) return null
+        val replacement = candidates[best]
+        if (suppressed(replacement)) return null
+        return judged.word to matchCase(judged.word, displayForm(replacement))
+    }
+
+    /**
+     * The words the context model would write next, as one chip: up to
+     * [maxWords] of them, each at least [ContextModel.PHRASE_MIN_PROB] likely
+     * at its step, joined with spaces. Null without a model, or when it is
+     * not sure of at least two words. Read after [setSentenceContext].
+     */
+    fun phraseCompletion(maxWords: Int = PHRASE_WORDS): String? {
+        val model = contextModel ?: return null
+        val (words, _) = model.phrase(maxWords)
+        if (words.size < 2) return null
+        if (words.any { suppressed(it) || WordContext.isSentinel(it) }) return null
+        return words.joinToString(" ") { displayForm(it) }
+    }
+
+    /**
      * Downloaded corpus n-grams for the active language ([NgramPack.EMPTY]
      * until a pack lands). Corpus context: consulted below every personal
      * store, and its counts are damped so one habitual personal pair beats
@@ -2437,6 +2559,23 @@ class SuggestionEngine(
         /** How many ranked candidates a reranker may reorder. */
         private const val RERANK_POOL = 8
 
+        /** How many committed words [contextRevision] keeps, with their readings. */
+        private const val REVISION_DEPTH = 3
+
+        /** How many other readings of a committed word are kept for it. */
+        private const val REVISION_ALTERNATIVES = 6
+
+        /**
+         * How far, in nats, an alternative reading has to beat the committed
+         * word with the next word in sight before the chip names it: about
+         * twenty to one, which is where a wrong "by" before "a car" lands and
+         * an unusual but intended pair does not.
+         */
+        const val REVISION_MARGIN = 3.0
+
+        /** Most words the phrase chip offers at once. */
+        const val PHRASE_WORDS = 3
+
         /**
          * How deep a glide decodes before reranking. Deeper than the four
          * candidates the strip shows, so context has something to reorder —
@@ -3854,6 +3993,12 @@ class SuggestionEngine(
         previousWord3?.lowercase()?.let { prev3 ->
             ordered.addAll(userLexicon.skip2Followers(prev3, limit))
         }
+        // The context model's likeliest next words: after the user's own
+        // habits, which know this user, and before the corpus pack, which it
+        // reads the same text as and reads further back into the sentence.
+        contextModel?.let { model ->
+            for ((word, _) in model.topWords(limit)) ordered.add(word)
+        }
         // Corpus n-grams (downloaded pack): below everything personal, above
         // the bundled seeds they supersede. The trigram context first.
         if (!ngramPack.isEmpty) {
@@ -4816,7 +4961,9 @@ class SuggestionEngine(
                 bestUser = c.word
             }
         }
-        if (bestDict != null && bestUser != null && bestDict == bestUser) {
+        val twoSources = bestDict != null && bestUser != null && bestDict == bestUser
+        // Under the learned gate the agreement is one feature among the rest.
+        if (twoSources && !learnedGate && bestDict != null) {
             return CorrectionDecision(
                 apply = matchCase(word, bestDict),
                 // Nothing this engine can say is more certain than the
@@ -4849,6 +4996,40 @@ class SuggestionEngine(
         } else {
             top.score - (runnerUp?.score ?: SOLO_RUNNER_UP_SCORE)
         }
+        // The learned gate ([Confidence]): one probability over everything
+        // the margin rule and its shapes weigh one by one, when the user has
+        // it on. Null keeps the margin rule.
+        val probability = if (learnedGate && top != null) {
+            val lmScores = contextModel?.scores(candidates.map { it.word })
+            val lmTop = lmScores?.getOrNull(0) ?: Float.NaN
+            val lmBest = lmScores?.filterNot { it.isNaN() }?.maxOrNull() ?: Float.NaN
+            Confidence.probability(
+                Confidence.Case(
+                    margin = margin,
+                    topScore = top.score,
+                    topEditCost = top.editCost,
+                    topEdits = top.edits,
+                    topSlips = top.slips,
+                    topAccents = top.accents,
+                    topCompleted = top.completedChars,
+                    topInDictionary = top.dictScore.isFinite(),
+                    topInLexicon = top.userScore.isFinite(),
+                    twoSources = twoSources,
+                    mixesSlips = mixesSlips(top),
+                    typedLength = lower.length,
+                    hasRunner = runnerUp != null,
+                    runnerEditCost = runnerUp?.editCost ?: 0.0,
+                    candidates = candidates.size,
+                    lmTop = lmTop,
+                    lmBest = lmBest,
+                    timing = Confidence.timingFeature(timingMultiplier),
+                    typedShadowed = known,
+                ),
+            )
+        } else {
+            null
+        }
+        val applyBar = Confidence.applyThreshold(effectiveConfidence)
         // A candidate the user has already rejected once. It still ranks, but
         // it neither fires nor gets asked about: being told twice is worse
         // than not being helped.
@@ -4871,13 +5052,18 @@ class SuggestionEngine(
             // A penalized candidate with no competition stays a suggestion:
             // the user already told us once that this exact fix was wrong.
             candidates.size == 1 && penalized -> null
+            probability != null -> top.word.takeIf { probability >= applyBar }
             margin < gate -> null
             else -> top.word
         }
         if (single != null && top != null) {
             return CorrectionDecision(
                 apply = matchCase(word, single),
-                certainty = certaintyOf(margin, gate),
+                certainty = if (probability != null) {
+                    ((probability - applyBar) / (1.0 - applyBar)).coerceIn(0.0, 1.0)
+                } else {
+                    certaintyOf(margin, gate)
+                },
                 complexity = complexityOf(lower, top),
             )
         }
@@ -4901,9 +5087,14 @@ class SuggestionEngine(
         // Being rejected once keeps a pair off the chip. Probation is the one
         // way back onto it.
         val mayBeOffered = probation || !penalized
+        val clearsOffer = if (probability != null) {
+            probability >= Confidence.offerThreshold(effectiveConfidence)
+        } else {
+            margin >= gate * OFFER_MARGIN_FRACTION
+        }
         val offer = top
             ?.takeIf { mayBeOffered }
-            ?.takeIf { margin >= gate * OFFER_MARGIN_FRACTION }
+            ?.takeIf { clearsOffer }
             ?.word
         return CorrectionDecision(offer = offer?.let { matchCase(word, it) })
     }

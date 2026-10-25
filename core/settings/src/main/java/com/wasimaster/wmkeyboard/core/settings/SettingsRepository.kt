@@ -2603,6 +2603,15 @@ data class AutocorrectSettings(
      * corrected as usual. 0 never stops.
      */
     val stopAfterDeclines: Int = 2,
+    /**
+     * Whether a fix is judged by the learned gate rather than the margin rule
+     * (`Confidence` in prediction): one probability over the lead, the edit,
+     * the word's length, whether the lists and your own words agree, what the
+     * context model thinks and how the word was typed. The confidence slider
+     * moves its thresholds the same way. Fitted offline on typed sentences;
+     * off falls back to the margin rule exactly as before.
+     */
+    val learnedGate: Boolean = true,
     /** Never autocorrect a word typed all in capitals (acronyms, shouting). */
     val skipAllCaps: Boolean = true,
     /**
@@ -4556,6 +4565,7 @@ val LEARNED_DATA_FILES = listOf(
     "learning/user_lexicon.json",
     "learning/pending_learn.json",
     "learning/emoji_usage.json",
+    "learning/context_adapter.json",
     "learning/correction_stats.json",
     "learning/cjk_history.json",
     "learning/language_mix.json",
@@ -9326,6 +9336,26 @@ data class SuggestionStripSettings(
      */
     val contextRerank: Boolean = true,
     /**
+     * Whether the language's neural context model (a downloaded `.wmlm`,
+     * see `ContextModel`) takes part: its reading of the sentence so far
+     * joins the context rerank, fills the next-word strip and backs the
+     * learned gate. Off leaves the n-gram stores alone in charge and reads
+     * no model file.
+     */
+    val neuralContext: Boolean = true,
+    /**
+     * Whether the word before the one just committed is re-read with that
+     * word in sight, and a reading the context model finds clearly better
+     * is offered as a chip ("by a car" → "buy"). Chip only, never applied.
+     */
+    val contextRevision: Boolean = true,
+    /**
+     * Whether the strip offers the two or three words the context model
+     * would write next as one chip, after a space. Off by default: it is a
+     * new thing on the strip, and the model has to be sure of every word.
+     */
+    val phraseCompletion: Boolean = false,
+    /**
      * Type a space after a suggestion picked from the strip, so the next word
      * starts cleanly without reaching for the spacebar. On by default. Off
      * commits the word bare — for languages or fields where a trailing space is
@@ -10262,6 +10292,7 @@ class SettingsRepository(private val context: Context) {
             stringPreferencesKey("autocorrect_undo_memory")
         private val AUTOCORRECT_STOP_AFTER_DECLINES =
             intPreferencesKey("autocorrect_stop_after_declines")
+        private val AUTOCORRECT_LEARNED_GATE = booleanPreferencesKey("autocorrect_learned_gate")
         private val REVERT_AUTOCORRECT_ON_BACKSPACE =
             booleanPreferencesKey("revert_autocorrect_on_backspace")
         private val AUTOCORRECT_SKIP_ALL_CAPS =
@@ -10300,6 +10331,9 @@ class SettingsRepository(private val context: Context) {
         private val SUGGESTION_OVERFLOW = stringPreferencesKey("suggestion_overflow")
         private val BLOCK_OFFENSIVE_WORDS = booleanPreferencesKey("block_offensive_words")
         private val CONTEXT_RERANK = booleanPreferencesKey("context_rerank")
+        private val NEURAL_CONTEXT = booleanPreferencesKey("neural_context")
+        private val CONTEXT_REVISION = booleanPreferencesKey("context_revision")
+        private val PHRASE_COMPLETION = booleanPreferencesKey("phrase_completion")
         private val LANGUAGE_DETECTION = booleanPreferencesKey("language_detection")
         private val LANGUAGE_DETECTION_BY_APP = booleanPreferencesKey("language_detection_by_app")
         /** Read only: the one switch for every language that [PHONETIC_ENGLISH_LANGS] replaced. */
@@ -12296,6 +12330,7 @@ class SettingsRepository(private val context: Context) {
             stopAfterDeclines = p[AUTOCORRECT_STOP_AFTER_DECLINES]
                 ?.coerceIn(0, MAX_STOP_AFTER_DECLINES)
                 ?: defaults.correction.stopAfterDeclines,
+            learnedGate = p[AUTOCORRECT_LEARNED_GATE] ?: defaults.correction.learnedGate,
             skipAllCaps = p[AUTOCORRECT_SKIP_ALL_CAPS] ?: defaults.correction.skipAllCaps,
             onEnter = p[AUTOCORRECT_ON_ENTER] ?: defaults.correction.onEnter,
             onPunctuation = p[AUTOCORRECT_ON_PUNCTUATION] ?: defaults.correction.onPunctuation,
@@ -12873,6 +12908,9 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.suggestionStrip.blockOffensiveWords,
             contextRerank = p[CONTEXT_RERANK]
                 ?: defaults.suggestionStrip.contextRerank,
+            neuralContext = p[NEURAL_CONTEXT] ?: defaults.suggestionStrip.neuralContext,
+            contextRevision = p[CONTEXT_REVISION] ?: defaults.suggestionStrip.contextRevision,
+            phraseCompletion = p[PHRASE_COMPLETION] ?: defaults.suggestionStrip.phraseCompletion,
             autoSpaceAfterSuggestion = p[AUTO_SPACE_AFTER_SUGGESTION]
                 ?: defaults.suggestionStrip.autoSpaceAfterSuggestion,
             spaceAfterSuggestionOffLangs = p[SPACE_AFTER_SUGGESTION_OFF_LANGS]
@@ -18537,6 +18575,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setAutocorrectStopAfterDeclines(value: Int) =
         editPrefs { it[AUTOCORRECT_STOP_AFTER_DECLINES] = value.coerceIn(0, MAX_STOP_AFTER_DECLINES) }
 
+    suspend fun setAutocorrectLearnedGate(value: Boolean) =
+        editPrefs { it[AUTOCORRECT_LEARNED_GATE] = value }
+
     suspend fun setRevertAutocorrectOnBackspace(value: Boolean) =
         editPrefs { it[REVERT_AUTOCORRECT_ON_BACKSPACE] = value }
 
@@ -18609,6 +18650,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setContextRerank(value: Boolean) =
         editPrefs { it[CONTEXT_RERANK] = value }
+
+    suspend fun setNeuralContext(value: Boolean) =
+        editPrefs { it[NEURAL_CONTEXT] = value }
+
+    suspend fun setContextRevision(value: Boolean) =
+        editPrefs { it[CONTEXT_REVISION] = value }
+
+    suspend fun setPhraseCompletion(value: Boolean) =
+        editPrefs { it[PHRASE_COMPLETION] = value }
 
     suspend fun setLanguageDetection(value: Boolean) =
         editPrefs { it[LANGUAGE_DETECTION] = value }

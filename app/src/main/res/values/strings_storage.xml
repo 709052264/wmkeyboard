@@ -187,6 +187,7 @@
     <string name="storage_file_lexicon_label">Words the keyboard learned</string>
     <string name="storage_file_pending_learn_label">Words it is still counting</string>
     <string name="storage_file_corrections_label">Corrections you accepted</string>
+    <string name="storage_file_context_adapter_label">Context model record</string>
     <string name="storage_file_emoji_usage_label">Emoji you use most</string>
     <string name="storage_file_cjk_history_label">Chinese, Japanese and Cantonese picks</string>
     <string name="storage_file_language_mix_label">How you mix languages</string>

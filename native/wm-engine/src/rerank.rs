@@ -35,6 +35,16 @@ const WEIGHT_SKIP_USER: f64 = 0.5;
 const CAP_SKIP_USER: f64 = 1.2;
 const WEIGHT_SKIP_PACK: f64 = 0.3;
 const CAP_SKIP_PACK: f64 = 0.8;
+/// The context model's say ([`Candidate::lm`]): how many ranks one nat of
+/// its preference over the engine's first choice is worth, and the most
+/// ranks it may move any candidate either way.
+/// Measured 2026-10-26 on the typing harness (step-2000 English model):
+/// 0.5/3 cost 1.9 points of typo top-1 on careful typing, 0.35/2 one
+/// point, 0.25/1.5 half a point; the model's gains are the next-word strip
+/// and the gate's features, so the typed-word term stays gentle until a
+/// model earns more.
+pub const LM_WEIGHT: f64 = 0.25;
+pub const LM_CAP: f64 = 1.5;
 
 /// A word as both stores look it up: its key for the lexicon, and the
 /// UTF-8 bytes of that key as the packs compare them (Kotlin's
@@ -59,6 +69,24 @@ pub struct Candidate {
     pub word: Word,
     pub seed: i32,
     pub recent: bool,
+    /// ln P(word | context) from the neural context model, NaN when there
+    /// is none or it does not know the word.
+    pub lm: f32,
+}
+
+/// Each candidate's term from the context model: its log-probability
+/// against the engine's first choice, `weight` ranks per nat, within
+/// `cap`. Nothing moves when the model does not know the leader or a
+/// candidate.
+pub fn lm_terms(candidates: &[Candidate], weight: f64, cap: f64) -> Vec<f64> {
+    let reference = match candidates.first() {
+        Some(c) if !c.lm.is_nan() => c.lm,
+        _ => return vec![0.0; candidates.len()],
+    };
+    candidates
+        .iter()
+        .map(|c| if c.lm.is_nan() { 0.0 } else { (weight * (c.lm - reference) as f64).clamp(-cap, cap) })
+        .collect()
 }
 
 /// `term`: `min(weight * ln(1 + count), cap)`.
@@ -85,11 +113,25 @@ pub fn rerank<B: AsRef<[u8]>>(
     context: &Context,
     candidates: &[Candidate],
 ) -> Option<Vec<usize>> {
+    rerank_weighted(lexicon, packs, context, candidates, LM_WEIGHT)
+}
+
+/// [`rerank`] with the context model's weight set by the caller: the
+/// shipped [`LM_WEIGHT`] times what the user's own record earns it (the
+/// phone's `ContextAdapter`). The cap stays.
+pub fn rerank_weighted<B: AsRef<[u8]>>(
+    lexicon: &UserLexicon,
+    packs: &[&Pack<B>],
+    context: &Context,
+    candidates: &[Candidate],
+    lm_weight: f64,
+) -> Option<Vec<usize>> {
     if candidates.is_empty() {
         return None;
     }
     let prev = context.prev;
-    let mut any_evidence = false;
+    let lm = lm_terms(candidates, lm_weight, LM_CAP);
+    let mut any_evidence = lm.iter().any(|t| *t != 0.0);
     let mut scored: Vec<(usize, f64)> = Vec::with_capacity(candidates.len());
     for (index, c) in candidates.iter().enumerate() {
         let w = &c.word;
@@ -120,7 +162,7 @@ pub fn rerank<B: AsRef<[u8]>>(
         if evidence > 0.0 {
             any_evidence = true;
         }
-        scored.push((index, -(index as f64) * RANK_STEP + evidence));
+        scored.push((index, -(index as f64) * RANK_STEP + evidence + lm[index]));
     }
     if !any_evidence {
         return None;

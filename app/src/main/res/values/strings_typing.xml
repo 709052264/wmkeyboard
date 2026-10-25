@@ -51,6 +51,22 @@
     <string name="typing_context_rerank_subtitle">Reorder suggestions by the words around them</string>
     <string name="typing_context_rerank_info">The keyboard reorders the top suggestions with the words you typed before them: your own word pairs, common English pairs, and words from the current conversation. The reorder applies only when there is real evidence, so the usual order stays for unfamiliar contexts. This never changes which word autocorrect applies.</string>
 
+    <string name="typing_neural_context_title">Context model</string>
+    <string name="typing_neural_context_subtitle">Read the whole sentence to predict and rank words</string>
+    <string name="typing_neural_context_info">A small language model, downloaded for your language, reads the sentence you have typed so far and says which words are likely to come next. It fills the next-word suggestions, helps order corrections, and backs the learned autocorrect gate. It runs on this device and needs no network once downloaded. A word it does not know, such as a name or a word you taught the keyboard, is left to your dictionary as before. Turning this off reads no model file.</string>
+
+    <string name="typing_context_revision_title">Re-check the previous word</string>
+    <string name="typing_context_revision_subtitle">Offer a fix for the word before, once the next word shows what you meant</string>
+    <string name="typing_context_revision_info">After you type a word, the keyboard looks again at the word before it with the new word in sight. If one of the other readings it had fits the sentence much better (\"by a car\" → \"buy\"), a chip offers it. Nothing changes until you tap the chip. Needs the context model.</string>
+
+    <string name="typing_phrase_completion_title">Phrase suggestions</string>
+    <string name="typing_phrase_completion_subtitle">Offer the next few words as one chip</string>
+    <string name="typing_phrase_completion_info">After a space, the strip can offer two or three words at once, when the context model is sure of each of them. Tap the chip to type them all. Needs the context model.</string>
+
+    <string name="typing_learned_gate_title">Learned correction gate</string>
+    <string name="typing_learned_gate_subtitle">Judge each fix by everything the keyboard knows about it</string>
+    <string name="typing_learned_gate_info">Autocorrect used to apply a fix when the best candidate beat the runner-up by a fixed factor. The learned gate weighs everything at once: how far ahead the candidate is, what kind of slip explains the typo, how long the word is, whether your own words agree with the word list, what the context model thinks, and how fast you typed. It was fitted on thousands of typed sentences and on new words typed correctly, so it holds back from rewriting names and slang more often. The Autocorrect confidence slider moves its bar the same way. Off uses the fixed factor as before.</string>
+
     <string name="typing_number_row_corrections_title">Fix number row slips</string>
     <string name="typing_number_row_corrections_subtitle">Correct a stray digit to the letter below it</string>
     <string name="typing_number_row_corrections_info">With the number row on, a tap meant for the top letter row can land on a digit, and "as3" appears instead of "ase". With this setting on, one digit inside a word can be corrected to the letter below it when you press space. The correction only ever swaps the digit for a letter. A word that starts with a digit, and a word with two or more digits, never change. This setting has an effect only while the number row is shown.</string>

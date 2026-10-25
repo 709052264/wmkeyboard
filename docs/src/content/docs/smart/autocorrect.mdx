@@ -29,6 +29,16 @@ Space and Enter trigger autocorrect. A full stop or other punctuation does not b
 
 The two candidates have to be far apart in score, which keeps autocorrect conservative by design. "helo" is evenly split between "hello" and "help", and "tesr" between "test" and "tear", so both are left for you to resolve yourself. An unambiguous slip like "wprld" resolves immediately.
 
+## The learned gate
+
+The rules above are how the decision used to be made, and still are with **Learned correction gate** (see [Options](#options)) turned off. With it on, which is the default, the same candidates reach a single judgement instead of a chain of rules: a small model fitted offline that weighs everything at once and answers one probability, that the best candidate is the word you meant.
+
+What it weighs is what the rules weighed one at a time, and a few things they could not. The lead over the runner-up. What kind of slip explains the typo: a letter swapped with its neighbour, a tap a little wide of its key, a dropped letter, a letter no finger slip explains. How many of them, and how long the word is. Whether the word list and your own dictionary agree. What the [context model](/smart/suggestions/#the-context-model) thinks of the candidate, when one is downloaded. How fast the word was typed, when **Typing rhythm** is on. Whether what you typed is a listed spelling the keyboard reads as a stand-in for another word.
+
+It was fitted on about ten thousand words from real sentences, typed by a finger that scatters around each key at three widths from careful to sloppy, and on words that had been taken out of the dictionary and typed right, which is what a name, a new word or a bit of slang looks like to the keyboard. Those last rows are the point of the exercise. Measured on sentences the fit never saw, the old rule rewrote about a quarter of such correctly typed new words; the gate rewrites about one in a hundred on careful or fast typing and none at all on the slowest. It also fixes more of the real typos: on careful typing it applies 79% of them where the rule applied 62%, and the fixes it applies are right 99.9% of the time, against 99.0%. On fast and sloppy typing the gap is wider still.
+
+The **Autocorrect confidence** slider still rules it. The probability a fix has to reach is the slider's ratio against one: at the default &times;4 a fix needs four chances in five, at &times;10 ten in eleven, at &times;1.5 three in five. A fix that falls short of that bar but clears about six tenths of it is offered as a chip rather than applied, as before. Everything else on this page holds under the gate: a known word is never corrected, a rejected pair stays rejected, a blacklisted word is never a target, and backspace undoes a fix the same way. The one rule that changes is two-source agreement: under the gate it is one of the things weighed rather than a bypass, since the fit found it a strong sign but not an infallible one.
+
 ## Words it never touches
 
 A word is never a correction target, whatever the confidence factor is set to, if any of these apply:
@@ -281,6 +291,7 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Learn from my fixes | On | Autocorrect on |
 | Learned corrections | (a screen) | Autocorrect on |
 | Learn where my taps land | On | Autocorrect on |
+| Learned correction gate | On | Autocorrect on |
 | Mistype tolerance | 100% (50&ndash;200%) | |
 | Fix several missed keys | Careful (Off / Careful / Eager) | |
 | Skip words in capital letters | On | Autocorrect on |
@@ -289,6 +300,9 @@ Android has a spell checker of its own, separate from the keyboard: it draws the
 | Capitals from the word list | On | Autocorrect on |
 | Block offensive words | On | Autocorrect on |
 | Context-aware suggestions | On | Autocorrect on |
+| Context model | On | Autocorrect on |
+| Re-check the previous word | On | Autocorrect on |
+| Phrase suggestions | Off | Autocorrect on |
 | Add missing spaces | On | Autocorrect on |
 | Detect the language you type | On | Autocorrect on |
 | Detection strength | Balanced (Gentle / Balanced / Aggressive) | Autocorrect on, and Detect the language you type on |
@@ -313,7 +327,9 @@ The **Autocorrect** toggle is the master switch for the eighteen rows marked "Au
 
 Each language has its own switch, on by default. Turn it off for one language and words typed in it are never replaced, while every other language keeps being corrected. This is for typing two languages side by side where only one should be corrected, such as English next to romanized Bangla or a language whose word list doesn't know your spellings. The language follows the keyboard you're on, not the language [detected](/smart/mixed-language/) in the field. Suggestions still show on the strip, and you can tap one. The switch only covers autocorrect itself: a phonetic layout's known spellings and dictionary words have their own switches in the same place (see [Phonetic typing](/languages/phonetic/)). The main **Autocorrect** switch above still rules every language. While it's off, the per-language rows are greyed out and keep their own setting for when it comes back on.
 
-**Autocorrect confidence** is the ratio the top candidate must beat the runner-up by. It's a continuous slider from 1.5&times; to 10&times;, labeled with the exact multiplier (for example "&times;4.0"). Lower makes autocorrect fire more eagerly, on less-certain calls. Higher restricts it to only the most unambiguous typos. Two-source agreement (see [How a correction is chosen](#how-a-correction-is-chosen)) always bypasses this slider, whatever it's set to.
+**Autocorrect confidence** is the ratio the top candidate must beat the runner-up by. It's a continuous slider from 1.5&times; to 10&times;, labeled with the exact multiplier (for example "&times;4.0"). Lower makes autocorrect fire more eagerly, on less-certain calls. Higher restricts it to only the most unambiguous typos. Two-source agreement (see [How a correction is chosen](#how-a-correction-is-chosen)) always bypasses this slider, whatever it's set to, unless the learned gate is on, which weighs it instead. Under the gate the slider sets the probability a fix has to reach, the ratio against one; see [The learned gate](#the-learned-gate).
+
+**Learned correction gate** (on) is that gate. Off, the keyboard decides by the rules in [How a correction is chosen](#how-a-correction-is-chosen) alone. **Context model**, **Re-check the previous word** and **Phrase suggestions** are the neural context model's three rows; they are described on [Suggestions & prediction](/smart/suggestions/#the-context-model), and the gate reads the model's scores when it is downloaded.
 
 Three more rows change what autocorrect does without you touching the slider:
 

@@ -247,6 +247,9 @@ import com.wasimaster.wmkeyboard.core.prediction.HunspellChecker
 import com.wasimaster.wmkeyboard.core.prediction.HunspellRuntime
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoChecker
 import com.wasimaster.wmkeyboard.core.prediction.VoikkoRuntime
+import com.wasimaster.wmkeyboard.core.prediction.ContextAdapter
+import com.wasimaster.wmkeyboard.core.prediction.ContextField
+import com.wasimaster.wmkeyboard.core.prediction.ContextModel
 import com.wasimaster.wmkeyboard.core.prediction.MappedNgramPack
 import com.wasimaster.wmkeyboard.core.prediction.MappedTrie
 import com.wasimaster.wmkeyboard.core.prediction.SpellingMap
@@ -265,6 +268,7 @@ import com.wasimaster.wmkeyboard.core.prediction.CorrectionWatch
 import com.wasimaster.wmkeyboard.core.prediction.DeclinedSpots
 import com.wasimaster.wmkeyboard.core.prediction.EditOps
 import com.wasimaster.wmkeyboard.core.prediction.GlideOutcomes
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.prediction.NgramPack
 import com.wasimaster.wmkeyboard.core.prediction.NgramReranker
@@ -1487,6 +1491,59 @@ open class WMKeyboardService : InputMethodService() {
     /** Post-commit confusable detector behind the revision chip; built
      * alongside the engine with the same read-through pack lambda. */
     private var revisionAdvisor: RevisionAdvisor? = null
+
+    /**
+     * The language's neural context model, opened from its downloaded file
+     * while the Context model setting is on, and handed to the engine; null
+     * otherwise. Keyed by language and file stamp so a switch or a fresh
+     * download reopens it and nothing else does.
+     */
+    private var contextModel: ContextModel? = null
+    private var contextModelKey: Pair<String, Long>? = null
+
+    /** The user's record with the context model, scaling its say in the rerank; see [ContextAdapter]. Memory-only until the personal stores attach. */
+    private var contextAdapter: ContextAdapter = ContextAdapter(null)
+
+    /**
+     * Points the engine at the context model for the language being typed:
+     * the downloaded `dict/<lang>/context.wmlm` when the setting is on and the
+     * file is here, none otherwise. Cheap when nothing changed.
+     */
+    private fun refreshContextModel() {
+        val engine = suggestionEngine ?: return
+        val settings = _uiState.value.settings
+        val langId = _uiState.value.language.id
+        val file = ContextModelDownloadManager.modelFile(filesDir, langId)
+        val wanted = settings.suggestionStrip.neuralContext && userUnlocked && file.isFile
+        val key = if (wanted) langId to file.lastModified() else null
+        if (key == contextModelKey && (engine.contextModel === contextModel)) return
+        contextModel?.close()
+        contextModel = if (wanted) ContextModel.open(file) else null
+        contextModelKey = key
+        engine.contextModel = contextModel
+        pushSentenceContext()
+    }
+
+    /**
+     * Hands the engine the sentence so far for its context model: the words
+     * of [recentWords] after the last sentence end, oldest first, under the
+     * field being written in. Called wherever the run of words changes.
+     */
+    private fun pushSentenceContext() {
+        val engine = suggestionEngine ?: return
+        if (engine.contextModel == null) return
+        val words = ArrayList<String>(recentWords.size)
+        for (token in recentWords) {
+            if (token.any { it in SENTENCE_ENDERS }) words.clear()
+            val word = token.trim { !WordContext.isWordChar(it) }
+            if (word.isNotEmpty()) words.add(word)
+        }
+        engine.setSentenceContext(words, contextFieldFor())
+    }
+
+    /** Where the text is being written, for the context model's prefix. */
+    private fun contextFieldFor(): ContextField =
+        FieldRegister.field(currentPackage, _uiState.value.fieldKind, _uiState.value.enterAction)
 
     private fun resolveReranker(settings: KeyboardSettings): CandidateReranker =
         if (settings.suggestionStrip.contextRerank) {
@@ -4580,6 +4637,13 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A freshly landed context model likewise.
+        serviceScope.launch {
+            ContextModelDownloadManager.completions.collect { langId ->
+                if (userUnlocked && _uiState.value.language.id == langId) refreshContextModel()
+            }
+        }
+
         serviceScope.launch {
             var lexiconVersion = -1
             var correctionsVersion = -1
@@ -5065,6 +5129,8 @@ open class WMKeyboardService : InputMethodService() {
                 suggestionEngine?.autocorrectConfidence =
                     settings.correction.confidence.toDouble()
                 suggestionEngine?.adaptiveConfidence = settings.correction.adaptive
+                suggestionEngine?.learnedGate = settings.correction.learnedGate
+                refreshContextModel()
                 correctionStats.memory = settings.correction.undoMemory
                 glideOutcomes.applied = settings.gesture.learnSwipeStyle
                 glideShapes.setShapesPerWord(settings.gesture.shapesPerWord)
@@ -5367,6 +5433,7 @@ open class WMKeyboardService : InputMethodService() {
         glideSandbox = GlideSandboxLadder(store(GLIDE_SANDBOX_FILE))
         sandboxOfferPolicy = null
         correctionStats = CorrectionStats(store("learning/correction_stats.json"))
+        contextAdapter = ContextAdapter(store(ContextAdapter.FILE_NAME))
         // The swapped-in store starts on the default level; carry the user's
         // setting across, or it stays at NORMAL until the next settings emit.
         correctionStats.memory = _uiState.value.settings.correction.undoMemory
@@ -5692,14 +5759,18 @@ open class WMKeyboardService : InputMethodService() {
                         suggestionEngine?.dictionary?.frequencyOf(word) ?: 0
                     },
                     ngramPack = { suggestionEngine?.ngramPack ?: NgramPack.EMPTY },
+                    contextModel = { suggestionEngine?.contextModel },
+                    adapter = { contextAdapter },
                 )
                 revisionAdvisor = RevisionAdvisor(
                     userLexicon,
                     seedBigrams,
                     ngramPack = { suggestionEngine?.ngramPack ?: NgramPack.EMPTY },
                 )
+                learnedGate = _uiState.value.settings.correction.learnedGate
                 reranker = resolveReranker(_uiState.value.settings)
             }
+            refreshContextModel()
             // A fresh engine has no touch model until the layout next reports
             // its key centres; the ones it last reported serve until then.
             applyTouchModel()
@@ -5816,6 +5887,7 @@ open class WMKeyboardService : InputMethodService() {
             EmojiDictDownloadManager.ensure(filesDir, languages)
         }
         NgramPackDownloadManager.ensure(filesDir, languages)
+        if (settings.suggestionStrip.neuralContext) ContextModelDownloadManager.ensure(filesDir, languages)
         val metered = runCatching {
             getSystemService(ConnectivityManager::class.java)?.isActiveNetworkMetered
         }.getOrNull() ?: true
@@ -14563,6 +14635,10 @@ open class WMKeyboardService : InputMethodService() {
         setContextFrom(before)
         rebuildRecentWords(before)
         seedFieldLanguageMix()
+        // The caret moved, or a field opened: the remembered commits no
+        // longer line up with the words in front of it.
+        suggestionEngine?.clearCommits()
+        pushSentenceContext()
     }
 
     /**
@@ -16522,6 +16598,7 @@ open class WMKeyboardService : InputMethodService() {
         engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
         refreshWordChecker(engine, lang.id)
         engine.ngramPack = loadNgramPack(lang.id)
+        refreshContextModel()
         // Secondary languages feed the strip alongside the primary. English
         // rides its bundled list (englishAsSecondary); every other language
         // its imported list. Each is tagged with its id so its share of the
@@ -17803,6 +17880,9 @@ open class WMKeyboardService : InputMethodService() {
             // An autocorrected word is the engine's spelling, not the user's,
             // so it teaches no casing either — it arrives at reinforcement 0,
             // which already keeps it out of the lexicon.
+            // The strip's other readings of the word, for the context
+            // revision to weigh once the next word shows what was meant.
+            suggestionEngine?.noteCommit(output, state.suggestions)
             learn(
                 output,
                 reinforcement = if (corrected != null) 0 else 1,
@@ -20497,6 +20577,9 @@ open class WMKeyboardService : InputMethodService() {
             val last = index == parts.lastIndex
             // Taps only line up with a single word; a split commit has none.
             val single = parts.size == 1
+            // Settles the last strip where the context model and the engine
+            // disagreed, when this word was one of their two picks.
+            if (single && reinforcement > 0) contextAdapter.noteCommitted(cleaned)
             notePerAppWord(cleaned)
             // Attribute the word to whichever mixed language owns it, so the
             // secondary-dictionary weighting tracks the user's real habit.
@@ -20570,6 +20653,7 @@ open class WMKeyboardService : InputMethodService() {
         previousWord3 = threeBack
         previousWord2 = beforePrevious
         previousWord = lastLearned
+        pushSentenceContext()
     }
 
     /**
@@ -24062,7 +24146,7 @@ open class WMKeyboardService : InputMethodService() {
             // IndicXlit's readings, when the language has them on: asked now,
             // read after the walk, so the two overlap.
             val neural = if (state.composer.completionLanguage == null) requestNeuralReadings(state, typed) else null
-            val (results, emojis, bias, floating) = withContext(suggestionDispatcher) {
+            val (walkResults, emojis, bias, floating) = withContext(suggestionDispatcher) {
                 // A layout whose keys already spell the word (Khipro) is
                 // completed from what they spelled, not from the roman keys;
                 // the tap and key frames belong to those keys, so they stay out.
@@ -24327,6 +24411,15 @@ open class WMKeyboardService : InputMethodService() {
                     )
                 }
             }
+            // Phrase suggestions: the context model's next few words as one
+            // chip, after a space only, when it is sure of each of them.
+            val results = if (typed.isEmpty() && state.settings.suggestionStrip.phraseCompletion && state.allowsTypingIntelligence) {
+                withContext(suggestionDispatcher) { engine.phraseCompletion() }
+                    ?.let { phrase -> if (phrase in walkResults) walkResults else walkResults + phrase }
+                    ?: walkResults
+            } else {
+                walkResults
+            }
             suggestionCostMs = (suggestionCostMs + (SystemClock.uptimeMillis() - started)) / 2
             // Drop emoji the device can't draw, then apply the default skin tone
             // (filter first — the hidden set is keyed by the neutral base).
@@ -24366,7 +24459,7 @@ open class WMKeyboardService : InputMethodService() {
             // before it wrong ("their going" → "they're"). Empty-composing
             // only — the moment of the space is when the evidence lands — and
             // chip-only: it never rewrites anything by itself.
-            val revision = if (
+            var revision = if (
                 typed.isEmpty() && state.allowsTypingIntelligence &&
                 engine.englishSources && previousWord2 != null && previousWord != null
             ) {
@@ -24375,6 +24468,17 @@ open class WMKeyboardService : InputMethodService() {
                 null
             }
             revisionContext = revision?.let { previousWord2.orEmpty() to previousWord.orEmpty() }
+            // The context model's re-reading of the word before, with the one
+            // just committed in sight ("by a car" → "buy"): the same chip, the
+            // same contract, for any pair the confusable table never listed.
+            if (revision == null && typed.isEmpty() && state.allowsTypingIntelligence &&
+                state.settings.suggestionStrip.contextRevision
+            ) {
+                engine.contextRevision()?.let { (wrong, replacement) ->
+                    revision = replacement
+                    revisionContext = wrong to previousWord.orEmpty()
+                }
+            }
             // The near-miss chip belongs to the word that was just committed,
             // so it only survives while the composing buffer is still empty:
             // start the next word and the offer about the last one is gone.
@@ -24886,6 +24990,7 @@ open class WMKeyboardService : InputMethodService() {
                 consumeShift()
                 revision = null
                 val fix = Revision(caret.word, suggestion, caret.start + suggestion.length)
+                suggestionEngine?.noteCommit(suggestion, _uiState.value.suggestions)
                 learn(
                     suggestion,
                     reinforcement = 2,
@@ -24961,6 +25066,7 @@ open class WMKeyboardService : InputMethodService() {
             // The words behind this one moved by the difference in length.
             glideReadings.onReplaced(wordStart, wordStart + caret.word.length, replacement.length + spacing.tail.length)
             val fix = Revision(caret.word, suggestion, wordStart + suggestion.length)
+            suggestionEngine?.noteCommit(suggestion, _uiState.value.suggestions)
             learn(
                 suggestion,
                 reinforcement = 2,
@@ -51189,6 +51295,7 @@ open class WMKeyboardService : InputMethodService() {
             val lang = _uiState.value.language
             engine.customDictionary = customDictionaries[lang.id] ?: PackedTrie.EMPTY
             engine.ngramPack = loadNgramPack(lang.id)
+            refreshContextModel()
             val secondaryIds = _uiState.value.settings.secondaryLanguages[lang.id].orEmpty()
             engine.secondaryDictionaries = secondaryIds.filter { it != "en" }
                 .map { id -> SecondaryDictionary(id, customDictionaries[id] ?: PackedTrie.EMPTY) }

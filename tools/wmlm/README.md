@@ -1,0 +1,75 @@
+# Context model (`.wmlm`) training
+
+The neural context model the keyboard downloads per language: a small
+word-level transformer (about 4.5M parameters, int8, under 5 MB) that reads
+the sentence before the caret once per committed word and says what comes
+next. `wm-engine/src/lm.rs` runs it on the phone; `ContextModel.kt` is the
+Kotlin side; `ContextModelCatalog` lists the published files.
+
+What the model does for the strip, and the numbers behind the defaults, are
+in `docs/src/content/docs/smart/suggestions.mdx` under "The context model"
+and `smart/autocorrect.mdx` under "The learned gate".
+
+## Files
+
+| | |
+|---|---|
+| `common.py` | the tokenisation both sides share (lower-case, trim punctuation, `<num>`, the sixteen specials) |
+| `corpus.py` | sentences out of Tatoeba and Leipzig archives, labelled with register and field |
+| `banglish.py` | romanised Bengali sentences out of a Leipzig Bengali corpus, with chat spellings from the spelling map |
+| `prep.py` | vocabulary and token arrays, plus the held-out sentences as text |
+| `model.py`, `train.py` | the model and its training loop (MPS or CPU) |
+| `export.py` | a checkpoint as a `.wmlm` |
+| `check.py` | PyTorch's answers for one context, to compare with `cargo run --example lm_probe` |
+| `train_confidence.py` | fits the learned autocorrect gate on the typing harness's rows and writes the constants into `confidence.rs` and `Confidence.kt` |
+
+## English
+
+Needs a Python with torch and numpy. Corpora go in their own folder (they
+are untrusted downloads): Tatoeba's `eng_sentences.tsv.bz2` and Leipzig's
+`eng_news_2023_1M.tar.gz`.
+
+```bash
+python corpus.py tatoeba:eng_sentences.tsv.bz2 leipzig:eng_news_2023_1M.tar.gz > en_sentences.tsv
+python prep.py en_sentences.tsv en_lm vocab=16384 ctx=32 seed_words=../../app/dictionaries-src/en.txt
+python train.py en_lm en_run steps=8000 batch=256
+python export.py en_run/best.pt en_lm/vocab.txt en_context.wmlm --langs=en --name=English
+```
+
+Tatoeba sentences are labelled casual and chat, news formal; a third of
+the rows train with the neutral labels so a caller that does not know them
+is served too. The vocabulary takes every word of the keyboard's own
+frequency list the corpus has seen, then the corpus's commonest words.
+
+## English and Banglish in one model
+
+```bash
+python banglish.py ben_community_2017.tar.gz ../../app/src/main/assets/dictionaries/bn_rom.tsv bn_rom_sentences.tsv
+(awk 'NR%2==0' en_sentences.tsv; cat bn_rom_sentences.tsv) > en_bn_rom_sentences.tsv
+python prep.py en_bn_rom_sentences.tsv en_bn_lm vocab=24576 ctx=32 seed_words=../../app/dictionaries-src/en.txt
+python train.py en_bn_lm en_bn_run steps=8000 batch=256
+python export.py en_bn_run/best.pt en_bn_lm/vocab.txt bn_rom_context.wmlm --langs=en,bn_rom --name="English and Banglish"
+```
+
+`<lang:0>` is English and `<lang:1>` Banglish in that model; the catalog
+entry for `bn_rom` points at it and the keyboard passes the slot of the
+language it is on.
+
+## Measuring
+
+The typing harness (`native/wm-engine/examples/typing_eval.rs`) runs the
+Rust engine over the held-out sentences with a simulated finger, with and
+without the model, and reports strip top-1, autocorrect precision and
+recall, new words wrongly rewritten, next-word top-1 and keystroke savings:
+
+```bash
+cd native/wm-engine && cargo build --release --example typing_eval
+PACK=pack MODES=base,lm,conf,lm+conf ./target/release/examples/typing_eval \
+    ../../app/dictionaries-src/en.txt en_lm/heldout.tsv en_context.wmlm
+```
+
+`PACK` is a folder holding the data repo's `en_bigrams.txt` and
+`en_trigrams.txt` gunzipped, so the base has the n-gram pack the phone has.
+`DUMP=rows.csv` writes the gate's feature rows; `train_confidence.py` fits
+on them and writes the constants into both source files. Use `SKIP=10000`
+on a measuring run so it reads sentences the fit never saw.
