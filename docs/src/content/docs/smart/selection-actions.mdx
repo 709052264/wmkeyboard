@@ -72,7 +72,9 @@ Ask AI and Look up are the same switches as on the [AI tool](/tools/ai/#options)
 
 ### When the entry is missing
 
-Not every app lists WM Keyboard, Ask AI or Look up in its selection menu, even with every switch above on. The menu is put together by the app you are in, and since Android 11 an app can only see the other apps on the phone it has asked to see in its own manifest. Chrome asks to see the apps that act on selected text, so the entries are in its menu. An app that never asked builds its menu without them, and every other app's entries go missing along with WM Keyboard's: Google Translate, a dictionary, a password manager. Some apps also draw a menu of their own that has no place for other apps' entries at all.
+Not every app lists WM Keyboard, Ask AI or Look up in its selection menu, even with every switch above on. The menu is put together by the app you are in, and since Android 11 an app can only see the other apps on the phone it has asked to see in its own manifest. Chrome is allowed to see every app on the phone, so the entries are always in its menu. Other apps see WM Keyboard only when something they asked to see happens to cover it, and that varies from app to app: on one test phone Gmail and WhatsApp could see it, while Telegram and Google Keep could not. An app that can't see it builds its menu without the entries, and other apps' entries go missing along with WM Keyboard's: Google Translate, ChatGPT, a dictionary. Some apps also draw a menu of their own that has no place for other apps' entries at all.
+
+Where the entries are there, they can be the last ones in the list behind the three dots, after Ask Gemini, Read aloud and whatever else your apps add. Scroll that list before deciding they are missing.
 
 Nothing on WM Keyboard's side puts the entries back in such an app. Turning the switches off and on, reinstalling, or typing with WM Keyboard in that app leaves its menu as it was. Only that app's developer can add the request.
 
