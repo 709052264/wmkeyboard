@@ -129,6 +129,12 @@
     <string name="offline_import_whisper_ready">Voice model %1$s is ready</string>
     <!-- Whistle is the name of a voice model and is not translated. -->
     <string name="offline_import_whistle_ready">The Whistle voice model is ready</string>
+    <!-- %1$s: model names, such as "Parakeet TDT 0.6B v3". -->
+    <string name="offline_import_et_ready">%1$s is ready</string>
+    <!-- %1$s: model names. -->
+    <string name="offline_import_et_placed">Kept for %1$s. Import the model\'s other files to finish it.</string>
+    <string name="offline_import_et_shared">Several models share this file. Import it together with one model\'s own files.</string>
+    <string name="offline_import_et_subtitle">A model\'s files fetched on another device, all of them at once</string>
     <string name="offline_import_whisper_needs_vocab">Voice model %1$s is in place, and still needs %2$s beside it</string>
     <string name="offline_import_whisper_vocab">Vocabulary file, for %1$s voice models</string>
     <string name="offline_import_ocr_done">Text recognition data for %1$s</string>

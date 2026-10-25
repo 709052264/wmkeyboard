@@ -42,6 +42,8 @@ import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloa
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
+import com.wasimaster.wmkeyboard.core.voice.executorch.EtImport
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
@@ -189,7 +191,8 @@ internal object OfflineImport {
      * [recognises], plus the files told by their name *and* their size, or
      * by an extension nothing else uses: a Whisper model or its vocabulary,
      * the Whistle model, OCR data, the background remover, an on-device AI
-     * model and a handwriting pack. [size] is -1 when the provider does not
+     * model, a handwriting pack, and by size alone a file of one of the
+     * other dictation engines' models ([EtImport]). [size] is -1 when the provider does not
      * say, and then only the names that need no size can match.
      */
     fun recognises(context: Context, name: String, size: Long): Boolean = kindOf(context, name, size) != null
@@ -203,7 +206,8 @@ internal object OfflineImport {
             leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME ||
             PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null ||
             ModelFormat.entries.any { it.extension == extension } ||
-            (size > 0 && InkPackImports.isPackFile(context, leaf, size))
+            (size > 0 && InkPackImports.isPackFile(context, leaf, size)) ||
+            EtImport.sizeMatches(size)
         return if (model) Kind.MODEL else null
     }
 
@@ -345,6 +349,7 @@ internal object OfflineImport {
         val outcomes = ArrayList<Outcome>()
         val wordlists = LinkedHashMap<String, MutableList<Pair<DictionaryEntry, File>>>()
         val pairs = LinkedHashMap<NgramPackEntry, Array<File?>>()
+        val single = ArrayList<File>()
         for (file in files) {
             val name = file.name
             if (IGNORED.any { it.matches(name) }) continue
@@ -356,11 +361,12 @@ internal object OfflineImport {
             when {
                 wordlist != null -> wordlists.getOrPut(wordlist.languageId) { ArrayList() } += wordlist to file
                 pair != null -> pairs.getOrPut(pair.first) { arrayOfNulls(2) }[if (pair.second) 1 else 0] = file
-                else -> {
-                    onFile(name)
-                    outcomes += installOne(context, file)
-                }
+                else -> single += file
             }
+        }
+        for (file in installEtModels(context, single, outcomes, onFile)) {
+            onFile(file.name)
+            outcomes += installOne(context, file)
         }
         for ((langId, candidates) in wordlists) {
             // A pack carries every list a language has (English: AOSP United
@@ -402,6 +408,43 @@ internal object OfflineImport {
             }
         }
         return outcomes
+    }
+
+    /**
+     * The dictation models' files (#954), told by size and checksum rather
+     * than name: see [EtImport]. Adds a line per file it placed to
+     * [outcomes] and returns the files that are none of them, for
+     * [installOne].
+     */
+    private fun installEtModels(
+        context: Context,
+        files: List<File>,
+        outcomes: MutableList<Outcome>,
+        onFile: (String) -> Unit,
+    ): List<File> {
+        val (candidates, rest) = files.partition { EtImport.sizeMatches(it.length()) }
+        if (candidates.isEmpty()) return rest
+        if (EtDownloadManager.isBusy) {
+            candidates.forEach { outcomes += Outcome(it.name, false, R.string.offline_import_busy) }
+            return rest
+        }
+        onFile(candidates.joinToString(", ") { it.name })
+        val result = runCatching { EtImport.install(context.filesDir, candidates) }.getOrElse { error ->
+            candidates.forEach { outcomes += failure(it.name, error) }
+            return rest
+        }
+        for (r in result.results) {
+            outcomes += when (r) {
+                is EtImport.Result.Placed -> if (r.ready.isNotEmpty()) {
+                    Outcome(r.fileName, true, R.string.offline_import_et_ready, listOf(r.ready.joinToString(", ") { it.label }))
+                } else {
+                    Outcome(r.fileName, true, R.string.offline_import_et_placed, listOf(r.models.joinToString(", ") { it.label }))
+                }
+                is EtImport.Result.Shared -> Outcome(r.fileName, false, R.string.offline_import_et_shared)
+            }
+        }
+        EtDownloadManager.refresh(context.filesDir)
+        return rest + result.unclaimed
     }
 
     /** Everything that is one file, one installer. */

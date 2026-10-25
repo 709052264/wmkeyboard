@@ -58,6 +58,7 @@ Each screen that downloads something has an import row with two buttons:
 | A language's word list, word pairs and emoji names | <SettingsPath path="Languages & layouts / (a language) / Dictionaries / Language pack" /> | The language pack zip, or the loose `.txt.gz` and `.json.gz` files |
 | Chinese, Japanese and Cantonese conversion tables | The same Language pack row | Inside the language pack, or the loose `.tsv` |
 | Offline voice models <Flavor edition="google" /> | <SettingsPath path="Voice typing / Recognition engine" />, on the Whisper screen below the model catalog | The model's `.tflite` and its `filters_vocab_*.bin` |
+| Asr4All, Parakeet, Moonshine, Sherpa and Omnilingual models | <SettingsPath path="Voice typing / Recognition engine" />, at the top of each engine's model list | Every file of the model, told by size and checksum |
 | Handwriting models <Flavor edition="google" /> | <SettingsPath path="Tools / Handwriting / Recognition models" />, below the models | The model's two or three `.zip` files from `dl.google.com` |
 | zinnia's Chinese and Japanese handwriting models | The same row | The one `.model` file, such as `handwriting-ja-0.3.model` |
 | Text recognition data | <SettingsPath path="Tools / Text scan (OCR) / Language data" />, below the languages | `<language>.traineddata`, or PaddleOCR's `ocr_det_fp16.tflite`, `ocr_rec_fp16.tflite` and `keys_v5.txt` for Chinese and Japanese. The F-Droid build has no `.traineddata` languages, and its PaddleOCR files are `ppocrv5-det.mnn`, `ppocrv5-rec.mnn` and `keys_v5.txt` |
@@ -86,7 +87,7 @@ A whisper.cpp Whisper model is one `.bin` file, and it is only installed if it m
 
 The [Whistle](/tools/whistle/) model is one file, `whistle.cact`. Only the exact file the app downloads is accepted: its SHA-256 is checked before it is put in place.
 
-The [Asr4All](/tools/asr4all/) models can't be imported yet; they download from the Voice typing screen.
+The models of the other offline engines, [Asr4All](/tools/asr4all/), Parakeet, Moonshine, [Sherpa](/tools/sherpa/) and [Omnilingual](/tools/omnilingual/), import from the **Import from a file** row at the top of each engine's model list. **Get the files** lists every file of every model not on the phone, straight from Hugging Face at the revision the app pins. A model is several files (a tokenizer, the model itself, for Sherpa a voice detector too), and it is ready once all of them are in. Each file is told by its size and SHA-256 rather than its name, because names like `tokens.txt` and `model.pte` repeat from model to model; a renamed file still installs. A file several models share, such as Sherpa's `silero_vad.onnx`, goes only to the models whose other files you have imported, so import it together with them.
 
 ## GIF packs
 
