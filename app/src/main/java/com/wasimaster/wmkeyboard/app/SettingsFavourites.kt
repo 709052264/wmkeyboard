@@ -45,8 +45,8 @@ import kotlinx.coroutines.launch
 
 /*
  * Favourite settings (#898): screens and single rows the user pins, listed
- * on a long press of the keyboard test button, so the settings they keep
- * coming back to are two presses from any screen.
+ * by a star button in every settings screen's top bar, so the settings they
+ * keep coming back to are two presses from any screen.
  *
  * A favourite is named by the same `wmkeyboard://` link a copied setting link
  * carries (#646), and opened the way an incoming link is: the screen
@@ -135,9 +135,8 @@ internal class SettingsFavouritesState(
 
 /**
  * The favourites, published by the settings root. Null outside it, and while
- * the keyboard test button is off: the button is where the list opens, and
- * pinning things nobody can open would only be a long press that does
- * nothing useful.
+ * the favourites button is off (Accessibility › Settings app): the button is
+ * where the list opens, and with it gone so are the pins.
  */
 internal val LocalSettingsFavourites = compositionLocalOf<SettingsFavouritesState?> { null }
 
@@ -160,44 +159,50 @@ internal fun rememberSettingsFavourites(stored: List<String>, repository: Settin
 }
 
 /**
- * The star in a screen's top bar: pins the screen being drawn, or unpins it.
- * Draws nothing where favourites are off, and on a screen no link can name.
+ * The favourites button in a screen's top bar: opens [FavouritesSheet] with
+ * the screen being drawn offered for pinning. Filled while that screen is a
+ * favourite itself. Draws nothing where favourites are off.
  */
 @Composable
-internal fun FavouriteScreenStar(title: String) {
+internal fun FavouritesButton(title: String) {
     val favourites = LocalSettingsFavourites.current ?: return
-    val route = currentLinkRoute() ?: return
-    val screen = remember(route) { SettingsRoutes.resolve(route)?.takeIf { it != "home" } } ?: return
-    val link = SettingsFavourites.screenLink(screen)
+    val route = currentLinkRoute()
+    // The screen a link can name, if this is one; the home list is not worth
+    // a pin, being where every back press already ends.
+    val screen = remember(route) { route?.let { SettingsRoutes.resolve(it) }?.takeIf { it != "home" } }
+    val link = screen?.let { SettingsFavourites.screenLink(it) }
     val trail = LocalSettingsCrumbTrail.current
     val entryId = currentCrumbEntry()?.id
-    val pinned = favourites.contains(link)
-    IconButton(
-        onClick = {
-            // Read now rather than while composing: the trail is still
-            // settling on a screen's first frames.
-            val above = SettingLinks.path(trail?.path.orEmpty(), entryId, null).dropLast(1)
-            favourites.toggle(SettingsFavourite(link, title, above))
-        },
-    ) {
+    var open by remember { mutableStateOf(false) }
+    val pinned = link != null && favourites.contains(link)
+    IconButton(onClick = { open = true }) {
         Icon(
             if (pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
-            contentDescription = stringResource(
-                if (pinned) R.string.favourites_screen_remove_desc else R.string.favourites_screen_add_desc,
-            ),
+            contentDescription = stringResource(R.string.favourites_open_desc),
             tint = if (pinned) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+        )
+    }
+    if (open) {
+        FavouritesSheet(
+            here = link?.let {
+                // Read when asked rather than while composing: the trail is
+                // still settling on a screen's first frames.
+                { SettingsFavourite(it, title, SettingLinks.path(trail?.path.orEmpty(), entryId, null).dropLast(1)) }
+            },
+            onDismiss = { open = false },
         )
     }
 }
 
 /**
- * The favourites list, opened by a long press on the keyboard test button.
- * A press on an entry opens it; Edit turns the list into one that drags into
- * order and has a bin on every entry.
+ * The favourites list, opened by [FavouritesButton]. A press on an entry
+ * opens it; Edit turns the list into one that drags into order and has a bin
+ * on every entry. [here] names the screen the sheet was opened on, when it is
+ * one a link can name, so the sheet can offer to pin or unpin it.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun FavouritesSheet(onDismiss: () -> Unit) {
+internal fun FavouritesSheet(here: (() -> SettingsFavourite)?, onDismiss: () -> Unit) {
     val favourites = LocalSettingsFavourites.current ?: return
     val open = LocalOpenSettingLink.current
     val links = LocalSettingLinks.current
@@ -226,6 +231,22 @@ internal fun FavouritesSheet(onDismiss: () -> Unit) {
                         Text(stringResource(if (editing) R.string.favourites_done else R.string.favourites_edit))
                     }
                 }
+            }
+            if (here != null && !editing) {
+                val link = remember(here) { here().link }
+                val pinned = favourites.contains(link)
+                ListItem(
+                    headlineContent = {
+                        Text(stringResource(if (pinned) R.string.favourites_screen_remove else R.string.favourites_screen_add))
+                    },
+                    leadingContent = {
+                        Icon(if (pinned) Icons.Filled.Star else Icons.Outlined.StarBorder, null)
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .clickable { favourites.toggle(here()) },
+                )
             }
             when {
                 items.isEmpty() -> Text(

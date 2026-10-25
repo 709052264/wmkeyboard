@@ -221,6 +221,15 @@ internal fun AccessibilitySettings(
                 default = SettingsDefaults.appUi.keyboardPreviewButton,
             ) { scope.launch { repository.setKeyboardPreviewButton(it) } }
         }
+        item {
+            ToggleSetting(
+                R.string.favourites_button_title,
+                stringResource(R.string.favourites_button_subtitle),
+                settings.watch { it.appUi.favouritesButton },
+                info = stringResource(R.string.favourites_button_info),
+                default = SettingsDefaults.appUi.favouritesButton,
+            ) { scope.launch { repository.setFavouritesButton(it) } }
+        }
     }
 
     SettingsGroup(stringResource(R.string.accessibility_screen_reader_title)) {

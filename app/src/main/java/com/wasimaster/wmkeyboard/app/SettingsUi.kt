@@ -2744,7 +2744,7 @@ private fun WmScreenFrame(
                             actions = {
                                 // Ahead of the screen's own, so an overflow
                                 // menu keeps the bar's last place (#898).
-                                FavouriteScreenStar(crumbTitle ?: title)
+                                FavouritesButton(crumbTitle ?: title)
                                 actions()
                             },
                         )

@@ -6526,6 +6526,13 @@ data class AppUiSettings(
      * every device.
      */
     val settingsFavourites: List<String> = emptyList(),
+    /**
+     * Whether every settings screen's top bar carries the favourites button
+     * (#898), which lists [settingsFavourites] and pins the screen it is on.
+     * Off takes the button, the list and the long-press entry away; what was
+     * pinned is kept for when it comes back.
+     */
+    val favouritesButton: Boolean = true,
 )
 
 /** See [AppUiSettings.settingLinks]. */
@@ -10355,6 +10362,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_ASSISTANT = booleanPreferencesKey("settings_assistant")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SETTINGS_FAVOURITES = stringPreferencesKey("settings_favourites")
+        private val SETTINGS_FAVOURITES_BUTTON = booleanPreferencesKey("settings_favourites_button")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -12183,6 +12191,7 @@ class SettingsRepository(private val context: Context) {
             settingsFavourites = p[SETTINGS_FAVOURITES]
                 ?.split('\n')?.filter { it.isNotEmpty() }
                 ?: defaults.appUi.settingsFavourites,
+            favouritesButton = p[SETTINGS_FAVOURITES_BUTTON] ?: defaults.appUi.favouritesButton,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -19391,6 +19400,10 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.settingsFavourites]. Entries must not hold a line break. */
     suspend fun setSettingsFavourites(value: List<String>) =
         editPrefs { it[SETTINGS_FAVOURITES] = value.joinToString("\n") }
+
+    /** See [AppUiSettings.favouritesButton]. */
+    suspend fun setFavouritesButton(value: Boolean) =
+        editPrefs { it[SETTINGS_FAVOURITES_BUTTON] = value }
 
     /** See [AppUiSettings.splitToolPanels]. */
     suspend fun setSplitToolPanels(value: Boolean) =

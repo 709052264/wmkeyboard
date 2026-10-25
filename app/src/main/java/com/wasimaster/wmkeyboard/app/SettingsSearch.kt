@@ -2417,6 +2417,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),
+        access(R.string.favourites_button_title, R.string.favourites_button_subtitle),
         entry(
             R.string.toolai_hub_chat_button_everywhere_title,
             R.string.toolai_hub_chat_button_everywhere_subtitle,

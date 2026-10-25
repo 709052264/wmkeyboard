@@ -151,6 +151,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InstallMobile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCommandKey
@@ -424,6 +425,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
+        put(R.string.favourites_button_title) { Icons.Outlined.Star }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_hub_settings_assistant_title) { Icons.Outlined.Assistant }
         put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }

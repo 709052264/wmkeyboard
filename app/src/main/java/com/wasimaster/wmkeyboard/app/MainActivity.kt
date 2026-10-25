@@ -837,12 +837,12 @@ private fun SettingsNavHost(
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
-            // Favourite screens and rows (#898), listed on a long press of the
-            // keyboard test button, so only while that button is on.
+            // Favourite screens and rows (#898), behind the button in every
+            // top bar, and gone with it.
             LocalSettingsFavourites provides rememberSettingsFavourites(
                 settings.watch { it.appUi.settingsFavourites },
                 repository,
-            ).takeIf { previewWanted },
+            ).takeIf { settings.watch { it.appUi.favouritesButton } },
             // "Icons in settings", animated once here for every row and
             // heading, so the screen the switch is on sees its tiles leave.
             LocalIconReveal provides rememberIconReveal(
