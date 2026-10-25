@@ -461,7 +461,7 @@ private fun HorizontalBarContent(
                 }
             }
             VoiceBarExitButton(state, onAction, onRestoreKeyboard)
-            VoiceBarDeleteButton(onAction)
+            VoiceBarDeleteButton(state, onAction)
             VoiceBarMic(
                 state = state,
                 hasPermission = hasPermission,
@@ -599,7 +599,7 @@ private fun VerticalBarContent(
                 onToggle = onToggle,
                 onRequestPermission = onRequestPermission,
             )
-            VoiceBarDeleteButton(onAction)
+            VoiceBarDeleteButton(state, onAction)
             VoiceBarExitButton(state, onAction, onRestoreKeyboard)
             // No status line on the upright bar, so the switch is the only
             // word on which microphone is in use (#581): its icon.
@@ -842,35 +842,27 @@ private fun VoiceBarMic(
     }
 }
 
-/** Backspace with the rail's press-and-hold repeat. */
+/** Backspace with the rail's press-and-hold repeat, and its delete swipe (#925). */
 @Composable
-private fun VoiceBarDeleteButton(onAction: (VoiceBarAction) -> Unit) {
+private fun VoiceBarDeleteButton(state: KeyboardUiState, onAction: (VoiceBarAction) -> Unit) {
     val kb = LocalKbTheme.current
     val feedback = LocalKeyPressFeedback.current
-    val scope = rememberCoroutineScope()
     val description = stringResource(CommonR.string.common_delete)
+    val settings = state.settings
+    val swipe = LocalDeleteSwipe.current
+    val byWord = settings.textEditing.backspaceSwipeUnit == com.wasimaster.wmkeyboard.core.settings.BackspaceSwipeUnit.WORD
+    val currentFeedback = androidx.compose.runtime.rememberUpdatedState(feedback)
+    // Remembered, so a recomposition mid-drag does not restart the gesture.
+    val drag = androidx.compose.runtime.remember(swipe, byWord, settings.backspaceSwipeDelete) {
+        if (settings.backspaceSwipeDelete) railDeleteDrag(swipe, byWord) { currentFeedback.value() } else null
+    }
     Box(
         modifier = Modifier
             .size(VoiceBarButton)
             .clip(kb.toolShape())
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onPress = {
-                        feedback()
-                        onAction(VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)))
-                        val repeat: Job = scope.launch {
-                            delay(400)
-                            while (true) {
-                                onAction(
-                                    VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)),
-                                )
-                                delay(120)
-                            }
-                        }
-                        tryAwaitRelease()
-                        repeat.cancel()
-                    },
-                )
+            .railKeyGestures(repeatable = true, drag = drag) {
+                feedback()
+                onAction(VoiceBarAction.RailKey(Key("⌫", action = KeyAction.Delete)))
             },
         contentAlignment = Alignment.Center,
     ) {
