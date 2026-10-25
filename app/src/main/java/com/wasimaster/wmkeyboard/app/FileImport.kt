@@ -404,12 +404,14 @@ object WMFileTypes {
         data object Text : Opened
 
         /**
-         * Files the app otherwise downloads: a language pack zip, or one word
-         * list, word-pair half, emoji name list or dictionary on its own. They
-         * install through [OfflineImport], the same as Import on a download
-         * screen, which re-opens the file itself.
+         * Files the app otherwise downloads or imports on a settings screen: a
+         * language pack zip, one word list, word-pair half, emoji name list or
+         * dictionary on its own, a model, Google's gesture library, a feature
+         * library. They install through [OfflineImport], the same as Import on
+         * a download screen, which re-opens the file itself. [kind] is what
+         * the question before the import calls them.
          */
-        data object OfflineFiles : Opened
+        internal data class OfflineFiles(val kind: OfflineImport.Kind) : Opened
 
         /** A font. [emoji] when it draws colour glyphs, which is what makes one an emoji font. */
         data class Font(val emoji: Boolean) : Opened
@@ -467,7 +469,15 @@ object WMFileTypes {
         // handwriting pack. Told by the name it is published under, and for
         // the models by their size too, before anything below reads it: a
         // word list is gzipped text, and a `.task` model is a zip.
-        if (OfflineImport.recognises(context, name, sizeOf(context, uri))) return Opened.OfflineFiles
+        OfflineImport.kindOf(context, name, sizeOf(context, uri))?.let { return Opened.OfflineFiles(it) }
+        // A native library under a name that says nothing (a browser or a
+        // chat app renamed it): told by its hash, as its import tells it.
+        if (name.endsWith(".so", ignoreCase = true)) {
+            val kind = runCatching {
+                context.contentResolver.requireInputStream(uri).use { OfflineImport.kindOfLibrary(sha256Of(it)) }
+            }.getOrNull()
+            return if (kind != null) Opened.OfflineFiles(kind) else Opened.Unrecognized
+        }
         if (head.size >= ZIP_MAGIC.size && head.copyOf(ZIP_MAGIC.size).contentEquals(ZIP_MAGIC)) {
             return identifyArchive(context, uri)
         }
@@ -542,6 +552,17 @@ object WMFileTypes {
     }
 
     /** The provider's size for [uri], or -1 when it does not say. */
+    private fun sha256Of(input: java.io.InputStream): String {
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val n = input.read(buffer)
+            if (n < 0) break
+            digest.update(buffer, 0, n)
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
     private fun sizeOf(context: android.content.Context, uri: Uri): Long = runCatching {
         context.contentResolver.query(uri, arrayOf(OpenableColumns.SIZE), null, null, null)?.use { cursor ->
             if (cursor.moveToFirst() && !cursor.isNull(0)) cursor.getLong(0) else -1L
@@ -842,7 +863,7 @@ object WMFileTypes {
         // the name it is published under), a GIF pack or a Yomichan
         // dictionary: whatever the download screens install. Any one file of
         // a language pack is enough, since the import reports on every file.
-        if (OfflineImport.recognisesArchive(names)) return Opened.OfflineFiles
+        OfflineImport.kindOfArchive(names)?.let { return Opened.OfflineFiles(it) }
         // An Anki deck, by the collection every export carries.
         if (names.any { it.substringAfterLast('/').startsWith("collection.anki2") }) return Opened.AnkiDeck
         // Dictionaries for suggestions: AOSP's compiled ones, or a Hunspell pair
@@ -1134,7 +1155,7 @@ internal fun ImportFileDialog(
     // Word lists and the rest install through the download screens' own
     // import, which brings its own choice of list, progress and report.
     if (state is WMFileTypes.Opened.OfflineFiles) {
-        OfflineFilesDialog(uri, onClose)
+        OfflineFilesDialog(uri, state.kind, onClose)
         return
     }
 
@@ -1264,20 +1285,21 @@ internal fun ImportFileDialog(
 
 /**
  * A language pack or another file the app downloads, opened from outside it.
- * One question, then the same import, progress and report a download screen's
- * Import button runs; the activity closes with the report.
+ * One question, worded for what the file is ([kind]), then the same import,
+ * progress and report a download screen's Import button runs; the activity
+ * closes with the report.
  */
 @Composable
-private fun OfflineFilesDialog(uri: Uri, onClose: () -> Unit) {
+private fun OfflineFilesDialog(uri: Uri, kind: OfflineImport.Kind, onClose: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val runner = rememberOfflineImport(onReportDismissed = onClose)
     var started by remember { mutableStateOf(false) }
     if (started) return
     AlertDialog(
         onDismissRequest = onClose,
-        title = { Text(stringResource(R.string.import_offline_title)) },
+        title = { Text(stringResource(kind.titleRes)) },
         text = {
-            Text(stringResource(R.string.import_offline_body, remember(uri) { WMFileTypes.displayName(context, uri) }))
+            Text(stringResource(kind.bodyRes, remember(uri) { WMFileTypes.displayName(context, uri) }))
         },
         confirmButton = {
             TextButton(onClick = {
@@ -1919,8 +1941,8 @@ private fun rememberProposal(
         )
 
         // Drawn by OfflineFilesDialog instead; never reaches here.
-        WMFileTypes.Opened.OfflineFiles -> ImportProposal(
-            titleRes = R.string.import_offline_title,
+        is WMFileTypes.Opened.OfflineFiles -> ImportProposal(
+            titleRes = state.kind.titleRes,
             body = "",
         )
 
