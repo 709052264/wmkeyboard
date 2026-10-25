@@ -77,6 +77,14 @@ class RomanizedConverter(
         return if (changed) out.toString() else null
     }
 
+    /**
+     * Builds the inverted map now rather than on the first [toRoman], so a
+     * caller on the main thread does not pay for it.
+     */
+    fun prepare() {
+        inverted
+    }
+
     private fun wordToNative(word: String): String {
         val norm = foldCase(word)
         spellings.lookup(norm).firstOrNull()?.let { return it }

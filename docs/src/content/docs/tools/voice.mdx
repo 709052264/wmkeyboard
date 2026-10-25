@@ -262,6 +262,14 @@ The compact bar over the keys can carry the same chip. Turn on **Language button
 
 On Android 12 and up the system recognizer prefers to run fully on-device, once your phone has that language's model installed. It's faster, needs no network, and skips the little beep before it starts listening. If a language's on-device model can't handle recognition, WM Keyboard falls back to the network recognizer transparently. The same happens when the on-device recognizer opens the microphone and then hears nothing at all, with no level and no words for the first couple of seconds. Some phones' on-device model stalls that way, which used to look like a dead microphone. That language then stays on the network recognizer until the keyboard restarts. **Prefer on-device recognition**, shown while the phone's recognizer is on the engine list, turns the on-device recognizer off altogether.
 
+### Hinglish, Banglish and other romanized languages
+
+A romanized language is dictated as the language itself. No engine knows "Hindi in Latin letters" as a language of its own, so with **Hinglish · Hindi (Romanized)** picked, every engine is asked for Hindi, and the Devanagari it writes is then spelled the way you'd type it on the Hinglish layout. "कल मीटिंग है, प्लीज कैलेंडर पे डाल देना" lands as "Kal meeting hai, please calendar pe daal dena". The live words change script before they reach the field, so you never see the Devanagari.
+
+Each word goes through that language's spelling lists first. An English word the recognizer wrote in the native script comes back as the English word when the lists know it (मीटिंग is "meeting", not "miting"), and a common word takes the spelling people chat in. Every other word is spelled out by rules for its script. Tamil, Telugu, Kannada, Malayalam and Sinhala keep every vowel they say (nuvvu ekkada unnaavu, kohomada). Roman Russian follows Translit (privet, horosho). Words the recognizer already wrote in Latin letters stay as they are, and native digits come out as 0–9. Konkani's Romi has spelling rules of its own, so it is dictated as before.
+
+Hinglish dictation runs on whatever engine, model and server Hindi is set to, and the same goes for every romanized language. Whistle knows none of them and steps aside for the next engine on the list. Picking Hindi and Hinglish together leaves the Devanagari as it was heard, since nothing says which of the two a word was meant for. With [Tidy dictation with AI](#tidying-dictation-with-ai) on, the model is told the phrase is Hindi (or Bangla, or Tamil) in Latin letters, so it keeps it in Latin letters and puts an English word the rules spelled by sound back to its English spelling.
+
 ### An engine for each language
 
 <SettingsPath path="Voice typing / Engine for each language" />

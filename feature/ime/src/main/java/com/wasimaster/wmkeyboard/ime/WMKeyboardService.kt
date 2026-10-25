@@ -289,6 +289,7 @@ import com.wasimaster.wmkeyboard.core.prediction.PhoneticScript
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticScriptChoices
 import com.wasimaster.wmkeyboard.core.prediction.PhoneticSchemes
 import com.wasimaster.wmkeyboard.core.prediction.RomanizedConverter
+import com.wasimaster.wmkeyboard.core.prediction.RomanizedDictation
 import com.wasimaster.wmkeyboard.core.prediction.Revision
 import com.wasimaster.wmkeyboard.core.prediction.SecondaryDictionary
 import com.wasimaster.wmkeyboard.core.prediction.SeedBigrams
@@ -795,6 +796,7 @@ import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.NumeralCommitScope
+import com.wasimaster.wmkeyboard.core.script.RomanizedSpeech
 import com.wasimaster.wmkeyboard.core.script.ScriptDef
 import com.wasimaster.wmkeyboard.core.script.ScriptId
 import com.wasimaster.wmkeyboard.core.script.SpacedPunctuation
@@ -29951,9 +29953,34 @@ open class WMKeyboardService : InputMethodService() {
      * The languages dictation listens for (#416), the one it starts in first:
      * the input language, like handwriting, unless the user picked their own
      * on the Voice typing screen or off the panel's language chip.
+     *
+     * A romanized language is listened for as the language itself (#948):
+     * Hinglish is heard as Hindi, by every engine and with Hindi's engine
+     * settings, and [voiceRomanizedIds] writes what comes back in Latin
+     * letters.
      */
-    private fun voiceLanguageIds(): List<String> =
+    private fun voiceLanguageIds(): List<String> = RomanizedSpeech.heard(voicePickedIds())
+
+    /** The languages dictation is in as picked, Hinglish still Hinglish; see [voiceLanguageIds]. */
+    private fun voicePickedIds(): List<String> =
         _uiState.value.settings.whisper.dictationLanguages(_uiState.value.language.id)
+
+    /** The picked languages whose script dictation writes in Latin letters (#948). */
+    private fun voiceRomanizedIds(): List<String> = RomanizedSpeech.targets(voicePickedIds())
+
+    /** Writes the native script of a romanized dictation in Latin letters (#948). */
+    private val romanizedDictation by lazy { RomanizedDictation { assets.open(it) } }
+
+    /**
+     * [text] as heard, with the script of each romanized language picked
+     * written in Latin letters. A partial goes through it as well as the
+     * finished phrase, so the words do not change script as they land.
+     * Idempotent: the Latin it writes is left alone a second time.
+     */
+    private fun romanizedVoiceText(text: String): String {
+        val ids = voiceRomanizedIds()
+        return if (ids.isEmpty()) text else romanizedDictation.romanize(text, ids)
+    }
 
     /** The language a dictation starts in; see [voiceLanguageIds]. */
     private fun voiceLanguageId(): String = voiceLanguageIds().first()
@@ -30200,6 +30227,11 @@ open class WMKeyboardService : InputMethodService() {
         val languageIds = voiceLanguageIds()
         voiceSessionLanguages = languageIds
         refreshVoiceEngineChoices()
+        // The spelling maps a romanized dictation writes with, read while the
+        // first phrase is still being said.
+        voiceRomanizedIds().takeIf { it.isNotEmpty() }?.let { ids ->
+            serviceScope.launch(Dispatchers.Default) { romanizedDictation.prepare(ids) }
+        }
         val tag = voiceTagOf(languageIds.first())
         fun fail(status: VoiceStatus, message: String? = null) {
             _uiState.update {
@@ -30406,6 +30438,7 @@ open class WMKeyboardService : InputMethodService() {
 
                 override fun onPartial(text: String) {
                     if (generation != voiceGeneration) return
+                    val shown = romanizedVoiceText(text)
                     // Interactive voice typing never writes a partial into the
                     // field. A partial is cumulative — the next one rewrites
                     // the whole composing region — so keeping one there is
@@ -30416,9 +30449,9 @@ open class WMKeyboardService : InputMethodService() {
                     // fields (#353): its words were never going to the app.
                     if (!interactiveVoice() && !voiceSessionForField) {
                         currentInputConnection
-                            ?.setComposingText(spacedVoiceText(casedVoiceText(text)), 1)
+                            ?.setComposingText(spacedVoiceText(casedVoiceText(shown)), 1)
                     }
-                    _uiState.update { it.copy(voice = it.voice.copy(partial = text)) }
+                    _uiState.update { it.copy(voice = it.voice.copy(partial = shown)) }
                 }
 
                 override fun onFinal(text: String) {
@@ -31073,7 +31106,7 @@ open class WMKeyboardService : InputMethodService() {
                 if (count > capture.fed) {
                     stream.feed(recorder.samples(capture.fed, count))
                     capture.fed = count
-                    val text = stream.text()
+                    val text = romanizedVoiceText(stream.text())
                     if (text != shown) {
                         shown = text
                         withContext(Dispatchers.Main) {
@@ -31334,7 +31367,7 @@ open class WMKeyboardService : InputMethodService() {
     private fun watchCppPartials(gen: Int): Job = serviceScope.launch(Dispatchers.Main) {
         while (isActive && gen == voiceGeneration) {
             delay(VOICE_PARTIAL_POLL_MS)
-            val text = WhisperCpp.partial()
+            val text = romanizedVoiceText(WhisperCpp.partial())
             if (gen != voiceGeneration || text.isEmpty()) continue
             _uiState.update {
                 if (it.voice.status != VoiceStatus.TRANSCRIBING || it.voice.partial == text) it
@@ -31566,11 +31599,11 @@ open class WMKeyboardService : InputMethodService() {
     private fun commitVoiceUtterance(text: String, tag: String): VoiceLanding? {
         val settings = _uiState.value.settings
         val plain = settings.voiceBar.plainTyping()
-        val processed = if (!plain && settings.voiceSpokenPunctuation) {
-            VoicePunctuation.apply(text, tag)
-        } else {
-            text
-        }
+        // Spoken punctuation is read in the language heard, before its words
+        // go into Latin letters (#948).
+        val processed = romanizedVoiceText(
+            if (!plain && settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text,
+        )
         if (voiceSessionForField) {
             commitFieldVoice(processed)
             return null
@@ -31684,7 +31717,11 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun tidyDictation(landed: String, settings: KeyboardSettings, generation: Int): String? {
         val heard = landed.trim()
-        val system = AiPrompts.dictationPrompt()
+        // A romanized dictation is tidied in Latin letters (#948).
+        val romanized = voiceRomanizedIds().firstOrNull()
+            ?.let(RomanizedSpeech::spokenAs)
+            ?.let { LanguageRegistry.byId(it).englishName }
+        val system = AiPrompts.dictationPrompt(romanized)
         val deadline = SystemClock.uptimeMillis() + VOICE_TIDY_TIMEOUT_MS
         val alive = { generation == voiceGeneration && SystemClock.uptimeMillis() < deadline }
         val answer = if (voiceTidyOnDevice(settings)) {
