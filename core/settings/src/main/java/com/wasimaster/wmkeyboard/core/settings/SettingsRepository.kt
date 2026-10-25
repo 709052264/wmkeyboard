@@ -5141,6 +5141,12 @@ data class PasswordGeneratorSettings(
     val ppSeparator: String = "-",
     val ppCapitalize: Boolean = false,
     val ppIncludeDigit: Boolean = false,
+    /** Generator opens on PINs (#899); wins over [pwPassphraseMode]. */
+    val pinMode: Boolean = false,
+    /** Digits in a PIN; see `PasswordGen.PIN_LENGTHS`. */
+    val pinLength: Int = 6,
+    /** Draws again past repeated digits, runs, repeated blocks and dates. */
+    val pinAvoidWeak: Boolean = true,
 )
 
 /**
@@ -11115,6 +11121,9 @@ class SettingsRepository(private val context: Context) {
         private val PP_SEPARATOR = stringPreferencesKey("pp_separator")
         private val PP_CAPITALIZE = booleanPreferencesKey("pp_capitalize")
         private val PP_INCLUDE_DIGIT = booleanPreferencesKey("pp_include_digit")
+        private val PIN_MODE = booleanPreferencesKey("pin_mode")
+        private val PIN_LENGTH = intPreferencesKey("pin_length")
+        private val PIN_AVOID_WEAK = booleanPreferencesKey("pin_avoid_weak")
         private val TEXT_REPEAT_COUNT = intPreferencesKey("text_repeat_count")
         private val TEXT_REPEAT_MODE = stringPreferencesKey("text_repeat_mode")
         private val TEXT_REPEAT_SEPARATOR = stringPreferencesKey("text_repeat_separator")
@@ -13384,6 +13393,10 @@ class SettingsRepository(private val context: Context) {
             ppSeparator = p[PP_SEPARATOR] ?: defaults.passwordGenerator.ppSeparator,
             ppCapitalize = p[PP_CAPITALIZE] ?: defaults.passwordGenerator.ppCapitalize,
             ppIncludeDigit = p[PP_INCLUDE_DIGIT] ?: defaults.passwordGenerator.ppIncludeDigit,
+            pinMode = p[PIN_MODE] ?: defaults.passwordGenerator.pinMode,
+            pinLength = (p[PIN_LENGTH] ?: defaults.passwordGenerator.pinLength)
+                .coerceIn(com.wasimaster.wmkeyboard.core.tools.PasswordGen.PIN_LENGTHS),
+            pinAvoidWeak = p[PIN_AVOID_WEAK] ?: defaults.passwordGenerator.pinAvoidWeak,
         )
 
     private fun readTextRepeat(p: Preferences, defaults: KeyboardSettings) =
@@ -20915,6 +20928,15 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setPpIncludeDigit(value: Boolean) =
         editPrefs { it[PP_INCLUDE_DIGIT] = value }
+
+    suspend fun setPinMode(value: Boolean) =
+        editPrefs { it[PIN_MODE] = value }
+
+    suspend fun setPinLength(value: Int) =
+        editPrefs { it[PIN_LENGTH] = value.coerceIn(com.wasimaster.wmkeyboard.core.tools.PasswordGen.PIN_LENGTHS) }
+
+    suspend fun setPinAvoidWeak(value: Boolean) =
+        editPrefs { it[PIN_AVOID_WEAK] = value }
 
     suspend fun setTextRepeatCount(value: Int) =
         editPrefs { it[TEXT_REPEAT_COUNT] = value.coerceIn(TextRepeat.MIN_COUNT, TextRepeat.MAX_COUNT) }

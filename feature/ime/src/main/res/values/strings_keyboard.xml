@@ -595,6 +595,8 @@
     <string name="ime_search_attribution_tavily">via Tavily</string>
     <string name="ime_unit_convert_title">Unit converter</string>
     <string name="ime_password_tab_passphrase">Passphrase</string>
+    <!-- Tab in the password generator: a code made of digits only. -->
+    <string name="ime_password_tab_pin">PIN</string>
     <string name="ime_typing_test_restart">Restart</string>
     <string name="ime_ai_replace">Replace</string>
     <string name="ime_ai_insert">Insert</string>

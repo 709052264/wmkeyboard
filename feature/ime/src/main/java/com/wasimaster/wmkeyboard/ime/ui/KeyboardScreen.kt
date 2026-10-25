@@ -14172,21 +14172,22 @@ private fun KeyboardBody(
                     // The toolbar above the panel already has the way back.
                     showBack = false,
                     headerActions = {
-                        val passphraseMode = state.settings.passwordGenerator.pwPassphraseMode
-                        // The ring's CHIPS region: the two mode tabs.
+                        val pinMode = state.settings.passwordGenerator.pinMode
+                        val passphraseMode = !pinMode && state.settings.passwordGenerator.pwPassphraseMode
+                        // The ring's CHIPS region: the three mode tabs.
                         PanelFocusTarget(
                             panel = PanelMode.PASSWORD_GEN,
                             region = FocusRegion.CHIPS,
-                            count = 2,
-                            columns = 2,
+                            count = 3,
+                            columns = 3,
                         ) { index ->
-                            onPwSetting(PwSettingAction.PassphraseMode(index == 1))
+                            onPwSetting(if (index == 2) PwSettingAction.PinMode else PwSettingAction.PassphraseMode(index == 1))
                         }
                         val focusedTab = state.focusedIndex(FocusRegion.CHIPS)
                         Spacer(Modifier.width(4.dp))
                         ToolPanelChip(
                             stringResource(R.string.ime_tool_password_gen),
-                            selected = !passphraseMode,
+                            selected = !passphraseMode && !pinMode,
                             modifier = Modifier.focusRing(focusedTab == 0),
                         ) {
                             onPwSetting(PwSettingAction.PassphraseMode(false))
@@ -14198,6 +14199,14 @@ private fun KeyboardBody(
                             modifier = Modifier.focusRing(focusedTab == 1),
                         ) {
                             onPwSetting(PwSettingAction.PassphraseMode(true))
+                        }
+                        Spacer(Modifier.width(6.dp))
+                        ToolPanelChip(
+                            stringResource(R.string.ime_password_tab_pin),
+                            selected = pinMode,
+                            modifier = Modifier.focusRing(focusedTab == 2),
+                        ) {
+                            onPwSetting(PwSettingAction.PinMode)
                         }
                         Spacer(Modifier.weight(1f))
                     },

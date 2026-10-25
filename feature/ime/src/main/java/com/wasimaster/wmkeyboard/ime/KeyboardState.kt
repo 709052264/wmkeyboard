@@ -1416,6 +1416,11 @@ sealed interface PwSettingAction {
     data class Separator(val value: String) : PwSettingAction
     data class Capitalize(val on: Boolean) : PwSettingAction
     data class IncludeDigit(val on: Boolean) : PwSettingAction
+
+    /** The PIN tab (#899); the other two tabs send [PassphraseMode], which leaves it. */
+    data object PinMode : PwSettingAction
+    data class PinLength(val value: Int) : PwSettingAction
+    data class PinAvoidWeak(val on: Boolean) : PwSettingAction
 }
 
 /** One change made from the sound & haptics quick panel. */

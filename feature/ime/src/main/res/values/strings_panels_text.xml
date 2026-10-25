@@ -87,6 +87,8 @@
     <string name="ime_password_separator_label">Separator: %1$s</string>
     <string name="ime_password_capitalize_label">Capital letters</string>
     <string name="ime_password_add_digit_label">Add a digit</string>
+    <!-- Chip on the PIN tab: skip PINs like 1111, 1234, 1212 or a date. -->
+    <string name="ime_password_pin_avoid_weak_label">No easy PINs</string>
     <!-- %1$d is how many bits of entropy the password has. -->
     <!-- "bits" is the unit of an approximate measurement, not a count of things: no plural. -->
     <string name="ime_password_entropy_info" tools:ignore="PluralsCandidate">≈%1$d bits of entropy</string>

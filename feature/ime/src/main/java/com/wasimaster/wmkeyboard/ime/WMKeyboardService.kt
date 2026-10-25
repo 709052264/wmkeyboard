@@ -32831,7 +32831,13 @@ open class WMKeyboardService : InputMethodService() {
         vibrate()
         serviceScope.launch {
             when (action) {
-                is PwSettingAction.PassphraseMode -> settingsRepository.setPwPassphraseMode(action.on)
+                is PwSettingAction.PassphraseMode -> {
+                    settingsRepository.setPinMode(false)
+                    settingsRepository.setPwPassphraseMode(action.on)
+                }
+                PwSettingAction.PinMode -> settingsRepository.setPinMode(true)
+                is PwSettingAction.PinLength -> settingsRepository.setPinLength(action.value)
+                is PwSettingAction.PinAvoidWeak -> settingsRepository.setPinAvoidWeak(action.on)
                 is PwSettingAction.Length -> settingsRepository.setPwLength(action.value)
                 is PwSettingAction.Upper -> settingsRepository.setPwUppercase(action.on)
                 is PwSettingAction.Digits -> settingsRepository.setPwDigits(action.on)

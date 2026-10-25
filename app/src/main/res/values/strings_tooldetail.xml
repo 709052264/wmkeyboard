@@ -861,6 +861,11 @@
     <string name="tooldetail_passphrase_capitalize_subtitle" translatable="false">correct-Horse → Correct-Horse</string>
     <string name="tooldetail_passphrase_digit_title">Include a digit</string>
     <string name="tooldetail_passphrase_digit_subtitle">The keyboard adds it to a random word</string>
+    <string name="tooldetail_pin_group">PIN</string>
+    <string name="tooldetail_pin_length_title">Digits</string>
+    <string name="tooldetail_pin_avoid_weak_title">No easy PINs</string>
+    <!-- The digits are examples of PINs the generator skips. Keep them as they are. -->
+    <string name="tooldetail_pin_avoid_weak_subtitle">Skip PINs like 1111, 1234, 1212 and dates, which many apps refuse and guessers try first</string>
     <string name="tooldetail_password_info">The keyboard generates everything on your device with a cryptographic random source. It never stores it and never logs it. Passphrase words come from the bundled English word list of the keyboard.</string>
 
     <!-- Text repeat tool. The panel edits these too, so they are also where it was last left. -->

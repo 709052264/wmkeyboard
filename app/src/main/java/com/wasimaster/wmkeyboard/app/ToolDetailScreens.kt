@@ -39,6 +39,7 @@ import com.wasimaster.wmkeyboard.core.settings.PhotoSearchEngine
 import com.wasimaster.wmkeyboard.core.settings.PhotoSearchTarget
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.HandwritingFullScreenMode
+import com.wasimaster.wmkeyboard.core.tools.PasswordGen
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.ReplyEmoji
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
@@ -3158,6 +3159,26 @@ internal fun ToolDetailSettings(
                         settings.watch { it.passwordGenerator.ppIncludeDigit },
                         default = SettingsDefaults.passwordGenerator.ppIncludeDigit,
                     ) { scope.launch { repository.setPpIncludeDigit(it) } }
+                }
+            }
+            // Digits only, for a phone, an app or a bank card (#899).
+            SettingsGroup(stringResource(R.string.tooldetail_pin_group)) {
+                item {
+                    SliderSetting(
+                        R.string.tooldetail_pin_length_title,
+                        value = settings.watch { it.passwordGenerator.pinLength }.toFloat(),
+                        range = PasswordGen.PIN_LENGTHS.first.toFloat()..PasswordGen.PIN_LENGTHS.last.toFloat(),
+                        display = { numberFormat.format(it.roundToInt()) },
+                        default = SettingsDefaults.passwordGenerator.pinLength.toFloat(),
+                    ) { scope.launch { repository.setPinLength(it.roundToInt()) } }
+                }
+                item {
+                    ToggleSetting(
+                        R.string.tooldetail_pin_avoid_weak_title,
+                        stringResource(R.string.tooldetail_pin_avoid_weak_subtitle),
+                        settings.watch { it.passwordGenerator.pinAvoidWeak },
+                        default = SettingsDefaults.passwordGenerator.pinAvoidWeak,
+                    ) { scope.launch { repository.setPinAvoidWeak(it) } }
                 }
             }
         }
