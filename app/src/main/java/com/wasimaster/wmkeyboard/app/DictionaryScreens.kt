@@ -444,22 +444,46 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
 
     if (showAdd) {
         var input by remember { mutableStateOf("") }
+        var shortcut by remember { mutableStateOf("") }
         AlertDialog(
             onDismissRequest = { showAdd = false },
             title = { Text(stringResource(R.string.backup_add_word_title)) },
             text = {
-                OutlinedTextField(
-                    value = input,
-                    onValueChange = { input = it },
-                    label = { Text(stringResource(R.string.backup_word_field_label)) },
-                    singleLine = true,
-                )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = input,
+                        onValueChange = { input = it },
+                        label = { Text(stringResource(R.string.backup_word_field_label)) },
+                        singleLine = true,
+                    )
+                    // Optional, as in Android's own dictionary (#931): typing
+                    // it offers the word, for a word hard to type or glide.
+                    OutlinedTextField(
+                        value = shortcut,
+                        onValueChange = { shortcut = it.replace("\n", "") },
+                        label = { Text(stringResource(R.string.backup_word_shortcut_label)) },
+                        supportingText = { Text(stringResource(R.string.backup_word_shortcut_hint)) },
+                        singleLine = true,
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
                     enabled = input.isNotBlank(),
                     onClick = {
-                        persist { it.addWord(input.trim()) }
+                        val word = input.trim()
+                        persist { it.addWord(word) }
+                        if (shortcut.isNotBlank()) {
+                            val typed = shortcut
+                            scope.launch(Dispatchers.IO) {
+                                val store = com.wasimaster.wmkeyboard.core.snippets.SnippetStore(
+                                    java.io.File(context.filesDir, "snippets/snippets.json"),
+                                )
+                                if (com.wasimaster.wmkeyboard.core.snippets.DictionaryShortcuts.add(store, typed, word) != null) {
+                                    store.save()
+                                }
+                            }
+                        }
                         showAdd = false
                     },
                 ) { Text(stringResource(CommonR.string.common_add)) }

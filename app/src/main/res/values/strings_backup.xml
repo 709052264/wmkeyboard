@@ -95,6 +95,9 @@
     <string name="backup_add_word_title">Add word</string>
     <!-- Label of the text field in the Add word dialog. -->
     <string name="backup_word_field_label">Word</string>
+    <string name="backup_word_shortcut_label">Shortcut (optional)</string>
+    <!-- Under the shortcut box when adding a word to the personal dictionary. -->
+    <string name="backup_word_shortcut_hint">Type this and the word is offered as a suggestion</string>
     <!-- Screen reader name of the delete button on a word row. %1$s is the word. -->
     <string name="backup_delete_word_desc">Delete %1$s</string>
 
