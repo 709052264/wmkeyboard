@@ -2315,7 +2315,33 @@ open class WMKeyboardService : InputMethodService() {
          * undoing it is remembered as a preference rather than a rejection.
          */
         val script: ScriptFlip? = null,
-    )
+        /**
+         * The field text just in front of the word when it was committed, up
+         * to [UNDO_CHIP_CONTEXT] characters; shorter only when the word sat
+         * that close to the start of the field. Null when the field could not
+         * be read back, and the word is then found the old way, by standing
+         * alone in the window.
+         *
+         * This is what says which occurrence the entry means. Text typed
+         * after the word lands behind it, and the chain is undone newest
+         * first, so every undo rewrites text behind every entry still
+         * waiting: nothing the keyboard does moves what stands in front of
+         * one. Only an edit there does, and that is exactly when the entry
+         * can no longer be trusted.
+         */
+        val before: String? = null,
+    ) {
+        /**
+         * Where the caret was when this entry was armed, the way
+         * [revertAnchor] tracks the immediate-revert states — but forgiving
+         * forwards, because typing on is exactly what the chip is meant to
+         * survive. -1 until the correction's own echo arrives.
+         *
+         * Move back through the word, or away from it altogether, and the
+         * entry can no longer say which "their" it meant.
+         */
+        var caret = -1
+    }
 
     /**
      * The buffer a phonetic layout committed in one script where the other was
@@ -2323,27 +2349,41 @@ open class WMKeyboardService : InputMethodService() {
      */
     private class ScriptFlip(val languageId: String, val spelling: String, val to: PhoneticScript)
 
-    private var undoableCorrection: UndoableCorrection? = null
-
     /**
-     * Where the caret was when [undoableCorrection] was armed, the way
-     * [revertAnchor] tracks the immediate-revert states — but forgiving
-     * forwards, because typing on is exactly what the chip is meant to
-     * survive. -1 until the correction's own echo arrives.
+     * The corrections the undo chip can still take back, oldest first; the
+     * chip names the last one.
      *
-     * The chip names one occurrence of one word, and the only thing that keeps
-     * it pointing at that occurrence is the caret having stayed on the far side
-     * of it. Move back through the word, or away from it altogether, and the
-     * chip can no longer say which "their" it meant.
+     * A chain rather than one entry because mistakes come in runs: a fast
+     * typist with a wrong layout or a sticky key gets three rewrites in a
+     * sentence, and a chip that only knew the latest left the other two to be
+     * found and fixed by hand. Each tap undoes the newest entry that still
+     * checks out and the chip moves on to the one before it.
      */
-    private var undoChipCaret = -1
+    private val undoChain = ArrayDeque<UndoableCorrection>()
 
     /**
-     * How far behind the caret the undo chip's word may sit. Generous enough
-     * for the rest of a clause, short enough that the search below cannot
-     * wander into a different sentence.
+     * How many corrections [undoChain] keeps. Past this the oldest goes: a
+     * sixth tap back is further than anyone remembers what they typed, and
+     * every entry is one more word the search behind the tap has to tell
+     * apart from the rest of the sentence.
+     */
+    private val UNDO_CHAIN_DEPTH = 5
+
+    /**
+     * How far behind the caret an undo chip entry's word may sit, measured
+     * from that entry's own anchor. Generous enough for the rest of a clause,
+     * short enough that the search below cannot wander into a different
+     * sentence.
      */
     private val UNDO_CHIP_LOOKBEHIND = 96
+
+    /**
+     * How much of the text in front of a corrected word an entry keeps to
+     * find it again by ([UndoableCorrection.before]). Three or four words:
+     * enough that the same word twice in a sentence is told apart, short
+     * enough to be one cheap read at the commit.
+     */
+    private val UNDO_CHIP_CONTEXT = 16
 
     /**
      * The last commit one backspace can take back. Any other input clears it.
@@ -8094,18 +8134,26 @@ open class WMKeyboardService : InputMethodService() {
         glideReadings.onCaret(newSelStart, newSelEnd)
         noteCaretForLearning(oldSelStart, oldSelEnd, newSelStart, newSelEnd)
         noteCaretForRevision(newSelStart, newSelEnd)
-        // The undo chip keeps its own anchor, forgiving forwards where
+        // Each undo chip entry keeps its own anchor, forgiving forwards where
         // [revertAnchor] is not: typing on is precisely what it is built to
-        // survive. What it cannot survive is the caret going back through the
+        // survive. What one cannot survive is the caret going back through the
         // word it names, or landing somewhere else entirely — then it can no
         // longer say which occurrence of that word it meant, and the search
-        // behind the tap would be a guess.
-        if (undoableCorrection != null) {
-            when {
-                newSelStart != newSelEnd -> clearUndoChip()
-                undoChipCaret == -1 -> undoChipCaret = newSelStart
-                newSelStart < undoChipCaret ||
-                    newSelStart > undoChipCaret + UNDO_CHIP_LOOKBEHIND -> clearUndoChip()
+        // behind the tap would be a guess. Judged entry by entry: backspacing
+        // into the newest correction leaves the older ones in front of the
+        // caret, still good.
+        if (undoChain.isNotEmpty()) {
+            if (newSelStart != newSelEnd) {
+                clearUndoChip()
+            } else {
+                val newest = undoChain.last()
+                for (entry in undoChain) {
+                    if (entry.caret == -1) entry.caret = newSelStart
+                }
+                undoChain.removeAll {
+                    newSelStart < it.caret || newSelStart > it.caret + UNDO_CHIP_LOOKBEHIND
+                }
+                if (undoChain.lastOrNull() !== newest) showNextUndo()
             }
         }
         // Same rule for the text a chip's gear took out: only at the caret the
@@ -13725,9 +13773,10 @@ open class WMKeyboardService : InputMethodService() {
                 // Judged here and now, so the settle pass must not judge it
                 // again on the way out and count the rejection twice.
                 correctionWatch.drop(revert.original, revert.committed)
-                // The chip was about this correction, and this correction is
-                // no longer in the field.
-                clearUndoChip()
+                // The chip's newest entry may be this correction, and this
+                // correction is no longer in the field. Older entries stand
+                // in front of it and are untouched.
+                dropUndoFor(revert.original, revert.committed)
                 previousWord = revert.original.trim { !WordContext.isWordChar(it) }
                     .lowercase().ifEmpty { null }
                 invalidateRecentWords()
@@ -13761,7 +13810,7 @@ open class WMKeyboardService : InputMethodService() {
                 // read again, since the word that tipped it has changed sides.
                 learningBuffer.drop(revert.committed)
                 revert.script?.let(::noteScriptFlip)
-                clearUndoChip()
+                dropUndoFor(revert.original, revert.committed)
                 invalidateRecentWords()
                 syncPreviousWordFromField(ic)
             }
@@ -17593,14 +17642,18 @@ open class WMKeyboardService : InputMethodService() {
         } else if (revertible != null) {
             armRevertGuard()
         }
-        armUndoChip(fieldWord, corrected, obviousness, state)
-        if (revertible != null && revertible.kind == RevertibleCommit.Kind.SCRIPT) {
+        armUndoChip(ic, fieldText, fieldWord, corrected, obviousness, state)
+        if (revertible != null && revertible.kind == RevertibleCommit.Kind.SCRIPT &&
+            state.settings.suggestionStrip.undoCorrectionChip
+        ) {
             // The same chip, offering the other script. No obviousness gate: a
             // script the keyboard picked for a word both languages have is
             // never obvious, which is what made it a flip in the first place.
-            undoChipCaret = -1
-            undoableCorrection = UndoableCorrection(revertible.original, output, revertible.script)
-                .takeIf { state.settings.suggestionStrip.undoCorrectionChip }
+            pushUndo(
+                UndoableCorrection(
+                    revertible.original, output, revertible.script, wordContext(ic, fieldText),
+                ),
+            )
         }
         // Armed before the commit lands so the strip refresh that follows it
         // publishes the chip; cleared here too, so a commit with no near miss
@@ -19820,15 +19873,16 @@ open class WMKeyboardService : InputMethodService() {
         } finally {
             ic.endBatchEdit()
         }
-        clearCorrectionOffer()
         // This is the last correction now, and it is one the user asked for by
-        // pressing the chip. Nothing left to offer an undo for.
-        clearUndoChip()
+        // pressing the chip, so it gets no undo entry of its own. The chain is
+        // left as it was: every entry in it stands in front of this word, and
+        // the undo chip comes back out from behind the offer.
+        clearCorrectionOffer()
     }
 
     /**
      * Decides whether the correction just committed is worth an undo chip, and
-     * arms (or takes down) the chip accordingly.
+     * adds it to the chain if so.
      *
      * The gate is the whole point. A chip after every correction is one more
      * thing on the strip to learn to ignore, and by the time the one that
@@ -19838,18 +19892,22 @@ open class WMKeyboardService : InputMethodService() {
      * and the one that changed the word past recognising. Those are the ones
      * that go unnoticed until the message has been sent.
      *
-     * A commit that corrected nothing leaves a standing chip alone — that is
-     * what "survives the sentence" means. A commit that corrected something
-     * always replaces it, with the new chip or with nothing, because the chip
-     * says "the last correction" and pointing it at an older one would be a
-     * lie the user cannot see through.
+     * A correction that does not pass the gate leaves the chain alone. The
+     * chip always names the word it will put back, so an older entry behind a
+     * plainly right fix is no lie, and wiping the chain for one would undo
+     * the reason it is a chain: three slips in a sentence, every one
+     * recoverable.
      *
-     * Except a fix that only changed capitals ("i" to "I", a name from the
-     * word list): it misspells nothing, never earns a chip of its own, and
-     * comes every few words, so letting it count wiped the chip long before
-     * the sentence ended.
+     * A fix that only changed capitals ("i" to "I", a name from the word list)
+     * misspells nothing and never earns an entry.
+     *
+     * Called before the commit lands, so [fieldText] — the composing word as
+     * the field shows it — is still the last thing behind the caret, and what
+     * stands in front of it is read from there.
      */
     private fun armUndoChip(
+        ic: InputConnection,
+        fieldText: String,
         typed: String,
         corrected: String?,
         obviousness: Double,
@@ -19857,40 +19915,82 @@ open class WMKeyboardService : InputMethodService() {
     ) {
         if (corrected == null || corrected.equals(typed, ignoreCase = true)) return
         val strip = state.settings.suggestionStrip
-        undoChipCaret = -1
-        undoableCorrection = UndoableCorrection(typed, corrected).takeIf {
-            strip.undoCorrectionChip && obviousness < strip.undoChipObviousness
-        }
+        if (!strip.undoCorrectionChip || obviousness >= strip.undoChipObviousness) return
+        pushUndo(UndoableCorrection(typed, corrected, before = wordContext(ic, fieldText)))
     }
 
-    /** Takes the undo chip down, tapped or not. */
+    /** Adds [entry] as the chain's newest, letting the oldest go past [UNDO_CHAIN_DEPTH]. */
+    private fun pushUndo(entry: UndoableCorrection) {
+        undoChain.addLast(entry)
+        while (undoChain.size > UNDO_CHAIN_DEPTH) undoChain.removeFirst()
+    }
+
+    /**
+     * The text in front of [fieldText], which must be the last thing behind
+     * the caret; null when the field says otherwise or cannot be read.
+     */
+    private fun wordContext(ic: InputConnection, fieldText: String): String? {
+        val read = ic.getTextBeforeCursor(fieldText.length + UNDO_CHIP_CONTEXT, 0)?.toString()
+            ?: return null
+        if (!read.endsWith(fieldText, ignoreCase = true)) return null
+        return read.dropLast(fieldText.length)
+    }
+
+    /**
+     * Drops the chain's newest entry when it is the correction of [original]
+     * into [committed] just taken back some other way — the backspace revert,
+     * a script flip undone. Anything older stands in front of that word and is
+     * unaffected, and so is the chain when the revert was of a correction too
+     * plain to have earned an entry.
+     */
+    private fun dropUndoFor(original: String, committed: String) {
+        val newest = undoChain.lastOrNull() ?: return
+        val typed = original.trim { !WordContext.isWordChar(it) }
+        val word = committed.trim { !WordContext.isWordChar(it) }
+        if (!newest.typed.equals(typed, ignoreCase = true) || !newest.corrected.equals(word, ignoreCase = true)) return
+        undoChain.removeLast()
+        showNextUndo()
+    }
+
+    /** Takes the undo chip down and forgets the whole chain, tapped or not. */
     private fun clearUndoChip() {
-        undoableCorrection = null
-        undoChipCaret = -1
+        undoChain.clear()
         if (_uiState.value.correctionUndo != null) {
             _uiState.update { it.copy(correctionUndo = null) }
         }
     }
 
     /**
-     * The undo chip: put back the word the user actually typed.
+     * Moves a chip already on the strip to the chain's new newest entry, or
+     * takes it down when the chain ran out. A chip that was not showing stays
+     * hidden: the strip refresh decides that, for reasons this cannot see.
+     */
+    private fun showNextUndo() {
+        val shown = _uiState.value.correctionUndo ?: return
+        val next = undoChain.lastOrNull()?.typed?.takeIf { composing.isEmpty() }
+        if (next != shown) _uiState.update { it.copy(correctionUndo = next) }
+    }
+
+    /**
+     * The undo chip: put back the word the user actually typed, for the
+     * newest correction in the chain that can still be found.
      *
      * Unlike the backspace revert, the correction is not necessarily the last
      * thing in the field any more — that is the whole point of the chip — so
      * the word is searched for behind the caret rather than assumed to be
-     * sitting against it. It has to stand there as a whole word and exactly
-     * once: two occurrences and there is no honest way to say which one the
-     * chip meant, and rewriting the wrong one is the failure this feature
-     * exists to prevent. Anything unverifiable leaves the text alone and only
-     * takes the chip down.
+     * sitting against it. It has to stand there as a whole word, with the text
+     * that stood in front of it when it was committed, and exactly once: two
+     * candidates and there is no honest way to say which one the entry meant,
+     * and rewriting the wrong one is the failure this feature exists to
+     * prevent. An entry that cannot be verified is dropped without touching
+     * the text and the next one down is tried, so one tap always undoes the
+     * newest correction that is still really there.
      *
      * Tapping is a rejection in full, the same as backspacing the correction
      * away, and is counted through the same path.
      */
     private fun undoLastCorrection() {
-        val undo = undoableCorrection ?: return
         val state = _uiState.value
-        clearUndoChip()
         // The composing region is the editor's, and reaching behind it to edit
         // committed text is how word-processor views end up with a composition
         // pointing at the wrong span. The chip is only offered between words
@@ -19898,23 +19998,18 @@ open class WMKeyboardService : InputMethodService() {
         if (composing.isNotEmpty()) return
         val ic = currentInputConnection ?: return
         vibrate()
+        var undo: UndoableCorrection? = null
         ic.beginBatchEdit()
         try {
-            val window = ic.getTextBeforeCursor(UNDO_CHIP_LOOKBEHIND, 0)?.toString() ?: return
-            // Found as the field holds it: styled, under Fancy Text (#950).
-            val corrected = fieldForm(undo.corrected, state)
-            val at = soleWordIndex(window, corrected) ?: return
-            val end = at + corrected.length
-            // The field's own casing wins: auto-capitalise may have made a
-            // sentence-initial correction a capital that the typed word never
-            // was, and putting the word back must not put the capital back too.
-            val standing = window.substring(at, end).let { if (corrected != undo.corrected) FancyStyles.unstyle(it) else it }
-            val restored = matchLeadingCase(standing, undo.typed)
-            ic.deleteSurroundingText(window.length - at, 0)
-            ic.commitText(restored + window.substring(end), 1)
+            while (undo == null) {
+                val entry = undoChain.removeLastOrNull() ?: break
+                if (rewriteUndone(ic, entry, state)) undo = entry
+            }
         } finally {
             ic.endBatchEdit()
         }
+        showNextUndo()
+        if (undo == null) return
         invalidateRecentWords()
         invalidateExpectedSelection()
         // A stale precompute would hand the old answer to the next commit.
@@ -19944,11 +20039,58 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
+     * Finds [undo]'s word behind the caret and puts the typed word back in
+     * its place; false, with the field untouched, when it cannot be found for
+     * certain. Runs inside the caller's batch edit.
+     */
+    private fun rewriteUndone(ic: InputConnection, undo: UndoableCorrection, state: KeyboardUiState): Boolean {
+        // Found as the field holds it: styled, under Fancy Text (#950).
+        val corrected = fieldForm(undo.corrected, state)
+        val before = undo.before
+        val wanted = if (before == null) {
+            UNDO_CHIP_LOOKBEHIND
+        } else {
+            UNDO_CHIP_LOOKBEHIND + corrected.length + UNDO_CHIP_CONTEXT
+        }
+        val window = ic.getTextBeforeCursor(wanted, 0)?.toString() ?: return false
+        val at = if (before == null) {
+            soleWordIndex(window, corrected)
+        } else {
+            anchoredWordIndex(window, corrected, before, reachesStart = window.length < wanted)
+        } ?: return false
+        val end = at + corrected.length
+        // The field's own casing wins: auto-capitalise may have made a
+        // sentence-initial correction a capital that the typed word never
+        // was, and putting the word back must not put the capital back too.
+        val standing = window.substring(at, end).let { if (corrected != undo.corrected) FancyStyles.unstyle(it) else it }
+        val restored = matchLeadingCase(standing, undo.typed)
+        ic.deleteSurroundingText(window.length - at, 0)
+        ic.commitText(restored + window.substring(end), 1)
+        return true
+    }
+
+    /**
      * Where [word] stands in [text] as a whole word, or null unless it stands
      * there exactly once. The sibling of [containsWord] for the one caller
      * that has to point at an occurrence rather than merely find one.
      */
-    private fun soleWordIndex(text: String, word: String): Int? {
+    private fun soleWordIndex(text: String, word: String): Int? = soleIndexWhere(text, word) { true }
+
+    /**
+     * Where [word] stands in [text] as a whole word right after [before], or
+     * null unless exactly one occurrence does. A [before] shorter than
+     * [UNDO_CHIP_CONTEXT] was the field's whole start, so it only matches at
+     * the start of [text], and only when [reachesStart] says [text] is the
+     * field's start too.
+     */
+    private fun anchoredWordIndex(text: String, word: String, before: String, reachesStart: Boolean): Int? =
+        soleIndexWhere(text, word) { at ->
+            at >= before.length && text.regionMatches(at - before.length, before, 0, before.length) &&
+                (before.length >= UNDO_CHIP_CONTEXT || (reachesStart && at == before.length))
+        }
+
+    /** The one whole-word occurrence of [word] in [text] that [accept] takes, or null for none or several. */
+    private inline fun soleIndexWhere(text: String, word: String, accept: (Int) -> Boolean): Int? {
         if (word.isEmpty()) return null
         var found: Int? = null
         var from = 0
@@ -19958,7 +20100,8 @@ open class WMKeyboardService : InputMethodService() {
             val before = text.getOrNull(at - 1)
             val after = text.getOrNull(at + word.length)
             if (before?.let(WordContext::isWordChar) != true &&
-                after?.let(WordContext::isWordChar) != true
+                after?.let(WordContext::isWordChar) != true &&
+                accept(at)
             ) {
                 if (found != null) return null
                 found = at
@@ -24120,7 +24263,7 @@ open class WMKeyboardService : InputMethodService() {
             // that while a composing region is open is how a composition ends
             // up pointing at the wrong span — so it waits for the space rather
             // than risking the word being typed.
-            val undo = undoableCorrection?.typed?.takeIf { typed.isEmpty() }
+            val undo = undoChain.lastOrNull()?.typed?.takeIf { typed.isEmpty() }
             // Nothing typed after a sentence end or a line break: these are
             // openers, which rest behind the toolbar like the ones at the start
             // of the field (#889).

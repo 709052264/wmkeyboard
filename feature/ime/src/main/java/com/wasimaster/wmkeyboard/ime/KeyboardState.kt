@@ -3291,8 +3291,10 @@ data class KeyboardUiState(
      *
      * The one chip on that slot that undoes rather than rewrites, and the only
      * one that outlives the commit it belongs to: it stands until the sentence
-     * ends. Null whenever the last correction was too plainly right to be
-     * worth mentioning, or the chip is switched off.
+     * ends. It names the newest of a short chain of corrections, and a tap
+     * moves it on to the one before. Null whenever no correction in the
+     * sentence was doubtful enough to be worth mentioning, or the chip is
+     * switched off.
      */
     val correctionUndo: String? = null,
     /** Spacing form of the dead-key accent waiting for a letter, if any. */
