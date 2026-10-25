@@ -22,6 +22,7 @@ import com.wasimaster.wmkeyboard.core.emoji.EmojiDictDownloadManager
 import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImeLibrary
 import com.wasimaster.wmkeyboard.core.gesture.latinime.LatinImePins
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
+import com.wasimaster.wmkeyboard.core.handwriting.InkOcrModels
 import com.wasimaster.wmkeyboard.core.handwriting.InkPackImports
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictDownloadManager
@@ -206,7 +207,7 @@ internal object OfflineImport {
         val extension = leaf.substringAfterLast('.', "").lowercase()
         val model = (size > 0 && WhisperDownloadManager.recognises(leaf, size)) ||
             leaf == WhistleModelStore.MODEL_FILE_NAME || leaf == CutoutModel.FILE_NAME ||
-            PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null ||
+            PaddleOcrModel.partOf(leaf) != null || OcrPacks.packOf(leaf) != null || InkOcrModels.partOf(leaf) != null ||
             ModelFormat.entries.any { it.extension == extension } ||
             (size > 0 && InkPackImports.isPackFile(context, leaf, size)) ||
             EtImport.sizeMatches(size)
@@ -523,6 +524,17 @@ internal object OfflineImport {
                     Outcome(name, true, R.string.offline_import_ocr_done, listOf(OcrLanguages.nameOf(PaddleOcrModel.PACK)))
                 } else {
                     Outcome(name, false, R.string.offline_import_mismatch)
+                }
+            }
+        }
+        InkOcrModels.partOf(name)?.let { part ->
+            return attempt(name) {
+                val pack = InkOcrModels.packOf(part)
+                when {
+                    pack == null || !InkOcrModels.install(filesDir, part, file) -> Outcome(name, false, R.string.offline_import_mismatch)
+                    pack.parts.all { InkOcrModels.file(filesDir, it).isFile } ->
+                        Outcome(name, true, R.string.offline_import_handwriting_done, listOf(pack.displayName))
+                    else -> Outcome(name, true, R.string.offline_import_handwriting_waiting)
                 }
             }
         }

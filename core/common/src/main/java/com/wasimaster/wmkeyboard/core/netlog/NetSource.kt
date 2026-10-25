@@ -111,6 +111,9 @@ enum class NetSource(
     /** Tesseract language data for the scan text tool. */
     DOWNLOAD_OCR("download_ocr", ToolbarTool.OCR),
 
+    /** A PaddleOCR handwriting model (data repository), where ML Kit has none for the language. */
+    DOWNLOAD_HANDWRITING("download_handwriting", ToolbarTool.HANDWRITING),
+
     /** EmbeddingGemma 2, the model behind search by meaning. */
     DOWNLOAD_SEMANTIC("download_semantic"),
 

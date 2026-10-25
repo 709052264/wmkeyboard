@@ -748,7 +748,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting instead of glide (letter-area swipe drawing) | a downloaded model for the language: ML Kit digital ink, or zinnia for Chinese and Japanese (the only one in the F-Droid build), so a network fetch on first use |
+| Handwriting instead of glide (letter-area swipe drawing) | a downloaded model for the language: ML Kit digital ink, zinnia for Chinese and Japanese, or a PaddleOCR line recogniser per script where ML Kit has no model (the last two are all the F-Droid build has), so a network fetch on first use |
 | TalkBack gesture pass-through for spacebar slide / backspace swipe / glide / handwriting | needs the 'WM Keyboard gestures' accessibility service granted by the user |
 | Glide typing in a non-bundled language | needs that language's word list present — a downloaded dictionary is a network fetch; coverage below 90% keeps glide off |
 | Auto-download of language data that unlocks glide readiness | network |
@@ -1795,7 +1795,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Mode-scoped toolbars `RARE` — A keyboard mode can carry its own pinned row and toolbox order
     - Reset pinned tools always resets the global row — Mode overrides are edited on the mode itself
   - Availability gating `uncommon` — isSupportedTool (build) vs isUsableTool (runtime)
-    - The F-Droid build has every tool — Handwriting reads Chinese and Japanese with zinnia, QR scan reads with zxing-cpp, and text scan reads Chinese, Japanese and Latin script with PaddleOCR on MNN
+    - The F-Droid build has every tool — Handwriting reads Chinese and Japanese with zinnia and nine other scripts with PaddleOCR on MNN, QR scan reads with zxing-cpp, and text scan reads Chinese, Japanese and Latin script with PaddleOCR on MNN
     - Doc scan is everywhere — Google's scanner where Play services runs it, the built-in OpenCV scanner elsewhere
     - Search tools appear only with a Brave key — hasSearchKey: user key or the build's baked-in key
   - Panel back-out paths — Back arrow replaces the toolbox button; system Back; Esc on hardware
@@ -1841,7 +1841,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
   - Numpad — 4×4 numeric keypad panel over any field
     - Phone or calculator digit order — 1 2 3 top by default; calculator style puts 7 8 9 on top
     - Backspace repeats on hold — Enter sends a normal Enter key
-  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition, zinnia for Chinese and Japanese without it
+  - Handwriting `uncommon` — Full-width ink canvas, ML Kit digital-ink recognition, zinnia for Chinese and Japanese without it, PaddleOCR line recognisers for nine other scripts where ML Kit has no model
     - Per-language model manager — Catalog read from ML Kit itself, filtered to enabled languages; 8-26MB each, sized from ML Kit's own shipped manifest
     - Measured download progress — Bytes counted off disk against the manifest size; stall notice at 20s, gives up and cleans up at 90s; panel download button doubles as cancel
     - Language chip on the canvas — Only shown when two or more enabled languages have a model
@@ -2293,7 +2293,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 
 | Feature | Needs |
 |---|---|
-| Handwriting tool and handwrite-with-swipes | every build; the F-Droid build reads only Chinese and Japanese (zinnia, no ML Kit); each language model is an 8-26MB ML Kit download or a 26-52MB zinnia one |
+| Handwriting tool and handwrite-with-swipes | every build; the F-Droid build reads Chinese and Japanese (zinnia) and Latin, Cyrillic, Arabic, Devanagari, Tamil, Telugu, Thai, Greek and Korean (PaddleOCR), no ML Kit; each language model is an 8-26MB ML Kit download, a 26-52MB zinnia one or a 7.8-13.4MB PaddleOCR one per script |
 | Text scan (OCR) | every build; the F-Droid build reads only Chinese, Japanese and Latin script offline (PaddleOCR on MNN, a 21 MB download; no ML Kit, no Tesseract), any script online; needs CAMERA permission |
 | QR & barcode scanner | every build: ML Kit where it can run, zxing-cpp (an on-demand library, about 1.1 MB) on F-Droid and on Play without Play services; needs CAMERA permission; link details need network |
 | Document scanner | every build: Google's scanner with Play services, the built-in OpenCV scanner without (its library is an on-demand download, about 2.5 MB) |
@@ -2898,6 +2898,11 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Line segmentation — ink cut at horizontal gaps, a late stroke over an earlier character joins it; every joining of up to six pieces (three per character) is read and the best average zinnia score wins, so 硍 is not read as 石艮 and two characters written apart are two
     - Fit to the training box — each character scaled by its own bounding box to the Tegaki models' 1000-unit square (longer side 820, centred at 500,490), with a floor of 30% of the canvas height so a lone dot stays small
     - Desktop-verified JNI — on the models' own training characters, jittered and resampled: top 1 93-99%, top 4 99-100%, two-character lines 92-100%
+  - PaddleOCR for other scripts `RARE` — where ML Kit has no model (every language on F-Droid): PP-OCRv5 per-script line recognisers (Apache), exported to MNN by the data repository's `scripts/export_ppocrv5_ink_mnn.py`, run on libwmimagegen (gate `imagegen`)
+    - Ten packs — Latin (English included), East Slavic, Cyrillic, Arabic, Devanagari, Tamil, Telugu, Thai, Greek, Korean; 7.8-13.4 MB each, a graph and its character list, pinned SHA-256 in the data repository's `models` release; one row per script in the model list, from the enabled languages
+    - Ink drawn as text — strokes rendered to a 48 px line (written height 75% of it, 6% pen, anti-aliased), cut into 320 px pieces at the emptiest columns like the scanner's long lines
+    - Dictionary weighing — each word the recogniser reads is scored against the suggestion engine's corrections for it by the CTC forward pass; the plain reading competes 6 nats behind. Traced English: 43% plain, 52% weighed (192 words)
+    - Script fixes — Latin look-alikes folded into Cyrillic and Greek letters before reading; Arabic-script output turned right to left keeping Latin and digit runs, as PaddleOCR does; Thai skips the dictionary (no spaces)
   - Model catalog read from the library, not hardcoded `RARE` — ML Kit's own identifier table minus autodraw/emoji/shape/gesture models, filtered to enabled languages
     - 32 script codes mapped for variant selection — keeps Sanskrit on sa-Deva-IN rather than the romanised sa-Latn
     - Subtag aliases — nb→no, tl→fil
@@ -2991,7 +2996,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 |---|---|
 | On-device LLM provider and its whole model catalog | not in the F-Droid build (BuildConfig.ENABLE_LOCAL_LLM; LiteRT-LM) — the provider chip is absent there |
 | Offline Whisper dictation and the Recognition-engine list's Whisper row | LiteRT Whisper is not in the F-Droid build (BuildConfig.ENABLE_WHISPER); the whisper.cpp models run wherever their library is |
-| Handwriting panel and handwrite-with-swipes | every build; without ML Kit (F-Droid) only Chinese and Japanese, through zinnia |
+| Handwriting panel and handwrite-with-swipes | every build; without ML Kit (F-Droid) Chinese and Japanese through zinnia and nine other scripts through PaddleOCR |
 | Text scan (OCR) | every build; without ML Kit (F-Droid) PaddleOCR on MNN reads Chinese, Japanese and Latin script (OcrLanguages, PaddleOcrModel.runtime) |
 | QR/barcode scanner | every build; BarcodeEngine.useZxing picks zxing-cpp where ML Kit cannot run or when picked |
 | Document scanner | every build and phone: Google's scanner where Play services can run it, the built-in OpenCV scanner (on-demand library) everywhere else |
@@ -3000,7 +3005,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 | On-device LLM model downloads | network (Hugging Face); the 2 gated Gemma models additionally need a Hugging Face token and an accepted licence; GGUF models also need the llama.cpp library (a Play split or a GitHub native download) |
 | NPU under Compute | Play and sideload builds only (BuildConfig.ENABLE_NPU, wmkb.enableNpu, never F-Droid: Qualcomm's licence); Android 12+, a 64-bit process, and an SM8750 or SM8850 chip by Build.SOC_MODEL; the chip is absent everywhere else |
 | Whisper model downloads | network (Hugging Face); ~40 MB to 1.5 GB per model, metered confirmation above ~150 MB |
-| Handwriting language models | one-time network download per language through ML Kit, or from the data repository for zinnia's Chinese and Japanese models (plus the zinnia library: a Play split, or a native download after the F-Droid opt-in) |
+| Handwriting language models | one-time network download per language through ML Kit, or from the data repository for zinnia's Chinese and Japanese models (plus the zinnia library: a Play split, or a native download after the F-Droid opt-in) and PaddleOCR's per-script models (plus MNN, the imagegen gate's library) |
 | Voice dictation (any engine) | needs the RECORD_AUDIO runtime permission, requested through a trampoline activity |
 | System speech recognition without the on-device language pack | sends audio to the OS recognizer service; the on-device model download itself needs network |
 | Camera tool, OCR and QR scanner | need the CAMERA runtime permission (shared trampoline) |
@@ -3513,7 +3518,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - microG answers both probes the same way, by design — The feature is offered and its own failure path takes over per module.
     - Probed answers cached for the process, primed in both onCreate paths — Defaults to 'available' before priming so a tool never disappears on a device that supports it.
   - Drive backup destination behind a gms/nogms source seam `uncommon` — Only the OAuth token provider is gated; the Drive REST calls are ordinary HTTP and compile everywhere.
-  - F-Droid build `uncommon` — wmkb.enableFdroid leaves out ML Kit, LiteRT and LiteRT-LM (src/nogoogle stands in): ML Kit handwriting (zinnia stands in for Chinese and Japanese), ML Kit and LiteRT OCR (PaddleOCR on MNN stands in, Chinese, Japanese and Latin script), ML Kit QR scan (zxing-cpp stands in), Google's doc scan (the built-in one stands in), local LiteRT-LM models and LiteRT Whisper. The full/lite flavours of 0.6.2 and earlier are gone.
+  - F-Droid build `uncommon` — wmkb.enableFdroid leaves out ML Kit, LiteRT and LiteRT-LM (src/nogoogle stands in): ML Kit handwriting (zinnia stands in for Chinese and Japanese, PaddleOCR line recognisers on MNN for nine other scripts), ML Kit and LiteRT OCR (PaddleOCR on MNN stands in, Chinese, Japanese and Latin script), ML Kit QR scan (zxing-cpp stands in), Google's doc scan (the built-in one stands in), local LiteRT-LM models and LiteRT Whisper. The full/lite flavours of 0.6.2 and earlier are gone.
 - **Notification listener and special access** `RARE` — One prominent-disclosure layer for the three grants Android hands out on a system Settings screen rather than a permission dialog.
   - One notification-listener component worn by two features `RARE` — Media control needs only the grant; the OTP chip reads notification text, gated per notification.
     - Renaming the class would silently revoke existing users' grant — Android grants notification access per component.

@@ -207,6 +207,7 @@ import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModelSizes
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingModels
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingDownloadException
 import com.wasimaster.wmkeyboard.core.handwriting.HandwritingRecognizerCache
+import com.wasimaster.wmkeyboard.core.handwriting.InkLexicon
 import com.wasimaster.wmkeyboard.core.handwriting.HwStroke
 import android.Manifest
 import android.content.pm.PackageManager
@@ -3484,7 +3485,15 @@ open class WMKeyboardService : InputMethodService() {
     private var voiceRailKeyInFlight = false
 
     // ---- handwriting recognition state ----
-    private val hwRecognizer = HandwritingRecognizerCache()
+    private val hwRecognizer = HandwritingRecognizerCache().apply {
+        // PaddleOCR's reader (the languages ML Kit has no model for) weighs
+        // each word it reads against the corrections typing would offer for
+        // it, on the thread the strip's own suggestions run on.
+        lexicon = InkLexicon { reading, previous, limit ->
+            val engine = suggestionEngine ?: return@InkLexicon null
+            withContext(suggestionDispatcher) { engine.suggest(composing = reading, previousWord = previous, limit = limit) }
+        }
+    }
     private var hwJob: Job? = null
 
     /** The model download in flight, so the same button can call it off. */
@@ -32712,7 +32721,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         serviceScope.launch {
             // No recogniser in this build reads any of the enabled languages
-            // (F-Droid's build without Chinese or Japanese): nothing to fetch.
+            // (F-Droid's build with only Bangla, say): nothing to fetch.
             if (!HandwritingModels.hasModel(tag)) {
                 _uiState.update {
                     if (it.handwriting.languageTag != tag) return@update it
@@ -32932,8 +32941,9 @@ open class WMKeyboardService : InputMethodService() {
 
         var word = candidates.first()
         val settings = state.settings
-        // Sentence-start capitalization, English only — Bengali has no case.
-        if (tag == "en-US" && settings.autoText.capitalize && !state.secureField &&
+        // Sentence-start capitalization: English through ML Kit, and the
+        // scripts with capitals through PaddleOCR. Bengali has no case.
+        if (HandwritingModels.capitalizesSentences(tag) && settings.autoText.capitalize && !state.secureField &&
             word.firstOrNull()?.isLowerCase() == true && shouldAutoCapitalize()
         ) {
             word = word.replaceFirstChar { it.uppercase() }

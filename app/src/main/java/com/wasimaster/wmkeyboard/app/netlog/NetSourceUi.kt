@@ -146,6 +146,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.DOWNLOAD_FONT -> R.string.netlog_source_download_font to R.string.netlog_sent_download
     NetSource.DOWNLOAD_CUTOUT -> R.string.netlog_source_download_cutout to R.string.netlog_sent_download
     NetSource.DOWNLOAD_OCR -> R.string.netlog_source_download_ocr to R.string.netlog_sent_download
+    NetSource.DOWNLOAD_HANDWRITING -> R.string.netlog_source_download_handwriting to R.string.netlog_sent_download
     NetSource.DOWNLOAD_SEMANTIC -> R.string.netlog_source_download_semantic to R.string.netlog_sent_download
     NetSource.DOWNLOAD_IMAGEGEN -> R.string.netlog_source_download_imagegen to R.string.netlog_sent_download
     NetSource.DOWNLOAD_UPSCALE -> R.string.netlog_source_download_upscale to R.string.netlog_sent_download

@@ -137,9 +137,10 @@ open class WMApplication : Application() {
         com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaries.attach(filesDir)
         // The same for the dictionaries the user imported (#765).
         com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries.attach(filesDir)
-        // Where zinnia's handwriting models are downloaded to, for the
-        // keyboard's panel and the Handwriting settings alike.
+        // Where zinnia's and PaddleOCR's handwriting models are downloaded
+        // to, for the keyboard's panel and the Handwriting settings alike.
         com.wasimaster.wmkeyboard.core.handwriting.ZinniaModels.attach(filesDir)
+        com.wasimaster.wmkeyboard.core.handwriting.InkOcrModels.attach(filesDir)
         // Where offline Whisper keeps its GPU verdicts and the kernels the
         // driver compiled, before the keyboard can dictate. One small read.
         com.wasimaster.wmkeyboard.core.voice.whisper.WhisperCppGpu.attach(this)
