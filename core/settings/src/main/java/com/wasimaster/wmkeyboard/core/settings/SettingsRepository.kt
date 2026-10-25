@@ -16482,7 +16482,10 @@ class SettingsRepository(private val context: Context) {
 
     private suspend fun mergeVerified(entries: List<SettingsBackup.Entry>, skipped: Int): ImportResult {
         val snapshot = context.dataStore.data.first()
-        editPrefs { prefs -> entries.forEach { prefs.put(it) } }
+        editPrefs { prefs ->
+            entries.forEach { prefs.put(it) }
+            ensureKdfSalt(prefs)
+        }
         val readable = runCancellable { settings.first() }.isSuccess
         if (!readable) {
             editPrefs { prefs ->
@@ -17257,7 +17260,10 @@ class SettingsRepository(private val context: Context) {
         (parsed.sections[ConfigBackup.Section.SETTINGS] as? JsonObject)?.let { obj ->
             val (entries, _) = SettingsBackup.decodeSettings(obj)
             val snapshot = context.dataStore.data.first()
-            editPrefs { prefs -> entries.forEach { prefs.put(it) } }
+            editPrefs { prefs ->
+                entries.forEach { prefs.put(it) }
+                ensureKdfSalt(prefs)
+            }
             if (runCancellable { settings.first() }.isSuccess) {
                 restored.add(ConfigBackup.Section.SETTINGS)
             } else {
@@ -19896,6 +19902,17 @@ class SettingsRepository(private val context: Context) {
         }
     }
 
+    /**
+     * The salt never travels with the passphrase (it is in
+     * [SettingsBackup.TRANSIENT_KEYS]), so a passphrase that arrived by import
+     * or sync has none here, and every encrypted write would fail on it (#940).
+     */
+    private fun ensureKdfSalt(prefs: MutablePreferences) {
+        if (!prefs[AUTO_BACKUP_PASSPHRASE].isNullOrEmpty() && prefs[AUTO_BACKUP_KDF_SALT].isNullOrEmpty()) {
+            prefs[AUTO_BACKUP_KDF_SALT] = Base64.encodeToString(BackupCrypto.newSalt(), Base64.NO_WRAP)
+        }
+    }
+
     /** Records the outcome of a run. [error] is a `SinkError` name, or empty. */
     suspend fun setAutoBackupOutcome(ranAtMs: Long, error: String) = editPrefs {
         if (error.isEmpty()) it[AUTO_BACKUP_LAST_RUN_AT] = ranAtMs
@@ -20049,6 +20066,7 @@ class SettingsRepository(private val context: Context) {
             if (remove.isNotEmpty()) {
                 prefs.asMap().keys.filter { it.name in remove }.forEach { prefs.remove(it) }
             }
+            ensureKdfSalt(prefs)
         }
     }
 
