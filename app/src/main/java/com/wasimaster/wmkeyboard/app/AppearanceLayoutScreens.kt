@@ -1740,7 +1740,9 @@ internal fun LayoutOneHandedSettings(
                 R.string.layout_split_gap_title,
                 subtitle = stringResource(R.string.layout_split_gap_subtitle),
                 value = settings.watch { it.splitGapPercent }.toFloat(),
-                range = 5f..40f,
+                // Up to 60% (#952): a big tablet in landscape wants the halves
+                // right out at the edges, under the thumbs.
+                range = 5f..60f,
                 display = { percentFormat.format(it.toInt()) },
                 info = stringResource(R.string.layout_split_gap_info),
                 default = SettingsDefaults.splitGapPercent.toFloat(),

@@ -15933,7 +15933,7 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[SPLIT_KEYBOARD] = value }
 
     suspend fun setSplitGapPercent(value: Int) =
-        editPrefs { it[SPLIT_GAP_PERCENT] = value.coerceIn(5, 40) }
+        editPrefs { it[SPLIT_GAP_PERCENT] = value.coerceIn(5, 60) }
 
     /**
      * Floating on or off for one orientation (#584). Landscape follows
