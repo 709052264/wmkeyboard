@@ -281,6 +281,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WbSunny
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Weekend
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Widgets
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Wifi
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.WorkOutline
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ZoomIn
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ZoomOutMap
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.AccountTree
@@ -1305,6 +1306,8 @@ internal object SettingsRowIcons {
         put(R.string.tooldetail_launcher_icon_size_title) { Icons.Outlined.PhotoSizeSelectLarge }
         put(R.string.tooldetail_launcher_icon_shape_title) { Icons.Outlined.RoundedCorner }
         put(R.string.tooldetail_launcher_hidden_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_launcher_work_title) { Icons.Outlined.WorkOutline }
+        put(R.string.tooldetail_launcher_folders_title) { Icons.Outlined.Folder }
         put(R.string.tooldetail_launcher_recents_title) { Icons.Outlined.History }
         put(R.string.tooldetail_launcher_recents_count_title) { Icons.Outlined.Numbers }
         put(R.string.tooldetail_launcher_drilldown_title) { Icons.Outlined.AppShortcut }

@@ -5094,6 +5094,16 @@ data class LauncherToolSettings(
     val openMode: LauncherOpenMode = LauncherOpenMode.NORMAL,
     /** User-made split-screen pairs, in the user's order. */
     val combos: List<LauncherSplitCombo> = emptyList(),
+    /**
+     * The user's app folders (#919), in grid order; see [LauncherFolder]. Per
+     * device like [pinned]: they hold app keys, and the apps differ by phone.
+     */
+    val folders: List<LauncherFolder> = emptyList(),
+    /**
+     * Lists the apps of the user's other profiles too (#924), a work profile
+     * above all, each with a briefcase on its icon.
+     */
+    val showWorkApps: Boolean = true,
 ) {
     companion object {
         const val MAX_RECENTS = 10
@@ -11034,6 +11044,8 @@ class SettingsRepository(private val context: Context) {
         private val LAUNCHER_HIDDEN = stringPreferencesKey("launcher_hidden")
         private val LAUNCHER_OPEN_MODE = stringPreferencesKey("launcher_open_mode")
         private val LAUNCHER_COMBOS = stringPreferencesKey("launcher_combos")
+        private val LAUNCHER_FOLDERS = stringPreferencesKey("launcher_folders")
+        private val LAUNCHER_WORK_APPS = booleanPreferencesKey("launcher_work_apps")
         private val MEDIA_PIN_WHILE_PLAYING = booleanPreferencesKey("media_pin_while_playing")
         private val SELF_HOSTED_LIBRETRANSLATE_URL = stringPreferencesKey("self_hosted_libretranslate_url")
         private val SELF_HOSTED_LIBRETRANSLATE_KEY = stringPreferencesKey("self_hosted_libretranslate_key")
@@ -13587,6 +13599,8 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { LauncherOpenMode.valueOf(it) }.getOrNull() }
                 ?: defaults.launcher.openMode,
             combos = LauncherSplitCombo.decode(p[LAUNCHER_COMBOS]),
+            folders = decodeLauncherFolders(p[LAUNCHER_FOLDERS]),
+            showWorkApps = p[LAUNCHER_WORK_APPS] ?: defaults.launcher.showWorkApps,
         )
 
     private fun readMediaControl(p: Preferences, defaults: KeyboardSettings) =
@@ -13780,6 +13794,23 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setLauncherShowNonExported(value: Boolean) =
         editPrefs { it[LAUNCHER_SHOW_NON_EXPORTED] = value }
+
+    suspend fun setLauncherShowWorkApps(value: Boolean) =
+        editPrefs { it[LAUNCHER_WORK_APPS] = value }
+
+    /**
+     * Rewrites the app folders (#919) from what is stored now, not from the
+     * caller's copy of the settings, so two quick edits cannot undo each
+     * other. See [LauncherFolder] for the helpers [edit] uses.
+     */
+    suspend fun updateLauncherFolders(edit: (List<LauncherFolder>) -> List<LauncherFolder>) =
+        editPrefs { prefs ->
+            val next = edit(decodeLauncherFolders(prefs[LAUNCHER_FOLDERS])).normalizedLauncherFolders()
+            val encoded = encodeLauncherFolders(next)
+            if (encoded == null) prefs.remove(LAUNCHER_FOLDERS) else prefs[LAUNCHER_FOLDERS] = encoded
+        }
+
+    suspend fun clearLauncherFolders() = editPrefs { it.remove(LAUNCHER_FOLDERS) }
 
     suspend fun setLauncherMaxRecents(value: Int) = editPrefs { prefs ->
         val cap = value.coerceIn(

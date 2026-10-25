@@ -1725,6 +1725,9 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     ),
     // Subtitle left off: it counts the hidden apps.
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_hidden_title),
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_work_title, R.string.tooldetail_launcher_work_subtitle),
+    // Subtitle left off: it counts the folders.
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_folders_title),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_recents_title, R.string.tooldetail_launcher_recents_subtitle),
     toolEntry(
         ToolbarTool.APP_LAUNCHER,

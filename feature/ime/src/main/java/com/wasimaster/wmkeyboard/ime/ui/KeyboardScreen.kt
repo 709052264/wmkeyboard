@@ -13922,18 +13922,28 @@ private fun KeyboardBody(
                 PanelMode.APP_LAUNCHER -> FullBleedTool(
                     state, title = "",
                     // Back out one level at a time, like the plugins panel:
-                    // from an app's activity list to the grid, then out.
+                    // a folder name being typed, an app's activity list, the
+                    // open folder (#919), then out.
                     onClose = {
-                        if (state.launcherDetail != null) launcher.onDetailClose()
-                        else onPanelChange(PanelMode.APP_LAUNCHER)
+                        when {
+                            state.launcherView.nameDraft != null -> launcher.folders.onRenameDone()
+                            state.launcherDetail != null -> launcher.onDetailClose()
+                            state.launcherView.folderOpen != null -> launcher.folders.onOpen(null)
+                            else -> onPanelChange(PanelMode.APP_LAUNCHER)
+                        }
                     },
-                    compact = state.mediaSearchActive,
+                    compact = state.mediaSearchActive || state.launcherView.nameDraft != null,
                     headerActions = {
-                        MediaHeaderSearchBar(
-                            state = state,
-                            placeholder = stringResource(R.string.ime_launcher_search_hint),
-                            onQueryTap = onMediaQueryTap,
-                        )
+                        val nameDraft = state.launcherView.nameDraft
+                        if (nameDraft != null) {
+                            LauncherFolderNameBar(nameDraft, launcher.folders.onRenameDone)
+                        } else {
+                            MediaHeaderSearchBar(
+                                state = state,
+                                placeholder = stringResource(R.string.ime_launcher_search_hint),
+                                onQueryTap = onMediaQueryTap,
+                            )
+                        }
                     },
                 ) {
                     AppLauncherPanel(

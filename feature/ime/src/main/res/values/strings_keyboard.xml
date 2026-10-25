@@ -653,6 +653,26 @@
     <string name="ime_launcher_combo_label">%1$s + %2$s</string>
     <string name="ime_launcher_combo_open_action">Open both in split screen</string>
     <string name="ime_launcher_combo_remove_action">Remove this pair</string>
+    <string name="ime_launcher_folder_default_name">Folder</string>
+    <string name="ime_launcher_folder_add_action">Add to folder</string>
+    <string name="ime_launcher_folder_take_out_action">Take out of folder</string>
+    <string name="ime_launcher_folder_pick_title">Add %1$s to</string>
+    <string name="ime_launcher_folder_new_action">New folder</string>
+    <string name="ime_launcher_group_action">Sort all apps by category</string>
+    <string name="ime_launcher_group_note">A folder per Play category for every app not in a folder yet</string>
+    <string name="ime_launcher_group_none_toast">None of these apps names a category</string>
+    <string name="ime_launcher_folder_open_action">Open folder</string>
+    <string name="ime_launcher_folder_rename_action">Rename folder</string>
+    <string name="ime_launcher_folder_rename_done_desc">Keep this name</string>
+    <string name="ime_launcher_folder_name_hint">Folder name</string>
+    <string name="ime_launcher_folder_move_earlier_action">Move folder earlier</string>
+    <string name="ime_launcher_folder_move_later_action">Move folder later</string>
+    <string name="ime_launcher_folder_delete_action">Remove folder</string>
+    <string name="ime_launcher_folder_delete_note">Its apps go back to the grid</string>
+    <string name="ime_launcher_folder_back_desc">Back to all apps</string>
+    <string name="ime_launcher_work_desc">Work app</string>
+    <string name="ime_launcher_work_paused_desc">Work app, paused</string>
+    <string name="ime_launcher_work_package">%1$s · work profile</string>
 
     <!-- The Snippets panel. Keep the words inside the braces as they are: the
          keyboard looks for them and puts a value in their place. -->

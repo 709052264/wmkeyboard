@@ -1040,6 +1040,16 @@ data class LauncherDetailUi(
 )
 
 /**
+ * Where the app-launcher grid is (#919): [folderOpen] is the id of the open
+ * folder, or null for the whole grid, and [nameDraft] the folder's name while
+ * the keys are typing a new one into it.
+ */
+data class LauncherUi(
+    val folderOpen: String? = null,
+    val nameDraft: String? = null,
+)
+
+/**
  * Readiness of the handwriting panel's recognition model. UNSUPPORTED: no
  * recogniser in this build reads any enabled language (F-Droid's build reads
  * only Chinese and Japanese), so there is nothing to download either.
@@ -4000,6 +4010,8 @@ data class KeyboardUiState(
     val launcherLoading: Boolean = false,
     /** The app whose activity list is open, or null for the grid. */
     val launcherDetail: LauncherDetailUi? = null,
+    /** The open app folder and its name box (#919). */
+    val launcherView: LauncherUi = LauncherUi(),
     /**
      * The caret in whichever keyboard-owned field has the keys (#161).
      *
@@ -4483,6 +4495,7 @@ data class KeyboardUiState(
             else -> CaptureTarget.KAOMOJI_SEARCH
         }
         emojiSearchActive -> CaptureTarget.EMOJI_SEARCH
+        panel == PanelMode.APP_LAUNCHER && launcherView.nameDraft != null -> CaptureTarget.LAUNCHER_FOLDER_NAME
         mediaSearchActive && panel.hasMediaSearch -> CaptureTarget.MEDIA_SEARCH
         dictionarySearchActive -> CaptureTarget.DICTIONARY_SEARCH
         clipboardSearchActive -> CaptureTarget.CLIPBOARD_SEARCH
@@ -4558,6 +4571,7 @@ data class KeyboardUiState(
         CaptureTarget.SEND_PASSWORD, CaptureTarget.SEND_LINK, CaptureTarget.SEND_INSTANCE -> sendText?.text.orEmpty()
         CaptureTarget.TOOLBOX_SEARCH -> toolboxView.query
         CaptureTarget.TOOLBOX_FOLDER_NAME -> toolboxView.nameDraft.orEmpty()
+        CaptureTarget.LAUNCHER_FOLDER_NAME -> launcherView.nameDraft.orEmpty()
         CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
             kaomojiText?.text.orEmpty()
     }

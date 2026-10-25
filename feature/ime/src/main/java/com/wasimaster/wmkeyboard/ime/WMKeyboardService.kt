@@ -345,6 +345,15 @@ import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.settings.ActionOnlyTools
 import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_MIN_TOOLS
 import com.wasimaster.wmkeyboard.core.settings.TOOLBOX_FOLDER_NAME_MAX
+import com.wasimaster.wmkeyboard.core.settings.launcherFolderById
+import com.wasimaster.wmkeyboard.core.settings.movedLauncherFolder
+import com.wasimaster.wmkeyboard.core.settings.nextLauncherFolderId
+import com.wasimaster.wmkeyboard.core.settings.renamedLauncherFolder
+import com.wasimaster.wmkeyboard.core.settings.withGroupedLauncherApps
+import com.wasimaster.wmkeyboard.core.settings.withLauncherAppIn
+import com.wasimaster.wmkeyboard.core.settings.withNewLauncherFolder
+import com.wasimaster.wmkeyboard.core.settings.withoutLauncherApp
+import com.wasimaster.wmkeyboard.core.settings.withoutLauncherFolder
 import com.wasimaster.wmkeyboard.core.settings.folderById
 import com.wasimaster.wmkeyboard.core.settings.folderOf
 import com.wasimaster.wmkeyboard.core.settings.withAdded
@@ -7554,6 +7563,9 @@ open class WMKeyboardService : InputMethodService() {
                 mediaDownloadProgress = null,
                 mediaQueue = if (restarting) it.mediaQueue else emptyList(),
                 launcherDetail = null,
+                // An app folder's name box is per field like the toolbox's;
+                // the open folder itself stays, as the grid does.
+                launcherView = it.launcherView.copy(nameDraft = null),
                 // A run belongs to the field it was started over; moving to
                 // another one abandons it rather than resuming half-typed.
                 typingTest = TypingTestUi(),
@@ -10867,6 +10879,7 @@ open class WMKeyboardService : InputMethodService() {
             // The search opens its first match (#687); a folder's name is kept (#709).
             CaptureTarget.TOOLBOX_SEARCH -> onToolboxSearchEnter()
             CaptureTarget.TOOLBOX_FOLDER_NAME -> onToolboxFolderRenameDone(keep = true)
+            CaptureTarget.LAUNCHER_FOLDER_NAME -> onLauncherFolderRenameDone(keep = true)
             // The search puts its first match in, a face is saved, a tag is kept.
             CaptureTarget.KAOMOJI_SEARCH, CaptureTarget.KAOMOJI_FACE, CaptureTarget.KAOMOJI_TAG ->
                 state.kaomojiText?.let(kaomojiTool::onTextEnter)
@@ -11331,6 +11344,14 @@ open class WMKeyboardService : InputMethodService() {
                 it.copy(
                     toolboxView = it.toolboxView.copy(
                         nameDraft = text.replace("\n", " ").take(TOOLBOX_FOLDER_NAME_MAX),
+                    ),
+                )
+            }
+            CaptureTarget.LAUNCHER_FOLDER_NAME -> _uiState.update {
+                it.copy(
+                    launcherView = it.launcherView.copy(
+                        nameDraft = text.replace("\n", " ")
+                            .take(com.wasimaster.wmkeyboard.core.settings.LAUNCHER_FOLDER_NAME_MAX),
                     ),
                 )
             }
@@ -21005,6 +21026,9 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var launcherAppsCache: List<LauncherApp>? = null
 
+    /** Whether [launcherAppsCache] holds the other profiles' apps (#924). */
+    private var launcherAppsCacheWork = false
+
     /**
      * Decoded app icons, keyed by flattened component. Lives for the process —
      * a panel close is not a reason to re-decode a hundred icons, and a size
@@ -21053,14 +21077,56 @@ open class WMKeyboardService : InputMethodService() {
             onComboRemove = ::onLauncherComboRemove,
             splitAvailable = { AppLaunchModes.splitSupported(this) },
             freeformAvailable = { AppLaunchModes.freeformSupported(this) },
+            folders = com.wasimaster.wmkeyboard.ime.ui.LauncherFolderCallbacks(
+                onOpen = ::onLauncherFolderOpen,
+                onNew = ::onLauncherFolderNew,
+                onAddTo = ::onLauncherFolderAddTo,
+                onTakeOut = ::onLauncherFolderTakeOut,
+                onRename = ::onLauncherFolderRename,
+                onRenameDone = { onLauncherFolderRenameDone(keep = true) },
+                onMove = ::onLauncherFolderMove,
+                onDelete = ::onLauncherFolderDelete,
+                onGroupByCategory = ::onLauncherGroupByCategory,
+            ),
         )
+    }
+
+    /** Drops the app list and its icons; the next open, or this one, lists again. */
+    private fun invalidateLauncherApps() {
+        launcherAppsCache = null
+        launcherIconCache.evictAll()
+        _uiState.update { it.copy(launcherApps = emptyList(), launcherDetail = null) }
+        if (_uiState.value.panel == PanelMode.APP_LAUNCHER) loadLauncherApps()
     }
 
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            launcherAppsCache = null
-            launcherIconCache.evictAll()
-            _uiState.update { it.copy(launcherApps = emptyList(), launcherDetail = null) }
+            invalidateLauncherApps()
+        }
+    }
+
+    /**
+     * The other profiles' installs and removals, and a work profile paused or
+     * turned back on (#924): none of these reach [packageChangeReceiver],
+     * whose broadcasts are this user's own.
+     */
+    private val launcherProfileCallback = object : android.content.pm.LauncherApps.Callback() {
+        override fun onPackageRemoved(packageName: String, user: android.os.UserHandle) = changed(user)
+        override fun onPackageAdded(packageName: String, user: android.os.UserHandle) = changed(user)
+        override fun onPackageChanged(packageName: String, user: android.os.UserHandle) = changed(user)
+        override fun onPackagesAvailable(names: Array<out String>, user: android.os.UserHandle, replacing: Boolean) =
+            changed(user)
+        override fun onPackagesUnavailable(names: Array<out String>, user: android.os.UserHandle, replacing: Boolean) =
+            changed(user)
+
+        private fun changed(user: android.os.UserHandle) {
+            if (user != android.os.Process.myUserHandle()) invalidateLauncherApps()
+        }
+    }
+
+    private val profileStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (launcherAppsCacheWork) invalidateLauncherApps()
         }
     }
 
@@ -21078,11 +21144,26 @@ open class WMKeyboardService : InputMethodService() {
             addDataScheme("package")
         }
         registerReceiver(packageChangeReceiver, filter)
+        // Sent to registered receivers of the parent profile only, and
+        // protected, so nothing but the system can send them.
+        val profiles = IntentFilter().apply {
+            addAction(Intent.ACTION_MANAGED_PROFILE_ADDED)
+            addAction(Intent.ACTION_MANAGED_PROFILE_REMOVED)
+            addAction(Intent.ACTION_MANAGED_PROFILE_AVAILABLE)
+            addAction(Intent.ACTION_MANAGED_PROFILE_UNAVAILABLE)
+            addAction(Intent.ACTION_MANAGED_PROFILE_UNLOCKED)
+        }
+        runCatching { registerReceiver(profileStateReceiver, profiles) }
+        runCatching {
+            getSystemService(android.content.pm.LauncherApps::class.java)
+                ?.registerCallback(launcherProfileCallback, android.os.Handler(mainLooper))
+        }
     }
 
     /** Fills [KeyboardUiState.launcherApps] from the cache or a fresh query. */
     private fun loadLauncherApps() {
-        val cached = launcherAppsCache
+        val work = _uiState.value.settings.launcher.showWorkApps
+        val cached = launcherAppsCache?.takeIf { launcherAppsCacheWork == work }
         if (cached != null) {
             _uiState.update { it.copy(launcherApps = cached, launcherLoading = false) }
             return
@@ -21091,28 +21172,47 @@ open class WMKeyboardService : InputMethodService() {
         serviceScope.launch {
             // Failure handling lives inside loadApps (empty list), so nothing
             // here swallows a coroutine cancellation by accident.
-            val apps = AppCatalog.loadApps(packageManager)
+            val apps = AppCatalog.loadAllApps(this@WMKeyboardService, otherProfiles = work)
             launcherAppsCache = apps
+            launcherAppsCacheWork = work
             _uiState.update { it.copy(launcherApps = apps, launcherLoading = false) }
         }
     }
 
     /** One app's icon for the panel grid, through the LRU, decoded on IO. */
     internal suspend fun launcherIconFor(app: LauncherApp): ImageBitmap? {
-        val key = "${app.packageName}/${app.activityName}"
+        val key = "${app.key}/${app.activityName}"
         launcherIconCache.get(key)?.let { return it }
         val bitmap = withContext(Dispatchers.IO) {
             runCatching {
                 val dp = com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings
                     .ICON_SIZE_RANGE.last
                 val px = (dp * resources.displayMetrics.density).toInt().coerceAtLeast(1)
-                packageManager.getActivityIcon(app.component)
-                    .toBitmap(px, px)
-                    .asImageBitmap()
+                profileIcon(app)
+                    ?: packageManager.getActivityIcon(app.component)
+                        .toBitmap(px, px)
+                        .asImageBitmap()
             }.getOrNull()
         } ?: return null
         launcherIconCache.put(key, bitmap)
         return bitmap
+    }
+
+    /**
+     * Another profile's icon, unbadged: the panel draws its own briefcase,
+     * outside the circle or square it clips icons to, where the system's
+     * corner badge would be cut off. Null for the keyboard's own profile.
+     */
+    private fun profileIcon(app: LauncherApp): ImageBitmap? {
+        val serial = app.profile ?: return null
+        val user = AppCatalog.profileHandle(this, serial) ?: return null
+        val info = getSystemService(android.content.pm.LauncherApps::class.java)
+            ?.getActivityList(app.packageName, user)
+            ?.firstOrNull { it.componentName.className == app.activityName }
+            ?: return null
+        val dp = com.wasimaster.wmkeyboard.core.settings.LauncherToolSettings.ICON_SIZE_RANGE.last
+        val px = (dp * resources.displayMetrics.density).toInt().coerceAtLeast(1)
+        return info.getIcon(resources.displayMetrics.densityDpi).toBitmap(px, px).asImageBitmap()
     }
 
     /** A plain tap opens the app the way the **Open apps** setting says. */
@@ -21122,15 +21222,50 @@ open class WMKeyboardService : InputMethodService() {
 
     /** One app in an explicit mode, from the hold menu or a plain tap. */
     fun onLauncherAppOpen(app: LauncherApp, mode: LauncherOpenMode) {
-        launchFromLauncherPanel(launcherIntentFor(app), app.packageName, mode)
+        val serial = app.profile
+        if (serial != null) {
+            launchInProfile(app.component, serial, app.key, mode)
+            return
+        }
+        launchFromLauncherPanel(launcherIntentFor(app), app.key, mode)
     }
 
     fun onLauncherActivityTap(activity: LauncherActivity) {
+        val serial = activity.profile
+        if (serial != null) {
+            launchInProfile(
+                activity.component, serial, "${activity.packageName}@$serial", effectiveLauncherOpenMode(),
+            )
+            return
+        }
         launchFromLauncherPanel(
             Intent().setComponent(activity.component),
             activity.packageName,
             effectiveLauncherOpenMode(),
         )
+    }
+
+    /**
+     * Starts an app of another profile (#924) through [LauncherApps], the one
+     * door into a work profile that needs no permission. A paused profile is
+     * still asked: Android puts up its own "Turn on work apps?" dialog over
+     * the launch. Split screen needs an intent flag this call has no room
+     * for, so it opens full screen; a floating window keeps its options.
+     */
+    private fun launchInProfile(component: ComponentName, serial: Long, key: String, mode: LauncherOpenMode) {
+        val user = AppCatalog.profileHandle(this, serial) ?: return
+        val launcher = getSystemService(android.content.pm.LauncherApps::class.java) ?: return
+        val started = runCatching {
+            val options = AppLaunchModes.prepare(
+                this, Intent().setComponent(component), mode.takeIf { it == LauncherOpenMode.FLOATING }
+                    ?: LauncherOpenMode.NORMAL,
+                null,
+            )
+            launcher.startMainActivity(component, user, null, options)
+        }.isSuccess
+        if (!started) return
+        serviceScope.launch { settingsRepository.addLauncherRecent(key) }
+        closeLauncherPanel()
     }
 
     /**
@@ -21234,10 +21369,14 @@ open class WMKeyboardService : InputMethodService() {
         }
         _uiState.update { it.copy(launcherDetail = LauncherDetailUi(app)) }
         launcherDetailJob = serviceScope.launch {
-            val activities = AppCatalog.loadActivities(packageManager, app.packageName)
+            val activities = if (app.otherProfile) {
+                AppCatalog.loadProfileActivities(this@WMKeyboardService, app)
+            } else {
+                AppCatalog.loadActivities(packageManager, app.packageName)
+            }
             _uiState.update { state ->
                 val detail = state.launcherDetail
-                if (detail?.app?.packageName == app.packageName) {
+                if (detail?.app?.key == app.key) {
                     state.copy(
                         launcherDetail = detail.copy(activities = activities, loading = false),
                     )
@@ -21253,8 +21392,9 @@ open class WMKeyboardService : InputMethodService() {
         _uiState.update { it.copy(launcherDetail = null) }
     }
 
-    fun onLauncherPinToggle(packageName: String) {
-        serviceScope.launch { settingsRepository.toggleLauncherPin(packageName) }
+    /** [key] is the app's [LauncherApp.key], as for hiding. */
+    fun onLauncherPinToggle(key: String) {
+        serviceScope.launch { settingsRepository.toggleLauncherPin(key) }
     }
 
     /**
@@ -21262,20 +21402,145 @@ open class WMKeyboardService : InputMethodService() {
      * on its page would leave the user looking at something they asked to
      * put away. Showing it again keeps the page open.
      */
-    fun onLauncherHideToggle(packageName: String) {
-        val hiding = packageName !in _uiState.value.settings.launcher.hidden
-        serviceScope.launch { settingsRepository.toggleLauncherHidden(packageName) }
+    fun onLauncherHideToggle(key: String) {
+        val hiding = key !in _uiState.value.settings.launcher.hidden
+        serviceScope.launch { settingsRepository.toggleLauncherHidden(key) }
         if (hiding) onLauncherDetailClose()
     }
 
-    fun onLauncherAppInfo(packageName: String) {
+    /** The system's App info page; a work app's is the work profile's own. */
+    fun onLauncherAppInfo(app: LauncherApp) {
+        val serial = app.profile
+        if (serial != null) {
+            runCatching {
+                val user = AppCatalog.profileHandle(this, serial) ?: return
+                getSystemService(android.content.pm.LauncherApps::class.java)
+                    ?.startAppDetailsActivity(app.component, user, null, null)
+            }
+            return
+        }
         runCatching {
             startActivity(
                 Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    .setData(android.net.Uri.fromParts("package", packageName, null))
+                    .setData(android.net.Uri.fromParts("package", app.packageName, null))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
         }
+    }
+
+    // ---- app launcher folders (#919) ----
+
+    /** Opens a folder in the grid; null goes back up to the whole grid. */
+    fun onLauncherFolderOpen(id: String?) {
+        vibrate()
+        _uiState.update {
+            it.copy(launcherView = LauncherUi(folderOpen = id), launcherDetail = null, panelFocus = null)
+        }
+    }
+
+    /**
+     * A new folder holding [app], opened with its name box up and empty: what
+     * is typed names it, and Enter on nothing keeps the placeholder name.
+     */
+    fun onLauncherFolderNew(app: LauncherApp) {
+        vibrate()
+        val folders = _uiState.value.settings.launcher.folders
+        val id = folders.nextLauncherFolderId()
+        val name = getString(R.string.ime_launcher_folder_default_name)
+        serviceScope.launch {
+            settingsRepository.updateLauncherFolders { it.withNewLauncherFolder(id, name, app.key) }
+        }
+        _uiState.update {
+            it.copy(
+                launcherView = LauncherUi(folderOpen = id, nameDraft = ""),
+                mediaSearchActive = false,
+                mediaQuery = "",
+                panelFocus = null,
+            )
+        }
+    }
+
+    fun onLauncherFolderAddTo(app: LauncherApp, folderId: String) {
+        vibrate()
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.withLauncherAppIn(app.key, folderId) } }
+    }
+
+    /** Back to a cell of its own; a folder emptied by it goes, and the grid with it. */
+    fun onLauncherFolderTakeOut(app: LauncherApp) {
+        vibrate()
+        val state = _uiState.value
+        val open = state.settings.launcher.folders.launcherFolderById(state.launcherView.folderOpen)
+        if (open != null && open.apps == listOf(app.key)) {
+            _uiState.update { it.copy(launcherView = LauncherUi()) }
+        }
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.withoutLauncherApp(app.key) } }
+    }
+
+    /** The folder's name tapped, or Rename in its menu: the keys type a new one. */
+    fun onLauncherFolderRename(id: String) {
+        val folder = _uiState.value.settings.launcher.folders.launcherFolderById(id) ?: return
+        vibrate()
+        _uiState.update {
+            it.copy(
+                launcherView = LauncherUi(folderOpen = id, nameDraft = folder.name),
+                mediaSearchActive = false,
+                mediaQuery = "",
+                panelFocus = null,
+            )
+        }
+    }
+
+    /** Ends a rename: [keep] saves the typed name unless it is blank; back drops it. */
+    private fun onLauncherFolderRenameDone(keep: Boolean) {
+        val view = _uiState.value.launcherView
+        val draft = view.nameDraft ?: return
+        _uiState.update { it.copy(launcherView = it.launcherView.copy(nameDraft = null)) }
+        val id = view.folderOpen ?: return
+        if (!keep || draft.isBlank()) return
+        vibrate()
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.renamedLauncherFolder(id, draft) } }
+    }
+
+    /** One place earlier (negative) or later among the folders. */
+    fun onLauncherFolderMove(id: String, by: Int) {
+        vibrate()
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.movedLauncherFolder(id, by) } }
+    }
+
+    /** Removes the folder; its apps go back to the grid. */
+    fun onLauncherFolderDelete(id: String) {
+        vibrate()
+        if (_uiState.value.launcherView.folderOpen == id) _uiState.update { it.copy(launcherView = LauncherUi()) }
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.withoutLauncherFolder(id) } }
+    }
+
+    /**
+     * Files every app in no folder yet into a folder per Play category, named
+     * the way Android names the category in the phone's language. The home
+     * screen's own folders would be the better source, but Android gives no
+     * app but the home screen a way to read them; the categories are what
+     * each app declares about itself, and many apps declare none.
+     */
+    fun onLauncherGroupByCategory() {
+        vibrate()
+        val apps = _uiState.value.launcherApps
+        val titles = HashMap<Int, String?>()
+        val groups = AppCatalog.categoryGroups(apps) { category ->
+            titles.getOrPut(category) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    runCatching {
+                        android.content.pm.ApplicationInfo.getCategoryTitle(this, category)?.toString()
+                    }.getOrNull()
+                } else {
+                    null
+                }
+            }
+        }
+        if (groups.isEmpty()) {
+            Toast.makeText(this, R.string.ime_launcher_group_none_toast, Toast.LENGTH_SHORT).show()
+            return
+        }
+        serviceScope.launch { settingsRepository.updateLauncherFolders { it.withGroupedLauncherApps(groups) } }
     }
 
     /** Arms or clears the dead-key accent, keeping the strip chip in step. */
@@ -28129,6 +28394,8 @@ open class WMKeyboardService : InputMethodService() {
                 // The drill-down never outlives the panel: reopening the tool
                 // lands on the grid, not on whatever app was open last time.
                 launcherDetail = if (next == PanelMode.APP_LAUNCHER) it.launcherDetail else null,
+                // And reopening it lands on the whole grid, not inside a folder (#919).
+                launcherView = if (next == PanelMode.APP_LAUNCHER) it.launcherView else LauncherUi(),
                 // Only the search panel's camera button opens the camera for
                 // searching (#349); every other way in is for sending.
                 cameraSearchOnly = next == PanelMode.CAMERA && it.panel == PanelMode.WEB_SEARCH,
@@ -47723,6 +47990,12 @@ open class WMKeyboardService : InputMethodService() {
             state.panel == PanelMode.TOOLBOX && state.toolboxView.searchActive -> ::onToolboxSearchToggle
             state.panel == PanelMode.TOOLBOX && state.toolboxView.folderOpen != null ->
                 ({ onToolboxFolderOpen(null) })
+            // The launcher's (#919): a folder name being typed, then the open folder.
+            state.panel == PanelMode.APP_LAUNCHER && state.launcherView.nameDraft != null ->
+                ({ onLauncherFolderRenameDone(keep = false) })
+            state.panel == PanelMode.APP_LAUNCHER && state.launcherDetail == null &&
+                !state.mediaSearchActive && state.launcherView.folderOpen != null ->
+                ({ onLauncherFolderOpen(null) })
             // The spelling editor closes before the Learn from text panel under it.
             state.learnEditActive -> ::onLearnEditCancel
             // The Notes panel's layers, innermost first (#560): a tag being
