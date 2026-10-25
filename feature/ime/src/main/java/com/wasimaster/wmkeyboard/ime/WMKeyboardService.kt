@@ -46851,6 +46851,9 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onEmojiSearchToggled() {
         _uiState.update { it.copy(emojiSearchActive = !it.emojiSearchActive) }
+        // The grids come back from under the search, so an emoji picked from
+        // its results lands in Recent now rather than at the next panel open.
+        if (!_uiState.value.emojiSearchActive) publishEmojiHistory()
     }
 
     /**
@@ -46862,6 +46865,7 @@ open class WMKeyboardService : InputMethodService() {
         captureComposition = null
         updateQuery { it.copy(emojiQuery = "", emojiSearchActive = true) }
         refreshEmojiResults()
+        publishEmojiHistory()
     }
 
     private fun refreshEmojiResults() {
@@ -46911,6 +46915,8 @@ open class WMKeyboardService : InputMethodService() {
                 )
             }
         }
+        // The emoji row the panel covered is back on screen.
+        publishEmojiHistory()
     }
 
     /** Converts a held clipboard image to the same 512px transparent WebP sticker

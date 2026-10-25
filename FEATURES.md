@@ -1446,7 +1446,7 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
 ## Emoji, GIFs, stickers, kaomoji
 
 - **Emoji catalogue & bundled data** `uncommon` — Five generated asset files under app/src/main/assets/emoji/, ~550 KB total, all from Unicode/CLDR/gemoji.
-  - Full Emoji 17.0 catalogue `uncommon` — catalog.tsv: 1,914 rows — 1,717 base grid entries plus 197 gender/role variants.
+  - Full Emoji 18.0 catalogue `uncommon` — catalog.tsv: 1,923 rows — 1,726 base grid entries plus 197 gender/role variants.
     - 10 categories — people 388, flags 270, objects 266, symbols 223, travel 172, smileys 171, animals 131, food 131, activities 85, nature 76
     - Gender/role variants collapse under a parent — woman-running → runner, man-health-worker → person-health-worker; variants stay searchable, grid shows only the base
     - Unicode short name per entry — Sixth TSV column; shown at the top of the long-press popup

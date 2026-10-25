@@ -124,7 +124,7 @@ The features the keyboard has
 
 - **Semantic emoji search** in 126 languages. `party` finds 🎉 🥳 🍾 🎂, and so does the word
   for party in other languages.
-- Emoji 17.0, per-person skin tones, kaomoji, and long-press to send Google's animated emoji.
+- Emoji 18.0, per-person skin tones, kaomoji, and long-press to send Google's animated emoji.
 - Sticker packs you make from your own photos, with a background cutout that runs on device.
   WhatsApp, Signal and Telegram packs import directly.
 - GIF search when you want it, off when you don't.
