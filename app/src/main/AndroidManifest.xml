@@ -1538,6 +1538,31 @@
             </intent-filter>
         </service>
 
+        <!-- "Show keyboard" as a Quick Settings tile: the shade controls' Show
+             button, for anyone without the notification. -->
+        <service
+            android:name="com.wasimaster.wmkeyboard.app.ShowKeyboardTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_qs_show_keyboard"
+            android:label="@string/qs_show_keyboard_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Started by the Show keyboard tile only because a tile closes the
+             shade by starting an activity. It draws no window and finishes in
+             onCreate, so the app underneath keeps the focus; taskAffinity=""
+             for the reason the trampolines above carry it. -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.ShadeCollapseActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@android:style/Theme.NoDisplay" />
+
         <!-- Notices that this app has just been updated, whichever channel did
              it, and says so in the shade. The quiet self-install (see
              app/updates) can otherwise finish with no sign anywhere that it
