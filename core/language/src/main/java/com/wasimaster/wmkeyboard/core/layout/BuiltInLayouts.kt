@@ -669,6 +669,42 @@ private val qwertyRows = listOf(
     bottomRow(),
 )
 
+/** The digit or symbol that leads each QWERTY letter's hold, keyed by the letter. */
+private val qwertyLeadingHolds: Map<String, String> = qwertyRows.flatten()
+    .filter { it.action == KeyAction.Text && it.label.length == 1 && it.label[0].isLetter() && it.longPress.isNotEmpty() }
+    .associate { it.label to it.longPress.first() }
+
+/**
+ * This grid with QWERTY's digits and symbols leading its letters' holds, when
+ * it is QWERTY-shaped (its top row opens q w e r t y) and holds no digit on any
+ * key. Hundreds of the shipped Latin layouts came over with their accents and
+ * nothing else, so their corners showed no hint and a hold on q gave no 1,
+ * where QWERTY's own keys do (Indonesian, reported in the Telegram group). A
+ * key's own alternates follow the borrowed one, and the keys in [keep] (a
+ * popup the user wrote) are left as they are.
+ */
+fun KeyboardLayout.withQwertyHolds(keep: Set<Key> = emptySet()): KeyboardLayout {
+    val top = rows.firstOrNull()?.filter { it.action == KeyAction.Text }?.map { it.output ?: it.label }
+        ?: return this
+    if (top.take(QWERTY_SHAPE.size) != QWERTY_SHAPE) return this
+    val hasDigitHolds = rows.any { row -> row.any { key -> key.longPress.any { it.length == 1 && it[0].isDigit() } } }
+    if (hasDigitHolds) return this
+    return copy(
+        rows = rows.map { row ->
+            row.map { key ->
+                val lead = qwertyLeadingHolds[key.output ?: key.label]
+                if (key.action != KeyAction.Text || key in keep || lead == null || lead in key.longPress) {
+                    key
+                } else {
+                    key.copy(longPress = listOf(lead) + key.longPress)
+                }
+            }
+        },
+    )
+}
+
+private val QWERTY_SHAPE = listOf("q", "w", "e", "r", "t", "y")
+
 /**
  * QWERTY's letters with its digit and symbol alternates but none of its Latin
  * accents: Khipro reads every letter key as a Khipro key, so an é picked from
