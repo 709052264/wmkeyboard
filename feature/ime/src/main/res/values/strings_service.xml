@@ -283,4 +283,14 @@
     <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
     <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>
     <string name="ime_hw_pick_mode_off_toast">Pick mode off</string>
+
+    <!-- What holding a greyed-out button on the keyboard says: why it cannot
+         be pressed yet. Short sentences, read in a small bubble. -->
+    <string name="ime_disabled_translate_nothing">Nothing is translated yet. Type or paste the text to translate first.</string>
+    <string name="ime_disabled_translate_same_language">The text is already in the language you translate to.</string>
+    <string name="ime_disabled_media_app_blocks">The app that is playing does not allow this.</string>
+    <string name="ime_disabled_voice_undo">Nothing to undo yet. Undo takes back the last phrase you spoke.</string>
+    <string name="ime_disabled_spell_unchanged">Change the spelling first. An empty or unchanged spelling has nothing to apply.</string>
+    <string name="ime_disabled_clip_tidy">Select a text clip first. Tidy works on text, not on images.</string>
+    <string name="ime_disabled_clip_combine">Select two or more text clips to combine them.</string>
 </resources>

@@ -29,6 +29,7 @@ import com.wasimaster.wmkeyboard.core.settings.AppLockMethod
 import com.wasimaster.wmkeyboard.core.settings.AppLockRelock
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import kotlinx.coroutines.launch
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * Which settings the lock stands in front of, and what answers it.
@@ -151,6 +152,7 @@ internal fun AppLockSettingsScreen(repository: SettingsRepository) {
                     ),
                     cfg.biometricShortcut,
                     enabled = biometric == AppLockStatus.READY,
+                    disabledReason = DisabledReason(stringResource(R.string.privacy_lock_shortcut_unavailable)),
                     default = AppLockDefaults.biometricShortcut,
                 ) { scope.launch { repository.setAppLockBiometricShortcut(it) } }
             }

@@ -172,6 +172,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.GridView
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Interests
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Apps
 import androidx.compose.foundation.lazy.rememberLazyListState
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.RailBucket
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
@@ -346,6 +347,12 @@ internal fun HighlightableRow(
      * see [HighlightFrame].
      */
     coarse: Boolean = false,
+    /**
+     * Why the row is greyed out, or null while it is usable: the long press
+     * then opens with it (see [settingLinkHold]). The row's own `enabled` is
+     * what decides, so callers pass this only while it is off.
+     */
+    disabledReason: DisabledReason? = null,
     content: @Composable () -> Unit,
 ) {
     val target = SettingsHighlight.target
@@ -361,11 +368,11 @@ internal fun HighlightableRow(
     // heading takes its own, in [SettingsGroup]: the whole group would
     // otherwise answer a hold on any row inside it.
     CompositionLocalProvider(LocalRowLinkKey provides RowLinkKey(title, highlightKey)) {
-        val hold = if (coarse) null else rememberRowHold()
+        val hold = if (coarse) null else rememberRowHold(disabledReason)
         HighlightFrame(
             requested = requested,
             rank = if (coarse) HighlightRank.SECTION else HighlightRank.ROW,
-            modifier = Modifier.settingLinkHold(hold),
+            modifier = Modifier.settingLinkHold(hold, disabledReason),
         ) {
             content()
             RowHoldMenu(hold)

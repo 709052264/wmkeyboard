@@ -169,6 +169,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TimerOff
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectActual
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectLarge
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.PhotoSizeSelectSmall
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * What a press and hold on this tool does while it is pinned to the toolbar.
@@ -452,27 +453,30 @@ internal fun ToolDetailSettings(
         item {
             // A blocked tool cannot be switched on; what unblocks it is further
             // down this same screen (the key field, the Key layouts link), and
-            // the subtitle names it rather than guessing a key.
+            // the subtitle names it rather than guessing a key. A hold on the
+            // greyed switch says the same, with nowhere else to send the user.
             val blocker = settings.watch { toolBlocker(tool, it) }
             val usable = blocker == null
+            val why = when (blocker) {
+                null -> stringResource(R.string.tooldetail_enabled_subtitle)
+                ToolBlocker.NEEDS_SEARCH_KEY ->
+                    stringResource(R.string.tooldetail_enabled_needs_key_subtitle)
+                ToolBlocker.NEEDS_SEARCH_INSTANCE ->
+                    stringResource(R.string.tooldetail_enabled_needs_instance_subtitle)
+                ToolBlocker.NEEDS_SECONDARY_LAYOUT ->
+                    stringResource(R.string.tooldetail_enabled_needs_layout_subtitle)
+                ToolBlocker.VOICE_OFF ->
+                    stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
+                ToolBlocker.NEEDS_MIX_SOURCE ->
+                    stringResource(R.string.tooldetail_enabled_needs_mix_source_subtitle)
+            }
             ToggleSetting(
                 CommonR.string.common_enable,
-                when (blocker) {
-                    null -> stringResource(R.string.tooldetail_enabled_subtitle)
-                    ToolBlocker.NEEDS_SEARCH_KEY ->
-                        stringResource(R.string.tooldetail_enabled_needs_key_subtitle)
-                    ToolBlocker.NEEDS_SEARCH_INSTANCE ->
-                        stringResource(R.string.tooldetail_enabled_needs_instance_subtitle)
-                    ToolBlocker.NEEDS_SECONDARY_LAYOUT ->
-                        stringResource(R.string.tooldetail_enabled_needs_layout_subtitle)
-                    ToolBlocker.VOICE_OFF ->
-                        stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
-                    ToolBlocker.NEEDS_MIX_SOURCE ->
-                        stringResource(R.string.tooldetail_enabled_needs_mix_source_subtitle)
-                },
+                why,
                 usable && toolOn,
                 switchKey = landingKey("switch"),
                 enabled = usable,
+                disabledReason = DisabledReason(why),
                 default = usable && tool in SettingsDefaults.enabledTools,
             ) { scope.launch { repository.setToolEnabled(tool, it) } }
         }

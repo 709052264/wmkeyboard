@@ -2321,14 +2321,15 @@ internal fun TypingGesturesSettings(
                 val dpFormat = stringResource(R.string.typing_value_dp)
                 // Width and opacity are among the sizes a theme's "Layout for
                 // this theme" group can pin; the row says so when one does (#88).
-                val pinned = themePinSubtitle(settings) { it.gestureTrailWidthDp }
+                val pin = themePin(settings) { it.gestureTrailWidthDp }
                 SliderSetting(
                     R.string.typing_trail_width_title,
-                    subtitle = pinned ?: stringResource(R.string.typing_trail_width_subtitle),
+                    subtitle = pin?.text ?: stringResource(R.string.typing_trail_width_subtitle),
                     value = settings.watch { it.gesture.trailWidthDp },
                     range = 2f..24f,
                     display = { dpFormat.format(it.roundToInt()) },
-                    enabled = pinned == null,
+                    enabled = pin == null,
+                    disabledReason = pin,
                     default = SettingsDefaults.gesture.trailWidthDp,
                 ) { scope.launch { repository.setGestureTrailWidthDp(it) } }
             }
@@ -2345,10 +2346,10 @@ internal fun TypingGesturesSettings(
             }
             item {
                 val percentFormat = stringResource(R.string.typing_value_percent)
-                val pinned = themePinSubtitle(settings) { it.gestureTrailOpacity }
+                val pin = themePin(settings) { it.gestureTrailOpacity }
                 SliderSetting(
                     R.string.typing_trail_opacity_title,
-                    subtitle = pinned,
+                    subtitle = pin?.text,
                     value = settings.watch { it.gesture.trailOpacity },
                     // Down to zero, which is the only way to glide with no
                     // trail at all. It used to floor at 0.1, so the one way to
@@ -2356,7 +2357,8 @@ internal fun TypingGesturesSettings(
                     // a dozen other things with it.
                     range = 0f..1f,
                     display = { percentFormat.format((it * 100).roundToInt()) },
-                    enabled = pinned == null,
+                    enabled = pin == null,
+                    disabledReason = pin,
                     default = SettingsDefaults.gesture.trailOpacity,
                 ) { scope.launch { repository.setGestureTrailOpacity(it) } }
             }
@@ -2543,6 +2545,10 @@ internal fun TypingGesturesSettings(
                     display = { valueFormat.format(it.roundToInt().toString()) },
                     info = stringResource(R.string.typing_space_cursor_top_speed_info),
                     enabled = settings.watch { it.textEditing.spaceCursorAccelerate },
+                    disabledReason = rememberDisabledReason(
+                        stringResource(R.string.typing_space_cursor_top_speed_off_reason),
+                        R.string.typing_space_cursor_accelerate_title,
+                    ),
                     default = SettingsDefaults.textEditing.spaceCursorTopSpeed.toFloat(),
                 ) { scope.launch { repository.setSpaceCursorTopSpeed(it.roundToInt()) } }
             }

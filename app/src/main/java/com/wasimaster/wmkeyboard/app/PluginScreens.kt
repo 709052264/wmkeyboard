@@ -316,6 +316,10 @@ internal fun PluginDetailScreen(pluginId: String, onNavigate: (String) -> Unit, 
                 },
                 checked = plugin.enabled,
                 enabled = subsystemOn,
+                disabledReason = rememberDisabledReason(
+                    stringResource(R.string.plugins_detail_subsystem_off_subtitle),
+                    R.string.plugins_allow_title,
+                ),
             ) { store.setEnabled(pluginId, it) }
         }
         item {

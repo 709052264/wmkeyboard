@@ -11,10 +11,13 @@ import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,10 +41,13 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.BuildConfig
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.common.R as CommonR
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowForward
 import com.wasimaster.wmkeyboard.core.icons.symbols.filled.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Link
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.StarBorder
 import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import java.net.URLEncoder
 
 /*
@@ -84,6 +90,19 @@ internal object SettingLinks {
         } else {
             "${SettingsDeepLink.SCHEME}://${SettingsDeepLink.SETTING_HOST}/$name" + since?.let { "?$it" }.orEmpty()
         }
+    }
+
+    /**
+     * The link that opens the way out of [reason], or null when it names
+     * none. A row name goes through [appLink], which falls back to the
+     * settings index when the screen is unknown; a bare screen opens on its
+     * top.
+     */
+    fun reasonLink(reason: DisabledReason): String? {
+        val name = reason.setting.orEmpty()
+        if (name.isNotEmpty()) return appLink(reason.route, name, "")
+        val screen = reason.route?.takeIf { !it.contains('{') }?.let { SettingsRoutes.resolve(it) } ?: return null
+        return "${SettingsDeepLink.SCHEME}://${SettingsDeepLink.SCREEN_HOST}/$screen"
     }
 
     /** [appLink] inside the documentation site's `/open/` page; see [WebOpenLink]. */
@@ -174,6 +193,10 @@ internal class SettingLinkContext(
 
     /** The name the index gives the screen at [route], or null when it has none. */
     fun screenTitle(route: String): String? = screenTitles[route]
+
+    /** The screen the index puts the row [name] on, or null when it lists it nowhere or in several places. */
+    fun routeOf(name: String): String? =
+        byTitle.values.flatten().filter { it.key.substringAfter('#') == name }.map { it.route }.distinct().singleOrNull()
 
     /** Every row name the index knows, for a link that has no screen to name. */
     private val indexed: Set<String> by lazy {
@@ -326,8 +349,19 @@ internal fun settingLinkButtonShown(): Boolean = LocalSettingLinks.current?.mode
  */
 @Stable
 internal class RowHold {
-    /** The row the menu is open for, or null while it is closed. */
+    /** The row the menu is open for, or null while it is closed or the row has no link. */
     var held by mutableStateOf<SettingLinkTarget?>(null)
+
+    /** Why the row is greyed out, while the menu is open on a disabled row. */
+    var reason by mutableStateOf<DisabledReason?>(null)
+
+    /** Whether the menu is showing. */
+    val open: Boolean get() = held != null || reason != null
+
+    fun close() {
+        held = null
+        reason = null
+    }
 
     /** The menu's offset from the row's bottom left: where the finger was. */
     var at by mutableStateOf(DpOffset.Zero)
@@ -335,12 +369,13 @@ internal class RowHold {
 
 /**
  * The [RowHold] for the row around the caller, or null when a long press has
- * nothing to offer: no favourites (#898) and **Setting links** not on Hold.
+ * nothing to offer: no favourites (#898), **Setting links** not on Hold, and
+ * no [disabledReason] for a greyed-out row to give.
  */
 @Composable
-internal fun rememberRowHold(): RowHold? {
+internal fun rememberRowHold(disabledReason: DisabledReason? = null): RowHold? {
     val copies = LocalSettingLinks.current?.mode == SettingLinkMode.HOLD
-    if (!copies && LocalSettingsFavourites.current == null) return null
+    if (!copies && LocalSettingsFavourites.current == null && disabledReason == null) return null
     return remember { RowHold() }
 }
 
@@ -361,19 +396,26 @@ internal fun rememberRowHold(): RowHold? {
  * a row named only by its drawn title is looked up in the search index, and
  * building that for every row of every screen to answer a press that almost
  * never comes would be most of the cost of a screen.
+ *
+ * [disabledReason] is a greyed-out row's answer to "why can't I use this"
+ * (see [DisabledReason]). With one, the hold always opens the menu, reason
+ * first, even on a row nothing can link to, and the greyed-out controls
+ * inside take no part: a disabled switch or button does not consume the
+ * press, so the hold sees it through them.
  */
 @Composable
-internal fun Modifier.settingLinkHold(hold: RowHold?): Modifier {
+internal fun Modifier.settingLinkHold(hold: RowHold?, disabledReason: DisabledReason? = null): Modifier {
     if (hold == null) return this
-    val links = LocalSettingLinks.current ?: return this
-    val row = LocalRowLinkKey.current ?: return this
+    val links = LocalSettingLinks.current
+    val row = LocalRowLinkKey.current
+    if ((links == null || row == null) && disabledReason == null) return this
     val route = currentLinkRoute()
     val menu = LocalSettingsFavourites.current != null
     val context = LocalContext.current
     val view = LocalView.current
     val config = LocalViewConfiguration.current
     val path = rememberSettingPath()
-    return pointerInput(hold, links, row, route, menu, path) {
+    return pointerInput(hold, links, row, route, menu, path, disabledReason) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             // The scope's own timeout: the gesture scope restricts suspension,
@@ -389,12 +431,14 @@ internal fun Modifier.settingLinkHold(hold: RowHold?): Modifier {
             } == null
             if (!held) return@awaitEachGesture
             // A language, a layout, anything the user made: nothing to name.
-            val target = links.target(route, row.title, row.key) ?: return@awaitEachGesture
+            val target = if (links != null && row != null) links.target(route, row.title, row.key) else null
+            if (target == null && disabledReason == null) return@awaitEachGesture
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-            if (menu) {
+            if (menu || disabledReason != null) {
                 hold.at = DpOffset(down.position.x.toDp(), (down.position.y - size.height).toDp())
+                hold.reason = disabledReason
                 hold.held = target
-            } else {
+            } else if (target != null) {
                 copySettingLink(context, target, path())
             }
             // The rest of this gesture is the hold's, not the row's.
@@ -413,13 +457,33 @@ internal fun Modifier.settingLinkHold(hold: RowHold?): Modifier {
  */
 @Composable
 internal fun RowHoldMenu(hold: RowHold?) {
-    val target = hold?.held ?: return
+    if (hold == null || !hold.open) return
+    val target = hold.held
+    val reason = hold.reason
     val favourites = LocalSettingsFavourites.current
     val copies = LocalSettingLinks.current?.mode == SettingLinkMode.HOLD
     val context = LocalContext.current
     val path = rememberSettingPath()
-    val close = { hold.held = null }
+    val openLink = LocalOpenSettingLink.current
+    val links = LocalSettingLinks.current
+    val here = currentLinkRoute()
+    val close = { hold.close() }
     DropdownMenu(expanded = true, onDismissRequest = close, offset = hold.at) {
+        if (reason != null) {
+            DisabledReasonMenuItems(reason, divider = target != null && (favourites != null || copies)) { link ->
+                close()
+                // A switch on this same screen is scrolled to and pulsed
+                // rather than opened again on top of it, which would leave
+                // the user a Back away from where they were.
+                val name = reason.setting.orEmpty()
+                val onScreen = name.isNotEmpty() && here != null &&
+                    (reason.route ?: links?.routeOf(name)) == here
+                @Suppress("DiscouragedApi")
+                val row = if (onScreen) context.resources.getIdentifier(name, "string", context.packageName) else 0
+                if (row != 0) SettingsHighlight.request(row) else openLink?.invoke(link)
+            }
+        }
+        if (target == null) return@DropdownMenu
         if (favourites != null) {
             val link = remember(target) { SettingsFavourites.rowLink(target) }
             val pinned = favourites.contains(link)
@@ -443,5 +507,52 @@ internal fun RowHoldMenu(hold: RowHold?) {
                 },
             )
         }
+    }
+}
+
+/**
+ * The top of a greyed-out row's long-press menu: why it is greyed out, and the
+ * way to the setting that lifts it when [reason] names one. [divider] sets it
+ * apart from the favourite and link items under it.
+ */
+@Composable
+private fun DisabledReasonMenuItems(reason: DisabledReason, divider: Boolean, onOpen: (String) -> Unit) {
+    Text(
+        reason.text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .widthIn(max = DisabledReasonMaxWidth)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+    )
+    val link = remember(reason) { SettingLinks.reasonLink(reason) }
+    if (link != null) {
+        DropdownMenuItem(
+            text = { Text(stringResource(CommonR.string.common_disabled_open_setting)) },
+            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.ArrowForward, null) },
+            onClick = { onOpen(link) },
+        )
+    }
+    if (divider) HorizontalDivider()
+}
+
+/** How wide a reason may run before it wraps: a menu, not a dialog. */
+private val DisabledReasonMaxWidth = 280.dp
+
+/**
+ * A [DisabledReason] for a settings row, its way out named by the title
+ * resource of the switch that lifts it: [setting], on [route] when the caller
+ * knows the screen, or wherever the settings index lists that row when not.
+ * Pass no [setting] for a block nothing in settings can lift.
+ */
+@Composable
+internal fun rememberDisabledReason(text: String, @StringRes setting: Int = 0, route: String? = null): DisabledReason {
+    val resources = LocalContext.current.resources
+    return remember(text, setting, route, resources) {
+        DisabledReason(
+            text,
+            route = route,
+            setting = setting.takeIf { it != 0 }?.let { runCatching { resources.getResourceEntryName(it) }.getOrNull() },
+        )
     }
 }

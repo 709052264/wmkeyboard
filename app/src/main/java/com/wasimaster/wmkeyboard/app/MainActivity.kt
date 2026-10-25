@@ -126,6 +126,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.ui.toolAccentColor
@@ -1961,7 +1962,7 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = STICKER_GENERATOR_ROUTE,
             ) {
-                StickerGeneratorScreen(settings, packId) { route -> navController.navigate(route) }
+                StickerGeneratorScreen(repository, settings, packId) { route -> navController.navigate(route) }
             }
         }
         composable(STICKER_EDITOR_ROUTE) {
@@ -4060,6 +4061,7 @@ internal fun ToggleSetting(
     switchKey: String? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Boolean? = null,
     onChange: (Boolean) -> Unit,
 ) = ToggleSetting(
@@ -4071,6 +4073,7 @@ internal fun ToggleSetting(
     icon = icon,
     highlightKey = title,
     enabled = enabled,
+    disabledReason = disabledReason,
     default = default,
     onChange = onChange,
 )
@@ -4093,8 +4096,10 @@ internal fun ToggleSetting(
     @StringRes highlightKey: Int = 0,
     // Off for a setting that cannot be turned on yet — the row still reads and
     // still opens, it just has nothing to switch. The subtitle is where the
-    // caller says why.
+    // caller says why, and [disabledReason] what a long press on the row says,
+    // with the way to the setting that unblocks it.
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Boolean? = null,
     onChange: (Boolean) -> Unit,
 ) {
@@ -4105,7 +4110,7 @@ internal fun ToggleSetting(
         haptics.toggle(on)
         onChange(on)
     }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }) {
         WmRow(
             title = title,
             subtitle = subtitle,
@@ -4319,6 +4324,7 @@ internal fun SliderSetting(
     info: String? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Float? = null,
     onReset: (() -> Unit)? = null,
     preview: ((Float) -> Unit)? = null,
@@ -4334,6 +4340,7 @@ internal fun SliderSetting(
     icon = icon,
     highlightKey = title,
     enabled = enabled,
+    disabledReason = disabledReason,
     default = default,
     onReset = onReset,
     preview = preview,
@@ -4363,8 +4370,9 @@ internal fun SliderSetting(
     @StringRes highlightKey: Int = 0,
     // Off for a slider whose value cannot take effect yet — the row still
     // reads, and the subtitle is where the caller says why. Matches
-    // [ToggleSetting]'s own `enabled`.
+    // [ToggleSetting]'s own `enabled`, and so is [disabledReason].
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     default: Float? = null,
     /**
      * For a setting whose default is "unset", not a number: the reset shows
@@ -4404,7 +4412,7 @@ internal fun SliderSetting(
     val haptics = rememberSettingsHaptics()
     val readout = display(slider.value)
     LaunchedEffect(readout) { if (slider.dragging) haptics.tick() }
-    HighlightableRow(title, highlightKey) {
+    HighlightableRow(title, highlightKey, disabledReason = disabledReason.takeUnless { enabled }) {
         IconedRow(
             icon = icon,
             subtitle = subtitle,
@@ -4649,6 +4657,8 @@ internal fun ActionRow(
     lock: LockTarget? = null,
     icon: ImageVector? = SettingsRowIcons[title],
     enabled: Boolean = true,
+    /** What a long press says while [enabled] is off; see [DisabledReason]. */
+    disabledReason: DisabledReason? = null,
     onAction: () -> Unit,
 ) {
     var asking by remember { mutableStateOf(false) }
@@ -4666,7 +4676,7 @@ internal fun ActionRow(
         furniture = BUTTON_FURNITURE,
         hasIcon = rowHasTile(icon),
     )
-    HighlightableRow(label, title) {
+    HighlightableRow(label, title, disabledReason = disabledReason.takeUnless { enabled }) {
         WmRow(
             title = label,
             subtitle = subtitle.takeIf { beside },

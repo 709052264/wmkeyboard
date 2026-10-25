@@ -1133,6 +1133,10 @@ internal fun LanguageDetailScreen(
                 settings.watch { langId !in it.correction.offLanguages },
                 info = stringResource(R.string.languages_autocorrect_info, lang.englishName),
                 enabled = globalOn,
+                disabledReason = rememberDisabledReason(
+                    stringResource(R.string.languages_autocorrect_global_off_subtitle),
+                    R.string.typing_autocorrect_title,
+                ),
                 default = true,
             ) { scope.launch { repository.setAutocorrectForLanguage(langId, it) } }
         }

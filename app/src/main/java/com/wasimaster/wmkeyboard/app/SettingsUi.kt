@@ -141,6 +141,7 @@ import androidx.compose.ui.unit.round
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import kotlin.math.roundToInt
@@ -1166,6 +1167,9 @@ internal fun Modifier.focusOncePlaced(
  * [swipeActions] puts buttons behind the row that a swipe toward the start
  * shows, and [fullSwipe] one a long swipe runs outright — see
  * [SwipeActionsRow], including why a row with them must be keyed.
+ *
+ * [disabledReason] is what a long press on the row says while [enabled] is
+ * off; see [DisabledReason]. Ignored while the row is enabled.
  */
 @Composable
 internal fun WmRow(
@@ -1184,6 +1188,7 @@ internal fun WmRow(
     flightTo: String? = null,
     subtitleFlies: Boolean = false,
     enabled: Boolean = true,
+    disabledReason: DisabledReason? = null,
     @StringRes highlightKey: Int = 0,
     swipeActions: List<SwipeAction> = emptyList(),
     fullSwipe: SwipeAction? = null,
@@ -1211,14 +1216,19 @@ internal fun WmRow(
                 flightTo = flightTo,
                 subtitleFlies = subtitleFlies,
                 enabled = enabled,
+                disabledReason = disabledReason,
                 highlightKey = highlightKey,
                 onClick = onClick,
             )
         }
         return
     }
-    if (highlightKey != 0) {
-        HighlightableRow(title, highlightKey) {
+    // A greyed-out row with a reason takes the long press of any named row,
+    // so the hold can say why. Without a key it matches a search on its drawn
+    // title, as every title-only row does.
+    val reason = disabledReason.takeUnless { enabled }
+    if (highlightKey != 0 || reason != null) {
+        HighlightableRow(title, highlightKey, disabledReason = reason) {
             WmRow(
                 title = title,
                 modifier = modifier,

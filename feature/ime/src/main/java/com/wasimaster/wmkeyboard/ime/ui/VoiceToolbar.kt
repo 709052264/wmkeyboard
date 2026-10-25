@@ -92,6 +92,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The collapsed voice bar (Gboard's voice-typing toolbar): the keyboard gives
@@ -501,6 +502,7 @@ private fun RowScope.HorizontalMenuPage(
             icon = Icons.AutoMirrored.Outlined.Undo,
             description = stringResource(R.string.ime_voice_strip_undo_desc),
             enabled = state.voice.undoReady(),
+            disabledReason = DisabledReason(stringResource(R.string.ime_disabled_voice_undo)),
         ) {
             feedback()
             onUndo()
@@ -573,6 +575,7 @@ private fun VerticalBarContent(
                 icon = Icons.AutoMirrored.Outlined.Undo,
                 description = stringResource(R.string.ime_voice_strip_undo_desc),
                 enabled = state.voice.undoReady(),
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_voice_undo)),
             ) {
                 feedback()
                 onUndo()
@@ -938,10 +941,12 @@ private fun VoiceBarIconButton(
     icon: ImageVector,
     description: String,
     enabled: Boolean = true,
+    /** What holding the button says while it is greyed out; see [IconHint]. */
+    disabledReason: DisabledReason? = null,
     onClick: () -> Unit,
 ) {
     val kb = LocalKbTheme.current
-    IconHint(description) {
+    IconHint(description, disabledReason = disabledReason.takeUnless { enabled }) {
         Box(
             modifier = Modifier
                 .size(VoiceBarButton)

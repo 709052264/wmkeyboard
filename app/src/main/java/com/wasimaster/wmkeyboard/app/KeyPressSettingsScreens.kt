@@ -1443,13 +1443,14 @@ internal fun KeyPressPopupSettings(
         if (popupOn) item {
             // A theme may name the placement itself; the row then says so
             // rather than flipping a switch the board no longer reads (#88).
-            val pinned = themePinSubtitle(settings) { popupOnKeyOrNull(it.popupPlacement) }
+            val pin = themePin(settings) { popupOnKeyOrNull(it.popupPlacement) }
             ToggleSetting(
                 R.string.keypress_popup_on_key_title,
-                pinned ?: stringResource(R.string.keypress_popup_on_key_subtitle),
+                pin?.text ?: stringResource(R.string.keypress_popup_on_key_subtitle),
                 onKey,
                 info = stringResource(R.string.keypress_popup_on_key_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 default = SettingsDefaults.popup.onKey,
             ) { scope.launch { repository.setKeyPopupOnKey(it) } }
         }
@@ -1467,18 +1468,19 @@ internal fun KeyPressPopupSettings(
         if (popupOn) item {
             // Pinned when the theme sizes the style the board is drawing —
             // its own placement where it names one, else this switch's.
-            val pinned = themePinSubtitle(settings) { spec ->
+            val pin = themePin(settings) { spec ->
                 val drawnOnKey = popupOnKeyOrNull(spec.popupPlacement) ?: onKey
                 if (drawnOnKey) spec.popupHeightDp else spec.popupFloatingHeightDp
             }
             SliderSetting(
                 R.string.keypress_popup_height_title,
-                subtitle = pinned ?: stringResource(R.string.keypress_popup_height_subtitle),
+                subtitle = pin?.text ?: stringResource(R.string.keypress_popup_height_subtitle),
                 value = settings.watch { it.popup.heightDp }.toFloat(),
                 range = 32f..160f,
                 display = { context.getString(R.string.keypress_value_dp, it.toInt()) },
                 info = stringResource(R.string.keypress_popup_height_info),
-                enabled = pinned == null,
+                enabled = pin == null,
+                disabledReason = pin,
                 // The default of the style the slider is showing: the on-key
                 // one was handed to the floating bubble too, so a reset while
                 // floating set it to 110 dp.

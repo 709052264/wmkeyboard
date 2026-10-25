@@ -437,6 +437,10 @@ internal fun VoiceSettings(repository: SettingsRepository, settings: LiveSetting
                 stringResource(R.string.voice_continuous_subtitle),
                 settings.watch { it.voiceContinuous } || chainingForced,
                 enabled = !chainingForced,
+                disabledReason = rememberDisabledReason(
+                    stringResource(R.string.voice_continuous_forced_reason),
+                    R.string.voice_typing_title,
+                ),
                 default = SettingsDefaults.voiceContinuous,
             ) { scope.launch { repository.setVoiceContinuous(it) } }
         }
@@ -757,11 +761,24 @@ internal fun ClipboardSettings(
         item {
             // The tabs put pinned clips on a tab of their own, where there is
             // no end of the list left for them to go to.
+            val pinnedTabs = settings.watch { it.clipboard.pinnedTabs }
             ToggleSetting(
                 R.string.clipboard_pinned_last_title,
                 stringResource(R.string.clipboard_pinned_last_subtitle),
                 settings.watch { it.clipboard.pinnedLast },
-                enabled = !settings.watch { it.clipboard.pinnedTabs } && !settings.watch { it.clipboard.pinnedInPlace },
+                enabled = !pinnedTabs && !settings.watch { it.clipboard.pinnedInPlace },
+                // Whichever of the two is holding it is the switch to send
+                // the user to; the tabs first, as they are the one drawn first.
+                disabledReason = rememberDisabledReason(
+                    stringResource(
+                        if (pinnedTabs) {
+                            R.string.clipboard_pinned_last_tabs_reason
+                        } else {
+                            R.string.clipboard_pinned_last_in_place_reason
+                        },
+                    ),
+                    if (pinnedTabs) R.string.clipboard_pinned_tabs_title else R.string.clipboard_pinned_in_place_title,
+                ),
                 default = SettingsDefaults.clipboard.pinnedLast,
             ) { scope.launch { repository.setClipboardPinnedLast(it) } }
         }
@@ -1066,6 +1083,10 @@ internal fun ClipboardSettings(
                 display = { numberFormat.format(it.roundToInt()) },
                 info = stringResource(R.string.clipboard_columns_info),
                 enabled = settings.watch { it.clipboard.view == ClipboardView.GRID },
+                disabledReason = rememberDisabledReason(
+                    stringResource(R.string.clipboard_columns_needs_grid_reason),
+                    R.string.clipboard_view_title,
+                ),
                 default = SettingsDefaults.clipboard.gridColumns.toFloat(),
             ) { scope.launch { repository.setClipboardGridColumns(it.roundToInt()) } }
         }

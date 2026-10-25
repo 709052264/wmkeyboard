@@ -292,6 +292,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Palette
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 // ---- shared helpers ----
 
@@ -3414,6 +3415,7 @@ fun ThemeEditorScreen(
                 checked = look.watch { it.followWallpaper },
                 info = stringResource(R.string.theme_follow_wallpaper_info),
                 enabled = supported,
+                disabledReason = DisabledReason(stringResource(R.string.theme_follow_wallpaper_unsupported)),
             ) { follow -> update { t -> t.copy(followWallpaper = follow) } }
         }
         item {

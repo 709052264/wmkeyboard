@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 import com.wasimaster.wmkeyboard.core.ui.ToolPaint
 import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.res.stringResource
@@ -527,49 +528,60 @@ internal fun ToolRow(
 ) {
     val route = toolRoute(tool)
     val usable = blocker == null
-    WmRow(
-        title = stringResource(toolTitle(tool)),
-        subtitle = when (blocker) {
-            null -> stringResource(toolDescription(tool))
-            ToolBlocker.NEEDS_SEARCH_KEY -> stringResource(R.string.tools_needs_key_subtitle)
-            ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
-            ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
-            ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
-            ToolBlocker.NEEDS_MIX_SOURCE -> stringResource(R.string.tools_needs_mix_source_subtitle)
-        },
-        leading = {
-            SlotIcon(
-                IconSlots.forTool(tool),
-                contentDescription = null,
-                modifier = Modifier.wmSharedElement(takeOffKey("icon", route)),
-                tint = paint?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
-                brush = paint?.brush,
-            )
-        },
-        flightTo = route,
-        subtitleFlies = true,
-        trailing = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (toolHasOptions(tool)) {
-                    Icon(
-                        Icons.Outlined.Tune,
-                        contentDescription = optionsDesc,
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                            .size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+    val title = stringResource(toolTitle(tool))
+    val subtitle = when (blocker) {
+        null -> stringResource(toolDescription(tool))
+        ToolBlocker.NEEDS_SEARCH_KEY -> stringResource(R.string.tools_needs_key_subtitle)
+        ToolBlocker.NEEDS_SEARCH_INSTANCE -> stringResource(R.string.tools_needs_instance_subtitle)
+        ToolBlocker.NEEDS_SECONDARY_LAYOUT -> stringResource(R.string.tools_needs_layout_subtitle)
+        ToolBlocker.VOICE_OFF -> stringResource(R.string.tools_voice_off_subtitle)
+        ToolBlocker.NEEDS_MIX_SOURCE -> stringResource(R.string.tools_needs_mix_source_subtitle)
+    }
+    val row: @Composable () -> Unit = {
+        WmRow(
+            title = title,
+            subtitle = subtitle,
+            leading = {
+                SlotIcon(
+                    IconSlots.forTool(tool),
+                    contentDescription = null,
+                    modifier = Modifier.wmSharedElement(takeOffKey("icon", route)),
+                    tint = paint?.color ?: MaterialTheme.colorScheme.onSurfaceVariant,
+                    brush = paint?.brush,
+                )
+            },
+            flightTo = route,
+            subtitleFlies = true,
+            trailing = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (toolHasOptions(tool)) {
+                        Icon(
+                            Icons.Outlined.Tune,
+                            contentDescription = optionsDesc,
+                            modifier = Modifier
+                                .padding(end = 8.dp)
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Switch(
+                        checked = usable && enabled,
+                        onCheckedChange = onToggle,
+                        enabled = usable,
+                        modifier = Modifier.wmSharedElement(takeOffKey("switch", route)),
                     )
                 }
-                Switch(
-                    checked = usable && enabled,
-                    onCheckedChange = onToggle,
-                    enabled = usable,
-                    modifier = Modifier.wmSharedElement(takeOffKey("switch", route)),
-                )
-            }
-        },
-        onClick = onOpen,
-    )
+            },
+            onClick = onOpen,
+        )
+    }
+    // The row still opens, only its switch is greyed out: the hold says why,
+    // and sends the user to the tool's page, which holds every fix.
+    if (usable) {
+        row()
+    } else {
+        HighlightableRow(title, disabledReason = DisabledReason(subtitle, route = route), content = row)
+    }
 }
 /** The Panels group, in the order the Tools screen lists it. */
 private val PanelTools = listOf(

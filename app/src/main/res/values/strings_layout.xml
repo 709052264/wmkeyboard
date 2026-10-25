@@ -233,6 +233,8 @@
     <string name="layout_globe_guard_info">The 🌐 key is next to the spacebar and the comma, so a fast thumb can hit it by mistake in the middle of a word and change the language. Set a time here and a tap on 🌐 that comes sooner than this after a typed key does nothing. A tap after a pause changes the language as usual, and so do quick taps one after the other on 🌐 itself. Press and hold 🌐 to open the language list at any time. Letters, space, backspace and enter count as typing. Shift and the mode keys do not. This setting is off by default.</string>
     <!-- Subtitle of the two settings that change the 🌐 key, while it is hidden. -->
     <string name="layout_globe_hidden_subtitle">No effect while the 🌐 key is hidden</string>
+    <!-- Said on a long press of a greyed-out 🌐 row, above "Open the setting". -->
+    <string name="layout_globe_hidden_reason">These options change the 🌐 key, which is hidden. Turn on Show the 🌐 key first.</string>
     <string name="layout_split_large_only_title">Split only on wide screens</string>
     <string name="layout_split_large_only_subtitle">Stay whole on a portrait phone, split when there is room</string>
     <string name="layout_split_spacebar_title">Split the spacebar</string>

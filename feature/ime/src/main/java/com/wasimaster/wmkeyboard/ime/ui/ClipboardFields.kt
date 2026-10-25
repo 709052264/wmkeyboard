@@ -172,6 +172,7 @@ import com.wasimaster.wmkeyboard.core.theme.FrostSurface
 import com.wasimaster.wmkeyboard.ime.R
 import com.wasimaster.wmkeyboard.ime.clipOcrAvailable
 import com.wasimaster.wmkeyboard.core.tools.PhotoTranslate
+import com.wasimaster.wmkeyboard.core.ui.DisabledReason
 
 /**
  * The clipboard panel's components, each in the cell its panel layout gives it
@@ -1284,9 +1285,16 @@ private fun ClipSelectionBar(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f),
         )
+        // A greyed-out button says on a hold what it is waiting for: image
+        // clips count towards the selection, not towards these two.
         if (onTidy != null) {
-            TextButton(onClick = onTidy, enabled = textual >= 1) {
-                Text(stringResource(R.string.ime_clip_tidy))
+            IconHint(
+                null,
+                disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_tidy)).takeIf { textual < 1 },
+            ) {
+                TextButton(onClick = onTidy, enabled = textual >= 1) {
+                    Text(stringResource(R.string.ime_clip_tidy))
+                }
             }
         }
         if (onZawgyi != null && burmese) {
@@ -1294,8 +1302,13 @@ private fun ClipSelectionBar(
                 Text(stringResource(R.string.ime_clip_zawgyi))
             }
         }
-        TextButton(onClick = onCombine, enabled = textual >= 2) {
-            Text(stringResource(R.string.ime_clip_combine))
+        IconHint(
+            null,
+            disabledReason = DisabledReason(stringResource(R.string.ime_disabled_clip_combine)).takeIf { textual < 2 },
+        ) {
+            TextButton(onClick = onCombine, enabled = textual >= 2) {
+                Text(stringResource(R.string.ime_clip_combine))
+            }
         }
         TextButton(onClick = onDelete, enabled = picked.isNotEmpty()) {
             Text(
