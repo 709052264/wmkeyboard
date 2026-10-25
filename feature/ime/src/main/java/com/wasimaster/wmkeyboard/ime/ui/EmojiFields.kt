@@ -91,6 +91,8 @@ internal class EmojiFieldCallbacks(
     val onStickerSend: (String) -> Unit,
     val onSearchFieldDelete: () -> Unit,
     val onTextArt: (String) -> Unit,
+    /** The ✕ that empties the search query (#907). */
+    val onSearchClear: () -> Unit = {},
     /** The kaomoji tab's controller. */
     val kaomoji: KaomojiCallbacks = KaomojiCallbacks(),
 )
@@ -380,6 +382,7 @@ private fun EmojiSearchFieldCell(state: KeyboardUiState, callbacks: EmojiFieldCa
                 state = state,
                 onEmojiQueryTap = callbacks.onQueryTap,
                 onSearchFieldDelete = callbacks.onSearchFieldDelete,
+                onClear = callbacks.onSearchClear,
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRing(focused, RoundedCornerShape(20.dp)),
@@ -671,6 +674,7 @@ internal fun EmojiSearchPanel(
                     state = state,
                     onEmojiQueryTap = callbacks.onQueryTap,
                     onSearchFieldDelete = callbacks.onSearchFieldDelete,
+                    onClear = callbacks.onSearchClear,
                     modifier = Modifier
                         .weight(1f)
                         .padding(start = 6.dp, end = 2.dp),
@@ -686,6 +690,7 @@ internal fun EmojiSearchPanel(
                 state = state,
                 onEmojiQueryTap = callbacks.onQueryTap,
                 onSearchFieldDelete = callbacks.onSearchFieldDelete,
+                onClear = callbacks.onSearchClear,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp, vertical = 4.dp),

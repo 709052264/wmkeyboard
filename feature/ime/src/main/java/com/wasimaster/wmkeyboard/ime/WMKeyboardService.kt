@@ -33115,6 +33115,7 @@ open class WMKeyboardService : InputMethodService() {
             onKdeSend = ::kdeSendComposed,
             onVoice = ::onCaptureVoice,
             onFocusSwitch = ::onCaptureFocusSwitch,
+            onEmojiQueryClear = ::onEmojiQueryClear,
         )
     }
 
@@ -37748,8 +37749,9 @@ open class WMKeyboardService : InputMethodService() {
     }
 
     /**
-     * The clear button in the web/image search bar: drops the kept results and
-     * the query, and hands the keys to the search box for a new search.
+     * The clear button in the web/image, GIF and sticker search bars: drops
+     * the kept results and the query, and hands the keys to the search box for
+     * a new search. GIF and sticker go back to trending (#907).
      */
     fun onMediaQueryClear() {
         vibrate()
@@ -37757,6 +37759,10 @@ open class WMKeyboardService : InputMethodService() {
         if (panel == PanelMode.WEB_SEARCH) {
             webSearchJob?.cancel()
             imageSearchJob?.cancel()
+        }
+        if (panel == PanelMode.GIF || panel == PanelMode.STICKER) {
+            mediaLiveSearchJob?.cancel()
+            captureComposition = null
         }
         val idle = hasSearchKey()
         _uiState.update {
@@ -37769,6 +37775,7 @@ open class WMKeyboardService : InputMethodService() {
                 imageSearch = if (panel == PanelMode.WEB_SEARCH && idle) ImageSearchUi.Idle else it.imageSearch,
             )
         }
+        if (panel == PanelMode.GIF || panel == PanelMode.STICKER) refreshMedia("")
     }
 
     /**
@@ -45714,6 +45721,17 @@ open class WMKeyboardService : InputMethodService() {
 
     fun onEmojiSearchToggled() {
         _uiState.update { it.copy(emojiSearchActive = !it.emojiSearchActive) }
+    }
+
+    /**
+     * The ✕ in the emoji search box (#907): the query goes, the grid comes
+     * back unfiltered, and the keys stay on the box for a new query.
+     */
+    fun onEmojiQueryClear() {
+        vibrate()
+        captureComposition = null
+        updateQuery { it.copy(emojiQuery = "", emojiSearchActive = true) }
+        refreshEmojiResults()
     }
 
     private fun refreshEmojiResults() {

@@ -13674,6 +13674,7 @@ private fun KeyboardBody(
                     onStickerSend = onEmojiStickerSend,
                     onSearchFieldDelete = onEmojiSearchFieldDelete,
                     onTextArt = onTextArt,
+                    onSearchClear = capture.onEmojiQueryClear,
                     kaomoji = toolHold.kaomoji,
                 ),
                 clipboard = ClipboardFieldCallbacks(
@@ -14017,12 +14018,13 @@ private fun KeyboardBody(
                     MediaPanelHost(
                         state,
                         panelCallbacks,
-                        headerSearch = { GifHeaderSearchBar(state, stickers, onMediaQueryTap) },
+                        headerSearch = { GifHeaderSearchBar(state, stickers, onMediaQueryTap, onMediaQueryClear) },
                     ) { fullBleed, inGrid, switcher ->
                         GifPanel(
                             state = state,
                             stickers = stickers,
                             onQueryTap = onMediaQueryTap,
+                            onQueryClear = onMediaQueryClear,
                             onRetry = onMediaRetry,
                             onSelect = onGifSelect,
                             onSourceSelect = onGifSourceSelect,
@@ -29024,6 +29026,7 @@ internal fun EmojiSearchField(
     onEmojiQueryTap: () -> Unit,
     onSearchFieldDelete: () -> Unit,
     modifier: Modifier = Modifier,
+    onClear: (() -> Unit)? = null,
 ) {
     val feedback = LocalKeyPressFeedback.current
     val keySound = LocalKeySound.current
@@ -29053,6 +29056,19 @@ internal fun EmojiSearchField(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
+        // Empties the query in one tap (#907). The backspace beside it edits
+        // the app's field, not the query, so it is no way back to the grid.
+        if (onClear != null && state.emojiQuery.isNotEmpty()) {
+            Icon(
+                Icons.Outlined.Close,
+                contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
+                modifier = Modifier
+                    .padding(start = 8.dp)
+                    .size(18.dp)
+                    .clickable { onClear() },
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         // While searching, the keys type into the query — so an emoji just
         // inserted from the results can't be deleted from the field with
         // them. This backspace edits the real text field (with

@@ -658,6 +658,8 @@ private fun MediaSearchBar(
     // Drawn after the box and its credit: the switch to the emoji and the
     // other media panel, when it sits up here (issue #366).
     trailing: (@Composable () -> Unit)? = null,
+    // The ✕ that empties the query, while there is one (#907).
+    onClear: (() -> Unit)? = null,
 ) {
     val kb = LocalKbTheme.current
     Row(
@@ -699,6 +701,19 @@ private fun MediaSearchBar(
                 fontSize = 14.sp,
                 modifier = Modifier.weight(1f),
             )
+            if (onClear != null && state.mediaQuery.isNotEmpty()) {
+                IconHint(stringResource(R.string.ime_clipboard_search_clear_desc)) {
+                    Icon(
+                        Icons.Outlined.Close,
+                        contentDescription = stringResource(R.string.ime_clipboard_search_clear_desc),
+                        modifier = Modifier
+                            .padding(start = 6.dp)
+                            .size(18.dp)
+                            .clickable { onClear() },
+                        tint = kb.toolbarIcon,
+                    )
+                }
+            }
         }
         if (attribution != null) {
             Text(
@@ -947,6 +962,7 @@ internal fun RowScope.GifHeaderSearchBar(
     state: KeyboardUiState,
     stickers: Boolean,
     onQueryTap: () -> Unit,
+    onClear: (() -> Unit)? = null,
 ) {
     MediaHeaderSearchBar(
         state = state,
@@ -954,6 +970,7 @@ internal fun RowScope.GifHeaderSearchBar(
         onQueryTap = onQueryTap,
         attribution = gifAttribution(state, stickers),
         logo = gifBrand(state, stickers),
+        onClear = onClear,
     )
 }
 
@@ -982,6 +999,7 @@ internal fun RowScope.GifHeaderSearchBar(
  *   header is the host's to fill.
  * @param inGrid the panel is the browser cell of its layout (#538), which
  *   owns the height, so the body fills the cell it is given.
+ * @param onQueryClear the ✕ in the search box was tapped (#907).
  */
 @Composable
 internal fun GifPanel(
@@ -1004,6 +1022,7 @@ internal fun GifPanel(
     onOpenRoute: (String) -> Unit = {},
     switcher: (@Composable () -> Unit)? = null,
     inGrid: Boolean = false,
+    onQueryClear: (() -> Unit)? = null,
 ) {
     val ui = if (stickers) state.sticker else state.gif
     val tool = if (stickers) ToolbarTool.STICKER else ToolbarTool.GIF
@@ -1084,6 +1103,7 @@ internal fun GifPanel(
                         logo = gifBrand(state, stickers),
                         focused = state.focusedIndex(FocusRegion.SEARCH) == 0,
                         trailing = trailing,
+                        onClear = onQueryClear,
                     )
                 }
                 if (chips.isNotEmpty() && !state.mediaSearchActive) {
