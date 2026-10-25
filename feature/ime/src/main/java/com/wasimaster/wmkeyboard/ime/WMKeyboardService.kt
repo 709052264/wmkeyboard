@@ -12108,6 +12108,10 @@ open class WMKeyboardService : InputMethodService() {
         val fancyStyle = fancyStyleFor(state)
         val fancyByKey = fancyStyle != null && !fancyComposes(state)
         if (fancyByKey) text = applyFancyStyle(text, fancyStyle)
+        if (!fancyByKey && typeMyanmarVisualOrder(ic, text)) {
+            consumeShift()
+            return
+        }
         // contextualForm is the identity for every composer except the
         // cluster-shaping (fixed Indic) ones, so only they are worth the
         // synchronous getTextBeforeCursor round-trip on the keypress path.
@@ -13101,6 +13105,37 @@ open class WMKeyboardService : InputMethodService() {
      * (য়া, য়ে) after another vowel — so কা + আ gives কায়া, never the
      * invalid কাআ — and the independent vowel (আ, ই, …) at a word start.
      */
+    /**
+     * Burmese typed in drawn order ([MyanmarVisualOrder]): a consonant after a
+     * ေ that is still waiting for one goes in front of it, and a medial after
+     * a consonant's ေ goes in front of the ေ. True when the key was typed here.
+     *
+     * Not on a converted Keyman layout, whose own rules order its output, and
+     * not while writing Zawgyi, which stores ေ in front of its consonant on
+     * purpose.
+     */
+    private fun typeMyanmarVisualOrder(ic: InputConnection, text: String): Boolean {
+        if (text.length != 1 || !MyanmarVisualOrder.reorders(text[0])) return false
+        if (keymanSession != null || outputEncoding == OutputEncoding.ZawgyiOutput || hasSelection(ic)) return false
+        // Marks commit the buffer as they land, so the ေ is in the field; a
+        // buffer still open here is a resumed word, and the ေ ends it.
+        val before = composing.takeIf { it.isNotEmpty() }?.toString()
+            ?: ic.getTextBeforeCursor(MYANMAR_ORDER_CONTEXT, 0)?.toString()
+            ?: return false
+        val edit = MyanmarVisualOrder.reorder(before, text) ?: return false
+        if (composing.isNotEmpty()) commitComposing(ic, autocorrect = false)
+        ic.beginBatchEdit()
+        revision?.expectDelete(edit.delete, 0)
+        ic.deleteSurroundingText(edit.delete, 0)
+        commitTypedCharacter(ic, edit.text)
+        ic.endBatchEdit()
+        invalidateExpectedSelection()
+        _uiState.update {
+            it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+        }
+        return true
+    }
+
     private fun fixedLayoutContextualVowel(text: String, previous: Char?): String =
         _uiState.value.composer.contextualForm(text, previous)
 
@@ -53082,6 +53117,9 @@ private const val MAX_MACRO_SELECTION = 4000
 
 /** Pasted text longer than this is not read for Zawgyi: a long paste is rarely one encoding's mistake. */
 private const val MAX_ZAWGYI_PASTE = 4000
+
+/** Enough of the field for a syllable's signs and medials ([MyanmarVisualOrder]). */
+private const val MYANMAR_ORDER_CONTEXT = 12
 
 /**
  * How long [WMKeyboardService.revealCaretAfterGrowth] waits before putting the
