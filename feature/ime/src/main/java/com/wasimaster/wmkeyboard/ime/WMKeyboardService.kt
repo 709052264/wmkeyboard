@@ -3537,6 +3537,24 @@ open class WMKeyboardService : InputMethodService() {
         return (incognito && state.settings.incognitoPausesClipboard) || field.isSecureField()
     }
 
+    /**
+     * Whether a copy [clipCapturePaused] holds back only because a password
+     * field has focus goes into the history masked instead. That is what
+     * "Hide it and delete it quickly" promises for a password, and dropping
+     * it left the panel with nothing at all to paste back into the box.
+     * Nowhere else: the other options and incognito keep it out, and every
+     * other reader of [clipCapturePaused] (sharing to a computer, the reply
+     * panel) still stands down.
+     */
+    private fun secureCopyKeptMasked(state: KeyboardUiState): Boolean {
+        if (state.settings.clipboard.sensitiveHandling != SensitiveClipHandling.SHORT_LIVED) return false
+        val field = currentInputEditorInfo?.takeIf { currentInputStarted }
+        if (!field.isSecureField()) return false
+        val incognito = state.settings.incognito ||
+            (state.settings.autoIncognito && field.requestsNoPersonalizedLearning())
+        return !(incognito && state.settings.incognitoPausesClipboard)
+    }
+
     private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
         // A private copy never reaches the system clipboard, so whatever just
         // landed there is newer than it, and the paste keys paste that now
@@ -3556,9 +3574,10 @@ open class WMKeyboardService : InputMethodService() {
         kdeClipboardChanged(state)
         sendLinkClipboardChanged(state)
         noteCopyForReply(state)
+        val secureMasked = secureCopyKeptMasked(state)
         if (!isClipboardAccessible() ||
             !state.settings.clipboard.history ||
-            clipCapturePaused(state)
+            (clipCapturePaused(state) && !secureMasked)
         ) return@OnPrimaryClipChangedListener
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = clipboard.primaryClip ?: return@OnPrimaryClipChangedListener
@@ -3578,7 +3597,8 @@ open class WMKeyboardService : InputMethodService() {
         // and under KEEP the user has said not to, so the flag is dropped here
         // rather than at each of the places that would otherwise act on it.
         val handling = state.settings.clipboard.sensitiveHandling
-        val flaggedSensitive = handling != SensitiveClipHandling.KEEP && clipMarkedSensitive(clip)
+        val flaggedSensitive = secureMasked ||
+            (handling != SensitiveClipHandling.KEEP && clipMarkedSensitive(clip))
         if (flaggedSensitive && handling == SensitiveClipHandling.NEVER_SAVE) {
             return@OnPrimaryClipChangedListener
         }
@@ -3711,11 +3731,12 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun recordPrivateCopy(text: String) {
         val state = _uiState.value
+        val secureMasked = secureCopyKeptMasked(state)
         if (state.incognitoOn || !isClipboardAccessible() || !state.settings.clipboard.history ||
-            clipCapturePaused(state)
+            (clipCapturePaused(state) && !secureMasked)
         ) return
-        val tidied = tidyCopy(text, state.settings.clipboard)
-        val added = clipboardStore.add(tidied) ?: return
+        val tidied = if (secureMasked) text else tidyCopy(text, state.settings.clipboard)
+        val added = clipboardStore.add(tidied, sensitive = secureMasked) ?: return
         saveClipboardSoon()
         _uiState.update { it.copy(clipboardItems = clipboardStore.items()) }
         // The chip the listener would have put up for a system copy: the one
