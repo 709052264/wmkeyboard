@@ -154,7 +154,7 @@ That last paragraph describes the default mode. If you want the mic to survive t
 
 <SettingsPath path="Voice typing / Spoken punctuation" />
 
-With this on (the default), saying certain words types the punctuation mark instead of the word itself. It only applies to finished phrases, never to the live partial text, and it knows two sets of words: English and Bangla. The sentence marks come first:
+With this on (the default), saying certain words types the punctuation mark instead of the word itself. It only applies to finished phrases, never to the live partial text, and it knows four sets of words: English, Bangla, Portuguese and Spanish. The sentence marks come first:
 
 | Say (English) | Types | Say (Bangla) | Types |
 |---|---|---|---|
@@ -201,7 +201,26 @@ English also knows the marks past the end of a sentence. Each one sits against i
 
 A symbol whose plain name is an everyday word only answers to its longer name, which is why so many of these end in "sign". "Fifty percent is greater than ten plus one" stays a sentence; "fifty percent sign" is `50%`.
 
-A language other than English or Bangla has no table, so its dictation is typed exactly as it was heard.
+Portuguese and Spanish know the names Gboard uses. A bare "ponto" or "punto" is not among them, because both are everyday words; say "ponto final" or "punto final" for the full stop.
+
+| Say (Portuguese) | Say (Spanish) | Types |
+|---|---|---|
+| "novo parágrafo" | "nuevo párrafo" | two line breaks |
+| "nova linha" | "nueva línea" | line break |
+| "ponto de interrogação" / "interrogação" | "signo de interrogación" | `?` |
+| "ponto de exclamação" / "exclamação" | "signo de exclamación" | `!` |
+| "ponto final" | "punto final" | `.` |
+| "vírgula" | "coma" | `,` |
+| "dois pontos" | "dos puntos" | `:` |
+| "ponto e vírgula" | "punto y coma" | `;` |
+| "reticências" | "puntos suspensivos" | `…` |
+| "abre aspas", "fecha aspas" | "abrir comillas", "cerrar comillas" | `"` |
+| "abre parênteses", "fecha parênteses" | "abrir paréntesis", "cerrar paréntesis" | `(` `)` |
+| "hífen" | "guion" | `-` |
+| "travessão" | | `—` |
+| "arroba" | "arroba" | `@` |
+
+Any other language has no table, so its dictation is typed exactly as it was heard.
 
 ## Adding punctuation and capitals
 
