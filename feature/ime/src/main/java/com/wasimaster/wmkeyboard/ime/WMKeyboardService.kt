@@ -133,6 +133,7 @@ import com.wasimaster.wmkeyboard.core.clipboard.ClipPlainLetters
 import com.wasimaster.wmkeyboard.core.clipboard.ClipKind
 import com.wasimaster.wmkeyboard.core.semantic.MeaningRank
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlit
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
 import com.wasimaster.wmkeyboard.core.xlit.IndicXlitModels
 import com.wasimaster.wmkeyboard.core.semantic.MeaningSync
 import com.wasimaster.wmkeyboard.ime.semantic.MeaningHits
@@ -9051,6 +9052,7 @@ open class WMKeyboardService : InputMethodService() {
         voikkoChecker = null
         indicXlit?.shutdown()
         indicXlit = null
+        if (latinXlitDelegate.isInitialized()) latinXlit.shutdown()
         pluginRuntime?.shutdown()
         pluginRuntime = null
         vocabSpeaker?.shutdown()
@@ -30011,6 +30013,14 @@ open class WMKeyboardService : InputMethodService() {
     private val romanizedDictation by lazy { RomanizedDictation { assets.open(it) } }
 
     /**
+     * IndicXlit's Indic-to-Latin model, which spells a romanized dictation's
+     * words the maps do not know ([respellVoiceThen]). Opened by the first
+     * dictation that can use it, kept until the service goes.
+     */
+    private val latinXlitDelegate = lazy { IndicXlit(applicationContext, IndicXlitModels.LATIN) }
+    private val latinXlit by latinXlitDelegate
+
+    /**
      * [text] as heard, with the script of each romanized language picked
      * written in Latin letters. A partial goes through it as well as the
      * finished phrase, so the words do not change script as they land.
@@ -30270,6 +30280,8 @@ open class WMKeyboardService : InputMethodService() {
         // first phrase is still being said.
         voiceRomanizedIds().takeIf { it.isNotEmpty() }?.let { ids ->
             serviceScope.launch(Dispatchers.Default) { romanizedDictation.prepare(ids) }
+            // And the model that spells what they do not know, when it is here.
+            if (latinXlitApplies(ids)) latinXlit.prepare()
         }
         val tag = voiceTagOf(languageIds.first())
         fun fail(status: VoiceStatus, message: String? = null) {
@@ -31640,9 +31652,8 @@ open class WMKeyboardService : InputMethodService() {
         val plain = settings.voiceBar.plainTyping()
         // Spoken punctuation is read in the language heard, before its words
         // go into Latin letters (#948).
-        val processed = romanizedVoiceText(
-            if (!plain && settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text,
-        )
+        val heard = if (!plain && settings.voiceSpokenPunctuation) VoicePunctuation.apply(text, tag) else text
+        val processed = romanizedVoiceText(heard)
         if (voiceSessionForField) {
             commitFieldVoice(processed)
             return null
@@ -31670,15 +31681,17 @@ open class WMKeyboardService : InputMethodService() {
         // needs in front of it — a space, a capital — is read now that the
         // field holds it, not from wherever the session began (#182).
         refreshVoiceContext()
-        return VoiceLanding(spaced, sentenceStart)
+        return VoiceLanding(spaced, sentenceStart, heard.takeIf { processed != it })
     }
 
     /**
      * One phrase as it went into the field: [text] exactly as committed,
      * spaces included, and whether the caret stood at a sentence start when
      * it did, so a rewrite of it is cased by the same rule ([VoiceCasing]).
+     * [heard] is the phrase in the script it was heard in when [text] is its
+     * romanized spelling still to be checked by [respellVoiceThen], else null.
      */
-    private class VoiceLanding(val text: String, val sentenceStart: Boolean)
+    private class VoiceLanding(val text: String, val sentenceStart: Boolean, val heard: String? = null)
 
     /**
      * Runs [then] once the phrase that just [landed] has been tidied by the AI
@@ -31697,6 +31710,12 @@ open class WMKeyboardService : InputMethodService() {
      * [cancelVoice] has already brought the surfaces to rest.
      */
     private fun tidyVoiceThen(landed: VoiceLanding?, then: () -> Unit) {
+        // A romanized phrase gets its spellings first, so the tidy reads the
+        // words as they will stay.
+        if (landed?.heard != null) {
+            respellVoiceThen(landed) { tidyVoiceThen(it, then) }
+            return
+        }
         val settings = _uiState.value.settings
         if (landed == null || !voiceTidyApplies(settings, landed.text)) {
             then()
@@ -31719,6 +31738,54 @@ open class WMKeyboardService : InputMethodService() {
             then()
         }
     }
+
+    /**
+     * Romanized dictation's second pass (#948). The words of [landed] the
+     * spelling maps did not know went in as the rules spell them; this asks
+     * IndicXlit's Latin model ([IndicXlitModels.LATIN]) how people write them,
+     * puts the phrase in again with its answers, and runs [then] with the
+     * phrase as the field now has it.
+     *
+     * At the commit only, never on a partial: a partial is written again with
+     * every word heard, and the model's few milliseconds a word would land on
+     * each of them. The rules' phrase stays when the model is not downloaded,
+     * has not answered within [VOICE_RESPELL_BUDGET_MS], or the phrase is no
+     * longer what sits in front of the caret ([replaceVoiceLanding]). [then]
+     * is held back meanwhile, for the reason [tidyVoiceThen] holds its own.
+     */
+    private fun respellVoiceThen(landed: VoiceLanding, then: (VoiceLanding) -> Unit) {
+        val asCommitted = VoiceLanding(landed.text, landed.sentenceStart)
+        val heard = landed.heard
+        val ids = voiceRomanizedIds()
+        if (heard == null || !latinXlitApplies(ids)) {
+            then(asCommitted)
+            return
+        }
+        val generation = voiceGeneration
+        serviceScope.launch {
+            val respelled = withContext(Dispatchers.Default) {
+                val unmapped = romanizedDictation.unmapped(heard, ids).filterKeys(IndicXlitModels.LATIN::supports)
+                if (unmapped.isEmpty()) return@withContext null
+                val deadline = SystemClock.uptimeMillis() + VOICE_RESPELL_BUDGET_MS
+                val readings = unmapped.mapValues { (languageId, words) ->
+                    latinXlit.readingsOf(languageId, words, deadline - SystemClock.uptimeMillis())
+                }
+                romanizedDictation.romanize(heard, ids, readings)
+                    .takeIf { it != romanizedDictation.romanize(heard, ids) }
+            }
+            if (generation != voiceGeneration) return@launch
+            val replaced = respelled?.let { replaceVoiceLanding(landed, it) }
+            then(replaced?.let { VoiceLanding(it, landed.sentenceStart) } ?: asCommitted)
+        }
+    }
+
+    /**
+     * Whether any of the romanized languages [ids] has the Latin model to
+     * spell its unknown words, and the model and its runtime are here.
+     */
+    private fun latinXlitApplies(ids: List<String>): Boolean =
+        ids.any { id -> RomanizedSpeech.spokenAs(id)?.let(IndicXlitModels.LATIN::supports) == true } &&
+            IndicXlitLatinDownloads.ready(applicationContext)
 
     /**
      * Whether the phrase [text] goes to the model at all. Not in plain voice
@@ -31793,13 +31860,14 @@ open class WMKeyboardService : InputMethodService() {
     /**
      * Puts [tidied] where [landed] went in, if [landed] is still exactly what
      * sits in front of the caret with nothing selected. The undo chip then
-     * takes back the tidied phrase, which is what is in the field.
+     * takes back the tidied phrase, which is what is in the field. Returns
+     * what went in, spaces included, or null when nothing did.
      */
-    private fun replaceVoiceLanding(landed: VoiceLanding, tidied: String) {
-        val ic = currentInputConnection ?: return
+    private fun replaceVoiceLanding(landed: VoiceLanding, tidied: String): String? {
+        val ic = currentInputConnection ?: return null
         val old = landed.text
-        if (ic.getTextBeforeCursor(old.length, 0)?.toString() != old) return
-        if (!ic.getSelectedText(0).isNullOrEmpty()) return
+        if (ic.getTextBeforeCursor(old.length, 0)?.toString() != old) return null
+        if (!ic.getSelectedText(0).isNullOrEmpty()) return null
         val replacement = VoiceTidy.land(old, VoiceCasing.apply(tidied, sentenceStart = landed.sentenceStart))
         ic.beginBatchEdit()
         ic.deleteSurroundingText(old.length, 0)
@@ -31807,6 +31875,7 @@ open class WMKeyboardService : InputMethodService() {
         ic.endBatchEdit()
         if (lastVoiceCommit == old) lastVoiceCommit = replacement
         refreshVoiceContext()
+        return replacement
     }
 
     /** Intelligent leading and trailing spaces when dictation starts mid-text or replaces selection. */
@@ -52037,6 +52106,14 @@ open class WMKeyboardService : InputMethodService() {
          * on-device one that has to load first is the slow case.
          */
         private const val VOICE_TIDY_TIMEOUT_MS = 15_000L
+
+        /**
+         * How long a romanized phrase waits on IndicXlit's Latin model to
+         * spell the words the maps do not know (#948), every word together.
+         * A few tens of milliseconds a word on a phone; a word it has not
+         * reached by then keeps the rules' spelling.
+         */
+        private const val VOICE_RESPELL_BUDGET_MS = 600L
 
         /** What [noteOfflineFallback] tells the user about, one feature each (#452). */
         private const val OFFLINE_FALLBACK_VOICE = "voice"

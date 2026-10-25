@@ -47,6 +47,17 @@ class RomanizedDictationTest {
     }
 
     @Test
+    fun `a model spells a long word the maps do not know, and a short one stays with the rules`() {
+        dictation.prepare(listOf("ta_rom"))
+        val heard = "ரொம்ப நல்ல வணக்கம்"
+        // ரொம்ப is in the map; நல்ல is four characters, too short to ask about.
+        assertEquals(mapOf("ta" to listOf("வணக்கம்")), dictation.unmapped(heard, listOf("ta_rom")))
+        val readings = mapOf("ta" to mapOf("வணக்கம்" to listOf("vanakam", "vanakkam")))
+        assertEquals("Romba nalla vanakam", dictation.romanize(heard, listOf("ta_rom"), readings))
+        assertEquals("Romba nalla vanakkam", dictation.romanize(heard, listOf("ta_rom")))
+    }
+
+    @Test
     fun `latin already in the phrase, and a language not picked, are left alone`() {
         assertEquals("meeting nalla", dictation.romanize("meeting நல்ல", listOf("ta_rom")))
         assertEquals("नमस्ते", dictation.romanize("नमस्ते", listOf("ta_rom")))

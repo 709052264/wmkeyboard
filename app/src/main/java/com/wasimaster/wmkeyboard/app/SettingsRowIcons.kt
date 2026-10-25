@@ -1662,6 +1662,7 @@ internal object SettingsRowIcons {
         put(R.string.languages_phonetic_candidates_title) { Icons.Outlined.ViewAgenda }
         put(R.string.languages_neural_phonetic_title) { Icons.Outlined.AutoAwesome }
         put(R.string.languages_neural_phonetic_model_title) { Icons.Outlined.CloudDownload }
+        put(R.string.languages_romanized_dictation_model_title) { Icons.Outlined.CloudDownload }
         put(R.string.languages_neural_leads_title) { Icons.Outlined.SpaceBar }
         put(R.string.languages_phonetic_guide_title) { Icons.AutoMirrored.Outlined.MenuBook }
         put(R.string.langemoji_emoji_panel_title) { Icons.Outlined.GridView }

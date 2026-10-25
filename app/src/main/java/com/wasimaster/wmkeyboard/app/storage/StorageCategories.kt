@@ -96,6 +96,7 @@ import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperStore
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.whistle.WhistleModelStore
+import com.wasimaster.wmkeyboard.core.xlit.IndicXlitLatinDownloads
 import com.wasimaster.wmkeyboard.ime.ui.mediaImageLoader
 import java.io.File
 import kotlinx.coroutines.flow.first
@@ -693,6 +694,37 @@ internal object StorageCategories {
             },
             deleteOne = { env, _ -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
             clearOf = { env -> deleteNeuralPhonetic(env.context, env.repository, env.repository.settings.first()) },
+        ),
+        // Its mirror image, which romanized dictation spells with. No switch
+        // to turn off: without it dictation goes back to the rules.
+        StorageCategory(
+            id = "romanized_dictation",
+            title = R.string.storage_romanized_dictation_title,
+            subtitle = R.string.storage_romanized_dictation_subtitle,
+            icon = Icons.Outlined.AutoAwesome,
+            accent = Color(0xFF5C6BC0),
+            group = StorageGroup.DOWNLOADS,
+            danger = Danger.REDOWNLOAD,
+            manageRoute = "languages",
+            pathsOf = { listOf(File(it.noBackupFiles, "xlit-latin")) },
+            itemsOf = { env ->
+                val dir = File(env.roots.noBackupFiles, "xlit-latin")
+                if (childrenOf(dir).isEmpty()) {
+                    emptyList()
+                } else {
+                    listOf(
+                        StorageItem(
+                            id = "xlit-latin",
+                            label = env.context.getString(R.string.storage_romanized_dictation_title),
+                            bytes = diskUsage(dir, env.roots.blockSize),
+                            files = listOf(dir),
+                            directory = true,
+                        ),
+                    )
+                }
+            },
+            deleteOne = { env, _ -> IndicXlitLatinDownloads.delete(env.context) },
+            clearOf = { env -> IndicXlitLatinDownloads.delete(env.context) },
         ),
         StorageCategory(
             id = "meaning_models",
