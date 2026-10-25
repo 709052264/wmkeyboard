@@ -323,6 +323,8 @@ import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
 import com.wasimaster.wmkeyboard.core.settings.KeyboardAlignment
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
 import com.wasimaster.wmkeyboard.core.settings.SummonButtonSettings
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionOn
 import com.wasimaster.wmkeyboard.core.settings.FloatingAction
 import com.wasimaster.wmkeyboard.ime.floating.FloatingButton
 import com.wasimaster.wmkeyboard.core.theme.BackgroundBitmapCache
@@ -22563,7 +22565,8 @@ open class WMKeyboardService : InputMethodService() {
             intentChips = state.settings.smartChips.intents,
             haReady = state.settings.let { it.homeAssistant.enabled && it.homeAssistant.smartChip && it.homeAssistant.assistEnabled && it.assistHome() != null },
             gifChips = state.settings.smartChips.gifs,
-            vocabChips = state.settings.vocabulary.nudges,
+            // The nudges are the Vocabulary bundle's background work: off with it.
+            vocabChips = state.settings.vocabulary.nudges && state.settings.extensionOn(Extension.VOCABULARY),
             vocabSelfChips = state.settings.vocabulary.nudgeOnVocabWord,
             vocab = vocabIndex,
             vocabScope = state.settings.vocabulary.nudgeScope,

@@ -149,6 +149,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.SmallFloatingActionButton
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.Chat
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -435,6 +436,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "selection_macros/ai" to Color(0xFF5E6BC0),
     "selection_macros/zones" to Color(0xFF5E6BC0),
     "advanced" to Color(0xFF8D6E63),
+    "extensions" to Color(0xFF26A69A),
+    *Extension.entries.map { extensionRoute(it) to extensionAccent(it) }.toTypedArray(),
     // A child of Advanced, so it keeps the parent's brown.
     FloatingButtonRoute to Color(0xFF8D6E63),
     "backup" to Color(0xFF78909C),

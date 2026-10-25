@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The Extensions screen: feature bundles with one switch each (SETTINGS_REDESIGN.md §3). -->
+    <string name="extensions_title">Extensions</string>
+    <string name="extensions_subtitle">Switch whole features off, or back on</string>
+    <string name="extensions_intro">A feature switched off goes from everywhere at once: its rows here, its tools, its buttons on the keyboard, its search results and its background work. Switch it back on and it comes back with the settings it had.</string>
+    <string name="extensions_group_title">Features</string>
+    <string name="extensions_count_summary">%1$d of %2$d on</string>
+
+    <!-- One bundle's own page. -->
+    <string name="extension_enabled_title">Turned on</string>
+    <string name="extension_enabled_subtitle">Show this feature everywhere and let it work in the background</string>
+    <string name="extension_tools_title">Tools</string>
+    <string name="extension_tools_off_subtitle">Hidden from the toolbar, the toolbox and the Tools list while the feature is off</string>
+    <string name="extension_screens_title">Settings screens</string>
+    <string name="extension_screens_off_subtitle">Gone from Home, Advanced and search while the feature is off</string>
+
+    <!-- Drawn in place of a screen whose bundle is off. -->
+    <string name="extension_off_notice">This screen is part of %1$s, which is switched off.</string>
+    <string name="extension_off_action">Open Extensions</string>
+
+    <!-- The bundles: a name and one line on what each adds. -->
+    <string name="extension_ai_title">AI</string>
+    <string name="extension_ai_desc">Writing tools, replies, the chat, the settings assistant, memory and the chat button</string>
+    <string name="extension_voice_title">Voice typing</string>
+    <string name="extension_voice_desc">Dictation from the toolbar, a key or the keyboard\'s own fields</string>
+    <string name="extension_clipboard_title">Clipboard history</string>
+    <string name="extension_clipboard_desc">What you copied, kept for pasting later, with search and the recent-copies row</string>
+    <string name="extension_text_expansion_title">Text expansion</string>
+    <string name="extension_text_expansion_desc">Snippets that expand as you type, with folders, triggers and patterns</string>
+    <string name="extension_vocabulary_title">Vocabulary</string>
+    <string name="extension_vocabulary_desc">Word packs, the word of the day, nudges and flashcards</string>
+    <string name="extension_notes_title">Notes</string>
+    <string name="extension_notes_desc">A notebook in the keyboard and the quick note action</string>
+    <string name="extension_todo_title">To-do list</string>
+    <string name="extension_todo_desc">Tasks with steps, ticked off from the keyboard</string>
+    <string name="extension_stickers_title">Stickers, GIFs and emoji mixes</string>
+    <string name="extension_stickers_desc">The three picture panels, sticker packs and the generator</string>
+    <string name="extension_scanners_title">Scanners</string>
+    <string name="extension_scanners_desc">Text scan, the QR and barcode reader and the document scanner</string>
+    <string name="extension_translate_title">Translate</string>
+    <string name="extension_translate_desc">Translation as you type, online or on the phone</string>
+    <string name="extension_plugins_title">Plugins</string>
+    <string name="extension_plugins_desc">Lua plugins, their list and the editor</string>
+    <string name="extension_addon_repositories_title">Add-on repositories</string>
+    <string name="extension_addon_repositories_desc">Themes, layouts, fonts and packs installed from the web</string>
+    <string name="extension_connect_title">Connect</string>
+    <string name="extension_connect_desc">KDE Connect, Send files and Smart home: your other devices</string>
+    <string name="extension_modes_title">Keyboard modes</string>
+    <string name="extension_modes_desc">Per-app and per-field setups, picked by hand or automatically</string>
+    <string name="extension_selection_actions_title">Selection actions</string>
+    <string name="extension_selection_actions_desc">The bar of actions for selected text, and the entries in other apps\' selection menus</string>
+    <string name="extension_floating_button_title">Floating button</string>
+    <string name="extension_floating_button_desc">A button over other apps that opens the keyboard, a tool or the AI</string>
+    <string name="extension_hardware_keyboard_title">Physical keyboard</string>
+    <string name="extension_hardware_keyboard_desc">Typing through the engine and tool shortcuts on a connected keyboard</string>
+    <string name="extension_handwriting_title">Handwriting</string>
+    <string name="extension_handwriting_desc">Write by hand on the keyboard, with downloadable models</string>
+    <string name="extension_statistics_title">Statistics</string>
+    <string name="extension_statistics_desc">How much you type, your level and achievements</string>
+</resources>

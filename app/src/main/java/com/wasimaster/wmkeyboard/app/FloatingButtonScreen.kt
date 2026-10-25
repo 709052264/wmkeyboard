@@ -916,7 +916,8 @@ private fun FloatingActionPicker(
         )
     } + listOfNotNull(appRow, categoryRow)
     val supported = ToolbarTool.entries.filter { isSupportedTool(it) && offered(FloatingAction.Tool(it)) }.toSet()
-    val grouped = ToolGroups.map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }
+    val grouped = ToolGroups.withExtensions(LocalExtensions.current)
+        .map { (titleRes, tools) -> titleRes to tools.filter { it in supported } }
     val placed = grouped.flatMapTo(HashSet()) { it.second }
     val leftovers = supported.filter { it !in placed }
     @Composable

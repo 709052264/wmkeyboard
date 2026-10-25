@@ -92,6 +92,9 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Security
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TextFields
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.TouchApp
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tune
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewAgenda
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Tag
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.VisibilityOff
@@ -657,6 +660,9 @@ internal object SettingsRouteIcons {
         "selection_macros/ai" to { Icons.Outlined.AutoAwesome },
         "selection_macros/zones" to { Icons.Outlined.Public },
         "advanced" to { Icons.Outlined.Tune },
+        "extensions" to { Icons.Outlined.ExtensionIcon },
+        // One bundle's page wears the bundle's own glyph; see ExtensionsScreen.kt.
+        *Extension.entries.map { extensionRoute(it) to { extensionIcon(it) } }.toTypedArray(),
         FloatingButtonRoute to { Icons.Outlined.Adjust },
         "backup" to { Icons.Outlined.Save },
         "backup/auto" to { Icons.Outlined.Schedule },
@@ -802,9 +808,12 @@ internal fun SettingsSearchScreen(
     // With the Settings assistant turned off (#830), its result would lead
     // to a row that is not there, and its button to nothing.
     val assistant = settings.watch { SettingsAssistantGate.offered(it) }
-    val results = remember(query, corpus, searchIndex, history, assistant) {
+    // Likewise the screens and tools of a switched-off bundle (Extensions):
+    // a result for one would open the Extensions screen, not the row.
+    val extensions = settings.watch { it.extensionsResolved() }
+    val results = remember(query, corpus, searchIndex, history, assistant, extensions) {
         corpus?.let { c ->
-            val index = SettingsAssistantGate.searchable(searchIndex ?: c.index, assistant)
+            val index = SettingsAssistantGate.searchable(searchIndex ?: c.index, assistant).withExtensions(extensions)
             rankSettings(query, index, c.vocabulary, history)
         } ?: SearchResults.EMPTY
     }

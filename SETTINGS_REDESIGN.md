@@ -220,7 +220,13 @@ Floating button, the AI pages, Dictionaries, Snippets, Modes. Each card also
 applies the audit's merges on its screen, and re-reads phase 0's tags on the
 way past: they were set from the row names and the audit, not from use.
 
-**Phase 2:** Extensions.
+**Phase 2 (done 2026-10-26, uncompiled):** Extensions. `Extension` in
+`core/settings` with the tools and routes each of the nineteen bundles owns,
+the enabled set in `AppUiSettings.extensions` (null for an install from
+before, which keeps everything on; onboarding lands the depth's defaults),
+master switches moved with the bundle, `enabledTools` read with a switched-off
+bundle's tools taken out, the six choke points, the `extensions` screen and
+one page per bundle, docs and `ExtensionsTest`.
 
 **Phase 3:** the four page splits.
 

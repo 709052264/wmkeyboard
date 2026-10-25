@@ -134,6 +134,9 @@ import com.wasimaster.wmkeyboard.core.ui.toolAccentPaint
 import androidx.compose.ui.platform.LocalConfiguration
 import com.wasimaster.wmkeyboard.core.settings.DeviceForm
 import com.wasimaster.wmkeyboard.core.settings.settingsDepthResolved
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionOn
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import com.wasimaster.wmkeyboard.core.settings.IconSettings
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
 import androidx.compose.ui.platform.LocalContext
@@ -754,6 +757,10 @@ private fun SettingsNavHost(
     val depthControl = remember(depthResolved) {
         DepthControl(depthResolved) { depth -> foldScope.launch { repository.setSettingsDepth(depth) } }
     }
+    // Which feature bundles are on (Extensions), read by Home, Advanced, the
+    // Tools list and every picker; a route a switched-off bundle owns is
+    // turned towards the Extensions screen before navigate() sees it.
+    val extensionsOn = settings.watch { it.extensionsResolved() }
     // A section's icon and name fly from its home row to the heading of the
     // screen it opens, so the two read as one object being opened rather than
     // as a list and an unrelated page. Published for the whole graph here;
@@ -825,7 +832,9 @@ private fun SettingsNavHost(
     val openChat: () -> Unit = remember(navController) {
         { navController.navigate("ai_chat") { launchSingleTop = true } }
     }
-    val navigate: (String) -> Unit = remember(navController) { { route -> navController.navigate(route) } }
+    val navigate: (String) -> Unit = remember(navController) {
+        { route -> navController.navigate(routeWithExtensions(route, settings.value.extensionsResolved())) }
+    }
     val screens: @Composable (SharedTransitionScope?) -> Unit = { shared ->
         val reduceMotion = settings.watch { it.reduceMotion }
         CompositionLocalProvider(
@@ -834,6 +843,7 @@ private fun SettingsNavHost(
             LocalSettingsCrumbTrail provides crumbs,
             LocalAdvancedFolds provides folds,
             LocalSettingsDepth provides depthControl,
+            LocalExtensions provides extensionsOn,
             LocalTwoPane provides twoPane,
             // Published here rather than threaded through, so that the small
             // motions deep in a row can be still without every row being
@@ -842,7 +852,10 @@ private fun SettingsNavHost(
             LocalKeyboardPreview provides preview.takeIf { previewWanted },
             // The AI chat button on every screen, when asked for: the frame
             // draws it from this, so no screen has to know about it.
-            LocalAiChatFab provides openChat.takeIf { settings.watch { it.appUi.aiChatButtonEverywhere } },
+            // Gone with the AI bundle: the button is the chat's door.
+            LocalAiChatFab provides openChat.takeIf {
+                settings.watch { it.appUi.aiChatButtonEverywhere && it.extensionOn(Extension.AI) }
+            },
             // About › Documentation › Setting links (#646): how a row hands
             // out a link to itself, read by every row and heading.
             LocalSettingLinks provides rememberSettingLinks(settings.watch { it.appUi.settingLinks }),
@@ -872,7 +885,8 @@ private fun SettingsNavHost(
                             HomeScreen(
                                 settings = settings,
                                 selectedRoute = if (topRoute == HomeRoute) null else openedFrom,
-                                onNavigate = { route ->
+                                onNavigate = { wanted ->
+                                    val route = routeWithExtensions(wanted, settings.value.extensionsResolved())
                                     openedFrom = route
                                     // From the list pane the detail always replaces
                                     // what is in it rather than stacking on top:
@@ -1000,11 +1014,14 @@ private fun SettingsNavGraph(
                 // first composition, and a request made after would be a frame
                 // too late for the row to scroll itself into view.
                 if (pending.highlight != 0) SettingsHighlight.request(pending.highlight)
-                navController.navigate(pending.route)
+                // A link to a screen a switched-off bundle owns lands on the
+                // Extensions screen with that bundle flashed, not on the page.
+                navController.navigate(routeWithExtensions(pending.route, settings.value.extensionsResolved()))
             }
             pending.tool != null -> {
-                navController.navigate("tools")
-                navController.navigate("tool/${pending.tool.name}")
+                val target = routeWithExtensions("tool/${pending.tool.name}", settings.value.extensionsResolved())
+                if (target != ExtensionsRoute) navController.navigate("tools")
+                navController.navigate(target)
             }
         }
         onPendingHandled()
@@ -1070,7 +1087,9 @@ private fun SettingsNavGraph(
             } else {
                 HomeScreen(
                     settings = settings,
-                    onNavigate = { route -> navController.navigate(route) },
+                    onNavigate = { route ->
+                        navController.navigate(routeWithExtensions(route, settings.value.extensionsResolved()))
+                    },
                     anim = this,
                 )
             }
@@ -1099,7 +1118,7 @@ private fun SettingsNavGraph(
                         // The search screen stays on the back stack, so backing
                         // out of a setting that was not the one lands on the
                         // same results rather than on the home list (#92).
-                        navController.navigate(result.route)
+                        navController.navigate(routeWithExtensions(result.route, settings.value.extensionsResolved()))
                     },
                 )
             }
@@ -2457,6 +2476,47 @@ private fun SettingsNavGraph(
                 AdvancedSettings { route -> navController.navigate(route) }
             }
         }
+        composable(ExtensionsRoute) {
+            SettingsScreen(
+                stringResource(R.string.extensions_title),
+                { navController.popBackStack() },
+                route = ExtensionsRoute,
+            ) {
+                ExtensionsSettings(repository, settings) { extension ->
+                    navController.navigate(extensionRoute(extension))
+                }
+            }
+        }
+        composable(ExtensionRoutePattern) { backStackEntry ->
+            val extension = backStackEntry.arguments?.getString("extension")
+                ?.let { name -> Extension.entries.firstOrNull { it.name == name } }
+            if (extension != null) {
+                // The bundle's own glyph and hue, as a tool page wears its
+                // tool's: the heading is the one thing naming which bundle
+                // this page is, and the row on the Extensions screen flies it.
+                SettingsScreen(
+                    stringResource(extensionTitle(extension)),
+                    { navController.popBackStack() },
+                    route = extensionRoute(extension),
+                    icon = {
+                        Icon(
+                            extensionIcon(extension),
+                            contentDescription = null,
+                            modifier = Modifier.size(HeaderGlyphSize),
+                        )
+                    },
+                    accent = extensionAccent(extension),
+                    subtitle = stringResource(extensionDescription(extension)),
+                    subtitleMaxLines = 3,
+                ) {
+                    ExtensionDetailSettings(repository, settings, extension) { route ->
+                        navController.navigate(route)
+                    }
+                }
+            } else {
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            }
+        }
         composable(FloatingButtonRoute) {
             SettingsScreen(
                 stringResource(R.string.floating_button_title),
@@ -2862,8 +2922,11 @@ private fun HomeScreen(
             // looking for is not on this list, this is where the answer is.
             DepthRow()
             val depth = LocalSettingsDepth.current.depth
+            // A row a switched-off extension owns is not on the list at all;
+            // the Extensions row is where it comes back.
+            val entries = visibleRootEntries(LocalExtensions.current)
             for (group in RootGroup.entries) {
-                val rows = RootEntries.filter { it.group == group && depth.shows(it.level) }
+                val rows = entries.filter { it.group == group && depth.shows(it.level) }
                 if (rows.isEmpty()) continue
                 SettingsGroup(stringResource(group.title)) {
                     for (row in rows) {
@@ -2884,7 +2947,7 @@ private fun HomeScreen(
             }
             // The rows above the depth, in one closed group at the end: still
             // one press away, and named on the fold so they can be found.
-            val tucked = RootEntries.filter { !depth.shows(it.level) }
+            val tucked = entries.filter { !depth.shows(it.level) }
             if (tucked.isNotEmpty()) {
                 SettingsGroup(
                     stringResource(R.string.home_group_more_title),
@@ -3166,13 +3229,21 @@ private fun SetupStep(label: String, done: Boolean, pending: Boolean, onClick: (
 /** The destinations a beginner should never meet on day one, one press away. */
 @Composable
 internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
+    val extensions = LocalExtensions.current
     SettingsGroup {
+        // Whole features on or off (SETTINGS_REDESIGN.md §3). First: four of
+        // the rows below are bundles of its, and leave when switched off.
         item {
+            NavRow(R.string.extensions_title, stringResource(R.string.extensions_subtitle), route = ExtensionsRoute) {
+                onNavigate(ExtensionsRoute)
+            }
+        }
+        item(visible = Extension.MODES in extensions) {
             NavRow(R.string.home_modes_title, stringResource(R.string.home_modes_subtitle), route = "modes") {
                 onNavigate("modes")
             }
         }
-        item {
+        item(visible = Extension.ADDON_REPOSITORIES in extensions) {
             NavRow(R.string.home_addons_title, stringResource(R.string.home_addons_subtitle), route = "addons") {
                 onNavigate("addons")
             }
@@ -3195,14 +3266,14 @@ internal fun AdvancedSettings(onNavigate: (String) -> Unit) {
                 route = "notifications",
             ) { onNavigate("notifications") }
         }
-        item {
+        item(visible = Extension.SELECTION_ACTIONS in extensions) {
             NavRow(
                 R.string.selection_macros_title,
                 stringResource(R.string.selection_macros_subtitle),
                 route = SelectionMacroRoute,
             ) { onNavigate(SelectionMacroRoute) }
         }
-        item {
+        item(visible = Extension.FLOATING_BUTTON in extensions) {
             NavRow(
                 R.string.floating_button_title,
                 stringResource(R.string.floating_button_subtitle),
@@ -3322,7 +3393,10 @@ private fun AnimatedVisibilityScope.SettingsScreen(
                 TuckedFooter(tuck)
             }
         }
-        if (route == null) body() else LockedRoute(route, onCancel = onBack, content = body)
+        // Behind the lock, the extension check: a screen a switched-off
+        // bundle owns says so and points at the Extensions screen, whichever
+        // of the graph's navigate() calls reached it.
+        if (route == null) body() else LockedRoute(route, onCancel = onBack) { ExtensionGate(route, body) }
     }
 }
 

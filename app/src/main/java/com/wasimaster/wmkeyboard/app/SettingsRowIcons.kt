@@ -327,6 +327,9 @@ import com.wasimaster.wmkeyboard.core.icons.SymbolIcons
 import com.wasimaster.wmkeyboard.settings.R as SettingsR
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.wasimaster.wmkeyboard.R
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Extension as ExtensionIcon
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ToggleOn
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.common.R as CommonR
 
 /**
@@ -759,6 +762,11 @@ internal object SettingsRowIcons {
         put(R.string.layout_summon_button_permission_title) { Icons.Outlined.Layers }
         // Advanced › Floating button (#755).
         put(R.string.floating_button_title) { Icons.Outlined.Adjust }
+
+        // ---- Extensions ----
+        put(R.string.extensions_title) { Icons.Outlined.ExtensionIcon }
+        put(R.string.extension_enabled_title) { Icons.Outlined.ToggleOn }
+        for (extension in Extension.entries) put(extensionTitle(extension)) { extensionIcon(extension) }
         put(R.string.floating_button_enable_title) { Icons.Outlined.Adjust }
         put(R.string.floating_button_screen_title) { Icons.Outlined.Preview }
         put(R.string.floating_button_tap_title) { Icons.Outlined.TouchApp }

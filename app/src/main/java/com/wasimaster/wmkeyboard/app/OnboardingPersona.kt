@@ -25,7 +25,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
+import com.wasimaster.wmkeyboard.core.settings.settingsDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
 import com.wasimaster.wmkeyboard.core.settings.PersonaPrivacy
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -117,6 +119,11 @@ internal fun PersonaPage(
                 repository.setPersonaDepth(depth)
                 if (!replay) {
                     applyTools(answered.copy(personaDepth = depth))
+                    // The depth also decides which feature bundles start on
+                    // (Extensions): a handful for "keep it simple", all of
+                    // them for "show me everything". A default, not a
+                    // choice, so no master switch moves with it.
+                    repository.setExtensions(Extension.defaultsFor(depth.settingsDepth()))
                     // The answer just landed a tool set; the tools page must
                     // not seed its own over it.
                     onToolsSeeded()
