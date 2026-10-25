@@ -95,6 +95,7 @@ object SettingsBackup {
     const val SYNC_SECTIONS = "sync_sections"
     const val SYNC_INCLUDE_SECRETS = "sync_include_secrets"
     const val SYNC_WITH_PAIRED_DEVICES = "sync_with_paired_devices"
+    const val SYNC_WIFI_ONLY = "sync_wifi_only"
     const val SYNC_KEEP_LOCAL = "sync_keep_local"
     const val SYNC_LAST_RUN_AT = "sync_last_run_at"
     const val SYNC_LAST_ERROR = "sync_last_error"
@@ -213,6 +214,7 @@ object SettingsBackup {
         SYNC_SECTIONS,
         SYNC_INCLUDE_SECRETS,
         SYNC_WITH_PAIRED_DEVICES,
+        SYNC_WIFI_ONLY,
         SYNC_KEEP_LOCAL,
         SYNC_LAST_RUN_AT,
         SYNC_LAST_ERROR,

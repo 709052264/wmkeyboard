@@ -41,12 +41,12 @@ object SyncScheduler {
     /** Latest a debounced push may slip to when the phone is busy. */
     private const val SOON_DEADLINE_MS = 15L * 60L * 1000L
 
-    private fun networkType(settings: AutoBackupSettings): Int =
-        if (settings.sync.targets(settings.locations).any { it.type.needsNetwork }) {
-            JobInfo.NETWORK_TYPE_ANY
-        } else {
-            JobInfo.NETWORK_TYPE_NONE
-        }
+    private fun networkType(settings: AutoBackupSettings): Int = when {
+        settings.sync.targets(settings.locations).none { it.type.needsNetwork } -> JobInfo.NETWORK_TYPE_NONE
+        // Wi-Fi only (#928): the job waits for an unmetered network.
+        settings.sync.wifiOnly -> JobInfo.NETWORK_TYPE_UNMETERED
+        else -> JobInfo.NETWORK_TYPE_ANY
+    }
 
     private fun component(context: Context) = ComponentName(context.packageName, SERVICE_CLASS)
 

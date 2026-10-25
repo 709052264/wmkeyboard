@@ -4386,6 +4386,12 @@ data class SyncSettings(
      */
     val withPairedDevices: Boolean = true,
     /**
+     * Sync only on an unmetered network, Wi-Fi as a rule (#928): a scheduled
+     * or automatic pass on mobile data waits. Sync now still runs, since the
+     * user asked for it there and then.
+     */
+    val wifiOnly: Boolean = false,
+    /**
      * Groups of settings this device keeps to itself, by
      * [com.wasimaster.wmkeyboard.core.settings.sync.SyncKeys.LocalGroup.id].
      * None by default: everything in Settings syncs until the user says a
@@ -10534,6 +10540,7 @@ class SettingsRepository(private val context: Context) {
         private val SYNC_SECTIONS = stringSetPreferencesKey(SettingsBackup.SYNC_SECTIONS)
         private val SYNC_INCLUDE_SECRETS = booleanPreferencesKey(SettingsBackup.SYNC_INCLUDE_SECRETS)
         private val SYNC_WITH_PAIRED_DEVICES = booleanPreferencesKey(SettingsBackup.SYNC_WITH_PAIRED_DEVICES)
+        private val SYNC_WIFI_ONLY = booleanPreferencesKey(SettingsBackup.SYNC_WIFI_ONLY)
         private val SYNC_KEEP_LOCAL = stringSetPreferencesKey(SettingsBackup.SYNC_KEEP_LOCAL)
         private val SYNC_LAST_RUN_AT = longPreferencesKey(SettingsBackup.SYNC_LAST_RUN_AT)
         private val SYNC_LAST_ERROR = stringPreferencesKey(SettingsBackup.SYNC_LAST_ERROR)
@@ -12399,6 +12406,7 @@ class SettingsRepository(private val context: Context) {
                 sections = p[SYNC_SECTIONS] ?: defaults.autoBackup.sync.sections,
                 includeSecrets = p[SYNC_INCLUDE_SECRETS] ?: defaults.autoBackup.sync.includeSecrets,
                 withPairedDevices = p[SYNC_WITH_PAIRED_DEVICES] ?: defaults.autoBackup.sync.withPairedDevices,
+                wifiOnly = p[SYNC_WIFI_ONLY] ?: defaults.autoBackup.sync.wifiOnly,
                 keepLocal = p[SYNC_KEEP_LOCAL] ?: defaults.autoBackup.sync.keepLocal,
                 lastRunAtMs = p[SYNC_LAST_RUN_AT] ?: defaults.autoBackup.sync.lastRunAtMs,
                 lastError = p[SYNC_LAST_ERROR] ?: defaults.autoBackup.sync.lastError,
@@ -20059,6 +20067,9 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSyncIncludeSecrets(value: Boolean) = editPrefs { it[SYNC_INCLUDE_SECRETS] = value }
 
     suspend fun setSyncWithPairedDevices(value: Boolean) = editPrefs { it[SYNC_WITH_PAIRED_DEVICES] = value }
+
+    /** @see SyncSettings.wifiOnly */
+    suspend fun setSyncWifiOnly(value: Boolean) = editPrefs { it[SYNC_WIFI_ONLY] = value }
 
     /**
      * A computer with WM Keyboard was paired over KDE Connect, or came within

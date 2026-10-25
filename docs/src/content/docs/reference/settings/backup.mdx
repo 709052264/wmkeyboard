@@ -95,6 +95,7 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 | Sync API keys and passwords | Toggle | Off | Sync on |
 | **Sync through** | A tick box per location | the first location, when you turn sync on | always |
 | **Sync through**: Sync with paired devices | Toggle | On | always |
+| **Sync through**: Sync only on Wi-Fi | Toggle | Off | always |
 | **What syncs** | The section switches, with their own settings, all but AI memory, which never syncs | Settings, Themes, Snippets, Notes | always |
 | **Keep on this device**: Toolbar and toolbox | Toggle | Off | always (needs Settings ticked in What syncs) |
 | **Keep on this device**: Languages and layouts | Toggle | Off | always (needs Settings ticked in What syncs) |
@@ -103,6 +104,8 @@ Sync keeps your devices the same. Each device keeps one sync file at the locatio
 **Soon after a change** pushes about a minute after you stop changing things, and pulls every hour and each time the app starts. **On a schedule** runs at the interval you set. **Only when I ask** runs only when you tap **Sync now**. Turning sync on runs the first sync straight away, and on that first sync the settings of your other devices win. Anything only this device has goes to the others.
 
 Your devices must share at least one ticked location. Tick more than one and the sync file goes to each, so sync keeps working while one service is down.
+
+**Sync only on Wi-Fi** holds every scheduled and automatic sync back while the phone is on mobile data (any network Android counts as metered), and runs it once it's on Wi-Fi again. **Sync now** still runs at once, wherever you are. A sync whose locations are all on this phone needs no network and is never held back.
 
 With **Sync with paired devices** on, a computer running WM Keyboard that you pair over [KDE Connect](/tools/kde-connect/#pairing-with-wm-keyboard-on-a-computer) is added as a **Nearby device** location, ticked here, and sync is turned on. Backups never go to it. The files cross directly over the local network, while both devices are on it and the keyboard is open.
 

@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.core.settings.sync
 
+import com.wasimaster.wmkeyboard.core.settings.needsNetwork
 import android.content.Context
 import android.util.Base64
 import com.wasimaster.wmkeyboard.core.directboot.DirectBoot
@@ -51,6 +52,12 @@ object SyncRunner {
     const val ERROR_PASSPHRASE = "SYNC_PASSPHRASE"
 
 
+    /** Whether the active network costs data; true with none, which is no Wi-Fi either. */
+    private fun onMeteredNetwork(context: Context): Boolean {
+        val cm = context.getSystemService(android.net.ConnectivityManager::class.java) ?: return true
+        return cm.isActiveNetworkMetered || cm.activeNetwork == null
+    }
+
     sealed interface Outcome {
         /** [applied] entries changed here; [devices] other devices were read. */
         data class Done(val applied: Int, val devices: Int, val failed: Map<String, String>) : Outcome
@@ -92,6 +99,12 @@ object SyncRunner {
         val sections = sync.sectionSet
         if (targets.isEmpty() || sections.isEmpty()) return Outcome.Skipped
         if (!DirectBoot.isUserUnlocked(context)) return Outcome.Locked
+        // Wi-Fi only (#928). The job already waits for an unmetered network,
+        // but a "soon" pass runs at its deadline whatever the network, and
+        // a pass can be asked for from elsewhere: on mobile data it waits.
+        if (!force && sync.wifiOnly && targets.any { it.type.needsNetwork } && onMeteredNetwork(context)) {
+            return Outcome.Skipped
+        }
 
         val encrypt = auto.encrypt && auto.passphrase.isNotEmpty()
         val filter = SyncFilter(sync.includeSecrets, sync.keepLocalGroups)

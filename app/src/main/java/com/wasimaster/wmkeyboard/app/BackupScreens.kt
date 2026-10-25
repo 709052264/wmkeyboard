@@ -1452,6 +1452,15 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.autoBackup.sync.withPairedDevices,
             ) { on -> scope.launch { repository.setSyncWithPairedDevices(on) } }
         }
+        // #928: mobile data is the user's to spend.
+        item {
+            ToggleSetting(
+                R.string.backup_sync_wifi_only_title,
+                stringResource(R.string.backup_sync_wifi_only_subtitle),
+                settings.watch { it.autoBackup.sync.wifiOnly },
+                default = SettingsDefaults.autoBackup.sync.wifiOnly,
+            ) { on -> scope.launch { repository.setSyncWifiOnly(on) } }
+        }
     }
 
     SettingsGroup(
