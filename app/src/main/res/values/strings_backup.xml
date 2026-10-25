@@ -31,6 +31,21 @@
     <!-- The switch in the edit dialog that pins a word's capitals. -->
     <string name="backup_word_keep_case_title">Keep these capitals</string>
     <string name="backup_word_keep_case_info">Typing the word with other capitals does not change how it is spelled</string>
+    <!-- Personal dictionary by language (#930). A word's row starts with the
+         language it is filed under. %1$s is the language, %2$s the row's
+         ordinary subtitle. -->
+    <string name="backup_dictionary_language_subtitle"><xliff:g id="language" example="Bangla">%1$s</xliff:g> · <xliff:g id="standing" example="Seen 3 times">%2$s</xliff:g></string>
+    <!-- A word filed under no one language, on its row, its chip and in the
+         language choice. -->
+    <string name="backup_dictionary_every_language">All languages</string>
+    <!-- The filter chip that shows every word, whatever its language. -->
+    <string name="backup_dictionary_filter_everything">All words</string>
+    <!-- A filter chip: %1$s is a language (or "All languages"), %2$d how
+         many words are filed under it. -->
+    <string name="backup_dictionary_language_chip"><xliff:g id="language" example="Bangla">%1$s</xliff:g> · <xliff:g id="count" example="34">%2$d</xliff:g></string>
+    <!-- Heading over the language choice in the add and edit dialogs. -->
+    <string name="backup_word_language_label">Language</string>
+    <string name="backup_word_language_info">A word you file under one language is offered less while you type another. Typing it elsewhere does not move it.</string>
     <!-- Heading over the words moved up or down from the keyboard's word card. -->
     <string name="backup_rank_adjustments_title">Rank adjustments</string>
     <!-- Row subtitles under that heading. %1$d is the number of steps. -->

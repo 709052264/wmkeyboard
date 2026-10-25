@@ -2407,8 +2407,13 @@ private fun gboardDictionaryProposal(
                 withContext(Dispatchers.IO) {
                     val lexicon = UserLexicon(File(context.filesDir, "learning/user_lexicon.json"))
                     // Added by hand there, so added by hand here, and a capital
-                    // the user wrote is kept, as Android's own import does.
-                    for (word in words) lexicon.addWord(word, caseEvidence = word != word.lowercase())
+                    // the user wrote is kept, as Android's own import does. A
+                    // word Gboard filed under a locale we carry is filed under
+                    // that language (#930); the rest belong to every language.
+                    for ((word, locale) in contents.localizedWords) {
+                        lexicon.addWord(word, caseEvidence = word != word.lowercase())
+                        LanguageRegistry.byLocale(locale)?.let { lexicon.setLanguage(word, it.id) }
+                    }
                     lexicon.save()
                 }
                 repository.bumpLexiconVersion()

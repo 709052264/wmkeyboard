@@ -71,6 +71,7 @@ import com.wasimaster.wmkeyboard.core.settings.BlacklistScope
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.DictionarySort
 import com.wasimaster.wmkeyboard.core.settings.DictionarySortKey
+import com.wasimaster.wmkeyboard.core.settings.dictionaryLanguageGroups
 import com.wasimaster.wmkeyboard.core.settings.LEARNED_CORRECTIONS_FILE
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.sortDictionaryWords
@@ -108,6 +109,7 @@ private fun ShowMoreWordsRow(remaining: Int, onClick: () -> Unit) {
  * change bumps the DataStore lexicon version so the IME (which holds its
  * own in-memory copy) reloads from disk instead of clobbering the edit.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSettings) {
     val scope = rememberCoroutineScope()
@@ -124,6 +126,9 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     var added by remember { mutableStateOf<Set<String>>(emptySet()) }
     // When each word joined the dictionary (#194), for the date-added order.
     var born by remember { mutableStateOf<Map<String, Long>>(emptyMap()) }
+    // The language each word is filed under (#930); a word missing from it
+    // belongs to every language.
+    var langs by remember { mutableStateOf<Map<String, String>>(emptyMap()) }
     // The rank adjustments made from the keyboard's word card (#99): its own
     // file, read the same way, listed under the words so they can be undone.
     val ranksFile = remember { java.io.File(context.filesDir, "learning/word_ranks.json") }
@@ -150,6 +155,8 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         all.mapNotNullTo(HashSet()) { (word, _) -> word.takeIf { lex.isAddedByHand(it) } }
     fun bornIn(lex: UserLexicon, all: List<Pair<String, Int>>): Map<String, Long> =
         all.mapNotNull { (word, _) -> lex.addedGeneration(word)?.let { word to it } }.toMap()
+    fun langsIn(lex: UserLexicon, all: List<Pair<String, Int>>): Map<String, String> =
+        all.mapNotNull { (word, _) -> lex.languageOf(word)?.let { word to it } }.toMap()
 
     LaunchedEffect(loads) {
         val lex = withContext(Dispatchers.IO) { UserLexicon(file) }
@@ -158,6 +165,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
         pinned = pinnedIn(lex, all)
         added = addedIn(lex, all)
         born = bornIn(lex, all)
+        langs = langsIn(lex, all)
         lexicon = lex
         val adjustments = withContext(Dispatchers.IO) { WordRanks(ranksFile) }
         rankEntries = adjustments.all()
@@ -199,6 +207,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
             pinned = pinnedIn(lex, all)
             added = addedIn(lex, all)
             born = bornIn(lex, all)
+            langs = langsIn(lex, all)
             repository.bumpLexiconVersion()
         }
     }
@@ -331,10 +340,50 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
             Text(stringResource(sortDirectionLabel(sort)))
         }
     }
+    // By language (#930): a chip per language the words are filed under, and
+    // one for the words that belong to every language. Shown once there is
+    // more than one group to choose between.
+    val enabledLanguages = settings.watch { it.enabledLanguages }
+    val groups = remember(words, langs, enabledLanguages) {
+        dictionaryLanguageGroups(words.map { it.first }, langs, enabledLanguages.map { it.id })
+    }
+    var filter by remember { mutableStateOf<LanguageFilter?>(null) }
+    // A group that emptied (its last word moved or went) lets go of the filter.
+    LaunchedEffect(groups) {
+        if (filter != null && groups.none { it.languageId == filter?.languageId }) filter = null
+    }
+    if (groups.size > 1) {
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+        ) {
+            FilterChip(
+                selected = filter == null,
+                onClick = { filter = null },
+                label = { Text(stringResource(R.string.backup_dictionary_filter_everything)) },
+            )
+            for (group in groups) {
+                FilterChip(
+                    selected = filter == LanguageFilter(group.languageId),
+                    onClick = { filter = LanguageFilter(group.languageId) },
+                    label = {
+                        Text(
+                            stringResource(
+                                R.string.backup_dictionary_language_chip,
+                                dictionaryLanguageName(group.languageId),
+                                group.count,
+                            ),
+                        )
+                    },
+                )
+            }
+        }
+    }
     val sorted = remember(words, born, sort) { sortDictionaryWords(words, sort, born) }
-    val shown = remember(sorted, query) {
+    val shown = remember(sorted, query, filter, langs) {
         val needle = query.trim().lowercase()
-        if (needle.isEmpty()) sorted else sorted.filter { needle in it.first.lowercase() }
+        val inLanguage = filter?.let { f -> sorted.filter { langs[it.first] == f.languageId } } ?: sorted
+        if (needle.isEmpty()) inLanguage else inLanguage.filter { needle in it.first.lowercase() }
     }
     if (words.isEmpty()) {
         CaptionText(stringResource(R.string.backup_dictionary_empty))
@@ -346,7 +395,7 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     // ran the app out of memory on the way in (#75). Keyed on the query and
     // not on the list: a new search starts over at page one, but deleting or
     // respelling a word must not fold everything the user had expanded (#85).
-    var visible by remember(query, sort) { mutableIntStateOf(WORD_LIST_PAGE) }
+    var visible by remember(query, sort, filter) { mutableIntStateOf(WORD_LIST_PAGE) }
     SettingsGroup {
         for ((word, count) in shown.take(visible)) {
             // Keyed on the spelling, so a word deleted or added opens and
@@ -360,13 +409,20 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                 } else {
                     seen
                 }
+                val kept = if (word in pinned) {
+                    stringResource(R.string.backup_dictionary_pinned_subtitle, standing)
+                } else {
+                    standing
+                }
                 WmRow(
                     title = word,
-                    subtitle = if (word in pinned) {
-                        stringResource(R.string.backup_dictionary_pinned_subtitle, standing)
-                    } else {
-                        standing
-                    },
+                    // The language leads (#930), so a list mixing them reads
+                    // which is which at a glance.
+                    subtitle = stringResource(
+                        R.string.backup_dictionary_language_subtitle,
+                        dictionaryLanguageName(langs[word]),
+                        kept,
+                    ),
                     swipeActions = listOf(
                         deleteSwipeAction(stringResource(R.string.backup_delete_word_desc, word)) {
                             persist { it.forget(word) }
@@ -390,12 +446,15 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     }
 
     editing?.let { (word, count) ->
+        val language = langs[word]
         EditWordDialog(
             word = word,
             weight = count,
             pinned = word in pinned,
+            language = language,
+            languages = languageChoices(enabledLanguages.map { it.id }, language),
             onDismiss = { editing = null },
-            onConfirm = { newWord, newWeight, keepCase ->
+            onConfirm = { newWord, newWeight, keepCase, newLanguage ->
                 persist { lex ->
                     // Respell first, so the weight lands on the word that is
                     // left. A respelling that merges into an existing word
@@ -406,6 +465,9 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                     // Last: a respelling pins on its own, and the switch is
                     // the user's final word on that (#100).
                     lex.pinCase(target, keepCase)
+                    // Only a language the user changed is pinned (#930); an
+                    // untouched one keeps following where the word is typed.
+                    if (newLanguage != language) lex.setLanguage(target, newLanguage)
                 }
                 editing = null
             },
@@ -445,6 +507,8 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
     if (showAdd) {
         var input by remember { mutableStateOf("") }
         var shortcut by remember { mutableStateOf("") }
+        // Every language unless the user picks one (#930), as before.
+        var language by remember { mutableStateOf<String?>(null) }
         AlertDialog(
             onDismissRequest = { showAdd = false },
             title = { Text(stringResource(R.string.backup_add_word_title)) },
@@ -465,6 +529,11 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                         supportingText = { Text(stringResource(R.string.backup_word_shortcut_hint)) },
                         singleLine = true,
                     )
+                    WordLanguagePicker(
+                        selected = language,
+                        languages = languageChoices(enabledLanguages.map { it.id }, null),
+                        onSelect = { language = it },
+                    )
                 }
             },
             confirmButton = {
@@ -472,7 +541,11 @@ internal fun DictionarySettings(repository: SettingsRepository, settings: LiveSe
                     enabled = input.isNotBlank(),
                     onClick = {
                         val word = input.trim()
-                        persist { it.addWord(word) }
+                        val chosen = language
+                        persist { lex ->
+                            lex.addWord(word)
+                            if (chosen != null) lex.setLanguage(word, chosen)
+                        }
                         if (shortcut.isNotBlank()) {
                             val typed = shortcut
                             scope.launch(Dispatchers.IO) {
@@ -656,6 +729,61 @@ private fun AndroidWordPickerDialog(
         },
     )
 }
+/** The personal dictionary's language filter (#930): [languageId] null is the every-language group. */
+private data class LanguageFilter(val languageId: String?)
+
+/** A language id as the personal dictionary names it; null is every language (#930). */
+@Composable
+private fun dictionaryLanguageName(languageId: String?): String {
+    if (languageId == null) return stringResource(R.string.backup_dictionary_every_language)
+    val language = LanguageRegistry.byId(languageId)
+    // A language this build no longer carries still has its id to show.
+    return if (language === LanguageRegistry.GENERIC) languageId else language.displayName
+}
+
+/**
+ * The languages a word can be filed under (#930): the enabled ones, and the
+ * word's own [current] language when it is not among them, so opening the
+ * dialog never loses it.
+ */
+private fun languageChoices(enabled: List<String>, current: String?): List<String> =
+    if (current == null || current in enabled) enabled else enabled + current
+
+/**
+ * The language chips of the add and edit dialogs (#930): every language
+ * first, then [languages].
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun WordLanguagePicker(selected: String?, languages: List<String>, onSelect: (String?) -> Unit) {
+    Column {
+        Text(
+            stringResource(R.string.backup_word_language_label),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilterChip(
+                selected = selected == null,
+                onClick = { onSelect(null) },
+                label = { Text(dictionaryLanguageName(null)) },
+            )
+            for (id in languages) {
+                FilterChip(
+                    selected = selected == id,
+                    onClick = { onSelect(id) },
+                    label = { Text(dictionaryLanguageName(id)) },
+                )
+            }
+        }
+        Text(
+            stringResource(R.string.backup_word_language_info),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
 /** The words on the personal dictionary's direction button (#194). */
 private fun sortDirectionLabel(sort: DictionarySort): Int = when (sort) {
     DictionarySort.MOST_USED_FIRST -> R.string.backup_dictionary_sort_most_used
@@ -690,10 +818,15 @@ private fun EditWordDialog(
     weight: Int,
     /** Whether the word's capitals are pinned against the case vote (#100). */
     pinned: Boolean,
+    /** The language the word is filed under, null for every language (#930). */
+    language: String?,
+    /** The languages the dialog offers besides every language. */
+    languages: List<String>,
     onDismiss: () -> Unit,
-    onConfirm: (word: String, weight: Int, keepCase: Boolean) -> Unit,
+    onConfirm: (word: String, weight: Int, keepCase: Boolean, language: String?) -> Unit,
 ) {
     var spelling by remember(word) { mutableStateOf(word) }
+    var chosenLanguage by remember(word, language) { mutableStateOf(language) }
     var weightText by remember(weight) { mutableStateOf(weight.toString()) }
     var keepCase by remember(word, pinned) { mutableStateOf(pinned) }
     val parsed = weightText.trim().toIntOrNull()
@@ -779,12 +912,17 @@ private fun EditWordDialog(
                     }
                     Switch(checked = keepCase, onCheckedChange = { keepCase = it })
                 }
+                WordLanguagePicker(
+                    selected = chosenLanguage,
+                    languages = languages,
+                    onSelect = { chosenLanguage = it },
+                )
             }
         },
         confirmButton = {
             TextButton(
                 enabled = spellingValid && weightValid,
-                onClick = { onConfirm(spelling.trim(), parsed ?: weight, keepCase) },
+                onClick = { onConfirm(spelling.trim(), parsed ?: weight, keepCase, chosenLanguage) },
             ) { Text(stringResource(CommonR.string.common_save)) }
         },
         dismissButton = {
