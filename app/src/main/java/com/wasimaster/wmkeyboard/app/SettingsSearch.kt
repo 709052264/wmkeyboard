@@ -2325,6 +2325,8 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         selectionMacro(R.string.selection_macros_every_title, R.string.selection_macros_every_subtitle),
         selectionMacro(R.string.selection_macros_caret_title, R.string.selection_macros_caret_subtitle),
         selectionMacro(R.string.selection_macros_detect_title, R.string.selection_macros_detect_subtitle),
+        selectionMacro(R.string.text_actions_settings_actions_title, R.string.text_actions_settings_actions_subtitle),
+        selectionMacro(R.string.text_actions_settings_translate_title, R.string.text_actions_settings_translate_subtitle),
         // The Permissions screen's rows. The version-gated Storage row is left
         // out: on most devices a result would land on a screen without it.
         permission(R.string.privacy_permissions_mic_title, R.string.privacy_permissions_mic_subtitle),

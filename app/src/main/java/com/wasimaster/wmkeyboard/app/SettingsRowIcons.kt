@@ -1407,6 +1407,8 @@ internal object SettingsRowIcons {
         put(R.string.selection_macros_every_title) { Icons.Outlined.AllInclusive }
         put(R.string.selection_macros_caret_title) { Icons.Outlined.PushPin }
         put(R.string.selection_macros_detect_title) { Icons.Outlined.Sensors }
+        put(R.string.text_actions_settings_actions_title) { Icons.Outlined.Keyboard }
+        put(R.string.text_actions_settings_translate_title) { Icons.Outlined.Translate }
         put(R.string.selection_macros_actions_title) { Icons.Outlined.Checklist }
         put(R.string.selection_macros_ai_title) { Icons.Outlined.AutoAwesome }
         put(R.string.selection_macros_zones_title) { Icons.Outlined.Public }

@@ -5275,7 +5275,11 @@ enum class SelectionMacroPlacement { OWN_ROW, STRIP }
  * and somebody who does turns on one switch.
  */
 data class SelectionMacroSettings(
-    /** The whole feature. Nothing below this is read while it is off. */
+    /**
+     * The keyboard's bar. The keyboard reads nothing below this while it is
+     * off. The selection menu's sheet (#916) reads [macros] and [order]
+     * whichever way it is set, and the two entries at the end are its own.
+     */
     val enabled: Boolean = false,
     /** A row of their own, or the suggestion strip. */
     val placement: SelectionMacroPlacement = SelectionMacroPlacement.OWN_ROW,
@@ -5346,6 +5350,20 @@ data class SelectionMacroSettings(
      * no icon of its own (the case options) keeps its word whatever this says.
      */
     val iconOnly: Set<SelectionMacro> = emptySet(),
+    /**
+     * "WM Keyboard" in other apps' text selection menus (#916): a sheet of
+     * these actions, plus translate and the AI actions, for text selected
+     * anywhere, typed with this keyboard or not. Separate from [enabled],
+     * which is the keyboard's own bar: the menu entry is a different place
+     * to meet the same actions, and either can be wanted without the other.
+     */
+    val systemMenu: Boolean = true,
+    /**
+     * A second entry in the same menu that goes straight to the translation
+     * (#916). Off as shipped: every entry is a row in every app's menu, and
+     * the sheet above already has Translate one tap in.
+     */
+    val systemMenuTranslate: Boolean = false,
 )
 
 /** The zones the ladder shows: the picked ones, or UTC and the device's own. */
@@ -11109,6 +11127,9 @@ class SettingsRepository(private val context: Context) {
             booleanPreferencesKey("selection_macros_every_selection")
         private val SELECTION_MACROS_WITHOUT_SELECTION =
             booleanPreferencesKey("selection_macros_without_selection")
+        private val SELECTION_MACROS_SYSTEM_MENU = booleanPreferencesKey("selection_macros_system_menu")
+        private val SELECTION_MACROS_SYSTEM_MENU_TRANSLATE =
+            booleanPreferencesKey("selection_macros_system_menu_translate")
 
         /** [SelectionMacroSettings.iconOnly], by [SelectionMacro] name. */
         private val SELECTION_MACROS_ICON_ONLY = stringSetPreferencesKey("selection_macros_icon_only")
@@ -13407,6 +13428,9 @@ class SettingsRepository(private val context: Context) {
             iconOnly = p[SELECTION_MACROS_ICON_ONLY]
                 ?.mapNotNullTo(mutableSetOf()) { name -> runCatching { SelectionMacro.valueOf(name) }.getOrNull() }
                 ?: defaults.selectionMacros.iconOnly,
+            systemMenu = p[SELECTION_MACROS_SYSTEM_MENU] ?: defaults.selectionMacros.systemMenu,
+            systemMenuTranslate = p[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE]
+                ?: defaults.selectionMacros.systemMenuTranslate,
         )
 
     private fun readPasswordGenerator(p: Preferences, defaults: KeyboardSettings) =
@@ -20860,6 +20884,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSelectionMacrosWithoutSelection(value: Boolean) =
         editPrefs { it[SELECTION_MACROS_WITHOUT_SELECTION] = value }
+
+    /** "WM Keyboard" in other apps' selection menus (#916). */
+    suspend fun setSelectionMenuEntry(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_SYSTEM_MENU] = value }
+
+    /** "WM Translate" in other apps' selection menus (#916). */
+    suspend fun setSelectionMenuTranslate(value: Boolean) =
+        editPrefs { it[SELECTION_MACROS_SYSTEM_MENU_TRANSLATE] = value }
 
     /** Whether [macro] draws as its icon alone on the bar (#679). */
     suspend fun setSelectionMacroIconOnly(macro: SelectionMacro, on: Boolean) =

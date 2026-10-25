@@ -1081,6 +1081,47 @@
             </intent-filter>
         </activity-alias>
 
+        <!--
+             The keyboard's actions on text selected in any app (#916): a sheet
+             of translate, the AI actions and the selection bar's rewrites,
+             which hands the result back to an editable field. Reached only
+             through the two aliases below, each of which the Selection actions
+             settings can switch off. It runs in the calling app's task, not a
+             task of its own: the selection menu starts it for a result, and a
+             new task would cancel that result before the sheet could send it.
+        -->
+        <activity
+            android:name="com.wasimaster.wmkeyboard.app.TextActionsActivity"
+            android:enableOnBackInvokedCallback="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:label="@string/text_actions_menu_label"
+            android:theme="@style/Theme.WMKeyboard.Sheet" />
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.TextActionsSelectionMenu"
+            android:exported="true"
+            android:label="@string/text_actions_menu_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.TextActionsActivity">
+            <intent-filter android:label="@string/text_actions_menu_label">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+        <!-- The same sheet, opened on the translation. Off as shipped. -->
+        <activity-alias
+            android:name="com.wasimaster.wmkeyboard.app.TranslateSelectionMenu"
+            android:enabled="false"
+            android:exported="true"
+            android:label="@string/text_actions_translate_menu_label"
+            android:targetActivity="com.wasimaster.wmkeyboard.app.TextActionsActivity">
+            <intent-filter android:label="@string/text_actions_translate_menu_label">
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity-alias>
+
         <!-- Same trampoline pattern for the screenshot setting's
              android.permission.READ_MEDIA_IMAGES (or READ_EXTERNAL_STORAGE). -->
         <activity

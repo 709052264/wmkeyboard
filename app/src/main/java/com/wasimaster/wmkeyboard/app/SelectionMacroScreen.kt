@@ -6,6 +6,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Dashboard
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ViewStream
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.selection.SelectionMacros
@@ -13,6 +14,7 @@ import com.wasimaster.wmkeyboard.core.settings.effectiveTimeZones
 import com.wasimaster.wmkeyboard.core.settings.SelectionMacroPlacement
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import kotlinx.coroutines.launch
 
 /** The route this screen is reached at, and its deep link. */
@@ -25,7 +27,9 @@ internal const val SelectionMacroRoute = "selection_macros"
  * Three questions, in the order somebody meets them: whether the bar exists at
  * all, where it draws, and which actions it may put on it. The detection switch
  * sits with the actions rather than at the top because it is what decides
- * whether the entity half of that list can ever appear.
+ * whether the entity half of that list can ever appear. Last, the entries in
+ * other apps' selection menus (#916), which offer those same actions outside
+ * the keyboard.
  */
 @Composable
 internal fun SelectionMacroSettingsScreen(
@@ -149,6 +153,55 @@ internal fun SelectionMacroSettingsScreen(
                 }.toString(),
                 route = SelectionMacroZonesRoute,
             ) { onNavigate(SelectionMacroZonesRoute) }
+        }
+    }
+
+    // The keyboard's actions in other apps' selection menus (#916). Not
+    // behind the bar's switch: the menu is a different way to the same
+    // actions, and works with the bar off. Ask AI and Look up are their own
+    // tools' switches, repeated here so every entry is in one place.
+    val context = LocalContext.current
+    val translateOn = settings.watch { ToolbarTool.TRANSLATE in it.enabledTools }
+    val aiOn = settings.watch { ToolbarTool.AI in it.enabledTools }
+    SettingsGroup(
+        stringResource(R.string.text_actions_settings_group),
+        info = stringResource(R.string.text_actions_settings_info),
+    ) {
+        item {
+            ToggleSetting(
+                R.string.text_actions_settings_actions_title,
+                stringResource(R.string.text_actions_settings_actions_subtitle),
+                settings.watch { it.selectionMacros.systemMenu },
+                info = stringResource(R.string.text_actions_settings_actions_info),
+                default = SettingsDefaults.selectionMacros.systemMenu,
+            ) { scope.launch { repository.setSelectionMenuEntry(it) } }
+        }
+        item(visible = translateOn) {
+            ToggleSetting(
+                R.string.text_actions_settings_translate_title,
+                stringResource(R.string.text_actions_settings_translate_subtitle),
+                settings.watch { it.selectionMacros.systemMenuTranslate },
+                default = SettingsDefaults.selectionMacros.systemMenuTranslate,
+            ) { scope.launch { repository.setSelectionMenuTranslate(it) } }
+        }
+        item(visible = aiOn) {
+            ToggleSetting(
+                R.string.toolai_ai_selection_menu_title,
+                stringResource(R.string.toolai_ai_selection_menu_subtitle),
+                settings.watch { it.ai.selectionMenu },
+                default = SettingsDefaults.ai.selectionMenu,
+            ) { scope.launch { repository.setAiSelectionMenu(it) } }
+        }
+        item {
+            ToggleSetting(
+                R.string.lookup_settings_selection_title,
+                stringResource(R.string.lookup_settings_selection_subtitle),
+                settings.watch { it.lookup.selectionMenu },
+                default = SettingsDefaults.lookup.selectionMenu,
+            ) { on ->
+                LookupSelectionMenu.apply(context, on)
+                scope.launch { repository.updateLookup { it.copy(selectionMenu = on) } }
+            }
         }
     }
 }

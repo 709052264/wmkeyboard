@@ -149,6 +149,8 @@ open class WMApplication : Application() {
         // "Ask AI" in other apps' selection menus follows its switch and the
         // AI tool's, wherever either is changed from (#897).
         AskAiSelectionMenu.start(this, repository)
+        // The same for "WM Keyboard" and "WM Translate" there (#916).
+        TextActionsSelectionMenu.start(this, repository)
         // The clock tool's alarms and timers. Android drops every registered
         // wake-up at a reboot, and the app has no boot receiver on purpose:
         // the keyboard starts at boot anyway, and this puts them back then.

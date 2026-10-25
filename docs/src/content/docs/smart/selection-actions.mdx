@@ -1,6 +1,6 @@
 ---
 title: "Selection actions"
-description: "Select text and the keyboard offers what to do with it: edit it, reformat it, convert it, look it up, or hand it to another app. Off by default, under Advanced."
+description: "Select text and the keyboard offers what to do with it: edit it, reformat it, convert it, translate it, look it up, or hand it to another app. On the keyboard's bar, or from any app's selection menu."
 sidebar:
   order: 12
 ---
@@ -15,6 +15,8 @@ Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Co
 
 This is off by default. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
 
+The same actions, with translation and the AI actions beside them, are also in the menu every app shows over selected text, with no keyboard open and nothing to switch on. See [In any app's selection menu](#in-any-apps-selection-menu).
+
 <PhoneFrame caption="A selected phone number, and the bar the keyboard offers for it.">
   <Shot id="smart/selection-actions-phone" alt="A selected phone number, and the bar the keyboard offers for it." />
 </PhoneFrame>
@@ -26,6 +28,47 @@ This is off by default. It adds a bar that appears out of a gesture you already 
 Turn on **Selection actions**. Select some text in any app. The bar appears while the selection is live and goes away when you clear it.
 
 To switch it on and off without opening settings, add the **Selection actions** tool to your toolbar. One tap flips the same switch, and a message says which way it went. Text that is already selected gets its bar straight away.
+
+## In any app's selection menu
+
+The bar lives in the keyboard, so it only sees text in a box you are typing into. For text anywhere else (a web page, a message someone sent you, an email), select it and pick **WM Keyboard** from the menu that appears over the selection, the one with Copy and Select all. On some phones it is behind the menu's three dots. You do not have to be typing with this keyboard, and the bar does not have to be on.
+
+A sheet opens over the app with the text at the top and the actions under it, in three groups:
+
+- **Language.** **Translate** puts the text into the language the [Translate](/tools/translate/) tool translates into, through the engine and services you set up there. Each of your [AI actions](/tools/ai/) follows it (Explain, Summarize, Formal and the rest, your own included) and writes its answer in place of the text. **Ask AI** opens the [AI chat](/tools/ai-chat/) with the text attached, and **Look up** opens the [Look up](/tools/look-up/) card on it.
+- **Rewrite.** The actions from this page that change text without needing a text box: Format and its case options, Fancy, Sort, Unique, Number, Bullets, Check boxes, Digits, Zawgyi ⇄ Unicode, JSON, Base64, Decode and Remove trackers.
+- **Open in.** Call, Message, WhatsApp, Email, Open, Contact, Map and Calendar, for a phone number, an address, a link, a place or a date.
+
+The rewrites and the Open in actions come from the same **Actions** list as the bar, in the same order (see [Options](#options)), and each shows only where it applies. Translate needs the Translate tool switched on. The AI actions need the AI tool switched on and set up, with a provider or a downloaded model.
+
+Each action works on the text as the last one left it, so you can translate a paragraph and then make it shorter, or sort lines and then number them. The arrow at the bottom left undoes one step at a time. Then:
+
+- **Replace** puts the result in place of your selection. The app does the replacing, so it works in any app whose text box offers the menu.
+- **Copy** copies the result and closes the sheet. On text you cannot edit, such as a web page, there is no Replace, and Copy is the way to take the result with you.
+- The share button beside Undo hands the result to another app.
+
+Calendar opens your calendar app's editor here rather than the keyboard's own [Calendar tool](/tools/calendar/), since there is no keyboard open to show it in. The sheet leaves out the bar actions that work on the text box itself (Select all, Copy, Cut, Paste, Delete, Find, Replace, Move up, Move down), the ones that need a keyboard panel or the keyboard's loaded dictionaries (Bangla, Banglish, Hindi, Hinglish, Grammar, DeepL Write, Repeat, QR, Search, Speak, Zones, Colour, Save as note), and chat formatting, which depends on the app you are typing in.
+
+Nothing in the sheet is stored. Translate sends the text wherever the Translate tool sends it, which is nowhere when it translates on the phone. The AI actions do the same with the AI tool's provider, and [Data Saver](/privacy/data-saver/) holds them back on mobile data as it does in the keyboard: when it is set to ask, the sheet says so, and tapping the action again sends it.
+
+### WM Translate
+
+For translating alone, turn on **WM Translate in the selection menu**. It adds a second entry that opens the same sheet with the translation already running. It ships off, because every entry is one more row in every app's menu and Translate is a single tap inside the WM Keyboard sheet anyway. The entry is only there while the Translate tool is switched on.
+
+### Choosing the entries
+
+<SettingsPath path="Advanced / Selection actions" />
+
+The group **In other apps' selection menus** has a switch for each entry the keyboard adds to other apps' menus:
+
+| Entry | Switch | Default |
+|---|---|---|
+| WM Keyboard | WM Keyboard in the selection menu | On |
+| WM Translate | WM Translate in the selection menu | Off |
+| Ask AI | Ask AI in the selection menu | On |
+| Look up | Look up in the selection menu | On |
+
+Ask AI and Look up are the same switches as on the [AI tool](/tools/ai/#options) and [Look up](/tools/look-up/#options) pages, repeated here so all four sit in one place. Turning a switch off takes its entry out of every app's menu. Turning off the Translate or AI tool takes their entries out too. These switches do not depend on **Selection actions** at the top of the screen, which is the keyboard's own bar.
 
 ## What the keyboard reads
 
@@ -213,6 +256,8 @@ None of these send anything anywhere themselves: each hands the text to an app y
 | Icon only | Screen | None |
 | AI buttons | Screen | None |
 | Time zones | Screen | UTC and your own |
+| WM Keyboard in the selection menu | Toggle | On |
+| WM Translate in the selection menu | Toggle | Off |
 
 **Show on every selection** keeps the bar up on a selection too long to read. The keyboard does not read a selection past about 4,000 characters, so by default such a selection takes the whole bar away, Copy and Paste included, even though neither of those ever needed the text read, because the app does that work itself. Turn this on and the bar stays, carrying Select all, Copy, Cut, Paste and Delete, whichever of them you have switched on. Everything else still waits for a shorter selection, since every other action begins by reading the text.
 
