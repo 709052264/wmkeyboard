@@ -653,6 +653,119 @@ mod tests {
         }
     }
 
+    /// A tiny model written the way export.py writes one: d 4, one layer,
+    /// two heads, ff 8, ctx 8, the sixteen specials plus two words.
+    fn tiny_model() -> Vec<u8> {
+        let (d, ff, ctx, vocab) = (4usize, 8usize, 8usize, 18usize);
+        let mut tensors = Vec::new();
+        let mut data: Vec<u8> = Vec::new();
+        let mut add = |name: &str, shape: &[usize], dtype: &str, data: &mut Vec<u8>| {
+            let n: usize = shape.iter().product();
+            let offset = data.len();
+            let bytes = if dtype == "i8" {
+                let rows = shape[0];
+                let mut b: Vec<u8> = (0..n).map(|i| ((i * 7 % 13) as i8 - 6) as u8).collect();
+                for _ in 0..rows {
+                    b.extend_from_slice(&0.05f32.to_le_bytes());
+                }
+                b
+            } else {
+                let mut b = Vec::new();
+                for i in 0..n {
+                    let v = if name.ends_with(".w") || name == "ln.w" { 1.0f32 } else { (i % 3) as f32 * 0.01 };
+                    b.extend_from_slice(&v.to_le_bytes());
+                }
+                b
+            };
+            let len = bytes.len();
+            data.extend_from_slice(&bytes);
+            while data.len() % 4 != 0 {
+                data.push(0);
+            }
+            let shape_s: Vec<String> = shape.iter().map(|v| v.to_string()).collect();
+            tensors.push(format!(
+                "{{\"name\":\"{name}\",\"shape\":[{}],\"dtype\":\"{dtype}\",\"offset\":{offset},\"bytes\":{len}}}",
+                shape_s.join(",")
+            ));
+        };
+        add("emb", &[vocab, d], "i8", &mut data);
+        add("pos", &[ctx, d], "f32", &mut data);
+        add("out_bias", &[vocab], "f32", &mut data);
+        add("l0.ln1.w", &[d], "f32", &mut data);
+        add("l0.ln1.b", &[d], "f32", &mut data);
+        add("l0.qkv.w", &[3 * d, d], "i8", &mut data);
+        add("l0.qkv.b", &[3 * d], "f32", &mut data);
+        add("l0.o.w", &[d, d], "i8", &mut data);
+        add("l0.o.b", &[d], "f32", &mut data);
+        add("l0.ln2.w", &[d], "f32", &mut data);
+        add("l0.ln2.b", &[d], "f32", &mut data);
+        add("l0.w1.w", &[ff, d], "i8", &mut data);
+        add("l0.w1.b", &[ff], "f32", &mut data);
+        add("l0.w2.w", &[d, ff], "i8", &mut data);
+        add("l0.w2.b", &[d], "f32", &mut data);
+        add("ln.w", &[d], "f32", &mut data);
+        add("ln.b", &[d], "f32", &mut data);
+        let header = format!(
+            "{{\"d\":{d},\"layers\":1,\"heads\":2,\"ff\":{ff},\"ctx\":{ctx},\"vocab\":{vocab},\"name\":\"tiny\",\"langs\":[\"en\"],\"tensors\":[{}]}}",
+            tensors.join(",")
+        );
+        let mut header_bytes = header.into_bytes();
+        while header_bytes.len() % 4 != 0 {
+            header_bytes.push(0);
+        }
+        let mut out = Vec::new();
+        out.extend_from_slice(MAGIC);
+        out.extend_from_slice(&VERSION.to_le_bytes());
+        out.extend_from_slice(&(header_bytes.len() as u32).to_le_bytes());
+        out.extend_from_slice(&header_bytes);
+        let words = [
+            "<pad>", "<s>", "</s>", "<unk>", "<num>", "<reg:neutral>", "<reg:casual>", "<reg:formal>", "<field:other>",
+            "<field:chat>", "<field:email>", "<field:search>", "<lang:0>", "<lang:1>", "<lang:2>", "<lang:3>", "hello", "world",
+        ];
+        out.extend_from_slice(&(words.len() as u32).to_le_bytes());
+        for w in words {
+            out.extend_from_slice(&(w.len() as u16).to_le_bytes());
+            out.extend_from_slice(w.as_bytes());
+        }
+        while out.len() % 4 != 0 {
+            out.push(0);
+        }
+        out.extend_from_slice(&data);
+        out
+    }
+
+    #[test]
+    fn a_tiny_model_opens_scores_and_reuses_its_context() {
+        let lm = Arc::new(Lm::open(tiny_model()).expect("the tiny model opens"));
+        assert_eq!(18, lm.vocab_size());
+        assert_eq!(Some(16), lm.id_of("hello"));
+        assert_eq!(UNK, lm.token_of("nothing"));
+        let mut s = Session::new(lm.clone());
+        s.set_context(Prefix::default(), &["hello"]);
+        let dist = s.distribution().to_vec();
+        let total: f64 = dist.iter().filter(|v| v.is_finite()).map(|v| (*v as f64).exp()).sum();
+        assert!((total - 1.0).abs() < 1e-3, "a distribution sums to one: {total}");
+        assert!(s.logprob("world").is_some());
+        assert!(s.logprob("nothing").is_none());
+        assert!(s.logprob("42").is_none());
+        let tokens = s.tokens().to_vec();
+        s.set_context(Prefix::default(), &["hello", "world"]);
+        assert_eq!(tokens.len() + 1, s.tokens().len());
+        let longer = s.tokens().to_vec();
+        // Back to the shorter context: the common prefix is kept, the
+        // distribution recomputed.
+        s.set_context(Prefix::default(), &["hello"]);
+        assert_eq!(tokens, s.tokens());
+        let again = s.distribution().to_vec();
+        assert_eq!(dist, again);
+        // Revising puts the context back.
+        s.set_tokens(&longer);
+        let scores = s.revise(Prefix::default(), &["hello"], &["world", "hello", "nothing"], "world");
+        assert!(scores[0].is_some() && scores[1].is_some() && scores[2].is_none());
+        assert_eq!(longer, s.tokens());
+        assert!(s.top(3, f32::NEG_INFINITY).len() == 2);
+    }
+
     #[test]
     fn a_model_the_reader_does_not_know_is_refused() {
         assert!(Lm::open(b"WMLX\0\0\0\0".to_vec()).is_none());

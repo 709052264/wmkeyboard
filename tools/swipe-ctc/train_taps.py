@@ -31,13 +31,13 @@ def to_dev(arrays, dev):
     return [torch.from_numpy(a).to(dev) for a in arrays]
 
 
-def greedy(lp, kmask_perm):
-    """Greedy CTC words as slot sequences."""
+def greedy(lp, frames):
+    """Greedy CTC words as slot sequences, over each row's own frames."""
     best = lp.argmax(-1).cpu().numpy()
     out = []
     for b in range(best.shape[0]):
         seq, prev = [], -1
-        for c in best[b]:
+        for c in best[b, : int(frames[b])]:
             if c != prev and c < tapsim.K:
                 seq.append(int(c))
             prev = c
@@ -52,7 +52,7 @@ def evaluate(model, words, probs, rng, dev, real):
         for _ in range(4):
             taps, mask, keys, kmask, targets, lengths = tapsim.batch(words, probs, 256, rng, real=real)
             lp = model(*to_dev([taps, mask, keys, kmask], dev))
-            for seq, tgt, ln in zip(greedy(lp, None), targets, lengths):
+            for seq, tgt, ln in zip(greedy(lp, mask.sum(1) * 2), targets, lengths):
                 hits += seq == list(tgt[:ln])
                 n += 1
     model.train()

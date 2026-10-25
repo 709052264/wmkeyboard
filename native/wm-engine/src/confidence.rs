@@ -183,6 +183,38 @@ mod tests {
         assert!(c.probability(&wide) > c.probability(&narrow));
     }
 
+    /// The case `ConfidenceTest.kt` scores too; the two ports must agree.
+    pub fn fixed_case() -> Case {
+        Case {
+            margin: 2.3,
+            top_score: 7.9,
+            top_edit_cost: 0.105,
+            top_edits: 1,
+            top_slips: 1,
+            top_accents: 0,
+            top_completed: 0,
+            top_in_dictionary: true,
+            top_in_lexicon: false,
+            two_sources: false,
+            mixes_slips: false,
+            typed_len: 6,
+            has_runner: true,
+            runner_edit_cost: 1.6,
+            candidates: 4,
+            lm_top: Some(-3.5),
+            lm_best: Some(-2.0),
+            timing: 0.0,
+            typed_shadowed: false,
+        }
+    }
+
+    #[test]
+    fn the_fixed_case_scores_what_the_kotlin_port_scores() {
+        let p = Confidence::shipped().probability(&fixed_case());
+        // Refit the gate and both this number and ConfidenceTest.kt's move.
+        assert!((p - 0.836369).abs() < 1e-4, "{p}");
+    }
+
     #[test]
     fn the_default_slider_asks_four_to_one() {
         assert!((apply_threshold(4.0) - 0.8).abs() < 1e-9);

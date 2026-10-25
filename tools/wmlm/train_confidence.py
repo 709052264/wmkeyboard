@@ -2,6 +2,7 @@
 
 usage: train_confidence.py <rows.csv> [<rows.csv> ...] [--mode=lm] [--hidden=16] [--l2=1e-4]
                            [--steps=3000] [--rust=path/confidence.rs] [--kotlin=path/Confidence.kt]
+                           [--test=path/ConfidenceTest.kt]
 
 Rows come from `cargo run --release --example typing_eval -- ... DUMP=rows.csv`
 (mode, scatter, kind, label, f0..f19). The model is a one-hidden-layer
@@ -125,6 +126,19 @@ def splice(path, body):
     open(path, "w", encoding="utf-8").write(out)
 
 
+def fixed_probability(mean, scale, W1, b1, W2, b2):
+    """The case confidence.rs and ConfidenceTest.kt both score."""
+    f = np.array([[2.3, 7.9, 0.105, 1, 1, 0, 0, 1, 0, 0, 0, 6, 1, 1.6, 4, -3.5, -1.5, 1, 0.0, 0]], dtype=np.float64)
+    return float(predict(f, mean, scale, W1, b1, W2, b2)[0])
+
+
+def splice_number(path, pattern, value):
+    s = open(path, encoding="utf-8").read()
+    out, n = re.subn(pattern, lambda m: m.group(1) + f"{value:.6f}" + m.group(3), s)
+    assert n == 1, f"expected one match of {pattern!r} in {path}"
+    open(path, "w", encoding="utf-8").write(out)
+
+
 def main():
     paths = [a for a in sys.argv[1:] if not a.startswith("--")]
     opt = {a.split("=")[0][2:]: a.split("=", 1)[1] for a in sys.argv[1:] if a.startswith("--") and "=" in a}
@@ -150,13 +164,20 @@ def main():
     note = f"Fitted by tools/wmlm/train_confidence.py on {', '.join(paths)} ({n} rows, hidden {hidden}, l2 {l2})."
     rust = rust_consts(*fitted, hidden, note)
     kotlin = kotlin_consts(*fitted, hidden, note)
+    fixed = fixed_probability(*fitted)
+    print(f"fixed case probability {fixed:.6f}", file=sys.stderr)
     if "rust" in opt:
         splice(opt["rust"], rust)
+        splice_number(opt["rust"], r"(assert!\(\(p - )([0-9.]+)(\)\.abs\(\) < 1e-4)", fixed)
         print(f"wrote {opt['rust']}", file=sys.stderr)
     else:
         print(rust)
     if "kotlin" in opt:
         splice(opt["kotlin"], kotlin)
+        test = opt.get("test", "")
+        if test:
+            splice_number(test, r"(assertEquals\()([0-9.]+)(, Confidence\.probability\(fixed\), 1e-4\))", fixed)
+            print(f"wrote {test}", file=sys.stderr)
         print(f"wrote {opt['kotlin']}", file=sys.stderr)
     elif "rust" not in opt:
         print(kotlin)
