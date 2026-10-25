@@ -125,6 +125,7 @@ object LanguageRegistry {
                 BuiltInLayouts.KHIPRO_DARK_ID,
                 BuiltInLayouts.PROBHAT_ID,
                 BuiltInLayouts.JATIYA_ID,
+                BuiltInLayouts.BSTI_ID,
                 AssetLayouts.BN_BAISHAKHI_ID,
                 AssetLayouts.BN_BORNONA_ID,
                 AssetLayouts.BN_INSCRIPT_ID,
