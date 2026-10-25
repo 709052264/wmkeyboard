@@ -572,6 +572,8 @@
     <string name="backup_sync_keep_toolbar_subtitle">Which tools, in what order, and how they look</string>
     <string name="backup_sync_keep_layouts_title">Languages and layouts</string>
     <string name="backup_sync_keep_layouts_subtitle">The layouts you switch between, extra languages, and the layout for each app</string>
+    <string name="backup_sync_keep_theme_title">Theme</string>
+    <string name="backup_sync_keep_theme_subtitle">The theme in use, light and dark, and when it switches. Your own themes still sync</string>
     <string name="backup_sync_keep_needs_settings">Needs Settings ticked in What syncs</string>
     <string name="backup_sync_first_note">Each device keeps one sync file at a location. Every device reads the files of the others, and the newest change to each setting wins. The first time a device syncs, the settings of your other devices win, and anything that only this device has goes to the others.</string>
     <string name="backup_sync_error_passphrase">Another device uses a different passphrase. Use the same passphrase on every device.</string>

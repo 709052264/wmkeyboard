@@ -1492,11 +1492,13 @@ internal fun BackupSyncSettings(repository: SettingsRepository, settings: LiveSe
                     when (group) {
                         SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_title
                         SyncKeys.LocalGroup.LAYOUTS -> R.string.backup_sync_keep_layouts_title
+                        SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_title
                     },
                     stringResource(
                         when {
                             !syncsSettings -> R.string.backup_sync_keep_needs_settings
                             group == SyncKeys.LocalGroup.TOOLBAR -> R.string.backup_sync_keep_toolbar_subtitle
+                            group == SyncKeys.LocalGroup.THEME -> R.string.backup_sync_keep_theme_subtitle
                             else -> R.string.backup_sync_keep_layouts_subtitle
                         },
                     ),

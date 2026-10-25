@@ -93,6 +93,14 @@ object SyncKeys {
             ),
             emptyList(),
         ),
+
+        /**
+         * The theme in use, light and dark, and when it switches (#935). The
+         * Themes section carries the user's own themes, the library; which
+         * one is on is a setting, and a phone and a tablet often want
+         * different ones.
+         */
+        THEME("theme", setOf("keyboard_theme_id", "theme_mode"), listOf("auto_theme_")),
         ;
 
         fun holds(key: String): Boolean = key in names || prefixes.any { key.startsWith(it) }
