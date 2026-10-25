@@ -6,6 +6,24 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- The Clipboard hub and its three pages (SETTINGS_REDESIGN.md §4). The
+         history page is named by clipboard_history_title, the switch that
+         opens it; the hub keeps the Panel fold. -->
+    <string name="clipboard_page_history_subtitle">How much is kept, pinned clips, screenshots and the source app</string>
+    <string name="clipboard_page_chips_title">Paste chip and codes</string>
+    <string name="clipboard_page_chips_subtitle">The last copy on the strip, and the codes, numbers and links in a clip</string>
+    <string name="clipboard_page_rules_title">Rules and privacy</string>
+    <string name="clipboard_page_rules_subtitle">Copy rules, phone formats, passwords and private copies</string>
+    <string name="clipboard_limits_group">Limits</string>
+    <string name="clipboard_pinned_group">Pinned clips</string>
+    <string name="clipboard_sources_group">Screenshots and the source app</string>
+    <string name="clipboard_chip_group">Paste chip</string>
+    <string name="clipboard_entities_group">Codes, numbers and links</string>
+    <string name="clipboard_rules_group">Rules</string>
+    <!-- Banner on the Paste chip and codes page while the history is off: nothing is stored, so nothing is suggested. -->
+    <string name="clipboard_history_off_banner">Clipboard history is off, so no clip is kept to suggest from</string>
+    <string name="clipboard_history_off_action">Turn on</string>
+
     <!-- The history group. -->
     <string name="clipboard_history_group">History</string>
     <string name="clipboard_suggest_group">Suggestions from clips</string>

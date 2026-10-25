@@ -1425,17 +1425,10 @@ internal fun KeyPressPopupSettings(
                 default = SettingsDefaults.popup.minDurationMs.toFloat(),
             ) { scope.launch { repository.setKeyPopupMinDurationMs(it.toInt()) } }
         }
-        item(visible = popupOn, level = SettingLevel.ADVANCED) {
-            SliderSetting(
-                R.string.keypress_popup_max_duration_title,
-                subtitle = stringResource(R.string.keypress_popup_max_duration_subtitle),
-                value = settings.watch { it.popup.maxDurationMs }.toFloat(),
-                range = 400f..2000f,
-                display = { context.getString(R.string.keypress_value_ms, it.toInt()) },
-                info = stringResource(R.string.keypress_popup_max_duration_info),
-                default = SettingsDefaults.popup.maxDurationMs.toFloat(),
-            ) { scope.launch { repository.setKeyPopupMaxDurationMs(it.toInt()) } }
-        }
+        // The maximum duration has no row (SETTINGS_REDESIGN.md §4). It is the
+        // stuck-bubble backstop, not a feel, and its own info text said never
+        // to lower it; the stored value is read as the constant floor it
+        // ships at, and a value set before this is still honoured.
         // These stop at the preview bubble, and no bubble is published while
         // the switch at the top of the group is off. The font size below is
         // not among them: the flick popup and the spacebar language tooltip

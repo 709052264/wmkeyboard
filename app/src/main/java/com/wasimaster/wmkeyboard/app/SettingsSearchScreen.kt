@@ -161,7 +161,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Abc
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Gesture
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Shield
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SpaceBar
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Swipe
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Password
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lightbulb
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sort
@@ -583,12 +587,16 @@ internal object SettingsRouteIcons {
     private val map: Map<String, () -> ImageVector> = mapOf(
         "typing" to { Icons.Outlined.Keyboard },
         "typing/corrections" to { Icons.Outlined.Spellcheck },
+        "typing/writing" to { Icons.Outlined.Abc },
         "typing/suggestions" to { Icons.Outlined.Lightbulb },
         "typing/autopilot" to { Icons.Outlined.AdsClick },
         "typing/octopus" to { Icons.Outlined.Keyboard },
         "typing/chips" to { Icons.Outlined.AutoAwesome },
         "typing/codes" to { Icons.Outlined.Password },
         "typing/gestures" to { Icons.Outlined.Gesture },
+        "typing/gestures/glide" to { Icons.Outlined.Gesture },
+        "typing/gestures/spacebar" to { Icons.Outlined.SpaceBar },
+        "typing/gestures/flicks" to { Icons.Outlined.Swipe },
         "typing/hardware" to { SymbolIcons.KeyboardExternalInput },
         "keypress" to { Icons.Outlined.TouchApp },
         "keypress/haptics" to { Icons.Outlined.Vibration },
@@ -630,6 +638,9 @@ internal object SettingsRouteIcons {
         "emojiadded" to { Icons.Outlined.Add },
         "emojikeywords" to { Icons.Outlined.EmojiEmotions },
         "clipboard" to { Icons.Outlined.ContentPaste },
+        "clipboard/history" to { Icons.Outlined.History },
+        "clipboard/chips" to { Icons.Outlined.ContentPaste },
+        "clipboard/rules" to { Icons.Outlined.Shield },
         "voice" to { Icons.Outlined.Mic },
         "expander" to { Icons.AutoMirrored.Outlined.TextSnippet },
         "tools" to { Icons.Outlined.Widgets },

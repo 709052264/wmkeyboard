@@ -584,19 +584,27 @@ class MainActivity : FragmentActivity() {
      * matches on.
      */
     private fun pendingFor(target: SettingsDeepLink.Target): PendingNav? {
-        val entry = SettingsDeepLink.resolve(target) { searchIndex }
-        val group = if (entry == null) groupTitle(target) else 0
-        // A row this build has on another screen is a link that went stale,
-        // and still opens the screen it named. Only a row the index has
-        // nowhere, and no heading answers to, is one this version is missing.
-        val missing = if (target.setting.isNotEmpty() && entry == null && group == 0 &&
-            SettingsDeepLink.resolve(target.copy(route = "")) { searchIndex } == null
-        ) {
+        val scoped = SettingsDeepLink.resolve(target) { searchIndex }
+        val group = if (scoped == null) groupTitle(target) else 0
+        // A row this build has on another screen is a link that went stale: a
+        // favourite pinned before its hub was split, say. It opens where the
+        // row is drawn now rather than on the screen it named, so the pin
+        // keeps landing on the row (SETTINGS_REDESIGN.md §4). A heading on the
+        // named screen still wins, since it answers the link as written.
+        val moved = if (scoped == null && group == 0 && target.setting.isNotEmpty()) {
+            SettingsDeepLink.resolve(target.copy(route = "")) { searchIndex }
+        } else {
+            null
+        }
+        val entry = scoped ?: moved
+        // Only a row the index has nowhere, and no heading answers to, is one
+        // this version is missing.
+        val missing = if (target.setting.isNotEmpty() && entry == null && group == 0) {
             MissingLink(target.since, row = true)
         } else {
             null
         }
-        val route = entry?.route?.takeIf { target.route.isEmpty() } ?: target.route
+        val route = entry?.route?.takeIf { target.route.isEmpty() || moved != null } ?: target.route
         if (route.isEmpty()) return missing?.let { PendingNav(missing = it) }
         return PendingNav(route = route, highlight = entry?.titleRes ?: group, missing = missing)
     }
@@ -1149,7 +1157,17 @@ private fun SettingsNavGraph(
                     repository,
                     settings,
                     onOpenLearnedCorrections = { navController.navigate("learnedcorrections") },
+                    onNavigate = { navController.navigate(it) },
                 )
+            }
+        }
+        composable("typing/writing") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_writing_title),
+                { navController.popBackStack() },
+                route = "typing/writing",
+            ) {
+                TypingWritingSettings(repository, settings)
             }
         }
         composable("typing/suggestions") {
@@ -1211,7 +1229,34 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "typing/gestures",
             ) {
-                TypingGesturesSettings(repository, settings)
+                TypingGesturesSettings(repository, settings, onNavigate = { navController.navigate(it) })
+            }
+        }
+        composable("typing/gestures/glide") {
+            SettingsScreen(
+                stringResource(R.string.typing_group_glide_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/glide",
+            ) {
+                TypingGlideSettings(repository, settings)
+            }
+        }
+        composable("typing/gestures/spacebar") {
+            SettingsScreen(
+                stringResource(R.string.typing_page_spacebar_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/spacebar",
+            ) {
+                TypingSpacebarSettings(repository, settings)
+            }
+        }
+        composable("typing/gestures/flicks") {
+            SettingsScreen(
+                stringResource(R.string.typing_page_flicks_title),
+                { navController.popBackStack() },
+                route = "typing/gestures/flicks",
+            ) {
+                TypingFlicksSettings(repository, settings)
             }
         }
         composable("typing/hardware") {
@@ -2192,6 +2237,34 @@ private fun SettingsNavGraph(
                 route = "clipboard",
             ) {
                 ClipboardSettings(repository, settings) { navController.navigate(it) }
+            }
+        }
+        composable("clipboard/history") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_history_title),
+                { navController.popBackStack() },
+                route = "clipboard/history",
+                subtitle = stringResource(R.string.clipboard_page_history_subtitle),
+            ) {
+                ClipboardHistorySettings(repository, settings)
+            }
+        }
+        composable("clipboard/chips") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_page_chips_title),
+                { navController.popBackStack() },
+                route = "clipboard/chips",
+            ) {
+                ClipboardChipsSettings(repository, settings)
+            }
+        }
+        composable("clipboard/rules") {
+            SettingsScreen(
+                stringResource(R.string.clipboard_page_rules_title),
+                { navController.popBackStack() },
+                route = "clipboard/rules",
+            ) {
+                ClipboardRulesSettings(repository, settings) { navController.navigate(it) }
             }
         }
         composable("expander") {

@@ -17,12 +17,34 @@
     <string name="typing_group_enter_title">Enter key</string>
     <string name="typing_group_volume_title">Volume keys</string>
     <string name="typing_group_hardware_title">Physical keyboard</string>
-    <string name="typing_group_corrections_subtitle">Autocorrect, capitals, punctuation and spacing</string>
+    <string name="typing_group_corrections_subtitle">Autocorrect, its confidence and how it learns</string>
     <string name="typing_group_suggestions_subtitle">The suggestion strip, learning, names and app names</string>
     <string name="typing_group_smart_chips_subtitle">Sums, currencies, units, dates and lookups</string>
     <string name="typing_group_otp_subtitle">Codes from messages and notifications</string>
     <string name="typing_group_gestures_subtitle">Glide typing, spacebar swipes and handwriting</string>
     <string name="typing_group_hardware_subtitle">Shortcuts, hotkeys and the shortcut key</string>
+
+    <!-- Capitals, punctuation and spacing: the half of Automatic corrections
+         that is not autocorrect, a page of its own reached from the Typing hub
+         and from the Corrections page (SETTINGS_REDESIGN.md §4). -->
+    <string name="typing_group_writing_title">Capitals, punctuation and spacing</string>
+    <string name="typing_group_writing_subtitle">Automatic capitals, double space, brackets and lists</string>
+    <string name="typing_group_capitals_title">Capitals</string>
+    <string name="typing_group_punctuation_title">Punctuation and spacing</string>
+    <string name="typing_group_brackets_title">Brackets and lists</string>
+
+    <!-- The Gestures hub's three pages (SETTINGS_REDESIGN.md §4). The glide
+         page keeps typing_group_glide_title as its name. -->
+    <string name="typing_page_glide_subtitle">Swipe over the letters to type a word, and how the swipe is read</string>
+    <string name="typing_page_spacebar_title">Spacebar</string>
+    <string name="typing_page_spacebar_subtitle">Swipes, the press and hold, and what the key shows</string>
+    <string name="typing_page_flicks_title">Flicks and swipes</string>
+    <string name="typing_page_flicks_subtitle">Short flicks on keys, finger swipes and chords</string>
+    <string name="typing_group_spacebar_swipes_title">Swipes</string>
+    <string name="typing_group_spacebar_hold_title">Press and hold</string>
+    <string name="typing_group_spacebar_label_title">What the spacebar shows</string>
+    <string name="typing_group_flicks_title">Flicks</string>
+    <string name="typing_group_other_swipes_title">Other swipes</string>
 
     <!-- ==== Typing settings: slider value labels ==== -->
     <!-- %1$s is the already formatted number, for example 2.5 -->
@@ -699,6 +721,15 @@
     <string name="typing_handwrite_dot_title">Extra time for a dot or a cross</string>
     <string name="typing_handwrite_dot_subtitle">Time to add a dot or a cross before the press types a letter</string>
     <string name="typing_handwrite_dot_info">Letters such as i, j and t need a separate mark after the main stroke. For this time after you draw a stroke, a press over the letters becomes another stroke of the same character, the dot or the cross. It does not type that key. A press after the window types as usual. 0 turns this off.</string>
+
+    <!-- One choice over the three trail sliders below it. Each preset writes
+         the width, the length and the opacity together; Off is opacity zero. -->
+    <string name="typing_trail_style_title">Trail style</string>
+    <string name="typing_trail_style_subtitle">The line a glide draws behind your finger</string>
+    <string name="typing_trail_style_info">A glide draws a line behind your finger so you can see the stroke. Thin, Normal and Bold set its width, how long it lingers and how solid it is together. Off draws no line at all, and the glide still types. The three sliders under More settings set each of those on its own.</string>
+    <string name="typing_trail_style_thin_label">Thin</string>
+    <string name="typing_trail_style_normal_label">Normal</string>
+    <string name="typing_trail_style_bold_label">Bold</string>
 
     <string name="typing_trail_width_title">Trail width</string>
     <string name="typing_trail_width_subtitle">Thickness of the glide trail</string>

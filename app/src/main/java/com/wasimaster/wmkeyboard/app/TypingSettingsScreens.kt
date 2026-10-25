@@ -80,6 +80,7 @@ import android.os.Build
 import com.wasimaster.wmkeyboard.core.settings.PickerTimeoutRange
 import com.wasimaster.wmkeyboard.core.icons.IconSlots
 import com.wasimaster.wmkeyboard.ime.ui.SlotIcon
+import com.wasimaster.wmkeyboard.core.settings.GestureSettings
 import com.wasimaster.wmkeyboard.core.settings.GlideApostropheKey
 import com.wasimaster.wmkeyboard.core.settings.ShiftGlideMode
 import com.wasimaster.wmkeyboard.core.settings.TWO_THUMB_PAUSE_RANGE
@@ -193,6 +194,15 @@ internal fun TypingSettings(
         }
         item {
             NavRow(
+                R.string.typing_group_writing_title,
+                stringResource(R.string.typing_group_writing_subtitle),
+                route = "typing/writing",
+            ) {
+                onNavigate("typing/writing")
+            }
+        }
+        item {
+            NavRow(
                 R.string.typing_group_suggestions_title,
                 stringResource(R.string.typing_group_suggestions_subtitle),
                 route = "typing/suggestions",
@@ -284,17 +294,14 @@ internal fun TypingCorrectionsSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
     onOpenLearnedCorrections: () -> Unit,
+    onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     // What decides which rows the group holds; each row reads its own value.
     val autocorrectOn = settings.watch { it.correction.enabled }
     val undoChipOn = settings.watch { it.suggestionStrip.undoCorrectionChip }
     val detectionOn = settings.watch { it.suggestionStrip.languageDetection }
     val numberRowOn = settings.watch { it.numberRow }
-    val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
-    val hugOn = settings.watch { it.autoText.hugPunctuation }
-    val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
     SettingsGroup(stringResource(R.string.typing_group_corrections_title)) {
         item {
             ToggleSetting(
@@ -584,6 +591,39 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.autoText.apostrophe,
             ) { scope.launch { repository.setAutoApostrophe(it) } }
         }
+    }
+    // The other half of what this page used to hold: capitals, the double
+    // space, brackets and lists. A page of its own now, reached from here and
+    // from the Typing hub, so a reader looking for "capitals" finds it either way.
+    SettingsGroup {
+        item {
+            NavRow(
+                R.string.typing_group_writing_title,
+                stringResource(R.string.typing_group_writing_subtitle),
+                route = "typing/writing",
+            ) { onNavigate("typing/writing") }
+        }
+    }
+}
+
+/**
+ * Capitals, punctuation and spacing: what the keyboard types for you without
+ * correcting anything. Split off Automatic corrections (SETTINGS_REDESIGN.md
+ * §4) so that page is autocorrect and this one is the rest; every row keeps
+ * the field, the level and the default it had there.
+ */
+@Composable
+internal fun TypingWritingSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // What decides which rows the groups hold; each row reads its own value.
+    val doubleSpaceOn = settings.watch { it.autoText.doubleSpacePeriod || it.autoText.doubleSpaceTab }
+    val hugOn = settings.watch { it.autoText.hugPunctuation }
+    val recaseOn = settings.watch { it.textEditing.recapitalizeSelectionWithShift }
+    SettingsGroup(stringResource(R.string.typing_group_capitals_title)) {
         item {
             ToggleSetting(
                 R.string.typing_auto_capitalize_title,
@@ -593,6 +633,35 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.autoText.capitalize,
             ) { scope.launch { repository.setAutoCapitalize(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_shift_recase_title,
+                stringResource(R.string.typing_shift_recase_subtitle),
+                recaseOn,
+                info = stringResource(R.string.typing_shift_recase_info),
+                default = SettingsDefaults.textEditing.recapitalizeSelectionWithShift,
+            ) { scope.launch { repository.setRecapitalizeSelectionWithShift(it) } }
+        }
+        item(visible = recaseOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_shift_recase_caret_title,
+                stringResource(R.string.typing_shift_recase_caret_subtitle),
+                settings.watch { it.textEditing.shiftRecasesWordAtCaret },
+                info = stringResource(R.string.typing_shift_recase_caret_info),
+                default = SettingsDefaults.textEditing.shiftRecasesWordAtCaret,
+            ) { scope.launch { repository.setShiftRecasesWordAtCaret(it) } }
+        }
+        item(visible = recaseOn, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.typing_shift_recase_inside_title,
+                stringResource(R.string.typing_shift_recase_inside_subtitle),
+                settings.watch { it.textEditing.shiftRecasesWordAroundCaret },
+                info = stringResource(R.string.typing_shift_recase_inside_info),
+                default = SettingsDefaults.textEditing.shiftRecasesWordAroundCaret,
+            ) { scope.launch { repository.setShiftRecasesWordAroundCaret(it) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_punctuation_title)) {
         item {
             val doubleSpace = settings.watch {
                 when {
@@ -671,6 +740,8 @@ internal fun TypingCorrectionsSettings(
                 default = SettingsDefaults.suggestionStrip.autoSpaceAfterSuggestion,
             ) { scope.launch { repository.setAutoSpaceAfterSuggestion(it) } }
         }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_brackets_title)) {
         item(level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.typing_wrap_selection_title,
@@ -697,33 +768,6 @@ internal fun TypingCorrectionsSettings(
                 info = stringResource(R.string.typing_continue_lists_info),
                 default = SettingsDefaults.autoText.continueLists,
             ) { scope.launch { repository.setContinueLists(it) } }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.typing_shift_recase_title,
-                stringResource(R.string.typing_shift_recase_subtitle),
-                recaseOn,
-                info = stringResource(R.string.typing_shift_recase_info),
-                default = SettingsDefaults.textEditing.recapitalizeSelectionWithShift,
-            ) { scope.launch { repository.setRecapitalizeSelectionWithShift(it) } }
-        }
-        item(visible = recaseOn, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.typing_shift_recase_caret_title,
-                stringResource(R.string.typing_shift_recase_caret_subtitle),
-                settings.watch { it.textEditing.shiftRecasesWordAtCaret },
-                info = stringResource(R.string.typing_shift_recase_caret_info),
-                default = SettingsDefaults.textEditing.shiftRecasesWordAtCaret,
-            ) { scope.launch { repository.setShiftRecasesWordAtCaret(it) } }
-        }
-        item(visible = recaseOn, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.typing_shift_recase_inside_title,
-                stringResource(R.string.typing_shift_recase_inside_subtitle),
-                settings.watch { it.textEditing.shiftRecasesWordAroundCaret },
-                info = stringResource(R.string.typing_shift_recase_inside_info),
-                default = SettingsDefaults.textEditing.shiftRecasesWordAroundCaret,
-            ) { scope.launch { repository.setShiftRecasesWordAroundCaret(it) } }
         }
     }
 }
@@ -1852,9 +1896,54 @@ private fun ForgetSwipeStyleRow(repository: SettingsRepository) {
 internal fun TypingGesturesSettings(
     repository: SettingsRepository,
     settings: LiveSettings,
+    onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
+    val glideOn = settings.watch { it.gestureTyping }
+    // A hub of three pages (SETTINGS_REDESIGN.md §4). Glide typing's master
+    // switch stays on its row here, so the one thing most people come to this
+    // screen for is a press away, and the page behind it holds the rest.
+    SettingsGroup {
+        item {
+            ToggleNavRow(
+                R.string.typing_group_glide_title,
+                stringResource(R.string.typing_page_glide_subtitle),
+                checked = glideOn,
+                route = "typing/gestures/glide",
+                info = stringResource(R.string.typing_glide_typing_info),
+                default = SettingsDefaults.gestureTyping,
+                onChange = { scope.launch { repository.setGestureTyping(it) } },
+                onOpen = { onNavigate("typing/gestures/glide") },
+            )
+        }
+        item {
+            NavRow(
+                R.string.typing_page_spacebar_title,
+                stringResource(R.string.typing_page_spacebar_subtitle),
+                route = "typing/gestures/spacebar",
+            ) { onNavigate("typing/gestures/spacebar") }
+        }
+        item {
+            NavRow(
+                R.string.typing_page_flicks_title,
+                stringResource(R.string.typing_page_flicks_subtitle),
+                route = "typing/gestures/flicks",
+            ) { onNavigate("typing/gestures/flicks") }
+        }
+    }
+}
+
+/**
+ * Glide typing: the switch, what a letter swipe does, two-thumb typing, the
+ * picker, the vocabulary, the decoder's tuning fold and the trail. The first
+ * of the three pages under Gestures.
+ */
+@Composable
+internal fun TypingGlideSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
     // What decides which rows the groups hold; each row reads its own value.
     val glideOn = settings.watch { it.gestureTyping }
     val swipeAction = settings.watch { it.letterSwipeAction }
@@ -1872,14 +1961,8 @@ internal fun TypingGesturesSettings(
     val loopDouble = settings.watch { it.gesture.loopDouble }
     val wiggleDouble = settings.watch { it.gesture.wiggleDouble }
     val wordPreview = settings.watch { it.gesture.wordPreview }
-    val spaceCursor = settings.watch {
-        it.spaceShortSwipe == SpaceSwipeAction.CURSOR || it.spaceLongSwipe == SpaceSwipeAction.CURSOR ||
-            it.textEditing.spaceSwipeUpTouchpad
-    }
-    val spaceLanguage = settings.watch {
-        it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
-    }
-    SettingsGroup(stringResource(R.string.typing_group_glide_title)) {
+    // Untitled: the page is named Glide typing already.
+    SettingsGroup {
         item {
             ToggleSetting(
                 R.string.typing_glide_typing_title,
@@ -2321,6 +2404,37 @@ internal fun TypingGesturesSettings(
     SettingsGroup(stringResource(R.string.typing_group_glide_trail_title)) {
         // A slide-to-select lights the key it is over and draws no trail.
         if (glideOn && swipeAction != LetterSwipeAction.SELECT_KEY) {
+            // One choice over the three sliders under it (SETTINGS_REDESIGN.md
+            // §4): Thin, Normal and Bold write width, length and opacity
+            // together, and Off is an opacity of zero. The sliders stay for
+            // the person who wants one of the three on its own. Hidden while a
+            // theme pins the width or the opacity, since the sliders say so and
+            // a preset would write a value the board does not read.
+            val pinned = themePin(settings) { it.gestureTrailWidthDp } != null ||
+                themePin(settings) { it.gestureTrailOpacity } != null
+            item(visible = !pinned) {
+                val off = stringResource(CommonR.string.common_off)
+                ChoiceSetting(
+                    title = R.string.typing_trail_style_title,
+                    subtitle = stringResource(R.string.typing_trail_style_subtitle),
+                    info = stringResource(R.string.typing_trail_style_info),
+                    options = TrailStyle.entries.map { style ->
+                        style to if (style.labelRes == 0) off else stringResource(style.labelRes)
+                    },
+                    selected = settings.watch { TrailStyle.of(it.gesture) },
+                    default = DefaultTrailStyle,
+                ) { style ->
+                    scope.launch {
+                        if (style == TrailStyle.OFF) {
+                            repository.setGestureTrailOpacity(0f)
+                        } else {
+                            repository.setGestureTrailWidthDp(style.widthDp)
+                            repository.setGestureTrailDurationMs(style.durationMs)
+                            repository.setGestureTrailOpacity(style.opacity)
+                        }
+                    }
+                }
+            }
             item(level = SettingLevel.ADVANCED) {
                 val dpFormat = stringResource(R.string.typing_value_dp)
                 // Width and opacity are among the sizes a theme's "Layout for
@@ -2448,7 +2562,28 @@ internal fun TypingGesturesSettings(
             }
         }
     }
-    SettingsGroup(stringResource(R.string.typing_group_spacebar_title)) {
+}
+
+/**
+ * The spacebar: its two swipe slots and the cursor they can drive, the press
+ * and hold, and the label on the key. The second page under Gestures.
+ */
+@Composable
+internal fun TypingSpacebarSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    // What decides which rows the groups hold; each row reads its own value.
+    val spaceCursor = settings.watch {
+        it.spaceShortSwipe == SpaceSwipeAction.CURSOR || it.spaceLongSwipe == SpaceSwipeAction.CURSOR ||
+            it.textEditing.spaceSwipeUpTouchpad
+    }
+    val spaceLanguage = settings.watch {
+        it.spaceShortSwipe == SpaceSwipeAction.LANGUAGE || it.spaceLongSwipe == SpaceSwipeAction.LANGUAGE
+    }
+    SettingsGroup(stringResource(R.string.typing_group_spacebar_swipes_title)) {
         item {
             SpaceSwipeSetting(
                 title = R.string.typing_space_short_swipe_title,
@@ -2575,15 +2710,129 @@ internal fun TypingGesturesSettings(
                 default = SettingsDefaults.layoutBehavior.spaceSwipeDownHide,
             ) { scope.launch { repository.setSpaceSwipeDownHide(it) } }
         }
-        item(level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.typing_edge_swipe_back_title,
-                stringResource(R.string.typing_edge_swipe_back_subtitle),
-                settings.watch { it.layoutBehavior.edgeSwipeBack },
-                info = stringResource(R.string.typing_edge_swipe_back_info),
-                default = SettingsDefaults.layoutBehavior.edgeSwipeBack,
-            ) { scope.launch { repository.setEdgeSwipeBack(it) } }
+        if (spaceLanguage) {
+            item(level = SettingLevel.ADVANCED) {
+                ToggleSetting(
+                    R.string.typing_spacebar_language_arrows_title,
+                    stringResource(R.string.typing_spacebar_language_arrows_subtitle),
+                    settings.watch { it.spacebarLanguageArrows },
+                    info = stringResource(R.string.typing_spacebar_language_arrows_info),
+                    default = SettingsDefaults.spacebarLanguageArrows,
+                ) { scope.launch { repository.setSpacebarLanguageArrows(it) } }
+            }
+            item(level = SettingLevel.ADVANCED) {
+                // Issue #376: how long a switch keeps its language up after the
+                // lift. Steps of 50 ms, like the globe typing guard.
+                val offLabel = stringResource(CommonR.string.common_off)
+                val msFormat = stringResource(R.string.typing_value_milliseconds)
+                SliderSetting(
+                    R.string.typing_language_echo_title,
+                    subtitle = stringResource(R.string.typing_language_echo_subtitle),
+                    value = settings.watch { it.layoutBehavior.languageEchoMs }.toFloat(),
+                    range = LanguageEchoMsRange.first.toFloat()..LanguageEchoMsRange.last.toFloat(),
+                    display = {
+                        val ms = (it / 50f).roundToInt() * 50
+                        if (ms == 0) offLabel else msFormat.format(ms)
+                    },
+                    info = stringResource(R.string.typing_language_echo_info),
+                    default = SettingsDefaults.layoutBehavior.languageEchoMs.toFloat(),
+                ) { scope.launch { repository.setLanguageEchoMs((it / 50f).roundToInt() * 50) } }
+            }
         }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_spacebar_hold_title)) {
+        item {
+            // Issue #57: the characters the spacebar's long press offers, space
+            // separated. Blank gives the hold back to the language picker.
+            TextFieldSetting(
+                label = stringResource(R.string.typing_space_hold_keys_label),
+                value = settings.watch { it.layoutBehavior.spaceHoldKeys }.joinToString(" "),
+                hint = stringResource(R.string.typing_space_hold_keys_hint),
+                default = SettingsDefaults.layoutBehavior.spaceHoldKeys.joinToString(" "),
+            ) { text ->
+                repository.setSpaceHoldKeys(text.split(" ").filter { it.isNotBlank() })
+            }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Issue #150: the picker a long ring opens, as a list or a carousel.
+            ChoiceSetting(
+                R.string.typing_language_picker_style_title,
+                subtitle = stringResource(R.string.typing_language_picker_style_subtitle),
+                info = stringResource(R.string.typing_language_picker_style_info),
+                options = listOf(
+                    LanguagePickerStyle.LIST to
+                        stringResource(R.string.typing_language_picker_style_list_label),
+                    LanguagePickerStyle.CAROUSEL to
+                        stringResource(R.string.typing_language_picker_style_carousel_label),
+                ),
+                selected = settings.watch { it.layoutBehavior.languagePickerStyle },
+                default = SettingsDefaults.layoutBehavior.languagePickerStyle,
+            ) { scope.launch { repository.setLanguagePickerStyle(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Off: the spacebar hold keeps the sideways preview at any ring
+            // length instead of switching to the picker past four layouts.
+            ToggleSetting(
+                R.string.typing_space_hold_picker_long_ring_title,
+                stringResource(R.string.typing_space_hold_picker_long_ring_subtitle),
+                settings.watch { it.layoutBehavior.spaceHoldPickerForLongRing },
+                info = stringResource(R.string.typing_space_hold_picker_long_ring_info),
+                default = SettingsDefaults.layoutBehavior.spaceHoldPickerForLongRing,
+            ) { scope.launch { repository.setSpaceHoldPickerForLongRing(it) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_spacebar_label_title)) {
+        item(level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                R.string.typing_spacebar_display_title,
+                subtitle = stringResource(R.string.typing_spacebar_display_subtitle),
+                info = stringResource(R.string.typing_spacebar_display_info),
+                options = listOf(
+                    SpacebarDisplay.LANGUAGE to
+                        stringResource(R.string.typing_spacebar_display_language_label),
+                    SpacebarDisplay.LAYOUT to
+                        stringResource(R.string.typing_spacebar_display_layout_label),
+                    SpacebarDisplay.BOTH to
+                        stringResource(R.string.typing_spacebar_display_both_label),
+                ),
+                selected = settings.watch { it.layoutBehavior.spacebarDisplay },
+                default = SettingsDefaults.layoutBehavior.spacebarDisplay,
+            ) { scope.launch { repository.setSpacebarDisplay(it) } }
+        }
+        item {
+            TextFieldSetting(
+                label = stringResource(R.string.typing_spacebar_text_label),
+                value = settings.watch { it.spacebarLabel },
+                // The %s token is text the user types, so it travels as an argument.
+                hint = stringResource(R.string.typing_spacebar_text_hint, "%s"),
+                default = SettingsDefaults.spacebarLabel,
+            ) { repository.setSpacebarLabel(it) }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // Issue #752: the speed of the last few words, beside the label.
+            ToggleSetting(
+                R.string.typing_spacebar_live_wpm_title,
+                stringResource(R.string.typing_spacebar_live_wpm_subtitle),
+                settings.watch { it.spacebarLiveWpm },
+                info = stringResource(R.string.typing_spacebar_live_wpm_info),
+                default = SettingsDefaults.spacebarLiveWpm,
+            ) { scope.launch { repository.setSpacebarLiveWpm(it) } }
+        }
+    }
+}
+
+/**
+ * Flicks and swipes: the short flicks on a key, the possessive swipe, the
+ * edge swipe, and the three groups of swipes the user lays over the keys. The
+ * third page under Gestures.
+ */
+@Composable
+internal fun TypingFlicksSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    SettingsGroup(stringResource(R.string.typing_group_flicks_title)) {
         item(level = SettingLevel.STANDARD) {
             // Issue #178: a quick flick down on a key types its corner hint.
             ToggleSetting(
@@ -2668,6 +2917,8 @@ internal fun TypingGesturesSettings(
                 default = SettingsDefaults.layoutBehavior.flickOntoLetterGlides,
             ) { scope.launch { repository.setFlickOntoLetterGlides(it) } }
         }
+    }
+    SettingsGroup(stringResource(R.string.typing_group_other_swipes_title)) {
         item(level = SettingLevel.ADVANCED) {
             // Issue #169: a short straight swipe from a punctuation key to s
             // appends 's to the last word. Its own key, its own row, outside
@@ -2692,109 +2943,14 @@ internal fun TypingGesturesSettings(
                 detail = { key -> ChoiceDetail(stringResource(possessiveSwipeDescRes(key))) },
             )
         }
-        item {
-            // Issue #57: the characters the spacebar's long press offers, space
-            // separated. Blank gives the hold back to the language picker.
-            TextFieldSetting(
-                label = stringResource(R.string.typing_space_hold_keys_label),
-                value = settings.watch { it.layoutBehavior.spaceHoldKeys }.joinToString(" "),
-                hint = stringResource(R.string.typing_space_hold_keys_hint),
-                default = SettingsDefaults.layoutBehavior.spaceHoldKeys.joinToString(" "),
-            ) { text ->
-                repository.setSpaceHoldKeys(text.split(" ").filter { it.isNotBlank() })
-            }
-        }
-        if (spaceLanguage) {
-            item(level = SettingLevel.ADVANCED) {
-                ToggleSetting(
-                    R.string.typing_spacebar_language_arrows_title,
-                    stringResource(R.string.typing_spacebar_language_arrows_subtitle),
-                    settings.watch { it.spacebarLanguageArrows },
-                    info = stringResource(R.string.typing_spacebar_language_arrows_info),
-                    default = SettingsDefaults.spacebarLanguageArrows,
-                ) { scope.launch { repository.setSpacebarLanguageArrows(it) } }
-            }
-            item(level = SettingLevel.ADVANCED) {
-                // Issue #376: how long a switch keeps its language up after the
-                // lift. Steps of 50 ms, like the globe typing guard.
-                val offLabel = stringResource(CommonR.string.common_off)
-                val msFormat = stringResource(R.string.typing_value_milliseconds)
-                SliderSetting(
-                    R.string.typing_language_echo_title,
-                    subtitle = stringResource(R.string.typing_language_echo_subtitle),
-                    value = settings.watch { it.layoutBehavior.languageEchoMs }.toFloat(),
-                    range = LanguageEchoMsRange.first.toFloat()..LanguageEchoMsRange.last.toFloat(),
-                    display = {
-                        val ms = (it / 50f).roundToInt() * 50
-                        if (ms == 0) offLabel else msFormat.format(ms)
-                    },
-                    info = stringResource(R.string.typing_language_echo_info),
-                    default = SettingsDefaults.layoutBehavior.languageEchoMs.toFloat(),
-                ) { scope.launch { repository.setLanguageEchoMs((it / 50f).roundToInt() * 50) } }
-            }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ChoiceSetting(
-                R.string.typing_spacebar_display_title,
-                subtitle = stringResource(R.string.typing_spacebar_display_subtitle),
-                info = stringResource(R.string.typing_spacebar_display_info),
-                options = listOf(
-                    SpacebarDisplay.LANGUAGE to
-                        stringResource(R.string.typing_spacebar_display_language_label),
-                    SpacebarDisplay.LAYOUT to
-                        stringResource(R.string.typing_spacebar_display_layout_label),
-                    SpacebarDisplay.BOTH to
-                        stringResource(R.string.typing_spacebar_display_both_label),
-                ),
-                selected = settings.watch { it.layoutBehavior.spacebarDisplay },
-                default = SettingsDefaults.layoutBehavior.spacebarDisplay,
-            ) { scope.launch { repository.setSpacebarDisplay(it) } }
-        }
         item(level = SettingLevel.ADVANCED) {
-            // Issue #150: the picker a long ring opens, as a list or a carousel.
-            ChoiceSetting(
-                R.string.typing_language_picker_style_title,
-                subtitle = stringResource(R.string.typing_language_picker_style_subtitle),
-                info = stringResource(R.string.typing_language_picker_style_info),
-                options = listOf(
-                    LanguagePickerStyle.LIST to
-                        stringResource(R.string.typing_language_picker_style_list_label),
-                    LanguagePickerStyle.CAROUSEL to
-                        stringResource(R.string.typing_language_picker_style_carousel_label),
-                ),
-                selected = settings.watch { it.layoutBehavior.languagePickerStyle },
-                default = SettingsDefaults.layoutBehavior.languagePickerStyle,
-            ) { scope.launch { repository.setLanguagePickerStyle(it) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            // Off: the spacebar hold keeps the sideways preview at any ring
-            // length instead of switching to the picker past four layouts.
             ToggleSetting(
-                R.string.typing_space_hold_picker_long_ring_title,
-                stringResource(R.string.typing_space_hold_picker_long_ring_subtitle),
-                settings.watch { it.layoutBehavior.spaceHoldPickerForLongRing },
-                info = stringResource(R.string.typing_space_hold_picker_long_ring_info),
-                default = SettingsDefaults.layoutBehavior.spaceHoldPickerForLongRing,
-            ) { scope.launch { repository.setSpaceHoldPickerForLongRing(it) } }
-        }
-        item {
-            TextFieldSetting(
-                label = stringResource(R.string.typing_spacebar_text_label),
-                value = settings.watch { it.spacebarLabel },
-                // The %s token is text the user types, so it travels as an argument.
-                hint = stringResource(R.string.typing_spacebar_text_hint, "%s"),
-                default = SettingsDefaults.spacebarLabel,
-            ) { repository.setSpacebarLabel(it) }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            // Issue #752: the speed of the last few words, beside the label.
-            ToggleSetting(
-                R.string.typing_spacebar_live_wpm_title,
-                stringResource(R.string.typing_spacebar_live_wpm_subtitle),
-                settings.watch { it.spacebarLiveWpm },
-                info = stringResource(R.string.typing_spacebar_live_wpm_info),
-                default = SettingsDefaults.spacebarLiveWpm,
-            ) { scope.launch { repository.setSpacebarLiveWpm(it) } }
+                R.string.typing_edge_swipe_back_title,
+                stringResource(R.string.typing_edge_swipe_back_subtitle),
+                settings.watch { it.layoutBehavior.edgeSwipeBack },
+                info = stringResource(R.string.typing_edge_swipe_back_info),
+                default = SettingsDefaults.layoutBehavior.edgeSwipeBack,
+            ) { scope.launch { repository.setEdgeSwipeBack(it) } }
         }
     }
     // Issue #647: two, three and four finger swipes over the keys.
@@ -3359,6 +3515,43 @@ private enum class DoubleSpaceAction(
         Icons.Outlined.KeyboardTab,
     ),
 }
+
+/**
+ * The glide trail as one choice. Three sliders in the repository (width,
+ * length, opacity), one decision on screen: how much of a line a glide
+ * leaves. Each preset names the three values it writes; [OFF] writes only an
+ * opacity of zero, which is how the trail is switched off, and leaves the
+ * width and length for the day it comes back.
+ */
+private enum class TrailStyle(
+    @StringRes val labelRes: Int,
+    val widthDp: Float,
+    val durationMs: Int,
+    val opacity: Float,
+) {
+    /** The label is the shared "Off" string, so this carries none of its own. */
+    OFF(0, 10f, 350, 0f),
+    THIN(R.string.typing_trail_style_thin_label, 6f, 250, 0.45f),
+    NORMAL(R.string.typing_trail_style_normal_label, 10f, 350, 0.55f),
+    BOLD(R.string.typing_trail_style_bold_label, 16f, 500, 0.75f),
+    ;
+
+    companion object {
+        /**
+         * The preset the stored values stand nearest to. No trail is [OFF]
+         * whatever the width; otherwise the width decides, since it is the
+         * one of the three a glance at the board reads.
+         */
+        fun of(gesture: GestureSettings): TrailStyle = when {
+            gesture.trailOpacity <= 0f -> OFF
+            gesture.trailWidthDp < 8f -> THIN
+            gesture.trailWidthDp > 13f -> BOLD
+            else -> NORMAL
+        }
+    }
+}
+
+private val DefaultTrailStyle = TrailStyle.of(SettingsDefaults.gesture)
 
 private val DefaultDoubleSpace = when {
     SettingsDefaults.autoText.doubleSpaceTab -> DoubleSpaceAction.TAB

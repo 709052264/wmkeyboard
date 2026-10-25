@@ -228,23 +228,20 @@ The clipboard is already out of reach while the lock screen is showing, and no s
 
 The clipboard panel, its search, the recent-copies row and this screen are the **Clipboard history** bundle on [Extensions](/reference/settings/extensions/). Off there, they leave the keyboard and the app together, and the bundle's switch moves **Save clipboard history** with it. Copy, cut and paste as toolbar buttons are not part of the bundle.
 
-Everything below lives on the Clipboard screen, under Features on the settings home screen, rather than on the tool page. Your copies land in the history whether or not the panel's button is on the toolbar, so these aren't really the tool's settings.
+Everything below lives on the Clipboard screen and its three pages, under Features on the settings home screen, rather than on the tool page. Your copies land in the history whether or not the panel's button is on the toolbar, so these aren't really the tool's settings.
 
-<PhoneFrame side caption="Clipboard settings: the History group and, below it, Passwords and codes.">
-  <Shot id="tools/clipboard-settings" alt="Clipboard settings: the History group and, below it, Passwords & codes." />
+<PhoneFrame side caption="The Clipboard screen as it was before it became a hub: the rows shown here are on its three pages now.">
+  <Shot id="tools/clipboard-settings" alt="The Clipboard screen before it became a hub: the History group and, below it, Passwords and codes." />
 </PhoneFrame>
 
-**History**, in the order the rows appear:
+The Clipboard screen is a hub. Three rows open its pages, and the Panel group sits under them as a fold, closed until you open it.
 
-- **Clipboard history**: master capture switch, on by default.
-- **Suggest the last copy**: offers your latest copy as a paste chip on the suggestion strip. On by default. The chip is as wide as what it holds, so a short copy is a short pill with its ✕ right beside it; a long one stops at about half the strip and ends in an ellipsis. While you type it keeps its narrow width for a moment after the words leave the strip, so it doesn't flicker between the two sizes as suggestions come and go. Press and hold the chip to delete that copy from the history, for something copied by mistake or needed only once.
-- **How long the paste chip stays**: 30 s to 30 min, default 5 minutes, or **Until dismissed** at the bottom of the slider. Shown only while "Suggest the last copy" is on. Typing never dismisses the chip, since it's meant to survive writing the message you'll paste into. Shorten it if you'd rather a copied password or address stopped being on screen.
-- <a id="recent-copies-on-the-strip"></a>**Recent copies on the strip**: 1 to 5, default 1, shown only while "Suggest the last copy" is on. At 1 the strip offers the single paste chip above. Set more and the chip gets a clock button beside its ✕. Tap it and the strip shows that many of your latest text clips, newest first whatever is pinned, as a row of chips you can scroll sideways, each a tap from pasted. The row never opens by itself, and it stays up until you type, tap its ✕, or move to another field, so you can paste several in a row. Press and hold a chip in it to delete that copy. Hidden (sensitive) clips never appear in it. The **Recent copies** action opens the same row from a gesture: bind it to the Copy tool's hold in that tool's settings, or to a flick or a key's long press, and the last few copies are one press away. It's under **Other** in those pickers, not on the toolbar. With this set to 1, the action shows five.
-- **Suggest copied codes**: **Any field** by default, and only shown while "Suggest the last copy" is on. A code on its own is otherwise treated as a secret and kept off the strip, since the chip sits in view while you type something else. A code you copied by hand is the case that rule was never aimed at: you copied it to paste it, and it sits one tap away in the clipboard panel either way. **Code boxes only** narrows it to fields that ask for a code (a number keypad, or a name like "OTP" or "verification code") if you'd rather a code never showed up over the keys of a message, and **Never** keeps the strip clear of codes entirely. Only a bare code qualifies at any setting. A copied password is never offered.
-- **Pop-up when you copy**: off by default. It lives in this group but it isn't a history setting at all, see [below](#details--edge-cases).
-- **Clipboard expiry**: hours before an unpinned clip is removed, 0–168, default 24 hours (0 means never).
-- **Maximum entries**: how many unpinned clips history keeps, from 5 to 5,000 in steps, default 100, or **Unlimited** at the end of the slider. Unlimited leaves the expiry as the only limit; with the expiry set to never as well, nothing is deleted, and a very long history makes the panel slower to open.
-- **Longest clip kept**: **No limit** (default), or 1,000 to 100,000 characters in steps; a [longer copy is stored cut](#expiry-and-the-entry-cap).
+- **Clipboard history**: the master capture switch, on by default, on the same row as the door to the [Clipboard history](#clipboard-history) page below. The switch flips here; the rest of the row opens the page.
+- **Paste chip and codes**: opens the [page](#paste-chip-and-codes) of what the history puts on the suggestion strip.
+- **Rules and privacy**: opens the [page](#rules-and-privacy) with the copy rules, the phone-number masks and how passwords and codes are handled.
+
+**Panel**, in the order the rows appear:
+
 - **Panel layout**: opens the panel's [layout](/languages/custom-layouts/#panel-layouts) in the layout editor. The search box, the grid or list switch, the strip of copied fragments and the history are cells you can move and resize, and any key can join them: an abc, space and backspace row along the bottom, say, which is what the old "Bottom control row" switch used to add. A layout made with that switch on carries over.
 - **Full-screen clipboard panel**: on by default, so this is what the panel does unless you say otherwise. The history takes the whole keyboard, and a slim back header stands in for the toolbar, the emoji row and the symbol row. Picking the right clip gets easier the more of them are on screen, which is why that trade is the default. Start a search and the panel drops back to its compact size so the keys fit underneath. Turn it off to keep the toolbar visible while the panel is open.
 - **Panel height**: how much taller than the keyboard the panel opens, up to 600 dp more, default **Same as keyboard**. The same setting as the [bar on top of the panel](#making-the-panel-taller).
@@ -267,25 +264,54 @@ Everything below lives on the Clipboard screen, under Features on the settings h
 - **Swipe to pin**: shown while swipes are on. **Both ways delete** by default. **Right pins, left deletes** or **Left pins, right deletes** part the two directions: one pins or unpins the clip and lets it slide back into place, the other deletes.
 - **Undo a deleted clip**: shows the Undo bar for a few seconds after you delete a clip with the bin or a swipe; on by default. Off, a delete is immediate and final.
 - **Ask before deleting a pinned clip**: deleting a pinned clip, by the bin, a swipe or the press-and-hold popup, asks first; unpinned clips still go at once. On by default.
-- **Pinned entries last**: moves pinned clips to the end of the panel instead of the top; off by default. Greyed out while the tabs are on or pinned clips are kept in place.
-- **Keep pinned clips in place**: pinned clips stay where they were copied, among the others, wearing their pin; off by default. With it on, the tabs and **Pinned entries last** have no effect.
-- **Pinned folders**: files each tagged pinned clip in a [folder per tag](#pinned-folders); off by default. With pinned clips kept in place, the folders sit over the whole history.
 - **Search bar**: enables the [search pill](#finding-a-clip-again) described above; off by default.
 - **Regular expressions**: shown while the search bar is on, off by default. On, the search reads what you type as a [regular expression](#regular-expressions). The same switch as the `.*` button beside the search.
 - **Clear button**: the [bin](#clearing-the-history) that deletes every unpinned clip after asking, and empties the system clipboard unless it holds a pinned clip; off by default.
-- **Detect codes, numbers and links**: enables the [entity chips](#pulling-codes-and-links-out-of-a-clip); on by default. Detection runs entirely on the device.
-- **Show the found parts as icons on each clip**: off by default, and only while detection is on. Icons with counts on each clip in place of the chip strip.
-- **Copy picked parts to the clipboard**: off by default, and only while detection is on. A picked code, number or link is copied rather than typed.
-- **Copy rules**: a nav row to the [rules that tidy every copy](#tidying-copies-with-rules). Its subtitle counts your rules.
-- **Phone number formats**: a nav row, shown only while detection is on, opening the mask editor covered in [Phone number formats](/reference/settings/phone-formats/). Its subtitle counts your saved formats, and says every number becomes a chip once you have deleted them all.
-- **Forget after you paste a password**: the paste-time purge described [above](#passwords-are-handled-deliberately); off by default.
 - **Link previews**: fetches a copied link's page title and description directly from the linked site; off by default, and the toggle's own description says so plainly.
+- **Pop-up when you copy**: off by default. It lives in the Panel fold but it isn't a panel setting, or a history one, at all, see [below](#details--edge-cases).
+
+### Clipboard history
+
+<SettingsPath path="Clipboard / Clipboard history" />
+
+Three groups: Limits, Pinned clips, and Screenshots and the source app. The last only shows while the history is on, since nothing is stored to carry a screenshot or a source without it.
+
+- **Maximum entries**: how many unpinned clips history keeps, from 5 to 5,000 in steps, default 100, or **Unlimited** at the end of the slider. Unlimited leaves the expiry as the only limit; with the expiry set to never as well, nothing is deleted, and a very long history makes the panel slower to open.
+- **Clipboard expiry**: hours before an unpinned clip is removed, 0–168, default 24 hours (0 means never).
+- **Longest clip kept**: **No limit** (default), or 1,000 to 100,000 characters in steps; a [longer copy is stored cut](#expiry-and-the-entry-cap).
+- **Pinned entries last**: moves pinned clips to the end of the panel instead of the top; off by default. Greyed out while the tabs are on or pinned clips are kept in place.
+- **Keep pinned clips in place**: pinned clips stay where they were copied, among the others, wearing their pin; off by default. With it on, the tabs and **Pinned entries last** have no effect.
+- **Pinned folders**: files each tagged pinned clip in a [folder per tag](#pinned-folders); off by default. With pinned clips kept in place, the folders sit over the whole history.
 - **Your screenshots**: shows device screenshots in the panel alongside copied text and images; off by default. While it's on without the photos permission granted, a row appears underneath to open system settings. The Play Store build has no such row: Google Play only allows the photos permission to apps that can't use the photo picker for their main job, so that build doesn't declare it, and screenshots reach the clipboard only the usual way, by copying one. GitHub and F-Droid builds keep it.
 - **Show the source app**: records which app a clip was copied from, for the long-press info popup; off by default, and needs the Usage Access permission. It's a best-effort guess of the foreground app at copy time, not a precise log. It gets the same "grant this" row underneath until you do.
 
-**Passwords and codes**
+### Paste chip and codes
+
+<SettingsPath path="Clipboard / Paste chip and codes" />
+
+Two groups, Paste chip and Codes, numbers and links. While the history is off the page shows a notice and a **Turn on** button in place of its rows, since nothing is kept to suggest from.
+
+- **Suggest the last copy**: offers your latest copy as a paste chip on the suggestion strip. On by default. The chip is as wide as what it holds, so a short copy is a short pill with its ✕ right beside it; a long one stops at about half the strip and ends in an ellipsis. While you type it keeps its narrow width for a moment after the words leave the strip, so it doesn't flicker between the two sizes as suggestions come and go. Press and hold the chip to delete that copy from the history, for something copied by mistake or needed only once.
+- **How long the paste chip stays**: 30 s to 30 min, default 5 minutes, or **Until dismissed** at the bottom of the slider. Shown only while "Suggest the last copy" is on. Typing never dismisses the chip, since it's meant to survive writing the message you'll paste into. Shorten it if you'd rather a copied password or address stopped being on screen.
+- <a id="recent-copies-on-the-strip"></a>**Recent copies on the strip**: 1 to 5, default 1, shown only while "Suggest the last copy" is on. At 1 the strip offers the single paste chip above. Set more and the chip gets a clock button beside its ✕. Tap it and the strip shows that many of your latest text clips, newest first whatever is pinned, as a row of chips you can scroll sideways, each a tap from pasted. The row never opens by itself, and it stays up until you type, tap its ✕, or move to another field, so you can paste several in a row. Press and hold a chip in it to delete that copy. Hidden (sensitive) clips never appear in it. The **Recent copies** action opens the same row from a gesture: bind it to the Copy tool's hold in that tool's settings, or to a flick or a key's long press, and the last few copies are one press away. It's under **Other** in those pickers, not on the toolbar. With this set to 1, the action shows five.
+- **Suggest copied codes**: **Any field** by default, and only shown while "Suggest the last copy" is on. A code on its own is otherwise treated as a secret and kept off the strip, since the chip sits in view while you type something else. A code you copied by hand is the case that rule was never aimed at: you copied it to paste it, and it sits one tap away in the clipboard panel either way. **Code boxes only** narrows it to fields that ask for a code (a number keypad, or a name like "OTP" or "verification code") if you'd rather a code never showed up over the keys of a message, and **Never** keeps the strip clear of codes entirely. Only a bare code qualifies at any setting. A copied password is never offered.
+- **Detect codes, numbers and links**: enables the [entity chips](#pulling-codes-and-links-out-of-a-clip); on by default. Detection runs entirely on the device.
+- **Show the found parts as icons on each clip**: off by default, and only while detection is on. Icons with counts on each clip in place of the chip strip.
+- **Copy picked parts to the clipboard**: off by default, and only while detection is on. A picked code, number or link is copied rather than typed.
+
+### Rules and privacy
+
+<SettingsPath path="Clipboard / Rules and privacy" />
+
+**Rules**:
+
+- **Copy rules**: a nav row to the [rules that tidy every copy](#tidying-copies-with-rules). Its subtitle counts your rules.
+- **Phone number formats**: a nav row, shown only while detection is on, opening the mask editor covered in [Phone number formats](/reference/settings/phone-formats/). Its subtitle counts your saved formats, and says every number becomes a chip once you have deleted them all.
+
+**Passwords and codes**:
 
 - **Keep the keyboard's copies private**: off by default. On, text you copy or cut with the keyboard's own keys, tools and panels never goes to the system clipboard, where any app can read it. It goes into the history instead, and the keyboard's paste keys and the panel paste it, until you copy something anywhere else or delete that clip from the history; then the paste keys paste from the system clipboard again. The copy and paste menu of other apps doesn't see it. Since Android's "Copied" bubble can't appear for a copy it never saw, the keyboard shows its own sign instead: the selection is let go with the cursor left at its end, and the copied text comes up as the paste chip on the suggestion strip, as a system copy does. That chip holds the whole strip until you type a key or move to another field, over any words and any smart chip, so it is always there to see after the copy. It's the always-on form of [Keep copies in the keyboard](/privacy/incognito/#keeping-copies-off-the-system-clipboard), which holds only while incognito is on and records nothing in the history.
+- **Forget after you paste a password**: the paste-time purge described [above](#passwords-are-handled-deliberately); off by default.
 - **Sensitive clips**: keep (default), hide-and-forget, or never save. See [above](#passwords-are-handled-deliberately).
 - **Let the keyboard find them**: extends sensitive handling to clips that merely look like a password or code; on by default, shown only when sensitive handling isn't set to "keep."
 - **Forget sensitive clips after**: the hidden-clip timer, 1–120 minutes, default 5; shown only under the hide-and-forget option.

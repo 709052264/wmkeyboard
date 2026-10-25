@@ -657,12 +657,15 @@ internal fun VoiceServerSettings(repository: SettingsRepository, settings: LiveS
 // ---- clipboard ----
 
 /**
- * The Clipboard screen: the history, the panel, and the sensitive-clip rules.
+ * The Clipboard hub: the history switch, which is also the door to the
+ * history page, the doors to the paste chip and the rules pages, and the Panel
+ * fold (SETTINGS_REDESIGN.md §4). Fifty-one rows on one screen were the
+ * complaint; the three pages hold them by what they are about.
  *
- * A Features row rather than the Clipboard tool page, which now holds one row
- * that opens this — the same split the Emoji tool has. The history is filled
- * by every copy you make, whether or not the panel's button is on the toolbar,
- * so these are not the tool's settings.
+ * A Features row rather than the Clipboard tool page, which holds one row that
+ * opens this — the same split the Emoji tool has. The history is filled by
+ * every copy you make, whether or not the panel's button is on the toolbar, so
+ * these are not the tool's settings.
  */
 @Composable
 internal fun ClipboardSettings(
@@ -673,333 +676,37 @@ internal fun ClipboardSettings(
     val scope = rememberCoroutineScope()
     // What decides which rows the groups hold; each row reads its own value.
     val historyOn = settings.watch { it.clipboard.history }
-    val userScreenshots = settings.watch { it.clipboard.userScreenshots }
-    val trackSource = settings.watch { it.clipboard.trackSource }
-    val suggestRecent = settings.watch { it.clipboard.suggestRecent }
     val swipeToDelete = settings.watch { it.clipboard.swipeToDelete }
-    val detectEntities = settings.watch { it.clipboard.detectEntities }
-    val sensitiveHandling = settings.watch { it.clipboard.sensitiveHandling }
     val clipSearch = settings.watch { it.clipboard.search }
     // The slider readouts are plain lambdas, so their format strings are
     // resolved here and captured. The format also puts the number through the
     // locale, which is what gives Bengali or Arabic digits.
     val numberFormat = stringResource(R.string.values_number)
-    val minutesFormat = stringResource(R.string.values_minutes)
-    val hoursFormat = stringResource(R.string.values_hours)
-    // Both grants happen on a system screen, so they are read through
-    // rememberGrantState: the rows below disappear as soon as we come back
-    // with the permission in hand, instead of on the next unrelated redraw.
-    val screenshotsGranted = rememberGrantState(::hasImagesPermission)
-    val usageAccessGranted = rememberGrantState(::hasUsageAccess)
-    SettingsGroup(stringResource(R.string.clipboard_history_group)) {
+    SettingsGroup {
         item {
-            ToggleSetting(
+            ToggleNavRow(
                 R.string.clipboard_history_title,
                 stringResource(R.string.clipboard_history_subtitle),
-                historyOn,
+                checked = historyOn,
+                route = "clipboard/history",
                 default = SettingsDefaults.clipboard.history,
-            ) { scope.launch { repository.setClipboardHistory(it) } }
+                onChange = { scope.launch { repository.setClipboardHistory(it) } },
+                onOpen = { onNavigate("clipboard/history") },
+            )
         }
-        item(level = SettingLevel.STANDARD) {
-            // Stops, with no cap at all as the last one (#414). A value from
-            // before the stops shows at the nearest one until it is moved.
-            val unlimited = stringResource(R.string.clipboard_max_unlimited)
-            val steps = ClipMaxItemsSteps
-            val stored = settings.watch { it.clipboard.maxItems }
-            val index = if (stored <= 0) {
-                steps.lastIndex
-            } else {
-                steps.indices.filter { steps[it] > 0 }.minByOrNull { kotlin.math.abs(steps[it] - stored) } ?: 0
-            }
-            SliderSetting(
-                R.string.clipboard_max_title,
-                subtitle = stringResource(R.string.clipboard_max_subtitle),
-                value = index.toFloat(),
-                range = 0f..steps.lastIndex.toFloat(),
-                display = {
-                    val items = steps[it.roundToInt().coerceIn(steps.indices)]
-                    if (items == 0) unlimited else numberFormat.format(items)
-                },
-                info = stringResource(R.string.clipboard_max_info),
-                default = steps.indexOf(SettingsDefaults.clipboard.maxItems).coerceAtLeast(0).toFloat(),
-            ) { scope.launch { repository.setClipboardMaxItems(steps[it.roundToInt().coerceIn(steps.indices)]) } }
-        }
-        item(level = SettingLevel.STANDARD) {
-            // The readout lambda is not composable, so the "never" word
-            // is resolved here and captured, like the hours format.
-            val never = stringResource(R.string.clipboard_expiry_never)
-            SliderSetting(
-                R.string.clipboard_expiry_title,
-                subtitle = stringResource(R.string.clipboard_expiry_subtitle),
-                value = settings.watch { it.clipboard.expiryHours }.toFloat(),
-                range = 0f..168f,
-                display = { if (it.toInt() == 0) never else hoursFormat.format(it.toInt()) },
-                default = SettingsDefaults.clipboard.expiryHours.toFloat(),
-            ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            // A slider over a handful of stops rather than every number: the
-            // choice is "about how much", and a round figure is one the user
-            // can set again.
-            val none = stringResource(R.string.clipboard_max_chars_none)
-            val steps = ClipMaxTextCharsSteps
-            val stored = settings.watch { it.clipboard.maxTextChars }
-            val index = steps.indices.minByOrNull { kotlin.math.abs(steps[it] - stored) } ?: 0
-            SliderSetting(
-                R.string.clipboard_max_chars_title,
-                subtitle = stringResource(R.string.clipboard_max_chars_subtitle),
-                value = index.toFloat(),
-                range = 0f..steps.lastIndex.toFloat(),
-                display = {
-                    val chars = steps[it.roundToInt().coerceIn(steps.indices)]
-                    if (chars == 0) none else numberFormat.format(chars)
-                },
-                info = stringResource(R.string.clipboard_max_chars_info),
-                default = steps.indexOf(SettingsDefaults.clipboard.maxTextChars).coerceAtLeast(0).toFloat(),
-            ) { scope.launch { repository.setClipboardMaxTextChars(steps[it.roundToInt().coerceIn(steps.indices)]) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            // The tabs put pinned clips on a tab of their own, where there is
-            // no end of the list left for them to go to.
-            val pinnedTabs = settings.watch { it.clipboard.pinnedTabs }
-            ToggleSetting(
-                R.string.clipboard_pinned_last_title,
-                stringResource(R.string.clipboard_pinned_last_subtitle),
-                settings.watch { it.clipboard.pinnedLast },
-                enabled = !pinnedTabs && !settings.watch { it.clipboard.pinnedInPlace },
-                // Whichever of the two is holding it is the switch to send
-                // the user to; the tabs first, as they are the one drawn first.
-                disabledReason = rememberDisabledReason(
-                    stringResource(
-                        if (pinnedTabs) {
-                            R.string.clipboard_pinned_last_tabs_reason
-                        } else {
-                            R.string.clipboard_pinned_last_in_place_reason
-                        },
-                    ),
-                    if (pinnedTabs) R.string.clipboard_pinned_tabs_title else R.string.clipboard_pinned_in_place_title,
-                ),
-                default = SettingsDefaults.clipboard.pinnedLast,
-            ) { scope.launch { repository.setClipboardPinnedLast(it) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.clipboard_pinned_in_place_title,
-                stringResource(R.string.clipboard_pinned_in_place_subtitle),
-                settings.watch { it.clipboard.pinnedInPlace },
-                info = stringResource(R.string.clipboard_pinned_in_place_info),
-                default = SettingsDefaults.clipboard.pinnedInPlace,
-            ) { scope.launch { repository.setClipboardPinnedInPlace(it) } }
-        }
-        item(level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.clipboard_pinned_folders_title,
-                stringResource(R.string.clipboard_pinned_folders_subtitle),
-                settings.watch { it.clipboard.pinnedFolders },
-                info = stringResource(R.string.clipboard_pinned_folders_info),
-                default = SettingsDefaults.clipboard.pinnedFolders,
-            ) { scope.launch { repository.setClipboardPinnedFolders(it) } }
-        }
-        // Screenshots, the source app and the paste chip are all read as a
-        // clip is being stored, and nothing is stored with history off. The
-        // Play build has no photos permission to ask for, so no screenshots.
-        if (historyOn && ChannelFeatures.SCREENSHOT_CLIPS) item {
-            val context = LocalContext.current
-            ToggleSetting(
-                R.string.clipboard_screenshots_title,
-                stringResource(R.string.clipboard_screenshots_subtitle),
-                userScreenshots,
-                default = SettingsDefaults.clipboard.userScreenshots,
-            ) { on ->
-                scope.launch { repository.setClipboardUserScreenshots(on) }
-                if (on && !hasImagesPermission(context)) {
-                    runCatching {
-                        context.startActivity(Intent(context, ImagesPermissionActivity::class.java))
-                    }
-                }
-            }
-        }
-        // The guard sits outside item {} on purpose: an item whose body
-        // draws nothing still gets its own card, which showed up as a
-        // sliver of empty surface once the permission was granted.
-        if (historyOn && userScreenshots && ChannelFeatures.SCREENSHOT_CLIPS &&
-            !screenshotsGranted
-        ) {
-            item {
-                val context = LocalContext.current
-                NavRow(
-                    R.string.clipboard_storage_permission_title,
-                    stringResource(R.string.clipboard_storage_permission_subtitle),
-                ) {
-                    runCatching {
-                        context.startActivity(
-                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                                .setData(Uri.parse("package:${context.packageName}"))
-                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-                        )
-                    }
-                }
-            }
-        }
-        if (historyOn) item {
-            val context = LocalContext.current
-            val usageAccess = rememberDisclosedSpecialAccess(SpecialAccess.USAGE)
-            ToggleSetting(
-                R.string.clipboard_track_source_title,
-                stringResource(R.string.clipboard_track_source_subtitle),
-                trackSource,
-                info = stringResource(R.string.clipboard_track_source_info),
-                default = SettingsDefaults.clipboard.trackSource,
-            ) { on ->
-                scope.launch { repository.setClipboardTrackSource(on) }
-                // Disclosure then the grant screen, the first time they
-                // switch it on — but not when it is already granted, which
-                // is the common case for a toggle flipped off and on again.
-                if (on && !hasUsageAccess(context)) usageAccess()
-            }
-        }
-        if (historyOn && trackSource &&
-            !usageAccessGranted
-        ) {
-            item {
-                val usageAccessRow = rememberDisclosedSpecialAccess(SpecialAccess.USAGE)
-                NavRow(
-                    R.string.clipboard_usage_permission_title,
-                    stringResource(R.string.clipboard_usage_permission_subtitle),
-                ) { usageAccessRow() }
-            }
-        }
-    }
-    SettingsGroup(stringResource(R.string.clipboard_suggest_group)) {
-        if (!historyOn) return@SettingsGroup
         item {
-            ToggleSetting(
-                R.string.clipboard_suggest_recent_title,
-                stringResource(R.string.clipboard_suggest_recent_subtitle),
-                suggestRecent,
-                default = SettingsDefaults.clipboard.suggestRecent,
-            ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
-        }
-        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
-            val untilDismissed =
-                stringResource(R.string.clipboard_chip_until_dismissed)
-            val chipMinutesFormat = stringResource(R.string.values_minutes)
-            val secondsFormat = stringResource(R.string.values_seconds)
-            SliderSetting(
-                R.string.clipboard_chip_life_title,
-                subtitle = stringResource(R.string.clipboard_chip_life_subtitle),
-                value = settings.watch { it.clipboard.pasteChipSeconds }.toFloat(),
-                // Steps of 30 s to 30 min, with 0 at the top of the
-                // range reading as a word rather than a duration.
-                range = 0f..1800f,
-                display = { value ->
-                    val secs = (value / 30f).roundToInt() * 30
-                    when {
-                        secs <= 0 -> untilDismissed
-                        secs < 60 -> secondsFormat.format(secs)
-                        else -> chipMinutesFormat.format(secs / 60)
-                    }
-                },
-                info = stringResource(R.string.clipboard_chip_life_info),
-                default = SettingsDefaults.clipboard.pasteChipSeconds.toFloat(),
-                // Seconds, then minutes: a bare number cannot say which.
-                typed = false,
-            ) { value ->
-                val secs = (value / 30f).roundToInt() * 30
-                scope.launch { repository.setPasteChipSeconds(secs) }
-            }
-        }
-        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
-            // Issue #414: the last few copies as a row, FUTO-style.
-            SliderSetting(
-                R.string.clipboard_recent_chips_title,
-                subtitle = stringResource(R.string.clipboard_recent_chips_subtitle),
-                value = settings.watch { it.clipboard.recentChips }.toFloat(),
-                range = 1f..ClipRecentChipsMax.toFloat(),
-                display = { it.toInt().toString() },
-                info = stringResource(R.string.clipboard_recent_chips_info),
-                default = SettingsDefaults.clipboard.recentChips.toFloat(),
-            ) { scope.launch { repository.setClipboardRecentChips(it.toInt()) } }
-        }
-        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
-            ChoiceSetting(
-                title = R.string.clipboard_suggest_codes_title,
-                subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
-                info = stringResource(R.string.clipboard_suggest_codes_info),
-                options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
-                selected = settings.watch { it.clipboard.copiedCodeChip },
-                default = SettingsDefaults.clipboard.copiedCodeChip,
-                detail = { chip -> ChoiceDetail(stringResource(copiedCodeChipDescRes(chip))) },
-            ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
-        }
-        item(level = SettingLevel.STANDARD) {
-            ToggleSetting(
-                R.string.clipboard_entities_title,
-                stringResource(R.string.clipboard_entities_subtitle),
-                detectEntities,
-                info = stringResource(R.string.clipboard_entities_info),
-                default = SettingsDefaults.clipboard.detectEntities,
-            ) { scope.launch { repository.setClipboardDetectEntities(it) } }
-        }
-        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.clipboard_entity_icons_title,
-                stringResource(R.string.clipboard_entity_icons_subtitle),
-                settings.watch { it.clipboard.entityIcons },
-                info = stringResource(R.string.clipboard_entity_icons_info),
-                default = SettingsDefaults.clipboard.entityIcons,
-            ) { scope.launch { repository.setClipboardEntityIcons(it) } }
-        }
-        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.clipboard_entity_to_clipboard_title,
-                stringResource(R.string.clipboard_entity_to_clipboard_subtitle),
-                settings.watch { it.clipboard.entityToClipboard },
-                default = SettingsDefaults.clipboard.entityToClipboard,
-            ) { scope.launch { repository.setClipboardEntityToClipboard(it) } }
-        }
-        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
-            ToggleSetting(
-                R.string.clipboard_fragments_on_strip_title,
-                stringResource(R.string.clipboard_fragments_on_strip_subtitle),
-                settings.watch { it.clipboard.fragmentsOnStrip },
-                info = stringResource(R.string.clipboard_fragments_on_strip_info),
-                default = SettingsDefaults.clipboard.fragmentsOnStrip,
-            ) { scope.launch { repository.setClipboardFragmentsOnStrip(it) } }
-        }
-        // The number chips are the ones that go wrong, because a phone
-        // number is the one fragment with no shape of its own. This row
-        // is where the user gives it one.
-        // Before the history keeps a copy, the user's own patterns tidy it (#612).
-        item(level = SettingLevel.STANDARD) {
-            val count = settings.watch { it.clipboard.copyRules.size }
             NavRow(
-                R.string.clipboard_copy_rules_title,
-                subtitle = if (count == 0) {
-                    stringResource(R.string.clipboard_copy_rules_subtitle)
-                } else {
-                    pluralStringResource(R.plurals.clipboard_copy_rules_count_subtitle, count, count)
-                },
-                route = "cliprules",
-                onClick = { onNavigate("cliprules") },
-            )
+                R.string.clipboard_page_chips_title,
+                stringResource(R.string.clipboard_page_chips_subtitle),
+                route = "clipboard/chips",
+            ) { onNavigate("clipboard/chips") }
         }
-        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
-            val count = settings.watch { it.clipboard.phoneFormats.size }
+        item {
             NavRow(
-                R.string.clipboard_phone_formats_title,
-                subtitle = if (count == 0) {
-                    stringResource(R.string.clipboard_phone_formats_subtitle)
-                } else {
-                    pluralStringResource(
-                        R.plurals.clipboard_phone_formats_count_subtitle,
-                        count,
-                        count,
-                    )
-                },
-                route = "phoneformats",
-                onClick = { onNavigate("phoneformats") },
-            )
+                R.string.clipboard_page_rules_title,
+                stringResource(R.string.clipboard_page_rules_subtitle),
+                route = "clipboard/rules",
+            ) { onNavigate("clipboard/rules") }
         }
     }
     SettingsGroup(stringResource(R.string.clipboard_panel_group), level = SettingLevel.ADVANCED) {
@@ -1275,6 +982,385 @@ internal fun ClipboardSettings(
                 info = stringResource(R.string.clipboard_toast_info),
                 default = SettingsDefaults.feedback.toastOnCopy,
             ) { scope.launch { repository.setToastOnCopy(it) } }
+        }
+    }
+}
+
+/**
+ * Clipboard history: how much of it is kept, where pinned clips sit, and the
+ * two extra things a clip can carry (a screenshot, the app it came from).
+ */
+@Composable
+internal fun ClipboardHistorySettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    // What decides which rows the groups hold; each row reads its own value.
+    val historyOn = settings.watch { it.clipboard.history }
+    val userScreenshots = settings.watch { it.clipboard.userScreenshots }
+    val trackSource = settings.watch { it.clipboard.trackSource }
+    val numberFormat = stringResource(R.string.values_number)
+    val hoursFormat = stringResource(R.string.values_hours)
+    // Both grants happen on a system screen, so they are read through
+    // rememberGrantState: the rows below disappear as soon as we come back
+    // with the permission in hand, instead of on the next unrelated redraw.
+    val screenshotsGranted = rememberGrantState(::hasImagesPermission)
+    val usageAccessGranted = rememberGrantState(::hasUsageAccess)
+    SettingsGroup(stringResource(R.string.clipboard_limits_group)) {
+        item(level = SettingLevel.STANDARD) {
+            // Stops, with no cap at all as the last one (#414). A value from
+            // before the stops shows at the nearest one until it is moved.
+            val unlimited = stringResource(R.string.clipboard_max_unlimited)
+            val steps = ClipMaxItemsSteps
+            val stored = settings.watch { it.clipboard.maxItems }
+            val index = if (stored <= 0) {
+                steps.lastIndex
+            } else {
+                steps.indices.filter { steps[it] > 0 }.minByOrNull { kotlin.math.abs(steps[it] - stored) } ?: 0
+            }
+            SliderSetting(
+                R.string.clipboard_max_title,
+                subtitle = stringResource(R.string.clipboard_max_subtitle),
+                value = index.toFloat(),
+                range = 0f..steps.lastIndex.toFloat(),
+                display = {
+                    val items = steps[it.roundToInt().coerceIn(steps.indices)]
+                    if (items == 0) unlimited else numberFormat.format(items)
+                },
+                info = stringResource(R.string.clipboard_max_info),
+                default = steps.indexOf(SettingsDefaults.clipboard.maxItems).coerceAtLeast(0).toFloat(),
+            ) { scope.launch { repository.setClipboardMaxItems(steps[it.roundToInt().coerceIn(steps.indices)]) } }
+        }
+        item(level = SettingLevel.STANDARD) {
+            // The readout lambda is not composable, so the "never" word
+            // is resolved here and captured, like the hours format.
+            val never = stringResource(R.string.clipboard_expiry_never)
+            SliderSetting(
+                R.string.clipboard_expiry_title,
+                subtitle = stringResource(R.string.clipboard_expiry_subtitle),
+                value = settings.watch { it.clipboard.expiryHours }.toFloat(),
+                range = 0f..168f,
+                display = { if (it.toInt() == 0) never else hoursFormat.format(it.toInt()) },
+                default = SettingsDefaults.clipboard.expiryHours.toFloat(),
+            ) { scope.launch { repository.setClipboardExpiryHours(it.toInt()) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            // A slider over a handful of stops rather than every number: the
+            // choice is "about how much", and a round figure is one the user
+            // can set again.
+            val none = stringResource(R.string.clipboard_max_chars_none)
+            val steps = ClipMaxTextCharsSteps
+            val stored = settings.watch { it.clipboard.maxTextChars }
+            val index = steps.indices.minByOrNull { kotlin.math.abs(steps[it] - stored) } ?: 0
+            SliderSetting(
+                R.string.clipboard_max_chars_title,
+                subtitle = stringResource(R.string.clipboard_max_chars_subtitle),
+                value = index.toFloat(),
+                range = 0f..steps.lastIndex.toFloat(),
+                display = {
+                    val chars = steps[it.roundToInt().coerceIn(steps.indices)]
+                    if (chars == 0) none else numberFormat.format(chars)
+                },
+                info = stringResource(R.string.clipboard_max_chars_info),
+                default = steps.indexOf(SettingsDefaults.clipboard.maxTextChars).coerceAtLeast(0).toFloat(),
+            ) { scope.launch { repository.setClipboardMaxTextChars(steps[it.roundToInt().coerceIn(steps.indices)]) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.clipboard_pinned_group)) {
+        item(level = SettingLevel.ADVANCED) {
+            // The tabs put pinned clips on a tab of their own, where there is
+            // no end of the list left for them to go to.
+            val pinnedTabs = settings.watch { it.clipboard.pinnedTabs }
+            ToggleSetting(
+                R.string.clipboard_pinned_last_title,
+                stringResource(R.string.clipboard_pinned_last_subtitle),
+                settings.watch { it.clipboard.pinnedLast },
+                enabled = !pinnedTabs && !settings.watch { it.clipboard.pinnedInPlace },
+                // Whichever of the two is holding it is the switch to send
+                // the user to; the tabs first, as they are the one drawn first.
+                disabledReason = rememberDisabledReason(
+                    stringResource(
+                        if (pinnedTabs) {
+                            R.string.clipboard_pinned_last_tabs_reason
+                        } else {
+                            R.string.clipboard_pinned_last_in_place_reason
+                        },
+                    ),
+                    if (pinnedTabs) R.string.clipboard_pinned_tabs_title else R.string.clipboard_pinned_in_place_title,
+                ),
+                default = SettingsDefaults.clipboard.pinnedLast,
+            ) { scope.launch { repository.setClipboardPinnedLast(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_pinned_in_place_title,
+                stringResource(R.string.clipboard_pinned_in_place_subtitle),
+                settings.watch { it.clipboard.pinnedInPlace },
+                info = stringResource(R.string.clipboard_pinned_in_place_info),
+                default = SettingsDefaults.clipboard.pinnedInPlace,
+            ) { scope.launch { repository.setClipboardPinnedInPlace(it) } }
+        }
+        item(level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_pinned_folders_title,
+                stringResource(R.string.clipboard_pinned_folders_subtitle),
+                settings.watch { it.clipboard.pinnedFolders },
+                info = stringResource(R.string.clipboard_pinned_folders_info),
+                default = SettingsDefaults.clipboard.pinnedFolders,
+            ) { scope.launch { repository.setClipboardPinnedFolders(it) } }
+        }
+    }
+    // Nothing is stored with history off, so there is nothing for these to
+    // ride along with; the group goes rather than standing empty.
+    if (historyOn) SettingsGroup(stringResource(R.string.clipboard_sources_group)) {
+        // Screenshots, the source app and the paste chip are all read as a
+        // clip is being stored, and nothing is stored with history off. The
+        // Play build has no photos permission to ask for, so no screenshots.
+        if (historyOn && ChannelFeatures.SCREENSHOT_CLIPS) item {
+            val context = LocalContext.current
+            ToggleSetting(
+                R.string.clipboard_screenshots_title,
+                stringResource(R.string.clipboard_screenshots_subtitle),
+                userScreenshots,
+                default = SettingsDefaults.clipboard.userScreenshots,
+            ) { on ->
+                scope.launch { repository.setClipboardUserScreenshots(on) }
+                if (on && !hasImagesPermission(context)) {
+                    runCatching {
+                        context.startActivity(Intent(context, ImagesPermissionActivity::class.java))
+                    }
+                }
+            }
+        }
+        // The guard sits outside item {} on purpose: an item whose body
+        // draws nothing still gets its own card, which showed up as a
+        // sliver of empty surface once the permission was granted.
+        if (historyOn && userScreenshots && ChannelFeatures.SCREENSHOT_CLIPS &&
+            !screenshotsGranted
+        ) {
+            item {
+                val context = LocalContext.current
+                NavRow(
+                    R.string.clipboard_storage_permission_title,
+                    stringResource(R.string.clipboard_storage_permission_subtitle),
+                ) {
+                    runCatching {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                                .setData(Uri.parse("package:${context.packageName}"))
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        )
+                    }
+                }
+            }
+        }
+        if (historyOn) item {
+            val context = LocalContext.current
+            val usageAccess = rememberDisclosedSpecialAccess(SpecialAccess.USAGE)
+            ToggleSetting(
+                R.string.clipboard_track_source_title,
+                stringResource(R.string.clipboard_track_source_subtitle),
+                trackSource,
+                info = stringResource(R.string.clipboard_track_source_info),
+                default = SettingsDefaults.clipboard.trackSource,
+            ) { on ->
+                scope.launch { repository.setClipboardTrackSource(on) }
+                // Disclosure then the grant screen, the first time they
+                // switch it on — but not when it is already granted, which
+                // is the common case for a toggle flipped off and on again.
+                if (on && !hasUsageAccess(context)) usageAccess()
+            }
+        }
+        if (historyOn && trackSource &&
+            !usageAccessGranted
+        ) {
+            item {
+                val usageAccessRow = rememberDisclosedSpecialAccess(SpecialAccess.USAGE)
+                NavRow(
+                    R.string.clipboard_usage_permission_title,
+                    stringResource(R.string.clipboard_usage_permission_subtitle),
+                ) { usageAccessRow() }
+            }
+        }
+    }
+}
+
+/**
+ * The paste chip and the codes, numbers and links found in a clip: everything
+ * the history puts on the suggestion strip.
+ */
+@Composable
+internal fun ClipboardChipsSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+) {
+    val scope = rememberCoroutineScope()
+    // What decides which rows the groups hold; each row reads its own value.
+    val historyOn = settings.watch { it.clipboard.history }
+    val suggestRecent = settings.watch { it.clipboard.suggestRecent }
+    val detectEntities = settings.watch { it.clipboard.detectEntities }
+    // Every row here reads a clip as it is stored, and nothing is stored with
+    // history off. The banner says so and offers the switch, where the old
+    // group simply drew nothing.
+    if (!historyOn) {
+        StateBanner(
+            stringResource(R.string.clipboard_history_off_banner),
+            action = stringResource(R.string.clipboard_history_off_action),
+        ) { scope.launch { repository.setClipboardHistory(true) } }
+        return
+    }
+    SettingsGroup(stringResource(R.string.clipboard_chip_group)) {
+        item {
+            ToggleSetting(
+                R.string.clipboard_suggest_recent_title,
+                stringResource(R.string.clipboard_suggest_recent_subtitle),
+                suggestRecent,
+                default = SettingsDefaults.clipboard.suggestRecent,
+            ) { scope.launch { repository.setClipboardSuggestRecent(it) } }
+        }
+        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
+            val untilDismissed =
+                stringResource(R.string.clipboard_chip_until_dismissed)
+            val chipMinutesFormat = stringResource(R.string.values_minutes)
+            val secondsFormat = stringResource(R.string.values_seconds)
+            SliderSetting(
+                R.string.clipboard_chip_life_title,
+                subtitle = stringResource(R.string.clipboard_chip_life_subtitle),
+                value = settings.watch { it.clipboard.pasteChipSeconds }.toFloat(),
+                // Steps of 30 s to 30 min, with 0 at the top of the
+                // range reading as a word rather than a duration.
+                range = 0f..1800f,
+                display = { value ->
+                    val secs = (value / 30f).roundToInt() * 30
+                    when {
+                        secs <= 0 -> untilDismissed
+                        secs < 60 -> secondsFormat.format(secs)
+                        else -> chipMinutesFormat.format(secs / 60)
+                    }
+                },
+                info = stringResource(R.string.clipboard_chip_life_info),
+                default = SettingsDefaults.clipboard.pasteChipSeconds.toFloat(),
+                // Seconds, then minutes: a bare number cannot say which.
+                typed = false,
+            ) { value ->
+                val secs = (value / 30f).roundToInt() * 30
+                scope.launch { repository.setPasteChipSeconds(secs) }
+            }
+        }
+        item(visible = suggestRecent, level = SettingLevel.ADVANCED) {
+            // Issue #414: the last few copies as a row, FUTO-style.
+            SliderSetting(
+                R.string.clipboard_recent_chips_title,
+                subtitle = stringResource(R.string.clipboard_recent_chips_subtitle),
+                value = settings.watch { it.clipboard.recentChips }.toFloat(),
+                range = 1f..ClipRecentChipsMax.toFloat(),
+                display = { it.toInt().toString() },
+                info = stringResource(R.string.clipboard_recent_chips_info),
+                default = SettingsDefaults.clipboard.recentChips.toFloat(),
+            ) { scope.launch { repository.setClipboardRecentChips(it.toInt()) } }
+        }
+        item(visible = suggestRecent, level = SettingLevel.STANDARD) {
+            ChoiceSetting(
+                title = R.string.clipboard_suggest_codes_title,
+                subtitle = stringResource(R.string.clipboard_suggest_codes_subtitle),
+                info = stringResource(R.string.clipboard_suggest_codes_info),
+                options = CopiedCodeChip.entries.map { it to stringResource(it.labelRes) },
+                selected = settings.watch { it.clipboard.copiedCodeChip },
+                default = SettingsDefaults.clipboard.copiedCodeChip,
+                detail = { chip -> ChoiceDetail(stringResource(copiedCodeChipDescRes(chip))) },
+            ) { scope.launch { repository.setClipboardCopiedCodeChip(it) } }
+        }
+    }
+    SettingsGroup(stringResource(R.string.clipboard_entities_group)) {
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.clipboard_entities_title,
+                stringResource(R.string.clipboard_entities_subtitle),
+                detectEntities,
+                info = stringResource(R.string.clipboard_entities_info),
+                default = SettingsDefaults.clipboard.detectEntities,
+            ) { scope.launch { repository.setClipboardDetectEntities(it) } }
+        }
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_entity_icons_title,
+                stringResource(R.string.clipboard_entity_icons_subtitle),
+                settings.watch { it.clipboard.entityIcons },
+                info = stringResource(R.string.clipboard_entity_icons_info),
+                default = SettingsDefaults.clipboard.entityIcons,
+            ) { scope.launch { repository.setClipboardEntityIcons(it) } }
+        }
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_entity_to_clipboard_title,
+                stringResource(R.string.clipboard_entity_to_clipboard_subtitle),
+                settings.watch { it.clipboard.entityToClipboard },
+                default = SettingsDefaults.clipboard.entityToClipboard,
+            ) { scope.launch { repository.setClipboardEntityToClipboard(it) } }
+        }
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.clipboard_fragments_on_strip_title,
+                stringResource(R.string.clipboard_fragments_on_strip_subtitle),
+                settings.watch { it.clipboard.fragmentsOnStrip },
+                info = stringResource(R.string.clipboard_fragments_on_strip_info),
+                default = SettingsDefaults.clipboard.fragmentsOnStrip,
+            ) { scope.launch { repository.setClipboardFragmentsOnStrip(it) } }
+        }
+    }
+}
+
+/**
+ * Rules and privacy: the rules a copy goes through before the history keeps
+ * it, the phone-number masks, and how a password or a code is handled.
+ */
+@Composable
+internal fun ClipboardRulesSettings(
+    repository: SettingsRepository,
+    settings: LiveSettings,
+    onNavigate: (String) -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    // What decides which rows the groups hold; each row reads its own value.
+    val historyOn = settings.watch { it.clipboard.history }
+    val detectEntities = settings.watch { it.clipboard.detectEntities }
+    val sensitiveHandling = settings.watch { it.clipboard.sensitiveHandling }
+    val minutesFormat = stringResource(R.string.values_minutes)
+    SettingsGroup(stringResource(R.string.clipboard_rules_group)) {
+        // The number chips are the ones that go wrong, because a phone
+        // number is the one fragment with no shape of its own. This row
+        // is where the user gives it one.
+        // Before the history keeps a copy, the user's own patterns tidy it (#612).
+        item(level = SettingLevel.STANDARD) {
+            val count = settings.watch { it.clipboard.copyRules.size }
+            NavRow(
+                R.string.clipboard_copy_rules_title,
+                subtitle = if (count == 0) {
+                    stringResource(R.string.clipboard_copy_rules_subtitle)
+                } else {
+                    pluralStringResource(R.plurals.clipboard_copy_rules_count_subtitle, count, count)
+                },
+                route = "cliprules",
+                onClick = { onNavigate("cliprules") },
+            )
+        }
+        item(visible = detectEntities, level = SettingLevel.ADVANCED) {
+            val count = settings.watch { it.clipboard.phoneFormats.size }
+            NavRow(
+                R.string.clipboard_phone_formats_title,
+                subtitle = if (count == 0) {
+                    stringResource(R.string.clipboard_phone_formats_subtitle)
+                } else {
+                    pluralStringResource(
+                        R.plurals.clipboard_phone_formats_count_subtitle,
+                        count,
+                        count,
+                    )
+                },
+                route = "phoneformats",
+                onClick = { onNavigate("phoneformats") },
+            )
         }
     }
     SettingsGroup(stringResource(R.string.clipboard_sensitive_group)) {
