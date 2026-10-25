@@ -9,6 +9,7 @@ import com.wasimaster.wmkeyboard.app.updates.UpdateChannel
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.barcode.BarcodeEngine
 import com.wasimaster.wmkeyboard.core.settings.AutomationPermission
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.providers.ProviderType
@@ -2717,6 +2718,10 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.langemoji_kaomoji_title, "kaomoji/tags",
             parent = R.string.langemoji_emoji_panel_title,
         ),
+        // The Extensions screen is a root row; each bundle's page hangs off it.
+        *Extension.entries.map { extension ->
+            under(extensionTitle(extension), extensionDescription(extension), R.string.extensions_title, extensionRoute(extension))
+        }.toTypedArray(),
         // What sits behind Advanced.
         under(R.string.home_modes_title, R.string.home_modes_subtitle, R.string.home_advanced_title, "modes", R.string.search_kw_modes),
         under(R.string.home_addons_title, R.string.home_addons_subtitle, R.string.home_advanced_title, "addons", R.string.search_kw_addons),

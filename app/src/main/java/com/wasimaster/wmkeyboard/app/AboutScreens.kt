@@ -78,6 +78,7 @@ import com.wasimaster.wmkeyboard.core.settings.OnboardingSettings
 import com.wasimaster.wmkeyboard.core.settings.PersonaDepth
 import com.wasimaster.wmkeyboard.core.settings.PersonaLanguages
 import com.wasimaster.wmkeyboard.core.settings.SettingLinkMode
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.isTelevision
@@ -1358,6 +1359,7 @@ internal fun AboutSettings(
     // Read out here because the group's builder below is not composable.
     val canDropLanguageSwitch = !AppLanguage.canChoose && languageSwitchCanBeDropped()
 
+    val extensions = LocalExtensions.current
     SettingsGroup(
         stringResource(R.string.about_app_title),
         info = stringResource(R.string.about_free_software_body),
@@ -1468,7 +1470,8 @@ internal fun AboutSettings(
                 onClick = onOpenStorage,
             )
         }
-        item(level = SettingLevel.STANDARD) {
+        // Owned by the Statistics extension: gone with it.
+        item(visible = Extension.STATISTICS in extensions, level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.statistics_title,
                 stringResource(R.string.statistics_subtitle),

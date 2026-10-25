@@ -6686,6 +6686,15 @@ data class AppUiSettings(
      * the onboarding answer until the user picks for themselves.
      */
     val settingsDepth: SettingsDepth = SettingsDepth.AUTO,
+    /**
+     * The feature bundles switched on (SETTINGS_REDESIGN.md §3), or null for
+     * an install that has never chosen, which keeps everything on. Read
+     * through [KeyboardSettings.extensionsResolved]. Here with the other
+     * settings-app state because the screen that edits it is the settings
+     * app's, though the keyboard reads it too: [KeyboardSettings.enabledTools]
+     * is read with a bundle's tools already taken out while it is off.
+     */
+    val extensions: Set<Extension>? = null,
 )
 
 /** See [AppUiSettings.settingLinks]. */
@@ -6823,12 +6832,20 @@ fun KeyboardSettings.themeGalleryGrouped(): Boolean = when (appUi.themeGallerySt
  * row that is not tagged advanced.
  */
 fun KeyboardSettings.settingsDepthResolved(): SettingsDepth = when (appUi.settingsDepth) {
-    SettingsDepth.AUTO -> when (onboarding.personaDepth) {
-        PersonaDepth.MINIMAL -> SettingsDepth.SIMPLE
-        PersonaDepth.POWER -> SettingsDepth.EVERYTHING
-        PersonaDepth.BALANCED, PersonaDepth.UNSET -> SettingsDepth.STANDARD
-    }
+    SettingsDepth.AUTO -> onboarding.personaDepth.settingsDepth()
     else -> appUi.settingsDepth
+}
+
+/**
+ * The depth an onboarding answer stands for: "keep it simple" is
+ * [SettingsDepth.SIMPLE], "show me everything" [SettingsDepth.EVERYTHING], and
+ * the middle answer or none at all [SettingsDepth.STANDARD]. Never
+ * [SettingsDepth.AUTO]. Onboarding lands [Extension.defaultsFor] this.
+ */
+fun PersonaDepth.settingsDepth(): SettingsDepth = when (this) {
+    PersonaDepth.MINIMAL -> SettingsDepth.SIMPLE
+    PersonaDepth.POWER -> SettingsDepth.EVERYTHING
+    PersonaDepth.BALANCED, PersonaDepth.UNSET -> SettingsDepth.STANDARD
 }
 
 /**
@@ -10641,6 +10658,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_FAVOURITES_BUTTON = booleanPreferencesKey("settings_favourites_button")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SETTINGS_DEPTH = stringPreferencesKey("settings_depth")
+        private val EXTENSIONS_ENABLED = stringSetPreferencesKey("extensions_enabled")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
         private val SYMBOL_ROW_SCROLL = stringPreferencesKey("symbol_row_scroll")
@@ -11948,7 +11966,15 @@ class SettingsRepository(private val context: Context) {
                 ?.let { runCatching { EmojiInsertMode.valueOf(it) }.getOrNull() }
                 ?: defaults.emojiInsertMode,
             emoji = readEmoji(p, defaults),
-            enabledTools = ToolbarTool.entries - decodeDisabledTools(p[DISABLED_TOOLS]) - ActionOnlyTools,
+            // A bundle that is off takes its tools out here, at the one read
+            // every toolbar, toolbox, picker and panel goes through, so none of
+            // them has to know about bundles; the user's own on/off choice for
+            // those tools stays stored and comes back with the bundle.
+            enabledTools = (ToolbarTool.entries - decodeDisabledTools(p[DISABLED_TOOLS]) - ActionOnlyTools)
+                .let { tools ->
+                    val bundles = p[EXTENSIONS_ENABLED]?.let(Extension::decode) ?: Extension.All
+                    tools.filter(bundles::allows)
+                },
             toolboxOrder = decodeToolOrder(p[TOOLBOX_ORDER]),
             toolboxHintDismissed = p[TOOLBOX_HINT_DISMISSED] ?: defaults.toolboxHintDismissed,
             toolbox = readToolbox(p, defaults),
@@ -12526,6 +12552,7 @@ class SettingsRepository(private val context: Context) {
             settingsDepth = p[SETTINGS_DEPTH]
                 ?.let { runCatching { SettingsDepth.valueOf(it) }.getOrNull() }
                 ?: defaults.appUi.settingsDepth,
+            extensions = p[EXTENSIONS_ENABLED]?.let(Extension::decode),
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -20057,6 +20084,45 @@ class SettingsRepository(private val context: Context) {
     /** See [AppUiSettings.settingsDepth]. */
     suspend fun setSettingsDepth(value: SettingsDepth) =
         editPrefs { it[SETTINGS_DEPTH] = value.name }
+
+    /**
+     * Replaces the whole set of bundles that are on; see
+     * [AppUiSettings.extensions]. Onboarding lands the depth's defaults
+     * through this. Touches no master switch: a default is not a choice.
+     */
+    suspend fun setExtensions(value: Set<Extension>) =
+        editPrefs { it[EXTENSIONS_ENABLED] = value.mapTo(LinkedHashSet()) { ext -> ext.name } }
+
+    /**
+     * Switches one bundle on or off, and moves the master switch the bundle
+     * already had (voice on, clipboard history, keyboard modes, selection
+     * actions, the physical keyboard, statistics, the floating button) with
+     * it, so the two never disagree: a bundle switched off stops its
+     * background work the way its own switch always has, and switched back
+     * on it works at once. The plugin subsystem's switch is in its own store
+     * and is moved by the Extensions screen.
+     */
+    suspend fun setExtensionEnabled(extension: Extension, enabled: Boolean) {
+        editPrefs { prefs ->
+            val now = prefs[EXTENSIONS_ENABLED]?.let(Extension::decode) ?: Extension.All
+            val next = if (enabled) now + extension else now - extension
+            prefs[EXTENSIONS_ENABLED] = next.mapTo(LinkedHashSet()) { ext -> ext.name }
+            extensionMasterSwitch(extension)?.let { prefs[it] = enabled }
+        }
+        // Its own store: the floating button's keys fold a legacy layout first.
+        if (extension == Extension.FLOATING_BUTTON) setSummonButton(enabled)
+    }
+
+    /** The master switch a bundle carries in the main store, or null. */
+    private fun extensionMasterSwitch(extension: Extension): Preferences.Key<Boolean>? = when (extension) {
+        Extension.VOICE -> VOICE_ENABLED
+        Extension.CLIPBOARD -> CLIPBOARD_HISTORY
+        Extension.MODES -> MODES_ENABLED
+        Extension.SELECTION_ACTIONS -> SELECTION_MACROS_ENABLED
+        Extension.HARDWARE_KEYBOARD -> HARDWARE_KEYBOARD_INPUT
+        Extension.STATISTICS -> TYPING_STATS_ENABLED
+        else -> null
+    }
 
     suspend fun setWeatherRefreshMinutes(value: Int) =
         editPrefs { it[WEATHER_REFRESH_MINUTES] = value.coerceIn(1, 180) }

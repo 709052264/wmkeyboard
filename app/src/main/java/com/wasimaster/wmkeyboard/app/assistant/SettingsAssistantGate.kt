@@ -3,6 +3,8 @@ package com.wasimaster.wmkeyboard.app.assistant
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.app.SettingsSearchEntry
 import com.wasimaster.wmkeyboard.core.settings.KeyboardSettings
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionOn
 
 /**
  * What "Offer the Settings assistant" turned off hides (#830), in one place so
@@ -13,7 +15,9 @@ internal object SettingsAssistantGate {
 
     const val ROUTE = "settings_assistant"
 
-    fun offered(settings: KeyboardSettings): Boolean = settings.appUi.settingsAssistant
+    /** Its own switch (#830), and the AI bundle it belongs to (Extensions). */
+    fun offered(settings: KeyboardSettings): Boolean =
+        settings.appUi.settingsAssistant && settings.extensionOn(Extension.AI)
 
     /** A search result that would lead to the assistant: its row, or its route. */
     fun opensAssistant(entry: SettingsSearchEntry): Boolean =

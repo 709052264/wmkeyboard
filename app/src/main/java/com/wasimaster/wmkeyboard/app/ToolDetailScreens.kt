@@ -335,7 +335,8 @@ internal fun ToolPickerDialog(
         }
     }
     val offered = options.toSet()
-    val grouped = ToolGroups.map { (titleRes, tools) -> titleRes to tools.filter { it in offered } }
+    val grouped = ToolGroups.withExtensions(LocalExtensions.current)
+        .map { (titleRes, tools) -> titleRes to tools.filter { it in offered } }
     val placed = grouped.flatMapTo(HashSet()) { it.second }
     val leftovers = options.filter { it !in placed }
     val groups = buildList {

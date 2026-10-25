@@ -9,7 +9,7 @@ sidebar:
 import PhoneFrame from '@components/PhoneFrame.astro';
 import Shot from '@components/Shot.astro';
 
-WM Keyboard's settings app opens on a Home screen: seventeen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
+WM Keyboard's settings app opens on a Home screen: eighteen rows, sorted into six groups. Tap a row to open its screen. Tap the magnifier at the top to search across almost everything in one field.
 
 <PhoneFrame caption="The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card.">
   <Shot id="reference/settings/home-screen" alt="The Home screen: Typing, Keyboard, Features, Accessibility, Data and About, each its own card." />
@@ -41,6 +41,7 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
 - [Text expansion](/tools/snippets/#options): your snippets, their triggers and patterns, and the template variables. Documented on the Snippets guide page for the same reason
 - AI: the two AI tools with their switches, [Search by meaning](/smart/search-by-meaning/), the chat, the settings assistant, [Memory](/tools/ai-memory/) and the history, all in one place. Each row opens the same screen it opens from Tools, so the [AI tools](/tools/ai/) and [AI chat](/tools/ai-chat/) guide pages document them. The provider, key and model stay on the AI writing tools screen, because AI reply, the chat and the settings assistant use the same ones
 - [Tools](/reference/settings/tools/): the master tool list. Each tool's own screen is documented on its guide page, not here
+- [Extensions](/reference/settings/extensions/): whole features switched on or off as one thing, from AI to Statistics. A bundle that is off leaves Home, Tools, search, the toolbar and the toolbox together
   - [Phone number formats](/reference/settings/phone-formats/): the clipboard's phone-number masks, reached from the Clipboard screen. It's the one per-tool sub-screen with a page here, because the mask syntax needs the room
 
 **Accessibility**
@@ -63,7 +64,7 @@ Home has no toggles of its own. It's pure navigation, plus the [setup card](/sta
 - [About & diagnostics](/reference/settings/about/): version, licence, open-source notices, updates, storage, diagnostics
   - [Statistics](/reference/settings/statistics/): how much you type, and the switch that stops the counting
 
-That's 31 screens in total: the 17 Home rows, plus fourteen sub-screens (Dictionaries, Themes, Fonts, Icons, Key layouts, Phone number formats, Permissions, Keyboard modes, Addons, Data saver, Servers, Notifications, Selection actions, Statistics). Every one of them has its own page in this section except Notifications, which is covered above instead.
+That's 32 screens in total: the 18 Home rows, plus fourteen sub-screens (Dictionaries, Themes, Fonts, Icons, Key layouts, Phone number formats, Permissions, Keyboard modes, Addons, Data saver, Servers, Notifications, Selection actions, Statistics). Every one of them has its own page in this section except Notifications, which is covered above instead.
 
 ## Searching instead of browsing
 
@@ -90,7 +91,7 @@ None of that runs when [Reduce motion](/reference/settings/accessibility/) is on
 
 The settings app shows one of three depths: **Simple**, **Standard** or **Everything**. Simple is about what other keyboards offer. Standard adds the common extras. Everything is every row on every page. The depth starts from your answer to the setup wizard's "What kind of keyboard do you want?", and you can change it at any time. The first row on Home says which depth is showing and opens the picker. A page that folded something away says so under its last group, with a **Change** button. The same choice sits under [Accessibility › Settings app](/reference/settings/accessibility/#settings-app).
 
-Nothing is removed at any depth. A setting above the depth moves behind a **more settings** row at the end of its group. Tap it and the rows grow in under it, and the group remembers that you opened it. At Simple, Home's Rows & bars, Text expansion, AI, Backup & restore and Advanced rows sit in a closed **More** group at the end of the list, named on it. Search finds every row at every depth and opens the fold it lands in, and so does a favourite. The pages in this section describe every setting, whichever depth you are on.
+Nothing is removed at any depth. A setting above the depth moves behind a **more settings** row at the end of its group. Tap it and the rows grow in under it, and the group remembers that you opened it. At Simple, Home's Rows & bars, Text expansion, AI, Backup & restore and Advanced rows sit in a closed **More** group at the end of the list, named on it. A Home row that belongs to a switched-off [extension](/reference/settings/extensions/) is not on the list at all, at any depth. Search finds every row at every depth and opens the fold it lands in, and so does a favourite. The pages in this section describe every setting, whichever depth you are on.
 
 ## Putting one setting back
 

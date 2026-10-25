@@ -46,6 +46,8 @@ import com.wasimaster.wmkeyboard.core.settings.ToolBlocker
 import com.wasimaster.wmkeyboard.core.settings.toolBlocker
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.settings.Extension
+import com.wasimaster.wmkeyboard.core.settings.extensionsResolved
 import kotlinx.coroutines.launch
 
 // ---- tools ----
@@ -299,14 +301,14 @@ internal fun toolIconFor(tool: ToolbarTool): androidx.compose.ui.graphics.vector
  * names that are searched: a Bengali install is searched in Bengali.
  */
 @Composable
-private fun rememberToolSearchIndex(): Map<ToolbarTool, String> {
+private fun rememberToolSearchIndex(extensions: Set<Extension>): Map<ToolbarTool, String> {
     val resources = LocalContext.current.resources
     // The configuration is the composition's own handle on the locale, so a
     // language change rebuilds the index rather than leaving last language's
     // words in it.
     val configuration = LocalConfiguration.current
-    return remember(resources, configuration) {
-        ToolGroups.flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
+    return remember(resources, configuration, extensions) {
+        ToolGroups.withExtensions(extensions).flatMapTo(LinkedHashSet()) { it.second }.associateWith { tool ->
             normalizeForSearch(
                 resources.getString(toolTitle(tool)) + ' ' +
                     resources.getString(toolDescription(tool)),
@@ -364,7 +366,10 @@ internal fun ToolsSettings(
     onOpenTool: (ToolbarTool) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val searchIndex = rememberToolSearchIndex()
+    // A switched-off bundle's tools (Extensions) are not on this list, in
+    // its search, or in any picker built from the same groups.
+    val extensions = settings.watch { it.extensionsResolved() }
+    val searchIndex = rememberToolSearchIndex(extensions)
     // Every word of the query has to be somewhere in the tool's name or its
     // description. Substring rather than whole word, because a name is found
     // halfway through typing it.
@@ -450,7 +455,7 @@ internal fun ToolsSettings(
         onChange = { scope.launch { repository.setSplitToolPanels(it) } },
         default = SettingsDefaults.appUi.splitToolPanels,
     )
-    val groups = if (splitPanels) SplitToolGroups else ToolGroups
+    val groups = (if (splitPanels) SplitToolGroups else ToolGroups).withExtensions(extensions)
     // Only the group titles need a composition; each grouping itself is fixed.
     val allGroups = groups.map { (title, tools) -> stringResource(title) to tools }
     // Resolved once per grouping, not per recomposition: the keys go into

@@ -354,6 +354,7 @@
     <string name="search_kw_applock">fingerprint, biometric, touch id, face unlock, app lock, lock, unlock, padlock, pin, password, pattern, passcode, protect, secure, privacy lock</string>
     <string name="search_kw_notifications">notification, notifications, shade, status bar, alerts, download finished, update installed, backup failed, keyboard controls, pin keyboard</string>
     <string name="search_kw_datasaver">mobile data, cellular, metered, roaming, wifi only, data usage, bandwidth, offline, save data</string>
+    <string name="search_kw_extensions">features, bundles, switch off, remove, hide, less, simpler, turn off, disable, plugins, ai, voice, clipboard, notes</string>
     <string name="search_kw_advanced">power user, expert, hidden, extra, modes, add-ons, data saver</string>
     <string name="search_kw_backup">export, import, transfer, migrate, restore, copy settings, new phone</string>
     <string name="search_kw_accessibility">talkback, screen reader, contrast, colour blind, large text, motion</string>

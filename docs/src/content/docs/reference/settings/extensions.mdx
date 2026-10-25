@@ -1,0 +1,75 @@
+---
+title: "Extensions"
+description: "Whole features switched on or off as one thing: what each bundle carries, what leaves the app when it is off, and how the defaults follow the settings depth."
+sidebar:
+  order: 16
+---
+
+import SettingsPath from '@components/SettingsPath.astro';
+
+The Extensions screen is a list of feature bundles with one switch each. A bundle is bigger than a tool. AI, for example, is two tools, a chat, the settings assistant, a memory screen and a button on every settings page. Switching the bundle off takes all of that away at once, from everywhere it showed. Switching it back on brings it back with the settings it had.
+
+<SettingsPath path="Extensions" />
+
+Reach it from Home, under **Features**, or from the first row of <SettingsPath path="Advanced" />. The deep link is `wmkeyboard://settings/extensions`, and each bundle's own page answers to `wmkeyboard://settings/extension/NAME`, where the name is the one in the table below.
+
+## What "off" means
+
+A bundle that is off is gone, not greyed out:
+
+- Its row leaves Home, and its rows leave Advanced.
+- Its tools leave the Tools list and every tool picker in the app: the floating button's, the hardware shortcuts', the smart chips'.
+- Its tools leave the keyboard's toolbar and toolbox, and the panels they open no longer open. The tools you had switched on stay recorded, so they come back when the bundle does.
+- Its screens and their rows leave settings search and the settings assistant.
+- A link to one of its screens, from another app, from the keyboard or from a favourite, opens this screen with the bundle's row flashed instead of the page.
+- The background work it owns stops. The bundle's own master switch moves with it where it has one (see below), which is what stops the clipboard saving copies or the keyboard counting statistics.
+
+Nothing is deleted. Snippets, notes, clips, packs and keys are all still on the phone, and the settings inside the bundle keep their values.
+
+## The bundles
+
+| Bundle | What it carries |
+|---|---|
+| AI | AI writing tools, AI reply, the chat, the settings assistant, memory, the history, the provider page and the chat button on every settings screen |
+| Voice typing | The Voice tool, the microphone in the keyboard's own fields and the Voice typing screen |
+| Clipboard history | The Clipboard tool, clipboard search, the recent-copies row, phone number formats and copy rules |
+| Text expansion | Snippets, their folders, triggers and patterns |
+| Vocabulary | Vocabulary packs, the word of the day, the nudges and the flashcards |
+| Notes | The notebook in the keyboard and the quick note action |
+| To-do list | Tasks with steps |
+| Stickers, GIFs and emoji mixes | The three picture panels, the sticker pack screens, the generator and the emoji mixes screen |
+| Scanners | Text scan, the QR and barcode scanner and the document scanner |
+| Translate | The Translate tool and its engines |
+| Plugins | The Plugins tool, the plugin list and the editor |
+| Add-on repositories | The Add-ons screen and everything installed through it |
+| Connect | KDE Connect, Send files and Smart home |
+| Keyboard modes | The Modes tool, the modes list and the mode editor |
+| Selection actions | The selection actions bar, its actions list, AI buttons and time zones, and the entries in other apps' selection menus |
+| Floating button | The button over other apps and its screen |
+| Physical keyboard | Typing through the engine on a connected keyboard, and the tool shortcuts list |
+| Handwriting | The handwriting panel and its models |
+| Statistics | The counting, the Statistics screen and the Statistics tool |
+
+Tap a row's name to open the bundle's page. It repeats the switch at the top, then lists the tools and the settings screens the bundle carries. While the bundle is off those rows are greyed out and do nothing, because the pages they would open are the ones the switch took away.
+
+## Master switches
+
+Several bundles already had a switch that turned the feature off: **Use voice typing**, **Save clipboard history**, **Allow plugins**, the physical keyboard's **Type through the keyboard engine**, the floating button's **Show the button**, **Keyboard modes** and **Count typing statistics**. The bundle's switch moves that one with it, in both directions, so the two never disagree. The feature's own switch stays where it was, for the finer choice: voice typing off but its row still on Home, say.
+
+## Defaults
+
+Which bundles start on follows the answer to the setup wizard's "What kind of keyboard do you want?", the same answer that sets the [settings depth](/reference/settings/#choosing-how-many-settings-you-see):
+
+- **Keep it simple** starts with Voice typing, Clipboard history, Stickers, GIFs and emoji mixes, Translate, Text expansion and Physical keyboard.
+- **A good middle** adds Vocabulary, Notes, To-do list, Scanners, Selection actions, Handwriting and Statistics.
+- **Show me everything** starts with every bundle on.
+
+A default moves no master switch. The six bundles the simple set starts with are the ones whose master switches are on out of the box, so a fresh install behaves exactly as it did before this screen existed. An install updated from a version without this screen keeps every bundle on, whatever depth it is showing.
+
+## Details and edge cases
+
+- The Extensions screen and the bundles' own pages belong to no bundle, so there is always a way back.
+- Changing the settings depth later does not change which bundles are on. The depth sets the starting point once, in the wizard.
+- A tool the bundle owns that you had turned off stays off when the bundle comes back. The bundle's switch and the tool's switch are two different things.
+- The plugin subsystem's switch lives in the plugin store rather than with the other settings, so it is moved by this screen rather than by the settings store. Everything else moves in one write.
+- Backups carry the set. Restoring a backup from a phone where a bundle was off switches it off here too.

@@ -36,6 +36,7 @@ import com.wasimaster.wmkeyboard.common.R as CommonR
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarContent
+import com.wasimaster.wmkeyboard.core.settings.Extension
 import com.wasimaster.wmkeyboard.core.settings.EmojiBarCountRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridCellSizeRange
 import com.wasimaster.wmkeyboard.core.settings.EmojiGridColumnsRange
@@ -90,6 +91,7 @@ internal fun EmojiSettings(
     val emojiButtonOn = settings.watch { it.emojiToolbar }
     val stripOwnSize = settings.watch { it.toolbarBehavior.stripOwnSize }
     val dpFormat = stringResource(R.string.typing_value_dp)
+    val extensions = LocalExtensions.current
     SettingsGroup(stringResource(R.string.langemoji_emoji_access_title)) {
         item {
             ToggleSetting(
@@ -210,7 +212,8 @@ internal fun EmojiSettings(
         }
         // Mixes are emoji you send as a picture, so they sit with the panel
         // they are picked from.
-        item(level = SettingLevel.STANDARD) {
+        // Owned by the Stickers, GIFs and emoji mixes extension: gone with it.
+        item(visible = Extension.STICKERS in extensions, level = SettingLevel.STANDARD) {
             NavRow(
                 R.string.emojimix_row_title,
                 stringResource(R.string.emojimix_row_subtitle),
