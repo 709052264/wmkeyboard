@@ -154,4 +154,41 @@
     <string name="core_tools_provider_harper_desc">The grammar engine built into the keyboard. English only, and nothing you type leaves the phone.</string>
     <string name="core_tools_provider_languagetool" translatable="false">LanguageTool</string>
     <string name="core_tools_provider_languagetool_desc">Grammar, spelling and style in more than 30 languages. Your text is sent to a LanguageTool server to be checked: the public one at api.languagetool.org unless you enter your own.</string>
+
+    <!-- The sticker generator's engines -->
+    <string name="core_tools_provider_tool_image_gen">Sticker generator</string>
+    <string name="core_tools_provider_on_device_image">On this phone</string>
+    <string name="core_tools_provider_on_device_image_desc">A model downloaded to this phone, or one you imported. Nothing you type leaves it. Pick the model on the generator\'s screen.</string>
+    <string name="core_tools_provider_pollinations" translatable="false">Pollinations</string>
+    <string name="core_tools_provider_pollinations_desc">Free, with no key and no account: the prompt is sent to Pollinations, which picks the model. A key from enter.pollinations.ai opens its newer API and lets you name a model.</string>
+    <string name="core_tools_provider_ai_horde" translatable="false">AI Horde</string>
+    <string name="core_tools_provider_ai_horde_desc">Free Stable Diffusion on volunteers\' computers. Works without a key but waits in a queue; a free key from aihorde.net moves you up it.</string>
+    <string name="core_tools_provider_openai_image">OpenAI Images</string>
+    <string name="core_tools_provider_openai_image_desc">GPT Image, which draws stickers on a transparent background. Paid per picture. A blank key uses the OpenAI key from the AI tool.</string>
+    <string name="core_tools_provider_gemini_image">Gemini Images</string>
+    <string name="core_tools_provider_gemini_image_desc">Google\'s Nano Banana image models. A blank key uses the Gemini key from the AI tool.</string>
+    <string name="core_tools_provider_xai_image">Grok Imagine</string>
+    <string name="core_tools_provider_xai_image_desc">xAI\'s image model. A blank key uses the xAI key from the AI tool.</string>
+    <string name="core_tools_provider_stability" translatable="false">Stability AI</string>
+    <string name="core_tools_provider_stability_desc">Stable Image Core, Ultra and Stable Diffusion 3.5 from the makers of Stable Diffusion. Paid in credits; needs a key from platform.stability.ai.</string>
+    <string name="core_tools_provider_bfl">Black Forest Labs (FLUX)</string>
+    <string name="core_tools_provider_bfl_desc">The FLUX models from the people who made them. Needs a key from bfl.ai.</string>
+    <string name="core_tools_provider_recraft" translatable="false">Recraft</string>
+    <string name="core_tools_provider_recraft_desc">Illustrations, icons and vector-style art. Needs a key from recraft.ai.</string>
+    <string name="core_tools_provider_replicate" translatable="false">Replicate</string>
+    <string name="core_tools_provider_replicate_desc">Thousands of hosted models. Name any text-to-image model as owner/name; FLUX Schnell when blank.</string>
+    <string name="core_tools_provider_fal" translatable="false">fal.ai</string>
+    <string name="core_tools_provider_fal_desc">Fast hosted models: FLUX, Recraft, Ideogram, Qwen Image and more. Name the model\'s fal id; FLUX Schnell when blank.</string>
+    <string name="core_tools_provider_together" translatable="false">Together AI</string>
+    <string name="core_tools_provider_together_desc">FLUX and other open models on Together\'s servers.</string>
+    <string name="core_tools_provider_hugging_face" translatable="false">Hugging Face</string>
+    <string name="core_tools_provider_hugging_face_desc">Models on Hugging Face\'s own inference servers, with a free monthly allowance. Needs an access token with Inference Providers permission.</string>
+    <string name="core_tools_provider_cloudflare_ai">Cloudflare Workers AI</string>
+    <string name="core_tools_provider_cloudflare_ai_desc">FLUX and Stable Diffusion on Cloudflare, with a free daily allowance. Needs an API token and your account id.</string>
+    <string name="core_tools_provider_automatic1111">Automatic1111, Forge or SD.Next</string>
+    <string name="core_tools_provider_automatic1111_desc">Your own Stable Diffusion web UI, started with --api. Give its address, such as http://192.168.1.10:7860.</string>
+    <string name="core_tools_provider_comfyui" translatable="false">ComfyUI</string>
+    <string name="core_tools_provider_comfyui_desc">Your own ComfyUI server. Draws with a plain text-to-image workflow and the checkpoint you name, or the first one it has.</string>
+    <string name="core_tools_provider_openai_compatible_image">OpenAI-compatible images</string>
+    <string name="core_tools_provider_openai_compatible_image_desc">Any other service with OpenAI\'s image API: LocalAI, DeepInfra, Nebius, or a gateway of your own. Give the address up to the version, such as https://api.deepinfra.com/v1/openai.</string>
 </resources>

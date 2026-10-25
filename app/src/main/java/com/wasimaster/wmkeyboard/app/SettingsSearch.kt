@@ -279,6 +279,9 @@ private fun SearchStrings.providerListPath(tool: ProviderTool): List<String> {
         host != null -> crumb(R.string.home_tools_title, toolTitle(host))
         tool == ProviderTool.VOICE -> crumb(R.string.home_voice_title)
         tool == ProviderTool.PHOTOS -> crumb(R.string.photo_services_title)
+        tool == ProviderTool.IMAGE_GEN -> crumb(
+            R.string.home_tools_title, toolTitle(ToolbarTool.STICKER), R.string.home_screen_sticker_packs_title, R.string.stickergen_title,
+        )
         else -> crumb(R.string.home_typing_title, R.string.typing_group_suggestions_title)
     }
 }

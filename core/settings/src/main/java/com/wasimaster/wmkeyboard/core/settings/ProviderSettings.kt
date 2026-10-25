@@ -227,6 +227,8 @@ object ProviderResolution {
                     ""
                 }
             }
+            // An image kind borrows the key typed for its AI service (OpenAI, Gemini, xAI).
+            .ifBlank { type?.keyFrom?.let { from -> credentials.firstOrNull { it.id == from }?.apiKey?.trim() }.orEmpty() }
         val url = credential?.url?.trim().orEmpty()
         val model = credential?.model?.trim().orEmpty()
         val problem = when {
@@ -237,6 +239,8 @@ object ProviderResolution {
             type === ProviderTypes.DEEPL && apiKey.isBlank() && url.isBlank() -> ProviderProblem.NEEDS_KEY
             // Brave Answers with neither its own key nor a search key to borrow.
             type === ProviderTypes.BRAVE_ANSWERS && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
+            // An image kind with neither its own key nor its AI service's to borrow.
+            type.keyFrom != null && apiKey.isBlank() -> ProviderProblem.NEEDS_KEY
             type.credential.url == Need.REQUIRED && url.isBlank() -> ProviderProblem.NEEDS_SERVER
             // A home's key is a pairing or a sign-in, which the row says in its own words.
             HomeKind.of(type.id) != null -> homeProblem(entry, type, credential)
@@ -472,6 +476,17 @@ object LegacyProviders {
             // until the user switches it on.
             ProviderTool.GRAMMAR -> ProviderChain(
                 listOf(entry(ProviderTypes.HARPER), entry(ProviderTypes.LANGUAGETOOL, on = false)),
+            )
+            // The phone's models alone, as before the list. The two free
+            // services are listed so they can be found, but off: they send
+            // the prompt away, so they wait until the user switches them on.
+            ProviderTool.IMAGE_GEN -> ProviderChain(
+                listOf(
+                    entry(ProviderTypes.ON_DEVICE_IMAGE),
+                    entry(ProviderTypes.POLLINATIONS, on = false),
+                    entry(ProviderTypes.AI_HORDE, on = false),
+                ),
+                ChainMode.PICK,
             )
         }
     }

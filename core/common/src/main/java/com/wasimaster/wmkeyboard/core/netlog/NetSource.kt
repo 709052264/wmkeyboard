@@ -34,6 +34,9 @@ enum class NetSource(
     GIF("gif", ToolbarTool.GIF),
     STICKER("sticker", ToolbarTool.STICKER),
 
+    /** The sticker generator's prompt sent to an image service on its list, and the pictures fetched back. */
+    IMAGE_GEN("image_gen", ToolbarTool.STICKER),
+
     /** An emoji mix: its image, or a source's index of them. Only ever a host the user added. */
     EMOJI_MIX("emoji_mix", ToolbarTool.EMOJI_MIX),
     WEB_SEARCH("web_search", ToolbarTool.WEB_SEARCH),

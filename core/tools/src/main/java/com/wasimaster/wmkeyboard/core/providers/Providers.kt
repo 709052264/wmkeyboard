@@ -63,6 +63,13 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
      * keyboard's language, and on to the next when that one cannot answer.
      */
     GRAMMAR("grammar", listOf(ChainMode.FALLBACK), R.string.core_tools_provider_tool_grammar),
+
+    /**
+     * The sticker generator's engines: the model on the phone, and image
+     * services online. The generator draws with the one picked on its screen,
+     * or, in [ChainMode.FALLBACK], with the first that is on and answers.
+     */
+    IMAGE_GEN("image_gen", listOf(ChainMode.PICK, ChainMode.FALLBACK), R.string.core_tools_provider_tool_image_gen),
     ;
 
     /**
@@ -88,7 +95,7 @@ enum class ProviderTool(val id: String, val modes: List<ChainMode>, @StringRes v
     companion object {
         fun of(id: String): ProviderTool? = entries.firstOrNull { it.id == id }
 
-        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI) }
+        private val REPEATING by lazy { setOf(GIF, STICKER, TRANSLATE, SEARCH, OCR, PHOTO_TRANSLATE, AI, IMAGE_GEN) }
     }
 }
 
@@ -159,8 +166,15 @@ data class CredentialSpec(
      * request with both. Stored in [ProviderCredential.extra] under [USERNAME].
      */
     val username: Boolean = false,
+    /**
+     * An account id that goes in the address rather than the key: Cloudflare
+     * runs a model under `/accounts/{id}/`. Stored in
+     * [ProviderCredential.extra] under [ACCOUNT].
+     */
+    val account: Boolean = false,
 ) {
-    val none: Boolean get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username
+    val none: Boolean
+        get() = key == Need.NONE && url == Need.NONE && !model && engines.isEmpty() && !path && !username && !account
 
     /** The engine [stored] names, else the default; null for a kind with no engines. */
     fun engine(stored: String): FrontEndEngine? =
@@ -172,6 +186,9 @@ data class CredentialSpec(
 
         /** The [ProviderCredential.extra] key a [username] is kept under. */
         const val USERNAME = "username"
+
+        /** The [ProviderCredential.extra] key an [account] is kept under. */
+        const val ACCOUNT = "account"
     }
 }
 
@@ -211,6 +228,13 @@ class ProviderType(
     val ownGrid: Boolean = false,
     /** A tool whose description differs from [descRes]: Wiktionary means one thing to the dictionary, another to synonyms. */
     private val toolDescRes: Map<ProviderTool, Int> = emptyMap(),
+    /**
+     * The kind whose key a blank key borrows: one OpenAI account pays for
+     * both its chat and its pictures, so the key typed for the AI tool works
+     * for the sticker generator too. Only a key the user typed, never a
+     * build's. A row with neither needs a key.
+     */
+    val keyFrom: String? = null,
 ) {
     @StringRes
     fun descriptionRes(tool: ProviderTool): Int = toolDescRes[tool] ?: descRes
@@ -668,6 +692,109 @@ object ProviderTypes {
         multiInstance = true, freeSoftware = true,
     )
 
+    // ---- The sticker generator. Online kinds send the prompt (in English) to the service.
+
+    private val IMAGES = setOf(ProviderTool.IMAGE_GEN)
+
+    /** The models the generator downloads or imports, run on this phone's CPU or NPU. */
+    val ON_DEVICE_IMAGE = ProviderType(
+        "on_device_image", IMAGES, R.string.core_tools_provider_on_device_image, R.string.core_tools_provider_on_device_image_desc,
+        onDevice = true,
+    )
+
+    /**
+     * Pollinations: no key at all on its old host, which picks the model
+     * itself; a key from enter.pollinations.ai opens its newer API and every
+     * model it lists. The service is open source (MIT).
+     */
+    val POLLINATIONS = ProviderType(
+        "pollinations", IMAGES, R.string.core_tools_provider_pollinations, R.string.core_tools_provider_pollinations_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), freeSoftware = true,
+    )
+
+    /** AI Horde: volunteers' graphics cards, queued. Anonymous without a key, ahead in the queue with a free one. */
+    val AI_HORDE = ProviderType(
+        "ai_horde", IMAGES, R.string.core_tools_provider_ai_horde, R.string.core_tools_provider_ai_horde_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), freeSoftware = true,
+    )
+
+    /** OpenAI's GPT Image models, which can draw on a transparent background. Borrows the AI tool's OpenAI key. */
+    val OPENAI_IMAGE = ProviderType(
+        "openai_image", IMAGES, R.string.core_tools_provider_openai_image, R.string.core_tools_provider_openai_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "openai",
+    )
+
+    /** Gemini's image models (Nano Banana). Borrows the AI tool's Gemini key. */
+    val GEMINI_IMAGE = ProviderType(
+        "gemini_image", IMAGES, R.string.core_tools_provider_gemini_image, R.string.core_tools_provider_gemini_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "gemini",
+    )
+
+    /** xAI's Grok Imagine. Borrows the AI tool's xAI key. */
+    val XAI_IMAGE = ProviderType(
+        "xai_image", IMAGES, R.string.core_tools_provider_xai_image, R.string.core_tools_provider_xai_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, model = true), keyFrom = "xai",
+    )
+    val STABILITY = ProviderType(
+        "stability", IMAGES, R.string.core_tools_provider_stability, R.string.core_tools_provider_stability_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val BFL = ProviderType(
+        "bfl", IMAGES, R.string.core_tools_provider_bfl, R.string.core_tools_provider_bfl_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val RECRAFT = ProviderType(
+        "recraft", IMAGES, R.string.core_tools_provider_recraft, R.string.core_tools_provider_recraft_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+
+    /* Hosts of many models: the model field names any text-to-image model they run. */
+    val REPLICATE = ProviderType(
+        "replicate", IMAGES, R.string.core_tools_provider_replicate, R.string.core_tools_provider_replicate_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val FAL = ProviderType(
+        "fal", IMAGES, R.string.core_tools_provider_fal, R.string.core_tools_provider_fal_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val TOGETHER = ProviderType(
+        "together", IMAGES, R.string.core_tools_provider_together, R.string.core_tools_provider_together_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+    val HUGGING_FACE = ProviderType(
+        "hugging_face", IMAGES, R.string.core_tools_provider_hugging_face, R.string.core_tools_provider_hugging_face_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true),
+    )
+
+    /** Workers AI: an API token as the key, the account id beside it. */
+    val CLOUDFLARE_AI = ProviderType(
+        "cloudflare_ai", IMAGES, R.string.core_tools_provider_cloudflare_ai, R.string.core_tools_provider_cloudflare_ai_desc,
+        CredentialSpec(key = Need.REQUIRED, model = true, account = true),
+    )
+
+    /**
+     * Automatic1111's web UI started with `--api`, and the forks that keep its
+     * API: Forge, reForge, SD.Next. A key of `user:password` is its
+     * `--api-auth`; any other key goes as a bearer token, for a proxy.
+     */
+    val AUTOMATIC1111 = ProviderType(
+        "automatic1111", IMAGES, R.string.core_tools_provider_automatic1111, R.string.core_tools_provider_automatic1111_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true),
+        multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+    val COMFYUI = ProviderType(
+        "comfyui", IMAGES, R.string.core_tools_provider_comfyui, R.string.core_tools_provider_comfyui_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true),
+        multiInstance = true, freeSoftware = true, selfHosted = true,
+    )
+
+    /** Anything with OpenAI's `/images/generations`: LocalAI, DeepInfra, Nebius, a gateway at home. */
+    val OPENAI_COMPATIBLE_IMAGE = ProviderType(
+        "openai_compatible_image", IMAGES,
+        R.string.core_tools_provider_openai_compatible_image, R.string.core_tools_provider_openai_compatible_image_desc,
+        CredentialSpec(key = Need.OPTIONAL, url = Need.REQUIRED, model = true, modelRequired = true), multiInstance = true,
+    )
+
     /** Voice type id → the engine id dictation stores and runs. */
     val VOICE_ENGINES: Map<String, String> by lazy {
         mapOf(
@@ -703,6 +830,8 @@ object ProviderTypes {
         ANTHROPIC, OPENAI, GEMINI, XAI, DEEPSEEK, BRAVE_ANSWERS, OLLAMA, LM_STUDIO, OPENAI_COMPATIBLE, ON_DEVICE_AI,
         SYSTEM_RECOGNIZER, WHISTLE, WHISPER, ASR4ALL, PARAKEET, MOONSHINE, SHERPA, OMNILINGUAL, TRANSCRIPTION_SERVER,
         HARPER, LANGUAGETOOL,
+        ON_DEVICE_IMAGE, POLLINATIONS, AI_HORDE, OPENAI_IMAGE, GEMINI_IMAGE, XAI_IMAGE, STABILITY, BFL, RECRAFT,
+        REPLICATE, FAL, TOGETHER, HUGGING_FACE, CLOUDFLARE_AI, AUTOMATIC1111, COMFYUI, OPENAI_COMPATIBLE_IMAGE,
     )
 
     private val byId: Map<String, ProviderType> = all.associateBy { it.id }

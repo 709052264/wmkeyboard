@@ -111,6 +111,7 @@ private fun texts(source: NetSource): Pair<Int, Int> = when (source) {
     NetSource.LANGUAGETOOL -> R.string.netlog_source_languagetool to R.string.netlog_sent_languagetool
     NetSource.GIF -> R.string.netlog_source_gif to R.string.netlog_sent_gif
     NetSource.STICKER -> R.string.netlog_source_sticker to R.string.netlog_sent_sticker
+    NetSource.IMAGE_GEN -> R.string.netlog_source_image_gen to R.string.netlog_sent_image_gen
     NetSource.EMOJI_MIX -> R.string.netlog_source_emoji_mix to R.string.netlog_sent_emoji_mix
     NetSource.WEB_SEARCH -> R.string.netlog_source_web_search to R.string.netlog_sent_web_search
     NetSource.IMAGE_SEARCH -> R.string.netlog_source_image_search to R.string.netlog_sent_image_search

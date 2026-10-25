@@ -43,6 +43,9 @@ sealed interface ImageGenEvent {
 
     data class Failed(val message: String) : ImageGenEvent
 
+    /** An online service's queue holds the request: [position] ahead of it, about [seconds] to go (0 when it did not say). */
+    data class Waiting(val position: Int, val seconds: Int) : ImageGenEvent
+
     data object Done : ImageGenEvent
 }
 

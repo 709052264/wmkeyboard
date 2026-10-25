@@ -111,6 +111,7 @@ import com.wasimaster.wmkeyboard.core.settings.AiProvider
 import com.wasimaster.wmkeyboard.core.settings.AiProviders
 import com.wasimaster.wmkeyboard.core.settings.ProviderEdits
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.imagegen.OnlineImageGen
 import com.wasimaster.wmkeyboard.core.settings.availableVoiceEngines
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
@@ -889,6 +890,7 @@ internal fun providerIcon(type: ProviderType?): ImageVector = when {
     ProviderTool.PHOTOS in type.serves -> Icons.Outlined.PhotoLibrary
     ProviderTool.AI in type.serves -> Icons.Outlined.AutoAwesome
     ProviderTool.GRAMMAR in type.serves -> Icons.Outlined.Spellcheck
+    ProviderTool.IMAGE_GEN in type.serves -> Icons.Outlined.AutoAwesome
     else -> Icons.Outlined.Image
 }
 
@@ -923,6 +925,19 @@ internal fun providerAccent(type: ProviderType?): Color = when (type?.id) {
     ProviderTypes.XAI.id -> Color(0xFF111111)
     ProviderTypes.DEEPSEEK.id -> Color(0xFF4D6BFE)
     ProviderTypes.BRAVE_ANSWERS.id -> Color(0xFFFB542B)
+    ProviderTypes.OPENAI_IMAGE.id -> Color(0xFF10A37F)
+    ProviderTypes.GEMINI_IMAGE.id -> Color(0xFF4285F4)
+    ProviderTypes.XAI_IMAGE.id -> Color(0xFF111111)
+    ProviderTypes.POLLINATIONS.id -> Color(0xFF1B1B1B)
+    ProviderTypes.AI_HORDE.id -> Color(0xFF7E57C2)
+    ProviderTypes.STABILITY.id -> Color(0xFF8B5CF6)
+    ProviderTypes.BFL.id -> Color(0xFF222222)
+    ProviderTypes.RECRAFT.id -> Color(0xFFE5482F)
+    ProviderTypes.REPLICATE.id -> Color(0xFF202020)
+    ProviderTypes.FAL.id -> Color(0xFF6C2BD9)
+    ProviderTypes.TOGETHER.id -> Color(0xFF0F6FFF)
+    ProviderTypes.HUGGING_FACE.id -> Color(0xFFFFB000)
+    ProviderTypes.CLOUDFLARE_AI.id -> Color(0xFFF38020)
     else -> when {
         type == null -> Color(0xFF757575)
         type.onDevice -> Color(0xFF2E7D32)
@@ -1050,7 +1065,9 @@ internal fun ProviderEditorSheet(
             (!spec.modelRequired || draft.model.isNotBlank()) &&
             (type !== ProviderTypes.DEEPL || draft.apiKey.isNotBlank() || draft.url.isNotBlank()) &&
             // A Premium account signs with both; one without the other is refused.
-            (!spec.username || draft.apiKey.isBlank() == draft.extra[CredentialSpec.USERNAME].isNullOrBlank())
+            (!spec.username || draft.apiKey.isBlank() == draft.extra[CredentialSpec.USERNAME].isNullOrBlank()) &&
+            // Cloudflare runs a model under the account's address.
+            (!spec.account || !draft.extra[CredentialSpec.ACCOUNT].isNullOrBlank())
     }
     fun edit(next: ProviderCredential) {
         draft = next
@@ -1128,6 +1145,15 @@ internal fun ProviderEditorSheet(
                     )
                 }
             }
+            if (spec.account) {
+                StoredTextField(
+                    label = stringResource(R.string.providers_field_account),
+                    value = draft.extra[CredentialSpec.ACCOUNT].orEmpty(),
+                    supporting = stringResource(R.string.providers_field_account_hint),
+                ) { id ->
+                    edit(draft.copy(extra = if (id.isBlank()) draft.extra - CredentialSpec.ACCOUNT else draft.extra + (CredentialSpec.ACCOUNT to id)))
+                }
+            }
             if (spec.username) {
                 StoredTextField(
                     label = stringResource(R.string.providers_field_username),
@@ -1149,6 +1175,8 @@ internal fun ProviderEditorSheet(
                     supporting = stringResource(
                         when {
                             type === ProviderTypes.LANGUAGETOOL -> R.string.providers_field_key_languagetool_hint
+                            type === ProviderTypes.AUTOMATIC1111 -> R.string.providers_field_key_automatic1111_hint
+                            type.keyFrom != null && !another -> R.string.providers_field_key_borrowed_hint
                             another -> R.string.providers_field_key_another_hint
                             type.hasBuiltInKey -> R.string.providers_field_key_builtin_hint
                             spec.key == Need.OPTIONAL -> R.string.providers_field_key_optional_hint
@@ -1162,7 +1190,7 @@ internal fun ProviderEditorSheet(
                 StoredTextField(
                     label = stringResource(R.string.providers_field_model),
                     value = draft.model,
-                    supporting = aiModelHint(type) ?: stringResource(
+                    supporting = aiModelHint(type) ?: imageModelHint(type) ?: stringResource(
                         if (spec.modelRequired) R.string.providers_field_model_required_hint else R.string.providers_field_model_hint,
                     ),
                 ) { edit(draft.copy(model = it)) }
@@ -1295,6 +1323,23 @@ private fun aiModelHint(type: ProviderType): String? {
     return stringResource(R.string.toolai_ai_model_hint, default)
 }
 
+/**
+ * What a blank model means for a sticker generator engine: the model the
+ * client asks for then, named from the client's own defaults, or that the
+ * service (or server) picks. Null for a kind that is not an image engine.
+ */
+@Composable
+private fun imageModelHint(type: ProviderType): String? {
+    if (ProviderTool.IMAGE_GEN !in type.serves || type.onDevice) return null
+    val default = OnlineImageGen.defaultModel(type.id)
+    return when {
+        default != null -> stringResource(R.string.providers_field_model_image_hint, default)
+        type === ProviderTypes.COMFYUI || type === ProviderTypes.AUTOMATIC1111 -> stringResource(R.string.providers_field_model_checkpoint_hint)
+        type.credential.modelRequired -> null
+        else -> stringResource(R.string.providers_field_model_image_service_hint)
+    }
+}
+
 /** Stored trimmed: a key or address pasted from a web page often arrives with a space on it. */
 private fun ProviderCredential.trimmed() =
     copy(
@@ -1303,6 +1348,6 @@ private fun ProviderCredential.trimmed() =
         url = url.trim(),
         model = model.trim(),
         extra = extra.mapValues { (key, value) ->
-            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME) value.trim() else value
+            if (key == CredentialSpec.PATH || key == CredentialSpec.USERNAME || key == CredentialSpec.ACCOUNT) value.trim() else value
         },
     )

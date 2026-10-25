@@ -97,13 +97,14 @@ internal fun providerHostTool(tool: ProviderTool): ToolbarTool? = when (tool) {
     ProviderTool.PHOTO_TRANSLATE -> ToolbarTool.CAMERA
     ProviderTool.AI -> ToolbarTool.AI
     ProviderTool.GRAMMAR -> ToolbarTool.GRAMMAR
-    ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE -> null
+    ProviderTool.SYNONYMS, ProviderTool.PHOTOS, ProviderTool.VOICE, ProviderTool.IMAGE_GEN -> null
 }
 
 /** The screen a list is drawn on. */
 internal fun providerHostRoute(tool: ProviderTool): String = providerHostTool(tool)?.let(::toolRoute) ?: when (tool) {
     ProviderTool.SYNONYMS -> "typing/suggestions"
     ProviderTool.PHOTOS -> PHOTO_HUB_ROUTE
+    ProviderTool.IMAGE_GEN -> STICKER_GENERATOR_ROUTE
     else -> "voice"
 }
 

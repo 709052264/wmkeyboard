@@ -1639,7 +1639,13 @@ something only some of them do. Unmarked means Gboard or SwiftKey has it too.
     - Never leaves the device — Excluded from pack export, the settings backup's sticker section, and cloud backup
     - Its own storage row — Listed separately under About › Storage so it can be deleted without losing stickers
   - New file name on every edit `RARE` — s1a2b3c4.webp → _1 → _2, because the shared image loader caches on path.
-- **Sticker generator** `RARE` — Type a prompt, the phone draws stickers offline; a picked one is cut out and opens in the sticker editor.
+- **Sticker generator** `RARE` — Type a prompt, the phone (offline) or an image service you pick draws stickers; a picked one is cut out and opens in the sticker editor.
+  - Engines as a provider list `RARE` — ProviderTool.IMAGE_GEN, Pick (chips on the generator) or Fallback; On this phone plus 16 online kinds over plain REST (HttpURLConnection, no SDK, F-Droid too), every request logged as Sticker generator in Network activity and held by Data saver's Cloud AI row
+    - Free with no key — Pollinations (keyless old host; a key opens gen.pollinations.ai and named models) and AI Horde (anonymous queue, a free key moves up; queue position shown while waiting); both listed but off until switched on
+    - Your own keys — OpenAI GPT Image (transparent background, so no cutout), Gemini Nano Banana, Grok Imagine (all three borrow the AI list's key when blank), Stability AI (Core, Ultra, SD 3.5), Black Forest Labs FLUX, Recraft, Replicate, fal.ai, Together AI, Hugging Face, Cloudflare Workers AI (account id in the row)
+    - Your own server — Automatic1111 / Forge / SD.Next (`/sdapi/v1/txt2img`, user:password as --api-auth), ComfyUI (stock text-to-image graph, first checkpoint when none named), any OpenAI-compatible `/images/generations`
+    - Same pipeline — every picture saved as a PNG of at most 1024 px in the generator's scratch folder; a picture with see-through corners skips the background remover; services' own safety switches follow the Safety filter row; Auto draws one picture online (each may be paid for)
+    - Test button that draws nothing — a model list or account call per kind (fal has none)
   - Two catalog models `RARE` — SDXS-512 Dreamshaper (one step, every phone, MNN on the CPU) and Qualcomm AI Hub's Stable Diffusion 1.5 w8a16 on the Snapdragon 8 Gen 3 / 8 Elite / 8 Elite Gen 5 NPU (20 steps, guidance, negative prompt)
     - Pinned downloads — SDXS from the data repository's models release, the NPU zip from Qualcomm's own bucket, both by SHA-256 and size; the zip is checked whole, unpacked, then deleted
     - Licence consent first — CreativeML OpenRAIL++-M or OpenRAIL-M (and Qualcomm's for the NPU runtime) before the first byte
