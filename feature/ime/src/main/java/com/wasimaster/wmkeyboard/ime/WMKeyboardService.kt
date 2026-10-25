@@ -46869,6 +46869,7 @@ open class WMKeyboardService : InputMethodService() {
         onTags = ::onClipTagsStart,
         onTagAdd = ::onClipTagAdd,
         onQr = ::onClipboardQr,
+        onSearch = ::onClipboardSearch,
     )
 
     /**
@@ -46993,6 +46994,26 @@ open class WMKeyboardService : InputMethodService() {
         onPanelChange(PanelMode.QR_GEN)
         if (_uiState.value.panel != PanelMode.QR_GEN) return
         _uiState.update { it.copy(mediaQuery = text) }
+    }
+
+    /**
+     * A text clip's Search (#914): the web search tool, or Wikipedia when
+     * [wikipedia], opened on the clip's text and searching it at once.
+     */
+    fun onClipboardSearch(item: com.wasimaster.wmkeyboard.core.clipboard.ClipItem, wikipedia: Boolean) {
+        if (!isClipboardAccessible() || !item.kind.isTextual || item.sensitive) return
+        val current = clipboardStore.items().firstOrNull { it.id == item.id } ?: return
+        val text = current.text.trim().replace(Regex("\\s+"), " ").take(CLIP_SEARCH_MAX).takeIf { it.isNotEmpty() } ?: return
+        val panel = if (wikipedia) PanelMode.WIKIPEDIA else PanelMode.WEB_SEARCH
+        // The Wikipedia panel runs a staged term as it opens; web search is run below.
+        _uiState.update { it.copy(toolPrefill = ToolPrefill.Lookup(text)) }
+        onPanelChange(panel)
+        if (_uiState.value.panel != panel) return
+        if (!wikipedia) {
+            _uiState.update { it.copy(mediaQuery = text, mediaSearchActive = false) }
+            onToolPrefillConsumed()
+            runSearch(_uiState.value.searchTab, text)
+        }
     }
 
     /** The panel's grid / list switch: the same setting the settings screen writes. */
@@ -50606,6 +50627,8 @@ open class WMKeyboardService : InputMethodService() {
         private const val COPIED_CODE_MAX_AGE_MS = 5L * 60 * 1000
         /** Links fetched per panel open, so a history of links isn't a request storm. */
         private const val MAX_LINK_PREVIEWS = 8
+        /** The most of a clip a search is run on (#914): a query, not the whole clip. */
+        private const val CLIP_SEARCH_MAX = 200
 
         /**
          * What the enter key should do and show. IME_FLAG_NO_ENTER_ACTION

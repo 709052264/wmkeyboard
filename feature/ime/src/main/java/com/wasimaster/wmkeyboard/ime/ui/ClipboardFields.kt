@@ -68,6 +68,10 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.ContentCopy
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.History
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Sell
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.QrCode2
+import com.wasimaster.wmkeyboard.core.settings.isSupportedTool
+import com.wasimaster.wmkeyboard.core.settings.ToolbarTool
+import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.MenuBook
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Search
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Folder
 import com.wasimaster.wmkeyboard.core.icons.symbols.automirrored.outlined.ArrowBack
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Edit
@@ -240,6 +244,8 @@ data class ClipboardPanelActions(
     val onTagAdd: (String) -> Unit = {},
     /** A text clip's QR code: the QR tool, on the clip's text (#766). */
     val onQr: (ClipItem) -> Unit = {},
+    /** A text clip searched for (#914): on Wikipedia when true, else the web search tool. */
+    val onSearch: (ClipItem, Boolean) -> Unit = { _, _ -> },
 )
 
 /**
@@ -1711,6 +1717,10 @@ private fun ClipboardHistory(
     val clipboard = state.settings.clipboard
     // Image clips offer Translate while a photo translation server is on (#807).
     val photoTranslate = remember(state.settings) { PhotoTranslate.rows(state.settings).isNotEmpty() }
+    val searchTools = remember(state.settings.enabledTools) {
+        (isSupportedTool(ToolbarTool.WEB_SEARCH) && ToolbarTool.WEB_SEARCH in state.settings.enabledTools) to
+            (isSupportedTool(ToolbarTool.WIKIPEDIA) && ToolbarTool.WIKIPEDIA in state.settings.enabledTools)
+    }
     val columns = if (session.list) 1 else clipboard.gridColumns.coerceIn(ClipGridColumnsRange)
     // 0 is the view's own: six lines on a card, three in a row, where a list
     // is for scanning many clips.
@@ -1843,6 +1853,8 @@ private fun ClipboardHistory(
                     holdPin = !clipboard.cardButtons,
                     ocr = session.ocr,
                     photoTranslate = photoTranslate,
+                    webSearch = searchTools.first,
+                    wikipedia = searchTools.second,
                     entities = session.perClip[item.id].orEmpty(),
                     icons = session.entityIcons && picked == null,
                     typeTag = clipboard.typeTags,
@@ -2045,6 +2057,9 @@ private class ClipHold(
     val onKeepOnly: (() -> Unit)? = null,
     /** The button at the end of the clip's bottom row (#612). */
     val shortcut: ClipCardShortcut = ClipCardShortcut.EDITED_MARK,
+    /** The web search and Wikipedia tools are on, for the hold popup's two searches (#914). */
+    val webSearch: Boolean = false,
+    val wikipedia: Boolean = false,
 )
 
 /**
@@ -2122,6 +2137,12 @@ private fun ClipHoldPopup(
                 } else null,
                 onQr = if (clipQrable(item) && hold.picked == null) {
                     { onDismiss(); callbacks.actions.onQr(item) }
+                } else null,
+                onWebSearch = if (hold.webSearch && clipQrable(item) && hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onSearch(item, false) }
+                } else null,
+                onWikipedia = if (hold.wikipedia && clipQrable(item) && hold.picked == null) {
+                    { onDismiss(); callbacks.actions.onSearch(item, true) }
                 } else null,
                 onEdit = if (item.clipEditable) {
                     { onDismiss(); callbacks.actions.onEdit(item) }
@@ -2203,6 +2224,9 @@ private class ClipTextActions(
     val onTags: (() -> Unit)? = null,
     /** The clip as a QR code (#766). */
     val onQr: (() -> Unit)? = null,
+    /** The clip searched for on the web, or on Wikipedia (#914). */
+    val onWebSearch: (() -> Unit)? = null,
+    val onWikipedia: (() -> Unit)? = null,
     val onEdit: (() -> Unit)? = null,
     val onOpenLink: (() -> Unit)? = null,
     val onExtractParts: (() -> Unit)? = null,
@@ -2309,6 +2333,17 @@ private fun ClipFullTextPopup(
                                 }
                                 actions.onQr?.let {
                                     ClipTextActionIcon(Icons.Outlined.QrCode2, stringResource(R.string.ime_clip_qr), tint, it)
+                                }
+                                actions.onWebSearch?.let {
+                                    ClipTextActionIcon(Icons.Outlined.Search, stringResource(R.string.ime_clip_search_web), tint, it)
+                                }
+                                actions.onWikipedia?.let {
+                                    ClipTextActionIcon(
+                                        Icons.AutoMirrored.Outlined.MenuBook,
+                                        stringResource(R.string.ime_clip_search_wikipedia),
+                                        tint,
+                                        it,
+                                    )
                                 }
                                 actions.onOpenLink?.let {
                                     ClipTextActionIcon(

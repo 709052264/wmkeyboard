@@ -772,6 +772,9 @@
     <string name="ime_clip_tags_placeholder">Tags, with a comma between them</string>
     <!-- The hold popup's action and the clip shortcut button that open the QR code tool on a text clip (#766). -->
     <string name="ime_clip_qr">QR code</string>
+    <!-- Clipboard hold menu: search for the clip's text with the web search tool, or on Wikipedia. -->
+    <string name="ime_clip_search_web">Search the web</string>
+    <string name="ime_clip_search_wikipedia">Search Wikipedia</string>
     <!-- A folder of pinned clips (#768), named after a tag. %1$s is the tag, %2$d how many clips it holds. -->
     <plurals name="ime_clip_folder_open_desc">
         <item quantity="one">Open folder %1$s, %2$d clip</item>
