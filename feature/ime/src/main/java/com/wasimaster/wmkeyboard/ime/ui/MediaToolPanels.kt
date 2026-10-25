@@ -2218,7 +2218,12 @@ private fun WebResults(
                                         overflow = TextOverflow.Ellipsis,
                                     )
                                     Text(
-                                        result.displayUrl,
+                                        // Which engines a SearXNG instance found it with (#932).
+                                        if (result.engines.isEmpty()) {
+                                            result.displayUrl
+                                        } else {
+                                            result.displayUrl + " · " + result.engines.joinToString(", ")
+                                        },
                                         color = kb.secondaryText,
                                         fontSize = 11.sp,
                                         maxLines = 1,

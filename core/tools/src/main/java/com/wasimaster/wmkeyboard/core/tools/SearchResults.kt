@@ -7,6 +7,11 @@ data class WebResult(
     val url: String,
     /** Short host shown under the title ("en.wikipedia.org"). */
     val displayUrl: String,
+    /**
+     * The engines a meta search found it with (#932): a SearXNG instance's
+     * `google`, `duckduckgo`. Empty from a backend that is the engine itself.
+     */
+    val engines: List<String> = emptyList(),
 )
 
 /**

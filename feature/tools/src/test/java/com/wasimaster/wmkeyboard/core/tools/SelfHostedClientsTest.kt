@@ -78,6 +78,21 @@ class SelfHostedClientsTest {
     }
 
     @Test
+    fun `searx names the engines that found each result`() {
+        val body = """
+            {"results":[
+              {"url":"https://a.example/","title":"A","engine":"google","engines":["google","bing"]},
+              {"url":"https://b.example/","title":"B","engine":"duckduckgo"},
+              {"url":"https://c.example/","title":"C"}
+            ]}
+        """.trimIndent()
+        val results = SearxClient.parseWeb(body)
+        assertEquals(listOf("google", "bing"), results[0].engines)
+        assertEquals(listOf("duckduckgo"), results[1].engines)
+        assertEquals(emptyList<String>(), results[2].engines)
+    }
+
+    @Test
     fun `searx drops a web result with no url or title`() {
         val body = """
             {"results":[{"content":"orphan"},{"url":"https://a.example/","title":"Kept"}]}

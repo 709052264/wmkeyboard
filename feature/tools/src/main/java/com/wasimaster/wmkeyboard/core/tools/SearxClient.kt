@@ -193,6 +193,11 @@ object SearxClient {
                 snippet = item["content"]?.jsonPrimitive?.content.orEmpty(),
                 url = url,
                 displayUrl = hostOf(url),
+                // Every engine that returned it, or the one SearXNG credits.
+                engines = (item["engines"] as? kotlinx.serialization.json.JsonArray)
+                    ?.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf(String::isNotBlank) }
+                    ?.takeIf { it.isNotEmpty() }
+                    ?: listOfNotNull((item["engine"] as? kotlinx.serialization.json.JsonPrimitive)?.content?.takeIf(String::isNotBlank)),
             )
         }
     }
