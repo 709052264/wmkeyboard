@@ -22,6 +22,22 @@ object SearchProviders {
     fun rows(settings: KeyboardSettings, pick: String? = null): List<ResolvedProvider> =
         settings.resolveProviders(ProviderTool.SEARCH, pick = pick).filter { backend(it) != null }
 
+    /**
+     * [query] as a search page to open in the browser (#915): on the user's
+     * SearXNG instance when that is the first provider, on Brave Search when
+     * Brave is, and otherwise on DuckDuckGo, which needs no account.
+     */
+    fun browserUrl(settings: KeyboardSettings, query: String): String {
+        val first = rows(settings).firstOrNull()
+        val q = ToolHttp.encode(query.trim())
+        return when (first?.let(::backend)) {
+            SearchBackend.SEARXNG -> runCatching { SearxClient.searchBase(first.url) + "?q=" + q }
+                .getOrDefault("https://duckduckgo.com/?q=$q")
+            SearchBackend.BRAVE -> "https://search.brave.com/search?q=$q"
+            else -> "https://duckduckgo.com/?q=$q"
+        }
+    }
+
     fun backend(row: ResolvedProvider): SearchBackend? = when (row.typeId) {
         ProviderTypes.SEARXNG.id -> SearchBackend.SEARXNG
         ProviderTypes.TAVILY.id -> SearchBackend.TAVILY

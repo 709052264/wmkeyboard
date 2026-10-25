@@ -121,6 +121,7 @@ import com.wasimaster.wmkeyboard.core.tools.SearchBackend
 import com.wasimaster.wmkeyboard.core.tools.MediaProviders
 import com.wasimaster.wmkeyboard.core.tools.MediaTarget
 import com.wasimaster.wmkeyboard.core.tools.ToolApiKeys
+import com.wasimaster.wmkeyboard.core.tools.SearchProviders
 import com.wasimaster.wmkeyboard.core.tools.ToolHttp
 import com.wasimaster.wmkeyboard.core.tools.ImageResult
 import com.wasimaster.wmkeyboard.core.tools.WebResult
@@ -1997,6 +1998,7 @@ internal fun WebSearchPanel(
                 SearchTabChips(state.searchTab, actions.onTab, Modifier.weight(1f))
                 // Pick mode (#727): which search provider answers, over the results.
                 ProviderChooser(ProviderTool.SEARCH, state.settings, Modifier.padding(horizontal = 8.dp))
+                SearchInBrowserButton(state)
             }
             when (state.searchTab) {
                 SearchTab.ALL -> WebResults(state, onRetry, onResult, onOpen, onImageResult, onMenu, onOpenToolSettings)
@@ -2441,6 +2443,31 @@ private fun imageTap(
 private val WebAnswerFoldedHeight = 76.dp
 
 // ---- image search panel ----
+
+/**
+ * The typed query as a search page in the browser (#915), beside the tabs,
+ * for when the browser's own results are what is wanted. Nothing is fetched
+ * here: the browser does the searching.
+ */
+@Composable
+private fun SearchInBrowserButton(state: KeyboardUiState) {
+    val onOpen = LocalSearchActions.current.onOpen
+    val query = state.mediaQuery.trim()
+    if (query.isEmpty()) return
+    val kb = LocalKbTheme.current
+    val label = stringResource(R.string.ime_search_in_browser_desc)
+    IconHint(label) {
+        Icon(
+            Icons.AutoMirrored.Outlined.OpenInNew,
+            contentDescription = label,
+            modifier = Modifier
+                .padding(start = 4.dp, end = 8.dp)
+                .size(20.dp)
+                .clickable { onOpen(SearchProviders.browserUrl(state.settings, query)) },
+            tint = kb.toolbarIcon,
+        )
+    }
+}
 
 /**
  * Camera button beside the search box (#349, #879): opens the camera tool
