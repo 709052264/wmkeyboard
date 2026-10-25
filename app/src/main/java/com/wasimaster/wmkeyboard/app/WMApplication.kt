@@ -81,6 +81,9 @@ open class WMApplication : Application() {
         NetLog.attach(this)
         // Data saving's say over a download the connection changes under.
         com.wasimaster.wmkeyboard.core.net.DataSaverDownloadGate.attach(this)
+        // Where a Khipro spec set newer than the bundled one is kept (#909);
+        // loaded the first time Khipro types, not here.
+        com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs.attach(this)
         // Lets the keyboard tell whether a screen of this app is up before it
         // recycles the process the two share. One callback registration.
         com.wasimaster.wmkeyboard.core.util.StartedActivities.install(this)

@@ -151,6 +151,7 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.InstallMobile
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Inventory2
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Key
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Keyboard
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Star
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardHide
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCapslock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardCommandKey
@@ -425,6 +426,7 @@ internal object SettingsRowIcons {
         put(R.string.accessibility_row_icons_title) { Icons.Outlined.Interests }
         put(R.string.accessibility_screen_transitions_title) { Icons.Outlined.Animation }
         put(R.string.accessibility_keyboard_preview_title) { Icons.Outlined.Keyboard }
+        put(R.string.favourites_button_title) { Icons.Outlined.Star }
         put(R.string.toolai_hub_chat_button_everywhere_title) { Icons.AutoMirrored.Outlined.Chat }
         put(R.string.toolai_hub_settings_assistant_title) { Icons.Outlined.Assistant }
         put(R.string.semantic_mode_title) { Icons.Outlined.ImageSearch }
@@ -764,13 +766,17 @@ internal object SettingsRowIcons {
         put(R.string.floating_button_menu_add_title) { Icons.Outlined.Add }
         put(R.string.floating_button_menu_labels_title) { Icons.AutoMirrored.Outlined.Label }
         put(R.string.floating_button_menu_reset_title) { Icons.Outlined.Restore }
+        put(R.string.floating_button_menu_gap_title) { Icons.Outlined.SpaceBar }
+        put(R.string.floating_button_menu_animation_title) { Icons.Outlined.Animation }
         put(R.string.floating_button_style_title) { Icons.Outlined.Palette }
+        put(R.string.floating_button_shape_title) { Icons.Outlined.Interests }
         put(R.string.floating_button_size_title) { Icons.Outlined.Straighten }
         put(R.string.floating_button_opacity_title) { Icons.Outlined.Opacity }
         put(R.string.floating_button_idle_title) { Icons.Outlined.Timer }
         put(R.string.floating_button_idle_opacity_title) { Icons.Outlined.Contrast }
         put(R.string.floating_button_tuck_title) { Icons.Outlined.VisibilityOff }
         put(R.string.floating_button_while_typing_title) { Icons.Outlined.Keyboard }
+        put(R.string.floating_button_over_keyboard_title) { Icons.Outlined.Layers }
         put(R.string.floating_button_landscape_title) { Icons.Outlined.ScreenRotation }
         put(R.string.floating_button_haptics_title) { Icons.Outlined.Vibration }
         put(R.string.floating_button_reset_position_title) { Icons.Outlined.Restore }
@@ -1268,6 +1274,14 @@ internal object SettingsRowIcons {
         put(R.string.gallery_fallback_title) { Icons.Outlined.Share }
         put(R.string.gallery_close_after_send_title) { Icons.Outlined.KeyboardHide }
         put(R.string.gallery_save_edited_title) { Icons.Outlined.Save }
+        // To-do list (#920).
+        put(R.string.tooldetail_todo_open_title) { Icons.Outlined.Checklist }
+        put(R.string.tooldetail_todo_hide_done_title) { Icons.Outlined.VisibilityOff }
+        put(R.string.tooldetail_todo_sync_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_sync_now_title) { Icons.Outlined.Sync }
+        put(R.string.tooldetail_todo_import_title) { Icons.Outlined.Download }
+        put(R.string.tooldetail_todo_clear_title) { Icons.Outlined.Delete }
+        put(R.string.todo_clear_done_title) { Icons.Outlined.Delete }
         // Send files (#729).
         put(R.string.send_instance_title) { Icons.Outlined.Dns }
         put(R.string.send_expire_title) { Icons.Outlined.Timer }
@@ -1575,6 +1589,9 @@ internal object SettingsRowIcons {
         put(R.string.toolai_ai_actions_title) { Icons.Outlined.AutoAwesome }
         put(R.string.toolai_ai_diff_title) { Icons.Outlined.Difference }
         put(R.string.toolai_ai_diff_first_title) { Icons.Outlined.Difference }
+        put(R.string.toolai_strip_suggest_title) { Icons.Outlined.AutoAwesome }
+        put(R.string.toolai_strip_suggest_word_only_title) { Icons.AutoMirrored.Outlined.ShortText }
+        put(R.string.toolai_strip_suggest_chars_title) { Icons.Outlined.Numbers }
         put(R.string.toolai_ai_tool_search_title) { Icons.Outlined.TravelExplore }
         put(R.string.toolai_ai_tool_search_needs_setup_title) { Icons.Outlined.TravelExplore }
         put(R.string.toolai_ai_tool_fetch_title) { Icons.AutoMirrored.Outlined.Article }

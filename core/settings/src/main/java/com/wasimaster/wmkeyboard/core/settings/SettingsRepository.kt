@@ -187,6 +187,7 @@ import com.wasimaster.wmkeyboard.core.location.MapLink
 import com.wasimaster.wmkeyboard.core.location.SavedPlace
 import com.wasimaster.wmkeyboard.core.location.SavedPlaces
 import com.wasimaster.wmkeyboard.core.notes.NoteStore
+import com.wasimaster.wmkeyboard.core.todo.TodoStore
 import com.wasimaster.wmkeyboard.core.aimemory.AiMemoryStore
 import com.wasimaster.wmkeyboard.core.vocab.VocabAccent
 import com.wasimaster.wmkeyboard.core.vocab.VocabAudioSource
@@ -3710,6 +3711,8 @@ data class KeyboardSettings(
     val vocabulary: VocabularySettings = VocabularySettings(),
     /** The Notes tool (#560): sort, trash retention, what Save as note does (see [NotesSettings]). */
     val notes: NotesSettings = NotesSettings(),
+    /** The To-do tool (#920): finished tasks, the task-app sync (see [TodoSettings]). */
+    val todo: TodoSettings = TodoSettings(),
     /** The gallery tool (#708): grid, quality, privacy, sending (see [GallerySettings]). */
     /** The Send files tool (#729), see [SendSettings]. */
     val send: SendSettings = SendSettings(),
@@ -4323,6 +4326,8 @@ data class AutoBackupSettings(
             // ring for one alarm is a bug.
             ConfigBackup.Section.CLOCK.id,
             ConfigBackup.Section.KAOMOJI.id,
+            // Typed by hand like notes, and nothing else brings a task back.
+            ConfigBackup.Section.TODO.id,
         )
     }
 }
@@ -4415,6 +4420,8 @@ data class SyncSettings(
             // A notebook on two phones is the obvious wish. Notes merge one
             // by one through their ids; the tag list merges as one value.
             ConfigBackup.Section.NOTES.id,
+            // The same for the to-do list (#920): tasks merge one by one.
+            ConfigBackup.Section.TODO.id,
         )
     }
 }
@@ -4651,6 +4658,10 @@ data class AiReplySettings(
     val catchScreenshots: Boolean = false,
 )
 
+/** The range of [AiSettings.stripSuggestChars]: a clause at least, never a document. */
+const val AI_STRIP_SUGGEST_CHARS_MIN = 40
+const val AI_STRIP_SUGGEST_CHARS_MAX = 500
+
 /**
  * AI-tool settings, grouped rather than flat because [KeyboardSettings] sits against
  * the JVM's 255-slot method-argument limit: Kotlin's generated `copy$default` takes
@@ -4832,6 +4843,18 @@ data class AiSettings(
      * on every run, which is why it is a number and not simply raised.
      */
     val beforeCursorChars: Int = 4_000,
+    /**
+     * A continuation from the AI provider in the suggestion strip (#944): one
+     * short line beside the local words, asked for after a word ends and the
+     * typing pauses. Off, and it stays off unless the user turns it on: unlike
+     * the panel's actions it sends text without a press, so it is the one AI
+     * feature that has to be asked for.
+     */
+    val stripSuggest: Boolean = false,
+    /** How much of the text before the cursor [stripSuggest] sends, in characters. */
+    val stripSuggestChars: Int = 120,
+    /** [stripSuggest] sends only the last word typed, not [stripSuggestChars] of text. */
+    val stripSuggestWordOnly: Boolean = false,
     /**
      * Let the model search the web when it needs to (#470).
      *
@@ -6536,6 +6559,13 @@ data class AppUiSettings(
      * every device.
      */
     val settingsFavourites: List<String> = emptyList(),
+    /**
+     * Whether every settings screen's top bar carries the favourites button
+     * (#898), which lists [settingsFavourites] and pins the screen it is on.
+     * Off takes the button, the list and the long-press entry away; what was
+     * pinned is kept for when it comes back.
+     */
+    val favouritesButton: Boolean = true,
 )
 
 /** See [AppUiSettings.settingLinks]. */
@@ -7414,6 +7444,8 @@ data class EmojiSettings(
     val panelExtraHeightDp: Int = 0,
     /** The kaomoji tab's own settings: its tag strip, edit rail and suggestions. */
     val kaomoji: KaomojiSettings = KaomojiSettings(),
+    /** Emoji mixes: their sources and where the keyboard offers them. */
+    val mix: EmojiMixSettings = EmojiMixSettings(),
 )
 
 /**
@@ -9838,6 +9870,11 @@ class SettingsRepository(private val context: Context) {
         private val FLOATING_BUTTON_WHILE_TYPING = booleanPreferencesKey("floating_button_while_typing")
         private val FLOATING_BUTTON_HIDE_LANDSCAPE = booleanPreferencesKey("floating_button_hide_landscape")
         private val FLOATING_BUTTON_HAPTICS = booleanPreferencesKey("floating_button_haptics")
+        private val FLOATING_BUTTON_CATEGORIES = stringPreferencesKey("floating_button_categories")
+        private val FLOATING_BUTTON_MENU_GAP = intPreferencesKey("floating_button_menu_gap")
+        private val FLOATING_BUTTON_MENU_ANIMATION = stringPreferencesKey("floating_button_menu_animation")
+        private val FLOATING_BUTTON_SHAPE = stringPreferencesKey("floating_button_shape")
+        private val FLOATING_BUTTON_OVER_KEYBOARD = booleanPreferencesKey("floating_button_over_keyboard")
         private val KEYBOARD_WIDTH_PERCENT = intPreferencesKey("keyboard_width_percent")
         private val KEYBOARD_ALIGNMENT = stringPreferencesKey("keyboard_alignment")
         private val KEY_CORNER_RADIUS = intPreferencesKey("key_corner_radius")
@@ -10365,6 +10402,7 @@ class SettingsRepository(private val context: Context) {
         private val SETTINGS_ASSISTANT = booleanPreferencesKey("settings_assistant")
         private val SETTINGS_SETTING_LINKS = stringPreferencesKey("settings_setting_links")
         private val SETTINGS_FAVOURITES = stringPreferencesKey("settings_favourites")
+        private val SETTINGS_FAVOURITES_BUTTON = booleanPreferencesKey("settings_favourites_button")
         private val SETTINGS_SPLIT_TOOL_PANELS = booleanPreferencesKey("settings_split_tool_panels")
         private val SYMBOL_ROW_HEIGHT = intPreferencesKey("symbol_row_height")
         private val SYMBOL_ROW_LINES = intPreferencesKey("symbol_row_lines")
@@ -10664,6 +10702,18 @@ class SettingsRepository(private val context: Context) {
         private val KAOMOJI_SUGGEST = booleanPreferencesKey("kaomoji_suggest")
         private val KAOMOJI_IN_SEARCH = booleanPreferencesKey("kaomoji_in_search")
         private val KAOMOJI_VERSION = intPreferencesKey("kaomoji_version")
+        private val EMOJI_MIX_SOURCES = stringPreferencesKey("emoji_mix_sources")
+        private val EMOJI_MIX_PANEL_STRIP = booleanPreferencesKey("emoji_mix_panel_strip")
+        private val EMOJI_MIX_TYPING = booleanPreferencesKey("emoji_mix_typing")
+        private val EMOJI_MIX_STYLE = stringPreferencesKey("emoji_mix_style")
+        private val EMOJI_MIX_REPLACE = booleanPreferencesKey("emoji_mix_replace")
+        private val EMOJI_MIX_ORDER = stringPreferencesKey("emoji_mix_order")
+        private val EMOJI_MIX_SEND_MODE = stringPreferencesKey("emoji_mix_send_mode")
+        private val EMOJI_MIX_CELL_SIZE = intPreferencesKey("emoji_mix_cell_size")
+        private val EMOJI_MIX_AUTO_REFRESH = booleanPreferencesKey("emoji_mix_auto_refresh")
+        // Newline-joined: a pair is two keys and an underscore, never a newline.
+        private val EMOJI_MIX_FAVOURITES = stringPreferencesKey("emoji_mix_favourites")
+        private val EMOJI_MIX_INDEX_VERSION = intPreferencesKey("emoji_mix_index_version")
         /** `KaomojiStore.FILE_PATH`; spelled out, as this module does for the other stores. */
         private const val KAOMOJI_FILE = "kaomoji/kaomoji.json"
         private val EMOJI_KEYWORD_PACK_VERSION = intPreferencesKey("emoji_keyword_pack_version")
@@ -11215,6 +11265,9 @@ class SettingsRepository(private val context: Context) {
         private val AI_CHAT_AUTO_RENAME = booleanPreferencesKey("ai_chat_auto_rename")
         private val AI_DOWNLOAD_UNMETERED = booleanPreferencesKey("ai_download_unmetered_only")
         private val AI_BEFORE_CURSOR_CHARS = intPreferencesKey("ai_before_cursor_chars")
+        private val AI_STRIP_SUGGEST = booleanPreferencesKey("ai_strip_suggest")
+        private val AI_STRIP_SUGGEST_CHARS = intPreferencesKey("ai_strip_suggest_chars")
+        private val AI_STRIP_SUGGEST_WORD_ONLY = booleanPreferencesKey("ai_strip_suggest_word_only")
         private val AI_DIFF_VIEW = booleanPreferencesKey("ai_diff_view")
         private val AI_TOOL_WEB_SEARCH = booleanPreferencesKey("ai_tool_web_search")
         private val AI_TOOL_WEB_FETCH = booleanPreferencesKey("ai_tool_web_fetch")
@@ -11670,6 +11723,7 @@ class SettingsRepository(private val context: Context) {
             trackpad = readTrackpad(p, defaults),
             vocabulary = readVocabulary(p, defaults),
             notes = readNotes(p, defaults),
+            todo = TodoPrefs.read(p, defaults.todo),
             send = SendPrefs.read(p, defaults.send),
             lookup = LookupPrefs.read(p, defaults.lookup),
             semanticSearch = SemanticSearchPrefs.read(p, defaults.semanticSearch),
@@ -12195,6 +12249,7 @@ class SettingsRepository(private val context: Context) {
             settingsFavourites = p[SETTINGS_FAVOURITES]
                 ?.split('\n')?.filter { it.isNotEmpty() }
                 ?: defaults.appUi.settingsFavourites,
+            favouritesButton = p[SETTINGS_FAVOURITES_BUTTON] ?: defaults.appUi.favouritesButton,
         )
 
     private fun readToolLimits(p: Preferences, defaults: KeyboardSettings) =
@@ -12911,6 +12966,25 @@ class SettingsRepository(private val context: Context) {
             panelExtraHeightDp = p[EMOJI_PANEL_EXTRA_HEIGHT_DP]?.coerceIn(MediaPanelExtraHeightRange)
                 ?: defaults.emoji.panelExtraHeightDp,
             kaomoji = readKaomoji(p, defaults.emoji.kaomoji),
+            mix = readEmojiMix(p, defaults.emoji.mix),
+        )
+
+    private fun readEmojiMix(p: Preferences, defaults: EmojiMixSettings) =
+        EmojiMixSettings(
+            sources = p[EMOJI_MIX_SOURCES]?.let(::decodeEmojiMixSources) ?: defaults.sources,
+            panelStrip = p[EMOJI_MIX_PANEL_STRIP] ?: defaults.panelStrip,
+            typingSuggest = p[EMOJI_MIX_TYPING] ?: defaults.typingSuggest,
+            suggestStyle = p[EMOJI_MIX_STYLE]?.let { runCatching { StickerSuggestStyle.valueOf(it) }.getOrNull() }
+                ?: defaults.suggestStyle,
+            replaceTypedEmoji = p[EMOJI_MIX_REPLACE] ?: defaults.replaceTypedEmoji,
+            order = p[EMOJI_MIX_ORDER]?.let { runCatching { EmojiMixOrder.valueOf(it) }.getOrNull() }
+                ?: defaults.order,
+            sendMode = p[EMOJI_MIX_SEND_MODE]?.let { runCatching { MediaSendMode.valueOf(it) }.getOrNull() }
+                ?: defaults.sendMode,
+            cellSize = p[EMOJI_MIX_CELL_SIZE]?.coerceIn(EmojiMixCellSizeRange) ?: defaults.cellSize,
+            autoRefresh = p[EMOJI_MIX_AUTO_REFRESH] ?: defaults.autoRefresh,
+            favourites = p[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() } ?: defaults.favourites,
+            indexVersion = p[EMOJI_MIX_INDEX_VERSION] ?: defaults.indexVersion,
         )
 
     private fun readKaomoji(p: Preferences, defaults: KaomojiSettings) =
@@ -13537,6 +13611,9 @@ class SettingsRepository(private val context: Context) {
             chatAutoRename = p[AI_CHAT_AUTO_RENAME] ?: defaults.ai.chatAutoRename,
             beforeCursorChars = p[AI_BEFORE_CURSOR_CHARS]
                 ?: defaults.ai.beforeCursorChars,
+            stripSuggest = p[AI_STRIP_SUGGEST] ?: defaults.ai.stripSuggest,
+            stripSuggestChars = p[AI_STRIP_SUGGEST_CHARS] ?: defaults.ai.stripSuggestChars,
+            stripSuggestWordOnly = p[AI_STRIP_SUGGEST_WORD_ONLY] ?: defaults.ai.stripSuggestWordOnly,
             toolWebSearch = p[AI_TOOL_WEB_SEARCH] ?: defaults.ai.toolWebSearch,
             toolWebFetch = p[AI_TOOL_WEB_FETCH] ?: defaults.ai.toolWebFetch,
             toolMaxRounds = p[AI_TOOL_MAX_ROUNDS] ?: defaults.ai.toolMaxRounds,
@@ -14790,6 +14867,15 @@ class SettingsRepository(private val context: Context) {
     suspend fun bumpNotesVersion() =
         editPrefs { it[NOTES_VERSION] = (it[NOTES_VERSION] ?: 0) + 1 }
 
+    /** One change to the To-do tool's settings (#920); see [updateGallery]. */
+    suspend fun updateTodo(change: (TodoSettings) -> TodoSettings) = editPrefs { p ->
+        val old = TodoPrefs.read(p, storedDefaults.todo)
+        TodoPrefs.write(p, old, change(old))
+    }
+
+    /** tasks.json was rewritten under the keyboard; the [bumpNotesVersion] contract. */
+    suspend fun bumpTodoVersion() = editPrefs { TodoPrefs.bumpVersion(it) }
+
     suspend fun setNumpadCalculatorLayout(value: Boolean) =
         editPrefs {
             it[NUMPAD_CALCULATOR_LAYOUT] = value
@@ -15971,7 +16057,7 @@ class SettingsRepository(private val context: Context) {
             PanelKind.TEXT_EDIT -> prefs.remove(TEXT_EDIT_LAYOUT)
             PanelKind.CLIPBOARD -> prefs.remove(CLIPBOARD_BOTTOM_ROW)
             PanelKind.EMOJI, PanelKind.GIF, PanelKind.STICKER, PanelKind.TRACKPAD, PanelKind.NUMPAD,
-            PanelKind.HANDWRITING,
+            PanelKind.HANDWRITING, PanelKind.EMOJI_MIX,
             -> Unit
         }
     }
@@ -16022,30 +16108,47 @@ class SettingsRepository(private val context: Context) {
     private fun summonButtonFrom(p: Preferences, d: SummonButtonSettings): SummonButtonSettings {
         val keyboardOn = p[SUMMON_BUTTON] ?: d.enabled
         val aiOnly = p[AI_BUTTON] == true && !keyboardOn && p[FLOATING_BUTTON_TAP] == null
+        val menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu
+        val categories = p[FLOATING_BUTTON_CATEGORIES]?.let(::decodeFloatingCategories) ?: d.categories
+        val categoryIds = categories.mapTo(HashSet()) { it.id }
+        // A slot whose category is gone opens nothing; it reads as no slot at all.
+        fun known(action: FloatingAction?) =
+            action?.takeIf { it !is FloatingAction.Category || it.id in categoryIds }
         return SummonButtonSettings(
             enabled = keyboardOn || aiOnly,
             xFraction = (if (aiOnly) p[AI_BUTTON_X] else p[SUMMON_BUTTON_X]) ?: d.xFraction,
             yFraction = (if (aiOnly) p[AI_BUTTON_Y] else p[SUMMON_BUTTON_Y]) ?: d.yFraction,
-            tap = p[FLOATING_BUTTON_TAP]?.let(FloatingAction::parse)
+            tap = known(p[FLOATING_BUTTON_TAP]?.let(FloatingAction::parse))
                 ?: if (aiOnly) FloatingAction.AskAi else d.tap,
-            doubleTap = p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse) ?: d.doubleTap,
-            hold = p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse) ?: d.hold,
+            doubleTap = known(p[FLOATING_BUTTON_DOUBLE_TAP]?.let(FloatingAction::parse)) ?: d.doubleTap,
+            hold = known(p[FLOATING_BUTTON_HOLD]?.let(FloatingAction::parse)) ?: d.hold,
             // Unset, or a token this build no longer knows: the same as with the keyboard down.
-            tapTyping = p[FLOATING_BUTTON_TAP_TYPING]?.let(FloatingAction::parse) ?: d.tapTyping,
-            doubleTapTyping = p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse) ?: d.doubleTapTyping,
-            menu = p[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: d.menu,
+            tapTyping = known(p[FLOATING_BUTTON_TAP_TYPING]?.let(FloatingAction::parse)) ?: d.tapTyping,
+            doubleTapTyping = known(p[FLOATING_BUTTON_DOUBLE_TAP_TYPING]?.let(FloatingAction::parse))
+                ?: d.doubleTapTyping,
+            menu = menu.filter { known(it) != null },
+            categories = categories,
             menuLabels = p[FLOATING_BUTTON_MENU_LABELS] ?: d.menuLabels,
+            menuGapDp = (p[FLOATING_BUTTON_MENU_GAP] ?: d.menuGapDp)
+                .coerceIn(FloatingMenuGapRange.first, FloatingMenuGapRange.last),
+            menuAnimation = p[FLOATING_BUTTON_MENU_ANIMATION]
+                ?.let { runCatching { FloatingMenuAnimation.valueOf(it) }.getOrNull() }
+                ?: d.menuAnimation,
             sizeDp = (p[FLOATING_BUTTON_SIZE] ?: d.sizeDp)
                 .coerceIn(FloatingButtonSizeRange.first, FloatingButtonSizeRange.last),
             style = p[FLOATING_BUTTON_STYLE]
                 ?.let { runCatching { FloatingButtonStyle.valueOf(it) }.getOrNull() }
                 ?: d.style,
+            shape = p[FLOATING_BUTTON_SHAPE]
+                ?.let { runCatching { FloatingButtonShape.valueOf(it) }.getOrNull() }
+                ?: d.shape,
             opacity = (p[FLOATING_BUTTON_OPACITY] ?: d.opacity).coerceIn(0.3f, 1f),
             idleFadeSeconds = (p[FLOATING_BUTTON_IDLE_FADE] ?: d.idleFadeSeconds)
                 .coerceIn(FloatingButtonIdleRange.first, FloatingButtonIdleRange.last),
             idleOpacity = (p[FLOATING_BUTTON_IDLE_OPACITY] ?: d.idleOpacity).coerceIn(0.15f, 1f),
             tuck = p[FLOATING_BUTTON_TUCK] ?: d.tuck,
             whileTyping = p[FLOATING_BUTTON_WHILE_TYPING] ?: d.whileTyping,
+            overKeyboard = p[FLOATING_BUTTON_OVER_KEYBOARD] ?: d.overKeyboard,
             hideInLandscape = p[FLOATING_BUTTON_HIDE_LANDSCAPE] ?: d.hideInLandscape,
             haptics = p[FLOATING_BUTTON_HAPTICS] ?: d.haptics,
         )
@@ -16119,12 +16222,74 @@ class SettingsRepository(private val context: Context) {
             }
         }
 
-    /** The quick menu's slots; an empty list is kept as an empty menu, not the default one. */
+    /**
+     * The quick menu's slots; an empty list is kept as an empty menu, not the
+     * default one. A category whose slot this takes out goes with it (#923).
+     */
     suspend fun setFloatingButtonMenu(value: List<FloatingAction>) =
-        editFloatingButton { it[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(value) }
+        editFloatingButton {
+            it[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(value)
+            pruneFloatingCategories(it, FloatingAction.parseMenu(it[FLOATING_BUTTON_MENU].orEmpty()))
+        }
 
     suspend fun resetFloatingButtonMenu() =
-        editFloatingButton { it.remove(FLOATING_BUTTON_MENU) }
+        editFloatingButton {
+            it.remove(FLOATING_BUTTON_MENU)
+            pruneFloatingCategories(it, DefaultFloatingMenu)
+        }
+
+    /**
+     * A new, empty category named [name], added as the quick menu's last slot
+     * (#923), in one write so the slot never names a category that is not
+     * there. Its id, or null when the menu is full.
+     */
+    suspend fun addFloatingButtonCategory(name: String): String? {
+        var added: String? = null
+        editFloatingButton { prefs ->
+            val menu = prefs[FLOATING_BUTTON_MENU]?.let(FloatingAction::parseMenu) ?: DefaultFloatingMenu
+            if (menu.size >= MAX_FLOATING_MENU_ITEMS) return@editFloatingButton
+            val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+            val id = categories.nextCategoryId()
+            val category = FloatingCategory(id, name.trim().take(FLOATING_CATEGORY_NAME_MAX))
+            writeFloatingCategories(prefs, categories + category)
+            prefs[FLOATING_BUTTON_MENU] = FloatingAction.menuToken(menu + FloatingAction.Category(id))
+            added = id
+        }
+        return added
+    }
+
+    /** A category's new name and slots (#923); one no slot opens any more is not kept. */
+    suspend fun setFloatingButtonCategory(value: FloatingCategory) =
+        editFloatingButton { prefs ->
+            val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+            if (categories.categoryById(value.id) == null) return@editFloatingButton
+            writeFloatingCategories(prefs, categories.map { if (it.id == value.id) value else it })
+        }
+
+    private fun pruneFloatingCategories(prefs: MutablePreferences, menu: List<FloatingAction>) {
+        val categories = decodeFloatingCategories(prefs[FLOATING_BUTTON_CATEGORIES])
+        if (categories.isEmpty()) return
+        writeFloatingCategories(prefs, categories.withoutOrphans(menu))
+    }
+
+    private fun writeFloatingCategories(prefs: MutablePreferences, categories: List<FloatingCategory>) {
+        val encoded = encodeFloatingCategories(categories.normalizedCategories())
+        if (encoded == null) prefs.remove(FLOATING_BUTTON_CATEGORIES) else prefs[FLOATING_BUTTON_CATEGORIES] = encoded
+    }
+
+    suspend fun setFloatingButtonMenuGap(value: Int) =
+        editFloatingButton {
+            it[FLOATING_BUTTON_MENU_GAP] = value.coerceIn(FloatingMenuGapRange.first, FloatingMenuGapRange.last)
+        }
+
+    suspend fun setFloatingButtonMenuAnimation(value: FloatingMenuAnimation) =
+        editFloatingButton { it[FLOATING_BUTTON_MENU_ANIMATION] = value.name }
+
+    suspend fun setFloatingButtonShape(value: FloatingButtonShape) =
+        editFloatingButton { it[FLOATING_BUTTON_SHAPE] = value.name }
+
+    suspend fun setFloatingButtonOverKeyboard(value: Boolean) =
+        editFloatingButton { it[FLOATING_BUTTON_OVER_KEYBOARD] = value }
 
     suspend fun setFloatingButtonMenuLabels(value: Boolean) =
         editFloatingButton { it[FLOATING_BUTTON_MENU_LABELS] = value }
@@ -17276,6 +17441,11 @@ class SettingsRepository(private val context: Context) {
         if (ConfigBackup.Section.AI_MEMORY in sections) {
             readStore(AiMemoryStore.FILE_PATH)?.let { out[ConfigBackup.Section.AI_MEMORY] = it }
         }
+        if (ConfigBackup.Section.TODO in sections) {
+            // The list as stored. The task-app sync's own record stays out: it
+            // names rows of this phone's task app (see TodoProviderSync).
+            readStore(TodoStore.FILE_PATH)?.let { out[ConfigBackup.Section.TODO] = it }
+        }
         return out
     }
 
@@ -17314,6 +17484,8 @@ class SettingsRepository(private val context: Context) {
                     ConfigBackup.Section.CLOCK -> com.wasimaster.wmkeyboard.core.clock.ClockBackup.count(element)
                     ConfigBackup.Section.KAOMOJI -> element.jsonObject["items"]?.jsonArray?.size ?: 0
                     ConfigBackup.Section.AI_MEMORY -> element.jsonObject["memories"]?.jsonArray?.size ?: 0
+                    // Tasks and their steps alike.
+                    ConfigBackup.Section.TODO -> element.jsonObject["tasks"]?.jsonArray?.size ?: 0
                 }
             }.getOrDefault(0)
             counts[section] = count
@@ -17460,6 +17632,13 @@ class SettingsRepository(private val context: Context) {
                 // The keyboard holds the notes in memory; without this it
                 // saves its own list over the one just restored.
                 bumpNotesVersion()
+            }
+        }
+        (parsed.sections[ConfigBackup.Section.TODO] as? JsonObject)?.let { obj ->
+            if (writeStore(TodoStore.FILE_PATH, obj)) {
+                restored.add(ConfigBackup.Section.TODO)
+                // The keyboard holds the list in memory; see the notes above.
+                bumpTodoVersion()
             }
         }
         (parsed.sections[ConfigBackup.Section.KAOMOJI] as? JsonObject)?.let { obj ->
@@ -18262,6 +18441,14 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setAiBeforeCursorChars(value: Int) =
         editPrefs { it[AI_BEFORE_CURSOR_CHARS] = value.coerceIn(500, 32_000) }
+
+    suspend fun setAiStripSuggest(value: Boolean) = editPrefs { it[AI_STRIP_SUGGEST] = value }
+
+    suspend fun setAiStripSuggestChars(value: Int) =
+        editPrefs { it[AI_STRIP_SUGGEST_CHARS] = value.coerceIn(AI_STRIP_SUGGEST_CHARS_MIN, AI_STRIP_SUGGEST_CHARS_MAX) }
+
+    suspend fun setAiStripSuggestWordOnly(value: Boolean) =
+        editPrefs { it[AI_STRIP_SUGGEST_WORD_ONLY] = value }
 
     suspend fun setAiReplyCount(value: Int) =
         editPrefs { it[AI_REPLY_COUNT] = value.coerceIn(1, AiPrompts.MAX_REPLIES) }
@@ -19423,6 +19610,10 @@ class SettingsRepository(private val context: Context) {
     suspend fun setSettingsFavourites(value: List<String>) =
         editPrefs { it[SETTINGS_FAVOURITES] = value.joinToString("\n") }
 
+    /** See [AppUiSettings.favouritesButton]. */
+    suspend fun setFavouritesButton(value: Boolean) =
+        editPrefs { it[SETTINGS_FAVOURITES_BUTTON] = value }
+
     /** See [AppUiSettings.splitToolPanels]. */
     suspend fun setSplitToolPanels(value: Boolean) =
         editPrefs { it[SETTINGS_SPLIT_TOOL_PANELS] = value }
@@ -20410,6 +20601,66 @@ class SettingsRepository(private val context: Context) {
     /** See [KaomojiSettings.inSearch]. */
     suspend fun setKaomojiInSearch(value: Boolean) =
         editPrefs { it[KAOMOJI_IN_SEARCH] = value }
+
+    /** See [EmojiMixSettings.sources]; the whole list, in order. */
+    suspend fun setEmojiMixSources(value: List<EmojiMixSource>) =
+        editPrefs { it[EMOJI_MIX_SOURCES] = encodeEmojiMixSources(value) }
+
+    /**
+     * Changes the source [id] in place, reading the list as it is now: an
+     * index build that finishes while the user is editing the list must not
+     * write back the list it started from.
+     */
+    suspend fun updateEmojiMixSource(id: String, change: (EmojiMixSource) -> EmojiMixSource) =
+        editPrefs { prefs ->
+            val list = decodeEmojiMixSources(prefs[EMOJI_MIX_SOURCES])
+            if (list.none { it.id == id }) return@editPrefs
+            prefs[EMOJI_MIX_SOURCES] = encodeEmojiMixSources(list.map { if (it.id == id) change(it) else it })
+        }
+
+    /** See [EmojiMixSettings.panelStrip]. */
+    suspend fun setEmojiMixPanelStrip(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_PANEL_STRIP] = value }
+
+    /** See [EmojiMixSettings.typingSuggest]. */
+    suspend fun setEmojiMixTypingSuggest(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_TYPING] = value }
+
+    /** See [EmojiMixSettings.suggestStyle]. */
+    suspend fun setEmojiMixSuggestStyle(value: StickerSuggestStyle) =
+        editPrefs { it[EMOJI_MIX_STYLE] = value.name }
+
+    /** See [EmojiMixSettings.replaceTypedEmoji]. */
+    suspend fun setEmojiMixReplaceTyped(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_REPLACE] = value }
+
+    /** See [EmojiMixSettings.order]. */
+    suspend fun setEmojiMixOrder(value: EmojiMixOrder) =
+        editPrefs { it[EMOJI_MIX_ORDER] = value.name }
+
+    /** See [EmojiMixSettings.sendMode]. */
+    suspend fun setEmojiMixSendMode(value: MediaSendMode) =
+        editPrefs { it[EMOJI_MIX_SEND_MODE] = value.name }
+
+    /** See [EmojiMixSettings.cellSize]. */
+    suspend fun setEmojiMixCellSize(value: Int) =
+        editPrefs { it[EMOJI_MIX_CELL_SIZE] = value.coerceIn(EmojiMixCellSizeRange) }
+
+    /** See [EmojiMixSettings.autoRefresh]. */
+    suspend fun setEmojiMixAutoRefresh(value: Boolean) =
+        editPrefs { it[EMOJI_MIX_AUTO_REFRESH] = value }
+
+    /** Stars [pair] (`leftKey_rightKey`), or takes the star off when [starred] is false. */
+    suspend fun setEmojiMixFavourite(pair: String, starred: Boolean) =
+        editPrefs { prefs ->
+            val now = prefs[EMOJI_MIX_FAVOURITES]?.split('\n')?.filter { it.isNotBlank() }.orEmpty()
+            val next = (if (starred) listOf(pair) else emptyList()) + now.filter { it != pair }
+            prefs[EMOJI_MIX_FAVOURITES] = next.take(EmojiMixFavouritesMax).joinToString("\n")
+        }
+
+    /** Tells the running keyboard that an emoji-mix index file changed under it. */
+    suspend fun bumpEmojiMixIndexVersion() =
+        editPrefs { it[EMOJI_MIX_INDEX_VERSION] = (it[EMOJI_MIX_INDEX_VERSION] ?: 0) + 1 }
 
     /**
      * Tells the running keyboard that `kaomoji/kaomoji.json` was rewritten

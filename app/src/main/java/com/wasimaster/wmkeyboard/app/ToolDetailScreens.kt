@@ -467,6 +467,8 @@ internal fun ToolDetailSettings(
                         stringResource(R.string.tooldetail_enabled_needs_layout_subtitle)
                     ToolBlocker.VOICE_OFF ->
                         stringResource(R.string.tooldetail_enabled_voice_off_subtitle)
+                    ToolBlocker.NEEDS_MIX_SOURCE ->
+                        stringResource(R.string.tooldetail_enabled_needs_mix_source_subtitle)
                 },
                 usable && toolOn,
                 switchKey = landingKey("switch"),
@@ -3220,6 +3222,7 @@ internal fun ToolDetailSettings(
         ToolbarTool.AI_REPLY -> AiReplyToolSettings(repository, settings, onNavigate)
         ToolbarTool.VOCABULARY -> VocabularyToolSettings(repository, settings, onNavigate)
         ToolbarTool.NOTES -> NotesToolSettings(repository, settings, onNavigate)
+        ToolbarTool.TODO -> TodoToolSettings(repository, settings, onNavigate)
         ToolbarTool.LOCATION -> LocationToolSettings(repository, settings)
         ToolbarTool.CLOCK -> ClockToolSettings(onNavigate)
         ToolbarTool.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.app.homeassistant.SmartHomeToolSettings(repository, settings, onNavigate)

@@ -403,6 +403,9 @@ enum class CaptureTarget(
     /** A label in the Clock panel: an alarm's, a timer's, a countdown's, a city's own name. */
     CLOCK_LABEL(takesWords = true),
 
+    /** The To-do panel's box (#920): a task or a step, one line; Enter adds it, or keeps an edit. */
+    TODO_TEXT(takesWords = true, prose = true),
+
     /** The Home Assistant panel's search: filters tiles as it is typed, Enter opens the first. */
     HA_SEARCH(takesWords = true),
 

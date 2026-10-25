@@ -33,6 +33,7 @@ import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.IBinder
 import android.os.Looper
 import android.os.Process
 import android.os.SystemClock
@@ -567,6 +568,7 @@ import com.wasimaster.wmkeyboard.core.localllm.LocalLlmEngine
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmDownloadManager
 import com.wasimaster.wmkeyboard.core.localllm.LocalLlmStore
 import com.wasimaster.wmkeyboard.core.tools.AiClient
+import com.wasimaster.wmkeyboard.core.tools.AiContinuation
 import com.wasimaster.wmkeyboard.core.tools.AiPrompts
 import com.wasimaster.wmkeyboard.core.tools.AiReplyParse
 import com.wasimaster.wmkeyboard.core.tools.ReplyImageMode
@@ -721,6 +723,8 @@ import com.wasimaster.wmkeyboard.core.transliteration.PhoneticTables
 import com.wasimaster.wmkeyboard.core.transliteration.SortedWords
 import com.wasimaster.wmkeyboard.core.transliteration.Khipro
 import com.wasimaster.wmkeyboard.core.transliteration.KhiproRomanizer
+import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
+import com.wasimaster.wmkeyboard.core.settings.stopsBackgroundWork
 import com.wasimaster.wmkeyboard.core.transliteration.Zawgyi
 import com.wasimaster.wmkeyboard.core.layout.AssetLayouts
 import com.wasimaster.wmkeyboard.core.layout.BuiltInLayouts
@@ -780,6 +784,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.VietnameseConfig
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseTelexComposer
 import com.wasimaster.wmkeyboard.core.input.composer.VietnameseVniComposer
 import com.wasimaster.wmkeyboard.core.input.imported.ImportedInputMethods
+import com.wasimaster.wmkeyboard.core.script.FancyAssembly
 import com.wasimaster.wmkeyboard.core.script.FancyStyle
 import com.wasimaster.wmkeyboard.core.script.FancyStyles
 import com.wasimaster.wmkeyboard.core.script.LanguageDef
@@ -2101,6 +2106,18 @@ open class WMKeyboardService : InputMethodService() {
     private var suggestionJob: Job? = null
     private var smartJob: Job? = null
 
+    /** The AI continuation's pause and request (#944); any keystroke cancels it. */
+    private var aiSuggestJob: Job? = null
+
+    /** Bumped by every keystroke, so an answer to older text is dropped. */
+    private var aiSuggestSeq = 0
+
+    /** A request on the phone's own model is running; it cannot be cut short. */
+    private val aiSuggestOnDeviceBusy = java.util.concurrent.atomic.AtomicBoolean(false)
+
+    /** The AI chip was held down: not offered again in this field. */
+    private var aiSuggestSuppressed = false
+
     /**
      * Re-reads the context once a spacebar caret scrub stops moving.
      *
@@ -2429,6 +2446,9 @@ open class WMKeyboardService : InputMethodService() {
     /** The converting connection handed out last, kept for as long as its field and encoding last. */
     private var legacyConnection: LegacyOutputConnection? = null
 
+    /** The styling connection handed out last, kept for as long as its field and style last. */
+    private var fancyConnection: FancyOutputConnection? = null
+
     /**
      * This field is written in Zawgyi because the user said so on the strip's
      * offer ([ZawgyiOffer.Field]), whatever the Burmese layouts' own setting.
@@ -2441,11 +2461,20 @@ open class WMKeyboardService : InputMethodService() {
 
     /**
      * The field's connection, seen through the converter while a layout writes
-     * a legacy encoding. Every edit the keyboard makes goes through here, so
+     * a legacy encoding, or through the styling while Fancy Text composes
+     * ([FancyOutputConnection]). Every edit the keyboard makes goes through here, so
      * this one place is the whole of the conversion's reach into the service.
      */
-    override fun getCurrentInputConnection(): InputConnection? {
-        val base = traced(super.getCurrentInputConnection() ?: return null)
+    override fun getCurrentInputConnection(): InputConnection? =
+        fieldConnection(super.getCurrentInputConnection() ?: return null)
+
+    /** [raw] as every edit sees it; a test's own field goes through here too. */
+    internal fun fieldConnection(raw: InputConnection): InputConnection {
+        val base = traced(raw)
+        fancyOutputStyle(_uiState.value)?.let { style ->
+            fancyConnection?.let { if (it.base === base && it.style == style) return it }
+            return FancyOutputConnection(base, style).also { fancyConnection = it }
+        }
         val encoding = outputEncoding ?: return base
         legacyConnection?.let { if (it.base === base && it.encoding == encoding) return it }
         return LegacyOutputConnection(base, encoding).also { legacyConnection = it }
@@ -4376,6 +4405,14 @@ open class WMKeyboardService : InputMethodService() {
             }
         }
 
+        // A newer Khipro spec set went in, or was dropped (#909): the glide
+        // spellings were read off the old one.
+        serviceScope.launch {
+            KhiproSpecs.installs.collect {
+                if (_uiState.value.composer is KhiproComposer) ensureKhiproGlide()
+            }
+        }
+
         // A GiellaLT speller downloaded, imported or deleted from the
         // language's screen goes live (or away) without a language switch.
         serviceScope.launch {
@@ -4411,6 +4448,7 @@ open class WMKeyboardService : InputMethodService() {
             var swipeStyleVersion = -1
             var statsVersion = -1
             var notesVersion = -1
+            var todoVersion = -1
             var kaomojiVersion = -1
             var customDictVersion = -1
             var emojiPackVersion = -1
@@ -4750,12 +4788,28 @@ open class WMKeyboardService : InputMethodService() {
                     publishNotes()
                 }
                 notesVersion = settings.notes.version
+                // The to-do list, for the same reason (#920).
+                if (todoVersion != -1 && settings.todo.version != todoVersion && todoToolDelegate.isInitialized()) {
+                    todoTool.reload()
+                }
+                todoVersion = settings.todo.version
                 // The kaomoji library: the settings app's library screen, an
                 // import or a restore rewrote it.
                 if (kaomojiVersion != -1 && settings.emoji.kaomoji.version != kaomojiVersion) {
                     kaomojiTool.reload()
                 }
                 kaomojiVersion = settings.emoji.kaomoji.version
+                // Emoji mixes: a source added, switched or rebuilt in the
+                // settings app. Nothing is loaded until one has been added.
+                if (settings.emoji.mix.sources.isNotEmpty() || emojiMixToolDelegate.isInitialized()) {
+                    val mix = settings.emoji.mix
+                    withContext(Dispatchers.IO) { emojiMixTool.reload(mix) }
+                    if (mix.favourites != emojiMixFavourites) {
+                        emojiMixFavourites = mix.favourites
+                        emojiMixTool.refreshFavourites(mix)
+                    }
+                    maybeRefreshEmojiMixIndexes(mix)
+                }
                 // The strip's faces need the library before the tab is ever opened.
                 if (settings.emoji.kaomojiTabs || settings.emoji.kaomoji.suggest) kaomojiTool.ensureLoaded()
                 noteStore.trashRetentionMillis = settings.notes.trashDays * DAY_MS
@@ -6616,6 +6670,10 @@ open class WMKeyboardService : InputMethodService() {
                     floatingMenuOpen.value = open
                 }
 
+                // Over the keys (#926), the button's windows are panels of this one.
+                override fun keyboardWindowToken(): IBinder? =
+                    window?.window?.decorView?.windowToken ?: window?.window?.attributes?.token
+
                 override fun floatingButtonDismissed() {
                     floatingButtonDismissed = true
                     syncSummonButton()
@@ -6677,8 +6735,22 @@ open class WMKeyboardService : InputMethodService() {
             FloatingAction.AskAi -> askAiAboutScreen()
             FloatingAction.LookUp -> lookUpOnScreen()
             is FloatingAction.Tool -> runToolFromFloatingButton(action.tool)
+            is FloatingAction.App -> openAppFromFloatingButton(action.packageName)
             // The button answers these itself.
-            FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None -> Unit
+            FloatingAction.Menu, FloatingAction.Hide, FloatingAction.None, is FloatingAction.Category -> Unit
+        }
+    }
+
+    /**
+     * A floating button slot that opens an app (#922): its launcher entry,
+     * started the way the app launcher tool starts one. An app that has gone
+     * since it was picked says so rather than doing nothing.
+     */
+    private fun openAppFromFloatingButton(packageName: String) {
+        val intent = launcherIntentFor(packageName)
+        val foreground = currentInputEditorInfo?.packageName.takeIf { windowOnScreen }
+        if (intent == null || !startLauncherIntent(intent, LauncherOpenMode.NORMAL, foreground)) {
+            Toast.makeText(this, R.string.ime_floating_app_missing, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -7212,6 +7284,7 @@ open class WMKeyboardService : InputMethodService() {
         // refreshSuggestions return before they ever cancel.
         suggestionJob?.cancel()
         smartJob?.cancel()
+        clearAiSuggest()
         gestureJob?.cancel()
         commitResolution = null
         // `restarting` is the same field reporting itself again — a programmatic
@@ -7277,6 +7350,7 @@ open class WMKeyboardService : InputMethodService() {
             intentChipsRetired.clear()
             contactChipsRetired.clear()
             repeatChipsRetired.clear()
+            aiSuggestSuppressed = false
         }
         if (!restarting) {
             // Same for the vocabulary nudges — unless the cooldown is a day,
@@ -7858,7 +7932,7 @@ open class WMKeyboardService : InputMethodService() {
         }
         val state = _uiState.value
         if (state.composer.isTransliterating || state.layouts.ambiguousKeys ||
-            !state.resumesWords || duetWord.active || inlineEmojiQuery() != null ||
+            !state.resumesWords || duetWord.active || inlineEmojiQuery() != null || fancyOutputStyle(state) != null ||
             !composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
         ) {
             return
@@ -8597,6 +8671,8 @@ open class WMKeyboardService : InputMethodService() {
         rememberTypedNumber()
         super.onFinishInputView(finishingInput)
         keyboardVisible = false
+        // A continuation asked for in the closing field has nowhere to go.
+        clearAiSuggest()
         // Keys held for a two-thumb read were meant for the field now closing.
         keysBehindDuet.clear()
         // No finger outlives the window it was on (#743).
@@ -10842,6 +10918,8 @@ open class WMKeyboardService : InputMethodService() {
             CaptureTarget.NOTE_TAG -> onNoteTagCommit()
             // Search adds its best match; a label is kept. Either way the keys go back.
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> state.clockText?.let(clockTool::onTextEnter)
+            // A new task is added and the box waits for the next; an edit is kept.
+            CaptureTarget.TODO_TEXT -> state.todoText?.let(todoTool::onTextEnter)
             // Search opens the first tile, Assist sends the sentence, a code or value is kept.
             CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> state.haText?.let(haTool::onTextEnter)
             // A caption, or words on a photo, can run over lines; Done finishes
@@ -11296,6 +11374,13 @@ open class WMKeyboardService : InputMethodService() {
                 noteEditDraft { it.copy(titleDraft = text.replace("\n", " ").take(NoteStore.MAX_TITLE_LENGTH)) }
             CaptureTarget.NOTE_BODY -> noteEditDraft { it.copy(bodyDraft = text.take(NoteEdit.EDITOR_MAX_LENGTH)) }
             CaptureTarget.NOTE_TAG -> noteEditDraft { it.copy(tagDraft = text.trimStart().take(NoteStore.MAX_TAG_LENGTH)) }
+            CaptureTarget.TODO_TEXT -> _uiState.update { state ->
+                state.copy(
+                    todoText = state.todoText?.copy(
+                        text = text.replace("\n", " ").take(com.wasimaster.wmkeyboard.core.todo.TodoStore.MAX_TEXT_LENGTH),
+                    ),
+                )
+            }
             CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> {
                 val limit = com.wasimaster.wmkeyboard.ime.clock.ClockController.LABEL_MAX
                 val entry = _uiState.value.clockText?.copy(text = text.replace("\n", " ").take(limit))
@@ -11759,7 +11844,10 @@ open class WMKeyboardService : InputMethodService() {
         // one. Chosen by the key that starts the word and kept to its end, so
         // one word never reads half one way and half the other.
         val khipro = state.composer
-        if (khipro is KhiproComposer && composing.isEmpty()) khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
+        if (khipro is KhiproComposer && composing.isEmpty()) {
+            khipro.startWord(hardwareKeyboard = hardwareKeyTyping)
+            refreshKhiproSpecsIfDue()
+        }
         // One-shot, spent by this keystroke whatever it turns out to be: a mark
         // takes the keyboard's own space back, and anything else simply types
         // past it. Both kinds of space count — the one that ended a word (glide
@@ -11818,13 +11906,15 @@ open class WMKeyboardService : InputMethodService() {
         // Past every keyboard-buffer and search intercept: this keystroke's
         // text is going to the field, so it is typing worth counting.
         recordStat { onTyped(text, System.currentTimeMillis(), SystemClock.uptimeMillis()) }
-        // Fancy Text: swap plain letters for the styled glyphs at the last
-        // moment — after every keyboard-buffer and search intercept above
-        // (those want plain, searchable letters) and before the field sees
-        // anything. Hardware keys and typing over a selection funnel through
-        // here too, so they style for free.
+        // Fancy Text: the letters stay plain from here on, composed and
+        // corrected like any other word, and [FancyOutputConnection] styles
+        // whatever is committed (#950). Upside-down is the exception: it swaps
+        // each key for its glyph at the last moment, after every keyboard-buffer
+        // and search intercept above (those want plain, searchable letters) and
+        // before the field sees anything, and never composes.
         val fancyStyle = fancyStyleFor(state)
-        text = applyFancyStyle(text, fancyStyle)
+        val fancyByKey = fancyStyle != null && !fancyComposes(state)
+        if (fancyByKey) text = applyFancyStyle(text, fancyStyle)
         // contextualForm is the identity for every composer except the
         // cluster-shaping (fixed Indic) ones, so only they are worth the
         // synchronous getTextBeforeCursor round-trip on the keypress path.
@@ -11962,10 +12052,9 @@ open class WMKeyboardService : InputMethodService() {
         // ([KeyboardUiState.composesForSuggestions] — which is also what lets a
         // URL bar compose once the strip is on it, #98).
         //
-        // Fancy Text never composes: the styled glyphs have no dictionary, and
-        // half of them are astral pairs that would fail isWordChar anyway —
-        // forcing every style down the direct-commit branch keeps the BMP
-        // styles (small caps, fullwidth) consistent with the astral ones.
+        // Fancy Text composes plain letters and styles them on the way out
+        // (#950), except upside-down, styled key by key above: its glyphs
+        // have no dictionary, and half are pairs that would fail isWordChar.
         //
         // A cluster-shaping layout (Probhat, Jatiya, fixed Devanagari…) types
         // its script straight into the field, so it does not compose *words* —
@@ -11973,7 +12062,7 @@ open class WMKeyboardService : InputMethodService() {
         // re-armed ([restartSuggestionsAtCursor]), or the resume buys a single
         // keypress and drops the region again. So: never starts a buffer, always
         // continues the one it was handed, and the next word boundary ends it.
-        val composingMode = fancyStyle == null &&
+        val composingMode = !fancyByKey &&
             (!state.composer.isClusterShaping || composing.isNotEmpty()) &&
             (state.composer.isTransliterating || state.composesForSuggestions)
 
@@ -12643,10 +12732,34 @@ open class WMKeyboardService : InputMethodService() {
     private fun applyFancyStyle(text: String, style: FancyStyle?): String =
         if (style != null) FancyStyles.transform(text, style) else text
 
+    /**
+     * Whether Fancy Text composes plain words, with suggestions and
+     * autocorrection, and styles them on their way into the field (#950).
+     * Every style but upside-down: its letters only read right once the
+     * whole line is reversed, so it keeps typing glyph by glyph.
+     */
+    private fun fancyComposes(state: KeyboardUiState): Boolean =
+        fancyStyleFor(state)?.let { it.assembly != FancyAssembly.REVERSED } == true
+
+    /**
+     * The style the field's text is written in while Fancy Text composes, or
+     * null when what goes into the field is what was typed: off the fancy
+     * layout, on Normal, and on upside-down, which styles each key itself.
+     * Non-null routes every commit through [FancyOutputConnection].
+     */
+    private fun fancyOutputStyle(state: KeyboardUiState): FancyStyle? =
+        fancyStyleFor(state)?.takeIf { it.id != FancyStyles.NORMAL_ID && it.assembly != FancyAssembly.REVERSED }
+
+    /** [text] as the field holds it once committed: styled under [fancyOutputStyle]. */
+    private fun fieldForm(text: String, state: KeyboardUiState = _uiState.value): String =
+        applyFancyStyle(text, fancyOutputStyle(state))
+
     /** A style chip on the fancy strip: instant in-session, persisted behind. */
     fun onFancyStyleSelect(id: String) {
         vibrate()
         _uiState.update { it.copy(activeFancyStyleId = id) }
+        // The word being typed takes the new style at once, not at its next letter.
+        if (composing.isNotEmpty()) currentInputConnection?.let(::updateComposingText)
         serviceScope.launch { settingsRepository.setFancyStyle(id) }
     }
 
@@ -12704,6 +12817,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** [turnFancyOn]'s opposite. [quiet] is the automatic pass, which says nothing. */
     private fun turnFancyOff(state: KeyboardUiState, quiet: Boolean = false) {
+        // The word being typed is written in the style it was typed in, before
+        // the session style is let go of below.
+        currentInputConnection?.let { commitComposing(it, autocorrect = false) }
         val remaining = state.settings.enabledLayoutIds.filter { it != AssetLayouts.FANCY_ID }
         val target = layoutAfterFancy(fancyToolReturnLayoutId, remaining)
         fancyToolReturnLayoutId = null
@@ -13321,17 +13437,21 @@ open class WMKeyboardService : InputMethodService() {
                 // A word corrected by a mark (#562) under the auto-space rule
                 // has two characters behind it, the mark and its space. Those
                 // two exactly, and nothing else, count as a two-character tail.
-                val wide = ic.getTextBeforeCursor(revert.committed.length + 2, 0)?.toString()
-                val markAndSpace = wide != null && wide.length == revert.committed.length + 2 &&
+                //
+                // Probed as the field holds it: styled, under Fancy Text, and
+                // the original goes back through the same styling (#950).
+                val committed = fieldForm(revert.committed, state)
+                val wide = ic.getTextBeforeCursor(committed.length + 2, 0)?.toString()
+                val markAndSpace = wide != null && wide.length == committed.length + 2 &&
                     wide.endsWith(' ') && wide[wide.length - 2] in AUTO_SPACE_PUNCTUATION &&
-                    wide.dropLast(2) == revert.committed
-                val probe = if (markAndSpace) wide else wide?.takeLast(revert.committed.length + 1)
+                    wide.dropLast(2) == committed
+                val probe = if (markAndSpace) wide else wide?.takeLast(committed.length + 1)
                 val tail = when {
                     markAndSpace -> probe.orEmpty().takeLast(2)
-                    probe != null && probe.length > revert.committed.length -> probe.takeLast(1)
+                    probe != null && probe.length > committed.length -> probe.takeLast(1)
                     else -> ""
                 }
-                if (probe != null && probe.dropLast(tail.length) == revert.committed) {
+                if (probe != null && probe.dropLast(tail.length) == committed) {
                     ic.beginBatchEdit()
                     ic.deleteSurroundingText(probe.length, 0)
                     ic.commitText(revert.original + tail, 1)
@@ -13345,9 +13465,9 @@ open class WMKeyboardService : InputMethodService() {
                 // because when something does follow and happens to spell the
                 // commit's own tail ("hi.." after "hi ."), the read above is
                 // the right one.
-                if (probe != null && probe.endsWith(revert.committed)) {
+                if (probe != null && probe.endsWith(committed)) {
                     ic.beginBatchEdit()
-                    ic.deleteSurroundingText(revert.committed.length, 0)
+                    ic.deleteSurroundingText(committed.length, 0)
                     ic.commitText(revert.original, 1)
                     ic.endBatchEdit()
                     revertCommitted(ic, revert, state, tail = "")
@@ -13813,7 +13933,12 @@ open class WMKeyboardService : InputMethodService() {
         val unlocked = userUnlocked
         val table = KhiproGlideDownloads.file(filesDir).takeIf { unlocked && it.isFile }
         val tableSize = table?.length() ?: -1L
-        if (khiproGlideList === words && khiproGlideLearned == learned && khiproGlideTable == tableSize) return
+        val spec = KhiproSpecs.activeRevision()
+        if (khiproGlideList === words && khiproGlideLearned == learned && khiproGlideTable == tableSize &&
+            khiproGlideSpec == spec
+        ) {
+            return
+        }
         if (khiproGlideJob?.isActive == true) return
         if (unlocked && table == null && !KhiproGlideDownloads.failed) {
             // Back here through the completions once it lands or fails.
@@ -13826,9 +13951,12 @@ open class WMKeyboardService : InputMethodService() {
             // on a downloaded list is minutes; a cached list says nothing.
             var notify: DownloadNotifications.Handle? = null
             val (main, personal) = withContext(Dispatchers.Default) {
-                val main = khiproGlideMain.takeIf { khiproGlideList === words && khiproGlideTable == tableSize }
+                val main = khiproGlideMain.takeIf {
+                    khiproGlideList === words && khiproGlideTable == tableSize && khiproGlideSpec == spec
+                }
                     ?: if (unlocked) {
-                        KhiproGlideSpellings.load(words, dir, premade = table) { done, total ->
+                        val downloaded = KhiproSpecs.state.value.takeIf { it.downloaded }?.revision
+                        KhiproGlideSpellings.load(words, dir, premade = table, downloadedSpec = downloaded) { done, total ->
                             synchronized(this@WMKeyboardService) {
                                 val handle = notify ?: DownloadNotifications.start(
                                     this@WMKeyboardService,
@@ -13853,6 +13981,7 @@ open class WMKeyboardService : InputMethodService() {
             khiproGlideList = words
             khiproGlideLearned = learned
             khiproGlideTable = tableSize
+            khiproGlideSpec = spec
             romanizedGlides = romanizedGlides +
                 (KHIPRO_GLIDE to RomanizedIndex.deterministic(main ?: PackedTrie.EMPTY, personal, KhiproRomanizer.KEYS, Khipro::convert))
             glideSourcesEpoch.update { it + 1 }
@@ -13910,6 +14039,20 @@ open class WMKeyboardService : InputMethodService() {
     private var khiproGlideList: SortedWords? = null
     private var khiproGlideLearned = -1L
     private var khiproGlideTable = -1L
+    private var khiproGlideSpec: String? = null
+
+    /**
+     * Looks for a newer Khipro spec set (#909), at most once a day, as a word
+     * starts on a Khipro layout: the layout is in use, so its fixes are worth
+     * the 200 KB. Data saving holding background downloads back holds this too.
+     */
+    private fun refreshKhiproSpecsIfDue() {
+        if (!userUnlocked || !KhiproSpecs.isDue()) return
+        val saver = dataSaverStatus
+        val allowed = !(saver.active && saver.settings.downloads.stopsBackgroundWork)
+        if (!allowed) return
+        serviceScope.launch(Dispatchers.IO) { KhiproSpecs.refreshIfDue(allowed = true) }
+    }
 
     /** Desktop Avro's data while a Bangla candidate list is on; see [loadAvroDesktop]. */
     private var avroDesktop: AvroDesktop? = null
@@ -14280,7 +14423,9 @@ open class WMKeyboardService : InputMethodService() {
 
     /** Sets the context words from the text before the caret. */
     private fun setContextFrom(text: CharSequence?) {
-        val (prev1, prev2, prev3) = WordContext.lastThreeWords(text, SENTENCE_ENDERS)
+        // Under Fancy Text the words behind the caret are styled; the context is their plain spelling.
+        val plain = if (text != null && fancyOutputStyle(_uiState.value) != null) FancyStyles.unstyle(text) else text
+        val (prev1, prev2, prev3) = WordContext.lastThreeWords(plain, SENTENCE_ENDERS)
         previousWord = prev1
         previousWord2 = prev2
         previousWord3 = prev3
@@ -14448,6 +14593,9 @@ open class WMKeyboardService : InputMethodService() {
             // read, corrected and converted as though it were the Unicode the
             // keyboard typed.
             outputEncoding == null &&
+            // Fancy Text's words are styled in the field, and the buffer holds
+            // plain letters: a word read back from there is not one it can take.
+            fancyOutputStyle(state) == null &&
             // Last, so the one term that asks the engine anything is only
             // reached once the screen and the field have already said yes.
             composingResumable(state.composer, suggestionEngine?.hasWordSources == true)
@@ -16076,7 +16224,8 @@ open class WMKeyboardService : InputMethodService() {
         onlyIfChanged: Boolean = false,
     ) {
         val engine = suggestionEngine ?: return
-        val lang = spec.language()
+        // Fancy Text is styled English: its words are English's (#950).
+        val lang = spec.language().takeUnless { it.id == FancyStyles.LANG_ID } ?: LanguageRegistry.byId("en")
         // The settings collector passes [onlyIfChanged]: it runs this on every
         // emission, and an unrelated toggle in the settings app (same process,
         // same main thread) re-opened the n-gram packs from disk and handed the
@@ -16653,6 +16802,10 @@ open class WMKeyboardService : InputMethodService() {
      * as this buffer's output derives it from here for that reason.
      */
     private fun composedPreview(state: KeyboardUiState, buffer: String): String {
+        // Fancy Text composes plain letters and the field shows them styled,
+        // so everything that measures or reads back the region finds the
+        // styled word it holds (#950).
+        fancyOutputStyle(state)?.let { return FancyStyles.transform(buffer, it) }
         if (state.layouts.ambiguousKeys && buffer.isNotEmpty()) {
             ambiguousReading?.takeIf { it.first == buffer }?.let { return it.second }
             val reading = ambiguousDecode(buffer) ?: buffer
@@ -16817,7 +16970,8 @@ open class WMKeyboardService : InputMethodService() {
      */
     private fun commitTypedCharacter(ic: InputConnection, text: String) {
         mirrorTypedIntoRevision(ic, text)
-        val digit = text.singleOrNull()?.takeIf { it in '0'..'9' }
+        // A styled digit is no key: it goes in as text, to be styled.
+        val digit = text.singleOrNull()?.takeIf { it in '0'..'9' && fancyOutputStyle(_uiState.value) == null }
         if (digit != null) {
             sendDownUpKeyEvents(KeyEvent.KEYCODE_0 + (digit - '0'))
         } else {
@@ -17415,7 +17569,7 @@ open class WMKeyboardService : InputMethodService() {
         plainCommitEnd = if (wordStart >= 0 && output.isNotEmpty() &&
             Character.isLetterOrDigit(output.codePointBefore(output.length))
         ) {
-            wordStart + output.length
+            wordStart + fieldForm(output, state).length
         } else {
             -1
         }
@@ -18279,6 +18433,7 @@ open class WMKeyboardService : InputMethodService() {
      * strip offers to write Zawgyi here too.
      */
     private fun readableContext(before: CharSequence?): CharSequence? {
+        if (before != null && fancyOutputStyle(_uiState.value) != null) return FancyStyles.unstyle(before)
         if (before == null || !Zawgyi.hasMyanmar(before)) return before
         val text = before.toString()
         // A field written in Zawgyi can still hold Unicode from before the
@@ -19564,12 +19719,15 @@ open class WMKeyboardService : InputMethodService() {
         ic.beginBatchEdit()
         try {
             val window = ic.getTextBeforeCursor(UNDO_CHIP_LOOKBEHIND, 0)?.toString() ?: return
-            val at = soleWordIndex(window, undo.corrected) ?: return
-            val end = at + undo.corrected.length
+            // Found as the field holds it: styled, under Fancy Text (#950).
+            val corrected = fieldForm(undo.corrected, state)
+            val at = soleWordIndex(window, corrected) ?: return
+            val end = at + corrected.length
             // The field's own casing wins: auto-capitalise may have made a
             // sentence-initial correction a capital that the typed word never
             // was, and putting the word back must not put the capital back too.
-            val restored = matchLeadingCase(window.substring(at, end), undo.typed)
+            val standing = window.substring(at, end).let { if (corrected != undo.corrected) FancyStyles.unstyle(it) else it }
+            val restored = matchLeadingCase(standing, undo.typed)
             ic.deleteSurroundingText(window.length - at, 0)
             ic.commitText(restored + window.substring(end), 1)
         } finally {
@@ -19827,6 +19985,9 @@ open class WMKeyboardService : InputMethodService() {
          */
         unspelled: Boolean = false,
     ) {
+        // A styled word is never one to learn (#950): Fancy Text learns the
+        // plain words it composes, and nothing that reached it already styled.
+        if (fancyStyleFor(_uiState.value) != null && FancyStyles.unstyle(word) != word) return
         // Thai, Lao, Khmer and Burmese put no space between words, so a run
         // typed in one go is a phrase: split it where [WordSegments] finds
         // the words, unless the whole run is itself a word the keyboard
@@ -20339,6 +20500,8 @@ open class WMKeyboardService : InputMethodService() {
         val before = ic.getTextBeforeCursor(CORRECTION_JUDGEMENT_WINDOW, 0)?.toString().orEmpty()
         val after = ic.getTextAfterCursor(CORRECTION_JUDGEMENT_WINDOW, 0)?.toString().orEmpty()
         val window = before + after
+        // Judged against the words as spelled, not as styled (#950).
+        if (fancyOutputStyle(_uiState.value) != null) return FancyStyles.unstyle(window).takeIf { it.isNotBlank() }
         return window.takeIf { it.isNotBlank() }
     }
 
@@ -21101,6 +21264,7 @@ open class WMKeyboardService : InputMethodService() {
 
     private val packageChangeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
+            com.wasimaster.wmkeyboard.ime.floating.FloatingAppIcons.clear()
             invalidateLauncherApps()
         }
     }
@@ -21661,6 +21825,8 @@ open class WMKeyboardService : InputMethodService() {
         // Every path that re-reads the text for a chip re-reads it for the
         // stickers too; they have their own gate, below.
         refreshStickerOffer()
+        // And for the AI continuation, which waits for the typing to rest.
+        scheduleAiSuggest()
         val state = _uiState.value
         val enabled = state.settings.smartSuggestions &&
             !state.secureField && !state.fieldNoSuggestions &&
@@ -21753,6 +21919,158 @@ open class WMKeyboardService : InputMethodService() {
                 }
             }
         }
+    }
+
+    /** Drops the AI chip and whatever request was on its way to it. */
+    private fun clearAiSuggest() {
+        aiSuggestSeq++
+        aiSuggestJob?.cancel()
+        aiSuggestJob = null
+        if (_uiState.value.aiSuggest != null) _uiState.update { it.copy(aiSuggest = null) }
+    }
+
+    /** The gate for the AI continuation, read from [state] as it is now. */
+    private fun aiSuggestField(state: KeyboardUiState): AiContinuation.Field =
+        AiContinuation.Field(
+            enabled = state.settings.ai.stripSuggest,
+            providerConfigured = aiSuggestProviderReady(state.settings),
+            secureField = state.secureField,
+            noSuggestions = state.fieldNoSuggestions,
+            incognito = state.incognitoOn,
+            suppressed = aiSuggestSuppressed,
+        )
+
+    /**
+     * Whether the AI tool's provider can answer a continuation without asking
+     * anything: set up, and for a server, not held back by data saving. A
+     * phone model has to be downloaded and in this build.
+     */
+    private fun aiSuggestProviderReady(settings: KeyboardSettings): Boolean {
+        if (!AiClient.isConfigured(settings.ai)) return false
+        if (settings.ai.provider == AiProvider.ON_DEVICE) {
+            return BuildConfig.ENABLE_LOCAL_LLM && effectiveLocalModelFile(settings) != null
+        }
+        return dataSaverStatus.decide(MeteredFeature.CLOUD_AI) == MeteredDecision.ALLOWED
+    }
+
+    /**
+     * Restarts the AI continuation's wait (#944). Every keystroke and caret
+     * move lands here: the chip shown for the old text goes, the request in
+     * flight for it is abandoned, and a new one is asked for only once a word
+     * has ended and the typing has rested for [AiContinuation.IDLE_MS].
+     */
+    private fun scheduleAiSuggest() {
+        clearAiSuggest()
+        val state = _uiState.value
+        if (!AiContinuation.allowed(aiSuggestField(state)) ||
+            state.panel != PanelMode.NONE || state.composer.isConversion
+        ) {
+            return
+        }
+        val ic = currentInputConnection ?: return
+        val seq = aiSuggestSeq
+        aiSuggestJob = serviceScope.launch {
+            delay(AiContinuation.IDLE_MS)
+            // Re-read after the pause: a panel, a password field or incognito
+            // can have arrived without a keystroke to cancel this.
+            val still = _uiState.value
+            if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(still)) ||
+                still.panel != PanelMode.NONE || still.composer.isConversion
+            ) {
+                return@launch
+            }
+            val settings = still.settings
+            val before = withContext(Dispatchers.Default) {
+                ic.getTextBeforeCursor(settings.ai.stripSuggestChars + AiContinuation.READ_SLACK, 0)?.toString()
+            } ?: return@launch
+            // A selection is not a place to continue from.
+            if (expectedSelStart != expectedSelEnd) return@launch
+            if (!AiContinuation.atWordBoundary(before)) return@launch
+            val context = AiContinuation.context(
+                before, settings.ai.stripSuggestChars, settings.ai.stripSuggestWordOnly,
+            ) ?: return@launch
+            val answer = withContext(Dispatchers.IO) {
+                runCatching { requestAiContinuation(context, settings, seq) }.getOrNull()
+            } ?: return@launch
+            if (seq != aiSuggestSeq || !AiContinuation.allowed(aiSuggestField(_uiState.value))) return@launch
+            _uiState.update { it.copy(aiSuggest = answer) }
+        }
+    }
+
+    /**
+     * One continuation of [context], or null when none arrived in
+     * [AiContinuation.TIMEOUT_MS], the text moved on, or
+     * [AiContinuation.accept] turned the answer down. Blocking; call off the
+     * main thread.
+     */
+    private fun requestAiContinuation(context: String, settings: KeyboardSettings, seq: Int): String? {
+        val deadline = SystemClock.uptimeMillis() + AiContinuation.TIMEOUT_MS
+        val alive = { seq == aiSuggestSeq && SystemClock.uptimeMillis() < deadline }
+        val answer = if (settings.ai.provider == AiProvider.ON_DEVICE) {
+            // The phone's model cannot be stopped part way, so one request at
+            // a time, and never beside a run the AI panel started.
+            if (aiJob?.isActive == true) return null
+            if (!aiSuggestOnDeviceBusy.compareAndSet(false, true)) return null
+            try {
+                val modelFile = effectiveLocalModelFile(settings) ?: return null
+                LocalLlmEngine.generate(
+                    context = applicationContext,
+                    modelFile = modelFile,
+                    backend = settings.ai.localBackend,
+                    contextTokens = settings.ai.localContextTokens,
+                    system = AiContinuation.prompt(),
+                    user = context,
+                )
+            } finally {
+                aiSuggestOnDeviceBusy.set(false)
+            }
+        } else {
+            AiClient.completeStreaming(
+                config = AiClient.config(settings.ai),
+                system = AiContinuation.prompt(),
+                user = context,
+                maxTokens = AiContinuation.MAX_TOKENS,
+                onPhase = {},
+                onPartial = {},
+                isActive = alive,
+            ).text
+        }
+        // A request stopped by [alive] hands back what it had so far, which
+        // is a continuation cut short, or one for text that is gone.
+        if (!alive()) return null
+        return AiContinuation.accept(AiThinking.stripped(answer), context)
+    }
+
+    /** The AI chip was tapped: its continuation goes in after the caret's text. */
+    fun onAiSuggestTapped() {
+        val continuation = _uiState.value.aiSuggest ?: return
+        clearAiSuggest()
+        stopVoiceForManualInput()
+        vibrate()
+        val ic = currentInputConnection ?: return
+        ic.beginBatchEdit()
+        commitComposing(ic, autocorrect = false)
+        val before = ic.getTextBeforeCursor(1, 0)?.toString().orEmpty()
+        ic.commitText(AiContinuation.insertion(before, continuation), 1)
+        ic.endBatchEdit()
+        revision = null
+        composing = StringBuilder()
+        lastGestureWord = null
+        _uiState.update {
+            it.copy(
+                composingPreview = "",
+                suggestions = emptyList(), emojiSuggestions = emptyList(),
+                octopus = emptyMap(),
+            )
+        }
+        refreshSuggestions()
+    }
+
+    /** The AI chip was held: gone, and not offered again in this field. */
+    fun onAiSuggestSuppressed() {
+        vibrate()
+        aiSuggestSuppressed = true
+        clearAiSuggest()
     }
 
     private fun smartContext(state: KeyboardUiState): SmartSuggest.Context =
@@ -22250,7 +22568,8 @@ open class WMKeyboardService : InputMethodService() {
     private fun refreshStickerOffer() {
         val state = _uiState.value
         val ic = currentInputConnection
-        if (ic == null || !stickerOffersAllowed(state) || stickerPackStore.isEmpty()) {
+        val stickersOn = stickerOffersAllowed(state) && !stickerPackStore.isEmpty()
+        if (ic == null || (!stickersOn && !mixOffersAllowed(state))) {
             clearStickerOffer()
             return
         }
@@ -22258,7 +22577,9 @@ open class WMKeyboardService : InputMethodService() {
         stickerOfferJob = serviceScope.launch {
             delay(SMART_SUGGEST_DEBOUNCE_MS)
             val still = _uiState.value
-            if (!stickerOffersAllowed(still)) {
+            val stickersNow = stickerOffersAllowed(still) && !stickerPackStore.isEmpty()
+            val mixesNow = mixOffersAllowed(still)
+            if (!stickersNow && !mixesNow) {
                 if (still.stickerOffer != null) _uiState.update { it.copy(stickerOffer = null) }
                 return@launch
             }
@@ -22267,7 +22588,7 @@ open class WMKeyboardService : InputMethodService() {
                 val text = ic.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString().orEmpty()
                 // In the emoji panel the text before the cursor was typed
                 // before the panel opened; only the emoji picked in it counts.
-                text to stickerTriggerIndex().match(text, emojiOnly = inEmojiPanel)
+                text to if (stickersNow) stickerTriggerIndex().match(text, emojiOnly = inEmojiPanel) else null
             }
             val offer = when {
                 before == stickerMutedAfter -> null
@@ -22291,8 +22612,135 @@ open class WMKeyboardService : InputMethodService() {
                     }
                 }
             }
-            if (match == null) stickerMutedAfter = null
-            if (offer != _uiState.value.stickerOffer) _uiState.update { it.copy(stickerOffer = offer) }
+            // The user's own stickers first; with none for this text, the
+            // mixes of the emoji it ends in.
+            val mixOffer = if (offer == null && mixesNow && before != stickerMutedAfter) {
+                withContext(Dispatchers.Default) { emojiMixTool.offerFor(before, inEmojiPanel) }?.let { mix ->
+                    val previous = _uiState.value.stickerOffer
+                    mix.copy(expanded = previous?.expanded == true && previous.mix && previous.trigger == mix.trigger)
+                }
+            } else {
+                null
+            }
+            if (match == null && mixOffer == null) stickerMutedAfter = null
+            val shown = offer ?: mixOffer
+            if (shown != _uiState.value.stickerOffer) _uiState.update { it.copy(stickerOffer = shown) }
+        }
+    }
+
+    /**
+     * Whether emoji mixes may be offered here: a source on, a field that takes
+     * pictures, and the place the offer would show switched on (the strip for
+     * typed emoji, the row over the emoji panel for picked ones).
+     */
+    private fun mixOffersAllowed(state: KeyboardUiState): Boolean {
+        val mix = state.settings.emoji.mix
+        if (!mix.active || !state.acceptsRichMedia || state.secureField) return false
+        if (!emojiMixToolDelegate.isInitialized() || !emojiMixTool.usable) return false
+        return when (state.panel) {
+            PanelMode.NONE -> mix.typingSuggest
+            PanelMode.EMOJI -> mix.panelStrip
+            else -> false
+        }
+    }
+
+    /**
+     * A mix offered for emoji in the text, or for one picked in the emoji
+     * panel, was tapped. It is fetched first; only once it is in hand are the
+     * emoji taken back out, when the setting says so, so a failed fetch costs
+     * the text nothing. The emoji are matched again against the text as it is
+     * then, as a sticker's trigger is.
+     */
+    private fun onEmojiMixOfferPick(offer: com.wasimaster.wmkeyboard.ime.StickerOffer, item: GifItem) {
+        val state = _uiState.value
+        if (!state.acceptsRichMedia) {
+            vibrate()
+            return
+        }
+        stopVoiceForManualInput()
+        val trigger = offer.trigger
+        emojiMixBeforeSend = if (state.settings.emoji.mix.replaceTypedEmoji) {
+            {
+                val ic = currentInputConnection
+                val before = ic?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString().orEmpty()
+                if (ic != null && trigger.isNotEmpty() && before.endsWith(trigger)) {
+                    ic.beginBatchEdit()
+                    commitComposing(ic, autocorrect = false)
+                    ic.deleteSurroundingText(trigger.length, 0)
+                    ic.endBatchEdit()
+                    revision = null
+                    composing = StringBuilder()
+                    lastGestureWord = null
+                    _uiState.update {
+                        it.copy(composingPreview = "", suggestions = emptyList(), emojiSuggestions = emptyList(), octopus = emptyMap())
+                    }
+                }
+            }
+        } else {
+            null
+        }
+        stickerMutedAfter = currentInputConnection?.getTextBeforeCursor(StickerTriggerIndex.LOOKBEHIND, 0)?.toString()
+        clearStickerOffer()
+        emojiMixTool.sendOffered(item)
+    }
+
+    /** The emoji-mix row's button: the Mixes panel, on the emoji the row was for. */
+    private fun onEmojiMixOpenFrom(offer: com.wasimaster.wmkeyboard.ime.StickerOffer) {
+        emojiMixOpenWith = com.wasimaster.wmkeyboard.core.emoji.mix.MixSeq.trailingEmoji(offer.trigger, 1).firstOrNull()
+        clearStickerOffer()
+        onPanelChange(PanelMode.EMOJI_MIX)
+    }
+
+    /**
+     * The monthly rebuild of each downloaded index, when the setting asks for
+     * it: once per keyboard process, only on a connection that is not metered,
+     * and only for an index more than a month old.
+     */
+    private fun maybeRefreshEmojiMixIndexes(mix: com.wasimaster.wmkeyboard.core.settings.EmojiMixSettings) {
+        if (!mix.autoRefresh || emojiMixAutoRefreshed) return
+        val network = networkWatcher.state.value
+        if (!network.online || network.metered) return
+        val now = System.currentTimeMillis()
+        val stale = mix.sources.filter { source ->
+            source.enabled && source.kind == com.wasimaster.wmkeyboard.core.settings.EmojiMixSourceKind.INDEX &&
+                source.address.startsWith("http", ignoreCase = true) && now - source.refreshedAt > EMOJI_MIX_REFRESH_MS
+        }
+        emojiMixAutoRefreshed = true
+        if (stale.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            for (source in stale) {
+                val outcome = emojiMixTool.store.refresh(source)
+                if (outcome is com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixStore.Outcome.Done) {
+                    settingsRepository.updateEmojiMixSource(source.id) {
+                        it.copy(pairCount = outcome.pairs, refreshedAt = System.currentTimeMillis(), error = "")
+                    }
+                }
+            }
+            settingsRepository.bumpEmojiMixIndexVersion()
+        }
+    }
+
+    /** Puts a fetched mix into the user's own stickers, in a pack of mixes, tagged with its two emoji. */
+    private fun addEmojiMixToStickers(file: File, keywords: List<String>) {
+        serviceScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                val name = getString(R.string.ime_emoji_mix_pack_name)
+                val target = stickerPackStore.packs().firstOrNull { it.name == name }?.id
+                    ?: stickerPackStore.createPack(name)?.id
+                    ?: return@withContext null
+                when (val processed = StickerImage.process(file.readBytes())) {
+                    is StickerImage.Result.Ok -> stickerPackStore.addSticker(target, processed.sticker, keywords = keywords)
+                    StickerImage.Result.TooLarge, StickerImage.Result.NotAnImage -> StickerAddResult.WriteFailed
+                }
+            }
+            _uiState.update { it.copy(stickerPacks = stickerPackStore.packs()) }
+            val message = when (result) {
+                is StickerAddResult.Added -> getString(R.string.ime_service_sticker_saved_toast)
+                StickerAddResult.PackFull -> getString(R.string.ime_service_sticker_pack_full_toast)
+                StickerAddResult.PackMissing -> getString(R.string.ime_service_sticker_pack_missing_toast)
+                else -> getString(R.string.ime_service_sticker_save_error_toast)
+            }
+            Toast.makeText(this@WMKeyboardService, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -22309,6 +22757,10 @@ open class WMKeyboardService : InputMethodService() {
     fun onStickerOfferPick(pick: com.wasimaster.wmkeyboard.ime.StickerOfferItem) {
         val state = _uiState.value
         val offer = state.stickerOffer ?: return
+        if (offer.mix) {
+            onEmojiMixOfferPick(offer, pick.item)
+            return
+        }
         if (!state.acceptsRichMedia) {
             vibrate()
             return
@@ -27784,11 +28236,14 @@ open class WMKeyboardService : InputMethodService() {
      * caret, space included — see the top-level [glideCommitLength] for what
      * the measurement means and why both callers need it.
      */
-    private fun glideCommitLength(ic: InputConnection, word: String): Int =
-        glideCommitLength(
-            ic.getTextBeforeCursor(word.length + 1, 0)?.toString().orEmpty(),
-            word,
+    private fun glideCommitLength(ic: InputConnection, word: String): Int {
+        // Measured as the field holds the word: styled, under Fancy Text (#950).
+        val field = fieldForm(word)
+        return glideCommitLength(
+            ic.getTextBeforeCursor(field.length + 1, 0)?.toString().orEmpty(),
+            field,
         )
+    }
 
     /**
      * Multi-word glide: one continuous stroke that crossed the spacebar was
@@ -28101,6 +28556,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.TRANSLATE -> onPanelChange(PanelMode.TRANSLATE)
             ToolbarTool.GIF -> onPanelChange(PanelMode.GIF)
             ToolbarTool.STICKER -> onPanelChange(PanelMode.STICKER)
+            ToolbarTool.EMOJI_MIX -> onPanelChange(PanelMode.EMOJI_MIX)
             ToolbarTool.WEB_SEARCH -> openSearchTab(SearchTab.ALL)
             ToolbarTool.IMAGE_SEARCH -> openSearchTab(SearchTab.IMAGES)
             ToolbarTool.OCR -> onPanelChange(PanelMode.OCR)
@@ -28128,6 +28584,7 @@ open class WMKeyboardService : InputMethodService() {
             ToolbarTool.LEARN_FROM_TEXT -> onPanelChange(PanelMode.LEARN_FROM_TEXT)
             ToolbarTool.FIND_REPLACE -> openFindReplaceTool()
             ToolbarTool.NOTES -> onPanelChange(PanelMode.NOTES)
+            ToolbarTool.TODO -> onPanelChange(PanelMode.TODO)
             ToolbarTool.LOCATION -> onPanelChange(PanelMode.LOCATION)
             ToolbarTool.CLOCK -> onPanelChange(PanelMode.CLOCK)
             ToolbarTool.HOME_ASSISTANT -> onPanelChange(PanelMode.HOME_ASSISTANT)
@@ -28245,6 +28702,11 @@ open class WMKeyboardService : InputMethodService() {
         if (_uiState.value.panel == PanelMode.CLOCK) {
             clockTool.onPanelClose()
             _uiState.update { it.copy(clockText = null) }
+        }
+        // Leaving the To-do panel: the same (#920). Every change is saved as it is made.
+        if (_uiState.value.panel == PanelMode.TODO) {
+            todoTool.onPanelClose()
+            _uiState.update { it.copy(todoText = null) }
         }
         // Leaving the Home Assistant panel: its text box gives the keys back, the socket lingers.
         if (_uiState.value.panel == PanelMode.HOME_ASSISTANT) {
@@ -28429,6 +28891,7 @@ open class WMKeyboardService : InputMethodService() {
             PanelMode.WEATHER -> refreshWeather()
             PanelMode.LOCATION -> locationTool.onPanelOpen()
             PanelMode.CLOCK -> clockTool.onPanelOpen()
+            PanelMode.TODO -> todoTool.onPanelOpen()
             // A "next friday" chip lands on its day; "Add to calendar" on a
             // selection opens the composer filled in.
             PanelMode.CALENDAR -> {
@@ -28519,6 +28982,10 @@ open class WMKeyboardService : InputMethodService() {
             }
             PanelMode.TEXT_REPEAT -> openTextRepeatPanel()
             PanelMode.NOTES -> openNotesPanel()
+            PanelMode.EMOJI_MIX -> {
+                emojiMixTool.onOpen(emojiMixOpenWith)
+                emojiMixOpenWith = null
+            }
             PanelMode.LEARN_FROM_TEXT -> {
                 // The half-typed word is part of the text being read.
                 currentInputConnection?.let { commitComposing(it, autocorrect = false) }
@@ -40450,17 +40917,24 @@ open class WMKeyboardService : InputMethodService() {
             notes = notesCallbacks(),
             location = locationTool.callbacks,
             clock = clockTool.callbacks,
+            todo = todoTool.callbacks,
             calendar = calendarTool.callbacks,
             kaomoji = kaomojiTool.callbacks,
             homeAssistant = haTool.callbacks,
             gallery = galleryTool.callbacks,
             send = sendTool.callbacks,
+            aiSuggest = com.wasimaster.wmkeyboard.ime.ui.AiSuggestCallbacks(
+                onTap = ::onAiSuggestTapped,
+                onHold = ::onAiSuggestSuppressed,
+            ),
             toolbox = toolboxCallbacks(),
             stickerOffer = com.wasimaster.wmkeyboard.ime.ui.StickerOfferCallbacks(
                 onPick = ::onStickerOfferPick,
                 onExpand = ::onStickerOfferExpand,
                 onDismiss = ::onStickerOfferDismiss,
+                onOpenMixes = ::onEmojiMixOpenFrom,
             ),
+            emojiMix = emojiMixCallbacks(),
             selection = com.wasimaster.wmkeyboard.ime.ui.SelectionMacroCallbacks(
                 onMacro = ::onSelectionMacro,
                 onPick = ::onSelectionPick,
@@ -40550,6 +41024,33 @@ open class WMKeyboardService : InputMethodService() {
     private val clockTool by clockToolDelegate
 
     /**
+     * The To-do tool (#920). Built on first use, like [clockTool]; the
+     * delegate is kept so a restore's reload can skip a controller nobody opened.
+     */
+    private val todoToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.todo.TodoController(
+            context = this,
+            scope = serviceScope,
+            settings = { _uiState.value.settings.todo },
+            insertText = ::onToolTextInsert,
+            haptic = { vibrate() },
+            openToolSettings = { openToolSettings(ToolbarTool.TODO) },
+            beginText = { entry ->
+                _uiState.update {
+                    it.copy(
+                        todoText = entry,
+                        panelFocus = null,
+                        captureCaret = CaptureCaret(CaptureTarget.TODO_TEXT.name, entry.text.length, entry.text),
+                    )
+                }
+            },
+            endText = { _uiState.update { it.copy(todoText = null) } },
+            currentText = { _uiState.value.todoText },
+        )
+    }
+    private val todoTool by todoToolDelegate
+
+    /**
      * The Calendar tool: month view, event sheet and composer. Built on first
      * use, like [clockTool]; nothing reads the calendar until the panel opens.
      */
@@ -40590,6 +41091,63 @@ open class WMKeyboardService : InputMethodService() {
      * editor. Built with the first composition (its callbacks ride on
      * [toolHoldCallbacks]); the library file is read on first use.
      */
+    /** The emoji the Mixes panel opens on, when a row of mixes asked for it. */
+    private var emojiMixOpenWith: String? = null
+
+    /** What sending an offered mix does to the text first, once the mix is in hand. */
+    private var emojiMixBeforeSend: (() -> Unit)? = null
+
+    /** The favourites the panel last drew, so a star changed in settings redraws them. */
+    private var emojiMixFavourites: List<String>? = null
+
+    /** The monthly index rebuild has been considered in this process. */
+    private var emojiMixAutoRefreshed = false
+
+    private val emojiMixToolDelegate = lazy {
+        com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixController(
+            context = this,
+            scope = serviceScope,
+            host = object : com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixController.Host {
+                override val state: KeyboardUiState get() = _uiState.value
+                override fun publish(change: (KeyboardUiState) -> KeyboardUiState) = _uiState.update(change)
+                override fun haptic() = vibrate()
+                override fun previewsAllowed() = dataSaverStatus.allows(MeteredFeature.MEDIA_SEARCH)
+                override fun send(file: File, mode: MediaSendMode) {
+                    emojiMixBeforeSend?.invoke()
+                    emojiMixBeforeSend = null
+                    commitImageFile(file, MediaMime.PNG, mode)
+                    refreshSuggestions()
+                }
+                override fun startFetch(id: String) = startMediaDownload(id)
+                override fun endFetch() = endMediaDownload()
+                override fun toast(message: Int) {
+                    Toast.makeText(this@WMKeyboardService, getString(message), Toast.LENGTH_SHORT).show()
+                }
+                override fun setFavourite(pairKey: String, starred: Boolean) {
+                    serviceScope.launch { settingsRepository.setEmojiMixFavourite(pairKey, starred) }
+                }
+                override fun addToStickers(file: File, keywords: List<String>) = addEmojiMixToStickers(file, keywords)
+                override fun saveToGallery(file: File) =
+                    saveToGalleryIfEnabled(file, MediaMime.PNG, enabled = true, namePrefix = "MIX", confirm = true)
+                override fun openPanel() {
+                    if (_uiState.value.panel != PanelMode.EMOJI_MIX) onPanelChange(PanelMode.EMOJI_MIX)
+                }
+            },
+        )
+    }
+    private val emojiMixTool by emojiMixToolDelegate
+
+    private fun emojiMixCallbacks() = com.wasimaster.wmkeyboard.ime.ui.EmojiMixCallbacks(
+        onPickEmoji = { emojiMixTool.onPickEmoji(it) },
+        onSlot = { emojiMixTool.onSlot(it) },
+        onSwap = { emojiMixTool.onSwap() },
+        onShuffle = { emojiMixTool.onShuffle() },
+        onSend = { emojiMixTool.onSendCell(it) },
+        onFavourite = { cell, on -> emojiMixTool.onFavourite(cell, on) },
+        onAddToStickers = { emojiMixTool.onAddToStickers(it) },
+        onSaveToGallery = { emojiMixTool.onSaveToGallery(it) },
+    )
+
     private val kaomojiToolDelegate = lazy {
         com.wasimaster.wmkeyboard.ime.kaomoji.KaomojiController(
             scope = serviceScope,
@@ -42730,7 +43288,15 @@ open class WMKeyboardService : InputMethodService() {
             else -> null
         } ?: return
         vibrate()
-        rewriteSelection(out)
+        // The pick is the text it should be; Fancy Text's field styling would
+        // restyle it in the keyboard's own style (#950).
+        val fancy = currentInputConnection as? FancyOutputConnection
+        fancy?.passThrough = true
+        try {
+            rewriteSelection(out)
+        } finally {
+            fancy?.passThrough = false
+        }
     }
 
     /** Put back the last rewrite, when the field still holds it. */
@@ -50762,6 +51328,9 @@ open class WMKeyboardService : InputMethodService() {
 
         /** See the delay in [refreshSmartSuggestion]; one frame, near enough. */
         private const val SMART_SUGGEST_DEBOUNCE_MS = 24L
+
+        /** How old a downloaded emoji-mix index gets before the monthly rebuild fetches it again. */
+        private const val EMOJI_MIX_REFRESH_MS = 30L * 24 * 60 * 60 * 1000
 
         /** Same job, same reasoning, in [refreshSnippetOffer]. */
         private const val SNIPPET_OFFER_DEBOUNCE_MS = 24L

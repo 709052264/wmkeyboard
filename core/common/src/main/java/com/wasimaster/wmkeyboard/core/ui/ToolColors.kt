@@ -24,6 +24,7 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.EMOJI -> Color(0xFFFFB300)
     ToolbarTool.GIF -> Color(0xFFFF7043)
     ToolbarTool.STICKER -> Color(0xFFFFA726)
+    ToolbarTool.EMOJI_MIX -> Color(0xFFFFCA28)
     ToolbarTool.CAMERA -> Color(0xFFF06292)
     ToolbarTool.THEMES -> Color(0xFFEC407A)
 
@@ -79,6 +80,8 @@ fun toolAccentColor(tool: ToolbarTool): Color = when (tool) {
     ToolbarTool.FIND_REPLACE -> Color(0xFF5C6BC0)
     // Sticky-note yellow.
     ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> Color(0xFFFBC02D)
+    // A ticked-box green, apart from the notes' yellow beside it.
+    ToolbarTool.TODO -> Color(0xFF43A047)
     ToolbarTool.MEDIA_CONTROL -> Color(0xFFAB47BC)
     // KDE's own blue.
     ToolbarTool.KDE_CONNECT -> Color(0xFF1D99F3)

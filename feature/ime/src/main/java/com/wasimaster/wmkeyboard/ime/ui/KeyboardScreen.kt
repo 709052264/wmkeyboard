@@ -719,6 +719,9 @@ internal val LocalClipboardKeyAction = staticCompositionLocalOf<(ClipboardKeyAct
  */
 internal val LocalSendAction = staticCompositionLocalOf<(com.wasimaster.wmkeyboard.ime.send.SendAction) -> Unit> { {} }
 
+/** The AI continuation chip's tap and hold (#944), reached the way [LocalSendAction] is. */
+internal val LocalAiSuggest = staticCompositionLocalOf { AiSuggestCallbacks() }
+
 /**
  * Whether an alternates popup has a finger steering it right now.
  *
@@ -1772,6 +1775,7 @@ fun KeyboardScreen(
         LocalPanelOrigins provides remember { PanelOrigins() },
         LocalSelectionHold provides toolHold.onSelectionHold,
         LocalSendAction provides toolHold.send.onAction,
+        LocalAiSuggest provides toolHold.aiSuggest,
         LocalCanDelete provides canDelete,
         LocalCanDeleteField provides canDeleteField,
         LocalCanForwardDelete provides canForwardDelete,
@@ -4266,6 +4270,19 @@ private fun TopBar(
                 ) {
                     return@StripSlot
                 }
+                // The AI continuation sits in front of the words, never in
+                // place of them: it cost a request and may be wrong.
+                val aiSuggest = state.aiSuggest
+                if (aiSuggest != null && state.smart == null) {
+                    val actions = LocalAiSuggest.current
+                    AiSuggestionChip(
+                        text = aiSuggest,
+                        reduceMotion = state.settings.reduceMotion,
+                        onAccept = actions.onTap,
+                        onSuppress = actions.onHold,
+                        modifier = Modifier.padding(start = 4.dp),
+                    )
+                }
                 StripWords(
                     state = state,
                     held = held,
@@ -4720,7 +4737,7 @@ private fun RowScope.StripOfferChips(
     if (stickerOfferNow != null && stickerStripShows(state)) {
         StickerStripOffer(
             offer = stickerOfferNow,
-            style = state.settings.gif.stickerSuggestStyle,
+            style = offerStyle(state, stickerOfferNow),
             callbacks = stickerOffer,
             modifier = Modifier.padding(start = 4.dp),
         )
@@ -8548,6 +8565,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.TRANSLATE -> R.string.ime_tool_translate
     ToolbarTool.GIF -> R.string.ime_tool_gif
     ToolbarTool.STICKER -> R.string.ime_tool_sticker
+    ToolbarTool.EMOJI_MIX -> R.string.ime_tool_emoji_mix
     ToolbarTool.WEB_SEARCH -> R.string.ime_tool_web_search
     ToolbarTool.IMAGE_SEARCH -> R.string.ime_tool_image_search
     ToolbarTool.OCR -> R.string.ime_tool_ocr
@@ -8569,6 +8587,7 @@ internal fun toolLabelRes(tool: ToolbarTool): Int = when (tool) {
     ToolbarTool.STATISTICS -> R.string.ime_tool_statistics
     ToolbarTool.FIND_REPLACE -> R.string.ime_tool_find_replace
     ToolbarTool.NOTES -> R.string.ime_tool_notes
+    ToolbarTool.TODO -> R.string.ime_tool_todo
     ToolbarTool.LOCATION -> R.string.ime_tool_location
     ToolbarTool.CLOCK -> R.string.ime_tool_clock
     ToolbarTool.HOME_ASSISTANT -> R.string.ime_tool_home_assistant
@@ -8659,6 +8678,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.TRANSLATE -> state.panel == PanelMode.TRANSLATE
     ToolbarTool.GIF -> state.panel == PanelMode.GIF
     ToolbarTool.STICKER -> state.panel == PanelMode.STICKER
+    ToolbarTool.EMOJI_MIX -> state.panel == PanelMode.EMOJI_MIX
     ToolbarTool.WEB_SEARCH -> state.panel == PanelMode.WEB_SEARCH
     ToolbarTool.IMAGE_SEARCH -> state.panel == PanelMode.WEB_SEARCH && state.searchTab == SearchTab.IMAGES
     ToolbarTool.OCR -> state.panel == PanelMode.OCR
@@ -8668,6 +8688,7 @@ private fun toolActive(tool: ToolbarTool, state: KeyboardUiState): Boolean = whe
     ToolbarTool.STATISTICS -> false
     ToolbarTool.FIND_REPLACE -> state.panel == PanelMode.FIND_REPLACE
     ToolbarTool.NOTES -> state.panel == PanelMode.NOTES
+    ToolbarTool.TODO -> state.panel == PanelMode.TODO
     ToolbarTool.QUICK_NOTE -> state.panel == PanelMode.NOTES && state.notes.quick
     ToolbarTool.LOCATION -> state.panel == PanelMode.LOCATION
     ToolbarTool.CLOCK -> state.panel == PanelMode.CLOCK
@@ -12652,7 +12673,7 @@ private val FullBleedPanels = setOf(
     PanelMode.DICTIONARY, PanelMode.SYMBOLS, PanelMode.MEDIA_CONTROL, PanelMode.KDE_CONNECT,
     PanelMode.VOCABULARY, PanelMode.LEARN_FROM_TEXT, PanelMode.NOTES,
     PanelMode.APP_LAUNCHER, PanelMode.THEMES, PanelMode.SNIPPETS, PanelMode.WIKIPEDIA,
-    PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK,
+    PanelMode.AI_REPLY, PanelMode.LOCATION, PanelMode.CLOCK, PanelMode.TODO,
     PanelMode.GALLERY, PanelMode.HOME_ASSISTANT,
     PanelMode.GALLERY, PanelMode.SEND_FILES,
 )
@@ -12666,7 +12687,7 @@ private val FullBleedPanels = setOf(
  */
 private fun isFullBleedPanel(panel: PanelMode, settings: KeyboardSettings): Boolean = when (panel) {
     PanelMode.EMOJI -> settings.emojiFullBleed
-    PanelMode.GIF, PanelMode.STICKER -> settings.mediaFullBleed
+    PanelMode.GIF, PanelMode.STICKER, PanelMode.EMOJI_MIX -> settings.mediaFullBleed
     PanelMode.CLIPBOARD -> settings.clipboard.fullBleed
     else -> panel in FullBleedPanels
 }
@@ -13797,6 +13818,11 @@ private fun KeyboardBody(
                     callbacks = toolHold.clock,
                     onClose = { onPanelChange(PanelMode.CLOCK) },
                 )
+                PanelMode.TODO -> com.wasimaster.wmkeyboard.ime.ui.todo.TodoPanel(
+                    state = state,
+                    callbacks = toolHold.todo,
+                    onClose = { onPanelChange(PanelMode.TODO) },
+                )
                 PanelMode.HOME_ASSISTANT -> com.wasimaster.wmkeyboard.ime.ui.homeassistant.HaPanel(
                     state = state,
                     callbacks = toolHold.homeAssistant,
@@ -14053,6 +14079,23 @@ private fun KeyboardBody(
                             inGrid = inGrid,
                         )
                     }
+                }
+                // Emoji mixes: laid out like the GIF and sticker panels, the
+                // switch and the keys around the mixes.
+                PanelMode.EMOJI_MIX -> MediaPanelHost(
+                    state,
+                    panelCallbacks,
+                    headerSearch = {
+                        Text(
+                            stringResource(R.string.ime_tool_emoji_mix),
+                            color = LocalKbTheme.current.toolbarIcon,
+                            fontSize = 15.sp,
+                            maxLines = 1,
+                            modifier = Modifier.weight(1f).padding(horizontal = 12.dp),
+                        )
+                    },
+                ) { _, _, switcher ->
+                    EmojiMixPanel(state, toolHold.emojiMix, switcher)
                 }
                 // Image search is this panel's Images tab (#879); the service
                 // never leaves IMAGE_SEARCH up, but it draws the same if it did.
@@ -29969,6 +30012,8 @@ data class ToolHoldCallbacks(
     val vocab: VocabCallbacks = VocabCallbacks(),
     /** The stickers offered while typing (#329); here for the same reason as [dictionaryBar]. */
     val stickerOffer: StickerOfferCallbacks = StickerOfferCallbacks(),
+    /** The emoji mixes panel; here for the same reason as [dictionaryBar]. */
+    val emojiMix: EmojiMixCallbacks = EmojiMixCallbacks(),
     /** The toolbox's search and folders (#687, #709); here for the same reason as [dictionaryBar]. */
     val toolbox: ToolboxCallbacks = ToolboxCallbacks(),
     /**
@@ -29987,6 +30032,8 @@ data class ToolHoldCallbacks(
     val location: LocationCallbacks = LocationCallbacks(),
     /** The Clock panel's callbacks and state; here for the same reason as [dictionaryBar]. */
     val clock: com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks = com.wasimaster.wmkeyboard.ime.clock.ClockCallbacks(),
+    /** The To-do panel's state and actions (#920); here for the same reason as [dictionaryBar]. */
+    val todo: com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks = com.wasimaster.wmkeyboard.ime.todo.TodoCallbacks(),
     /** The Calendar panel's callbacks and state; its state is the controller's, like [clock]. */
     val calendar: com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks =
         com.wasimaster.wmkeyboard.ime.calendar.CalendarCallbacks(),
@@ -29998,6 +30045,8 @@ data class ToolHoldCallbacks(
     /** The gallery tool (#708); its state is the controller's, like [clock]. */
     /** The Send files tool (#729); its state is the controller's, like [gallery]. */
     val send: com.wasimaster.wmkeyboard.ime.send.SendCallbacks = com.wasimaster.wmkeyboard.ime.send.SendCallbacks(),
+    /** The strip's AI continuation chip (#944); here for the same reason as [dictionaryBar]. */
+    val aiSuggest: AiSuggestCallbacks = AiSuggestCallbacks(),
     val gallery: com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks = com.wasimaster.wmkeyboard.ime.gallery.GalleryCallbacks(),
     /** The clipboard panel's editor and view switch; here for the same reason as [dictionaryBar]. */
     val clipboard: ClipboardPanelActions = ClipboardPanelActions(),

@@ -758,6 +758,9 @@ enum class PanelMode {
      */
     AI_REPLY,
 
+    /** Emoji mixes: two emoji put together, beside emoji, GIFs and stickers. See [EmojiMixUi]. */
+    EMOJI_MIX,
+
     /**
      * The Location tool (#350): the phone's position or a saved place, to
      * insert as a map link, an address, coordinates or a Plus code. Its state
@@ -771,6 +774,13 @@ enum class PanelMode {
      * text box takes the keys through the `CLOCK_*` capture targets.
      */
     CLOCK,
+
+    /**
+     * The To-do tool (#920): tasks and their steps. Its state is the
+     * controller's, see `ime.todo.TodoUi`; its text box takes the keys
+     * through [CaptureTarget.TODO_TEXT].
+     */
+    TODO,
 
     /**
      * The Home Assistant tool: the house's entities as tiles, live from the
@@ -821,6 +831,7 @@ val PanelMode.layoutKind: PanelKind?
         PanelMode.TRACKPAD -> PanelKind.TRACKPAD
         PanelMode.NUMPAD -> PanelKind.NUMPAD
         PanelMode.HANDWRITING -> PanelKind.HANDWRITING
+        PanelMode.EMOJI_MIX -> PanelKind.EMOJI_MIX
         else -> null
     }
 
@@ -913,6 +924,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
         FocusRegion.SEARCH, FocusRegion.CHIPS, FocusRegion.CATEGORIES, FocusRegion.RESULTS,
     )
     PanelMode.SYMBOLS -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS)
+    // The two emoji and their mix, every mix of the first, then the emoji to pick.
+    PanelMode.EMOJI_MIX -> listOf(FocusRegion.ACTIONS, FocusRegion.RESULTS, FocusRegion.CHIPS)
     // Chips switch between the grids; the fonts grid adds a second chip row
     // for the script whose font it is showing. Listed whether or not that tab
     // is open, the same way the GIF panel lists a row only its default view
@@ -973,6 +986,8 @@ fun panelFocusRegions(panel: PanelMode): List<FocusRegion> = when (panel) {
     PanelMode.LOCATION -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The tab row; each tab's own controls are touch, and typing reaches its box.
     PanelMode.CLOCK -> listOf(FocusRegion.CHIPS)
+    // The task rows; the header's chips are touch, and typing reaches the box.
+    PanelMode.TODO -> listOf(FocusRegion.RESULTS)
     // The room tabs, the tiles, then the open tile's controls.
     PanelMode.HOME_ASSISTANT -> listOf(FocusRegion.CHIPS, FocusRegion.RESULTS, FocusRegion.ACTIONS)
     // The album and filter chips, the grid, then the send bar.
@@ -3039,6 +3054,11 @@ data class StickerOffer(
     val stickers: List<StickerOfferItem>,
     val expanded: Boolean = false,
     val inEmojiPanel: Boolean = false,
+    /**
+     * Emoji mixes rather than the user's stickers: the text ended in emoji, or
+     * one was picked in the panel. [trigger] is then the emoji themselves.
+     */
+    val mix: Boolean = false,
 )
 
 /**
@@ -3496,8 +3516,16 @@ data class KeyboardUiState(
      * chip over the suggestion strip.
      */
     val smart: SmartSuggest.SmartHit? = null,
+    /**
+     * A continuation of the text before the cursor from the AI provider (#944),
+     * offered as a marked chip beside the word candidates. Null with the
+     * setting off, in a field it may not read, or while nothing came back.
+     */
+    val aiSuggest: String? = null,
     /** Stickers of the user's own that the text before the cursor asks for (#329). */
     val stickerOffer: StickerOffer? = null,
+    /** The emoji mixes panel; see [EmojiMixUi]. */
+    val emojiMix: com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi = com.wasimaster.wmkeyboard.ime.emojimix.EmojiMixUi(),
     /** Input a chip loaded into the tool it is about to open; consumed once. */
     val toolPrefill: ToolPrefill? = null,
     /** The Text repeat panel's text, boxes and undo; see [TextRepeatUi]. */
@@ -3830,6 +3858,11 @@ data class KeyboardUiState(
      * label. The rest of the panel's state is the controller's.
      */
     val clockText: com.wasimaster.wmkeyboard.ime.clock.ClockTextEntry? = null,
+    /**
+     * The To-do panel's text box while it has the keys: a new task, a new
+     * step, or a task's words being edited (#920).
+     */
+    val todoText: com.wasimaster.wmkeyboard.ime.todo.TodoTextEntry? = null,
     /**
      * The Home Assistant panel's text box while it has the keys: a search, an
      * Assist sentence, a lock code, a text entity's value. The rest of the
@@ -4346,6 +4379,10 @@ data class KeyboardUiState(
     val clockTypingActive: Boolean
         get() = panel == PanelMode.CLOCK && clockText != null
 
+    /** Whether the To-do panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
+    val todoTypingActive: Boolean
+        get() = panel == PanelMode.TODO && todoText != null
+
     /** Whether the Home Assistant panel's text box has the keys; panel *and* box, as [clockTypingActive]. */
     val haTypingActive: Boolean
         get() = panel == PanelMode.HOME_ASSISTANT && haText != null
@@ -4461,6 +4498,7 @@ data class KeyboardUiState(
             } else {
                 CaptureTarget.CLOCK_LABEL
             }
+        todoTypingActive -> CaptureTarget.TODO_TEXT
         galleryTypingActive -> CaptureTarget.GALLERY_TEXT
         calendarTypingActive -> when (calendarText?.field) {
             com.wasimaster.wmkeyboard.ime.calendar.CalendarTextField.LOCATION -> CaptureTarget.CALENDAR_LOCATION
@@ -4561,6 +4599,7 @@ data class KeyboardUiState(
         CaptureTarget.NOTE_BODY -> notes.editing?.bodyDraft.orEmpty()
         CaptureTarget.NOTE_TAG -> notes.editing?.tagDraft.orEmpty()
         CaptureTarget.CLOCK_SEARCH, CaptureTarget.CLOCK_LABEL -> clockText?.text.orEmpty()
+        CaptureTarget.TODO_TEXT -> todoText?.text.orEmpty()
         CaptureTarget.HA_SEARCH, CaptureTarget.HA_ASSIST, CaptureTarget.HA_TEXT -> haText?.text.orEmpty()
         CaptureTarget.REPEAT_TEXT -> textRepeat.text
         CaptureTarget.REPEAT_SEPARATOR -> textRepeat.customSeparator

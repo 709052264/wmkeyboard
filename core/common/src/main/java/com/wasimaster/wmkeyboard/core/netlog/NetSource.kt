@@ -33,6 +33,9 @@ enum class NetSource(
     LANGUAGETOOL("languagetool", ToolbarTool.GRAMMAR),
     GIF("gif", ToolbarTool.GIF),
     STICKER("sticker", ToolbarTool.STICKER),
+
+    /** An emoji mix: its image, or a source's index of them. Only ever a host the user added. */
+    EMOJI_MIX("emoji_mix", ToolbarTool.EMOJI_MIX),
     WEB_SEARCH("web_search", ToolbarTool.WEB_SEARCH),
     IMAGE_SEARCH("image_search", ToolbarTool.IMAGE_SEARCH),
 

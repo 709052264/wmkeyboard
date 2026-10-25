@@ -1,10 +1,7 @@
 package com.wasimaster.wmkeyboard.app
 
 import android.content.Context
-import android.view.HapticFeedbackConstants
 import android.view.inputmethod.InputMethodManager
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -47,20 +44,14 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.onLongClick
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.ime.KeyboardAutomation
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 
 /**
@@ -134,44 +125,11 @@ private const val ResizeWaitMs = 1_500L
  * The button: a keyboard while the field is closed, the keyboard put away while
  * it is open. Small and in the secondary colour, so on a screen that has an
  * "add" button of its own the two read as one primary action and one aside.
- *
- * A long press opens the favourites (#898). It rides on this button rather
- * than a second one because this one is already on every screen, which is
- * where favourites have to be reachable from.
  */
 @Composable
 internal fun KeyboardPreviewFab(state: KeyboardPreviewState) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focus = LocalFocusManager.current
-    val favourites = LocalSettingsFavourites.current != null
-    var sheet by remember { mutableStateOf(false) }
-    val view = LocalView.current
-    val longPressMs = LocalViewConfiguration.current.longPressTimeoutMillis
-    val interactions = remember { MutableInteractionSource() }
-    // The button has only a click, so the hold is timed off its own presses.
-    // Set once the hold fires, so the lift that ends it is not also a tap.
-    var held by remember { mutableStateOf(false) }
-    if (favourites) {
-        LaunchedEffect(interactions, longPressMs) {
-            var timer: Job? = null
-            interactions.interactions.collect { interaction ->
-                when (interaction) {
-                    is PressInteraction.Press -> {
-                        held = false
-                        timer?.cancel()
-                        timer = launch {
-                            delay(longPressMs)
-                            held = true
-                            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                            sheet = true
-                        }
-                    }
-                    is PressInteraction.Release, is PressInteraction.Cancel -> timer?.cancel()
-                }
-            }
-        }
-    }
-    val favouritesLabel = stringResource(R.string.favourites_open_desc)
     // Every screen draws its own, so without a shared key the button of the
     // screen being left blinks out as the next one's appears. The key sits on
     // a wrapper, not on the button: mid-flight sharedElement measures its
@@ -181,11 +139,7 @@ internal fun KeyboardPreviewFab(state: KeyboardPreviewState) {
     // loose constraints, so it keeps its own size the whole way.
     Box(Modifier.wmSharedElement(PreviewFabKey)) {
         SmallFloatingActionButton(
-            onClick = onClick@{
-                if (held) {
-                    held = false
-                    return@onClick
-                }
+            onClick = {
                 if (state.open) {
                     // Put away first: taking the field out of the tree drops its
                     // input session too, but not always the keyboard with it.
@@ -196,17 +150,6 @@ internal fun KeyboardPreviewFab(state: KeyboardPreviewState) {
             },
             containerColor = MaterialTheme.colorScheme.secondaryContainer,
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            interactionSource = interactions,
-            modifier = if (favourites) {
-                Modifier.semantics {
-                    onLongClick(favouritesLabel) {
-                        sheet = true
-                        true
-                    }
-                }
-            } else {
-                Modifier
-            },
         ) {
             if (state.open) {
                 Icon(Icons.Outlined.KeyboardHide, stringResource(R.string.keyboard_preview_close))
@@ -214,9 +157,6 @@ internal fun KeyboardPreviewFab(state: KeyboardPreviewState) {
                 Icon(Icons.Outlined.Keyboard, stringResource(R.string.keyboard_preview_open))
             }
         }
-        // Inside the wrapper: the frame stacks its buttons with a gap between
-        // each, and the sheet must not count as one of them.
-        if (sheet && favourites) FavouritesSheet(onDismiss = { sheet = false })
     }
 }
 

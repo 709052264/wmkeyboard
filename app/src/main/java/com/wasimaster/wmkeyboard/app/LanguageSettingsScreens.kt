@@ -46,6 +46,7 @@ import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.common.R as CommonR
 import com.wasimaster.wmkeyboard.core.layout.resolveLayoutKeyman
 import com.wasimaster.wmkeyboard.core.transliteration.BijoyAnsi
+import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
 import com.wasimaster.wmkeyboard.core.dictionaries.AvroDictionaryDownloads
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
@@ -1371,6 +1372,7 @@ internal fun LanguageDetailScreen(
                     ) { scope.launch { repository.setRawKeysChip(langId, it) } }
                 }
             }
+            KhiproSpecsGroup()
         }
     }
 
@@ -2264,6 +2266,68 @@ private fun AvroDictionaryRow() {
         if (status !is AvroDictionaryDownloads.Status.Downloaded) AvroDictionaryDownloads.start(filesDir)
     }
 }
+
+/**
+ * Which of Khipro's rules type (#909): the ones this version came with, or a
+ * newer set from the data repository, which the keyboard looks for once a day
+ * while Khipro is in use. Check now looks at once; going back to the bundled
+ * rules keeps the daily check from bringing the same set back.
+ */
+@Composable
+private fun KhiproSpecsGroup() {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val state by KhiproSpecs.state.collectAsState()
+    var ready by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) { KhiproSpecs.activeRevision() }
+        ready = true
+    }
+    val date = state.revision?.let(::khiproRevisionDate)
+    val subtitle = when {
+        !ready -> null
+        date == null -> stringResource(R.string.languages_khipro_specs_unsupported)
+        state.checking -> stringResource(R.string.languages_khipro_specs_checking)
+        state.failure != null -> stringResource(R.string.languages_khipro_specs_failed, date, state.failure.orEmpty())
+        state.downloaded -> stringResource(R.string.languages_khipro_specs_downloaded, date)
+        else -> stringResource(R.string.languages_khipro_specs_bundled, date)
+    }
+    SettingsGroup(stringResource(R.string.languages_khipro_specs_group)) {
+        item {
+            NavRow(R.string.languages_khipro_specs_title, subtitle = subtitle) {
+                if (date == null || state.checking) return@NavRow
+                scope.launch {
+                    val message = when (val outcome = withContext(Dispatchers.IO) { KhiproSpecs.refresh() }) {
+                        is KhiproSpecs.Outcome.Installed -> context.getString(
+                            R.string.languages_khipro_specs_installed,
+                            khiproRevisionDate(outcome.revision),
+                        )
+                        KhiproSpecs.Outcome.UpToDate -> context.getString(R.string.languages_khipro_specs_up_to_date)
+                        // The row says why.
+                        is KhiproSpecs.Outcome.Refused, KhiproSpecs.Outcome.Unsupported -> null
+                    }
+                    if (message != null) Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        item(visible = state.downloaded) {
+            NavRow(
+                R.string.languages_khipro_specs_bundled_title,
+                subtitle = stringResource(R.string.languages_khipro_specs_bundled_subtitle),
+            ) {
+                scope.launch { withContext(Dispatchers.IO) { KhiproSpecs.useBundled() } }
+            }
+        }
+    }
+}
+
+/** A spec revision (RFC 3339 UTC) as the date the user reads, or the revision itself if it does not parse. */
+internal fun khiproRevisionDate(revision: String): String = runCatching {
+    val utc = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.ROOT).apply {
+        timeZone = java.util.TimeZone.getTimeZone("UTC")
+    }
+    java.text.DateFormat.getDateInstance(java.text.DateFormat.MEDIUM).format(utc.parse(revision)!!)
+}.getOrDefault(revision)
 
 private fun translitHintDescRes(mode: TransliterationHintMode): Int = when (mode) {
     TransliterationHintMode.OFF -> R.string.languages_translit_hints_off_desc

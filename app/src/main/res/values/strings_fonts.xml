@@ -127,6 +127,7 @@
     <!-- KLIPY and GIPHY are the names of the services that supply the GIFs. -->
     <string name="fonts_tool_gif_desc">Search for GIFs (KLIPY, GIPHY) and send them from the keyboard</string>
     <string name="fonts_tool_sticker_desc">Search for stickers. They are transparent and ready for a chat</string>
+    <string name="fonts_tool_emoji_mix_desc">Put two emoji together as one sticker, from a source you add</string>
     <!-- Brave is the name of the search service. -->
     <string name="fonts_tool_web_search_desc">Search the web and images, and insert a link or a picture</string>
     <string name="fonts_tool_image_search_desc">Opens web search on its Images tab</string>
@@ -176,6 +177,7 @@
 
     <string name="fonts_tool_vocabulary_desc">Word cards, nudges and flashcards from downloadable vocabulary packs</string>
     <string name="fonts_tool_notes_desc">Write and keep notes in the keyboard, with tags, checklists, pins and a trash</string>
+    <string name="fonts_tool_todo_desc">A to-do list in the keyboard, with steps under each task. Can sync with a CalDAV task list through DAVx5</string>
     <string name="fonts_tool_find_replace_desc">Search the text you are writing and replace matches, with match case, whole word and regular expressions</string>
     <string name="fonts_tool_learn_from_text_desc">List the words in what you have written that the keyboard does not know yet, and add them to your personal dictionary</string>
 

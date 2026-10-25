@@ -71,6 +71,7 @@ it.
 | AI (any other OpenAI-compatible service) | whatever address you type in, for instance OpenRouter, Groq, Together or Mistral | same | same |
 | AI (self-hosted Ollama or LM Studio) | a server address you enter on your own network | same | same, over plain HTTP |
 | AI (on-device) <Flavor edition="google" /> | none | nothing leaves the phone | never: this provider has no network path at all |
+| [AI suggestions](/tools/ai/#suggestions-in-the-strip) in the strip | your AI provider, as for the actions above | the last 120 characters before the cursor (40 to 500, as you set it), or only the last word; plus a short system prompt | off by default. When on, each time you pause about 0.6 seconds after a word ends; a key press cancels it. Never in a password field, a field that turns suggestions off, incognito, or while Data saver holds cloud AI back |
 | Reporting an AI result | none of the app's own | nothing: it builds a mail draft and hands it to your mail app | only when you tap Report, and only your mail app sends it |
 | Clipboard link previews | whatever URL you copied | a GET request to that page | off by default; when on, right after you copy a new link |
 | QR scan link previews <Flavor edition="google" /> | whatever URL a scanned code contains | a GET request to that page | off by default; when on, right after a QR code decodes to a URL |

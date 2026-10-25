@@ -119,6 +119,7 @@ object SyncKeys {
         if (key in SettingsBackup.THEME_KEYS) return false
         if (!includeSecrets && key in SettingsBackup.SECRET_KEYS) return false
         if (key in LOCAL_KEYS) return false
+        if (key in com.wasimaster.wmkeyboard.core.settings.TodoPrefs.LOCAL_KEYS) return false
         return LOCAL_PREFIXES.none { key.startsWith(it) }
     }
 }

@@ -851,6 +851,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      * offer while the model is missing.
      */
     @SerialName("handwriting_canvas") HANDWRITING_CANVAS(PanelKind.HANDWRITING),
+    /** The emoji mixes panel's body: the two emoji, their mix, every mix of the first, and the emoji to pick from. */
+    @SerialName("emoji_mix_browser") EMOJI_MIX_BROWSER(PanelKind.EMOJI_MIX),
     @SerialName("unknown") UNKNOWN(PanelKind.EMOJI),
     ;
 
@@ -859,7 +861,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      * plus the emoji / GIF / sticker switch on any of those three panels.
      */
     fun isOn(kind: PanelKind): Boolean =
-        panel == kind || (this == MEDIA_TABS && (kind == PanelKind.GIF || kind == PanelKind.STICKER))
+        panel == kind ||
+            (this == MEDIA_TABS && (kind == PanelKind.GIF || kind == PanelKind.STICKER || kind == PanelKind.EMOJI_MIX))
 
     /** Whether the editor may offer this kind; [UNKNOWN] is a decode artefact. */
     val isReal: Boolean get() = this != UNKNOWN
@@ -871,7 +874,8 @@ enum class PanelFieldKind(val panel: PanelKind) {
      */
     val fills: Boolean
         get() = this == EMOJI_GRID || this == CLIPBOARD_LIST || this == TRACKPAD ||
-            this == GIF_BROWSER || this == STICKER_BROWSER || this == HANDWRITING_CANVAS
+            this == GIF_BROWSER || this == STICKER_BROWSER || this == HANDWRITING_CANVAS ||
+            this == EMOJI_MIX_BROWSER
 }
 
 /**
