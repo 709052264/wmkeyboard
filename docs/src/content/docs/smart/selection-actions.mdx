@@ -15,7 +15,7 @@ Select `01712345678` and the bar reads **Select all, Call, Message, WhatsApp, Co
 
 This is off by default. It adds a bar that appears out of a gesture you already make for other reasons, so you have to ask for it.
 
-The same actions, with translation and the AI actions beside them, are also in the menu every app shows over selected text, with no keyboard open and nothing to switch on. See [In any app's selection menu](#in-any-apps-selection-menu).
+The same actions, with translation and the AI actions beside them, are also in the menu most apps show over selected text, with no keyboard open and nothing to switch on. See [In any app's selection menu](#in-any-apps-selection-menu).
 
 <PhoneFrame caption="A selected phone number, and the bar the keyboard offers for it.">
   <Shot id="smart/selection-actions-phone" alt="A selected phone number, and the bar the keyboard offers for it." />
@@ -31,7 +31,7 @@ To switch it on and off without opening settings, add the **Selection actions** 
 
 ## In any app's selection menu
 
-The bar lives in the keyboard, so it only sees text in a box you are typing into. For text anywhere else (a web page, a message someone sent you, an email), select it and pick **WM Keyboard** from the menu that appears over the selection, the one with Copy and Select all. On some phones it is behind the menu's three dots. You do not have to be typing with this keyboard, and the bar does not have to be on.
+The bar lives in the keyboard, so it only sees text in a box you are typing into. For text anywhere else (a web page, a message someone sent you, an email), select it and pick **WM Keyboard** from the menu that appears over the selection, the one with Copy and Select all. On some phones it is behind the menu's three dots, and some apps leave it out of their menu altogether (see [When the entry is missing](#when-the-entry-is-missing)). You do not have to be typing with this keyboard, and the bar does not have to be on.
 
 A sheet opens over the app with the text at the top and the actions under it, in three groups:
 
@@ -69,6 +69,14 @@ The group **In other apps' selection menus** has a switch for each entry the key
 | Look up | Look up in the selection menu | On |
 
 Ask AI and Look up are the same switches as on the [AI tool](/tools/ai/#options) and [Look up](/tools/look-up/#options) pages, repeated here so all four sit in one place. Turning a switch off takes its entry out of every app's menu. Turning off the Translate or AI tool takes their entries out too. These switches do not depend on **Selection actions** at the top of the screen, which is the keyboard's own bar.
+
+### When the entry is missing
+
+Not every app lists WM Keyboard, Ask AI or Look up in its selection menu, even with every switch above on. The menu is put together by the app you are in, and since Android 11 an app can only see the other apps on the phone it has asked to see in its own manifest. Chrome asks to see the apps that act on selected text, so the entries are in its menu. An app that never asked builds its menu without them, and every other app's entries go missing along with WM Keyboard's: Google Translate, a dictionary, a password manager. Some apps also draw a menu of their own that has no place for other apps' entries at all.
+
+Nothing on WM Keyboard's side puts the entries back in such an app. Turning the switches off and on, reinstalling, or typing with WM Keyboard in that app leaves its menu as it was. Only that app's developer can add the request.
+
+The keyboard's own bar works in every app, because the keyboard reads the selection itself rather than waiting for the app's menu. Turn on **Selection actions** (see [Turning it on](#turning-it-on)), select text in a box you are typing into, and the bar offers Translate, AI and the rest. For text you cannot type into, the [floating button](/reference/settings/floating-button/#asking-the-ai-about-the-screen) can ask the AI about the screen or look up a tapped word, outside the Play Store build. Copying the text and pasting it into a box, where the bar can reach it, works everywhere.
 
 ## What the keyboard reads
 
