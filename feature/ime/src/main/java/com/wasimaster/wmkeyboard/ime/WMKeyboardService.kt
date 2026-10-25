@@ -2045,6 +2045,20 @@ open class WMKeyboardService : InputMethodService() {
      */
     private var wordEndedByEnter = false
 
+    /**
+     * The editor action the app asked for in an [APP_COMMAND_IME_ACTION]
+     * private command, which outranks what its EditorInfo declared (#908).
+     * Null until one arrives for this field; every start clears it.
+     *
+     * The Pixel Launcher's app-drawer search is the field that needs it. Its
+     * box is a multi-line EditText, so TextView adds IME_FLAG_NO_ENTER_ACTION
+     * on top of the actionSearch it declares, and Enter committed a line
+     * break. The launcher says what Enter should be through this command
+     * instead: Search while the query is for the web, Go once it matches an
+     * app, re-sent after every set of results.
+     */
+    private var appEnterAction: Int? = null
+
     /** The snippets file, watched for edits made by the settings app. */
     private var snippetsFile: File? = null
 
@@ -7206,6 +7220,14 @@ open class WMKeyboardService : InputMethodService() {
         // Whatever word was being followed, its field is gone or its text has
         // changed under it; nothing about it can be trusted from here.
         revision = null
+        // An action the last field asked for is not this one's. A field that
+        // speaks the protocol is asked for its own: the launcher answers the
+        // support probe with the action, and the one it may have sent while
+        // its connection was being made arrived before this start and is gone.
+        appEnterAction = null
+        if (attribute?.privateImeOptions?.contains(PRIVATE_OPTION_APP_IME_ACTION) == true) {
+            currentInputConnection?.performPrivateCommand(PRIVATE_COMMAND_ACTION_PROBE, null)
+        }
         if (!restarting) {
             // The conversions backspace can re-pick (#711) were written into
             // the field that just went.
@@ -7341,6 +7363,23 @@ open class WMKeyboardService : InputMethodService() {
         // keyboard most needs putting back: the system never shows it there
         // on its own.
         reshowPinned()
+    }
+
+    /**
+     * An app telling the keyboard what Enter should be in its field (#908),
+     * see [appEnterAction]. The key redraws at once and fires that action
+     * from then on, IME_FLAG_NO_ENTER_ACTION or not. An id that is no
+     * standard action is ignored, so the key never draws one thing and
+     * fires another.
+     */
+    override fun onAppPrivateCommand(action: String?, data: Bundle?) {
+        super.onAppPrivateCommand(action, data)
+        if (action != APP_COMMAND_IME_ACTION || data == null) return
+        val id = data.getInt(APP_COMMAND_IME_ACTION, EditorInfo.IME_ACTION_UNSPECIFIED)
+        val face = standardEnterAction(id)
+        if (face == EnterAction.DEFAULT) return
+        appEnterAction = id
+        _uiState.update { it.copy(enterAction = face, enterActionLabel = null) }
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) =
@@ -15792,7 +15831,7 @@ open class WMKeyboardService : InputMethodService() {
         // Same decoder that labels the key, so Enter always does what the
         // key is drawing — including an app's own actionId behind a custom
         // actionLabel. Null means "no action": type a real newline.
-        val fieldAction = currentInputEditorInfo.editorActionId()
+        val fieldAction = appEnterAction ?: currentInputEditorInfo.editorActionId()
         val action = if (forceNewline) null else fieldAction
         // A line break on a list line carries the list on (#694); on an empty
         // item it ends the list, and that is all this Enter does.
@@ -52363,6 +52402,27 @@ open class WMKeyboardService : InputMethodService() {
         private const val CLIP_SEARCH_MAX = 200
 
         /**
+         * App → keyboard command naming the editor action Enter should take,
+         * as an Int extra under the same key (#908). Gboard's protocol; the
+         * Pixel Launcher's search box sends it. See [appEnterAction].
+         */
+        private const val APP_COMMAND_IME_ACTION = "IME_ACTION"
+
+        /**
+         * In privateImeOptions, a field saying it speaks that protocol. The
+         * Pixel Launcher also lists canary and dev variants, which all contain
+         * this suffix.
+         */
+        private const val PRIVATE_OPTION_APP_IME_ACTION = "appSupportsSmartComposeAndDel"
+
+        /**
+         * Keyboard → app probe the launcher answers with [APP_COMMAND_IME_ACTION].
+         * It also replies with a type-ahead status command, which is ignored.
+         */
+        private const val PRIVATE_COMMAND_ACTION_PROBE =
+            "com.google.android.inputmethod.latin.SMART_COMPOSE_SUPPORT_ACTION"
+
+        /**
          * What the enter key should do and show. IME_FLAG_NO_ENTER_ACTION
          * means the app wants a literal newline no matter what action it
          * declared, so it wins outright — that is the flag multi-line fields
@@ -52378,15 +52438,18 @@ open class WMKeyboardService : InputMethodService() {
             val options = info.imeOptions
             if (options and EditorInfo.IME_FLAG_NO_ENTER_ACTION != 0) return EnterAction.DEFAULT
             if (!info.actionLabel.isNullOrBlank()) return EnterAction.CUSTOM
-            return when (options and EditorInfo.IME_MASK_ACTION) {
-                EditorInfo.IME_ACTION_SEARCH -> EnterAction.SEARCH
-                EditorInfo.IME_ACTION_SEND -> EnterAction.SEND
-                EditorInfo.IME_ACTION_GO -> EnterAction.GO
-                EditorInfo.IME_ACTION_NEXT -> EnterAction.NEXT
-                EditorInfo.IME_ACTION_PREVIOUS -> EnterAction.PREVIOUS
-                EditorInfo.IME_ACTION_DONE -> EnterAction.DONE
-                else -> EnterAction.DEFAULT
-            }
+            return standardEnterAction(options and EditorInfo.IME_MASK_ACTION)
+        }
+
+        /** The key face for a standard IME_ACTION_* id; DEFAULT for none or unknown. */
+        private fun standardEnterAction(actionId: Int): EnterAction = when (actionId) {
+            EditorInfo.IME_ACTION_SEARCH -> EnterAction.SEARCH
+            EditorInfo.IME_ACTION_SEND -> EnterAction.SEND
+            EditorInfo.IME_ACTION_GO -> EnterAction.GO
+            EditorInfo.IME_ACTION_NEXT -> EnterAction.NEXT
+            EditorInfo.IME_ACTION_PREVIOUS -> EnterAction.PREVIOUS
+            EditorInfo.IME_ACTION_DONE -> EnterAction.DONE
+            else -> EnterAction.DEFAULT
         }
 
         /**
