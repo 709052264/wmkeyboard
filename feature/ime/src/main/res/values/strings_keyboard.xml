@@ -452,6 +452,7 @@
     <string name="ime_tool_learn_from_text">Learn from text</string>
     <string name="ime_tool_find_replace">Find &amp; replace</string>
     <string name="ime_tool_notes">Notes</string>
+    <string name="ime_tool_todo">To-do list</string>
     <string name="ime_tool_location">Location</string>
     <string name="ime_tool_clock">Clock</string>
     <string name="ime_tool_home_assistant">Smart home</string>
@@ -505,6 +506,26 @@
     <string name="ime_tool_translate">Translate</string>
     <string name="ime_tool_gif">GIFs</string>
     <string name="ime_tool_sticker">Stickers</string>
+    <string name="ime_tool_emoji_mix">Emoji mixes</string>
+    <string name="ime_emoji_mix_no_source">No source is on. Add one under Settings › Emoji › Emoji mixes.</string>
+    <string name="ime_emoji_mix_first_desc">First emoji</string>
+    <string name="ime_emoji_mix_second_desc">Second emoji</string>
+    <string name="ime_emoji_mix_none">No mix</string>
+    <string name="ime_emoji_mix_swap_desc">Swap the two emoji</string>
+    <string name="ime_emoji_mix_shuffle_desc">A random mix</string>
+    <string name="ime_emoji_mix_previews_held">Data saver holds the pictures on this connection.</string>
+    <string name="ime_emoji_mix_pick_first">Pick an emoji below.</string>
+    <string name="ime_emoji_mix_pick_second">Pick a second emoji to try them together.</string>
+    <string name="ime_emoji_mix_more_desc">More for this mix</string>
+    <string name="ime_emoji_mix_item_desc">Mix of %1$s and %2$s</string>
+    <string name="ime_emoji_mix_star">Star</string>
+    <string name="ime_emoji_mix_unstar">Remove the star</string>
+    <string name="ime_emoji_mix_add_to_stickers">Add to my stickers</string>
+    <string name="ime_emoji_mix_save_to_gallery">Save to photos</string>
+    <string name="ime_emoji_mix_open_desc">All mixes of this emoji</string>
+    <string name="ime_emoji_mix_field_refuses_toast">This field does not take pictures</string>
+    <string name="ime_emoji_mix_fetch_failed_toast">Could not get that mix</string>
+    <string name="ime_emoji_mix_pack_name">Emoji mixes</string>
     <string name="ime_tool_web_search">Search</string>
     <string name="ime_tool_image_search">Images</string>
     <string name="ime_tool_ocr">Scan text</string>
@@ -653,6 +674,26 @@
     <string name="ime_launcher_combo_label">%1$s + %2$s</string>
     <string name="ime_launcher_combo_open_action">Open both in split screen</string>
     <string name="ime_launcher_combo_remove_action">Remove this pair</string>
+    <string name="ime_launcher_folder_default_name">Folder</string>
+    <string name="ime_launcher_folder_add_action">Add to folder</string>
+    <string name="ime_launcher_folder_take_out_action">Take out of folder</string>
+    <string name="ime_launcher_folder_pick_title">Add %1$s to</string>
+    <string name="ime_launcher_folder_new_action">New folder</string>
+    <string name="ime_launcher_group_action">Sort all apps by category</string>
+    <string name="ime_launcher_group_note">A folder per Play category for every app not in a folder yet</string>
+    <string name="ime_launcher_group_none_toast">None of these apps names a category</string>
+    <string name="ime_launcher_folder_open_action">Open folder</string>
+    <string name="ime_launcher_folder_rename_action">Rename folder</string>
+    <string name="ime_launcher_folder_rename_done_desc">Keep this name</string>
+    <string name="ime_launcher_folder_name_hint">Folder name</string>
+    <string name="ime_launcher_folder_move_earlier_action">Move folder earlier</string>
+    <string name="ime_launcher_folder_move_later_action">Move folder later</string>
+    <string name="ime_launcher_folder_delete_action">Remove folder</string>
+    <string name="ime_launcher_folder_delete_note">Its apps go back to the grid</string>
+    <string name="ime_launcher_folder_back_desc">Back to all apps</string>
+    <string name="ime_launcher_work_desc">Work app</string>
+    <string name="ime_launcher_work_paused_desc">Work app, paused</string>
+    <string name="ime_launcher_work_package">%1$s · work profile</string>
 
     <!-- The Snippets panel. Keep the words inside the braces as they are: the
          keyboard looks for them and puts a value in their place. -->
@@ -973,6 +1014,8 @@
     <string name="ime_language_picker_language_settings">Language settings</string>
 
     <!-- The chip the suggestion strip shows for a tool. %1$s is a tool name. -->
+    <!-- Spoken by TalkBack for the AI continuation chip in the suggestion strip (#944). %1$s is the continuation. -->
+    <string name="ime_ai_suggest_desc">AI suggestion: %1$s. Double-tap to insert, hold to hide in this field.</string>
     <string name="ime_smart_send_link">Receive the file</string>
     <string name="ime_smart_open_tool">Open %1$s</string>
     <!-- Where a currency chip's converted amount would be, while the exchange

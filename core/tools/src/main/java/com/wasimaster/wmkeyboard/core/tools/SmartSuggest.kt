@@ -1903,6 +1903,7 @@ object SmartSuggest {
         ToolbarTool.TEXT_EDIT to listOf("edit"),
         ToolbarTool.FIND_REPLACE to listOf("replace"),
         ToolbarTool.NOTES to listOf("note", "notes"),
+        ToolbarTool.TODO to listOf("todo", "todos", "tasks"),
         ToolbarTool.TRACKPAD to listOf("trackpad"),
         // Not "send" alone: it is the commonest verb in a chat. The compound forms are meant.
         ToolbarTool.SEND_FILES to listOf("sendfile", "sendfiles", "fileshare", "wetransfer"),

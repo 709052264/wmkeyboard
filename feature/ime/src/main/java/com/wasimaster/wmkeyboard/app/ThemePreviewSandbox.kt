@@ -283,6 +283,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.LEARN_FROM_TEXT -> PanelMode.LEARN_FROM_TEXT
     ToolbarTool.FIND_REPLACE -> PanelMode.FIND_REPLACE
     ToolbarTool.NOTES, ToolbarTool.QUICK_NOTE -> PanelMode.NOTES
+    ToolbarTool.TODO -> PanelMode.TODO
     ToolbarTool.LOCATION -> PanelMode.LOCATION
     ToolbarTool.CLOCK -> PanelMode.CLOCK
     ToolbarTool.HOME_ASSISTANT -> PanelMode.HOME_ASSISTANT
@@ -291,6 +292,7 @@ internal fun panelForTool(tool: ToolbarTool): PanelMode? = when (tool) {
     ToolbarTool.TRANSLATE -> PanelMode.TRANSLATE
     ToolbarTool.GIF -> PanelMode.GIF
     ToolbarTool.STICKER -> PanelMode.STICKER
+    ToolbarTool.EMOJI_MIX -> PanelMode.EMOJI_MIX
     ToolbarTool.WEB_SEARCH -> PanelMode.WEB_SEARCH
     ToolbarTool.IMAGE_SEARCH -> PanelMode.IMAGE_SEARCH
     ToolbarTool.OCR -> PanelMode.OCR

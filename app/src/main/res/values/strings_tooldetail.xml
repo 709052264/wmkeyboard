@@ -13,6 +13,7 @@
     <string name="tooldetail_enabled_needs_key_subtitle">Add the API key below to turn this tool on</string>
     <string name="tooldetail_enabled_needs_instance_subtitle">Needs a SearXNG instance. Add its address under Search settings.</string>
     <string name="tooldetail_enabled_voice_off_subtitle">Voice typing is off. Turn it on under All voice typing settings below.</string>
+    <string name="tooldetail_enabled_needs_mix_source_subtitle">Add a source under Emoji › Emoji mixes first.</string>
     <string name="tooldetail_enabled_needs_layout_subtitle">Make a secondary layout under Key layouts below to turn this tool on</string>
     <!-- A switch under the one above. Off takes the tool out of the toolbox grid
          (the panel that lists every tool) while it stays on everywhere else. -->
@@ -965,6 +966,15 @@
         <item quantity="other">%1$d pairs</item>
     </plurals>
     <string name="tooldetail_launcher_combos_none_subtitle">Two apps that open side by side with one tap</string>
+    <string name="tooldetail_launcher_work_title">Work apps</string>
+    <string name="tooldetail_launcher_work_subtitle">Also list the apps in your work profile</string>
+    <string name="tooldetail_launcher_work_info">Work apps carry a briefcase on their icon. While work apps are paused they show dimmed, and opening one asks Android to turn work apps back on. The keyboard needs no extra permission for this.</string>
+    <string name="tooldetail_launcher_folders_title">App folders</string>
+    <string name="tooldetail_launcher_folders_none_subtitle">No folders yet. Press and hold an app in the panel and pick Add to folder.</string>
+    <plurals name="tooldetail_launcher_folders_count">
+        <item quantity="one">%1$d folder. Tap to remove it and put its apps back in the grid.</item>
+        <item quantity="other">%1$d folders. Tap to remove all of them and put their apps back in the grid.</item>
+    </plurals>
 
     <string name="tooldetail_camera_timer_title">Self-timer</string>
     <string name="tooldetail_camera_timer_subtitle">The timer the camera opens on</string>

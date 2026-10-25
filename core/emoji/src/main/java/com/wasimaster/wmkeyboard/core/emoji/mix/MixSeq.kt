@@ -88,6 +88,64 @@ object MixSeq {
     /** [canonical] of [emoji]'s key. */
     fun canonicalOf(emoji: String): String = canonical(key(emoji))
 
+    /**
+     * The emoji [text] ends in, at most [max] of them, in text order: only
+     * emoji written back to back count, so "hi 😃😁" ends in two and
+     * "😃 x 😁" in one. Joined sequences, keycaps, flags, tags, skin tones
+     * and variation selectors stay with the emoji they belong to.
+     */
+    fun trailingEmoji(text: String, max: Int): List<String> {
+        val out = ArrayList<String>(max)
+        var end = text.length
+        while (out.size < max && end > 0) {
+            val start = emojiStartBefore(text, end) ?: break
+            out.add(0, text.substring(start, end))
+            end = start
+        }
+        return out
+    }
+
+    /** Where the one emoji that ends at [end] starts, or null when [text] does not end in one there. */
+    private fun emojiStartBefore(text: String, end: Int): Int? {
+        var i = end
+        var start: Int? = null
+        while (true) {
+            // The trailing marks of one element: selectors, a keycap, tones, tags.
+            var j = i
+            while (j > 0 && isMark(text.codePointBefore(j))) j -= Character.charCount(text.codePointBefore(j))
+            if (j == 0) return start
+            val base = text.codePointBefore(j)
+            val keycap = j < i && text.codePointBefore(i) == KEYCAP
+            if (!isEmojiBase(base, keycap)) return start
+            j -= Character.charCount(base)
+            // A flag is two regional indicators.
+            if (base in REGIONAL && j > 0 && text.codePointBefore(j) in REGIONAL) {
+                j -= Character.charCount(text.codePointBefore(j))
+            }
+            start = j
+            // A joiner glues the element before it on.
+            if (j > 0 && text[j - 1].code == ZWJ) i = j - 1 else return start
+        }
+    }
+
+    private fun isMark(cp: Int): Boolean = cp == FE0F || cp == KEYCAP || cp in TONES || cp in TAGS
+
+    private fun isEmojiBase(cp: Int, keycap: Boolean): Boolean = when {
+        keycap -> cp == 0x23 || cp == 0x2A || cp in 0x30..0x39
+        cp == 0xA9 || cp == 0xAE || cp == 0x203C || cp == 0x2049 -> true
+        cp in 0x1F000..0x1FAFF -> true
+        cp in 0x2100..0x2BFF -> Character.getType(cp).let {
+            it == Character.OTHER_SYMBOL.toInt() || it == Character.MATH_SYMBOL.toInt()
+        }
+        cp in 0x3030..0x303D || cp == 0x3297 || cp == 0x3299 -> true
+        else -> false
+    }
+
+    private const val ZWJ = 0x200D
+    private const val KEYCAP = 0x20E3
+    private val TAGS = 0xE0020..0xE007F
+    private val REGIONAL = 0x1F1E6..0x1F1FF
+
     /** [key] the way the dated image layout writes it: every code point `u`-prefixed. */
     fun uForm(key: String): String = key.split('-').joinToString("-") { "u$it" }
 }

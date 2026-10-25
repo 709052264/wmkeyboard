@@ -272,6 +272,13 @@
     <string name="ime_floating_menu_empty">The quick menu is empty. Add actions to it in the floating button settings.</string>
     <string name="ime_floating_button_hidden_toast">Floating button hidden until the keyboard next opens</string>
     <string name="ime_floating_button_hidden_open_toast">Floating button hidden until the keyboard closes</string>
+    <!-- A slot that opens an app (#922), named here only when the app is gone. -->
+    <string name="ime_floating_app_label">Open an app</string>
+    <string name="ime_floating_app_missing">That app is no longer installed</string>
+    <!-- A slot that opens a ring of its own (#923), named here only when it has no name. -->
+    <string name="ime_floating_category_label">Category</string>
+    <string name="ime_floating_category_empty">This category is empty. Add actions to it in the floating button settings.</string>
+    <string name="ime_floating_back_menu">Back to the quick menu</string>
 
     <!-- Toasts when the user presses their pick-mode key on a physical keyboard. In pick mode the number keys select suggestions. -->
     <string name="ime_hw_pick_mode_on_toast">Pick mode on: number keys select suggestions, Shift types the number</string>

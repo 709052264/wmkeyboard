@@ -393,6 +393,7 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "modes" to Color(0xFFFFA726),
     "emoji" to Color(0xFFFFB300),
     "emoji/panel" to Color(0xFFFFB300),
+    "emoji/mixes" to Color(0xFFFFCA28),
     "voice" to Color(0xFF7E57C2),
     "clipboard" to Color(0xFF42A5F5),
     // The Snippets tool's own teal: the screen and the tool page it is opened
@@ -411,6 +412,8 @@ internal val SettingsRouteColors: Map<String, Color> = mapOf(
     "notes" to Color(0xFFFBC02D),
     "notes/tags" to Color(0xFFFBC02D),
     "notes/trash" to Color(0xFFFBC02D),
+    // The To-do tool's own green, see ToolColors.
+    "todo" to Color(0xFF43A047),
     // The editor is opened from a pack, so it keeps the pack screens' pink.
     "sticker_editor" to Color(0xFFF06292),
     "plugins" to Color(0xFF06B6D4),
@@ -2744,7 +2747,7 @@ private fun WmScreenFrame(
                             actions = {
                                 // Ahead of the screen's own, so an overflow
                                 // menu keeps the bar's last place (#898).
-                                FavouriteScreenStar(crumbTitle ?: title)
+                                FavouritesButton(crumbTitle ?: title)
                                 actions()
                             },
                         )

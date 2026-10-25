@@ -833,6 +833,15 @@ private val bundledAttributions: List<Attribution> = buildList {
     )
     add(
         Attribution(
+            "Bangla BSTI Mobile",
+            R.string.about_bundled_bsti_used,
+            "Copyright (c) 2026 Ekushey",
+            "CC BY 4.0", "cc-by-4.0-bsti.txt",
+            "https://github.com/ekushey-org/bangla-bsti-mobile",
+        ),
+    )
+    add(
+        Attribution(
             "IndicXlit",
             R.string.about_bundled_indicxlit_used,
             "Copyright (c) 2022 AI4Bhārat",

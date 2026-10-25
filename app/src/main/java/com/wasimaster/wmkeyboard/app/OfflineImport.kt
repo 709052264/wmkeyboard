@@ -42,6 +42,7 @@ import com.wasimaster.wmkeyboard.core.tools.offlinedict.OfflineDictionaryDownloa
 import com.wasimaster.wmkeyboard.core.tools.offlinegif.OfflineGifPacks
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanDictionaries
 import com.wasimaster.wmkeyboard.core.tools.yomichan.YomichanImport
+import com.wasimaster.wmkeyboard.core.transliteration.KhiproSpecs
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtDownloadManager
 import com.wasimaster.wmkeyboard.core.voice.executorch.EtImport
 import com.wasimaster.wmkeyboard.core.voice.whisper.WhisperDownloadManager
@@ -148,6 +149,7 @@ internal object OfflineImport {
                 CjkDictCatalog.byFileName(leaf) != null ||
                 leaf == AvroDictionaryDownloads.PUBLISHED_NAME ||
                 leaf == KhiproGlideDownloads.PUBLISHED_NAME ||
+                KhiproSpecs.isSetFile(leaf) ||
                 PhoneticIndexDownloads.languageOfPublishedName(leaf) != null -> Kind.LANGUAGE_FILES
             OfflineDictionaries.recognises(leaf) -> Kind.DICTIONARY
             LatinImeLibrary.supported && LatinImePins.isLibraryName(leaf) -> Kind.GESTURE_LIBRARY
@@ -350,9 +352,14 @@ internal object OfflineImport {
         val wordlists = LinkedHashMap<String, MutableList<Pair<DictionaryEntry, File>>>()
         val pairs = LinkedHashMap<NgramPackEntry, Array<File?>>()
         val single = ArrayList<File>()
+        val khipro = ArrayList<File>()
         for (file in files) {
             val name = file.name
             if (IGNORED.any { it.matches(name) }) continue
+            if (KhiproSpecs.isSetFile(name)) {
+                khipro += file
+                continue
+            }
             // A language pack carries a CJK table's earlier version too, for
             // app versions that pin it; this one would fail its checksum.
             if (CjkDictCatalog.isLegacyFileName(name)) continue
@@ -364,6 +371,7 @@ internal object OfflineImport {
                 else -> single += file
             }
         }
+        if (khipro.isNotEmpty()) outcomes += installKhiproSpecs(khipro, onFile)
         for (file in installEtModels(context, single, outcomes, onFile)) {
             onFile(file.name)
             outcomes += installOne(context, file)
@@ -408,6 +416,27 @@ internal object OfflineImport {
             }
         }
         return outcomes
+    }
+
+    /**
+     * A Khipro spec set (#909): the manifest and the files it names, together,
+     * as the data repository's `data/bn/khipro/` folder holds them. Checked as
+     * a download of the set is, and installed whole or not at all.
+     */
+    private suspend fun installKhiproSpecs(files: List<File>, onFile: (String) -> Unit): Outcome {
+        val manifest = files.firstOrNull { it.name == KhiproSpecs.MANIFEST_NAME }
+            ?: return Outcome(files.first().name, false, R.string.offline_import_khipro_specs_no_manifest)
+        onFile(manifest.name)
+        return when (val outcome = KhiproSpecs.install(manifest) { name -> files.firstOrNull { it.name == name } }) {
+            is KhiproSpecs.Outcome.Installed -> Outcome(
+                manifest.name, true, R.string.offline_import_khipro_specs_done,
+                listOf(khiproRevisionDate(outcome.revision)),
+            )
+            KhiproSpecs.Outcome.UpToDate -> Outcome(manifest.name, true, R.string.offline_import_khipro_specs_not_newer)
+            is KhiproSpecs.Outcome.Refused ->
+                Outcome(manifest.name, false, R.string.offline_import_khipro_specs_refused, listOf(outcome.reason))
+            KhiproSpecs.Outcome.Unsupported -> Outcome(manifest.name, false, R.string.offline_import_khipro_specs_unsupported)
+        }
     }
 
     /**

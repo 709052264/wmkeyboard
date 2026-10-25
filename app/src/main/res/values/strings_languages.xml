@@ -259,6 +259,17 @@
     <string name="languages_phonetic_candidates_title">Avro candidate list</string>
     <string name="languages_phonetic_candidates_subtitle">The words desktop Avro shows under the word you type</string>
     <!-- %1$s is the English name of the language, for example "Bengali". -->
+    <string name="languages_khipro_specs_group">Khipro\'s rules</string>
+    <string name="languages_khipro_specs_title">Layout rules</string>
+    <string name="languages_khipro_specs_bundled">The rules this version came with, from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Newer ones are looked for once a day while you type with Khipro. Tap to check now.</string>
+    <string name="languages_khipro_specs_downloaded">Updated rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. Tap to check for newer ones.</string>
+    <string name="languages_khipro_specs_checking">Checking for newer rules…</string>
+    <string name="languages_khipro_specs_failed">Rules from <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g>. The last check installed nothing: <xliff:g id="reason" example="HTTP 404">%2$s</xliff:g>. Tap to try again.</string>
+    <string name="languages_khipro_specs_unsupported">The rules this version came with. This build cannot update them.</string>
+    <string name="languages_khipro_specs_up_to_date">Khipro\'s rules are up to date</string>
+    <string name="languages_khipro_specs_installed">Khipro\'s rules updated to <xliff:g id="date" example="25 Oct 2026">%1$s</xliff:g></string>
+    <string name="languages_khipro_specs_bundled_title">Use the bundled rules</string>
+    <string name="languages_khipro_specs_bundled_subtitle">Go back to the rules this version came with. The daily check leaves them until a newer set is published.</string>
     <string name="languages_avro_dictionary_title">Desktop Avro\'s dictionary</string>
     <string name="languages_avro_dictionary_download">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g> to download. Tap to download.</string>
     <string name="languages_avro_dictionary_downloaded">The words only desktop Avro knows, <xliff:g id="size" example="580 KB">%1$s</xliff:g></string>
@@ -300,7 +311,7 @@ On test words the space bar wrote the right word 56%% of the time instead of 25%
     <string name="languages_phonetic_english_switch_subtitle">A small button beside the suggestions turns English words on and off as you type</string>
     <string name="languages_phonetic_english_switch_info">The button shows on this language\'s phonetic layout and is lit while English words are on. It is for the moment a word keeps coming out in the wrong script: tap it in the middle of the word and the word turns back before you press space.\n\nOff takes the button away and leaves the setting above exactly as you set it, so English words simply stay on. Shared by every language with a phonetic layout.</string>
     <string name="languages_bengali_vowel_twice_title">Tap twice for আ or এ</string>
-    <string name="languages_bengali_vowel_twice_subtitle">On Probhat and Jatiya, after a vowel: one tap gives য়া or য়ে, a second tap gives আ or এ</string>
+    <string name="languages_bengali_vowel_twice_subtitle">On Probhat, Jatiya and BSTI, after a vowel: one tap gives য়া or য়ে, a second tap gives আ or এ</string>
     <string name="languages_bengali_vowel_twice_info">After a vowel, the আ-কার and এ-কার keys write য়া and য়ে, as in কায়া and দিয়ে, because a bare া or ে cannot follow a vowel. With this on, pressing the key again straight away turns য়া into আ and য়ে into এ. Holding either key offers আ or এ whether this is on or not. Off by default, because a quick double press then types the glide twice.</string>
     <string name="languages_ansi_group">ANSI output</string>
     <string name="languages_ansi_allowed_title">Allow ANSI output</string>

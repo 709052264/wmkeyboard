@@ -1110,14 +1110,18 @@ private fun SearchStrings.floatingButtonRows(): List<SettingsSearchEntry> {
         row(R.string.floating_button_double_tap_typing_title),
         row(R.string.floating_button_menu_add_title),
         row(R.string.floating_button_menu_labels_title, R.string.floating_button_menu_labels_subtitle),
+        row(R.string.floating_button_menu_gap_title, R.string.floating_button_menu_gap_subtitle),
+        row(R.string.floating_button_menu_animation_title),
         row(R.string.floating_button_menu_reset_title, R.string.floating_button_menu_reset_subtitle),
         row(R.string.floating_button_style_title),
+        row(R.string.floating_button_shape_title, R.string.floating_button_shape_subtitle),
         row(R.string.floating_button_size_title, R.string.floating_button_size_subtitle),
         row(R.string.floating_button_opacity_title, R.string.floating_button_opacity_subtitle),
         row(R.string.floating_button_idle_title, R.string.floating_button_idle_subtitle),
         row(R.string.floating_button_idle_opacity_title, R.string.floating_button_idle_opacity_subtitle),
         row(R.string.floating_button_tuck_title, R.string.floating_button_tuck_subtitle),
         row(R.string.floating_button_while_typing_title, R.string.floating_button_while_typing_subtitle),
+        row(R.string.floating_button_over_keyboard_title, R.string.floating_button_over_keyboard_subtitle),
         row(R.string.floating_button_landscape_title, R.string.floating_button_landscape_subtitle),
         row(R.string.floating_button_haptics_title, R.string.floating_button_haptics_subtitle),
         row(R.string.floating_button_reset_position_title, R.string.floating_button_reset_position_subtitle),
@@ -1221,6 +1225,26 @@ private fun SearchStrings.emojiRows(): List<SettingsSearchEntry> {
         // always about the phone.
         row(R.string.langemoji_emoji_hide_unrenderable_title, R.string.langemoji_emoji_hide_unrenderable_subtitle),
         row(R.string.langemoji_emoji_unicode_search_title, R.string.langemoji_emoji_unicode_search_subtitle),
+    )
+}
+
+/** Rows on the emoji/mixes page, in screen order. */
+private fun SearchStrings.emojiMixRows(): List<SettingsSearchEntry> {
+    fun row(@StringRes title: Int, @StringRes subtitle: Int = 0) = entry(
+        title, subtitle, R.string.emojimix_row_title, "emoji/mixes", screenParent = R.string.home_emoji_title,
+    )
+    return listOf(
+        row(R.string.emojimix_add_title, R.string.emojimix_add_subtitle),
+        row(R.string.emojimix_panel_strip_title, R.string.emojimix_panel_strip_subtitle),
+        row(R.string.emojimix_typing_title, R.string.emojimix_typing_subtitle),
+        row(R.string.emojimix_style_title),
+        row(R.string.emojimix_replace_title, R.string.emojimix_replace_subtitle),
+        row(R.string.emojimix_panel_title, R.string.emojimix_panel_subtitle),
+        row(R.string.emojimix_order_title),
+        row(R.string.emojimix_send_title, R.string.emojimix_send_subtitle),
+        row(R.string.emojimix_cell_size_title),
+        row(R.string.emojimix_auto_refresh_title, R.string.emojimix_auto_refresh_subtitle),
+        row(R.string.emojimix_clear_cache_title),
     )
 }
 
@@ -1635,6 +1659,11 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_trash_days_title),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_save_selection_title, R.string.tooldetail_notes_save_selection_subtitle),
     toolEntry(ToolbarTool.NOTES, R.string.tooldetail_notes_clear_title, R.string.tooldetail_notes_clear_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_open_title),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_hide_done_title, R.string.tooldetail_todo_hide_done_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_sync_title, R.string.tooldetail_todo_sync_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_import_title, R.string.tooldetail_todo_import_subtitle),
+    toolEntry(ToolbarTool.TODO, R.string.tooldetail_todo_clear_title, R.string.tooldetail_todo_clear_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_learning_title, R.string.tooldetail_incognito_learning_subtitle),
     toolEntry(ToolbarTool.INCOGNITO, R.string.tooldetail_incognito_clipboard_title, R.string.tooldetail_incognito_clipboard_subtitle),
     toolEntry(
@@ -1725,6 +1754,9 @@ private fun SearchStrings.toolPageRowsA(): List<SettingsSearchEntry> = listOfNot
     ),
     // Subtitle left off: it counts the hidden apps.
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_hidden_title),
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_work_title, R.string.tooldetail_launcher_work_subtitle),
+    // Subtitle left off: it counts the folders.
+    toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_folders_title),
     toolEntry(ToolbarTool.APP_LAUNCHER, R.string.tooldetail_launcher_recents_title, R.string.tooldetail_launcher_recents_subtitle),
     toolEntry(
         ToolbarTool.APP_LAUNCHER,
@@ -2027,6 +2059,9 @@ private fun SearchStrings.toolPageRowsB(): List<SettingsSearchEntry> = listOfNot
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_actions_title, R.string.toolai_ai_actions_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_title, R.string.toolai_ai_diff_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_diff_first_title, R.string.toolai_ai_diff_first_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_title, R.string.toolai_strip_suggest_info),
+    toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_word_only_title, R.string.toolai_strip_suggest_word_only_subtitle),
+    toolEntry(ToolbarTool.AI, R.string.toolai_strip_suggest_chars_title, R.string.toolai_strip_suggest_chars_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_search_title, R.string.toolai_ai_tool_search_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_tool_fetch_title, R.string.toolai_ai_tool_fetch_subtitle),
     toolEntry(ToolbarTool.AI, R.string.toolai_ai_builtin_title, R.string.toolai_ai_builtin_subtitle),
@@ -2419,6 +2454,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         access(R.string.accessibility_row_icons_title, R.string.accessibility_row_icons_subtitle),
         access(R.string.accessibility_screen_transitions_title, R.string.accessibility_screen_transitions_subtitle),
         access(R.string.accessibility_keyboard_preview_title, R.string.accessibility_keyboard_preview_subtitle),
+        access(R.string.favourites_button_title, R.string.favourites_button_subtitle),
         entry(
             R.string.toolai_hub_chat_button_everywhere_title,
             R.string.toolai_hub_chat_button_everywhere_subtitle,
@@ -2626,6 +2662,7 @@ private fun SearchStrings.sectionRows(): List<SettingsSearchEntry> {
             R.string.langemoji_emoji_panel_title, R.string.langemoji_emoji_panel_subtitle,
             R.string.home_emoji_title, "emoji/panel",
         ),
+        under(R.string.emojimix_row_title, R.string.emojimix_row_subtitle, R.string.home_emoji_title, "emoji/mixes"),
         // The kaomoji library hangs off the emoji panel's page, beside the
         // switch that shows its tab.
         under(
@@ -2919,6 +2956,17 @@ private fun SearchStrings.notesRows(): List<SettingsSearchEntry> {
     )
 }
 
+private fun SearchStrings.todoRows(): List<SettingsSearchEntry> {
+    fun todo(@StringRes title: Int, @StringRes subtitle: Int) = entry(
+        title, subtitle, R.string.todo_title, TODO_ROUTE,
+        screenParent = toolTitle(ToolbarTool.TODO), screenRoot = R.string.home_tools_title,
+    )
+    return listOf(
+        todo(R.string.todo_add_hint, 0),
+        todo(R.string.todo_clear_done_title, R.string.todo_clear_done_subtitle),
+    )
+}
+
 private fun SearchStrings.storageRows(): List<SettingsSearchEntry> {
     fun row(@StringRes title: Int, @StringRes subtitle: Int) =
         entry(title, subtitle, R.string.about_storage_title, "storage", screenParent = R.string.home_about_title)
@@ -2992,8 +3040,8 @@ internal fun settingsSearchIndex(strings: SearchStrings): List<SettingsSearchEnt
         appearanceToolboxRows() + photoRows() + layoutRows() +
         layoutSizeRows() +
         layoutOnehandedRows() + floatingButtonRows() + languageRows() + emojiRows() +
-        emojiPanelRows() + kaomojiRows() +
-        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + storageRows() + otherRows()
+        emojiPanelRows() + emojiMixRows() + kaomojiRows() +
+        voiceRows() + clipboardRows() + expanderRows() + toolPageRowsA() + toolPageRowsB() + galleryRows() + sendRows() + vocabRows() + notesRows() + todoRows() + storageRows() + otherRows()
     // A provider's screen goes with the tool page its list is on.
     all.filterNot { it.route in unsupported || it.tool?.let { tool -> "tool/${tool.name}" in unsupported } == true }
         .distinctBy { it.key }
