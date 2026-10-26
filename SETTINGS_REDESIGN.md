@@ -279,7 +279,19 @@ screen the row is on. Every page has an icon, a colour and a section in
 the index; the docs pages for Typing, Key press and the Clipboard tool,
 the settings overview and `settings-links.json` follow the moves.
 
-**Phase 4:** pinned previews and the animated gesture demo.
+**Phase 4 (done 2026-10-26, uncompiled):** `KeyboardMiniature`, one Canvas
+drawn from the settings and the active `KbTheme` with a `focus` per screen,
+pinned with `RegisterPinned` on Layout & size › Size and position, Appearance,
+Key press › Key popup, Rows & bars and Emoji, in a fixed 124 dp frame (a taller
+board shrinks to fit; landscape folds it behind a chip); `GestureDemo` on
+Gestures, a Catmull-Rom stroke with the real trail settings over the same
+miniature, three gestures on a segmented switch, frame loop only while on
+screen, one still frame under Reduce motion; glyphs on the segmented form of
+choice rows that name one on their `ChoiceDetail` (toolbar and popup placement,
+toolbox layout, theme mode, numeral scope, one-handed side, the emoji row's
+three); a swatch strip on the Keyboard themes row and "Aa" in the font on the
+Keyboard font row, through a new `NavRow(trailing = …)` slot. Not done: Layout
+& size's hub page has no pin (its sliders are on Size and position).
 
 **Phase 5 (done 2026-10-26, uncompiled):** chrome. The path strip draws from
 the third level (`MinCrumbDepth` 2), so a second-level page is its back arrow

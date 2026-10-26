@@ -1369,6 +1369,9 @@ internal fun KeyPressPopupSettings(
     settings: LiveSettings,
 ) {
     val scope = rememberCoroutineScope()
+    // The live keyboard under the bar (SETTINGS_REDESIGN.md §6): the rows
+    // below move it, so a change is seen rather than read.
+    RegisterPinned { PinnedKeyboardPreview(settings, PreviewFocus.POPUP) }
     val context = LocalContext.current
     var popupShapePickerOpen by rememberSaveable { mutableStateOf(false) }
     // What decides which rows the group holds; each row reads its own value.

@@ -4155,6 +4155,7 @@ internal fun NavRow(
     value: String? = null,
     route: String? = null,
     icon: ImageVector? = SettingsRowIcons[title],
+    trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
 ) = NavRow(
     title = stringResource(title),
@@ -4163,6 +4164,7 @@ internal fun NavRow(
     route = route,
     icon = icon,
     highlightKey = title,
+    trailing = trailing,
     onClick = onClick,
 )
 
@@ -4172,6 +4174,11 @@ internal fun NavRow(
  * [route] names the destination the row opens, which flies the row's name up
  * into that screen's heading. Only the name travels; the heading's icon fades
  * in with its screen rather than flying from the row's own tile.
+ *
+ * [trailing] is something drawn before the value — a swatch of the theme the
+ * row names, a sample in the font it names — so the row shows its value as
+ * well as saying it. It takes [NavTrailingLane] of the row's end, whatever it
+ * draws, so the value's place beside the title is decided with it counted.
  */
 @Composable
 internal fun NavRow(
@@ -4182,6 +4189,7 @@ internal fun NavRow(
     icon: ImageVector? = null,
     @StringRes highlightKey: Int = 0,
     swipeActions: List<SwipeAction> = emptyList(),
+    trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
 ) {
     // A value only sits beside the title while it fits there; a longer one
@@ -4190,7 +4198,8 @@ internal fun NavRow(
     val beside = value != null && fitsBesideTitle(
         value,
         MaterialTheme.typography.labelLarge,
-        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (rowLinkButtonShown()) SettingLinkTargetSize else 0.dp),
+        furniture = TRAILING_ICON_WIDTH + 4.dp + (if (rowLinkButtonShown()) SettingLinkTargetSize else 0.dp) +
+            (if (trailing != null) NavTrailingLane else 0.dp),
         hasIcon = rowHasTile(icon),
     )
     val below = value.takeIf { it != null && !beside }
@@ -4209,6 +4218,10 @@ internal fun NavRow(
             trailing = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RowExtras { SettingLinkButton(title) }
+                    if (trailing != null) {
+                        trailing()
+                        Spacer(Modifier.width(8.dp))
+                    }
                     if (beside && value != null) {
                         RowValueText(value, textAlign = TextAlign.End, maxLines = 1)
                         Spacer(Modifier.width(4.dp))
@@ -4224,6 +4237,9 @@ internal fun NavRow(
         )
     }
 }
+
+/** What a [NavRow]'s trailing slot is counted as taking: a swatch strip or a type sample, and its gap. */
+private val NavTrailingLane = 56.dp
 
 /** A row's current value, wherever the row ended up putting it. */
 @Composable
@@ -5472,10 +5488,29 @@ internal fun <T> ChoiceControl(
             if (style != null) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     options.forEachIndexed { index, (option, name) ->
+                        // A glyph the call site named on its [ChoiceDetail] takes
+                        // the check mark's lane, so a row whose options have a
+                        // shape or a direction shows it on every segment, not
+                        // only on the sheet. The table's fallback is left out
+                        // here on purpose: it gives one glyph to a whole set of
+                        // sizes, which on three segments would promise a
+                        // difference the icons cannot show.
+                        val glyph = detail?.invoke(option)?.icon
                         SegmentedButton(
                             selected = selected == option,
                             onClick = { pick(option) },
                             shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                            icon = {
+                                if (glyph != null) {
+                                    Icon(
+                                        glyph,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(SegmentedButtonDefaults.IconSize),
+                                    )
+                                } else {
+                                    SegmentedButtonDefaults.Icon(selected == option)
+                                }
+                            },
                         ) {
                             // The size the labels were measured at, which is
                             // not always the default one.

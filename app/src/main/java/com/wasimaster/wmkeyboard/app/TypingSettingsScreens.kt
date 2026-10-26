@@ -1997,6 +1997,11 @@ internal fun TypingGlideSettings(
     val loopDouble = settings.watch { it.gesture.loopDouble }
     val wiggleDouble = settings.watch { it.gesture.wiggleDouble }
     val wordPreview = settings.watch { it.gesture.wordPreview }
+    // The page's gestures, drawn (SETTINGS_REDESIGN.md §6): a stroke looping
+    // over the user's keyboard with the trail the sliders below set, switched
+    // between a glided word, the spacebar swipe and the backspace swipe.
+    // First on the page, since it is about every gesture the hub lists.
+    SettingsGroup { item { GestureDemo(settings) } }
     // Untitled: the page is named Glide typing already.
     SettingsGroup {
         item {

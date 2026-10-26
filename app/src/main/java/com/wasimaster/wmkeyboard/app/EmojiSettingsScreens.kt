@@ -80,6 +80,9 @@ internal fun EmojiSettings(
     onNavigate: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    // The live keyboard under the bar (SETTINGS_REDESIGN.md §6): the rows
+    // below move it, so a change is seen rather than read.
+    RegisterPinned { PinnedKeyboardPreview(settings, PreviewFocus.EMOJI_ROW) }
     // The slider readout is a plain lambda, so its format string is resolved
     // here and captured. The format also puts the number through the locale,
     // which is what gives Bengali or Arabic digits.
@@ -251,7 +254,7 @@ internal fun EmojiSettings(
                 ),
                 selected = settings.watch { it.emojiInsertMode },
                 default = SettingsDefaults.emojiInsertMode,
-                detail = { mode -> ChoiceDetail(stringResource(emojiInsertDescRes(mode))) },
+                detail = { mode -> ChoiceDetail(stringResource(emojiInsertDescRes(mode)), ChoiceOptionIcons[mode]) },
             ) { scope.launch { repository.setEmojiInsertMode(it) } }
         }
     }
@@ -270,7 +273,7 @@ internal fun EmojiSettings(
                 ),
                 selected = barMode,
                 default = SettingsDefaults.emojiBarMode,
-                detail = { mode -> ChoiceDetail(stringResource(emojiBarModeDescRes(mode))) },
+                detail = { mode -> ChoiceDetail(stringResource(emojiBarModeDescRes(mode)), ChoiceOptionIcons[mode]) },
             ) { scope.launch { repository.setEmojiBarMode(it) } }
         }
         item(visible = emojiRowOverridden) {
@@ -290,7 +293,7 @@ internal fun EmojiSettings(
                 ),
                 selected = settings.watch { it.emojiBarContent },
                 default = SettingsDefaults.emojiBarContent,
-                detail = { content -> ChoiceDetail(stringResource(emojiBarContentDescRes(content))) },
+                detail = { content -> ChoiceDetail(stringResource(emojiBarContentDescRes(content)), ChoiceOptionIcons[content]) },
             ) { scope.launch { repository.setEmojiBarContent(it) } }
         }
         item(visible = barMode != EmojiBarMode.OFF, level = SettingLevel.ADVANCED) {
