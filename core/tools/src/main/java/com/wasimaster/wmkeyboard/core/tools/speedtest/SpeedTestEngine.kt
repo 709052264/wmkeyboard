@@ -301,13 +301,19 @@ class SpeedTestEngine(
             connection.setRequestProperty("Content-Type", "application/octet-stream")
             connection.setFixedLengthStreamingMode(bytes)
             connection.outputStream.use { out ->
+                // Written and counted in small pieces: a whole megabyte at a
+                // time lands on the counter in lumps, and with four
+                // connections a 200 ms sample would hold none or three of
+                // them, which is what made the upload samples a saw.
                 var left = bytes
+                var offset = 0
                 while (left > 0) {
-                    val n = minOf(left, payload.size)
-                    out.write(payload, 0, n)
+                    val n = minOf(left, WRITE_CHUNK, payload.size - offset)
+                    out.write(payload, offset, n)
                     counter.addAndGet(n.toLong())
                     call.sent(n.toLong())
                     left -= n
+                    offset = (offset + n) % payload.size
                 }
                 out.flush()
             }
@@ -336,6 +342,7 @@ class SpeedTestEngine(
         const val CHUNK = 1 shl 20
         const val SEED = 7
         const val READ_BUFFER = 64 * 1024
+        const val WRITE_CHUNK = 32 * 1024
         const val SAMPLE_MS = 200L
         const val RETRY_MS = 250L
         const val PING_COUNT = 10

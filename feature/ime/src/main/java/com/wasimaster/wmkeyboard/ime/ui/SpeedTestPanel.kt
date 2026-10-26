@@ -29,9 +29,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -214,12 +216,19 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
     // from one report to the next rather than snapping, which at that rate
     // reads as flicker. Each report is the phase's running mean, so the
     // target itself moves little once the connections have opened.
-    val animated by animateFloatAsState(
+    // Read only inside the dial's draw pass and the number's own scope, so a
+    // frame of the glide redraws the arc and relays out one Text, not the
+    // whole face.
+    val animated = animateFloatAsState(
         targetValue = ui.liveMbps.toFloat(),
         animationSpec = tween(SPEED_GLIDE_MS),
         label = "speed",
     )
-    val shownMbps = if (kb.motion.any) animated.toDouble() else ui.liveMbps
+    val shownMbps: State<Double> = if (kb.motion.any) {
+        remember(animated) { derivedStateOf { animated.value.toDouble() } }
+    } else {
+        rememberUpdatedState(ui.liveMbps)
+    }
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -236,8 +245,8 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
         ) {
-            val fraction = SpeedTestMath.gaugeFraction(shownMbps)
             Canvas(Modifier.fillMaxSize()) {
+                val fraction = SpeedTestMath.gaugeFraction(shownMbps.value)
                 val stroke = 10.dp.toPx()
                 val radius = min(size.width, size.height) / 2f - stroke
                 val topLeft = Offset(size.width / 2f - radius, size.height / 2f - radius)
@@ -249,12 +258,7 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 if (transferring) {
-                    Text(
-                        SpeedTestMath.formatSpeed(shownMbps, unit),
-                        color = kb.keyText,
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    LiveSpeed(shownMbps, unit)
                     Text(SpeedTestMath.unitLabel(unit), color = kb.secondaryText, fontSize = 11.sp)
                 } else {
                     Text(
@@ -293,6 +297,19 @@ private fun RunningFace(state: KeyboardUiState, onAction: (SpeedTestAction) -> U
             ToolPanelChip(stringResource(CommonR.string.common_cancel)) { onAction(SpeedTestAction.Cancel) }
         }
     }
+}
+
+/** The number in the dial, in its own scope: the glide changes it every frame and nothing else need recompose. */
+@Composable
+private fun LiveSpeed(mbps: State<Double>, unit: SpeedUnit) {
+    val kb = LocalKbTheme.current
+    val label = remember(mbps, unit) { derivedStateOf { SpeedTestMath.formatSpeed(mbps.value, unit) } }
+    Text(
+        label.value,
+        color = kb.keyText,
+        fontSize = 26.sp,
+        fontWeight = FontWeight.Bold,
+    )
 }
 
 /** The running phase's samples as a thin line, newest at the right. */
