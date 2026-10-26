@@ -17488,9 +17488,20 @@ open class WMKeyboardService : InputMethodService() {
                     delay(CODE_ENTRY_POLL_MS)
                 } else if (!boxes) {
                     val rest = currentInputConnection ?: break
-                    rest.beginBatchEdit()
-                    while (i < code.length) commitTypedCharacter(rest, code[i++].toString())
-                    rest.endBatchEdit()
+                    if (code.all { it in '0'..'9' }) {
+                        rest.beginBatchEdit()
+                        while (i < code.length) commitTypedCharacter(rest, code[i++].toString())
+                        rest.endBatchEdit()
+                    } else {
+                        // Digits go in as key events and letters as text, and
+                        // the two do not keep their order in one field: a hex
+                        // colour came out scrambled. One field takes the rest
+                        // as one run of text.
+                        val tail = code.substring(i)
+                        mirrorTypedIntoRevision(rest, tail)
+                        rest.commitText(tail, 1)
+                        i = code.length
+                    }
                 }
             }
             // Every commit above echoes back as a caret move, and the batch's
