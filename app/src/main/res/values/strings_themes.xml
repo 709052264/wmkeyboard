@@ -269,6 +269,8 @@
     <!-- Shift, backspace, symbols and the other keys that are not letters. -->
     <string name="theme_modifier_keys_title">Modifier keys</string>
     <string name="theme_modifier_key_text_title">Modifier key text</string>
+    <string name="theme_match_letter_keys_title">Make every key match the letter keys</string>
+    <string name="theme_match_letter_keys_subtitle">Shift, ?123, the emoji and tool keys and Enter take the letter keys\' colours. You can change each one after.</string>
     <!-- The small long-press alternate drawn in a key's top-right corner. -->
     <string name="theme_hint_text_title">Key hint text</string>
     <string name="theme_enter_key_title">Enter key</string>

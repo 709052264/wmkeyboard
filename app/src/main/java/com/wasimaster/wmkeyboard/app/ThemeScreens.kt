@@ -3857,6 +3857,25 @@ fun ThemeEditorScreen(
             )
         }
         item(level = SettingLevel.STANDARD) {
+            // Telegram group: one look for every key, without matching the
+            // modifier and Enter colours to the letters by hand. One step,
+            // so it undoes in one; each colour stays editable after.
+            WmRow(
+                title = stringResource(R.string.theme_match_letter_keys_title),
+                subtitle = stringResource(R.string.theme_match_letter_keys_subtitle),
+                onClick = {
+                    update { t ->
+                        t.copy(
+                            modifierKeyBackground = t.keyBackground,
+                            modifierKeyText = null,
+                            enterKeyBackground = t.keyBackground,
+                            enterKeyText = t.keyText,
+                        )
+                    }
+                },
+            )
+        }
+        item(level = SettingLevel.STANDARD) {
             NullableColorRow(
                 R.string.theme_hint_text_title,
                 look.watch { it.hintText }, fallback = look.watch { it.keyText },
