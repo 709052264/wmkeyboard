@@ -38,11 +38,14 @@ object ContextModelDownloadManager {
     sealed interface DownloadStatus {
         data object NotDownloaded : DownloadStatus
         data class Downloading(val fraction: Float) : DownloadStatus
-        data class Downloaded(val sizeBytes: Long) : DownloadStatus
+        data class Downloaded(val sizeBytes: Long, val variant: ContextModelVariant = ContextModelVariant.STANDARD) : DownloadStatus
         data object Failed : DownloadStatus
     }
 
     private const val DECLINED_NAME = "context.declined"
+
+    /** Holds the name of the [ContextModelVariant] the language has, or should get. */
+    private const val VARIANT_NAME = "context.variant"
     private const val USER_AGENT = "WMKeyboard context model downloader"
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -64,12 +67,12 @@ object ContextModelDownloadManager {
 
     fun refresh(filesDir: File) {
         _states.update { current ->
-            ContextModelCatalog.entries.associate { entry ->
-                val langId = entry.languageId
+            ContextModelCatalog.entries.map { it.languageId }.distinct().associateWith { langId ->
                 val live = current[langId]
-                langId to when {
+                when {
                     live is DownloadStatus.Downloading -> live
-                    isDownloaded(filesDir, langId) -> DownloadStatus.Downloaded(modelFile(filesDir, langId).length())
+                    isDownloaded(filesDir, langId) ->
+                        DownloadStatus.Downloaded(modelFile(filesDir, langId).length(), variantOf(filesDir, langId))
                     live == DownloadStatus.Failed -> live
                     else -> DownloadStatus.NotDownloaded
                 }
@@ -83,12 +86,28 @@ object ContextModelDownloadManager {
 
     fun isDownloaded(filesDir: File, langId: String): Boolean = modelFile(filesDir, langId).isFile
 
+    /** The size the language has on disk, or is set to fetch: the marker, else standard. */
+    fun variantOf(filesDir: File, langId: String): ContextModelVariant {
+        val name = runCatching { File(langDir(filesDir, langId), VARIANT_NAME).readText().trim() }.getOrNull()
+        return ContextModelVariant.entries.firstOrNull { it.name == name } ?: ContextModelVariant.STANDARD
+    }
+
+    private fun rememberVariant(filesDir: File, langId: String, variant: ContextModelVariant) {
+        runCatching {
+            val dir = langDir(filesDir, langId)
+            dir.mkdirs()
+            File(dir, VARIANT_NAME).writeText(variant.name)
+        }
+    }
+
     /** Queues every catalogued language in [langIds] the device does not have. Silent. */
     fun ensure(filesDir: File, langIds: Collection<String>) {
         val wanted = langIds.distinct()
         scope.launch {
             for (langId in wanted) {
-                val entry = ContextModelCatalog.forLanguage(langId) ?: continue
+                val entry = ContextModelCatalog.entry(langId, variantOf(filesDir, langId))
+                    ?: ContextModelCatalog.forLanguage(langId)
+                    ?: continue
                 synchronized(jobs) {
                     if (langId in givenUp || jobs[langId]?.isActive == true) return@synchronized
                     if (isDownloaded(filesDir, langId)) return@synchronized
@@ -108,8 +127,18 @@ object ContextModelDownloadManager {
         }
     }
 
-    /** The user asked for [langId]'s model: retries a failed transfer and undoes a Delete. */
-    fun start(filesDir: File, langId: String) {
+    /**
+     * The user asked for [langId]'s model: retries a failed transfer and
+     * undoes a Delete. With [variant], that size is fetched; a model of
+     * another size already on disk is replaced.
+     */
+    fun start(filesDir: File, langId: String, variant: ContextModelVariant? = null) {
+        if (variant != null && variant != variantOf(filesDir, langId)) {
+            cancel(langId)
+            modelFile(filesDir, langId).delete()
+            set(langId, DownloadStatus.NotDownloaded)
+        }
+        if (variant != null) rememberVariant(filesDir, langId, variant)
         synchronized(jobs) { givenUp.remove(langId) }
         File(langDir(filesDir, langId), DECLINED_NAME).delete()
         ensure(filesDir, listOf(langId))
@@ -153,19 +182,20 @@ object ContextModelDownloadManager {
         if (!part.renameTo(target)) throw IOException("rename failed for $target")
         File(langDir(filesDir, langId), DECLINED_NAME).delete()
         synchronized(jobs) { givenUp.remove(langId) }
-        set(langId, DownloadStatus.Downloaded(target.length()))
+        set(langId, DownloadStatus.Downloaded(target.length(), variantOf(filesDir, langId)))
         _completions.tryEmit(langId)
     }
 
     private fun download(filesDir: File, entry: ContextModelEntry) {
         val langId = entry.languageId
         if (isDownloaded(filesDir, langId)) {
-            set(langId, DownloadStatus.Downloaded(modelFile(filesDir, langId).length()))
+            set(langId, DownloadStatus.Downloaded(modelFile(filesDir, langId).length(), variantOf(filesDir, langId)))
             return
         }
         val ok = runCatching { fetch(filesDir, entry) }.isSuccess
         if (ok) {
-            set(langId, DownloadStatus.Downloaded(modelFile(filesDir, langId).length()))
+            rememberVariant(filesDir, langId, entry.variant)
+            set(langId, DownloadStatus.Downloaded(modelFile(filesDir, langId).length(), entry.variant))
             _completions.tryEmit(langId)
         } else {
             set(langId, DownloadStatus.Failed)

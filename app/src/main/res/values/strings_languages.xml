@@ -405,6 +405,12 @@ With this on, the keyboard draws Burmese in its own copy of Noto Sans Myanmar, a
     <string name="languages_context_model_downloaded">Sentence-aware predictions, <xliff:g id="size" example="4.9 MB">%1$s</xliff:g></string>
     <string name="languages_context_model_failed">The download failed. Try again.</string>
     <string name="languages_context_model_delete_desc">Delete the context model</string>
+    <string name="languages_context_model_variant_standard">Standard</string>
+    <string name="languages_context_model_variant_large">Large</string>
+    <!-- %1$s a size name (Standard, Large), %2$s the file size -->
+    <string name="languages_context_model_variant_size"><xliff:g id="variant" example="Large">%1$s</xliff:g>, <xliff:g id="size" example="16.7 MB">%2$s</xliff:g></string>
+    <string name="languages_context_model_downloaded_variant">Sentence-aware predictions, <xliff:g id="variant" example="Standard">%1$s</xliff:g> model, <xliff:g id="size" example="10.8 MB">%2$s</xliff:g></string>
+    <string name="languages_context_model_switch">Switch to the <xliff:g id="variant" example="Large">%1$s</xliff:g> model (<xliff:g id="size" example="16.7 MB">%2$s</xliff:g>)</string>
 
     <!-- ===== Dictionary ===== -->
 

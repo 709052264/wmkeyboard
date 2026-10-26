@@ -1,5 +1,6 @@
 package com.wasimaster.wmkeyboard.app
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreVert
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Close
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Delete
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Download
@@ -18,6 +20,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.SwapVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -45,6 +49,8 @@ import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.DictionaryEntry
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackCatalog
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelCatalog
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelEntry
+import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelVariant
 import com.wasimaster.wmkeyboard.core.dictionaries.ContextModelDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.NgramPackDownloadManager
 import com.wasimaster.wmkeyboard.core.dictionaries.WordlistDownloadManager
@@ -96,7 +102,7 @@ internal fun DictionariesGroup(
     val wordlists = remember(langId) { DictionaryCatalog.forLanguage(langId) }
     val emojiEntry = remember(langId) { EmojiDictCatalog.forLanguage(langId) }
     val pairsEntry = remember(langId) { NgramPackCatalog.forLanguage(langId) }
-    val modelEntry = remember(langId) { ContextModelCatalog.forLanguage(langId) }
+    val modelEntries = remember(langId) { ContextModelCatalog.variantsFor(langId) }
 
     val wordStates by WordlistDownloadManager.states.collectAsState()
     val emojiStates by EmojiDictDownloadManager.states.collectAsState()
@@ -222,9 +228,9 @@ internal fun DictionariesGroup(
         }
         // The neural context model: one file, one switch (Typing › Context
         // model) shared by every language that has one.
-        if (modelEntry != null) {
+        if (modelEntries.isNotEmpty()) {
             item {
-                ContextModelRow(langId = langId, approxBytes = modelEntry.approxBytes, status = modelStatus)
+                ContextModelRow(langId = langId, entries = modelEntries, status = modelStatus)
             }
         }
         // For a phone that cannot download: the same files, as one language
@@ -669,19 +675,43 @@ private fun EmojiKeywordsRow(
 }
 
 @Composable
+private fun variantLabel(variant: ContextModelVariant): String = stringResource(
+    when (variant) {
+        ContextModelVariant.STANDARD -> R.string.languages_context_model_variant_standard
+        ContextModelVariant.LARGE -> R.string.languages_context_model_variant_large
+    },
+)
+
+/**
+ * The language's context model: one download, or a choice of sizes when
+ * the catalog lists more than one. The Download button opens the choice;
+ * once a model is on disk, the overflow menu switches to the other size
+ * (the file is replaced) or deletes it.
+ */
+@Composable
 private fun ContextModelRow(
     langId: String,
-    approxBytes: Long,
+    entries: List<ContextModelEntry>,
     status: ContextModelDownloadManager.DownloadStatus,
 ) {
     val filesDir = LocalContext.current.filesDir
+    val standard = entries.first()
+    val several = entries.size > 1
+    var menu by remember { mutableStateOf(false) }
     val supporting = when (status) {
         is ContextModelDownloadManager.DownloadStatus.Downloaded ->
-            stringResource(R.string.languages_context_model_downloaded, formatBytes(status.sizeBytes))
+            if (several) {
+                stringResource(
+                    R.string.languages_context_model_downloaded_variant,
+                    variantLabel(status.variant), formatBytes(status.sizeBytes),
+                )
+            } else {
+                stringResource(R.string.languages_context_model_downloaded, formatBytes(status.sizeBytes))
+            }
         is ContextModelDownloadManager.DownloadStatus.Downloading -> stringResource(CommonR.string.common_downloading)
         ContextModelDownloadManager.DownloadStatus.Failed -> stringResource(R.string.languages_context_model_failed)
         ContextModelDownloadManager.DownloadStatus.NotDownloaded ->
-            stringResource(R.string.languages_context_model_download_size, formatBytes(approxBytes))
+            stringResource(R.string.languages_context_model_download_size, formatBytes(standard.approxBytes))
     }
     DictionaryItemRow(
         title = stringResource(R.string.languages_context_model_title),
@@ -700,26 +730,81 @@ private fun ContextModelRow(
         },
     ) {
         when (status) {
-            is ContextModelDownloadManager.DownloadStatus.Downloaded ->
-                IconButton(onClick = { ContextModelDownloadManager.delete(filesDir, langId) }) {
-                    Icon(
-                        Icons.Outlined.Delete,
-                        contentDescription = stringResource(R.string.languages_context_model_delete_desc),
-                    )
+            is ContextModelDownloadManager.DownloadStatus.Downloaded -> Box {
+                if (several) {
+                    IconButton(onClick = { menu = true }) {
+                        Icon(Icons.Outlined.MoreVert, contentDescription = stringResource(CommonR.string.common_more))
+                    }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        for (entry in entries) {
+                            if (entry.variant == status.variant) continue
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        stringResource(
+                                            R.string.languages_context_model_switch,
+                                            variantLabel(entry.variant), formatBytes(entry.approxBytes),
+                                        ),
+                                    )
+                                },
+                                onClick = {
+                                    menu = false
+                                    ContextModelDownloadManager.start(filesDir, langId, entry.variant)
+                                },
+                            )
+                        }
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.languages_context_model_delete_desc)) },
+                            onClick = {
+                                menu = false
+                                ContextModelDownloadManager.delete(filesDir, langId)
+                            },
+                        )
+                    }
+                } else {
+                    IconButton(onClick = { ContextModelDownloadManager.delete(filesDir, langId) }) {
+                        Icon(
+                            Icons.Outlined.Delete,
+                            contentDescription = stringResource(R.string.languages_context_model_delete_desc),
+                        )
+                    }
                 }
+            }
             is ContextModelDownloadManager.DownloadStatus.Downloading ->
                 IconButton(onClick = { ContextModelDownloadManager.cancel(langId) }) {
                     Icon(Icons.Outlined.Close, contentDescription = stringResource(CommonR.string.common_cancel))
                 }
             ContextModelDownloadManager.DownloadStatus.NotDownloaded,
             ContextModelDownloadManager.DownloadStatus.Failed,
-            -> TextButton(onClick = { ContextModelDownloadManager.start(filesDir, langId) }) {
-                Text(
-                    stringResource(
-                        if (status == ContextModelDownloadManager.DownloadStatus.Failed) CommonR.string.common_retry
-                        else CommonR.string.common_download,
-                    ),
-                )
+            -> Box {
+                TextButton(onClick = {
+                    if (several) menu = true else ContextModelDownloadManager.start(filesDir, langId)
+                }) {
+                    Text(
+                        stringResource(
+                            if (status == ContextModelDownloadManager.DownloadStatus.Failed) CommonR.string.common_retry
+                            else CommonR.string.common_download,
+                        ),
+                    )
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    for (entry in entries) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    stringResource(
+                                        R.string.languages_context_model_variant_size,
+                                        variantLabel(entry.variant), formatBytes(entry.approxBytes),
+                                    ),
+                                )
+                            },
+                            onClick = {
+                                menu = false
+                                ContextModelDownloadManager.start(filesDir, langId, entry.variant)
+                            },
+                        )
+                    }
+                }
             }
         }
     }
