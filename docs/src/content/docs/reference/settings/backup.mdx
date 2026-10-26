@@ -70,7 +70,8 @@ This page writes a backup on a timer to the locations you tick. It stays inert u
 | Back up automatically | Toggle | Off | always (off until a ticked location is usable) |
 | Pause backups | Row: 1 hour, 1 day, 1 week, or Until I resume | Not paused | Back up automatically on |
 | How often | Slider over 1, 2, 3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 120 and 168 hours | 24 hours (1 day) | Back up automatically on |
-| Backups to keep | Slider, 1–30 | 5 | Back up automatically on |
+| Backups to keep | Slider, 1–100 | 5 | Back up automatically on |
+| Keep older backups spread out | Toggle | Off | Back up automatically on |
 | Only while charging | Toggle | On | Back up automatically on |
 | Only on Wi-Fi | Toggle | On | Same, and only while a ticked location needs a connection (anything but a Folder) |
 | **Back up to** | A tick box per location | On for every location | always |
@@ -79,6 +80,8 @@ This page writes a backup on a timer to the locations you tick. It stays inert u
 | **What goes in a backup** | The same switches as the export list, with their own settings | Same defaults as the export list | always |
 
 **Pause backups** stops the scheduled backups without turning the feature off. While paused the row reads "Backups are paused" with "Until `<date and time>`" or "Until you resume", and tapping it or **Resume** ends the pause. A timed pause ends by itself. Locations, schedule, passphrase and the backups already kept don't change, and the scheduled job stays where it is, so resuming doesn't restart the interval: a backup that came due during the pause runs at the next check. **Back up now** ignores a pause.
+
+**Backups to keep** counts the newest backups, and the oldest one past that number is deleted after each run. Turn on **Keep older backups spread out** to keep a longer history without keeping every copy: past the newest ones, the app also keeps the newest backup of each of the last 7 days, each of the last 5 weeks and each of the last 12 months. That adds at most 24 files. The ages count back from the newest backup, not from today, so a phone that stopped backing up for a month still has its spread-out copies when it starts again.
 
 Each backup goes to every ticked location. A location you untick keeps its settings and gets no backups until you tick it again. One passphrase covers the automatic backups and the sync files, so use the same one on every device that syncs.
 

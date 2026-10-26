@@ -2395,6 +2395,7 @@ private fun SearchStrings.otherRows(): List<SettingsSearchEntry> {
         backupAuto(R.string.backup_auto_enabled_title, R.string.backup_auto_enabled_subtitle),
         backupAuto(R.string.backup_auto_interval_title, R.string.backup_auto_enabled_subtitle),
         backupAuto(R.string.backup_auto_keep_title, R.string.backup_auto_keep_subtitle),
+        backupAuto(R.string.backup_auto_staggered_title, R.string.backup_auto_staggered_subtitle),
         backupAuto(R.string.backup_auto_encrypt_title, R.string.backup_auto_encrypt_subtitle),
         backupAuto(R.string.backup_auto_contents_title, R.string.backup_include_settings_subtitle),
         backupSync(R.string.backup_sync_enabled_title, R.string.backup_sync_enabled_subtitle),

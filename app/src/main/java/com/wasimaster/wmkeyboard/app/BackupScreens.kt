@@ -1446,6 +1446,16 @@ internal fun BackupAutoSettings(repository: SettingsRepository, settings: LiveSe
                 default = SettingsDefaults.autoBackup.keep.toFloat(),
             ) { kept -> scope.launch { repository.setAutoBackupKeep(kept.roundToInt()) } }
         }
+        // #970: older generations spread out in time, past the newest ones.
+        item(visible = autoOn && configured, level = SettingLevel.ADVANCED) {
+            ToggleSetting(
+                R.string.backup_auto_staggered_title,
+                stringResource(R.string.backup_auto_staggered_subtitle),
+                settings.watch { it.autoBackup.staggered },
+                info = stringResource(R.string.backup_auto_staggered_info),
+                default = SettingsDefaults.autoBackup.staggered,
+            ) { scope.launch { repository.setAutoBackupStaggered(it) } }
+        }
         item(visible = autoOn && configured, level = SettingLevel.ADVANCED) {
             ToggleSetting(
                 R.string.backup_auto_charging_title,

@@ -357,7 +357,7 @@ object AutoBackupRunner {
             var firstName: String? = null
             val failed = LinkedHashMap<String, SinkError>()
             for (location in targets) {
-                val written = copyTo(appContext, location, name, mime, staged, settings.keep, installId)
+                val written = copyTo(appContext, location, name, mime, staged, settings.keep, settings.staggered, installId)
                 written.onSuccess { entry ->
                     if (firstName == null) firstName = entry.name
                     repository.setLocationStatus(location.id) { it.copy(backupAtMs = nowMs, backupError = "") }
@@ -404,13 +404,14 @@ object AutoBackupRunner {
         mime: String,
         staged: File,
         keep: Int,
+        staggered: Boolean,
         installId: String,
     ): Result<com.wasimaster.wmkeyboard.core.settings.sink.SinkEntry> {
         val sink = sinkFor(appContext, location)
             ?: return Result.failure(BackupSinkException(SinkError.NOT_CONFIGURED))
         sink.readiness().exceptionOrNull()?.let { return Result.failure(it) }
         val written = sink.write(name, mime) { out -> staged.inputStream().use { it.copyTo(out) } }
-        if (written.isSuccess) rotate(sink, keep, installId)
+        if (written.isSuccess) rotate(sink, keep, staggered, installId)
         return written
     }
 
@@ -484,11 +485,11 @@ object AutoBackupRunner {
         info.versionCode to info.versionName.orEmpty()
     }.getOrDefault(0 to "")
 
-    private suspend fun rotate(sink: BackupSink, keep: Int, installId: String) {
+    private suspend fun rotate(sink: BackupSink, keep: Int, staggered: Boolean, installId: String) {
         // Backups only. A sink lists sync files too, and a sync file counted
         // here would be a generation to delete.
         val entries = sink.list().getOrNull()?.filter { AutoBackupNaming.isOurs(it.name) } ?: return
-        val doomed = AutoBackupNaming.rotation(entries, keep, installId)
+        val doomed = AutoBackupNaming.rotation(entries, keep, installId, staggered)
         BackupLog.d("rotate: ${entries.size} listed, keep $keep, deleting ${doomed.map { it.name }}")
         for (entry in doomed) {
             sink.delete(entry)

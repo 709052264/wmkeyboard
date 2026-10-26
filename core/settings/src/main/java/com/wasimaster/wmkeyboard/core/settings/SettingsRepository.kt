@@ -4260,6 +4260,14 @@ data class AutoBackupSettings(
     val keep: Int = 5,
 
     /**
+     * Rotation also spares older backups spread out in time, one a day for a
+     * week, a week for five weeks and a month for a year, past the [keep]
+     * newest (#970). Off: a folder that grows by up to 24 files is something
+     * to ask for.
+     */
+    val staggered: Boolean = false,
+
+    /**
      * Whether the job waits for an unmetered network.
      *
      * On, because the alternative is a daily upload to S3, WebDAV or Drive out
@@ -4621,10 +4629,10 @@ val AutoBackupIntervals = listOf(1, 2, 3, 4, 6, 8, 12, 18, 24, 36, 48, 72, 96, 1
  * What [AutoBackupSettings.keep] can be set to.
  *
  * Ordinary integers, so a slider lands on each one. The ceiling is a rotation
- * that keeps a month of dailies; the floor keeps one previous generation, since
- * the newest is never counted.
+ * that keeps three months of dailies, or a long run of hourly ones (#970); the
+ * floor keeps one previous generation, since the newest is never counted.
  */
-val AutoBackupKeepRange = 1..30
+val AutoBackupKeepRange = 1..100
 
 /**
  * Whether the chosen destination has everything it needs to be tried.
@@ -10958,6 +10966,7 @@ class SettingsRepository(private val context: Context) {
             stringPreferencesKey(SettingsBackup.AUTO_BACKUP_FOLDER_URI)
         private val AUTO_BACKUP_INTERVAL_HOURS = intPreferencesKey("auto_backup_interval_hours")
         private val AUTO_BACKUP_KEEP = intPreferencesKey("auto_backup_keep")
+        private val AUTO_BACKUP_STAGGERED = booleanPreferencesKey("auto_backup_staggered")
         private val AUTO_BACKUP_UNMETERED = booleanPreferencesKey("auto_backup_unmetered")
         private val AUTO_BACKUP_CHARGING = booleanPreferencesKey("auto_backup_charging")
         private val AUTO_BACKUP_SECTIONS = stringSetPreferencesKey("auto_backup_sections")
@@ -12925,6 +12934,7 @@ class SettingsRepository(private val context: Context) {
             intervalHours = p[AUTO_BACKUP_INTERVAL_HOURS]
                 ?: defaults.autoBackup.intervalHours,
             keep = p[AUTO_BACKUP_KEEP] ?: defaults.autoBackup.keep,
+            staggered = p[AUTO_BACKUP_STAGGERED] ?: defaults.autoBackup.staggered,
             requireUnmetered = p[AUTO_BACKUP_UNMETERED]
                 ?: defaults.autoBackup.requireUnmetered,
             requireCharging = p[AUTO_BACKUP_CHARGING]
@@ -20929,7 +20939,10 @@ class SettingsRepository(private val context: Context) {
         editPrefs { it[AUTO_BACKUP_INTERVAL_HOURS] = value.coerceIn(1, 24 * 30) }
 
     suspend fun setAutoBackupKeep(value: Int) =
-        editPrefs { it[AUTO_BACKUP_KEEP] = value.coerceIn(1, 50) }
+        editPrefs { it[AUTO_BACKUP_KEEP] = value.coerceIn(AutoBackupKeepRange) }
+
+    suspend fun setAutoBackupStaggered(value: Boolean) =
+        editPrefs { it[AUTO_BACKUP_STAGGERED] = value }
 
     suspend fun setAutoBackupRequireUnmetered(value: Boolean) =
         editPrefs { it[AUTO_BACKUP_UNMETERED] = value }

@@ -199,8 +199,21 @@ object AutoBackupNaming {
      * from an install of this app that rotated them already, and without a
      * claim they would otherwise sit there forever. Another phone's backups
      * are never touched, however many there are.
+     *
+     * [staggered] spares some older backups as well, spread out in time
+     * (#970): past the [keep] newest, the newest backup of each day for a week,
+     * of each week for five weeks and of each month for a year. A setting
+     * broken a fortnight ago can then still be taken back, without keeping a
+     * fortnight of dailies to do it. Ages count back from the newest backup,
+     * not from the clock, so a phone that stopped backing up for a while does
+     * not see its spread-out copies age away while nothing replaces them.
      */
-    fun rotation(entries: List<SinkEntry>, keep: Int, installId: String? = null): List<SinkEntry> {
+    fun rotation(
+        entries: List<SinkEntry>,
+        keep: Int,
+        installId: String? = null,
+        staggered: Boolean = false,
+    ): List<SinkEntry> {
         val mine = if (installId == null) {
             entries
         } else {
@@ -212,6 +225,42 @@ object AutoBackupNaming {
         val survivors = keep.coerceAtLeast(1)
         if (mine.size <= survivors) return emptyList()
         val oldestFirst = mine.sortedWith(compareBy({ it.modifiedAtMs }, { it.name }))
-        return oldestFirst.take(mine.size - survivors)
+        val older = oldestFirst.take(mine.size - survivors)
+        if (!staggered) return older
+        val spared = staggeredKeepers(oldestFirst)
+        return older.filterNot { it in spared }
+    }
+
+    /** One tier of [staggered] rotation: buckets [bucketMs] wide, reaching [spanMs] back. */
+    private class Tier(val bucketMs: Long, val spanMs: Long)
+
+    private const val DAY_MS = 24L * 60 * 60 * 1000
+    private val TIERS = listOf(
+        Tier(DAY_MS, 7 * DAY_MS),
+        Tier(7 * DAY_MS, 35 * DAY_MS),
+        Tier(30 * DAY_MS, 365 * DAY_MS),
+    )
+
+    /** When [entry] was taken: the stamp in its name, else what the destination reports. */
+    private fun takenAt(entry: SinkEntry): Long =
+        parse(entry.name)?.stampMs ?: entry.modifiedAtMs
+
+    /** The newest entry of every bucket of every tier, out of [oldestFirst]. */
+    private fun staggeredKeepers(oldestFirst: List<SinkEntry>): Set<SinkEntry> {
+        val newest = oldestFirst.maxOf { takenAt(it) }
+        val kept = HashSet<SinkEntry>()
+        // Newest first, so the first entry met in a bucket is the one it keeps.
+        // By the time in the name: the list is ordered by what the destination
+        // reports, which a provider that rewrites modified times can shuffle.
+        val newestFirst = oldestFirst.sortedByDescending { takenAt(it) }
+        for (tier in TIERS) {
+            val seen = HashSet<Long>()
+            for (entry in newestFirst) {
+                val age = newest - takenAt(entry)
+                if (age >= tier.spanMs) break
+                if (seen.add(age / tier.bucketMs)) kept += entry
+            }
+        }
+        return kept
     }
 }

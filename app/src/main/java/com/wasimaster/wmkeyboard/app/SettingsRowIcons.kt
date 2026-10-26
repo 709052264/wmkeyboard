@@ -561,6 +561,7 @@ internal object SettingsRowIcons {
         put(R.string.backup_auto_enabled_title) { Icons.Outlined.CloudUpload }
         put(R.string.backup_auto_interval_title) { Icons.Outlined.Schedule }
         put(R.string.backup_auto_keep_title) { Icons.Outlined.Numbers }
+        put(R.string.backup_auto_staggered_title) { Icons.Outlined.History }
         put(R.string.backup_auto_encrypt_title) { Icons.Outlined.Lock }
         put(R.string.backup_auto_charging_title) { Icons.Outlined.BatteryChargingFull }
         put(R.string.backup_auto_unmetered_title) { Icons.Outlined.Wifi }
