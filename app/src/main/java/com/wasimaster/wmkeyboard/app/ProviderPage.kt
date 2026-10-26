@@ -362,6 +362,8 @@ internal fun ProviderOwnSettings(
         }
         ProviderTypes.OFFLINE_WIKTIONARY.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.WIKTIONARY))
         ProviderTypes.OFFLINE_WORDNET.id -> OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.OEWN))
+        ProviderTypes.OFFLINE_BENGALI.id ->
+            OfflineDictionariesGroup(settings, listOf(OfflineDictionaryCatalog.BENGALI_WIKTIONARY))
         ProviderTypes.IMPORTED_DICTIONARIES.id -> ImportedDictionariesGroup()
         // ---- The speed test: a LibreSpeed row picks its server from the public list.
         ProviderTypes.LIBRESPEED.id -> LibreSpeedServerSettings(repository, settings, row)
