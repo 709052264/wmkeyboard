@@ -27368,7 +27368,8 @@ private fun Modifier.pointerInputKey(
 ): Modifier = this.then(
     if (key.action == KeyAction.Space &&
         (spaceShortSwipe != SpaceSwipeAction.NONE || spaceLongSwipe != SpaceSwipeAction.NONE ||
-            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad || key.hasFlicks())
+            spaceSwipeDownHide || textEditing.spaceSwipeUpTouchpad || textEditing.spaceSwipeUpNumpad ||
+            key.hasFlicks())
     ) {
         Modifier.pointerInput(
             key, spaceShortSwipe, spaceLongSwipe, enabledLayoutIds, currentLayoutId, longPressDelayMs,
@@ -27745,6 +27746,26 @@ private fun Modifier.pointerInputKey(
                             // sideways nothing else resolves, and the pad
                             // waits for swipeUpPx of it: the debounce that
                             // keeps a rolled tap a space.
+                            // A swipe up for the number pad, SwiftKey's way:
+                            // discrete like the NUMPAD slot below, past the
+                            // same debounce the touchpad waits for.
+                            if (textEditing.spaceSwipeUpNumpad && !textEditing.spaceSwipeUpTouchpad &&
+                                -totalDy > abs(totalDx)
+                            ) {
+                                if (-totalDy > swipeUpPx) {
+                                    if (holdPreviewShown) {
+                                        holdPreviewShown = false
+                                        setLanguagePreview(null)
+                                        setPreviewExtraStop(false)
+                                    }
+                                    onKeyHaptic()
+                                    onKey(Key(label = " ", action = KeyAction.Numpad))
+                                    hidden = true
+                                    change.consume()
+                                    break
+                                }
+                                continue
+                            }
                             if (textEditing.spaceSwipeUpTouchpad && -totalDy > abs(totalDx)) {
                                 if (-totalDy > swipeUpPx) {
                                     touchpadActivatedAt = change.uptimeMillis

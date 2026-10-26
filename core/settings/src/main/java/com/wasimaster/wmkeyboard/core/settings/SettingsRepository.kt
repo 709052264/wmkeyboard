@@ -6365,6 +6365,12 @@ data class TextEditingSettings(
      */
     val spaceSwipeUpTouchpad: Boolean = false,
     /**
+     * A swipe up from the spacebar opens the number pad, as SwiftKey's does
+     * (Telegram group): an ordinary swipe, where a flick arm needs a quick
+     * one. [spaceSwipeUpTouchpad] wins when both are on. Off by default.
+     */
+    val spaceSwipeUpNumpad: Boolean = false,
+    /**
      * A magnifier over the caret while a spacebar cursor swipe moves it
      * (discussion #303): the line around the caret, enlarged, in a bubble over
      * the text. The trackpad has its own switch, [TrackpadSettings.magnifier].
@@ -11231,6 +11237,7 @@ class SettingsRepository(private val context: Context) {
         private val SPACE_CURSOR_EDGE_REPEAT = booleanPreferencesKey("space_cursor_edge_repeat")
         private val SPACE_CURSOR_WHOLE_KEYBOARD = booleanPreferencesKey("space_cursor_whole_keyboard")
         private val SPACE_SWIPE_UP_TOUCHPAD = booleanPreferencesKey("space_swipe_up_touchpad")
+        private val SPACE_SWIPE_UP_NUMPAD = booleanPreferencesKey("space_swipe_up_numpad")
         private val SPACE_CURSOR_TOP_SPEED = intPreferencesKey("space_cursor_top_speed")
         private val BACKSPACE_WORD_STEP_DP = intPreferencesKey("backspace_word_step_dp")
         private val BACKSPACE_SWIPE_UNIT = stringPreferencesKey("backspace_swipe_unit")
@@ -13648,6 +13655,7 @@ class SettingsRepository(private val context: Context) {
                 ?: defaults.textEditing.spaceCursorWholeKeyboard,
             spaceSwipeUpTouchpad = p[SPACE_SWIPE_UP_TOUCHPAD]
                 ?: defaults.textEditing.spaceSwipeUpTouchpad,
+            spaceSwipeUpNumpad = p[SPACE_SWIPE_UP_NUMPAD] ?: defaults.textEditing.spaceSwipeUpNumpad,
             spaceCursorTopSpeed = p[SPACE_CURSOR_TOP_SPEED]
                 ?: defaults.textEditing.spaceCursorTopSpeed,
             backspaceWordStepDp = p[BACKSPACE_WORD_STEP_DP]
@@ -15146,6 +15154,9 @@ class SettingsRepository(private val context: Context) {
 
     suspend fun setSpaceSwipeUpTouchpad(value: Boolean) =
         editPrefs { it[SPACE_SWIPE_UP_TOUCHPAD] = value }
+
+    suspend fun setSpaceSwipeUpNumpad(value: Boolean) =
+        editPrefs { it[SPACE_SWIPE_UP_NUMPAD] = value }
 
     suspend fun setSpaceCursorTopSpeed(value: Int) =
         editPrefs { it[SPACE_CURSOR_TOP_SPEED] = value.coerceIn(2, 8) }

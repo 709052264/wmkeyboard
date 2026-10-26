@@ -2648,6 +2648,15 @@ internal fun TypingSpacebarSettings(
                 default = SettingsDefaults.textEditing.spaceSwipeUpTouchpad,
             ) { scope.launch { repository.setSpaceSwipeUpTouchpad(it) } }
         }
+        item(level = SettingLevel.STANDARD) {
+            ToggleSetting(
+                R.string.typing_space_swipe_up_numpad_title,
+                stringResource(R.string.typing_space_swipe_up_numpad_subtitle),
+                settings.watch { it.textEditing.spaceSwipeUpNumpad },
+                info = stringResource(R.string.typing_space_swipe_up_numpad_info),
+                default = SettingsDefaults.textEditing.spaceSwipeUpNumpad,
+            ) { scope.launch { repository.setSpaceSwipeUpNumpad(it) } }
+        }
         // 2-D cursor pad only makes sense once a slide is set to cursor control.
         if (spaceCursor) {
             item(level = SettingLevel.ADVANCED) {

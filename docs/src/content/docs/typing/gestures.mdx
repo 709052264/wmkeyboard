@@ -51,6 +51,10 @@ Set a slot to **Cursor** and the drag moves the text cursor instead of typing. T
 
 **Swipe up for the touchpad** (off by default) opens the 2-D touchpad from a swipe up, with no hold first. Swipe up from the spacebar, keep your finger down, and the cursor follows it left, right, up and down until you lift. The finger has to travel 80&nbsp;dp up, and more up than sideways, before the touchpad opens, so a tap that rolls a little still types a space and there is room left below to move the cursor down. You feel a tick when it opens. For the length of your long-press delay after that, the cursor stays put, so the swipe that opened the touchpad doesn't move it. After that, the rest of the upward swipe still doesn't move the cursor a line up: pause for a moment or move down first, and from then on up and down move the cursor too. Sideways swipes are untouched: they still run the two slots above, so the default quick swipe keeps switching the language. This works whatever the slots are set to and whether the 2-D cursor touchpad switch is on, and every cursor setting on this page applies to the drag. With **Keep moving while held** and **Whole keyboard as touchpad** both on, the touchpad scrolls by itself at every edge of the keyboard: the sides keep the cursor moving along the line, and the top and bottom 24&nbsp;dp keep it moving up or down, about five lines a second, until you move back or lift. The band the drag started in doesn't count, so starting on a spacebar near the bottom edge never sets it off.
 
+<SettingsPath path="Typing / Gestures / Swipe up for the number pad" />
+
+**Swipe up for the number pad** (off by default) opens the number pad from a swipe up the spacebar, at any speed, the way SwiftKey does. Like the touchpad it waits for a short way up, so a tap that slides still types a space, and sideways swipes keep their own actions. With both swipe-up switches on, the touchpad wins.
+
 <SettingsPath path="Typing / Gestures / Cursor magnifier" />
 
 **Cursor magnifier** (on by default) shows the line of text around the cursor, enlarged, in a bubble over the text while the drag moves the cursor. It comes up once the drag has resolved to Cursor and goes when you lift your finger. The bubble is the keyboard's own drawing of the text the app hands it, not a zoomed picture of the screen, so it uses the keyboard's colours and font. It sits above the cursor, or below it when the cursor is too close to the top of the screen, for apps that tell the keyboard where their cursor is, which most do. For an app that doesn't, or when the cursor is scrolled out of sight or hidden behind the keyboard, it sits just above the keyboard instead. In a password field it shows dots, never the password. It never takes a touch and it goes the moment you lift your finger. It appears beside Cursor speed, and the [trackpad](/tools/trackpad/) has a separate switch for the same bubble.
@@ -369,6 +373,7 @@ A printable table of every gesture on one page lives at [Gesture cheat sheet](/r
 | Keep moving while held | Off |
 | Whole keyboard as touchpad | Off |
 | Swipe up for the touchpad | Off |
+| Swipe up for the number pad | Off |
 | Top cursor speed | 4× (2–8×) |
 | Cursor magnifier | On |
 | Swipe in from the edge to go back | Off |
