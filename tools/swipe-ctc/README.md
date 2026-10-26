@@ -118,6 +118,15 @@ above. Untested.
 Caveat for every remapped number: the strokes are QWERTY strokes moved onto
 the new keys, not strokes drawn on them.
 
+### Box run, 2026-10-26
+
+The same recipe on a rented RTX 5080 (`train.py ... steps=24000`, batch 384,
+about ten minutes): `ctc_glide_eval` top-1 QWERTY .946, QWERTZ .946, Dvorak
+.922, Colemak .905, AZERTY .889 over the 38,049 test strokes (top-4 .98 to
+.99 everywhere). The tap encoder at `d=128 layers=6 steps=20000` decodes the
+harness's cases at .973/.913/.831 against the walk's .872/.795/.721 on the
+same taps. Checkpoints are kept under `build/corpora/box/{swipe,taps}/`.
+
 ## Taps
 
 No public corpus holds phone taps with their coordinates, so the tap
