@@ -571,11 +571,12 @@ internal fun KeyLayoutsScreen(
     // is parked here between launching the picker and its result.
     var pendingExport by remember { mutableStateOf<LayoutSpec?>(null) }
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(LayoutFile.MIME_TYPE),
+        CreateDocumentAt(LayoutFile.MIME_TYPE, PickerPlaces.LAYOUT_EXPORT),
     ) { uri ->
         val layout = pendingExport
         pendingExport = null
         if (uri == null || layout == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_EXPORT, uri)
         scope.launch {
             val ok = runCancellable {
                 val text = LayoutFile.encode(
@@ -600,9 +601,10 @@ internal fun KeyLayoutsScreen(
     }
 
     val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+        OpenDocumentAt(PickerPlaces.LAYOUT_IMPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.LAYOUT_IMPORT, uri)
         scope.launch {
             val text = withContext(Dispatchers.IO) {
                 runCatching {

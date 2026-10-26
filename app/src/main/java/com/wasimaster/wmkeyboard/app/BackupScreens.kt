@@ -8,7 +8,6 @@ import android.text.format.DateUtils
 import android.net.Uri
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -993,9 +992,10 @@ internal fun BackupSettings(
     var confirmImport by remember { mutableStateOf<PendingImport?>(null) }
 
     val exportLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.CreateDocument(ConfigBackup.MIME_TYPE),
+        CreateDocumentAt(ConfigBackup.MIME_TYPE, PickerPlaces.BACKUP_EXPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_EXPORT, uri)
         val requested = settings.value.autoBackup.exportSectionSet
         val includeSecrets = settings.value.autoBackup.includeSecrets
         scope.launch {
@@ -1041,9 +1041,10 @@ internal fun BackupSettings(
     // something to discover you have done. Both the full-config bundle and the
     // older settings-only file are accepted, plain or encrypted.
     val importLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
+        OpenDocumentAt(PickerPlaces.BACKUP_IMPORT),
     ) { uri ->
         if (uri == null) return@rememberLauncherForActivityResult
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_IMPORT, uri)
         scope.launch {
             // Before the text read, which would decode the ciphertext as UTF-8
             // and then call it not a backup.
@@ -1083,8 +1084,11 @@ internal fun BackupSettings(
         }
     }
     val foreignLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.OpenDocument(),
-    ) { uri -> foreignUri = uri }
+        OpenDocumentAt(PickerPlaces.BACKUP_FOREIGN),
+    ) { uri ->
+        PickerPlaces.remember(context, PickerPlaces.BACKUP_FOREIGN, uri)
+        foreignUri = uri
+    }
     val exportGuarded = rememberLockGuard(AppLockTargets["action_export_settings"]) {
         // Datestamped, Locale.US: see the automatic backup's names.
         val stamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(Date())
