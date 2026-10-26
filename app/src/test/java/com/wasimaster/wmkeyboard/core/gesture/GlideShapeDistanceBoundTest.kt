@@ -14,6 +14,11 @@ import org.junit.Test
  */
 class GlideShapeDistanceBoundTest {
 
+    private companion object {
+        /** NativeGlide.SEED_RADIUS. */
+        const val SEED_RADIUS = 0.35f
+    }
+
     /** The distance as its definition reads: the mean point distance, every root taken. */
     private fun plain(a: ByteArray, b: ByteArray): Float {
         val n = GlideWorkspace.SHAPE_POINTS
@@ -39,7 +44,9 @@ class GlideShapeDistanceBoundTest {
             // Mostly far, sometimes a small wobble away, as a store's shapes sit around a stroke.
             val b = if (random.nextInt(4) == 0) ByteArray(a.size) { (a[it] + random.nextInt(-4, 5)).toByte() } else shape(random, 60)
             val exact = plain(a, b)
-            for (radius in floatArrayOf(NativeGlide.SEED_RADIUS, GlideShapeStore.MERGE_RADIUS, GlideShapeStore.REJECT_RADIUS, 2f)) {
+            // SEED_RADIUS is NativeGlide's, which is internal to :core:prediction
+            // and so out of this module's reach; the value is copied.
+            for (radius in floatArrayOf(SEED_RADIUS, GlideShapeStore.MERGE_RADIUS, GlideShapeStore.REJECT_RADIUS, 2f)) {
                 val bounded = GlideShapeStore.distance(a, b, radius)
                 if (exact <= radius) {
                     assertEquals("under $radius", exact, bounded, 1e-5f)
