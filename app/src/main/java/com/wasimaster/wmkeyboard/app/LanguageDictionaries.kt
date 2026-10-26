@@ -127,7 +127,7 @@ internal fun DictionariesGroup(
         ?: EmojiDictDownloadManager.DownloadStatus.NotDownloaded
     val pairStatus = pairsEntry?.let { pairStates[it.languageId] }
         ?: NgramPackDownloadManager.DownloadStatus.NotDownloaded
-    val modelStatus = modelEntry?.let { modelStates[it.languageId] }
+    val modelStatus = modelEntries.firstOrNull()?.let { modelStates[it.languageId] }
         ?: ContextModelDownloadManager.DownloadStatus.NotDownloaded
     val emojiImported = remember(langId, emojiStatus) {
         EmojiKeywordPacks.packs(filesDir, langId).isNotEmpty()

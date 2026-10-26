@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -20,9 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.wasimaster.wmkeyboard.R
 import com.wasimaster.wmkeyboard.core.providers.ProviderTool
 import com.wasimaster.wmkeyboard.core.settings.MediaSendMode
 import com.wasimaster.wmkeyboard.core.settings.ResolvedProvider
+import com.wasimaster.wmkeyboard.core.settings.SettingsDefaults
 import com.wasimaster.wmkeyboard.core.settings.SettingsRepository
 import com.wasimaster.wmkeyboard.core.tools.speedtest.LibreSpeedServers
 import com.wasimaster.wmkeyboard.core.tools.speedtest.SpeedCardLayout
@@ -225,6 +228,7 @@ internal fun LibreSpeedServerSettings(repository: SettingsRepository, settings: 
 }
 
 /** The public list, fetched when the sheet opens, with a filter box over it. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LibreSpeedPickerSheet(onPick: (LibreSpeedServers.Entry) -> Unit, onDismiss: () -> Unit) {
     val servers by produceState<List<LibreSpeedServers.Entry>?>(null) {

@@ -164,6 +164,7 @@ internal fun EmojiMixSettings(
         }
     }
 
+    val typing = settings.watch { it.emoji.mix.typingSuggest }
     SettingsGroup(stringResource(R.string.emojimix_where_title)) {
         item {
             ToggleSetting(
@@ -173,7 +174,6 @@ internal fun EmojiMixSettings(
                 default = SettingsDefaults.emoji.mix.panelStrip,
             ) { scope.launch { repository.setEmojiMixPanelStrip(it) } }
         }
-        val typing = settings.watch { it.emoji.mix.typingSuggest }
         item {
             ToggleSetting(
                 R.string.emojimix_typing_title,

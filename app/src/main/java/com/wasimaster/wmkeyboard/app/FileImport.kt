@@ -411,7 +411,7 @@ object WMFileTypes {
          * a download screen, which re-opens the file itself. [kind] is what
          * the question before the import calls them.
          */
-        internal data class OfflineFiles(val kind: OfflineImport.Kind) : Opened
+        data class OfflineFiles(val kind: OfflineImport.Kind) : Opened
 
         /** A font. [emoji] when it draws colour glyphs, which is what makes one an emoji font. */
         data class Font(val emoji: Boolean) : Opened

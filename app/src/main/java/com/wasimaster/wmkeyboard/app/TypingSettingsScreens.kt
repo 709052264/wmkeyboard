@@ -2437,6 +2437,10 @@ internal fun TypingGlideSettings(
             }
         }
     }
+    // Hidden while a theme pins the width or the opacity; read out here, since
+    // the list builder below is not composable.
+    val pinned = themePin(settings) { it.gestureTrailWidthDp } != null ||
+        themePin(settings) { it.gestureTrailOpacity } != null
     SettingsGroup(stringResource(R.string.typing_group_glide_trail_title)) {
         // A slide-to-select lights the key it is over and draws no trail.
         if (glideOn && swipeAction != LetterSwipeAction.SELECT_KEY) {
@@ -2446,8 +2450,6 @@ internal fun TypingGlideSettings(
             // the person who wants one of the three on its own. Hidden while a
             // theme pins the width or the opacity, since the sliders say so and
             // a preset would write a value the board does not read.
-            val pinned = themePin(settings) { it.gestureTrailWidthDp } != null ||
-                themePin(settings) { it.gestureTrailOpacity } != null
             item(visible = !pinned) {
                 val off = stringResource(CommonR.string.common_off)
                 ChoiceSetting(

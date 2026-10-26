@@ -73,7 +73,7 @@ import java.util.zip.ZipFile
  * the same checksum where the download has one, the same place on disk. So
  * nothing here knows a format, only which installer a name belongs to.
  */
-internal object OfflineImport {
+object OfflineImport {
 
     /**
      * One line of the report the user reads afterwards. [messageRes] takes
