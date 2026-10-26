@@ -130,4 +130,17 @@
          as common_copy and common_share. -->
     <string name="common_crash_email_error">This device has no mail app. Use Copy or Share instead.</string>
 
+    <!-- ================================================================== -->
+    <!-- Resize grips on the keyboard preview in the theme and layout       -->
+    <!-- editors. Dragging a corner makes the whole preview smaller.        -->
+    <!-- ================================================================== -->
+
+    <!-- Read by TalkBack for each of the two corner grips. -->
+    <string name="common_preview_scale_desc">Preview size</string>
+    <!-- How big the preview is now, as a share of its full size. Shown while dragging. -->
+    <string name="common_preview_scale_value">%1$d%%</string>
+    <!-- Accessibility actions on the grips. -->
+    <string name="common_preview_scale_smaller">Make preview smaller</string>
+    <string name="common_preview_scale_larger">Make preview larger</string>
+
 </resources>

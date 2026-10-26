@@ -2930,6 +2930,21 @@ private fun FloatingKeyboardFrame(
         var liveHeightScale by remember(state.settings.floatingHeightScale) {
             mutableFloatStateOf(state.settings.floatingHeightScale)
         }
+        // How much smaller everything in the panel is drawn (#967): labels,
+        // hint letters, key icons, the toolbar and the toolbox, not only the
+        // keys' height. Squeezed below its default width or its full height,
+        // the panel used to shrink the keys around text and icons that stayed
+        // their docked size. The smaller of the two shares, so a narrow but
+        // tall panel shrinks as much as a short one; never more than full
+        // size. Stepped, and read through a derived state, so a resize
+        // recomposes the keyboard once per visible step and not per frame.
+        val contentScale by remember(liveWidthDp, state.settings.floatingHeightScale) {
+            derivedStateOf {
+                val byWidth = liveWidthDp.floatValue / FLOATING_CONTENT_FULL_WIDTH_DP
+                quantize(minOf(1f, byWidth, liveHeightScale), FLOATING_CONTENT_SCALE_STEP)
+                    .coerceIn(FLOATING_MIN_HEIGHT_SCALE, 1f)
+            }
+        }
         // Everything a gesture needs but nothing else reads: kept off the
         // snapshot so touching it invalidates nothing.
         val gesture = remember { FloatingGesture() }
@@ -3148,7 +3163,16 @@ private fun FloatingKeyboardFrame(
                 }
                 Column {
                     if (!handleAtBottom) handleBar()
-                    content(liveHeightScale)
+                    // The keys keep the height the grip gave them: drawn at a
+                    // smaller density, they are asked to be that much taller
+                    // in its dp, and come out the same on screen.
+                    val shrink = contentScale
+                    val scaledDensity = remember(density, shrink) {
+                        Density(density.density * shrink, density.fontScale)
+                    }
+                    CompositionLocalProvider(LocalDensity provides scaledDensity) {
+                        content(liveHeightScale / shrink)
+                    }
                     if (handleAtBottom) handleBar()
                 }
             }
@@ -3196,6 +3220,12 @@ private fun quantize(value: Float, step: Float): Float = (value / step).roundToI
 // gets its full configured width; shrinks only if the width leaves less room.
 private const val ONE_HANDED_RAIL_WEIGHT = 0.16f
 private const val FLOATING_MIN_WIDTH_DP = 240f
+
+/** The floating panel's width at which its contents are drawn at full size; the default width. */
+private const val FLOATING_CONTENT_FULL_WIDTH_DP = 320f
+
+/** The step the floating panel's content scale moves in; see `contentScale`. */
+private const val FLOATING_CONTENT_SCALE_STEP = 0.05f
 private const val FLOATING_MIN_HEIGHT_SCALE = 0.6f
 private const val FLOATING_MAX_HEIGHT_SCALE = 1.6f
 

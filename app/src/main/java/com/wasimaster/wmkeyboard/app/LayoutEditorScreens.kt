@@ -277,6 +277,8 @@ import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.Lock
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.FiberManualRecord
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.KeyboardAlt
 import com.wasimaster.wmkeyboard.core.icons.symbols.outlined.MoreHoriz
+import com.wasimaster.wmkeyboard.core.ui.DensityScaled
+import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
 import com.wasimaster.wmkeyboard.core.ui.ScrollRailBox
 import com.wasimaster.wmkeyboard.core.ui.rememberScrollRailState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -2419,6 +2421,7 @@ internal fun KeyLayoutEditorScreen(
     // field and the key's settings should have been (#614). The grid comes
     // back the moment the keyboard goes.
     val imeUp = WindowInsets.isImeVisible
+    val previewScale = rememberPreviewScale(PreviewScaleSlot.LAYOUT_EDITOR)
     if (!imeUp) RegisterPinned {
         Column {
             if (!secondary) {
@@ -2433,50 +2436,64 @@ internal fun KeyLayoutEditorScreen(
             if (fieldPreview) PreviewFieldChips(previewField) { previewField = it }
             val gridScroll = rememberScrollState()
             val ceiling = LocalConfiguration.current.screenHeightDp.dp * ActualSizePreviewShare
-            Box(
-                modifier = if (actualSize) {
-                    Modifier.heightIn(max = ceiling).verticalScroll(gridScroll)
-                } else {
-                    Modifier
+            // Grips under the grid's corners make it, keys, labels and all,
+            // smaller (#967): laid out at a smaller density, so a key's drag
+            // and the cells it reads back stay in one set of coordinates.
+            ScalablePreview(
+                scale = previewScale.floatValue,
+                onScale = { previewScale.floatValue = it },
+                onScaleSettled = {
+                    previewScale.floatValue = it
+                    storePreviewScale(context, PreviewScaleSlot.LAYOUT_EDITOR, it)
                 },
             ) {
-                EditorGrid(
-                    layout = panelPreviewPair?.first ?: displayLayout,
-                    settings = settings,
-                    selection = if (panelKind != null) panelSelection else displaySelection,
-                    showShift = showShift && panelKind == null,
-                    actualSize = actualSize,
-                    onSelect = { cell ->
-                        stepPushed = false
-                        pendingSelect = null
-                        if (panelKind != null) {
-                            panelSelection = cell
-                        } else {
-                            val (extra, main) = fromDisplay(cell)
-                            val picked = multi
-                            if (picked != null) {
-                                // Picking several: a tap adds a key or takes it
-                                // back out. Only keys of the layer itself.
-                                if (main != null && main.col >= 0) {
-                                    multi = if (main in picked) picked - main else picked + main
-                                }
-                            } else {
-                                extraSel = extra
-                                selection = main
-                            }
-                        }
-                    },
-                    rowHeightsDp = panelPreviewPair?.second,
-                    onKeyDragged = onKeyDragged,
-                    enterSlot = board?.enterSlot ?: IconSlots.KEY_ENTER,
-                    spaceText = board?.spaceText,
-                    allowNewRow = panelKind == null,
-                    multiSelection = if (panelKind == null) {
-                        multi.orEmpty().mapTo(HashSet()) { KeyRef(it.row + topOffset, it.col) }
+                Box(
+                    modifier = if (actualSize) {
+                        Modifier.heightIn(max = ceiling).verticalScroll(gridScroll)
                     } else {
-                        emptySet()
+                        Modifier
                     },
-                )
+                ) {
+                    DensityScaled(previewScale.floatValue) {
+                        EditorGrid(
+                            layout = panelPreviewPair?.first ?: displayLayout,
+                            settings = settings,
+                            selection = if (panelKind != null) panelSelection else displaySelection,
+                            showShift = showShift && panelKind == null,
+                            actualSize = actualSize,
+                            onSelect = { cell ->
+                                stepPushed = false
+                                pendingSelect = null
+                                if (panelKind != null) {
+                                    panelSelection = cell
+                                } else {
+                                    val (extra, main) = fromDisplay(cell)
+                                    val picked = multi
+                                    if (picked != null) {
+                                        // Picking several: a tap adds a key or takes it
+                                        // back out. Only keys of the layer itself.
+                                        if (main != null && main.col >= 0) {
+                                            multi = if (main in picked) picked - main else picked + main
+                                        }
+                                    } else {
+                                        extraSel = extra
+                                        selection = main
+                                    }
+                                }
+                            },
+                            rowHeightsDp = panelPreviewPair?.second,
+                            onKeyDragged = onKeyDragged,
+                            enterSlot = board?.enterSlot ?: IconSlots.KEY_ENTER,
+                            spaceText = board?.spaceText,
+                            allowNewRow = panelKind == null,
+                            multiSelection = if (panelKind == null) {
+                                multi.orEmpty().mapTo(HashSet()) { KeyRef(it.row + topOffset, it.col) }
+                            } else {
+                                emptySet()
+                            },
+                        )
+                    }
+                }
             }
         }
     }

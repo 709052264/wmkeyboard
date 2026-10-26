@@ -163,6 +163,7 @@ import com.wasimaster.wmkeyboard.core.fonts.FontStore
 import com.wasimaster.wmkeyboard.core.settings.KeySoundStyle
 import com.wasimaster.wmkeyboard.core.script.LanguageRegistry
 import com.wasimaster.wmkeyboard.core.script.ScriptId
+import com.wasimaster.wmkeyboard.core.ui.ScalablePreview
 import com.wasimaster.wmkeyboard.core.ui.WmSlider
 import com.wasimaster.wmkeyboard.core.ui.rememberLiveSlider
 import com.wasimaster.wmkeyboard.core.util.PlayServices
@@ -2763,6 +2764,7 @@ fun ThemeEditorScreen(
         previewSandbox.value = if (sample.isEmpty()) box else box.showingPanel(PanelMode.NONE)
     }
     val reduceMotion = settings.watch { it.reduceMotion }
+    val previewScale = rememberPreviewScale(PreviewScaleSlot.THEME_EDITOR)
     RegisterPinned {
         AnimatedVisibility(
             visible = !keyboardDocked,
@@ -2786,21 +2788,32 @@ fun ThemeEditorScreen(
                     )
                 }
                 // Edge to edge (#769): inset, the miniature drew every key a
-                // size the keyboard never is.
-                ThemeKeyboardPreview(
-                    settings = settings.watch { it },
-                    theme = look.watch { it },
-                    sandbox = previewSandbox,
-                    miniature = true,
-                    // The gallery card's miniature grows into this one. Both
-                    // draw the same theme at two sizes, which is what
-                    // [wmSharedBounds] is for — the keys scale rather than
-                    // being laid out again mid-flight.
-                    modifier = Modifier
-                        .padding(vertical = 8.dp)
-                        .wmSharedBounds(landingKey("preview")),
-                    picker = picker.takeIf { picking },
-                )
+                // size the keyboard never is. The grips under its corners
+                // make it smaller instead (#967), for a phone where the full
+                // width left the sections below no room.
+                ScalablePreview(
+                    scale = previewScale.floatValue,
+                    onScale = { previewScale.floatValue = it },
+                    onScaleSettled = {
+                        previewScale.floatValue = it
+                        storePreviewScale(context, PreviewScaleSlot.THEME_EDITOR, it)
+                    },
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    ThemeKeyboardPreview(
+                        settings = settings.watch { it },
+                        theme = look.watch { it },
+                        sandbox = previewSandbox,
+                        miniature = true,
+                        // The gallery card's miniature grows into this one. Both
+                        // draw the same theme at two sizes, which is what
+                        // [wmSharedBounds] is for — the keys scale rather than
+                        // being laid out again mid-flight.
+                        modifier = Modifier.wmSharedBounds(landingKey("preview")),
+                        picker = picker.takeIf { picking },
+                        previewScale = previewScale.floatValue,
+                    )
+                }
                 // The way into picking, worded (#769): it was a bare pencil in
                 // the corner of the keyboard, and nobody could tell it from a
                 // key. Undo and redo sit beside it (#665), each while it has a step.
