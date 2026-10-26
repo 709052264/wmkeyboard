@@ -245,17 +245,19 @@ object SpeedCardRenderer {
             if (wide) {
                 // Numbers on the left half, the graph on the right.
                 val colW = (W - 2 * MARGIN - 50f) / 2f
+                // A wide card is 562 units tall: everything sits above footerY
+                // (492) with room for the footer's own line.
                 val left = MARGIN
-                var y = top + 110f
+                var y = top + 80f
                 caption(canvas, labels.download, left, y)
-                y += 150f
-                bigNumber(canvas, speed(result.downMbps), unit, left, y, 150f, arrow = "↓")
-                y += 70f
+                y += 130f
+                bigNumber(canvas, speed(result.downMbps), unit, left, y, 125f, arrow = "↓")
+                y += 58f
                 caption(canvas, labels.upload, left, y)
                 caption(canvas, labels.ping, left + colW / 2f, y)
-                y += 72f
-                bigNumber(canvas, upText, unit, left, y, 68f, arrow = "↑")
-                bigNumber(canvas, ms(result.pingMs), "ms", left + colW / 2f, y, 68f)
+                y += 60f
+                bigNumber(canvas, upText, unit, left, y, 58f, arrow = "↑")
+                bigNumber(canvas, ms(result.pingMs), "ms", left + colW / 2f, y, 58f)
                 sparkline(canvas, RectF(left + colW + 50f, top + 90f, W - MARGIN, footerY - 70f))
                 footer(canvas, footerY, 26f)
                 return
@@ -291,9 +293,12 @@ object SpeedCardRenderer {
             val top = MARGIN + 32f
             header(canvas, top)
             val footerY = height - MARGIN
-            val radius = if (wide) 215f else 330f
+            // The dial, the row of three under it (170 below its bottom edge, on
+            // a card that is not wide) and the footer all have to fit: on a
+            // square card that is 1000 units, on a wide one 562.
+            val radius = if (wide) 150f else 270f
             val cx = if (wide) MARGIN + radius + 40f else W / 2f
-            val dialTop = top + if (wide) 60f else if (tall) (footerY - top - 2 * radius - 260f) / 2f else 110f
+            val dialTop = top + if (wide) 30f else if (tall) (footerY - top - 2 * radius - 280f) / 2f else 40f
             val cy = dialTop + radius
             val bounds = RectF(cx - radius, cy - radius, cx + radius, cy + radius)
             val start = 135f
@@ -308,8 +313,8 @@ object SpeedCardRenderer {
                 val r = radius + 52f
                 canvas.drawText(label, cx + (r * cos(angle)).toFloat(), cy + (r * sin(angle)).toFloat() + 8f, tickPaint)
             }
-            bigNumber(canvas, speed(result.downMbps), unit, cx, cy + 30f, if (wide) 110f else 150f, align = Paint.Align.CENTER)
-            caption(canvas, labels.download, cx, cy + (if (wide) 90f else 100f), align = Paint.Align.CENTER)
+            bigNumber(canvas, speed(result.downMbps), unit, cx, cy + 30f, if (wide) 84f else 150f, align = Paint.Align.CENTER)
+            caption(canvas, labels.download, cx, cy + (if (wide) 80f else 100f), align = Paint.Align.CENTER)
             // Under (or beside) the dial: upload, ping, jitter.
             val upText = result.upMbps?.let(::speed) ?: labels.skipped
             val rowY: Float
@@ -328,7 +333,7 @@ object SpeedCardRenderer {
             } else {
                 val colW = (W - 2 * MARGIN) / 3f
                 xs = List(3) { MARGIN + colW * it + colW / 2f }
-                rowY = cy + radius + 150f
+                rowY = cy + radius + 170f
                 for ((i, label) in listOf(labels.upload, labels.ping, labels.jitter).withIndex()) {
                     caption(canvas, label, xs[i], rowY - 70f, align = Paint.Align.CENTER)
                 }
@@ -390,7 +395,7 @@ object SpeedCardRenderer {
 
         fun minimal(canvas: Canvas) {
             val cx = W / 2f
-            val size = if (wide) 220f else 270f
+            val size = if (wide) 190f else 270f
             val cy = height / 2f
             bigNumber(canvas, speed(result.downMbps), unit, cx, cy - 20f, size, align = Paint.Align.CENTER, arrow = "↓")
             caption(canvas, labels.download, cx, cy - size - 20f, 34f, align = Paint.Align.CENTER)
