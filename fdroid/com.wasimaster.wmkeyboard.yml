@@ -303,7 +303,7 @@ Builds:
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:
@@ -359,7 +359,7 @@ Builds:
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:
@@ -415,7 +415,7 @@ Builds:
     sudo:
       - apt-get update
       - apt-get install -y cmake ninja-build g++ make python3-yaml python3-typing-extensions
-        rustup xz-utils
+        rustup xz-utils openjdk-21-jdk-headless zip
     gradle:
       - lite
     prebuild:
