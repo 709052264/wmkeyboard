@@ -1019,6 +1019,7 @@ internal fun NotesToolSettings(
                 route = NOTES_ROUTE,
             ) { onNavigate(NOTES_ROUTE) }
         }
+        item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_notes_label, NOTES_ROUTE) }
         item(level = SettingLevel.STANDARD) {
             NavRow(R.string.notes_tags_title, stringResource(R.string.tooldetail_notes_tags_subtitle), route = NOTES_TAGS_ROUTE) {
                 onNavigate(NOTES_TAGS_ROUTE)

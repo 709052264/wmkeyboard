@@ -50,6 +50,7 @@ internal fun ClockToolSettings(onNavigate: (String) -> Unit) {
                 route = ClockEngine.ROUTE,
             ) { onNavigate(ClockEngine.ROUTE) }
         }
+        item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_clock_label, ClockEngine.ROUTE) }
     }
 
     ClockGrantsGroup()

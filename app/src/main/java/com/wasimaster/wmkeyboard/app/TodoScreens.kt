@@ -506,6 +506,7 @@ internal fun TodoToolSettings(
                 route = TODO_ROUTE,
             ) { onNavigate(TODO_ROUTE) }
         }
+        item(level = SettingLevel.STANDARD) { HomeScreenShortcutRow(R.string.home_shortcut_todo_label, TODO_ROUTE) }
         item(level = SettingLevel.STANDARD) {
             ToggleSetting(
                 R.string.tooldetail_todo_hide_done_title,
