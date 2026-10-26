@@ -14202,6 +14202,7 @@ open class WMKeyboardService : InputMethodService() {
         // incognito and with learning off too. Other corrections of the same
         // typed word stay live.
         suggestionEngine?.rejectCorrection(revert.original, revert.committed)
+        recordStat { onAutocorrectUndone() }
         // The restored word's commit was worked out while the rejection still
         // waited, so it holds the very correction just turned down: Enter,
         // or Space, would apply it straight back from there (#866).
@@ -15692,7 +15693,12 @@ open class WMKeyboardService : InputMethodService() {
         // Counted as a backspace only when it was one: a ⌦ swipe eats text the
         // typist has not written yet, which is not what the corrections figure
         // is about.
-        if (!forward) recordStat { onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis()) }
+        if (!forward) {
+            recordStat {
+                onBackspace(System.currentTimeMillis(), SystemClock.uptimeMillis())
+                onWordDeleted()
+            }
+        }
         clearCaretWord()
         dropComposingForSelectionEdit(ic)
         // The swipe recorded the range it selected (see growDeleteSwipe).
@@ -18054,6 +18060,7 @@ open class WMKeyboardService : InputMethodService() {
             judgeCorrections(
                 correctionWatch.push(revertible.original, revertible.committed, taps, tapKeys),
             )
+            recordStat { onAutocorrect(offer = false, System.currentTimeMillis()) }
             armRevertGuard()
         } else if (revertible != null) {
             armRevertGuard()
@@ -20305,6 +20312,7 @@ open class WMKeyboardService : InputMethodService() {
             // not yet the result, and backspacing it away a second later is a
             // rejection like any other.
             judgeCorrections(correctionWatch.push(typed, replacement))
+            recordStat { onAutocorrect(offer = true, System.currentTimeMillis()) }
         } finally {
             ic.endBatchEdit()
         }
@@ -20462,6 +20470,7 @@ open class WMKeyboardService : InputMethodService() {
         // The same verdict backspacing it away carries: this exact pair is
         // retired, and the settle pass must not judge it a second time.
         suggestionEngine?.rejectCorrection(undo.typed, undo.corrected)
+        recordStat { onAutocorrectUndone() }
         declinedSpots.undone(undo.typed)
         correctionWatch.drop(undo.typed, undo.corrected)
         if (state.settings.learnFromTyping &&
@@ -20640,6 +20649,8 @@ open class WMKeyboardService : InputMethodService() {
         typingStats.enabled = state.settings.typingStatsEnabled &&
             !(state.incognitoOn && state.settings.incognitoPausesLearning) &&
             !state.secureField
+        // The words-per-language split: the id alone, never the layout.
+        typingStats.language = state.language.id
         liveSpeed.privateField = state.liveWpmPrivate
         typingStats.block()
         publishLiveWpm(state.settings.spacebarLiveWpm)
@@ -21216,6 +21227,7 @@ open class WMKeyboardService : InputMethodService() {
         val undisturbed = entries.filterNot { it.disturbed }
         for (entry in undisturbed) {
             correctionStats.recordKept(entry.typed, entry.corrected)
+            recordStat { onAutocorrectKept() }
             // A correction that stood is the plainest word about where the
             // finger landed: those taps were aimed at the corrected letters.
             observeTaps(entry.typed, entry.corrected, entry.taps, entry.keys, WordOrigin.TYPED)
@@ -21233,6 +21245,7 @@ open class WMKeyboardService : InputMethodService() {
                 kept && undone -> Unit
                 kept -> {
                     correctionStats.recordKept(entry.typed, entry.corrected)
+                    recordStat { onAutocorrectKept() }
                     observeTaps(entry.typed, entry.corrected, entry.taps, entry.keys, WordOrigin.TYPED)
                 }
                 // What the user typed is standing where the fix was. This is
@@ -21242,9 +21255,10 @@ open class WMKeyboardService : InputMethodService() {
                 // away entirely when the surviving spelling is not a word (the
                 // user reproducing their own typo, not defending it). See
                 // [SuggestionEngine.rejectCorrection].
-                undone -> suggestionEngine?.rejectCorrection(
-                    entry.typed, entry.corrected, deliberate = false,
-                )
+                undone -> {
+                    suggestionEngine?.rejectCorrection(entry.typed, entry.corrected, deliberate = false)
+                    recordStat { onAutocorrectUndone() }
+                }
                 else -> Unit
             }
         }
@@ -21538,12 +21552,15 @@ open class WMKeyboardService : InputMethodService() {
     private fun teachRevision(entry: LearningBuffer.Entry, window: () -> String?) {
         val original = entry.replaces ?: return
         val revised = entry.revised ?: entry.word
-        if (!revisionsWanted()) return
         if (entry.suspect) {
             val text = window() ?: return
             if (containsWord(text, original) || !containsWord(text, revised)) return
         }
         if (!CorrectionMemory.accepts(original, revised, ::isKnownWord)) return
+        // A slip-sized repair is a typo the user caught, counted whether or
+        // not the keyboard is allowed to learn from it.
+        recordStat { onHandFix(System.currentTimeMillis()) }
+        if (!revisionsWanted()) return
         val blacklist = _uiState.value.let { it.settings.suggestionSources.blacklistFor(it.language.id) }
         if (original.lowercase() in blacklist || revised.lowercase().split(' ').any { it in blacklist }) return
         val kind = revisionKind(entry.replacesOrigin) { isKnownWord(original) }
@@ -21722,6 +21739,8 @@ open class WMKeyboardService : InputMethodService() {
         if (state.incognitoOn && state.settings.incognitoPausesLearning) return
         emojiUsage.record(emoji)
         emojiHistoryStale = true
+        // The count alone; which emoji is the usage store's business.
+        recordStat { onEmoji() }
     }
 
     /**

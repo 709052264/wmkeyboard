@@ -1478,6 +1478,7 @@ internal object SettingsRowIcons {
         // download confirmation used to live.
         put(R.string.langemoji_lang_metered_title) { Icons.Outlined.DataSaverOn }
         put(R.string.statistics_toggle_title) { Icons.Outlined.QueryStats }
+        put(R.string.statistics_learned_corrections_action) { Icons.Outlined.Spellcheck }
         put(R.string.tooldetail_power_drop_popup_title) { Icons.Outlined.Notifications }
         put(R.string.tooldetail_power_drop_glass_blur_title) { Icons.Outlined.BlurOn }
         put(R.string.tooldetail_autocorrect_title) { Icons.Outlined.Spellcheck }

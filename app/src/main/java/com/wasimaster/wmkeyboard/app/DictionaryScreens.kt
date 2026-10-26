@@ -1699,8 +1699,9 @@ internal fun LearnedCorrectionsSettings(repository: SettingsRepository, settings
 /** Slips listed on the learned-corrections screen; the long tail is noise. */
 private const val HABITS_SHOWN = 12
 
+/** One slip in words, for this screen and the Statistics screen's signature slips. */
 @Composable
-private fun habitLabel(habit: CorrectionMemory.Habit): String {
+internal fun habitLabel(habit: CorrectionMemory.Habit): String {
     fun shown(c: Char?): String = when (c) {
         null -> ""
         ' ' -> "␣"

@@ -2840,7 +2840,11 @@ private fun SettingsNavGraph(
                 { navController.popBackStack() },
                 route = "statistics",
             ) {
-                StatisticsScreen(repository, settings)
+                StatisticsScreen(
+                    repository,
+                    settings,
+                    onOpenLearnedCorrections = { navController.navigate("learnedcorrections") },
+                )
             }
         }
         composable("storage/{category}") { backStackEntry ->
