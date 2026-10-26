@@ -24,6 +24,13 @@ object JapaneseComposer : Composer {
     override val keepsUnconvertedReading: Boolean get() = true
     override val missingPack: String? get() = CjkDictionaries.missingJapanese
     override val readsLatinLetters: Boolean get() = true
+    override val glidesKanaReadings: Boolean get() = true
+
+    /**
+     * The ゛ and ゜ keys of the JIS kana board: a swipe may pass through them
+     * after a kana to draw its mark (#958, [KanaGlide.drawn]).
+     */
+    override val glideKeys: Set<Int> = setOf(KanaGlide.DAKUTEN.code, KanaGlide.HANDAKUTEN.code)
 
     /** Reading space for learned picks: kana readings. */
     private const val NAMESPACE = "ja_kana"

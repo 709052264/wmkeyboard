@@ -66,6 +66,7 @@ class MozcComposer internal constructor(val base: Composer) : Composer {
     override fun buffersChar(c: Char): Boolean = base.buffersChar(c)
     override fun buffersChar(c: Char, composing: CharSequence): Boolean = base.buffersChar(c, composing)
     override val glideKeys: Set<Int> get() = base.glideKeys
+    override val glidesKanaReadings: Boolean get() = base.glidesKanaReadings
     override val isConversion: Boolean get() = true
     override val keepsUnconvertedReading: Boolean get() = base.keepsUnconvertedReading
     override val readsLatinLetters: Boolean get() = base.readsLatinLetters

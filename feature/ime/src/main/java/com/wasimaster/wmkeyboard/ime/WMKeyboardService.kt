@@ -784,6 +784,7 @@ import com.wasimaster.wmkeyboard.core.input.composer.HanLevels
 import com.wasimaster.wmkeyboard.core.input.composer.HangulStrokes
 import com.wasimaster.wmkeyboard.core.input.composer.NaratgeulComposer
 import com.wasimaster.wmkeyboard.core.input.composer.Kana
+import com.wasimaster.wmkeyboard.core.input.composer.KanaGlide
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictStore
 import com.wasimaster.wmkeyboard.core.input.composer.CjkLearning
 import com.wasimaster.wmkeyboard.core.input.composer.CjkUserHistory
@@ -2913,7 +2914,7 @@ open class WMKeyboardService : InputMethodService() {
         PhoneticIndexCache.retain(backends.keys)
         engine.extraPhonetic = backends
         romanizedGlides = romanizedGlides.filterKeys {
-            it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == PINYIN_GLIDE
+            it == PhoneticSchemes.BENGALI.languageId || it == KHIPRO_GLIDE || it == PINYIN_GLIDE || it == KANA_GLIDE
         } +
             backends.mapValues { (_, backend) ->
                 RomanizedIndex.of(
@@ -14510,23 +14511,49 @@ open class WMKeyboardService : InputMethodService() {
     private var pinyinGlideTable: ConversionDictionary? = null
 
     /**
-     * A swipe over the Pinyin board (#580): the stroke decodes into a reading,
-     * which joins the composing buffer as if typed, and the strip converts it.
-     * Nothing is committed and no space follows — in Chinese the reading is
-     * only the start of a pick, and a second swipe carries the same sentence
-     * on.
+     * The spellings a swipe over a kana board decodes into (#958), built from
+     * the Japanese table once it is loaded and again whenever it changes. Off
+     * the main thread: it walks every row of the table, a million of them.
      */
-    private fun pinyinGlide(points: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float) {
+    private fun ensureKanaGlide() {
+        val table = CjkDictionaries.japanese
+        if (table.isEmpty || kanaGlideTable === table || kanaGlideJob?.isActive == true) return
+        kanaGlideJob = serviceScope.launch {
+            val trie = withContext(Dispatchers.Default) { PackedTrie.of(KanaGlide.spellings(table)) }
+            kanaGlideTable = table
+            romanizedGlides = romanizedGlides +
+                (KANA_GLIDE to RomanizedIndex.deterministic(trie, PackedTrie.EMPTY, KanaGlide.KEYS, KanaGlide::reading))
+            glideSourcesEpoch.update { it + 1 }
+        }
+    }
+
+    private var kanaGlideJob: Job? = null
+    private var kanaGlideTable: ConversionDictionary? = null
+
+    /**
+     * A swipe over a board whose words are readings — Pinyin (#580), Kana JIS
+     * (#958): the stroke decodes into a reading, which joins the composing
+     * buffer as if typed, and the strip converts it. Nothing is committed and
+     * no space follows — the reading is only the start of a pick, and a second
+     * swipe carries the same sentence on.
+     */
+    private fun readingGlide(points: List<GesturePoint>, keys: List<KeyCenter>, keyWidthPx: Float) {
         gestureGeneration.incrementAndGet()
         suggestionJob?.cancel()
         gestureJob?.cancel()
         clearGlidePreview()
+        val composer = _uiState.value.composer
         gestureJob = serviceScope.launch {
             val reading = withContext(Dispatchers.Default) { glideDecode(points, keys, keyWidthPx) }
-            val spelled = reading.words.firstOrNull()?.lowercase()?.filter { it in 'a'..'z' }
+            val word = reading.words.firstOrNull()
+            val spelled = if (composer.glidesKanaReadings) {
+                word?.filter { it in 'ぁ'..'ゖ' || it == 'ー' }
+            } else {
+                word?.lowercase()?.filter { it in 'a'..'z' }
+            }
             if (spelled.isNullOrEmpty()) return@launch
             val ic = currentInputConnection ?: return@launch
-            if (_uiState.value.composer !== PinyinComposer) return@launch
+            if (_uiState.value.composer !== composer) return@launch
             appendComposing(spelled)
             updateComposingText(ic)
             refreshSuggestions()
@@ -20023,6 +20050,8 @@ open class WMKeyboardService : InputMethodService() {
             if (stale("ja_kana", "ja")) {
                 CjkDictionaries.japanese = conversionTable("ja_kana", "ja")
                 retryIfEmpty("ja_kana", CjkDictionaries.japanese.isEmpty)
+                // New kana swipe spellings too (#958).
+                glideSourcesEpoch.update { it + 1 }
             }
             if (stale("stroke", null)) {
                 CjkDictionaries.stroke = CjkDictStore.downloadedFileFor(filesDir, "stroke")
@@ -27370,6 +27399,13 @@ open class WMKeyboardService : InputMethodService() {
                         ?: PINYIN_GLIDE.takeIf {
                             state.composer === PinyinComposer &&
                                 state.settings.cjk.pinyinDoublePinyin == DoublePinyinScheme.OFF
+                        }
+                        // Kana JIS spells readings in kana (#958). Only a board
+                        // with a key for most kana: romaji and the flick pad
+                        // compose the same readings and draw none of them.
+                        ?: KANA_GLIDE.takeIf {
+                            state.composer.glidesKanaReadings &&
+                                state.layouts.letterAlphabet.count { it in KANA_GLIDE_RANGE } >= KANA_GLIDE_MIN_KEYS
                         },
                     alphabet = state.layouts.letterAlphabet + state.composer.glideKeys +
                         // The glide grid puts the apostrophe on the `'` key for
@@ -27387,6 +27423,7 @@ open class WMKeyboardService : InputMethodService() {
                     val engine = suggestionEngine
                     if (gate.phonetic == KHIPRO_GLIDE) ensureKhiproGlide()
                     if (gate.phonetic == PINYIN_GLIDE) ensurePinyinGlide()
+                    if (gate.phonetic == KANA_GLIDE) ensureKanaGlide()
                     engine?.glideRomanization =
                         gate.phonetic?.let { romanizedGlides[it] } ?: RomanizedIndex.EMPTY
                     val allowed = gate.phonetic != null || !gate.converts
@@ -27476,9 +27513,10 @@ open class WMKeyboardService : InputMethodService() {
         val state = _uiState.value
         if (!glideAllowed(state)) return
         if (keys.isEmpty()) return
-        // A Pinyin swipe previews nothing: what it decodes is a reading, which
-        // the strip shows converted once the finger lifts (#580).
-        if (state.composer === PinyinComposer) return
+        // A Pinyin or kana swipe previews nothing: what it decodes is a
+        // reading, which the strip shows converted once the finger lifts
+        // (#580, #958).
+        if (state.composer === PinyinComposer || state.composer.glidesKanaReadings) return
         syncGlideTriggers(state)
         if (swipeJoinsWord(state)) noteLiveDuetStroke(points)
         gesturePreviews.trySend(
@@ -28716,8 +28754,8 @@ open class WMKeyboardService : InputMethodService() {
         // Two-thumb typing, or a swipe finishing typed letters: the stroke
         // joins the word in progress instead of being one (#638, #595).
         if (duetSwipe(state, points, keys, keyWidthPx, shiftAtGesture)) return
-        if (state.composer === PinyinComposer) {
-            pinyinGlide(points, keys, keyWidthPx)
+        if (state.composer === PinyinComposer || state.composer.glidesKanaReadings) {
+            readingGlide(points, keys, keyWidthPx)
             return
         }
         gestureJob = serviceScope.launch {
@@ -53623,6 +53661,18 @@ private const val PINYIN_GLIDE = "zh_pinyin"
 
 /** Every key a Pinyin reading can pass through. */
 private const val PINYIN_GLIDE_KEYS = "abcdefghijklmnopqrstuvwxyz"
+
+/** [romanizedGlides]' key for a kana board, whose spellings are readings (#958). */
+private const val KANA_GLIDE = "ja_kana"
+
+/** Hiragana, as a board's alphabet holds it: what a kana key types. */
+private val KANA_GLIDE_RANGE = 0x3041..0x3096
+
+/**
+ * Kana keys a board needs before a swipe is decoded as kana. JIS has 46 plain
+ * ones and their small forms; a flick pad shows about ten.
+ */
+private const val KANA_GLIDE_MIN_KEYS = 40
 
 /** The notification row that follows the Khipro spellings being worked out. */
 private const val KHIPRO_GLIDE_NOTIFY_KEY = "khipro-glide"

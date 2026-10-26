@@ -216,6 +216,7 @@ import com.wasimaster.wmkeyboard.core.input.MorseCode
 import com.wasimaster.wmkeyboard.core.input.composer.CandidateAdjustment
 import com.wasimaster.wmkeyboard.core.input.composer.CjkDictCatalog
 import com.wasimaster.wmkeyboard.core.input.composer.HanVariant
+import com.wasimaster.wmkeyboard.core.input.composer.KanaGlide
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.Stable
@@ -21152,16 +21153,32 @@ internal fun bridgeSpaceAcrossGap(keys: List<Key>, gapWeight: Float): List<Key>?
  * apostrophe-in-a-glide setting to find. Kept out of everything that means
  * "letter key" — the engine's touch model and [nearLetterKey] — so tracking them
  * cannot change where a tap lands or what starts a glide.
+ *
+ * The kana boards' ゛ and ゜ keys report here too, for the same kind of reason:
+ * a swipe over Kana JIS may pass through one to draw a mark (#958), and the
+ * composer's glide keys find them in this map.
  */
-private val GlidePunctuationCodePoints = setOf(','.code, '.'.code, '\''.code, '/'.code)
+private val GlidePunctuationCodePoints = setOf(
+    ','.code, '.'.code, '\''.code, '/'.code,
+    KanaGlide.DAKUTEN.code, KanaGlide.HANDAKUTEN.code,
+)
 
 /** The character this key contributes to the centres map if it is punctuation. */
-private fun Key.glidePunctuationCodePoint(): Int? =
-    if (action == KeyAction.Text) {
-        (output ?: label).singleOrNull()?.code?.takeIf { it in GlidePunctuationCodePoints }
-    } else {
-        null
+private fun Key.glidePunctuationCodePoint(): Int? {
+    val text = (output ?: label).singleOrNull() ?: return null
+    // A ゛ or ゜ key is usually the 小゛゜ action wearing the mark as its label,
+    // and sometimes a key that types the mark, spacing or combining.
+    val mark = when (text) {
+        KanaGlide.DAKUTEN, '゙' -> KanaGlide.DAKUTEN
+        KanaGlide.HANDAKUTEN, '゚' -> KanaGlide.HANDAKUTEN
+        else -> null
     }
+    return when {
+        mark != null && (action == KeyAction.Text || action == KeyAction.KanaVariant) -> mark.code
+        action == KeyAction.Text -> text.code.takeIf { it in GlidePunctuationCodePoints }
+        else -> null
+    }
+}
 
 /**
  * True when [position] falls within roughly one key of a tracked letter key.

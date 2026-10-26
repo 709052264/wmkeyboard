@@ -107,6 +107,15 @@ interface Composer {
     val glideKeys: Set<Int> get() = emptySet()
 
     /**
+     * The buffer holds a Japanese kana reading that a kana key types straight
+     * in, so a swipe over a board of kana keys can spell one ([KanaGlide],
+     * #958). Whether the board on screen really has those keys is the
+     * keyboard's question, not this one's: romaji and flick use the same
+     * composer.
+     */
+    val glidesKanaReadings: Boolean get() = false
+
+    /**
      * Whether this composer spells its buffer in roman letters: Avro's, Hindi
      * phonetic's, Khipro's.
      *
